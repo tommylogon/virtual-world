@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Create Modal — opens the modal for creating rooms, items, and connections.
  * Used by graph-manager add buttons and the legacy openCreateModal() wrapper.
@@ -12,14 +11,17 @@
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 // Lazy tag: classic scripts parse before the deferred lit-bootstrap module
 // runs, so window.Lit only exists when this module actually renders.
-const createModalHtmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
+const createModalHtmlTag = (strings: TemplateStringsArray, ...values: unknown[]): any => window.Lit.html(strings, ...values);
+
 // document.getElementById returns HTMLElement, which has no value/checked/dataset.
 // Every lookup in this file is a form field, so the element type is the caller's
 // call. Same helper shape as item-library.ts: an assertion, never a new lookup.
 // Named for this module: this is a classic script, so its top-level `const`
 // shares one global lexical scope with every other module (a bare `byId` here
 // would collide with item-library.js's and be a SyntaxError at load).
-const createModalById = (id) => document.getElementById(id);
+const createModalById = <T extends HTMLElement = HTMLInputElement>(id: string): T | null =>
+    document.getElementById(id) as T | null;
+
 const ITEM_ACTIONS = ['examine', 'take', 'use', 'open', 'close', 'eat', 'drink', 'read', 'light', 'activate', 'equip', 'unequip', 'throw', 'break'];
 const ITEM_DEFAULT_ACTIONS = ['examine', 'take', 'use'];
 const ITEM_EQUIP_SLOTS = ['head', 'neck', 'torso', 'arms', 'hands', 'legs', 'feet', 'back', 'waist', 'accessory', 'hand_left', 'hand_right'];
@@ -27,11 +29,13 @@ const ITEM_STATES = ['normal', 'hidden', 'open', 'closed', 'locked', 'lit', 'unl
 const ITEM_RELATIONS = ['in', 'on', 'under', 'behind', 'beside', 'at'];
 const DAMAGE_SKILLS = ['Athletics', 'Acrobatics', 'Stealth', 'Perception', 'Investigation', 'Survival', 'Persuasion', 'Performance', 'Medicine', 'Arcana', 'Intimidation', 'Lockpicking'];
 const DAMAGE_TYPES = ['slashing', 'piercing', 'bludgeoning', 'fire', 'cold', 'toxic', 'magic', 'electric', 'radiant', 'necrotic', 'psychic', 'acid'];
+
 // Cardinal vocabulary for the connection form's direction suggestions. Same set
 // as graph/layout-engine.js `dirOffsets`, so an authored cardinal is one the
 // map layout can resolve. Offered as datalist suggestions only — a direction
 // is free text ("swinging door", "enter") and never restricted to this list.
 const CARDINALS = ['north', 'south', 'east', 'west', 'northeast', 'northwest', 'southeast', 'southwest', 'up', 'down'];
+
 // Mechanical capabilities — each chip owns one engine tag. Enabling a chip
 // adds the tag (via the tag picker) and reveals its tuning fields. The
 // engine counterparts live in lighting.py (light_source), environment_propagation.py
@@ -51,69 +55,62 @@ const ITEM_MECH = [
     { tag: 'electric', icon: '⚡', label: 'Electric' },
     { tag: 'two_handed', icon: '✌️', label: 'Two-handed' }
 ];
+
 // @ts-ignore -- globals.d.ts already declares `CreateModal` for main.js's bare
 // calls; this file IS that binding, and a second block-scoped declaration of the
 // same global name is TS2451. Kept as the top-level lexical `const` the runtime
 // has always had, so `window.CreateModal` stays undefined exactly as before.
-const CreateModal = {
+const CreateModal: ThisType<{
+    _tagMSArea?: any; _tagMSItem?: any; _tagMSConn?: any;
+    [key: string]: any;
+}> = {
     /** Open the create modal for a given entity type with a submit callback. */
-    open(type, onSubmit) {
+    open(type: string, onSubmit?: (data: any) => void) {
         const modal = createModalById('create-modal');
         const title = createModalById('create-modal-title');
         const body = createModalById('create-modal-body');
-        if (!modal || !body)
-            return;
+        if (!modal || !body) return;
+
         // The item form is sectioned and wider; other forms keep the compact width.
         body.style.width = type === 'item' ? '620px' : '480px';
-        let formTemplate;
+
+        let formTemplate: any;
         if (type === 'area') {
             formTemplate = this._buildRoomForm();
-            title.innerText = 'Add New Area';
-        }
-        else if (type === 'item') {
+            title!.innerText = 'Add New Area';
+        } else if (type === 'item') {
             formTemplate = this._buildItemForm();
-            title.innerText = 'Add New Item';
-        }
-        else if (type === 'connection') {
+            title!.innerText = 'Add New Item';
+        } else if (type === 'connection') {
             formTemplate = this._buildConnectionForm();
-            title.innerText = 'Connect Rooms';
+            title!.innerText = 'Connect Rooms';
         }
+
         const contentEl = createModalById('create-modal-content');
-        if (contentEl && formTemplate)
-            window.Lit.render(formTemplate, contentEl);
+        if (contentEl && formTemplate) window.Lit.render(formTemplate, contentEl);
         this._initTagMultiselects(type);
-        if (type === 'item')
-            this._initItemTargetSearch();
+        if (type === 'item') this._initItemTargetSearch();
         modal.style.display = 'flex';
-        const closeOnEscape = (event) => { if (event.key === 'Escape')
-            this.close(); };
+
+        const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') this.close(); };
         document.addEventListener('keydown', closeOnEscape);
-        modal._closeOnEscape = closeOnEscape;
-        modal.onclick = (event) => { if (event.target === modal)
-            this.close(); };
+        (modal as unknown as { _closeOnEscape?: (e: KeyboardEvent) => void })._closeOnEscape = closeOnEscape;
+
+        modal.onclick = (event) => { if (event.target === modal) this.close(); };
+
         const submitButton = createModalById('create-modal-submit');
-        submitButton.onclick = () => {
+        submitButton!.onclick = () => {
             const result = this._collectFormData(type);
-            if (result && onSubmit)
-                onSubmit(result);
+            if (result && onSubmit) onSubmit(result);
             this.close();
         };
     },
-    _initTagMultiselects(type) {
-        if (this._tagMSArea) {
-            this._tagMSArea.destroy();
-            this._tagMSArea = null;
-        }
-        if (this._tagMSItem) {
-            this._tagMSItem.destroy();
-            this._tagMSItem = null;
-        }
-        if (this._tagMSConn) {
-            this._tagMSConn.destroy();
-            this._tagMSConn = null;
-        }
-        if (typeof window.TagMultiselect === 'undefined')
-            return;
+
+    _initTagMultiselects(type: string) {
+        if (this._tagMSArea) { this._tagMSArea.destroy(); this._tagMSArea = null; }
+        if (this._tagMSItem) { this._tagMSItem.destroy(); this._tagMSItem = null; }
+        if (this._tagMSConn) { this._tagMSConn.destroy(); this._tagMSConn = null; }
+        if (typeof window.TagMultiselect === 'undefined') return;
         if (type === 'area') {
             const container = createModalById('area-tags');
             if (container) {
@@ -124,8 +121,7 @@ const CreateModal = {
                     placeholder: 'Search or create tags...'
                 });
             }
-        }
-        else if (type === 'item') {
+        } else if (type === 'item') {
             const container = createModalById('item-tags');
             if (container) {
                 this._tagMSItem = new window.TagMultiselect(container, {
@@ -133,11 +129,10 @@ const CreateModal = {
                     appliesTo: 'items',
                     allowNew: true,
                     placeholder: 'Search or create tags...',
-                    onChange: (tags) => this._syncMechChips(tags || [])
+                    onChange: (tags: string[]) => this._syncMechChips(tags || [])
                 });
             }
-        }
-        else if (type === 'connection') {
+        } else if (type === 'connection') {
             const container = createModalById('conn-tags');
             if (container) {
                 this._tagMSConn = new window.TagMultiselect(container, {
@@ -149,72 +144,66 @@ const CreateModal = {
             }
         }
     },
+
     /** Close the create modal */
     close() {
         const modal = createModalById('create-modal');
         if (modal) {
             modal.style.display = 'none';
-            const closeHandler = modal._closeOnEscape;
-            if (closeHandler)
-                document.removeEventListener('keydown', closeHandler);
+            const closeHandler = (modal as unknown as { _closeOnEscape?: (e: KeyboardEvent) => void })._closeOnEscape;
+            if (closeHandler) document.removeEventListener('keydown', closeHandler);
         }
     },
-    async _searchPlacementTargets(query) {
-        const targetType = document.querySelector('input[name="item-target-type"]:checked')?.value || 'item';
+
+    async _searchPlacementTargets(query: string): Promise<any[]> {
+        const targetType = document.querySelector<HTMLInputElement>('input[name="item-target-type"]:checked')?.value || 'item';
         const q = encodeURIComponent(query.trim().toLowerCase());
         try {
             const resp = await fetch(`/api/search/placement-targets?q=${q}`);
-            if (!resp.ok)
-                return [];
+            if (!resp.ok) return [];
             const all = await resp.json();
-            return all.filter((r) => r.type === targetType);
-        }
-        catch {
+            return all.filter((r: { type?: string }) => r.type === targetType);
+        } catch {
             return [];
         }
     },
+
     _initItemTargetSearch() {
         const input = createModalById('item-target-search');
         const results = createModalById('item-target-results');
         const preview = createModalById('item-target-preview');
         const hidden = createModalById('item-target-id');
-        if (!input || !results || !hidden || !preview)
-            return;
-        const show = (items) => {
+        if (!input || !results || !hidden || !preview) return;
+        const show = (items: Array<{ id?: string; name?: string; icon?: string; type?: string }>) => {
             if (!items.length) {
                 results.style.display = 'none';
                 return;
             }
             results.innerHTML = items.map(r => `<div class="tag-option" data-id="${r.id}" data-name="${(r.name || '').replace(/"/g, '&quot;')}" style="padding:6px 8px;cursor:pointer;font-size:11px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;"><span>${r.icon}</span><span style="font-weight:600;">${r.name}</span><span style="color:var(--text-muted);font-size:9px;margin-left:auto;">${r.type}</span></div>`).join('');
             results.style.display = 'block';
-            results.querySelectorAll('.tag-option').forEach(el => {
+            results.querySelectorAll<HTMLElement>('.tag-option').forEach(el => {
                 el.addEventListener('click', () => {
-                    hidden.value = el.dataset.id;
+                    hidden.value = el.dataset.id as string;
                     preview.textContent = `Selected: ${el.dataset.name} (${el.dataset.id})`;
                     results.style.display = 'none';
-                    input.value = el.dataset.name;
+                    input.value = el.dataset.name as string;
                 });
             });
         };
         input.oninput = async () => {
             const q = input.value.trim();
-            if (!q) {
-                results.style.display = 'none';
-                hidden.value = '';
-                preview.textContent = '';
-                return;
-            }
+            if (!q) { results.style.display = 'none'; hidden.value = ''; preview.textContent = ''; return; }
             const items = await this._searchPlacementTargets(q);
             show(items);
         };
         input.onblur = () => setTimeout(() => { results.style.display = 'none'; }, 150);
-        input.onfocus = () => { if (input.value.trim())
-            input.oninput({ target: input }); };
+        input.onfocus = () => { if (input.value.trim()) input.oninput!({ target: input } as unknown as InputEvent); };
     },
+
     _buildRoomForm() {
-        return createModalHtmlTag `<div style="display:flex;gap:4px;margin-bottom:8px;">
+        return createModalHtmlTag`<div style="display:flex;gap:4px;margin-bottom:8px;">
             <input type="text" id="ai-prompt" placeholder="AI prompt..." style="flex:1;font-size:11px;">
-            <button class="btn btn-sm btn-purple" @click=${() => window.generateWithAI('area')} style="background:#4a2a8a;border-color:#6a3aaa;color:#bc8cff;">🤖 Generate</button>
+            <button class="btn btn-sm btn-purple" @click=${() => (window as unknown as { generateWithAI(t: string): void }).generateWithAI('area')} style="background:#4a2a8a;border-color:#6a3aaa;color:#bc8cff;">🤖 Generate</button>
             <button class="btn btn-sm" @click=${() => VW._previewPrompt('area')} title="Preview and edit prompt" style="background:var(--bg-inset);border-color:var(--border);">👁️</button>
         </div>
         <label style="margin-top:0;">Area Name</label><input type="text" id="area-name" placeholder="e.g. Library">
@@ -231,19 +220,20 @@ const CreateModal = {
         <label>Tags</label><div id="area-tags" style="position:relative;"></div>
         <label style="font-size:10px;margin-top:8px;"><input type="checkbox" id="gen-use-context" checked> 🧠 Use world context</label>`;
     },
+
     _buildItemForm() {
-        const chipToggle = (e) => e.target.closest('.chip-toggle').classList.toggle('on', e.target.checked);
-        const actionChips = ITEM_ACTIONS.map(a => createModalHtmlTag `<label class="chip-toggle"><input type="checkbox" class="act-chk" value=${a} ?checked=${ITEM_DEFAULT_ACTIONS.includes(a)} @change=${chipToggle}> ${a}</label>`);
-        const slotChips = ITEM_EQUIP_SLOTS.map(s => createModalHtmlTag `<label class="chip-toggle"><input type="checkbox" class="slot-chk" data-slot=${s} @change=${chipToggle}> ${s}</label>`);
-        const mechChips = ITEM_MECH.map(m => createModalHtmlTag `<label class="chip-toggle" title=${m.label}><input type="checkbox" class="mech-chk" data-tag=${m.tag} @change=${(e) => this._onMechChipChange(m.tag, e.target.checked)}> ${m.icon} ${m.label}</label>`);
-        const stateOptions = ITEM_STATES.map(s => createModalHtmlTag `<option .value=${s} ?selected=${s === 'normal'}>${s}</option>`);
-        const relationOptions = ITEM_RELATIONS.map(r => createModalHtmlTag `<option .value=${r} ?selected=${r === 'in'}>${r}</option>`);
-        const damageSkillOptions = DAMAGE_SKILLS.map(s => createModalHtmlTag `<option .value=${s} ?selected=${s === 'Athletics'}>${s}</option>`);
+        const chipToggle = (e: Event & { target: HTMLInputElement }) => e.target.closest('.chip-toggle')!.classList.toggle('on', e.target.checked);
+        const actionChips = ITEM_ACTIONS.map(a => createModalHtmlTag`<label class="chip-toggle"><input type="checkbox" class="act-chk" value=${a} ?checked=${ITEM_DEFAULT_ACTIONS.includes(a)} @change=${chipToggle}> ${a}</label>`);
+        const slotChips = ITEM_EQUIP_SLOTS.map(s => createModalHtmlTag`<label class="chip-toggle"><input type="checkbox" class="slot-chk" data-slot=${s} @change=${chipToggle}> ${s}</label>`);
+        const mechChips = ITEM_MECH.map(m => createModalHtmlTag`<label class="chip-toggle" title=${m.label}><input type="checkbox" class="mech-chk" data-tag=${m.tag} @change=${(e: Event & { target: HTMLInputElement }) => this._onMechChipChange(m.tag, e.target.checked)}> ${m.icon} ${m.label}</label>`);
+        const stateOptions = ITEM_STATES.map(s => createModalHtmlTag`<option .value=${s} ?selected=${s === 'normal'}>${s}</option>`);
+        const relationOptions = ITEM_RELATIONS.map(r => createModalHtmlTag`<option .value=${r} ?selected=${r === 'in'}>${r}</option>`);
+        const damageSkillOptions = DAMAGE_SKILLS.map(s => createModalHtmlTag`<option .value=${s} ?selected=${s === 'Athletics'}>${s}</option>`);
         const damageTypeOptions = [['', '— none —'], ...DAMAGE_TYPES.map(dt => [dt, dt])]
-            .map(([v, lbl]) => createModalHtmlTag `<option .value=${v} ?selected=${v === ''}>${lbl}</option>`);
-        return createModalHtmlTag `<div style="display:flex;gap:4px;margin-bottom:2px;">
+            .map(([v, lbl]: string[]) => createModalHtmlTag`<option .value=${v} ?selected=${v === ''}>${lbl}</option>`);
+        return createModalHtmlTag`<div style="display:flex;gap:4px;margin-bottom:2px;">
             <input type="text" id="ai-prompt" placeholder="AI prompt — e.g. 'an old brass lantern'" style="flex:1;font-size:11px;">
-            <button class="btn btn-sm btn-purple" @click=${() => window.generateWithAI('item')} style="background:#4a2a8a;border-color:#6a3aaa;color:#bc8cff;">🤖 Generate</button>
+            <button class="btn btn-sm btn-purple" @click=${() => (window as unknown as { generateWithAI(t: string): void }).generateWithAI('item')} style="background:#4a2a8a;border-color:#6a3aaa;color:#bc8cff;">🤖 Generate</button>
             <button class="btn btn-sm" @click=${() => VW._previewPrompt('item')} title="Preview and edit prompt" style="background:var(--bg-inset);border-color:var(--border);">👁️</button>
             <label class="chip-toggle" title="Give the AI the target's description so the item fits the scene" style="align-self:center;"><input type="checkbox" id="gen-use-context" checked> 🧠 Context</label>
         </div>
@@ -379,38 +369,37 @@ const CreateModal = {
             </details>
         </div>`;
     },
-    _onMechChipChange(tag, checked) {
+
+    _onMechChipChange(tag: string, checked: boolean) {
         // Keep chip visuals and the tag picker in sync: the chip owns the tag.
-        const chk = document.querySelector(`#item-mech-chips .mech-chk[data-tag="${tag}"]`);
-        if (chk)
-            chk.closest('.chip-toggle').classList.toggle('on', checked);
+        const chk = document.querySelector<HTMLInputElement>(`#item-mech-chips .mech-chk[data-tag="${tag}"]`);
+        if (chk) chk.closest('.chip-toggle')!.classList.toggle('on', checked);
         if (this._tagMSItem) {
-            const cur = this._tagMSItem.getValue();
+            const cur: string[] = this._tagMSItem.getValue();
             const next = checked ? (cur.includes(tag) ? cur : [...cur, tag]) : cur.filter(t => t !== tag);
-            if (next.length !== cur.length)
-                this._tagMSItem.setValue(next);
+            if (next.length !== cur.length) this._tagMSItem.setValue(next);
         }
         if (tag === 'container' && checked) {
             const rows = createModalById('item-contents-rows');
-            if (rows && !rows.children.length)
-                this._addContentRow();
+            if (rows && !rows.children.length) this._addContentRow();
         }
         this._updateMechRows();
     },
-    _syncMechChips(tags) {
-        document.querySelectorAll('#item-mech-chips .mech-chk').forEach(chk => {
-            const on = tags.includes(chk.dataset.tag);
+
+    _syncMechChips(tags: string[]) {
+        document.querySelectorAll<HTMLInputElement>('#item-mech-chips .mech-chk').forEach(chk => {
+            const on = tags.includes(chk.dataset.tag as string);
             chk.checked = on;
-            chk.closest('.chip-toggle').classList.toggle('on', on);
+            chk.closest('.chip-toggle')!.classList.toggle('on', on);
         });
         this._updateMechRows();
     },
+
     _updateMechRows() {
-        const checked = (tag) => !!document.querySelector(`#item-mech-chips .mech-chk[data-tag="${tag}"]`)?.checked;
-        const show = (key, on) => {
+        const checked = (tag: string): boolean => !!document.querySelector<HTMLInputElement>(`#item-mech-chips .mech-chk[data-tag="${tag}"]`)?.checked;
+        const show = (key: string, on: boolean) => {
             const el = document.querySelector(`#item-mech-fields .mech-fields[data-mech="${key}"]`);
-            if (el)
-                el.classList.toggle('visible', on);
+            if (el) el.classList.toggle('visible', on);
         };
         show('light_source', checked('light_source'));
         show('heat_source', checked('heat_source'));
@@ -422,15 +411,14 @@ const CreateModal = {
         show('container', checked('container'));
         const active = ITEM_MECH.map(m => m.tag).filter(checked);
         const summary = createModalById('item-mech-summary');
-        if (summary)
-            summary.textContent = active.length
-                ? 'Active: ' + active.join(', ')
-                : 'No mechanics — a plain prop. Add chips above to make it glow, hum, heat, protect…';
+        if (summary) summary.textContent = active.length
+            ? 'Active: ' + active.join(', ')
+            : 'No mechanics — a plain prop. Add chips above to make it glow, hum, heat, protect…';
     },
+
     _addContentRow(name = '', description = '', relation = 'in') {
         const rows = createModalById('item-contents-rows');
-        if (!rows)
-            return;
+        if (!rows) return;
         const row = document.createElement('div');
         row.className = 'cm-content-row';
         const relOptions = ITEM_RELATIONS.map(r => `<option value="${r}"${r === relation ? ' selected' : ''}>${r}</option>`).join('');
@@ -439,9 +427,10 @@ const CreateModal = {
             <input type="text" class="cr-desc" placeholder="Short description" value="${description.replace(/"/g, '&quot;')}">
             <select class="cr-rel">${relOptions}</select>
             <button class="btn btn-sm" title="Remove" style="background:var(--bg-inset);border-color:var(--border);">✕</button>`;
-        row.querySelector('button').addEventListener('click', () => row.remove());
+        row.querySelector('button')!.addEventListener('click', () => row.remove());
         rows.appendChild(row);
     },
+
     _buildConnectionForm() {
         const roomNames = Object.keys(worldState.areas || {});
         const roomOptions = roomNames.map(area => `<option value="${area}">${area}</option>`).join('');
@@ -450,9 +439,9 @@ const CreateModal = {
         const roomBOptions = roomNames.map((area, i) => `<option value="${area}"${i === 1 ? ' selected' : ''}>${area}</option>`).join('');
         const skillOptions = DAMAGE_SKILLS
             .map(skill => `<option value="${skill}">${skill}</option>`).join('');
-        return createModalHtmlTag `<div style="display:flex;gap:4px;margin-bottom:8px;">
+        return createModalHtmlTag`<div style="display:flex;gap:4px;margin-bottom:8px;">
             <input type="text" id="ai-prompt" placeholder="Describe the way..." style="flex:1;font-size:11px;">
-            <button class="btn btn-sm btn-purple" @click=${() => window.generateWithAI('connection')} style="background:#4a2a8a;border-color:#6a3aaa;color:#bc8cff;">🤖 Generate</button>
+            <button class="btn btn-sm btn-purple" @click=${() => (window as unknown as { generateWithAI(t: string): void }).generateWithAI('connection')} style="background:#4a2a8a;border-color:#6a3aaa;color:#bc8cff;">🤖 Generate</button>
             <button class="btn btn-sm" @click=${() => VW._previewPrompt('connection')} title="Preview and edit prompt" style="background:var(--bg-inset);border-color:var(--border);">👁️</button>
         </div>
         <label>Way ID (optional)</label>
@@ -498,7 +487,7 @@ const CreateModal = {
                 <input type="text" id="conn-pass-msg" placeholder="Message when walked through…" style="width:100%;padding:4px 8px;font-size:11px;">
             </div>
             <div class="field" style="display:flex;align-items:center;gap:8px;margin-top:6px;">
-                <input type="checkbox" id="conn-needs-open" @change=${(e) => createModalById('conn-needs-config').style.display = e.target.checked ? 'flex' : 'none'}>
+                <input type="checkbox" id="conn-needs-open" @change=${(e: Event & { target: HTMLInputElement }) => createModalById('conn-needs-config')!.style.display = e.target.checked ? 'flex' : 'none'}>
                 <label for="conn-needs-open" style="font-size:11px;cursor:pointer;">🔒 Needs skill check to open</label>
             </div>
             <div id="conn-needs-config" style="display:none;gap:8px;margin-left:24px;">
@@ -518,7 +507,7 @@ const CreateModal = {
                 <label for="conn-see-through" style="font-size:11px;cursor:pointer;">👁️ See-through (light & vision pass through)</label>
             </div>
             <div class="field" style="display:flex;align-items:center;gap:8px;margin-top:6px;">
-                <input type="checkbox" id="conn-one-way" @change=${(e) => VW._onConnOneWayChange(e.target.checked)}>
+                <input type="checkbox" id="conn-one-way" @change=${(e: Event & { target: HTMLInputElement }) => VW._onConnOneWayChange(e.target.checked)}>
                 <label for="conn-one-way" style="font-size:11px;cursor:pointer;">➡️ One-way (Area A → B only)</label>
             </div>
             <div class="section-hint" id="conn-one-way-hint" style="display:none;font-size:9px;color:var(--text-muted);margin:-2px 0 0 24px;">The return edges are still drawn but movement refuses them, so the way shows in B as an exit and cannot be taken.</div>
@@ -533,116 +522,94 @@ const CreateModal = {
         </details>
         <label style="font-size:10px;margin-top:4px;"><input type="checkbox" id="gen-use-context" checked> 🧠 Use world context</label>`;
     },
-    _collectFormData(type) {
+
+    _collectFormData(type: string) {
         if (type === 'area') {
             return {
                 name: createModalById('area-name')?.value,
                 description: createModalById('area-desc')?.value,
                 light: createModalById('area-light')?.value || 'normal',
-                temperature: parseInt(createModalById('area-temp')?.value),
+                temperature: parseInt(createModalById('area-temp')?.value as string),
                 air: createModalById('area-air')?.value,
                 smell: createModalById('area-smell')?.value,
                 noise: createModalById('area-noise')?.value,
                 tags: this._tagMSArea ? this._tagMSArea.getValue() : []
             };
-        }
-        else if (type === 'item') {
-            const tags = this._tagMSItem ? this._tagMSItem.getValue() : [];
-            const has = (tag) => tags.includes(tag);
-            const num = (id) => { const raw = createModalById(id)?.value; return raw === '' || raw === undefined ? undefined : parseFloat(raw); };
-            const str = (id) => createModalById(id)?.value || undefined;
-            const contents = Array.from(document.querySelectorAll('#item-contents-rows .cm-content-row')).map((row, i) => {
-                const name = row.querySelector('.cr-name')?.value.trim() || '';
-                const description = row.querySelector('.cr-desc')?.value.trim() || '';
-                if (!name && !description)
-                    return null;
+        } else if (type === 'item') {
+            const tags: string[] = this._tagMSItem ? this._tagMSItem.getValue() : [];
+            const has = (tag: string) => tags.includes(tag);
+            const num = (id: string) => { const raw = createModalById(id)?.value; return raw === '' || raw === undefined ? undefined : parseFloat(raw); };
+            const str = (id: string) => createModalById(id)?.value || undefined;
+            const contents = Array.from(document.querySelectorAll<HTMLElement>('#item-contents-rows .cm-content-row')).map((row, i) => {
+                const name = row.querySelector<HTMLInputElement>('.cr-name')?.value.trim() || '';
+                const description = row.querySelector<HTMLInputElement>('.cr-desc')?.value.trim() || '';
+                if (!name && !description) return null;
                 const slug = name.toLowerCase().replace(/[^a-z0-9_]+/g, '_').replace(/^_|_$/g, '') || `content_${i}`;
-                return { id: `item_${slug}`, name: name || description, description, relation: row.querySelector('.cr-rel')?.value || 'in', actions: 'examine,take' };
+                return { id: `item_${slug}`, name: name || description, description, relation: row.querySelector<HTMLInputElement>('.cr-rel')?.value || 'in', actions: 'examine,take' };
             }).filter(Boolean);
-            const triggers = (() => { try {
-                return JSON.parse(createModalById('item-triggers-json')?.value || '[]');
-            }
-            catch {
-                return [];
-            } })();
-            const targetType = document.querySelector('input[name="item-target-type"]:checked')?.value || 'item';
+            const triggers: unknown[] = (() => { try { return JSON.parse(createModalById('item-triggers-json')?.value || '[]'); } catch { return []; } })();
+            const targetType = document.querySelector<HTMLInputElement>('input[name="item-target-type"]:checked')?.value || 'item';
             const targetId = createModalById('item-target-id')?.value || '';
             const relation = createModalById('item-target-relation')?.value || 'in';
-            const payload = {
+            const payload: Record<string, any> = {
                 target_type: targetType,
                 target_id: targetId,
                 relation: relation,
                 name: createModalById('item-name')?.value,
                 description: createModalById('item-desc')?.value,
-                actions: Array.from(document.querySelectorAll('.act-chk:checked')).map(checkbox => checkbox.value).join(','),
-                uses: parseInt(createModalById('item-uses')?.value),
-                weight: parseFloat(createModalById('item-weight')?.value),
+                actions: Array.from(document.querySelectorAll<HTMLInputElement>('.act-chk:checked')).map(checkbox => checkbox.value).join(','),
+                uses: parseInt(createModalById('item-uses')?.value as string),
+                weight: parseFloat(createModalById('item-weight')?.value as string),
                 current_state: createModalById('item-state')?.value || 'normal',
-                equip_slots: Array.from(document.querySelectorAll('#item-slot-chips .slot-chk:checked')).map(c => c.dataset.slot),
+                equip_slots: Array.from(document.querySelectorAll<HTMLInputElement>('#item-slot-chips .slot-chk:checked')).map(c => c.dataset.slot),
                 tags,
                 contents,
                 triggers
             };
             // Mechanical props — only sent when their capability chip is on.
-            if (has('light_source'))
-                payload.light_level = createModalById('item-light-level')?.value || 'dim';
+            if (has('light_source')) payload.light_level = createModalById('item-light-level')?.value || 'dim';
             if (has('heat_source')) {
                 payload.target_temperature = num('item-target-temp') ?? 30;
                 payload.heating_rate = num('item-heating-rate') ?? 0.5;
             }
             if (has('sound_source')) {
-                payload.sound_level = parseInt(createModalById('item-sound-level')?.value) || 1;
+                payload.sound_level = parseInt(createModalById('item-sound-level')?.value as string) || 1;
                 payload.sound_pattern = createModalById('item-sound-pattern')?.value?.trim() || 'noise';
             }
-            if (has('insulation'))
-                payload.insulation = num('item-insulation') ?? 0;
-            if (has('armor') || has('clothing'))
-                payload.defense = num('item-defense') ?? 0;
+            if (has('insulation')) payload.insulation = num('item-insulation') ?? 0;
+            if (has('armor') || has('clothing')) payload.defense = num('item-defense') ?? 0;
             if (has('weapon')) {
                 payload.damage = createModalById('item-damage')?.value?.trim() || 0;
                 payload.damage_skill = str('item-damage-skill');
                 const dtype = createModalById('item-damage-type')?.value;
-                if (dtype)
-                    payload.damage_type = dtype;
+                if (dtype) payload.damage_type = dtype;
                 const stunChance = num('item-stun-chance');
                 const stunDuration = num('item-stun-duration');
-                if (stunChance)
-                    payload.stun_chance = stunChance;
-                if (stunDuration)
-                    payload.stun_duration = stunDuration;
+                if (stunChance) payload.stun_chance = stunChance;
+                if (stunDuration) payload.stun_duration = stunDuration;
             }
             if (has('resistance')) {
-                const resistances = {};
+                const resistances: Record<string, number> = {};
                 (createModalById('item-resistances')?.value || '').split(',').forEach(pair => {
                     const parts = pair.split(':').map(s => s.trim());
                     if (parts.length === 2 && parts[0] && parts[1]) {
                         const val = parseInt(parts[1]);
-                        if (!isNaN(val))
-                            resistances[parts[0]] = val;
+                        if (!isNaN(val)) resistances[parts[0]] = val;
                     }
                 });
-                if (Object.keys(resistances).length)
-                    payload.resistances = resistances;
+                if (Object.keys(resistances).length) payload.resistances = resistances;
             }
             return payload;
-        }
-        else if (type === 'connection') {
+        } else if (type === 'connection') {
             const needsOpenCheckbox = createModalById('conn-needs-open');
             const needsOpen = needsOpenCheckbox?.checked ? {
                 enabled: true,
                 skill: createModalById('conn-needs-skill')?.value || 'Athletics',
-                dc: parseInt(createModalById('conn-needs-dc')?.value) || 15
+                dc: parseInt(createModalById('conn-needs-dc')?.value as string) || 15
             } : { enabled: false, skill: 'Athletics', dc: 15 };
             const triggersRaw = createModalById('conn-triggers-json')?.value;
-            let triggers = [];
-            if (triggersRaw) {
-                try {
-                    triggers = JSON.parse(triggersRaw);
-                }
-                catch {
-                    triggers = [];
-                }
-            }
+            let triggers: unknown[] = [];
+            if (triggersRaw) { try { triggers = JSON.parse(triggersRaw); } catch { triggers = []; } }
             return {
                 room1: createModalById('conn-roomA')?.value,
                 room2: createModalById('conn-roomB')?.value,
@@ -665,26 +632,25 @@ const CreateModal = {
         }
         return null;
     },
+
     /** Apply AI-generated item data to the form fields (called by generateWithAI). */
-    _applyItemAIData(data) {
-        const set = (id, val) => { const el = createModalById(id); if (el)
-            el.value = val ?? ''; };
+    _applyItemAIData(data: any) {
+        const set = (id: string, val: any) => { const el = createModalById(id); if (el) el.value = val ?? ''; };
         set('item-name', data.name);
         set('item-desc', data.description);
         set('item-uses', data.uses ?? -1);
         set('item-weight', data.weight ?? 0.1);
         const stateEl = createModalById('item-state');
-        if (stateEl)
-            stateEl.value = data.current_state || 'normal';
+        if (stateEl) stateEl.value = data.current_state || 'normal';
         if (this._tagMSItem && data.tags) {
             const tags = Array.isArray(data.tags) ? data.tags : String(data.tags).split(',').map(t => t.trim()).filter(Boolean);
             this._tagMSItem.setValue(tags);
             this._syncMechChips(tags);
         }
         // Equip slots → chips
-        document.querySelectorAll('#item-slot-chips .slot-chk').forEach(chk => {
+        document.querySelectorAll<HTMLInputElement>('#item-slot-chips .slot-chk').forEach(chk => {
             chk.checked = Array.isArray(data.equip_slots) && data.equip_slots.includes(chk.dataset.slot);
-            chk.closest('.chip-toggle').classList.toggle('on', chk.checked);
+            chk.closest('.chip-toggle')!.classList.toggle('on', chk.checked);
         });
         // Mechanical fields
         set('item-light-level', data.light_level || 'dim');
@@ -700,8 +666,7 @@ const CreateModal = {
         set('item-stun-chance', data.stun_chance ?? '');
         set('item-stun-duration', data.stun_duration ?? '');
         set('item-resistances', data.resistances ? Object.entries(data.resistances).map(([k, v]) => `${k}:${v}`).join(', ') : '');
-        if (data.triggers)
-            set('item-triggers-json', JSON.stringify(data.triggers, null, 2));
+        if (data.triggers) set('item-triggers-json', JSON.stringify(data.triggers, null, 2));
         this._updateMechRows();
     }
 };

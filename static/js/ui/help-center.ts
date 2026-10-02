@@ -1,4 +1,3 @@
-"use strict";
 /**
  * help-center.js — Help, coach tips and guided tours (HelpCenter).
  *
@@ -25,16 +24,47 @@
  * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+
 window.HelpCenter = (() => {
     'use strict';
+
+    // Declared inside the IIFE on purpose: a top-level interface in a classic
+    // script is a global, and the tip/tour shapes are private to this module.
+
+    /**
+     * One entry of the tip registry. `match` receives whatever the trigger
+     * delivered — a [data-help] string, the inspector:view detail object, or
+     * null — so it stays `any`: the gates disagree about the shape on
+     * purpose and each one tests only what its own event carries.
+     */
+    interface HelpCenterTip {
+        id: string;
+        tour?: string;
+        event: string;
+        match?: (d: any) => boolean;
+        group: string;
+        title: string;
+        body: string;
+        target?: string;
+        once?: 'session' | 'global';
+    }
+
+    /** A guided tour: an ordered chain of tip ids. */
+    interface HelpCenterTour {
+        title: string;
+        group: string;
+        steps: string[];
+    }
+
     const STORAGE_KEY = 'vw_help_seen_v1';
+
     // ─────────────────────── Tip registry ───────────────────────
     // event: 'inspector:view' | 'data-help' | 'state:updated'
     // match: optional (detail) => bool gate
     // target: optional CSS selector for the [Show me] spotlight
     // tour: optional tour id (which ordered chain this tip belongs to)
     // once: 'session' (default — re-shows next session) | 'global'
-    const TIPS = [
+    const TIPS: HelpCenterTip[] = [
         {
             id: 'welcome',
             tour: 'hello',
@@ -195,7 +225,7 @@ window.HelpCenter = (() => {
         {
             id: 'autodress',
             event: 'data-help',
-            match: d => d === 'autodress', group: 'Items & triggers',
+            match: d => d === 'autodress',            group: 'Items & triggers',
             title: 'Auto-Dress from Interests',
             body: 'The character\'s LLM picks an outfit for them from the wearable items in the library, judging who they are rather than which tags overlap. Weather-aware, and never replaces gear they are already wearing. Without an LLM configured it falls back to matching <b>interest_tags</b> only — which often picks nothing sensible, since it cannot tell a blacksmith from a farmer. Empty interests? Use <b>✨ Generate from Personality</b> in Bio to let the character pick its own tags.',
         },
@@ -236,6 +266,7 @@ window.HelpCenter = (() => {
             body: 'A densely painted world is thousands of rooms, which freezes the graph. Pick a <b>world scope</b> here to load only that zone into the canvas (its rooms, ways and characters). <b>Whole world</b> restores everything, and switching scenarios rebuilds the list.',
             target: '#graph-scope-filter',
         },
+
         // ── WorldPainter, in-editor (task-521) ─────────────────────────────
         // The launcher tip above explains the system. These explain the
         // controls, and — more usefully — the things the controls will not tell
@@ -459,58 +490,50 @@ window.HelpCenter = (() => {
             target: '[data-help="wp-tool-inspect"]',
         },
     ];
+
     // Guided tours: ordered chains of tip ids.
-    const TOURS = {
+    const TOURS: Record<string, HelpCenterTour> = {
         hello: { title: 'First five minutes', group: 'Beginner', steps: ['welcome', 'run-sim', 'agent-settings', 'game-menu'] },
         triggers: { title: 'Triggers & effects', group: 'Items & triggers', steps: ['inspector-item', 'trigger-system', 'snippets', 'more-tools'] },
         scenario: { title: 'Scenario workflow', group: 'World building', steps: ['game-menu', 'duplicate', 'inspector-area'] },
         world: { title: 'Painting a world', group: 'World building', steps: ['worldpainter', 'scope-filter', 'inspector-area'] },
         'paint-a-town': { title: 'Painting a town', group: 'WorldPainter', steps: ['wp-checklist', 'wp-grid', 'wp-layer', 'wp-tool-route', 'wp-value', 'wp-tool-inspect', 'wp-blockers', 'wp-generate'] },
     };
+
     // ─────────────────────── State ───────────────────────
-    let _seen = new Set();
+    let _seen: Set<string> = new Set();
     try {
         _seen = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'));
-    }
-    catch (e) { /* fresh */ }
-    const _sessionSeen = new Set();
-    let _current = null; // active tip object
-    let _tourQueue = []; // remaining tips of a running tour
-    let _timer = null;
+    } catch (e) { /* fresh */ }
+    const _sessionSeen: Set<string> = new Set();
+    let _current: HelpCenterTip | null = null;        // active tip object
+    let _tourQueue: string[] = [];        // remaining tips of a running tour
+    let _timer: ReturnType<typeof setTimeout> | null = null;
+
     // ─────────────────────── Storage ───────────────────────
-    function _markSeen(id) {
+    function _markSeen(id: string) {
         _sessionSeen.add(id);
         const tip = TIPS.find(t => t.id === id);
         if (tip && tip.once === 'global') {
             _seen.add(id);
-            try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify([..._seen]));
-            }
-            catch (e) { /* ignore */ }
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify([..._seen])); } catch (e) { /* ignore */ }
         }
     }
-    function _isSeen(id) {
+
+    function _isSeen(id: string) {
         return _seen.has(id) || _sessionSeen.has(id);
     }
+
     // ─────────────────────── Spotlight ───────────────────────
-    let _spot = null;
+    let _spot: HTMLDivElement | null = null;
     function _clearSpotlight() {
-        if (_spot) {
-            _spot.remove();
-            _spot = null;
-        }
+        if (_spot) { _spot.remove(); _spot = null; }
     }
-    function spotlight(selector) {
+    function spotlight(selector: string | undefined) {
         _clearSpotlight();
-        let el = null;
-        try {
-            el = document.querySelector(selector);
-        }
-        catch (e) {
-            el = null;
-        }
-        if (!el)
-            return false;
+        let el: Element | null = null;
+        try { el = document.querySelector(selector as string); } catch (e) { el = null; }
+        if (!el) return false;
         el.scrollIntoView({ behavior: 'smooth', block: 'center' });
         const rect = el.getBoundingClientRect();
         _spot = document.createElement('div');
@@ -523,11 +546,11 @@ window.HelpCenter = (() => {
         document.body.appendChild(_spot);
         return true;
     }
+
     // ─────────────────────── Coach card ───────────────────────
-    let _card = null, _cardHost = null;
+    let _card: HTMLDivElement | null = null, _cardHost: HTMLElement | null = null;
     function _ensureStyles() {
-        if (document.getElementById('hc-styles'))
-            return;
+        if (document.getElementById('hc-styles')) return;
         const style = document.createElement('style');
         style.id = 'hc-styles';
         style.textContent = `
@@ -554,36 +577,30 @@ window.HelpCenter = (() => {
         `;
         document.head.appendChild(style);
     }
+
     function _closeCard() {
-        if (_timer) {
-            clearTimeout(_timer);
-            _timer = null;
-        }
-        if (_card) {
-            _card.remove();
-            _card = null;
-        }
+        if (_timer) { clearTimeout(_timer); _timer = null; }
+        if (_card) { _card.remove(); _card = null; }
     }
+
     function _nextTourStep() {
         const id = _tourQueue.shift();
-        if (!id)
-            return;
+        if (!id) return;
         const tip = TIPS.find(t => t.id === id);
         if (tip) {
             _show(tip, true);
-        }
-        else {
+        } else {
             _nextTourStep();
         }
     }
-    function _show(tip, fromTour) {
-        if (!tip || (tip.once === 'global' && _seen.has(tip.id)))
-            return;
-        if (_sessionSeen.has(tip.id))
-            return;
+
+    function _show(tip: HelpCenterTip, fromTour: boolean) {
+        if (!tip || (tip.once === 'global' && _seen.has(tip.id))) return;
+        if (_sessionSeen.has(tip.id)) return;
         _closeCard();
         _ensureStyles();
         _markSeen(tip.id);
+
         _card = document.createElement('div');
         _card.className = 'hc-card';
         const hasTarget = !!tip.target;
@@ -596,66 +613,54 @@ window.HelpCenter = (() => {
                 <button class="hc-dismiss" title="Don\'t show this tip again">✕</button>
             </div>`;
         _card.addEventListener('click', (e) => {
-            if (e.target.classList.contains('hc-showme')) {
+            if ((e.target as Element).classList.contains('hc-showme')) {
                 spotlight(tip.target);
-            }
-            else if (e.target.classList.contains('hc-gotit')) {
+            } else if ((e.target as Element).classList.contains('hc-gotit')) {
                 _closeCard();
-                if (fromTour && _tourQueue.length)
-                    _nextTourStep();
-            }
-            else if (e.target.classList.contains('hc-dismiss')) {
+                if (fromTour && _tourQueue.length) _nextTourStep();
+            } else if ((e.target as Element).classList.contains('hc-dismiss')) {
                 _seen.add(tip.id);
-                try {
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify([..._seen]));
-                }
-                catch (err) { /* ignore */ }
+                try { localStorage.setItem(STORAGE_KEY, JSON.stringify([..._seen])); } catch (err) { /* ignore */ }
                 _closeCard();
             }
         });
         document.body.appendChild(_card);
         // gentle auto-hide (not during tours)
         if (!fromTour) {
-            _timer = setTimeout(() => { if (_card && !_card.matches(':hover'))
-                _closeCard(); }, 16000);
+            _timer = setTimeout(() => { if (_card && !_card.matches(':hover')) _closeCard(); }, 16000);
         }
-        if (fromTour && tip.target)
-            spotlight(tip.target);
+        if (fromTour && tip.target) spotlight(tip.target);
     }
+
     // ─────────────────────── Triggers ───────────────────────
-    function maybe(eventName, detail) {
-        if (_tourQueue.length)
-            return; // tours own the screen
+    function maybe(eventName: string, detail: any) {
+        if (_tourQueue.length) return; // tours own the screen
         for (const tip of TIPS) {
-            if (tip.event !== eventName)
-                continue;
-            if (_isSeen(tip.id))
-                continue;
-            if (tip.match && !tip.match(detail))
-                continue;
+            if (tip.event !== eventName) continue;
+            if (_isSeen(tip.id)) continue;
+            if (tip.match && !tip.match(detail)) continue;
             // de-dupe: at most one coach card at a time
             _show(tip, false);
             return;
         }
     }
-    function startTour(tourId) {
+
+    function startTour(tourId: string) {
         const tour = TOURS[tourId];
-        if (!tour)
-            return;
+        if (!tour) return;
         _closeCard();
         _clearSpotlight();
         _tourQueue = tour.steps.filter(id => !_sessionSeen.has(id));
-        if (!_tourQueue.length) {
-            _tourQueue = [...tour.steps];
-        }
+        if (!_tourQueue.length) { _tourQueue = [...tour.steps]; }
         _nextTourStep();
     }
+
     // modal close helper (used by inline buttons)
     function _closeModal() {
         const m = document.getElementById('hc-modal');
-        if (m)
-            m.remove();
+        if (m) m.remove();
     }
+
     function openIndex() {
         _closeCard();
         _ensureStyles();
@@ -680,9 +685,9 @@ window.HelpCenter = (() => {
             <div style="margin-top:12px;text-align:right;"><button onclick="HelpCenter._closeModal()">Close</button></div>
         </div>`;
         document.body.appendChild(m);
-        m.addEventListener('click', (e) => { if (e.target === m)
-            _closeModal(); });
+        m.addEventListener('click', (e) => { if (e.target === m) _closeModal(); });
     }
+
     // ─────────────────────── Initialization ───────────────────────
     function init() {
         _ensureStyles();
@@ -691,47 +696,35 @@ window.HelpCenter = (() => {
             appEvents.on('inspector:view', (d) => maybe('inspector:view', d));
         }
         document.addEventListener('click', (e) => {
-            const el = e.target.closest && e.target.closest('[data-help]');
-            if (el)
-                maybe('data-help', el.dataset.help);
+            const el = (e.target as Element).closest && (e.target as Element).closest('[data-help]');
+            if (el) maybe('data-help', (el as HTMLElement).dataset.help);
         }, true);
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'F1') {
-                e.preventDefault();
-                openIndex();
-            }
-            if (e.key === 'Escape') {
-                _closeCard();
-                _clearSpotlight();
-                _closeModal();
-            }
+            if (e.key === 'F1') { e.preventDefault(); openIndex(); }
+            if (e.key === 'Escape') { _closeCard(); _clearSpotlight(); _closeModal(); }
         });
     }
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
-    }
-    else {
+    } else {
         init();
     }
+
     return { TIPS, TOURS, maybe, startTour, openIndex, init, _closeModal, _resetTip, _resetAll };
+
     // ── exports for inline buttons ──
-    function _resetTip(id) {
+    function _resetTip(id: string) {
         _sessionSeen.delete(id);
         _seen.delete(id);
-        try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify([..._seen]));
-        }
-        catch (e) { /* ignore */ }
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify([..._seen])); } catch (e) { /* ignore */ }
         _closeModal();
         openIndex();
     }
     function _resetAll() {
         _seen.clear();
         _sessionSeen.clear();
-        try {
-            localStorage.removeItem(STORAGE_KEY);
-        }
-        catch (e) { /* ignore */ }
+        try { localStorage.removeItem(STORAGE_KEY); } catch (e) { /* ignore */ }
         _closeModal();
     }
 })();

@@ -1,4 +1,3 @@
-"use strict";
 /**
  * prompt-builder/character-state.js — Character state context builders.
  *
@@ -16,9 +15,112 @@
  * @docs docs/virtualWorld/Characters/Vitals System.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+
 window.PromptBuilder = window.PromptBuilder || {};
+
+/**
+ * One row of `player.relationships` — the per-other-person record the
+ * relationship fragments read. `closeness` is -100..100; `summary`/`role`/
+ * `consent` are the task-350 derived read (optional, absent on old saves).
+ */
+interface CharacterStateRelationship {
+    closeness?: number;
+    label?: string;
+    summary?: string;
+    role?: string;
+    consent?: number;
+}
+
+/** A character as the "=== YOUR STATE ===" builders read it: the /api/state
+ *  player object. Only the fields these builders touch are named; the index
+ *  signature keeps the rest of the payload (LLM-written, scenario-specific)
+ *  readable without pretending the shape is known. */
+interface CharacterStatePlayer {
+    name?: string;
+    state?: string;
+    description?: string;
+    current_area?: string;
+    current_carry_weight: string;
+    max_carry_capacity: string;
+    emotions_description?: string;
+    emotion?: { description?: string; current?: string; intensity?: number };
+    relationships?: Record<string, CharacterStateRelationship>;
+    vitals?: Record<string, number>;
+    traits?: Record<string, unknown>;
+    trait_behavior?: string[];
+    perceived_conditions?: string[];
+    conditions?: Record<string, unknown>;
+    recent_hearing?: CharacterStateHearing[];
+    [key: string]: any;
+}
+
+/** One entry of `player.recent_hearing` / `state.players_in_area`. */
+interface CharacterStatePerson {
+    name: string;
+    state?: string;
+    description?: string;
+    traits?: Record<string, unknown>;
+    relationships?: Record<string, CharacterStateRelationship>;
+}
+
+/** A heard line: what reached the character's ears this turn. */
+interface CharacterStateHearing {
+    type?: string;
+    speaker?: string;
+    text?: string;
+}
+
+/** An item node — `worldState.getItemsInArea()` / `carriedItemNodes()` both
+ *  return graph nodes whose `properties.tags`/`properties.actions` are
+ *  either an array or a comma-separated string. */
+interface CharacterStateItem {
+    name?: string;
+    properties?: { tags?: unknown; actions?: unknown };
+}
+
+/** The scene facts `describeVital` reads for context-aware prose. `alone` and
+ *  `noise` are checked by describeVital but are not produced by _vitalsScene,
+ *  so they stay optional — the reads are harmless and must not be removed. */
+interface CharacterStateScene {
+    company: number;
+    others: string[];
+    inConversation: boolean;
+    addressed: boolean;
+    foodVisible: boolean;
+    drinkVisible: boolean;
+    foodNames: (string | undefined)[];
+    drinkNames: (string | undefined)[];
+    carriedFood: (string | undefined)[];
+    carriedDrink: (string | undefined)[];
+    hasThreat: boolean;
+    threatNames: (string | undefined)[];
+    alone?: boolean;
+    noise?: string;
+}
+
+/** Species temperature band (engine/traits.py). */
+interface CharacterStateTempBand {
+    normal: number;
+    cold_mild: number;
+    cold_severe: number;
+    heat_mild: number;
+    heat_severe: number;
+    heat_critical: number;
+}
+
+/** The /api/state payload, narrowed to what the scene probe reads. */
+interface CharacterStateState {
+    current_area?: string;
+    areas?: Record<string, unknown>;
+    players_in_area?: CharacterStatePerson[];
+    players?: Record<string, CharacterStatePerson>;
+    turn_events?: { actor?: string; action?: string }[];
+    [key: string]: any;
+}
+
 (() => {
     'use strict';
+
     /**
      * Natural-language encumbrance context (task-156 presentation): the agent
      * should know its load is heavy BEFORE it tries to move — no raw numbers
@@ -27,29 +129,25 @@ window.PromptBuilder = window.PromptBuilder || {};
      * @param {Object} player - Player data object
      * @returns {string} Encumbrance context line, or '' when unloaded
      */
-    function buildEncumbranceContext(player) {
-        if (!player)
-            return '';
+    function buildEncumbranceContext(player: CharacterStatePlayer) {
+        if (!player) return '';
         const current = parseFloat(player.current_carry_weight);
         const capacity = parseFloat(player.max_carry_capacity);
-        if (isNaN(current) || isNaN(capacity) || capacity <= 0)
-            return '';
+        if (isNaN(current) || isNaN(capacity) || capacity <= 0) return '';
         const ratio = current / capacity;
-        if (ratio >= 1.0)
-            return '\n⚠️ You are carrying far more than you can bear — you cannot move until you drop or stow something.';
-        if (ratio >= 0.8)
-            return '\nYou are carrying about as much as you can manage — moving is exhausting and you cannot dash.';
-        if (ratio >= 0.5)
-            return '\nYour load is starting to drag on you — moving costs noticeably more energy.';
+        if (ratio >= 1.0) return '\n⚠️ You are carrying far more than you can bear — you cannot move until you drop or stow something.';
+        if (ratio >= 0.8) return '\nYou are carrying about as much as you can manage — moving is exhausting and you cannot dash.';
+        if (ratio >= 0.5) return '\nYour load is starting to drag on you — moving costs noticeably more energy.';
         return '';
     }
+
     /**
      * Build emotion context for a character.
      * Returns a string describing their current emotional state if it's non-neutral.
      * @param {Object} player - Player data object
      * @returns {string} Emotion description string or empty string
      */
-    function buildEmotionContext(player) {
+    function buildEmotionContext(player: CharacterStatePlayer) {
         // Task-96: multi-dimensional affect map — the backend renders the
         // first-person band phrases (single source of truth in
         // engine/emotion.py) and ships them as `emotions_description`.
@@ -57,18 +155,19 @@ window.PromptBuilder = window.PromptBuilder || {};
             return `\nMood: ${player.emotions_description}`;
         }
         // Legacy single-slot fallback for old saves.
-        if (!player?.emotion?.description || player.emotion.current === 'neutral' || (player.emotion.intensity || 0) < 0.1)
-            return '';
+        if (!player?.emotion?.description || player.emotion.current === 'neutral' || (player.emotion.intensity || 0) < 0.1) return '';
         return `\n${player.emotion.description}`;
     }
+
     /**
      * Map a closeness score to its relationship type name.
      * @param {number} closeness - Relationship score -100..100
      * @returns {string} Type name (e.g. "close friend")
      */
-    function relationshipTypeName(closeness) {
+    function relationshipTypeName(closeness: number) {
         return closeness <= -75 ? 'mortal enemy' : closeness <= -50 ? 'enemy' : closeness <= -25 ? 'rival' : closeness < 0 ? 'unfriendly' : closeness === 0 ? 'neutral' : closeness <= 25 ? 'acquaintance' : closeness <= 50 ? 'friend' : closeness <= 75 ? 'close friend' : 'inseparable';
     }
+
     /**
      * Inline relationship label for the "People here" list — the type with an
      * article ("a close friend"), no score. Returns '' when there is no
@@ -79,51 +178,46 @@ window.PromptBuilder = window.PromptBuilder || {};
      */
     // Article handling for a relationship label — "a close friend" but
     // "an inseparable" (vowel-initial names). Keeps prompt text grammatical.
-    function withArticle(name) {
+    function withArticle(name: string) {
         return /^[aeiou]/i.test(name) ? `an ${name}` : `a ${name}`;
     }
-    function buildRelationshipLabel(player, otherName) {
-        if (!player?.relationships || !otherName)
-            return '';
+
+    function buildRelationshipLabel(player: CharacterStatePlayer, otherName: string) {
+        if (!player?.relationships || !otherName) return '';
         const relationshipObj = player.relationships[otherName];
-        if (!relationshipObj || relationshipObj.closeness === undefined)
-            return '';
+        if (!relationshipObj || relationshipObj.closeness === undefined) return '';
         const label = (relationshipObj.label || '').trim();
-        if (label)
-            return withArticle(label);
-        if (Math.abs(relationshipObj.closeness) <= 10)
-            return '';
+        if (label) return withArticle(label);
+        if (Math.abs(relationshipObj.closeness) <= 10) return '';
         return withArticle(relationshipTypeName(relationshipObj.closeness));
     }
+
     /**
      * Build relationship context showing the character's relationships with others in the area.
      * @param {Object} player - Player data object
      * @param {string} charName - Character name (to exclude self)
      * @returns {string} Formatted relationship string or empty string
      */
-    function buildRelationshipContext(player, charName) {
-        if (!player?.relationships)
-            return '';
-        const others = worldState?.data?.players_in_area?.filter((other) => other.name !== charName) || [];
-        if (others.length === 0)
-            return '';
-        return '\n' + others.map((other) => {
-            const relationshipObj = player.relationships[other.name];
+    function buildRelationshipContext(player: CharacterStatePlayer, charName: string) {
+        if (!player?.relationships) return '';
+        const others = worldState?.data?.players_in_area?.filter((other: CharacterStatePerson) => other.name !== charName) || [];
+        if (others.length === 0) return '';
+        return '\n' + others.map((other: CharacterStatePerson) => {
+            const relationshipObj = player.relationships![other.name];
             const allPlayers = worldState?.data?.players || {};
             const otherDesc = allPlayers[other.name]?.description || '';
             const anon = PromptBuilder.anonymousName(charName, other.name, otherDesc);
-            if (!relationshipObj)
-                return `${charName} hasn't met ${anon}`;
+            if (!relationshipObj) return `${charName} hasn't met ${anon}`;
             // Closeness is optional on the record, but the original has always
             // passed it straight through (an absent one lands in the top tier).
             // The assertion types that without changing what runs.
-            const closeness = relationshipObj.closeness;
+            const closeness = relationshipObj.closeness as number;
             // task-350: when a derived read exists (experience-driven trust/
             // fear/consent), surface its summary + role instead of just the raw
             // closeness label. Falls back to the closeness guidance below.
             if (relationshipObj.summary && relationshipObj.role) {
                 const read = relationshipObj.summary;
-                const sign = (relationshipObj.consent !== undefined && relationshipObj.consent <= -0.3) ? ' (you would pull away)' : (relationshipObj.consent >= 0.3 ? ' (you would let them close)' : '');
+                const sign = (relationshipObj.consent !== undefined && relationshipObj.consent <= -0.3) ? ' (you would pull away)' : (relationshipObj.consent! >= 0.3 ? ' (you would let them close)' : '');
                 return `${charName} reads ${anon} as ${relationshipObj.role}: ${read}${sign}`;
             }
             const label = (relationshipObj.label || '').trim();
@@ -135,33 +229,27 @@ window.PromptBuilder = window.PromptBuilder || {};
             return `${charName} considers ${anon} ${withArticle(relationshipTypeName(closeness))} (${closeness}/100) — ${relationshipGuidance(closeness)}`;
         }).join('\n');
     }
+
     /**
      * Behavioral directive for a closeness score (task-94). Short on purpose:
      * one clause per present character, injected into every phase prompt.
      * @param {number} closeness - -100..100
      * @returns {string} Imperative guidance clause
      */
-    function relationshipGuidance(closeness) {
+    function relationshipGuidance(closeness: number) {
         // Tiers mirror relationshipTypeName so the label and the directive
         // always agree (task-349).
-        if (closeness <= -75)
-            return 'you despise them; drive them off, refuse any help, show open hostility';
-        if (closeness <= -50)
-            return 'you want them gone; refuse help, keep replies hostile or silent';
-        if (closeness <= -25)
-            return 'keep interactions cold and minimal; never turn your back on them';
-        if (closeness < 0)
-            return 'you keep your guard up; brief, wary replies';
-        if (closeness === 0)
-            return 'you have no strong feelings; polite, indifferent';
-        if (closeness <= 25)
-            return 'polite but reserved; courtesy without warmth';
-        if (closeness <= 50)
-            return 'you are friendly; chat openly and help when asked';
-        if (closeness <= 75)
-            return 'you are glad they are here; engage warmly, share news, watch out for them';
+        if (closeness <= -75) return 'you despise them; drive them off, refuse any help, show open hostility';
+        if (closeness <= -50) return 'you want them gone; refuse help, keep replies hostile or silent';
+        if (closeness <= -25) return 'keep interactions cold and minimal; never turn your back on them';
+        if (closeness < 0) return 'you keep your guard up; brief, wary replies';
+        if (closeness === 0) return 'you have no strong feelings; polite, indifferent';
+        if (closeness <= 25) return 'polite but reserved; courtesy without warmth';
+        if (closeness <= 50) return 'you are friendly; chat openly and help when asked';
+        if (closeness <= 75) return 'you are glad they are here; engage warmly, share news, watch out for them';
         return 'you trust them completely; prioritize their safety, share secrets, stay close';
     }
+
     /**
      * Build insanity context for a character based on their Sanity vitals.
      * Returns progressively more STRESSED descriptions as Sanity decreases.
@@ -172,9 +260,8 @@ window.PromptBuilder = window.PromptBuilder || {};
      * @param {Object} player - Player data object
      * @returns {string} Insanity context string or empty string
      */
-    function buildInsanityContext(player) {
-        if (!player?.vitals?.Sanity)
-            return '';
+    function buildInsanityContext(player: CharacterStatePlayer) {
+        if (!player?.vitals?.Sanity) return '';
         const sanityScore = player.vitals.Sanity;
         // Low Sanity is NOT a death sentence — it never drains HP. It makes
         // the character MORE DANGEROUS instead: paranoia makes them attack
@@ -188,19 +275,18 @@ window.PromptBuilder = window.PromptBuilder || {};
             { max: 75, instructions: '=== YOUR MIND ===\nYou are PARANOID. A low hum of unease you can\'t shake. You keep double-checking things and glancing over your shoulder. Trust nothing you can\'t verify yourself.' }
         ];
         for (const tier of tiers) {
-            if (sanityScore < tier.max)
-                return '\n' + tier.instructions;
+            if (sanityScore < tier.max) return '\n' + tier.instructions;
         }
         return '';
     }
+
     /**
      * Build trait behavior hints for a character.
      * @param {Object} player - Player data object
      * @returns {string} Trait behavior context string or empty string
      */
-    function buildTraitBehaviorContext(player) {
-        if (!player)
-            return '';
+    function buildTraitBehaviorContext(player: CharacterStatePlayer) {
+        if (!player) return '';
         const traitHints = [];
         // Trait schema v2: data-driven behavior_prompt lines from the backend
         for (const prompt of (player.trait_behavior || []).filter(Boolean)) {
@@ -208,48 +294,41 @@ window.PromptBuilder = window.PromptBuilder || {};
         }
         // Legacy hardcoded hints for exploration traits without a behavior_prompt
         const t = player.traits || {};
-        if (t.impatient)
-            traitHints.push('You are impatient — you act quickly without overthinking.');
-        if (t.patient)
-            traitHints.push('You are patient — you can tolerate waiting and rarely act impulsively.');
-        if (t.curious)
-            traitHints.push('You are curious — drawn to examine things and explore unfamiliar places.');
-        if (t.adventurous)
-            traitHints.push('You are adventurous — willing to take risks to seek new experiences.');
-        if (t.homebody)
-            traitHints.push('You are a homebody — you prefer familiar surroundings and are reluctant to leave.');
-        if (t.wanderlust)
-            traitHints.push('You have wanderlust — you feel restless staying in one place too long and prefer to keep moving.');
+        if (t.impatient) traitHints.push('You are impatient — you act quickly without overthinking.');
+        if (t.patient) traitHints.push('You are patient — you can tolerate waiting and rarely act impulsively.');
+        if (t.curious) traitHints.push('You are curious — drawn to examine things and explore unfamiliar places.');
+        if (t.adventurous) traitHints.push('You are adventurous — willing to take risks to seek new experiences.');
+        if (t.homebody) traitHints.push('You are a homebody — you prefer familiar surroundings and are reluctant to leave.');
+        if (t.wanderlust) traitHints.push('You have wanderlust — you feel restless staying in one place too long and prefer to keep moving.');
         return traitHints.length ? '\n' + traitHints.join('\n') : '';
     }
+
     /**
      * Build the size context for a character based on their size trait.
      * @param {Object} player - Player data object
      * @returns {string} Size context string or empty string
      */
-    function buildSizeContext(player) {
-        if (!player?.traits)
-            return '';
+    function buildSizeContext(player: CharacterStatePlayer) {
+        if (!player?.traits) return '';
         const sizeId = Object.keys(player.traits).find(k => k.startsWith('size_'));
-        if (!sizeId)
-            return '';
-        const sizes = { tiny: 'tiny', small: 'small', normal: 'normal-sized', huge: 'huge', giant: 'giant', titanic: 'titanic' };
+        if (!sizeId) return '';
+        const sizes: Record<string, string> = { tiny: 'tiny', small: 'small', normal: 'normal-sized', huge: 'huge', giant: 'giant', titanic: 'titanic' };
         const label = sizes[sizeId.slice(5)] || '';
-        if (!label)
-            return '';
+        if (!label) return '';
         return `\nSize: You are ${label}. Some passages are too tight for you (crawl or find another way), and climb/jump attempts may fail.`;
     }
+
     /**
      * Perceived condition lines — symptoms/descriptions, never raw ids.
      * Hidden conditions (poisoned/sick/charmed) only reveal what their
      * progression-keyed symptoms let the character feel.
      */
-    function buildPerceivedState(player) {
+    function buildPerceivedState(player: CharacterStatePlayer) {
         const perceived = (player && player.perceived_conditions) || [];
-        if (perceived.length)
-            return '\nCondition: ' + perceived.join('; ') + '.';
+        if (perceived.length) return '\nCondition: ' + perceived.join('; ') + '.';
         return (player.state && player.state !== 'awake') ? `\nState: ${player.state}` : '';
     }
+
     /**
      * Lightweight scene facts used to make threshold prose context-aware
      * (task-327): the same vital value reads differently alone vs mid-conversation.
@@ -258,9 +337,8 @@ window.PromptBuilder = window.PromptBuilder || {};
      * @param {Object} player - Player data object
      * @returns {Object|null} Scene facts or null when state is unavailable
      */
-    function _vitalsScene(state, charName, player) {
-        if (!state)
-            return null;
+    function _vitalsScene(state: CharacterStateState | null | undefined, charName: string | undefined, player: CharacterStatePlayer): CharacterStateScene | null {
+        if (!state) return null;
         const areaName = player?.current_area || state.current_area || '';
         const area = (state.areas && state.areas[areaName]) || null;
         const others = (state.players_in_area || [])
@@ -268,40 +346,41 @@ window.PromptBuilder = window.PromptBuilder || {};
         const present = new Set(others.map(o => String(o.name).toLowerCase()));
         const hearing = player?.recent_hearing || [];
         // Someone present has spoken to/near the character recently.
-        const inConversation = hearing.some(h => h && h.type !== 'sound_source' && present.has(String(h.speaker || '').toLowerCase()));
+        const inConversation = hearing.some(h =>
+            h && h.type !== 'sound_source' && present.has(String(h.speaker || '').toLowerCase()));
         // A line aimed directly at the character (name/pronoun), not room noise.
         const addressed = hearing.some(h => {
-            if (!h || h.type === 'sound_source')
-                return false;
+            if (!h || h.type === 'sound_source') return false;
             const t = PromptBuilder.classifySpeechType(h.text, charName, player);
             return t === 'addressed_to_you' || t === 'to_you';
         });
-        let areaItems = [];
+        let areaItems: CharacterStateItem[] = [];
         if (areaName && typeof worldState?.getItemsInArea === 'function') {
-            try {
-                areaItems = worldState.getItemsInArea(areaName) || [];
-            }
-            catch (e) { /* ignore */ }
+            try { areaItems = worldState.getItemsInArea(areaName) || []; } catch (e) { /* ignore */ }
         }
-        const tagsOf = (it) => {
+        const tagsOf = (it: CharacterStateItem) => {
             const t = it.properties?.tags;
             return Array.isArray(t) ? t.map(String) : String(t || '').split(',').map(s => s.trim().toLowerCase());
         };
-        const actionsOf = (it) => {
+        const actionsOf = (it: CharacterStateItem) => {
             const a = it.properties?.actions;
             return Array.isArray(a) ? a.map(String) : String(a || '').split(',').map(s => s.trim().toLowerCase());
         };
-        const foodish = areaItems.filter(it => tagsOf(it).includes('food') || actionsOf(it).includes('eat'));
-        const drinkish = areaItems.filter(it => tagsOf(it).includes('drink') || actionsOf(it).includes('drink'));
+const foodish = areaItems.filter(it =>
+            tagsOf(it).includes('food') || actionsOf(it).includes('eat'));
+        const drinkish = areaItems.filter(it =>
+            tagsOf(it).includes('drink') || actionsOf(it).includes('drink'));
         // What's already in your pockets — the thing you actually need to
         // EAT or DRINK. Named, so the moodlet can say "eat your granola_bar".
         // Generic: any food/drink-tagged carried item, any scenario. Carried
         // items are graph EDGE_CARRYING edges, not a player.carrying field.
-        const carried = PromptBuilder?.carriedItemNodes
+        const carried: CharacterStateItem[] = PromptBuilder?.carriedItemNodes
             ? PromptBuilder.carriedItemNodes(charName)
             : [];
-        const carriedFood = carried.filter(it => tagsOf(it).includes('food') || actionsOf(it).includes('eat'));
-        const carriedDrink = carried.filter(it => tagsOf(it).includes('drink') || actionsOf(it).includes('drink'));
+        const carriedFood = carried.filter(it =>
+            tagsOf(it).includes('food') || actionsOf(it).includes('eat'));
+        const carriedDrink = carried.filter(it =>
+            tagsOf(it).includes('drink') || actionsOf(it).includes('drink'));
         // Is someone hostile in this room right now? Generic — mirrors the
         // existing ThreatDetector.getThreatAlert (hostile trait, negative
         // closeness, or this turn's attack events), but computed here from
@@ -311,32 +390,20 @@ window.PromptBuilder = window.PromptBuilder || {};
         const allPlayers = state.players || {};
         const turnEvents = state.turn_events || [];
         let hasThreat = false;
-        let threatNames = [];
+        let threatNames: (string | undefined)[] = [];
         for (const person of others) {
             const other = allPlayers[person.name];
-            if (!other)
-                continue;
-            if (other.state === 'hidden' || other.state === 'stealthed')
-                continue;
+            if (!other) continue;
+            if (other.state === 'hidden' || other.state === 'stealthed') continue;
             const met = typeof worldState?.hasMet === 'function'
                 ? worldState.hasMet(charName, person.name) : true;
             const threatName = met ? person.name
                 : (other.description?.split(/[.,;]/)[0]?.trim() || 'A hostile figure');
-            if (other.traits?.hostile) {
-                hasThreat = true;
-                threatNames.push(threatName);
-                continue;
-            }
-            const closeness = other.relationships?.[charName]?.closeness;
-            if (closeness !== undefined && closeness < -20) {
-                hasThreat = true;
-                threatNames.push(threatName);
-                continue;
-            }
+            if (other.traits?.hostile) { hasThreat = true; threatNames.push(threatName); continue; }
+            const closeness = other.relationships?.[charName as string]?.closeness;
+            if (closeness !== undefined && closeness < -20) { hasThreat = true; threatNames.push(threatName); continue; }
             if (turnEvents.some(te => te.actor === person.name && te.action === 'attack')) {
-                hasThreat = true;
-                threatNames.push(threatName);
-                continue;
+                hasThreat = true; threatNames.push(threatName); continue;
             }
         }
         return {
@@ -354,6 +421,7 @@ window.PromptBuilder = window.PromptBuilder || {};
             threatNames,
         };
     }
+
     /**
      * Natural-language description for a SINGLE vital (task-337).
      * Handles inverted (drive) polarity for Hunger/Thirst/Bladder —
@@ -363,9 +431,8 @@ window.PromptBuilder = window.PromptBuilder || {};
      * @param {Object} [scene] - Optional scene facts from _vitalsScene (task-327)
      * @returns {string} First-person NL description, or '' if healthy/undefined
      */
-    function describeVital(vitals, key, scene, band) {
-        if (!vitals || vitals[key] === undefined || vitals[key] === null)
-            return '';
+    function describeVital(vitals: Record<string, number>, key: string, scene?: CharacterStateScene | null, band?: CharacterStateTempBand) {
+        if (!vitals || vitals[key] === undefined || vitals[key] === null) return '';
         const thresholds = window.VitalThresholds;
         const value = Number(vitals[key]) || 0;
         // Declared ABOVE the switch: a case-jump skips statements that
@@ -376,45 +443,34 @@ window.PromptBuilder = window.PromptBuilder || {};
             : '';
         // `names` is reached only after `(names || []).length` proved it, so
         // the assertion erases and the emitted JS is unchanged.
-        const eatCmd = (names) => (names || []).length
-            ? `EAT your ${names.join(' or ')}`
+        const eatCmd = (names?: (string | undefined)[]) => (names || []).length
+            ? `EAT your ${names!.join(' or ')}`
             : 'FIND SOMETHING TO EAT NOW';
-        const drinkCmd = (names) => (names || []).length
-            ? `DRINK your ${names.join(' or ')}`
+        const drinkCmd = (names?: (string | undefined)[]) => (names || []).length
+            ? `DRINK your ${names!.join(' or ')}`
             : 'FIND SOMETHING TO DRINK NOW';
         switch (key) {
             case 'Energy':
-                if (value <= 0)
-                    return 'You are collapsing from exhaustion — your legs buckle and your vision blurs.';
-                if (value < thresholds.CRITICAL)
-                    return 'You are exhausted. Every movement feels heavy.';
-                if (value < thresholds.WARNING)
-                    return 'You are getting tired. A yawn escapes you.';
+                if (value <= 0) return 'You are collapsing from exhaustion — your legs buckle and your vision blurs.';
+                if (value < thresholds.CRITICAL) return 'You are exhausted. Every movement feels heavy.';
+                if (value < thresholds.WARNING) return 'You are getting tired. A yawn escapes you.';
                 return '';
             // drives (task-337): high value = urgent, 0 = satisfied.
             // Maslow (physiological base): the imperative moodlets live in
             // the Hunger/Thirst cases below.
             case 'Hunger':
-                if (value >= 100)
-                    return `You are STARVING — your body cannot hold you up. ${eatCmd(scene?.carriedFood)}${threatNote}.`;
-                if (value > thresholds.WARNING)
-                    return `You are very hungry and it is draining you. ${eatCmd(scene?.carriedFood || scene?.foodNames)}${threatNote}.`;
-                if (value > thresholds.CRITICAL)
-                    return `You are hungry. ${eatCmd(scene?.carriedFood || scene?.foodNames)}${threatNote}.`;
+                if (value >= 100) return `You are STARVING — your body cannot hold you up. ${eatCmd(scene?.carriedFood)}${threatNote}.`;
+                if (value > thresholds.WARNING) return `You are very hungry and it is draining you. ${eatCmd(scene?.carriedFood || scene?.foodNames)}${threatNote}.`;
+                if (value > thresholds.CRITICAL) return `You are hungry. ${eatCmd(scene?.carriedFood || scene?.foodNames)}${threatNote}.`;
                 return '';
             case 'Thirst':
-                if (value >= 100)
-                    return `You are DYING of thirst — your throat is cracked and dry. ${drinkCmd(scene?.carriedDrink)}${threatNote}.`;
-                if (value > thresholds.WARNING)
-                    return `You are very thirsty and it is draining you. ${drinkCmd(scene?.carriedDrink || scene?.drinkNames)}${threatNote}.`;
-                if (value > thresholds.CRITICAL)
-                    return `You are thirsty. ${drinkCmd(scene?.carriedDrink || scene?.drinkNames)}${threatNote}.`;
+                if (value >= 100) return `You are DYING of thirst — your throat is cracked and dry. ${drinkCmd(scene?.carriedDrink)}${threatNote}.`;
+                if (value > thresholds.WARNING) return `You are very thirsty and it is draining you. ${drinkCmd(scene?.carriedDrink || scene?.drinkNames)}${threatNote}.`;
+                if (value > thresholds.CRITICAL) return `You are thirsty. ${drinkCmd(scene?.carriedDrink || scene?.drinkNames)}${threatNote}.`;
                 return '';
             case 'Hygiene':
-                if (value < thresholds.CRITICAL)
-                    return 'You are filthy — grime and sweat cling to your skin.';
-                if (value < thresholds.WARNING)
-                    return 'You are dirty. Your clothes smell of sweat and exertion.';
+                if (value < thresholds.CRITICAL) return 'You are filthy — grime and sweat cling to your skin.';
+                if (value < thresholds.WARNING) return 'You are dirty. Your clothes smell of sweat and exertion.';
                 return '';
             case 'Social':
                 // Context-aware (task-327): isolation wording must not contradict
@@ -429,14 +485,10 @@ window.PromptBuilder = window.PromptBuilder || {};
                 }
                 if (value < thresholds.WARNING) {
                     let base = '';
-                    if (scene && scene.addressed)
-                        base = 'You hang on their words a little too much.';
-                    else if (scene && !scene.alone)
-                        base = 'Being around people feels harder than it should today.';
-                    else if (scene && scene.noise && scene.noise !== 'quiet' && scene.noise !== 'silence' && scene.noise !== 'silent')
-                        base = 'You feel cut off from everyone even as the noise hums around you.';
-                    else
-                        base = 'You feel isolated. The silence presses in around you.';
+                    if (scene && scene.addressed) base = 'You hang on their words a little too much.';
+                    else if (scene && !scene.alone) base = 'Being around people feels harder than it should today.';
+                    else if (scene && scene.noise && scene.noise !== 'quiet' && scene.noise !== 'silence' && scene.noise !== 'silent') base = 'You feel cut off from everyone even as the noise hums around you.';
+                    else base = 'You feel isolated. The silence presses in around you.';
                     return base + ' [social_need: desperate: find people, speak, connect]';
                 }
                 if (value < thresholds.SOCIAL_MILD) {
@@ -444,32 +496,22 @@ window.PromptBuilder = window.PromptBuilder || {};
                 }
                 return '';
             case 'Bladder':
-                if (value >= thresholds.BLADDER_URGENT)
-                    return 'You are about to burst — you desperately need a bathroom.';
-                if (value >= thresholds.BLADDER_WARN)
-                    return 'Your bladder is uncomfortably full. You shift your weight.';
-                if (value >= thresholds.BLADDER_MILD)
-                    return 'You could use a bathroom soon. A mild pressure builds.';
+                if (value >= thresholds.BLADDER_URGENT) return 'You are about to burst — you desperately need a bathroom.';
+                if (value >= thresholds.BLADDER_WARN) return 'Your bladder is uncomfortably full. You shift your weight.';
+                if (value >= thresholds.BLADDER_MILD) return 'You could use a bathroom soon. A mild pressure builds.';
                 return '';
             case 'Sanity':
                 // Task-328: neutral stress curve — composure erosion, never
                 // madness/horror imagery (that belongs to named conditions).
-                if (value < thresholds.SANITY_SHATTERED)
-                    return 'Barely holding it together. Every decision feels heavier than it should, and you keep second-guessing yourself.';
-                if (value < thresholds.CRITICAL)
-                    return 'Nerves frayed raw. You flinch at small sounds and snap at small annoyances.';
-                if (value < thresholds.WARNING)
-                    return 'You feel strained and irritable. Patience is thin and everything grates.';
-                if (value < 75)
-                    return 'A creeping sense that something is off, even if you can\'t name it.';
+                if (value < thresholds.SANITY_SHATTERED) return 'Barely holding it together. Every decision feels heavier than it should, and you keep second-guessing yourself.';
+                if (value < thresholds.CRITICAL) return 'Nerves frayed raw. You flinch at small sounds and snap at small annoyances.';
+                if (value < thresholds.WARNING) return 'You feel strained and irritable. Patience is thin and everything grates.';
+                if (value < 75) return 'A creeping sense that something is off, even if you can\'t name it.';
                 return '';
             case 'Entertainment':
-                if (value < 10)
-                    return 'You\'re desperate for stimulation. Staying in place any longer is unbearable. Take action — go, examine, or use.';
-                if (value < 25)
-                    return 'You\'re bored. Routine feels stifling. You\'re drawn to try something different — anything to break the monotony.';
-                if (value < 50)
-                    return 'You\'re starting to get bored. Consider doing something new or going somewhere else.';
+                if (value < 10) return 'You\'re desperate for stimulation. Staying in place any longer is unbearable. Take action — go, examine, or use.';
+                if (value < 25) return 'You\'re bored. Routine feels stifling. You\'re drawn to try something different — anything to break the monotony.';
+                if (value < 50) return 'You\'re starting to get bored. Consider doing something new or going somewhere else.';
                 return '';
             case 'Temperature': {
                 // Species bands (engine/traits.py): a cold-blooded frog is
@@ -479,24 +521,19 @@ window.PromptBuilder = window.PromptBuilder || {};
                 const tempBand = band || window.VitalThresholds?.temperatureBand?.() || {
                     normal: 37, cold_mild: 35, cold_severe: 33, heat_mild: 38, heat_severe: 40, heat_critical: 42,
                 };
-                if (value < tempBand.cold_severe)
-                    return 'You are shivering uncontrollably — hypothermia is setting in. Your fingers are numb.';
-                if (value < tempBand.cold_mild)
-                    return 'You are shivering violently from the cold. Your teeth chatter.';
-                if (value < tempBand.normal - 1)
-                    return 'You are cold and shivering. A chill runs through you.';
-                if (value > tempBand.heat_critical)
-                    return 'The heat is overwhelming — you are about to collapse. The world swims before your eyes.';
-                if (value > tempBand.heat_severe)
-                    return 'You are dangerously overheated. Sweat pours down your face.';
-                if (value > tempBand.heat_mild)
-                    return 'You are feeling very hot. You wipe sweat from your brow.';
+                if (value < tempBand.cold_severe) return 'You are shivering uncontrollably — hypothermia is setting in. Your fingers are numb.';
+                if (value < tempBand.cold_mild) return 'You are shivering violently from the cold. Your teeth chatter.';
+                if (value < tempBand.normal - 1) return 'You are cold and shivering. A chill runs through you.';
+                if (value > tempBand.heat_critical) return 'The heat is overwhelming — you are about to collapse. The world swims before your eyes.';
+                if (value > tempBand.heat_severe) return 'You are dangerously overheated. Sweat pours down your face.';
+                if (value > tempBand.heat_mild) return 'You are feeling very hot. You wipe sweat from your brow.';
                 return '';
             }
             default:
                 return '';
         }
     }
+
     /**
      * Describe a character's current vital stats in natural language.
      * Covers Energy, Hunger, Thirst, Hygiene, Social, Bladder, Sanity,
@@ -508,9 +545,8 @@ window.PromptBuilder = window.PromptBuilder || {};
      * @param {string} [charName] - Character name, used for scene context
      * @returns {string} Natural language description of vitals or empty string
      */
-    function describeVitals(player, state, charName) {
-        if (!player?.vitals)
-            return '';
+    function describeVitals(player: CharacterStatePlayer, state?: CharacterStateState | null, charName?: string) {
+        if (!player?.vitals) return '';
         const vitalsData = player.vitals;
         const scene = _vitalsScene(state, charName, player);
         // Horror/undead flags (is_slasher, and any future "no physiological
@@ -525,26 +561,22 @@ window.PromptBuilder = window.PromptBuilder || {};
             || traits.undead === true
             || traits.no_physiological_needs === true;
         const order = ['Energy', 'Hunger', 'Thirst', 'Hygiene', 'Social', 'Bladder',
-            'Sanity', 'Entertainment', 'Temperature'];
+                       'Sanity', 'Entertainment', 'Temperature'];
         // Species temperature band so the prose matches this character's body.
         const temperatureBand = window.VitalThresholds?.temperatureBand?.(player);
         const parts = [];
         for (const key of order) {
             if (vitalsData[key] !== undefined) {
                 // Physiological drives are meaningless to a slasher/undead.
-                if (noPhysNeeds && (key === 'Hunger' || key === 'Thirst'))
-                    continue;
+                if (noPhysNeeds && (key === 'Hunger' || key === 'Thirst')) continue;
                 const desc = describeVital(vitalsData, key, scene, temperatureBand);
-                if (desc)
-                    parts.push(desc);
+                if (desc) parts.push(desc);
             }
         }
         for (const key of Object.keys(vitalsData)) {
-            if (key.startsWith('Max_') || order.includes(key))
-                continue;
+            if (key.startsWith('Max_') || order.includes(key)) continue;
             const desc = describeVital(vitalsData, key, scene, temperatureBand);
-            if (desc)
-                parts.push(desc);
+            if (desc) parts.push(desc);
         }
         // Deliberately NO baseline-reporting line: a neutral state stays silent
         // in the prompt, so other characters' claims ("you look hungry!") can
@@ -555,35 +587,27 @@ window.PromptBuilder = window.PromptBuilder || {};
         let out = parts.join(' ');
         if (window.config?.matureContent && player.conditions) {
             const lines = [];
-            if (player.conditions.satisfied)
-                lines.push('A deep, warm satisfaction settles over you.');
+            if (player.conditions.satisfied) lines.push('A deep, warm satisfaction settles over you.');
             else {
-                if (player.conditions.overstimulated)
-                    lines.push('Every nerve is raw — even light touch is almost too much.');
-                if (player.conditions.frantic)
-                    lines.push('You need release so badly it is hard to think.');
-                else if (player.conditions.highly_aroused)
-                    lines.push('You are aching with need, barely in control.');
-                else if (player.conditions.aroused)
-                    lines.push('Your body hums with want; your thoughts keep drifting.');
-                else if (player.conditions.warming_up)
-                    lines.push('A slow warmth is building in you.');
+                if (player.conditions.overstimulated) lines.push('Every nerve is raw — even light touch is almost too much.');
+                if (player.conditions.frantic) lines.push('You need release so badly it is hard to think.');
+                else if (player.conditions.highly_aroused) lines.push('You are aching with need, barely in control.');
+                else if (player.conditions.aroused) lines.push('Your body hums with want; your thoughts keep drifting.');
+                else if (player.conditions.warming_up) lines.push('A slow warmth is building in you.');
             }
-            if (player.conditions.nipple_hard)
-                lines.push('Your nipples are stiff and sensitive against the fabric.');
-            if (player.conditions.wetness)
-                lines.push('You are wet — your body is making itself obvious.');
-            if (lines.length)
-                out = (out ? out + ' ' : '') + lines.join(' ');
+            if (player.conditions.nipple_hard) lines.push('Your nipples are stiff and sensitive against the fabric.');
+            if (player.conditions.wetness) lines.push('You are wet — your body is making itself obvious.');
+            if (lines.length) out = (out ? out + ' ' : '') + lines.join(' ');
         }
         return out;
     }
+
     /**
      * Build the plan context string for a character, showing their current plan steps.
      * @param {string} charName - Character name
      * @returns {string} Formatted plan string or empty string
      */
-    function buildPlanContext(charName) {
+    function buildPlanContext(charName: string) {
         // task-185: read via PlanTracker — the old window.VW.agent._plans read
         // hit a store PlanTracker replaced, so the decide prompt never showed
         // the plan at all.
@@ -591,17 +615,15 @@ window.PromptBuilder = window.PromptBuilder || {};
         if (plan?.length) {
             const progress = window.PlanTracker?.getProgress(charName) || 0;
             const failures = window.PlanTracker?.getFailures(charName) || {};
-            const lines = plan.map((step, stepIndex) => {
-                if (stepIndex < progress)
-                    return `${stepIndex + 1}. ${step} (done)`;
-                if (stepIndex === progress)
-                    return `${stepIndex + 1}. ${step} (CURRENT)`;
+            const lines = plan.map((step: string, stepIndex: number) => {
+                if (stepIndex < progress) return `${stepIndex + 1}. ${step} (done)`;
+                if (stepIndex === progress) return `${stepIndex + 1}. ${step} (CURRENT)`;
                 return `${stepIndex + 1}. ${step}`;
             });
             let out = '\n=== YOUR PLAN ===\n' + lines.join('\n');
             const blocked = Object.entries(failures)
                 .filter(([stepIndex]) => Number(stepIndex) < progress)
-                .map(([, count]) => count);
+                .map(([, count]) => count as number);
             const hasBlocked = blocked.length > 0 && blocked.some(c => c >= 3);
             if (hasBlocked && plan[progress]) {
                 out += `\n⚠️ Your current step "${plan[progress]}" has failed repeatedly — it may not be achievable. If so, move on to another goal.`;
@@ -610,6 +632,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         }
         return '';
     }
+
     Object.assign(window.PromptBuilder, {
         buildEmotionContext,
         buildRelationshipContext,

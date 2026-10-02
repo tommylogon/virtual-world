@@ -1,4 +1,3 @@
-"use strict";
 /**
  * AgentEngine — Character agent loop, turn management, and LLM orchestration
  * With thought->act->react, rest-skip, rate limiter, planning, and memory reflection
@@ -10,30 +9,95 @@
  * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+
 const NOOP_VERBS = ['wait', 'nothing', 'pause', 'stay'];
+
 // task-104: after a SUCCESSFUL action, the agent may chain ONE immediate
 // follow-up from the verb list (same-turn, like the original dash chain).
 // The LLM answers a quick decision prompt; invalid picks are discarded.
-const CHAIN_RULES = {
+const CHAIN_RULES: Record<string, string[]> = {
     dash: ['go', 'wait'],
     lead: ['go', 'approach', 'release', 'wait'],
     grab: ['approach', 'release', 'wait'],
 };
-const agentConfig = config;
+
+// Prefixed with the file stem on purpose: a top-level `interface` or `type` in a
+// classic script is a global, and two files declaring one name is a build error.
+type AgentEngineMessage = { role: string; content: string };
+type AgentEngineHistory = AgentEngineMessage[];
+
+/**
+ * globals.d.ts types `config` with an `[key: string]: unknown` index signature,
+ * so every key it does not spell out is `unknown`. These four are written as
+ * well as read here, and a capture is safe: config.js runs once at load (line
+ * 1243 of index.html, before this file's 1291) and never reassigns `config`.
+ */
+type AgentEngineConfig = {
+    lastActionResult: Record<string, string>;
+    lastRoom: Record<string, string>;
+    stepsRun: number;
+    maxSteps: number;
+};
+const agentConfig = config as unknown as AgentEngineConfig;
+
 /** globals.d.ts narrows ApiClient to the calls converted code made; these are more. */
-const agentApi = ApiClient;
+const agentApi = ApiClient as unknown as {
+    action(command: string, charName: string): Promise<any>;
+    emote(charName: string, emote: string): Promise<any>;
+    setActivePlayer(charName: string): Promise<unknown>;
+    resetWorld(): Promise<unknown>;
+};
+
+/** narration-ui.ts assigns `window.narrationUI`; globals.d.ts lists `NarrationUi`. */
+type AgentEngineNarrationUi = {
+    getMode(): string | null | undefined;
+    getNarratedActionResult(output: string, charName: string, action: string): Promise<string | null>;
+};
 /** Read late, not captured at load: narration-ui.js is a separate script tag. */
-const agentNarrationUI = () => window.narrationUI;
+const agentNarrationUI = (): AgentEngineNarrationUi | undefined =>
+    (window as unknown as { narrationUI?: AgentEngineNarrationUi }).narrationUI;
+
 /** Possessive pronoun for a character, from its identity tags (female/male). */
-function _possessivePronoun(name) {
+function _possessivePronoun(name: string): string {
     const tags = (worldState.players?.[name]?.tags) || [];
-    if (tags.includes('female') || tags.includes('woman') || tags.includes('girl'))
-        return 'her';
-    if (tags.includes('male') || tags.includes('man') || tags.includes('boy'))
-        return 'his';
+    if (tags.includes('female') || tags.includes('woman') || tags.includes('girl')) return 'her';
+    if (tags.includes('male') || tags.includes('man') || tags.includes('boy')) return 'his';
     return 'their';
 }
+
 class AgentEngine {
+    // `declare` fields are type-only: they emit no code, so declaring them
+    // cannot change what the emitted .js does. Two readers exist outside this
+    // file (main.ts reads turnQueue/turnNumber; the turn UI reads the rest), and
+    // an undeclared field is invisible to every one of them.
+    declare characterHistories: Record<string, AgentEngineHistory>;
+    declare turnQueue: string[];
+    declare currentTurnIndex: number;
+    declare turnNumber: number;
+    declare initiativeRolls: Record<string, unknown>;
+    declare _lastActionTime: number;
+    /** ContextWindowManager instance — an unconverted module's internals. */
+    declare contextMgr: any;
+    /** RateLimiter instance — an unconverted module's internals. */
+    declare _rateLimiter: any;
+    declare _stepping: boolean;
+    declare _cancelRequested: boolean;
+    declare _abortController: AbortController | null;
+    declare _simCountdowns: Record<string, number>;
+    declare _simRoomCountdowns: Record<string, number>;
+    declare _startleSeen: Record<string, Set<string>>;
+    declare _startleCache: Record<string, boolean>;
+    declare _startleCacheTurn: number;
+    /** Names that have taken their turn in the current simultaneous round. */
+    declare _simRound: Set<string>;
+    declare _lastPruneSig: string | null;
+    /**
+     * Manual-mode composer. Declared, never defined: nothing in this repo
+     * assigns it, so `config.manualMode` still throws exactly as it did before
+     * this file was typed. Left alone deliberately — see the report.
+     */
+    declare _showManualPrompt: (messages: AgentEngineMessage[], stepName: string) => Promise<any>;
+
     constructor() {
         this.characterHistories = {};
         this.turnQueue = [];
@@ -58,79 +122,76 @@ class AgentEngine {
         this._startleCache = {};
         this._startleCacheTurn = -1;
     }
-    getHistory(charName) {
+
+    getHistory(charName: string): AgentEngineHistory {
         if (!this.characterHistories[charName]) {
             const player = worldState.data?.players?.[charName];
             this.characterHistories[charName] = [{ role: 'system', content: PromptBuilder.buildCharacterSystemPrompt(charName, player, config.softMaxTokens) }];
         }
         return this.characterHistories[charName];
     }
-    getDisplayHistory(charName) { return this.getHistory(charName).slice(1); }
+    getDisplayHistory(charName: string): AgentEngineMessage[] { return this.getHistory(charName).slice(1); }
+
     /** Current graph area node id for a character (entity link for memories). */
-    _currentAreaEntityId(charName) {
+    _currentAreaEntityId(charName: string): string {
         const area = worldState.data?.players?.[charName]?.current_area;
-        if (!area)
-            return '';
+        if (!area) return '';
         return `area_${String(area).toLowerCase().replace(/\s+/g, '_')}`;
     }
+
     /**
      * task-166: did a NEW sudden loud sound just land on this character?
      * Reads `recent_hearing` (task-248/306) for shout/scream entries the
      * character has not been startled by yet. The result is cached for the
      * turn so a character's speech and emote share one startle.
      */
-    _detectStartle(charName, player) {
-        if (!charName)
-            return false;
+    _detectStartle(charName: string, player: any): boolean {
+        if (!charName) return false;
         if (this._startleCacheTurn !== this.turnNumber) {
             this._startleCache = {};
             this._startleCacheTurn = this.turnNumber;
         }
-        if (charName in this._startleCache)
-            return this._startleCache[charName];
-        if (!this._startleSeen[charName])
-            this._startleSeen[charName] = new Set();
+        if (charName in this._startleCache) return this._startleCache[charName];
+        if (!this._startleSeen[charName]) this._startleSeen[charName] = new Set<string>();
         const seen = this._startleSeen[charName];
-        const hearing = player?.recent_hearing || [];
-        const live = new Set();
+        const hearing: any[] = player?.recent_hearing || [];
+        const live = new Set<string>();
         let startled = false;
         for (const h of hearing) {
-            if (!h)
-                continue;
+            if (!h) continue;
             const key = `${h.tick ?? ''}|${h.speaker ?? ''}|${h.text ?? ''}|${h.speech_level ?? ''}`;
             live.add(key);
-            if (seen.has(key))
-                continue;
-            if (h.speech_level === 'shout' || h.speech_level === 'scream')
-                startled = true;
+            if (seen.has(key)) continue;
+            if (h.speech_level === 'shout' || h.speech_level === 'scream') startled = true;
         }
         // Keep only entries still in the live buffer so the set stays bounded.
         this._startleSeen[charName] = live;
         this._startleCache[charName] = startled;
         return startled;
     }
-    initializeTurnQueue() {
+
+    initializeTurnQueue(): void {
         TurnQueue.initialize();
     }
-    async advanceTurn() {
+
+    async advanceTurn(): Promise<void> {
         await TurnQueue.advance();
         events.renderQueueStrip();
     }
-    getCurrentTurnCharacter() { return TurnQueue.getCurrentCharacter(); }
-    async generatePlan(charName) {
+    getCurrentTurnCharacter(): unknown { return TurnQueue.getCurrentCharacter(); }
+
+    async generatePlan(charName: string): Promise<unknown> {
         return window.PlanManager.generate(charName);
     }
-    async reflect(charName) {
+
+    async reflect(charName: string): Promise<void> {
         await window.AgentMemory.reflect(charName);
     }
-    _checkCancel() {
-        if (!this._cancelRequested)
-            return false;
+
+    _checkCancel(): boolean {
+        if (!this._cancelRequested) return false;
         this._cancelRequested = false;
-        if (this._abortController) {
-            this._abortController.abort();
-            this._abortController = null;
-        }
+        if (this._abortController) { this._abortController.abort(); this._abortController = null; }
         config.busy = false;
         VW?.ui?.updateButtons();
         VW?.ui?.stopRateLimitMonitor();
@@ -138,12 +199,10 @@ class AgentEngine {
         VW?.ui?.showPlayPause(true, false);
         return true;
     }
-    cancel() {
+
+    cancel(): void {
         this._cancelRequested = true;
-        if (this._abortController) {
-            this._abortController.abort();
-            this._abortController = null;
-        }
+        if (this._abortController) { this._abortController.abort(); this._abortController = null; }
         config.busy = false;
         config.running = false;
         VW?.ui?.updateButtons();
@@ -151,18 +210,18 @@ class AgentEngine {
         VW?.ui?.setStatus("Cancelled.", "info");
         VW?.ui?.showPlayPause(true, false);
     }
+
     /** Common turn-end cleanup: log, clear busy, advance queue if needed. */
-    async _endTurnEarly(logMsg, logClass = 'system-msg') {
-        if (logMsg)
-            events.log(logMsg, logClass);
+    async _endTurnEarly(logMsg: string | null, logClass = 'system-msg'): Promise<void> {
+        if (logMsg) events.log(logMsg, logClass);
         config.busy = false;
         VW?.ui?.updateButtons();
         if (config.running && config.turnBased && this.turnQueue.length > 0) {
             await TurnQueue.advance();
-            if (worldState.data)
-                VW?.ui?.renderAll(worldState.data);
+            if (worldState.data) VW?.ui?.renderAll(worldState.data);
         }
     }
+
     /**
      * Surface a character's freshly generated turn events (from the last
      * endTurn fetch) on the main stream.
@@ -174,13 +233,11 @@ class AgentEngine {
      * for them, so re-logging here would double-post. Therefore only simple
      * NPCs ever get 👾 output.
      */
-    _logActorTurnEvents(charName) {
-        if (!charName)
-            return false;
+    _logActorTurnEvents(charName: string): boolean {
+        if (!charName) return false;
         const freshState = worldState.data;
-        if (!freshState?.players?.[charName]?.simple_npc)
-            return false;
-        const npcEvents = (freshState?.turn_events || []).filter((evt) => evt.actor === charName);
+        if (!freshState?.players?.[charName]?.simple_npc) return false;
+        const npcEvents: any[] = (freshState?.turn_events || []).filter((evt: any) => evt.actor === charName);
         if (npcEvents.length > 0) {
             for (const evt of npcEvents.slice(-5)) {
                 events.log(`👾 ${evt.actor} ${evt.action}: ${evt.description}`, 'system-msg');
@@ -190,10 +247,12 @@ class AgentEngine {
         events.log(`👾 ${charName} did nothing this turn.`, 'system-msg');
         return false;
     }
-    _isNoopAction(action) {
+
+    _isNoopAction(action: string): boolean {
         return NOOP_VERBS.includes((action || '').split(' ')[0].toLowerCase());
     }
-    async _speakLine(charName, player, speech, volume = 'say', target = null) {
+
+    async _speakLine(charName: string, player: any, speech: string, volume = 'say', target: string | null = null): Promise<void> {
         const spokenVolume = volume || 'say';
         events.trackPhase(charName, 'speech', { speech, volume: spokenVolume, target });
         events.trackAction(charName, null, speech, null, '');
@@ -203,8 +262,7 @@ class AgentEngine {
         // A sudden loud sound this turn raises a yelp (startle).
         const startled = this._detectStartle(charName, player);
         const injected = window.Involuntary?.speech ? window.Involuntary.speech(speech, player, { startled }) : null;
-        if (injected)
-            speech = injected;
+        if (injected) speech = injected;
         // Directed whisper (task-248): "whisper to <name>: text" reaches only
         // the target; the rest of the room sees the gesture, not the words.
         const directed = spokenVolume === 'whisper' && target;
@@ -216,99 +274,88 @@ class AgentEngine {
                 /no sound comes out|can't move or act|can't do that/i.test(output);
             if (blocked) {
                 events.log(`🔇 ${player.name}: ${output.trim() || 'cannot speak.'}`, 'error-msg');
-            }
-            else if (directed) {
+            } else if (directed) {
                 // task-340: whispered lines get a distinct locked row in the stream.
                 events.log(`🔒 ${player.name} → ${target}: "${speech}"`, "msg-whisper");
-            }
-            else {
+            } else {
                 events.log(`[${player.name}] ${ActionNormalizer.volVerb(spokenVolume)}: "${speech}"`, "msg-speech");
             }
             worldState.fetch();
-        }
-        catch (err) {
+        } catch (err) {
             events.log(`[${player.name}] ${ActionNormalizer.volVerb(spokenVolume)}: "${speech}"`, "msg-speech");
             worldState.fetch();
         }
     }
-    async _performEmote(charName, emote) {
+
+    async _performEmote(charName: string, emote: string): Promise<void> {
         try {
             // task-166: involuntary emote tail (a hiccup, a yelp, a shiver).
             const player = worldState.players?.[charName];
             const startled = this._detectStartle(charName, player);
             const injected = window.Involuntary?.emote ? window.Involuntary.emote(emote, player, { startled }) : null;
-            if (injected)
-                emote = injected;
+            if (injected) emote = injected;
             const emoteResult = await agentApi.emote(charName, emote);
             if (emoteResult?.description) {
                 events.log(emoteResult.description, 'msg-emote');
                 events.trackAction(charName, '', null, `emote: ${emote}`, emoteResult.description);
             }
-        }
-        catch (emoteErr) {
+        } catch (emoteErr) {
             events.log(`Emote error: ${emoteErr instanceof Error ? emoteErr.message : String(emoteErr)}`, 'error-msg');
         }
     }
-    _storeReactionMemory(charName, memory, feltEmotion = null) {
-        if (!memory?.text)
-            return;
+
+    _storeReactionMemory(charName: string, memory: any, feltEmotion: any = null): void {
+        if (!memory?.text) return;
         const entityId = this._currentAreaEntityId(charName);
         const tick = worldState.data?.time_ticks || 0;
         const normalized = memory.text.trim().toLowerCase();
         const player = worldState.players?.[charName];
-        const duplicate = (player?.memories || []).some((existing) => {
+        const duplicate = (player?.memories || []).some((existing: any) => {
             const sameText = (existing.text || '').trim().toLowerCase() === normalized;
             const sameTick = Math.abs((existing.tick || 0) - tick) <= 1;
             return sameText && sameTick;
         });
-        if (duplicate)
-            return;
+        if (duplicate) return;
         window.AgentMemory.storeMemory(charName, memory.text, memory.importance, 'reaction', tick, entityId ? [entityId] : [], memory.tags, feltEmotion, memory.emotions || null);
     }
+
     /**
      * Fire-and-forget spike of the character's affect map from an LLM-declared
      * feeling (task-96). Silent no-op when absent/malformed or backend misses.
      */
-    _applyFeltEmotion(charName, emotion) {
-        if (!emotion?.label || !worldState.players?.[charName])
-            return null;
+    _applyFeltEmotion(charName: string, emotion: any): Promise<unknown> | null {
+        if (!emotion?.label || !worldState.players?.[charName]) return null;
         // task-350: when the feeling is TOWARD a specific person, pass `toward`
         // so the backend records it as an experience (felt_toward) and so
         // relationships/feelings can change toward that person. Otherwise it's
         // a global affect spike (legacy).
-        const body = { emotion: emotion.label, intensity: Math.max(1, Math.min(10, emotion.intensity)) };
-        if (emotion.toward)
-            body.toward = emotion.toward;
-        else
-            body.delta = body.intensity * 1.5;
+        const body: { emotion: string; intensity: number; toward?: string; delta?: number } =
+            { emotion: emotion.label, intensity: Math.max(1, Math.min(10, emotion.intensity)) };
+        if (emotion.toward) body.toward = emotion.toward;
+        else body.delta = body.intensity * 1.5;
         try {
             return fetch(`/api/players/${encodeURIComponent(charName)}/emotions`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
-            }).catch(() => { });
-        }
-        catch (e) {
-            return null;
-        }
+            }).catch(() => {});
+        } catch (e) { return null; }
     }
+
     /** task-350: record names the agent confirmed/deduced this turn (heard,
      *  name tag, sign, document, deduction). Fire-and-forget; engine validates
      *  they are real present players so the agent cannot invent a name tag. */
-    _learnNames(charName, learnedNames) {
-        if (!learnedNames?.length || !worldState.players?.[charName])
-            return;
+    _learnNames(charName: string, learnedNames?: string[] | null): Promise<unknown> | null | undefined {
+        if (!learnedNames?.length || !worldState.players?.[charName]) return;
         try {
             return fetch(`/api/players/${encodeURIComponent(charName)}/names`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ names: learnedNames })
-            }).catch(() => { });
-        }
-        catch (e) {
-            return null;
-        }
+            }).catch(() => {});
+        } catch (e) { return null; }
     }
+
     /**
      * Human turn: pause the run loop and let the human compose their turn
      * through the scene-first panel (task-333). Mirrors the agent loop's
@@ -317,7 +364,7 @@ class AgentEngine {
      * ApiClient.action / _performEmote / _storeReactionMemory). Targets the
      * character via setActivePlayer for clean multi-human handoff (task-245).
      */
-    async _humanTurn(charName) {
+    async _humanTurn(charName: string): Promise<void> {
         await agentApi.setActivePlayer(charName);
         await worldState.fetch();
         const state = worldState.data;
@@ -340,15 +387,14 @@ class AgentEngine {
             return;
         }
         const reply = await HumanTurnComposer.request(charName);
+
         if (config.running && config.turnBased && this.turnQueue.length === 0) {
-            this.stop();
-            return;
+            this.stop(); return;
         }
         let lastResult = '';
         if (!reply || reply.endTurn) {
             events.log(`🔜 ${charName} passed ${_possessivePronoun(charName)} turn.`, 'system-msg');
-        }
-        else {
+        } else {
             lastResult = await this._executeHumanReply(charName, player, reply);
             // Dash burst (task-334): dashing grants ONE more action slot
             // before the react step — unless the dash itself failed.
@@ -357,10 +403,8 @@ class AgentEngine {
                 const burstReply = await HumanTurnComposer.request(charName, { burst: true, lastResult });
                 if (burstReply && !burstReply.endTurn) {
                     const burstResult = await this._executeHumanReply(charName, player, burstReply);
-                    if (burstResult)
-                        lastResult = burstResult;
-                    if (burstReply.memory?.text)
-                        this._storeReactionMemory(charName, burstReply.memory);
+                    if (burstResult) lastResult = burstResult;
+                    if (burstReply.memory?.text) this._storeReactionMemory(charName, burstReply.memory);
                 }
             }
             // Deterministic auto-memory (task-334): one instant, LLM-free
@@ -396,15 +440,15 @@ class AgentEngine {
         // rotation, the run loop just continues from here.
         if (config.running && config.turnBased && this.turnQueue.length > 0) {
             await TurnQueue.advance();
-            if (worldState.data)
-                VW?.ui?.renderAll(worldState.data);
+            if (worldState.data) VW?.ui?.renderAll(worldState.data);
         }
     }
+
     /**
      * Execute one human reply (speech → action → emote) through the agent
      * pipeline. Returns the action's result text (for the react phase).
      */
-    async _executeHumanReply(charName, player, reply) {
+    async _executeHumanReply(charName: string, player: any, reply: any): Promise<string> {
         // bug-33: a human turn has no agent phase marker to open the card, so
         // open it here before speech/emote rows are emitted — otherwise they
         // land in the bare stream above the next `act` phase marker.
@@ -420,8 +464,7 @@ class AgentEngine {
         let resultText = '';
         if (reply.action) {
             events.logPhase(charName, 'act', reply.action);
-            if (!reply.action.startsWith('speak '))
-                events.log(`[Action] ${reply.action}`, "msg-action");
+            if (!reply.action.startsWith('speak ')) events.log(`[Action] ${reply.action}`, "msg-action");
             try {
                 const data = await agentApi.action(reply.action, charName);
                 if (data?.scenario_ended) {
@@ -433,17 +476,14 @@ class AgentEngine {
                         events.log("✅ Scenario restarted.", "system-msg");
                         VW?.ui?.renderAll?.(worldState.data);
                     }
-                }
-                else {
+                } else {
                     const output = data?.output || '';
                     if (data?.system_messages) {
-                        data.system_messages.forEach((systemMessage) => events.log(systemMessage, 'system-msg'));
+                        data.system_messages.forEach((systemMessage: any) => events.log(systemMessage, 'system-msg'));
                     }
                     if (output && !output.includes('says:')) {
-                        if (output.includes('ValueError'))
-                            events.log(output, 'error-msg');
-                        else
-                            events.log(output, 'msg-result', { outcome: data?.success !== false ? 'success' : 'failure' });
+                        if (output.includes('ValueError')) events.log(output, 'error-msg');
+                        else events.log(output, 'msg-result', { outcome: data?.success !== false ? 'success' : 'failure' });
                     }
                     // task-448: an ambiguous target returns a structured chooser;
                     // render it so a pick resolves to the identity key.
@@ -455,13 +495,11 @@ class AgentEngine {
                     agentConfig.lastActionResult[charName] = output;
                     events.trackAction(charName, '', null, reply.action, output);
                     const area = worldState.players?.[charName]?.current_area;
-                    if (area)
-                        agentConfig.lastRoom[charName] = area;
+                    if (area) agentConfig.lastRoom[charName] = area;
                     resultText = output;
                 }
                 worldState.fetch();
-            }
-            catch (err) {
+            } catch (err) {
                 const errMsg = err instanceof Error ? err.message : String(err);
                 events.log(`Action error: ${errMsg}`, 'error-msg');
                 worldState.fetch();
@@ -470,34 +508,24 @@ class AgentEngine {
         }
         return resultText;
     }
-    async step() {
-        if (this._checkCancel())
-            return;
+
+    async step(): Promise<void> {
+        if (this._checkCancel()) return;
         config.busy = true;
         // config.controllingPlayer is client-only and not persisted, but the
         // header's "Active:" comes from the server's active_player — so after a
         // refresh they disagree. Fall back to the server's active player rather
         // than refusing to run with "no agent selected".
         let charName = config.controllingPlayer || worldState.data?.active_player || null;
-        if (charName)
-            config.controllingPlayer = charName;
-        if (config.turnBased && this.turnQueue.length === 0)
-            TurnQueue.initialize();
+        if (charName) config.controllingPlayer = charName;
+        if (config.turnBased && this.turnQueue.length === 0) TurnQueue.initialize();
         if (config.turnBased && this.turnQueue.length === 0) {
-            config.running = false;
-            config.busy = false;
-            VW?.ui?.updateButtons();
+            config.running = false; config.busy = false; VW?.ui?.updateButtons();
             VW?.ui?.showPlayPause(true, false);
             VW?.ui?.setStatus("Stopped.", "error");
-            events.log("⏹️ All dead.", "system-msg");
-            this.stop();
-            return;
+            events.log("⏹️ All dead.", "system-msg"); this.stop(); return;
         }
-        if (config.turnBased && this.turnQueue.length > 0) {
-            const ctc = TurnQueue.getCurrentCharacter();
-            if (ctc && charName !== ctc)
-                charName = ctc;
-        }
+        if (config.turnBased && this.turnQueue.length > 0) { const ctc = TurnQueue.getCurrentCharacter(); if (ctc && charName !== ctc) charName = ctc; }
         if (charName && worldState.players?.[charName]?.state === 'dead' && !config.ghostMode) {
             return this._endTurnEarly(`⏭️ ${charName} dead.`);
         }
@@ -512,10 +540,8 @@ class AgentEngine {
             // later Step/Run report "Already running."). finally covers errors too.
             try {
                 return await this._humanTurn(charName);
-            }
-            finally {
-                config.busy = false;
-                VW?.ui?.updateButtons();
+            } finally {
+                config.busy = false; VW?.ui?.updateButtons();
                 VW?.ui?.setStatus(config.running ? "Waiting..." : "Idle.", "info");
             }
         }
@@ -535,37 +561,20 @@ class AgentEngine {
         this._rateLimiter.waitMs();
         VW?.ui?.updateButtons();
         if (!charName) {
-            config.busy = false;
-            VW?.ui?.updateButtons();
-            VW?.ui?.setStatus("Idle.", "info");
+            config.busy = false; VW?.ui?.updateButtons(); VW?.ui?.setStatus("Idle.", "info");
             return this._endTurnEarly("⚠️ No agent selected. Click an agent in the list first.", "system-msg");
         }
+
         let history = this.getHistory(charName);
-        if (!agentConfig.lastActionResult[charName])
-            agentConfig.lastActionResult[charName] = '';
+        if (!agentConfig.lastActionResult[charName]) agentConfig.lastActionResult[charName] = '';
         VW?.ui?.setStatus("Thinking...", "info");
+
         try {
-            if (!config.apiKey && !config.apiBase?.includes('localhost') && !config.apiBase?.includes('127.0.0.1')) {
-                events.log("No API key.", "error-msg");
-                config.running = false;
-                VW?.ui?.updateButtons();
-                return;
-            }
-            if (!config.model) {
-                events.log("No model.", "error-msg");
-                config.running = false;
-                VW?.ui?.updateButtons();
-                return;
-            }
-            if (!config.controllingPlayer) {
-                events.log("No char.", "error-msg");
-                config.running = false;
-                VW?.ui?.updateButtons();
-                return;
-            }
+            if (!config.apiKey && !config.apiBase?.includes('localhost') && !config.apiBase?.includes('127.0.0.1')) { events.log("No API key.", "error-msg"); config.running = false; VW?.ui?.updateButtons(); return; }
+            if (!config.model) { events.log("No model.", "error-msg"); config.running = false; VW?.ui?.updateButtons(); return; }
+            if (!config.controllingPlayer) { events.log("No char.", "error-msg"); config.running = false; VW?.ui?.updateButtons(); return; }
             await agentApi.setActivePlayer(config.controllingPlayer);
-            if (this._checkCancel())
-                return;
+            if (this._checkCancel()) return;
             await worldState.fetch();
             delete this.characterHistories[charName];
             history = this.getHistory(charName);
@@ -577,35 +586,31 @@ class AgentEngine {
                     await worldState.fetch();
                     events.log("✅ Scenario restarted.", "system-msg");
                     VW?.ui?.renderAll?.(worldState.data);
-                }
-                else {
+                } else {
                     this.stop();
                 }
                 return;
             }
             const state = worldState.data;
-            if (!state?.players?.[config.controllingPlayer]) {
-                events.log("Char not found.", "error-msg");
-                config.running = false;
-                VW?.ui?.updateButtons();
-                return;
-            }
+            if (!state?.players?.[config.controllingPlayer]) { events.log("Char not found.", "error-msg"); config.running = false; VW?.ui?.updateButtons(); return; }
+
             const player = state.players?.[charName];
+
             // NPC turns: simple NPCs act via backend tick_turn — surface what
             // they did from the turn_events (or report they did nothing).
             if (player?.simple_npc) {
-                config.busy = false;
-                VW?.ui?.updateButtons();
+                config.busy = false; VW?.ui?.updateButtons();
                 if (config.running && config.turnBased && this.turnQueue.length > 0) {
                     await TurnQueue.advance();
-                    if (worldState.data)
-                        VW?.ui?.renderAll(worldState.data);
+                    if (worldState.data) VW?.ui?.renderAll(worldState.data);
                 }
                 this._logActorTurnEvents(charName);
                 return;
             }
+
             const currentArea = state.areas[state.current_area] || null;
             const lastResult = agentConfig.lastActionResult[charName] || '';
+
             if (window.AgentState.isBusy(charName, lastResult, player)) {
                 const busyPlayer = worldState.players?.[charName];
                 const act = busyPlayer?.activity;
@@ -614,17 +619,16 @@ class AgentEngine {
                 if (act && act.duration_ticks != null) {
                     const remaining = Math.max(0, (act.duration_ticks || 0) - (act.elapsed_ticks || 0));
                     detail = ` — ${remaining} tick${remaining === 1 ? '' : 's'} left`;
-                }
-                else if (act) {
+                } else if (act) {
                     detail = " — no set end ('wake' stops it)";
                 }
                 return this._endTurnEarly(`⏳ ${charName} is ${busyAct}${detail}...`, 'system-msg');
             }
+
             // Unconscious check — skip actions, character cannot think or act
             if (player.state === 'unconscious') {
                 const { message: unconsciousMsg } = window.AgentState.markUnconscious(charName, player, worldState.data, worldState);
-                if (unconsciousMsg)
-                    events.log(unconsciousMsg, 'system-msg');
+                if (unconsciousMsg) events.log(unconsciousMsg, 'system-msg');
                 return this._endTurnEarly(null);
             }
             // Just woke up from unconsciousness — skip this turn to let Energy stabilize
@@ -634,25 +638,25 @@ class AgentEngine {
                 window.AgentMemory.storeMemory(charName, `You wake up, groggy and disoriented, your Energy restored to ${player.vitals?.Energy || 'some'}%.`, 7, 'thought');
                 return this._endTurnEarly(null);
             }
-            if (!player) {
-                config.busy = false;
-                VW?.ui?.updateButtons();
-                return;
-            }
+            if (!player) { config.busy = false; VW?.ui?.updateButtons(); return; }
+
             // Reflection every 5 turns
             if (this.turnNumber > 0 && this.turnNumber % 5 === 0 && config.reactiveMode) {
-                window.AgentMemory.reflect(charName).catch(() => { });
+                window.AgentMemory.reflect(charName).catch(() => {});
             }
+
             const roomParts = PromptBuilder.buildRoomContextParts(state, charName, player, currentArea);
             const vitalsNL = PromptBuilder.describeVitals(player, state, charName);
             const emotionNL = PromptBuilder.buildEmotionContext(player);
             const insanityNL = PromptBuilder.buildInsanityContext(player);
             const relationshipNL = PromptBuilder.buildRelationshipContext(player, charName);
             const memoryNL = await PromptBuilder.buildMemoryContext(charName, { report: true });
+
             if (config.reactiveMode) {
                 events.logPhase(charName, 'think', 'observing');
                 VW?.ui?.setStatus("Thinking...", "info");
                 const turnEvents = state.turn_events || [];
+
                 // Threat check before OBSERVE — so the character naturally notices the threat
                 const preObserveThreat = window.ThreatDetector.getThreatAlert(charName, player, currentArea, turnEvents);
                 const threatNames = preObserveThreat
@@ -661,10 +665,12 @@ class AgentEngine {
                 const threatObservationNote = threatNames
                     ? `\n⚠️ ${threatNames} — something about this person sets every instinct on edge. The blood, the emptiness in their eyes, the way they move. They are not here to help you.`
                     : '';
+
                 // Observe uses the SAME full room context as decide/react, so the
                 // agent always sees items, people, exits, and a WITNESSED section
                 // (with fallback).
                 const observeParts = Object.assign({}, roomParts, { extraNote: threatObservationNote || '' });
+
                 // Threat-aware replan check — before deciding so the plan is fresh.
                 // task-185: shouldReplan now returns a REASON string (task-340
                 // crisis label) or null; setPlan records the turn clock.
@@ -681,8 +687,8 @@ class AgentEngine {
                         observeParts.plan = PromptBuilder.buildPlanContext(charName);
                     }
                 }
-                if (this._checkCancel())
-                    return;
+                if (this._checkCancel()) return;
+
                 // CONVERSATION-STYLE LOOP: think + decide in ONE call, and the
                 // prompt + response are pushed into the per-character history
                 // ([system, user, assistant, ...]) so the agent remembers its own
@@ -696,40 +702,38 @@ class AgentEngine {
                 if (combinedResponse === null) {
                     events.log(`❌ LLM call failed for ${charName} (think/decide phase) — stopping agent`, 'error-msg');
                     VW?.ui?.setStatus("LLM Error - Stopped", "error");
-                    config.running = false;
-                    return;
+                    config.running = false; return;
                 }
                 events.logPhase(charName, 'decide', 'deciding');
                 VW?.ui?.setStatus("Deciding...", "info");
-                let parsedDecide = ResponseParser.parseReaction(combinedResponse) ?? { inner: '', speech: null, speechVolume: 'say', action: '', emote: null, memory: null, emotion: null, parseError: null };
-                if (parsedDecide.parseError)
-                    parsedDecide = await this._retryOnceOnParseError(charName, history, 'think-decide', ResponseParser.parseReaction, parsedDecide);
+                let parsedDecide = ResponseParser.parseReaction(combinedResponse) ?? {inner:'',speech:null,speechVolume:'say',action:'',emote:null,memory:null,emotion:null,parseError:null};
+                if (parsedDecide.parseError) parsedDecide = await this._retryOnceOnParseError(charName, history, 'think-decide', ResponseParser.parseReaction, parsedDecide);
                 if (parsedDecide.parseError) {
                     events.logParseError(charName, 'think-decide', parsedDecide.parseError, combinedResponse);
                 }
                 let { inner, speech: decisionSpeech, speechVolume, action: finalAction, emote: decisionEmote, target: decisionTarget } = parsedDecide;
                 this._applyFeltEmotion(charName, parsedDecide.emotion);
                 this._learnNames(charName, parsedDecide.learnedNames);
-                if (inner) {
-                    events.logThought(charName, inner);
-                }
+                if (inner) { events.logThought(charName, inner); }
                 events.trackAction(charName, inner, null, '', '');
-                if (!agentConfig.lastRoom[charName] && player.current_area)
-                    agentConfig.lastRoom[charName] = player.current_area;
+                if (!agentConfig.lastRoom[charName] && player.current_area) agentConfig.lastRoom[charName] = player.current_area;
                 let actionRejected = '';
                 if (finalAction && !ActionNormalizer.isValidAction(finalAction, charName)) {
                     events.log(`⚠️ ${charName} invalid action: "${finalAction}" — skipping`, 'error-msg');
                     actionRejected = finalAction;
                     finalAction = '';
                 }
+
                 if (decisionSpeech) {
                     await this._speakLine(charName, player, decisionSpeech, speechVolume, decisionTarget);
                 }
+
                 // task-xxx: the act emote lands BEFORE the action's result so the
                 // stream reads gesture → outcome instead of outcome → gesture.
                 if (decisionEmote) {
                     await this._performEmote(charName, decisionEmote);
                 }
+
                 let actionResult = '';
                 let actionSucceeded = true;
                 if (actionRejected) {
@@ -740,74 +744,58 @@ class AgentEngine {
                 if (finalAction) {
                     events.logPhase(charName, 'act', finalAction);
                     const noopAction = this._isNoopAction(finalAction);
-                    if (!finalAction.startsWith('speak ') && !noopAction)
-                        events.log(`[Action] ${finalAction}`, "msg-action");
-                    if (this._checkCancel())
-                        return;
+                    if (!finalAction.startsWith('speak ') && !noopAction) events.log(`[Action] ${finalAction}`, "msg-action");
+                    if (this._checkCancel()) return;
                     if (noopAction) {
                         actionResult = 'You stand still and wait, watching and listening.';
                         actionSucceeded = true;
                         events.log(actionResult, 'msg-result', { outcome: 'minor' });
-                    }
-                    else
-                        try {
-                            const data = await agentApi.action(finalAction, charName);
-                            if (data?.scenario_ended) {
-                                events.log("🏁 Scenario ended via trigger.", "system-msg");
-                                if (data?._restart_requested) {
-                                    events.log("🔄 Restarting scenario...", "system-msg");
-                                    await agentApi.resetWorld();
-                                    await worldState.fetch();
-                                    delete this.characterHistories[charName];
-                                    history = this.getHistory(charName);
-                                    events.log("✅ Scenario restarted.", "system-msg");
-                                    VW?.ui?.renderAll?.(worldState.data);
-                                }
-                                else {
-                                    this.stop();
-                                }
-                                return;
-                            }
-                            actionResult = data?.output || '';
-                            actionSucceeded = data?.success !== false;
-                            PlanTracker.trackStep(charName, finalAction, actionResult, actionSucceeded);
-                            let outputText = actionResult;
-                            if (data?.system_messages) {
-                                data.system_messages.forEach((systemMessage) => events.log(systemMessage, 'system-msg'));
-                            }
-                            const narrationUi = agentNarrationUI();
-                            const narrationMode = narrationUi?.getMode();
-                            let narratedText = null;
-                            if (narrationMode === 'ai' && config.apiKey && config.model) {
-                                // Non-null assertion matches the original bare call:
-                                // getMode() only returns 'ai' when the module loaded.
-                                narratedText = await narrationUi.getNarratedActionResult(outputText, charName, finalAction);
-                                if (narratedText)
-                                    outputText = narratedText;
-                            }
-                            agentConfig.lastActionResult[charName] = outputText;
-                            // task-340: results are first-class rows — outcome-tinted,
-                            // never card-breaking; AI-narrated substitutions are marked.
-                            if (!outputText.includes('says:')) {
-                                if (narratedText)
-                                    events.log(outputText, 'msg-narrated');
-                                else if (outputText.includes('ValueError'))
-                                    events.log(outputText, 'error-msg');
-                                else
-                                    events.log(outputText, 'msg-result', { outcome: actionSucceeded ? 'success' : 'failure' });
-                            }
-                            events.trackAction(charName, '', null, finalAction, outputText);
-                            const area = worldState.players?.[charName]?.current_area;
-                            if (area)
-                                agentConfig.lastRoom[charName] = area;
-                            worldState.fetch();
+                    } else try {
+                        const data = await agentApi.action(finalAction, charName);
+                        if (data?.scenario_ended) {
+                            events.log("🏁 Scenario ended via trigger.", "system-msg");
+                            if (data?._restart_requested) {
+                                events.log("🔄 Restarting scenario...", "system-msg");
+                                await agentApi.resetWorld();
+            await worldState.fetch();
+            delete this.characterHistories[charName];
+            history = this.getHistory(charName);
+                                events.log("✅ Scenario restarted.", "system-msg");
+                                VW?.ui?.renderAll?.(worldState.data);
+                            } else { this.stop(); }
+                            return;
                         }
-                        catch (err) {
-                            const m = err instanceof Error ? err.message : String(err);
-                            events.log(`Action error: ${m}`, 'error-msg');
-                            actionResult = `Error: ${m}`;
+                        actionResult = data?.output || '';
+                        actionSucceeded = data?.success !== false;
+                        PlanTracker.trackStep(charName, finalAction, actionResult, actionSucceeded);
+                        let outputText = actionResult;
+                        if (data?.system_messages) {
+                            data.system_messages.forEach((systemMessage: any) => events.log(systemMessage, 'system-msg'));
                         }
+                        const narrationUi = agentNarrationUI();
+                        const narrationMode = narrationUi?.getMode();
+                        let narratedText: string | null = null;
+                        if (narrationMode === 'ai' && config.apiKey && config.model) {
+                            // Non-null assertion matches the original bare call:
+                            // getMode() only returns 'ai' when the module loaded.
+                            narratedText = await narrationUi!.getNarratedActionResult(outputText, charName, finalAction);
+                            if (narratedText) outputText = narratedText;
+                        }
+                        agentConfig.lastActionResult[charName] = outputText;
+                        // task-340: results are first-class rows — outcome-tinted,
+                        // never card-breaking; AI-narrated substitutions are marked.
+                        if (!outputText.includes('says:')) {
+                            if (narratedText) events.log(outputText, 'msg-narrated');
+                            else if (outputText.includes('ValueError')) events.log(outputText, 'error-msg');
+                            else events.log(outputText, 'msg-result', { outcome: actionSucceeded ? 'success' : 'failure' });
+                        }
+                        events.trackAction(charName, '', null, finalAction, outputText);
+                        const area = worldState.players?.[charName]?.current_area;
+                        if (area) agentConfig.lastRoom[charName] = area;
+                        worldState.fetch();
+                    } catch (err) { const m = err instanceof Error ? err.message : String(err); events.log(`Action error: ${m}`, 'error-msg'); actionResult = `Error: ${m}`; }
                 }
+
                 // ── Invalid-action auto-retry (task-361) ──
                 // One same-turn retry when the agent's action failed and the
                 // setting is on. Not a new turn: no step/plan advance, and the
@@ -820,6 +808,7 @@ class AgentEngine {
                         actionSucceeded = retry.actionSucceeded;
                     }
                 }
+
                 // ── Chained follow-up (task-104) ──
                 // Dash→go was the original; generalized to verb families:
                 // lead → go/approach/release, grab → approach/release.
@@ -830,13 +819,13 @@ class AgentEngine {
                         actionResult = await this._runChainFollowUp(charName, player, actionResult, history, chainVerb, allowed);
                     }
                 }
+
                 if (actionResult) {
                     const isNowResting = actionResult.toLowerCase().includes('you rest');
                     const isUnconscious = actionResult.toLowerCase().includes('while unconscious');
                     if (isUnconscious) {
                         agentConfig.lastActionResult[charName] = actionResult;
-                    }
-                    else if (!isNowResting) {
+                    } else if (!isNowResting) {
                         await worldState.fetch();
                         const freshState = worldState.data;
                         const freshPlayer = freshState?.players?.[charName] || player;
@@ -874,10 +863,9 @@ class AgentEngine {
                         if (reactResponse === null) {
                             events.log(`❌ LLM call failed for ${charName} (reaction phase) — stopping agent`, 'error-msg');
                             VW?.ui?.setStatus("LLM Error - Stopped", "error");
-                            config.running = false;
-                            return;
+                            config.running = false; return;
                         }
-                        let parsedReact = ResponseParser.parseResultReaction(reactResponse) ?? { inner: '', speech: null, speechVolume: 'say', emote: null, memory: null, emotion: null, parseError: null };
+                        let parsedReact = ResponseParser.parseResultReaction(reactResponse) ?? {inner:'',speech:null,speechVolume:'say',emote:null,memory:null,emotion:null,parseError:null};
                         if (parsedReact.parseError && reactResponse) {
                             // one same-conversation retry (repaired/truncated JSON):
                             // show the broken reply, ask for a complete one.
@@ -889,10 +877,7 @@ class AgentEngine {
                                 { role: 'user', content: 'Your previous reply was cut off mid-JSON. Respond again with COMPLETE raw JSON — same schema, and finish every field you start.' },
                             ];
                             const retried = await this._callLLMMessages(retryMessages, 'result-reaction');
-                            if (retried) {
-                                reactResponse = retried;
-                                parsedReact = ResponseParser.parseResultReaction(reactResponse) ?? parsedReact;
-                            }
+                            if (retried) { reactResponse = retried; parsedReact = ResponseParser.parseResultReaction(reactResponse) ?? parsedReact; }
                         }
                         if (parsedReact.parseError) {
                             events.logParseError(charName, 'result-reaction', parsedReact.parseError, reactResponse);
@@ -903,103 +888,84 @@ class AgentEngine {
                             events.log(`⚠️ ${charName}: result-reaction returned empty — skipping react`, 'error-msg');
                         }
                         const { inner: reactionInner, speech: reactionSpeech, speechVolume: reactionVolume, emote: reactionEmote, memory: reactionMemory } = parsedReact;
-                        if (reactionInner) {
-                            events.logThought(charName, reactionInner);
-                        }
+                        if (reactionInner) { events.logThought(charName, reactionInner); }
                         this._applyFeltEmotion(charName, parsedReact.emotion);
                         this._learnNames(charName, parsedReact.learnedNames);
-                        if (reactionSpeech) {
-                            await this._speakLine(charName, player, reactionSpeech, reactionVolume);
-                        }
+                        if (reactionSpeech) { await this._speakLine(charName, player, reactionSpeech, reactionVolume); }
                         if (reactionEmote) {
                             await this._performEmote(charName, reactionEmote);
                         }
                         this._storeReactionMemory(charName, reactionMemory, parsedReact.emotion);
                         events.trackAction(charName, reactionInner, reactionSpeech, null, '');
-                    }
-                    else {
+                    } else {
                         events.trackAction(charName, '', null, finalAction, actionResult);
                     }
                 }
-            }
-            else {
+            } else {
                 // ── Non-reactive (combined) mode ──
                 VW?.ui?.setStatus("Thinking...", "info");
                 const reactionPrompt = PromptBuilder.buildReactionPrompt(player, roomParts, vitalsNL, emotionNL, relationshipNL, memoryNL, lastResult, true);
+
                 history.push({ role: 'user', content: reactionPrompt });
                 const reactionResponse = await this._callLLMMessages(history, 'combined');
                 history.push({ role: 'assistant', content: reactionResponse || '' });
+
                 if (reactionResponse === null) {
                     events.log(`❌ LLM call failed for ${charName} — stopping agent`, 'error-msg');
                     VW?.ui?.setStatus("LLM Error - Stopped", "error");
-                    config.running = false;
-                    return;
+                    config.running = false; return;
                 }
-                const parsedNonReactive = ResponseParser.parseReaction(reactionResponse) ?? { inner: '', speech: null, speechVolume: 'say', action: '', emote: null, memory: null, emotion: null, parseError: null };
+                const parsedNonReactive = ResponseParser.parseReaction(reactionResponse) ?? {inner:'',speech:null,speechVolume:'say',action:'',emote:null,memory:null,emotion:null,parseError:null};
                 if (parsedNonReactive.parseError) {
                     events.logParseError(charName, 'combined', parsedNonReactive.parseError, reactionResponse);
                 }
                 let { inner, speech, speechVolume, action, emote: reactionEmote, memory: reactionMemory, target: speechTarget } = parsedNonReactive;
-                if (inner) {
-                    events.log(`[${player.name} inner] ${inner}`, "msg-thought");
-                }
+                if (inner) { events.log(`[${player.name} inner] ${inner}`, "msg-thought"); }
                 this._applyFeltEmotion(charName, parsedNonReactive.emotion);
                 this._learnNames(charName, parsedNonReactive.learnedNames);
-                if (speech) {
-                    await this._speakLine(charName, player, speech, speechVolume, speechTarget);
-                }
+                if (speech) { await this._speakLine(charName, player, speech, speechVolume, speechTarget); }
                 this._storeReactionMemory(charName, reactionMemory, parsedNonReactive.emotion);
                 events.trackAction(charName, inner, speech, null, '');
-                if (!agentConfig.lastRoom[charName] && player.current_area)
-                    agentConfig.lastRoom[charName] = player.current_area;
+                if (!agentConfig.lastRoom[charName] && player.current_area) agentConfig.lastRoom[charName] = player.current_area;
                 const finalAction = action;
                 const noopAction = this._isNoopAction(finalAction);
-                if (finalAction && !finalAction.startsWith('speak ') && !noopAction)
-                    events.log(`[Action] ${finalAction}`, "msg-action");
+                if (finalAction && !finalAction.startsWith('speak ') && !noopAction) events.log(`[Action] ${finalAction}`, "msg-action");
                 if (finalAction && noopAction) {
                     agentConfig.lastActionResult[charName] = 'You stand still and wait, watching and listening.';
                     events.trackAction(charName, inner, speech, 'wait', 'waits.');
-                }
-                else if (finalAction) {
+                } else if (finalAction) {
                     agentApi.action(finalAction, charName).then(async (data) => {
                         const output = data?.output || data?.error || '';
                         if (data?.system_messages) {
-                            data.system_messages.forEach((systemMessage) => events.log(systemMessage, 'system-msg'));
+                            data.system_messages.forEach((systemMessage: any) => events.log(systemMessage, 'system-msg'));
                         }
                         agentConfig.lastActionResult[charName] = output;
-                        if (output && !output.includes('says:'))
-                            events.log(output, output.includes('ValueError') ? 'error-msg' : 'system-msg');
+                        if (output && !output.includes('says:')) events.log(output, output.includes('ValueError') ? 'error-msg' : 'system-msg');
                         events.trackAction(charName, '', null, finalAction, output);
                         const area = worldState.players?.[charName]?.current_area;
-                        if (area)
-                            agentConfig.lastRoom[charName] = area;
+                        if (area) agentConfig.lastRoom[charName] = area;
                         worldState.fetch();
+
                         if (reactionEmote && data?.success !== false) {
                             await this._performEmote(charName, reactionEmote);
                         }
                     }).catch(err => { events.log(`Action error: ${err instanceof Error ? err.message : String(err)}`, 'error-msg'); worldState.fetch(); });
                 }
             }
-        }
-        finally {
-            config.busy = false;
-            VW?.ui?.updateButtons();
+
+    } finally {
+            config.busy = false; VW?.ui?.updateButtons();
             VW?.ui?.syncRateLimitDisplay();
             VW?.ui?.setStatus(config.running ? "Waiting..." : "Idle.", "info");
         }
         if (config.running && config.turnBased && this.turnQueue.length > 0) {
             await TurnQueue.advance();
-            if (worldState.data)
-                VW?.ui?.renderAll(worldState.data);
+            if (worldState.data) VW?.ui?.renderAll(worldState.data);
         }
     }
-    async stepOnce() {
-        if (config.busy || config.running) {
-            events.log("Already running.", "system-msg");
-            return;
-        }
-        if (config.turnBased && this.turnQueue.length === 0)
-            TurnQueue.initialize();
+    async stepOnce(): Promise<void> {
+        if (config.busy || config.running) { events.log("Already running.", "system-msg"); return; }
+        if (config.turnBased && this.turnQueue.length === 0) TurnQueue.initialize();
         if (config.turnBased && this.turnQueue.length > 0) {
             config.controllingPlayer = TurnQueue.getCurrentCharacter();
         }
@@ -1007,83 +973,47 @@ class AgentEngine {
         if (config.turnBased && this.turnQueue.length > 0) {
             await TurnQueue.advance();
             config.controllingPlayer = TurnQueue.getCurrentCharacter();
-            if (worldState.data)
-                VW?.ui?.renderAll(worldState.data);
-        }
-        else if (!config.turnBased && config.controllingPlayer) {
+            if (worldState.data) VW?.ui?.renderAll(worldState.data);
+        } else if (!config.turnBased && config.controllingPlayer) {
             // No turn-based mode: the stepped character's turn is one full
             // turn — end it so the clock advances and new-turn effects run
             // (behave like turn-based with a single-character queue).
             await TurnQueue.endTurn();
             this._logActorTurnEvents(config.controllingPlayer);
-            if (worldState.data)
-                VW?.ui?.renderAll(worldState.data);
+            if (worldState.data) VW?.ui?.renderAll(worldState.data);
         }
     }
-    async start() {
-        if (config.turnBased) {
-            this.characterHistories = {};
-            if (this.turnQueue.length === 0) {
-                TurnQueue.initialize();
-            }
-            if (this.turnQueue.length === 0) {
-                events.log("No characters.", "error-msg");
-                return;
-            }
+    async start(): Promise<void> {
+        if (config.turnBased) { this.characterHistories = {};
+            if (this.turnQueue.length === 0) { TurnQueue.initialize(); }
+            if (this.turnQueue.length === 0) { events.log("No characters.", "error-msg"); return; }
             config.controllingPlayer = this.turnQueue[this.currentTurnIndex] || this.turnQueue[0];
         }
         else {
             if (!config.controllingPlayer) {
                 config.controllingPlayer = worldState.data?.active_player || null;
             }
-            if (!config.controllingPlayer) {
-                events.log("No character selected.", "error-msg");
-                return;
-            }
+            if (!config.controllingPlayer) { events.log("No character selected.", "error-msg"); return; }
         }
         agentConfig.stepsRun = 0;
-        const maxInput = document.getElementById('sim-max-steps');
+        const maxInput = document.getElementById('sim-max-steps') as HTMLInputElement | null;
         agentConfig.maxSteps = maxInput ? parseInt(maxInput.value) || 0 : 0;
-        config.running = true;
-        VW?.ui?.updateButtons();
-        VW?.ui?.setStatus("Running...", "info");
-        VW?.ui?.showPlayPause(false, true);
+        config.running = true; VW?.ui?.updateButtons(); VW?.ui?.setStatus("Running...", "info"); VW?.ui?.showPlayPause(false, true);
         VW?.ui?.updateMaxStepsDisplay();
         // A4: a stop/cancel from a PREVIOUS run must not ghost into this one
         // ("Step cancelled." firing on a fresh ▶ was the stale flag leaking).
         this._cancelRequested = false;
-        (async () => {
-            while (config.running) {
-                if (window.VWSimultaneous.isRoomMode(config.simultaneousMode)) {
-                    await this._simultaneousRoomStep();
-                }
-                else if (config.simultaneousMode) {
-                    await this._simultaneousStep();
-                }
-                else {
-                    await this.step();
-                }
-                if (this._cancelRequested) {
-                    this.cancel();
-                    break;
-                }
-                if (!config.turnBased && config.controllingPlayer && !config.simultaneousMode) {
-                    await TurnQueue.endTurn();
-                    this._logActorTurnEvents(config.controllingPlayer);
-                    if (worldState.data)
-                        VW?.ui?.renderAll(worldState.data);
-                }
-                agentConfig.stepsRun++;
-                const turnsRun = config.turnBased ? Math.floor(agentConfig.stepsRun / Math.max(1, this.turnQueue.length)) : agentConfig.stepsRun;
-                VW?.ui?.updateMaxStepsDisplay();
-                if (agentConfig.maxSteps > 0 && turnsRun >= agentConfig.maxSteps) {
-                    this.stop(`⏹️ Run complete — ${agentConfig.maxSteps} turns done. Press ▶ to continue.`);
-                    break;
-                }
-                await new Promise(resolve => setTimeout(resolve, config.simultaneousMode ? 800 : 2000));
-            }
-        })();
+        (async () => { while (config.running) {
+            if (window.VWSimultaneous.isRoomMode(config.simultaneousMode)) { await this._simultaneousRoomStep(); }
+            else if (config.simultaneousMode) { await this._simultaneousStep(); }
+            else { await this.step(); }
+            if (this._cancelRequested) { this.cancel(); break; }
+            if (!config.turnBased && config.controllingPlayer && !config.simultaneousMode) { await TurnQueue.endTurn(); this._logActorTurnEvents(config.controllingPlayer); if (worldState.data) VW?.ui?.renderAll(worldState.data); }
+            agentConfig.stepsRun++; const turnsRun = config.turnBased ? Math.floor(agentConfig.stepsRun / Math.max(1, this.turnQueue.length)) : agentConfig.stepsRun; VW?.ui?.updateMaxStepsDisplay(); if (agentConfig.maxSteps > 0 && turnsRun >= agentConfig.maxSteps) { this.stop(`⏹️ Run complete — ${agentConfig.maxSteps} turns done. Press ▶ to continue.`); break; }
+            await new Promise(resolve => setTimeout(resolve, config.simultaneousMode ? 800 : 2000));
+        } })();
     }
+
     /**
      * task-101 "simultaneous": every autonomous character has its own act
      * countdown. Each loop iteration decrements all countdowns; the first
@@ -1097,9 +1027,8 @@ class AgentEngine {
      * also pass with the "End round" control, which resolves them without acting
      * so a round can never hang on an idle player.
      */
-    async _simultaneousStep() {
-        if (!worldState.data)
-            await worldState.fetch();
+    async _simultaneousStep(): Promise<void> {
+        if (!worldState.data) await worldState.fetch();
         const players = worldState.data?.players || {};
         const names = Object.keys(players);
         for (const name of names) {
@@ -1108,15 +1037,13 @@ class AgentEngine {
             }
         }
         window.VWSimultaneous.tickCountdowns(this._simCountdowns);
-        const alive = (name) => {
+        const alive = (name: string) => {
             const p = players[name];
             return p && (p.state !== 'dead' || config.ghostMode);
         };
         const ready = names.filter(name => {
-            if (!alive(name))
-                return false;
-            if (!events.isAutonomous(name))
-                return false;
+            if (!alive(name)) return false;
+            if (!events.isAutonomous(name)) return false;
             return this._simCountdowns[name] <= 0;
         });
         if (ready.length) {
@@ -1126,8 +1053,7 @@ class AgentEngine {
             config.controllingPlayer = charName;
             try {
                 await this.step();
-            }
-            finally {
+            } finally {
                 config.controllingPlayer = prevControlling;
             }
             this.markSimResolved(charName);
@@ -1138,7 +1064,8 @@ class AgentEngine {
         // round and their own countdown has come up, prompt them — waiting here
         // is what makes the round genuinely wait for the player (task-533).
         if (!this._simRoundComplete()) {
-            const human = names.find((name) => !events.isAutonomous(name) && alive(name)
+            const human = names.find((name: string) =>
+                !events.isAutonomous(name) && alive(name)
                 && this._simCountdowns[name] <= 0);
             if (human) {
                 this._simCountdowns[human] = window.VWSimultaneous.cooldownFor(players[human]);
@@ -1146,8 +1073,7 @@ class AgentEngine {
                 config.controllingPlayer = human;
                 try {
                     await this._humanTurn(human);
-                }
-                finally {
+                } finally {
                     config.controllingPlayer = prevControlling;
                 }
                 this.markSimResolved(human);
@@ -1155,6 +1081,7 @@ class AgentEngine {
             }
         }
     }
+
     /**
      * task-101 "simultaneous per room": rooms resolve independently while
      * characters inside a room still act in order. Each iteration decrements
@@ -1162,12 +1089,11 @@ class AgentEngine {
      * characters sequentially, then the room's countdown restarts. A room's
      * cadence is its fastest member's.
      */
-    async _simultaneousRoomStep() {
-        if (!worldState.data)
-            await worldState.fetch();
+    async _simultaneousRoomStep(): Promise<void> {
+        if (!worldState.data) await worldState.fetch();
         const players = worldState.data?.players || {};
         const rooms = window.VWSimultaneous.groupByRoom(players, {
-            isAutonomous: (name) => events.isAutonomous(name),
+            isAutonomous: (name: string) => events.isAutonomous(name),
             ghostMode: config.ghostMode,
         });
         for (const area of Object.keys(rooms)) {
@@ -1180,20 +1106,18 @@ class AgentEngine {
         if (area === null) {
             // No room ready. The human is still a round participant (task-533),
             // so once every room has gone they get prompted at their own cadence.
-            if (this._simRoundComplete())
-                return;
-            const human = Object.keys(players).find(name => !events.isAutonomous(name)
+            if (this._simRoundComplete()) return;
+            const human = Object.keys(players).find(name =>
+                !events.isAutonomous(name)
                 && (players[name]?.state !== 'dead' || config.ghostMode)
                 && this._simCountdowns[name] <= 0);
-            if (!human)
-                return;
+            if (!human) return;
             this._simCountdowns[human] = window.VWSimultaneous.cooldownFor(players[human]);
             const prevHuman = config.controllingPlayer;
             config.controllingPlayer = human;
             try {
                 await this._humanTurn(human);
-            }
-            finally {
+            } finally {
                 config.controllingPlayer = prevHuman;
             }
             this.markSimResolved(human);
@@ -1205,44 +1129,44 @@ class AgentEngine {
         const prevControlling = config.controllingPlayer;
         try {
             for (const charName of order) {
-                if (this._cancelRequested || !config.running)
-                    break;
+                if (this._cancelRequested || !config.running) break;
                 config.controllingPlayer = charName;
                 await this.step();
                 this.markSimResolved(charName);
             }
-        }
-        finally {
+        } finally {
             config.controllingPlayer = prevControlling;
         }
         await this._closeSimRoundIfComplete();
     }
+
     /**
      * Record that *name* has taken their turn in the current simultaneous round.
      * @param {string} name
      */
-    markSimResolved(name) {
-        if (!name)
-            return;
-        if (!this._simRound)
-            this._simRound = new Set();
+    markSimResolved(name: string): void {
+        if (!name) return;
+        if (!this._simRound) this._simRound = new Set();
         window.VWSimRound.markResolved(this._simRound, name);
     }
+
     /**
      * Everyone whose turn counts toward a round: every living character, human
      * included. The human is a participant, not an exemption — a slow player
      * stalls the world, which is the same contract turn-based mode already has.
      * @returns {string[]}
      */
-    _simParticipants() {
+    _simParticipants(): string[] {
         return window.VWSimRound.participants(worldState.data?.players || {}, {
             ghostMode: config.ghostMode
         });
     }
+
     /** True when every participant has taken their turn this round. */
-    _simRoundComplete() {
+    _simRoundComplete(): boolean {
         return window.VWSimRound.isComplete(this._simParticipants(), this._simRound);
     }
+
     /**
      * Close the round if everyone has gone: run the world turn pipeline and
      * start a fresh round.
@@ -1252,15 +1176,14 @@ class AgentEngine {
      * background simulation, no soak orders, no item ticks, no time triggers,
      * and a frozen clock. Nothing in the world happened at all.
      */
-    async _closeSimRoundIfComplete() {
-        if (!this._simRoundComplete())
-            return false;
+    async _closeSimRoundIfComplete(): Promise<boolean> {
+        if (!this._simRoundComplete()) return false;
         this._simRound = new Set();
         await TurnQueue.endTurn();
-        if (worldState.data)
-            VW?.ui?.renderAll(worldState.data);
+        if (worldState.data) VW?.ui?.renderAll(worldState.data);
         return true;
     }
+
     /**
      * The "End round" control: resolve every human participant without acting,
      * so a round can never hang on an idle player.
@@ -1270,25 +1193,21 @@ class AgentEngine {
      * not touched; only the human's own turn is surrendered, and only if they
      * have not already taken it.
      */
-    async endSimRound() {
+    async endSimRound(): Promise<boolean> {
         const human = this._simParticipants().find(name => !events.isAutonomous(name));
-        if (!human)
-            return false;
+        if (!human) return false;
         if (!(this._simRound || new Set()).has(human)) {
             events.log(`⏭️ ${human} passes — round closed.`, 'system-msg');
             this.markSimResolved(human);
         }
         return this._closeSimRoundIfComplete();
     }
-    stop(reason = 'Agent stopped.') {
-        config.running = false;
-        VW?.ui?.updateButtons();
-        events.log(reason, 'system-msg');
-        VW?.ui?.setStatus("Idle.", "info");
-        VW?.ui?.showPlayPause(true, false);
+    stop(reason = 'Agent stopped.'): void {
+        config.running = false; VW?.ui?.updateButtons(); events.log(reason, 'system-msg');
+        VW?.ui?.setStatus("Idle.", "info"); VW?.ui?.showPlayPause(true, false);
         VW?.ui?.updateMaxStepsDisplay();
     }
-    reset() {
+    reset(): void {
         this.stop();
         PlanTracker.resetAll();
         this.characterHistories = {};
@@ -1301,23 +1220,24 @@ class AgentEngine {
         this._simCountdowns = {};
         this._simRoomCountdowns = {};
     }
-    nudge(charName, text) {
-        if (!text || !charName)
-            return;
+    nudge(charName: string, text: string): void {
+        if (!text || !charName) return;
         this.getHistory(charName).push({ role: 'user', content: `[Sensory event] ${text}` });
         events.log(`[Nudge -> ${charName}] ${text}`, 'system-msg');
     }
+
     /**
      * Give the agent feedback when its chosen action is rejected, instead of
      * silently dropping it. The rejection lands in lastActionResult (so DECIDE
      * sees it next turn) — no memory write: the hint is transient system
      * feedback, not something the character remembers.
      */
-    _surfaceRejectedAction(charName, rejectedAction) {
+    _surfaceRejectedAction(charName: string, rejectedAction: string): string {
         const text = `You try to ${rejectedAction}, but you can't do that.`;
         agentConfig.lastActionResult[charName] = text;
         return text;
     }
+
     /**
      * Invalid-action auto-retry (task-361): feed the failed action + reason
      * back to the agent and let it choose a different action ONCE, in the same
@@ -1332,10 +1252,9 @@ class AgentEngine {
      * @param {string} memoryNL - Memory context (parity with turn flow; unused here)
      * @returns {Promise<Object|null>} Retry outcome or null
      */
-    async _autoRetryInvalidAction(charName, player, history, failedAction, failedResult, memoryNL) {
+    async _autoRetryInvalidAction(charName: string, player: any, history: AgentEngineHistory, failedAction: string, failedResult: string, memoryNL: string): Promise<{ finalAction: string; actionResult: string; actionSucceeded: boolean } | null> {
         const attempted = String(failedAction || '').trim() || '(invalid)';
-        if (!failedResult || /while unconscious/i.test(failedResult))
-            return null;
+        if (!failedResult || /while unconscious/i.test(failedResult)) return null;
         events.log(`↩️ ${charName}: auto-retry after failed action "${attempted}"`, 'system-msg');
         events.logPhase(charName, 'decide', 'auto-retry');
         VW?.ui?.setStatus?.('Retrying...', 'info');
@@ -1371,10 +1290,7 @@ class AgentEngine {
                     await agentApi.resetWorld();
                     await worldState.fetch();
                     events.log('✅ Scenario restarted.', 'system-msg');
-                }
-                else {
-                    this.stop();
-                }
+                } else { this.stop(); }
                 return null;
             }
             const result = data?.output || '';
@@ -1386,47 +1302,47 @@ class AgentEngine {
                 events.log(result, result.includes('ValueError') ? 'error-msg' : 'msg-result', { outcome: succeeded ? 'success' : 'failure' });
             }
             return { finalAction: retryAction, actionResult: result, actionSucceeded: succeeded };
-        }
-        catch (err) {
+        } catch (err) {
             events.log(`Action error: ${err instanceof Error ? err.message : String(err)}`, 'error-msg');
             return { finalAction: retryAction, actionResult: `Error: ${err instanceof Error ? err.message : String(err)}`, actionSucceeded: false };
         }
     }
+
     /**
      * Chained follow-up (task-104 / task-104 generalization of dash→go):
      * after a successful action with a CHAIN_RULES entry, the agent gets one
      * immediate decision to continue with an allowed verb (go/approach/
      * release/wait). Returns the combined result text.
      */
-    async _runChainFollowUp(charName, player, resultText, history, sourceVerb, allowedVerbs) {
+    async _runChainFollowUp(charName: string, player: any, resultText: string, history: AgentEngineHistory, sourceVerb: string, allowedVerbs: string[]): Promise<string> {
         await worldState.fetch();
         const freshState = worldState.data;
-        if (!freshState)
-            return resultText;
+        if (!freshState) return resultText;
         const freshPlayer = freshState?.players?.[charName] || player;
         const currentArea = freshState.areas?.[freshState.current_area] || null;
         const roomContext = PromptBuilder.buildRoomContext(freshState, charName, freshPlayer, currentArea);
+
         events.logPhase(charName, 'decide', `${sourceVerb} follow-up`);
         VW?.ui?.setStatus?.("Chain follow-up...", "info");
         const prompt = PromptBuilder.buildChainFollowUpPrompt(charName, roomContext, resultText, sourceVerb, allowedVerbs);
         history.push({ role: 'user', content: prompt });
         const response = await this._callLLMMessages(history, 'chain-follow-up');
         history.push({ role: 'assistant', content: response || '' });
-        if (response === null)
-            return resultText;
+        if (response === null) return resultText;
+
         const parsed = ResponseParser.parseReaction(response);
         if (parsed?.parseError) {
             events.logParseError(charName, 'chain-follow-up', parsed.parseError, response);
         }
         const followAction = parsed?.action || '';
-        if (!followAction || this._checkCancel())
-            return resultText;
+        if (!followAction || this._checkCancel()) return resultText;
+
         const verb = followAction.split(/\s+/)[0].toLowerCase();
         const exitNames = Object.keys(currentArea?.exits || {}).map(e => e.toLowerCase());
         const allowed = allowedVerbs.includes(verb);
         const isExitName = exitNames.includes(followAction.toLowerCase());
-        if (!ActionNormalizer.isValidAction(followAction, charName) || (!allowed && !isExitName))
-            return resultText;
+        if (!ActionNormalizer.isValidAction(followAction, charName) || (!allowed && !isExitName)) return resultText;
+
         events.logPhase(charName, 'act', followAction);
         events.log(`[Action] ${followAction}`, "msg-action");
         try {
@@ -1448,20 +1364,19 @@ class AgentEngine {
             }
             await worldState.fetch();
             return resultText + '\n' + followResult;
-        }
-        catch (err) {
+        } catch (err) {
             events.log(`${sourceVerb} follow-up error: ${err instanceof Error ? err.message : String(err)}`, 'error-msg');
             return resultText;
         }
     }
+
     /**
      * One automatic retry when a phase response came back as repaired/truncated
      * JSON (N1). The repair may have silently dropped fields (e.g. the emote);
      * re-asking once usually yields a complete reply. Never retries twice.
      */
-    async _retryOnceOnParseError(charName, history, stepName, parser, parsed) {
-        if (!parsed?.parseError || !history?.length)
-            return parsed;
+    async _retryOnceOnParseError(charName: string, history: AgentEngineHistory, stepName: string, parser: (raw: string) => any, parsed: any): Promise<any> {
+        if (!parsed?.parseError || !history?.length) return parsed;
         events.log(`⚠️ ${charName}: ${stepName} response was repaired (truncated JSON) — retrying once.`, 'error-msg');
         history.pop(); // drop the broken assistant message so the retry isn't seeded by it
         const retried = await this._callLLMMessages(history, stepName);
@@ -1471,32 +1386,31 @@ class AgentEngine {
         }
         history.push({ role: 'assistant', content: retried });
         const reparsed = parser(retried);
-        if (reparsed && !reparsed.parseError)
-            return reparsed;
+        if (reparsed && !reparsed.parseError) return reparsed;
         return parsed;
     }
+
     /** Thin wrapper: build message array and delegate to _callLLMMessages. */
-    async _callLLM(prompt, history, stepName) {
+    async _callLLM(prompt: string, history: AgentEngineHistory, stepName: string): Promise<any> {
         return this._callLLMMessages([...history, { role: 'user', content: prompt }], stepName);
     }
+
     /** Structured-output schema for a turn phase (task: structured output).
      *  The client drops it when disabled/unsupported, so null is a fine default. */
-    _formatForStep(stepName) {
+    _formatForStep(stepName: string): unknown {
         const F = window.StructuredFormats;
-        if (!F)
-            return null;
-        if (stepName === 'result-reaction')
-            return F.agentReact;
-        if (stepName === 'think-decide' || stepName === 'combined' || stepName === 'auto-retry' || stepName === 'chain-follow-up')
-            return F.agentAction;
+        if (!F) return null;
+        if (stepName === 'result-reaction') return F.agentReact;
+        if (stepName === 'think-decide' || stepName === 'combined' || stepName === 'auto-retry' || stepName === 'chain-follow-up') return F.agentAction;
         return null;
     }
+
     // Send a pre-built message array as-is (system + accumulated history +
     // the new user message, already pushed by the caller). Pruned by the
     // context window when over the token/message limit.
-    async _callLLMMessages(messages, stepName) {
+    async _callLLMMessages(messages: AgentEngineMessage[], stepName: string): Promise<any> {
         this.contextMgr.reset();
-        messages.forEach((m, i) => this.contextMgr.addMessage(m, { importance: m.role === 'system' ? 2 : 0, type: m.role, keepAlways: m.role === 'system' }));
+        messages.forEach((m,i) => this.contextMgr.addMessage(m, { importance: m.role==='system'?2:0, type: m.role, keepAlways: m.role==='system' }));
         const final = this.contextMgr.isOverLimit() ? this.contextMgr.prune(messages) : messages;
         // task-340: context pruning becomes a visible row instead of silent amnesia.
         const prunedCount = messages.length - final.length;
@@ -1506,8 +1420,7 @@ class AgentEngine {
                 this._lastPruneSig = sig;
                 events.log(`✂ Context pruned (${stepName}): dropped ${prunedCount} oldest messages`, 'msg-prune');
             }
-        }
-        else {
+        } else {
             this._lastPruneSig = null;
         }
         if (config.manualMode) {
@@ -1517,7 +1430,7 @@ class AgentEngine {
         this._abortController = new AbortController();
         const streamId = `${stepName}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
         events.startStreaming(streamId, stepName);
-        const onChunk = (c) => events.appendStream(streamId, c);
+        const onChunk = (c: any) => events.appendStream(streamId, c);
         try {
             const r = await llmClient.chat(final, { streaming: config.streaming, max_tokens: config.maxTokens, signal: this._abortController.signal, onChunk, label: stepName, responseFormat: this._formatForStep(stepName) });
             this._abortController = null;
@@ -1527,18 +1440,13 @@ class AgentEngine {
         catch (err) {
             // AbortError is what fetch() rejects with on abort; read the flag off
             // whatever was thrown rather than requiring an Error instance.
-            const errName = err?.name;
-            if (errName === 'AbortError') {
-                events.finishStreaming(streamId);
-                events.log('⏹️ LLM call cancelled.', 'system-msg');
-                return null;
-            }
-            events.log(`LLM error (${stepName}): ${err instanceof Error ? err.message : String(err)}`, "error-msg");
-            events.finishStreaming(streamId);
-            return null;
+            const errName = (err as { name?: string } | null)?.name;
+            if (errName === 'AbortError') { events.finishStreaming(streamId); events.log('⏹️ LLM call cancelled.', 'system-msg'); return null; }
+            events.log(`LLM error (${stepName}): ${err instanceof Error ? err.message : String(err)}`, "error-msg"); events.finishStreaming(streamId); return null;
         }
     }
 }
+
 // Singleton.
 // globals.d.ts already declares a global `agent` (hoisted there for the modules
 // that read `agent.turnQueue`), so a top-level `const agent` here would be a
@@ -1548,4 +1456,4 @@ class AgentEngine {
 // The only difference is binding kind — the name is now an own property of
 // `window` rather than a script-scoped lexical binding. The documented access
 // path is `VW.agent` (main.ts assigns `VW.agent = agent`).
-window.agent = new AgentEngine();
+(window as unknown as { agent: AgentEngine }).agent = new AgentEngine();

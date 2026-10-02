@@ -119,7 +119,7 @@
         baseConfig: SoakConfig | null,
         metaDefaults?: { minutes_per_tick?: number } | null,
     ): SoakConfig {
-        const out: SoakConfig = Object.assign({}, baseConfig || {}, preset.config || {});
+        const out: SoakConfig = Object.assign({}, baseConfig || {}, preset.config || ({} as ConfigManager));
         if (preset.days) {
             const mpt = Number(out.minutes_per_tick) || Number((metaDefaults || {}).minutes_per_tick) || 1;
             out.ticks = Math.max(1, Math.round((preset.days * 1440) / mpt));

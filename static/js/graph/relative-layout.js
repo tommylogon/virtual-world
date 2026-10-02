@@ -524,7 +524,8 @@ const _GraphRelativeLayout = {
             return 0;
         const derived = this.layoutPositions(nodes, this._edges(), current);
         const updates = [];
-        for (const [id, pos] of Object.entries(derived)) {
+        for (const [id, rawPos] of Object.entries(derived)) {
+            const pos = rawPos;
             const node = nodes[id];
             if (!node || node.type === 'area' || node.type === 'way')
                 continue;

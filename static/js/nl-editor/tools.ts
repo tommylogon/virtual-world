@@ -1,4 +1,3 @@
-"use strict";
 /**
  * tools.js — Tool catalog and Overlay Graph View for Natural-Language Editor (task-387).
  *
@@ -13,74 +12,135 @@
  * @docs docs/virtualWorld/dev_tasks/done/graph/task-387-natural-language-editor-mode.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+
 window.NLEditorTools = (() => {
     'use strict';
+
+    /** A graph node as the overlay reads it: live or staged, properties merged. */
+    type GraphNodeView = {
+        id?: string;
+        name?: string;
+        type?: string;
+        properties?: Record<string, any>;
+        staged?: boolean;
+        short_desc?: string;
+        tags?: string[];
+    };
+
+    /** One pending operation in the staging tray (nl-editor/staging.js). */
+    type StagedOp = {
+        id: string;
+        type: string;
+        summary: string;
+        payload?: Record<string, any>;
+    };
+
+    /** The staging-buffer surface this module reads and writes. Every member
+     *  below is a real method on nl-editor/staging.js's buffer. */
+    type StagingBuffer = {
+        mintId(kind: string, name: string): string;
+        addOp(type: string, payload: any, summary: string): StagedOp;
+        removeOp(opId: string): boolean;
+        clear(): void;
+        getOps(): StagedOp[];
+        getStagedCreations(): Record<string, GraphNodeView>;
+        getStagedDeletions(): Set<string>;
+        getStagedUpdates(): Record<string, any>;
+        getStagedEdges(): any[];
+    };
+
+    /** One entry from a library registry, in the {id, ...entry} shape the
+     *  normalizer below produces. Registries are open-ended records. */
+    type LibraryEntry = {
+        id?: string;
+        key?: string;
+        name?: string;
+        tags?: string[];
+        description?: string;
+        personality?: string;
+        effects?: Record<string, any>;
+    };
+
+    /** The bulk selector accepted by matchNodes and update_matching_nodes. */
+    type NodeSelector = {
+        kind?: string;
+        type?: string;
+        tags?: string[];
+        tag?: string;
+        require_all_tags?: boolean;
+        area?: string;
+        area_id?: string;
+        name_contains?: string;
+        query?: string;
+        ids?: string[];
+    };
+
     /** Library and tag reads below go through ApiClient's plain GET. The
      *  ambient declaration of ApiClient carries only the graph-background
      *  surface, so the generic getter is asserted once here rather than at
      *  every call site. */
-    const apiGet = (path) => ApiClient.get(path);
+    const apiGet = (path: string): Promise<any> =>
+        (ApiClient as unknown as { get(p: string): Promise<any> }).get(path);
+
     /** OverlayGraphView merges live world graph with uncommitted staged operations. */
     class OverlayGraphView {
-        constructor(stagingBuffer) {
+        declare staging: StagingBuffer;
+
+        constructor(stagingBuffer: StagingBuffer) {
             this.staging = stagingBuffer;
         }
+
         /** Live character data for a character node, from the state payload.
          *  The character node is the authoring record; fields not yet mirrored
          *  onto it (traits, tags, stats, vitals, ...) are read from the live
          *  player so the agent can see the whole character. Node props win. */
-        _characterFields(node) {
-            if (!node || node.type !== 'character' || !node.name)
-                return null;
+        _characterFields(node: GraphNodeView | null | undefined): Record<string, any> | null {
+            if (!node || node.type !== 'character' || !node.name) return null;
             try {
                 const players = (typeof worldState !== 'undefined' && worldState?.data?.players) || null;
                 return (players && players[node.name]) || null;
-            }
-            catch (e) {
-                return null;
-            }
+            } catch (e: any) { return null; }
         }
+
         /** Node view with live character fields filled in where the node lacks them. */
-        _enrich(node) {
+        _enrich(node: GraphNodeView): GraphNodeView {
             const p = this._characterFields(node);
-            if (!p)
-                return node;
-            const props = { ...(node.properties || {}) };
+            if (!p) return node;
+            const props: Record<string, any> = { ...(node.properties || {}) };
             for (const f of ['description', 'base_description', 'personality', 'stats', 'skills',
-                'vitals', 'traits', 'tags', 'interest_tags', 'decay_rates',
-                'simple_npc', 'autonomy', 'npc_behavior', 'npc_action_interval',
-                'emotion', 'conditions', 'activity']) {
-                if (props[f] === undefined && p[f] !== undefined)
-                    props[f] = p[f];
+                             'vitals', 'traits', 'tags', 'interest_tags', 'decay_rates',
+                             'simple_npc', 'autonomy', 'npc_behavior', 'npc_action_interval',
+                             'emotion', 'conditions', 'activity']) {
+                if (props[f] === undefined && p[f] !== undefined) props[f] = p[f];
             }
             return { ...node, properties: props };
         }
-        getNode(nodeId) {
-            if (!nodeId)
-                return null;
+
+        getNode(nodeId?: string | null): GraphNodeView | null {
+            if (!nodeId) return null;
             const nid = String(nodeId).toLowerCase();
             const deletions = this.staging.getStagedDeletions();
-            if (deletions.has(nid))
-                return null;
+            if (deletions.has(nid)) return null;
+
             const creations = this.staging.getStagedCreations();
             const stagedId = creations[nid]
                 ? nid
                 : Object.keys(creations).find(k => (creations[k].name || '').toLowerCase() === nid);
             if (stagedId) {
-                const node = { ...creations[stagedId] };
+                const node: GraphNodeView = { ...creations[stagedId] };
                 const updates = this.staging.getStagedUpdates();
                 if (updates[stagedId]) {
                     node.properties = this._mergeProps(node.properties, updates[stagedId]);
                 }
                 const bulk = this._bulkPatchFor(stagedId);
-                if (bulk)
-                    node.properties = this._mergeProps(node.properties, bulk);
+                if (bulk) node.properties = this._mergeProps(node.properties, bulk);
                 return node;
             }
+
             // Display names are not storage keys (AGENTS.md): resolve a name to
             // its node at the read boundary, so `get_node {"node_id":"Thrazz"}`
             // resolves instead of failing on the raw name.
-            let liveNode = typeof worldState !== 'undefined' && worldState?.getNode ? worldState.getNode(nid) : null;
+            let liveNode: any = typeof worldState !== 'undefined' && worldState?.getNode ? worldState.getNode(nid) : null;
             if (!liveNode && typeof worldState !== 'undefined' && typeof worldState?.getNodeByIdentifier === 'function') {
                 liveNode = worldState.getNodeByIdentifier(nodeId) || null;
             }
@@ -92,29 +152,27 @@ window.NLEditorTools = (() => {
                     node.properties = this._mergeProps(node.properties, updates[liveId]);
                 }
                 const bulk = this._bulkPatchFor(liveId);
-                if (bulk)
-                    node.properties = this._mergeProps(node.properties, bulk);
+                if (bulk) node.properties = this._mergeProps(node.properties, bulk);
                 return node;
             }
             return null;
         }
-        searchNodes(query = '', kind = null, tags = null) {
+
+        searchNodes(query = '', kind: string | null = null, tags: string[] | null = null): GraphNodeView[] {
             const q = (query || '').toLowerCase().trim();
             const filterKind = kind ? kind.toLowerCase() : null;
             const tagList = Array.isArray(tags) ? tags.map(t => String(t).toLowerCase()).filter(Boolean) : null;
             const deletions = this.staging.getStagedDeletions();
-            const results = [];
-            const seenIds = new Set();
+            const results: GraphNodeView[] = [];
+            const seenIds = new Set<string>();
+
             // 1. Search staged creations
             const creations = this.staging.getStagedCreations();
             for (const [id, node] of Object.entries(creations)) {
-                if (seenIds.has(id) || deletions.has(id))
-                    continue;
-                if (filterKind && (node.type || 'item').toLowerCase() !== filterKind)
-                    continue;
-                const nodeTags = (node.properties?.tags || []).map(t => String(t).toLowerCase());
-                if (tagList && tagList.length && !tagList.some(t => nodeTags.includes(t)))
-                    continue;
+                if (seenIds.has(id) || deletions.has(id)) continue;
+                if (filterKind && (node.type || 'item').toLowerCase() !== filterKind) continue;
+                const nodeTags = ((node.properties?.tags || []) as string[]).map(t => String(t).toLowerCase());
+                if (tagList && tagList.length && !tagList.some(t => nodeTags.includes(t))) continue;
                 const name = (node.name || '').toLowerCase();
                 if (!q || id.includes(q) || name.includes(q)) {
                     seenIds.add(id);
@@ -123,26 +181,27 @@ window.NLEditorTools = (() => {
                         name: node.name,
                         type: node.type || 'item',
                         tags: node.properties?.tags || [],
-                        short_desc: (node.properties?.description || '').slice(0, 80),
+                        short_desc: ((node.properties?.description || '') as string).slice(0, 80),
                         staged: true
                     });
                 }
             }
+
             // 2. Search live nodes
-            const liveNodes = typeof worldState !== 'undefined' && worldState?.graph?.nodes ? worldState.graph.nodes : {};
+            const liveNodes: Record<string, GraphNodeView> = typeof worldState !== 'undefined' && worldState?.graph?.nodes ? worldState.graph.nodes : {};
             for (const [id, rawNode] of Object.entries(liveNodes)) {
                 const nid = id.toLowerCase();
-                if (seenIds.has(nid) || deletions.has(nid))
-                    continue;
+                if (seenIds.has(nid) || deletions.has(nid)) continue;
                 const nodeType = (rawNode.type || '').toLowerCase();
-                if (filterKind && nodeType !== filterKind)
-                    continue;
+                if (filterKind && nodeType !== filterKind) continue;
+
                 const view = this._enrich(rawNode);
                 const name = (rawNode.name || '').toLowerCase();
-                const desc = (view.properties?.description || '').toLowerCase();
-                const nodeTags = (view.properties?.tags || []).map(t => String(t).toLowerCase());
-                if (tagList && tagList.length && !tagList.some(t => nodeTags.includes(t)))
-                    continue;
+                const desc = ((view.properties?.description || '') as string).toLowerCase();
+                const nodeTags = ((view.properties?.tags || []) as string[]).map(t => String(t).toLowerCase());
+
+                if (tagList && tagList.length && !tagList.some(t => nodeTags.includes(t))) continue;
+
                 if (!q || nid.includes(q) || name.includes(q) || desc.includes(q)) {
                     seenIds.add(nid);
                     results.push({
@@ -150,38 +209,38 @@ window.NLEditorTools = (() => {
                         name: rawNode.name,
                         type: rawNode.type,
                         tags: view.properties?.tags || [],
-                        short_desc: (view.properties?.description || '').slice(0, 80),
+                        short_desc: ((view.properties?.description || '') as string).slice(0, 80),
                         staged: false
                     });
                 }
             }
+
             return results.slice(0, 15);
         }
+
         listWorldSummary() {
-            const lines = ['### World Summary (Overlay):'];
-            const areas = [];
-            const liveNodes = typeof worldState !== 'undefined' && worldState?.graph?.nodes ? worldState.graph.nodes : {};
+            const lines: string[] = ['### World Summary (Overlay):'];
+            const areas: string[] = [];
+            const liveNodes: Record<string, GraphNodeView> = typeof worldState !== 'undefined' && worldState?.graph?.nodes ? worldState.graph.nodes : {};
             const creations = this.staging.getStagedCreations();
             const deletions = this.staging.getStagedDeletions();
-            const allNodes = { ...liveNodes, ...creations };
-            const counts = { area: 0, character: 0, item: 0, way: 0, logic_trigger: 0 };
+
+            const allNodes: Record<string, GraphNodeView> = { ...liveNodes, ...creations };
+            const counts: Record<string, number> = { area: 0, character: 0, item: 0, way: 0, logic_trigger: 0 };
             for (const [id, node] of Object.entries(allNodes)) {
                 const nid = id.toLowerCase();
-                if (deletions.has(nid))
-                    continue;
+                if (deletions.has(nid)) continue;
                 const type = node.type || 'item';
-                if (counts[type] !== undefined)
-                    counts[type] += 1;
+                if (counts[type] !== undefined) counts[type] += 1;
                 if (type === 'area') {
-                    const tagStr = (node.properties?.tags || []).join(', ');
+                    const tagStr = ((node.properties?.tags || []) as string[]).join(', ');
                     areas.push(`- Area [${node.name}] (id: ${node.id}${node.staged ? ', STAGED' : ''})${tagStr ? ` [tags: ${tagStr}]` : ''}`);
                 }
             }
-            if (areas.length === 0)
-                lines.push('(No areas found in world)');
-            else
-                lines.push(...areas);
+            if (areas.length === 0) lines.push('(No areas found in world)');
+            else lines.push(...areas);
             lines.push(`Counts: ${counts.area} areas, ${counts.character} characters, ${counts.item} items, ${counts.way} ways${counts.logic_trigger ? `, ${counts.logic_trigger} triggers` : ''}.`);
+
             const roster = this.roster();
             if (roster.length) {
                 lines.push(`Characters (${roster.length}):`);
@@ -189,6 +248,7 @@ window.NLEditorTools = (() => {
                     lines.push(`- ${entry.name}${entry.area ? ` @ ${entry.area}` : ''} (id: ${entry.id})`);
                 }
             }
+
             const stagedOps = this.staging.getOps();
             if (stagedOps.length > 0) {
                 lines.push(`\nPending Staged Ops (${stagedOps.length}):`);
@@ -196,10 +256,11 @@ window.NLEditorTools = (() => {
             }
             return lines.join('\n');
         }
+
         /** Characters (id, name, current area), resolved from the live roster. */
         roster() {
-            const players = (typeof worldState !== 'undefined' && worldState?.data?.players) || {};
-            const out = [];
+            const players: Record<string, any> = (typeof worldState !== 'undefined' && worldState?.data?.players) || {};
+            const out: Array<{ key: string; id: string; name: any; area: any }> = [];
             for (const [key, player] of Object.entries(players)) {
                 const name = player?.name || key;
                 let id = player?.node_id || null;
@@ -211,6 +272,7 @@ window.NLEditorTools = (() => {
             out.sort((a, b) => String(a.name).localeCompare(String(b.name)));
             return out;
         }
+
         /**
          * Resolve a bulk selector to node views — uncapped, deterministic. The
          * selector mirrors the server's `_select_nodes` so the affected set the
@@ -218,23 +280,25 @@ window.NLEditorTools = (() => {
          * {kind|type, tags|tag, require_all_tags, area|area_id,
          *  name_contains|query, ids}.
          */
-        matchNodes(selector = {}) {
-            const sel = selector || {};
+        matchNodes(selector: NodeSelector = {}): GraphNodeView[] {
+            const sel: NodeSelector = selector || {};
             const kind = String(sel.kind || sel.type || '').toLowerCase() || null;
             const nameContains = String(sel.name_contains || sel.query || '').toLowerCase().trim();
-            const tags = (sel.tags || [])
+            const tags: string[] = (sel.tags || [])
                 .concat(sel.tag ? [sel.tag] : [])
                 .map(t => String(t).toLowerCase())
                 .filter(Boolean);
             const requireAll = sel.require_all_tags !== false;
             const explicit = Array.isArray(sel.ids) && sel.ids.length
-                ? new Set(sel.ids.map((i) => String(i).toLowerCase()))
+                ? new Set(sel.ids.map((i: string) => String(i).toLowerCase()))
                 : null;
+
             const deletions = this.staging.getStagedDeletions();
             const creations = this.staging.getStagedCreations();
-            const liveNodes = (typeof worldState !== 'undefined' && worldState?.graph?.nodes) || {};
-            const all = { ...liveNodes, ...creations };
-            let areaId = null;
+            const liveNodes: Record<string, GraphNodeView> = (typeof worldState !== 'undefined' && worldState?.graph?.nodes) || {};
+            const all: Record<string, GraphNodeView> = { ...liveNodes, ...creations };
+
+            let areaId: string | null = null;
             const areaKey = sel.area || sel.area_id || null;
             if (areaKey) {
                 const wanted = String(areaKey).toLowerCase();
@@ -244,29 +308,23 @@ window.NLEditorTools = (() => {
                         break;
                     }
                 }
-                if (!areaId)
-                    areaId = `area_${wanted.replace(/\s+/g, '_')}`;
+                if (!areaId) areaId = `area_${wanted.replace(/\s+/g, '_')}`;
             }
-            const results = [];
+
+            const results: GraphNodeView[] = [];
             for (const [id, rawNode] of Object.entries(all)) {
                 const nid = id.toLowerCase();
-                if (deletions.has(nid))
-                    continue;
-                if (explicit && !explicit.has(nid) && !explicit.has(String(rawNode.id || '').toLowerCase()))
-                    continue;
-                if (kind && String(rawNode.type || '').toLowerCase() !== kind)
-                    continue;
+                if (deletions.has(nid)) continue;
+                if (explicit && !explicit.has(nid) && !explicit.has(String(rawNode.id || '').toLowerCase())) continue;
+                if (kind && String(rawNode.type || '').toLowerCase() !== kind) continue;
                 const view = this._enrich(rawNode);
-                const nodeTags = (view.properties?.tags || []).map(t => String(t).toLowerCase());
+                const nodeTags = ((view.properties?.tags || []) as string[]).map(t => String(t).toLowerCase());
                 if (tags.length && (requireAll
                     ? !tags.every(t => nodeTags.includes(t))
-                    : !tags.some(t => nodeTags.includes(t))))
-                    continue;
+                    : !tags.some(t => nodeTags.includes(t)))) continue;
                 const name = String(rawNode.name || '').toLowerCase();
-                if (nameContains && !name.includes(nameContains) && !nid.includes(nameContains))
-                    continue;
-                if (areaId && !this._isInArea(nid, areaId))
-                    continue;
+                if (nameContains && !name.includes(nameContains) && !nid.includes(nameContains)) continue;
+                if (areaId && !this._isInArea(nid, areaId)) continue;
                 results.push({
                     id: rawNode.id || id,
                     name: rawNode.name,
@@ -278,42 +336,39 @@ window.NLEditorTools = (() => {
             results.sort((a, b) => String(a.id).localeCompare(String(b.id)));
             return results;
         }
+
         /** True when node *nid* has an `in` edge to *areaId* (live or staged). */
-        _isInArea(nid, areaId) {
+        _isInArea(nid: string, areaId: string) {
             const key = String(nid).toLowerCase();
             const target = String(areaId).toLowerCase();
-            const liveEdges = (typeof worldState !== 'undefined' && worldState?.graph?.edges) || [];
+            const liveEdges: Array<Record<string, any>> = (typeof worldState !== 'undefined' && worldState?.graph?.edges) || [];
             for (const edge of liveEdges) {
-                if (String(edge.type) !== 'in')
-                    continue;
-                if (String(edge.source).toLowerCase() === key && String(edge.target).toLowerCase() === target)
-                    return true;
+                if (String(edge.type) !== 'in') continue;
+                if (String(edge.source).toLowerCase() === key && String(edge.target).toLowerCase() === target) return true;
             }
             for (const op of this.staging.getOps()) {
-                if (op.type !== 'attach')
-                    continue;
+                if (op.type !== 'attach') continue;
                 const payload = op.payload || {};
-                if ((payload.relation || 'in') !== 'in')
-                    continue;
+                if ((payload.relation || 'in') !== 'in') continue;
                 if (String(payload.from_id).toLowerCase() === key &&
-                    String(payload.to_id).toLowerCase() === target)
-                    return true;
+                    String(payload.to_id).toLowerCase() === target) return true;
             }
             return false;
         }
+
         /** The effective property map of a patch (nested `properties` + flat keys). */
-        _patchProps(patch) {
-            const props = { ...((patch || {}).properties || {}) };
+        _patchProps(patch: Record<string, any> | null | undefined) {
+            const props: Record<string, any> = { ...((patch || {}).properties || {}) };
             for (const [key, value] of Object.entries(patch || {})) {
-                if (key === 'properties' || key === 'name' || key === 'id' || key === 'type')
-                    continue;
+                if (key === 'properties' || key === 'name' || key === 'id' || key === 'type') continue;
                 props[key] = value;
             }
             return props;
         }
+
         /** One-level dict merge, mirroring the server's `_merge_dict_props`. */
-        _mergeProps(base, patch) {
-            const out = { ...(base || {}) };
+        _mergeProps(base: Record<string, any> | null | undefined, patch: Record<string, any> | null | undefined) {
+            const out: Record<string, any> = { ...(base || {}) };
             for (const [key, value] of Object.entries(patch || {})) {
                 const current = out[key];
                 out[key] = (value && typeof value === 'object' && !Array.isArray(value) &&
@@ -323,22 +378,23 @@ window.NLEditorTools = (() => {
             }
             return out;
         }
+
         /** Merged patch from staged bulk ops that listed *nodeId* as affected. */
-        _bulkPatchFor(nodeId) {
+        _bulkPatchFor(nodeId: string): Record<string, any> | null {
             const key = String(nodeId).toLowerCase();
-            let patch = null;
+            let patch: Record<string, any> | null = null;
             for (const op of this.staging.getOps()) {
-                if (op.type !== 'update_matching_nodes')
-                    continue;
+                if (op.type !== 'update_matching_nodes') continue;
                 const payload = op.payload || {};
-                const ids = (payload.matched_ids || []).map((i) => String(i).toLowerCase());
-                if (!ids.includes(key))
-                    continue;
+                const ids: string[] = (payload.matched_ids || []).map((i: string) => String(i).toLowerCase());
+                if (!ids.includes(key)) continue;
                 patch = Object.assign(patch || {}, this._patchProps(payload.patch || {}));
             }
             return patch;
         }
+
     }
+
     /**
      * OpenAI-compatible Tool Definitions
      */
@@ -769,25 +825,27 @@ window.NLEditorTools = (() => {
             }
         }
     ];
+
     // ─────────────────────── Mechanic inference (task-387) ───────────────────────
     // When the model creates an item, common-sense mechanics are bound from the
     // name so e.g. a "glowing crystal" actually lights the room and a "roast
     // chicken" can be eaten — without asking the model to know every detail.
     const _ACTIONS_BASE = 'examine,take,use';
-    function _appendAction(actions, action) {
+
+    function _appendAction(actions: string[] | string | undefined, action: string) {
         const list = Array.isArray(actions) ? actions.join(',') : (actions || _ACTIONS_BASE);
         const parts = list.split(',').map(s => s.trim()).filter(Boolean);
-        if (!parts.includes(action))
-            parts.push(action);
+        if (!parts.includes(action)) parts.push(action);
         return parts.join(',');
     }
-    function inferMechanics(kind, name, props) {
-        if (kind !== 'item')
-            return props;
-        const p = Object.assign({}, props);
+
+    function inferMechanics(kind: string, name: string, props: Record<string, any>): Record<string, any> {
+        if (kind !== 'item') return props;
+        const p: Record<string, any> = Object.assign({}, props);
         p.tags = Array.isArray(p.tags) ? [...p.tags] : [];
-        const hasTag = (t) => p.tags.includes(t);
+        const hasTag = (t: string) => (p.tags as string[]).includes(t);
         const nameL = String(name || '').toLowerCase();
+
         // 💡 Light sources — engine counts tag light_source + lit/on state.
         if (/(candle|lamp|lantern|torch|brazier|hearth|fire|flame|sconce|wisp|glowing|crystal|lamp|glow)/.test(nameL) && !hasTag('light_source')) {
             p.tags.push('light_source');
@@ -801,8 +859,7 @@ window.NLEditorTools = (() => {
         // 🔊 Sound sources.
         if (/(violin|harp|bell|chime|music box|gramophone|organ|drum|singing|humming|whispering|chant)/.test(nameL) && !hasTag('sound_source')) {
             p.tags.push('sound_source');
-            if (p.sound_level === undefined)
-                p.sound_level = 1;
+            if (p.sound_level === undefined) p.sound_level = 1;
             if (p.sound_pattern === undefined) {
                 const subj = /(violin|harp|organ|music box|gramophone)/.test(nameL) ? 'music' : 'sound';
                 p.sound_pattern = `a soft ${subj} of ${name.toLowerCase()}`;
@@ -827,21 +884,18 @@ window.NLEditorTools = (() => {
         }
         // ⚔️ Weapons / 🛡 armor+clothing.
         if (/(sword|axe|dagger|knife|bow|spear|hammer|mace|rapier|blade|staff|scythe|halberd)/.test(nameL)) {
-            if (!hasTag('weapon'))
-                p.tags.push('weapon');
-            if (p.damage === undefined)
-                p.damage = '1d6';
+            if (!hasTag('weapon')) p.tags.push('weapon');
+            if (p.damage === undefined) p.damage = '1d6';
         }
         if (/(shield|armor|helm|helmet|cloak|robe|boots|gloves|coat|cuirass|gambeson)/.test(nameL)) {
-            if (!hasTag('armor') && !hasTag('clothing'))
-                p.tags.push(/(shield|armor|helm|helmet|cuirass|gambeson)/.test(nameL) ? 'armor' : 'clothing');
-            if (p.defense === undefined)
-                p.defense = 1;
+            if (!hasTag('armor') && !hasTag('clothing')) p.tags.push(/(shield|armor|helm|helmet|cuirass|gambeson)/.test(nameL) ? 'armor' : 'clothing');
+            if (p.defense === undefined) p.defense = 1;
         }
-        if (p.tags.length === 0)
-            delete p.tags;
+
+        if (p.tags.length === 0) delete p.tags;
         return p;
     }
+
     // ─────────────────── populate_area theme packs (task-387) ───────────────────
     // Cohesive furnishing passes: a named theme stages themed items + one NPC
     // + area ambience in a single tool call, all reviewable in the staging tray.
@@ -960,43 +1014,48 @@ window.NLEditorTools = (() => {
             ]
         }
     };
-    function buildThemePack(themeKey, itemCount) {
-        const pack = THEME_PACKS[themeKey] || THEME_PACKS[themeKey.replace(/s$/, '')] || null;
-        if (!pack)
-            return null;
-        const count = Math.max(2, Math.min(12, parseInt(itemCount, 10) || (pack.items.length || 6)));
+
+    function buildThemePack(themeKey: string, itemCount?: number | string) {
+        const pack = (THEME_PACKS as Record<string, any>)[themeKey] || (THEME_PACKS as Record<string, any>)[themeKey.replace(/s$/, '')] || null;
+        if (!pack) return null;
+        const count = Math.max(2, Math.min(12, parseInt(itemCount as string, 10) || (pack.items.length || 6)));
         return Object.assign({}, pack, {
-            items: pack.items.slice(0, count).map(([name, props]) => ({ kind: 'item', name, properties: props || {} }))
+            items: pack.items.slice(0, count).map(([name, props]: [string, Record<string, any>]) => ({ kind: 'item', name, properties: props || {} }))
         });
     }
+
     /**
      * Tool execution router
      */
     class ToolRouter {
-        constructor(stagingBuffer) {
+        declare staging: StagingBuffer;
+        declare overlay: OverlayGraphView;
+
+        constructor(stagingBuffer: StagingBuffer) {
             this.staging = stagingBuffer;
             this.overlay = new OverlayGraphView(stagingBuffer);
         }
+
         /** The node currently selected in the graph/inspector, if any. */
-        _selectedNode() {
+        _selectedNode(): any {
             try {
                 const view = (typeof VW !== 'undefined' && VW?.inspector) ? VW.inspector._currentView : null;
                 if (view && view.type === 'node' && view.id && typeof worldState?.getNode === 'function') {
                     return worldState.getNode(view.id) || null;
                 }
-            }
-            catch (e) { /* ignore */ }
+            } catch (e: any) { /* ignore */ }
             return null;
         }
+
         /** Fill a missing node_id from the user's current selection (task-387
          *  "this node" awareness: type "add a chest to this room" with the
          *  room selected and the agent can target it without a name). */
-        _resolveNodeId(nodeId) {
-            if (nodeId)
-                return nodeId;
+        _resolveNodeId(nodeId?: string | null) {
+            if (nodeId) return nodeId;
             const sel = this._selectedNode();
             return sel ? sel.id : null;
         }
+
         /**
          * Normalize a library API response into an array of {id, ...entry}.
          * The server's /api/library/<type> endpoint returns a plain dict
@@ -1004,38 +1063,38 @@ window.NLEditorTools = (() => {
          * entry's `id` field may or may not match its key. Older call paths
          * returned {items: [...]} or a bare array; we accept all three.
          */
-        _registryToEntries(res) {
-            if (!res)
-                return [];
+        _registryToEntries(res: any): LibraryEntry[] {
+            if (!res) return [];
             if (Array.isArray(res)) {
-                return res.map((e) => ({ id: e?.id, ...e }));
+                return res.map((e: any) => ({ id: e?.id, ...e }));
             }
             if (res.items && Array.isArray(res.items)) {
-                return res.items.map((e) => ({ id: e?.id, ...e }));
+                return res.items.map((e: any) => ({ id: e?.id, ...e }));
             }
             if (res.areas && Array.isArray(res.areas)) {
-                return res.areas.map((e) => ({ id: e?.id, ...e }));
+                return res.areas.map((e: any) => ({ id: e?.id, ...e }));
             }
             if (res.characters && Array.isArray(res.characters)) {
-                return res.characters.map((e) => ({ id: e?.id, ...e }));
+                return res.characters.map((e: any) => ({ id: e?.id, ...e }));
             }
             if (typeof res === 'object') {
-                return Object.entries(res).map(([key, entry]) => ({
+                return Object.entries(res).map(([key, entry]: [string, any]) => ({
                     id: entry?.id || key,
                     ...entry
                 }));
             }
             return [];
         }
+
         /** Look up a library entry by id; matches both dict keys and the
          *  entry's own `id` field. */
-        _findLibraryEntry(entries, id) {
-            if (!id)
-                return null;
+        _findLibraryEntry(entries: LibraryEntry[], id?: string | null): LibraryEntry | null {
+            if (!id) return null;
             const sid = String(id);
             return entries.find(e => String(e.id) === sid || e.key === sid) || null;
         }
-        async execute(toolName, args = {}, context = {}) {
+
+        async execute(toolName: string, args: Record<string, any> = {}, context: Record<string, any> = {}): Promise<any> {
             try {
                 switch (toolName) {
                     case 'search_graph_nodes': {
@@ -1045,8 +1104,7 @@ window.NLEditorTools = (() => {
                     case 'get_node': {
                         const nodeId = this._resolveNodeId(args.node_id);
                         const node = this.overlay.getNode(nodeId);
-                        if (!node)
-                            return { error: `Node '${args.node_id}' not found in world or staging.` };
+                        if (!node) return { error: `Node '${args.node_id}' not found in world or staging.` };
                         return node;
                     }
                     case 'list_nodes': {
@@ -1080,10 +1138,8 @@ window.NLEditorTools = (() => {
                             if (q || (tags && tags.length)) {
                                 items = items.filter(it => {
                                     const itTags = (it.tags || []).map(t => String(t).toLowerCase());
-                                    if (tags && tags.length && !tags.some(t => itTags.includes(t)))
-                                        return false;
-                                    if (!q)
-                                        return true;
+                                    if (tags && tags.length && !tags.some(t => itTags.includes(t))) return false;
+                                    if (!q) return true;
                                     return (it.name || '').toLowerCase().includes(q) ||
                                         (it.id || '').toLowerCase().includes(q) ||
                                         (it.description || '').toLowerCase().includes(q) ||
@@ -1097,8 +1153,7 @@ window.NLEditorTools = (() => {
                                 description: (it.description || '').slice(0, 80)
                             }));
                             return { count: compact.length, items: compact };
-                        }
-                        catch (e) {
+                        } catch (e: any) {
                             return { count: 0, items: [], error: e.message };
                         }
                     }
@@ -1107,11 +1162,9 @@ window.NLEditorTools = (() => {
                             const res = await apiGet('/api/library/items');
                             const items = this._registryToEntries(res);
                             const item = this._findLibraryEntry(items, args.item_id);
-                            if (!item)
-                                return { error: `Library item '${args.item_id}' not found.` };
+                            if (!item) return { error: `Library item '${args.item_id}' not found.` };
                             return item;
-                        }
-                        catch (e) {
+                        } catch (e: any) {
                             return { error: e.message };
                         }
                     }
@@ -1119,8 +1172,7 @@ window.NLEditorTools = (() => {
                         try {
                             const res = await apiGet('/api/tags/search?q=' + encodeURIComponent(args.query || ''));
                             return { count: (res || []).length, tags: (res || []).slice(0, 15) };
-                        }
-                        catch (e) {
+                        } catch (e: any) {
                             return { count: 0, tags: [], error: e.message };
                         }
                     }
@@ -1130,7 +1182,8 @@ window.NLEditorTools = (() => {
                             const res = await apiGet('/api/library/traits');
                             let traits = this._registryToEntries(res);
                             if (q) {
-                                traits = traits.filter(t => (t.id || '').toLowerCase().includes(q) ||
+                                traits = traits.filter(t =>
+                                    (t.id || '').toLowerCase().includes(q) ||
                                     (t.name || '').toLowerCase().includes(q) ||
                                     (t.description || '').toLowerCase().includes(q));
                             }
@@ -1141,8 +1194,7 @@ window.NLEditorTools = (() => {
                                 effects: t.effects || {}
                             }));
                             return { count: compact.length, traits: compact };
-                        }
-                        catch (e) {
+                        } catch (e: any) {
                             return { count: 0, traits: [], error: e.message };
                         }
                     }
@@ -1174,10 +1226,8 @@ window.NLEditorTools = (() => {
                             if (q || (tags && tags.length)) {
                                 areas = areas.filter(a => {
                                     const aTags = (a.tags || []).map(t => String(t).toLowerCase());
-                                    if (tags && tags.length && !tags.some(t => aTags.includes(t)))
-                                        return false;
-                                    if (!q)
-                                        return true;
+                                    if (tags && tags.length && !tags.some(t => aTags.includes(t))) return false;
+                                    if (!q) return true;
                                     return (a.name || '').toLowerCase().includes(q) ||
                                         (a.id || '').toLowerCase().includes(q) ||
                                         (a.description || '').toLowerCase().includes(q) ||
@@ -1189,8 +1239,7 @@ window.NLEditorTools = (() => {
                                 description: (a.description || '').slice(0, 80)
                             }));
                             return { count: compact.length, areas: compact };
-                        }
-                        catch (e) {
+                        } catch (e: any) {
                             return { count: 0, areas: [], error: e.message };
                         }
                     }
@@ -1199,11 +1248,9 @@ window.NLEditorTools = (() => {
                             const res = await apiGet('/api/library/areas');
                             const areas = this._registryToEntries(res);
                             const area = this._findLibraryEntry(areas, args.area_id);
-                            if (!area)
-                                return { error: `Library area '${args.area_id}' not found.` };
+                            if (!area) return { error: `Library area '${args.area_id}' not found.` };
                             return area;
-                        }
-                        catch (e) {
+                        } catch (e: any) {
                             return { error: e.message };
                         }
                     }
@@ -1216,10 +1263,8 @@ window.NLEditorTools = (() => {
                             if (q || (tags && tags.length)) {
                                 chars = chars.filter(c => {
                                     const cTags = (c.tags || []).map(t => String(t).toLowerCase());
-                                    if (tags && tags.length && !tags.some(t => cTags.includes(t)))
-                                        return false;
-                                    if (!q)
-                                        return true;
+                                    if (tags && tags.length && !tags.some(t => cTags.includes(t))) return false;
+                                    if (!q) return true;
                                     return (c.name || '').toLowerCase().includes(q) ||
                                         (c.id || '').toLowerCase().includes(q) ||
                                         (c.personality || '').toLowerCase().includes(q) ||
@@ -1231,8 +1276,7 @@ window.NLEditorTools = (() => {
                                 description: (c.personality || '').slice(0, 80)
                             }));
                             return { count: compact.length, characters: compact };
-                        }
-                        catch (e) {
+                        } catch (e: any) {
                             return { count: 0, characters: [], error: e.message };
                         }
                     }
@@ -1241,11 +1285,9 @@ window.NLEditorTools = (() => {
                             const res = await apiGet('/api/library/characters');
                             const chars = this._registryToEntries(res);
                             const char = this._findLibraryEntry(chars, args.char_id);
-                            if (!char)
-                                return { error: `Library character '${args.char_id}' not found.` };
+                            if (!char) return { error: `Library character '${args.char_id}' not found.` };
                             return char;
-                        }
-                        catch (e) {
+                        } catch (e: any) {
                             return { error: e.message };
                         }
                     }
@@ -1253,19 +1295,16 @@ window.NLEditorTools = (() => {
                         try {
                             const res = await apiGet('/api/library/entities');
                             const parts = [];
-                            for (const [t, info] of Object.entries(res || {}))
-                                parts.push(`${t}: ${info?.count ?? '?'}`);
+                            for (const [t, info] of Object.entries(res || {}) as Array<[string, any]>) parts.push(`${t}: ${info?.count ?? '?'}`);
                             return { summary: `Library registries — ${parts.join(', ')}.` };
-                        }
-                        catch (e) {
+                        } catch (e: any) {
                             return { summary: 'Library summary unavailable.', error: e.message };
                         }
                     }
                     case 'link_to_library': {
                         const nodeId = this._resolveNodeId(args.node_id);
                         const node = this.overlay.getNode(nodeId);
-                        if (!node)
-                            return { error: `Node '${args.node_id}' not found.` };
+                        if (!node) return { error: `Node '${args.node_id}' not found.` };
                         const op = this.staging.addOp('link_to_library', {
                             node_id: node.id,
                             library_id: args.library_id,
@@ -1279,8 +1318,7 @@ window.NLEditorTools = (() => {
                             return { error: `upsert_library_entry: registry_type must be items, characters, areas, ways or traits.` };
                         }
                         const id = String(args.id || '').toLowerCase().trim().replace(/[^a-z0-9_]+/g, '_').replace(/^_+|_+$/g, '');
-                        if (!id)
-                            return { error: 'upsert_library_entry needs a slug id (a-z, 0-9, _).' };
+                        if (!id) return { error: 'upsert_library_entry needs a slug id (a-z, 0-9, _).' };
                         if (!args.data || typeof args.data !== 'object' || Array.isArray(args.data)) {
                             return { error: 'upsert_library_entry needs a template object in "data".' };
                         }
@@ -1297,8 +1335,7 @@ window.NLEditorTools = (() => {
                             return { error: `delete_library_entry: registry_type must be items, characters, areas, ways or traits.` };
                         }
                         const id = String(args.id || '').trim();
-                        if (!id)
-                            return { error: 'delete_library_entry needs an id.' };
+                        if (!id) return { error: 'delete_library_entry needs an id.' };
                         const op = this.staging.addOp('library_delete', {
                             registry_type: registry,
                             id,
@@ -1323,8 +1360,7 @@ window.NLEditorTools = (() => {
                     case 'spawn_library_item': {
                         const parentId = this._resolveNodeId(args.parent_id);
                         const targetNode = this.overlay.getNode(parentId);
-                        if (!targetNode)
-                            return { error: `Parent target node '${args.parent_id}' does not exist.` };
+                        if (!targetNode) return { error: `Parent target node '${args.parent_id}' does not exist.` };
                         const op = this.staging.addOp('spawn_library_item', {
                             library_id: args.library_id,
                             parent_id: targetNode.id,
@@ -1336,8 +1372,7 @@ window.NLEditorTools = (() => {
                     }
                     case 'populate_area': {
                         const area = this.overlay.getNode(args.area_id);
-                        if (!area || area.type !== 'area')
-                            return { error: `Area '${args.area_id}' not found or not an area.` };
+                        if (!area || area.type !== 'area') return { error: `Area '${args.area_id}' not found or not an area.` };
                         const themeKey = String(args.theme || '').toLowerCase().trim();
                         const pack = buildThemePack(themeKey, args.item_count);
                         if (!pack) {
@@ -1347,20 +1382,30 @@ window.NLEditorTools = (() => {
                         for (const def of pack.items) {
                             const nodeId = this.staging.mintId(def.kind, def.name);
                             const props = inferMechanics(def.kind, def.name, def.properties || {});
-                            this.staging.addOp('create_node', { node: { id: nodeId, type: def.kind, name: def.name, properties: props } }, `Create item "${def.name}" [id: ${nodeId}]`);
-                            this.staging.addOp('attach', { from_id: nodeId, to_id: area.id, relation: def.relation || 'in' }, `Place "${def.name}" ${def.relation || 'in'} "${area.name}"`);
+                            this.staging.addOp('create_node',
+                                { node: { id: nodeId, type: def.kind, name: def.name, properties: props } },
+                                `Create item "${def.name}" [id: ${nodeId}]`);
+                            this.staging.addOp('attach',
+                                { from_id: nodeId, to_id: area.id, relation: def.relation || 'in' },
+                                `Place "${def.name}" ${def.relation || 'in'} "${area.name}"`);
                             staged.push({ id: nodeId, name: def.name });
                         }
                         if (pack.npc && args.include_npc !== false) {
                             const npcId = this.staging.mintId('character', pack.npc.name);
-                            this.staging.addOp('create_node', { node: { id: npcId, type: 'character', name: pack.npc.name,
-                                    properties: { personality: pack.npc.personality || '', description: pack.npc.description || '' } } }, `Create character "${pack.npc.name}" [id: ${npcId}]`);
-                            this.staging.addOp('attach', { from_id: npcId, to_id: area.id, relation: 'in' }, `Place "${pack.npc.name}" in "${area.name}"`);
+                            this.staging.addOp('create_node',
+                                { node: { id: npcId, type: 'character', name: pack.npc.name,
+                                          properties: { personality: pack.npc.personality || '', description: pack.npc.description || '' } } },
+                                `Create character "${pack.npc.name}" [id: ${npcId}]`);
+                            this.staging.addOp('attach',
+                                { from_id: npcId, to_id: area.id, relation: 'in' },
+                                `Place "${pack.npc.name}" in "${area.name}"`);
                             staged.push({ id: npcId, name: pack.npc.name });
                         }
                         if (pack.area && args.area_env !== false) {
                             const env = Object.assign({}, (area.properties || {}).environment || {}, pack.area.environment || {});
-                            this.staging.addOp('update_node', { node_id: area.id, patch: { properties: { environment: env } } }, `Set "${area.name}" ambience (${Object.keys(pack.area.environment || {}).join(', ') || 'theme'})`);
+                            this.staging.addOp('update_node',
+                                { node_id: area.id, patch: { properties: { environment: env } } },
+                                `Set "${area.name}" ambience (${Object.keys(pack.area.environment || {}).join(', ') || 'theme'})`);
                         }
                         return {
                             staged: staged.length,
@@ -1373,8 +1418,7 @@ window.NLEditorTools = (() => {
                     case 'update_node': {
                         const nodeId = this._resolveNodeId(args.node_id);
                         const node = this.overlay.getNode(nodeId);
-                        if (!node)
-                            return { error: `Node '${args.node_id}' not found.` };
+                        if (!node) return { error: `Node '${args.node_id}' not found.` };
                         const op = this.staging.addOp('update_node', {
                             node_id: node.id,
                             patch: args.patch
@@ -1394,7 +1438,7 @@ window.NLEditorTools = (() => {
                         const ids = matches.map(m => m.id);
                         const selectorLabel = Object.entries(selector)
                             .filter(([, v]) => v !== undefined && v !== null && v !== '' &&
-                            !(Array.isArray(v) && !v.length))
+                                !(Array.isArray(v) && !v.length))
                             .map(([k, v]) => `${k}=${Array.isArray(v) ? v.join('|') : String(v).toLowerCase()}`)
                             .join(' ') || 'all nodes';
                         const names = matches.map(m => m.name || m.id);
@@ -1416,8 +1460,7 @@ window.NLEditorTools = (() => {
                     case 'delete_node': {
                         const nodeId = this._resolveNodeId(args.node_id);
                         const node = this.overlay.getNode(nodeId);
-                        if (!node)
-                            return { error: `Node '${args.node_id}' not found.` };
+                        if (!node) return { error: `Node '${args.node_id}' not found.` };
                         const op = this.staging.addOp('delete_node', {
                             node_id: node.id
                         }, `Delete ${node.type || 'node'} "${node.name || nodeId}"`);
@@ -1426,10 +1469,8 @@ window.NLEditorTools = (() => {
                     case 'attach': {
                         const fromNode = this.overlay.getNode(args.from_id);
                         const toNode = this.overlay.getNode(args.to_id);
-                        if (!fromNode)
-                            return { error: `Source entity '${args.from_id}' not found.` };
-                        if (!toNode)
-                            return { error: `Target container '${args.to_id}' not found.` };
+                        if (!fromNode) return { error: `Source entity '${args.from_id}' not found.` };
+                        if (!toNode) return { error: `Target container '${args.to_id}' not found.` };
                         const op = this.staging.addOp('attach', {
                             from_id: fromNode.id,
                             to_id: toNode.id,
@@ -1451,10 +1492,8 @@ window.NLEditorTools = (() => {
                     case 'connect_areas': {
                         const areaA = this.overlay.getNode(args.area_a_id);
                         const areaB = this.overlay.getNode(args.area_b_id);
-                        if (!areaA || areaA.type !== 'area')
-                            return { error: `Area '${args.area_a_id}' not found.` };
-                        if (!areaB || areaB.type !== 'area')
-                            return { error: `Area '${args.area_b_id}' not found.` };
+                        if (!areaA || areaA.type !== 'area') return { error: `Area '${args.area_a_id}' not found.` };
+                        if (!areaB || areaB.type !== 'area') return { error: `Area '${args.area_b_id}' not found.` };
                         const wayId = this.staging.mintId('way', args.way_name || 'Door');
                         const op = this.staging.addOp('connect_areas', {
                             way_id: wayId,
@@ -1484,11 +1523,11 @@ window.NLEditorTools = (() => {
                     default:
                         return { error: `Unknown tool: ${toolName}` };
                 }
-            }
-            catch (err) {
+            } catch (err: any) {
                 return { error: `Tool execution failed: ${err.message}` };
             }
         }
     }
+
     return { OverlayGraphView, TOOL_DEFINITIONS, ToolRouter };
 })();

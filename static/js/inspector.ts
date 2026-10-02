@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Inspector — Context-sensitive right panel rendering for agents, rooms, items, doors
  * Enhanced with full Actions/Effects/Triggers grid
@@ -10,22 +9,50 @@
  * @docs docs/virtualWorld/UI & Settings/Inspector Panels.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
-const inspectorUiHtmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
+const inspectorUiHtmlTag = (strings: TemplateStringsArray, ...values: unknown[]): unknown =>
+    window.Lit.html(strings, ...values);
+
+// Prefixed with the file stem on purpose: a top-level `interface` or `type` in a
+// classic script is a global, and two files declaring one name is a build error.
+type InspectorCurrentView =
+    | { type: 'node'; id: string }
+    | { type: 'agent'; name: string }
+    | { type: 'world_lore' };
+/** globals.d.ts declares appEvents with on/off only; the bus also emits. */
+type InspectorAppEvents = {
+    on(event: string, handler: () => void): void;
+    emit(event: string, payload?: unknown): void;
+};
+/** globals.d.ts has no Window entry for InspectorAreaView (area-view.js). */
+type InspectorAreaViewGlobal = { InspectorAreaView: any };
+
 // globals.d.ts narrows ApiClient to the surface converted callers had when it
 // was written; these are real api.js methods that are not listed there.
-const inspectorGraphApi = ApiClient;
+const inspectorGraphApi = ApiClient as unknown as {
+    createNode(data: unknown): Promise<{ error?: string } | null>;
+    createEdge(source: string, target: string, type: string, properties?: unknown): Promise<unknown>;
+    renameNode(oldId: string, newId: string): Promise<unknown>;
+    updateEdge(source: string, target: string, data: unknown): Promise<unknown>;
+};
+
 /** Read late, not captured at load: area-view.js is a separate script tag. */
-const inspectorAreaView = () => window.InspectorAreaView;
+const inspectorAreaView = (): any => (window as unknown as InspectorAreaViewGlobal).InspectorAreaView;
+
 class Inspector {
+    // `declare` fields are type-only: they emit no code, so converting this class
+    // cannot change what the emitted .js does.
+    declare _currentView: InspectorCurrentView | null;
+    declare _rerenderTimer: ReturnType<typeof setTimeout> | undefined;
+
     constructor() {
         this._currentView = null; // { type: 'node', id: string } | { type: 'agent', name: string }
         if (window.appEvents) {
-            appEvents.on('state:updated', () => this._reRender());
+            (appEvents as unknown as InspectorAppEvents).on('state:updated', () => this._reRender());
         }
     }
-    _reRender() {
-        if (!this._currentView)
-            return;
+
+    _reRender(): void {
+        if (!this._currentView) return;
         // Coalesce state:updated bursts — a full inspector rebuild on every tick
         // fires a large bundle of API calls (graph + library + tag + memory/embed).
         clearTimeout(this._rerenderTimer);
@@ -36,43 +63,44 @@ class Inspector {
             const view = this._currentView;
             if (view?.type === 'node') {
                 this.showNode(view.id);
-            }
-            else if (view?.type === 'agent') {
+            } else if (view?.type === 'agent') {
                 this.showAgent(view.name);
             }
         }, 250);
     }
-    hide() {
+
+    hide(): void {
         this._currentView = null;
-        if (window.DocPanel)
-            window.DocPanel.reset();
-        if (window.events)
-            events.clearAreaFilter();
-        const htmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
-        window.InspectorPanel.render(htmlTag `
+        if (window.DocPanel) window.DocPanel.reset();
+        if (window.events) events.clearAreaFilter();
+        const htmlTag = (strings: TemplateStringsArray, ...values: unknown[]): unknown =>
+            window.Lit.html(strings, ...values);
+        window.InspectorPanel.render(htmlTag`
             <div class="inspector-empty"><div class="inspector-empty-icon">🔍</div><p>Select a node or agent to inspect</p><p class="section-hint">Click on the graph or an agent in the list</p>
                 <button class="btn btn-sm" @click=${() => VW.inspector.showWorldLore()} style="margin-top:12px;font-size:12px;padding:6px 16px;">🌍 World Lore</button>
             </div>
         `);
     }
+
     /** Dispatch to the correct renderer based on node type */
-    showRoom(nodeId) { return this.showNode(nodeId); }
-    showNode(nodeId) {
+    showRoom(nodeId: string): unknown { return this.showNode(nodeId); }
+
+    showNode(nodeId: string): unknown {
         this._currentView = { type: 'node', id: nodeId };
-        if (window.appEvents)
-            appEvents.emit('inspector:view', this._currentView);
-        if (!worldState.data)
-            return;
+        if (window.appEvents) (appEvents as unknown as InspectorAppEvents).emit('inspector:view', this._currentView);
+        if (!worldState.data) return;
+
         const graphNode = worldState.getNode(nodeId);
         if (graphNode && graphNode.type !== 'area') {
-            if (window.events)
-                events.clearAreaFilter();
+            if (window.events) events.clearAreaFilter();
         }
+
         // task-579: tell the doc panel what is selected (library id, else the
         // view module that renders this node type).
         if (window.DocPanel) {
             window.DocPanel.setSelection(window.DocPanel.selectionForNode(graphNode));
         }
+
         if (graphNode) {
             switch (graphNode.type) {
                 case 'area': return this._showArea(nodeId, graphNode);
@@ -80,8 +108,7 @@ class Inspector {
                 case 'way': return this._showWay(nodeId, graphNode);
                 case 'character': {
                     const player = worldState.players?.[graphNode.name];
-                    if (player)
-                        return this.showAgent(graphNode.name);
+                    if (player) return this.showAgent(graphNode.name);
                     window.InspectorPanel.render(this._emptyTemplate(`Character "${graphNode.name}" has no player state.`, 'This node exists in the graph but is not a registered player (e.g. an old bare duplicate). Delete it and duplicate the original character again.'));
                     return;
                 }
@@ -99,188 +126,211 @@ class Inspector {
                 }
             }
         }
+
         // Fallback: try direct lookup by name
-        if (worldState.areas[nodeId])
-            return this._showArea(nodeId, { name: nodeId, properties: worldState.areas[nodeId], type: 'area' });
+        if (worldState.areas[nodeId]) return this._showArea(nodeId, { name: nodeId, properties: worldState.areas[nodeId], type: 'area' });
         window.InspectorPanel.render(this._emptyTemplate(`Node not found: ${nodeId}`, ''));
     }
+
     /** Build a lit-html empty-state template for inspector fallbacks. */
-    _emptyTemplate(title, hint) {
-        const htmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
-        return htmlTag `<div class="inspector-empty"><p>${title}</p>${hint ? htmlTag `<p class="section-hint">${hint}</p>` : ''}</div>`;
+    _emptyTemplate(title: string, hint: string): unknown {
+        const htmlTag = (strings: TemplateStringsArray, ...values: unknown[]): unknown =>
+            window.Lit.html(strings, ...values);
+        return htmlTag`<div class="inspector-empty"><p>${title}</p>${hint ? htmlTag`<p class="section-hint">${hint}</p>` : ''}</div>`;
     }
-    showAgent(agentName) {
+
+    showAgent(agentName: string): unknown {
         if (window.DocPanel) {
             window.DocPanel.setSelection({ kind: 'module', value: 'static/js/inspector/agent-view.js' });
         }
         return InspectorAgentView.showAgent(agentName);
     }
+
     /**
      * Show expanded detail for a timeline entry
      */
-    _showTimelineDetail(charName, entryIndex, entryEl) {
+    _showTimelineDetail(charName: string, entryIndex: number, entryEl: HTMLElement | null): unknown {
         return InspectorAgentView._showTimelineDetail(charName, entryIndex, entryEl);
     }
+
     // --- Area Inspector ---
-    _updateEnv(nodeId, key, value) {
+
+    _updateEnv(nodeId: string, key: string, value: unknown): unknown {
         return inspectorAreaView()._updateEnv(nodeId, key, value);
     }
+
     /** Per-node graph-physics setting, saved with the node. */
-    _graphGravityControl(nodeId, props = {}) {
+    _graphGravityControl(nodeId: string, props: Record<string, unknown> = {}): unknown {
         return InspectorHelpers.graphGravityControl(nodeId, props);
     }
-    async _setCentralGravity(nodeId, enabled) {
+
+    async _setCentralGravity(nodeId: string, enabled: boolean): Promise<void> {
         return InspectorHelpers.setCentralGravity(nodeId, enabled);
     }
-    _showArea(nodeId, graphNode) {
+
+    _showArea(nodeId: string, graphNode: unknown): unknown {
         return inspectorAreaView().showArea(nodeId, graphNode);
     }
+
+
     // --- Item Inspector (ENHANCED: Full Actions/Effects/Triggers Grid) ---
-    _showItem(nodeId, graphNode) {
+
+    _showItem(nodeId: string, graphNode: unknown): unknown {
         return window.InspectorItemView.showItem(nodeId, graphNode);
     }
+
     // --- Way Inspector ---
-    _showWay(nodeId, graphNode) {
+
+    _showWay(nodeId: string, graphNode: unknown): unknown {
         return InspectorWayView.showWay(nodeId, graphNode);
     }
-    async _reconnectWays(wayId) {
+
+    async _reconnectWays(wayId: string): Promise<void> {
         return InspectorWayView._reconnectWays(wayId);
     }
+
     // --- AI Personality Generation ---
-    async _generatePersonality(charName) {
-        const input = document.getElementById('inspector-ai-prompt');
+
+    async _generatePersonality(charName: string): Promise<void> {
+        const input = document.getElementById('inspector-ai-prompt') as HTMLInputElement | null;
         const prompt = (input?.value || '').trim();
-        if (!prompt) {
-            input?.focus();
-            return;
-        }
+        if (!prompt) { input?.focus(); return; }
         // Unreachable: a null input yields an empty prompt and returned above. The
         // guard is here only so the writes below type-check; it changes no behavior.
-        if (!input)
-            return;
-        if (!config.apiKey || !config.model) {
-            toastInfo('Configure API key and model in Settings first.');
-            return;
-        }
+        if (!input) return;
+        if (!config.apiKey || !config.model) { toastInfo('Configure API key and model in Settings first.'); return; }
+
         input.disabled = true;
         input.value = 'Generating...';
+
         const system = 'You are a character designer. Generate a personality based on the prompt. Respond with ONLY raw JSON:\n{"personality":"Detailed character personality, fears, motivations, quirks."}';
+
         try {
             const resp = await llmClient.chat([
                 { role: 'system', content: system },
                 { role: 'user', content: prompt }
             ], { temperature: 0.9, responseFormat: window.StructuredFormats?.personality, label: 'inspector/generate-personality' });
-            if (!resp) {
-                toastError('No response from LLM.');
-                return;
-            }
+            if (!resp) { toastError('No response from LLM.'); return; }
+
             let cleaned = String(resp).trim();
             const jm = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-            if (jm)
-                cleaned = jm[1].trim();
-            else {
-                const fb = cleaned.indexOf('{'), lb = cleaned.lastIndexOf('}');
-                if (fb !== -1 && lb > fb)
-                    cleaned = cleaned.substring(fb, lb + 1);
-            }
-            const parsed = JSON.parse(cleaned);
+            if (jm) cleaned = jm[1].trim();
+            else { const fb = cleaned.indexOf('{'), lb = cleaned.lastIndexOf('}'); if (fb !== -1 && lb > fb) cleaned = cleaned.substring(fb, lb + 1); }
+            const parsed: any = JSON.parse(cleaned);
+
             const personalityText = parsed.personality || parsed.description || 'A mysterious character.';
-            const ta = document.getElementById('inspector-personality');
-            if (ta)
-                ta.value = personalityText;
+            const ta = document.getElementById('inspector-personality') as HTMLTextAreaElement | null;
+            if (ta) ta.value = personalityText;
             await ApiClient.updateCharacter(charName, { personality: personalityText });
             events.log(`AI generated personality for ${charName}`, 'system-msg');
-        }
-        catch (err) {
+        } catch (err) {
             console.error(err);
             toastError('AI generation failed: ' + (err instanceof Error ? err.message : String(err)));
-        }
-        finally {
+        } finally {
             input.disabled = false;
             input.value = '';
             input.placeholder = 'AI: e.g. \'a cowardly thief\'';
         }
     }
-    async _savePersonality(charName) {
+
+    async _savePersonality(charName: string): Promise<void> {
         return InspectorHelpers.savePersonality(charName);
     }
-    _switchAgentTab(tabName) {
+
+    _switchAgentTab(tabName: string): unknown {
         return InspectorAgentView._switchAgentTab(tabName);
     }
-    async _showEquipPicker(charName, slot) {
+
+    async _showEquipPicker(charName: string, slot: string): Promise<void> {
         return window.InspectorPaperdoll.showEquipPicker(charName, slot);
     }
-    async _showAddItemPicker(charName) {
+
+    async _showAddItemPicker(charName: string): Promise<void> {
         return InspectorAgentView._showAddItemPicker(charName);
     }
-    async _saveDescription(charName) {
+
+    async _saveDescription(charName: string): Promise<void> {
         return InspectorHelpers.saveDescription(charName);
     }
-    async _generateDescription(charName) {
+
+    async _generateDescription(charName: string): Promise<void> {
         return InspectorAgentView._generateDescription(charName);
     }
-    _showStackPopup(badgeEl, charName, slot) {
+
+    _showStackPopup(badgeEl: HTMLElement, charName: string, slot: string): unknown {
         return window.InspectorPaperdoll.showStackPopup(badgeEl, charName, slot);
     }
-    _showContextMenu(event, items) {
+
+    _showContextMenu(event: MouseEvent, items: string): void {
         event.preventDefault();
         const menu = document.getElementById('context-menu');
-        if (!menu)
-            return;
+        if (!menu) return;
         menu.style.display = 'none';
-        window.Lit.render(inspectorUiHtmlTag `${window.Lit.unsafeHTML(items)}`, menu);
+        window.Lit.render(inspectorUiHtmlTag`${window.Lit.unsafeHTML(items)}`, menu);
         menu.style.display = 'block';
         menu.style.left = event.clientX + 'px';
         menu.style.top = event.clientY + 'px';
         setTimeout(() => document.addEventListener('click', () => { menu.style.display = 'none'; }, { once: true }), 0);
     }
-    _showInventoryContextMenu(event, charName, itemName, itemId) {
+
+    _showInventoryContextMenu(event: MouseEvent, charName: string, itemName: string, itemId: string): unknown {
         return window.InspectorPaperdoll.showInventoryContextMenu(event, charName, itemName, itemId);
     }
-    _showPaperdollContextMenu(event, charName, slot) {
+
+    _showPaperdollContextMenu(event: MouseEvent, charName: string, slot: string): unknown {
         return window.InspectorPaperdoll.showPaperdollContextMenu(event, charName, slot);
     }
+
     // ─── Save / Import Character ───
-    async _saveCharacter(charName) {
+    async _saveCharacter(charName: string): Promise<void> {
         return InspectorAgentView._saveCharacter(charName);
     }
-    async _importCharacter() {
+
+    async _importCharacter(): Promise<void> {
         return InspectorAgentView._importCharacter();
     }
-    async _killCharacter(charName) {
+
+    async _killCharacter(charName: string): Promise<void> {
         return InspectorAgentView._killCharacter(charName);
     }
-    async _removeCharacter(charName) {
+
+    async _removeCharacter(charName: string): Promise<void> {
         return InspectorAgentView._removeCharacter(charName);
     }
+
     // ─────────── Item helper methods (called from _showItem inline onchange) ───────────
-    async _updateItemProp(nodeId, field, value) {
+
+    async _updateItemProp(nodeId: string, field: string, value: unknown): Promise<void> {
         return window.InspectorItemView._updateItemProp(nodeId, field, value);
     }
-    async _renameNode(oldId, newId) {
+
+    async _renameNode(oldId: string, newId: string): Promise<void> {
         return InspectorHelpers.renameNode(oldId, newId);
     }
-    async _moveItem(nodeId) {
+
+    async _moveItem(nodeId: string): Promise<void> {
         return window.InspectorItemView._moveItem(nodeId);
     }
-    async _moveItemToContainer(nodeId) {
+
+    async _moveItemToContainer(nodeId: string): Promise<void> {
         return window.InspectorItemView._moveItemToContainer(nodeId);
     }
-    _toggleMoveDestType() {
+
+    _toggleMoveDestType(): unknown {
         return window.InspectorItemView._toggleMoveDestType();
     }
-    async _toggleAction(nodeId, action) {
+
+    async _toggleAction(nodeId: string, action: string): Promise<void> {
         return window.InspectorItemView._toggleAction(nodeId, action);
     }
-    async _addTriggerToNode(nodeId) {
+
+    async _addTriggerToNode(nodeId: string): Promise<void> {
         const graphNode = worldState.getNode(nodeId);
-        if (!graphNode)
-            return;
-        if (typeof TriggerEditor === 'undefined')
-            return;
+        if (!graphNode) return;
+        if (typeof TriggerEditor === 'undefined') return;
         TriggerEditor.show({
             ...this._triggerEditorOptions(nodeId),
-            onSave: async (data) => {
+            onSave: async (data: any) => {
                 const triggerId = `trigger_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
                 const typeLabel = Array.isArray(data.trigger_type) ? data.trigger_type.join(', ') : (data.trigger_type || 'custom');
                 const triggerName = (data.name || '').trim() || `${typeLabel} → ${data.effects?.[0]?.type || '?'}`;
@@ -295,12 +345,12 @@ class Inspector {
                     return;
                 }
                 await inspectorGraphApi.createEdge(nodeId, triggerId, 'triggers', data);
-                worldState.fetch().then(() => { if (window.VW?.inspector)
-                    window.VW.inspector.showNode(nodeId); });
+                worldState.fetch().then(() => { if (window.VW?.inspector) window.VW.inspector.showNode(nodeId); });
             }
         });
     }
-    _triggerEditorOptions(nodeId) {
+
+    _triggerEditorOptions(nodeId: string): Record<string, unknown> {
         return {
             triggerTypes: window.TriggerTypes.TRIGGER_TYPES,
             effectTypes: window.TriggerTypes.EFFECT_TYPES,
@@ -311,29 +361,19 @@ class Inspector {
             mode: 'multi',
         };
     }
+
     /**
      * Open the TriggerEditor in edit mode for an existing trigger on a node.
      * @param {string} nodeId - The source node ID (item/way being inspected)
      * @param {string} triggerEdgeJson - JSON string of the trigger edge object
      */
-    async _editTriggerFromNode(nodeId, triggerEdgeJson) {
+    async _editTriggerFromNode(nodeId: string, triggerEdgeJson: string): Promise<void> {
         const graphNode = worldState.getNode(nodeId);
-        if (!graphNode) {
-            console.warn('[_editTriggerFromNode] source node not found:', nodeId);
-            return;
-        }
-        if (typeof TriggerEditor === 'undefined') {
-            console.warn('[_editTriggerFromNode] TriggerEditor not loaded');
-            return;
-        }
-        let triggerEdge;
-        try {
-            triggerEdge = JSON.parse(triggerEdgeJson);
-        }
-        catch (e) {
-            console.warn('[_editTriggerFromNode] bad edge JSON:', triggerEdgeJson);
-            return;
-        }
+        if (!graphNode) { console.warn('[_editTriggerFromNode] source node not found:', nodeId); return; }
+        if (typeof TriggerEditor === 'undefined') { console.warn('[_editTriggerFromNode] TriggerEditor not loaded'); return; }
+
+        let triggerEdge: any;
+        try { triggerEdge = JSON.parse(triggerEdgeJson); } catch (e) { console.warn('[_editTriggerFromNode] bad edge JSON:', triggerEdgeJson); return; }
         const triggerNode = worldState.getNode(triggerEdge.target);
         if (triggerNode && triggerNode.type !== 'logic_trigger') {
             console.warn('[_editTriggerFromNode] target is not a logic_trigger:', triggerNode.type);
@@ -344,26 +384,29 @@ class Inspector {
             // missing trigger nodes — fall back to the edge's data copy.
             console.warn('[_editTriggerFromNode] trigger node missing, using edge properties:', triggerEdge.target);
         }
+
         // Prefer the trigger node's properties; fall back to the edge copy.
         const nodeProps = triggerNode?.properties && Object.keys(triggerNode.properties).length ? triggerNode.properties : null;
-        const props = nodeProps || triggerEdge.properties || {};
-        const triggerData = { ...props };
+        const props: any = nodeProps || triggerEdge.properties || {};
+        const triggerData: any = { ...props };
         if (!triggerData.effects) {
             triggerData.effects = [{ type: 'message', params: {} }];
         }
         if (!triggerData.conditions) {
             triggerData.conditions = [];
         }
+
         TriggerEditor.show({
             ...this._triggerEditorOptions(nodeId),
             initialData: triggerData,
-            onSave: async (data) => {
+            onSave: async (data: any) => {
                 const updatedProps = { ...data };
                 const typeLabel = Array.isArray(data.trigger_type) ? data.trigger_type.join(', ') : (data.trigger_type || 'custom');
                 const newName = (data.name || '').trim() || `${typeLabel} → ${data.effects?.[0]?.type || '?'}`;
                 // Keep node + edge in sync: the runtime reads edge properties first.
                 try {
                     let targetId = triggerEdge ? triggerEdge.target : (triggerNode ? triggerNode.id : null);
+
                     // If the trigger ID embeds a different parent node name (stale copy
                     // pattern), regenerate a clean ID so the stale-copy validator stays
                     // happy and the trigger list stays tidy.
@@ -374,10 +417,12 @@ class Inspector {
                             targetId = `trigger_${nodeId.toLowerCase()}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
                         }
                     }
+
                     // If the ID changed, rename the node first (this updates all edges too)
                     if (triggerNode && targetId && targetId !== triggerNode.id) {
                         await inspectorGraphApi.renameNode(triggerNode.id, targetId);
                     }
+
                     // Update node properties and name
                     if (triggerNode || (triggerEdge && targetId)) {
                         await ApiClient.updateNode(targetId || triggerNode.id, {
@@ -385,6 +430,7 @@ class Inspector {
                             name: newName
                         });
                     }
+
                     // Update edge properties
                     if (triggerEdge) {
                         await inspectorGraphApi.updateEdge(nodeId, triggerEdge.target, {
@@ -392,122 +438,149 @@ class Inspector {
                             properties: updatedProps
                         });
                     }
-                }
-                catch (e) {
+                } catch (e) {
                     console.warn('[_editTriggerFromNode] save failed:', e);
                 }
                 worldState.fetch().then(() => {
-                    if (window.VW?.inspector)
-                        window.VW.inspector.showNode(nodeId);
+                    if (window.VW?.inspector) window.VW.inspector.showNode(nodeId);
                 });
             }
         });
     }
+
     // ─── Parameter helpers ───
-    async _addParam(nodeId) {
+
+    async _addParam(nodeId: string): Promise<void> {
         return InspectorHelpers.addParam(nodeId);
     }
-    async _removeParam(nodeId, key) {
+
+    async _removeParam(nodeId: string, key: string): Promise<void> {
         return InspectorHelpers.removeParam(nodeId, key);
     }
-    async _updateParamKey(nodeId, oldKey, newKey) {
+
+    async _updateParamKey(nodeId: string, oldKey: string, newKey: string): Promise<void> {
         return InspectorHelpers.updateParamKey(nodeId, oldKey, newKey);
     }
-    async _updateParamValue(nodeId, key, value) {
+
+    async _updateParamValue(nodeId: string, key: string, value: unknown): Promise<void> {
         return InspectorHelpers.updateParamValue(nodeId, key, value);
     }
-    async _saveCosts(nodeId) {
+
+    async _saveCosts(nodeId: string): Promise<void> {
         const node = worldState.getNode(nodeId);
-        if (!node)
-            return;
-        const actionCosts = node.properties?.action_costs || {};
+        if (!node) return;
+        const actionCosts: Record<string, Record<string, number>> = node.properties?.action_costs || {};
         const costActions = [
-            'use', 'take', 'examine', 'eat', 'drink', 'read', 'activate'
-        ];
+'use', 'take', 'examine', 'eat', 'drink', 'read', 'activate'
+];
         const costStats = [
-            'Energy', 'Hunger', 'Thirst', 'HP'
-        ];
-        const inputs = document.querySelectorAll(`.costs-input[data-action][data-stat]`);
+'Energy', 'Hunger', 'Thirst', 'HP'
+];
+        const inputs = document.querySelectorAll<HTMLInputElement>(`.costs-input[data-action][data-stat]`);
         for (const input of inputs) {
             // The selector guarantees both attributes, so these are never undefined.
-            const action = input.dataset.action;
-            const stat = input.dataset.stat;
-            if (!actionCosts[action])
-                actionCosts[action] = {};
+            const action = input.dataset.action as string;
+            const stat = input.dataset.stat as string;
+            if (!actionCosts[action]) actionCosts[action] = {};
             actionCosts[action][stat] = parseInt(input.value) || 0;
         }
         await api.updateNode(nodeId, { properties: { action_costs: actionCosts } });
         worldState.fetch();
     }
-    async _saveSkillCheck(nodeId) {
+
+    async _saveSkillCheck(nodeId: string): Promise<void> {
         return InspectorHelpers.saveSkillCheck(nodeId);
     }
+
     // ─── AI Improve Item ───
-    async _improveItemWithAI(nodeId) {
+    async _improveItemWithAI(nodeId: string): Promise<void> {
         return window.InspectorItemView._improveItemWithAI(nodeId);
     }
+
     // ─── AI Improve Area ───
-    async _improveRoomWithAI(nodeId) {
+
+    async _improveRoomWithAI(nodeId: string): Promise<void> {
         return inspectorAreaView().improveRoomWithAI(nodeId);
     }
+
     // ─── Behavior Action Types (matching backend _execute_behavior_actions) ───
     // Delegated to InspectorBehaviors
+
     // ─── Behavior Editor ───
-    _addBehavior(charName) {
+
+    _addBehavior(charName: string): unknown {
         return window.InspectorBehaviors.addBehavior(charName);
     }
-    _deleteBehavior(charName, index) {
+
+    _deleteBehavior(charName: string, index: number): unknown {
         return window.InspectorBehaviors.deleteBehavior(charName, index);
     }
-    _editBehavior(charName, index) {
+
+    _editBehavior(charName: string, index: number): unknown {
         return window.InspectorBehaviors.editBehavior(charName, index);
     }
-    _saveBehavior(charName, index) {
+
+    _saveBehavior(charName: string, index: number): unknown {
         return window.InspectorBehaviors.saveBehavior(charName, index);
     }
+
     // ─────────── Memory Management ───────────
-    _addMemory(charName) {
+
+    _addMemory(charName: string): unknown {
         return window.InspectorMemory.addMemory(charName);
     }
-    _editMemory(charName, entryId) {
+
+    _editMemory(charName: string, entryId: string): unknown {
         return window.InspectorMemory.editMemory(charName, entryId);
     }
-    _saveMemory(charName, entryId) {
+
+    _saveMemory(charName: string, entryId: string): unknown {
         return window.InspectorMemory.saveMemory(charName, entryId);
     }
-    _deleteMemory(charName, entryId) {
+
+    _deleteMemory(charName: string, entryId: string): unknown {
         return window.InspectorMemory.deleteMemory(charName, entryId);
     }
+
     // ─────────── World Lore Editor ───────────
-    showWorldLore() {
+
+    showWorldLore(): void {
         this._currentView = { type: 'world_lore' };
         window.InspectorLore.renderWorldLore();
     }
-    async _renderWorldLore() {
+
+    async _renderWorldLore(): Promise<void> {
         return window.InspectorLore.renderWorldLore();
     }
-    _addLoreEntry() {
+
+    _addLoreEntry(): unknown {
         return window.InspectorLore.addLoreEntry();
     }
-    _editLoreEntry(entryId) {
+
+    _editLoreEntry(entryId: string): unknown {
         return window.InspectorLore.editLoreEntry(entryId);
     }
-    async _showLoreEditor(entryId) {
+
+    async _showLoreEditor(entryId: string): Promise<void> {
         return window.InspectorLore.showLoreEditor(entryId);
     }
-    async _saveLoreEntry(entryId) {
+
+    async _saveLoreEntry(entryId: string): Promise<void> {
         return window.InspectorLore.saveLoreEntry(entryId);
     }
-    async _deleteLoreEntry(entryId) {
+
+    async _deleteLoreEntry(entryId: string): Promise<void> {
         return window.InspectorLore.deleteLoreEntry(entryId);
     }
-    async _removeRelationship(agentName, otherName) {
+
+    async _removeRelationship(agentName: string, otherName: string): Promise<void> {
         return InspectorAgentView._removeRelationship(agentName, otherName);
     }
-    showTemplates() {
+
+    showTemplates(): void {
         const overlay = document.createElement('div');
         overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;';
-        window.Lit.render(inspectorUiHtmlTag `
+        window.Lit.render(inspectorUiHtmlTag`
             <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px;width:520px;max-height:85vh;overflow-y:auto;">
                 <h3 style="margin:0 0 12px 0;">📋 Template Parameters</h3>
                 <p style="font-size:11px;color:var(--text-muted);margin:0 0 12px 0;">Use these in trigger messages, descriptions, and effects. They are replaced at runtime.</p>
@@ -574,11 +647,12 @@ class Inspector {
         `, overlay);
         document.body.appendChild(overlay);
         overlay.addEventListener('click', (e) => {
-            if (e.target === overlay)
-                overlay.remove();
+            if (e.target === overlay) overlay.remove();
         });
     }
+
 }
+
 // Singleton.
 // globals.d.ts already declares a global `inspector` (hoisted there for main.ts,
 // which reads `VW.inspector = inspector`), so a top-level `const inspector` here
@@ -589,4 +663,5 @@ class Inspector {
 // `window` rather than a script-scoped lexical binding. Nothing reads
 // `window.inspector` and nothing enumerates `window`; every consumer goes
 // through `VW.inspector`.
-window.inspector = new Inspector();
+(window as unknown as { inspector: Inspector }).inspector = new Inspector();
+

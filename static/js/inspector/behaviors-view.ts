@@ -1,4 +1,3 @@
-"use strict";
 /**
  * InspectorBehaviors — Simple NPC behavior editor
  * task-216: renders lit-html templates via InspectorPanel / window.Lit.render.
@@ -12,19 +11,23 @@
  * @docs docs/virtualWorld/Characters/NPC Behavior System.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+
 window.InspectorBehaviors = (() => {
-    const B = {};
+    const B: any = {};
+
     // Lazy tag: classic scripts parse before the deferred lit-bootstrap module
     // runs, so window.Lit only exists when a view actually renders.
-    const htmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
+    const htmlTag = (strings: TemplateStringsArray, ...values: unknown[]) => window.Lit.html(strings, ...values);
+
     // The behavior editor mixes text inputs, selects and textareas;
     // getElementById's HTMLElement has no .value — cast at the read sites.
-    const inputById = (id) => document.getElementById(id);
+    const inputById = (id: string) => document.getElementById(id) as HTMLInputElement | null;
+
     /**
      * Get available behavior action types with their parameter schemas
      * @returns {Array<{value:string, label:string, params:string[]}>}
      */
-    B.BEHAVIOR_ACTION_TYPES = function () {
+    B.BEHAVIOR_ACTION_TYPES = function() {
         return [
             { value: 'message', label: '💬 Message', params: ['text'] },
             { value: 'speak', label: '🗣️ Speak', params: ['text'] },
@@ -149,11 +152,12 @@ window.InspectorBehaviors = (() => {
             { value: 'lie_down', label: '🛏️ Lie Down', params: [] }
         ];
     };
+
     /**
      * Get available behavior condition types with their parameter schemas
      * @returns {Array<{value:string, label:string, params:string[]}>}
      */
-    B.BEHAVIOR_CONDITION_TYPES = function () {
+    B.BEHAVIOR_CONDITION_TYPES = function() {
         return [
             { value: 'none', label: '— No Condition —', params: [] },
             { value: 'eq', label: 'Equals (=)', params: ['cond_target', 'cond_value'] },
@@ -174,36 +178,34 @@ window.InspectorBehaviors = (() => {
             { value: 'flag_equals', label: 'Flag Equals', params: ['flag_key', 'flag_value', 'flag_target'] }
         ];
     };
+
     /**
      * Add a new behavior to a character and open the editor
      * @param {string} charName - Character name
      */
-    B.addBehavior = function (charName) {
+    B.addBehavior = function(charName: any) {
         const player = worldState.players[charName];
-        if (!player)
-            return;
-        if (!Array.isArray(player.behaviors))
-            player.behaviors = [];
+        if (!player) return;
+        if (!Array.isArray(player.behaviors)) player.behaviors = [];
         player.behaviors.push({ trigger: 'on_tick', interval: 1, priority: 0, conditions: {}, actions: [{ type: 'message', text: '' }] });
         B.editBehavior(charName, player.behaviors.length - 1);
     };
+
     /**
      * Delete a behavior from a character
      * @param {string} charName - Character name
      * @param {number} index - Behavior index
      */
-    B.deleteBehavior = function (charName, index) {
+    B.deleteBehavior = function(charName: any, index: any) {
         const player = worldState.players[charName];
-        if (!player || !Array.isArray(player.behaviors))
-            return;
-        if (!confirm('Delete this behavior?'))
-            return;
+        if (!player || !Array.isArray(player.behaviors)) return;
+        if (!confirm('Delete this behavior?')) return;
         player.behaviors.splice(index, 1);
         ApiClient.updateCharacter(charName, { behaviors: player.behaviors }).then(() => {
-            if (window.VW?.inspector)
-                window.VW.inspector._reRender();
+            if (window.VW?.inspector) window.VW.inspector._reRender();
         });
     };
+
     /**
      * Build an action card lit-template for the behavior editor
      * @param {number} behIndex - Behavior index
@@ -211,8 +213,11 @@ window.InspectorBehaviors = (() => {
      * @param {object} action - Action data object
      * @returns {TemplateResult}
      */
-    B.buildBehaviorActionCard = function (behIndex, actIndex, action) {
-        const actOpts = B.BEHAVIOR_ACTION_TYPES().map((a) => htmlTag `<option value=${a.value} ?selected=${a.value === action.type}>${a.label}</option>`);
+    B.buildBehaviorActionCard = function(behIndex: any, actIndex: any, action: any) {
+        const actOpts = B.BEHAVIOR_ACTION_TYPES().map((a: any) =>
+            htmlTag`<option value=${a.value} ?selected=${a.value === action.type}>${a.label}</option>`
+        );
+
         const text = action.text || '';
         const state = action.state || '';
         const amount = action.amount !== undefined ? action.amount : 5;
@@ -351,14 +356,16 @@ window.InspectorBehaviors = (() => {
         const pinchTarget = action.target || '';
         const pinchWhere = action.where || '';
         const pinchIntensity = action.intensity || 'normal';
-        const show = (types) => types.split(',').includes(action.type);
-        return htmlTag `
+
+        const show = (types: string) => types.split(',').includes(action.type);
+
+        return htmlTag`
             <div class="beh-action-card" style="background:var(--bg-inset);border:1px solid var(--border);border-radius:6px;padding:8px;margin-bottom:6px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-                    <select class="beh-act-type" style="flex:1;font-size:11px;" @change=${(e) => B.toggleActionFields(e.target, behIndex)}>
+                    <select class="beh-act-type" style="flex:1;font-size:11px;" @change=${(e: Event) => B.toggleActionFields(e.target, behIndex)}>
                         ${actOpts}
                     </select>
-                    <button class="btn btn-sm btn-red" @click=${(e) => B.removeBehaviorAction(e.target, behIndex)} style="font-size:10px;margin-left:4px;">✕</button>
+                    <button class="btn btn-sm btn-red" @click=${(e: Event) => B.removeBehaviorAction(e.target, behIndex)} style="font-size:10px;margin-left:4px;">✕</button>
                 </div>
                 <div class="beh-act-params" data-cfg="${behIndex}:${actIndex}">
                     <div class="field beh-act-field" data-act="message,speak" style="display:${show('message,speak') ? 'block' : 'none'};">
@@ -453,7 +460,7 @@ window.InspectorBehaviors = (() => {
                     </div>
 <div class="field beh-act-field" data-act="go" style="display:${show('go') ? 'block' : 'none'};">
                         <label>Movement Mode</label>
-                        <select class="beh-act-go-mode" style="width:100%;" @change=${(e) => B.toggleGoModeFields(e.target)}>
+                        <select class="beh-act-go-mode" style="width:100%;" @change=${(e: Event) => B.toggleGoModeFields(e.target)}>
                             <option value="goto" ?selected=${goMode === 'goto'}>Goto — pathfind toward area (one step)</option>
                             <option value="random" ?selected=${goMode === 'random'}>Random — pick an open exit</option>
                             <option value="patrol" ?selected=${goMode === 'patrol'}>Patrol — cycle through area list</option>
@@ -833,28 +840,33 @@ window.InspectorBehaviors = (() => {
                 </div>
             </div>`;
     };
+
     /**
      * Open the behavior editor modal for a character's behavior
      * @param {string} charName - Character name
      * @param {number} index - Behavior index
      */
-    B.editBehavior = function (charName, index) {
+    B.editBehavior = function(charName: any, index: any) {
         const player = worldState.players[charName];
-        if (!player || !Array.isArray(player.behaviors))
-            return;
+        if (!player || !Array.isArray(player.behaviors)) return;
         const behavior = player.behaviors[index];
-        if (!behavior)
-            return;
+        if (!behavior) return;
+
         const escName = charName.replace(/'/g, "\\'");
         const b = behavior;
+
         const existing = inputById('behavior-modal');
-        if (existing)
-            existing.remove();
+        if (existing) existing.remove();
+
         // Build condition form
         const cond = b.conditions || {};
         const isCompound = cond.operator ? true : false;
         const condType = isCompound ? 'compound' : (cond.type || 'none');
-        const condOpts = B.BEHAVIOR_CONDITION_TYPES().map((c) => htmlTag `<option value=${c.value} ?selected=${condType === c.value}>${c.label}</option>`);
+
+        const condOpts = B.BEHAVIOR_CONDITION_TYPES().map((c: any) =>
+            htmlTag`<option value=${c.value} ?selected=${condType === c.value}>${c.label}</option>`
+        );
+
         const condValue = cond.value || '';
         const condTarget = cond.target || '';
         const condItem = cond.item || '';
@@ -866,32 +878,34 @@ window.InspectorBehaviors = (() => {
         const condMaxRooms = cond.max_areas || 0;
         const compoundOperator = cond.operator || 'and';
         const compoundConditions = cond.conditions || [];
+
         // Build action cards
         const actions = b.actions || [];
-        const actionCards = actions.map((a, ai) => B.buildBehaviorActionCard(index, ai, a));
-        const overlay = htmlTag `
+        const actionCards = actions.map((a: any, ai: any) => B.buildBehaviorActionCard(index, ai, a));
+
+        const overlay = htmlTag`
             <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px;width:540px;max-height:85vh;overflow-y:auto;">
                 <h3 style="margin:0 0 12px 0;">🤖 Edit Behavior</h3>
 
                 <div class="field">
                     <label>Trigger Type</label>
                     <select id="beh-trigger-${index}" style="width:100%;">
-                        <option value="on_tick" ?selected=${b.trigger === 'on_tick'}>Every N ticks</option>
-                        <option value="on_player_enter_area" ?selected=${b.trigger === 'on_player_enter_area'}>Player enters area</option>
-                        <option value="on_player_leave_area" ?selected=${b.trigger === 'on_player_leave_area'}>Player leaves area</option>
-                        <option value="on_item_taken" ?selected=${b.trigger === 'on_item_taken'}>Player takes item</option>
-                        <option value="on_speech_heard" ?selected=${b.trigger === 'on_speech_heard'}>Speech heard</option>
-                        <option value="on_combat" ?selected=${b.trigger === 'on_combat'}>Combat occurs</option>
-                        <option value="on_state_changed" ?selected=${b.trigger === 'on_state_changed'}>State changed</option>
+                        <option value="on_tick" ?selected=${b.trigger==='on_tick'}>Every N ticks</option>
+                        <option value="on_player_enter_area" ?selected=${b.trigger==='on_player_enter_area'}>Player enters area</option>
+                        <option value="on_player_leave_area" ?selected=${b.trigger==='on_player_leave_area'}>Player leaves area</option>
+                        <option value="on_item_taken" ?selected=${b.trigger==='on_item_taken'}>Player takes item</option>
+                        <option value="on_speech_heard" ?selected=${b.trigger==='on_speech_heard'}>Speech heard</option>
+                        <option value="on_combat" ?selected=${b.trigger==='on_combat'}>Combat occurs</option>
+                        <option value="on_state_changed" ?selected=${b.trigger==='on_state_changed'}>State changed</option>
                     </select>
                 </div>
 
                 <div style="display:flex;gap:8px;">
                     <div class="field" style="flex:1;"><label>Interval (ticks)</label>
-                        <input type="number" id="beh-interval-${index}" .value=${b.interval || 1} min="1" style="width:100%;">
+                        <input type="number" id="beh-interval-${index}" .value=${b.interval||1} min="1" style="width:100%;">
                     </div>
                     <div class="field" style="flex:1;"><label>Priority</label>
-                        <input type="number" id="beh-priority-${index}" .value=${b.priority || 0} style="width:100%;">
+                        <input type="number" id="beh-priority-${index}" .value=${b.priority||0} style="width:100%;">
                     </div>
                 </div>
 
@@ -1062,7 +1076,7 @@ window.InspectorBehaviors = (() => {
                         <button class="btn btn-sm btn-blue" @click=${() => B.addBehaviorAction(index)} style="float:right;">➕ Add</button>
                     </h3>
                     <div id="beh-actions-list-${index}">
-                        ${actionCards.length ? actionCards : htmlTag `<div style="font-size:11px;color:var(--text-muted);padding:8px;text-align:center;">No actions. Click + Add to add one.</div>`}
+                        ${actionCards.length ? actionCards : htmlTag`<div style="font-size:11px;color:var(--text-muted);padding:8px;text-align:center;">No actions. Click + Add to add one.</div>`}
                     </div>
                 </div>
 
@@ -1073,6 +1087,7 @@ window.InspectorBehaviors = (() => {
                     <button class="btn btn-green" @click=${() => B.saveBehavior(charName, index)}>✅ Save</button>
                 </div>
             </div>`;
+
         const container = document.createElement('div');
         container.id = 'behavior-modal';
         container.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;';
@@ -1080,120 +1095,115 @@ window.InspectorBehaviors = (() => {
         window.Lit.render(overlay, container);
         B.toggleBehaviorConditionFields(index);
     };
-    B._closeBehaviorEditor = function () {
+
+    B._closeBehaviorEditor = function() {
         const modal = inputById('behavior-modal');
-        if (modal)
-            modal.remove();
+        if (modal) modal.remove();
     };
+
     /**
      * Add an action card to the behavior editor
      * @param {number} behIndex - Behavior index
      */
-    B.addBehaviorAction = function (behIndex) {
+    B.addBehaviorAction = function(behIndex: any) {
         const actionsList = inputById(`beh-actions-list-${behIndex}`);
-        if (!actionsList)
-            return;
+        if (!actionsList) return;
         const card = B.buildBehaviorActionCard(behIndex, Date.now(), { type: 'message', text: '' });
         const emptyMsg = actionsList.querySelector('div[style*="text-align:center"]');
-        if (emptyMsg)
-            emptyMsg.remove();
+        if (emptyMsg) emptyMsg.remove();
         const wrapper = document.createElement('div');
         window.Lit.render(card, wrapper);
-        actionsList.appendChild(wrapper.firstElementChild);
+        actionsList.appendChild(wrapper.firstElementChild!);
     };
+
     /**
      * Remove an action card from the behavior editor
      * @param {HTMLElement} btn - The remove button element
      * @param {number} behIndex - Behavior index
      */
-    B.removeBehaviorAction = function (btn, behIndex) {
+    B.removeBehaviorAction = function(btn: any, behIndex: any) {
         const cards = document.querySelectorAll(`#beh-actions-list-${behIndex} .beh-action-card`);
-        if (cards.length <= 1)
-            return;
+        if (cards.length <= 1) return;
         btn.closest('.beh-action-card')?.remove();
     };
+
     /**
      * Toggle between simple and compound condition modes
      * @param {number} behIndex - Behavior index
      */
-    B.toggleConditionMode = function (behIndex) {
+    B.toggleConditionMode = function(behIndex: any) {
         const mode = inputById(`beh-cond-mode-${behIndex}`)?.value;
         const simple = inputById(`beh-cond-simple-${behIndex}`);
         const compound = inputById(`beh-cond-compound-${behIndex}`);
-        if (simple)
-            simple.style.display = mode === 'simple' ? 'block' : 'none';
-        if (compound)
-            compound.style.display = mode === 'compound' ? 'block' : 'none';
+        if (simple) simple.style.display = mode === 'simple' ? 'block' : 'none';
+        if (compound) compound.style.display = mode === 'compound' ? 'block' : 'none';
     };
+
     /**
      * Toggle condition fields display based on selected condition type
      * @param {number} behIndex - Behavior index
      */
-    B.toggleBehaviorConditionFields = function (behIndex) {
+    B.toggleBehaviorConditionFields = function(behIndex: any) {
         const condType = inputById(`beh-cond-type-${behIndex}`)?.value || 'none';
-        document.querySelectorAll(`#beh-cond-fields-${behIndex} .beh-cond-field`).forEach(el => {
+        document.querySelectorAll<HTMLElement>(`#beh-cond-fields-${behIndex} .beh-cond-field`).forEach(el => {
             el.style.display = 'none';
         });
-        document.querySelectorAll(`#beh-cond-fields-${behIndex} .beh-cond-field[data-cond*="${condType}"]`).forEach(el => {
+        document.querySelectorAll<HTMLElement>(`#beh-cond-fields-${behIndex} .beh-cond-field[data-cond*="${condType}"]`).forEach(el => {
             el.style.display = 'block';
         });
         const targetLabel = inputById(`beh-cond-target-label-${behIndex}`);
         if (targetLabel) {
-            if (condType === 'has_item')
-                targetLabel.textContent = 'Item Name';
-            else
-                targetLabel.textContent = 'Target Field (e.g. npc_state)';
+            if (condType === 'has_item') targetLabel.textContent = 'Item Name';
+            else targetLabel.textContent = 'Target Field (e.g. npc_state)';
         }
     };
-    B.toggleGoModeFields = function (selectEl) {
+
+    B.toggleGoModeFields = function(selectEl: any) {
         const card = selectEl.closest('.beh-action-card');
-        if (!card)
-            return;
+        if (!card) return;
         const mode = selectEl.value;
         const gotoField = card.querySelector('.beh-act-go-goto');
         const patrolField = card.querySelector('.beh-act-go-patrol');
-        if (gotoField)
-            gotoField.style.display = mode === 'goto' ? 'block' : 'none';
-        if (patrolField)
-            patrolField.style.display = mode === 'patrol' ? 'block' : 'none';
+        if (gotoField) gotoField.style.display = mode === 'goto' ? 'block' : 'none';
+        if (patrolField) patrolField.style.display = mode === 'patrol' ? 'block' : 'none';
     };
+
     /**
      * Toggle action fields display based on selected action type
      * @param {HTMLElement} selectEl - The action type select element
      * @param {number} behIndex - Behavior index
      */
-    B.toggleActionFields = function (selectEl, behIndex) {
+    B.toggleActionFields = function(selectEl: any, behIndex: any) {
         const card = selectEl.closest('.beh-action-card');
-        if (!card)
-            return;
+        if (!card) return;
         const actType = selectEl.value;
-        card.querySelectorAll('.beh-act-field').forEach((el) => {
+        card.querySelectorAll('.beh-act-field').forEach((el: any) => {
             el.style.display = 'none';
         });
-        card.querySelectorAll(`.beh-act-field[data-act*="${actType}"]`).forEach((el) => {
+        card.querySelectorAll(`.beh-act-field[data-act*="${actType}"]`).forEach((el: any) => {
             el.style.display = 'block';
         });
         if (actType === 'go') {
             const modeSelect = card.querySelector('.beh-act-go-mode');
-            if (modeSelect)
-                B.toggleGoModeFields(modeSelect);
+            if (modeSelect) B.toggleGoModeFields(modeSelect);
         }
     };
+
     /**
      * Save a behavior from the editor modal
      * @param {string} charName - Character name
      * @param {number} index - Behavior index
      */
-    B.saveBehavior = function (charName, index) {
+    B.saveBehavior = function(charName: any, index: any) {
         const player = worldState.players[charName];
-        if (!player || !Array.isArray(player.behaviors))
-            return;
+        if (!player || !Array.isArray(player.behaviors)) return;
         const behavior = player.behaviors[index];
-        if (!behavior)
-            return;
+        if (!behavior) return;
+
         behavior.trigger = inputById(`beh-trigger-${index}`)?.value || 'on_tick';
         behavior.interval = parseInt(inputById(`beh-interval-${index}`)?.value || '') || 1;
         behavior.priority = parseInt(inputById(`beh-priority-${index}`)?.value || '') || 0;
+
         // Build conditions
         const condMode = inputById(`beh-cond-mode-${index}`)?.value || 'simple';
         if (condMode === 'compound') {
@@ -1202,397 +1212,312 @@ window.InspectorBehaviors = (() => {
                 const subConditions = JSON.parse(inputById(`beh-cond-json-${index}`)?.value || '[]');
                 if (subConditions.length > 0) {
                     behavior.conditions = { operator, conditions: subConditions };
-                }
-                else {
+                } else {
                     behavior.conditions = {};
                 }
-            }
-            catch (e) {
+            } catch (e) {
                 toastError('Invalid sub-conditions JSON');
                 return;
             }
-        }
-        else {
+        } else {
             const condType = inputById(`beh-cond-type-${index}`)?.value || 'none';
             if (condType === 'none') {
                 behavior.conditions = {};
-            }
-            else {
-                const cond = { type: condType };
+            } else {
+                const cond: Record<string, any> = { type: condType };
                 if (condType === 'eq') {
                     cond.target = inputById(`beh-cond-target-${index}`)?.value || '';
                     cond.value = inputById(`beh-cond-value-${index}`)?.value || '';
-                }
-                else if (condType === 'has_trait' || condType === 'has_tag') {
+                } else if (condType === 'has_trait' || condType === 'has_tag') {
                     cond.value = inputById(`beh-cond-value-${index}`)?.value || '';
-                }
-                else if (condType === 'has_item') {
+                } else if (condType === 'has_item') {
                     cond.item = inputById(`beh-cond-target-${index}`)?.value || '';
                     cond.target = inputById(`beh-cond-target-select-${index}`)?.value || 'player';
-                }
-                else if (condType === 'in_area') {
+                } else if (condType === 'in_area') {
                     cond.area = inputById(`beh-cond-area-${index}`)?.value || '';
                     cond.target = inputById(`beh-cond-target-select-${index}`)?.value || 'npc';
-                }
-                else if (condType === 'random_chance') {
+                } else if (condType === 'random_chance') {
                     cond.chance = parseFloat(inputById(`beh-cond-chance-${index}`)?.value || '') || 0.5;
-                }
-                else if (condType === 'tick_since_state') {
+                } else if (condType === 'tick_since_state') {
                     cond.min_ticks = parseInt(inputById(`beh-cond-min-ticks-${index}`)?.value || '') || 0;
-                }
-                else if (condType === 'proximity') {
-                    cond.max_areas = parseInt(inputById(`beh-cond-max-rooms-${index}`)?.value || '') || 0;
-                }
-                else if (condType === 'npc_emotion_is') {
-                    cond.emotion = inputById(`beh-cond-emotion-name-${index}`)?.value || 'neutral';
-                    cond.operator = inputById(`beh-cond-emotion-op-${index}`)?.value || 'eq';
-                    cond.value = parseFloat(inputById(`beh-cond-emotion-value-${index}`)?.value || '') || 0;
-                }
-                else if (condType === 'npc_is_hidden') {
-                    cond.value = inputById(`beh-cond-hidden-value-${index}`)?.value !== 'false';
-                }
-                else if (condType === 'character_has_tag') {
-                    cond.tag = inputById(`beh-cond-char-tag-${index}`)?.value || '';
-                    cond.target = inputById(`beh-cond-char-tag-target-${index}`)?.value || 'self';
-                }
-                else if (condType === 'player_has_tag' || condType === 'sight_holds') {
-                    cond.tag = inputById(`beh-cond-item-tag-${index}`)?.value || '';
-                    cond.target = inputById(`beh-cond-item-tag-target-${index}`)?.value || 'player';
-                }
-                else if (condType === 'smell_detected') {
-                    cond.tag = inputById(`beh-cond-smell-tag-${index}`)?.value || '';
-                    cond.range = parseInt(inputById(`beh-cond-smell-range-${index}`)?.value || '') || 0;
-                }
-                else if (condType === 'sound_above') {
-                    cond.threshold = parseFloat(inputById(`beh-cond-sound-threshold-${index}`)?.value || '') || 0.5;
-                    cond.target = inputById(`beh-cond-sound-target-${index}`)?.value || 'self';
-                }
-                else if (condType === 'flag_equals') {
-                    cond.key = inputById(`beh-cond-flag-key-${index}`)?.value || '';
-                    cond.value = inputById(`beh-cond-flag-value-${index}`)?.value || 'true';
-                    cond.target = inputById(`beh-cond-flag-target-${index}`)?.value || 'self';
-                }
+                 } else if (condType === 'proximity') {
+                     cond.max_areas = parseInt(inputById(`beh-cond-max-rooms-${index}`)?.value || '') || 0;
+                 } else if (condType === 'npc_emotion_is') {
+                     cond.emotion = inputById(`beh-cond-emotion-name-${index}`)?.value || 'neutral';
+                     cond.operator = inputById(`beh-cond-emotion-op-${index}`)?.value || 'eq';
+                     cond.value = parseFloat(inputById(`beh-cond-emotion-value-${index}`)?.value || '') || 0;
+                 } else if (condType === 'npc_is_hidden') {
+                     cond.value = inputById(`beh-cond-hidden-value-${index}`)?.value !== 'false';
+                 } else if (condType === 'character_has_tag') {
+                     cond.tag = inputById(`beh-cond-char-tag-${index}`)?.value || '';
+                     cond.target = inputById(`beh-cond-char-tag-target-${index}`)?.value || 'self';
+                 } else if (condType === 'player_has_tag' || condType === 'sight_holds') {
+                     cond.tag = inputById(`beh-cond-item-tag-${index}`)?.value || '';
+                     cond.target = inputById(`beh-cond-item-tag-target-${index}`)?.value || 'player';
+                 } else if (condType === 'smell_detected') {
+                     cond.tag = inputById(`beh-cond-smell-tag-${index}`)?.value || '';
+                     cond.range = parseInt(inputById(`beh-cond-smell-range-${index}`)?.value || '') || 0;
+                 } else if (condType === 'sound_above') {
+                     cond.threshold = parseFloat(inputById(`beh-cond-sound-threshold-${index}`)?.value || '') || 0.5;
+                     cond.target = inputById(`beh-cond-sound-target-${index}`)?.value || 'self';
+                 } else if (condType === 'flag_equals') {
+                     cond.key = inputById(`beh-cond-flag-key-${index}`)?.value || '';
+                     cond.value = inputById(`beh-cond-flag-value-${index}`)?.value || 'true';
+                     cond.target = inputById(`beh-cond-flag-target-${index}`)?.value || 'self';
+                 }
                 behavior.conditions = cond;
             }
         }
+
         // Build actions
         const actionCards = document.querySelectorAll(`#beh-actions-list-${index} .beh-action-card`);
-        const actions = [];
-        actionCards.forEach((card) => {
+        const actions: any[] = [];
+        actionCards.forEach((card: any) => {
             const typeSelect = card.querySelector('.beh-act-type');
-            if (!typeSelect)
-                return;
+            if (!typeSelect) return;
             const actType = typeSelect.value;
-            const action = { type: actType };
+            const action: Record<string, any> = { type: actType };
+
             if (actType === 'message' || actType === 'speak') {
                 const textInput = card.querySelector('.beh-act-text');
                 action.text = textInput?.value || '';
-            }
-            else if (actType === 'set_npc_state') {
+            } else if (actType === 'set_npc_state') {
                 const stateInput = card.querySelector('.beh-act-state');
                 action.state = stateInput?.value || 'idle';
-            }
-            else if (actType === 'damage') {
+            } else if (actType === 'damage') {
                 const amountInput = card.querySelector('.beh-act-amount');
                 action.amount = parseInt(amountInput?.value) || 5;
                 const targetSelect = card.querySelector('.beh-act-target');
                 action.target = targetSelect?.value || 'player';
-            }
-            else if (actType === 'heal') {
+            } else if (actType === 'heal') {
                 const amountInput = card.querySelector('.beh-act-amount');
                 action.amount = parseInt(amountInput?.value) || 10;
                 const statSelect = card.querySelector('.beh-act-stat');
                 action.stat = statSelect?.value || 'HP';
                 const targetSelect = card.querySelector('.beh-act-target');
                 action.target = targetSelect?.value || 'self';
-            }
-            else if (actType === 'set_environment') {
+            } else if (actType === 'set_environment') {
                 const statSelect = card.querySelector('.beh-act-stat');
                 action.stat = statSelect?.value || 'temperature';
                 const amountInput = card.querySelector('.beh-act-amount');
                 action.amount = parseInt(amountInput?.value) || 0;
                 const roomInput = card.querySelector('.beh-act-area');
                 action.area = roomInput?.value || '';
-            }
-            else if (actType === 'spawn_item') {
+            } else if (actType === 'spawn_item') {
                 const idInput = card.querySelector('.beh-act-spawn-id');
                 action.item_id = idInput?.value || '';
                 const nameInput = card.querySelector('.beh-act-spawn-name');
                 action.name = nameInput?.value || '';
                 const descInput = card.querySelector('.beh-act-spawn-desc');
                 action.description = descInput?.value || '';
-            }
-            else if (actType === 'spawn_character') {
+            } else if (actType === 'spawn_character') {
                 const charIdInput = card.querySelector('.beh-act-spawn-char-id');
                 action.character_id = charIdInput?.value || '';
                 const charNameInput = card.querySelector('.beh-act-spawn-char-name');
                 action.display_name = charNameInput?.value || '';
                 const charAreaInput = card.querySelector('.beh-act-spawn-char-area');
                 action.area = charAreaInput?.value || '';
-            }
-            else if (actType === 'teleport') {
+            } else if (actType === 'teleport') {
                 const roomInput = card.querySelector('.beh-act-area');
                 action.area = roomInput?.value || '';
                 const targetSelect = card.querySelector('.beh-act-target');
                 action.target = targetSelect?.value || 'player';
-            }
-            else if (actType === 'go') {
-                const modeSelect = card.querySelector('.beh-act-go-mode');
-                action.mode = modeSelect?.value || 'goto';
-                if (action.mode === 'patrol') {
-                    action.areas = card.querySelector('.beh-act-areas')?.value || '';
-                }
-                else if (action.mode === 'goto') {
-                    action.area = card.querySelector('.beh-act-area')?.value || '';
-                }
-            }
-            else if (actType === 'add_memory') {
-                action.text = card.querySelector('.beh-act-mem-text')?.value || '';
-                action.importance = parseInt(card.querySelector('.beh-act-mem-importance')?.value) || 5;
-                const tagsRaw = card.querySelector('.beh-act-mem-tags')?.value || '';
-                action.tags = tagsRaw ? tagsRaw.split(',').map((t) => t.trim()).filter(Boolean) : [];
-            }
-            else if (actType === 'set_emotion') {
-                action.emotion = card.querySelector('.beh-act-emotion-name')?.value || 'neutral';
-                action.intensity = parseFloat(card.querySelector('.beh-act-emotion-intensity')?.value) || 0.5;
-            }
-            else if (actType === 'set_flag') {
-                action.key = card.querySelector('.beh-act-flag-key')?.value || '';
-                action.value = card.querySelector('.beh-act-flag-value')?.value || 'true';
-                if (action.value === 'true')
-                    action.value = true;
-                else if (action.value === 'false')
-                    action.value = false;
-            }
-            else if (actType === 'add_tag' || actType === 'remove_tag') {
-                action.tag = card.querySelector('.beh-act-tag-value')?.value || '';
-                action.target = card.querySelector('.beh-act-tag-target')?.value || 'self';
-            }
-            else if (actType === 'hide_in' || actType === 'hide_behind' || actType === 'hide_under') {
-                action.target = card.querySelector('.beh-act-hide-target')?.value || '';
-            }
-            else if (actType === 'attack') {
-                action.target = card.querySelector('.beh-act-attack-target')?.value || '';
-                action.weapon = card.querySelector('.beh-act-attack-weapon')?.value || '';
-                action.where = card.querySelector('.beh-act-attack-where')?.value || '';
-            }
-            else if (actType === 'throw') {
-                action.item = card.querySelector('.beh-act-throw-item')?.value || '';
-                action.target = card.querySelector('.beh-act-throw-target')?.value || '';
-            }
-            else if (actType === 'break') {
-                action.item = card.querySelector('.beh-act-break-item')?.value || '';
-            }
-            else if (actType === 'take') {
-                action.item = card.querySelector('.beh-act-take-item')?.value || '';
-            }
-            else if (actType === 'drop') {
-                action.item = card.querySelector('.beh-act-drop-item')?.value || '';
-            }
-            else if (actType === 'put_in') {
-                action.item = card.querySelector('.beh-act-put-item')?.value || '';
-                action.container = card.querySelector('.beh-act-put-container')?.value || '';
-            }
-            else if (actType === 'equip') {
-                action.item = card.querySelector('.beh-act-equip-item')?.value || '';
-                action.slot = card.querySelector('.beh-act-equip-slot')?.value || '';
-            }
-            else if (actType === 'unequip') {
-                action.item = card.querySelector('.beh-act-unequip-item')?.value || '';
-                action.slot = action.item;
-            }
-            else if (actType === 'use') {
-                action.item = card.querySelector('.beh-act-use-item')?.value || '';
-                action.target = card.querySelector('.beh-act-use-target')?.value || '';
-            }
-            else if (actType === 'eat') {
-                action.item = card.querySelector('.beh-act-eat-item')?.value || '';
-            }
-            else if (actType === 'drink') {
-                action.item = card.querySelector('.beh-act-drink-item')?.value || '';
-            }
-            else if (actType === 'craft') {
-                action.recipe = card.querySelector('.beh-act-craft-recipe')?.value || '';
-            }
-            else if (actType === 'combine') {
-                action.source = card.querySelector('.beh-act-combine-source')?.value || '';
-                action.target = card.querySelector('.beh-act-combine-target')?.value || '';
-            }
-            else if (actType === 'repair') {
-                action.item = card.querySelector('.beh-act-repair-item')?.value || '';
-                action.kit = card.querySelector('.beh-act-repair-kit')?.value || '';
-            }
-            else if (actType === 'read') {
-                action.item = card.querySelector('.beh-act-read-item')?.value || '';
-            }
-            else if (actType === 'open') {
-                action.target = card.querySelector('.beh-act-open-target')?.value || '';
-            }
-            else if (actType === 'close') {
-                action.target = card.querySelector('.beh-act-close-target')?.value || '';
-            }
-            else if (actType === 'lock') {
-                action.target = card.querySelector('.beh-act-lock-target')?.value || '';
-            }
-            else if (actType === 'unlock') {
-                action.target = card.querySelector('.beh-act-unlock-target')?.value || '';
-            }
-            else if (actType === 'push') {
-                action.target = card.querySelector('.beh-act-push-target')?.value || '';
-                action.direction = card.querySelector('.beh-act-push-direction')?.value || '';
-            }
-            else if (actType === 'turn') {
-                action.target = card.querySelector('.beh-act-turn-target')?.value || '';
-            }
-            else if (actType === 'search') {
-                action.target = card.querySelector('.beh-act-search-target')?.value || '';
-            }
-            else if (actType === 'give') {
-                action.item = card.querySelector('.beh-act-give-item')?.value || '';
-                action.target = card.querySelector('.beh-act-give-target')?.value || '';
-            }
-            else if (actType === 'steal') {
-                action.item = card.querySelector('.beh-act-steal-item')?.value || '';
-                action.target = card.querySelector('.beh-act-steal-target')?.value || '';
-            }
-            else if (actType === 'follow') {
-                action.target = card.querySelector('.beh-act-follow-target')?.value || '';
-            }
-            else if (actType === 'dash') {
-                action.direction = card.querySelector('.beh-act-dash-dir')?.value || '';
-            }
-            else if (actType === 'crawl') {
-                action.direction = card.querySelector('.beh-act-dash-dir')?.value || '';
-            }
-            else if (actType === 'climb') {
-                action.direction = card.querySelector('.beh-act-dash-dir')?.value || '';
-            }
-            else if (actType === 'jump') {
-                action.direction = card.querySelector('.beh-act-dash-dir')?.value || '';
-            }
-            else if (actType === 'toggle_way') {
-                action.direction = card.querySelector('.beh-act-toggle-dir')?.value || '';
-                action.way_action = card.querySelector('.beh-act-toggle-action')?.value || 'open';
-            }
-            else if (actType === 'grab' || actType === 'pin' || actType === 'release') {
-                action.target = card.querySelector('.beh-act-grab-target')?.value || '';
-            }
-            else if (actType === 'drag') {
-                action.target = card.querySelector('.beh-act-grab-target')?.value || '';
-                action.direction = card.querySelector('.beh-act-drag-dir')?.value || '';
-            }
-            else if (actType === 'examine') {
-                action.target = card.querySelector('.beh-act-examine-target')?.value || '';
-            }
-            else if (actType === 'place') {
-                action.item = card.querySelector('.beh-act-place-item')?.value || '';
-                action.target = card.querySelector('.beh-act-place-target')?.value || '';
-                action.relation = card.querySelector('.beh-act-place-relation')?.value || 'on';
-            }
-            else if (actType === 'remove') {
-                action.item = card.querySelector('.beh-act-remove-item')?.value || '';
-            }
-            else if (actType === 'hold' || actType === 'weigh' || actType === 'inventory' || actType === 'carry') {
-                action.item = card.querySelector('.beh-act-hold-item')?.value || '';
-            }
-            else if (actType === 'swap') {
-                action.item = card.querySelector('.beh-act-swap-item')?.value || '';
-                action.target = card.querySelector('.beh-act-swap-target')?.value || '';
-            }
-            else if (actType === 'adorn') {
-                action.item = card.querySelector('.beh-act-adorn-item')?.value || '';
-                action.target = card.querySelector('.beh-act-adorn-target')?.value || '';
-            }
-            else if (actType === 'rest' || actType === 'sleep' || actType === 'meditate') {
-                action.minutes = parseInt(card.querySelector('.beh-act-rest-min')?.value) || 10;
-            }
-            else if (actType === 'bathe') {
-                action.target = card.querySelector('.beh-act-bathe-target')?.value || '';
-                action.minutes = parseInt(card.querySelector('.beh-act-bathe-min')?.value) || 10;
-            }
-            else if (actType === 'wake') {
-                action.target = card.querySelector('.beh-act-wake-target')?.value || '';
-            }
-            else if (actType === 'introduce' || actType === 'beg' || actType === 'demand') {
-                action.target = card.querySelector('.beh-act-social-target')?.value || '';
-            }
-            else if (actType === 'bribe') {
-                action.target = card.querySelector('.beh-act-social-target')?.value || '';
-                action.item = card.querySelector('.beh-act-bribe-item')?.value || '';
-            }
-            else if (actType === 'kiss' || actType === 'caress' || actType === 'lick' || actType === 'suck' || actType === 'bite' || actType === 'tickle' || actType === 'embrace') {
-                action.target = card.querySelector('.beh-act-intimacy-target')?.value || '';
-                action.where = card.querySelector('.beh-act-intimacy-where')?.value || '';
-                action.intensity = card.querySelector('.beh-act-intimacy-intensity')?.value || 'normal';
-            }
-            else if (actType === 'possess') {
-                action.target = card.querySelector('.beh-act-possess-target')?.value || '';
-            }
-            else if (actType === 'teach') {
-                action.target = card.querySelector('.beh-act-teach-target')?.value || '';
-                action.subject = card.querySelector('.beh-act-teach-subject')?.value || '';
-            }
-            else if (actType === 'cook') {
-                action.recipe = card.querySelector('.beh-act-cook-recipe')?.value || '';
-            }
-            else if (actType === 'push_through' || actType === 'block') {
-                action.direction = action.target = card.querySelector('.beh-act-block-target')?.value || '';
-            }
-            else if (actType === 'approach') {
-                action.target = card.querySelector('.beh-act-approach-target')?.value || '';
-            }
-            else if (actType === 'traverse') {
-                action.target = card.querySelector('.beh-act-traverse-target')?.value || '';
-            }
-            else if (actType === 'emote') {
-                action.text = card.querySelector('.beh-act-emote-text')?.value || '';
-            }
-            else if (actType === 'carve') {
-                action.target = card.querySelector('.beh-act-carve-target')?.value || '';
-                action.text = card.querySelector('.beh-act-carve-text')?.value || '';
-            }
-            else if (actType === 'gulp_down') {
-                action.item = card.querySelector('.beh-act-gulp-item')?.value || '';
-            }
-            else if (actType === 'pinch') {
-                action.target = card.querySelector('.beh-act-pinch-target')?.value || '';
-                action.where = card.querySelector('.beh-act-pinch-where')?.value || '';
-                action.intensity = card.querySelector('.beh-act-pinch-intensity')?.value || 'normal';
-            }
-            // 'unhide', 'wait', 'manifest', 'vanish', 'wraith_form', 'spawn_body_item', 'help', 'commands', 'who', 'time', 'score', 'map', 'save', 'quit', 'version', 'struggle', 'escape', 'fumble', 'listen', 'read', 'light', 'activate', 'toggle', 'drop_all', 'take_all', 'lie_down' need no extra params or use existing fields
-            actions.push(action);
+            } else if (actType === 'go') {
+                 const modeSelect = card.querySelector('.beh-act-go-mode');
+                 action.mode = modeSelect?.value || 'goto';
+                 if (action.mode === 'patrol') {
+                     action.areas = card.querySelector('.beh-act-areas')?.value || '';
+                 } else if (action.mode === 'goto') {
+                     action.area = card.querySelector('.beh-act-area')?.value || '';
+                 }
+             } else if (actType === 'add_memory') {
+                 action.text = card.querySelector('.beh-act-mem-text')?.value || '';
+                 action.importance = parseInt(card.querySelector('.beh-act-mem-importance')?.value) || 5;
+                 const tagsRaw = card.querySelector('.beh-act-mem-tags')?.value || '';
+                  action.tags = tagsRaw ? tagsRaw.split(',').map((t: any) => t.trim()).filter(Boolean) : [];
+             } else if (actType === 'set_emotion') {
+                 action.emotion = card.querySelector('.beh-act-emotion-name')?.value || 'neutral';
+                 action.intensity = parseFloat(card.querySelector('.beh-act-emotion-intensity')?.value) || 0.5;
+             } else if (actType === 'set_flag') {
+                 action.key = card.querySelector('.beh-act-flag-key')?.value || '';
+                 action.value = card.querySelector('.beh-act-flag-value')?.value || 'true';
+                 if (action.value === 'true') action.value = true;
+                 else if (action.value === 'false') action.value = false;
+              } else if (actType === 'add_tag' || actType === 'remove_tag') {
+                 action.tag = card.querySelector('.beh-act-tag-value')?.value || '';
+                 action.target = card.querySelector('.beh-act-tag-target')?.value || 'self';
+              } else if (actType === 'hide_in' || actType === 'hide_behind' || actType === 'hide_under') {
+                  action.target = card.querySelector('.beh-act-hide-target')?.value || '';
+              } else if (actType === 'attack') {
+                  action.target = card.querySelector('.beh-act-attack-target')?.value || '';
+                  action.weapon = card.querySelector('.beh-act-attack-weapon')?.value || '';
+                  action.where = card.querySelector('.beh-act-attack-where')?.value || '';
+              } else if (actType === 'throw') {
+                  action.item = card.querySelector('.beh-act-throw-item')?.value || '';
+                  action.target = card.querySelector('.beh-act-throw-target')?.value || '';
+              } else if (actType === 'break') {
+                  action.item = card.querySelector('.beh-act-break-item')?.value || '';
+              } else if (actType === 'take') {
+                  action.item = card.querySelector('.beh-act-take-item')?.value || '';
+              } else if (actType === 'drop') {
+                  action.item = card.querySelector('.beh-act-drop-item')?.value || '';
+              } else if (actType === 'put_in') {
+                  action.item = card.querySelector('.beh-act-put-item')?.value || '';
+                  action.container = card.querySelector('.beh-act-put-container')?.value || '';
+              } else if (actType === 'equip') {
+                  action.item = card.querySelector('.beh-act-equip-item')?.value || '';
+                  action.slot = card.querySelector('.beh-act-equip-slot')?.value || '';
+              } else if (actType === 'unequip') {
+                  action.item = card.querySelector('.beh-act-unequip-item')?.value || '';
+                  action.slot = action.item;
+              } else if (actType === 'use') {
+                  action.item = card.querySelector('.beh-act-use-item')?.value || '';
+                  action.target = card.querySelector('.beh-act-use-target')?.value || '';
+              } else if (actType === 'eat') {
+                  action.item = card.querySelector('.beh-act-eat-item')?.value || '';
+              } else if (actType === 'drink') {
+                  action.item = card.querySelector('.beh-act-drink-item')?.value || '';
+              } else if (actType === 'craft') {
+                  action.recipe = card.querySelector('.beh-act-craft-recipe')?.value || '';
+              } else if (actType === 'combine') {
+                  action.source = card.querySelector('.beh-act-combine-source')?.value || '';
+                  action.target = card.querySelector('.beh-act-combine-target')?.value || '';
+              } else if (actType === 'repair') {
+                  action.item = card.querySelector('.beh-act-repair-item')?.value || '';
+                  action.kit = card.querySelector('.beh-act-repair-kit')?.value || '';
+              } else if (actType === 'read') {
+                  action.item = card.querySelector('.beh-act-read-item')?.value || '';
+              } else if (actType === 'open') {
+                  action.target = card.querySelector('.beh-act-open-target')?.value || '';
+              } else if (actType === 'close') {
+                  action.target = card.querySelector('.beh-act-close-target')?.value || '';
+              } else if (actType === 'lock') {
+                  action.target = card.querySelector('.beh-act-lock-target')?.value || '';
+              } else if (actType === 'unlock') {
+                  action.target = card.querySelector('.beh-act-unlock-target')?.value || '';
+              } else if (actType === 'push') {
+                  action.target = card.querySelector('.beh-act-push-target')?.value || '';
+                  action.direction = card.querySelector('.beh-act-push-direction')?.value || '';
+              } else if (actType === 'turn') {
+                  action.target = card.querySelector('.beh-act-turn-target')?.value || '';
+              } else if (actType === 'search') {
+                  action.target = card.querySelector('.beh-act-search-target')?.value || '';
+              } else if (actType === 'give') {
+                  action.item = card.querySelector('.beh-act-give-item')?.value || '';
+                  action.target = card.querySelector('.beh-act-give-target')?.value || '';
+              } else if (actType === 'steal') {
+                  action.item = card.querySelector('.beh-act-steal-item')?.value || '';
+                  action.target = card.querySelector('.beh-act-steal-target')?.value || '';
+              } else if (actType === 'follow') {
+                  action.target = card.querySelector('.beh-act-follow-target')?.value || '';
+              } else if (actType === 'dash') {
+                  action.direction = card.querySelector('.beh-act-dash-dir')?.value || '';
+              } else if (actType === 'crawl') {
+                  action.direction = card.querySelector('.beh-act-dash-dir')?.value || '';
+              } else if (actType === 'climb') {
+                  action.direction = card.querySelector('.beh-act-dash-dir')?.value || '';
+              } else if (actType === 'jump') {
+                  action.direction = card.querySelector('.beh-act-dash-dir')?.value || '';
+              } else if (actType === 'toggle_way') {
+                  action.direction = card.querySelector('.beh-act-toggle-dir')?.value || '';
+                  action.way_action = card.querySelector('.beh-act-toggle-action')?.value || 'open';
+              } else if (actType === 'grab' || actType === 'pin' || actType === 'release') {
+                  action.target = card.querySelector('.beh-act-grab-target')?.value || '';
+              } else if (actType === 'drag') {
+                  action.target = card.querySelector('.beh-act-grab-target')?.value || '';
+                  action.direction = card.querySelector('.beh-act-drag-dir')?.value || '';
+              } else if (actType === 'examine') {
+                  action.target = card.querySelector('.beh-act-examine-target')?.value || '';
+              } else if (actType === 'place') {
+                  action.item = card.querySelector('.beh-act-place-item')?.value || '';
+                  action.target = card.querySelector('.beh-act-place-target')?.value || '';
+                  action.relation = card.querySelector('.beh-act-place-relation')?.value || 'on';
+              } else if (actType === 'remove') {
+                  action.item = card.querySelector('.beh-act-remove-item')?.value || '';
+              } else if (actType === 'hold' || actType === 'weigh' || actType === 'inventory' || actType === 'carry') {
+                  action.item = card.querySelector('.beh-act-hold-item')?.value || '';
+              } else if (actType === 'swap') {
+                  action.item = card.querySelector('.beh-act-swap-item')?.value || '';
+                  action.target = card.querySelector('.beh-act-swap-target')?.value || '';
+              } else if (actType === 'adorn') {
+                  action.item = card.querySelector('.beh-act-adorn-item')?.value || '';
+                  action.target = card.querySelector('.beh-act-adorn-target')?.value || '';
+              } else if (actType === 'rest' || actType === 'sleep' || actType === 'meditate') {
+                  action.minutes = parseInt(card.querySelector('.beh-act-rest-min')?.value) || 10;
+              } else if (actType === 'bathe') {
+                  action.target = card.querySelector('.beh-act-bathe-target')?.value || '';
+                  action.minutes = parseInt(card.querySelector('.beh-act-bathe-min')?.value) || 10;
+              } else if (actType === 'wake') {
+                  action.target = card.querySelector('.beh-act-wake-target')?.value || '';
+              } else if (actType === 'introduce' || actType === 'beg' || actType === 'demand') {
+                  action.target = card.querySelector('.beh-act-social-target')?.value || '';
+              } else if (actType === 'bribe') {
+                  action.target = card.querySelector('.beh-act-social-target')?.value || '';
+                  action.item = card.querySelector('.beh-act-bribe-item')?.value || '';
+              } else if (actType === 'kiss' || actType === 'caress' || actType === 'lick' || actType === 'suck' || actType === 'bite' || actType === 'tickle' || actType === 'embrace') {
+                  action.target = card.querySelector('.beh-act-intimacy-target')?.value || '';
+                  action.where = card.querySelector('.beh-act-intimacy-where')?.value || '';
+                  action.intensity = card.querySelector('.beh-act-intimacy-intensity')?.value || 'normal';
+              } else if (actType === 'possess') {
+                  action.target = card.querySelector('.beh-act-possess-target')?.value || '';
+              } else if (actType === 'teach') {
+                  action.target = card.querySelector('.beh-act-teach-target')?.value || '';
+                  action.subject = card.querySelector('.beh-act-teach-subject')?.value || '';
+              } else if (actType === 'cook') {
+                  action.recipe = card.querySelector('.beh-act-cook-recipe')?.value || '';
+              } else if (actType === 'push_through' || actType === 'block') {
+                  action.direction = action.target = card.querySelector('.beh-act-block-target')?.value || '';
+              } else if (actType === 'approach') {
+                  action.target = card.querySelector('.beh-act-approach-target')?.value || '';
+              } else if (actType === 'traverse') {
+                  action.target = card.querySelector('.beh-act-traverse-target')?.value || '';
+              } else if (actType === 'emote') {
+                  action.text = card.querySelector('.beh-act-emote-text')?.value || '';
+              } else if (actType === 'carve') {
+                  action.target = card.querySelector('.beh-act-carve-target')?.value || '';
+                  action.text = card.querySelector('.beh-act-carve-text')?.value || '';
+              } else if (actType === 'gulp_down') {
+                  action.item = card.querySelector('.beh-act-gulp-item')?.value || '';
+              } else if (actType === 'pinch') {
+                  action.target = card.querySelector('.beh-act-pinch-target')?.value || '';
+                  action.where = card.querySelector('.beh-act-pinch-where')?.value || '';
+                  action.intensity = card.querySelector('.beh-act-pinch-intensity')?.value || 'normal';
+              }
+              // 'unhide', 'wait', 'manifest', 'vanish', 'wraith_form', 'spawn_body_item', 'help', 'commands', 'who', 'time', 'score', 'map', 'save', 'quit', 'version', 'struggle', 'escape', 'fumble', 'listen', 'read', 'light', 'activate', 'toggle', 'drop_all', 'take_all', 'lie_down' need no extra params or use existing fields
+
+              actions.push(action);
         });
         behavior.actions = actions;
+
         ApiClient.updateCharacter(charName, { behaviors: player.behaviors }).then(() => {
             B._closeBehaviorEditor();
-            if (window.VW?.inspector)
-                window.VW.inspector._reRender();
+            if (window.VW?.inspector) window.VW.inspector._reRender();
         });
     };
+
     /**
      * Open the behavior graph editor for a character (all behaviors at once).
      * @param {string} charName - Character name
      */
-    B.openGraphEditor = function (charName) {
+    B.openGraphEditor = function(charName: any) {
         const player = worldState.players[charName];
-        if (!player)
-            return;
+        if (!player) return;
         const behaviors = Array.isArray(player.behaviors) ? player.behaviors : [];
         const graph = (typeof window.TriggerGraph !== 'undefined' && window.TriggerGraph.behaviorsToGraph)
             ? window.TriggerGraph.behaviorsToGraph(behaviors)
             : { nodes: [], wires: [] };
+
         window.TriggerGraph.show({
             mode: 'behavior',
             graph,
-            onSave: async (newGraph) => {
+            onSave: async (newGraph: any) => {
                 const compiled = window.TriggerGraph.compileToBehaviorsWithIssues(newGraph);
-                if (window.TriggerGraph.reportCompileError(compiled))
-                    return;
+                if (window.TriggerGraph.reportCompileError(compiled)) return;
                 await ApiClient.updateCharacter(charName, { behaviors: compiled.behaviors });
-                if (window.VW?.inspector)
-                    window.VW.inspector._reRender();
+                if (window.VW?.inspector) window.VW.inspector._reRender();
             }
         });
     };
+
     return B;
 })();

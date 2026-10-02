@@ -1,4 +1,3 @@
-"use strict";
 /**
  * turn-queue.js — Turn queue management for turn-based agent simulation
  *
@@ -19,15 +18,42 @@
  * Load this AFTER agent-engine.js in index.html (references VW.agent).
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+
 window.TurnQueue = (() => {
     'use strict';
+
+    /**
+     * The slice of the AgentEngine instance this module owns. Every field is
+     * optional because `_getAgent()` falls back to `{}` when VW.agent is absent,
+     * and because initialize() leaves currentTurnIndex/turnNumber unset on the
+     * empty-roster path. Declared inside the IIFE: it emits nothing, so it adds
+     * no top-level binding to the classic script.
+     */
+    type TurnQueueAgentState = {
+        turnQueue?: string[];
+        currentTurnIndex?: number;
+        turnNumber?: number;
+        initiativeRolls?: Record<string, number>;
+    };
+
+    /**
+     * ApiClient's ambient declaration in types/globals.d.ts only carries the
+     * calls converted code made at the time it was written; the two turn
+     * endpoints are not on it. Widened locally rather than editing the hub.
+     */
+    type TurnQueueApi = {
+        applyTurn(): Promise<unknown>;
+        clearTurnEvents(): Promise<unknown>;
+    };
+
     /**
      * Get a reference to the AgentEngine instance that owns turn state.
      * @returns {Object} The agent instance (with .turnQueue, .currentTurnIndex, etc.)
      */
-    function _getAgent() {
+    function _getAgent(): TurnQueueAgentState {
         return VW?.agent || {};
     }
+
     /**
      * Initialize (or re-initialize) the turn queue from the current world state.
      *
@@ -47,8 +73,7 @@ window.TurnQueue = (() => {
             return;
         }
         let allPlayers = Object.keys(worldState.players);
-        if (!config.ghostMode)
-            allPlayers = allPlayers.filter(charName => worldState.players[charName]?.state !== 'dead');
+        if (!config.ghostMode) allPlayers = allPlayers.filter(charName => worldState.players[charName]?.state !== 'dead');
         const agent = _getAgent();
         agent.initiativeRolls = {};
         if (allPlayers.length === 0) {
@@ -60,7 +85,7 @@ window.TurnQueue = (() => {
         switch (config.turnOrder) {
             case 'initiative':
                 // Roll d20 + DEX bonus for each character
-                const dexMap = {};
+                const dexMap: Record<string, number> = {};
                 for (const charName of allPlayers) {
                     const dex = worldState.players[charName]?.stats?.DEX || 10;
                     const bonus = Math.floor((dex - 10) / 2);
@@ -70,8 +95,7 @@ window.TurnQueue = (() => {
                 }
                 agent.turnQueue = allPlayers.sort((a, b) => {
                     const diff = (dexMap[b] || 0) - (dexMap[a] || 0);
-                    if (diff !== 0)
-                        return diff;
+                    if (diff !== 0) return diff;
                     return a.localeCompare(b); // Alphabetical tiebreaker
                 });
                 break;
@@ -85,6 +109,7 @@ window.TurnQueue = (() => {
         agent.currentTurnIndex = 0;
         agent.turnNumber = 0;
     }
+
     /**
      * Reconcile the queue against the current world roster.
      *
@@ -96,20 +121,17 @@ window.TurnQueue = (() => {
      */
     function reconcile() {
         const agent = _getAgent();
-        if (!config.turnBased)
-            return false;
+        if (!config.turnBased) return false;
         // Soak orders can end between roster changes (promotion/expiry); that is
         // also a re-queue event, by the normal order rule (task-481).
         syncSoakPromotions();
         if (!worldState.players || Object.keys(worldState.players).length === 0) {
-            if (agent.turnQueue && agent.turnQueue.length === 0)
-                return false;
+            if (agent.turnQueue && agent.turnQueue.length === 0) return false;
             initialize();
             return true;
         }
         let allPlayers = Object.keys(worldState.players);
-        if (!config.ghostMode)
-            allPlayers = allPlayers.filter(charName => worldState.players[charName]?.state !== 'dead');
+        if (!config.ghostMode) allPlayers = allPlayers.filter(charName => worldState.players[charName]?.state !== 'dead');
         const current = new Set(agent.turnQueue || []);
         const expected = new Set(allPlayers);
         if (current.size === expected.size && [...current].every(p => expected.has(p))) {
@@ -120,6 +142,7 @@ window.TurnQueue = (() => {
         agent.turnNumber = prevTurnNumber;
         return true;
     }
+
     /**
      * End the current turn: advance the clock and run the per-turn pipeline.
      *
@@ -134,25 +157,24 @@ window.TurnQueue = (() => {
      */
     async function endTurn() {
         const agent = _getAgent();
-        const _turnApi = ApiClient;
+        const _turnApi = ApiClient as unknown as TurnQueueApi;
         agent.turnNumber = (agent.turnNumber || 0) + 1;
         if (config.turnBased && config.turnOrder === 'random') {
             reshuffleRandom();
         }
         try {
             await _turnApi.applyTurn();
-        }
-        catch (err) {
+        } catch (err) {
             console.error('Turn decay failed:', err);
         }
         try {
             await worldState.fetch();
-        }
-        catch (err) {
+        } catch (err) {
             console.error('World state fetch after turn failed:', err);
         }
-        _turnApi.clearTurnEvents().catch((err) => console.error('Clear events failed:', err));
+        _turnApi.clearTurnEvents().catch((err: unknown) => console.error('Clear events failed:', err));
     }
+
     /**
      * Advance to the next character's turn, wrapping around the queue.
      *
@@ -163,8 +185,7 @@ window.TurnQueue = (() => {
      */
     async function advance() {
         const agent = _getAgent();
-        if (!agent.turnQueue || agent.turnQueue.length === 0)
-            return;
+        if (!agent.turnQueue || agent.turnQueue.length === 0) return;
         const len = agent.turnQueue.length;
         // A character with a soak order (task-481) does not take an attended turn:
         // the soak tier is driving them, so step past them. Bounded so an
@@ -180,21 +201,22 @@ window.TurnQueue = (() => {
         // Cast, not `?? undefined`: the queue can genuinely be empty here, and the
         // original stored null. Widening the assignment would change what
         // config.controllingPlayer holds, so the assertion is erased at emit.
-        config.controllingPlayer = getCurrentCharacter();
+        config.controllingPlayer = getCurrentCharacter() as string;
     }
+
     /** True when *name* currently has a soak order (per the last state fetch). */
-    function _isSoaking(name) {
-        if (!name)
-            return false;
+    function _isSoaking(name: string | null) {
+        if (!name) return false;
         try {
             return !!(worldState.players && worldState.players[name] && worldState.players[name].soak);
-        }
-        catch (e) {
+        } catch (e) {
             return false;
         }
     }
+
     // Names that were soaking at the previous state fetch, for promotion detection.
-    let _soakingNames = new Set();
+    let _soakingNames: Set<string> = new Set();
+
     /**
      * Re-queue characters whose soak order just ended (task-481).
      *
@@ -207,53 +229,51 @@ window.TurnQueue = (() => {
      */
     function syncSoakPromotions() {
         const players = (typeof worldState !== 'undefined' && worldState.players) || {};
-        const now = new Set();
+        const now = new Set<string>();
         for (const name of Object.keys(players)) {
-            if (players[name] && players[name].soak)
-                now.add(name);
+            if (players[name] && players[name].soak) now.add(name);
         }
-        const ended = [..._soakingNames].filter((name) => !now.has(name) && players[name] && players[name].state !== 'dead');
+        const ended = [..._soakingNames].filter(
+            (name) => !now.has(name) && players[name] && players[name].state !== 'dead');
         _soakingNames = now;
-        if (ended.length === 0)
-            return false;
+        if (ended.length === 0) return false;
+
         if (config.turnOrder === 'initiative') {
             const agent = _getAgent();
-            if (!Array.isArray(agent.turnQueue) || agent.turnQueue.length === 0)
-                return true;
-            if (!agent.initiativeRolls)
-                agent.initiativeRolls = {};
+            if (!Array.isArray(agent.turnQueue) || agent.turnQueue.length === 0) return true;
+            if (!agent.initiativeRolls) agent.initiativeRolls = {};
             const current = getCurrentCharacter();
             for (const name of ended) {
                 const dex = (players[name].stats && players[name].stats.DEX) || 10;
                 const bonus = Math.floor((dex - 10) / 2);
                 agent.initiativeRolls[name] = Math.floor(Math.random() * 20) + 1 + bonus;
             }
-            agent.turnQueue.sort((a, b) => 
-            // `!` is erased at emit. The map was defaulted two lines above; the
-            // assertion is only needed because TS drops the narrowing inside
-            // this callback.
-            ((agent.initiativeRolls[b] || 0) - (agent.initiativeRolls[a] || 0))
+            agent.turnQueue.sort((a, b) =>
+                // `!` is erased at emit. The map was defaulted two lines above; the
+                // assertion is only needed because TS drops the narrowing inside
+                // this callback.
+                ((agent.initiativeRolls![b] || 0) - (agent.initiativeRolls![a] || 0))
                 || a.localeCompare(b));
             if (current) {
                 const idx = agent.turnQueue.indexOf(current);
-                if (idx >= 0)
-                    agent.currentTurnIndex = idx;
+                if (idx >= 0) agent.currentTurnIndex = idx;
             }
         }
         // sequential: already alphabetic. random: already shuffled. simultaneous:
         // the queue is unused, the character resumes its own cadence.
         return true;
     }
+
     /**
      * Get the name of the character whose turn it currently is.
      * @returns {string|null} Character name, or null if queue is empty
      */
     function getCurrentCharacter() {
         const agent = _getAgent();
-        if (!agent.turnQueue || agent.turnQueue.length === 0)
-            return null;
+        if (!agent.turnQueue || agent.turnQueue.length === 0) return null;
         return agent.turnQueue[agent.currentTurnIndex || 0];
     }
+
     /**
      * Re-roll every character's initiative (d20 + DEX bonus) and re-sort the
      * queue by the new rolls. Only meaningful when config.turnOrder is
@@ -264,12 +284,10 @@ window.TurnQueue = (() => {
      */
     function rerollInitiatives() {
         const agent = _getAgent();
-        if (!agent.turnQueue || agent.turnQueue.length === 0)
-            return;
-        if (config.turnOrder !== 'initiative')
-            return;
+        if (!agent.turnQueue || agent.turnQueue.length === 0) return;
+        if (config.turnOrder !== 'initiative') return;
         const current = getCurrentCharacter();
-        const dexMap = {};
+        const dexMap: Record<string, number> = {};
         for (const charName of agent.turnQueue) {
             const dex = worldState.players[charName]?.stats?.DEX || 10;
             const bonus = Math.floor((dex - 10) / 2);
@@ -277,13 +295,12 @@ window.TurnQueue = (() => {
             // `!` is erased at emit. This function has always assumed
             // initialize() ran first and seeded the rolls; adding a default here
             // would silently change behaviour for a queue that was never built.
-            agent.initiativeRolls[charName] = roll;
+            agent.initiativeRolls![charName] = roll;
             dexMap[charName] = roll;
         }
         agent.turnQueue.sort((a, b) => {
             const diff = (dexMap[b] || 0) - (dexMap[a] || 0);
-            if (diff !== 0)
-                return diff;
+            if (diff !== 0) return diff;
             return a.localeCompare(b); // Alphabetical tiebreaker
         });
         if (current) {
@@ -291,6 +308,7 @@ window.TurnQueue = (() => {
             agent.currentTurnIndex = idx >= 0 ? idx : 0;
         }
     }
+
     /**
      * Re-shuffle the turn queue for 'random' order when a full round wraps
      * (task-310). The next round starts with whoever lands first, so the
@@ -298,8 +316,7 @@ window.TurnQueue = (() => {
      */
     function reshuffleRandom() {
         const agent = _getAgent();
-        if (!agent.turnQueue || agent.turnQueue.length <= 1)
-            return;
+        if (!agent.turnQueue || agent.turnQueue.length <= 1) return;
         for (let i = agent.turnQueue.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [agent.turnQueue[i], agent.turnQueue[j]] = [agent.turnQueue[j], agent.turnQueue[i]];
@@ -307,6 +324,7 @@ window.TurnQueue = (() => {
         agent.currentTurnIndex = 0;
         config.controllingPlayer = agent.turnQueue[0];
     }
+
     return {
         initialize,
         reconcile,

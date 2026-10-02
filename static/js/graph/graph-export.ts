@@ -86,7 +86,7 @@
                     _setStatus('');
                     closeDialog();
                 } else {
-                    _setStatus((result && result.reason) || 'Export failed.');
+                    _setStatus((result as { reason?: string } | null)?.reason || 'Export failed.');
                 }
             })
             .catch((error) => {

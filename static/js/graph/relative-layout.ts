@@ -629,7 +629,8 @@ const _GraphRelativeLayout: GraphRelativeLayoutApi = {
         const derived = this.layoutPositions(nodes, this._edges(), current);
 
         const updates: { id: string; x: number; y: number; fixed: boolean; physics: boolean }[] = [];
-        for (const [id, pos] of Object.entries(derived)) {
+        for (const [id, rawPos] of Object.entries(derived)) {
+            const pos = rawPos as LayoutPos;
             const node = nodes[id];
             if (!node || node.type === 'area' || node.type === 'way') continue;
             // A node the user froze keeps its own place and stays out of the

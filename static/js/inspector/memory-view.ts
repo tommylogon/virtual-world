@@ -1,4 +1,3 @@
-"use strict";
 /**
  * InspectorMemory — Character memory management (structured memories, flat world knowledge)
  * Extracted from inspector.js for modularity.
@@ -10,23 +9,27 @@
  * @docs docs/virtualWorld/AI & Narration/Memory System.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+
 window.InspectorMemory = (() => {
-    const M = {};
+    const M = {} as MemoryViewApi;
+
+
     // Rich memory-emotion vocabulary, grouped for the picker. Multiple emotions
     // may be attached to one memory (stored as memory_emotions: [{label,intensity}]).
-    const EMOTION_GROUPS = [
-        { label: 'Core', items: ['neutral', 'happy', 'sad', 'angry', 'afraid', 'surprised', 'disgusted'] },
-        { label: 'Warm / Social', items: ['affectionate', 'hopeful', 'grateful', 'proud', 'amused', 'loved', 'admiring', 'excited'] },
-        { label: 'Anxious / Tense', items: ['anxious', 'nervous', 'worried', 'uneasy', 'spooked', 'unnerved', 'restless', 'dread', 'paranoid'] },
-        { label: 'Arousal / Desire', items: ['aroused', 'eager', 'hungry', 'craving', 'curious', 'mischievous'] },
-        { label: 'Down / Heavy', items: ['lonely', 'ashamed', 'guilty', 'embarrassed', 'wistful', 'melancholic', 'hollow', 'tired', 'bored'] },
-        { label: 'Calm / Content', items: ['calm', 'content', 'peaceful', 'relieved', 'satisfied', 'quiet', 'safe'] },
-        { label: 'Determined / Bold', items: ['determined', 'brave', 'resolute', 'defiant', 'focused'] },
-        { label: 'Jealous / Bitter', items: ['jealous', 'envious', 'frustrated', 'resentful', 'bitter'] }
+    const EMOTION_GROUPS: MemoryViewEmotionGroup[] = [
+        { label: 'Core', items: ['neutral','happy','sad','angry','afraid','surprised','disgusted'] },
+        { label: 'Warm / Social', items: ['affectionate','hopeful','grateful','proud','amused','loved','admiring','excited'] },
+        { label: 'Anxious / Tense', items: ['anxious','nervous','worried','uneasy','spooked','unnerved','restless','dread','paranoid'] },
+        { label: 'Arousal / Desire', items: ['aroused','eager','hungry','craving','curious','mischievous'] },
+        { label: 'Down / Heavy', items: ['lonely','ashamed','guilty','embarrassed','wistful','melancholic','hollow','tired','bored'] },
+        { label: 'Calm / Content', items: ['calm','content','peaceful','relieved','satisfied','quiet','safe'] },
+        { label: 'Determined / Bold', items: ['determined','brave','resolute','defiant','focused'] },
+        { label: 'Jealous / Bitter', items: ['jealous','envious','frustrated','resentful','bitter'] }
     ];
+
     // `player` is a worldState Player payload: an arbitrary record authored per
     // character, so its memory entries are read as `any` rather than modelled.
-    M.renderMemoriesHtml = function (agentName, player, escName, esc) {
+    M.renderMemoriesHtml = function (agentName: string, player: any, escName: string, esc: (value: unknown) => string): string {
         let html = `<div class="inspector-section" id="memory-section-${escName}">
             <h3>🧠 Memories</h3>
             <input type="text" id="mem-filter-${escName}" placeholder="Filter memories..."
@@ -34,12 +37,12 @@ window.InspectorMemory = (() => {
                 oninput="InspectorMemory.filterMemories('${escName}', this.value)">
             <div id="memory-list-${escName}" style="max-height:300px;overflow-y:auto;margin-bottom:4px;">`;
         const memories = player.memories || [];
-        const memIcon = (t) => ({ observation: '👁️', discovery: '💡', conversation: '💬', item: '📦', combat: '⚔️', exploration: '🗺️', failure: '⚠️', success: '✅', reflection: '🔄', action: '▶️', speech: '💬', thought: '🤔', reaction: '💭', location: '📍' }[t] || '📝');
-        const impColor = (i) => i >= 8 ? '#e05555' : i >= 6 ? '#e0a33c' : i >= 4 ? '#4caf50' : '#888';
+        const memIcon = (t: string): string => ({observation:'👁️',discovery:'💡',conversation:'💬',item:'📦',combat:'⚔️',exploration:'🗺️',failure:'⚠️',success:'✅',reflection:'🔄',action:'▶️',speech:'💬',thought:'🤔',reaction:'💭',location:'📍'} as Record<string, string>)[t]||'📝';
+        const impColor = (i: number): string => i >= 8 ? '#e05555' : i >= 6 ? '#e0a33c' : i >= 4 ? '#4caf50' : '#888';
         const currentTick = VW?.state?.tick ?? 0;
         if (memories.length > 0) {
             const sorted = [...memories].reverse();
-            sorted.forEach((m) => {
+            sorted.forEach((m: any) => {
                 const tick = m.tick ?? 0;
                 const imp = m.importance ?? 5;
                 const loc = m.location || '';
@@ -49,19 +52,19 @@ window.InspectorMemory = (() => {
                 const salience = m.salience_override || 0;
                 const source = m.source || 'auto';
                 const tagHtml = tags.length
-                    ? `<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:4px;">${tags.map((t) => `<span style="font-size:9px;padding:1px 6px;border-radius:8px;background:var(--bg-input);border:1px solid var(--border);color:var(--text-muted);">#${String(t).toLowerCase()}</span>`).join('')}</div>`
+                    ? `<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:4px;">${tags.map((t: any) => `<span style="font-size:9px;padding:1px 6px;border-radius:8px;background:var(--bg-input);border:1px solid var(--border);color:var(--text-muted);">#${String(t).toLowerCase()}</span>`).join('')}</div>`
                     : '';
                 const memEmotions = Array.isArray(m.memory_emotions) && m.memory_emotions.length
                     ? m.memory_emotions
                     : (m.emotion && m.emotion.label ? [m.emotion] : []);
                 const emoHtml = memEmotions.length
-                    ? `<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:4px;">${memEmotions.map((e) => `<span style="font-size:9px;padding:1px 6px;border-radius:8px;background:var(--bg-input);border:1px solid var(--border);color:#e0a33c;">${String(e.label || '').toLowerCase()}${e.intensity ? ' · ' + e.intensity : ''}</span>`).join('')}</div>`
+                    ? `<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:4px;">${memEmotions.map((e: any) => `<span style="font-size:9px;padding:1px 6px;border-radius:8px;background:var(--bg-input);border:1px solid var(--border);color:#e0a33c;">${String(e.label || '').toLowerCase()}${e.intensity ? ' · ' + e.intensity : ''}</span>`).join('')}</div>`
                     : '';
                 const sourceLabel = source === 'manual' ? '<span style="font-size:9px;color:var(--accent);border:1px solid var(--accent);border-radius:8px;padding:0 5px;margin-left:4px;">SEED</span>' : `<span style="font-size:9px;color:var(--text-muted);border:1px solid var(--border);border-radius:8px;padding:0 5px;margin-left:4px;">src:${esc(source)}</span>`;
                 const suppressBadge = isSuppressed ? `<span style="font-size:9px;color:#e05555;border:1px solid #e05555;border-radius:8px;padding:0 5px;margin-left:4px;">🚫 SUPPRESSED</span>` : '';
                 const salienceBadge = salience > 0 ? `<span style="font-size:9px;color:#4caf50;border:1px solid #4caf50;border-radius:8px;padding:0 5px;margin-left:4px;">⚡ salience ${salience}</span>` : '';
                 const opacity = isSuppressed ? 'opacity:0.5;' : '';
-                html += `<div class="memory-entry" data-text="${esc((m.text || '').toLowerCase())}" data-tags="${esc((tags || []).join(',').toLowerCase())}" style="background:var(--bg-card);border:1px solid var(--border);border-left:3px solid ${isSuppressed ? '#888' : impColor(imp)};border-radius:6px;padding:7px;margin-bottom:5px;font-size:11px;${opacity}">
+                html += `<div class="memory-entry" data-text="${esc((m.text||'').toLowerCase())}" data-tags="${esc((tags||[]).join(',').toLowerCase())}" style="background:var(--bg-card);border:1px solid var(--border);border-left:3px solid ${isSuppressed ? '#888' : impColor(imp)};border-radius:6px;padding:7px;margin-bottom:5px;font-size:11px;${opacity}">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;">
                         <div style="flex:1;min-width:0;">
                             <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
@@ -79,18 +82,18 @@ window.InspectorMemory = (() => {
                         </div>
                         <div style="display:flex;gap:2px;flex-shrink:0;flex-direction:column;align-items:flex-end;">
                             <div style="display:flex;gap:2px;">
-                                <button class="btn btn-sm" onclick="InspectorMemory.editMemory('${escName}','${m.id || ''}')" style="font-size:9px;padding:1px 4px;" title="Edit">✏️</button>
+                                <button class="btn btn-sm" onclick="InspectorMemory.editMemory('${escName}','${m.id||''}')" style="font-size:9px;padding:1px 4px;" title="Edit">✏️</button>
                                 ${isSuppressed
-                    ? `<button class="btn btn-sm" onclick="InspectorMemory.unblockMemory('${escName}','${m.id || ''}')" style="font-size:9px;padding:1px 4px;color:#4caf50;" title="Unblock">🔓</button>`
-                    : `<button class="btn btn-sm" onclick="InspectorMemory.suppressMemory('${escName}','${m.id || ''}')" style="font-size:9px;padding:1px 4px;color:#e0a33c;" title="Suppress">🚫</button>`}
-                                <button class="btn btn-sm btn-red" onclick="InspectorMemory.deleteMemory('${escName}','${m.id || ''}')" style="font-size:9px;padding:1px 4px;" title="Delete">🗑</button>
+                                    ? `<button class="btn btn-sm" onclick="InspectorMemory.unblockMemory('${escName}','${m.id||''}')" style="font-size:9px;padding:1px 4px;color:#4caf50;" title="Unblock">🔓</button>`
+                                    : `<button class="btn btn-sm" onclick="InspectorMemory.suppressMemory('${escName}','${m.id||''}')" style="font-size:9px;padding:1px 4px;color:#e0a33c;" title="Suppress">🚫</button>`
+                                }
+                                <button class="btn btn-sm btn-red" onclick="InspectorMemory.deleteMemory('${escName}','${m.id||''}')" style="font-size:9px;padding:1px 4px;" title="Delete">🗑</button>
                             </div>
                         </div>
                     </div>
                 </div>`;
             });
-        }
-        else {
+        } else {
             html += `<div style="font-size:11px;color:var(--text-muted);padding:4px 0;">No memories recorded yet.</div>`;
         }
         html += `</div>
@@ -103,12 +106,12 @@ window.InspectorMemory = (() => {
         </div>`;
         return html;
     };
-    M.filterMemories = function (charName, query) {
+
+    M.filterMemories = function (charName: string, query: string): void {
         const list = document.getElementById(`memory-list-${charName}`);
-        if (!list)
-            return;
+        if (!list) return;
         const q = query.toLowerCase().trim();
-        const entries = list.querySelectorAll('.memory-entry');
+        const entries = list.querySelectorAll<HTMLElement>('.memory-entry');
         entries.forEach(el => {
             const text = el.dataset.text || '';
             const tags = el.dataset.tags || '';
@@ -116,54 +119,61 @@ window.InspectorMemory = (() => {
             el.style.display = match ? '' : 'none';
         });
     };
-    M.addMemory = function (charName) {
+
+    M.addMemory = function (charName: string): void {
         M.showMemoryEditor(charName, null);
     };
-    M.editMemory = function (charName, entryId) {
+
+    M.editMemory = function (charName: string, entryId: string): void {
         M.showMemoryEditor(charName, entryId);
     };
-    M.suppressMemory = function (charName, entryId) {
-        ApiClient.suppressPlayerMemory(charName, { tags: [], duration: 1 }).then(() => {
-            worldState.fetch().then(() => { if (window.VW?.inspector)
-                window.VW.inspector._reRender(); });
+
+    M.suppressMemory = function (charName: string, entryId: string): void {
+        (ApiClient as unknown as MemoryViewApiClient).suppressPlayerMemory(charName, { tags: [], duration: 1 }).then(() => {
+            worldState.fetch().then(() => { if (window.VW?.inspector) window.VW.inspector._reRender(); });
         });
     };
-    M.unblockMemory = function (charName, entryId) {
-        ApiClient.unblockPlayerMemory(charName, {}).then(() => {
-            worldState.fetch().then(() => { if (window.VW?.inspector)
-                window.VW.inspector._reRender(); });
+
+    M.unblockMemory = function (charName: string, entryId: string): void {
+        (ApiClient as unknown as MemoryViewApiClient).unblockPlayerMemory(charName, {}).then(() => {
+            worldState.fetch().then(() => { if (window.VW?.inspector) window.VW.inspector._reRender(); });
         });
     };
-    M.clearExpired = function (charName) {
+
+    M.clearExpired = function (charName: string): void {
         const currentTick = VW?.state?.tick ?? 0;
-        ApiClient.clearExpiredSuppressions(charName, currentTick).then(() => {
-            worldState.fetch().then(() => { if (window.VW?.inspector)
-                window.VW.inspector._reRender(); });
+        (ApiClient as unknown as MemoryViewApiClient).clearExpiredSuppressions(charName, currentTick).then(() => {
+            worldState.fetch().then(() => { if (window.VW?.inspector) window.VW.inspector._reRender(); });
         });
     };
-    M.showMemoryEditor = function (charName, entryId) {
+
+    M.showMemoryEditor = function (charName: string, entryId: string | null): void {
         const player = worldState.players?.[charName];
-        if (!player)
-            return;
+        if (!player) return;
         const memories = player.memories || [];
-        const existing = entryId ? memories.find((m) => m.id === entryId) : null;
-        const htmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
+        const existing = entryId ? memories.find((m: any) => m.id === entryId) : null;
+        const htmlTag = (strings: TemplateStringsArray, ...values: unknown[]): unknown => window.Lit.html(strings, ...values);
         const nothing = window.Lit.nothing;
         const esc = InspectorHelpers.esc;
         const escName = charName.replace(/'/g, "\\'");
         const currentTick = VW?.state?.tick ?? 0;
-        const types = ['observation', 'conversation', 'location', 'event', 'thought', 'reflection', 'discovery', 'combat', 'speech', 'reaction', 'item', 'exploration', 'action', 'failure', 'success'];
-        const typeOpts = types.map(t => htmlTag `<option value=${t} ?selected=${existing?.type === t}>${t}</option>`);
+
+        const types = ['observation','conversation','location','event','thought','reflection','discovery','combat','speech','reaction','item','exploration','action','failure','success'];
+        const typeOpts = types.map(t => htmlTag`<option value=${t} ?selected=${existing?.type === t}>${t}</option>`);
+
         const tick = existing?.tick ?? currentTick;
         const preTicks = tick < 0 ? -tick : 0;
+
         const emo = (existing && existing.emotion && typeof existing.emotion === 'object') ? existing.emotion : null;
         const emoLbl = emo?.label || 'neutral';
         const emoInt = emo?.intensity || 0;
-        const emoOptions = ['neutral', 'happy', 'sad', 'afraid', 'angry', 'envious', 'affectionate', 'disgusted'];
-        const emoOpts = emoOptions.map(l => htmlTag `<option value=${l} ?selected=${emoLbl === l}>${l}</option>`);
+        const emoOptions = ['neutral','happy','sad','afraid','angry','envious','affectionate','disgusted'];
+        const emoOpts = emoOptions.map(l => htmlTag`<option value=${l} ?selected=${emoLbl === l}>${l}</option>`);
+
         const embedEnabled = !!(window.EmbeddingClient && window.EmbeddingClient.configured());
         const salience = existing?.salience_override || 0;
-        const modal = htmlTag `<div class="modal-content memedit-modal">
+
+        const modal = htmlTag`<div class="modal-content memedit-modal">
             <div class="modal-header" style="border-bottom:none;padding:16px 20px 6px;">
                 <h3 style="font-size:15px;font-weight:700;">${existing ? '✏️ Edit Memory' : '➕ Add Memory'}</h3>
             </div>
@@ -238,15 +248,15 @@ window.InspectorMemory = (() => {
                     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
                         <span style="font-size:11px;color:var(--text-muted);">Semantic memory:</span>
                         <span id="mem-editor-embed-status" class="memedit-status" style="color:${embedEnabled ? '#4caf50' : '#9aa4b2'};">${embedEnabled ? 'configured' : 'disabled'}</span>
-                        ${existing ? htmlTag `<button class="btn btn-sm" id="mem-editor-embed-btn" style="font-size:10px;">🧠 Generate Embedding</button>` : nothing}
+                        ${existing ? htmlTag`<button class="btn btn-sm" id="mem-editor-embed-btn" style="font-size:10px;">🧠 Generate Embedding</button>` : nothing}
                     </div>
                     ${existing && existing.suppressions && existing.suppressions.length
-            ? htmlTag `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:8px;">
+                        ? htmlTag`<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:8px;">
                             <span style="font-size:11px;color:var(--text-muted);">Suppressions:</span>
                             <span style="font-size:10px;color:#e05555;">🚫 Blocked (${existing.suppressions.length})</span>
                             <button class="btn btn-sm" onclick="InspectorMemory.unblockMemory('${escName}','${existing.id}');document.getElementById('mem-editor-modal')?.remove();" style="font-size:10px;">🔓 Unblock</button>
                           </div>`
-            : nothing}
+                        : nothing}
                 </div>
             </div>
             <div class="memedit-foot">
@@ -259,6 +269,7 @@ window.InspectorMemory = (() => {
         container.id = 'mem-editor-modal';
         document.body.appendChild(container);
         window.Lit.render(modal, container);
+
         // Tag multiselect. Read through `window` so the bare global is never needed
         // and a missing module stays a no-op.
         if (window.TagMultiselect) {
@@ -268,15 +279,16 @@ window.InspectorMemory = (() => {
                     tags: Array.isArray(existing?.tags) ? existing.tags : [],
                     placeholder: 'Search or create tags...',
                     allowNew: true,
-                    onChange: (tags) => { M._tagSelectTags = tags; }
+                    onChange: (tags: string[]) => { M._tagSelectTags = tags; }
                 });
             }
         }
+
         // Entity-reference multiselect
-        M._entitySelected = new Set((existing?.entity_ids || []).filter(Boolean));
+        M._entitySelected = new Set<string>((existing?.entity_ids || []).filter(Boolean));
         const entEl = document.getElementById('mem-editor-entities');
-        if (entEl)
-            M._attachEntitySelector(entEl);
+        if (entEl) M._attachEntitySelector(entEl);
+
         // Multi-emotion picker
         const emoEl = document.getElementById('mem-editor-emotions');
         if (emoEl) {
@@ -285,14 +297,14 @@ window.InspectorMemory = (() => {
                 : (existing?.emotion ? [existing.emotion] : []);
             M._attachEmotionSelector(emoEl, initial);
         }
+
         // Embedding button (existing memories only)
         const embedBtn = container.querySelector('#mem-editor-embed-btn');
         if (embedBtn) {
             embedBtn.addEventListener('click', () => {
-                const status = container.querySelector('#mem-editor-embed-status');
-                const text = container.querySelector('#mem-editor-content')?.value || '';
-                status.textContent = 'embedding…';
-                status.style.color = '#9aa4b2';
+                const status = container.querySelector('#mem-editor-embed-status') as HTMLElement;
+                const text = (container.querySelector('#mem-editor-content') as HTMLTextAreaElement | null)?.value || '';
+                status.textContent = 'embedding…'; status.style.color = '#9aa4b2';
                 M._embedForEntry(charName, existing.id, text).then(ok => {
                     status.textContent = ok ? '✓ embedding saved' : '✗ embed failed';
                     status.style.color = ok ? '#4caf50' : '#e05555';
@@ -300,26 +312,26 @@ window.InspectorMemory = (() => {
             });
         }
     };
+
     /**
      * Build a searchable multi-select of world entities (areas / items /
      * characters) and bind it to M._entitySelected. The selected ids become the
      * memory's entity_ids.
      */
-    M._attachEntitySelector = function (container) {
+    M._attachEntitySelector = function (container: HTMLElement): void {
         const nodes = worldState.graph?.nodes || {};
-        const opts = [];
+        const opts: MemoryViewEntityOption[] = [];
         for (const id in nodes) {
             const n = nodes[id];
-            if (!n || !n.name)
-                continue;
+            if (!n || !n.name) continue;
             opts.push({ id, name: n.name, type: n.type });
         }
         for (const cname in (worldState.players || {})) {
             const cid = 'player_' + cname.toLowerCase().replace(/\s+/g, '_');
-            if (!opts.some(o => o.id === cid))
-                opts.push({ id: cid, name: cname, type: 'character' });
+            if (!opts.some(o => o.id === cid)) opts.push({ id: cid, name: cname, type: 'character' });
         }
         opts.sort((a, b) => a.name.localeCompare(b.name));
+
         container.innerHTML = '';
         container.classList.add('memedit-entitybox');
         const input = document.createElement('input');
@@ -327,32 +339,27 @@ window.InspectorMemory = (() => {
         input.placeholder = 'Search entities...';
         const list = document.createElement('div');
         list.className = 'memedit-entitylist';
-        const typeIcon = (t) => ({ area: '🗺️', item: '📦', way: '🚪', character: '🧑' }[t] || '•') + ' ';
+        const typeIcon = (t: string): string => (({area:'🗺️',item:'📦',way:'🚪',character:'🧑'} as Record<string, string>)[t] || '•') + ' ';
         const selectedChips = document.createElement('div');
         selectedChips.className = 'memedit-chips';
+
         function renderChips() {
-            const names = opts.filter(o => M._entitySelected.has(o.id)).map(o => o.name);
+            const names = opts.filter(o => M._entitySelected!.has(o.id)).map(o => o.name);
             selectedChips.textContent = names.length ? 'Linked: ' + names.join(', ') : 'None linked yet';
         }
-        function ops() { return opts.filter(o => !input.value || o.name.toLowerCase().includes(input.value.toLowerCase())); }
+        function ops(): MemoryViewEntityOption[] { return opts.filter(o => !input.value || o.name.toLowerCase().includes(input.value.toLowerCase())); }
         function render() {
             list.innerHTML = '';
             const matches = ops();
-            if (matches.length === 0) {
-                list.textContent = 'No matches.';
-                return;
-            }
+            if (matches.length === 0) { list.textContent = 'No matches.'; return; }
             matches.forEach(o => {
                 const row = document.createElement('label');
                 row.className = 'memedit-entityrow';
                 const cb = document.createElement('input');
                 cb.type = 'checkbox';
-                cb.checked = M._entitySelected.has(o.id);
+                cb.checked = M._entitySelected!.has(o.id);
                 cb.addEventListener('change', () => {
-                    if (cb.checked)
-                        M._entitySelected.add(o.id);
-                    else
-                        M._entitySelected.delete(o.id);
+                    if (cb.checked) M._entitySelected!.add(o.id); else M._entitySelected!.delete(o.id);
                     renderChips();
                 });
                 const txt = document.createElement('span');
@@ -366,21 +373,20 @@ window.InspectorMemory = (() => {
         renderChips();
         render();
     };
-    M._closeMemoryEditor = function () {
+
+    M._closeMemoryEditor = function (): void {
         const modal = document.getElementById('mem-editor-modal');
-        if (modal)
-            modal.remove();
+        if (modal) modal.remove();
     };
+
     /**
      * Embed the given text and upsert the vector for <char>::<id>. Returns a
      * promise resolving true on success / false on failure or disabled.
      */
-    M._embedForEntry = function (charName, entryId, text) {
-        if (!entryId || !window.EmbeddingClient?.configured())
-            return Promise.resolve(false);
-        return EmbeddingClient.embed(text).then((vector) => {
-            if (!vector)
-                return false;
+    M._embedForEntry = function (charName: string, entryId: string, text: string): Promise<boolean> {
+        if (!entryId || !window.EmbeddingClient?.configured()) return Promise.resolve(false);
+        return EmbeddingClient.embed(text).then((vector: any) => {
+            if (!vector) return false;
             return fetch('/api/memory/embeddings', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -392,80 +398,81 @@ window.InspectorMemory = (() => {
             }).then(r => r.ok).catch(() => false);
         }).catch(() => false);
     };
+
     /**
      * Save a memory from the editor modal
      * @param {string} charName - Character name
      * @param {string} entryId - Memory entry ID (empty string for new)
      */
-    M.saveMemory = function (charName, entryId) {
-        const content = document.getElementById('mem-editor-content')?.value?.trim();
-        if (!content)
-            return;
-        const type = document.getElementById('mem-editor-type')?.value || 'observation';
-        const importance = parseInt(document.getElementById('mem-editor-importance')?.value) || 5;
-        const prestart = parseInt(document.getElementById('mem-editor-prestart')?.value) || 0;
-        const tickInput = parseInt(document.getElementById('mem-editor-tick')?.value) || 0;
+    M.saveMemory = function (charName: string, entryId: string): void {
+        const content = (document.getElementById('mem-editor-content') as HTMLTextAreaElement | null)?.value?.trim();
+        if (!content) return;
+        const type = (document.getElementById('mem-editor-type') as HTMLSelectElement | null)?.value || 'observation';
+        const importance = parseInt((document.getElementById('mem-editor-importance') as HTMLInputElement | null)?.value as string) || 5;
+        const prestart = parseInt((document.getElementById('mem-editor-prestart') as HTMLInputElement | null)?.value as string) || 0;
+        const tickInput = parseInt((document.getElementById('mem-editor-tick') as HTMLInputElement | null)?.value as string) || 0;
         // "Turns before start" wins: a value > 0 places the memory before the
         // scenario (negative tick); otherwise the raw tick field is used.
         const tick = prestart > 0 ? -prestart : tickInput;
-        const location = document.getElementById('mem-editor-location')?.value || '';
-        const source = document.getElementById('mem-editor-source')?.value || 'auto';
-        const salience = parseInt(document.getElementById('mem-editor-salience')?.value) || 0;
+        const location = (document.getElementById('mem-editor-location') as HTMLInputElement | null)?.value || '';
+        const source = (document.getElementById('mem-editor-source') as HTMLInputElement | null)?.value || 'auto';
+        const salience = parseInt((document.getElementById('mem-editor-salience') as HTMLInputElement | null)?.value as string) || 0;
         const emotions = Array.isArray(M._emoSelected)
             ? M._emoSelected.filter(e => e && e.label && e.label !== 'neutral')
             : [];
         const tags = M._tagSelect ? M._tagSelect.getValue() : (M._tagSelectTags || []);
         const entity_ids = M._entitySelected ? Array.from(M._entitySelected) : [];
-        const payload = { text: content, type, importance, tick, location, source, tags, salience_override: salience, force: true };
-        if (entity_ids.length)
-            payload.entity_ids = entity_ids;
+
+        const payload: MemoryViewMemoryPayload = { text: content, type, importance, tick, location, source, tags, salience_override: salience, force: true };
+        if (entity_ids.length) payload.entity_ids = entity_ids;
         if (emotions.length) {
             payload.memory_emotions = emotions;
             payload.emotion = emotions[0]; // primary single, for backward compatibility
         }
-        const done = (data) => {
+
+        const done = (data: any) => {
             M._closeMemoryEditor();
             const id = (data && data.entry && data.entry.id) || (data && data.id) || entryId;
-            if (id)
-                M._embedForEntry(charName, id, content);
-            worldState.fetch().then(() => { if (window.VW?.inspector)
-                window.VW.inspector._reRender(); });
+            if (id) M._embedForEntry(charName, id, content);
+            worldState.fetch().then(() => { if (window.VW?.inspector) window.VW.inspector._reRender(); });
         };
+
         if (entryId) {
-            ApiClient.updatePlayerMemory(charName, entryId, payload).then(done);
-        }
-        else {
-            ApiClient.addPlayerMemory(charName, payload).then(done);
+            (ApiClient as unknown as MemoryViewApiClient).updatePlayerMemory(charName, entryId, payload).then(done);
+        } else {
+            (ApiClient as unknown as MemoryViewApiClient).addPlayerMemory(charName, payload).then(done);
         }
     };
-    M.deleteMemory = function (charName, entryId) {
+
+    M.deleteMemory = function (charName: string, entryId: string): void {
         if (!entryId) {
             console.warn('[InspectorMemory] deleteMemory called without entryId for', charName);
             return;
         }
-        ApiClient.deletePlayerMemory(charName, entryId).then(() => {
-            worldState.fetch().then(() => { if (window.VW?.inspector)
-                window.VW.inspector._reRender(); });
+        (ApiClient as unknown as MemoryViewApiClient).deletePlayerMemory(charName, entryId).then(() => {
+            worldState.fetch().then(() => { if (window.VW?.inspector) window.VW.inspector._reRender(); });
         });
     };
+
     // --- Memory Generator (first-person seed memories) ---
+
     /**
      * Open the memory-generator modal. The user describes the kind of memory
      * (a food memory, a nightmare, a dream…) and the LLM writes it in the
      * character's first-person voice as a standalone seed — not tied to the
      * current scene, area, or scenario.
      */
-    M.generateMemory = function (charName) {
+    M.generateMemory = function (charName: string): void {
         const player = worldState.players?.[charName];
-        if (!player)
-            return;
-        const htmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
+        if (!player) return;
+        const htmlTag = (strings: TemplateStringsArray, ...values: unknown[]): unknown => window.Lit.html(strings, ...values);
         const esc = InspectorHelpers.esc;
-        const types = ['memory', 'observation', 'conversation', 'location', 'thought', 'dream', 'reflection'];
-        const typeOpts = types.map(t => htmlTag `<option value=${t} ?selected=${t === 'memory'}>${t}</option>`);
-        const emoOptions = ['neutral', 'happy', 'sad', 'afraid', 'angry', 'envious', 'affectionate', 'disgusted'];
-        const emoOpts = emoOptions.map(l => htmlTag `<option value=${l}>${l}</option>`);
-        const modal = htmlTag `<div class="modal-content memedit-modal">
+        const types = ['memory','observation','conversation','location','thought','dream','reflection'];
+        const typeOpts = types.map(t => htmlTag`<option value=${t} ?selected=${t === 'memory'}>${t}</option>`);
+        const emoOptions = ['neutral','happy','sad','afraid','angry','envious','affectionate','disgusted'];
+        const emoOpts = emoOptions.map(l => htmlTag`<option value=${l}>${l}</option>`);
+
+        const modal = htmlTag`<div class="modal-content memedit-modal">
             <div class="modal-header" style="border-bottom:none;padding:16px 20px 6px;">
                 <h3 style="font-size:15px;font-weight:700;">✨ Generate Memory</h3>
             </div>
@@ -519,33 +526,32 @@ window.InspectorMemory = (() => {
         document.body.appendChild(container);
         window.Lit.render(modal, container);
         M._gen = { charName };
-        const genEmoEl = container.querySelector('#mem-gen-emotions');
-        if (genEmoEl)
-            M._attachEmotionSelector(genEmoEl, []);
+        const genEmoEl = container.querySelector('#mem-gen-emotions') as HTMLElement | null;
+        if (genEmoEl) M._attachEmotionSelector(genEmoEl, []);
         const genTagsEl = container.querySelector('#mem-gen-tags');
         if (genTagsEl && window.TagMultiselect) {
             M._genTagSelect = new window.TagMultiselect(genTagsEl, {
                 tags: [],
                 placeholder: 'Search or create tags...',
                 allowNew: true,
-                onChange: (tags) => { M._genTagSelectTags = tags; }
+                onChange: (tags: string[]) => { M._genTagSelectTags = tags; }
             });
         }
-        container.querySelector('#mem-gen-run').addEventListener('click', () => M._runMemoryGeneration());
-        container.querySelector('#mem-gen-save').addEventListener('click', () => M._saveGeneratedMemory());
+        (container.querySelector('#mem-gen-run') as HTMLElement).addEventListener('click', () => M._runMemoryGeneration());
+        (container.querySelector('#mem-gen-save') as HTMLElement).addEventListener('click', () => M._saveGeneratedMemory());
     };
+
     /** Build the identity block (personality + appearance) used to frame the
      *  character's voice for the generator. */
-    M._identityBlock = function (charName) {
+    M._identityBlock = function (charName: string): string {
         const player = worldState.players?.[charName] || {};
         let b = 'You are ' + charName + '.';
-        if (player.personality)
-            b += ' Personality: ' + String(player.personality).trim();
-        if (player.description)
-            b += ' Appearance: ' + String(player.description).trim();
+        if (player.personality) b += ' Personality: ' + String(player.personality).trim();
+        if (player.description) b += ' Appearance: ' + String(player.description).trim();
         return b + ' You are authoring your own past memories.';
     };
-    M._buildSeedPrompt = function (charName, theme) {
+
+    M._buildSeedPrompt = function (charName: string, theme: string): string {
         // Curated emotion vocabulary (from the picker groups) so the model can
         // emit labels that round-trip into the editable picker; custom allowed.
         const vocab = [...new Set(EMOTION_GROUPS.flatMap(g => g.items).filter(l => l !== 'neutral'))];
@@ -563,50 +569,38 @@ window.InspectorMemory = (() => {
             + '   - "tags": 1-3 single-word conceptual category words (e.g. fear, trust, shame, longing) — never names, items, or places.\n'
             + '   - "emotions": the feelings this memory carries, each as {"label": "...", "intensity": <1-10>}. Use labels from this vocabulary when one fits: ' + vocabStr + '. You may invent a label if none fits. Use [] if the memory carries no clear feeling. This is always an ARRAY.';
     };
+
     /** Parse a model-returned seed-memory JSON object. Tolerates code fences,
      *  surrounding prose, and trailing commas. Returns null if no JSON found. */
     // `raw` is whatever the LLM returned: free prose around a JSON object, so the
     // parsed result is arbitrary JSON and every reader treats it as `any`.
-    M._parseSeedJson = function (raw) {
-        if (!raw)
-            return null;
+    M._parseSeedJson = function (raw: string): any {
+        if (!raw) return null;
         let s = String(raw).trim();
         const fence = s.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-        if (fence)
-            s = fence[1].trim();
+        if (fence) s = fence[1].trim();
         const objMatch = s.match(/\{[\s\S]*\}/);
-        if (!objMatch)
-            return null;
+        if (!objMatch) return null;
         s = objMatch[0];
         s = s.replace(/,\s*([}\]])/g, '$1'); // tolerate trailing commas
-        try {
-            return JSON.parse(s);
-        }
-        catch (e) {
-            return null;
-        }
+        try { return JSON.parse(s); } catch (e) { return null; }
     };
-    M._runMemoryGeneration = async function () {
+
+    M._runMemoryGeneration = async function (): Promise<void> {
         const charName = M._gen && M._gen.charName;
         const container = document.getElementById('mem-editor-modal');
-        if (!charName || !container)
-            return;
-        const status = container.querySelector('#mem-gen-status');
-        const result = container.querySelector('#mem-gen-result');
-        const impInput = container.querySelector('#mem-gen-importance');
-        const theme = container.querySelector('#mem-gen-prompt')?.value?.trim();
+        if (!charName || !container) return;
+        const status = container.querySelector('#mem-gen-status') as HTMLElement;
+        const result = container.querySelector('#mem-gen-result') as HTMLTextAreaElement;
+        const impInput = container.querySelector('#mem-gen-importance') as HTMLInputElement | null;
+        const theme = (container.querySelector('#mem-gen-prompt') as HTMLTextAreaElement | null)?.value?.trim();
         if (!theme) {
-            status.textContent = 'Enter a theme first.';
-            status.style.color = '#e0a33c';
-            return;
+            status.textContent = 'Enter a theme first.'; status.style.color = '#e0a33c'; return;
         }
         if (!window.VW?.llm) {
-            status.textContent = 'LLM client unavailable.';
-            status.style.color = '#e05555';
-            return;
+            status.textContent = 'LLM client unavailable.'; status.style.color = '#e05555'; return;
         }
-        status.textContent = 'generating…';
-        status.style.color = '#9aa4b2';
+        status.textContent = 'generating…'; status.style.color = '#9aa4b2';
         try {
             const text = await VW.llm.chat([
                 { role: 'system', content: M._identityBlock(charName) },
@@ -619,77 +613,67 @@ window.InspectorMemory = (() => {
                 ? String(parsed.text).trim()
                 : raw.replace(/^["'`]+|["'`]+$/g, '').trim();
             if (!memText) {
-                status.textContent = 'No memory returned.';
-                status.style.color = '#e05555';
-                return;
+                status.textContent = 'No memory returned.'; status.style.color = '#e05555'; return;
             }
             result.value = memText;
             if (parsed) {
                 const imp = parseInt(parsed.importance, 10);
-                if (impInput && !isNaN(imp))
-                    impInput.value = String(Math.max(1, Math.min(10, imp)));
+                if (impInput && !isNaN(imp)) impInput.value = String(Math.max(1, Math.min(10, imp)));
                 const tags = Array.isArray(parsed.tags)
-                    ? parsed.tags.filter(Boolean).map((t) => String(t).toLowerCase())
+                    ? parsed.tags.filter(Boolean).map((t: any) => String(t).toLowerCase())
                     : [];
-                if (M._genTagSelect)
-                    M._genTagSelect.setValue(tags);
+                if (M._genTagSelect) M._genTagSelect.setValue(tags);
                 const emotions = (Array.isArray(parsed.emotions) ? parsed.emotions : [])
-                    .filter((e) => e && e.label)
-                    .map((e) => ({ label: String(e.label).toLowerCase(), intensity: Math.max(1, Math.min(10, parseInt(e.intensity, 10) || 5)) }));
-                const genEmoEl = container.querySelector('#mem-gen-emotions');
-                if (genEmoEl)
-                    M._attachEmotionSelector(genEmoEl, emotions);
-                status.textContent = '✓ drafted (parsed)';
-                status.style.color = '#4caf50';
+                    .filter((e: any) => e && e.label)
+                    .map((e: any) => ({ label: String(e.label).toLowerCase(), intensity: Math.max(1, Math.min(10, parseInt(e.intensity, 10) || 5)) }));
+const genEmoEl = container.querySelector('#mem-gen-emotions') as HTMLElement | null;
+                if (genEmoEl) M._attachEmotionSelector(genEmoEl, emotions);
+                status.textContent = '✓ drafted (parsed)'; status.style.color = '#4caf50';
+            } else {
+                status.textContent = '✓ drafted (text only — LLM didn’t return JSON)'; status.style.color = '#e0a33c';
             }
-            else {
-                status.textContent = '✓ drafted (text only — LLM didn’t return JSON)';
-                status.style.color = '#e0a33c';
-            }
-        }
-        catch (e) {
-            const detail = e?.message;
-            status.textContent = '✗ ' + (detail || String(e));
-            status.style.color = '#e05555';
+        } catch (e) {
+            const detail = (e as { message?: string } | null)?.message;
+            status.textContent = '✗ ' + (detail || String(e)); status.style.color = '#e05555';
         }
     };
-    M._saveGeneratedMemory = function () {
+
+    M._saveGeneratedMemory = function (): void {
         const charName = M._gen && M._gen.charName;
         const container = document.getElementById('mem-editor-modal');
-        if (!charName || !container)
-            return;
-        const content = container.querySelector('#mem-gen-result')?.value?.trim();
-        if (!content)
-            return;
-        const type = container.querySelector('#mem-gen-type')?.value || 'memory';
-        const importance = parseInt(container.querySelector('#mem-gen-importance')?.value) || 5;
+        if (!charName || !container) return;
+        const content = (container.querySelector('#mem-gen-result') as HTMLTextAreaElement | null)?.value?.trim();
+        if (!content) return;
+        const type = (container.querySelector('#mem-gen-type') as HTMLSelectElement | null)?.value || 'memory';
+        const importance = parseInt((container.querySelector('#mem-gen-importance') as HTMLInputElement | null)?.value as string) || 5;
         const emotions = Array.isArray(M._emoSelected)
             ? M._emoSelected.filter(e => e && e.label && e.label !== 'neutral')
             : [];
         const tags = M._genTagSelect ? M._genTagSelect.getValue() : (M._genTagSelectTags || []);
-        const payload = { text: content, type, importance, tick: 0, source: 'manual', location: '', tags, force: true };
+        const payload: MemoryViewMemoryPayload = { text: content, type, importance, tick: 0, source: 'manual', location: '', tags, force: true };
         if (emotions.length) {
             payload.memory_emotions = emotions;
             payload.emotion = emotions[0]; // primary single, for backward compatibility
         }
-        const done = (data) => {
+
+        const done = (data: any) => {
             M._closeMemoryEditor();
             const id = (data && data.entry && data.entry.id) || (data && data.id);
-            if (id && window.EmbeddingClient?.configured())
-                M._embedForEntry(charName, id, content);
-            worldState.fetch().then(() => { if (window.VW?.inspector)
-                window.VW.inspector._reRender(); });
+            if (id && window.EmbeddingClient?.configured()) M._embedForEntry(charName, id, content);
+            worldState.fetch().then(() => { if (window.VW?.inspector) window.VW.inspector._reRender(); });
         };
-        ApiClient.addPlayerMemory(charName, payload).then(done);
+        (ApiClient as unknown as MemoryViewApiClient).addPlayerMemory(charName, payload).then(done);
     };
+
     /**
      * Build a multi-emotion picker bound to M._emoSelected (array of
      * {label,intensity}). Supports many emotions per memory.
      */
-    M._attachEmotionSelector = function (container, initial) {
+    M._attachEmotionSelector = function (container: HTMLElement, initial: MemoryViewEmotion[]): void {
         M._emoSelected = (Array.isArray(initial) ? initial : []).filter(e => e && e.label);
         container.innerHTML = '';
         container.classList.add('memedit-entitybox');
+
         const bar = document.createElement('div');
         bar.style.cssText = 'display:flex;gap:6px;align-items:center;padding:6px;border-bottom:1px solid var(--border);flex-wrap:wrap;';
         const sel = document.createElement('select');
@@ -699,19 +683,14 @@ window.InspectorMemory = (() => {
             og.label = g.label;
             g.items.forEach(name => {
                 const o = document.createElement('option');
-                o.value = name;
-                o.textContent = name;
-                if (M._emoSelected.some(e => e.label === name))
-                    o.selected = true;
+                o.value = name; o.textContent = name;
+                if (M._emoSelected!.some(e => e.label === name)) o.selected = true;
                 og.appendChild(o);
             });
             sel.appendChild(og);
         });
         const int = document.createElement('input');
-        int.type = 'number';
-        int.min = '1';
-        int.max = '10';
-        int.value = '5';
+        int.type = 'number'; int.min = '1'; int.max = '10'; int.value = '5';
         int.style.cssText = 'width:56px;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;';
         int.title = 'Intensity (1-10)';
         const cust = document.createElement('input');
@@ -725,51 +704,43 @@ window.InspectorMemory = (() => {
         addBtn.textContent = '➕ Add';
         addBtn.addEventListener('click', () => {
             const label = (cust.value || '').trim() || sel.value;
-            if (!label)
-                return;
+            if (!label) return;
             const intensity = Math.max(1, Math.min(10, parseInt(int.value) || 5));
-            const found = M._emoSelected.find(e => e.label === label);
-            if (found)
-                found.intensity = intensity;
-            else
-                M._emoSelected.push({ label, intensity });
+            const found = M._emoSelected!.find(e => e.label === label);
+            if (found) found.intensity = intensity; else M._emoSelected!.push({ label, intensity });
             cust.value = '';
             render();
         });
-        cust.addEventListener('keydown', (e) => { if (e.key === 'Enter') {
-            e.preventDefault();
-            addBtn.click();
-        } });
+        cust.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addBtn.click(); } });
         bar.append(sel, cust, int, addBtn);
+
         const chips = document.createElement('div');
         chips.style.cssText = 'padding:6px;display:flex;flex-wrap:wrap;gap:6px;max-height:120px;overflow-y:auto;';
-        function render() {
+
+        function render(): void {
             chips.innerHTML = '';
-            if (M._emoSelected.length === 0) {
+            if (M._emoSelected!.length === 0) {
                 const none = document.createElement('div');
                 none.textContent = 'No emotions selected. Pick and add.';
                 none.style.cssText = 'font-size:10px;color:var(--text-muted);';
                 chips.appendChild(none);
                 return;
             }
-            M._emoSelected.forEach((e, idx) => {
+            M._emoSelected!.forEach((e, idx) => {
                 const chip = document.createElement('div');
                 chip.style.cssText = 'display:flex;gap:4px;align-items:center;font-size:11px;background:var(--bg-input);border:1px solid var(--border);border-radius:16px;padding:2px 8px;';
                 const lbl = document.createElement('span');
                 lbl.textContent = e.label;
                 const iv = document.createElement('input');
-                iv.type = 'number';
-                iv.min = '1';
-                iv.max = '10';
-                iv.value = String(e.intensity || 5);
+                iv.type = 'number'; iv.min = '1'; iv.max = '10'; iv.value = String(e.intensity || 5);
                 iv.style.cssText = 'width:40px;font-size:10px;padding:1px 3px;background:var(--bg-inset);color:var(--text);border:1px solid var(--border);border-radius:4px;';
                 iv.addEventListener('change', () => {
-                    M._emoSelected[idx].intensity = Math.max(1, Math.min(10, parseInt(iv.value) || 5));
+                    M._emoSelected![idx].intensity = Math.max(1, Math.min(10, parseInt(iv.value) || 5));
                 });
                 const rm = document.createElement('button');
                 rm.textContent = '×';
                 rm.style.cssText = 'border:none;background:none;color:var(--text-muted);cursor:pointer;font-size:12px;line-height:1;';
-                rm.addEventListener('click', () => { M._emoSelected.splice(idx, 1); render(); });
+                rm.addEventListener('click', () => { M._emoSelected!.splice(idx, 1); render(); });
                 chip.append(lbl, iv, rm);
                 chips.appendChild(chip);
             });
@@ -777,5 +748,98 @@ window.InspectorMemory = (() => {
         render();
         container.append(bar, chips);
     };
+
     return M;
 })();
+
+// ── Types ────────────────────────────────────────────────────────────────────
+// A top-level `interface` in a classic script is a global binding, so every name
+// below is prefixed with the file stem to stay unique across modules.
+
+/** One emotion attached to a memory (`memory_emotions: [{label,intensity}]`). */
+interface MemoryViewEmotion {
+    label: string;
+    intensity?: number;
+}
+
+/** One row of the emotion picker's grouped vocabulary. */
+interface MemoryViewEmotionGroup {
+    label: string;
+    items: string[];
+}
+
+/** One searchable world entity offered by the entity-reference multiselect. */
+interface MemoryViewEntityOption {
+    id: string;
+    name: string;
+    type: string;
+}
+
+/** The body posted to `POST /api/memory/...` for add/update. */
+interface MemoryViewMemoryPayload {
+    text: string;
+    type: string;
+    importance: number;
+    tick: number;
+    location: string;
+    source: string;
+    tags: string[];
+    salience_override?: number;
+    force: boolean;
+    entity_ids?: string[];
+    memory_emotions?: MemoryViewEmotion[];
+    emotion?: MemoryViewEmotion;
+}
+
+/** The `TagMultiselect` surface this module calls back into. */
+interface MemoryViewTagSelect {
+    getValue(): string[];
+    setValue(tags: string[]): void;
+}
+
+/**
+ * The memory endpoints of `ApiClient` (routes/memory_ops.py). globals.d.ts
+ * declares only the graph/character calls, so the rest are narrowed here.
+ */
+interface MemoryViewApiClient {
+    clearPlayerMemories(charName: string): Promise<unknown>;
+    suppressPlayerMemory(charName: string, payload: unknown): Promise<unknown>;
+    unblockPlayerMemory(charName: string, payload: unknown): Promise<unknown>;
+    clearExpiredSuppressions(charName: string, tick: number): Promise<unknown>;
+    updatePlayerMemory(charName: string, entryId: string, payload: unknown): Promise<unknown>;
+    addPlayerMemory(charName: string, payload: unknown): Promise<unknown>;
+    deletePlayerMemory(charName: string, entryId: string): Promise<unknown>;
+}
+
+/** `window.InspectorMemory` — the module's public surface. */
+interface MemoryViewApi {
+    renderMemoriesHtml(agentName: string, player: any, escName: string, esc: (value: unknown) => string): string;
+    filterMemories(charName: string, query: string): void;
+    addMemory(charName: string): void;
+    editMemory(charName: string, entryId: string): void;
+    suppressMemory(charName: string, entryId: string): void;
+    unblockMemory(charName: string, entryId: string): void;
+    clearExpired(charName: string): void;
+    showMemoryEditor(charName: string, entryId: string | null): void;
+    saveMemory(charName: string, entryId: string): void;
+    deleteMemory(charName: string, entryId: string): void;
+    generateMemory(charName: string): void;
+    // internal
+    _attachEntitySelector(container: HTMLElement): void;
+    _closeMemoryEditor(): void;
+    _embedForEntry(charName: string, entryId: string, text: string): Promise<boolean>;
+    _identityBlock(charName: string): string;
+    _buildSeedPrompt(charName: string, theme: string): string;
+    _parseSeedJson(raw: string): any;
+    _runMemoryGeneration(): Promise<void>;
+    _saveGeneratedMemory(): void;
+    _attachEmotionSelector(container: HTMLElement, initial: MemoryViewEmotion[]): void;
+    // live editor state, set by the attach helpers
+    _tagSelect?: MemoryViewTagSelect;
+    _tagSelectTags?: string[];
+    _genTagSelect?: MemoryViewTagSelect;
+    _genTagSelectTags?: string[];
+    _entitySelected?: Set<string>;
+    _emoSelected?: MemoryViewEmotion[];
+    _gen?: { charName: string };
+}

@@ -844,7 +844,7 @@ return {
     function buildRoomContext(state: PromptState, charName: string, player: PlayerState,
                               currentArea: CurrentArea, includePlanOrOptions = true): string {
         const parts = buildRoomContextParts(state, charName, player, currentArea, includePlanOrOptions);
-        if (!parts.agentFraming) return parts.authoringText;
+        if (!parts.agentFraming) return (parts as { authoringText: string }).authoringText;
         const blocks: Array<unknown> = [
             parts.tickHead,
             parts.preamble,

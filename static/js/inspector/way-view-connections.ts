@@ -1,4 +1,3 @@
-"use strict";
 /**
  * InspectorWayViewConnections — Connection editing for way inspector
  * Extracted from way-view.js for modularity.
@@ -11,27 +10,64 @@
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 window.InspectorWayViewConnections = (() => {
-    const C = {};
-    const htmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
-    const esc = (value) => InspectorHelpers.esc(value);
-    const OPPOSITE_CARDINAL = {
+    // Scoped to this IIFE on purpose: a top-level interface in a classic script is
+    // a global, and two files declaring the same name is a build error.
+    interface WVCNode {
+        id: string;
+        name?: string;
+        type?: string;
+        properties?: Record<string, any>;
+    }
+    interface WVCEdge {
+        source: string;
+        target: string;
+        properties?: Record<string, any>;
+    }
+    interface WVCConnInfo {
+        roomAId: string; roomAName: string; roomADir: string;
+        roomBId: string; roomBName: string; roomBDir: string;
+    }
+    interface WVCApi {
+        _updateCardinal(edgeSource: string, wayId: string, oppositeSource: string, cardinal: string): void;
+        _parseConnections(connEdges: WVCEdge[], nodeId: string): WVCConnInfo;
+        _renderVisibleItemSelect(sourceAreaId: string, wayId: string, targetAreaName: string, selectedItems?: unknown): string;
+        _saveVisibleItems(sourceId: string, wayId: string, selectEl: HTMLSelectElement): void;
+        _saveAllowSeeCharacters(sourceId: string, wayId: string, checked: unknown): void;
+        _renderConnections(connEdges: WVCEdge[], connInfo: WVCConnInfo, nodeId: string, escapedId: string): string;
+        _reconnectWays(wayId: string): Promise<void>;
+    }
+
+    const C = {} as WVCApi;
+
+    const htmlTag = (strings: TemplateStringsArray, ...values: unknown[]): unknown =>
+        window.Lit.html(strings, ...values);
+    const esc = (value: unknown): string => InspectorHelpers.esc(value);
+
+    const OPPOSITE_CARDINAL: Record<string, string> = {
         north: 'south', south: 'north',
         east: 'west', west: 'east',
         northeast: 'southwest', southwest: 'northeast',
         northwest: 'southeast', southeast: 'northwest',
         up: 'down', down: 'up'
     };
+
     // globals.d.ts narrows ApiClient to the surface converted callers had at the
     // time it was written; `updateEdge` and `reconnectWays` are real methods on
     // api.js but are not listed there, so they are reached through a local cast.
-    const wvcApi = ApiClient;
-    C._updateCardinal = function (edgeSource, wayId, oppositeSource, cardinal) {
+    const wvcApi = ApiClient as unknown as {
+        updateEdge(source: string, target: string, data: unknown): Promise<unknown>;
+        reconnectWays(wayId: string, roomAId: string, roomBId: string, dir1: string, dir2: string): Promise<unknown>;
+    };
+
+    C._updateCardinal = function(edgeSource: string, wayId: string, oppositeSource: string, cardinal: string) {
         const rev = OPPOSITE_CARDINAL[cardinal] || '';
-        const updates = [
+        const updates: Promise<unknown>[] = [
             wvcApi.updateEdge(edgeSource, wayId, { old_type: 'connection', properties: { cardinal: cardinal || '' } }),
         ];
         if (rev) {
-            updates.push(wvcApi.updateEdge(oppositeSource, wayId, { old_type: 'connection', properties: { cardinal: rev } }));
+            updates.push(
+                wvcApi.updateEdge(oppositeSource, wayId, { old_type: 'connection', properties: { cardinal: rev } })
+            );
         }
         Promise.all(updates).then(() => worldState.fetch()).then(() => {
             if (window.graphManager && graphManager._cardinalLayout) {
@@ -40,30 +76,34 @@ window.InspectorWayViewConnections = (() => {
             }
         });
     };
-    C._parseConnections = function (connEdges, nodeId) {
-        const roomNodes = worldState.graph?.nodes || {};
+
+    C._parseConnections = function(connEdges: WVCEdge[], nodeId: string): WVCConnInfo {
+        const roomNodes: Record<string, WVCNode> = worldState.graph?.nodes || {};
         const wayNode = roomNodes[nodeId];
-        const props = wayNode?.properties || {};
-        const areaToWay = [];
-        const seen = new Set();
+        const props: Record<string, any> = wayNode?.properties || {};
+
+        const areaToWay: WVCEdge[] = [];
+        const seen = new Set<string>();
         connEdges.forEach(edge => {
             if (edge.target === nodeId && !seen.has(edge.source.toLowerCase())) {
                 seen.add(edge.source.toLowerCase());
                 areaToWay.push(edge);
             }
         });
-        const edgeDir = (id) => {
-            const hit = connEdges.find(e => e.target === nodeId && e.source.toLowerCase() === id.toLowerCase());
+
+        const edgeDir = (id: string): string => {
+            const hit = connEdges.find(e =>
+                e.target === nodeId && e.source.toLowerCase() === id.toLowerCase());
             return hit?.properties?.direction || '';
         };
+
         let roomAId = '', roomBId = '';
         let roomAName = '', roomBName = '';
         const fromName = String(props.area_from || '');
         const toName = String(props.area_to || '');
-        const nameToId = {};
-        Object.values(roomNodes).forEach((n) => {
-            if (n.type === 'area')
-                nameToId[String(n.name || '').toLowerCase()] = n.id;
+        const nameToId: Record<string, string> = {};
+        Object.values(roomNodes).forEach((n: WVCNode) => {
+            if (n.type === 'area') nameToId[String(n.name || '').toLowerCase()] = n.id;
         });
         const fromId = nameToId[fromName.toLowerCase()];
         const toId = nameToId[toName.toLowerCase()];
@@ -71,21 +111,25 @@ window.InspectorWayViewConnections = (() => {
         if (fromId && toId && areaIds.includes(fromId.toLowerCase()) && areaIds.includes(toId.toLowerCase())) {
             roomAId = fromId;
             roomBId = toId;
-        }
-        else if (areaToWay.length) {
+        } else if (areaToWay.length) {
             roomAId = areaToWay[0].source;
-            if (areaToWay[1])
-                roomBId = areaToWay[1].source;
+            if (areaToWay[1]) roomBId = areaToWay[1].source;
         }
+
         const roomADir = roomAId ? edgeDir(roomAId) : '';
         const roomBDir = roomBId ? edgeDir(roomBId) : '';
+
         roomAName = roomNodes[roomAId]?.name || roomAId;
         roomBName = roomNodes[roomBId]?.name || roomBId;
+
         return { roomAId, roomAName, roomADir, roomBId, roomBName, roomBDir };
     };
-    C._renderVisibleItemSelect = function (sourceAreaId, wayId, targetAreaName, selectedItems) {
-        const items = worldState.getItemsInArea(targetAreaName) || [];
-        const selected = new Set((selectedItems || []).map((name) => String(name).toLowerCase()));
+
+    C._renderVisibleItemSelect = function(sourceAreaId: string, wayId: string, targetAreaName: string, selectedItems?: unknown): string {
+        const items: { name?: string }[] = worldState.getItemsInArea(targetAreaName) || [];
+        const selected = new Set(
+            ((selectedItems as unknown[]) || []).map((name: unknown) => String(name).toLowerCase())
+        );
         if (!items.length) {
             return `<div style="font-size:10px;color:var(--text-muted);">No items in ${esc(targetAreaName)}</div>`;
         }
@@ -98,29 +142,40 @@ window.InspectorWayViewConnections = (() => {
         return `<select multiple size="${size}" style="width:100%;font-size:10px;"
             onchange="InspectorWayView._saveVisibleItems('${esc(sourceAreaId)}','${esc(wayId)}',this)">${options}</select>`;
     };
-    C._saveVisibleItems = function (sourceId, wayId, selectEl) {
+
+    C._saveVisibleItems = function(sourceId: string, wayId: string, selectEl: HTMLSelectElement) {
         const visible_items = Array.from(selectEl.selectedOptions).map(opt => opt.value);
         api.updateEdge(sourceId, wayId, { old_type: 'connection', properties: { visible_items } })
             .then(() => worldState.fetch());
     };
-    C._saveAllowSeeCharacters = function (sourceId, wayId, checked) {
+
+    C._saveAllowSeeCharacters = function(sourceId: string, wayId: string, checked: unknown) {
         api.updateEdge(sourceId, wayId, { old_type: 'connection', properties: { allow_see_characters: !!checked } })
             .then(() => worldState.fetch());
     };
-    C._renderConnections = function (connEdges, connInfo, nodeId, escapedId) {
+
+    C._renderConnections = function(connEdges: WVCEdge[], connInfo: WVCConnInfo, nodeId: string, escapedId: string): string {
         const { roomAId, roomAName, roomADir, roomBId, roomBName, roomBDir } = connInfo;
-        const roomNodes = worldState.graph?.nodes || {};
-        const roomNameMap = {};
-        Object.entries(roomNodes).forEach(([nodeIdKey, node]) => {
+
+        const roomNodes: Record<string, WVCNode> = worldState.graph?.nodes || {};
+        const roomNameMap: Record<string, string> = {};
+        Object.entries(roomNodes).forEach(([nodeIdKey, node]: [string, WVCNode]) => {
             if (node.type === 'area') {
                 roomNameMap[node.name || nodeIdKey] = nodeIdKey;
             }
         });
-        const roomOptions = Object.keys(roomNameMap).sort().map(areaName => `<option value="${esc(areaName)}">${esc(areaName)}</option>`).join('');
+
+        const roomOptions = Object.keys(roomNameMap).sort().map(areaName =>
+            `<option value="${esc(areaName)}">${esc(areaName)}</option>`
+        ).join('');
+
         const roomAreaNames = Object.keys(roomNameMap).sort();
-        const areaOptionsFor = (selectedName) => roomAreaNames.map(areaName => htmlTag `<option value=${areaName} ?selected=${areaName === selectedName}>${areaName}</option>`);
-        if (!roomAId || !roomBId)
-            return '';
+        const areaOptionsFor = (selectedName: string): unknown[] => roomAreaNames.map(areaName =>
+            htmlTag`<option value=${areaName} ?selected=${areaName === selectedName}>${areaName}</option>`
+        );
+
+        if (!roomAId || !roomBId) return '';
+
         const roomAEdge = connEdges.find(edge => edge.source.toLowerCase() === roomAId.toLowerCase() && edge.target.toLowerCase() === nodeId.toLowerCase());
         const roomBEdge = connEdges.find(edge => edge.source.toLowerCase() === roomBId.toLowerCase() && edge.target.toLowerCase() === nodeId.toLowerCase());
         const viewAB = roomAEdge?.properties?.visible_in_direction || '';
@@ -133,6 +188,7 @@ window.InspectorWayViewConnections = (() => {
         const cardinalBA = roomBEdge?.properties?.cardinal || '';
         const escA = esc(roomAName);
         const escB = esc(roomBName);
+
         return `
             <div class="inspector-section">
                 <h3>🔗 Connections</h3>
@@ -193,42 +249,37 @@ window.InspectorWayViewConnections = (() => {
                 </div>
             </div>`;
     };
-    C._reconnectWays = async function (wayId) {
-        const roomASelect = document.getElementById('way-reconn-a');
-        const roomBSelect = document.getElementById('way-reconn-b');
-        const dir1Input = document.getElementById('way-reconn-dir1');
-        const dir2Input = document.getElementById('way-reconn-dir2');
-        if (!roomASelect || !roomBSelect)
-            return;
+
+    C._reconnectWays = async function(wayId: string): Promise<void> {
+        const roomASelect = document.getElementById('way-reconn-a') as HTMLSelectElement | null;
+        const roomBSelect = document.getElementById('way-reconn-b') as HTMLSelectElement | null;
+        const dir1Input = document.getElementById('way-reconn-dir1') as HTMLInputElement | null;
+        const dir2Input = document.getElementById('way-reconn-dir2') as HTMLInputElement | null;
+        if (!roomASelect || !roomBSelect) return;
+
         const roomAName = roomASelect.value;
         const roomBName = roomBSelect.value;
-        if (!roomAName || !roomBName)
-            return;
-        if (roomAName === roomBName) {
-            toastInfo('Cannot connect a way to itself.');
-            return;
-        }
-        const roomNodes = worldState.graph?.nodes || {};
+        if (!roomAName || !roomBName) return;
+        if (roomAName === roomBName) { toastInfo('Cannot connect a way to itself.'); return; }
+
+        const roomNodes: Record<string, WVCNode> = worldState.graph?.nodes || {};
         let roomAId = '', roomBId = '';
-        Object.entries(roomNodes).forEach(([nodeId, node]) => {
+        Object.entries(roomNodes).forEach(([nodeId, node]: [string, WVCNode]) => {
             if (node.type === 'area') {
-                if (node.name === roomAName)
-                    roomAId = nodeId;
-                if (node.name === roomBName)
-                    roomBId = nodeId;
+                if (node.name === roomAName) roomAId = nodeId;
+                if (node.name === roomBName) roomBId = nodeId;
             }
         });
-        if (!roomAId || !roomBId) {
-            toastError('Could not find area nodes.');
-            return;
-        }
+        if (!roomAId || !roomBId) { toastError('Could not find area nodes.'); return; }
+
         const dir1 = dir1Input?.value?.trim() || '';
         const dir2 = dir2Input?.value?.trim() || '';
+
         await wvcApi.reconnectWays(wayId, roomAId, roomBId, dir1, dir2);
         worldState.fetch().then(() => {
-            if (window.VW?.inspector)
-                window.VW.inspector.showNode(wayId);
+            if (window.VW?.inspector) window.VW.inspector.showNode(wayId);
         });
     };
+
     return C;
 })();

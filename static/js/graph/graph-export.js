@@ -83,7 +83,7 @@ window.GraphExport = (() => {
                 closeDialog();
             }
             else {
-                _setStatus((result && result.reason) || 'Export failed.');
+                _setStatus(result?.reason || 'Export failed.');
             }
         })
             .catch((error) => {

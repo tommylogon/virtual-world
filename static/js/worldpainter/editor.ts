@@ -1,4 +1,3 @@
-"use strict";
 /**
  * editor.js — WorldPainter 3-mode grid editor (task-495).
  *
@@ -26,6 +25,327 @@
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 (function () {
     'use strict';
+
+    // ───────────────────────────── types ─────────────────────────────
+    //
+    // Every name here is declared INSIDE the IIFE and prefixed with the file
+    // stem on purpose. A top-level `interface`/`type` in a classic script is a
+    // GLOBAL binding, so two files declaring the same name is a redeclaration
+    // error across the whole corpus — which is what happened the last time this
+    // was converted. Function scope cannot collide.
+    //
+    // Cross-module globals stay ambient in `static/js/types/globals.d.ts`;
+    // nothing here redeclares one.
+
+    /** A grid cell in world units. */
+    interface WpCell { x: number; y: number }
+
+    /** `{x, y, w, h}` in CELL units: reference rect, painted bounds, crops. */
+    interface WpRect { x: number; y: number; w: number; h: number }
+
+    /** A cell the palette can be built from, and a bare section heading. */
+    interface WpPaletteEntry {
+        /** Tile id. Absent on a heading row. */
+        id?: string;
+        name?: string;
+        tags?: string[];
+        descriptions?: string[];
+        biomes?: string[];
+        entry_phrase?: string;
+        surface?: string;
+        refusal?: string;
+        /** Section this tile files under, or null for ungrouped terrain. */
+        group?: string | null;
+        /** Set instead of `id` on a heading row. */
+        section?: string;
+        separator?: boolean;
+    }
+
+    /** The backend vocabulary document (`/api/world/painter/vocabulary`). */
+    interface WpVocab {
+        biomes?: WpPaletteEntry[];
+        features?: WpPaletteEntry[];
+        /** Short aliases the vocabulary endpoint also answers with. */
+        b?: WpPaletteEntry[];
+        f?: WpPaletteEntry[];
+        layers?: unknown[];
+        modes?: unknown[];
+    }
+
+    /** One preflight finding from `engine/world_compile.preflight`. */
+    interface WpBlocker {
+        severity: string;
+        text?: string;
+        remedy?: string;
+    }
+
+    /**
+     * A scope as the chooser and the child list see it. The flat endpoint sends
+     * snake_case counts, the nested one camelCase — both are accepted (task-615).
+     */
+    interface WpScopeCard {
+        id: string;
+        name?: string;
+        depth?: number;
+        kind?: string;
+        state?: string;
+        mode?: string;
+        placed?: boolean;
+        area_count?: number | null;
+        item_count?: number | null;
+        areaCount?: number | null;
+        itemCount?: number | null;
+    }
+
+    /** A breadcrumb entry. */
+    interface WpScopeRef { id: string; name?: string }
+
+    /** A child-scope placement, or an area placement, or an unplaced area. */
+    interface WpPlacement { id: string; name?: string; x: number; y: number }
+
+    /** The reference image record on the scope. */
+    interface WpReference {
+        image?: string | null;
+        opacity?: number | null;
+        visible?: boolean;
+        rect?: WpRect;
+        crop?: Partial<WpRect>;
+    }
+
+    /** The patch `updateReference` sends. */
+    interface WpReferencePatch {
+        image?: string | null;
+        opacity?: number | null;
+        visible?: boolean;
+        reset?: boolean;
+        rect?: WpRect;
+        crop?: Partial<WpRect>;
+    }
+
+    /** A boundary way Generate minted around a placed area (task-528). */
+    interface WpBoundaryWay {
+        way_id: string;
+        area_id?: string;
+        to_name?: string;
+        to_id?: string;
+        direction?: string;
+        overridden?: boolean;
+    }
+
+    /** A seam the author has taken over, or removed. */
+    interface WpBoundaryOverride {
+        way_id: string;
+        action?: string;
+        hand_way_id?: string;
+    }
+
+    /** One scope's grid manifest: `GET /api/world/scopes/<id>/grid`. */
+    interface WpPayload {
+        scope: { id: string; name?: string; has_grid?: boolean; mode?: string; state?: string };
+        grid?: { w: number; h: number; cell_scale?: number };
+        mode?: string;
+        layers?: Record<string, Record<string, string>>;
+        names?: Record<string, unknown>;
+        children?: WpScopeCard[];
+        blockers?: WpBlocker[];
+        reference?: WpReference;
+        placements?: WpPlacement[];
+        area_placements?: WpPlacement[];
+        unplaced_areas?: WpPlacement[];
+        map_offset?: { x: number; y: number };
+        boundary_ways?: WpBoundaryWay[];
+        boundary_overrides?: WpBoundaryOverride[];
+        breadcrumb?: WpScopeRef[];
+        report?: { node_count?: number; edge_count?: number; notes?: string[] };
+        deleted_nodes?: number;
+        b?: WpPaletteEntry[];
+        f?: WpPaletteEntry[];
+        biomes?: WpPaletteEntry[];
+        features?: WpPaletteEntry[];
+    }
+
+    /** One row of the per-mode checklist. */
+    interface WpChecklistStep {
+        title: string;
+        how: string;
+        done: boolean;
+        note?: string;
+    }
+
+    /** What `GM().cellInfo()` returns, as far as this file reads it. */
+    interface WpCellInfo {
+        key?: string;
+        x: number;
+        y: number;
+        empty?: boolean;
+        name?: string;
+        biome?: unknown;
+        road?: unknown;
+        floor?: unknown;
+        kind?: string;
+        enter?: string;
+        area?: { id: string; name?: string } | null;
+        child?: { id: string; name?: string } | null;
+        painted?: boolean;
+    }
+
+    /** In-progress reference-image drag (move / resize / crop). */
+    interface WpRefDrag {
+        kind: string;
+        key: string | null;
+        start: WpCell;
+        rect: WpRect;
+        crop: Partial<WpRect>;
+    }
+
+    /** In-progress grid-frame drag (task-597): move the scope, or resize it. */
+    interface WpGridDrag {
+        kind: string;
+        key: string | null;
+        start: WpCell;
+        w: number;
+        h: number;
+        offset: WpCell;
+    }
+
+    /** The marquee being dragged, task-536. */
+    interface WpMarquee { anchor: WpCell; to: WpCell; add?: boolean }
+
+    /**
+     * The palette stamps `__src` on the `<img>` it makes, so a re-render can tell
+     * whether it already points at the payload's reference URL without touching
+     * `src` (which would restart the load).
+     */
+    type WpTrackedImage = HTMLImageElement & { __src?: string };
+
+    /**
+     * Konva 9, the UMD bundle templates/index.html pulls from unpkg. Only the
+     * surface this file calls is declared; Konva ships no types and it is not
+     * worth vendoring them for. The `sceneFunc` context is a real
+     * CanvasRenderingContext2D at draw time, which is what every `ctx.*` below
+     * assumes.
+     */
+    interface WpKonvaEvent {
+        evt: {
+            button: number;
+            shiftKey: boolean;
+            deltaY: number;
+            preventDefault(): void;
+        };
+    }
+
+    interface WpKonvaNode {
+        x(): number;
+        x(value: number): unknown;
+        y(): number;
+        y(value: number): unknown;
+        width(): number;
+        width(value: number): unknown;
+        height(): number;
+        height(value: number): unknown;
+        crop(value: { x: number; y: number; width: number; height: number }): unknown;
+        image(value: unknown): unknown;
+        add(...nodes: unknown[]): unknown;
+        batchDraw(): void;
+        destroyChildren(): void;
+        remove(): void;
+    }
+
+    interface WpKonvaStage extends WpKonvaNode {
+        scale(v: { x: number; y: number }): unknown;
+        scaleX(): number;
+        position(v?: { x: number; y: number }): { x: number; y: number };
+        draggable(v?: boolean): boolean;
+        on(events: string, handler: (e: WpKonvaEvent) => void): void;
+        getRelativePointerPosition(): WpCell | null;
+        getPointerPosition(): WpCell;
+    }
+
+    interface WpKonvaFactory {
+        Stage: new (cfg: unknown) => WpKonvaStage;
+        Layer: new (cfg?: unknown) => WpKonvaNode;
+        Shape: new (cfg: {
+            listening?: boolean;
+            sceneFunc: (ctx: CanvasRenderingContext2D) => void;
+        }) => WpKonvaNode;
+        Rect: new (cfg: unknown) => WpKonvaNode;
+        Image: new (cfg: unknown) => WpKonvaNode;
+    }
+
+    /** The five Konva layers the painter keeps. */
+    interface WpKonvaLayers {
+        ref: WpKonvaNode;
+        bg: WpKonvaNode;
+        paint: WpKonvaNode;
+        decor: WpKonvaNode;
+        select: WpKonvaNode;
+    }
+
+    /** One pickable group in the place tool's dropdown (grid-model.areaGroups). */
+    interface WpAreaGroup {
+        key: string;
+        label: string;
+        areas: { id: string; name: string; placedHere?: { x: number; y: number } | null }[];
+    }
+
+    /** One paint-batch edit, as `grid/paint_batch` wants it. */
+    interface WpEdit { layer: string; x: number; y: number; value: string | null }
+
+    /** The painter's whole mutable state. Declared, not inferred: the inferred
+     *  type gave every field `null`, which is how `state.overlay.remove()` and
+     *  forty other reads became `never`. */
+    interface WpState {
+        scopeId: string | null;
+        payload: WpPayload | null;
+        tool: string;
+        layer: string;
+        value: string;
+        brush: number;
+        paintAlpha: number;
+        stroke: WpCell[];
+        stroking: boolean;
+        strokeLayer: string | null;
+        strokeValue: string | null;
+        strokeKeys: Record<string, boolean>;
+        spaceDown: boolean;
+        vocab: WpVocab | null;
+        backgrounds: string[] | null;
+        refImage: WpTrackedImage | null;
+        refNode: WpKonvaNode | null;
+        refEdit: boolean;
+        refDrag: WpRefDrag | null;
+        gridEdit: boolean;
+        gridDrag: WpGridDrag | null;
+        selectedChild: string | null;
+        selectedArea: string | null;
+        /** Keyed by scope id: a selection is *this map's* selection. */
+        selection: Record<string, Record<string, boolean>>;
+        marquee: WpMarquee | null;
+        nudged: WpCell | null;
+        inspected: WpCell | null;
+        cellInfoEl: HTMLElement | null;
+        cellInfoKey: string | null;
+        merge: boolean;
+        /** `{scale}` — Konva owns the live transform. */
+        view: { x?: number; y?: number; scale: number } | null;
+        route: WpCell[];
+        stage: WpKonvaStage | null;
+        shapes: Record<string, WpKonvaNode> | null;
+        layers: WpKonvaLayers | null;
+        gridHolder: HTMLElement | null;
+        routeInfoEl: HTMLElement | null;
+        zoomInBtn: HTMLButtonElement | null;
+        zoomOutBtn: HTMLButtonElement | null;
+        overlay: HTMLElement | null;
+        body: HTMLElement | null;
+        checklistOpen: boolean;
+        checklistTouched: boolean;
+        status: string;
+        statusError: boolean;
+        _keyDown: ((e: KeyboardEvent) => void) | null;
+        _keyUp: ((e: KeyboardEvent) => void) | null;
+    }
+
     /**
      * Konva 9, the UMD bundle templates/index.html pulls from unpkg. It is not in
      * globals.d.ts and the bundle ships no types, so `WpKonvaFactory` declares
@@ -33,27 +353,29 @@
      * CanvasRenderingContext2D at draw time, which is what every `ctx.*` below
      * assumes.
      */
-    function _konva() {
-        return window.Konva || null;
+    function _konva(): WpKonvaFactory | null {
+        return (window as unknown as { Konva?: WpKonvaFactory }).Konva || null;
     }
+
     /**
      * `catch (e)` is `unknown` under strict. Almost every handler below wants the
      * message and nothing else, and `_req` always rejects with an `Error`, so
      * this is the one narrowing — the non-Error branch keeps the old
      * string-interpolation behaviour rather than swallowing it.
      */
-    function errText(e) {
+    function errText(e: unknown): string {
         return e instanceof Error ? e.message : String(e);
     }
+
     const BASE = '/api/world/scopes';
-    // The bare endpoint answers a tree that inlines ONLY the root and its immediate
-    // children -- a scope nested two deep (`goblin_camp` > `test`) is absent from it
-    // entirely, so it cannot be chosen for painting. `?flat=1` returns every scope
-    // with its `depth` and `parent_id`, which is the complete list.
-    // `SCOPES_URL` is what any scope *picker* should use; `BASE` stays for the
-    // per-scope grid payloads that expect the nested shape.
-    const SCOPES_URL = '/api/world/scopes?flat=1';
-    const CELL = 22; // base px per cell at scale 1
+// The bare endpoint answers a tree that inlines ONLY the root and its immediate
+// children -- a scope nested two deep (`goblin_camp` > `test`) is absent from it
+// entirely, so it cannot be chosen for painting. `?flat=1` returns every scope
+// with its `depth` and `parent_id`, which is the complete list.
+// `SCOPES_URL` is what any scope *picker* should use; `BASE` stays for the
+// per-scope grid payloads that expect the nested shape.
+const SCOPES_URL = '/api/world/scopes?flat=1';
+    const CELL = 22;           // base px per cell at scale 1
     // The zoom floor is a *legibility* floor, not an arithmetic one (task-595).
     // `_drawGridLines` stops drawing the lattice below 4px per cell, so at the
     // old 0.12 (< 3px per cell) the grid dissolved into a smear of paint blobs
@@ -64,7 +386,8 @@
     const MAX_SCALE = 6;
     // main.js reloads the VW namespace last, so prefer the bare global it keeps.
     const GM = () => window.gridModel || window.VW.gridModel;
-    const state = {
+
+    const state: WpState = {
         scopeId: null,
         payload: null,
         tool: 'paint',
@@ -82,27 +405,27 @@
         backgrounds: null,
         refImage: null,
         refNode: null,
-        refEdit: false, // adjust mode: move/resize/crop the reference image
-        refDrag: null, // {kind, key, start, rect, crop} during a ref edit
+        refEdit: false,       // adjust mode: move/resize/crop the reference image
+        refDrag: null,        // {kind, key, start, rect, crop} during a ref edit
         // Grid adjust mode (task-597): drag the frame to set the scope's map
         // layout offset, or an edge/corner handle to resize the extent, instead
         // of typing numbers into the dialog.
         gridEdit: false,
-        gridDrag: null, // {kind, key, start, w, h, offset} during a grid edit
+        gridDrag: null,       // {kind, key, start, w, h, offset} during a grid edit
         selectedChild: null,
-        selectedArea: null, // area picked by the 📍 Area place tool (task-528)
+        selectedArea: null,   // area picked by the 📍 Area place tool (task-528)
         // Cell selection and the marquee being dragged (task-536). Keyed by scope
         // id, because a selection is *this map's* selection: switching tools keeps
         // it, switching maps must not smuggle it across.
-        selection: {}, // {scopeId: {'x,y': true}}
-        marquee: null, // {anchor: {x, y}, to: {x, y}} while dragging
-        nudged: null, // last move offset, for the status line
-        inspected: null, // {x, y} the cell the inspector panel is showing (task-540)
-        cellInfoEl: null, // HUD hover readout for the cell under the pointer
-        cellInfoKey: null, // last hovered cell+content, to skip pointless DOM writes
+        selection: {},         // {scopeId: {'x,y': true}}
+        marquee: null,         // {anchor: {x, y}, to: {x, y}} while dragging
+        nudged: null,          // last move offset, for the status line
+        inspected: null,      // {x, y} the cell the inspector panel is showing (task-540)
+        cellInfoEl: null,     // HUD hover readout for the cell under the pointer
+        cellInfoKey: null,    // last hovered cell+content, to skip pointless DOM writes
         merge: false,
-        view: null, // {scale} — Konva owns the live transform
-        route: [], // waypoints for the route/trail tool
+        view: null,            // {scale} — Konva owns the live transform
+        route: [],             // waypoints for the route/trail tool
         stage: null,
         shapes: null,
         layers: null,
@@ -121,39 +444,43 @@
         _keyDown: null,
         _keyUp: null,
     };
+
     // ───────────────────────────── dom/net ─────────────────────────────
+
     /**
      * Build an element. Generic over the tag so `_el('input', …).value` and
      * `_el('select', …).options` are typed, which is most of what this file does
      * with what it gets back.
      */
-    function _el(tag, style, text) {
+    function _el<K extends keyof HTMLElementTagNameMap>(
+        tag: K, style?: string | null, text?: string | null,
+    ): HTMLElementTagNameMap[K] {
         const el = document.createElement(tag);
-        if (style)
-            el.setAttribute('style', style);
-        if (text != null)
-            el.textContent = text;
+        if (style) el.setAttribute('style', style);
+        if (text != null) el.textContent = text;
         return el;
     }
-    function _btn(label, onClick, style, title) {
+
+    function _btn(label: string, onClick: (ev: MouseEvent) => void, style?: string | null,
+        title?: string | null): HTMLButtonElement {
         const b = _el('button', 'cursor:pointer;border:1px solid var(--border,#444);' +
             'background:var(--bg-card,#2a2a32);color:var(--text,#ddd);border-radius:5px;' +
             'padding:3px 8px;font-size:12px;' + (style || ''), label);
-        if (title)
-            b.title = title;
+        if (title) b.title = title;
         b.addEventListener('click', onClick);
         return b;
     }
+
     /**
      * Hook a painter control into the HelpCenter (task-521). The launcher button
      * was the only hinted control in this overlay, so every in-editor control —
      * the ones you actually have to understand — was unhelpfully silent.
      */
-    function _help(el, key) {
-        if (el)
-            el.setAttribute('data-help', key);
+    function _help<T extends HTMLElement>(el: T | null, key: string): T | null {
+        if (el) el.setAttribute('data-help', key);
         return el;
     }
+
     /**
      * The preflight bar: what blocks this scope from compiling, and what to do.
      *
@@ -162,7 +489,7 @@
      * remedy inline; a warn is folded behind a count so a map with six naming
      * reminders does not bury the one that matters.
      */
-    function _blockerBadge(blockers) {
+    function _blockerBadge(blockers: WpBlocker[]): HTMLElement {
         const blocks = blockers.filter((b) => b && b.severity === 'block');
         const warns = blockers.filter((b) => b && b.severity !== 'block');
         // A block is what the author must deal with; a warn is only interesting
@@ -170,16 +497,17 @@
         // rather than letting six naming reminders bury the one that matters.
         const lead = blocks.length ? blocks : warns;
         const tone = blocks.length ? '#f77' : '#c96';
+
         const badge = _el('span', 'display:inline-flex;align-items:center;gap:4px;' +
             'font-size:11px;padding:2px 7px;border-radius:10px;cursor:help;' +
             `color:${tone};border:1px solid ${tone}55;background:${tone}12;`);
         _help(badge, 'wp-blockers');
+
         const detail = _el('div', 'display:none;flex-direction:column;gap:5px;' +
             'flex-basis:100%;width:100%;margin-top:2px;padding:6px 8px;border-radius:6px;' +
             'border:1px solid var(--border,#3a3a44);background:rgba(13,17,23,0.6);');
         for (const b of lead) {
-            if (!b)
-                continue;
+            if (!b) continue;
             const row = _el('div', 'font-size:11px;line-height:1.45;' +
                 `color:${b.severity === 'block' ? '#f77' : '#c96'};`);
             row.appendChild(_el('b', null, b.severity === 'block' ? '✖ ' : '⚠ '));
@@ -197,6 +525,7 @@
                 + 'Hover ⚙ Generate for the full report.';
             detail.appendChild(more);
         }
+
         const closedLabel = blocks.length
             ? `⚠ ${blocks.length} to fix before Generate`
             : `⚠ ${warns.length} to know`;
@@ -208,6 +537,7 @@
             detail.style.display = open ? 'flex' : 'none';
             badge.textContent = open ? '▲ hide' : closedLabel;
         });
+
         // Its own row under the toolbar, so it needs a wrapping container:
         // appended straight into the toolbar's `div` flow, the badge and the
         // expanded panel would be laid out as toolbar buttons and the panel's
@@ -218,6 +548,7 @@
         holder.appendChild(detail);
         return holder;
     }
+
     /**
      * One POST/GET against the backend.
      *
@@ -226,40 +557,38 @@
      * two or three fields off it. `unknown` would push a cast to every one of
      * them for no gain.
      */
-    async function _req(url, options) {
+    async function _req(url: string, options?: RequestInit): Promise<any> {
         const resp = await fetch(url, options);
-        let data = null;
-        try {
-            data = await resp.json();
-        }
-        catch (e) {
-            data = null;
-        }
-        if (!resp.ok)
-            throw new Error((data && data.error) || `${resp.status} ${resp.statusText}`);
+        let data: any = null;
+        try { data = await resp.json(); } catch (e) { data = null; }
+        if (!resp.ok) throw new Error((data && data.error) || `${resp.status} ${resp.statusText}`);
         return data;
     }
-    function _log(text, cls) {
+
+    function _log(text: string, cls?: string | null) {
         if (window.events && typeof window.events.log === 'function') {
             window.events.log(text, cls || 'system-msg');
         }
     }
-    function _notify(worldChanged) {
+
+    function _notify(worldChanged: boolean) {
         // `worldSync` is a top-level `const` in world-sync.js, so `window.worldSync`
         // is undefined at runtime and this branch has never fired — main.js puts
         // the instance on `VW.worldSync`. Kept as-is rather than "fixed": the cast
         // documents what the guard actually reads, and changing the lookup is a
         // behaviour change this conversion did not ask for.
-        const win = window;
+        const win = window as unknown as { worldSync?: { refresh(): void } };
         if (worldChanged && win.worldSync && typeof win.worldSync.refresh === 'function') {
             win.worldSync.refresh();
         }
     }
-    const _post = (path, body) => _req(BASE + path, {
+
+    const _post = (path: string, body?: unknown) => _req(BASE + path, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body || {}),
     });
+
     /**
      * A POST to a path that is not under `/api/world/scopes`.
      *
@@ -269,48 +598,50 @@
      * server answered 405 and the painter said "Promote failed". Absolute path
      * or nothing.
      */
-    const _post_root = (path, body) => _req(path, {
+    const _post_root = (path: string, body?: unknown) => _req(path, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body || {}),
     });
+
     /**
      * What each structure kind is *to movement*, in the author's terms (task-562).
      * The cells here never become places, so the panel has to say what they do
      * instead of reporting "biome: wall" and leaving it at that.
      */
-    const STRUCTURE_NOTES = {
+    const STRUCTURE_NOTES: Record<string, string> = {
         solid: 'solid — nothing passes it',
         see_through: 'you can see through it, not walk through it',
         passable: 'a threshold — you go through it',
     };
+
     // ───────────────────────────── open/close ──────────────────────────
-    async function ensureVocab() {
-        if (state.vocab)
-            return state.vocab;
+
+    async function ensureVocab(): Promise<WpVocab | null> {
+        if (state.vocab) return state.vocab;
         try {
             state.vocab = await _req('/api/world/painter/vocabulary', { cache: 'no-store' });
             // The climates come from the backend, ids and base °C both (task-557);
             // only the colour is local, so a new climate needs no editor change.
             GM().useClimatesFromVocab(state.vocab);
-        }
-        catch (e) {
+        } catch (e) {
             // The editor still works without it (free-text values), just no dropdown.
             state.vocab = { biomes: [], features: [], layers: GM().PAINT_LAYERS, modes: GM().MODES };
         }
         return state.vocab;
     }
+
     async function ensureBackgrounds() {
-        if (state.backgrounds)
-            return state.backgrounds;
+        if (state.backgrounds) return state.backgrounds;
         try {
-            state.backgrounds = (await _req('/api/world/painter/backgrounds', { cache: 'no-store' })).images || [];
-        }
-        catch (e) {
+            state.backgrounds = (await _req('/api/world/painter/backgrounds',
+                { cache: 'no-store' })).images || [];
+        } catch (e) {
             state.backgrounds = [];
         }
         return state.backgrounds;
     }
+
     /**
      * The values the current layer may be painted with, in the **vocabulary's own
      * shape** — `{id, name, tags}` — because that is what the palette groups, the
@@ -318,17 +649,15 @@
      * (`o.id`). Wrapping them as `{value, label}` here would have every consumer
      * reading `undefined` and a dropdown full of it.
      */
-    function _layerOptions(layer) {
+    function _layerOptions(layer: string): WpPaletteEntry[] {
         const vocab = state.vocab || {};
-        if (layer === 'biome')
-            return (vocab.b || vocab.biomes || []).slice();
-        if (layer === 'road')
-            return (vocab.f || vocab.features || []).slice();
+        if (layer === 'biome') return (vocab.b || vocab.biomes || []).slice();
+        if (layer === 'road') return (vocab.f || vocab.features || []).slice();
         if (layer === 'climate') {
             // Shaped like a record so one renderer serves every layer, with the
             // base °C in the name because that number is the whole point of
             // painting it (task-557) and it otherwise lives only in the report.
-            return GM().CLIMATE_IDS.map((id) => {
+            return GM().CLIMATE_IDS.map((id: string) => {
                 const c = GM().CLIMATES[id] || {};
                 return {
                     id,
@@ -339,31 +668,38 @@
         }
         return [];
     }
+
     /** A climate legend, shown while the climate layer is active (task-557). */
-    function _climateLegend() {
-        if (state.layer !== 'climate')
-            return null;
+    function _climateLegend(): HTMLElement | null {
+        if (state.layer !== 'climate') return null;
         const box = _el('div', 'display:flex;gap:6px;align-items:center;flex-wrap:wrap;' +
             'padding:4px 8px;margin-bottom:6px;border:1px solid var(--border,#3a3a44);' +
             'border-radius:6px;font-size:11px;');
         box.setAttribute('data-role', 'wp-climate-legend');
-        box.appendChild(_el('span', 'color:var(--text-muted,#999);', 'compiles to base_temperature:'));
-        GM().CLIMATE_IDS.forEach((id) => {
+        box.appendChild(_el('span', 'color:var(--text-muted,#999);',
+            'compiles to base_temperature:'));
+        GM().CLIMATE_IDS.forEach((id: string) => {
             const c = GM().CLIMATES[id] || {};
-            const chip = _el('span', 'display:inline-flex;align-items:center;gap:4px;padding:1px 6px;'
-                + 'border-radius:9px;border:1px solid var(--border,#3a3a44);', c.label);
-            const swatch = _el('span', 'display:inline-block;width:9px;height:9px;border-radius:2px;', '');
+            const chip = _el('span',
+                'display:inline-flex;align-items:center;gap:4px;padding:1px 6px;'
+                + 'border-radius:9px;border:1px solid var(--border,#3a3a44);',
+                c.label);
+            const swatch = _el('span',
+                'display:inline-block;width:9px;height:9px;border-radius:2px;',
+                '');
             swatch.style.background = c.color;
             chip.insertBefore(swatch, chip.firstChild);
             chip.title = `${c.label}: ${c.base}°C base, plus the day's curve`;
             box.appendChild(chip);
         });
-        box.appendChild(_el('span', 'color:var(--text-muted,#777);', '· unpainted is Temperate'));
+        box.appendChild(_el('span', 'color:var(--text-muted,#777);',
+            '· unpainted is Temperate'));
         box.title = 'A region takes the majority climate of its cells, and a '
             + 'climate boundary never splits an area. Only world scopes compile '
             + 'a climate; a town or interior keeps its own air.';
         return box;
     }
+
     /**
      * The biome palette, split so a town can be painted (task-561).
      *
@@ -383,10 +719,9 @@
      * terrain and the buildings, because a plan is where terrain gives way to
      * rooms and a building is the thing you arrive at.
      */
-    function _biomePalette(layer) {
+    function _biomePalette(layer: string): WpPaletteEntry[] {
         const options = _layerOptions(layer);
-        if (layer !== 'biome')
-            return options.map((o) => ({ ...o, group: null }));
+        if (layer !== 'biome') return options.map((o) => ({ ...o, group: null }));
         const CATEGORIES = ['residential', 'religious', 'commercial', 'civic',
             'craft', 'industrial', 'military', 'rural', 'transport'];
         // A room's purpose, in the order a plan is drawn: arrive, move, then
@@ -396,53 +731,44 @@
         const ROOM_PURPOSES = ['circulation', 'living', 'sleeping', 'cooking',
             'eating', 'storage', 'workshop', 'worship', 'records', 'study',
             'trade', 'civic', 'service', 'outdoor'];
-        const wild = [];
-        const rooms = new Map(ROOM_PURPOSES.map((c) => [c, []]));
-        const buildings = new Map(CATEGORIES.map((c) => [c, []]));
-        const structure = [];
+        const wild: WpPaletteEntry[] = [];
+        const rooms = new Map<string, WpPaletteEntry[]>(
+            ROOM_PURPOSES.map((c) => [c, [] as WpPaletteEntry[]] as [string, WpPaletteEntry[]]));
+        const buildings = new Map<string, WpPaletteEntry[]>(
+            CATEGORIES.map((c) => [c, [] as WpPaletteEntry[]] as [string, WpPaletteEntry[]]));
+        const structure: WpPaletteEntry[] = [];
         for (const option of options) {
             const tags = (option.tags || []).map((t) => String(t).toLowerCase());
             // Structure — wall, void, window, door, stairway — is neither terrain
             // nor a room nor a building, and it is what makes a floor plan mean
             // anything (task-562/568), so it gets its own section rather than
             // being sorted by its category.
-            if (tags.includes('not_a_place')) {
-                structure.push({ ...option, group: null });
-                continue;
-            }
+            if (tags.includes('not_a_place')) { structure.push({ ...option, group: null }); continue; }
             if (tags.includes('indoor')) {
                 const purpose = ROOM_PURPOSES.find((c) => tags.includes(c)) || 'other';
-                if (!rooms.has(purpose))
-                    rooms.set(purpose, []);
-                rooms.get(purpose).push({ ...option, group: purpose });
+                if (!rooms.has(purpose)) rooms.set(purpose, []);
+                rooms.get(purpose)!.push({ ...option, group: purpose });
                 continue;
             }
-            if (!tags.includes('building')) {
-                wild.push({ ...option, group: null });
-                continue;
-            }
+            if (!tags.includes('building')) { wild.push({ ...option, group: null }); continue; }
             const category = CATEGORIES.find((c) => tags.includes(c)) || 'other';
-            if (!buildings.has(category))
-                buildings.set(category, []);
-            buildings.get(category).push({ ...option, group: category });
+            if (!buildings.has(category)) buildings.set(category, []);
+            buildings.get(category)!.push({ ...option, group: category });
         }
-        const out = wild.slice();
+        const out: WpPaletteEntry[] = wild.slice();
         if ([...rooms.values()].some((g) => g.length)) {
             out.push({ section: 'Rooms' });
             for (const purpose of [...ROOM_PURPOSES, 'other']) {
                 const group = rooms.get(purpose);
-                if (!group || !group.length)
-                    continue;
+                if (!group || !group.length) continue;
                 out.push({ section: `${purpose[0].toUpperCase()}${purpose.slice(1)}` });
                 out.push(...group);
             }
         }
-        if (out.length)
-            out.push({ section: 'Buildings' });
+        if (out.length) out.push({ section: 'Buildings' });
         for (const category of [...CATEGORIES, 'other']) {
             const group = buildings.get(category);
-            if (!group || !group.length)
-                continue;
+            if (!group || !group.length) continue;
             out.push({ section: `${category[0].toUpperCase()}${category.slice(1)}` });
             out.push(...group);
         }
@@ -452,21 +778,20 @@
         }
         return out;
     }
-    function _defaultValueForLayer(layer) {
+
+    function _defaultValueForLayer(layer: string): string {
         // The floor layer is a *storey index* (engine/world_grid.py): 0 is ground,
         // so 1 — "one storey up" — is the only useful value to start dragging
         // with. It used to default to a 0..1 height fraction, which is not a
         // storey and cannot express "eighty floors up".
-        if (layer === 'floor')
-            return '1';
+        if (layer === 'floor') return '1';
         const options = _layerOptions(layer);
-        if (!options.length)
-            return '';
-        const preferred = { biome: 'sparse_forest', road: 'road' }[layer];
-        if (preferred && options.some((o) => o.id === preferred))
-            return preferred;
+        if (!options.length) return '';
+        const preferred = ({ biome: 'sparse_forest', road: 'road' } as Record<string, string>)[layer];
+        if (preferred && options.some((o) => o.id === preferred)) return preferred;
         return options[0].id || '';
     }
+
     /**
      * Open the painter on a scope.
      *
@@ -474,22 +799,22 @@
      * the graph's "Place on map…" action (task-528), so the author lands straight
      * in the place tool with the area they clicked already picked.
      */
-    async function open(scopeId, options) {
+    async function open(scopeId: string | null,
+        options?: { tool?: string; areaId?: string | null } | null): Promise<void> {
         const opts = options || {};
         state.selectedArea = null;
-        state.inspected = null; // a cell of the previous scope means nothing here
-        if (opts.tool)
-            state.tool = opts.tool;
-        if (opts.areaId)
-            state.selectedArea = opts.areaId;
+        state.inspected = null;   // a cell of the previous scope means nothing here
+        if (opts.tool) state.tool = opts.tool;
+        if (opts.areaId) state.selectedArea = opts.areaId;
         if (state.overlay && document.body.contains(state.overlay)) {
             state.overlay.remove();
         }
-        const overlay = _el('div', 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9500;display:flex;' +
+        const overlay = _el('div',
+            'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9500;display:flex;' +
             'align-items:center;justify-content:center;');
-        overlay.addEventListener('click', (ev) => { if (ev.target === overlay)
-            close(); });
-        const panel = _el('div', 'background:var(--bg-panel,#1b1b21);color:var(--text,#ddd);border:1px solid ' +
+        overlay.addEventListener('click', (ev) => { if (ev.target === overlay) close(); });
+        const panel = _el('div',
+            'background:var(--bg-panel,#1b1b21);color:var(--text,#ddd);border:1px solid ' +
             'var(--border,#444);border-radius:10px;width:min(1000px,94vw);max-height:92vh;' +
             'display:flex;flex-direction:column;padding:14px;font-size:13px;box-shadow:0 12px 40px rgba(0,0,0,0.55);');
         panel.setAttribute('data-role', 'worldpainter');
@@ -498,23 +823,24 @@
         overlay.appendChild(panel);
         document.body.appendChild(overlay);
         _bindKeys();
+
         await ensureVocab();
         await ensureBackgrounds();
         if (scopeId) {
             state.scopeId = scopeId;
             load(scopeId);
-        }
-        else {
+        } else {
             showChooser();
         }
     }
-    function close() {
+
+    function close(): void {
         _unbindKeys();
-        if (state.overlay)
-            state.overlay.remove();
+        if (state.overlay) state.overlay.remove();
         state.overlay = null;
         state.payload = null;
     }
+
     /**
      * Keys for the rail and the selection (task-536).
      *
@@ -526,16 +852,16 @@
      *
      * Space = pan, so left-drag is free for painting or marqueeing.
      */
-    function _bindKeys() {
+    function _bindKeys(): void {
         _unbindKeys();
         state._keyDown = (e) => {
-            const tag = (e.target?.tagName) || '';
+            const tag = ((e.target as HTMLElement | null)?.tagName) || '';
             const typing = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
             const isSelect = tag === 'SELECT';
             const p = state.payload;
+
             if (e.key === 'Escape') {
-                if (typing)
-                    return;
+                if (typing) return;
                 // The selection is the least-committed thing on screen: drop it
                 // before dropping a route or resetting the tool.
                 if (p && _selectedCells(p).length) {
@@ -554,8 +880,7 @@
                     state.route = [];
                     state.selectedArea = null;
                     state.inspected = null;
-                    if (state.routeInfoEl)
-                        state.routeInfoEl.textContent = _routeLabel();
+                    if (state.routeInfoEl) state.routeInfoEl.textContent = _routeLabel();
                     _redrawDecor();
                     render();
                 }
@@ -576,29 +901,26 @@
                 }
                 return;
             }
-            if (typing)
-                return;
+            if (typing) return;
+
             if ((e.ctrlKey || e.metaKey) && (e.key || '').toLowerCase() === 'a' && p) {
                 e.preventDefault();
-                const keys = {};
-                for (let y = 0; y < p.grid.h; y += 1) {
-                    for (let x = 0; x < p.grid.w; x += 1)
-                        keys[GM().cellKey(x, y)] = true;
+                const keys: Record<string, boolean> = {};
+                for (let y = 0; y < p.grid!.h; y += 1) {
+                    for (let x = 0; x < p.grid!.w; x += 1) keys[GM().cellKey(x, y)] = true;
                 }
                 _setSelection(p, keys);
-                _status(`Selected all ${p.grid.w * p.grid.h} cells.`);
+                _status(`Selected all ${p.grid!.w * p.grid!.h} cells.`);
                 _redrawDecor();
                 render();
                 return;
             }
-            if (e.ctrlKey || e.metaKey)
-                return;
-            const tool = TOOLS.find((t) => t[2].toLowerCase() === (e.key || '').toLowerCase());
-            if (tool) {
-                e.preventDefault();
-                _selectTool(tool[0]);
-                return;
-            }
+            if (e.ctrlKey || e.metaKey) return;
+
+            const tool = TOOLS.find(
+                (t) => t[2].toLowerCase() === (e.key || '').toLowerCase());
+            if (tool) { e.preventDefault(); _selectTool(tool[0]); return; }
+
             // Arrow keys (or WASD) nudge a selection. They only do that when there
             // is one to nudge: with nothing selected an arrow key is the map's to
             // use, and a selection the author cannot see is not worth guessing at.
@@ -613,36 +935,37 @@
                 _nudge(p, nudge[0], nudge[1]);
                 return;
             }
-            if (e.code !== 'Space' || state.spaceDown)
-                return;
+
+            if (e.code !== 'Space' || state.spaceDown) return;
             state.spaceDown = true;
             _syncDraggable();
             e.preventDefault();
         };
         state._keyUp = (e) => {
-            if (e.code !== 'Space')
-                return;
+            if (e.code !== 'Space') return;
             state.spaceDown = false;
             _syncDraggable();
         };
         document.addEventListener('keydown', state._keyDown);
         document.addEventListener('keyup', state._keyUp);
     }
-    function _unbindKeys() {
-        if (state._keyDown)
-            document.removeEventListener('keydown', state._keyDown);
-        if (state._keyUp)
-            document.removeEventListener('keyup', state._keyUp);
+
+    function _unbindKeys(): void {
+        if (state._keyDown) document.removeEventListener('keydown', state._keyDown);
+        if (state._keyUp) document.removeEventListener('keyup', state._keyUp);
         state._keyDown = null;
         state._keyUp = null;
         state.spaceDown = false;
     }
+
     // ───────────────────────────── loading ─────────────────────────────
-    async function showChooser() {
+
+    async function showChooser(): Promise<void> {
         state.scopeId = null;
         state.payload = null;
         const box = _renderShell('🗺️ WorldPainter');
-        box.appendChild(_el('div', 'color:var(--text-muted,#999);margin-bottom:10px;', 'Choose a scope to open its grid.'));
+        box.appendChild(_el('div', 'color:var(--text-muted,#999);margin-bottom:10px;',
+            'Choose a scope to open its grid.'));
         const list = _el('div', 'display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;', 'Loading…');
         box.appendChild(list);
         box.appendChild(_btn('➕ New root scope', () => _promptNewScope(null)));
@@ -655,24 +978,28 @@
             // 1 scope on a world that has 6. Walk the whole tree and show depth,
             // because the hierarchy is what tells you which scope is which.
             // `window.ScopeOptions` is a real window member (shared/scope-options.js).
-            const scopeOptions = window.ScopeOptions;
+            const scopeOptions = (window as unknown as {
+                ScopeOptions?: { flattenScopes(payload: unknown): WpScopeCard[] };
+            }).ScopeOptions;
             const scopes = scopeOptions
                 ? scopeOptions.flattenScopes(root)
                 : (root.children || []);
             if (!scopes.length) {
-                list.appendChild(_el('div', 'color:var(--text-muted,#999);', 'No scopes yet. Create one to start painting.'));
+                list.appendChild(_el('div', 'color:var(--text-muted,#999);',
+                    'No scopes yet. Create one to start painting.'));
                 return;
             }
-            scopes.forEach((card) => list.appendChild(_scopeCard(card)));
-        }
-        catch (e) {
+            scopes.forEach((card: WpScopeCard) => list.appendChild(_scopeCard(card)));
+        } catch (e) {
             list.textContent = `Failed to load scopes: ${errText(e)}`;
         }
     }
-    function _scopeCard(card, onOpen) {
+
+    function _scopeCard(card: WpScopeCard, onOpen?: (card: WpScopeCard) => void): HTMLElement {
         // Indent by depth so a child zone reads as belonging to its parent.
         const indent = '  '.repeat(Math.max(0, card.depth || 0));
-        const el = _el('div', 'border:1px solid var(--border,#444);border-radius:8px;padding:8px 10px;' +
+        const el = _el('div',
+            'border:1px solid var(--border,#444);border-radius:8px;padding:8px 10px;' +
             'min-width:150px;cursor:pointer;background:var(--bg-card,#24242b);' +
             (card.depth ? 'margin-left:' + (card.depth * 16) + 'px;' : ''));
         const head = _el('div', 'display:flex;align-items:center;gap:6px;');
@@ -687,57 +1014,61 @@
         const areas = card.area_count != null ? card.area_count : card.areaCount;
         const items = card.item_count != null ? card.item_count : card.itemCount;
         const bits = [`${card.kind || 'scope'} · ${card.state || ''}${card.mode ? ' · ' + card.mode : ''}`];
-        if (areas != null)
-            bits.push(`${areas} area${areas === 1 ? '' : 's'}`);
-        if (items)
-            bits.push(`${items} item${items === 1 ? '' : 's'}`);
+        if (areas != null) bits.push(`${areas} area${areas === 1 ? '' : 's'}`);
+        if (items) bits.push(`${items} item${items === 1 ? '' : 's'}`);
         el.appendChild(_el('div', 'font-size:10px;color:var(--text-muted,#999);', bits.join(' · ')));
         el.addEventListener('click', () => (onOpen ? onOpen(card) : load(card.id)));
         return el;
     }
+
     /** Small icon button that doesn't trigger the card's own click. */
-    function _iconBtn(label, title, onClick) {
-        const b = _el('button', 'cursor:pointer;border:1px solid var(--border,#444);background:transparent;' +
-            'color:var(--text,#ddd);border-radius:5px;padding:1px 5px;font-size:11px;line-height:1.2;', label);
+    function _iconBtn(label: string, title: string, onClick: () => void): HTMLButtonElement {
+        const b = _el('button',
+            'cursor:pointer;border:1px solid var(--border,#444);background:transparent;' +
+            'color:var(--text,#ddd);border-radius:5px;padding:1px 5px;font-size:11px;line-height:1.2;',
+            label);
         b.title = title;
         b.addEventListener('click', (e) => { e.stopPropagation(); onClick(); });
         return b;
     }
-    async function load(scopeId) {
+
+    async function load(scopeId: string): Promise<void> {
         state.scopeId = scopeId;
         state.selectedChild = null;
-        state.view = null; // a new scope opens fitted
+        state.view = null;      // a new scope opens fitted
         state.route = [];
-        state.refEdit = false; // reference adjust is per-scope
+        state.refEdit = false;  // reference adjust is per-scope
         state.refDrag = null;
         const box = _renderShell('🗺️ WorldPainter');
         box.appendChild(_el('div', 'color:var(--text-muted,#999);', 'Loading grid…'));
         try {
-            state.payload = await _req(`${BASE}/${encodeURIComponent(scopeId)}/grid`, { cache: 'no-store' });
+            state.payload = await _req(`${BASE}/${encodeURIComponent(scopeId)}/grid`,
+                { cache: 'no-store' });
             render();
-        }
-        catch (e) {
+        } catch (e) {
             box.textContent = '';
             box.appendChild(_el('div', 'color:#e66;', `Failed to load grid: ${errText(e)}`));
         }
     }
+
     /**
      * Refetch the open scope's payload in place. Used after a rename/delete of a
      * scope that appears as a *card* in this scope's list: the card's name comes
      * from the payload, so redrawing it without refetching showed the pre-edit
      * list. Unlike `load()` this keeps the author's view and selection.
      */
-    async function _reloadPayload() {
-        if (!state.scopeId)
-            return;
-        state.payload = await _req(`${BASE}/${encodeURIComponent(state.scopeId)}/grid`, { cache: 'no-store' });
+    async function _reloadPayload(): Promise<void> {
+        if (!state.scopeId) return;
+        state.payload = await _req(`${BASE}/${encodeURIComponent(state.scopeId)}/grid`,
+            { cache: 'no-store' });
         render();
     }
+
     /** Shared header (title + close) and a fresh body container. */
-    function _renderShell(title) {
+    function _renderShell(title: string): HTMLElement {
         // Only ever called from open(), which assigns state.body before anything
         // renders; the assertion states that rather than re-testing it.
-        const panel = state.body;
+        const panel = state.body!;
         panel.textContent = '';
         const head = _el('div', 'display:flex;align-items:center;gap:10px;margin-bottom:10px;');
         head.appendChild(_el('div', 'font-weight:700;font-size:15px;', title));
@@ -749,42 +1080,41 @@
         panel.appendChild(box);
         return box;
     }
+
     // ───────────────────────────── rendering ───────────────────────────
-    function render() {
+
+    function render(): void {
         const p = state.payload;
-        if (!p) {
-            showChooser();
-            return;
-        }
-        state.routeInfoEl = null; // the old HUD element dies with the panel
+        if (!p) { showChooser(); return; }
+        state.routeInfoEl = null;   // the old HUD element dies with the panel
         state.cellInfoEl = null;
         state.cellInfoKey = null;
         const box = _renderShell('🗺️ WorldPainter');
+
         box.appendChild(_breadcrumb(p.breadcrumb));
         box.appendChild(_toolbar(p));
         box.appendChild(_checklist(p));
         // The climate legend only exists while the climate layer is active, and
         // it sits directly under the layer control that switches to it (task-557).
         const legend = _climateLegend();
-        if (legend)
-            box.appendChild(legend);
+        if (legend) box.appendChild(legend);
+
         if (!p.scope.has_grid) {
             box.appendChild(_noGridPanel(p));
             _renderChildren(box, p);
             return;
         }
-        box.appendChild(_featureBar(p));
-        if (state.tool === 'area')
-            box.appendChild(_areaBar(p));
-        // Rail beside the canvas, not above it: the tool column and the map it
-        // acts on are read together, and the map gets the width back (task-536).
-        const withRail = _el('div', 'display:flex;gap:10px;align-items:flex-start;');
-        withRail.appendChild(_toolRail(p));
-        withRail.appendChild(_grid(p));
-        box.appendChild(withRail);
-        const panel = _cellPanel(p);
-        if (panel)
-            box.appendChild(panel);
+
+            box.appendChild(_featureBar(p));
+            if (state.tool === 'area') box.appendChild(_areaBar(p));
+            // Rail beside the canvas, not above it: the tool column and the map it
+            // acts on are read together, and the map gets the width back (task-536).
+            const withRail = _el('div', 'display:flex;gap:10px;align-items:flex-start;');
+            withRail.appendChild(_toolRail(p));
+            withRail.appendChild(_grid(p));
+            box.appendChild(withRail);
+            const panel = _cellPanel(p);
+            if (panel) box.appendChild(panel);
         _renderChildren(box, p);
         if (state.status) {
             const color = state.statusError ? '#e66' : '#9c9';
@@ -793,17 +1123,18 @@
             box.appendChild(status);
         }
     }
-    function _breadcrumb(trail) {
+
+    function _breadcrumb(trail?: WpScopeRef[] | null): HTMLElement {
         const row = _el('div', 'margin-bottom:8px;font-size:12px;display:flex;gap:6px;flex-wrap:wrap;');
         (trail || []).forEach((node, i) => {
-            if (i)
-                row.appendChild(_el('span', 'color:var(--text-muted,#888);', '›'));
+            if (i) row.appendChild(_el('span', 'color:var(--text-muted,#888);', '›'));
             const link = _el('a', 'cursor:pointer;color:#7ab;', node.name);
             link.addEventListener('click', () => load(node.id));
             row.appendChild(link);
         });
         return row;
     }
+
     /**
      * The tool rail (task-536): a vertical column down the left of the canvas.
      *
@@ -817,37 +1148,39 @@
      * *does* own is the options that belong to the active tool: the selection
      * panel under Select, the nudge readout under Move.
      */
-    const TOOLS = [
+    const TOOLS: [string, string, string, string][] = [
         ['select', '⬚ Select', 'V',
             'Click cells to select, shift-click to add, drag for a marquee. '
-                + 'Ctrl+A all, Escape clear. With cells selected, Paint and Erase '
-                + 'apply to the whole selection in one request.'],
+            + 'Ctrl+A all, Escape clear. With cells selected, Paint and Erase '
+            + 'apply to the whole selection in one request.'],
         ['paint', '🖌 Paint', 'P', 'Paint the current layer and value. Drag to stroke.'],
         ['erase', '🧽 Erase', 'E', 'Clear the current layer on a cell. Drag to stroke.'],
         ['move', '✥ Move', 'M',
             'Shift the selected cells\' contents one cell. Arrow keys, or WASD, '
-                + 'or the nudge buttons. Clamped to the grid; one request, one undo.'],
+            + 'or the nudge buttons. Clamped to the grid; one request, one undo.'],
         ['route', '🧭 Route', 'R', 'Click waypoints, then ✓ Paint route — paints the '
-                + 'current layer along the line (1 cell = 1 turn).'],
+            + 'current layer along the line (1 cell = 1 turn).'],
         ['feature', '🏠 Feature', 'F', 'Place a sub-zone (child scope) at a cell — not a '
-                + 'road. Roads/bridges are painted on the road layer.'],
+            + 'road. Roads/bridges are painted on the road layer.'],
         ['area', '📍 Area', 'A', 'Put an area you already wrote (Northern Hills, Murk '
-                + 'Lake…) on a cell of this map. Pick the area, then click where '
-                + 'it belongs. Generate will not put a second area on that cell.'],
+            + 'Lake…) on a cell of this map. Pick the area, then click where '
+            + 'it belongs. Generate will not put a second area on that cell.'],
         ['inspect', '🔍 Inspect', 'I', 'Read a cell without changing it: what is painted '
-                + 'on it, and which area or child scope sits there. Right-click does the '
-                + 'same on any tool.'],
+            + 'on it, and which area or child scope sits there. Right-click does the '
+            + 'same on any tool.'],
     ];
-    function _toolRail(p) {
+
+    function _toolRail(p: WpPayload): HTMLElement {
         const rail = _el('div', 'display:flex;flex-direction:column;gap:4px;flex:0 0 auto;');
         rail.setAttribute('data-role', 'wp-rail');
         TOOLS.forEach(([id, label, key, hint]) => {
             const active = state.tool === id;
-            const btn = _btn(label, () => _selectTool(id), 'text-align:left;white-space:nowrap;'
-                + (active ? 'outline:2px solid #7ab;background:#1e3550;' : ''), `${hint}\n\nShortcut: ${key}`);
+            const btn = _btn(label, () => _selectTool(id),
+                'text-align:left;white-space:nowrap;'
+                + (active ? 'outline:2px solid #7ab;background:#1e3550;' : ''),
+                `${hint}\n\nShortcut: ${key}`);
             btn.setAttribute('data-tool', id);
-            if (active)
-                btn.setAttribute('aria-pressed', 'true');
+            if (active) btn.setAttribute('aria-pressed', 'true');
             // Hooked into the HelpCenter per tool (task-521). The rail was eight
             // buttons with hover strings and no coach card behind any of them.
             _help(btn, 'wp-tool-' + id);
@@ -861,20 +1194,21 @@
         }
         return rail;
     }
+
     /** The options that belong to the *active* tool (task-536). */
-    function _railOptions(p) {
+    function _railOptions(p: WpPayload): HTMLElement | null {
         const count = _selectedCells(p).length;
         if (state.tool === 'select') {
             const box = _el('div', 'display:flex;flex-direction:column;gap:4px;align-items:flex-start;');
-            box.appendChild(_el('span', 'font-size:11px;color:var(--text-muted,#999);', count ? `${count} cell${count === 1 ? '' : 's'} selected` : 'no cells selected'));
+            box.appendChild(_el('span', 'font-size:11px;color:var(--text-muted,#999);',
+                count ? `${count} cell${count === 1 ? '' : 's'} selected` : 'no cells selected'));
             box.appendChild(_btn('Select all', () => {
-                const cells = {};
-                for (let y = 0; y < p.grid.h; y += 1) {
-                    for (let x = 0; x < p.grid.w; x += 1)
-                        cells[GM().cellKey(x, y)] = true;
+                const cells: Record<string, boolean> = {};
+                for (let y = 0; y < p.grid!.h; y += 1) {
+                    for (let x = 0; x < p.grid!.w; x += 1) cells[GM().cellKey(x, y)] = true;
                 }
                 _setSelection(p, cells);
-                _status(`Selected all ${p.grid.w * p.grid.h} cells.`);
+                _status(`Selected all ${p.grid!.w * p.grid!.h} cells.`);
             }, 'width:100%;', 'Select every cell on this grid (Ctrl+A)'));
             box.appendChild(_btn('Clear', () => {
                 _setSelection(p, {});
@@ -882,12 +1216,11 @@
             }, 'width:100%;', 'Select nothing (Escape)'));
             if (count) {
                 box.appendChild(_btn('Invert', () => {
-                    const next = {};
-                    for (let y = 0; y < p.grid.h; y += 1) {
-                        for (let x = 0; x < p.grid.w; x += 1) {
+                    const next: Record<string, boolean> = {};
+                    for (let y = 0; y < p.grid!.h; y += 1) {
+                        for (let x = 0; x < p.grid!.w; x += 1) {
                             const k = GM().cellKey(x, y);
-                            if (!_sel(p)[k])
-                                next[k] = true;
+                            if (!_sel(p)[k]) next[k] = true;
                         }
                     }
                     _setSelection(p, next);
@@ -897,7 +1230,8 @@
         }
         if (state.tool === 'move') {
             const box = _el('div', 'display:flex;flex-direction:column;gap:4px;align-items:flex-start;');
-            box.appendChild(_el('span', 'font-size:11px;color:var(--text-muted,#999);', count ? `Move ${count} cell${count === 1 ? '' : 's'}` : 'Select cells first'));
+            box.appendChild(_el('span', 'font-size:11px;color:var(--text-muted,#999);',
+                count ? `Move ${count} cell${count === 1 ? '' : 's'}` : 'Select cells first'));
             const grid = _el('div', 'display:grid;grid-template-columns:repeat(3,1fr);gap:2px;');
             grid.appendChild(_el('span'));
             grid.appendChild(_btn('↑', () => _nudge(p, 0, -1), 'padding:2px 6px;', 'Up'));
@@ -910,6 +1244,7 @@
         }
         return null;
     }
+
     /**
      * Whether the canvas pans on a plain left-drag, re-decided on every tool
      * change (task-536).
@@ -919,24 +1254,23 @@
      * A tool switch therefore has to re-ask, or the author selects a tool and drags
      * the map across instead of moving their cells.
      */
-    function _syncDraggable() {
-        if (!state.stage)
-            return;
+    function _syncDraggable(): void {
+        if (!state.stage) return;
         const toolOwnsDrag = _isPaintTool() || state.tool === 'select'
             || state.tool === 'move';
         state.stage.draggable(state.spaceDown
             || (!state.refEdit && !state.gridEdit && !toolOwnsDrag));
     }
-    function _selectTool(id) {
+
+    function _selectTool(id: string): void {
         state.tool = id;
-        if (id !== 'area')
-            state.selectedArea = null;
-        if (id !== 'move')
-            state.nudged = null;
+        if (id !== 'area') state.selectedArea = null;
+        if (id !== 'move') state.nudged = null;
         state.marquee = null;
         _syncDraggable();
         render();
     }
+
     /**
      * The per-mode "what do I do now" list, with live progress.
      *
@@ -952,10 +1286,11 @@
      * The panel opens itself for a scope with nothing on it yet and gets out of
      * the way once there is paint.
      */
-    function _checklist(p) {
+    function _checklist(p: WpPayload): HTMLElement {
         const steps = _checklistSteps(p);
         const done = steps.filter((s) => s.done).length;
         const allDone = done === steps.length;
+
         // Self-showing while the author has not taken control of it: open for a
         // scope with nothing on it, collapse once there is real paint. Once they
         // click it, their choice sticks — an author who collapsed it to get on
@@ -963,30 +1298,38 @@
         if (!state.checklistTouched) {
             state.checklistOpen = done === 0 || !_paintedCount(p);
         }
-        const toggle = _btn(allDone ? '✔ all done' : `📋 ${done}/${steps.length} — what next`, () => {
-            state.checklistOpen = !state.checklistOpen;
-            state.checklistTouched = true;
-            render();
-        }, 'font-size:11px;padding:2px 8px;', allDone
-            ? 'Every step for this mode is done.'
-            : 'What this kind of scope needs, in the order it needs it.');
+        const toggle = _btn(
+            allDone ? '✔ all done' : `📋 ${done}/${steps.length} — what next`,
+            () => {
+                state.checklistOpen = !state.checklistOpen;
+                state.checklistTouched = true;
+                render();
+            },
+            'font-size:11px;padding:2px 8px;',
+            allDone
+                ? 'Every step for this mode is done.'
+                : 'What this kind of scope needs, in the order it needs it.');
         _help(toggle, 'wp-checklist');
-        const wrap = _el('div', 'border:1px solid var(--border,#3a3a44);border-radius:8px;margin-bottom:8px;' +
+
+        const wrap = _el('div',
+            'border:1px solid var(--border,#3a3a44);border-radius:8px;margin-bottom:8px;' +
             'padding:6px 8px;background:rgba(13,17,23,0.35);');
         wrap.setAttribute('data-role', 'wp-checklist');
         wrap.appendChild(toggle);
-        if (!state.checklistOpen)
-            return wrap;
+        if (!state.checklistOpen) return wrap;
+
         const mode = p.mode || 'world';
         const hint = _el('div', 'font-size:11px;color:var(--text-muted,#999);' +
             'padding:4px 0 6px;line-height:1.5;');
         hint.textContent = _checklistIntro(mode);
         wrap.appendChild(hint);
+
         for (const s of steps) {
             const row = _el('div', 'display:flex;gap:6px;align-items:flex-start;' +
                 'padding:3px 0;font-size:12px;line-height:1.45;' +
                 (s.done ? 'color:var(--text-muted,#999);' : 'color:var(--text,#ddd);'));
-            row.appendChild(_el('span', 'flex:0 0 auto;width:14px;text-align:center;', s.done ? '✔' : '○'));
+            row.appendChild(_el('span', 'flex:0 0 auto;width:14px;text-align:center;',
+                s.done ? '✔' : '○'));
             const text = _el('div', 'flex:1;min-width:0;');
             text.appendChild(_el('b', null, s.title + ' '));
             text.appendChild(document.createTextNode(s.how));
@@ -998,12 +1341,14 @@
         }
         return wrap;
     }
-    function _paintedCount(p) {
+
+    function _paintedCount(p: WpPayload | null): number {
         const layers = (p && p.layers) || {};
-        const n = (layer) => Object.keys(layers[layer] || {}).length;
+        const n = (layer: string) => Object.keys(layers[layer] || {}).length;
         return n('biome') + n('road');
     }
-    function _checklistIntro(mode) {
+
+    function _checklistIntro(mode: string): string {
         if (mode === 'town') {
             return 'A town is painted inside-out: the ground it stands on, the streets '
                 + 'across it, the wall around it, then the buildings on it, then the '
@@ -1020,6 +1365,7 @@
             + 'you get around it. Detail belongs one rung down in a child scope, so '
             + 'a single Generate never mints thousands of places at once.';
     }
+
     /**
      * Steps per mode, each with a `done` predicate over the payload.
      *
@@ -1028,7 +1374,7 @@
      * half only ever reads state the server already told us, so a step cannot
      * claim itself satisfied by something that does not compile.
      */
-    function _checklistSteps(p) {
+    function _checklistSteps(p: WpPayload): WpChecklistStep[] {
         const mode = p.mode || 'world';
         const layers = (p && p.layers) || {};
         const biomeCells = Object.keys(layers.biome || {});
@@ -1036,11 +1382,13 @@
         const names = Object.values(p.names || {}).filter(Boolean).length;
         const children = (p.children || []).length;
         const generated = p.scope.state === 'materialized';
-        const wallCells = biomeCells.filter((k) => /(^|,)wall$/.test(String((layers.biome || {})[k] || ''))).length;
+        const wallCells = biomeCells.filter((k) => /(^|,)wall$/.test(
+            String((layers.biome || {})[k] || ''))).length;
         const buildingCells = biomeCells.filter((k) => {
             const v = String((layers.biome || {})[k] || '');
             return /cottage|house|residential|tenement|inn|tavern|shop|smithy|workshop|warehouse|mill|barn|chapel|shrine|temple|town_hall|market|mansion|brothel|school|infirmary|library|stable|watch_house|bank|fast_food|mall/.test(v);
         }).length;
+
         const grid = {
             title: 'Size the grid.',
             how: 'One cell is one minute of walking, so the size is how long the '
@@ -1079,23 +1427,25 @@
                 + "image's aspect and a cell is the same place in both.",
             done: !!(p.reference && p.reference.image),
         };
+
         if (mode === 'town') {
             return [grid, ground, roads,
                 { title: 'Wall it in.', how: 'Biome layer, value "wall", along the '
-                        + 'perimeter. Walls are structure: they never become places, '
-                        + 'which is exactly what makes them walls.',
+                    + 'perimeter. Walls are structure: they never become places, '
+                    + 'which is exactly what makes them walls.',
                     done: wallCells > 0 },
                 { title: 'Open the gates.', how: 'Road layer, values "gate" and '
-                        + '"bridge", on the wall line where a road leaves. This is how '
-                        + 'a town gets more than one way in.',
-                    done: roadCells.some((k) => /gate|bridge|ford|tunnel/.test(String((layers.road || {})[k] || ''))) },
+                    + '"bridge", on the wall line where a road leaves. This is how '
+                    + 'a town gets more than one way in.',
+                    done: roadCells.some((k) => /gate|bridge|ford|tunnel/.test(
+                        String((layers.road || {})[k] || ''))) },
                 { title: 'Place the buildings.', how: 'One cell each, from the '
-                        + 'Buildings section of the value list. Buildings never merge, '
-                        + 'so a terrace stays a terrace.', done: buildingCells > 0 },
+                    + 'Buildings section of the value list. Buildings never merge, '
+                    + 'so a terrace stays a terrace.', done: buildingCells > 0 },
                 namesStep,
                 { title: 'Give the buildings interiors.', how: '➕ Add feature… '
-                        + 'names a child scope (mode becomes interior), then 🏠 Feature '
-                        + 'places it on the building\'s cell.', done: children > 0 },
+                    + 'names a child scope (mode becomes interior), then 🏠 Feature '
+                    + 'places it on the building\'s cell.', done: children > 0 },
                 generate];
         }
         if (mode === 'interior') {
@@ -1103,24 +1453,29 @@
         }
         return [grid, reference, ground, roads, namesStep, generate];
     }
-    function _toolbar(p) {
+
+    function _toolbar(p: WpPayload): HTMLElement {
         const wrap = _el('div', 'display:flex;flex-wrap:wrap;gap:8px;align-items:center;' +
             'padding:8px;border:1px solid var(--border,#3a3a44);border-radius:8px;margin-bottom:8px;');
-        const modeBadge = _el('span', 'font-size:11px;padding:2px 8px;border-radius:10px;background:#2d4a6b;color:#cfe;', `mode: ${p.mode || 'unset'}`);
+
+        const modeBadge = _el('span',
+            'font-size:11px;padding:2px 8px;border-radius:10px;background:#2d4a6b;color:#cfe;',
+            `mode: ${p.mode || 'unset'}`);
         wrap.appendChild(modeBadge);
+
         // The tools themselves live in the left rail now (task-536); what is left
         // here is what the *write* tools share, plus the compile controls.
-        wrap.appendChild(_el('span', 'font-size:12px;color:var(--text-muted,#999);', 'layer'));
+        wrap.appendChild(_el('span', 'font-size:12px;color:var(--text-muted,#999);',
+            'layer'));
         const layerSel = _el('select', 'padding:3px;border-radius:5px;');
         layerSel.setAttribute('data-role', 'wp-layer');
         layerSel.title = 'Which layer you paint: biome, road or floor. '
             + 'Roads, bridges and fords are on the road layer. Floor is a storey '
             + 'number: 0 is ground, 1 one up, -1 one down, and as far as you like.';
-        GM().PAINT_LAYERS.forEach((l) => {
+        GM().PAINT_LAYERS.forEach((l: string) => {
             const opt = _el('option', null, l);
             opt.value = l;
-            if (l === state.layer)
-                opt.selected = true;
+            if (l === state.layer) opt.selected = true;
             layerSel.appendChild(opt);
         });
         layerSel.addEventListener('change', () => {
@@ -1129,7 +1484,8 @@
             render();
         });
         _help(wrap.appendChild(layerSel), 'wp-layer');
-        wrap.appendChild(_help(_valueControl(), 'wp-value'));
+        wrap.appendChild(_help(_valueControl(), 'wp-value')!);
+
         // Brush size: paints an N×N block per click — the difference between a
         // forest being 8 clicks or 800. Also widens a route/trail.
         wrap.appendChild(_el('span', 'font-size:12px;color:var(--text-muted,#999);', 'brush'));
@@ -1138,15 +1494,15 @@
         [1, 2, 3, 5, 8, 12].forEach((n) => {
             const opt = _el('option', null, `${n}×${n}`);
             opt.value = String(n);
-            if (n === state.brush)
-                opt.selected = true;
+            if (n === state.brush) opt.selected = true;
             brushSel.appendChild(opt);
         });
         brushSel.addEventListener('change', () => {
             state.brush = parseInt(brushSel.value, 10) || 1;
-            brushSel.blur(); // same focus trap as the value picker (bug-511)
+            brushSel.blur();   // same focus trap as the value picker (bug-511)
         });
         _help(wrap.appendChild(brushSel), 'wp-brush');
+
         wrap.appendChild(_btn('▦ Grid…', () => _openGridDialog(p)));
         // Direct manipulation of the grid itself (task-597). The dialog is still
         // there for exact numbers; this is for the common "nudge it and see".
@@ -1156,12 +1512,13 @@
             render();
             _status(state.gridEdit
                 ? 'Grid adjust: drag the frame to move the scope on the graph map, '
-                    + 'drag the E/S/SE handles to resize.'
+                  + 'drag the E/S/SE handles to resize.'
                 : 'Grid adjust off.', false);
         }, 'padding:1px 6px;font-size:11px;');
         gridAdjust.title = 'Move the grid on the graph map (drag the frame) or resize it (drag a handle)';
         wrap.appendChild(gridAdjust);
         wrap.appendChild(_btn('➕ Add feature…', () => _promptNewScope(p.scope.id)));
+
         // Why this scope cannot be compiled yet, and what to do about it
         // (engine/world_compile.preflight). The compiler refuses the same
         // conditions, but it refuses them *after* the click and only states the
@@ -1170,16 +1527,17 @@
         // it got that way nor how out of it. Said here, the button and its
         // reason are side by side.
         const blockers = Array.isArray(p.blockers) ? p.blockers : [];
-        if (blockers.length)
-            wrap.appendChild(_blockerBadge(blockers));
+        if (blockers.length) wrap.appendChild(_blockerBadge(blockers));
         // A building *type* brings its own floor plan (task-567). Only meaningful
         // on an interior scope, and offering it elsewhere would let an author paint
         // rooms onto a world map, which is a wall grid already says something.
         if (p.scope.mode === 'interior') {
-            wrap.appendChild(_help(_btn('🏠 Paint an interior…', paintInterior, '', 'Paint a building type\'s floor plan in as cells: a tavern gets a '
+            wrap.appendChild(_help(_btn('🏠 Paint an interior…', paintInterior, '',
+                'Paint a building type\'s floor plan in as cells: a tavern gets a '
                 + 'tap room, kitchen and cellar. It is a draft — edit the cells, '
-                + 'then Generate.'), 'wp-paint-interior'));
+                + 'then Generate.'), 'wp-paint-interior')!);
         }
+
         // Compile the painted grid into real area/way nodes (task-496/398).
         const merge = _el('input');
         merge.type = 'checkbox';
@@ -1187,41 +1545,49 @@
         merge.setAttribute('data-role', 'wp-merge');
         merge.addEventListener('change', () => { state.merge = merge.checked; render(); });
         _help(wrap.appendChild(merge), 'wp-merge');
-        wrap.appendChild(_el('span', 'font-size:12px;color:var(--text-muted,#999);', 'merge same-biome'));
+        wrap.appendChild(_el('span', 'font-size:12px;color:var(--text-muted,#999);',
+            'merge same-biome'));
+
         // Node-cost estimate, so painting 5,000 cells can't surprise the author
         // with a 15,000-node graph ("the laptop killer").
         const est = GM().estimateCompile(p, state.merge);
         const estEl = _el('span', 'font-size:11px;color:'
-            + (est.total > 3000 ? '#c96' : 'var(--text-muted,#999)') + ';', `≈ ${est.areas} areas · ${est.ways} ways`
+            + (est.total > 3000 ? '#c96' : 'var(--text-muted,#999)') + ';',
+            `≈ ${est.areas} areas · ${est.ways} ways`
             + (est.links ? ` · 🔗 ${est.links} linked` : ''));
         estEl.title = est.links
             ? `${est.links} island(s) have no painted neighbour; each is joined to the `
-                + 'nearest painted cell with a single way (not one per neighbour).'
+              + 'nearest painted cell with a single way (not one per neighbour).'
             : 'Areas and ways this grid will compile to';
         estEl.setAttribute('data-role', 'wp-estimate');
         _help(wrap.appendChild(estEl), 'wp-estimate');
         const blocked = blockers.filter((b) => b && b.severity === 'block');
-        wrap.appendChild(_help(_btn('⚙ Generate', () => generate(), 'outline:1px solid #7ab;', blocked.length
-            ? 'This scope cannot be compiled yet — ' + blocked.map((b) => b.text).join(' ')
-            : 'Turn this scope\'s painted cells into real areas and ways.'), 'wp-generate'));
-        wrap.appendChild(_help(_btn('🧹 Ungenerate', () => ungenerate(), 'color:#c96;', 'Delete this zone\'s generated nodes but keep its painted grid, so you can regenerate a clean slate.'), 'wp-ungenerate'));
-        wrap.appendChild(_btn('⟳', () => load(state.scopeId)));
+        wrap.appendChild(_help(_btn('⚙ Generate', () => generate(), 'outline:1px solid #7ab;',
+            blocked.length
+                ? 'This scope cannot be compiled yet — ' + blocked.map((b) => b.text).join(' ')
+                : 'Turn this scope\'s painted cells into real areas and ways.'),
+            'wp-generate')!);
+        wrap.appendChild(_help(
+            _btn('🧹 Ungenerate', () => ungenerate(), 'color:#c96;',
+                'Delete this zone\'s generated nodes but keep its painted grid, so you can regenerate a clean slate.'),
+            'wp-ungenerate')!);
+
+        wrap.appendChild(_btn('⟳', () => load(state.scopeId!)));
         return wrap;
     }
+
     /**
      * One line describing a palette tile (task-596): what it is, and what it
      * does. `rec` is the vocabulary record, which carries the same prose and
      * tags the compiler reads, so the line cannot disagree with the world.
      */
-    function _tileDetail(layer, rec) {
+    function _tileDetail(layer: string, rec: WpPaletteEntry): string {
         const name = rec.name || rec.id;
         const desc = (rec.descriptions || [])[0] || '';
         if (layer === 'road') {
             const bits = [desc];
-            if ((rec.biomes || []).length)
-                bits.push('crosses ' + (rec.biomes || []).join(', '));
-            if (rec.entry_phrase)
-                bits.push(`“${rec.entry_phrase}”`);
+            if ((rec.biomes || []).length) bits.push('crosses ' + (rec.biomes || []).join(', '));
+            if (rec.entry_phrase) bits.push(`“${rec.entry_phrase}”`);
             return `${name} — ${bits.filter(Boolean).join(' · ')}`;
         }
         if (layer === 'biome') {
@@ -1231,31 +1597,30 @@
                 kind = (tags.find((t) => t.indexOf('cell_kind:') === 0) || 'cell_kind:solid')
                     .split(':')[1] || 'solid';
                 kind = `not a place (${kind})`;
-            }
-            else if (tags.includes('building')) {
+            } else if (tags.includes('building')) {
                 kind = 'building';
             }
             const bits = [desc, kind];
-            if (rec.surface)
-                bits.push(`ground ${rec.surface}`);
-            if (rec.refusal)
-                bits.push(rec.refusal);
+            if (rec.surface) bits.push(`ground ${rec.surface}`);
+            if (rec.refusal) bits.push(rec.refusal);
             return `${name} — ${bits.filter(Boolean).join(' · ')}`;
         }
         return `${name} — ${desc}`.replace(/ — $/, '');
     }
-    function _valueControl() {
+
+    function _valueControl(): HTMLElement {
         const options = _biomePalette(state.layer);
         if (state.layer === 'floor' || !options.filter((o) => !o.separator).length) {
             // No vocabulary (fetch failed) or a numeric layer: free text.
-            const input = _el('input', 'width:130px;padding:3px 6px;border-radius:5px;border:1px solid ' +
+            const input = _el('input',
+                'width:130px;padding:3px 6px;border-radius:5px;border:1px solid ' +
                 'var(--border,#444);background:var(--bg-card,#2a2a32);color:var(--text,#ddd);');
             input.setAttribute('data-role', 'wp-value');
             input.value = state.value;
             input.placeholder = state.layer === 'floor' ? '+1 / -1' : 'value';
             input.title = state.layer === 'floor'
                 ? 'Storey: 0 is ground, 1 is one up, -1 one down. Unbounded — 3 for a '
-                    + 'room three storeys up, 80 for a tower, -900 for a hole.'
+                  + 'room three storeys up, 80 for a tower, -900 for a hole.'
                 : `Value painted on the ${state.layer} layer.`;
             input.addEventListener('input', () => { state.value = input.value; });
             return input;
@@ -1271,7 +1636,8 @@
         // as the Scenario Manager's filter, where it was the difference between
         // usable and not on a 22-row list.
         const wrap = _el('div', 'display:flex;gap:4px;align-items:center;flex-wrap:wrap;');
-        const filter = _el('input', 'width:120px;padding:3px 6px;border-radius:5px;'
+        const filter = _el('input',
+            'width:120px;padding:3px 6px;border-radius:5px;'
             + 'border:1px solid var(--border,#444);'
             + 'background:var(--bg-card,#2a2a32);color:var(--text,#ddd);');
         filter.type = 'search';
@@ -1300,7 +1666,7 @@
             'line-height:1.4;flex-basis:100%;max-width:420px;');
         detail.setAttribute('data-role', 'wp-value-detail');
         detail.textContent = '';
-        const describe = (id) => {
+        const describe = (id: string): void => {
             const rec = options.filter((o) => !o.separator).find((o) => o.id === id);
             const text = rec ? _tileDetail(state.layer, rec) : '';
             detail.textContent = text;
@@ -1310,8 +1676,7 @@
         };
         const paintable = options.filter((o) => !o.separator);
         const ids = paintable.map((o) => o.id || '');
-        if (ids.indexOf(state.value) < 0)
-            state.value = ids[0] || '';
+        if (ids.indexOf(state.value) < 0) state.value = ids[0] || '';
         // A section is a real <optgroup>, not a disabled <option>.
         //
         // The comment that used to sit here said "a `select` cannot nest", and
@@ -1330,23 +1695,21 @@
         //    marker is pushed before the category loop, which may add
         //    nothing), so an empty group is removed rather than left as a
         //    blank heading.
-        const openGroups = [];
-        const closeGroup = () => {
+        const openGroups: HTMLOptGroupElement[] = [];
+        const closeGroup = (): void => {
             const g = openGroups.pop();
-            if (g && g.children.length === 0)
-                g.remove();
+            if (g && g.children.length === 0) g.remove();
         };
         // `needle` empty => everything. Matching is on the displayed name and on
         // the id, because an author who knows it as "not_a_place" should be able
         // to type that too.
-        const matches = (o, needle) => {
-            if (!needle)
-                return true;
+        const matches = (o: WpPaletteEntry, needle: string): boolean => {
+            if (!needle) return true;
             const n = needle.toLowerCase();
             return String(o.name || '').toLowerCase().includes(n)
                 || String(o.id || '').toLowerCase().includes(n);
         };
-        const build = (needle) => {
+        const build = (needle: string): void => {
             sel.textContent = '';
             openGroups.length = 0;
             // task-648: 'civic' is legitimately BOTH a room purpose (a town hall
@@ -1355,21 +1718,16 @@
             // for "civic" showed both and the heading said nothing about which
             // was which. Disambiguate a repeated label at render time rather than
             // renaming either concept, because both are right.
-            const labelCount = {};
-            options.forEach((o) => { if (o.section)
-                labelCount[o.section] = (labelCount[o.section] || 0) + 1; });
-            const seen = {};
-            const labelFor = (s) => {
-                if (labelCount[s] < 2)
-                    return s;
+            const labelCount: Record<string, number> = {};
+            options.forEach((o) => { if (o.section) labelCount[o.section] = (labelCount[o.section] || 0) + 1; });
+            const seen: Record<string, number> = {};
+            const labelFor = (s: string): string => {
+                if (labelCount[s] < 2) return s;
                 seen[s] = (seen[s] || 0) + 1;
                 return seen[s] === 1 ? `${s} (room)` : `${s} (building)`;
             };
             options.forEach((o) => {
-                if (o.separator) {
-                    closeGroup();
-                    return;
-                }
+                if (o.separator) { closeGroup(); return; }
                 if (o.section) {
                     closeGroup();
                     // Open the heading eagerly: if nothing under it matches it is
@@ -1380,21 +1738,18 @@
                     openGroups.push(og);
                     return;
                 }
-                if (!matches(o, needle))
-                    return;
+                if (!matches(o, needle)) return;
                 const opt = _el('option', null, `${o.name} (${o.id})`);
                 opt.value = o.id || '';
                 (openGroups[openGroups.length - 1] || sel).appendChild(opt);
             });
-            while (openGroups.length)
-                closeGroup();
+            while (openGroups.length) closeGroup();
         };
         build('');
         filter.addEventListener('input', () => {
             build(filter.value.trim());
             // A filter can hide the current value; keep the select legal.
-            if (ids.indexOf(sel.value) < 0 && sel.options.length)
-                sel.value = sel.options[0].value;
+            if (ids.indexOf(sel.value) < 0 && sel.options.length) sel.value = sel.options[0].value;
         });
         sel.value = state.value;
         describe(sel.value);
@@ -1409,19 +1764,23 @@
         wrap.appendChild(detail);
         return wrap;
     }
+
     /** Cancels (returns nothing) when the author backs out of the size warning. */
-    function generate() {
-        const p = state.payload;
+    function generate(): Promise<void> | void {
+        const p = state.payload!;
         const est = GM().estimateCompile(p, state.merge);
-        if (est.total > 3000 && !window.confirm(`This will create about ${est.areas} areas and ${est.ways} ways `
+        if (est.total > 3000 && !window.confirm(
+            `This will create about ${est.areas} areas and ${est.ways} ways `
             + `(${est.total} nodes).\n\nThe graph view may become unresponsive. `
             + `Consider "merge same-biome", or generating smaller zones.\n\nContinue?`)) {
             return;
         }
         const body = { region_merge: !!state.merge };
-        const run = async (allowRegenerate) => {
+        const run = async (allowRegenerate: boolean) => {
             try {
-                const result = await _post(`/${encodeURIComponent(p.scope.id)}/grid/generate`, allowRegenerate ? { ...body, allow_regenerate: true } : body);
+                const result = await _post(
+                    `/${encodeURIComponent(p.scope.id)}/grid/generate`,
+                    allowRegenerate ? { ...body, allow_regenerate: true } : body);
                 state.payload = result;
                 state.selectedChild = null;
                 _notify(true);
@@ -1430,10 +1789,9 @@
                 _status(`⚙ Generated ${r.node_count || 0} node(s), ` +
                     `${r.edge_count || 0} edge(s)` +
                     (notes ? ` — ${notes}` : ''), false);
-            }
-            catch (e) {
+            } catch (e) {
                 if (!allowRegenerate && /already materialized/.test(errText(e))
-                    && window.confirm(`${errText(e)}\n\nRe-run generation?`)) {
+                        && window.confirm(`${errText(e)}\n\nRe-run generation?`)) {
                     return run(true);
                 }
                 _status(`Generate failed: ${errText(e)}`, true);
@@ -1441,36 +1799,40 @@
         };
         return run(false);
     }
-    function ungenerate() {
+
+    function ungenerate(): void {
         const p = state.payload;
-        if (!p || !p.scope)
-            return;
-        if (!window.confirm(`Delete every generated node for “${p.scope.name}”?\n\n` +
-            `The painted grid, reference and placements are kept, and the scope `
-            + `returns to unmade so you can ⚙ Generate again.`)) {
+        if (!p || !p.scope) return;
+        if (!window.confirm(
+                `Delete every generated node for “${p.scope.name}”?\n\n` +
+                `The painted grid, reference and placements are kept, and the scope `
+                + `returns to unmade so you can ⚙ Generate again.`)) {
             return;
         }
         (async () => {
             try {
-                const result = await _post(`/${encodeURIComponent(p.scope.id)}/grid/ungenerate`, {});
+                const result = await _post(
+                    `/${encodeURIComponent(p.scope.id)}/grid/ungenerate`, {});
                 state.payload = result;
                 state.selectedChild = null;
                 _notify(true);
                 _status(`🧹 Removed ${result.deleted_nodes || 0} generated node(s) — grid kept.`, false);
-            }
-            catch (e) {
+            } catch (e) {
                 _status(`Ungenerate failed: ${errText(e)}`, true);
             }
         })();
     }
-    function _noGridPanel(p) {
+
+    function _noGridPanel(p: WpPayload): HTMLElement {
         const box = _el('div', 'padding:14px;border:1px dashed var(--border,#555);' +
-            'border-radius:8px;margin-bottom:10px;color:var(--text-muted,#999);', 'This scope has no grid yet.');
+            'border-radius:8px;margin-bottom:10px;color:var(--text-muted,#999);',
+            'This scope has no grid yet.');
         box.appendChild(_el('div', null, ' '));
         box.appendChild(_btn('▦ Create grid…', () => _openGridDialog(p)));
         return box;
     }
-    function _featureBar(p) {
+
+    function _featureBar(p: WpPayload): HTMLElement {
         const wrap = _el('div', 'display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px;');
         wrap.appendChild(_el('span', 'font-size:12px;color:var(--text-muted,#999);', 'Feature:'));
         const sel = _el('select', 'padding:3px;border-radius:5px;min-width:160px;');
@@ -1481,22 +1843,24 @@
         (p.children || []).forEach((c) => {
             const opt = _el('option', null, `${c.name}${c.placed ? ' (placed)' : ''}`);
             opt.value = c.id;
-            if (c.id === state.selectedChild)
-                opt.selected = true;
+            if (c.id === state.selectedChild) opt.selected = true;
             sel.appendChild(opt);
         });
         sel.addEventListener('change', () => { state.selectedChild = sel.value || null; render(); });
         wrap.appendChild(sel);
+
         if (state.selectedChild) {
             const child = (p.children || []).find((c) => c.id === state.selectedChild);
-            wrap.appendChild(_btn('Open ▸', () => load(state.selectedChild)));
+            wrap.appendChild(_btn('Open ▸', () => load(state.selectedChild!)));
             if (child && child.placed) {
-                wrap.appendChild(_btn('🗑 Remove', () => removeFeature(state.selectedChild)));
+                wrap.appendChild(_btn('🗑 Remove', () => removeFeature(state.selectedChild!)));
             }
-            wrap.appendChild(_el('span', 'font-size:11px;color:var(--text-muted,#999);', 'Pick “Feature”, then click a cell to place/move.'));
+            wrap.appendChild(_el('span', 'font-size:11px;color:var(--text-muted,#999);',
+                'Pick “Feature”, then click a cell to place/move.'));
         }
         return wrap;
     }
+
     /**
      * The place tool's picker (task-528/541): the areas that can go on a cell of
      * THIS map, grouped by scope. Only shown while the tool is active, so the
@@ -1505,7 +1869,7 @@
      * Grouping is the point: a flat list of every unplaced area in the world made
      * a child scope's interior look like it belonged on the world map.
      */
-    function _areaBar(p) {
+    function _areaBar(p: WpPayload): HTMLElement {
         const wrap = _el('div', 'display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px;');
         wrap.appendChild(_el('span', 'font-size:12px;color:var(--text-muted,#999);', 'Area:'));
         const sel = _el('select', 'padding:3px;border-radius:5px;min-width:200px;');
@@ -1514,17 +1878,16 @@
         none.value = '';
         sel.appendChild(none);
         const groups = GM().areaGroups(p, state.selectedArea);
-        groups.forEach((g) => {
+        groups.forEach((g: any) => {
             const og = _el('optgroup');
             og.label = g.key === 'elsewhere'
                 ? `${g.label} — picking one moves it here`
                 : g.label;
-            g.areas.forEach((a) => {
+            g.areas.forEach((a: any) => {
                 const where = a.placedHere ? ` (${a.placedHere.x},${a.placedHere.y})` : '';
                 const opt = _el('option', null, a.name + where);
                 opt.value = a.id;
-                if (a.id === state.selectedArea)
-                    opt.selected = true;
+                if (a.id === state.selectedArea) opt.selected = true;
                 og.appendChild(opt);
             });
             sel.appendChild(og);
@@ -1535,15 +1898,17 @@
         });
         wrap.appendChild(sel);
         if (!groups.length) {
-            wrap.appendChild(_el('span', 'font-size:11px;color:var(--text-muted,#999);', `No areas available here — every area of “${p.scope.name}” already sits on a map.`));
-        }
-        else {
-            wrap.appendChild(_el('span', 'font-size:11px;color:var(--text-muted,#999);', 'Then click a cell. Click a placed 📍 to take it off the map again.'));
+            wrap.appendChild(_el('span', 'font-size:11px;color:var(--text-muted,#999);',
+                `No areas available here — every area of “${p.scope.name}” already sits on a map.`));
+        } else {
+            wrap.appendChild(_el('span', 'font-size:11px;color:var(--text-muted,#999);',
+                'Then click a cell. Click a placed 📍 to take it off the map again.'));
         }
         // A 200x133 world draws cells about 5px wide, so the marker cannot carry
         // a name. The list is how you see what is where: name + cell, and picking
         // one lets you move it.
-        const placedHere = (p.area_placements || []).filter((a) => !groups.some((g) => g.areas.some((x) => x.id === a.id)));
+        const placedHere = (p.area_placements || []).filter(
+            (a) => !groups.some((g: any) => g.areas.some((x: any) => x.id === a.id)));
         if (placedHere.length) {
             const list = _el('div', 'display:flex;flex-wrap:wrap;gap:6px;width:100%;margin-top:2px;');
             placedHere.forEach((a) => {
@@ -1558,6 +1923,7 @@
         }
         return wrap;
     }
+
     // ───────────────────── grid surface (Konva canvas) ────────────────────
     //
     // Konva draws the grid on a canvas as a fixed number of shapes (background
@@ -1565,7 +1931,8 @@
     // as a 10x10, and work is proportional to *painted* cells, not grid area.
     // Pan/zoom and hit-testing are Konva's, so none of it is hand-rolled. The
     // same payload the DOM version used drives it, so the backend is unchanged.
-    function _grid(p) {
+
+    function _grid(p: WpPayload): HTMLElement {
         // `flex:1 1 auto; min-width:0` is load-bearing since the rail moved beside
         // the grid (task-536). This element used to be a child of the panel's
         // *column* flex box, where `align-items:stretch` gave it the full width for
@@ -1575,7 +1942,8 @@
         // overflowed a zero-width box, and the grid simply did not appear.
         // `min-width:0` is the other half: a flex item's default `min-width:auto`
         // refuses to shrink below its content, which fights the zoom buttons.
-        const wrap = _el('div', 'flex:1 1 auto;min-width:0;position:relative;height:480px;'
+        const wrap = _el('div',
+            'flex:1 1 auto;min-width:0;position:relative;height:480px;'
             + 'border:1px solid var(--border,#3a3a44);'
             + 'border-radius:8px;background:#0d0d11;overflow:hidden;margin-bottom:10px;');
         wrap.setAttribute('data-role', 'wp-grid');
@@ -1588,7 +1956,8 @@
         wrap.appendChild(_gridHud(p));
         return wrap;
     }
-    function _gridHud(p) {
+
+    function _gridHud(p: WpPayload): HTMLElement {
         const hud = _el('div', 'position:absolute;left:8px;top:8px;z-index:3;display:flex;' +
             'gap:6px;align-items:center;flex-wrap:wrap;background:rgba(13,17,23,0.85);' +
             'border:1px solid var(--border,#3a3a44);border-radius:6px;padding:4px 6px;' +
@@ -1602,8 +1971,9 @@
         hud.appendChild(zoomIn);
         hud.appendChild(zoomOut);
         hud.appendChild(_btn('⤢ Fit', () => _fitGrid(p), 'padding:1px 7px;'));
-        _syncZoomButtons(); // a rebuild starts at the current scale
-        hud.appendChild(_el('span', 'font-size:11px;color:var(--text-muted,#999);', `${p.grid.w}×${p.grid.h} · 1 cell = 1 turn`));
+        _syncZoomButtons();   // a rebuild starts at the current scale
+        hud.appendChild(_el('span', 'font-size:11px;color:var(--text-muted,#999);',
+            `${p.grid!.w}×${p.grid!.h} · 1 cell = 1 turn`));
         hud.appendChild(_referenceControl(p));
         // Painted-cell transparency: lets the reference art show through.
         const alpha = _el('input', 'width:64px;');
@@ -1638,7 +2008,8 @@
         }
         return hud;
     }
-    function _referenceControl(p) {
+
+    function _referenceControl(p: WpPayload): HTMLElement {
         const wrap = _el('span', 'display:flex;align-items:center;gap:4px;');
         const ref = p.reference || {};
         const sel = _el('select', 'padding:2px;border-radius:5px;max-width:190px;font-size:11px;');
@@ -1647,8 +2018,7 @@
         none.value = '';
         sel.appendChild(none);
         const known = (state.backgrounds || []).slice();
-        if (ref.image && known.indexOf(ref.image) < 0)
-            known.unshift(ref.image);
+        if (ref.image && known.indexOf(ref.image) < 0) known.unshift(ref.image);
         known.forEach((url) => {
             const opt = _el('option', null, url.split('/').pop());
             opt.value = url;
@@ -1657,6 +2027,7 @@
         sel.value = ref.image || '';
         sel.addEventListener('change', () => updateReference({ image: sel.value || null }));
         wrap.appendChild(sel);
+
         // The picker only lists images already on the server. A new one has to be
         // uploaded into static/images/backgrounds (the same endpoint the graph
         // background uses), or referenced by URL — so offer both here instead of
@@ -1668,24 +2039,21 @@
         uploadInput.setAttribute('data-role', 'wp-bg-upload');
         uploadInput.addEventListener('change', async () => {
             const file = uploadInput.files && uploadInput.files[0];
-            if (!file)
-                return;
+            if (!file) return;
             try {
                 // ApiClient's declared answer shape only carries `image`; the route also
                 // answers `{error}` on a rejected upload, which is what this
                 // checks first.
-                const res = await ApiClient.uploadBackgroundImage(file);
-                if (!res || res.error)
-                    throw new Error((res && res.error) || 'upload failed');
-                state.backgrounds = null; // refresh the picker list
+                const res = await ApiClient.uploadBackgroundImage(file) as
+                    (Awaited<ReturnType<typeof ApiClient.uploadBackgroundImage>> & { error?: string }) | null;
+                if (!res || res.error) throw new Error((res && res.error) || 'upload failed');
+                state.backgrounds = null;          // refresh the picker list
                 await ensureBackgrounds();
                 await updateReference({ image: res.image });
                 _status(`Reference: ${String(res.image).split('/').pop()}.`, false);
-            }
-            catch (e) {
+            } catch (e) {
                 _status(`Upload failed: ${errText(e)}`, true);
-            }
-            finally {
+            } finally {
                 uploadInput.value = '';
             }
         });
@@ -1694,14 +2062,16 @@
         uploadBtn.title = 'Upload an image into static/images/backgrounds';
         wrap.appendChild(uploadBtn);
         const urlBtn = _btn('🔗', () => {
-            const url = window.prompt('Reference image URL (/static/…, https://… or data:):', ref.image || '');
-            if (url !== null)
-                updateReference({ image: url.trim() || null });
+            const url = window.prompt(
+                'Reference image URL (/static/…, https://… or data:):', ref.image || '');
+            if (url !== null) updateReference({ image: url.trim() || null });
         }, 'padding:1px 6px;');
         urlBtn.title = 'Use an image by URL';
         wrap.appendChild(urlBtn);
+
         if (ref.image) {
-            wrap.appendChild(_btn(ref.visible ? '👁' : '🚫', () => updateReference({ visible: !ref.visible }), 'padding:1px 6px;'));
+            wrap.appendChild(_btn(ref.visible ? '👁' : '🚫', () =>
+                updateReference({ visible: !ref.visible }), 'padding:1px 6px;'));
             const op = _el('input', 'width:64px;');
             op.type = 'range';
             op.min = '0';
@@ -1709,11 +2079,13 @@
             op.step = '0.05';
             op.value = String(ref.opacity == null ? 0.5 : ref.opacity);
             op.setAttribute('data-role', 'wp-bg-opacity');
-            op.addEventListener('change', () => updateReference({ opacity: parseFloat(op.value) }));
+            op.addEventListener('change', () =>
+                updateReference({ opacity: parseFloat(op.value) }));
             wrap.appendChild(op);
             // One click: make the grid the image's aspect, so painted cells and
             // the reference share geometry instead of fighting at different ratios.
-            wrap.appendChild(_help(_btn('▦ match', () => _gridFromReference(p), 'padding:1px 6px;font-size:11px;'), 'wp-reference'));
+            wrap.appendChild(_help(_btn('▦ match', () => _gridFromReference(p),
+                'padding:1px 6px;font-size:11px;'), 'wp-reference')!);
             // Move/resize/crop the picture (task-524). The rect is stored in cell
             // units, so the graph map layout draws the same geometry.
             const adjustBtn = _btn(state.refEdit ? '✔ adjust' : '✥ adjust', () => {
@@ -1726,12 +2098,14 @@
             }, 'padding:1px 6px;font-size:11px;');
             adjustBtn.title = 'Move, resize and crop the reference image';
             _help(wrap.appendChild(adjustBtn), 'wp-reference-adjust');
-            const resetBtn = _btn('⤢ reset', () => updateReference({ reset: true }), 'padding:1px 6px;font-size:11px;');
+            const resetBtn = _btn('⤢ reset', () => updateReference({ reset: true }),
+                'padding:1px 6px;font-size:11px;');
             resetBtn.title = 'Fit the whole image to the grid again (clears move/resize/crop)';
             wrap.appendChild(resetBtn);
         }
         return wrap;
     }
+
     /**
      * Make the grid the image's aspect ratio (the `▦ match` button).
      *
@@ -1742,69 +2116,64 @@
      * first — losing a hand-placed area to a one-click convenience is not a trade
      * worth making silently.
      */
-    async function _gridFromReference(p) {
+    async function _gridFromReference(p: WpPayload): Promise<void> {
         const img = state.refImage;
-        if (!img || !img.naturalWidth) {
-            _status('Load a reference image first.');
-            return;
-        }
+        if (!img || !img.naturalWidth) { _status('Load a reference image first.'); return; }
         const next = GM().gridForImageAspect(p.grid && p.grid.w, img.naturalWidth, img.naturalHeight);
-        if (!next) {
-            _status('That image has no readable size — try another file.', true);
-            return;
-        }
+        if (!next) { _status('That image has no readable size — try another file.', true); return; }
         const stranded = GM().strandedCount(p, next.w, next.h);
         if (stranded > 0) {
-            const go = window.confirm(`Match the grid to the image (${img.naturalWidth}×${img.naturalHeight})?\n\n`
+            const go = window.confirm(
+                `Match the grid to the image (${img.naturalWidth}×${img.naturalHeight})?\n\n`
                 + `The grid becomes ${next.w}×${next.h} cells, and ${stranded} painted cell(s) or `
                 + `placement(s) currently outside it will be removed. This can be undone.`);
-            if (!go)
-                return;
+            if (!go) return;
         }
         try {
-            state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid`, { w: next.w, h: next.h, cell_scale: (p.grid && p.grid.cell_scale) || 1, mode: p.mode });
-            state.view = null; // refit to the new aspect
+            state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid`,
+                { w: next.w, h: next.h, cell_scale: (p.grid && p.grid.cell_scale) || 1, mode: p.mode });
+            state.view = null;   // refit to the new aspect
             _status(`Grid set to ${next.w}×${next.h} (image aspect ${img.naturalWidth}×${img.naturalHeight})`
                 + (stranded ? `, ${stranded} out-of-bounds cell(s) removed` : '') + '.', false);
-        }
-        catch (e) {
+        } catch (e) {
             _status(`Grid failed: ${errText(e)}`, true);
         }
     }
-    async function updateReference(patch) {
-        const p = state.payload;
+
+    async function updateReference(patch: WpReferencePatch): Promise<void> {
+        const p = state.payload!;
         const ref = p.reference || {};
-        const body = {
+        const body: Record<string, unknown> = {
             image: ref.image || null,
             opacity: ref.opacity,
             visible: ref.visible,
             ...patch,
         };
-        if (body.image == null)
-            body.opacity = undefined; // cleared
+        if (body.image == null) body.opacity = undefined;   // cleared
         try {
             state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/reference`, body);
             render();
-        }
-        catch (e) {
+        } catch (e) {
             _status(`Reference failed: ${errText(e)}`, true);
         }
     }
-    function _routeLabel() {
+
+    function _routeLabel(): string {
         const stats = GM().routeStats(GM().routeCells(state.route || []).length);
         return `route: ${stats.label}`;
     }
-    function _mountGrid(p) {
+
+    function _mountGrid(p: WpPayload): void {
         const K = _konva();
-        if (!K || !state.gridHolder)
-            return;
+        if (!K || !state.gridHolder) return;
         const holder = state.gridHolder;
         const stage = new K.Stage({
             container: holder,
             width: holder.clientWidth || 900,
             height: holder.clientHeight || 480,
         });
-        const shape = (draw) => new K.Shape({ listening: false, sceneFunc: draw });
+        const shape = (draw: (ctx: CanvasRenderingContext2D) => void): WpKonvaNode =>
+            new K.Shape({ listening: false, sceneFunc: draw });
         const bgShape = shape((ctx) => _drawGridLines(ctx, p));
         const paintShape = shape((ctx) => _drawPaint(ctx, p));
         const featureShape = shape((ctx) => _drawFeatures(ctx, p));
@@ -1820,8 +2189,8 @@
         const refNode = new K.Image({
             x: 0,
             y: 0,
-            width: p.grid.w * CELL,
-            height: p.grid.h * CELL,
+            width: p.grid!.w * CELL,
+            height: p.grid!.h * CELL,
             opacity: (p.reference && p.reference.opacity != null) ? p.reference.opacity : 0.5,
             visible: !!(p.reference && p.reference.visible),
             listening: false,
@@ -1859,20 +2228,20 @@
             stage.position({ x: state.view.x || 0, y: state.view.y || 0 });
             _syncZoomButtons();
             _redrawGrid();
-        }
-        else {
+        } else {
             _fitGrid(p);
         }
     }
-    function _captureView() {
+
+    function _captureView(): void {
         const stage = state.stage;
-        if (stage)
-            state.view = { x: stage.x(), y: stage.y(), scale: stage.scaleX() };
+        if (stage) state.view = { x: stage.x(), y: stage.y(), scale: stage.scaleX() };
     }
-    function _redrawGrid() {
-        if (state.stage)
-            state.stage.batchDraw();
+
+    function _redrawGrid(): void {
+        if (state.stage) state.stage.batchDraw();
     }
+
     /**
      * Redraw only the decor + selection layers (in-progress paint stroke, feature
      * markers, route waypoints, cell selection). A paint *drag* changes nothing
@@ -1881,27 +2250,23 @@
      * re-rasterised the reference image each frame, which made painting crawl once
      * a large reference (deep_forest) was loaded.
      */
-    function _redrawDecor() {
+    function _redrawDecor(): void {
         const layers = state.layers;
-        if (layers && layers.decor)
-            layers.decor.batchDraw();
-        else
-            _redrawGrid();
+        if (layers && layers.decor) layers.decor.batchDraw();
+        else _redrawGrid();
         _drawSelection(state.payload, layers && layers.select);
-        if (layers && layers.select)
-            layers.select.batchDraw();
+        if (layers && layers.select) layers.select.batchDraw();
     }
-    function _drawSelection(p, layer) {
+
+    function _drawSelection(p: WpPayload | null, layer: WpKonvaNode | null): void {
         const K = _konva();
-        if (!p || !layer || !K)
-            return;
+        if (!p || !layer || !K) return;
         layer.destroyChildren();
         const sel = _sel(p);
         const keys = Object.keys(sel);
         keys.forEach((k) => {
             const c = GM().parseCellKey(k);
-            if (!c)
-                return;
+            if (!c) return;
             layer.add(new K.Rect({
                 x: c.x * CELL + 1, y: c.y * CELL + 1,
                 width: CELL - 2, height: CELL - 2,
@@ -1922,15 +2287,12 @@
             }));
         }
     }
-    function _ensureRefImage(p) {
+
+    function _ensureRefImage(p: WpPayload): WpTrackedImage | null {
         const ref = p.reference;
-        if (!ref || !ref.image) {
-            state.refImage = null;
-            return null;
-        }
-        if (state.refImage && state.refImage.__src === ref.image)
-            return state.refImage;
-        const img = new window.Image();
+        if (!ref || !ref.image) { state.refImage = null; return null; }
+        if (state.refImage && state.refImage.__src === ref.image) return state.refImage;
+        const img = new window.Image() as WpTrackedImage;
         img.__src = ref.image;
         img.onload = () => {
             state.refImage = img;
@@ -1944,6 +2306,7 @@
         img.src = ref.image;
         return img;
     }
+
     /** Fit the reference into the grid bounds, preserving its aspect ratio. */
     /**
      * The reference's destination rect in **cell** units. A stored rect (the
@@ -1951,11 +2314,11 @@
      * preserving aspect ratio and centring it. Cell units (not px) so the graph
      * map layout can draw the same picture at its own spacing (task-524).
      */
-    function _refRectCells(p, img) {
+    function _refRectCells(p: WpPayload, img: WpTrackedImage | null): WpRect {
         const stored = (p.reference || {}).rect;
         if (stored && typeof stored.x === 'number' && typeof stored.y === 'number'
-            && typeof stored.w === 'number' && typeof stored.h === 'number'
-            && stored.w > 0 && stored.h > 0) {
+                && typeof stored.w === 'number' && typeof stored.h === 'number'
+                && stored.w > 0 && stored.h > 0) {
             return { x: stored.x, y: stored.y, w: stored.w, h: stored.h };
         }
         const gw = (p.grid && p.grid.w) || 0;
@@ -1964,11 +2327,11 @@
         const ih = (img && img.naturalHeight) || gh || 1;
         return GM().fitReferenceRect(gw, gh, iw, ih);
     }
+
     /** Draw the reference into its rect (px) with the stored crop window. */
-    function _applyRefTransform(p) {
+    function _applyRefTransform(p: WpPayload): void {
         const node = state.refNode;
-        if (!node)
-            return;
+        if (!node) return;
         const img = state.refImage;
         const rect = _refRectCells(p, img);
         node.x(rect.x * CELL);
@@ -1977,20 +2340,20 @@
         node.height(rect.h * CELL);
         const iw = (img && img.naturalWidth) || 0;
         const ih = (img && img.naturalHeight) || 0;
-        if (!iw || !ih)
-            return;
+        if (!iw || !ih) return;
         const crop = (p.reference || {}).crop;
         node.crop(crop && crop.w
-            ? { x: crop.x * iw, y: crop.y * ih, width: crop.w * iw, height: crop.h * ih }
+            ? { x: crop.x! * iw, y: crop.y! * ih, width: crop.w * iw, height: crop.h! * ih }
             : { x: 0, y: 0, width: iw, height: ih });
     }
+
     /** Handle anchor points (cell units): corners resize, edges crop. */
-    function _refHandlePoints(rect) {
+    function _refHandlePoints(rect: WpRect): Record<string, WpCell> {
         return GM().referenceHandlePoints(rect);
     }
-    function _drawRefHandles(ctx, p) {
-        if (!state.refEdit || !state.refImage || !(p.reference && p.reference.image))
-            return;
+
+    function _drawRefHandles(ctx: CanvasRenderingContext2D, p: WpPayload): void {
+        if (!state.refEdit || !state.refImage || !(p.reference && p.reference.image)) return;
         const rect = _refRectCells(p, state.refImage);
         const scale = (state.stage && state.stage.scaleX()) || 1;
         ctx.save();
@@ -2003,20 +2366,21 @@
         Object.keys(pts).forEach((key) => {
             ctx.beginPath();
             ctx.arc(pts[key].x * CELL, pts[key].y * CELL, 5 / scale, 0, Math.PI * 2);
-            ctx.fillStyle = key.length === 2 ? '#58a6ff' : '#e3b341'; // corners vs edges
+            ctx.fillStyle = key.length === 2 ? '#58a6ff' : '#e3b341';   // corners vs edges
             ctx.fill();
         });
         ctx.restore();
     }
+
     /** What a pointer press grabs on the reference: a handle or the body. */
-    function _refHit(p, pos) {
+    function _refHit(p: WpPayload, pos: WpCell): { kind: string; key: string | null } | null {
         const rect = _refRectCells(p, state.refImage);
         const scale = (state.stage && state.stage.scaleX()) || 1;
         const tol = 9 / scale;
         const pts = _refHandlePoints(rect);
         for (const key of Object.keys(pts)) {
             if (Math.abs(pos.x - pts[key].x * CELL) <= tol
-                && Math.abs(pos.y - pts[key].y * CELL) <= tol) {
+                    && Math.abs(pos.y - pts[key].y * CELL) <= tol) {
                 return { kind: key.length === 2 ? 'resize' : 'crop', key };
             }
         }
@@ -2026,15 +2390,13 @@
         }
         return null;
     }
-    function _refMouseDown(p) {
-        if (!state.refImage || !(p.reference && p.reference.image))
-            return;
-        const pos = state.stage.getRelativePointerPosition();
-        if (!pos)
-            return;
+
+    function _refMouseDown(p: WpPayload): void {
+        if (!state.refImage || !(p.reference && p.reference.image)) return;
+        const pos = state.stage!.getRelativePointerPosition();
+        if (!pos) return;
         const target = _refHit(p, pos);
-        if (!target)
-            return;
+        if (!target) return;
         state.refDrag = {
             kind: target.kind,
             key: target.key,
@@ -2043,52 +2405,50 @@
             crop: Object.assign({ x: 0, y: 0, w: 1, h: 1 }, (p.reference || {}).crop || {}),
         };
     }
-    function _refMouseMove(p) {
+
+    function _refMouseMove(p: WpPayload): void {
         const drag = state.refDrag;
-        if (!drag)
-            return;
-        const pos = state.stage.getRelativePointerPosition();
-        if (!pos)
-            return;
+        if (!drag) return;
+        const pos = state.stage!.getRelativePointerPosition();
+        if (!pos) return;
         const cx = pos.x / CELL;
         const cy = pos.y / CELL;
-        let r = Object.assign({}, drag.rect);
-        let crop = Object.assign({}, drag.crop);
+        let r: WpRect = Object.assign({}, drag.rect);
+        let crop: Partial<WpRect> = Object.assign({}, drag.crop);
         if (drag.kind === 'move') {
             r.x = drag.rect.x + (cx - drag.start.x);
             r.y = drag.rect.y + (cy - drag.start.y);
-        }
-        else {
+        } else {
             // Pure geometry lives in grid-model (unit-tested): corners resize,
             // edges crop.
             const next = GM().referenceHandleDrag(drag.rect, drag.crop, drag.key, cx, cy);
             r = next.rect;
             crop = next.crop;
         }
-        state.refDrag.rect = r;
-        state.refDrag.crop = crop;
+        state.refDrag!.rect = r;
+        state.refDrag!.crop = crop;
         // Live preview without a round-trip; persisted on mouse-up.
         p.reference = Object.assign({}, p.reference, { rect: r, crop });
         _applyRefTransform(p);
         _redrawGrid();
     }
-    function _refMouseUp() {
+
+    function _refMouseUp(): void {
         const drag = state.refDrag;
-        if (!drag)
-            return;
+        if (!drag) return;
         state.refDrag = null;
         const p = state.payload;
-        if (!p || !(p.reference && p.reference.image))
-            return;
+        if (!p || !(p.reference && p.reference.image)) return;
         updateReference({ rect: drag.rect, crop: drag.crop });
     }
+
     // ───────────────── grid frame adjust (task-597) ───────────────
+
     /** Resize handles on the grid frame; only meaningful in adjust mode. */
-    function _drawGridHandles(ctx, p) {
-        if (!state.gridEdit)
-            return;
+    function _drawGridHandles(ctx: CanvasRenderingContext2D, p: WpPayload): void {
+        if (!state.gridEdit) return;
         const scale = (state.stage && state.stage.scaleX()) || 1;
-        const pts = GM().gridHandlePoints(p.grid.w, p.grid.h);
+        const pts = GM().gridHandlePoints(p.grid!.w, p.grid!.h);
         ctx.save();
         Object.keys(pts).forEach((key) => {
             ctx.beginPath();
@@ -2102,78 +2462,75 @@
             const off = drag.offset;
             ctx.fillStyle = '#e3b341';
             ctx.font = `${Math.max(10, 12 / scale)}px sans-serif`;
-            ctx.fillText(`offset ${off.x.toFixed(1)}, ${off.y.toFixed(1)}`, 8 / scale, (p.grid.h * CELL) + 14 / scale);
-        }
-        else if (drag && drag.w && drag.h) {
+            ctx.fillText(`offset ${off.x.toFixed(1)}, ${off.y.toFixed(1)}`, 8 / scale, (p.grid!.h * CELL) + 14 / scale);
+        } else if (drag && drag.w && drag.h) {
             ctx.fillStyle = '#e3b341';
             ctx.font = `${Math.max(10, 12 / scale)}px sans-serif`;
-            ctx.fillText(`${drag.w}×${drag.h}`, 8 / scale, (p.grid.h * CELL) + 14 / scale);
+            ctx.fillText(`${drag.w}×${drag.h}`, 8 / scale, (p.grid!.h * CELL) + 14 / scale);
         }
         ctx.restore();
     }
+
     /** What a pointer press grabs in grid-adjust mode: a handle or the frame. */
-    function _gridHit(p, pos) {
+    function _gridHit(p: WpPayload, pos: WpCell): { kind: string; key: string | null } | null {
         const scale = (state.stage && state.stage.scaleX()) || 1;
         const tol = 9 / scale;
-        const pts = GM().gridHandlePoints(p.grid.w, p.grid.h);
+        const pts = GM().gridHandlePoints(p.grid!.w, p.grid!.h);
         for (const key of Object.keys(pts)) {
             if (Math.abs(pos.x - pts[key].x * CELL) <= tol
-                && Math.abs(pos.y - pts[key].y * CELL) <= tol) {
+                    && Math.abs(pos.y - pts[key].y * CELL) <= tol) {
                 return { kind: 'resize', key };
             }
         }
-        const w = p.grid.w * CELL;
-        const h = p.grid.h * CELL;
+        const w = p.grid!.w * CELL;
+        const h = p.grid!.h * CELL;
         if (pos.x >= 0 && pos.x <= w && pos.y >= 0 && pos.y <= h) {
             return { kind: 'move', key: null };
         }
         return null;
     }
-    function _gridMouseDown(p) {
-        const pos = state.stage.getRelativePointerPosition();
-        if (!pos)
-            return;
+
+    function _gridMouseDown(p: WpPayload): void {
+        const pos = state.stage!.getRelativePointerPosition();
+        if (!pos) return;
         const target = _gridHit(p, pos);
-        if (!target)
-            return;
+        if (!target) return;
         state.gridDrag = {
             kind: target.kind,
             key: target.key,
             start: { x: pos.x / CELL, y: pos.y / CELL },
-            w: p.grid.w,
-            h: p.grid.h,
+            w: p.grid!.w,
+            h: p.grid!.h,
             offset: Object.assign({ x: 0, y: 0 }, p.map_offset || {}),
         };
     }
-    function _gridMouseMove(p) {
+
+    function _gridMouseMove(p: WpPayload): void {
         const drag = state.gridDrag;
-        if (!drag)
-            return;
-        const pos = state.stage.getRelativePointerPosition();
-        if (!pos)
-            return;
+        if (!drag) return;
+        const pos = state.stage!.getRelativePointerPosition();
+        if (!pos) return;
         const cx = pos.x / CELL;
         const cy = pos.y / CELL;
         if (drag.kind === 'move') {
             // Repositioning the *scope* on the graph map (task-523), not the
             // canvas: the grid stays put; map_offset moves every node of the
             // scope by this many cells.
-            state.gridDrag.offset = {
+            state.gridDrag!.offset = {
                 x: drag.offset.x + (cx - drag.start.x),
                 y: drag.offset.y + (cy - drag.start.y),
             };
-        }
-        else {
+        } else {
             const next = GM().gridHandleDrag(drag.w, drag.h, drag.key, { x: cx, y: cy });
-            state.gridDrag.w = next.w;
-            state.gridDrag.h = next.h;
+            state.gridDrag!.w = next.w;
+            state.gridDrag!.h = next.h;
         }
         _redrawDecor();
     }
-    async function _gridMouseUp(p) {
+
+    async function _gridMouseUp(p: WpPayload): Promise<void> {
         const drag = state.gridDrag;
-        if (!drag)
-            return;
+        if (!drag) return;
         state.gridDrag = null;
         try {
             if (drag.kind === 'move') {
@@ -2186,10 +2543,10 @@
                 const resp = await _post(`/${encodeURIComponent(p.scope.id)}/offset`, offset);
                 p.map_offset = (resp && resp.map_offset) || offset;
                 _status(`Grid offset set to ${offset.x}, ${offset.y} cells.`, false);
-            }
-            else if (drag.w !== p.grid.w || drag.h !== p.grid.h) {
+            } else if (drag.w !== p.grid!.w || drag.h !== p.grid!.h) {
                 const stranded = GM().strandedCount(p, drag.w, drag.h);
-                if (stranded > 0 && !window.confirm(`Resize the grid to ${drag.w}×${drag.h}?\n\n`
+                if (stranded > 0 && !window.confirm(
+                    `Resize the grid to ${drag.w}×${drag.h}?\n\n`
                     + `${stranded} painted cell(s) or placement(s) outside it will be removed. `
                     + 'This can be undone.')) {
                     render();
@@ -2204,15 +2561,15 @@
                     (stranded ? `, ${stranded} out-of-bounds cell(s) removed` : '') + '.', false);
             }
             _notify(true);
-        }
-        catch (e) {
+        } catch (e) {
             _status(`Grid adjust failed: ${errText(e)}`, true);
         }
         render();
     }
-    function _drawGridLines(ctx, p) {
-        const w = p.grid.w * CELL;
-        const h = p.grid.h * CELL;
+
+    function _drawGridLines(ctx: CanvasRenderingContext2D, p: WpPayload): void {
+        const w = p.grid!.w * CELL;
+        const h = p.grid!.h * CELL;
         ctx.save();
         // No opaque fill: the reference image (a layer beneath) must show through.
         const scale = state.stage ? state.stage.scaleX() : 1;
@@ -2239,17 +2596,17 @@
         ctx.arc(0, 0, 4 / scale, 0, Math.PI * 2);
         ctx.fill();
         ctx.font = `${Math.max(9, 11 / scale)}px sans-serif`;
-        ctx.fillText(`0,0 · ${p.grid.w}×${p.grid.h}`, 6 / scale, -5 / scale);
+        ctx.fillText(`0,0 · ${p.grid!.w}×${p.grid!.h}`, 6 / scale, -5 / scale);
         // Below ~4px per cell the lines become moiré — paint only.
         if (CELL * scale >= 4) {
             ctx.strokeStyle = 'rgba(255,255,255,0.07)';
             ctx.lineWidth = 1 / scale;
             ctx.beginPath();
-            for (let x = 0; x <= p.grid.w; x += 1) {
+            for (let x = 0; x <= p.grid!.w; x += 1) {
                 ctx.moveTo(x * CELL, 0);
                 ctx.lineTo(x * CELL, h);
             }
-            for (let y = 0; y <= p.grid.h; y += 1) {
+            for (let y = 0; y <= p.grid!.h; y += 1) {
                 ctx.moveTo(0, y * CELL);
                 ctx.lineTo(w, y * CELL);
             }
@@ -2257,7 +2614,8 @@
         }
         ctx.restore();
     }
-    function _drawPaint(ctx, p) {
+
+    function _drawPaint(ctx: CanvasRenderingContext2D, p: WpPayload): void {
         ctx.save();
         ctx.globalAlpha = state.paintAlpha == null ? 1 : state.paintAlpha;
         const layers = p.layers || {};
@@ -2265,18 +2623,17 @@
             const cells = layers[layer] || {};
             Object.keys(cells).forEach((key) => {
                 const pos = GM().parseCellKey(key);
-                if (!pos)
-                    return;
+                if (!pos) return;
                 const color = GM().layerColor(layer, cells[key]);
-                if (!color)
-                    return;
+                if (!color) return;
                 ctx.fillStyle = color;
                 ctx.fillRect(pos.x * CELL + 1, pos.y * CELL + 1, CELL - 2, CELL - 2);
             });
         });
         ctx.restore();
     }
-    function _drawFeatures(ctx, p) {
+
+    function _drawFeatures(ctx: CanvasRenderingContext2D, p: WpPayload): void {
         ctx.save();
         ctx.font = `${Math.max(9, CELL - 8)}px sans-serif`;
         ctx.textAlign = 'center';
@@ -2303,16 +2660,19 @@
             if (CELL >= 26) {
                 ctx.fillStyle = '#d9f2e5';
                 ctx.font = '9px sans-serif';
-                ctx.fillText(_ellipsize(a.name, 12), a.x * CELL + CELL / 2, a.y * CELL + CELL + 8);
+                ctx.fillText(_ellipsize(a.name, 12), a.x * CELL + CELL / 2,
+                    a.y * CELL + CELL + 8);
             }
         });
         ctx.restore();
     }
-    function _ellipsize(text, max) {
+
+    function _ellipsize(text: unknown, max: number): string {
         const s = String(text == null ? '' : text);
         return s.length > max ? `${s.slice(0, max - 1)}…` : s;
     }
-    function _drawRoute(ctx) {
+
+    function _drawRoute(ctx: CanvasRenderingContext2D): void {
         // In-progress paint stroke (drag): drawn optimistically, committed on
         // mouse-up as one batch. Without this a brush drag felt like "click and
         // wait" — now it paints a live trail.
@@ -2328,8 +2688,7 @@
             ctx.restore();
         }
         const pts = state.route || [];
-        if (!pts.length)
-            return;
+        if (!pts.length) return;
         ctx.save();
         ctx.strokeStyle = '#7ab';
         ctx.lineWidth = Math.max(1.5, CELL / 6);
@@ -2339,10 +2698,7 @@
             pts.forEach((pt, i) => {
                 const cx = pt.x * CELL + CELL / 2;
                 const cy = pt.y * CELL + CELL / 2;
-                if (i === 0)
-                    ctx.moveTo(cx, cy);
-                else
-                    ctx.lineTo(cx, cy);
+                if (i === 0) ctx.moveTo(cx, cy); else ctx.lineTo(cx, cy);
             });
             ctx.stroke();
         }
@@ -2355,52 +2711,48 @@
         });
         ctx.restore();
     }
-    function _isPaintTool() {
+
+    function _isPaintTool(): boolean {
         return state.tool === 'paint' || state.tool === 'erase';
     }
-    function _strokeAdd(p, cell) {
-        if (!cell)
-            return false;
+
+    function _strokeAdd(p: WpPayload, cell: WpCell | null): boolean {
+        if (!cell) return false;
         const keys = state.strokeKeys || (state.strokeKeys = {});
         let added = false;
         _brushCells(p, cell.x, cell.y).forEach((b) => {
             const k = GM().cellKey(b.x, b.y);
-            if (!keys[k]) {
-                keys[k] = true;
-                state.stroke.push(b);
-                added = true;
-            }
+            if (!keys[k]) { keys[k] = true; state.stroke.push(b); added = true; }
         });
         return added;
     }
-    async function _commitStroke(p) {
+
+    async function _commitStroke(p: WpPayload): Promise<void> {
         state.stroking = false;
         const cells = state.stroke || [];
         const layer = state.strokeLayer;
         const value = state.strokeValue;
         state.stroke = [];
         state.strokeKeys = {};
-        if (!cells.length) {
-            _redrawDecor();
-            return;
-        }
+        if (!cells.length) { _redrawDecor(); return; }
         try {
             if (cells.length === 1) {
-                state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/paint`, { layer, x: cells[0].x, y: cells[0].y, value });
-            }
-            else {
-                state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/paint_batch`, { edits: cells.map((c) => ({ layer, x: c.x, y: c.y, value })) });
+                state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/paint`,
+                    { layer, x: cells[0].x, y: cells[0].y, value });
+            } else {
+                state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/paint_batch`,
+                    { edits: cells.map((c) => ({ layer, x: c.x, y: c.y, value })) });
             }
             _notify(true);
             render();
-        }
-        catch (e) {
+        } catch (e) {
             _status(`Paint failed: ${errText(e)}`, true);
         }
     }
-    function _wireGrid(p) {
+
+    function _wireGrid(p: WpPayload): void {
         // Only ever reached from _mountGrid, which assigns state.stage first.
-        const stage = state.stage;
+        const stage = state.stage!;
         let dragged = false;
         // Paint/erase drag = paint. Pan is space-drag (or the zoom buttons), so a
         // stroke is never interrupted by a pan. Select drag = marquee, decided by
@@ -2410,38 +2762,26 @@
         // pans there.
         const dragPaints = () => _isPaintTool() || state.tool === 'move';
         stage.draggable(state.spaceDown || (!state.refEdit && !state.gridEdit && !dragPaints()
-            && state.tool !== 'select'));
-        stage.on('dragstart', () => { dragged = true; });
+            && state.tool !== 'select'));        stage.on('dragstart', () => { dragged = true; });
         stage.on('dragend', _captureView);
+
         stage.on('mousedown', (e) => {
-            if (state.refEdit && !state.spaceDown) {
-                _refMouseDown(p);
-                return;
-            }
-            if (state.gridEdit && !state.spaceDown) {
-                _gridMouseDown(p);
-                return;
-            }
-            if (e.evt && e.evt.button !== 0)
-                return;
+            if (state.refEdit && !state.spaceDown) { _refMouseDown(p); return; }
+            if (state.gridEdit && !state.spaceDown) { _gridMouseDown(p); return; }
+            if (e.evt && e.evt.button !== 0) return;
             if (state.tool === 'select' && !state.spaceDown) {
                 const cell = _cellAtPointer(p);
-                if (!cell)
-                    return;
+                if (!cell) return;
                 state.marquee = { anchor: cell, to: cell,
                     add: !!(e.evt && e.evt.shiftKey) };
                 _redrawDecor();
                 return;
             }
-            if (!_isPaintTool() || state.spaceDown)
-                return;
+            if (!_isPaintTool() || state.spaceDown) return;
             // A selection is the whole point of the Select tool: with cells
             // selected, a paint click is one batch over all of them rather than a
             // single-cell edit the author then has to repeat by hand.
-            if (_selectedCells(p).length) {
-                _applyToSelection(p);
-                return;
-            }
+            if (_selectedCells(p).length) { _applyToSelection(p); return; }
             state.stroke = [];
             state.strokeKeys = {};
             state.strokeLayer = state.layer;
@@ -2451,14 +2791,8 @@
             _redrawDecor();
         });
         stage.on('mousemove', () => {
-            if (state.refEdit) {
-                _refMouseMove(p);
-                return;
-            }
-            if (state.gridEdit) {
-                _gridMouseMove(p);
-                return;
-            }
+            if (state.refEdit) { _refMouseMove(p); return; }
+            if (state.gridEdit) { _gridMouseMove(p); return; }
             const cell = _cellAtPointer(p);
             if (state.marquee && cell) {
                 if (cell.x !== state.marquee.to.x || cell.y !== state.marquee.to.y) {
@@ -2467,50 +2801,31 @@
                 }
                 return;
             }
-            if (state.stroking && _strokeAdd(p, cell))
-                _redrawDecor();
+            if (state.stroking && _strokeAdd(p, cell)) _redrawDecor();
             _updateCellInfo(p);
         });
         stage.on('mouseup mouseleave', () => {
-            if (state.refEdit) {
-                _refMouseUp();
-                return;
-            }
-            if (state.gridEdit) {
-                _gridMouseUp(p);
-                return;
-            }
-            if (state.marquee) {
-                _commitMarquee(p);
-                return;
-            }
-            if (state.stroking)
-                _commitStroke(p);
+            if (state.refEdit) { _refMouseUp(); return; }
+            if (state.gridEdit) { _gridMouseUp(p); return; }
+            if (state.marquee) { _commitMarquee(p); return; }
+            if (state.stroking) _commitStroke(p);
         });
+
         stage.on('click tap', () => {
-            if (state.refEdit || state.gridEdit)
-                return; // adjust modes own the pointer
-            if (dragged) {
-                dragged = false;
-                return;
-            }
-            if (_isPaintTool())
-                return; // already committed by the stroke
-            if (state.tool === 'select')
-                return; // committed by the marquee
+            if (state.refEdit || state.gridEdit) return;   // adjust modes own the pointer
+            if (dragged) { dragged = false; return; }
+            if (_isPaintTool()) return;   // already committed by the stroke
+            if (state.tool === 'select') return;   // committed by the marquee
             const cell = _cellAtPointer(p);
-            if (cell)
-                _gridClick(p, cell);
+            if (cell) _gridClick(p, cell);
         });
         // Right-click is "what is this?" on any tool, so a cell is never a dead
         // end you have to switch tools to inspect.
         stage.on('contextmenu', (e) => {
             e.evt.preventDefault();
-            if (state.refEdit || state.gridEdit)
-                return;
+            if (state.refEdit || state.gridEdit) return;
             const cell = _cellAtPointer(p);
-            if (cell)
-                inspectCell(p, cell.x, cell.y);
+            if (cell) inspectCell(p, cell.x, cell.y);
         });
         stage.on('wheel', (e) => {
             e.evt.preventDefault();
@@ -2525,37 +2840,41 @@
             _redrawGrid();
         });
     }
+
     // ───────────────── cell selection and move (task-536) ───────────────
+
     /** The cell keys selected on this scope, as a set-like object. */
-    function _sel(p) {
+    function _sel(p: WpPayload | null): Record<string, boolean> {
         const id = (p && p.scope && p.scope.id) || state.scopeId || '';
-        if (!state.selection[id])
-            state.selection[id] = {};
+        if (!state.selection[id]) state.selection[id] = {};
         return state.selection[id];
     }
-    function _selectedCells(p) {
+
+    function _selectedCells(p: WpPayload | null): WpCell[] {
         return Object.keys(_sel(p)).map((k) => GM().parseCellKey(k))
             .filter(Boolean)
             .map((c) => ({ x: c.x, y: c.y }));
     }
-    function _setSelection(p, keys) {
+
+    function _setSelection(p: WpPayload | null, keys: Record<string, boolean>): void {
         _sel(p);
         state.selection[(p && p.scope && p.scope.id) || state.scopeId || ''] = keys;
     }
+
     /** The cells a marquee from the anchor to `to` covers, clipped to the grid. */
-    function _marqueeCells(p, to) {
+    function _marqueeCells(p: WpPayload, to: WpCell): Record<string, boolean> {
         const a = (state.marquee && state.marquee.anchor) || to;
         const x0 = Math.max(0, Math.min(a.x, to.x));
-        const x1 = Math.min(p.grid.w - 1, Math.max(a.x, to.x));
+        const x1 = Math.min(p.grid!.w - 1, Math.max(a.x, to.x));
         const y0 = Math.max(0, Math.min(a.y, to.y));
-        const y1 = Math.min(p.grid.h - 1, Math.max(a.y, to.y));
-        const out = {};
+        const y1 = Math.min(p.grid!.h - 1, Math.max(a.y, to.y));
+        const out: Record<string, boolean> = {};
         for (let y = y0; y <= y1; y += 1) {
-            for (let x = x0; x <= x1; x += 1)
-                out[GM().cellKey(x, y)] = true;
+            for (let x = x0; x <= x1; x += 1) out[GM().cellKey(x, y)] = true;
         }
         return out;
     }
+
     /**
      * Shift the selected cells' contents one cell, in one request (task-536).
      *
@@ -2568,22 +2887,18 @@
      * behaviour: a cell shifted past the edge is dropped from the move, not
      * silently wrapped to the other side.
      */
-    async function _nudge(p, dx, dy) {
+    async function _nudge(p: WpPayload, dx: number, dy: number): Promise<void> {
         const cells = _selectedCells(p);
-        if (!cells.length) {
-            _status('Nothing selected — use the ⬚ Select tool first.', true);
-            return;
-        }
+        if (!cells.length) { _status('Nothing selected — use the ⬚ Select tool first.', true); return; }
         const layers = GM().PAINT_LAYERS;
-        const layerCells = {};
-        layers.forEach((l) => { layerCells[l] = p.layers?.[l] || {}; });
-        const edits = [];
-        const moving = [];
+        const layerCells: Record<string, Record<string, string>> = {};
+        layers.forEach((l: string) => { layerCells[l] = p.layers?.[l] || {}; });
+        const edits: WpEdit[] = [];
+        const moving: { from: WpCell; to: WpCell }[] = [];
         cells.forEach((c) => {
             const nx = c.x + dx;
             const ny = c.y + dy;
-            if (nx < 0 || ny < 0 || nx >= p.grid.w || ny >= p.grid.h)
-                return; // clamped off
+            if (nx < 0 || ny < 0 || nx >= p.grid!.w || ny >= p.grid!.h) return;   // clamped off
             moving.push({ from: c, to: { x: nx, y: ny } });
         });
         if (!moving.length) {
@@ -2592,38 +2907,37 @@
         }
         // Clear first, then write: a value moving one cell east must not be
         // cleared by its own neighbour's clear on the next step of the same batch.
-        moving.forEach(({ from }) => layers.forEach((l) => {
+        moving.forEach(({ from }) => layers.forEach((l: string) => {
             const k = GM().cellKey(from.x, from.y);
             if (layerCells[l][k] != null) {
                 edits.push({ layer: l, x: from.x, y: from.y, value: null });
             }
         }));
-        moving.forEach(({ from, to }) => layers.forEach((l) => {
+        moving.forEach(({ from, to }) => layers.forEach((l: string) => {
             const k = GM().cellKey(from.x, from.y);
             const value = layerCells[l][k];
-            if (value != null)
-                edits.push({ layer: l, x: to.x, y: to.y, value });
+            if (value != null) edits.push({ layer: l, x: to.x, y: to.y, value });
         }));
         try {
-            state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/paint_batch`, { edits });
+            state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/paint_batch`,
+                { edits });
             const next = {};
-            moving.forEach(({ to }) => { next[GM().cellKey(to.x, to.y)] = true; });
+            moving.forEach(({ to }) => { (next as Record<string, boolean>)[GM().cellKey(to.x, to.y)] = true; });
             _setSelection(p, next);
             const dropped = cells.length - moving.length;
             _status(`Moved ${moving.length} cell${moving.length === 1 ? '' : 's'}`
                 + (dropped ? `, ${dropped} left at the edge.` : '.'));
             _notify(true);
             render();
-        }
-        catch (e) {
+        } catch (e) {
             _status(`Move failed: ${errText(e)}`, true);
         }
     }
+
     /** Paint the active value (or erase) across the whole selection, one request. */
-    async function _applyToSelection(p) {
+    async function _applyToSelection(p: WpPayload): Promise<boolean> {
         const cells = _selectedCells(p);
-        if (!cells.length)
-            return false;
+        if (!cells.length) return false;
         const layer = state.layer;
         const value = state.tool === 'erase' ? null : state.value;
         if (state.tool === 'paint' && (value == null || value === '')) {
@@ -2631,33 +2945,32 @@
             return true;
         }
         try {
-            state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/paint_batch`, { edits: cells.map((c) => ({ layer, x: c.x, y: c.y, value })) });
+            state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/paint_batch`,
+                { edits: cells.map((c) => ({ layer, x: c.x, y: c.y, value })) });
             _status(`${state.tool === 'erase' ? 'Cleared' : 'Painted'} ${cells.length} `
                 + `cell${cells.length === 1 ? '' : 's'} on ${layer}.`);
             _notify(true);
             render();
-        }
-        catch (e) {
+        } catch (e) {
             _status(`${state.tool === 'erase' ? 'Clear' : 'Paint'} failed: ${errText(e)}`, true);
         }
         return true;
     }
-    function _cellAtPointer(p) {
+
+    function _cellAtPointer(p: WpPayload): WpCell | null {
         const rp = state.stage && state.stage.getRelativePointerPosition();
-        if (!rp)
-            return null;
+        if (!rp) return null;
         const x = Math.floor(rp.x / CELL);
         const y = Math.floor(rp.y / CELL);
-        if (x < 0 || y < 0 || x >= p.grid.w || y >= p.grid.h)
-            return null;
+        if (x < 0 || y < 0 || x >= p.grid!.w || y >= p.grid!.h) return null;
         return { x, y };
     }
+
     /** Turn a finished drag into a selection (task-536). */
-    function _commitMarquee(p) {
+    function _commitMarquee(p: WpPayload): void {
         const drag = state.marquee;
         state.marquee = null;
-        if (!drag)
-            return;
+        if (!drag) return;
         const keys = _marqueeCells(p, drag.to);
         const k = GM().cellKey(drag.anchor.x, drag.anchor.y);
         const single = Object.keys(keys).length === 1;
@@ -2665,16 +2978,14 @@
             // Shift adds to what was already selected; it never clears, which is
             // the whole point of holding shift.
             _setSelection(p, Object.assign({}, _sel(p), keys));
-        }
-        else if (single && _sel(p)[k]) {
+        } else if (single && _sel(p)[k]) {
             // A click on an already-selected cell takes it back. The same gesture
             // that made the selection removes it, so there is no state where the
             // only way out of a stray selection is a keyboard shortcut.
             const next = { ..._sel(p) };
             delete next[k];
             _setSelection(p, next);
-        }
-        else {
+        } else {
             _setSelection(p, keys);
         }
         const n = Object.keys(_sel(p)).length;
@@ -2683,11 +2994,13 @@
         _redrawDecor();
         render();
     }
-    function _gridClick(p, cell) {
+
+    function _gridClick(p: WpPayload, cell: WpCell): void {
         const fmap = GM().featureMap(p);
         const placement = fmap[GM().cellKey(cell.x, cell.y)] || null;
         onCellClick(p, cell.x, cell.y, placement);
     }
+
     // ─────────────────────── cell inspector (task-540) ──────────────────
     //
     // Placing an area or painting a cell used to leave no way to find out what
@@ -2695,72 +3008,66 @@
     // Hover reads the cell from the payload, and a click (or right-click on any
     // tool) opens a panel with the same facts plus the actions that apply to
     // exactly that cell.
+
     /** One line describing a cell, for the HUD hover readout. */
-    function _cellLine(info) {
-        if (!info)
-            return '';
-        if (info.empty)
-            return `(${info.x},${info.y}) — nothing here`;
+    function _cellLine(info: WpCellInfo | null): string {
+        if (!info) return '';
+        if (info.empty) return `(${info.x},${info.y}) — nothing here`;
         const bits = [];
         // The author's name leads, because it is the thing they wrote (task-560);
         // the paint layers are the evidence for it.
-        if (info.name)
-            bits.push(info.name);
-        else if (info.biome)
-            bits.push(String(info.biome).replace(/_/g, ' '));
-        if (info.road)
-            bits.push(String(info.road).replace(/_/g, ' '));
+        if (info.name) bits.push(info.name);
+        else if (info.biome) bits.push(String(info.biome).replace(/_/g, ' '));
+        if (info.road) bits.push(String(info.road).replace(/_/g, ' '));
         // A structure cell says what it is, because it is not a place and the
         // author needs to know that before generating (task-562).
-        if (info.kind)
-            bits.push(STRUCTURE_NOTES[info.kind] || info.kind);
+        if (info.kind) bits.push(STRUCTURE_NOTES[info.kind] || info.kind);
         // A building without an interior says so on hover, because "the door is
         // locked" is a thing the author wants to notice *while* painting, not
         // discover in play (task-563).
-        if (info.enter && !info.child)
-            bits.push(info.enter);
-        if (info.floor !== null)
-            bits.push(GM().floorLabel(info.floor));
-        if (info.area)
-            bits.push(`📍 ${info.area.name}`);
-        if (info.child)
-            bits.push(`🏠 ${info.child.name || info.child.id}`);
+        if (info.enter && !info.child) bits.push(info.enter);
+        if (info.floor !== null) bits.push(GM().floorLabel(info.floor));
+        if (info.area) bits.push(`📍 ${info.area.name}`);
+        if (info.child) bits.push(`🏠 ${info.child.name || info.child.id}`);
         return `(${info.x},${info.y}) ${bits.join(' · ')}`;
     }
-    function _updateCellInfo(p) {
+
+    function _updateCellInfo(p: WpPayload): void {
         const el = state.cellInfoEl;
-        if (!el)
-            return;
+        if (!el) return;
         const cell = _cellAtPointer(p);
         const info = cell ? GM().cellInfo(p, cell.x, cell.y, state.vocab) : null;
         // Konva fires mousemove per pixel; only touch the DOM when the cell or
         // its content actually changed.
         const key = info ? `${info.key}|${info.name}|${info.biome}|${info.road}|${info.floor}|` +
             `${info.area ? info.area.id : ''}|${info.child ? info.child.id : ''}` : '';
-        if (key === state.cellInfoKey)
-            return;
+        if (key === state.cellInfoKey) return;
         state.cellInfoKey = key;
         el.textContent = _cellLine(info) || 'hover a cell to read it';
     }
-    function inspectCell(p, x, y) {
+
+    function inspectCell(p: WpPayload, x: number, y: number): void {
         state.inspected = { x, y };
         render();
     }
-    function _cellPanel(p) {
+
+    function _cellPanel(p: WpPayload): HTMLElement | null {
         const at = state.inspected;
-        if (!at || !p.scope.has_grid)
-            return null;
+        if (!at || !p.scope.has_grid) return null;
         const info = GM().cellInfo(p, at.x, at.y, state.vocab);
         const wrap = _el('div', 'border:1px solid var(--border,#3a3a44);border-radius:8px;' +
             'padding:8px;margin-bottom:10px;font-size:12px;');
         wrap.setAttribute('data-role', 'wp-cellpanel');
         const head = _el('div', 'display:flex;gap:8px;align-items:center;flex-wrap:wrap;');
         head.appendChild(_el('strong', null, `Cell (${info.x},${info.y})`));
-        head.appendChild(_el('span', 'color:var(--text-muted,#999);', info.empty ? 'nothing on this cell' : 'what is on this cell'));
-        head.appendChild(_btn('✕', () => { state.inspected = null; render(); }, 'margin-left:auto;padding:1px 7px;', 'Close the cell panel'));
+        head.appendChild(_el('span', 'color:var(--text-muted,#999);',
+            info.empty ? 'nothing on this cell' : 'what is on this cell'));
+        head.appendChild(_btn('✕', () => { state.inspected = null; render(); },
+            'margin-left:auto;padding:1px 7px;', 'Close the cell panel'));
         wrap.appendChild(head);
+
         const rows = _el('div', 'display:flex;flex-direction:column;gap:2px;margin-top:6px;');
-        const row = (label, value) => {
+        const row = (label: string, value: string): void => {
             const r = _el('div', 'display:flex;gap:6px;align-items:baseline;');
             r.appendChild(_el('span', 'color:var(--text-muted,#999);min-width:78px;', label));
             r.appendChild(_el('span', null, value));
@@ -2783,9 +3090,8 @@
         // a cell's exits are its passable neighbours; a solid neighbour is a
         // wall to your face, and the map edge is not an exit at all.
         const neighbours = GM().cellNeighbours(p, at.x, at.y, state.vocab);
-        const label = (n) => {
-            if (n === null)
-                return 'map edge';
+        const label = (n: WpCellInfo | null): string => {
+            if (n === null) return 'map edge';
             const noun = String(n.road || n.biome || '').replace(/_/g, ' ');
             const solid = n.kind && n.kind !== 'place' ? ` (${n.kind})` : '';
             const what = noun ? `${noun}${solid}` : 'empty';
@@ -2794,6 +3100,7 @@
         row('exits', ['N', 'E', 'S', 'W']
             .map((d) => `${d}: ${label(neighbours[d])}`).join(' · '));
         wrap.appendChild(rows);
+
         // The cell's name (task-560) — what the place is *called*, which is what
         // it compiles to. First, because a painted town is a list of names, and
         // "Building 3,4" is not an address.
@@ -2807,36 +3114,40 @@
         nameInput.addEventListener('change', () => {
             setCellName(p, info.x, info.y, nameInput.value);
         });
-        nameInput.addEventListener('keydown', (ev) => { if (ev.key === 'Enter')
-            nameInput.blur(); });
+        nameInput.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') nameInput.blur(); });
         nameRow.appendChild(nameInput);
         wrap.appendChild(nameRow);
+
         const actions = _el('div', 'display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;');
         if (info.area) {
             actions.appendChild(_btn(`📍 Move ${info.area.name}`, () => {
                 state.tool = 'area';
-                state.selectedArea = info.area.id;
+                state.selectedArea = info.area!.id;
                 render();
             }, '', 'Switch to the Area tool with this area picked, then click its new cell'));
-            actions.appendChild(_btn('🗑 Unplace', () => unplaceArea(info.area.id), '', 'Take this area off the map; the area itself is untouched'));
+            actions.appendChild(_btn('🗑 Unplace', () => unplaceArea(info.area!.id),
+                '', 'Take this area off the map; the area itself is untouched'));
             if (window.VW && window.VW.inspector) {
                 actions.appendChild(_btn('🔎 Open area', () => {
-                    state.overlay.remove();
-                    window.VW.inspector.showNode(info.area.id);
+                    state.overlay!.remove();
+                    window.VW.inspector.showNode(info.area!.id);
                 }, '', 'Open this area in the graph inspector'));
             }
         }
         if (info.child) {
             actions.appendChild(_btn(`📂 Open ${info.child.name || info.child.id}`, () => {
-                load(info.child.id);
+                load(info.child!.id);
             }, '', 'Drill into this sub-zone'));
-            actions.appendChild(_btn('🗑 Remove sub-zone', () => removeFeature(info.child.id), '', 'Take the child scope off this cell (the scope itself is kept)'));
+            actions.appendChild(_btn('🗑 Remove sub-zone', () => removeFeature(info.child!.id),
+                '', 'Take the child scope off this cell (the scope itself is kept)'));
         }
         if (info.painted) {
-            actions.appendChild(_btn('🧽 Clear paint', () => clearCell(p, info.x, info.y), '', 'Erase every paint layer on this one cell (one undo step)'));
+            actions.appendChild(_btn('🧽 Clear paint', () => clearCell(p, info.x, info.y),
+                '', 'Erase every paint layer on this one cell (one undo step)'));
         }
         if (!actions.childNodes.length) {
-            actions.appendChild(_el('span', 'color:var(--text-muted,#999);', 'Nothing to do here — paint it, or place an area/feature on it.'));
+            actions.appendChild(_el('span', 'color:var(--text-muted,#999);',
+                'Nothing to do here — paint it, or place an area/feature on it.'));
         }
         wrap.appendChild(actions);
         // The ways Generate minted out of the area placed on this cell, and what
@@ -2844,16 +3155,18 @@
         // the seam is the author\'s decision, and the cell it belongs to is the
         // one place the painter can show it next to the thing it joins.
         const seams = _seamPanel(p, info.area && info.area.id);
-        if (seams)
-            wrap.appendChild(seams);
+        if (seams) wrap.appendChild(seams);
         // …and the one action that changes what an area *is* rather than where it
         // sits: promote it into a child scope, with the gateway to it (task-535).
         if (info.area) {
-            wrap.appendChild(_btn('🪜 Make this a scope…', () => promoteArea(info.area.id), 'margin-top:8px;width:100%;', 'Turn this area into a child scope of '
+            wrap.appendChild(_btn('🪜 Make this a scope…',
+                () => promoteArea(info.area!.id), 'margin-top:8px;width:100%;',
+                'Turn this area into a child scope of '
                 + `${p.scope.name}, with a way in from its cell`));
         }
         return wrap;
     }
+
     /**
      * The boundary ways of one placed area, each with a way to take it away or
      * hand it back.
@@ -2863,29 +3176,30 @@
      * reason the two live in one request. A seam already handed over (a hand
      * written way of the author\'s own) is listed as such, with only "Restore".
      */
-    function _seamPanel(p, areaId) {
-        if (!areaId)
-            return null;
+    function _seamPanel(p: WpPayload, areaId?: string | null): HTMLElement | null {
+        if (!areaId) return null;
         const rows = (p.boundary_ways || []).filter((w) => w.area_id === areaId);
         const taken = (p.boundary_overrides || []).filter((o) => {
             const row = rows.find((w) => w.way_id === o.way_id);
             return row === undefined;
         });
-        if (!rows.length && !taken.length)
-            return null;
+        if (!rows.length && !taken.length) return null;
+
         const box = _el('div', 'margin-top:8px;padding-top:8px;border-top:1px solid ' +
             'var(--border,#3a3a44);display:flex;flex-direction:column;gap:3px;');
         box.setAttribute('data-role', 'wp-seams');
-        box.appendChild(_el('div', 'color:var(--text-muted,#999);font-size:11px;', 'Ways out of this area — Generate made these, you decide'));
-        const line = (label, title, action) => {
+        box.appendChild(_el('div', 'color:var(--text-muted,#999);font-size:11px;',
+            'Ways out of this area — Generate made these, you decide'));
+
+        const line = (label: string, title: string, action: HTMLElement | null): void => {
             const r = _el('div', 'display:flex;gap:6px;align-items:center;');
             const text = _el('span', 'flex:1;min-width:0;', label);
             text.title = title || label;
             r.appendChild(text);
-            if (action)
-                r.appendChild(action);
+            if (action) r.appendChild(action);
             box.appendChild(r);
         };
+
         rows.forEach((w) => {
             const seamId = w.way_id;
             const where = w.to_name || w.to_id || 'somewhere';
@@ -2894,47 +3208,53 @@
                 line(label, 'You have taken this seam over; Generate leaves it alone', null);
                 return;
             }
-            line(label, 'Remove this way. Generate will not put it back.', _btn('✕', () => setSeam(p, seamId, 'suppress'), 'padding:1px 7px;', 'Delete this way and keep Generate from re-adding it'));
+            line(label, 'Remove this way. Generate will not put it back.',
+                _btn('✕', () => setSeam(p, seamId, 'suppress'), 'padding:1px 7px;',
+                    'Delete this way and keep Generate from re-adding it'));
         });
+
         // A seam the author removed (or replaced) has no node left to list, so it
         // is read back from the record — otherwise restoring it would need a
         // remembered way id, which is exactly what an author should not have to do.
         taken.forEach((o) => {
-            const restore = _btn('↺', () => setSeam(p, o.way_id, 'auto'), 'padding:1px 7px;', 'Hand this seam back to Generate');
+            const restore = _btn('↺', () => setSeam(p, o.way_id, 'auto'),
+                'padding:1px 7px;', 'Hand this seam back to Generate');
             const what = o.action === 'hand' && o.hand_way_id
                 ? `your own way (${o.hand_way_id})` : 'removed by you';
             line(`to ${what}`, 'Generate left this one alone; restore it', restore);
         });
         return box;
     }
+
     /** Take one boundary seam over, or hand it back to the compiler (task-528). */
-    async function setSeam(p, wayId, action) {
+    async function setSeam(p: WpPayload, wayId: string, action: string): Promise<void> {
         try {
-            state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/boundary_override`, { way_id: wayId, action });
+            state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/boundary_override`,
+                { way_id: wayId, action });
             _status(action === 'auto'
                 ? 'Generate will mint that way again.'
                 : 'Way removed — Generate will not put it back.');
             _notify(true);
             render();
-        }
-        catch (e) {
+        } catch (e) {
             _status(`Could not change that way: ${errText(e)}`, true);
         }
     }
+
     /** Erase all three paint layers on one cell, in a single request/undo step. */
-    async function clearCell(p, x, y) {
+    async function clearCell(p: WpPayload, x: number, y: number): Promise<void> {
         try {
             state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/paint_batch`, {
-                edits: GM().PAINT_LAYERS.map((layer) => ({ layer, x, y, value: null })),
+                edits: GM().PAINT_LAYERS.map((layer: any) => ({ layer, x, y, value: null })),
             });
             _status(`Cleared the paint on (${x},${y}).`);
             _notify(true);
             render();
-        }
-        catch (e) {
+        } catch (e) {
             _status(`Clear failed: ${errText(e)}`, true);
         }
     }
+
     /**
      * Set (or clear) one cell's author name (task-560).
      *
@@ -2943,38 +3263,36 @@
      * must not silently unname a place. An empty box clears it, and the server drops
      * the entry entirely so an unnamed scope loads byte-identically.
      */
-    async function setCellName(p, x, y, name) {
+    async function setCellName(p: WpPayload, x: number, y: number, name: unknown): Promise<void> {
         const wanted = String(name || '').trim();
         try {
-            state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/name`, { x, y, name: wanted });
+            state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/name`,
+                { x, y, name: wanted });
             _status(wanted
                 ? `Named (${x},${y}) “${wanted}”.`
                 : `Cleared the name on (${x},${y}).`);
             _notify(true);
             render();
-        }
-        catch (e) {
+        } catch (e) {
             _status(`Name failed: ${errText(e)}`, true);
         }
     }
+
     /**
      * Grey out a zoom control that is already at its clamp (task-595). The
      * buttons used to look live at the floor and do nothing when pressed, which
      * reads as a broken control rather than a reached limit.
      */
-    function _syncZoomButtons() {
+    function _syncZoomButtons(): void {
         const scale = state.stage ? state.stage.scaleX() : null;
-        if (!scale)
-            return;
-        if (state.zoomOutBtn)
-            state.zoomOutBtn.disabled = scale <= MIN_SCALE + 1e-6;
-        if (state.zoomInBtn)
-            state.zoomInBtn.disabled = scale >= MAX_SCALE - 1e-6;
+        if (!scale) return;
+        if (state.zoomOutBtn) state.zoomOutBtn.disabled = scale <= MIN_SCALE + 1e-6;
+        if (state.zoomInBtn) state.zoomInBtn.disabled = scale >= MAX_SCALE - 1e-6;
     }
-    function _zoomBy(p, factor) {
+
+    function _zoomBy(p: WpPayload, factor: number): void {
         const stage = state.stage;
-        if (!stage)
-            return;
+        if (!stage) return;
         const old = stage.scaleX();
         const next = Math.max(MIN_SCALE, Math.min(MAX_SCALE, old * factor));
         const c = { x: stage.width() / 2, y: stage.height() / 2 };
@@ -2985,68 +3303,65 @@
         _syncZoomButtons();
         _redrawGrid();
     }
-    function _fitGrid(p) {
+
+    function _fitGrid(p: WpPayload): void {
         const stage = state.stage;
-        if (!stage)
-            return;
-        const scale = Math.max(MIN_SCALE, Math.min(1.5, Math.min(stage.width() / (p.grid.w * CELL), stage.height() / (p.grid.h * CELL))));
+        if (!stage) return;
+        const scale = Math.max(MIN_SCALE, Math.min(1.5,
+            Math.min(stage.width() / (p.grid!.w * CELL), stage.height() / (p.grid!.h * CELL))));
         stage.scale({ x: scale, y: scale });
         stage.position({
-            x: (stage.width() - p.grid.w * CELL * scale) / 2,
-            y: (stage.height() - p.grid.h * CELL * scale) / 2,
+            x: (stage.width() - p.grid!.w * CELL * scale) / 2,
+            y: (stage.height() - p.grid!.h * CELL * scale) / 2,
         });
         _captureView();
         _syncZoomButtons();
         _redrawGrid();
     }
-    async function applyRoute() {
+
+    async function applyRoute(): Promise<void> {
         const p = state.payload;
-        const cells = GM().routeCells(state.route || []);
-        if (cells.length < 2) {
-            _status('Route needs at least two waypoints.');
-            return;
-        }
+        const cells: WpCell[] = GM().routeCells(state.route || []);
+        if (cells.length < 2) { _status('Route needs at least two waypoints.'); return; }
         const value = state.value;
-        if (value == null || value === '') {
-            _status('Pick a paint value first.');
-            return;
-        }
+        if (value == null || value === '') { _status('Pick a paint value first.'); return; }
         // Brush widens the trail: a 3×3 brush turns a 1-cell line into a 3-wide river.
-        const seen = {};
-        const wide = [];
+        const seen: Record<string, boolean> = {};
+        const wide: WpCell[] = [];
         cells.forEach((c) => {
-            _brushCells(p, c.x, c.y).forEach((b) => {
+            _brushCells(p!, c.x, c.y).forEach((b) => {
                 const k = GM().cellKey(b.x, b.y);
-                if (!seen[k]) {
-                    seen[k] = true;
-                    wide.push(b);
-                }
+                if (!seen[k]) { seen[k] = true; wide.push(b); }
             });
         });
         const edits = wide.map((c) => ({ layer: state.layer, x: c.x, y: c.y, value }));
         try {
-            state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/paint_batch`, { edits });
+            state.payload = await _post(`/${encodeURIComponent(p!.scope.id)}/grid/paint_batch`,
+                { edits });
             state.route = [];
             _notify(true);
             const stats = GM().routeStats(edits.length);
             _status(`🧭 Painted ${stats.label} on ${state.layer}.`, false);
-        }
-        catch (e) {
+        } catch (e) {
             _status(`Route failed: ${errText(e)}`, true);
         }
     }
-    function _renderChildren(box, p) {
+
+    function _renderChildren(box: HTMLElement, p: WpPayload): void {
         const kids = p.children || [];
-        if (!kids.length)
-            return;
-        const head = _el('div', 'font-size:12px;color:var(--text-muted,#999);margin:8px 0 4px;', 'Child scopes');
+        if (!kids.length) return;
+        const head = _el('div', 'font-size:12px;color:var(--text-muted,#999);margin:8px 0 4px;',
+            'Child scopes');
         box.appendChild(head);
         const row = _el('div', 'display:flex;flex-wrap:wrap;gap:8px;');
         kids.forEach((c) => row.appendChild(_scopeCard(c, (card) => load(card.id))));
         box.appendChild(row);
     }
+
     // ───────────────────────────── mutations ───────────────────────────
-    async function onCellClick(p, x, y, placement) {
+
+    async function onCellClick(p: WpPayload, x: number, y: number,
+        placement: WpPlacement | null): Promise<void> {
         if (state.tool === 'inspect') {
             inspectCell(p, x, y);
             return;
@@ -3055,20 +3370,17 @@
             // Collect waypoints; the HUD's "Paint route" rasterises the line and
             // batch-paints it in one request (a 240-cell trail is one undo).
             state.route.push({ x, y });
-            if (state.routeInfoEl)
-                state.routeInfoEl.textContent = _routeLabel();
+            if (state.routeInfoEl) state.routeInfoEl.textContent = _routeLabel();
             _redrawDecor();
             return;
         }
         if (state.tool === 'feature') {
             if (state.selectedChild) {
                 await placeFeature(state.selectedChild, x, y);
-            }
-            else if (placement) {
+            } else if (placement) {
                 state.selectedChild = placement.id;
                 render();
-            }
-            else {
+            } else {
                 _status('Select a feature first (Feature dropdown above).');
             }
             return;
@@ -3077,24 +3389,20 @@
             await onAreaCellClick(p, x, y);
             return;
         }
-        if (!p.scope.has_grid)
-            return;
+        if (!p.scope.has_grid) return;
         return _paintAt(p, x, y);
     }
+
     /**
      * Place tool (task-528). One click places the picked area; a click on a cell
      * that already holds one offers to take it off the map, so removing needs no
      * second mode to learn.
      */
-    async function onAreaCellClick(p, x, y) {
-        if (!p.scope.has_grid) {
-            _status('This scope has no grid to place on.', true);
-            return;
-        }
+    async function onAreaCellClick(p: WpPayload, x: number, y: number): Promise<void> {
+        if (!p.scope.has_grid) { _status('This scope has no grid to place on.', true); return; }
         const here = GM().areaAt(p, x, y);
         if (here) {
-            if (!window.confirm(`Take "${here.name}" off this map? The area itself stays.`))
-                return;
+            if (!window.confirm(`Take "${here.name}" off this map? The area itself stays.`)) return;
             await unplaceArea(here.id);
             return;
         }
@@ -3104,15 +3412,16 @@
         }
         await placeArea(state.selectedArea, x, y);
     }
-    async function placeArea(areaId, x, y, onOverlap) {
-        const p = state.payload;
+
+    async function placeArea(areaId: string, x: number, y: number, onOverlap?: string): Promise<void> {
+        const p = state.payload!;
         try {
-            state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/place_area`, { area_id: areaId, x, y, on_overlap: onOverlap || 'forbid' });
+            state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/place_area`,
+                { area_id: areaId, x, y, on_overlap: onOverlap || 'forbid' });
             _status(`Placed on cell (${x},${y}).`);
             _notify(true);
             render();
-        }
-        catch (e) {
+        } catch (e) {
             // The server names the occupant, so a clash is actionable as-is.
             const msg = errText(e);
             if (/already holds/.test(msg) && window.confirm(`${msg}\n\nDisplace it?`)) {
@@ -3122,20 +3431,21 @@
             _status(`Place failed: ${msg}`, true);
         }
     }
-    async function unplaceArea(areaId) {
-        const p = state.payload;
+
+    async function unplaceArea(areaId: string): Promise<void> {
+        const p = state.payload!;
         try {
-            state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/unplace_area`, { area_id: areaId });
-            if (state.selectedArea === areaId)
-                state.selectedArea = null;
+            state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/unplace_area`,
+                { area_id: areaId });
+            if (state.selectedArea === areaId) state.selectedArea = null;
             _status('Taken off the map (the area itself is untouched).');
             _notify(true);
             render();
-        }
-        catch (e) {
+        } catch (e) {
             _status(`Unplace failed: ${errText(e)}`, true);
         }
     }
+
     /**
      * Make the selected area into a child scope of this one, placed on the cell
      * it is standing on (task-535).
@@ -3161,9 +3471,9 @@
      * says "paint" and the status says what happened, rather than either of them
      * claiming an interior was built.
      */
-    async function paintInterior() {
-        const p = state.payload;
-        const vocab = state.vocab;
+    async function paintInterior(): Promise<void> {
+        const p = state.payload!;
+        const vocab = state.vocab!;
         const options = (vocab.b ? vocab.b : (vocab.biomes || []))
             .filter((r) => (r.tags || []).indexOf('building') >= 0)
             .map((r) => r.id || '');
@@ -3171,15 +3481,17 @@
             _status('No building types in the vocabulary.', true);
             return;
         }
-        const pick = window.prompt(`Paint which building's interior into "${p.scope.name}"?\n\n`
-            + options.join(', '), options.indexOf('inn') >= 0 ? 'inn' : options[0]);
+        const pick = window.prompt(
+            `Paint which building's interior into "${p.scope.name}"?\n\n`
+            + options.join(', '),
+            options.indexOf('inn') >= 0 ? 'inn' : options[0]);
         if (!pick || !options.indexOf(pick)) {
-            if (pick)
-                _status(`${pick} is not a building type.`, true);
+            if (pick) _status(`${pick} is not a building type.`, true);
             return;
         }
         try {
-            const res = await _post(`/${encodeURIComponent(p.scope.id)}/grid/interior`, { building: pick });
+            const res = await _post(
+                `/${encodeURIComponent(p.scope.id)}/grid/interior`, { building: pick });
             state.payload = res;
             const notes = (res.report && res.report.notes) || [];
             _status(`Painted the ${pick} plan — edit the cells, then ⚙ Generate.`);
@@ -3188,13 +3500,13 @@
             }
             _notify(true);
             render();
-        }
-        catch (e) {
+        } catch (e) {
             _status(`Could not paint that interior: ${errText(e)}`, true);
         }
     }
-    async function promoteArea(areaId) {
-        const p = state.payload;
+
+    async function promoteArea(areaId: string): Promise<void> {
+        const p = state.payload!;
         // The area is a row of `area_placements` (id/name/x/y) — the payload
         // carries no `areas` list, so looking there found nothing and returned
         // silently, leaving the button a no-op with no prompt and no request.
@@ -3205,20 +3517,21 @@
             return;
         }
         const defaultName = `${area.name} interior`;
-        const name = (window.prompt('Name for the new child scope:', defaultName) || '').trim();
-        if (!name)
-            return;
+        const name = (window.prompt(
+            'Name for the new child scope:', defaultName) || '').trim();
+        if (!name) return;
         const hasCell = Number.isInteger(area.x) && Number.isInteger(area.y);
-        const body = {
-            scope_id: (window.prompt('Id for the new scope (lower-case, no spaces):', _slug(name)) || '').trim() || _slug(name),
+        const body: Record<string, unknown> = {
+            scope_id: (window.prompt(
+                'Id for the new scope (lower-case, no spaces):',
+                _slug(name)) || '').trim() || _slug(name),
             name,
             area_ids: [areaId],
             parent_id: p.scope.id,
             entry_area_id: areaId,
             mode: 'interior',
         };
-        if (hasCell)
-            body.cell = { x: area.x, y: area.y };
+        if (hasCell) body.cell = { x: area.x, y: area.y };
         try {
             const res = await _post_root('/api/world/promote', body);
             state.selectedArea = null;
@@ -3227,37 +3540,39 @@
             await _reloadPayload();
             _status(`"${res.name}" is now a scope of its own, entered from `
                 + `${hasCell ? `cell (${area.x},${area.y})` : 'nowhere yet'}.`);
-            _notify(true);
-        }
-        catch (e) {
+_notify(true);
+        } catch (e) {
             _status(`Promote failed: ${errText(e)}`, true);
         }
     }
+
     /** A scope id: lower-case, dashes, no leading or trailing separator. */
-    function _slug(text) {
+    function _slug(text: unknown): string {
         return String(text || '')
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, '_')
             .replace(/^_+|_+$/g, '')
             .slice(0, 40) || 'scope';
     }
+
     /** Cells an N×N brush covers, clipped to the grid. */
-    function _brushCells(p, x, y) {
+    function _brushCells(p: WpPayload, x: number, y: number): WpCell[] {
         const n = Math.max(1, state.brush | 0);
         const off = Math.floor((n - 1) / 2);
-        const out = [];
+        const out: WpCell[] = [];
         for (let dy = 0; dy < n; dy += 1) {
             for (let dx = 0; dx < n; dx += 1) {
                 const cx = x - off + dx;
                 const cy = y - off + dy;
-                if (cx >= 0 && cy >= 0 && cx < p.grid.w && cy < p.grid.h) {
+                if (cx >= 0 && cy >= 0 && cx < p.grid!.w && cy < p.grid!.h) {
                     out.push({ x: cx, y: cy });
                 }
             }
         }
         return out;
     }
-    async function _paintAt(p, x, y) {
+
+    async function _paintAt(p: WpPayload, x: number, y: number): Promise<void> {
         const value = state.tool === 'erase' ? null : state.value;
         if (state.tool === 'paint' && (value == null || value === '')) {
             _status('Pick a paint value, or use Erase.');
@@ -3266,52 +3581,55 @@
         const cells = _brushCells(p, x, y);
         try {
             if (cells.length === 1) {
-                state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/paint`, { layer: state.layer, x, y, value });
-            }
-            else {
-                state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/paint_batch`, { edits: cells.map((c) => ({ layer: state.layer, x: c.x, y: c.y, value })) });
+                state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/paint`,
+                    { layer: state.layer, x, y, value });
+            } else {
+                state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/paint_batch`,
+                    { edits: cells.map((c) => ({ layer: state.layer, x: c.x, y: c.y, value })) });
             }
             _notify(true);
             render();
-        }
-        catch (e) {
+        } catch (e) {
             _status(`Paint failed: ${errText(e)}`, true);
         }
     }
-    async function placeFeature(childId, x, y, onOverlap) {
-        const p = state.payload;
+
+    async function placeFeature(childId: string, x: number, y: number,
+            onOverlap?: string): Promise<void> {
+        const p = state.payload!;
         try {
-            state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/place`, { child_id: childId, x, y, on_overlap: onOverlap || 'forbid' });
+            state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/place`,
+                { child_id: childId, x, y, on_overlap: onOverlap || 'forbid' });
             _notify(true);
             render();
-        }
-        catch (e) {
+        } catch (e) {
             if (!onOverlap && /already holds/.test(errText(e))
-                && window.confirm(`${errText(e)}\n\nDisplace the occupant?`)) {
+                    && window.confirm(`${errText(e)}\n\nDisplace the occupant?`)) {
                 return placeFeature(childId, x, y, 'displace');
             }
             _status(`Place failed: ${errText(e)}`, true);
         }
     }
-    async function removeFeature(childId) {
+
+    async function removeFeature(childId: string): Promise<void> {
         try {
-            state.payload = await _post(`/${encodeURIComponent(state.payload.scope.id)}/grid/remove`, { child_id: childId });
+            state.payload = await _post(
+                `/${encodeURIComponent(state.payload!.scope.id)}/grid/remove`,
+                { child_id: childId });
             state.selectedChild = null;
             _notify(true);
             render();
-        }
-        catch (e) {
+        } catch (e) {
             _status(`Remove failed: ${errText(e)}`, true);
         }
     }
+
     /** Rename a scope's display name (its id, and every node reference, stays). */
-    async function renameScope(scopeId, currentName) {
+    async function renameScope(scopeId: string, currentName?: string | null): Promise<void> {
         const name = window.prompt('Rename scope:', currentName || scopeId);
-        if (name == null)
-            return;
+        if (name == null) return;
         const clean = name.trim();
-        if (!clean || clean === currentName)
-            return;
+        if (!clean || clean === currentName) return;
         try {
             await _post(`/${encodeURIComponent(scopeId)}/rename`, { name: clean });
             _notify(true);
@@ -3319,22 +3637,20 @@
             // name lives in the payload — refetch it. `render()` alone redrew the
             // stale list and the card kept its old label. Renaming the open scope
             // itself needs a full load (its title/breadcrumb changed).
-            if (state.scopeId === scopeId)
-                await load(scopeId);
-            else
-                await _reloadPayload();
+            if (state.scopeId === scopeId) await load(scopeId);
+            else await _reloadPayload();
             _status(`Renamed to “${clean}”.`, false);
-        }
-        catch (e) {
+        } catch (e) {
             _status(`Rename failed: ${errText(e)}`, true);
         }
     }
+
     /**
      * Delete a scope. Refuses one that still has children (delete those first);
      * a generated scope's areas/ways/items go with it. If it was the open scope,
      * fall back to its parent.
      */
-    async function deleteScope(scopeId, name) {
+    async function deleteScope(scopeId: string, name?: string | null): Promise<void> {
         const label = name || scopeId;
         if (!window.confirm(`Delete scope “${label}”?\n\n`
             + `This removes the scope, unplaces it, and deletes the areas/ways/items `
@@ -3347,28 +3663,23 @@
             const result = await _post(`/${encodeURIComponent(scopeId)}/delete`, {});
             _notify(true);
             if (state.scopeId === scopeId) {
-                if (parentId)
-                    load(parentId);
-                else
-                    open(null);
-            }
-            else {
+                if (parentId) load(parentId); else open(null);
+            } else {
                 // Deleted scope was a card here: refetch so the card disappears.
                 await _reloadPayload();
             }
             _status(`Deleted “${label}” (${result.deleted_nodes || 0} generated node(s)).`, false);
-        }
-        catch (e) {
+        } catch (e) {
             _status(`Delete failed: ${errText(e)}`, true);
         }
     }
-    async function _promptNewScope(parentId) {
+
+    async function _promptNewScope(parentId: string | null): Promise<void> {
         const name = window.prompt('Feature name:', 'New feature');
-        if (!name)
-            return;
+        if (!name) return;
         const mode = parentId && state.payload
             ? GM().nextMode(state.payload.mode) : 'world';
-        const body = { name, parent_id: parentId || null, mode };
+        const body: Record<string, unknown> = { name, parent_id: parentId || null, mode };
         if (state.payload && state.payload.grid) {
             body.w = Math.max(1, Math.min(8, state.payload.grid.w));
             body.h = Math.max(1, Math.min(8, state.payload.grid.h));
@@ -3379,25 +3690,26 @@
             if (parentId && state.payload) {
                 state.selectedChild = created.scope.id;
                 // Re-open the parent so the new child appears in its list.
-                state.payload = await _req(`${BASE}/${encodeURIComponent(parentId)}/grid`, { cache: 'no-store' });
+                state.payload = await _req(
+                    `${BASE}/${encodeURIComponent(parentId)}/grid`, { cache: 'no-store' });
                 render();
                 _status(`Created “${created.scope.name}” — pick Feature and click a cell to place it.`);
-            }
-            else {
+            } else {
                 load(created.scope.id);
             }
-        }
-        catch (e) {
+        } catch (e) {
             _status(`Create failed: ${errText(e)}`, true);
         }
     }
-    function _openGridDialog(p) {
+
+    function _openGridDialog(p: WpPayload): void {
         const wrap = _el('div', 'display:flex;gap:8px;align-items:center;flex-wrap:wrap;' +
             'padding:8px;border:1px solid var(--border,#3a3a44);border-radius:8px;margin-bottom:8px;');
         const cur = p.grid || { w: 10, h: 10, cell_scale: 1 };
-        const mk = (name, val, width) => {
+        const mk = (name: string, val: string | number, width?: number): HTMLInputElement => {
             wrap.appendChild(_el('span', 'font-size:12px;color:var(--text-muted,#999);', name));
-            const inp = _el('input', `width:${width || 56}px;padding:3px 6px;border-radius:5px;border:1px solid ` +
+            const inp = _el('input',
+                `width:${width || 56}px;padding:3px 6px;border-radius:5px;border:1px solid ` +
                 'var(--border,#444);background:var(--bg-card,#2a2a32);color:var(--text,#ddd);');
             inp.value = String(val);
             wrap.appendChild(inp);
@@ -3411,39 +3723,39 @@
         sIn.setAttribute('data-role', 'wp-grid-scale');
         // Presets sized in *turns*: 1 cell = 1 turn, 60 turns/hour. A two-route
         // region (e.g. two 240-cell trails) needs roughly this much canvas.
-        const PRESETS = [
+        const PRESETS: [string, number, number][] = [
             ['region 160×100', 160, 100], ['wide 180×70', 180, 70], ['small 60×60', 60, 60],
         ];
         PRESETS.forEach(([label, pw, ph]) => {
-            wrap.appendChild(_btn(label, () => { wIn.value = String(pw); hIn.value = String(ph); refreshWarn(); }, 'padding:2px 6px;font-size:11px;'));
+            wrap.appendChild(_btn(label, () => { wIn.value = String(pw); hIn.value = String(ph); refreshWarn(); },
+                'padding:2px 6px;font-size:11px;'));
         });
         wrap.appendChild(_el('span', 'font-size:12px;color:var(--text-muted,#999);', 'mode'));
         const modeSel = _el('select', 'padding:3px;border-radius:5px;');
         modeSel.setAttribute('data-role', 'wp-grid-mode');
-        GM().MODES.forEach((m) => {
+        GM().MODES.forEach((m: any) => {
             const opt = _el('option', null, m);
             opt.value = m;
-            if (m === (p.mode || 'world'))
-                opt.selected = true;
+            if (m === (p.mode || 'world')) opt.selected = true;
             modeSel.appendChild(opt);
         });
         wrap.appendChild(modeSel);
+
         const warn = _el('span', 'font-size:11px;color:#c96;');
         wrap.appendChild(warn);
-        const refreshWarn = () => {
+        const refreshWarn = (): void => {
             const w = parseInt(wIn.value, 10), h = parseInt(hIn.value, 10);
-            if (!w || !h || w < 1 || h < 1) {
-                warn.textContent = 'w and h must be ≥ 1';
-                return;
-            }
+            if (!w || !h || w < 1 || h < 1) { warn.textContent = 'w and h must be ≥ 1'; return; }
             const pr = GM().pruneGrid(p, w, h);
-            const lost = GM().PAINT_LAYERS.reduce((n, l) => n + Object.keys((p.layers || {})[l] || {}).length, 0) - pr.paintKept;
+            const lost = GM().PAINT_LAYERS.reduce((n: number, l: any) =>
+                n + Object.keys((p.layers || {})[l] || {}).length, 0) - pr.paintKept;
             const lostP = (p.placements || []).length - pr.placementsKept;
             warn.textContent = (lost > 0 || lostP > 0)
                 ? `shrink drops ${lost} paint cell(s), ${lostP} placement(s)` : '';
         };
         [wIn, hIn].forEach((i) => i.addEventListener('input', refreshWarn));
         refreshWarn();
+
         wrap.appendChild(_btn('Apply', async () => {
             try {
                 state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid`, {
@@ -3454,21 +3766,22 @@
                 });
                 _notify(true);
                 render();
-            }
-            catch (e) {
+            } catch (e) {
                 _status(`Grid failed: ${e instanceof Error ? e.message : String(e)}`, true);
             }
         }));
         wrap.appendChild(_btn('Cancel', () => wrap.remove()));
         // Live at the bottom of the open panel so Apply/Cancel are always reachable.
-        state.body.appendChild(wrap);
+        state.body!.appendChild(wrap);
     }
-    function _status(text, isError) {
+
+    function _status(text: string, isError?: boolean): void {
         state.status = text;
         state.statusError = !!isError;
         _log((isError ? '⚠ ' : '') + text, isError ? 'error-msg' : 'system-msg');
         render();
     }
+
     window.VW = window.VW || {};
     window.VW.worldPainter = { open, close, refresh: () => (state.scopeId ? load(state.scopeId) : showChooser()) };
     window.worldPainter = window.VW.worldPainter;

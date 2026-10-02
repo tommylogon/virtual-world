@@ -243,7 +243,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
         if (current === 'map' || current === 'levels') return 0;
         // Per solver, because the two formulations are not on the same scale
         // (barnesHut's historical default is 0.3, forceAtlas2's is 0.005).
-        return ((config || {}).graphSolver || 'forceAtlas2Based') === 'barnesHut' ? 0.3 : 0.05;
+        return ((config || ({} as ConfigManager)).graphSolver || 'forceAtlas2Based') === 'barnesHut' ? 0.3 : 0.05;
     },
 
     /**
@@ -259,7 +259,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
     applyModePhysics(enabled: boolean): void {
         const gm = (typeof graphManager !== 'undefined' && graphManager) || null;
         if (!gm || !gm.network || !gm.network.setOptions) return;
-        const cfg = config || {};
+        const cfg = config || ({} as ConfigManager);
         const solver = cfg.graphSolver || 'forceAtlas2Based';
         gm.network.setOptions({
             physics: {
@@ -278,7 +278,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
     buildOptions() {
         // `config` is a top-level const (lexical global) — NEVER window.config
         // (which is always undefined and made every slider a silent no-op).
-        const cfg = config || {};
+        const cfg = config || ({} as ConfigManager);
         const solver = cfg.graphSolver || 'forceAtlas2Based';
         // Hierarchical mode: vis places every node by relation level, so physics
         // is off and each parent sits a level above its children (task-485).
@@ -677,7 +677,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
                         edgeLength = _labelEdgeLength(edgeLabel);
                     }
                 } else if (isAttachment) {
-                    const len = (config || {}).graphItemEdgeLength || 35;
+                    const len = (config || ({} as ConfigManager)).graphItemEdgeLength || 35;
                     edgeLength = len;
                 }
                 visEdges.push({

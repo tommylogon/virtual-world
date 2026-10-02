@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Shared Trigger Editor — builds the add/edit trigger overlay modal.
  * Used by both Inspector (world items/doors) and ItemLibrary (library items).
@@ -26,8 +25,10 @@
  * @docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+
 // Lazy tag: window.Lit only exists at call time (deferred module bootstrap).
-const triggerEditorTag = (strings, ...values) => window.Lit.html(strings, ...values);
+const triggerEditorTag = (strings: TemplateStringsArray, ...values: unknown[]): unknown => window.Lit.html(strings, ...values);
+
 // ═══════ Recipe snippets (task-380) ═══════
 // Each snippet sets the trigger type, replaces the effects list with a
 // starting point (author tweaks params), and fills the success message.
@@ -82,6 +83,7 @@ const TRIGGER_SNIPPETS = [
         effects: [{ type: 'message', params: {} }],
     },
 ];
+
 // File-local binding. `types/globals.d.ts` already declares `TriggerEditor` as an
 // ambient global (item-library.ts and the inspector call it), and a second
 // top-level block-scoped binding of that name is a redeclaration error. The object
@@ -89,21 +91,23 @@ const TRIGGER_SNIPPETS = [
 // the external callers and the inline HTML handlers (`onclick="TriggerEditor...."`)
 // resolved all along.
 var triggerEditorApi = {
-    _overlay: null,
-    _onSave: null,
-    _onClose: null,
-    _mode: 'single',
-    _effectTypes: [],
-    _conditionTypes: [],
-    _triggerTypes: [],
+    _overlay: null as HTMLDivElement | null,
+    _onSave: null as ((data: any) => void) | null,
+    _onClose: null as (() => void) | null,
+    _mode: 'single' as 'single' | 'multi',
+    _effectTypes: [] as TriggerEditorOption[],
+    _conditionTypes: [] as TriggerEditorOption[],
+    _triggerTypes: [] as string[],
     _itemDatalist: '',
     _contextItemId: '',
     _targetDatalistHtml: '',
-    _escHandler: null,
-    open(itemId, triggerType) {
+    _escHandler: null as ((e: KeyboardEvent) => void) | null,
+
+    open(itemId?: string, triggerType?: string): void {
         return this.show({ initialData: null, mode: 'single' });
     },
-    show(options) {
+
+    show(options: TriggerEditorShowOptions): void {
         this.close();
         this._onSave = options.onSave || null;
         this._onClose = options.onClose || null;
@@ -116,29 +120,33 @@ var triggerEditorApi = {
         this._targetDatalistHtml = options.targetDatalistHtml || '';
         const initial = options.initialData || null;
         const targetDatalist = this._targetDatalistHtml;
+
         const initialTriggerType = initial?.trigger_type;
         const triggerTypeHtml = this._mode === 'multi'
-            ? triggerEditorTag `<input type="text" id="te-trigger-type-filter" placeholder="Search trigger types..." style="width:100%;font-size:10px;padding:2px 6px;margin-bottom:2px;background:var(--bg-input);border:1px solid var(--border);border-radius:3px;color:var(--text);" oninput="TriggerEditor._filterTriggerTypeList(this.value)">
+            ? triggerEditorTag`<input type="text" id="te-trigger-type-filter" placeholder="Search trigger types..." style="width:100%;font-size:10px;padding:2px 6px;margin-bottom:2px;background:var(--bg-input);border:1px solid var(--border);border-radius:3px;color:var(--text);" oninput="TriggerEditor._filterTriggerTypeList(this.value)">
                     <select id="te-trigger-type" multiple size="6" style="height:auto;min-height:100px;width:100%;">
-                    ${this._triggerTypes.map(t => triggerEditorTag `<option value=${t} ?selected=${(initialTriggerType || []).includes(t)}>${t.replace(/_/g, ' ')}</option>`)}
+                    ${this._triggerTypes.map(t => triggerEditorTag`<option value=${t} ?selected=${(initialTriggerType || []).includes(t)}>${t.replace(/_/g, ' ')}</option>`)}
                 </select>`
-            : triggerEditorTag `<select id="te-trigger-type" style="width:100%;">
-                    ${this._triggerTypes.map(t => triggerEditorTag `<option value=${t} ?selected=${initialTriggerType === t}>${t.replace(/_/g, ' ')}</option>`)}
+            : triggerEditorTag`<select id="te-trigger-type" style="width:100%;">
+                    ${this._triggerTypes.map(t => triggerEditorTag`<option value=${t} ?selected=${initialTriggerType === t}>${t.replace(/_/g, ' ')}</option>`)}
                 </select>`;
+
         const overlay = document.createElement('div');
         overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;';
+
         const isEdit = !!initial;
         const editTitle = isEdit ? '✏️ Edit Trigger' : '⚡ Add Trigger';
+
         let effectRowsHtml = [];
         if (initial && initial.effects && initial.effects.length > 0) {
             initial.effects.forEach((eff, idx) => {
                 effectRowsHtml.push(triggerEditorApi._buildEffectRowHtml(eff, idx));
             });
-        }
-        else {
+        } else {
             effectRowsHtml.push(triggerEditorApi._buildEffectRowHtml(null, 0));
         }
-        window.Lit.render(triggerEditorTag `
+
+window.Lit.render(triggerEditorTag`
             <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px;width:480px;max-height:85vh;display:flex;flex-direction:column;overflow:visible;">
                 <h3 style="margin:0 0 12px 0;flex:0 0 auto;">${editTitle}</h3>
                 <div style="flex:1 1 auto;overflow-y:auto;min-height:0;">
@@ -203,7 +211,7 @@ var triggerEditorApi = {
 
                 <div style="display:flex;gap:6px;margin-top:12px;justify-content:flex-end;border-top:1px solid var(--border);padding-top:12px;flex:0 0 auto;">
                     <button class="btn btn-purple" @click=${() => triggerEditorApi._onTestClick()}>▶ Run Test</button>
-                    ${typeof TriggerGraph !== 'undefined' ? triggerEditorTag `<button class="btn btn-yellow" @click=${() => triggerEditorApi._onOpenGraphClick()}>🧩 Graph</button>` : ''}
+                    ${typeof TriggerGraph !== 'undefined' ? triggerEditorTag`<button class="btn btn-yellow" @click=${() => triggerEditorApi._onOpenGraphClick()}>🧩 Graph</button>` : ''}
                     <button class="btn" @click=${() => triggerEditorApi.close()}>Cancel</button>
                     <button class="btn btn-green" @click=${() => triggerEditorApi._onSaveClick()}>✅ ${isEdit ? 'Save Changes' : 'Add'}</button>
                 </div>
@@ -211,19 +219,19 @@ var triggerEditorApi = {
             </div>`, overlay);
         document.body.appendChild(overlay);
         this._overlay = overlay;
+
         // Escape closes the dialog (capture phase, so it works while a field has
         // focus); clicking the dark backdrop also cancels.
-        this._escHandler = (e) => {
-            if (e.key !== 'Escape')
-                return;
+        this._escHandler = (e: KeyboardEvent) => {
+            if (e.key !== 'Escape') return;
             e.stopPropagation();
             this.close();
         };
         document.addEventListener('keydown', this._escHandler, true);
         overlay.addEventListener('mousedown', (e) => {
-            if (e.target === overlay)
-                this.close();
+            if (e.target === overlay) this.close();
         });
+
         // Ensure shared datalists
         ['eff-vital-stat-list', 'eff-state-node-list', 'eff-state-val-list', 'eff-trait-list', 'eff-tag-list', 'eff-weather-list', 'eff-char-list', 'eff-condition-list'].forEach(id => {
             if (!document.getElementById(id)) {
@@ -232,76 +240,58 @@ var triggerEditorApi = {
                 document.body.appendChild(dl);
             }
         });
-        const vitals = document.getElementById('eff-vital-stat-list');
-        if (!vitals.children.length)
-            ['HP', 'Energy', 'Bladder', 'Sanity', 'Entertainment', 'Temperature'].forEach(v => {
-                const o = document.createElement('option');
-                o.value = v;
-                vitals.appendChild(o);
-            });
-        const states = document.getElementById('eff-state-val-list');
-        if (!states.children.length)
-            ['on', 'off', 'open', 'closed', 'locked', 'unlocked', 'lit', 'unlit', 'broken', 'pristine', 'activated', 'deactivated', 'hidden', 'visible'].forEach(s => {
-                const o = document.createElement('option');
-                o.value = s;
-                states.appendChild(o);
-            });
+        const vitals = document.getElementById('eff-vital-stat-list') as HTMLElement;
+        if (!vitals.children.length) ['HP','Energy','Bladder','Sanity','Entertainment','Temperature'].forEach(v => {
+            const o = document.createElement('option'); o.value = v; vitals.appendChild(o);
+        });
+        const states = document.getElementById('eff-state-val-list') as HTMLElement;
+        if (!states.children.length) ['on','off','open','closed','locked','unlocked','lit','unlit','broken','pristine','activated','deactivated','hidden','visible'].forEach(s => {
+            const o = document.createElement('option'); o.value = s; states.appendChild(o);
+        });
         const traitList = document.getElementById('eff-trait-list');
         if (traitList && !traitList.children.length) {
-            triggerEditorApiClient().getLibraryType('traits').then((traits) => {
+            triggerEditorApiClient().getLibraryType('traits').then((traits: unknown) => {
                 if (traits && typeof traits === 'object') {
                     Object.keys(traits).forEach(id => {
-                        const o = document.createElement('option');
-                        o.value = id;
-                        traitList.appendChild(o);
+                        const o = document.createElement('option'); o.value = id; traitList.appendChild(o);
                     });
                 }
-            }).catch(() => { });
+            }).catch(() => {});
         }
         const tagList = document.getElementById('eff-tag-list');
         if (tagList && !tagList.children.length) {
-            triggerEditorApiClient().getLibraryType('tags').then((tags) => {
+            triggerEditorApiClient().getLibraryType('tags').then((tags: unknown) => {
                 if (tags && typeof tags === 'object') {
                     Object.keys(tags).forEach(id => {
-                        const o = document.createElement('option');
-                        o.value = id;
-                        tagList.appendChild(o);
+                        const o = document.createElement('option'); o.value = id; tagList.appendChild(o);
                     });
                 }
-            }).catch(() => { });
+            }).catch(() => {});
         }
         const weatherList = document.getElementById('eff-weather-list');
         if (weatherList && !weatherList.children.length) {
             ['clear', 'cloudy', 'fog', 'rain', 'storm', 'snow', 'windy'].forEach(w => {
-                const o = document.createElement('option');
-                o.value = w;
-                weatherList.appendChild(o);
+                const o = document.createElement('option'); o.value = w; weatherList.appendChild(o);
             });
         }
         const conditionList = document.getElementById('eff-condition-list');
         if (conditionList && !conditionList.children.length) {
-            ['awake', 'dead', 'unconscious', 'paralysed', 'stunned', 'grappled', 'restrained', 'prone', 'busy',
-                'exhausted', 'sick', 'poisoned', 'blind', 'deaf', 'mute', 'frightened', 'charmed'].forEach(c => {
-                const o = document.createElement('option');
-                o.value = c;
-                conditionList.appendChild(o);
+            ['awake','dead','unconscious','paralysed','stunned','grappled','restrained','prone','busy',
+             'exhausted','sick','poisoned','blind','deaf','mute','frightened','charmed'].forEach(c => {
+                const o = document.createElement('option'); o.value = c; conditionList.appendChild(o);
             });
         }
         const charList = document.getElementById('eff-char-list');
         if (charList && !charList.children.length) {
             const chars = worldState?.players || {};
             Object.keys(chars).forEach(name => {
-                const o = document.createElement('option');
-                o.value = name;
-                charList.appendChild(o);
+                const o = document.createElement('option'); o.value = name; charList.appendChild(o);
             });
         }
-        const nodeList = document.getElementById('eff-state-node-list');
+        const nodeList = document.getElementById('eff-state-node-list') as HTMLElement;
         if (!nodeList.children.length && worldState?.graph?.nodes) {
             Object.keys(worldState.graph.nodes).forEach(id => {
-                const o = document.createElement('option');
-                o.value = id;
-                nodeList.appendChild(o);
+                const o = document.createElement('option'); o.value = id; nodeList.appendChild(o);
             });
         }
         const itemList = document.getElementById('te-item-list');
@@ -310,96 +300,85 @@ var triggerEditorApi = {
             dl.id = 'te-item-list';
             document.body.appendChild(dl);
         }
-        const itemListEl = document.getElementById('te-item-list');
+        const itemListEl = document.getElementById('te-item-list') as HTMLElement;
         if (!itemListEl.children.length) {
             if (worldState?.graph?.nodes) {
-                Object.entries(worldState.graph.nodes).forEach(([id, node]) => {
+                Object.entries(worldState.graph.nodes).forEach(([id, node]: [string, any]) => {
                     if (node.type === 'item') {
-                        const o = document.createElement('option');
-                        o.value = id;
-                        itemListEl.appendChild(o);
+                        const o = document.createElement('option'); o.value = id; itemListEl.appendChild(o);
                     }
                 });
             }
             if (window.VW?.itemLib?.data) {
                 Object.keys(window.VW.itemLib.data).forEach(id => {
-                    const o = document.createElement('option');
-                    o.value = id;
-                    itemListEl.appendChild(o);
+                    const o = document.createElement('option'); o.value = id; itemListEl.appendChild(o);
                 });
             }
         }
+
         // Trigger type change handler
-        overlay.querySelector('#te-trigger-type').addEventListener('change', function () {
+        (overlay.querySelector('#te-trigger-type') as HTMLSelectElement).addEventListener('change', function (this: HTMLSelectElement) {
             const vals = Array.from(this.selectedOptions).map(o => o.value);
-            document.getElementById('te-target-field').style.display = vals.includes('on_use_on') ? 'block' : 'none';
+            (document.getElementById('te-target-field') as HTMLElement).style.display = vals.includes('on_use_on') ? 'block' : 'none';
             const tf = document.getElementById('te-target-state-field');
-            if (tf)
-                tf.style.display = (vals.includes('on_state_enter') || vals.includes('on_state_exit')) ? 'block' : 'none';
-            if (options.onTriggerTypeChange)
-                options.onTriggerTypeChange(vals);
+            if (tf) tf.style.display = (vals.includes('on_state_enter') || vals.includes('on_state_exit')) ? 'block' : 'none';
+            if (options.onTriggerTypeChange) options.onTriggerTypeChange(vals);
         });
         // Reflect the initially-selected trigger type (fixes the target/state
         // fields staying hidden when opening an existing on_use_on trigger).
-        overlay.querySelector('#te-trigger-type').dispatchEvent(new Event('change'));
+        (overlay.querySelector('#te-trigger-type') as HTMLSelectElement).dispatchEvent(new Event('change'));
+
         // Load initial conditions tree
         const initConditions = initial?.conditions;
         const condContainer = document.getElementById('te-conditions-container');
         if (initConditions && (Array.isArray(initConditions) && initConditions.length > 0 || (typeof initConditions === 'object' && !Array.isArray(initConditions) && initConditions?.conditions?.length > 0))) {
-            window.Lit.render(triggerEditorTag `${window.Lit.nothing}`, condContainer);
-            triggerEditorApi._loadConditionTree(initConditions, initial?.conditions_logic || 'and', condContainer);
+            window.Lit.render(triggerEditorTag`${window.Lit.nothing}`, condContainer as HTMLElement);
+            triggerEditorApi._loadConditionTree(initConditions, initial?.conditions_logic || 'and', condContainer as HTMLElement);
         }
+
         // Show fail message group if conditions exist
         triggerEditorApi._updateFailGroupVisibility();
+
         // Init searchable pickers, then apply per-row param visibility (the
         // eff-type/cond-type pickers don't exist in the DOM until SearchSelect
         // builds their hidden inputs).
         triggerEditorApi._initEffectSearchSelects(overlay);
         triggerEditorApi._initCondTagMultis(overlay);
-        overlay.querySelectorAll('.eff-row .eff-type').forEach(sel => triggerEditorApi._toggleEffectParams(sel));
-        overlay.querySelectorAll('.cond-row .cond-type').forEach(sel => triggerEditorApi._toggleConditionFields(sel));
+        overlay.querySelectorAll<TriggerEditorField>('.eff-row .eff-type').forEach(sel => triggerEditorApi._toggleEffectParams(sel));
+        overlay.querySelectorAll<TriggerEditorField>('.cond-row .cond-type').forEach(sel => triggerEditorApi._toggleConditionFields(sel));
         this._ensureLibraryItemOptions(overlay);
     },
+
     // The library registry may not be loaded yet (trigger editor opened from an
     // item inspector without ever opening the Library Browser). Load it once in
     // the background and hot-swap the item pickers' options in place — show()
     // stays fully synchronous for callers and tests.
-    async _ensureLibraryItemOptions(root) {
+    async _ensureLibraryItemOptions(root: HTMLElement): Promise<void> {
         const itemLib = window.VW?.itemLib;
-        if (!itemLib || Object.keys(itemLib.data || {}).length > 0)
-            return;
-        try {
-            await itemLib.refresh();
-        }
-        catch (e) {
-            return;
-        }
+        if (!itemLib || Object.keys(itemLib.data || {}).length > 0) return;
+        try { await itemLib.refresh(); } catch (e) { return; }
         const overlay = this._overlay;
-        if (!overlay || overlay !== root)
-            return; // closed / reopened meanwhile
+        if (!overlay || overlay !== root) return; // closed / reopened meanwhile
         // Top up the shared on_use_on target datalist too.
         const itemListEl = document.getElementById('te-item-list');
         if (itemListEl) {
-            const known = new Set([...itemListEl.children].map(o => o.value));
+            const known = new Set([...itemListEl.children].map(o => (o as HTMLOptionElement).value));
             Object.keys(itemLib.data).forEach(id => {
                 if (!known.has(id)) {
-                    const o = document.createElement('option');
-                    o.value = id;
-                    itemListEl.appendChild(o);
+                    const o = document.createElement('option'); o.value = id; itemListEl.appendChild(o);
                 }
             });
         }
-        overlay.querySelectorAll('.eff-select[data-kind="items"]').forEach(container => {
+        (overlay as ParentNode).querySelectorAll<TriggerEditorSearchSelectHost>('.eff-select[data-kind="items"]').forEach(container => {
             const prev = container.__searchSelect;
             const value = prev ? prev.getValue() : (container.dataset.value || '');
-            if (prev)
-                prev.destroy();
+            if (prev) prev.destroy();
             delete container.dataset.searchSelectInit;
             // `SearchSelect` has no ambient declaration and may not be loaded, so
             // it is read through `window` — the guard below is the original
             // `typeof SearchSelect === 'undefined'` check.
-            const SearchSelectCtor = window.SearchSelect;
-            container.__searchSelect = new SearchSelectCtor(container, {
+            const SearchSelectCtor = (window as unknown as { SearchSelect?: TriggerEditorSearchSelectCtor }).SearchSelect;
+            container.__searchSelect = new SearchSelectCtor!(container, {
                 options: this._searchSelectOptions('items'),
                 value,
                 placeholder: container.dataset.placeholder || 'Search...',
@@ -409,37 +388,37 @@ var triggerEditorApi = {
             });
         });
     },
+
     _updateFailGroupVisibility() {
         const group = document.getElementById('te-fail-msg-group');
-        if (!group)
-            return;
+        if (!group) return;
         const container = document.getElementById('te-conditions-container');
         const hasConditions = container ? !!container.querySelector('.cond-row') : false;
         group.style.display = hasConditions ? 'block' : 'none';
     },
-    _searchSelectOptions(kind) {
-        const opts = [];
-        const nodes = worldState?.graph?.nodes || {};
+
+    _searchSelectOptions(kind: string): TriggerEditorSearchOption[] {
+        const opts: TriggerEditorSearchOption[] = [];
+        const nodes: Record<string, any> = worldState?.graph?.nodes || {};
         switch (kind) {
             case 'ways':
                 opts.push({ value: 'target', label: 'target (used-on)', icon: '🎯' });
                 for (const [id, n] of Object.entries(nodes)) {
-                    if (n.type === 'way')
-                        opts.push({ value: id, label: n.name || id, icon: '🚪' });
+                    if (n.type === 'way') opts.push({ value: id, label: n.name || id, icon: '🚪' });
                 }
                 break;
             case 'items': {
                 // Library templates first (spawning usually targets a library item
                 // that is NOT yet in the world), then world items after.
-                const libOpts = [];
+                const libOpts: TriggerEditorSearchOption[] = [];
                 if (window.VW?.itemLib?.data) {
-                    for (const [id, entry] of Object.entries(window.VW.itemLib.data)) {
+                    for (const [id, entry] of Object.entries(window.VW.itemLib.data) as Array<[string, any]>) {
                         const label = (entry && entry.name) ? `${entry.name} (${id})` : id;
                         libOpts.push({ value: id, label, icon: '📚' });
                     }
                 }
                 libOpts.sort((a, b) => (a.label || '').localeCompare(b.label || ''));
-                const worldOpts = [];
+                const worldOpts: TriggerEditorSearchOption[] = [];
                 for (const [id, n] of Object.entries(nodes)) {
                     if (n.type === 'item' && !libOpts.some(o => o.value === id)) {
                         worldOpts.push({ value: id, label: n.name || id, icon: '📦' });
@@ -451,7 +430,7 @@ var triggerEditorApi = {
             }
             case 'nodes':
                 for (const [id, n] of Object.entries(nodes)) {
-                    const icon = { area: '🗺️', way: '🚪', item: '📦', player: '🧍', character: '🧍', logic_trigger: '⚡' }[n.type] || '▪️';
+                    const icon = ({ area: '🗺️', way: '🚪', item: '📦', player: '🧍', character: '🧍', logic_trigger: '⚡' } as Record<string, string>)[n.type] || '▪️';
                     opts.push({ value: id, label: n.name || id, icon });
                 }
                 break;
@@ -461,23 +440,23 @@ var triggerEditorApi = {
                 }
                 break;
             case 'states':
-                ['on', 'off', 'open', 'closed', 'locked', 'unlocked', 'lit', 'unlit', 'broken', 'pristine', 'activated', 'deactivated', 'hidden', 'visible'].forEach(s => {
+                ['on','off','open','closed','locked','unlocked','lit','unlit','broken','pristine','activated','deactivated','hidden','visible'].forEach(s => {
                     opts.push({ value: s, label: s });
                 });
                 break;
             case 'conditions':
-                ['awake', 'dead', 'unconscious', 'paralysed', 'stunned', 'grappled', 'restrained', 'prone', 'busy',
-                    'exhausted', 'sick', 'poisoned', 'blind', 'deaf', 'mute', 'frightened', 'charmed'].forEach(c => {
+                ['awake','dead','unconscious','paralysed','stunned','grappled','restrained','prone','busy',
+                 'exhausted','sick','poisoned','blind','deaf','mute','frightened','charmed'].forEach(c => {
                     opts.push({ value: c, label: c, icon: '🩹' });
                 });
                 break;
             case 'vitals':
-                ['HP', 'Energy', 'Bladder', 'Sanity', 'Entertainment', 'Temperature', 'Hunger', 'Thirst', 'Hygiene', 'Social'].forEach(v => {
+                ['HP','Energy','Bladder','Sanity','Entertainment','Temperature','Hunger','Thirst','Hygiene','Social'].forEach(v => {
                     opts.push({ value: v, label: v });
                 });
                 break;
             case 'skills':
-                ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA', 'Athletics', 'Acrobatics', 'Stealth', 'Perception', 'Survival', 'Persuasion', 'Investigation'].forEach(s => {
+                ['STR','DEX','CON','INT','WIS','CHA','Athletics','Acrobatics','Stealth','Perception','Survival','Persuasion','Investigation'].forEach(s => {
                     opts.push({ value: s, label: s });
                 });
                 break;
@@ -500,16 +479,14 @@ var triggerEditorApi = {
             case 'tags': {
                 const dl = document.getElementById('eff-tag-list');
                 if (dl) {
-                    for (const o of dl.querySelectorAll('option'))
-                        opts.push({ value: o.value, label: o.value, icon: '🎗️' });
+                    for (const o of dl.querySelectorAll('option')) opts.push({ value: o.value, label: o.value, icon: '🎗️' });
                 }
                 break;
             }
             case 'targets': {
                 const dl = document.getElementById('te-target-list');
                 if (dl) {
-                    for (const o of dl.querySelectorAll('option'))
-                        opts.push({ value: o.value, label: o.label || o.value });
+                    for (const o of dl.querySelectorAll('option')) opts.push({ value: o.value, label: o.label || o.value });
                 }
                 break;
             }
@@ -521,19 +498,17 @@ var triggerEditorApi = {
                 break;
         }
         // 'items' is already grouped (library first, then world) — keep that order.
-        if (kind !== 'items')
-            opts.sort((a, b) => (a.label || '').localeCompare(b.label || ''));
+        if (kind !== 'items') opts.sort((a, b) => (a.label || '').localeCompare(b.label || ''));
         return opts;
     },
-    _initEffectSearchSelects(root) {
+
+    _initEffectSearchSelects(root: ParentNode): void {
         // Read through `window`: `SearchSelect` has no ambient declaration, and the
         // original guard was exactly this "is it loaded?" test.
-        const SearchSelectCtor = window.SearchSelect;
-        if (typeof SearchSelectCtor === 'undefined')
-            return;
-        (root || document).querySelectorAll('.eff-select').forEach(container => {
-            if (container.dataset.searchSelectInit)
-                return;
+        const SearchSelectCtor = (window as unknown as { SearchSelect?: TriggerEditorSearchSelectCtor }).SearchSelect;
+        if (typeof SearchSelectCtor === 'undefined') return;
+        (root || document).querySelectorAll<TriggerEditorSearchSelectHost>('.eff-select').forEach(container => {
+            if (container.dataset.searchSelectInit) return;
             container.dataset.searchSelectInit = '1';
             const kind = container.dataset.kind || '';
             const initial = container.dataset.value || '';
@@ -545,18 +520,16 @@ var triggerEditorApi = {
             const onChange = kind === 'effect-types'
                 ? () => {
                     const row = container.closest('.eff-row');
-                    const hidden = row && row.querySelector('.eff-type');
-                    if (hidden)
-                        triggerEditorApi._toggleEffectParams(hidden);
+                    const hidden = row && row.querySelector('.eff-type') as TriggerEditorField | null;
+                    if (hidden) triggerEditorApi._toggleEffectParams(hidden);
                 }
                 : kind === 'condition-types'
-                    ? () => {
-                        const row = container.closest('.cond-row');
-                        const hidden = row && row.querySelector('.cond-type');
-                        if (hidden)
-                            triggerEditorApi._toggleConditionFields(hidden);
-                    }
-                    : undefined;
+                ? () => {
+                    const row = container.closest('.cond-row');
+                    const hidden = row && row.querySelector('.cond-type') as TriggerEditorField | null;
+                    if (hidden) triggerEditorApi._toggleConditionFields(hidden);
+                }
+                : undefined;
             container.__searchSelect = new SearchSelectCtor(container, {
                 options: opts,
                 value: initial,
@@ -568,15 +541,14 @@ var triggerEditorApi = {
             });
         });
     },
-    _initCondTagMultis(root) {
-        const TagMultiselectCtor = window.TagMultiselect;
-        if (typeof TagMultiselectCtor === 'undefined')
-            return;
-        (root || document).querySelectorAll('.cond-tag-multi').forEach(container => {
-            if (container.__condTagMulti)
-                return;
+
+    _initCondTagMultis(root: ParentNode): void {
+        const TagMultiselectCtor = (window as unknown as { TagMultiselect?: TriggerEditorTagMultiselectCtor }).TagMultiselect;
+        if (typeof TagMultiselectCtor === 'undefined') return;
+        (root || document).querySelectorAll<TriggerEditorTagMultiHost>('.cond-tag-multi').forEach(container => {
+            if (container.__condTagMulti) return;
             const raw = (container.dataset.value || '')
-                .split(',').map((s) => s.trim()).filter(Boolean);
+                .split(',').map((s: string) => s.trim()).filter(Boolean);
             container.__condTagMulti = new TagMultiselectCtor(container, {
                 tags: raw,
                 allowNew: false,
@@ -584,12 +556,13 @@ var triggerEditorApi = {
             });
         });
     },
-    _removeCondItem(span) {
+
+    _removeCondItem(span: HTMLElement): void {
         const item = span.closest('.cond-group-item');
-        if (item)
-            item.remove();
+        if (item) item.remove();
         triggerEditorApi._updateFailGroupVisibility();
     },
+
     close() {
         if (this._escHandler) {
             document.removeEventListener('keydown', this._escHandler, true);
@@ -599,18 +572,17 @@ var triggerEditorApi = {
             this._overlay.remove();
             this._overlay = null;
         }
-        if (this._onClose)
-            this._onClose();
+        if (this._onClose) this._onClose();
     },
+
     _onSaveClick() {
         const data = this._collectData();
-        if (this._onSave)
-            this._onSave(data);
+        if (this._onSave) this._onSave(data);
         this.close();
     },
+
     _onOpenGraphClick() {
-        if (typeof TriggerGraph === 'undefined')
-            return;
+        if (typeof TriggerGraph === 'undefined') return;
         const data = this._collectData();
         const onSave = this._onSave;
         const bridge = {
@@ -632,12 +604,10 @@ var triggerEditorApi = {
             contextItemId: this._contextItemId,
             sourceNodeId: this._contextItemId,
             editorBridge: bridge,
-            onSave: (newGraph) => {
+            onSave: (newGraph: any) => {
                 const compiled = TriggerGraph.compileToEngine(newGraph);
-                if (TriggerGraph.reportCompileError(compiled))
-                    return;
-                if (!compiled || !onSave)
-                    return;
+                if (TriggerGraph.reportCompileError(compiled)) return;
+                if (!compiled || !onSave) return;
                 onSave({
                     ...TriggerGraph.engineToFormData(compiled),
                     name: bridge.initialName || data.name || '',
@@ -647,19 +617,21 @@ var triggerEditorApi = {
             },
         });
     },
+
     async _onTestClick() {
         const data = this._collectData();
         const resultEl = document.getElementById('te-test-result');
-        if (!resultEl)
-            return;
+        if (!resultEl) return;
         resultEl.style.display = 'block';
-        window.Lit.render(triggerEditorTag `<span style="color:var(--text-secondary);">Testing…</span>`, resultEl);
+        window.Lit.render(triggerEditorTag`<span style="color:var(--text-secondary);">Testing…</span>`, resultEl);
+
         // Trigger type may be an array (multi-select) — test the first for now.
         const triggerType = Array.isArray(data.trigger_type)
             ? data.trigger_type[0]
             : data.trigger_type;
+
         const conditions = data.conditions || {};
-        const payload = {
+        const payload: TriggerEditorTestPayload = {
             trigger: {
                 trigger_type: triggerType || '',
                 conditions,
@@ -674,12 +646,11 @@ var triggerEditorApi = {
         // Expose the target item if one is set, so item-scoped conditions resolve.
         if (this._contextItemId) {
             payload.item_id = this._contextItemId;
-        }
-        else if (data.target_name) {
+        } else if (data.target_name) {
             const node = worldState?.getNodeByIdentifier ? worldState.getNodeByIdentifier(data.target_name) : null;
-            if (node)
-                payload.item_id = node.id;
+            if (node) payload.item_id = node.id;
         }
+
         try {
             const resp = await fetch('/api/triggers/test', {
                 method: 'POST',
@@ -687,377 +658,312 @@ var triggerEditorApi = {
                 body: JSON.stringify(payload),
             });
             const res = await resp.json();
-            if (res.error)
-                throw new Error(res.error);
-            const rows = (res.conditions || []).map((c) => triggerEditorTag `<div style="display:flex;gap:6px;align-items:center;">
+            if (res.error) throw new Error(res.error);
+
+            const rows = (res.conditions || []).map((c: any) =>
+                triggerEditorTag`<div style="display:flex;gap:6px;align-items:center;">
                     <span style="color:${c.passed ? 'var(--green)' : 'var(--red)'};font-weight:600;">${c.passed ? '✓' : '✕'}</span>
                     <span style="color:var(--text-primary);">${String(c.condition || '(none)')}</span>
                     <span style="color:var(--text-muted);">${c.detail?.phrase ? `— "${c.detail.phrase}" (${c.detail.mode || 'contains'})` : ''}</span>
-                </div>`);
+                </div>`
+            );
+
             const fireable = res.fireable !== false;
             const fireableMsg = res.fireable_reason
                 || `this trigger type (${String(triggerType)}) needs an item/way context to fire — no target node matched "${String(data.target_name || '')}".`;
-            const outputs = (res.outputs || []).map((o) => triggerEditorTag `<div style="padding-left:8px;color:${o.includes('dry-run') ? 'var(--text-secondary)' : 'var(--accent-green)'};">${o}</div>`);
+            const outputs = (res.outputs || []).map((o: any) =>
+                triggerEditorTag`<div style="padding-left:8px;color:${o.includes('dry-run') ? 'var(--text-secondary)' : 'var(--accent-green)'};">${o}</div>`
+            );
+
             const typeLabel = Array.isArray(triggerType) ? (triggerType[0] || '(none selected)') : (triggerType || '(none selected)');
-            window.Lit.render(triggerEditorTag `
+
+            window.Lit.render(triggerEditorTag`
                 <div style="color:var(--text-secondary);font-weight:600;margin-bottom:4px;">🧪 Trigger Test</div>
                 <div>Type: <span style="color:var(--text-primary);">${String(typeLabel)}</span></div>
-                ${res.fireable === false ? triggerEditorTag `<div style="color:var(--accent-orange);">⚠️ ${String(fireableMsg)}</div>` : ''}
+                ${res.fireable === false ? triggerEditorTag`<div style="color:var(--accent-orange);">⚠️ ${String(fireableMsg)}</div>` : ''}
                 <div style="margin-top:4px;font-weight:600;color:${res.conditions_pass ? 'var(--green)' : 'var(--red)'};">Conditions: ${res.conditions_pass ? 'PASS' : 'FAIL'}</div>
-                ${rows.length ? rows : triggerEditorTag `<div style="color:var(--text-muted);">(no conditions — always fires)</div>`}
+                ${rows.length ? rows : triggerEditorTag`<div style="color:var(--text-muted);">(no conditions — always fires)</div>`}
                 <div style="margin-top:4px;font-weight:600;">Would run:</div>
-                ${outputs.length ? outputs : triggerEditorTag `<div style="color:var(--text-muted);">(no effects)</div>`}
-                ${res.side_effects && res.side_effects.length ? triggerEditorTag `<div style="margin-top:4px;color:var(--accent-orange);font-size:10px;">⚠️ ${res.side_effects.join(' · ')}</div>` : ''}
+                ${outputs.length ? outputs : triggerEditorTag`<div style="color:var(--text-muted);">(no effects)</div>`}
+                ${res.side_effects && res.side_effects.length ? triggerEditorTag`<div style="margin-top:4px;color:var(--accent-orange);font-size:10px;">⚠️ ${res.side_effects.join(' · ')}</div>` : ''}
                 <div style="margin-top:6px;font-size:10px;color:var(--text-muted);">Dry-run — no effects were applied.</div>
             `, resultEl);
-        }
-        catch (e) {
-            window.Lit.render(triggerEditorTag `<div style="color:var(--red);">Test failed: ${e?.message || String(e)}</div>`, resultEl);
+        } catch (e) {
+            window.Lit.render(triggerEditorTag`<div style="color:var(--red);">Test failed: ${(e as { message?: string } | null)?.message || String(e)}</div>`, resultEl);
         }
     },
+
     _collectData() {
-        const typeEl = document.getElementById('te-trigger-type');
+        const typeEl = document.getElementById('te-trigger-type') as HTMLSelectElement;
         const triggerType = this._mode === 'multi'
             ? Array.from(typeEl.selectedOptions).map(o => o.value)
             : typeEl.value;
-        const effects = [];
-        document.querySelectorAll('#te-effects-container .eff-row').forEach(row => {
-            const eff = { type: row.querySelector('.eff-type')?.value || 'message', params: {} };
+
+        const effects: TriggerEditorEffect[] = [];
+        document.querySelectorAll<TriggerEditorEffectRow>('#te-effects-container .eff-row').forEach(row => {
+            const eff = { type: row.querySelector('.eff-type')?.value || 'message', params: {} as Record<string, any> };
             const effType = eff.type;
             if (effType === 'damage' || effType === 'heal') {
                 eff.params.amount = parseInt(row.querySelector('.eff-amount')?.value) || 5;
-                if (effType === 'damage')
-                    eff.params.target = row.querySelector('.eff-dmg-target')?.value || 'self';
-            }
-            else if (effType === 'adjust_vital') {
+                if (effType === 'damage') eff.params.target = row.querySelector('.eff-dmg-target')?.value || 'self';
+            } else if (effType === 'adjust_vital') {
                 eff.params.stat = row.querySelector('.eff-vital-stat')?.value || 'HP';
                 eff.params.amount = parseInt(row.querySelector('.eff-vital-amount')?.value) || 0;
                 eff.params.target = row.querySelector('.eff-vital-target')?.value || 'self';
-            }
-            else if (effType === 'spawn_item') {
+            } else if (effType === 'spawn_item') {
                 eff.params.item_id = row.querySelector('.eff-spawn-id')?.value || '';
                 eff.params.display_name = row.querySelector('.eff-spawn-name')?.value || '';
                 const into = row.querySelector('.eff-spawn-into')?.value || 'area';
-                if (into !== 'area')
-                    eff.params.into = into;
+                if (into !== 'area') eff.params.into = into;
                 const capture = row.querySelector('.eff-spawn-capture')?.value || '';
-                if (capture)
-                    eff.params.capture = capture;
-            }
-            else if (effType === 'spawn_character') {
+                if (capture) eff.params.capture = capture;
+            } else if (effType === 'spawn_character') {
                 eff.params.character_id = row.querySelector('.eff-spawn-char-id')?.value || '';
                 eff.params.display_name = row.querySelector('.eff-spawn-char-name')?.value || '';
                 eff.params.area = row.querySelector('.eff-spawn-char-area')?.value || '';
                 eff.params.message = row.querySelector('.eff-spawn-char-msg')?.value || '';
-            }
-            else if (effType === 'give_item') {
+            } else if (effType === 'give_item') {
                 eff.params.item_id = row.querySelector('.eff-give-id')?.value || '';
                 eff.params.target = row.querySelector('.eff-give-target')?.value || 'self';
                 eff.params.message = row.querySelector('.eff-give-msg')?.value || '';
-            }
-            else if (effType === 'remove_item') {
+            } else if (effType === 'remove_item') {
                 eff.params.item_id = row.querySelector('.eff-remove-id')?.value || '';
-            }
-            else if (effType === 'set_state') {
+            } else if (effType === 'set_state') {
                 eff.params.node_id = row.querySelector('.eff-state-node')?.value || 'self';
                 eff.params.state = row.querySelector('.eff-state-val')?.value || 'on';
-            }
-            else if (effType === 'set_hidden') {
+            } else if (effType === 'set_hidden') {
                 eff.params.node_id = row.querySelector('.eff-hidden-node')?.value || 'self';
                 eff.params.hidden = row.querySelector('.eff-hidden-val')?.value === 'true';
-            }
-            else if (effType === 'adjust_uses') {
+            } else if (effType === 'adjust_uses') {
                 eff.params.node_id = row.querySelector('.eff-uses-node')?.value || 'self';
                 eff.params.delta = parseInt(row.querySelector('.eff-uses-delta')?.value) || 0;
-            }
-            else if (effType === 'set_parameter' || effType === 'adjust_parameter') {
+            } else if (effType === 'set_parameter' || effType === 'adjust_parameter') {
                 eff.params.node_id = row.querySelector('.eff-param-node')?.value || 'self';
                 eff.params.key = row.querySelector('.eff-param-key')?.value || '';
                 if (effType === 'set_parameter') {
                     eff.params.value = row.querySelector('.eff-param-value')?.value ?? '';
-                }
-                else {
+                } else {
                     eff.params.delta = parseInt(row.querySelector('.eff-param-delta')?.value) || 0;
                 }
-            }
-            else if (effType === 'rename') {
+            } else if (effType === 'rename') {
                 eff.params.name = row.querySelector('.eff-rename')?.value || '';
-            }
-            else if (effType === 'teleport') {
+            } else if (effType === 'teleport') {
                 eff.params.area = row.querySelector('.eff-teleport')?.value || '';
-            }
-            else if (effType === 'unlock_way') {
+            } else if (effType === 'unlock_way') {
                 eff.params.way_id = row.querySelector('.eff-unlock')?.value || '';
-            }
-            else if (effType === 'set_description') {
+            } else if (effType === 'set_description') {
                 eff.params.target = row.querySelector('.eff-setdesc-target')?.value || '';
                 eff.params.value = row.querySelector('.eff-setdesc-value')?.value || '';
-            }
-            else if (effType === 'append_description') {
+            } else if (effType === 'append_description') {
                 eff.params.target = row.querySelector('.eff-setdesc-target')?.value || '';
                 eff.params.text = row.querySelector('.eff-appenddesc-text')?.value || '';
-            }
-            else if (effType === 'schedule_trigger') {
+            } else if (effType === 'schedule_trigger') {
                 eff.params.delay_ticks = parseInt(row.querySelector('.eff-schedule-delay')?.value) || 3;
                 eff.params.target = row.querySelector('.eff-schedule-target')?.value || '';
-            }
-            else if (effType === 'set_environment') {
+            } else if (effType === 'set_environment') {
                 const lightVal = row.querySelector('.eff-env-light')?.value || '';
-                if (lightVal)
-                    eff.params.light = lightVal;
+                if (lightVal) eff.params.light = lightVal;
                 const tempVal = row.querySelector('.eff-env-temp')?.value;
-                if (tempVal !== undefined && tempVal !== '')
-                    eff.params.temperature = parseInt(tempVal);
+                if (tempVal !== undefined && tempVal !== '') eff.params.temperature = parseInt(tempVal);
                 const airVal = row.querySelector('.eff-env-air')?.value || '';
-                if (airVal)
-                    eff.params.air = airVal;
+                if (airVal) eff.params.air = airVal;
                 const smellVal = row.querySelector('.eff-env-smell')?.value || '';
-                if (smellVal)
-                    eff.params.smell = smellVal;
+                if (smellVal) eff.params.smell = smellVal;
                 const noiseVal = row.querySelector('.eff-env-noise')?.value || '';
-                if (noiseVal)
-                    eff.params.noise = noiseVal;
+                if (noiseVal) eff.params.noise = noiseVal;
                 const nodeVal = row.querySelector('.eff-env-node')?.value || '';
-                if (nodeVal)
-                    eff.params.target_node = nodeVal;
-            }
-            else if (effType === 'adjust_environment') {
+                if (nodeVal) eff.params.target_node = nodeVal;
+            } else if (effType === 'adjust_environment') {
                 const adjTemp = row.querySelector('.eff-adj-temp')?.value;
-                if (adjTemp !== undefined && adjTemp !== '')
-                    eff.params.temperature = parseInt(adjTemp);
+                if (adjTemp !== undefined && adjTemp !== '') eff.params.temperature = parseInt(adjTemp);
                 const adjLight = row.querySelector('.eff-adj-light')?.value;
-                if (adjLight !== undefined && adjLight !== '')
-                    eff.params.light = parseInt(adjLight);
-            }
-            else if (effType === 'llm_respond') {
+                if (adjLight !== undefined && adjLight !== '') eff.params.light = parseInt(adjLight);
+            } else if (effType === 'llm_respond') {
                 // task-330: object speaks via browser-side LLM.
                 eff.params.instructions = row.querySelector('.eff-llm-instructions')?.value || '';
                 eff.params.fallback_message = row.querySelector('.eff-llm-fallback')?.value || '';
                 eff.params.max_words = parseInt(row.querySelector('.eff-llm-maxwords')?.value) || 40;
                 const cooldown = row.querySelector('.eff-llm-cooldown')?.value;
-                if (cooldown && cooldown !== '')
-                    eff.params.cooldown = parseInt(cooldown);
+                if (cooldown && cooldown !== '') eff.params.cooldown = parseInt(cooldown);
                 const name = row.querySelector('.eff-llm-name')?.value;
-                if (name)
-                    eff.params.name = name;
-            }
-            else if (effType === 'scry') {
+                if (name) eff.params.name = name;
+            } else if (effType === 'scry') {
                 // task-320: far-sight view of a distant area.
                 eff.params.target = row.querySelector('.eff-scry-target')?.value || '';
                 eff.params.message = row.querySelector('.eff-scry-msg')?.value || '';
                 eff.params.fail_message = row.querySelector('.eff-scry-fail')?.value || '';
-            }
-            else if (effType === 'save') {
+            } else if (effType === 'save') {
                 const mode = row.querySelector('.eff-save-mode')?.value || 'stat';
                 if (mode === 'skill') {
                     eff.params.skill = row.querySelector('.eff-save-skill')?.value || 'Athletics';
                     delete eff.params.stat;
-                }
-                else {
+                } else {
                     eff.params.stat = row.querySelector('.eff-save-stat')?.value || 'WIS';
                     delete eff.params.skill;
                 }
                 eff.params.dc = parseInt(row.querySelector('.eff-save-dc')?.value) || 12;
                 eff.params.on_success = triggerEditorApi._buildSaveBranchEffect(row, 'success');
                 eff.params.on_fail = triggerEditorApi._buildSaveBranchEffect(row, 'fail');
-            }
-            else if (effType === 'add_tag' || effType === 'remove_tag') {
+            } else if (effType === 'add_tag' || effType === 'remove_tag') {
                 eff.params.node_id = row.querySelector('.eff-tag-node')?.value || 'self';
                 eff.params.tag = row.querySelector('.eff-tag-name')?.value || '';
                 const tagMsg = row.querySelector('.eff-tag-msg')?.value;
-                if (tagMsg)
-                    eff.params.message = tagMsg;
-            }
-            else if (effType === 'apply_trait' || effType === 'remove_trait') {
+                if (tagMsg) eff.params.message = tagMsg;
+            } else if (effType === 'apply_trait' || effType === 'remove_trait') {
                 eff.params.trait = row.querySelector('.eff-trait-id')?.value || '';
                 eff.params.target = row.querySelector('.eff-trait-target')?.value || 'self';
                 if (effType === 'apply_trait') {
                     const paramVal = row.querySelector('.eff-trait-param')?.value;
                     eff.params.param = (paramVal === undefined || paramVal === '') ? true : paramVal;
                 }
-            }
-            else if (effType === 'apply_condition' || effType === 'remove_condition') {
+            } else if (effType === 'apply_condition' || effType === 'remove_condition') {
                 eff.params.condition = row.querySelector('.eff-condition-id')?.value || '';
                 const by = row.querySelector('.eff-condition-target-by')?.value || 'self';
                 if (by === 'self') {
                     eff.params.target = 'self';
                     delete eff.params.target_by;
                     delete eff.params.target_value;
-                }
-                else if (by === 'all_in_area') {
+                } else if (by === 'all_in_area') {
                     eff.params.target_by = 'all_in_area';
                     delete eff.params.target_value;
                     delete eff.params.target;
-                }
-                else {
+                } else {
                     eff.params.target_by = by;
                     eff.params.target_value = row.querySelector('.eff-condition-target')?.value || '';
                     delete eff.params.target;
                 }
                 if (effType === 'apply_condition') {
                     const durVal = row.querySelector('.eff-condition-duration')?.value;
-                    if (durVal !== undefined && durVal !== '')
-                        eff.params.duration = parseInt(durVal);
+                    if (durVal !== undefined && durVal !== '') eff.params.duration = parseInt(durVal);
                     const srcVal = row.querySelector('.eff-condition-source')?.value;
-                    if (srcVal)
-                        eff.params.source = srcVal;
+                    if (srcVal) eff.params.source = srcVal;
                     // Per-tick drain form: only non-zero vitals are serialized.
                     // All zeros → omit periodic entirely (catalog default applies).
-                    const drain = {};
-                    ['HP', 'Energy', 'Hunger', 'Thirst', 'Hygiene', 'Social', 'Bladder', 'Sanity', 'Entertainment', 'Temperature'].forEach(v => {
+                    const drain: Record<string, number> = {};
+                    ['HP','Energy','Hunger','Thirst','Hygiene','Social','Bladder','Sanity','Entertainment','Temperature'].forEach(v => {
                         const el = row.querySelector(`.eff-periodic-${v}`);
-                        if (!el)
-                            return;
+                        if (!el) return;
                         const val = parseFloat(el.value);
-                        if (!isNaN(val) && val !== 0)
-                            drain[v] = val;
+                        if (!isNaN(val) && val !== 0) drain[v] = val;
                     });
-                    if (Object.keys(drain).length > 0)
-                        eff.params.periodic = drain;
+                    if (Object.keys(drain).length > 0) eff.params.periodic = drain;
                     const symVal = row.querySelector('.eff-condition-symptoms')?.value;
                     if (symVal) {
-                        try {
-                            eff.params.symptoms = JSON.parse(symVal);
-                        }
-                        catch (e) { }
+                        try { eff.params.symptoms = JSON.parse(symVal); } catch (e) {}
                     }
                     const extraVal = row.querySelector('.eff-condition-extras')?.value;
                     if (extraVal) {
-                        try {
-                            eff.params.extra_conditions = JSON.parse(extraVal);
-                        }
-                        catch (e) { }
+                        try { eff.params.extra_conditions = JSON.parse(extraVal); } catch (e) {}
                     }
                 }
-            }
-            else if (effType === 'set_time') {
+            } else if (effType === 'set_time') {
                 const tv = row.querySelector('.eff-settime-time')?.value || '';
-                if (tv.includes(':'))
-                    eff.params.time = tv;
-                else
-                    eff.params.hour = parseInt(tv) || 0;
-            }
-            else if (effType === 'set_date') {
+                if (tv.includes(':')) eff.params.time = tv; else eff.params.hour = parseInt(tv) || 0;
+            } else if (effType === 'set_date') {
                 const d = row.querySelector('.eff-setdate-day')?.value;
                 const m = row.querySelector('.eff-setdate-month')?.value;
                 const y = row.querySelector('.eff-setdate-year')?.value;
-                if (d !== undefined && d !== '')
-                    eff.params.day = parseInt(d);
-                if (m !== undefined && m !== '')
-                    eff.params.month = parseInt(m);
-                if (y !== undefined && y !== '')
-                    eff.params.year = parseInt(y);
-            }
-            else if (effType === 'set_weather') {
+                if (d !== undefined && d !== '') eff.params.day = parseInt(d);
+                if (m !== undefined && m !== '') eff.params.month = parseInt(m);
+                if (y !== undefined && y !== '') eff.params.year = parseInt(y);
+            } else if (effType === 'set_weather') {
                 eff.params.weather = row.querySelector('.eff-setweather')?.value || 'clear';
                 const dur = row.querySelector('.eff-setweather-dur')?.value;
-                if (dur !== undefined && dur !== '')
-                    eff.params.duration_ticks = parseInt(dur);
-            }
-            else if (effType === 'forecast_override') {
+                if (dur !== undefined && dur !== '') eff.params.duration_ticks = parseInt(dur);
+            } else if (effType === 'forecast_override') {
                 const weather = row.querySelector('.eff-fcast-weather')?.value;
-                if (weather)
-                    eff.params.weather = weather;
+                if (weather) eff.params.weather = weather;
                 const wind = row.querySelector('.eff-fcast-wind')?.value;
-                if (wind)
-                    eff.params.wind = wind;
+                if (wind) eff.params.wind = wind;
                 const temp = row.querySelector('.eff-fcast-temp')?.value;
-                if (temp !== undefined && temp !== '')
-                    eff.params.temperature_mod = parseInt(temp);
+                if (temp !== undefined && temp !== '') eff.params.temperature_mod = parseInt(temp);
                 const bdur = row.querySelector('.eff-fcast-dur')?.value;
-                if (bdur !== undefined && bdur !== '')
-                    eff.params.duration_ticks = parseInt(bdur);
+                if (bdur !== undefined && bdur !== '') eff.params.duration_ticks = parseInt(bdur);
                 const btarget = row.querySelector('.eff-fcast-target')?.value;
-                if (btarget)
-                    eff.params.target = btarget;
-                if (row.querySelector('.eff-fcast-blood')?.checked)
-                    eff.params.blood_moon = true;
-            }
-            else if (effType === 'adjust_forecast') {
+                if (btarget) eff.params.target = btarget;
+                if (row.querySelector('.eff-fcast-blood')?.checked) eff.params.blood_moon = true;
+            } else if (effType === 'adjust_forecast') {
                 const td = row.querySelector('.eff-fcast-tdelta')?.value;
-                if (td !== undefined && td !== '')
-                    eff.params.temperature_mod_delta = parseInt(td);
+                if (td !== undefined && td !== '') eff.params.temperature_mod_delta = parseInt(td);
                 const ld = row.querySelector('.eff-fcast-ldelta')?.value;
-                if (ld !== undefined && ld !== '')
-                    eff.params.light_mod_delta = parseInt(ld);
+                if (ld !== undefined && ld !== '') eff.params.light_mod_delta = parseInt(ld);
                 const adur = row.querySelector('.eff-fcast-adur')?.value;
-                if (adur !== undefined && adur !== '')
-                    eff.params.duration_ticks = parseInt(adur);
-            }
-            else if (effType === 'apply_area_status') {
+                if (adur !== undefined && adur !== '') eff.params.duration_ticks = parseInt(adur);
+            } else if (effType === 'apply_area_status') {
                 const at = row.querySelector('.eff-astat-target')?.value;
-                if (at)
-                    eff.params.target = at;
+                if (at) eff.params.target = at;
                 eff.params.status_type = row.querySelector('.eff-astat-type')?.value || 'on_fire';
                 eff.params.severity = parseInt(row.querySelector('.eff-astat-sev')?.value) || 1;
                 const ad = row.querySelector('.eff-astat-dur')?.value;
-                if (ad !== undefined && ad !== '')
-                    eff.params.duration = parseInt(ad);
-            }
-            else if (effType === 'clear_area_status') {
+                if (ad !== undefined && ad !== '') eff.params.duration = parseInt(ad);
+            } else if (effType === 'clear_area_status') {
                 const ct = row.querySelector('.eff-astat-clrtarget')?.value;
-                if (ct)
-                    eff.params.target = ct;
+                if (ct) eff.params.target = ct;
                 eff.params.status_type = row.querySelector('.eff-astat-clrtype')?.value || 'on_fire';
-            }
-            else if (effType === 'set_wet') {
+            } else if (effType === 'set_wet') {
                 eff.params.wet = (row.querySelector('.eff-setwet-val')?.value || 'true') === 'true';
                 const wn = row.querySelector('.eff-setwet-node')?.value;
-                if (wn)
-                    eff.params.node_id = wn;
+                if (wn) eff.params.node_id = wn;
             }
             effects.push(eff);
         });
+
         // Collect condition tree
         const condContainer = document.getElementById('te-conditions-container');
-        const conditions = triggerEditorApi._collectConditionGroup(condContainer);
+        const conditions = triggerEditorApi._collectConditionGroup(condContainer as HTMLElement);
+
         const result = {
-            name: document.getElementById('te-trigger-name')?.value || '',
+            name: (document.getElementById('te-trigger-name') as HTMLInputElement | null)?.value || '',
             trigger_type: triggerType,
             effects: effects,
             conditions: conditions,
-            target_name: document.getElementById('te-target-name')?.value || '',
-            target_state: document.getElementById('te-target-state')?.value || '',
-            success_message: document.getElementById('te-success-msg')?.value || '',
-            fail_message: document.getElementById('te-fail-msg')?.value || ''
+            target_name: (document.getElementById('te-target-name') as HTMLInputElement | null)?.value || '',
+            target_state: (document.getElementById('te-target-state') as HTMLSelectElement | null)?.value || '',
+            success_message: (document.getElementById('te-success-msg') as HTMLTextAreaElement | null)?.value || '',
+            fail_message: (document.getElementById('te-fail-msg') as HTMLTextAreaElement | null)?.value || ''
         };
+
         // The runtime reads messages from the first effect's params
         // (trigger_system.py reads fail_message there) — mirror them so
         // configured messages actually surface in-game.
         if (effects.length > 0) {
-            if (!effects[0].params)
-                effects[0].params = {};
-            if (result.success_message)
-                effects[0].params.success_message = result.success_message;
-            if (result.fail_message)
-                effects[0].params.fail_message = result.fail_message;
+            if (!effects[0].params) effects[0].params = {};
+            if (result.success_message) effects[0].params.success_message = result.success_message;
+            if (result.fail_message) effects[0].params.fail_message = result.fail_message;
         }
+
         // For backward compat: if single trigger type, store as string
         if (this._mode === 'single' && Array.isArray(result.trigger_type)) {
             result.trigger_type = result.trigger_type[0] || 'message';
         }
+
         return result;
     },
+
     // ─────────────────── Condition Rule Tree ───────────────────
-    _loadConditionTree(conditions, defaultOperator, container) {
+
+    _loadConditionTree(conditions: any, defaultOperator: string, container: HTMLElement): void {
         // Accept tree object {operator, conditions} or flat array
         let tree = conditions;
         if (Array.isArray(conditions)) {
             tree = { operator: defaultOperator || 'and', conditions: conditions };
         }
         if (!tree || !tree.conditions || tree.conditions.length === 0) {
-            window.Lit.render(triggerEditorTag `<div style="font-size:11px;color:var(--text-muted);padding:4px 0;">No conditions — always fires.</div>`, container);
+            window.Lit.render(triggerEditorTag`<div style="font-size:11px;color:var(--text-muted);padding:4px 0;">No conditions — always fires.</div>`, container);
             return;
         }
-        window.Lit.render(triggerEditorTag `${window.Lit.nothing}`, container);
+        window.Lit.render(triggerEditorTag`${window.Lit.nothing}`, container);
         triggerEditorApi._renderConditionGroup(tree, container, 0);
     },
-    _renderConditionGroup(group, parentEl, depth) {
+
+    _renderConditionGroup(group: TriggerEditorConditionGroup, parentEl: HTMLElement, depth: number): void {
         const operator = group.operator || 'and';
         const items = group.conditions || [];
+
         const groupDiv = document.createElement('div');
         groupDiv.className = 'cond-group';
         groupDiv.style.cssText = `margin:${depth === 0 ? '0' : '4px 0'};padding-left:${depth === 0 ? '0' : '12px'};`;
+
         // Header: operator selector
         const header = document.createElement('div');
         header.style.cssText = 'display:flex;align-items:center;gap:4px;margin-bottom:4px;';
@@ -1070,12 +976,13 @@ var triggerEditorApi = {
         const opSelect = document.createElement('select');
         opSelect.className = 'cond-group-op';
         opSelect.style.cssText = 'font-size:10px;padding:1px 4px;border-radius:4px;background:var(--bg-input);color:var(--text);border:1px solid var(--pink);';
-        window.Lit.render(triggerEditorTag `<option value="and" ?selected=${operator === 'and'}>ALL</option><option value="or" ?selected=${operator === 'or'}>ANY</option>`, opSelect);
+        window.Lit.render(triggerEditorTag`<option value="and" ?selected=${operator === 'and'}>ALL</option><option value="or" ?selected=${operator === 'or'}>ANY</option>`, opSelect);
         header.appendChild(opSelect);
         const label = document.createElement('span');
         label.style.cssText = 'font-size:10px;color:var(--text-muted);';
         label.textContent = depth === 0 ? 'of these are true:' : 'of:';
         header.appendChild(label);
+
         // Ungroup button (for nested groups)
         if (depth > 0) {
             const ungroupBtn = document.createElement('button');
@@ -1084,14 +991,18 @@ var triggerEditorApi = {
             ungroupBtn.onclick = () => triggerEditorApi._ungroupGroup(groupDiv);
             header.appendChild(ungroupBtn);
         }
+
         groupDiv.appendChild(header);
+
         // Items container
         const itemsDiv = document.createElement('div');
         itemsDiv.className = 'cond-group-items';
         itemsDiv.style.cssText = 'border-left:2px solid var(--pink);padding-left:8px;';
+
         items.forEach((item, idx) => {
             const itemDiv = document.createElement('div');
             itemDiv.className = 'cond-group-item';
+
             // Operator pill between items
             if (idx > 0) {
                 const pill = document.createElement('div');
@@ -1100,18 +1011,21 @@ var triggerEditorApi = {
                 pill.textContent = operator;
                 itemDiv.appendChild(pill);
             }
+
             if (item.operator) {
                 // Nested group
-                triggerEditorApi._renderConditionGroup(item, itemDiv, depth + 1);
-            }
-            else {
+                triggerEditorApi._renderConditionGroup(item as TriggerEditorConditionGroup, itemDiv, depth + 1);
+            } else {
                 // Leaf condition
-                const row = triggerEditorApi._buildConditionRowEl(item);
+                const row = triggerEditorApi._buildConditionRowEl(item as TriggerEditorConditionLeaf);
                 itemDiv.appendChild(row);
             }
+
             itemsDiv.appendChild(itemDiv);
         });
+
         groupDiv.appendChild(itemsDiv);
+
         // Action buttons
         const actions = document.createElement('div');
         actions.style.cssText = 'display:flex;gap:4px;margin-top:4px;';
@@ -1127,10 +1041,12 @@ var triggerEditorApi = {
         addGroupBtn.style.cssText = 'font-size:9px;padding:2px 6px;';
         addGroupBtn.onclick = () => triggerEditorApi._addCondGroupTo(itemsDiv, operator);
         actions.appendChild(addGroupBtn);
+
         groupDiv.appendChild(actions);
         parentEl.appendChild(groupDiv);
     },
-    _buildConditionRowEl(existingCond) {
+
+    _buildConditionRowEl(existingCond?: TriggerEditorConditionLeaf | null): HTMLDivElement {
         const ctype = existingCond?.type || 'skill_check';
         const cv = existingCond?.value || '';
         const cStat = existingCond?.stat || 'HP';
@@ -1143,32 +1059,36 @@ var triggerEditorApi = {
         const cPhrase = existingCond?.phrase || existingCond?.value || '';
         const isItems = ctype === 'has_items';
         const dispVal = isItems ? (Array.isArray(cv) ? cv.join(', ') : cv) : cv;
-        const SHOWS = (types) => types.includes(ctype) ? 'block' : 'none';
-        const OPTS = ['lt', 'le', 'eq', 'ge', 'gt'].map(o => triggerEditorTag `<option value=${o} ?selected=${cOp === o}>${o}</option>`);
-        const SKILL_OPTS = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA', 'Athletics', 'Acrobatics', 'Stealth', 'Perception', 'Survival', 'Persuasion', 'Investigation']
-            .map(s => triggerEditorTag `<option value=${s} ?selected=${(cSaveType === 'stat' ? cStat : cSkill) === s}>${s}</option>`);
+
+        const SHOWS = (types: string[]): string => types.includes(ctype) ? 'block' : 'none';
+        const OPTS = ['lt', 'le', 'eq', 'ge', 'gt'].map(o =>
+            triggerEditorTag`<option value=${o} ?selected=${cOp === o}>${o}</option>`);
+        const SKILL_OPTS = ['STR','DEX','CON','INT','WIS','CHA','Athletics','Acrobatics','Stealth','Perception','Survival','Persuasion','Investigation']
+            .map(s => triggerEditorTag`<option value=${s} ?selected=${(cSaveType === 'stat' ? cStat : cSkill) === s}>${s}</option>`);
+
         const row = document.createElement('div');
         row.className = 'cond-row';
         row.style.cssText = 'background:var(--bg-inset);border-radius:4px;padding:6px;margin-bottom:0;border-left:3px solid var(--pink);position:relative;';
-        window.Lit.render(triggerEditorTag `
+
+        window.Lit.render(triggerEditorTag`
             <label style="font-size:9px;font-weight:600;">Condition type</label>
             <div class="eff-select" data-kind="condition-types" data-input-class="cond-type" data-value=${ctype} data-placeholder="Search condition type..." style="width:100%;font-size:11px;margin-bottom:3px;"></div>
             <div class="cond-fields">
-                <div class="cond-field" data-cond="uses_reached,uses_above,random_chance,has_item,has_items,has_trait,has_tag,state_equals,speech_matches,time_of_day,weather" style="display:${SHOWS(['uses_reached', 'uses_above', 'random_chance', 'has_item', 'has_items', 'has_trait', 'has_tag', 'state_equals', 'speech_matches', 'time_of_day', 'weather'])};">
+                <div class="cond-field" data-cond="uses_reached,uses_above,random_chance,has_item,has_items,has_trait,has_tag,state_equals,speech_matches,time_of_day,weather" style="display:${SHOWS(['uses_reached','uses_above','random_chance','has_item','has_items','has_trait','has_tag','state_equals','speech_matches','time_of_day','weather'])};">
                     <div data-subcond="uses_reached,uses_above,random_chance,has_item,has_items,has_trait,speech_matches,time_of_day,weather" style="display:${ctype === 'has_tag' ? 'none' : 'block'};">
                     ${ctype === 'has_item'
-            ? triggerEditorTag `<label style="font-size:9px;">Item Name</label><div class="eff-select" data-kind="items" data-input-class="cond-value" data-value=${cv} data-placeholder="key, torch..." data-free="true" style="width:100%;font-size:11px;"></div>`
-            : ctype === 'has_trait'
-                ? triggerEditorTag `<label style="font-size:9px;">Trait ID</label><div class="eff-select" data-kind="traits" data-input-class="cond-value" data-value=${cv} data-placeholder="dark_vision, hardy..." data-free="true" style="width:100%;font-size:11px;"></div>`
-                : ctype === 'random_chance'
-                    ? triggerEditorTag `<label style="font-size:9px;">Chance %</label><input type="number" class="cond-value" .value=${dispVal} min="0" max="100" placeholder="0-100" style="width:100%;font-size:11px;">`
-                    : ctype === 'time_of_day'
-                        ? triggerEditorTag `<label style="font-size:9px;">Clock time (HH:MM)</label><input type="time" class="cond-value" .value=${cv} style="width:100%;font-size:11px;">`
+                        ? triggerEditorTag`<label style="font-size:9px;">Item Name</label><div class="eff-select" data-kind="items" data-input-class="cond-value" data-value=${cv} data-placeholder="key, torch..." data-free="true" style="width:100%;font-size:11px;"></div>`
+                        : ctype === 'has_trait'
+                        ? triggerEditorTag`<label style="font-size:9px;">Trait ID</label><div class="eff-select" data-kind="traits" data-input-class="cond-value" data-value=${cv} data-placeholder="dark_vision, hardy..." data-free="true" style="width:100%;font-size:11px;"></div>`
+                        : ctype === 'random_chance'
+                        ? triggerEditorTag`<label style="font-size:9px;">Chance %</label><input type="number" class="cond-value" .value=${dispVal} min="0" max="100" placeholder="0-100" style="width:100%;font-size:11px;">`
+                        : ctype === 'time_of_day'
+                        ? triggerEditorTag`<label style="font-size:9px;">Clock time (HH:MM)</label><input type="time" class="cond-value" .value=${cv} style="width:100%;font-size:11px;">`
                         : ctype === 'weather'
-                            ? triggerEditorTag `<label style="font-size:9px;">Weather</label><input type="text" class="cond-value" .value=${cv} list="eff-weather-list" placeholder="rain, clear, fog, storm..." style="width:100%;font-size:11px;">`
-                            : ctype === 'speech_matches'
-                                ? triggerEditorTag `<label style="font-size:9px;">Phrase</label><input type="text" class="cond-value" .value=${cPhrase} placeholder="e.g. hello, help..." style="width:100%;font-size:11px;">`
-                                : triggerEditorTag `<label style="font-size:9px;">${ctype === 'has_items' ? 'Comma-separated items' : 'Value'}</label><input type="text" class="cond-value" .value=${dispVal} style="width:100%;font-size:11px;">`}
+                        ? triggerEditorTag`<label style="font-size:9px;">Weather</label><input type="text" class="cond-value" .value=${cv} list="eff-weather-list" placeholder="rain, clear, fog, storm..." style="width:100%;font-size:11px;">`
+                        : ctype === 'speech_matches'
+                        ? triggerEditorTag`<label style="font-size:9px;">Phrase</label><input type="text" class="cond-value" .value=${cPhrase} placeholder="e.g. hello, help..." style="width:100%;font-size:11px;">`
+                        : triggerEditorTag`<label style="font-size:9px;">${ctype === 'has_items' ? 'Comma-separated items' : 'Value'}</label><input type="text" class="cond-value" .value=${dispVal} style="width:100%;font-size:11px;">`}
                     </div>
                     <div data-subcond="has_tag" style="display:${ctype === 'has_tag' ? 'block' : 'none'};">
                         <label style="font-size:9px;">Tags (any of)</label><div class="cond-tag-multi" data-value=${Array.isArray(existingCond?.value) ? existingCond.value.join(',') : (existingCond?.value || '')}></div>
@@ -1180,7 +1100,7 @@ var triggerEditorApi = {
                     <label style="font-size:9px;">Area (blank = current)</label>
                     <input type="text" class="cond-target" .value=${existingCond?.target || ''} style="width:100%;font-size:11px;">
                 </div>
-                <div class="cond-field" data-cond="area_temp,vital,vital_above,vital_below" style="display:${SHOWS(['area_temp', 'vital', 'vital_above', 'vital_below'])};">
+                <div class="cond-field" data-cond="area_temp,vital,vital_above,vital_below" style="display:${SHOWS(['area_temp','vital','vital_above','vital_below'])};">
                     <div style="display:flex;gap:4px;">
                         <div style="flex:1;"><label style="font-size:9px;">Comparator</label>
                             <select class="cond-operator" style="width:100%;font-size:10px;">${OPTS}</select>
@@ -1190,7 +1110,7 @@ var triggerEditorApi = {
                         </div>
                     </div>
                 </div>
-                <div class="cond-field" data-cond="vital,vital_above,vital_below" style="display:${SHOWS(['vital', 'vital_above', 'vital_below'])};">
+                <div class="cond-field" data-cond="vital,vital_above,vital_below" style="display:${SHOWS(['vital','vital_above','vital_below'])};">
                     <label style="font-size:9px;">Vital</label>
                     <div class="eff-select" data-kind="vitals" data-input-class="cond-stat" data-value=${cStat} data-placeholder="HP, Energy, Hunger..." data-free="true" style="width:100%;font-size:11px;"></div>
                 </div>
@@ -1220,13 +1140,13 @@ var triggerEditorApi = {
                 </div>
                 <div class="cond-field" data-cond="save_throw" style="display:${SHOWS(['save_throw'])};">
                     <label style="font-size:9px;">Type</label>
-                    <select class="cond-save-type" style="width:100%;font-size:10px;" @change=${(e) => { const row = e.target.closest('.cond-row'); row.querySelector('.cond-stat-or-skill').style.display = e.target.value === 'stat' ? 'block' : 'none'; row.querySelector('.cond-skill-or-stat').style.display = e.target.value === 'skill' ? 'block' : 'none'; }}>
+                    <select class="cond-save-type" style="width:100%;font-size:10px;" @change=${(e: any) => { const row=e.target.closest('.cond-row'); row.querySelector('.cond-stat-or-skill').style.display = e.target.value==='stat' ? 'block':'none'; row.querySelector('.cond-skill-or-stat').style.display = e.target.value==='skill' ? 'block':'none'; }}>
                         <option value="stat" ?selected=${cSaveType !== 'skill'}>Base Stat</option>
                         <option value="skill" ?selected=${cSaveType === 'skill'}>Skill</option>
                     </select>
                     <div class="cond-stat-or-skill" style="display:${cSaveType !== 'skill' ? 'block' : 'none'};">
                         <label style="font-size:9px;">Stat</label><select class="cond-save-stat" style="width:100%;font-size:11px;">
-                            ${['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'].map(s => triggerEditorTag `<option value=${s} ?selected=${(existingCond?.stat || 'DEX') === s}>${s}</option>`)}
+                            ${['STR','DEX','CON','INT','WIS','CHA'].map(s => triggerEditorTag`<option value=${s} ?selected=${(existingCond?.stat || 'DEX') === s}>${s}</option>`)}
                         </select>
                     </div>
                     <div class="cond-skill-or-stat" style="display:${cSaveType === 'skill' ? 'block' : 'none'};">
@@ -1234,102 +1154,90 @@ var triggerEditorApi = {
                     </div>
                     <label style="font-size:9px;">DC</label><input type="number" class="cond-dc" .value=${cDc} style="width:100%;font-size:11px;">
                 </div>
-                <div class="cond-field" data-cond="save_throw,has_trait,has_tag,vital,vital_above,vital_below,is_equipped,area_temp" style="display:${SHOWS(['state_equals', 'save_throw', 'has_trait', 'has_tag', 'vital', 'vital_above', 'vital_below', 'is_equipped', 'area_temp'])};">
+                <div class="cond-field" data-cond="save_throw,has_trait,has_tag,vital,vital_above,vital_below,is_equipped,area_temp" style="display:${SHOWS(['state_equals','save_throw','has_trait','has_tag','vital','vital_above','vital_below','is_equipped','area_temp'])};">
                     <label style="font-size:9px;">Target (blank = self)</label><div class="eff-select" data-kind="chars" data-input-class="cond-target" data-value=${cTarget} data-placeholder="self or character name" data-free="true" style="width:100%;font-size:11px;"></div>
                 </div>
             </div>
-            <span @click=${(e) => triggerEditorApi._removeCondItem(e.target)} style="position:absolute;top:4px;right:4px;cursor:pointer;color:var(--red);font-size:10px;">✕</span>
+            <span @click=${(e: any) => triggerEditorApi._removeCondItem(e.target)} style="position:absolute;top:4px;right:4px;cursor:pointer;color:var(--red);font-size:10px;">✕</span>
         `, row);
+
         return row;
     },
-    _collectConditionGroup(parentEl) {
+
+    _collectConditionGroup(parentEl: HTMLElement): TriggerEditorConditionGroup | TriggerEditorConditionLeaf {
         // Check for the placeholder "no conditions" text
         const placeholder = parentEl.querySelector('[style*="font-size:11px;color:var(--text-muted)"]');
         const group = parentEl.querySelector(':scope > .cond-group');
         if (placeholder || !group) {
             return {};
         }
-        const opSelect = group.querySelector('.cond-group-op');
+
+        const opSelect = group.querySelector('.cond-group-op') as HTMLSelectElement | null;
         const operator = opSelect?.value || 'and';
         const itemsDiv = group.querySelector('.cond-group-items');
-        const conditions = [];
+        const conditions: TriggerEditorConditionNode[] = [];
+
         if (itemsDiv) {
-            const itemEls = itemsDiv.querySelectorAll(':scope > .cond-group-item');
+            const itemEls = itemsDiv.querySelectorAll<HTMLElement>(':scope > .cond-group-item');
             itemEls.forEach(itemEl => {
                 const nestedGroup = itemEl.querySelector(':scope > .cond-group');
                 if (nestedGroup) {
                     conditions.push(triggerEditorApi._collectConditionGroup(itemEl));
-                }
-                else {
+                } else {
                     const row = itemEl.querySelector('.cond-row');
                     if (row) {
-                        const ctype = row.querySelector('.cond-type')?.value || '';
-                        const cond = { type: ctype };
-                        const q = (cls) => row.querySelector(`.${cls}`)?.value;
+                        const ctype = (row.querySelector('.cond-type') as TriggerEditorField | null)?.value || '';
+                        const cond: TriggerEditorConditionLeaf = { type: ctype };
+                        const q = (cls: string): any => (row.querySelector(`.${cls}`) as TriggerEditorField | null)?.value;
                         if (ctype === 'has_item') {
                             cond.value = q('cond-value') || '';
-                        }
-                        else if (ctype === 'skill_check') {
+                        } else if (ctype === 'skill_check') {
                             cond.skill = q('cond-skill') || 'Athletics';
                             cond.dc = parseInt(q('cond-dc')) || 10;
-                        }
-                        else if (ctype === 'save_throw') {
+                        } else if (ctype === 'save_throw') {
                             if ((q('cond-save-type') || 'stat') === 'skill') {
                                 cond.skill = q('cond-save-skill') || 'Athletics';
-                            }
-                            else {
+                            } else {
                                 cond.stat = q('cond-save-stat') || 'DEX';
                             }
                             cond.dc = parseInt(q('cond-dc')) || 12;
                             cond.target = q('cond-target') || 'self';
-                        }
-                        else if (ctype === 'state_equals') {
+                        } else if (ctype === 'state_equals') {
                             const node = q('cond-node') || '';
                             const state = q('cond-state') || '';
-                            if (node)
-                                cond.target = node;
+                            if (node) cond.target = node;
                             cond.value = state || q('cond-value') || '';
-                        }
-                        else if (ctype === 'has_trait') {
+                        } else if (ctype === 'has_trait') {
                             cond.value = q('cond-value') || '';
                             cond.target = q('cond-target') || 'self';
-                        }
-                        else if (ctype === 'has_tag') {
-                            const multi = row.querySelector('.cond-tag-multi');
+                        } else if (ctype === 'has_tag') {
+                            const multi = row.querySelector('.cond-tag-multi') as TriggerEditorTagMultiHost | null;
                             cond.value = (multi && multi.__condTagMulti) ? multi.__condTagMulti.tags : (q('cond-value') || '');
                             cond.target = q('cond-target') || 'self';
-                        }
-                        else if (ctype === 'has_items') {
+                        } else if (ctype === 'has_items') {
                             const val = q('cond-value') || '';
-                            cond.value = val.split(',').map((s) => s.trim()).filter(Boolean);
-                        }
-                        else if (ctype === 'speech_matches') {
+                            cond.value = val.split(',').map((s: string) => s.trim()).filter(Boolean);
+                        } else if (ctype === 'speech_matches') {
                             cond.phrase = q('cond-value') || '';
                             cond.mode = q('cond-mode') || 'contains';
-                        }
-                        else if (ctype === 'area_temp' || ctype === 'vital' || ctype === 'vital_above' || ctype === 'vital_below') {
+                        } else if (ctype === 'area_temp' || ctype === 'vital' || ctype === 'vital_above' || ctype === 'vital_below') {
                             cond.value = parseFloat(q('cond-value')) || 0;
                             cond.operator = q('cond-operator') || 'lt';
                             if (ctype === 'vital' || ctype === 'vital_above' || ctype === 'vital_below') {
                                 cond.stat = q('cond-stat') || 'HP';
                             }
                             cond.target = q('cond-target') || 'self';
-                        }
-                        else if (ctype === 'is_equipped') {
+                        } else if (ctype === 'is_equipped') {
                             cond.item = q('cond-item') || '';
                             cond.target = q('cond-target') || 'self';
-                        }
-                        else if (ctype === 'random_chance') {
+                        } else if (ctype === 'random_chance') {
                             cond.value = parseInt(q('cond-value')) || 0;
-                        }
-                        else if (ctype === 'time_of_day' || ctype === 'weather') {
+                        } else if (ctype === 'time_of_day' || ctype === 'weather') {
                             cond.value = q('cond-value') || '';
-                        }
-                        else if (ctype === 'area_has_status') {
+                        } else if (ctype === 'area_has_status') {
                             cond.status_type = q('cond-status-type') || '';
                             cond.target = q('cond-target') || '';
-                        }
-                        else {
+                        } else {
                             cond.value = q('cond-value') || '';
                         }
                         conditions.push(cond);
@@ -1337,15 +1245,17 @@ var triggerEditorApi = {
                 }
             });
         }
+
         if (conditions.length === 0) {
             return {};
         }
+
         return { operator, conditions };
     },
+
     _addCondLeaf() {
         const container = document.getElementById('te-conditions-container');
-        if (!container)
-            return;
+        if (!container) return;
         const group = container.querySelector(':scope > .cond-group');
         if (!group) {
             // First items — create default group
@@ -1353,39 +1263,43 @@ var triggerEditorApi = {
             // Then add condition to it
             const newGroup = container.querySelector(':scope > .cond-group');
             if (newGroup) {
-                const itemsDiv = newGroup.querySelector('.cond-group-items');
+                const itemsDiv = newGroup.querySelector('.cond-group-items') as HTMLElement | null;
                 triggerEditorApi._addLeafTo(itemsDiv, 'and');
             }
             return;
         }
-        const itemsDiv = group.querySelector('.cond-group-items');
-        triggerEditorApi._addLeafTo(itemsDiv, group.querySelector('.cond-group-op')?.value || 'and');
+        const itemsDiv = group.querySelector('.cond-group-items') as HTMLElement | null;
+        triggerEditorApi._addLeafTo(itemsDiv, (group.querySelector('.cond-group-op') as HTMLSelectElement | null)?.value || 'and');
     },
+
     _addCondGroup() {
         const container = document.getElementById('te-conditions-container');
-        if (!container)
-            return;
+        if (!container) return;
         const existing = container.querySelector(':scope > .cond-group');
         if (!existing) {
-            window.Lit.render(triggerEditorTag `${window.Lit.nothing}`, container);
+            window.Lit.render(triggerEditorTag`${window.Lit.nothing}`, container);
             triggerEditorApi._renderConditionGroup({ operator: 'and', conditions: [] }, container, 0);
             return;
         }
-        const itemsDiv = existing.querySelector('.cond-group-items');
-        const operator = existing.querySelector('.cond-group-op')?.value || 'and';
+        const itemsDiv = existing.querySelector('.cond-group-items') as HTMLElement | null;
+        const operator = (existing.querySelector('.cond-group-op') as HTMLSelectElement | null)?.value || 'and';
         triggerEditorApi._addGroupTo(itemsDiv, operator);
     },
-    _addCondLeafTo(itemsDiv, parentOperator) {
+
+    _addCondLeafTo(itemsDiv: HTMLElement | null, parentOperator: string): void {
         triggerEditorApi._addLeafTo(itemsDiv, parentOperator);
     },
-    _addCondGroupTo(itemsDiv, parentOperator) {
+
+    _addCondGroupTo(itemsDiv: HTMLElement | null, parentOperator: string): void {
         triggerEditorApi._addGroupTo(itemsDiv, parentOperator);
     },
-    _addLeafTo(itemsDiv, parentOperator) {
+
+    _addLeafTo(itemsDiv: HTMLElement | null, parentOperator: string): void {
         const itemDiv = document.createElement('div');
         itemDiv.className = 'cond-group-item';
+
         // Operator pill
-        const existingItems = itemsDiv.querySelectorAll(':scope > .cond-group-item');
+        const existingItems = itemsDiv!.querySelectorAll(':scope > .cond-group-item');
         if (existingItems.length > 0) {
             const pill = document.createElement('div');
             pill.className = 'cond-op-pill';
@@ -1393,18 +1307,21 @@ var triggerEditorApi = {
             pill.textContent = parentOperator;
             itemDiv.appendChild(pill);
         }
+
         const row = triggerEditorApi._buildConditionRowEl(null);
         itemDiv.appendChild(row);
-        itemsDiv.appendChild(itemDiv);
+        itemsDiv!.appendChild(itemDiv);
         triggerEditorApi._initEffectSearchSelects(itemDiv);
         triggerEditorApi._initCondTagMultis(itemDiv);
         triggerEditorApi._updateFailGroupVisibility();
     },
-    _addGroupTo(itemsDiv, parentOperator) {
+
+    _addGroupTo(itemsDiv: HTMLElement | null, parentOperator: string): void {
         const itemDiv = document.createElement('div');
         itemDiv.className = 'cond-group-item';
+
         // Operator pill
-        const existingItems = itemsDiv.querySelectorAll(':scope > .cond-group-item');
+        const existingItems = itemsDiv!.querySelectorAll(':scope > .cond-group-item');
         if (existingItems.length > 0) {
             const pill = document.createElement('div');
             pill.className = 'cond-op-pill';
@@ -1412,28 +1329,31 @@ var triggerEditorApi = {
             pill.textContent = parentOperator;
             itemDiv.appendChild(pill);
         }
+
         triggerEditorApi._renderConditionGroup({ operator: 'and', conditions: [] }, itemDiv, 1);
-        itemsDiv.appendChild(itemDiv);
+        itemsDiv!.appendChild(itemDiv);
         triggerEditorApi._initEffectSearchSelects(itemDiv);
         triggerEditorApi._initCondTagMultis(itemDiv);
         triggerEditorApi._updateFailGroupVisibility();
     },
-    _ungroupGroup(groupDiv) {
+
+    _ungroupGroup(groupDiv: HTMLElement): void {
         // Move all children of this group up to the parent group
         const parentItem = groupDiv.closest('.cond-group-item');
-        if (!parentItem)
-            return;
+        if (!parentItem) return;
         const parentItemsDiv = groupDiv.closest('.cond-group-items');
-        if (!parentItemsDiv)
-            return;
+        if (!parentItemsDiv) return;
+
         const itemsDiv = groupDiv.querySelector('.cond-group-items');
-        if (!itemsDiv)
-            return;
-        const children = Array.from(itemsDiv.querySelectorAll(':scope > .cond-group-item'));
+        if (!itemsDiv) return;
+        const children = Array.from(itemsDiv.querySelectorAll<HTMLElement>(':scope > .cond-group-item'));
+
         const idx = Array.from(parentItemsDiv.querySelectorAll(':scope > .cond-group-item')).indexOf(parentItem);
+
         // Remove the group item
         parentItem.remove();
         triggerEditorApi._updateFailGroupVisibility();
+
         // Insert children at the same position
         children.forEach((child, ci) => {
             // If not first child in the list, prepend operator pill
@@ -1443,37 +1363,37 @@ var triggerEditorApi = {
                     const pill = document.createElement('div');
                     pill.className = 'cond-op-pill';
                     pill.style.cssText = 'font-size:9px;font-weight:600;color:var(--pink);padding:1px 0;margin:2px 0;text-transform:uppercase;letter-spacing:0.5px;';
-                    const opSelect = groupDiv.querySelector('.cond-group-op');
+                    const opSelect = groupDiv.querySelector('.cond-group-op') as HTMLSelectElement | null;
                     pill.textContent = opSelect?.value || 'and';
                     child.insertBefore(pill, child.firstChild);
                 }
             }
         });
+
         const insertAfter = parentItemsDiv.children[idx];
         if (insertAfter) {
             children.forEach(child => {
                 parentItemsDiv.insertBefore(child, insertAfter.nextSibling);
             });
-        }
-        else {
+        } else {
             children.forEach(child => {
                 parentItemsDiv.appendChild(child);
             });
         }
     },
+
     /**
      * Render a condition tree as an array of HTML summary strings.
      * Handles both tree format {operator, conditions} and flat array format.
      */
-    _renderConditionSummary(conditions) {
-        if (!conditions)
-            return [];
+    _renderConditionSummary(conditions?: TriggerEditorConditionNode | TriggerEditorConditionNode[] | null): string[] {
+        if (!conditions) return [];
         // Tree format
         if (typeof conditions === 'object' && !Array.isArray(conditions) && conditions.operator) {
             const items = conditions.conditions || [];
             const op = conditions.operator === 'and' ? '+' : '|';
-            const results = [];
-            items.forEach((item, idx) => {
+            const results: string[] = [];
+            items.forEach((item: TriggerEditorConditionNode, idx: number) => {
                 if (item.operator) {
                     // Nested group
                     const nested = triggerEditorApi._renderConditionSummary(item);
@@ -1482,9 +1402,8 @@ var triggerEditorApi = {
                         results.push(...nested);
                         results.push(`<span style="color:var(--pink);font-size:9px;">)</span>`);
                     }
-                }
-                else {
-                    results.push(triggerEditorApi._renderConditionLeaf(item));
+                } else {
+                    results.push(triggerEditorApi._renderConditionLeaf(item as TriggerEditorConditionLeaf));
                 }
                 if (idx < items.length - 1) {
                     results.push(`<span style="color:var(--text-muted);font-size:9px;font-weight:600;"> ${op} </span>`);
@@ -1494,13 +1413,13 @@ var triggerEditorApi = {
         }
         // Flat array format
         if (Array.isArray(conditions)) {
-            return conditions.map((c) => triggerEditorApi._renderConditionLeaf(c));
+            return conditions.map((c: TriggerEditorConditionNode) => triggerEditorApi._renderConditionLeaf(c as TriggerEditorConditionLeaf));
         }
         return [];
     },
-    _renderConditionLeaf(cond) {
-        if (!cond || !cond.type)
-            return '';
+
+    _renderConditionLeaf(cond?: TriggerEditorConditionLeaf | null): string {
+        if (!cond || !cond.type) return '';
         if (cond.type === 'skill_check' || cond.type === 'save_throw') {
             const check = cond.type === 'save_throw' ? (cond.stat || cond.skill || 'DEX') : (cond.skill || 'Athletics');
             const dc = cond.dc || (cond.type === 'save_throw' ? 12 : 10);
@@ -1508,19 +1427,19 @@ var triggerEditorApi = {
             return `<span style="color:var(--pink);font-size:9px;">if ${cond.type}(${check} DC${dc}${tgt})</span>`;
         }
         if (cond.type === 'has_items') {
-            const items = Array.isArray(cond.value) ? cond.value.join(',') : (cond.value || '');
+            const items = Array.isArray(cond.value) ? cond.value.join(',') : (cond.value||'');
             return `<span style="color:var(--pink);font-size:9px;">if ${cond.type}=[${items}]</span>`;
         }
-        return `<span style="color:var(--pink);font-size:9px;">if ${cond.type}=${cond.value || cond.target || ''}</span>`;
+        return `<span style="color:var(--pink);font-size:9px;">if ${cond.type}=${cond.value||cond.target||''}</span>`;
     },
+
     // ─────────────────── Effects ───────────────────
-    _parseSaveBranchEffect(branchArr) {
+
+    _parseSaveBranchEffect(branchArr?: TriggerEditorEffect[] | null): Record<string, any> {
         const first = (branchArr || [])[0];
-        if (!first?.type)
-            return { type: 'none' };
+        if (!first?.type) return { type: 'none' };
         const params = first.params || {};
-        if (first.type === 'message')
-            return { type: 'message', message: params.message || '' };
+        if (first.type === 'message') return { type: 'message', message: params.message || '' };
         if (first.type === 'apply_condition') {
             return {
                 type: 'apply_condition',
@@ -1530,90 +1449,84 @@ var triggerEditorApi = {
                 source_type: params.source_type || '',
             };
         }
-        if (first.type === 'damage')
-            return { type: 'damage', amount: params.amount || 5 };
+        if (first.type === 'damage') return { type: 'damage', amount: params.amount || 5 };
         return { type: 'none' };
     },
-    _buildSaveBranchEffect(row, prefix) {
+
+    _buildSaveBranchEffect(row: TriggerEditorEffectRow, prefix: string): TriggerEditorEffect[] {
         const jsonVal = row.querySelector(`.eff-save-${prefix}-json`)?.value?.trim();
         if (jsonVal) {
             try {
                 const parsed = JSON.parse(jsonVal);
                 return Array.isArray(parsed) ? parsed : [];
-            }
-            catch (e) {
+            } catch (e) {
                 return [];
             }
         }
         const type = row.querySelector(`.eff-save-${prefix}-type`)?.value || 'none';
-        if (type === 'none')
-            return [];
+        if (type === 'none') return [];
         if (type === 'message') {
             const msg = row.querySelector(`.eff-save-${prefix}-msg`)?.value || '';
             return msg ? [{ type: 'message', params: { message: msg } }] : [];
         }
         if (type === 'apply_condition') {
-            const params = { condition: row.querySelector(`.eff-save-${prefix}-cond`)?.value || '', target: 'self' };
+            const params: Record<string, any> = { condition: row.querySelector(`.eff-save-${prefix}-cond`)?.value || '', target: 'self' };
             const durVal = row.querySelector(`.eff-save-${prefix}-dur`)?.value;
-            if (durVal !== undefined && durVal !== '')
-                params.duration = parseInt(durVal);
+            if (durVal !== undefined && durVal !== '') params.duration = parseInt(durVal);
             const src = row.querySelector(`.eff-save-${prefix}-source`)?.value;
-            if (src)
-                params.source = src;
+            if (src) params.source = src;
             const srcType = row.querySelector(`.eff-save-${prefix}-src-type`)?.value;
-            if (srcType)
-                params.source_type = srcType;
+            if (srcType) params.source_type = srcType;
             return [{ type: 'apply_condition', params }];
         }
         if (type === 'damage') {
             return [{
-                    type: 'damage',
-                    params: {
-                        amount: parseInt(row.querySelector(`.eff-save-${prefix}-dmg`)?.value) || 5,
-                        target: 'self',
-                    },
-                }];
+                type: 'damage',
+                params: {
+                    amount: parseInt(row.querySelector(`.eff-save-${prefix}-dmg`)?.value) || 5,
+                    target: 'self',
+                },
+            }];
         }
         return [];
     },
-    _toggleSaveMode(select) {
+
+    _toggleSaveMode(select: HTMLSelectElement): void {
         const row = select.closest('.eff-row');
-        if (!row)
-            return;
+        if (!row) return;
         const mode = select.value;
-        const statWrap = row.querySelector('.eff-save-stat-wrap');
-        const skillWrap = row.querySelector('.eff-save-skill-wrap');
-        if (statWrap)
-            statWrap.style.display = mode === 'stat' ? 'block' : 'none';
-        if (skillWrap)
-            skillWrap.style.display = mode === 'skill' ? 'block' : 'none';
+        const statWrap = row.querySelector('.eff-save-stat-wrap') as HTMLElement | null;
+        const skillWrap = row.querySelector('.eff-save-skill-wrap') as HTMLElement | null;
+        if (statWrap) statWrap.style.display = mode === 'stat' ? 'block' : 'none';
+        if (skillWrap) skillWrap.style.display = mode === 'skill' ? 'block' : 'none';
     },
-    _filterTriggerTypeList(query) {
+
+    _filterTriggerTypeList(query: string): void {
         const sel = document.getElementById('te-trigger-type');
-        if (!sel)
-            return;
+        if (!sel) return;
         const needle = (query || '').trim().toLowerCase();
-        for (const opt of sel.querySelectorAll('option')) {
+        for (const opt of sel.querySelectorAll<HTMLElement>('option')) {
             opt.style.display = (!needle || opt.textContent.toLowerCase().includes(needle)) ? '' : 'none';
         }
     },
-    _toggleSaveBranch(row, prefix) {
+
+    _toggleSaveBranch(row: TriggerEditorEffectRow | null | undefined, prefix: string): void {
         if (typeof row === 'string') {
             prefix = row;
             row = null;
         }
         if (!row || !row.querySelector) {
-            row = document.querySelector(`.eff-save-${prefix}-type`)?.closest('.eff-row');
+            row = document.querySelector(`.eff-save-${prefix}-type`)?.closest<TriggerEditorEffectRow>('.eff-row');
         }
-        if (!row)
-            return;
+        if (!row) return;
         const type = row.querySelector(`.eff-save-${prefix}-type`)?.value || 'none';
-        row.querySelectorAll(`.eff-save-${prefix}-field`).forEach(el => {
+        row.querySelectorAll<HTMLElement>(`.eff-save-${prefix}-field`).forEach(el => {
             const branches = (el.dataset.branch || '').split(',');
             el.style.display = branches.includes(type) ? 'block' : 'none';
         });
     },
-    _buildEffectRowHtml(existingEff, idx) {
+
+    _buildEffectRowHtml(existingEff: TriggerEditorEffect | null, idx: number): string {
         const effType = existingEff?.type || 'message';
         const ep = existingEff?.params || {};
         const failFx = triggerEditorApi._parseSaveBranchEffect(ep.on_fail);
@@ -1624,12 +1537,13 @@ var triggerEditorApi = {
             ? JSON.stringify(ep.on_fail, null, 2) : '';
         const advSuccessJson = (ep.on_success?.length > 1 || (ep.on_success?.length && successFx.type === 'none'))
             ? JSON.stringify(ep.on_success, null, 2) : '';
-        return `
+
+return `
             <div class="eff-row" data-idx="${idx}" style="background:var(--bg-inset);border-radius:6px;padding:6px;margin-bottom:4px;border-left:3px solid var(--orange);position:relative;">
                 <label style="font-size:9px;font-weight:600;">Effect type</label>
                 <div class="eff-select" data-kind="effect-types" data-input-class="eff-type" data-value="${window.escapeForHtmlAttribute(effType)}" data-placeholder="Search effect type..." style="width:100%;margin-bottom:4px;"></div>
                 <div class="eff-params" style="display:${effType === 'message' ? 'none' : 'block'};">
-                    <div class="eff-param" data-effect="damage,heal" style="display:${['damage', 'heal'].includes(effType) ? 'block' : 'none'};">
+                    <div class="eff-param" data-effect="damage,heal" style="display:${['damage','heal'].includes(effType) ? 'block' : 'none'};">
                         <label style="font-size:10px;">Amount</label><input type="number" class="eff-amount" value="${ep.amount || 5}" style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="damage" style="display:${effType === 'damage' ? 'block' : 'none'};">
@@ -1663,7 +1577,7 @@ var triggerEditorApi = {
                         <div class="eff-save-stat-wrap" style="display:${saveMode === 'stat' ? 'block' : 'none'};margin-bottom:4px;">
                             <label style="font-size:9px;">Stat</label>
                             <select class="eff-save-stat" style="width:100%;font-size:11px;">
-                                ${['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'].map(s => `<option value="${s}" ${saveCheck === s ? 'selected' : ''}>${s}</option>`).join('')}
+                                ${['STR','DEX','CON','INT','WIS','CHA'].map(s => `<option value="${s}" ${saveCheck === s ? 'selected' : ''}>${s}</option>`).join('')}
                             </select>
                         </div>
                         <div class="eff-save-skill-wrap" style="display:${saveMode === 'skill' ? 'block' : 'none'};margin-bottom:4px;">
@@ -1674,7 +1588,7 @@ var triggerEditorApi = {
                         <input type="number" class="eff-save-dc" value="${ep.dc || 12}" min="1" max="30" style="width:100%;margin-bottom:6px;">
                         <label style="font-size:10px;font-weight:600;margin-top:4px;display:block;">On success</label>
                         <select class="eff-save-success-type" style="width:100%;font-size:10px;margin-bottom:4px;" onchange="TriggerEditor._toggleSaveBranch(this.closest('.eff-row'), 'success')">
-                            ${['none', 'message', 'apply_condition', 'damage'].map(t => `<option value="${t}" ${successFx.type === t ? 'selected' : ''}>${t.replace(/_/g, ' ')}</option>`).join('')}
+                            ${['none','message','apply_condition','damage'].map(t => `<option value="${t}" ${successFx.type === t ? 'selected' : ''}>${t.replace(/_/g,' ')}</option>`).join('')}
                         </select>
                         <div class="eff-save-success-field" data-branch="message" style="display:${successFx.type === 'message' ? 'block' : 'none'};margin-bottom:4px;">
                             <input type="text" class="eff-save-success-msg" value="${window.escapeForHtmlAttribute(successFx.message || '')}" placeholder="You resist!" style="width:100%;font-size:11px;">
@@ -1690,7 +1604,7 @@ var triggerEditorApi = {
                         <textarea class="eff-save-success-json" rows="2" placeholder="Advanced: full on_success JSON array" style="width:100%;font-size:10px;margin-bottom:6px;display:${advSuccessJson ? 'block' : 'none'};">${window.escapeForHtmlAttribute(advSuccessJson)}</textarea>
                         <label style="font-size:10px;font-weight:600;margin-top:4px;display:block;">On fail</label>
                         <select class="eff-save-fail-type" style="width:100%;font-size:10px;margin-bottom:4px;" onchange="TriggerEditor._toggleSaveBranch(this.closest('.eff-row'), 'fail')">
-                            ${['none', 'message', 'apply_condition', 'damage'].map(t => `<option value="${t}" ${failFx.type === t ? 'selected' : ''}>${t.replace(/_/g, ' ')}</option>`).join('')}
+                            ${['none','message','apply_condition','damage'].map(t => `<option value="${t}" ${failFx.type === t ? 'selected' : ''}>${t.replace(/_/g,' ')}</option>`).join('')}
                         </select>
                         <div class="eff-save-fail-field" data-branch="message" style="display:${failFx.type === 'message' ? 'block' : 'none'};margin-bottom:4px;">
                             <input type="text" class="eff-save-fail-msg" value="${window.escapeForHtmlAttribute(failFx.message || '')}" placeholder="You fail the save!" style="width:100%;font-size:11px;">
@@ -1701,7 +1615,7 @@ var triggerEditorApi = {
                             <input type="text" class="eff-save-fail-source" value="${window.escapeForHtmlAttribute(failFx.source || '')}" placeholder="source label" style="width:100%;font-size:11px;margin-bottom:2px;">
                             <select class="eff-save-fail-src-type" style="width:100%;font-size:10px;">
                                 <option value="" ${!failFx.source_type ? 'selected' : ''}>— source type —</option>
-                                ${['way', 'area', 'item', 'character'].map(st => `<option value="${st}" ${failFx.source_type === st ? 'selected' : ''}>${st}</option>`).join('')}
+                                ${['way','area','item','character'].map(st => `<option value="${st}" ${failFx.source_type === st ? 'selected' : ''}>${st}</option>`).join('')}
                             </select>
                         </div>
                         <div class="eff-save-fail-field" data-branch="damage" style="display:${failFx.type === 'damage' ? 'block' : 'none'};margin-bottom:4px;">
@@ -1710,15 +1624,15 @@ var triggerEditorApi = {
                         <textarea class="eff-save-fail-json" rows="2" placeholder="Advanced: full on_fail JSON array" style="width:100%;font-size:10px;display:${advFailJson ? 'block' : 'none'};">${window.escapeForHtmlAttribute(advFailJson)}</textarea>
                         <button type="button" class="btn btn-sm btn-ghost" style="font-size:9px;margin-top:4px;" onclick="const r=this.closest('.eff-row'); r.querySelector('.eff-save-fail-json').style.display='block'; r.querySelector('.eff-save-success-json').style.display='block';">Show advanced JSON</button>
                     </div>
-                    <div class="eff-param" data-effect="add_tag,remove_tag" style="display:${['add_tag', 'remove_tag'].includes(effType) ? 'block' : 'none'};">
+                    <div class="eff-param" data-effect="add_tag,remove_tag" style="display:${['add_tag','remove_tag'].includes(effType) ? 'block' : 'none'};">
                         <label style="font-size:10px;">Target Node</label>
                         <div class="eff-select" data-kind="nodes" data-input-class="eff-tag-node" data-value="${window.escapeForHtmlAttribute(ep.node_id || 'self')}" data-placeholder="self or node_id" style="width:100%;"></div>
                     </div>
-                    <div class="eff-param" data-effect="add_tag,remove_tag" style="display:${['add_tag', 'remove_tag'].includes(effType) ? 'block' : 'none'};">
+                    <div class="eff-param" data-effect="add_tag,remove_tag" style="display:${['add_tag','remove_tag'].includes(effType) ? 'block' : 'none'};">
                         <label style="font-size:10px;">Tag</label>
                         <div class="eff-select" data-kind="tags" data-input-class="eff-tag-name" data-value="${window.escapeForHtmlAttribute(ep.tag || '')}" data-placeholder="flammable, container..." data-free="true" style="width:100%;"></div>
                     </div>
-                    <div class="eff-param" data-effect="add_tag,remove_tag" style="display:${['add_tag', 'remove_tag'].includes(effType) ? 'block' : 'none'};">
+                    <div class="eff-param" data-effect="add_tag,remove_tag" style="display:${['add_tag','remove_tag'].includes(effType) ? 'block' : 'none'};">
                         <label style="font-size:10px;">Message (optional)</label>
                         <input type="text" class="eff-tag-msg" value="${window.escapeForHtmlAttribute(ep.message || '')}" style="width:100%;">
                     </div>
@@ -1785,7 +1699,7 @@ var triggerEditorApi = {
                         <label style="font-size:10px;">New State</label>
                         <div class="eff-select" data-kind="states" data-input-class="eff-state-val" data-value="${window.escapeForHtmlAttribute(ep.state || 'on')}" data-placeholder="on, off, open..." data-free="true" style="width:100%;"></div>
                     </div>
-                    <div class="eff-param" data-effect="set_hidden,adjust_uses" style="display:${['set_hidden', 'adjust_uses'].includes(effType) ? 'block' : 'none'};">
+                    <div class="eff-param" data-effect="set_hidden,adjust_uses" style="display:${['set_hidden','adjust_uses'].includes(effType) ? 'block' : 'none'};">
                         <label style="font-size:10px;">Node ID</label>
                         <div class="eff-select" data-kind="nodes" data-input-class="eff-hidden-node" data-value="${window.escapeForHtmlAttribute(ep.node_id || 'self')}" data-placeholder="self or node_id" style="width:100%;"></div>
                     </div>
@@ -1793,11 +1707,11 @@ var triggerEditorApi = {
                         <label style="font-size:10px;">Delta (+/-)</label>
                         <input type="number" class="eff-uses-delta" value="${ep.delta || -1}" style="width:100%;">
                     </div>
-                    <div class="eff-param" data-effect="set_parameter,adjust_parameter" style="display:${['set_parameter', 'adjust_parameter'].includes(effType) ? 'block' : 'none'};">
+                    <div class="eff-param" data-effect="set_parameter,adjust_parameter" style="display:${['set_parameter','adjust_parameter'].includes(effType) ? 'block' : 'none'};">
                         <label style="font-size:10px;">Node ID</label>
                         <div class="eff-select" data-kind="nodes" data-input-class="eff-param-node" data-value="${window.escapeForHtmlAttribute(ep.node_id || 'self')}" data-placeholder="self or node_id" style="width:100%;"></div>
                     </div>
-                    <div class="eff-param" data-effect="set_parameter,adjust_parameter" style="display:${['set_parameter', 'adjust_parameter'].includes(effType) ? 'block' : 'none'};">
+                    <div class="eff-param" data-effect="set_parameter,adjust_parameter" style="display:${['set_parameter','adjust_parameter'].includes(effType) ? 'block' : 'none'};">
                         <label style="font-size:10px;">Parameter Key</label>
                         <input type="text" class="eff-param-key" value="${window.escapeForHtmlAttribute(ep.key || '')}" placeholder="e.g. light" style="width:100%;">
                     </div>
@@ -1821,7 +1735,7 @@ var triggerEditorApi = {
                         <label style="font-size:10px;">Way ID</label>
                         <div class="eff-select" data-kind="ways" data-input-class="eff-unlock" data-value="${window.escapeForHtmlAttribute(ep.way_id || '')}" data-placeholder="Search ways..." style="width:100%;"></div>
                     </div>
-                    <div class="eff-param" data-effect="set_description,append_description" style="display:${['set_description', 'append_description'].includes(effType) ? 'block' : 'none'};">
+                    <div class="eff-param" data-effect="set_description,append_description" style="display:${['set_description','append_description'].includes(effType) ? 'block' : 'none'};">
                         <label style="font-size:10px;">Target Node</label>
                         <input type="text" class="eff-setdesc-target" value="${window.escapeForHtmlAttribute(ep.target || '')}" style="width:100%;">
                     </div>
@@ -1910,11 +1824,11 @@ var triggerEditorApi = {
                         <input type="text" class="eff-scry-fail" value="${window.escapeForHtmlAttribute(ep.fail_message || '')}" placeholder="The vision shows nothing." style="width:100%;font-size:11px;">
                         <div style="font-size:9px;color:var(--text-muted);">Shows the target area's description, ambient light and exits — frozen narrative, no agent-prompt changes.</div>
                     </div>
-                    <div class="eff-param" data-effect="apply_trait,remove_trait" style="display:${['apply_trait', 'remove_trait'].includes(effType) ? 'block' : 'none'};">
+                    <div class="eff-param" data-effect="apply_trait,remove_trait" style="display:${['apply_trait','remove_trait'].includes(effType) ? 'block' : 'none'};">
                         <label style="font-size:10px;">Trait ID</label>
                         <div class="eff-select" data-kind="traits" data-input-class="eff-trait-id" data-value="${window.escapeForHtmlAttribute(ep.trait || '')}" data-placeholder="dark_vision, hardy, allergic..." data-free="true" style="width:100%;"></div>
                     </div>
-                    <div class="eff-param" data-effect="apply_trait,remove_trait" style="display:${['apply_trait', 'remove_trait'].includes(effType) ? 'block' : 'none'};">
+                    <div class="eff-param" data-effect="apply_trait,remove_trait" style="display:${['apply_trait','remove_trait'].includes(effType) ? 'block' : 'none'};">
                         <label style="font-size:10px;">Target</label>
                         <div class="eff-select" data-kind="chars" data-input-class="eff-trait-target" data-value="${window.escapeForHtmlAttribute(ep.target || 'self')}" data-placeholder="self or character name" data-free="true" style="width:100%;"></div>
                     </div>
@@ -1926,15 +1840,15 @@ var triggerEditorApi = {
                         <label style="font-size:10px;">Condition</label>
                         <div class="eff-select" data-kind="conditions" data-input-class="eff-condition-id" data-value="${window.escapeForHtmlAttribute(ep.condition || '')}" data-placeholder="poisoned, blind, exhausted, charmed..." data-free="true" style="width:100%;"></div>
                     </div>
-                    <div class="eff-param" data-effect="apply_condition,remove_condition" style="display:${['apply_condition', 'remove_condition'].includes(effType) ? 'block' : 'none'};">
+                    <div class="eff-param" data-effect="apply_condition,remove_condition" style="display:${['apply_condition','remove_condition'].includes(effType) ? 'block' : 'none'};">
                         <label style="font-size:10px;">Target</label>
                         <select class="eff-condition-target-by" style="width:100%;font-size:10px;" onchange="const row=this.closest('.eff-row'); const inp=row.querySelector('.eff-condition-target'); const show=this.value && this.value!=='self' && this.value!=='all_in_area'; inp.style.display=show?'block':'none'; inp.placeholder={name:'Character or node name',tag:'Tag',trait:'Trait id',type:'item / character / way / area'}[this.value]||'self or character name'; if(this.value==='self') inp.value='';">
-                            <option value="self" ${!ep.target_by && (ep.target === 'self' || !ep.target) ? 'selected' : ''}>Self (actor)</option>
-                            <option value="all_in_area" ${ep.target_by === 'all_in_area' ? 'selected' : ''}>All characters in area</option>
-                            <option value="name" ${ep.target_by === 'name' ? 'selected' : ''}>By name</option>
-                            <option value="tag" ${ep.target_by === 'tag' ? 'selected' : ''}>By tag</option>
-                            <option value="trait" ${ep.target_by === 'trait' ? 'selected' : ''}>By trait</option>
-                            <option value="type" ${ep.target_by === 'type' ? 'selected' : ''}>By type</option>
+                            <option value="self" ${!ep.target_by && (ep.target==='self' || !ep.target) ? 'selected' : ''}>Self (actor)</option>
+                            <option value="all_in_area" ${ep.target_by==='all_in_area' ? 'selected' : ''}>All characters in area</option>
+                            <option value="name" ${ep.target_by==='name' ? 'selected' : ''}>By name</option>
+                            <option value="tag" ${ep.target_by==='tag' ? 'selected' : ''}>By tag</option>
+                            <option value="trait" ${ep.target_by==='trait' ? 'selected' : ''}>By trait</option>
+                            <option value="type" ${ep.target_by==='type' ? 'selected' : ''}>By type</option>
                         </select>
                         <input type="text" class="eff-condition-target" value="${window.escapeForHtmlAttribute(ep.target_by ? (ep.target_value || '') : (ep.target === 'self' ? '' : (ep.target || '')))}" list="eff-char-list" placeholder="self or character name" style="width:100%;font-size:10px;margin-top:2px;display:${(!ep.target_by && ep.target && ep.target !== 'self') || (ep.target_by && ep.target_by !== 'all_in_area') ? 'block' : 'none'};">
                     </div>
@@ -1949,10 +1863,12 @@ var triggerEditorApi = {
                     <div class="eff-param" data-effect="apply_condition" style="display:${effType === 'apply_condition' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Per-tick drain (blank = catalog default; set 0 to disable that vital)</label>
                         <div class="eff-condition-periodic-form" style="display:grid;grid-template-columns:1fr 1fr;gap:2px 8px;margin-top:2px;">
-                            ${['HP', 'Energy', 'Hunger', 'Thirst', 'Hygiene', 'Social', 'Bladder', 'Sanity', 'Entertainment', 'Temperature'].map(v => `<label style="display:flex;align-items:center;gap:4px;font-size:9px;justify-content:space-between;">
+                            ${['HP','Energy','Hunger','Thirst','Hygiene','Social','Bladder','Sanity','Entertainment','Temperature'].map(v =>
+                                `<label style="display:flex;align-items:center;gap:4px;font-size:9px;justify-content:space-between;">
                                     <span style="flex:1;">${v}</span>
                                     <input type="number" step="any" class="eff-periodic-${v}" value="${ep.periodic?.[v] !== undefined ? ep.periodic[v] : 0}" style="width:52px;font-size:10px;">
-                                </label>`).join('')}
+                                </label>`
+                            ).join('')}
                         </div>
                         <div style="font-size:9px;color:var(--text-muted);margin-top:2px;">Leave all at 0 to use the condition's catalog default.</div>
                     </div>
@@ -1980,7 +1896,7 @@ var triggerEditorApi = {
                     <div class="eff-param" data-effect="set_weather" style="display:${effType === 'set_weather' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Weather</label>
                         <select class="eff-setweather" style="width:100%;font-size:11px;">
-                            ${['clear', 'cloudy', 'windy', 'rainy', 'stormy', 'foggy', 'snowy'].map(w => `<option value="${w}" ${ep.weather === w ? 'selected' : ''}>${w}</option>`).join('')}
+                            ${['clear','cloudy','windy','rainy','stormy','foggy','snowy'].map(w => `<option value="${w}" ${ep.weather === w ? 'selected' : ''}>${w}</option>`).join('')}
                         </select>
                         <label style="font-size:10px;">Duration (ticks, blank = until changed)</label>
                         <input type="number" class="eff-setweather-dur" value="${ep.duration_ticks ?? ''}" style="width:100%;font-size:11px;">
@@ -1989,12 +1905,12 @@ var triggerEditorApi = {
                         <label style="font-size:10px;">Weather</label>
                         <select class="eff-fcast-weather" style="width:100%;font-size:11px;">
                             <option value="" ${!ep.weather ? 'selected' : ''}>— keep —</option>
-                            ${['clear', 'cloudy', 'windy', 'rainy', 'stormy', 'foggy', 'snowy'].map(w => `<option value="${w}" ${ep.weather === w ? 'selected' : ''}>${w}</option>`).join('')}
+                            ${['clear','cloudy','windy','rainy','stormy','foggy','snowy'].map(w => `<option value="${w}" ${ep.weather === w ? 'selected' : ''}>${w}</option>`).join('')}
                         </select>
                         <label style="font-size:10px;">Wind</label>
                         <select class="eff-fcast-wind" style="width:100%;font-size:11px;">
                             <option value="" ${!ep.wind ? 'selected' : ''}>— keep —</option>
-                            ${['none', 'breeze', 'wind', 'gale', 'storm', 'hurricane'].map(w => `<option value="${w}" ${ep.wind === w ? 'selected' : ''}>${w}</option>`).join('')}
+                            ${['none','breeze','wind','gale','storm','hurricane'].map(w => `<option value="${w}" ${ep.wind === w ? 'selected' : ''}>${w}</option>`).join('')}
                         </select>
                         <label style="font-size:10px;">Temperature mod (+/- °C)</label>
                         <input type="number" class="eff-fcast-temp" value="${ep.temperature_mod ?? ''}" style="width:100%;font-size:11px;">
@@ -2017,7 +1933,7 @@ var triggerEditorApi = {
                         <input type="text" class="eff-astat-target" value="${window.escapeForHtmlAttribute(ep.target || '')}" style="width:100%;font-size:11px;">
                         <label style="font-size:10px;">Status type</label>
                         <select class="eff-astat-type" style="width:100%;font-size:11px;">
-                            ${['on_fire', 'flooded', 'poison_gas', 'smoke', 'blessed', 'darkness_magic'].map(s => `<option value="${s}" ${ep.status_type === s ? 'selected' : ''}>${s}</option>`).join('')}
+                            ${['on_fire','flooded','poison_gas','smoke','blessed','darkness_magic'].map(s => `<option value="${s}" ${ep.status_type === s ? 'selected' : ''}>${s}</option>`).join('')}
                         </select>
                         <label style="font-size:10px;">Severity (1-5)</label>
                         <input type="number" class="eff-astat-sev" value="${ep.severity ?? 1}" min="1" max="5" style="width:100%;font-size:11px;">
@@ -2029,7 +1945,7 @@ var triggerEditorApi = {
                         <input type="text" class="eff-astat-clrtarget" value="${window.escapeForHtmlAttribute(ep.target || '')}" style="width:100%;font-size:11px;">
                         <label style="font-size:10px;">Status type</label>
                         <select class="eff-astat-clrtype" style="width:100%;font-size:11px;">
-                            ${['on_fire', 'flooded', 'poison_gas', 'smoke', 'blessed', 'darkness_magic'].map(s => `<option value="${s}" ${ep.status_type === s ? 'selected' : ''}>${s}</option>`).join('')}
+                            ${['on_fire','flooded','poison_gas','smoke','blessed','darkness_magic'].map(s => `<option value="${s}" ${ep.status_type === s ? 'selected' : ''}>${s}</option>`).join('')}
                         </select>
                     </div>
                     <div class="eff-param" data-effect="set_wet" style="display:${effType === 'set_wet' ? 'block' : 'none'};">
@@ -2045,44 +1961,45 @@ var triggerEditorApi = {
                 <span onclick="this.closest('.eff-row').remove()" style="position:absolute;top:4px;right:4px;cursor:pointer;color:var(--red);font-size:12px;">✕</span>
             </div>`;
     },
-    _toggleEffectParams(select) {
-        const row = select.closest('.eff-row');
-        const params = row.querySelector('.eff-params');
+
+    _toggleEffectParams(select: TriggerEditorField): void {
+        const row = select.closest('.eff-row') as HTMLElement;
+        const params = row.querySelector('.eff-params') as HTMLElement;
         const val = select.value;
         params.style.display = val !== 'message' ? 'block' : 'none';
-        row.querySelectorAll('.eff-param').forEach(p => {
+        row.querySelectorAll<HTMLElement>('.eff-param').forEach(p => {
             const effects = (p.getAttribute('data-effect') || '').split(',');
             p.style.display = effects.includes(val) ? 'block' : 'none';
         });
     },
-    _toggleConditionFields(select) {
-        const row = select.closest('.cond-row');
+
+    _toggleConditionFields(select: TriggerEditorField): void {
+        const row = select.closest('.cond-row') as HTMLElement;
         const ctype = select.value;
-        row.querySelectorAll('.cond-field').forEach(f => {
+        row.querySelectorAll<HTMLElement>('.cond-field').forEach(f => {
             const conds = (f.getAttribute('data-cond') || '').split(',');
             f.style.display = conds.includes(ctype) ? 'block' : 'none';
         });
-        row.querySelectorAll('[data-subcond]').forEach(f => {
+        row.querySelectorAll<HTMLElement>('[data-subcond]').forEach(f => {
             const conds = (f.getAttribute('data-subcond') || '').split(',');
             f.style.display = conds.includes(ctype) ? 'block' : 'none';
         });
     },
+
     _toggleSnippetMenu() {
         const menu = document.getElementById('te-snippet-menu');
-        if (menu)
-            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        if (menu) menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
     },
-    _applySnippet(id) {
+
+    _applySnippet(id: string): void {
         const snippet = TRIGGER_SNIPPETS.find(s => s.id === id);
-        if (!snippet)
-            return;
-        const typeSelect = document.getElementById('te-trigger-type');
+        if (!snippet) return;
+        const typeSelect = document.getElementById('te-trigger-type') as HTMLSelectElement | null;
         if (typeSelect && typeSelect.tagName === 'SELECT' && !typeSelect.multiple && snippet.triggerType) {
             typeSelect.value = snippet.triggerType;
         }
-        const msgInput = document.getElementById('te-success-msg');
-        if (msgInput && snippet.message)
-            msgInput.value = snippet.message;
+        const msgInput = document.getElementById('te-success-msg') as HTMLTextAreaElement | null;
+        if (msgInput && snippet.message) msgInput.value = snippet.message;
         const container = document.getElementById('te-effects-container');
         if (container) {
             container.innerHTML = '';
@@ -2090,41 +2007,95 @@ var triggerEditorApi = {
             const wrap = document.createElement('div');
             wrap.innerHTML = snippet.effects.map((eff, idx) => triggerEditorApi._buildEffectRowHtml(eff, idx)).join('');
             const fragment = document.createDocumentFragment();
-            while (wrap.firstElementChild)
-                fragment.appendChild(wrap.firstElementChild);
+            while (wrap.firstElementChild) fragment.appendChild(wrap.firstElementChild);
             container.appendChild(fragment);
             triggerEditorApi._initEffectSearchSelects(container);
-            container.querySelectorAll('.eff-row .eff-type').forEach(sel => triggerEditorApi._toggleEffectParams(sel));
+            container.querySelectorAll<TriggerEditorField>('.eff-row .eff-type').forEach(sel => triggerEditorApi._toggleEffectParams(sel));
         }
         const menu = document.getElementById('te-snippet-menu');
-        if (menu)
-            menu.style.display = 'none';
+        if (menu) menu.style.display = 'none';
     },
+
     _addEffectRow() {
         const container = document.getElementById('te-effects-container');
-        if (!container)
-            return;
+        if (!container) return;
         const count = parseInt(container.getAttribute('data-count') || '0');
         container.setAttribute('data-count', String(count + 1));
         const rowHtml = triggerEditorApi._buildEffectRowHtml(null, count);
         const div = document.createElement('div');
-        window.Lit.render(triggerEditorTag `${window.Lit.unsafeHTML(rowHtml)}`, div);
-        container.appendChild(div.firstElementChild);
+        window.Lit.render(triggerEditorTag`${window.Lit.unsafeHTML(rowHtml)}`, div);
+        container.appendChild(div.firstElementChild as Node);
         triggerEditorApi._initEffectSearchSelects(container);
-        const lastEff = container.querySelector('.eff-row:last-child .eff-type');
-        if (lastEff)
-            triggerEditorApi._toggleEffectParams(lastEff);
+        const lastEff = container.querySelector('.eff-row:last-child .eff-type') as TriggerEditorField | null;
+        if (lastEff) triggerEditorApi._toggleEffectParams(lastEff);
     }
 };
+
 // Publish under the historical global name. Written immediately after the
 // literal so the binding exists at the same point in load order as before.
-window.TriggerEditor = triggerEditorApi;
+(window as unknown as { TriggerEditor: unknown }).TriggerEditor = triggerEditorApi;
+
 // Ensure escapeForHtmlAttribute exists
 if (typeof window.escapeForHtmlAttribute === 'undefined') {
-    window.escapeForHtmlAttribute = function (value) {
+    window.escapeForHtmlAttribute = function (value: unknown): string {
         return String(value == null ? '' : value).replace(/"/g, '&quot;');
     };
 }
+
+// ── Types ────────────────────────────────────────────────────────────────────
+// A top-level `interface` in a classic script is a global binding, so every name
+// below is prefixed with the file stem to stay unique across modules.
+
+/** One entry of the `effectTypes` / `conditionTypes` / `triggerTypes` lists the
+ *  host page passes in (TriggerTypes.EFFECT_TYPES and ItemLibrary's copies). */
+interface TriggerEditorOption {
+    value: string;
+    label?: string;
+}
+
+/** One entry of `initialData.effects` / `TRIGGER_SNIPPETS[].effects`. `params`
+ *  is per-effect-type and unmodelled, so it stays open. */
+interface TriggerEditorEffect {
+    type: string;
+    params: Record<string, any>;
+    [key: string]: any;
+}
+
+/** `initialData` — the trigger being edited, or null when authoring a new one. */
+interface TriggerEditorData {
+    trigger_type?: string | string[];
+    effects?: TriggerEditorEffect[];
+    conditions?: any;
+    conditions_logic?: string;
+    name?: string;
+    success_message?: string;
+    fail_message?: string;
+    [key: string]: any;
+}
+
+/** The options object `show()` takes (inspector.js and item-library.js). */
+interface TriggerEditorShowOptions {
+    mode?: 'single' | 'multi';
+    initialData?: TriggerEditorData | null;
+    onSave?: ((data: any) => void) | null;
+    onClose?: (() => void) | null;
+    onTriggerTypeChange?: ((selectedTypes: string[]) => void) | null;
+    effectTypes?: TriggerEditorOption[];
+    conditionTypes?: TriggerEditorOption[];
+    triggerTypes?: string[];
+    targetDatalistHtml?: string;
+    itemDatalistHtml?: string;
+    contextItemId?: string;
+}
+
+/**
+ * The library-registry endpoint of `ApiClient` that globals.d.ts does not
+ * declare; it is used to fill the trait and tag datalists.
+ */
+interface TriggerEditorApiClient {
+    getLibraryType(kind: string): Promise<unknown>;
+}
+
 /**
  * `ApiClient` as this module uses it. Narrowed at each use rather than hoisted
  * into a top-level const: `getLibraryType` is not in globals.d.ts, and reading
@@ -2132,6 +2103,85 @@ if (typeof window.escapeForHtmlAttribute === 'undefined') {
  * executed — a dependency the original did not have, since every call to it
  * happens later, inside `show()`. Emitted as the bare `ApiClient.…` call.
  */
-function triggerEditorApiClient() {
-    return ApiClient;
+function triggerEditorApiClient(): TriggerEditorApiClient {
+    return ApiClient as unknown as TriggerEditorApiClient;
+}
+
+/** One option handed to `SearchSelect`. */
+interface TriggerEditorSearchOption {
+    value: string;
+    label?: string;
+    icon?: string;
+}
+
+/** The `SearchSelect` surface this module keeps handles to. */
+interface TriggerEditorSearchSelect {
+    getValue(): string;
+    destroy(): void;
+}
+
+interface TriggerEditorSearchSelectCtor {
+    new (container: HTMLElement, options: Record<string, unknown>): TriggerEditorSearchSelect;
+}
+
+/** A `.eff-select` element plus the expando the picker instance is parked on. */
+interface TriggerEditorSearchSelectHost extends HTMLElement {
+    __searchSelect?: TriggerEditorSearchSelect;
+}
+
+interface TriggerEditorTagMultiselectCtor {
+    new (container: HTMLElement, options: Record<string, unknown>): { tags: string[] };
+}
+
+/** A `.cond-tag-multi` element plus its TagMultiselect expando. */
+interface TriggerEditorTagMultiHost extends HTMLElement {
+    __condTagMulti?: { tags: string[] };
+}
+
+/**
+ * One node of the nested condition rule tree. A group carries `operator` and
+ * `conditions`; a leaf carries `type` plus per-type params. The open index
+ * signature covers both shapes — the editor builds the leaves from a `<select>`.
+ */
+interface TriggerEditorConditionGroup {
+    operator?: string;
+    conditions?: TriggerEditorConditionNode[];
+    [key: string]: any;
+}
+
+interface TriggerEditorConditionLeaf {
+    type: string;
+    [key: string]: any;
+}
+
+type TriggerEditorConditionNode = TriggerEditorConditionGroup | TriggerEditorConditionLeaf;
+
+/**
+ * A form control inside an effect row. `value` is `any` rather than `string`
+ * because every one of the ~40 reads below is `?.`-guarded and immediately
+ * defaulted (`parseInt(...?.value) || 5`, `...?.value || 'self'`) or explicitly
+ * tested against `undefined` — the serializer is written to survive a row that
+ * never rendered the field for its effect type.
+ */
+interface TriggerEditorField extends HTMLElement {
+    value: any;
+    checked?: boolean;
+}
+
+/**
+ * An `.eff-row`. `querySelector` is narrowed to the row's own form controls so
+ * the per-effect-type `params` reads type-check without 60 individual casts; the
+ * rows only ever hold inputs, selects and checkboxes.
+ */
+interface TriggerEditorEffectRow extends HTMLElement {
+    querySelector(selectors: string): TriggerEditorField | null;
+}
+
+/** The body posted to `POST /api/triggers/test` (dry run). */
+interface TriggerEditorTestPayload {
+    trigger: TriggerEditorData;
+    dry_run: boolean;
+    context: unknown;
+    item_id?: string;
+    [key: string]: unknown;
 }

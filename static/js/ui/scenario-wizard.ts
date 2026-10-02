@@ -17,10 +17,10 @@
  * @relates uses shared/ai-generator; applies through POST /api/load (undo-snapshotted)
  * @docs docs/virtualWorld/ScenarioCreationGuide.md
  */
-// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
-
-interface ScenarioWizardWindowSurface { ScenarioWizard: unknown }
-
+// Local views of the AI shapes owned by shared/ai-generator.ts. They are
+// repeated here rather than declared in types/globals.d.ts because an ambient
+// `declare const AIGenerator` alongside the real one is a redeclaration, and
+// this file must also compile under `build-one`, which sees only itself.
 (window as unknown as ScenarioWizardWindowSurface).ScenarioWizard = (() => {
     'use strict';
 
@@ -73,7 +73,7 @@ RULES:
      * The local is named `aiGenerator`, not `AIGenerator`: a same-named local
      * would shadow the global inside its OWN initializer (TDZ ReferenceError).
      */
-    const aiGenerator: typeof AIGenerator | undefined = (() => {
+    const aiGenerator: ScenarioWizardAiGenerator | undefined = (() => {
         // @ts-ignore -- global lexical binding from shared/ai-generator.js; see above
         return typeof AIGenerator === 'undefined' ? undefined : AIGenerator;
     })();
@@ -211,7 +211,7 @@ RULES:
             gen.disabled = true;
             gen.textContent = 'Architecting…';
             aiGenerator.generate(`Scenario premise:\n\n${premise}\n\nBuild the world draft JSON now.`, SYSTEM_PROMPT, { temperature: 0.8 })
-                .then((result: AIGenerateResult) => {
+                .then((result: ScenarioWizardAiResult) => {
                     if (result.success && result.data) {
                         _state = { draft: normalizeDraft(result.data), name: nameInput.value.trim() || (result.data as Partial<WorldDraft>).name || 'Generated Scenario', premise, include: { rooms: {}, items: {}, chars: {}, lore: {} } };
                         try {
@@ -445,7 +445,7 @@ RULES:
         card.querySelectorAll('button').forEach((b: HTMLButtonElement) => b.disabled = true);
         if (!aiGenerator || !aiGenerator.isConfigured()) { toastError('AI not configured'); return; }
         aiGenerator.generate(prompt, 'You refine one room of a world draft. Respond with ONLY raw JSON.', { temperature: 0.75 })
-            .then((result: AIGenerateResult) => {
+            .then((result: ScenarioWizardAiResult) => {
                 if (!result.success || !result.data) throw new Error(result.error || 'no data');
                 const room = result.data as DraftRoom;
                 if (!room || !room.name) throw new Error('missing name');
@@ -479,7 +479,7 @@ RULES:
 
         const out: ApplyPayload = {
             name: _state!.name || 'Generated Scenario',
-            player: d.player || {},
+            player: (d.player || {}) as ApplyPayload['player'],
             current_area: d.current_area && names.some(n => slugKey(n) === slugKey(d.current_area)) ? d.current_area : names[0],
             characters: (d.characters || []).filter((_: DraftCharacter, i: number) => _state!.include.chars[i] !== false),
             world_lore: (d.world_lore || []).filter((_: DraftLore, i: number) => _state!.include.lore[i] !== false),
@@ -649,7 +649,7 @@ interface ApplyPayload {
 /** The slice of the shared AIGenerator (shared/ai-generator.js) used here. */
 interface AIGeneratorApi {
     isConfigured(): boolean;
-    generate(userPrompt: string, systemPrompt: string, options?: AIGenerateOptions): Promise<AIGeneratorResult>;
+    generate(userPrompt: string, systemPrompt: string, options?: ScenarioWizardAiOptions): Promise<ScenarioWizardAiResult>;
 }
 
 interface AIGeneratorResult {
@@ -658,3 +658,31 @@ interface AIGeneratorResult {
     error?: string;
     raw?: string;
 }
+
+// Type declarations relocated from the top of this file: a leading
+// type-only statement makes tsc drop this file's leading JSDoc, and
+// js_module_index.py reads @module/@contributes from the emitted .js.
+// Types hoist, so position is semantically irrelevant.
+interface ScenarioWizardAiOptions {
+    temperature?: number;
+    maxTokens?: number;
+    thinking?: boolean;
+    [key: string]: unknown;
+}
+
+interface ScenarioWizardAiResult {
+    success: boolean;
+    data?: any;
+    raw?: string;
+    error?: string | null;
+}
+
+interface ScenarioWizardAiGenerator {
+    isConfigured(): boolean;
+    generate(userPrompt: string, systemMessage: string, options?: ScenarioWizardAiOptions): Promise<ScenarioWizardAiResult>;
+}
+
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+
+interface ScenarioWizardWindowSurface { ScenarioWizard: unknown }
+

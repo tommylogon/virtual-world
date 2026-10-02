@@ -25,6 +25,75 @@
  */
 interface ConfigManager {
     controllingPlayer?: string;
+    // Every remaining settings key read off `config` across static/js,
+    // generated rather than hand-picked: the hand-curated list surfaced one
+    // TS2339 at a time. `any` because these come from storage and their
+    // shapes differ per key; the index signature already allowed them, so
+    // this documents them instead of widening anything.
+    background_all?: any;
+    decay_overrides?: any;
+    embed?: any;
+    engine_decay?: any;
+    fields?: any;
+    graphArrows?: any;
+    graphCardinalLayout?: any;
+    graphDamping?: any;
+    graphEdgeWidth?: any;
+    graphGravitationalConstant?: any;
+    graphImprovedLayout?: any;
+    graphItemEdgeLength?: any;
+    graphLabelMaxNodes?: any;
+    graphLabelMinScale?: any;
+    graphLayoutMode?: any;
+    graphMapSpacing?: any;
+    graphMapSpacingAuto?: any;
+    graphRepelEnabled?: any;
+    graphRepelMax?: any;
+    graphRepelMin?: any;
+    graphRepelPull?: any;
+    graphSolver?: any;
+    graphSpringConstant?: any;
+    graphSpringLength?: any;
+    js?: any;
+    lastActionResult?: any;
+    lastProfile?: any;
+    manualMode?: any;
+    mature?: any;
+    maxSteps?: any;
+    minutes_per_tick?: any;
+    neutral_environment?: any;
+    provider?: any;
+    reactiveMode?: any;
+    running?: any;
+    saveFromForm?: any;
+    scenario?: any;
+    sections?: any;
+    seed?: any;
+    showLogs?: any;
+    showRawLLM?: any;
+    simultaneousMode?: any;
+    starting_vitals?: any;
+    stepsRun?: any;
+    streaming?: any;
+    structuredOutput?: any;
+    suppressLocalThinking?: any;
+    temperature?: any;
+    ticks?: any;
+    toLLMConfig?: any;
+    traits?: any;
+    turnBased?: any;
+    turnOrder?: any;
+    apiKey?: string;
+    // Graph physics, read by network-manager.ts off `config || {}`. The class in
+    // config.ts declares these too, but `ConfigManager` as a type reference
+    // resolves to THIS interface, so a member missing here is missing for every
+    // caller - the same merge asymmetry that affects `config` itself.
+    graphSolver?: string;
+    graphLayoutMode?: string;
+    graphSpringLength?: number;
+    graphGravitationalConstant?: number;
+    graphSpringConstant?: number;
+    graphDamping?: number;
 }
 
 /** ConfigManager singleton (config.js): user settings + feature flags. */

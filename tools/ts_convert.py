@@ -468,6 +468,11 @@ def cmd_plan(args) -> int:
 
 
 BASELINE = REPO_ROOT / "tools" / "window-usage-baseline.json"
+# Drops that were examined and judged safe, keyed "<rel>::<name>" -> reason.
+# Kept separate from the baseline so an unreviewed drop still fails the gate:
+# the point is that a human signed off on these eight, not that the check went
+# away. Add a key here only after confirming the bare read actually resolves.
+WINDOW_REVIEW = REPO_ROOT / "tools" / "window-usage-reviewed.json"
 WINDOW_PROP = re.compile(r"\bwindow\.([A-Za-z_$][\w$]*)")
 
 
@@ -490,6 +495,20 @@ def load_baseline() -> dict[str, dict[str, int]]:
 
 def save_baseline(data: dict[str, dict[str, int]]) -> None:
     BASELINE.write_text(json.dumps(data, indent=1, sort_keys=True) + "\n", encoding="utf-8")
+
+
+def load_window_review() -> dict[str, str]:
+    """Reviewed `window.X` drops, as "<rel>::<name>" -> why it is safe."""
+    if not WINDOW_REVIEW.exists():
+        return {}
+    try:
+        return json.loads(WINDOW_REVIEW.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return {}
+
+
+def save_window_review(data: dict[str, str]) -> None:
+    WINDOW_REVIEW.write_text(json.dumps(data, indent=1, sort_keys=True) + "\n", encoding="utf-8")
 
 
 def record_baseline(js_path: Path) -> None:
@@ -516,12 +535,16 @@ def audit_window_guards() -> list[str]:
     automatically a bug (it is fine when X is a binding this file declares), so
     this reports them for review rather than blanket-failing.
 
+    A drop already signed off in tools/window-usage-reviewed.json is reported
+    as reviewed, not as a finding, so an unreviewed one still fails the gate.
+
     Fixed by completing `interface Window` (see tools/window_members.py), which
     makes the correct spelling compile and removes the temptation.
     """
     data = load_baseline()
     if not data:
         return ["no baseline recorded - run `python tools/ts_convert.py baseline`"]
+    reviewed = load_window_review()
     findings = []
     for rel, before in sorted(data.items()):
         js = REPO_ROOT / rel
@@ -530,21 +553,35 @@ def audit_window_guards() -> list[str]:
         after = window_usage(js.read_text(encoding="utf-8", errors="replace"))
         lost = {n: c - after.get(n, 0) for n, c in before.items() if after.get(n, 0) < c}
         for name, count in sorted(lost.items()):
-            findings.append(f"{rel}: window.{name} used {count}x at conversion, "
-                            f"{after.get(name, 0)}x now")
+            note = reviewed.get(f"{rel}::{name}")
+            if note:
+                findings.append(f"{rel}: window.{name} lost {count} prefix(es) - "
+                                f"REVIEWED: {note}")
+            else:
+                findings.append(f"{rel}: window.{name} used {count}x at conversion, "
+                                f"{after.get(name, 0)}x now")
     return findings
 
 
 def cmd_audit_window(args) -> int:
     findings = audit_window_guards()
-    if not findings:
-        print("  window guards  ok - no `window.X` usage lost in any conversion")
+    unreviewed = [f for f in findings if "REVIEWED:" not in f]
+    signed_off = [f for f in findings if "REVIEWED:" in f]
+    if not unreviewed:
+        print("  window guards  ok - no `window.X` usage lost without review")
+        for entry in signed_off:
+            print(f"    - {entry}")
         return 0
-    print(f"  window guards  {len(findings)} name(s) lost their `window.` prefix:")
-    for entry in findings:
+    print(f"  window guards  {len(unreviewed)} name(s) lost their `window.` prefix unreviewed:")
+    for entry in unreviewed:
         print(f"    - {entry}")
+    if signed_off:
+        print(f"\n  {len(signed_off)} already reviewed (tools/window-usage-reviewed.json):")
+        for entry in signed_off:
+            print(f"    - {entry}")
     print("\n  Each needs review: fine if the name is a binding THIS file declares,")
     print("  a bug if it is a cross-module global that may not have loaded.")
+    print("  Record a verdict in tools/window-usage-reviewed.json, or restore the prefix.")
     return 1
 
 
@@ -821,19 +858,27 @@ def cmd_check(args) -> int:
     # ReferenceError. This is how test_fear_verbs broke, and it reached a browser
     # before anything noticed.
     guard_findings = audit_window_guards()
+    unreviewed = [f for f in guard_findings if "REVIEWED:" not in f]
+    signed_off = [f for f in guard_findings if "REVIEWED:" in f]
     if args.strict_guards:
-        if guard_findings:
-            print(f"\n  window guards  FAILED - {len(guard_findings)} name(s) lost their `window.` prefix:")
-            for entry in guard_findings:
+        if unreviewed:
+            print(f"\n  window guards  FAILED - {len(unreviewed)} unreviewed `window.` prefix drop(s):")
+            for entry in unreviewed:
                 print(f"    - {entry}")
             print("\n  Each needs review: fine when the name is a binding THIS file")
             print("  declares, a bug when it is a cross-module global that may not")
-            print("  have loaded. `--lenient-guards` downgrades this to a warning.")
+            print("  have loaded. Record a verdict in tools/window-usage-reviewed.json,")
+            print("  or restore the prefix. `--lenient-guards` downgrades this to a warning.")
             failed += 1
+        elif signed_off:
+            print(f"  window guards  ok ({len(signed_off)} drop(s) reviewed)")
+            for entry in signed_off:
+                print(f"    - {entry}")
         else:
             print("  window guards  ok")
     else:
-        print(f"  window guards  {len(guard_findings)} dropped prefix(es) - see "
+        print(f"  window guards  {len(unreviewed)} unreviewed drop(s), "
+              f"{len(signed_off)} reviewed - see "
               f"`python tools/ts_convert.py audit-window`")
 
     print()

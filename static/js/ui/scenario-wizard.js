@@ -18,7 +18,10 @@
  * @relates uses shared/ai-generator; applies through POST /api/load (undo-snapshotted)
  * @docs docs/virtualWorld/ScenarioCreationGuide.md
  */
-// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+// Local views of the AI shapes owned by shared/ai-generator.ts. They are
+// repeated here rather than declared in types/globals.d.ts because an ambient
+// `declare const AIGenerator` alongside the real one is a redeclaration, and
+// this file must also compile under `build-one`, which sees only itself.
 window.ScenarioWizard = (() => {
     'use strict';
     const OPPOSITE = { north: 'south', south: 'north', east: 'west', west: 'east', up: 'down', down: 'up', in: 'out', out: 'in', left: 'right', right: 'left', inside: 'outside', outside: 'inside' };
@@ -463,7 +466,7 @@ RULES:
             return;
         const out = {
             name: _state.name || 'Generated Scenario',
-            player: d.player || {},
+            player: (d.player || {}),
             current_area: d.current_area && names.some(n => slugKey(n) === slugKey(d.current_area)) ? d.current_area : names[0],
             characters: (d.characters || []).filter((_, i) => _state.include.chars[i] !== false),
             world_lore: (d.world_lore || []).filter((_, i) => _state.include.lore[i] !== false),
