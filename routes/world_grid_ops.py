@@ -235,7 +235,14 @@ def _grid_payload(manifest: Dict[str, dict], scope_id: str, graph=None) -> dict:
                  if world_grid.has_grid(rec) else None),
         "mode": rec.get("mode"),
         "reference": world_grid.reference(rec),
-        "layers": dict(rec.get("layers") or {}),
+        # Every paint layer is present, even when nothing is painted on it
+        # (task-651). The records are normalized to omit empty layers, so a
+        # scope with only biome/road used to arrive with those two keys and no
+        # floor/climate at all — indistinguishable from "this layer does not
+        # exist" to anything reading the payload. The editor offers four layers,
+        # so the payload answers with four, each possibly {}.
+        "layers": {layer: dict((rec.get("layers") or {}).get(layer) or {})
+                   for layer in world_grid.PAINT_LAYERS},
         "names": dict(rec.get("names") or {}),
         "map_offset": world_grid.map_offset(rec),
         "placements": placements,
@@ -299,6 +306,12 @@ def handle_painter_vocabulary(app):
         # else that reads the vocabulary.
         "biomes": [{"id": key, "name": (rec or {}).get("name", key),
                     "tags": list((rec or {}).get("tags") or []),
+                    # A tile has to be pickable without a lookup (task-596): the
+                    # palette shows what the entry *is* (its ground material and
+                    # its prose) next to what it does. The same record the
+                    # compiler reads, so the preview cannot drift from the world.
+                    "surface": (rec or {}).get("surface", ""),
+                    "descriptions": list((rec or {}).get("descriptions") or []),
                     # What this building's door says when it has no interior to go
                     # into (task-563). Sent from the same function the compiler
                     # uses, so the line the painter reads in the cell inspector is
@@ -306,7 +319,15 @@ def handle_painter_vocabulary(app):
                     "refusal": (world_compile.building_refusal(key)
                                 if biomes_mod.is_building(key) else "")}
                    for key, rec in sorted(biomes_mod.biomes().items())],
-        "features": [{"id": key, "name": (rec or {}).get("name", key)}
+        # Features carry what makes a bridge a bridge and a ford a ford (task-596
+        # asks the palette to answer that without opening another panel): the
+        # prose, the terrain it may cross, and the verb its doorway uses.
+        "features": [{"id": key, "name": (rec or {}).get("name", key),
+                      "tags": list((rec or {}).get("tags") or []),
+                      "biomes": list((rec or {}).get("biomes") or []),
+                      "entry_phrase": (rec or {}).get("entry_phrase", ""),
+                      "exit_phrase": (rec or {}).get("exit_phrase", ""),
+                      "descriptions": list((rec or {}).get("descriptions") or [])}
                      for key, rec in sorted(biomes_mod.features().items())],
         # The coarse climates, from the same table the compiler aggregates against
         # (task-557). Sent rather than duplicated in the editor, because a palette
