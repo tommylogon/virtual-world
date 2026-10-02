@@ -1,13 +1,19 @@
+"use strict";
 /**
  * ApiClient — Backend HTTP calls for the VirtualWorld engine
  *
  * @module api — the single HTTP client for every UI → engine call
- * @contributes ApiClient.* (actions, graph CRUD, items, saves, scenario ops) + runAction
+ * @contributes ApiClientImpl.* (actions, graph CRUD, items, saves, scenario ops) + runAction
  * @powers every button/panel that talks to the Flask engine, and the graph's data fetches
  * @relates used by world-state, graph, inspector, item library, agent-engine, main
  * @docs none
  */
-class ApiClient {
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+// Declared as `ApiClientImpl` and published onto `window` at the bottom of this
+// file: `static/js/types/globals.d.ts` already declares a global `const ApiClient`
+// (and a global `const api`) so unconverted consumers typecheck, and a top-level
+// `class ApiClient` would collide with it. The runtime globals are unchanged.
+class ApiClientImpl {
     /**
      * Never let a raw server error reach the UI (task-444 Phase 4).
      *
@@ -18,11 +24,11 @@ class ApiClient {
      */
     static _errorMessage(resp, data) {
         const raw = (data && typeof data.error === 'string') ? data.error : '';
-        if (raw && !/\bTraceback\b|File "\S/.test(raw)) return raw;
+        if (raw && !/\bTraceback\b|File "\S/.test(raw))
+            return raw;
         const status = `${resp.status}${resp.statusText ? ' ' + resp.statusText : ''}`;
         return `Request failed (${status})`;
     }
-
     /** Generic POST helper */
     static async post(url, payload) {
         const resp = await fetch(url, {
@@ -32,11 +38,10 @@ class ApiClient {
         });
         const data = await resp.json().catch(() => ({}));
         if (!resp.ok) {
-            return { ...data, error: ApiClient._errorMessage(resp, data), http_status: resp.status };
+            return { ...data, error: ApiClientImpl._errorMessage(resp, data), http_status: resp.status };
         }
         return data;
     }
-
     /**
      * Apply a list of graph ops as ONE atomic batch request + ONE undo snapshot.
      * op shape: { type: 'create_node'|'attach'|'detach'|'delete_node'|'update_node', payload: {...} }
@@ -45,17 +50,15 @@ class ApiClient {
     static async batchGraph(ops) {
         return this.post('/api/graph/batch', { ops });
     }
-
     /** Generic GET helper */
     static async get(url) {
         const resp = await fetch(url);
         const data = await resp.json().catch(() => ({}));
         if (!resp.ok) {
-            return { ...data, error: ApiClient._errorMessage(resp, data), http_status: resp.status };
+            return { ...data, error: ApiClientImpl._errorMessage(resp, data), http_status: resp.status };
         }
         return data;
     }
-
     /**
      * Declare a soak order for a character (task-481): they run on a policy for
      * the span instead of taking attended turns.
@@ -63,19 +66,16 @@ class ApiClient {
     static async declareSoak(payload) {
         return this.post('/api/world/soak', payload);
     }
-
     /** Drop a character's soak order (defaults to the active character). */
     static async cancelSoak(charName = null) {
         const query = charName ? '?character=' + encodeURIComponent(charName) : '';
         const resp = await fetch('/api/world/soak' + query, { method: 'DELETE' });
         return resp.json().catch(() => ({}));
     }
-
     /** Status-condition catalog (for the inspector's condition editor) */
     static async conditionsCatalog() {
         return this.get('/api/conditions');
     }
-
     /** POST with callback (for legacy compatibility) */
     static postCallback(url, payload, callback) {
         fetch(url, {
@@ -83,77 +83,71 @@ class ApiClient {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         })
-        .then(r => r.json())
-        .then(res => {
-            if (res.error) { toastError("Error: " + res.error); }
-            else if (callback) callback(res);
-            else worldState.fetch();
+            .then(r => r.json())
+            .then(res => {
+            if (res.error) {
+                toastError("Error: " + res.error);
+            }
+            else if (callback)
+                callback(res);
+            else
+                worldState.fetch();
         })
-        .catch(err => console.error('[apiPost] fetch error:', err));
+            .catch(err => console.error('[apiPost] fetch error:', err));
     }
-
     /** Game actions */
     static async action(command, charName) {
         const body = { command };
-        if (charName) body.character = charName;
+        if (charName)
+            body.character = charName;
         return this.post('/api/action', body);
     }
-
     /** Autocomplete candidate options for verb & prefix (task-6) */
     static async getAutocomplete(verb, prefix = '', charName = null) {
         const body = { verb, prefix };
-        if (charName) body.character = charName;
+        if (charName)
+            body.character = charName;
         return this.post('/api/autocomplete', body);
     }
-
     /** Scene snapshot for the human turn panel (task-333 Phase 1) */
     static async getScene(playerName) {
         return this.get('/api/scene/' + encodeURIComponent(playerName));
     }
-
     /** Reset world to initial state */
     static async resetWorld() {
         const resp = await fetch('/api/reset', { method: 'POST' });
         return resp.json();
     }
-
     /** Undo the last snapshot (e.g. restore state deleted by reset) */
     static async undo() {
         return this.post('/api/undo', {});
     }
-
     /** Redo a previously undone state */
     static async redo() {
         return this.post('/api/redo', {});
     }
-
     /** Narrative emote */
     static async emote(actor, emoteText) {
         return this.post('/api/emote', { actor, emote: emoteText });
     }
-
     /** Set active player */
     static async setActivePlayer(name) {
         return this.post('/api/players/active', { name });
     }
-
     /** Create character */
     static async createCharacter(name) {
         return this.post('/api/players', { name });
     }
-
     /** Delete character */
     static async deleteCharacter(name) {
         const resp = await fetch('/api/players/' + encodeURIComponent(name), { method: 'DELETE' });
         return resp.json();
     }
-
     /** Kill character (set HP=0, state=dead, spawn body) */
     static async killCharacter(name) {
         const resp = await fetch('/api/players/' + encodeURIComponent(name) + '/kill', { method: 'POST' });
         return resp.json();
     }
-
     /** Update character personality/rename */
     static async updateCharacter(name, data) {
         const resp = await fetch('/api/players/' + encodeURIComponent(name), {
@@ -163,7 +157,6 @@ class ApiClient {
         });
         return resp.json();
     }
-
     static async importPlayer(charData) {
         const resp = await fetch('/api/players/import', {
             method: 'POST',
@@ -172,78 +165,67 @@ class ApiClient {
         });
         return resp.json();
     }
-
     // --- Player Movement & Speech ---
-
     static async movePlayerToRoom(name, area) {
         return this.post(`/api/players/${encodeURIComponent(name)}/move`, { area });
     }
-
     static async playerSpeak(name, text, area) {
         return this.post(`/api/players/${encodeURIComponent(name)}/speak`, { text, area });
     }
-
     // --- Build API ---
-
     static async createRoom(data) {
         return this.post('/api/build/area', data);
     }
-
     static async createItem(data) {
         return this.post('/api/build/item', data);
     }
-
     static async connectRooms(data) {
         return this.post('/api/build/connect', data);
     }
-
     static async placeItemFromLibrary(target, itemId) {
         const payload = {};
-        if (target.type === 'container') payload.container = target.id;
-        else if (target.type === 'character') payload.character = target.id;
-        else payload.area = target.name;
+        if (target.type === 'container')
+            payload.container = target.id;
+        else if (target.type === 'character')
+            payload.character = target.id;
+        else
+            payload.area = target.name;
         return this.post(`/api/library/items/${encodeURIComponent(itemId)}/place`, payload);
     }
-
     // --- Graph API ---
-
     static async getGraphNodes() {
         const resp = await fetch('/api/graph/nodes');
         return resp.json();
     }
-
     static async getGraphEdges() {
         const resp = await fetch('/api/graph/edges');
         return resp.json();
     }
-
     /** World scope cards. `flat=true` returns every scope depth-first with a
      *  `depth` field, for the graph view's scope picker (task-397). */
     static async getWorldScopes(flat = false) {
         const resp = await fetch(`/api/world/scopes${flat ? '?flat=1' : ''}`);
         return resp.json();
     }
-
     /** One scope's vis-loadable subgraph ({nodes, edges}) — the graph view
      *  loads this instead of the whole world when a scope is selected.
      *  Level-scoped by default (own areas only); pass `descendants` for the
      *  whole subtree. */
     static async getScopeSubgraph(scopeId, includeItems = true, descendants = false) {
-        const resp = await fetch(
-            `/api/world/scopes/${encodeURIComponent(scopeId)}/subgraph`
+        const resp = await fetch(`/api/world/scopes/${encodeURIComponent(scopeId)}/subgraph`
             + `?include_items=${includeItems ? 1 : 0}&descendants=${descendants ? 1 : 0}`);
-        if (!resp.ok) throw new Error(`scope subgraph failed: ${resp.status}`);
+        if (!resp.ok)
+            throw new Error(`scope subgraph failed: ${resp.status}`);
         return resp.json();
     }
-
     /** One scope's painted grid payload ({scope, grid, layers, reference, …}).
      *  Used by the graph background's "fit to painted grid" action. */
     static async getWorldGrid(scopeId) {
         const resp = await fetch(`/api/world/scopes/${encodeURIComponent(scopeId)}/grid`);
-        if (!resp.ok) throw new Error(`scope grid failed: ${resp.status}`);
+        if (!resp.ok)
+            throw new Error(`scope grid failed: ${resp.status}`);
         return resp.json();
     }
-
     /** Persist a scope's map-layout offset (cell units) — the graph canvas zone
      *  drag (task-523). Pass `reset: true` (and no x/y) to return the zone to
      *  its painted position. Returns `{status, id, map_offset}`. */
@@ -255,10 +237,10 @@ class ApiClient {
                 ? { reset: true }
                 : { x: Number(offset.x) || 0, y: Number(offset.y) || 0 })
         });
-        if (!resp.ok) throw new Error(`scope offset failed: ${resp.status}`);
+        if (!resp.ok)
+            throw new Error(`scope offset failed: ${resp.status}`);
         return resp.json();
     }
-
     static async updateNode(nodeId, data) {
         const resp = await fetch(`/api/graph/node/${encodeURIComponent(nodeId)}`, {
             method: 'PATCH',
@@ -267,7 +249,6 @@ class ApiClient {
         });
         return resp.ok;
     }
-
     /** Reassign areas to a scope — **membership only** (task-539).
      *
      * This is deliberately not `updateNode({properties: {world_scope_id}})`:
@@ -282,10 +263,10 @@ class ApiClient {
             body: JSON.stringify({ add, remove })
         });
         const data = await resp.json().catch(() => null);
-        if (!resp.ok) throw new Error((data && data.error) || `scope areas failed: ${resp.status}`);
+        if (!resp.ok)
+            throw new Error((data && data.error) || `scope areas failed: ${resp.status}`);
         return data;
     }
-
     /** Duplicate an area / item / way / character — one atomic write on the
      *  backend. `includeChildren=false` clones only the node (+ triggers),
      *  skipping its attached items. */
@@ -297,7 +278,6 @@ class ApiClient {
         });
         return resp.json();
     }
-
     static async uploadNodeImage(nodeId, file, kind = 'full', expression = 'neutral') {
         const form = new FormData();
         form.append('file', file);
@@ -309,7 +289,6 @@ class ApiClient {
         });
         return resp.json();
     }
-
     /** Remove one expression-pack image slot (kind + expression). */
     static async removeExpressionImage(nodeId, kind = 'full', expression = 'neutral') {
         const resp = await fetch(`/api/graph/node/${encodeURIComponent(nodeId)}/image/remove`, {
@@ -319,11 +298,9 @@ class ApiClient {
         });
         return resp.json();
     }
-
     static async removeNodeImage(nodeId) {
-        return ApiClient.updateNode(nodeId, { properties: { image: null } });
+        return ApiClientImpl.updateNode(nodeId, { properties: { image: null } });
     }
-
     /** Upload the graph's background map; returns { image: '/static/images/backgrounds/…' }. */
     static async uploadBackgroundImage(file) {
         const form = new FormData();
@@ -331,39 +308,38 @@ class ApiClient {
         const resp = await fetch('/api/graph/background/image', { method: 'POST', body: form });
         return resp.json();
     }
-
     /** Persist the background map's path + transform on the world (scenario-level). */
     static async saveGraphBackground(background) {
-        return ApiClient.post('/api/graph/background', background);
+        return ApiClientImpl.post('/api/graph/background', background);
     }
-
     static async renameNode(nodeId, newId) {
-        return ApiClient.post(`/api/graph/node/${encodeURIComponent(nodeId)}/rename`, { new_id: newId });
+        return ApiClientImpl.post(`/api/graph/node/${encodeURIComponent(nodeId)}/rename`, { new_id: newId });
     }
-
     static async moveItemToRoom(nodeId, area, container, character, targetType, targetId, relation) {
         const payload = {};
         if (targetType && targetId) {
             payload.target_type = targetType;
             payload.target_id = targetId;
-            if (relation) payload.relation = relation;
-        } else {
-            if (area) payload.area = area;
-            if (container) payload.container = container;
-            if (character) payload.character = character;
+            if (relation)
+                payload.relation = relation;
         }
-        return ApiClient.post(`/api/graph/item/${encodeURIComponent(nodeId)}/move`, payload);
+        else {
+            if (area)
+                payload.area = area;
+            if (container)
+                payload.container = container;
+            if (character)
+                payload.character = character;
+        }
+        return ApiClientImpl.post(`/api/graph/item/${encodeURIComponent(nodeId)}/move`, payload);
     }
-
     static async deleteNode(nodeId) {
         const resp = await fetch(`/api/graph/node/${encodeURIComponent(nodeId)}`, { method: 'DELETE' });
         return resp.json();
     }
-
     static async updateEdge(source, target, data) {
         return this.post('/api/graph/edge/update', { source, target, ...data });
     }
-
     static async deleteEdge(source, target, type) {
         const resp = await fetch('/api/graph/edge', {
             method: 'DELETE',
@@ -372,26 +348,20 @@ class ApiClient {
         });
         return resp.json();
     }
-
     static async flipEdge(source, target, type) {
         return this.post('/api/graph/edge/flip', { source, target, type });
     }
-
     static async createNode(data) {
         return this.post('/api/graph/node', data);
     }
-
     static async createEdge(source, target, type, properties = {}) {
         return this.post('/api/graph/edge', { source, target, type, properties });
     }
-
     // --- Item Registry (Library) API ---
-
     static async getLibraryItems() {
         const resp = await fetch('/api/library/items');
         return resp.json();
     }
-
     static async saveLibraryItem(payload) {
         const resp = await fetch('/api/library/items', {
             method: 'POST',
@@ -400,20 +370,20 @@ class ApiClient {
         });
         return resp.json();
     }
-
     static async deleteLibraryItem(id) {
         const resp = await fetch(`/api/library/items/${encodeURIComponent(id)}`, { method: 'DELETE' });
         return resp.json();
     }
-
     static async refreshFromLibrary(nodeId, sections, templateId, entries) {
         const body = { node_id: nodeId };
-        if (sections) body.sections = sections;
-        if (templateId) body.template_id = templateId;
-        if (entries && Object.keys(entries).length) body.entries = entries;
+        if (sections)
+            body.sections = sections;
+        if (templateId)
+            body.template_id = templateId;
+        if (entries && Object.keys(entries).length)
+            body.entries = entries;
         return this.post('/api/library/refresh-to-world', body);
     }
-
     /**
      * Unbind a node from its library template. The node keeps its current data —
      * this only removes the link, so a hand-fixed copy is no longer overwritten
@@ -424,15 +394,13 @@ class ApiClient {
     static async breakTemplateLink(nodeId) {
         return this.post('/api/library/break-template-link', { node_id: nodeId });
     }
-
     static async refreshWayFromLibrary(nodeId, sections) {
         const body = { node_id: nodeId };
-        if (sections) body.sections = sections;
+        if (sections)
+            body.sections = sections;
         return this.post('/api/library/refresh-to-world', body);
     }
-
     // --- Character Registry API ---
-
     static async saveCharacterToRegistry(charId, data) {
         const resp = await fetch('/api/library/characters', {
             method: 'POST',
@@ -441,31 +409,25 @@ class ApiClient {
         });
         return resp.json();
     }
-
     static async getCharactersFromLibrary() {
         const resp = await fetch('/api/library/characters');
         return resp.json();
     }
-
     // --- Unified Library API ---
-
     static async getLibraryEntities() {
         const resp = await fetch('/api/library/entities');
         return resp.json();
     }
-
     static async getLibraryType(type) {
         const resp = await fetch(`/api/library/${encodeURIComponent(type)}`);
         return resp.json();
     }
-
     /** Fetch multiple registries in one round-trip. @param {string[]} types */
     static async getLibraryTypes(types) {
         const q = types && types.length ? `?types=${encodeURIComponent(types.join(','))}` : '';
         const resp = await fetch(`/api/library/all${q}`);
         return resp.json();
     }
-
     static async saveLibraryType(type, payload) {
         const resp = await fetch(`/api/library/${encodeURIComponent(type)}`, {
             method: 'POST',
@@ -474,208 +436,170 @@ class ApiClient {
         });
         return resp.json();
     }
-
     static async deleteLibraryType(type, id) {
         const resp = await fetch(`/api/library/${encodeURIComponent(type)}/${encodeURIComponent(id)}`, { method: 'DELETE' });
         return resp.json();
     }
-
     static async importCharacterFromLibrary(charId, options = {}) {
         return this.post(`/api/library/import/character/${encodeURIComponent(charId)}`, options);
     }
-
     static async importRoomFromLibrary(roomId, options = {}) {
         return this.post(`/api/library/import/area/${encodeURIComponent(roomId)}`, options);
     }
-
     static async importWayFromLibrary(wayId, options = {}) {
         return this.post(`/api/library/import/way/${encodeURIComponent(wayId)}`, options);
     }
-
     /** Reconnect a way to another pair of areas (POST /api/graph/way/reconnect). */
     static async reconnectWays(wayId, roomA, roomB, dirA = '', dirB = '') {
         return this.post('/api/graph/way/reconnect', { way_id: wayId, area_a: roomA, area_b: roomB, dir_a: dirA, dir_b: dirB });
     }
-
     // --- World Save/Load ---
-
     static async saveWorld() {
         const resp = await fetch('/api/save');
         return resp.json();
     }
-
     static async loadWorld(data) {
         return this.post('/api/load', data);
     }
-
     // --- Turn System ---
-
     static async applyTurn() {
         await fetch('/api/turn/apply', { method: 'POST' });
     }
-
     static async clearTurnEvents() {
         await fetch('/api/turn/clear', { method: 'POST' });
     }
-
     // --- Ghost Mode ---
-
     static async getGhostMode() {
         const resp = await fetch('/api/settings/ghost_mode');
         return resp.json();
     }
-
     static async setGhostMode(enabled) {
         return this.post('/api/settings/ghost_mode', { ghost_mode: enabled });
     }
-
     // --- Mature Content (task-206) ---
-
     static async getMatureContent() {
         const resp = await fetch('/api/settings/mature_content');
         return resp.json();
     }
-
     static async setMatureContent(enabled) {
         return this.post('/api/settings/mature_content', { mature_content: enabled });
     }
-
     // --- Auto-Generate Descriptions ---
-
     static async setAutoGenerateDescriptions(enabled) {
         return this.post('/api/settings/auto_generate_descriptions', { auto_generate_descriptions: enabled });
     }
-
     // --- World Lore API ---
-
     static async getWorldLore() {
         const resp = await fetch('/api/world/lore');
         return resp.json();
     }
-
     static async setWorldLore(lore) {
         return this.post('/api/world/lore', { lore });
     }
-
     static async addWorldLoreEntry(entry) {
         return this.post('/api/world/lore/entry', entry);
     }
-
     static async updateWorldLoreEntry(entryId, data) {
         return this.post(`/api/world/lore/entry/${encodeURIComponent(entryId)}`, data);
     }
-
     static async deleteWorldLoreEntry(entryId) {
         const resp = await fetch(`/api/world/lore/entry/${encodeURIComponent(entryId)}`, { method: 'DELETE' });
         return resp.json();
     }
-
     // --- Per-Character Memory API ---
-
     static async getPlayerMemories(name) {
         const resp = await fetch(`/api/players/${encodeURIComponent(name)}/memories`);
         return resp.json();
     }
-
     static async setPlayerMemories(name, memories) {
         return this.post(`/api/players/${encodeURIComponent(name)}/memories`, { memories });
     }
-
     static async addPlayerMemory(name, entry) {
         return this.post(`/api/players/${encodeURIComponent(name)}/memories/entry`, entry);
     }
-
     static async deletePlayerMemory(name, entryId) {
         const resp = await fetch(`/api/players/${encodeURIComponent(name)}/memories/entry/${encodeURIComponent(entryId)}`, { method: 'DELETE' });
         return resp.json();
     }
-
     static async updatePlayerMemory(name, entryId, data) {
         return this.post(`/api/players/${encodeURIComponent(name)}/memories/entry/${encodeURIComponent(entryId)}`, data);
     }
-
     static async clearPlayerMemories(name) {
         return this.post(`/api/players/${encodeURIComponent(name)}/memories/clear`, {});
     }
-
     static async suppressPlayerMemory(name, data) {
         return this.post(`/api/players/${encodeURIComponent(name)}/memories/suppress`, data);
     }
-
     static async unblockPlayerMemory(name, data) {
         return this.post(`/api/players/${encodeURIComponent(name)}/memories/unblock`, data);
     }
-
     static async clearExpiredSuppressions(name, currentTick) {
         return this.post(`/api/players/${encodeURIComponent(name)}/memories/clear-expired`, { current_tick: currentTick });
     }
-
     static async getAreaDescription() {
         const resp = await fetch('/api/area/description');
         return resp.json();
     }
-
     // --- Save/Load Game & Scenario ---
-
     /** Save a new named snapshot, or overwrite an existing slot via `slot`. */
     static async saveGame(name, slot) {
         const body = { name };
-        if (slot) body.slot = slot;
+        if (slot)
+            body.slot = slot;
         return this.post('/api/save-game', body);
     }
-
     static async listSaveGames() {
         const resp = await fetch('/api/save-games');
         return resp.json();
     }
-
     static async loadGame(filename) {
         return this.post(`/api/load-game/${encodeURIComponent(filename)}`);
     }
-
     static async deleteSaveGame(filename) {
         const resp = await fetch(`/api/save-game/${encodeURIComponent(filename)}`, { method: 'DELETE' });
         return resp.json();
     }
-
     /** Delete every user save in one request; the autosave slot is kept unless
      *  `includeAutosave` is true (bug-42). */
     static async deleteAllSaveGames(includeAutosave = false) {
         return this.post('/api/save-games/delete-all', { include_autosave: !!includeAutosave });
     }
-
     static async renameSaveGame(filename, name) {
         return this.post(`/api/save-game/${encodeURIComponent(filename)}/rename`, { name });
     }
-
     static async saveScenario(name) {
         return this.post('/api/save-scenario', { name });
     }
 }
-
-// Singleton
-const api = ApiClient;
-
+// Singleton — published under both names consumers use. See the note on the
+// class declaration for why these are assignments rather than top-level consts.
+const globals = window;
+globals.ApiClient = ApiClientImpl;
+globals.api = ApiClientImpl;
 /** Run a game action and log the result to the event stream, then refresh state. */
-window.runAction = async function(cmd, charName) {
-    const body = { command: cmd };
-    if (charName) body.character = charName;
-    const resp = await fetch('/api/action', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(body)
-    });
-    const data = await resp.json();
-    if (data?.output) events.log(data.output, 'system-msg');
-    await worldState.fetch();
-    // Auto-generate equipment description after a SUCCESSFUL equip/unequip.
-    // /api/action reports `success` so a failed wear/remove (e.g. "can't be
-    // equipped") doesn't rewrite the appearance.
-    const cmdLower = cmd.trim().toLowerCase();
-    if (data.success === true && config.autoGenerateDescriptions && (cmdLower.startsWith('wear ') || cmdLower.startsWith('remove ') || cmdLower.startsWith('unequip '))) {
-        const char = charName || worldState.activePlayer;
-        if (char && window.InspectorAgentView?._generateDescription) {
-            InspectorAgentView._generateDescription(char).catch(() => {});
+window.runAction =
+    async function (cmd, charName) {
+        const body = { command: cmd };
+        if (charName)
+            body.character = charName;
+        const resp = await fetch('/api/action', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        const data = await resp.json();
+        if (data?.output)
+            events.log(data.output, 'system-msg');
+        await worldState.fetch();
+        // Auto-generate equipment description after a SUCCESSFUL equip/unequip.
+        // /api/action reports `success` so a failed wear/remove (e.g. "can't be
+        // equipped") doesn't rewrite the appearance.
+        const cmdLower = cmd.trim().toLowerCase();
+        if (data.success === true && config.autoGenerateDescriptions && (cmdLower.startsWith('wear ') || cmdLower.startsWith('remove ') || cmdLower.startsWith('unequip '))) {
+            const char = charName || worldState.activePlayer;
+            const agentView = window.InspectorAgentView;
+            if (char && agentView?._generateDescription) {
+                agentView._generateDescription(char).catch(() => { });
+            }
         }
-    }
-};
+    };

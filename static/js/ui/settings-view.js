@@ -1,3 +1,4 @@
+"use strict";
 /**
  * settings-view.js — Settings/profile UI module
  * Extracted from main.js. Provides SettingsView singleton.
@@ -16,44 +17,46 @@
  * @relates writes through config; calls VW.ui.populateModelSelect; toasts from ui-helpers.js
  * @docs docs/virtualWorld/UI & Settings/Settings & Configuration.md
  */
-
-window.SettingsView = (() => {
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+const SettingsView = (() => {
     'use strict';
-
     /**
      * Switch the active settings tab by ID.
      * @param {string} tabId - The DOM ID of the tab pane (e.g. 'tab-connection')
      */
     function switchTab(tabId) {
-        document.querySelectorAll('.tab-pane').forEach(function(el) { el.classList.remove('active'); });
-        document.querySelectorAll('.tab-btn').forEach(function(el) { el.classList.remove('active'); });
+        document.querySelectorAll('.tab-pane').forEach(function (el) { el.classList.remove('active'); });
+        document.querySelectorAll('.tab-btn').forEach(function (el) { el.classList.remove('active'); });
         var pane = document.getElementById(tabId);
-        if (pane) pane.classList.add('active');
+        if (pane)
+            pane.classList.add('active');
         var btn = document.querySelector('[data-tab="' + tabId + '"]');
-        if (btn) btn.classList.add('active');
+        if (btn)
+            btn.classList.add('active');
     }
-
     /**
      * Populate the settings form fields from the current config values.
      * Reads from config.apiBase, config.apiKey, config.temperature, etc.
      */
     function populateForm() {
-        var setVal = function(id, val) {
-            var el = document.getElementById(id);
-            if (el && el.value !== undefined) el.value = val ?? '';
+        const setVal = function (id, val) {
+            const el = document.getElementById(id);
+            if (el && el.value !== undefined)
+                el.value = String(val ?? '');
         };
-        var setChecked = function(id, val) {
-            var el = document.getElementById(id);
-            if (el) el.checked = !!val;
+        const setChecked = function (id, val) {
+            const el = document.getElementById(id);
+            if (el)
+                el.checked = !!val;
         };
-
         setVal('api-base-input', config.apiBase);
         setVal('api-key-input', config.apiKey);
         setVal('agent-api-base', config.apiBase);
         setVal('agent-api-key', config.apiKey);
-        setVal('agent-temperature', parseFloat(config.temperature) || 0.7);
+        setVal('agent-temperature', parseFloat(String(config.temperature)) || 0.7);
         var tempValEl = document.getElementById('agent-temperature-val');
-        if (tempValEl) tempValEl.textContent = (parseFloat(config.temperature) || 0.7).toFixed(2);
+        if (tempValEl)
+            tempValEl.textContent = (parseFloat(String(config.temperature)) || 0.7).toFixed(2);
         setVal('max-tokens-input', String(config.maxTokens || '512'));
         setVal('soft-max-tokens-input', String(config.softMaxTokens || '0'));
         setChecked('agent-turn-based', config.turnBased);
@@ -69,39 +72,48 @@ window.SettingsView = (() => {
         setChecked('agent-structured-output', config.structuredOutput);
         setChecked('agent-show-raw-llm', config.showRawLLM);
         setChecked('agent-end-of-turn-memory', config.endOfTurnMemory);
-
         // Graph settings (the `||` fallbacks mirror the defaults in config.js)
         setVal('graph-spring-length', String(config.graphSpringLength || 120));
         var gsl = document.getElementById('graph-spring-length-val');
-        if (gsl) gsl.textContent = config.graphSpringLength || 120;
+        if (gsl)
+            gsl.textContent = String(config.graphSpringLength || 120);
         setVal('graph-repulsion', String(config.graphGravitationalConstant || -8));
         var grv = document.getElementById('graph-repulsion-val');
-        if (grv) grv.textContent = config.graphGravitationalConstant || -8;
+        if (grv)
+            grv.textContent = String(config.graphGravitationalConstant || -8);
         setVal('graph-damping', String(config.graphDamping || 0.4));
         var gdv = document.getElementById('graph-damping-val');
-        if (gdv) gdv.textContent = (config.graphDamping || 0.4).toFixed(2);
+        if (gdv)
+            gdv.textContent = (Number(config.graphDamping) || 0.4).toFixed(2);
         setVal('graph-spring-constant', String(config.graphSpringConstant || 0.1));
         var gscv = document.getElementById('graph-spring-constant-val');
-        if (gscv) gscv.textContent = (config.graphSpringConstant || 0.1).toFixed(2);
+        if (gscv)
+            gscv.textContent = (Number(config.graphSpringConstant) || 0.1).toFixed(2);
         setVal('graph-item-edge-length', String(config.graphItemEdgeLength || 60));
         var gielv = document.getElementById('graph-item-edge-length-val');
-        if (gielv) gielv.textContent = config.graphItemEdgeLength || 60;
+        if (gielv)
+            gielv.textContent = String(config.graphItemEdgeLength || 60);
         setChecked('graph-repel-enabled', config.graphRepelEnabled !== false);
         setVal('graph-repel-min', String(config.graphRepelMin || 55));
         var grmv = document.getElementById('graph-repel-min-val');
-        if (grmv) grmv.textContent = config.graphRepelMin || 55;
+        if (grmv)
+            grmv.textContent = String(config.graphRepelMin || 55);
         setVal('graph-repel-max', String(config.graphRepelMax || 220));
         var grxv = document.getElementById('graph-repel-max-val');
-        if (grxv) grxv.textContent = config.graphRepelMax || 220;
+        if (grxv)
+            grxv.textContent = String(config.graphRepelMax || 220);
         var grp = Number(config.graphRepelPull);
-        if (!Number.isFinite(grp)) grp = 0.12;
+        if (!Number.isFinite(grp))
+            grp = 0.12;
         setVal('graph-repel-pull', String(grp));
         var grpv = document.getElementById('graph-repel-pull-val');
-        if (grpv) grpv.textContent = grp.toFixed(2);
+        if (grpv)
+            grpv.textContent = grp.toFixed(2);
         setVal('graph-solver', config.graphSolver || 'forceAtlas2Based');
         setVal('graph-edge-width', String(config.graphEdgeWidth || 1));
         var gewv = document.getElementById('graph-edge-width-val');
-        if (gewv) gewv.textContent = (config.graphEdgeWidth || 1).toFixed(1);
+        if (gewv)
+            gewv.textContent = (Number(config.graphEdgeWidth) || 1).toFixed(1);
         setChecked('graph-arrows', config.graphArrows !== false);
         setChecked('graph-improved-layout', config.graphImprovedLayout === true);
         setChecked('agent-show-logs', config.showLogs);
@@ -111,7 +123,8 @@ window.SettingsView = (() => {
         setChecked('agent-suppress-local-thinking', config.suppressLocalThinking);
         setVal('agent-api-format', config.apiFormat || 'auto');
         var thinkingRow = document.getElementById('thinking-effort-row');
-        if (thinkingRow) thinkingRow.style.display = config.thinking ? 'flex' : 'none';
+        if (thinkingRow)
+            thinkingRow.style.display = config.thinking ? 'flex' : 'none';
         setVal('agent-rpm-limit', String(config.rpmLimit || 0));
         setVal('agent-tpm-limit', String(config.tpmLimit || 0));
         setChecked('embed-enabled', !!config.embedEnabled);
@@ -124,19 +137,19 @@ window.SettingsView = (() => {
             etr.textContent = '🧬 ' + config.embedModel + ' · ' + config.embedDims + ' dims';
             etr.style.color = 'var(--text-muted)';
         }
-
         // Load time per tick from backend
-        (async function() {
+        (async function () {
             try {
                 var resp = await fetch('/api/settings/time_per_tick');
                 var data = await resp.json();
                 var el = document.getElementById('time-per-tick');
-                if (el) el.value = data.time_per_tick_minutes ?? 5;
-            } catch (e) { /* silently ignore */ }
+                if (el)
+                    el.value = data.time_per_tick_minutes ?? 5;
+            }
+            catch (e) { /* silently ignore */ }
         })();
-
         // Load clock start from backend
-        (async function() {
+        (async function () {
             try {
                 var resp = await fetch('/api/settings/clock_start');
                 var data = await resp.json();
@@ -146,24 +159,24 @@ window.SettingsView = (() => {
                     var mm = String(data.clock_start_minute ?? 0).padStart(2, '0');
                     el.value = hh + ':' + mm;
                 }
-            } catch (e) { /* silently ignore */ }
+            }
+            catch (e) { /* silently ignore */ }
         })();
-
         // Model input — custom searchable list handles visibility
         var modelInput = document.getElementById('agent-model');
         if (modelInput && config.model) {
             modelInput.value = config.model;
         }
     }
-
     /**
      * Test the LLM API connection by sending a simple chat message.
      * Updates the button and result display with success/failure state.
      */
     async function testConnection() {
-        var btn = document.getElementById('test-connection-btn');
-        var resultEl = document.getElementById('connection-result');
-        if (!btn || !resultEl) return;
+        const btn = document.getElementById('test-connection-btn');
+        const resultEl = document.getElementById('connection-result');
+        if (!btn || !resultEl)
+            return;
         btn.classList.add('testing');
         btn.textContent = '⏳ Testing...';
         resultEl.classList.remove('visible', 'success', 'error');
@@ -175,23 +188,24 @@ window.SettingsView = (() => {
                 btn.textContent = '✅ Connected!';
                 resultEl.textContent = 'Connection successful!';
                 resultEl.classList.add('visible', 'success');
-            } else {
+            }
+            else {
                 throw new Error('No response');
             }
-        } catch (err) {
+        }
+        catch (err) {
             btn.classList.remove('testing');
             btn.classList.add('error');
             btn.textContent = '❌ Failed';
-            resultEl.textContent = 'Error: ' + err.message;
+            resultEl.textContent = 'Error: ' + (err instanceof Error ? err.message : String(err));
             resultEl.classList.add('visible', 'error');
         }
-        setTimeout(function() {
+        setTimeout(function () {
             btn.classList.remove('success', 'error');
             btn.textContent = '🔌 Test Connection';
-            setTimeout(function() { resultEl.classList.remove('visible'); }, 2000);
+            setTimeout(function () { resultEl.classList.remove('visible'); }, 2000);
         }, 3000);
     }
-
     /**
      * Update the model dropdown visibility and placeholder based on the API base URL.
      * If the URL points to localhost, hide the dropdown and show a text input instead.
@@ -199,7 +213,6 @@ window.SettingsView = (() => {
     function updateModelDropdown() {
         // Model selector now uses a custom searchable list; nothing to toggle.
     }
-
     /**
      * Toggle visibility of the model select vs. text input based on whether
      * the current model value matches a known option in the dropdown.
@@ -207,7 +220,6 @@ window.SettingsView = (() => {
     function updateModelSelectVisibility() {
         // Model selector now uses a custom searchable list; nothing to toggle.
     }
-
     /**
      * Save the current settings from the form to the config manager.
      * Called when the user clicks 'Save' in the settings modal.
@@ -215,7 +227,6 @@ window.SettingsView = (() => {
     function saveConfigToServer() {
         config.saveFromForm();
     }
-
     return {
         populateForm: populateForm,
         switchTab: switchTab,
@@ -225,3 +236,4 @@ window.SettingsView = (() => {
         saveConfigToServer: saveConfigToServer
     };
 })();
+window.SettingsView = SettingsView;

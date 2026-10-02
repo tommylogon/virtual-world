@@ -1,3 +1,4 @@
+"use strict";
 /**
  * dataset-collector.js — captures every LLM request/response pair so it can be
  * exported as a chat-format JSONL fine-tuning dataset.
@@ -18,15 +19,22 @@
  * @relates hooks llm-client.chat(); persists via storage (llm_dataset, llm_raw_exchanges)
  * @docs docs/virtualWorld/UI & Settings/Event Log Export.md
  */
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+// The two capture sequences and the json-utils parsers are classic-script globals
+// that globals.d.ts does not declare; reached through casts so this file compiles
+// alone without touching the shared declaration hub.
 window.DatasetCollector = (() => {
+    const _seqWin = () => window;
+    const _jsonUtils = window;
     const STORE = 'llm_dataset';
-
     /** Fire-and-forget persist; never throws. */
     async function capture(messages, response, label, meta) {
         try {
-            if (typeof storage === 'undefined' || !storage) return;
+            if (typeof storage === 'undefined' || !storage)
+                return;
             const text = String(response || '').trim();
-            if (!text) return; // nothing usable
+            if (!text)
+                return; // nothing usable
             const outcome = _outcome(text);
             const entry = {
                 key: _nextKey(),
@@ -41,84 +49,102 @@ window.DatasetCollector = (() => {
             };
             // Fire-and-forget; IndexedDB writes are async and we must not block the game.
             storage.set(STORE, entry.key, entry);
-        } catch (e) { /* never break the game loop for dataset capture */ }
+        }
+        catch (e) { /* never break the game loop for dataset capture */ }
     }
-
     function _nextKey() {
-        const n = (window.__datasetSeq = (window.__datasetSeq || 0) + 1);
+        const win = _seqWin();
+        const n = (win.__datasetSeq = (win.__datasetSeq || 0) + 1);
         return 'd' + Date.now() + '_' + n;
     }
-
     /** Try to parse; report whether it parsed cleanly or needed repair. */
     function _outcome(text) {
         let parsed_ok = false, repaired = false;
         try {
-            if (typeof parseJSONFromResponse === 'function') {
-                const r = parseJSONFromResponse(text);
+            const parse = _jsonUtils.parseJSONFromResponse;
+            if (typeof parse === 'function') {
+                const r = parse(text);
                 parsed_ok = !!r.json;
-            } else {
-                parsed_ok = (() => { try { JSON.parse(text); return true; } catch (e) { return false; } })();
             }
-            if (!parsed_ok && typeof repairJSON === 'function') {
-                try { repaired = !!JSON.parse(repairJSON(text)); } catch (e) { repaired = false; }
+            else {
+                parsed_ok = (() => { try {
+                    JSON.parse(text);
+                    return true;
+                }
+                catch (e) {
+                    return false;
+                } })();
             }
-        } catch (e) {}
+            if (!parsed_ok && typeof _jsonUtils.repairJSON === 'function') {
+                try {
+                    repaired = !!JSON.parse(_jsonUtils.repairJSON(text));
+                }
+                catch (e) {
+                    repaired = false;
+                }
+            }
+        }
+        catch (e) { }
         return { parsed_ok, repaired };
     }
-
     /** Keep only text system/user/assistant messages (drop tool calls/results). */
     function _cleanMessages(messages) {
-        if (!Array.isArray(messages)) return [];
+        if (!Array.isArray(messages))
+            return [];
         return messages
             .filter(m => m && (m.role === 'system' || m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
             .map(m => ({ role: m.role, content: m.content }));
     }
-
     async function getAll() {
         try {
-            if (typeof storage === 'undefined' || !storage) return [];
+            if (typeof storage === 'undefined' || !storage)
+                return [];
             const map = await storage.getAll(STORE);
             return Object.keys(map).map(k => map[k]);
-        } catch (e) { return []; }
+        }
+        catch (e) {
+            return [];
+        }
     }
-
     async function count() {
         const all = await getAll();
         return all.length;
     }
-
     async function clear() {
-        try { if (typeof storage !== 'undefined' && storage) await storage.clear(STORE); } catch (e) {}
+        try {
+            if (typeof storage !== 'undefined' && storage)
+                await storage.clear(STORE);
+        }
+        catch (e) { }
     }
-
     // ── Raw HTTP exchange capture (task-405, LLM Inspector) ──────────────
     // Separate store from the fine-tuning dataset: this keeps the full request
     // body and the raw response envelope (status, headers, usage, error shape)
     // so providers can be debugged. Authorization is redacted before storage.
     const RAW_STORE = 'llm_raw_exchanges';
     const RAW_MAX = 200;
-
     function _redactHeaders(headers) {
         const out = {};
         try {
             Object.keys(headers || {}).forEach(k => {
-                const headerValue = String(headers[k]);
+                const headerValue = String(headers?.[k]);
                 if (/^(authorization|api[-_]key|x-api[-_]key)$/i.test(k)) {
                     const prefix = /^Bearer\s+/i.test(headerValue) ? 'Bearer ' : '';
                     out[k] = prefix + headerValue.replace(/^Bearer\s+/i, '').slice(0, 6) + '…REDACTED';
-                } else {
-                    out[k] = headers[k];
+                }
+                else {
+                    out[k] = headers?.[k];
                 }
             });
-        } catch (e) { /* ignore */ }
+        }
+        catch (e) { /* ignore */ }
         return out;
     }
-
     function _nextRawKey() {
-        const n = (window.__rawSeq = (window.__rawSeq || 0) + 1);
+        const win = _seqWin();
+        const n = (win.__rawSeq = (win.__rawSeq || 0) + 1);
         return 'r' + Date.now() + '_' + n;
     }
-
     /**
      * The best available name for an exchange that arrived without one
      * (task-593). Ordered by how much it actually tells you:
@@ -135,20 +161,26 @@ window.DatasetCollector = (() => {
      * failed, which is exactly the confusion this function exists to remove.
      */
     function _deriveLabel(x) {
-        if (x && x.label) return String(x.label);
+        if (x && x.label)
+            return String(x.label);
         const model = (x && x.model) || (typeof llmClient !== 'undefined' && llmClient.model) || '';
         const body = (x && x.requestBody) || {};
         const shape = (() => {
             try {
-                if (body.withTools || body.tools) return 'tools';
-                if (body.stream) return 'streamed';
-                if (body.response_format || body.responseFormat) return 'structured';
+                if (body.withTools || body.tools)
+                    return 'tools';
+                if (body.stream)
+                    return 'streamed';
+                if (body.response_format || body.responseFormat)
+                    return 'structured';
                 return 'chat';
-            } catch (e) { return 'chat'; }
+            }
+            catch (e) {
+                return 'chat';
+            }
         })();
         return model ? `unlabelled/${model}/${shape}` : `unlabelled/${shape}`;
     }
-
     /**
      * Persist a full exchange. Fire-and-forget; never throws, never blocks the
      * game loop. Only records when the `showRawLLM` opt-in is enabled.
@@ -157,8 +189,10 @@ window.DatasetCollector = (() => {
      */
     async function captureRaw(x) {
         try {
-            if (typeof storage === 'undefined' || !storage) return;
-            if (typeof config !== 'undefined' && config && !config.showRawLLM) return;
+            if (typeof storage === 'undefined' || !storage)
+                return;
+            if (typeof config !== 'undefined' && config && !config.showRawLLM)
+                return;
             const entry = {
                 key: _nextRawKey(),
                 ts: Date.now(),
@@ -191,38 +225,45 @@ window.DatasetCollector = (() => {
             await storage.set(RAW_STORE, entry.key, entry);
             // Occasional trim (not every call) keeps the store bounded without
             // paying a full read on each capture.
-            if ((window.__rawSeq % 25) === 0) _trimRaw();
-        } catch (e) { /* never break the game loop */ }
+            if ((_seqWin().__rawSeq % 25) === 0)
+                _trimRaw();
+        }
+        catch (e) { /* never break the game loop */ }
     }
-
     async function _trimRaw() {
         try {
             const map = await storage.getAll(RAW_STORE);
             const keys = Object.keys(map);
-            if (keys.length <= RAW_MAX) return;
+            if (keys.length <= RAW_MAX)
+                return;
             keys.sort(); // 'r' + timestamp → chronological
             for (const k of keys.slice(0, keys.length - RAW_MAX)) {
                 await storage.delete(RAW_STORE, k);
             }
-        } catch (e) { /* ignore */ }
+        }
+        catch (e) { /* ignore */ }
     }
-
     async function getAllRaw() {
         try {
-            if (typeof storage === 'undefined' || !storage) return [];
+            if (typeof storage === 'undefined' || !storage)
+                return [];
             const map = await storage.getAll(RAW_STORE);
             return Object.keys(map).map(k => map[k]).sort((a, b) => b.ts - a.ts);
-        } catch (e) { return []; }
+        }
+        catch (e) {
+            return [];
+        }
     }
-
     async function clearRaw() {
-        try { if (typeof storage !== 'undefined' && storage) await storage.clear(RAW_STORE); } catch (e) {}
+        try {
+            if (typeof storage !== 'undefined' && storage)
+                await storage.clear(RAW_STORE);
+        }
+        catch (e) { }
     }
-
     async function countRaw() {
         return (await getAllRaw()).length;
     }
-
     /**
      * Build chat-format JSONL lines: [{role,content},...,{role:'assistant',
      * content: <response>}]. Optionally filter by outcome.
@@ -232,15 +273,16 @@ window.DatasetCollector = (() => {
         const all = await getAll();
         const lines = [];
         for (const e of all) {
-            if (filter === 'ok' && !e.parsed_ok) continue;
-            if (filter === 'fail' && e.parsed_ok) continue;
+            if (filter === 'ok' && !e.parsed_ok)
+                continue;
+            if (filter === 'fail' && e.parsed_ok)
+                continue;
             const msgs = (e.messages || []).map(m => ({ role: m.role, content: m.content }));
             msgs.push({ role: 'assistant', content: e.response });
             lines.push(JSON.stringify({ messages: msgs, meta: { label: e.label, model: e.model, parsed_ok: e.parsed_ok, repaired: e.repaired } }));
         }
         return lines.join('\n');
     }
-
     function _download(filename, text) {
         const blob = new Blob([text], { type: 'application/x-ndjson' });
         const url = URL.createObjectURL(blob);
@@ -252,11 +294,11 @@ window.DatasetCollector = (() => {
         document.body.removeChild(a);
         setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
-
     // --- Minimal floating panel UI ---
     let _panel = null;
     function ensureUI() {
-        if (_panel) return;
+        if (_panel)
+            return;
         const btn = document.createElement('button');
         btn.id = 'dataset-collector-btn';
         btn.textContent = '🧪 dataset';
@@ -264,7 +306,6 @@ window.DatasetCollector = (() => {
         btn.style.cssText = 'position:fixed;right:14px;bottom:14px;z-index:12000;font-size:11px;padding:6px 10px;border-radius:6px;cursor:pointer;background:var(--bg-inset,#222);color:var(--text,#eee);border:1px solid var(--border,#444);';
         btn.addEventListener('click', togglePanel);
         document.body.appendChild(btn);
-
         _panel = document.createElement('div');
         _panel.id = 'dataset-collector-panel';
         _panel.style.cssText = 'position:fixed;right:14px;bottom:48px;z-index:12000;width:280px;padding:12px;border-radius:8px;background:var(--bg-inset,#1c1c1c);color:var(--text,#eee);border:1px solid var(--border,#444);font-size:12px;display:none;font-family:var(--font-mono,monospace);';
@@ -282,25 +323,26 @@ window.DatasetCollector = (() => {
         _panel.querySelectorAll('button').forEach(b => b.addEventListener('click', () => onAction(b.dataset.act)));
         refreshCount();
     }
-
     async function togglePanel() {
         ensureUI();
         _panel.style.display = _panel.style.display === 'none' ? 'block' : 'none';
-        if (_panel.style.display === 'block') refreshCount();
+        if (_panel.style.display === 'block')
+            refreshCount();
     }
-
     async function refreshCount() {
-        if (!_panel) return;
+        if (!_panel)
+            return;
         const all = await getAll();
         const ok = all.filter(e => e.parsed_ok).length;
         const fail = all.filter(e => !e.parsed_ok).length;
         const el = _panel.querySelector('#dataset-count');
-        if (el) el.textContent = `${all.length} captured · ${ok} parsed-OK · ${fail} failed`;
+        if (el)
+            el.textContent = `${all.length} captured · ${ok} parsed-OK · ${fail} failed`;
     }
-
     async function onAction(act) {
         const status = _panel.querySelector('#dataset-status');
-        const set = (t) => { if (status) status.textContent = t; };
+        const set = (t) => { if (status)
+            status.textContent = t; };
         try {
             if (act === 'clear') {
                 await clear();
@@ -310,23 +352,28 @@ window.DatasetCollector = (() => {
             }
             const filter = act === 'ok' ? 'ok' : act === 'fail' ? 'fail' : 'all';
             const jsonl = await buildJSONL(filter);
-            if (!jsonl) { set('no entries'); return; }
+            if (!jsonl) {
+                set('no entries');
+                return;
+            }
             _download(`virtual-world-llm-${filter}.jsonl`, jsonl);
             set(`exported ${jsonl.split('\n').length} examples`);
-        } catch (e) { set('error: ' + (e.message || e)); }
+        }
+        catch (e) {
+            set('error: ' + (e instanceof Error ? e.message : e));
+        }
     }
-
     return {
         capture, getAll, count, clear, buildJSONL, ensureUI, togglePanel,
         captureRaw, getAllRaw, clearRaw, countRaw,
     };
 })();
-
 // Auto-show the floating button once the DOM is ready (no user action needed).
 if (typeof window !== 'undefined') {
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => window.DatasetCollector.ensureUI());
-    } else {
+    }
+    else {
         window.DatasetCollector.ensureUI();
     }
 }

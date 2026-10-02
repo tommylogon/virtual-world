@@ -1,3 +1,4 @@
+"use strict";
 /**
  * ItemLibraryPlacement — Item placement in rooms, containers, and characters
  * Extracted from item-library.js
@@ -13,7 +14,9 @@
  * @relates runs on an ItemLibrary instance; calls the item placement APIs
  * @docs docs/virtualWorld/Items & Inventory/Items Overview.md
  */
-
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+// `placeItemFromLibrary` is a real ApiClient method (api.js) that globals.d.ts
+// does not declare; reached through a cast so this file compiles alone.
 window.ItemLibraryPlacement = {
     /**
      * Show a target picker modal for selecting a area, container, or character.
@@ -29,13 +32,15 @@ window.ItemLibraryPlacement = {
             const containers = [];
             const characters = [];
             if (worldState.graph?.nodes) {
-                for (const [nodeId, node] of Object.entries(worldState.graph.nodes)) {
+                for (const [nodeId, rawNode] of Object.entries(worldState.graph.nodes)) {
+                    const node = rawNode;
                     if (node.type === 'item') {
                         const tags = node.properties?.tags || [];
-                        if (tags.includes('container') || node.properties?.contents?.length > 0) {
+                        if (tags.includes('container') || (node.properties?.contents?.length ?? 0) > 0) {
                             containers.push({ id: nodeId, name: node.name || nodeId });
                         }
-                    } else if (node.type === 'character') {
+                    }
+                    else if (node.type === 'character') {
                         characters.push({ id: nodeId, name: node.name || nodeId });
                     }
                 }
@@ -44,7 +49,10 @@ window.ItemLibraryPlacement = {
             const htmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
             const overlay = document.createElement('div');
             overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;';
-            overlay.onclick = evt => { if (evt.target === overlay) { document.body.removeChild(overlay); resolve(null); } };
+            overlay.onclick = (evt) => { if (evt.target === overlay) {
+                document.body.removeChild(overlay);
+                resolve(null);
+            } };
             const dismiss = () => { document.body.removeChild(overlay); resolve(null); };
             const list = document.createElement('div');
             list.style.cssText = 'max-height:240px;overflow-y:auto;margin-top:6px;';
@@ -52,29 +60,25 @@ window.ItemLibraryPlacement = {
                 const f = (filterText || '').toLowerCase();
                 let items = [];
                 if (tab === 'area') {
-                    items = (f ? rooms.filter(areaName => areaName.toLowerCase().includes(f)) : rooms).map(areaName =>
-                        htmlTag`<div class="target-option" data-type="area" data-name=${areaName} style="padding:6px 10px;cursor:pointer;border-radius:4px;font-size:12px;">🏠 ${areaName}</div>`
-                    );
-                } else if (tab === 'container') {
-                    items = (f ? containers.filter(container => container.name.toLowerCase().includes(f) || container.id.toLowerCase().includes(f)) : containers).map(container =>
-                        htmlTag`<div class="target-option" data-type="container" data-id=${container.id} style="padding:6px 10px;cursor:pointer;border-radius:4px;font-size:12px;">📦 ${container.name} (${container.id})</div>`
-                    );
-                } else if (tab === 'character') {
-                    items = (f ? characters.filter(character => character.name.toLowerCase().includes(f) || character.id.toLowerCase().includes(f)) : characters).map(character =>
-                        htmlTag`<div class="target-option" data-type="character" data-id=${character.id} style="padding:6px 10px;cursor:pointer;border-radius:4px;font-size:12px;">🧑 ${character.name}</div>`
-                    );
+                    items = (f ? rooms.filter(areaName => areaName.toLowerCase().includes(f)) : rooms).map(areaName => htmlTag `<div class="target-option" data-type="area" data-name=${areaName} style="padding:6px 10px;cursor:pointer;border-radius:4px;font-size:12px;">🏠 ${areaName}</div>`);
                 }
-                window.Lit.render(
-                    items.length
-                        ? htmlTag`${items}`
-                        : htmlTag`<div style="padding:8px;color:var(--text-muted);font-size:11px;">No matches.</div>`,
-                    list);
+                else if (tab === 'container') {
+                    items = (f ? containers.filter(container => container.name.toLowerCase().includes(f) || container.id.toLowerCase().includes(f)) : containers).map(container => htmlTag `<div class="target-option" data-type="container" data-id=${container.id} style="padding:6px 10px;cursor:pointer;border-radius:4px;font-size:12px;">📦 ${container.name} (${container.id})</div>`);
+                }
+                else if (tab === 'character') {
+                    items = (f ? characters.filter(character => character.name.toLowerCase().includes(f) || character.id.toLowerCase().includes(f)) : characters).map(character => htmlTag `<div class="target-option" data-type="character" data-id=${character.id} style="padding:6px 10px;cursor:pointer;border-radius:4px;font-size:12px;">🧑 ${character.name}</div>`);
+                }
+                window.Lit.render(items.length
+                    ? htmlTag `${items}`
+                    : htmlTag `<div style="padding:8px;color:var(--text-muted);font-size:11px;">No matches.</div>`, list);
             };
-            list.addEventListener('click', evt => {
-                const opt = evt.target.closest('.target-option');
+            list.addEventListener('click', (evt) => {
+                const opt = evt.target?.closest('.target-option');
                 if (opt) {
                     const type = opt.dataset.type;
-                    const result = type === 'area' ? { type: 'area', name: opt.dataset.name } : { type, id: opt.dataset.id };
+                    const result = type === 'area'
+                        ? { type: 'area', name: opt.dataset.name }
+                        : { type, id: opt.dataset.id };
                     document.body.removeChild(overlay);
                     resolve(result);
                 }
@@ -84,25 +88,30 @@ window.ItemLibraryPlacement = {
             input.placeholder = 'Search...';
             input.style.cssText = 'width:100%;padding:6px 10px;font-size:12px;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;color:var(--text);box-sizing:border-box;margin-top:6px;';
             input.oninput = () => renderList(input.value);
-            input.onkeydown = evt => { if (evt.key === 'Escape') dismiss(); };
+            input.onkeydown = (evt) => { if (evt.key === 'Escape')
+                dismiss(); };
             const tabBar = document.createElement('div');
             tabBar.style.cssText = 'display:flex;gap:4px;margin-bottom:4px;';
             const tabOptions = [];
             const show = (t) => !allowedTabs || allowedTabs.includes(t);
-            if (show('area') && rooms.length) tabOptions.push(['area', `🏠 Rooms (${rooms.length})`]);
-            if (show('container') && containers.length) tabOptions.push(['container', `📦 Containers (${containers.length})`]);
-            if (show('character') && characters.length) tabOptions.push(['character', `🧑 Characters (${characters.length})`]);
-            if (!tabOptions.some(([t]) => t === tab)) tab = tabOptions[0]?.[0] || 'area';
+            if (show('area') && rooms.length)
+                tabOptions.push(['area', `🏠 Rooms (${rooms.length})`]);
+            if (show('container') && containers.length)
+                tabOptions.push(['container', `📦 Containers (${containers.length})`]);
+            if (show('character') && characters.length)
+                tabOptions.push(['character', `🧑 Characters (${characters.length})`]);
+            if (!tabOptions.some(([t]) => t === tab))
+                tab = tabOptions[0]?.[0] || 'area';
             const setTab = (tabId) => { tab = tabId; renderTabs(); renderList(input.value); };
             const renderTabs = () => {
-                window.Lit.render(htmlTag`
-                    ${tabOptions.map(([tabId, label]) => htmlTag`
+                window.Lit.render(htmlTag `
+                    ${tabOptions.map(([tabId, label]) => htmlTag `
                         <button style="flex:1;padding:4px 8px;font-size:11px;border:1px solid var(--border);border-radius:4px;background:${tab === tabId ? 'var(--accent)' : 'transparent'};color:var(--text);cursor:pointer;" @click=${() => setTab(tabId)}>${label}</button>`)}`, tabBar);
             };
             const box = document.createElement('div');
             box.style.cssText = 'background:var(--bg-panel);border:1px solid var(--border);border-radius:8px;padding:16px;min-width:300px;max-width:400px;box-shadow:0 8px 32px rgba(0,0,0,0.5);';
-            box.onclick = evt => evt.stopPropagation();
-            window.Lit.render(htmlTag`
+            box.onclick = (evt) => evt.stopPropagation();
+            window.Lit.render(htmlTag `
                 <div style="font-size:12px;font-weight:600;margin-bottom:8px;">${title}</div>
                 ${tabBar}
                 ${input}
@@ -117,7 +126,6 @@ window.ItemLibraryPlacement = {
             renderList('');
         });
     },
-
     /**
      * Place the currently selected item in a area.
      * Prompts the user to pick a target area if none is set.
@@ -131,16 +139,19 @@ window.ItemLibraryPlacement = {
         let target = this._targetArea ? { type: 'area', name: this._targetArea } : null;
         if (!target) {
             target = await this._pickTarget('Place item in:');
-            if (!target) return;
+            if (!target)
+                return;
         }
         const res = await ApiClient.placeItemFromLibrary(target, this.selectedId);
-        if (res.error) { toastError('Error: ' + res.error); return; }
+        if (res.error) {
+            toastError('Error: ' + res.error);
+            return;
+        }
         const label = target.type === 'area' ? target.name : target.id;
         events.log(`Placed "${this.selectedId}" in ${label}.`, 'system-msg');
         this._targetArea = null;
         worldState.fetch();
     },
-
     /**
      * Place multiple selected items (from multi-select mode) in a target area.
      * Skips items that already exist in the area by name.
@@ -158,18 +169,24 @@ window.ItemLibraryPlacement = {
         }
         const existing = new Set();
         const areaItems = worldState.getItemsInArea(targetArea);
-        areaItems.forEach(item => existing.add(item.name.toLowerCase()));
+        areaItems.forEach((item) => existing.add(item.name.toLowerCase()));
         const areaData = worldState.areas[targetArea];
-        if (areaData?.items) areaData.items.forEach(item => existing.add(item.name.toLowerCase()));
-
+        if (areaData?.items)
+            areaData.items.forEach((item) => existing.add(item.name.toLowerCase()));
         let placed = 0;
         let skipped = 0;
         for (const id of this._checkedIds) {
             const itemData = this.data[id];
             const name = ((itemData?.name || id) || '').toLowerCase();
-            if (existing.has(name)) { skipped++; continue; }
+            if (existing.has(name)) {
+                skipped++;
+                continue;
+            }
             const res = await ApiClient.placeItemFromLibrary({ type: 'area', name: targetArea }, id);
-            if (!res.error) { placed++; existing.add(name); }
+            if (!res.error) {
+                placed++;
+                existing.add(name);
+            }
         }
         events.log(`Placed ${placed} item(s) in ${targetArea}${skipped > 0 ? ` (${skipped} skipped)` : ''}`, 'system-msg');
         this._targetArea = null;
@@ -178,20 +195,21 @@ window.ItemLibraryPlacement = {
         worldState.fetch();
         this.close();
     },
-
     /**
      * Update the place button text and enabled/disabled state
      * based on current selection mode.
      */
     updatePlaceButton() {
         const btn = document.getElementById('place-items-btn');
-        if (!btn) return;
+        if (!btn)
+            return;
         if (this._multiSelect && this._targetArea) {
             const count = this._checkedIds.size;
             btn.textContent = count > 0 ? `📌 Place Selected (${count}) in "${this._targetArea}"` : '📌 Place Selected in Area';
             btn.disabled = count === 0;
             btn.style.display = 'inline-block';
-        } else {
+        }
+        else {
             btn.textContent = '📌 Place in World';
             btn.disabled = false;
             btn.style.display = this.selectedId && this.selectedId !== '__new__' ? 'inline-block' : 'none';

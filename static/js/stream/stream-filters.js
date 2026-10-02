@@ -1,3 +1,4 @@
+"use strict";
 /**
  * stream-filters.js — filtering, actor/area scoping, search (task-340)
  *
@@ -10,16 +11,17 @@
  * @relates loaded before event-stream.js; driven by the stream toolbar
  * @docs docs/virtualWorld/UI & Settings/Event Log Export.md
  */
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 class StreamFilters {
     constructor(bus) {
         this._bus = bus;
         this.areaFilter = null;
     }
-
     /** Re-filter the event stream — hide/show existing bubbles. */
     applyFilters() {
         const streamEl = document.getElementById('event-stream');
-        if (!streamEl) return;
+        if (!streamEl)
+            return;
         const filters = {
             thought: config.filterThoughts,
             speech: config.filterSpeech,
@@ -42,25 +44,32 @@ class StreamFilters {
         const searchEl = document.getElementById('stream-search');
         const query = (searchEl?.value || '').trim().toLowerCase();
         for (const child of streamEl.children) {
-            if (child.classList.contains('stream-scope-banner')) continue;
-            if (child.classList.contains('timeline-scrubber') || child.classList.contains('turn-queue-strip')) continue;
+            if (child.classList.contains('stream-scope-banner'))
+                continue;
+            if (child.classList.contains('timeline-scrubber') || child.classList.contains('turn-queue-strip'))
+                continue;
             if (child.classList.contains('turn-card')) {
                 const actor = child.getAttribute('data-actor');
                 let visible = !agentFilter || actor === agentFilter;
-                if (visible && query) visible = child.textContent.toLowerCase().includes(query);
+                if (visible && query)
+                    visible = (child.textContent || '').toLowerCase().includes(query);
                 child.style.display = visible ? '' : 'none';
                 const body = child.querySelector('.turn-card-body');
                 if (body && visible && !query) {
                     let cardHasVisible = false;
                     for (const bubble of body.children) {
-                        if (bubble.classList.contains('stream-scope-banner')) continue;
+                        if (bubble.classList.contains('stream-scope-banner'))
+                            continue;
                         const show = this._shouldShowBubble(bubble, filters, agentFilter, this.areaFilter);
                         bubble.style.display = show ? '' : 'none';
-                        if (show) cardHasVisible = true;
+                        if (show)
+                            cardHasVisible = true;
                         const tickEl = bubble.querySelector('.bubble-tick');
-                        if (tickEl) tickEl.style.display = showTick ? '' : 'none';
+                        if (tickEl)
+                            tickEl.style.display = showTick ? '' : 'none';
                     }
-                    if (!cardHasVisible) child.style.display = 'none';
+                    if (!cardHasVisible)
+                        child.style.display = 'none';
                 }
                 continue;
             }
@@ -69,96 +78,111 @@ class StreamFilters {
                 continue;
             }
             let show = this._shouldShowBubble(child, filters, agentFilter, this.areaFilter);
-            if (show && query) show = child.textContent.toLowerCase().includes(query);
+            if (show && query)
+                show = (child.textContent || '').toLowerCase().includes(query);
             child.style.display = show ? '' : 'none';
             const tickEl = child.querySelector('.bubble-tick');
-            if (tickEl) tickEl.style.display = showTick ? '' : 'none';
+            if (tickEl)
+                tickEl.style.display = showTick ? '' : 'none';
         }
         if (query) {
             const visibleCards = [...streamEl.querySelectorAll('.turn-card')]
                 .filter(c => c.style.display !== 'none').length;
             const countEl = document.getElementById('stream-search-count');
-            if (countEl) countEl.textContent = `${visibleCards} match${visibleCards === 1 ? '' : 'es'}`;
-        } else {
+            if (countEl)
+                countEl.textContent = `${visibleCards} match${visibleCards === 1 ? '' : 'es'}`;
+        }
+        else {
             const countEl = document.getElementById('stream-search-count');
-            if (countEl) countEl.textContent = '';
+            if (countEl)
+                countEl.textContent = '';
         }
     }
-
     _shouldShowBubble(bubble, filters, agentFilter, areaFilter) {
         for (const [type, enabled] of Object.entries(filters)) {
             if (bubble.classList.contains(`msg-bubble-${type}`)) {
-                if (type === 'thought') { if (!config.filterThoughts) return false; break; }
-                if (!enabled) return false;
+                if (type === 'thought') {
+                    if (!config.filterThoughts)
+                        return false;
+                    break;
+                }
+                if (!enabled)
+                    return false;
                 break;
             }
         }
         if (agentFilter) {
             const bubbleActor = bubble.getAttribute('data-actor');
-            if (bubbleActor !== agentFilter) return false;
+            if (bubbleActor !== agentFilter)
+                return false;
         }
         if (areaFilter) {
             const bubbleArea = bubble.getAttribute('data-stream-area');
-            if ((bubbleArea || '') !== areaFilter) return false;
+            if ((bubbleArea || '') !== areaFilter)
+                return false;
         }
         return true;
     }
-
     setAgentFilter() { this.applyFilters(); }
-
     noteActor(name) {
         if (!this._bus._knownActors.has(name)) {
             this._bus._knownActors.add(name);
             this.updateAgentFilterDropdown();
         }
     }
-
     updateAgentFilterDropdown() {
         const select = document.getElementById('stream-agent-filter');
-        if (!select) return;
+        if (!select)
+            return;
         const current = select.value;
         const sorted = [...this._bus._knownActors].sort();
-        window.Lit.render(window.Lit.html`
+        window.Lit.render(window.Lit.html `
             <option value="">All actors</option>
-            ${sorted.map(a => window.Lit.html`<option value=${a} ?selected=${a === current}>${a}</option>`)}`,
-            select);
+            ${sorted.map(a => window.Lit.html `<option value=${a} ?selected=${a === current}>${a}</option>`)}`, select);
     }
-
     toggleTickDisplay(show) {
         const streamEl = document.getElementById('event-stream');
-        if (!streamEl) return;
+        if (!streamEl)
+            return;
         for (const child of streamEl.children) {
             const tickEl = child.querySelector('.bubble-tick');
-            if (tickEl) tickEl.style.display = show ? '' : 'none';
+            if (tickEl)
+                tickEl.style.display = show ? '' : 'none';
         }
     }
-
     setAreaFilter(areaName) {
         this.areaFilter = areaName || null;
-        try { localStorage.setItem('vw_area_filter', this.areaFilter || ''); } catch (e) {}
+        try {
+            localStorage.setItem('vw_area_filter', this.areaFilter || '');
+        }
+        catch (e) { }
         this._renderScopeBanner();
         this.applyFilters();
     }
-
     clearAreaFilter() { this.setAreaFilter(null); }
-
     getAreaFilter() { return this.areaFilter; }
-
     /** Restore the persisted area filter after a reload (called post-restore). */
     restoreSaved() {
         let saved = '';
-        try { saved = localStorage.getItem('vw_area_filter') || ''; } catch (e) {}
-        if (saved) this.setAreaFilter(saved);
+        try {
+            saved = localStorage.getItem('vw_area_filter') || '';
+        }
+        catch (e) { }
+        if (saved)
+            this.setAreaFilter(saved);
     }
-
     _renderScopeBanner() {
         const streamEl = document.getElementById('event-stream');
-        if (!streamEl) return;
+        if (!streamEl)
+            return;
         const existing = streamEl.querySelector('.stream-scope-banner');
-        if (existing) existing.remove();
+        if (existing)
+            existing.remove();
         const emptyEl = streamEl.querySelector('.stream-scope-empty');
-        if (emptyEl) emptyEl.remove();
-        if (!this.areaFilter) return;
+        if (emptyEl)
+            emptyEl.remove();
+        if (!this.areaFilter)
+            return;
         const banner = document.createElement('div');
         banner.className = 'stream-scope-banner';
         const label = document.createElement('span');
@@ -169,13 +193,16 @@ class StreamFilters {
         clearBtn.addEventListener('click', () => this.clearAreaFilter());
         banner.append(label, clearBtn);
         streamEl.insertBefore(banner, streamEl.firstChild);
-
         let anyVisible = false;
         for (const child of streamEl.children) {
-            if (child.classList.contains('stream-scope-banner')) continue;
-            if (child.classList.contains('stream-scope-empty')) continue;
-            if (child.classList.contains('timeline-scrubber') || child.classList.contains('turn-queue-strip')) continue;
-            if (child.style.display === 'none') continue;
+            if (child.classList.contains('stream-scope-banner'))
+                continue;
+            if (child.classList.contains('stream-scope-empty'))
+                continue;
+            if (child.classList.contains('timeline-scrubber') || child.classList.contains('turn-queue-strip'))
+                continue;
+            if (child.style.display === 'none')
+                continue;
             anyVisible = true;
             break;
         }

@@ -1,0 +1,220 @@
+/**
+ * GraphProjector — the pure "what should be visible" model for the graph.
+ *
+ * Kept deliberately free of vis.js calls and live-state mutation. Given the
+ * graph data and the current UI view-state, it answers one question: which
+ * node ids are visible right now, and (via applyVisibility) syncs a vis.js
+ * dataset's `hidden` flags to match. Extracted from the network-manager
+ * monolith so the filtering logic is unit-testable and toggles never need a
+ * full rebuild.
+ *
+ * @module graph/projector — the pure "what should be visible" model
+ * @contributes GraphProjector.computeVisibleNodeIds() + applyVisibility() (no vis.js calls in the model)
+ * @powers floor / inhabited / items / triggers / revealed / search filtering of the graph
+ * @relates used by GraphNetwork.applyVisibility; side-effect-free so the rules stay testable
+ * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
+ */
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+(window as unknown as { GraphProjector: any }).GraphProjector = {
+
+    /**
+     * A node's **storey index**: 0 ground, 1 up, -1 down, unbounded.
+     *
+     * A non-numeric value is a save written before the ground material moved to
+     * `properties.surface` (the `grid.v1` compiler recipe); it counts as ground
+     * so such an area is never hidden by a storey filter it cannot satisfy.
+     * Kept here, next to the filter that uses it, so "what is a floor" has one
+     * answer in the visibility model.
+     */
+    floorOf(nodeData: any) {
+        const parsed = Number((nodeData && nodeData.properties && nodeData.properties.floor) ?? 0);
+        return Number.isFinite(parsed) ? Math.round(parsed) : 0;
+    },
+
+    /**
+     * Read the current UI view-state off the GraphManager. Centralized so the
+     * pure compute functions can take a plain view-state bag instead of
+     * reaching into the global.
+     *
+     * @returns {{
+     *   searchQuery: string,
+     *   revealedAreaIds: Set<string>,
+     *   revealedItemIds: Map<string, Set<string>>,
+     *   showOnlyInhabitedAreas: boolean,
+     *   floorFilterActive: boolean,
+     *   floorFilter: (string|number),
+     *   showTriggers: boolean,
+     *   showItems: boolean,
+     * }}
+     */
+    _viewState() {
+        return {
+            searchQuery: (graphManager._searchQuery || '').toLowerCase().trim(),
+            revealedAreaIds: new Set(graphManager._revealedAreaIds || []),
+            revealedItemIds: graphManager._revealedItemIds || new Map(),
+            showOnlyInhabitedAreas: !!graphManager._showOnlyInhabitedAreas,
+            floorFilterActive: !!(graphManager.floorFilterActive && graphManager.floorFilterActive()),
+            floorFilter: graphManager._floorFilter,
+            showTriggers: !!graphManager._showTriggers,
+            showItems: !!graphManager._showItems
+        };
+    },
+
+    /**
+     * Does a node match a search query by name OR by any of its tags?
+     *
+     * Search matches a node when its name/id contains the query, or when one of
+     * its tags contains the query — so writing what you think exists in tags
+     * (e.g. "furniture", "heat") reveals those nodes too, not just names.
+     *
+     * @param {object} node - raw graph node ({ id, name, properties })
+     * @param {string} q    - lowercased, trimmed query
+     * @returns {boolean}
+     */
+    nodeMatchesQuery(node: any, q: string) {
+        if (!node || !q) return false;
+        if (String(node.name || node.id || '').toLowerCase().includes(q)) return true;
+        const tags = node.properties?.tags;
+        if (!tags) return false;
+        const list = Array.isArray(tags) ? tags : String(tags).split(',');
+        for (const t of list) {
+            if (String(t || '').trim().toLowerCase().includes(q)) return true;
+        }
+        return false;
+    },
+
+    /**
+     * Compute the set of visible node ids from raw graph data + view state.
+     *
+     * Search mode is special: it surfaces every matching node PLUS its direct
+     * neighbours (one hop over any edge), so results come into view with their
+     * connecting edges — overriding spatial/inhabited/item/trigger filters so a
+     * match is never buried. When no query is active, visibility derives from
+     * the floor filter, inhabited-areas mode, and the items/triggers toggles,
+     * with manually-revealed areas/items always kept visible.
+     *
+     * @param {object} nodesObj - node id → raw node data
+     * @param {Array}  edgesArr - raw edge objects
+     * @param {object} vs        - view state bag (from _viewState)
+     * @returns {Set<string>} visible node ids
+     */
+    computeVisibleNodeIds(nodesObj: any, edgesArr: any[], state: any) {
+        const query = state.searchQuery;
+
+        // ── SEARCH MODE ────────────────────────────────────────────────
+        if (query) {
+            const matchIds = new Set();
+            for (const id in nodesObj) {
+                if (GraphProjector.nodeMatchesQuery(nodesObj[id], query)) {
+                    matchIds.add(id);
+                }
+            }
+            if (matchIds.size === 0) return new Set();
+            const visible = new Set(matchIds);
+            for (const e of edgesArr) {
+                if (matchIds.has(e.source)) visible.add(e.target);
+                if (matchIds.has(e.target)) visible.add(e.source);
+            }
+            return visible;
+        }
+
+        const revealedIds = new Set(state.revealedAreaIds);
+        for (const childSet of state.revealedItemIds.values()) {
+            for (const cid of childSet) revealedIds.add(cid);
+        }
+
+        // Inhabited-areas mode: an area is visible if it has a character (an
+        // 'in' edge from a character) or is manually revealed; everything else
+        // is visible only if it sits one hop from a visible area.
+        let linkedIds = null;
+        if (state.showOnlyInhabitedAreas) {
+            const seeded = new Set(state.revealedAreaIds);
+            for (const e of edgesArr) {
+                if (e.type !== 'in') continue;
+                if (nodesObj[e.source]?.type === 'character') seeded.add(e.target);
+            }
+            linkedIds = new Set(seeded);
+            for (const e of edgesArr) {
+                if (seeded.has(e.source)) linkedIds.add(e.target);
+                if (seeded.has(e.target)) linkedIds.add(e.source);
+            }
+        }
+
+        // Floor filter: only areas on the active storey, plus their direct links.
+        // `floor` is a storey index (GraphProjector.floorOf), so the filter value
+        // is compared numerically rather than as a string.
+        let floorAreas = null;
+        let floorChildren = null;
+        if (state.floorFilterActive) {
+            const targetFloor = Number(state.floorFilter);
+            floorAreas = new Set();
+            floorChildren = new Set();
+            for (const id in nodesObj) {
+                if (nodesObj[id].type === 'area'
+                        && this.floorOf(nodesObj[id]) === targetFloor) {
+                    floorAreas.add(id);
+                }
+            }
+            for (const e of edgesArr) {
+                if (floorAreas.has(e.source) && !floorAreas.has(e.target)) floorChildren.add(e.target);
+                if (floorAreas.has(e.target) && !floorAreas.has(e.source)) floorChildren.add(e.source);
+            }
+        }
+
+        const visible = new Set();
+        for (const id in nodesObj) {
+            const nd = nodesObj[id];
+            if (floorAreas && !(nd.type === 'area' ? floorAreas.has(id) : floorChildren!.has(id))) continue;
+            if (linkedIds && !linkedIds.has(id)) continue;
+            if (nd.type === 'logic_trigger' && !state.showTriggers) continue;
+            if (nd.type === 'item' && !state.showItems && !revealedIds.has(id)) continue;
+            visible.add(id);
+        }
+
+        // Revealed nodes stay visible even if a spatial filter would hide them.
+        for (const rid of revealedIds) visible.add(rid);
+        return visible;
+    },
+
+    /**
+     * Is a single edge visible given the visible node set? Edges inherit
+     * visibility from their endpoints — an edge is visible only when BOTH
+     * endpoints are visible.
+     *
+     * @param {Set<string>} visibleIds - from computeVisibleNodeIds
+     * @param {object} edge            - a vis.js edge ({from, to})
+     * @returns {boolean}
+     */
+    edgeVisible(visibleIds: Set<string>, edge: any) {
+        return (visibleIds.has(edge.from) && visibleIds.has(edge.to));
+    },
+
+    /**
+     * Sync a live vis.js dataset's hidden flags to match the projection.
+     * Diffs BEFORE updating so unchanged nodes/edges are left untouched —
+     * this is the cheap path that makes toggles not reset zoom/physics.
+     *
+     * @param {object} network     - live vis.Network
+     * @param {Set<string>} visibleIds - visible node ids
+     */
+    applyVisibility(network: any, visibleIds: Set<string>) {
+        if (!network) return;
+        const nodesDs = network.body?.data?.nodes;
+        const edgesDs = network.body?.data?.edges;
+        if (!nodesDs || !edgesDs) return;
+
+        const nodeUpdates: any[] = [];
+        nodesDs.forEach((node: any) => {
+            const shouldHide = !visibleIds.has(node.id);
+            if (node.hidden !== shouldHide) nodeUpdates.push({ id: node.id, hidden: shouldHide });
+        });
+        if (nodeUpdates.length > 0) nodesDs.update(nodeUpdates);
+
+        const edgeUpdates: any[] = [];
+        edgesDs.forEach((edge: any) => {
+            const shouldHide = !(visibleIds.has(edge.from) && visibleIds.has(edge.to));
+            if (edge.hidden !== shouldHide) edgeUpdates.push({ id: edge.id, hidden: shouldHide });
+        });
+        if (edgeUpdates.length > 0) edgesDs.update(edgeUpdates);
+    }
+};

@@ -1,8 +1,9 @@
+"use strict";
 /**
  * main.js — Bootstrap file that wires all modules together
  * This is the only entry point loaded from the HTML.
  * All modules are loaded in order via <script> tags in the HTML.
- * 
+ *
  * Architecture:
  *   VW namespace  →  global singleton registry
  *   Legacy globals →  kept as aliases for HTML onclick compatibility
@@ -14,14 +15,12 @@
  * @relates the only entry point in index.html; initialises agent-engine, graph, panels
  * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */
-
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 // ============================================
 // GLOBAL NAMESPACE
 // ============================================
 window.VW = {};
-
-const mainJsTag = (strings, ...values) => window.Lit.html(strings, ...values);
-
+const mainJsTag = (strings, ...values) => Lit.html(strings, ...values);
 // All singletons are registered here after module files are loaded
 // Order of module loading (in HTML): 
 //   0. event-bus.js    → class AppEventBus, const appEvents
@@ -40,7 +39,6 @@ const mainJsTag = (strings, ...values) => window.Lit.html(strings, ...values);
 //   11. item-library.js → class ItemLibrary, const itemLib
 //   12. inspector.js    → class Inspector, const inspector
 //   13. main.js         → this file - wires singletons and bootstraps
-
 // Register singletons in VW namespace
 (() => {
     VW.appEvents = appEvents;
@@ -56,15 +54,14 @@ const mainJsTag = (strings, ...values) => window.Lit.html(strings, ...values);
     VW.itemLib = itemLib;
     VW.inspector = inspector;
     VW.libraryBrowser = libraryBrowser;
-VW.worldSync = worldSync;
-VW.agentLens = agentLens;
-VW.humanTurnComposer = HumanTurnComposer;
-// WorldPainter (task-495): bare globals defined before this bootstrap.
-VW.gridModel = window.gridModel;
-VW.worldPainter = window.worldPainter;
-VW.structures = window.structures;
+    VW.worldSync = worldSync;
+    VW.agentLens = agentLens;
+    VW.humanTurnComposer = HumanTurnComposer;
+    // WorldPainter (task-495): bare globals defined before this bootstrap.
+    VW.gridModel = window.gridModel;
+    VW.worldPainter = window.worldPainter;
+    VW.structures = window.structures;
 })();
-
 // ─────────────────────────────────────────────────────────────────────────────
 // WINDOW SINGLETON PUBLICATION + BOOT GUARD (the top-level-const trap)
 //
@@ -89,29 +86,26 @@ VW.structures = window.structures;
         worldSync: worldSync,
         agentLens: agentLens,
     };
+    const win = window;
     for (const [name, value] of Object.entries(singletons)) {
         if (typeof value === 'undefined') {
-            throw new Error(
-                `[boot-guard] Singleton "${name}" is undefined at publish time — ` +
-                'check script load order in index.html (see main.js header, items 1-13).'
-            );
+            throw new Error(`[boot-guard] Singleton "${name}" is undefined at publish time — ` +
+                'check script load order in index.html (see main.js header, items 1-13).');
         }
-        window[name] = value;
+        win[name] = value;
     }
     // Identity guard: the window property must be the very same instance the
     // boot uses — a divergent copy means code is reading a different object.
-    if (window.config !== config) {
+    if (win.config !== config) {
         throw new Error('[boot-guard] window.config does not reference the boot config — duplicate ConfigManager?');
     }
-    if (window.events !== events) {
+    if (win.events !== events) {
         throw new Error('[boot-guard] window.events does not reference the boot EventBus — duplicate EventBus?');
     }
 })();
-
 // ============================================
 // LEGACY GLOBAL FUNCTIONS (for onclick in HTML)
 // ============================================
-
 // Simulation controls (left panel buttons)
 function startAgent() { agent.start(); }
 function stopAgent() { agent.stop(); }
@@ -119,65 +113,73 @@ function agentStepOnce() { agent.stepOnce(); }
 function cancelStep() { agent.cancel(); }
 /** task-533: pass your turn in a simultaneous round and let the world advance. */
 function endSimRoundNow() { agent.endSimRound(); }
-
 // File save dialog (native "Save As") with fallback
 async function saveFileWithDialog(blob, suggestedName) { WorldExport.saveFileWithDialog(blob, suggestedName); }
-
 // World save/load
 function downloadWorld() { SaveLoadView.downloadWorld(); }
 function uploadWorld(event) { SaveLoadView.uploadWorld(event); }
-
 // Save/Load Game & Scenario
 async function saveScenarioToFile() { SaveLoadView.saveScenarioToFile(); }
-
 async function saveGame() { SaveLoadView.saveGame(); }
-
 async function loadGameList() { SaveLoadView.loadGameList(); }
-
 async function doLoadGame(filename) { SaveLoadView.doLoadGame(filename); }
-
 async function doDeleteSave(filename) { SaveLoadView.doDeleteSave(filename); }
-
 async function confirmDeleteAllSaves() { SaveLoadView.confirmDeleteAllSaves(); }
-
 // Settings modal functions
 function switchSettingsTab(tabId) { SettingsView.switchTab(tabId); }
-
 async function testAgentConnection() { SettingsView.testConnection(); }
-
 // Character management
 function createCharacter() {
     const input = document.getElementById('char-name');
     const name = (input?.value || '').trim();
-    if (!name) { toastInfo('Enter a character name.'); return; }
-    api.createCharacter(name).then(res => {
+    if (!name) {
+        toastInfo('Enter a character name.');
+        return;
+    }
+    api.createCharacter(name).then((res) => {
         events.log('Created character: ' + res.player, 'system-msg');
-        if (input) input.value = '';
+        if (input)
+            input.value = '';
         worldState.fetch();
     });
 }
 function deleteCharacter(name) {
-    if (!confirm("Delete character '" + name + "'?")) return;
-    api.deleteCharacter(name).then(res => {
-        if (res.error) toastError('Error: ' + res.error);
-        else { events.log('Deleted: ' + name, 'system-msg'); worldState.fetch(); }
+    if (!confirm("Delete character '" + name + "'?"))
+        return;
+    api.deleteCharacter(name).then((res) => {
+        if (res.error)
+            toastError('Error: ' + res.error);
+        else {
+            events.log('Deleted: ' + name, 'system-msg');
+            worldState.fetch();
+        }
     });
 }
-
 // Graph toolbar buttons
 function addRoomViaGraph() {
     openCreateModal('area', async (data) => {
-        if (!data.name) { toastInfo('Area name required'); return; }
+        if (!data.name) {
+            toastInfo('Area name required');
+            return;
+        }
         const res = await api.createRoom(data);
-        if (res.error) toastError('Error: ' + res.error);
-        else { events.log('Created area: ' + data.name, 'system-msg'); worldState.fetch(); }
+        if (res.error)
+            toastError('Error: ' + res.error);
+        else {
+            events.log('Created area: ' + data.name, 'system-msg');
+            worldState.fetch();
+        }
     });
 }
 function addItemViaGraph() {
     openCreateModal('item', async (data) => {
-        if (!data.name) { toastInfo('Item name required'); return; }
+        if (!data.name) {
+            toastInfo('Item name required');
+            return;
+        }
         const res = await api.createItem(data);
-        if (res.error) toastError('Error: ' + res.error);
+        if (res.error)
+            toastError('Error: ' + res.error);
         else {
             events.log('Added ' + data.name, 'system-msg');
             const libId = data.name.toLowerCase().replace(/[^a-z0-9_]+/g, '_').replace(/^_|_$/g, '');
@@ -192,7 +194,7 @@ function addItemViaGraph() {
                     stun_chance: data.stun_chance, stun_duration: data.stun_duration,
                     insulation: data.insulation, resistances: data.resistances,
                     contents: data.contents || [], triggers: data.triggers || []
-                }).catch(() => {});
+                }).catch(() => { });
             }
             worldState.fetch();
         }
@@ -209,8 +211,14 @@ function connectSummary(res, payload) {
 }
 function connectRoomsViaGraph() {
     openCreateModal('connection', async (data) => {
-        if (!data.room1 || !data.room2) { toastInfo('Select both rooms'); return; }
-        if (data.room1 === data.room2) { toastInfo('Pick two different areas.'); return; }
+        if (!data.room1 || !data.room2) {
+            toastInfo('Select both rooms');
+            return;
+        }
+        if (data.room1 === data.room2) {
+            toastInfo('Pick two different areas.');
+            return;
+        }
         const payload = {
             room1: data.room1, room2: data.room2,
             dir1: data.dir1.trim(), dir2: data.dir2.trim(),
@@ -227,50 +235,56 @@ function connectRoomsViaGraph() {
             view_from_a: data.view_from_a || '',
             view_from_b: data.view_from_b || '',
         };
-        if (data.way_id) payload.way_id = data.way_id;
+        if (data.way_id)
+            payload.way_id = data.way_id;
         const res = await api.connectRooms(payload);
-        if (res.error) toastError('Error: ' + res.error);
-        else { events.log(connectSummary(res, payload), 'system-msg'); worldState.fetch(); }
+        if (res.error)
+            toastError('Error: ' + res.error);
+        else {
+            events.log(connectSummary(res, payload), 'system-msg');
+            worldState.fetch();
+        }
     });
 }
 // Legacy HTML onclick wrappers — used by templates/index.html
 function filterItemLibrary() { itemLib.filter(); }
 function addAllWorldItemsToLibrary() { itemLib.syncAllWorldItems(); }
-
 function openLibraryBrowser() { libraryBrowser.open(); }
 function closeLibraryBrowser() { libraryBrowser.close(); }
-
 function openWorldSync() { VW.worldSync.open(); }
 function closeWorldSync() { VW.worldSync.close(); }
-
 // Settings/profile buttons — used by templates/index.html
 function switchProfile(name) { config.switchProfile(name); }
 function saveProfileFromCurrent() { config.saveProfileFromCurrent(); }
 function saveProfileAsNew() { config.saveProfileAsNew(); }
 function deleteProfile() { config.deleteProfile_(); }
 function saveAgentSettings() { SettingsView.saveConfigToServer(); }
-
 // Graph editor toolbar
 const graphEditor = {
-    undo() { ApiClient.undo().then(res => { if (!res.error) { graphManager.loadGraphData(); events.log('Undo (restored previous state)', 'system-msg'); } else { events.log('Undo: ' + res.error, 'error-msg'); } }).catch(e => events.log('Undo failed: ' + e.message, 'error-msg')); },
-    redo() { ApiClient.redo().then(res => { if (!res.error) { graphManager.loadGraphData(); events.log('Redo (restored next state)', 'system-msg'); } else { events.log('Redo: ' + res.error, 'error-msg'); } }).catch(e => events.log('Redo failed: ' + e.message, 'error-msg')); },
+    undo() { ApiClient.undo().then((res) => { if (!res.error) {
+        graphManager.loadGraphData();
+        events.log('Undo (restored previous state)', 'system-msg');
+    }
+    else {
+        events.log('Undo: ' + res.error, 'error-msg');
+    } }).catch((e) => events.log('Undo failed: ' + e.message, 'error-msg')); },
+    redo() { ApiClient.redo().then((res) => { if (!res.error) {
+        graphManager.loadGraphData();
+        events.log('Redo (restored next state)', 'system-msg');
+    }
+    else {
+        events.log('Redo: ' + res.error, 'error-msg');
+    } }).catch((e) => events.log('Redo failed: ' + e.message, 'error-msg')); },
     showTemplates() { VW?.inspector?.showTemplates?.() || events.log('Templates panel', 'system-msg'); },
     fetchGraph() { graphManager.loadGraphData(); }
 };
-
-
-
 // Printer-friendly world summary
 function printWorld() { WorldExport.printWorld(); }
-
 // Legacy HTML onclick wrappers — used by templates/index.html
 function newLibraryItem() { itemLib.newItem(); }
-
 // Model select visibility
 function updateModelDropdown() { SettingsView.updateModelDropdown(); }
-
 function updateModelSelectVisibility() { SettingsView.updateModelSelectVisibility(); }
-
 /**
  * Generate mock fallback data when LLM is unavailable.
  * @param {string} type - The type of content ('area', 'item', or 'connection')
@@ -283,15 +297,16 @@ function generateMockFallback(type, prompt) {
     let data;
     if (type === 'area') {
         data = { name: theme.charAt(0).toUpperCase() + theme.slice(1) + ' Area', description: 'A ' + theme + ' area.', light: 50, temperature: 21, air: 'fresh', smell: 'musty', noise: 'quiet' };
-    } else if (type === 'item') {
+    }
+    else if (type === 'item') {
         data = { name: theme.charAt(0).toUpperCase() + theme.slice(1), description: 'A ' + theme + ' object.', actions: 'examine,take,use', uses: -1, weight: 0.5, hidden: false };
-    } else {
+    }
+    else {
         data = { room1: '', room2: '', dir1: 'north', dir2: 'south', locked: false };
     }
     events.log('AI generation used mock (no LLM)', 'system-msg');
     return data;
 }
-
 // AI generation (create modal)
 function generateWithAI(type) {
     // Use the same generateWithAI from the create modal - inline due to complexity
@@ -304,16 +319,19 @@ function generateWithAI(type) {
             const roomB = document.getElementById('conn-roomB')?.value;
             if (roomA && roomB) {
                 prompt = `The passage between ${roomA} and ${roomB}`;
-            } else {
-                promptInput?.focus(); return;
             }
-        } else {
-            promptInput?.focus(); return;
+            else {
+                promptInput?.focus();
+                return;
+            }
+        }
+        else {
+            promptInput?.focus();
+            return;
         }
     }
     promptInput.disabled = true;
     promptInput.value = 'Generating...';
-
     (async () => {
         try {
             const useContext = document.getElementById('gen-use-context')?.checked !== false;
@@ -334,11 +352,11 @@ Use conditions (has_item, state_equals, random_chance) for gated interactions.
 Use the effects array for multi-step effects.`;
             if (useContext) {
                 if (type === 'area') {
-                    const existing = Object.entries(worldState.areas || {}).map(([name, r]) =>
-                        `- ${name}: ${(r.description || '(no description)').split('\n')[0]}`
-                    ).join('\n');
-                    if (existing) systemMsg += `\n\nExisting rooms in this world:\n${existing}\n\nGenerate a new area that fits thematically.`;
-                } else if (useContext && type === 'item') {
+                    const existing = Object.entries(worldState.areas || {}).map(([name, r]) => `- ${name}: ${(r.description || '(no description)').split('\n')[0]}`).join('\n');
+                    if (existing)
+                        systemMsg += `\n\nExisting rooms in this world:\n${existing}\n\nGenerate a new area that fits thematically.`;
+                }
+                else if (useContext && type === 'item') {
                     const targetType = document.querySelector('input[name="item-target-type"]:checked')?.value || 'item';
                     const targetId = document.getElementById('item-target-id')?.value || '';
                     const relation = document.getElementById('item-target-relation')?.value || 'in';
@@ -351,11 +369,13 @@ Use the effects array for multi-step effects.`;
                             targetDesc = `\nThis item will be placed ${relationLabel} "${node.name || targetId}": ${desc}`;
                         }
                     }
-                    if (targetDesc) systemMsg += targetDesc;
+                    if (targetDesc)
+                        systemMsg += targetDesc;
                     if (window.VW?.PromptDocs?.ITEM_GENERATION_SYSTEM) {
                         systemMsg += '\n\n' + VW.PromptDocs.ITEM_GENERATION_SYSTEM;
                     }
-                } else if (type === 'connection') {
+                }
+                else if (type === 'connection') {
                     const roomA = document.getElementById('conn-roomA')?.value;
                     const roomB = document.getElementById('conn-roomB')?.value;
                     const descA = roomA && worldState.areas?.[roomA]?.description;
@@ -364,17 +384,21 @@ Use the effects array for multi-step effects.`;
                         ? Object.keys(worldState.areas[roomA].exits).join(', ') : 'none';
                     const exitsB = roomB && worldState.areas?.[roomB]?.exits
                         ? Object.keys(worldState.areas[roomB].exits).join(', ') : 'none';
-                    if (descA) systemMsg += `\n\nRoom A ("${roomA}"): ${descA}\nExisting exits from ${roomA}: ${exitsA}`;
-                    if (descB) systemMsg += `\n\nRoom B ("${roomB}"): ${descB}\nExisting exits from ${roomB}: ${exitsB}`;
+                    if (descA)
+                        systemMsg += `\n\nRoom A ("${roomA}"): ${descA}\nExisting exits from ${roomA}: ${exitsA}`;
+                    if (descB)
+                        systemMsg += `\n\nRoom B ("${roomB}"): ${descB}\nExisting exits from ${roomB}: ${exitsB}`;
                     systemMsg += '\n\nPick dir1 (from A to B) and dir2 (from B to A) that are NOT already in use by existing exits. Use directions that make geographic sense given the area descriptions. Include view descriptions from each side.';
                 }
             }
             // Build format hint for the user message
             let formatHint = '';
-            if (type === 'area') formatHint = '{"name":"Area Name","description":"...","light":80,"temperature":21,"air":"fresh","smell":"musty","noise":"quiet","tags":["indoor","cold"]}';
-            else if (type === 'item') formatHint = '{"name":"...","description":"...","actions":"examine,take,use","uses":1,"weight":0.5,"current_state":"normal","tags":["food","apple"],"equip_slots":[],"light_level":"dim","target_temperature":null,"heating_rate":null,"sound_level":null,"sound_pattern":null,"defense":0,"damage":0,"damage_skill":null,"damage_type":null,"stun_chance":null,"stun_duration":null,"insulation":0,"resistances":{},"container":false,"triggers":[{"trigger_type":"on_eat","effect_type":"adjust_vital","effect_params":{"stat":"Hunger","amount":30,"message":"You feel nourished."}},{"trigger_type":"on_use","conditions":[{"type":"has_item","value":"matches"}],"effects":[{"type":"set_state","params":{"node_id":"fireplace","state":"lit"}},{"type":"set_environment","params":{"temperature":25,"light":"bright","noise":"crackling","smell":"woodsmoke"}},{"type":"message","params":{"message":"The fire roars to life."}}]}]}';
-            else if (type === 'connection') formatHint = '{"room1":"Frozen Lake","room2":"Dense Forest","dir1":"north","dir2":"south","state":"open","description":"A narrow trail winds between the pines, the snow here packed hard by passing animals","pass_message":"The branches close behind you, muffling the sound of the wind","auto_close":false,"see_through":false,"needs_open":{"enabled":false,"skill":"Athletics","dc":15},"tags":["outdoor","trail"],"view_from_a":"the frozen lake shimmers through the gap in the trees","view_from_b":"a dense tangle of frozen branches casts pale blue shadows ahead","triggers":[]}';
-
+            if (type === 'area')
+                formatHint = '{"name":"Area Name","description":"...","light":80,"temperature":21,"air":"fresh","smell":"musty","noise":"quiet","tags":["indoor","cold"]}';
+            else if (type === 'item')
+                formatHint = '{"name":"...","description":"...","actions":"examine,take,use","uses":1,"weight":0.5,"current_state":"normal","tags":["food","apple"],"equip_slots":[],"light_level":"dim","target_temperature":null,"heating_rate":null,"sound_level":null,"sound_pattern":null,"defense":0,"damage":0,"damage_skill":null,"damage_type":null,"stun_chance":null,"stun_duration":null,"insulation":0,"resistances":{},"container":false,"triggers":[{"trigger_type":"on_eat","effect_type":"adjust_vital","effect_params":{"stat":"Hunger","amount":30,"message":"You feel nourished."}},{"trigger_type":"on_use","conditions":[{"type":"has_item","value":"matches"}],"effects":[{"type":"set_state","params":{"node_id":"fireplace","state":"lit"}},{"type":"set_environment","params":{"temperature":25,"light":"bright","noise":"crackling","smell":"woodsmoke"}},{"type":"message","params":{"message":"The fire roars to life."}}]}]}';
+            else if (type === 'connection')
+                formatHint = '{"room1":"Frozen Lake","room2":"Dense Forest","dir1":"north","dir2":"south","state":"open","description":"A narrow trail winds between the pines, the snow here packed hard by passing animals","pass_message":"The branches close behind you, muffling the sound of the wind","auto_close":false,"see_through":false,"needs_open":{"enabled":false,"skill":"Athletics","dc":15},"tags":["outdoor","trail"],"view_from_a":"the frozen lake shimmers through the gap in the trees","view_from_b":"a dense tangle of frozen branches casts pale blue shadows ahead","triggers":[]}';
             // Include the full JSON schema description in the system message for items and connections
             // so the LLM knows all available trigger types, not just the format example
             if ((type === 'item' || type === 'connection') && !systemMsg.includes('Available trigger types:')) {
@@ -397,9 +421,8 @@ Use the effects array for multi-step effects.`;
 - container → set container:true and list contents (do NOT enumerate contents in the description)
 Only set fields for capabilities the item actually has.`;
             }
-
             const userContent = `${prompt}\n\nOutput JSON:\n${formatHint}`;
-            const result = await AIGenerator.generate(userContent, systemMsg, { 
+            const result = await AIGenerator.generate(userContent, systemMsg, {
                 temperature: 0.8,
                 fallback: () => generateMockFallback(type, prompt)
             });
@@ -408,95 +431,116 @@ Only set fields for capabilities the item actually has.`;
                 return;
             }
             const data = result.data;
-
-            const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val ?? ''; };
+            const set = (id, val) => { const el = document.getElementById(id); if (el)
+                el.value = val ?? ''; };
             if (type === 'area') {
-                set('area-name', data.name); set('area-desc', data.description);
+                set('area-name', data.name);
+                set('area-desc', data.description);
                 const lightEl = document.getElementById('area-light');
                 if (lightEl) {
-                    const levels = ['pitch_black','dim','normal','bright','blinding'];
+                    const levels = ['pitch_black', 'dim', 'normal', 'bright', 'blinding'];
                     let lv = data.light ?? 'normal';
                     if (typeof lv === 'number') {
-                        if (lv <= 20) lv = 'pitch_black';
-                        else if (lv <= 40) lv = 'dim';
-                        else if (lv <= 70) lv = 'normal';
-                        else if (lv <= 90) lv = 'bright';
-                        else lv = 'blinding';
+                        if (lv <= 20)
+                            lv = 'pitch_black';
+                        else if (lv <= 40)
+                            lv = 'dim';
+                        else if (lv <= 70)
+                            lv = 'normal';
+                        else if (lv <= 90)
+                            lv = 'bright';
+                        else
+                            lv = 'blinding';
                     }
                     lightEl.value = levels.includes(lv) ? lv : 'normal';
                 }
-                set('area-temp', data.temperature); document.getElementById('area-air') && (document.getElementById('area-air').value = data.air || 'fresh');
-                set('area-smell', data.smell); set('area-noise', data.noise);
+                set('area-temp', data.temperature);
+                document.getElementById('area-air') && (document.getElementById('area-air').value = data.air || 'fresh');
+                set('area-smell', data.smell);
+                set('area-noise', data.noise);
                 if (window.CreateModal?._tagMSArea && data.tags) {
-                    window.CreateModal._tagMSArea.setValue(Array.isArray(data.tags) ? data.tags : typeof data.tags === 'string' ? data.tags.split(',').map(t => t.trim()).filter(Boolean) : []);
+                    window.CreateModal._tagMSArea.setValue(Array.isArray(data.tags) ? data.tags : typeof data.tags === 'string' ? data.tags.split(',').map((t) => t.trim()).filter(Boolean) : []);
                 }
-            } else if (type === 'item') {
+            }
+            else if (type === 'item') {
                 CreateModal._applyItemAIData(data);
-            } else if (type === 'connection') {
-                set('conn-roomA', data.room1); set('conn-roomB', data.room2);
+            }
+            else if (type === 'connection') {
+                set('conn-roomA', data.room1);
+                set('conn-roomB', data.room2);
                 VW._onConnRoomChange(); // refresh view-from hints when rooms change
-                set('conn-dir1', data.dir1); set('conn-dir2', data.dir2);
+                set('conn-dir1', data.dir1);
+                set('conn-dir2', data.dir2);
                 set('conn-desc', data.description || '');
                 set('conn-id', data.way_id || '');
                 const stateSelect = document.getElementById('conn-state');
-                if (stateSelect) stateSelect.value = data.state || 'open';
+                if (stateSelect)
+                    stateSelect.value = data.state || 'open';
                 set('conn-pass-msg', data.pass_message || '');
                 const autoCloseCheckbox = document.getElementById('conn-auto-close');
-                if (autoCloseCheckbox) autoCloseCheckbox.checked = data.auto_close || false;
+                if (autoCloseCheckbox)
+                    autoCloseCheckbox.checked = data.auto_close || false;
                 const needsOpenConfig = data.needs_open;
                 const noChk = document.getElementById('conn-needs-open');
                 if (noChk && needsOpenConfig?.enabled) {
                     noChk.checked = true;
                     const cfg = document.getElementById('conn-needs-config');
-                    if (cfg) cfg.style.display = 'flex';
+                    if (cfg)
+                        cfg.style.display = 'flex';
                     set('conn-needs-skill', needsOpenConfig.skill || 'Athletics');
                     const dcEl = document.getElementById('conn-needs-dc');
-                    if (dcEl) dcEl.value = needsOpenConfig.dc || 15;
+                    if (dcEl)
+                        dcEl.value = needsOpenConfig.dc || 15;
                 }
                 if (window.CreateModal?._tagMSConn && data.tags) {
-                    window.CreateModal._tagMSConn.setValue(Array.isArray(data.tags) ? data.tags : typeof data.tags === 'string' ? data.tags.split(',').map(t => t.trim()).filter(Boolean) : []);
+                    window.CreateModal._tagMSConn.setValue(Array.isArray(data.tags) ? data.tags : typeof data.tags === 'string' ? data.tags.split(',').map((t) => t.trim()).filter(Boolean) : []);
                 }
                 const seeThroughEl = document.getElementById('conn-see-through');
-                if (seeThroughEl && data.see_through !== undefined) seeThroughEl.checked = data.see_through;
+                if (seeThroughEl && data.see_through !== undefined)
+                    seeThroughEl.checked = data.see_through;
                 set('conn-view-from-a', data.view_from_a || '');
                 set('conn-view-from-b', data.view_from_b || '');
                 const tf = document.getElementById('conn-triggers-json');
-                if (tf && data.triggers) tf.value = JSON.stringify(data.triggers, null, 2);
+                if (tf && data.triggers)
+                    tf.value = JSON.stringify(data.triggers, null, 2);
             }
             events.log(`AI generated ${type}: ${data.name || 'unnamed'}`, 'system-msg');
-        } catch (err) {
+        }
+        catch (err) {
             events.log('AI generation failed: ' + err.message, 'error-msg');
-        } finally {
+        }
+        finally {
             promptInput.disabled = false;
             promptInput.value = '';
             promptInput.placeholder = 'AI prompt...';
         }
     })();
 }
-
-VW._onConnRoomChange = function() {
+VW._onConnRoomChange = function () {
     const roomA = document.getElementById('conn-roomA')?.value;
     const roomB = document.getElementById('conn-roomB')?.value;
     const hintA = document.getElementById('conn-view-from-a');
     const hintB = document.getElementById('conn-view-from-b');
-    if (hintA && roomA) hintA.placeholder = `What you see from ${roomA} toward ${roomB || 'the other area'}... e.g. "A heavy oak way set into the stone wall"`;
-    if (hintB && roomB) hintB.placeholder = `What you see from ${roomB} toward ${roomA || 'the other area'}... e.g. "A warm glow spills from the doorway"`;
+    if (hintA && roomA)
+        hintA.placeholder = `What you see from ${roomA} toward ${roomB || 'the other area'}... e.g. "A heavy oak way set into the stone wall"`;
+    if (hintB && roomB)
+        hintB.placeholder = `What you see from ${roomB} toward ${roomA || 'the other area'}... e.g. "A warm glow spills from the doorway"`;
 };
-
 // task-376: one-way is a movement guard (engine/movement.py), so the B → A
 // direction field is meaningless while it is on. Disable it and say why,
 // rather than letting a filled-in dir2 silently look like it took effect.
-VW._onConnOneWayChange = function(checked) {
+VW._onConnOneWayChange = function (checked) {
     const dir2 = document.getElementById('conn-dir2');
     const hint = document.getElementById('conn-one-way-hint');
     if (dir2) {
         dir2.disabled = !!checked;
-        if (checked) dir2.value = '';
+        if (checked)
+            dir2.value = '';
     }
-    if (hint) hint.style.display = checked ? 'block' : 'none';
+    if (hint)
+        hint.style.display = checked ? 'block' : 'none';
 };
-
-VW._toggleItemTargetType = function() {
+VW._toggleItemTargetType = function () {
     const val = document.querySelector('input[name="item-target-type"]:checked')?.value || 'item';
     const search = document.getElementById('item-target-search');
     const relationWrap = document.getElementById('item-target-relation-wrap');
@@ -508,37 +552,40 @@ VW._toggleItemTargetType = function() {
         relationWrap.style.display = val === 'item' ? 'flex' : 'none';
     }
 };
-
-VW._previewPrompt = function(type) {
+VW._previewPrompt = function (type) {
     const promptInput = document.getElementById('ai-prompt');
     const prompt = (promptInput?.value || '').trim();
-    if (!prompt) { promptInput?.focus(); return; }
-
+    if (!prompt) {
+        promptInput?.focus();
+        return;
+    }
     const useContext = document.getElementById('gen-use-context')?.checked !== false;
     let systemMsg = `You are a procedural content generator for a game. Generate a ${type} based on the user's prompt. Respond ONLY with raw JSON matching the form fields. No markdown.`;
     if (useContext && type === 'area') {
-        const existing = Object.entries(worldState.areas || {}).map(([n, r]) =>
-            `- ${n}: ${(r.description || '(no description)').split('\n')[0]}`
-        ).join('\n');
-        if (existing) systemMsg += `\n\nExisting rooms in this world:\n${existing}\n\nGenerate a new area that fits thematically.`;
-        } else if (useContext && type === 'item') {
-            const targetType = document.querySelector('input[name="item-target-type"]:checked')?.value || 'item';
-            const targetId = document.getElementById('item-target-id')?.value || '';
-            const relation = document.getElementById('item-target-relation')?.value || 'in';
-            let targetDesc = '';
-            if (targetId) {
-                const node = worldState.getNode(targetId);
-                if (node) {
-                    const relationLabel = targetType === 'area' ? 'in' : targetType === 'character' ? 'carried by' : relation;
-                    const desc = node.properties?.description || '(no description)';
-                    targetDesc = `\nThis item will be placed ${relationLabel} "${node.name || targetId}": ${desc}`;
-                }
+        const existing = Object.entries(worldState.areas || {}).map(([n, r]) => `- ${n}: ${(r.description || '(no description)').split('\n')[0]}`).join('\n');
+        if (existing)
+            systemMsg += `\n\nExisting rooms in this world:\n${existing}\n\nGenerate a new area that fits thematically.`;
+    }
+    else if (useContext && type === 'item') {
+        const targetType = document.querySelector('input[name="item-target-type"]:checked')?.value || 'item';
+        const targetId = document.getElementById('item-target-id')?.value || '';
+        const relation = document.getElementById('item-target-relation')?.value || 'in';
+        let targetDesc = '';
+        if (targetId) {
+            const node = worldState.getNode(targetId);
+            if (node) {
+                const relationLabel = targetType === 'area' ? 'in' : targetType === 'character' ? 'carried by' : relation;
+                const desc = node.properties?.description || '(no description)';
+                targetDesc = `\nThis item will be placed ${relationLabel} "${node.name || targetId}": ${desc}`;
             }
-        if (targetDesc) systemMsg += targetDesc;
+        }
+        if (targetDesc)
+            systemMsg += targetDesc;
         if (window.VW?.PromptDocs?.ITEM_GENERATION_SYSTEM) {
             systemMsg += '\n\n' + VW.PromptDocs.ITEM_GENERATION_SYSTEM;
         }
-    } else if (useContext && type === 'connection') {
+    }
+    else if (useContext && type === 'connection') {
         const roomA = document.getElementById('conn-roomA')?.value;
         const roomB = document.getElementById('conn-roomB')?.value;
         const descA = roomA && worldState.areas?.[roomA]?.description;
@@ -547,18 +594,20 @@ VW._previewPrompt = function(type) {
             ? Object.keys(worldState.areas[roomA].exits).join(', ') : 'none';
         const exitsB = roomB && worldState.areas?.[roomB]?.exits
             ? Object.keys(worldState.areas[roomB].exits).join(', ') : 'none';
-        if (descA) systemMsg += `\n\nRoom A ("${roomA}"): ${descA}\nExisting exits from ${roomA}: ${exitsA}`;
-        if (descB) systemMsg += `\n\nRoom B ("${roomB}"): ${descB}\nExisting exits from ${roomB}: ${exitsB}`;
+        if (descA)
+            systemMsg += `\n\nRoom A ("${roomA}"): ${descA}\nExisting exits from ${roomA}: ${exitsA}`;
+        if (descB)
+            systemMsg += `\n\nRoom B ("${roomB}"): ${descB}\nExisting exits from ${roomB}: ${exitsB}`;
         systemMsg += '\n\nPick dir1 (from A to B) and dir2 (from B to A) that are NOT already in use by existing exits. Use directions that make geographic sense given the area descriptions. Include view descriptions from each side.';
     }
-
     let formatHint = '';
-    if (type === 'area') formatHint = '{"name":"Area Name","description":"...","light":80,"temperature":21,"air":"fresh","smell":"musty","noise":"quiet","tags":["indoor","cold"]}';
-    else if (type === 'item') formatHint = '{"name":"...","description":"...","actions":"examine,take,use","uses":1,"weight":0.5,"current_state":"normal","tags":["food","apple"],"equip_slots":[],"triggers":[{"trigger_type":"on_use","effect_type":"message","effect_params":{"message":"..."}}]}';
-    else if (type === 'connection') formatHint = '{"room1":"Frozen Lake","room2":"Dense Forest","dir1":"north","dir2":"south","state":"open","description":"A narrow trail winds between the pines","pass_message":"The branches close behind you","auto_close":false,"see_through":false,"needs_open":{"enabled":false,"skill":"Athletics","dc":15},"tags":["outdoor","trail"],"view_from_a":"the frozen lake shimmers through the gap in the trees","view_from_b":"a dense tangle of frozen branches casts pale blue shadows","triggers":[]}';
-
+    if (type === 'area')
+        formatHint = '{"name":"Area Name","description":"...","light":80,"temperature":21,"air":"fresh","smell":"musty","noise":"quiet","tags":["indoor","cold"]}';
+    else if (type === 'item')
+        formatHint = '{"name":"...","description":"...","actions":"examine,take,use","uses":1,"weight":0.5,"current_state":"normal","tags":["food","apple"],"equip_slots":[],"triggers":[{"trigger_type":"on_use","effect_type":"message","effect_params":{"message":"..."}}]}';
+    else if (type === 'connection')
+        formatHint = '{"room1":"Frozen Lake","room2":"Dense Forest","dir1":"north","dir2":"south","state":"open","description":"A narrow trail winds between the pines","pass_message":"The branches close behind you","auto_close":false,"see_through":false,"needs_open":{"enabled":false,"skill":"Athletics","dc":15},"tags":["outdoor","trail"],"view_from_a":"the frozen lake shimmers through the gap in the trees","view_from_b":"a dense tangle of frozen branches casts pale blue shadows","triggers":[]}';
     const fullPrompt = `[System]\n${systemMsg}\n\n[User prompt]\n${prompt}\n\nOutput JSON:\n${formatHint}`;
-
     const existingModal = document.getElementById('prompt-preview-modal');
     if (existingModal) {
         document.getElementById('prompt-preview-textarea').value = fullPrompt;
@@ -568,11 +617,10 @@ VW._previewPrompt = function(type) {
         existingModal._systemMsg = systemMsg;
         return;
     }
-
     const overlay = document.createElement('div');
     overlay.id = 'prompt-preview-modal';
     overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:10000;';
-    window.Lit.render(mainJsTag`<div style="background:var(--bg-panel);border:1px solid var(--border);border-radius:8px;padding:12px;width:90%;max-width:700px;max-height:80vh;display:flex;flex-direction:column;">
+    window.Lit.render(mainJsTag `<div style="background:var(--bg-panel);border:1px solid var(--border);border-radius:8px;padding:12px;width:90%;max-width:700px;max-height:80vh;display:flex;flex-direction:column;">
         <h3 style="margin:0 0 8px;">👁️ Prompt Preview</h3>
         <textarea id="prompt-preview-textarea" style="flex:1;min-height:300px;width:100%;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:8px;font-size:11px;font-family:monospace;resize:vertical;" spellcheck="false">${fullPrompt}</textarea>
         <div style="display:flex;gap:6px;margin-top:8px;justify-content:flex-end;">
@@ -584,42 +632,39 @@ VW._previewPrompt = function(type) {
     overlay._type = type;
     overlay._formatHint = formatHint;
     overlay._systemMsg = systemMsg;
-}
-
-VW._sendPreviewPrompt = function() {
+};
+VW._sendPreviewPrompt = function () {
     const modal = document.getElementById('prompt-preview-modal');
-    if (!modal) return;
+    if (!modal)
+        return;
     const edited = document.getElementById('prompt-preview-textarea').value;
     const type = modal._type;
     modal.style.display = 'none';
-
     const userMarker = '[User prompt]\n';
     const userIdx = edited.lastIndexOf(userMarker);
     let editedUserPrompt = '';
     if (userIdx !== -1) {
         editedUserPrompt = edited.substring(userIdx + userMarker.length).trim();
-    } else {
+    }
+    else {
         editedUserPrompt = edited;
     }
-
     const formatHint = modal._formatHint;
     if (formatHint && editedUserPrompt.endsWith(formatHint)) {
         editedUserPrompt = editedUserPrompt.trim();
     }
-
-    if (!editedUserPrompt) { return; }
-
+    if (!editedUserPrompt) {
+        return;
+    }
     const promptInput = document.getElementById('ai-prompt');
     if (promptInput) {
         promptInput.value = editedUserPrompt;
     }
     generateWithAI(type);
-}
-
+};
 // Create modal — delegates to CreateModal module
 function openCreateModal(type, onSubmit) { CreateModal.open(type, onSubmit); }
 function closeCreateModal() { CreateModal.close(); }
-
 // Toggle way state (open/close) from area inspector — authoring path, so
 // designers can set any state even on open-passage ways (task-223). Goes
 // straight to the node PATCH like the way editor's State dropdown.
@@ -629,85 +674,79 @@ function toggleDoorState(exitName, action, wayId) {
         api.updateNode(wayId, { properties: { current_state: newState } }).then(() => {
             events.log(`${action === 'open' ? 'Opened' : 'Closed'} ${wayId} (designer).`, 'system-msg');
             worldState.fetch();
-        }).catch(err => events.log('Failed to toggle way: ' + (err?.message || err), 'error-msg'));
+        }).catch((err) => events.log('Failed to toggle way: ' + (err?.message || err), 'error-msg'));
         return;
     }
     const cmd = action + ' ' + exitName;
-    api.action(cmd).then(data => {
+    api.action(cmd).then((data) => {
         const output = data?.output || data?.error || 'Toggled ' + (wayId || exitName);
         events.log(output, 'system-msg');
         if (data?.system_messages) {
-            data.system_messages.forEach(sm => events.log(sm, 'system-msg'));
+            data.system_messages.forEach((sm) => events.log(sm, 'system-msg'));
         }
         worldState.fetch();
     });
 }
-
-    // Guest speech (no character needed)
-    function speakAsGuest() {
-        const input = document.getElementById('speak-input');
-        const text = (input?.value || '').trim();
-        if (!text) { input?.focus(); return; }
-        
-        // Find the active area
-        const activePlayer = worldState.activePlayer;
-        const activeRoom = activePlayer ? worldState.players?.[activePlayer]?.current_area : worldState.currentArea;
-        const areaName = activeRoom || Object.keys(worldState.areas || {})[0];
-        
-        if (!areaName) {
-            events.log('No rooms exist to speak in.', 'error-msg');
-            return;
-        }
-        
-        // Third-person identity so NPCs don't read their own speech as "you"
-        const speakerName = '👤 A Guest';
-    api.playerSpeak(speakerName, text, areaName).then(res => {
+// Guest speech (no character needed)
+function speakAsGuest() {
+    const input = document.getElementById('speak-input');
+    const text = (input?.value || '').trim();
+    if (!text) {
+        input?.focus();
+        return;
+    }
+    // Find the active area
+    const activePlayer = worldState.activePlayer;
+    const activeRoom = activePlayer ? worldState.players?.[activePlayer]?.current_area : worldState.currentArea;
+    const areaName = activeRoom || Object.keys(worldState.areas || {})[0];
+    if (!areaName) {
+        events.log('No rooms exist to speak in.', 'error-msg');
+        return;
+    }
+    // Third-person identity so NPCs don't read their own speech as "you"
+    const speakerName = '👤 A Guest';
+    api.playerSpeak(speakerName, text, areaName).then((res) => {
         if (res.error) {
             events.log(`Speak failed: ${res.error}`, 'error-msg');
             return;
         }
         events.log(`[${speakerName}] says: "${text}"`, 'msg-speech');
-        if (input) input.value = '';
+        if (input)
+            input.value = '';
         worldState.fetch();
     });
 }
-
 // Speak on Enter key
 document.addEventListener('DOMContentLoaded', () => {
     const speakInput = document.getElementById('speak-input');
     if (speakInput) {
-        speakInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') speakAsGuest();
+        speakInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter')
+                speakAsGuest();
         });
     }
 });
-
 // Export event stream as text file
 function exportEventLog() { WorldExport.exportEventLog(); }
-
 // Copy event stream to clipboard
 async function copyEventLogToClipboard() { WorldExport.copyEventLogToClipboard(); }
-
 // LLM prompt/response clipboard helpers
 async function copyPromptToClipboard() { WorldExport.copyPromptToClipboard(); }
-
 function copyManualPrompt() { WorldExport.copyManualPrompt(); }
-
 function openPasteModal() {
     document.getElementById('paste-response-textarea').value = '';
     document.getElementById('paste-response-modal').style.display = 'flex';
     document.getElementById('paste-response-textarea').focus();
 }
-
 async function pasteFromClipboard() {
     try {
         const text = await navigator.clipboard.readText();
         document.getElementById('paste-response-textarea').value = text;
-    } catch (e) {
+    }
+    catch (e) {
         events.log('⚠️ Could not read clipboard. Paste manually (Ctrl+V).', 'system-msg');
     }
 }
-
 function submitManualResponse() {
     const text = document.getElementById('paste-response-textarea').value.trim();
     if (!text) {
@@ -722,13 +761,10 @@ function submitManualResponse() {
     document.getElementById('paste-response-modal').style.display = 'none';
     events.log('📝 Manual response injected! (' + text.length + ' chars) The next agent step will use it.', 'system-msg');
 }
-
 // Update time per tick on backend
 async function updateTimePerTick(minutes) { SaveLoadView.updateTimePerTick(minutes); }
-
 // Update scenario clock start time on backend
 async function updateClockStart(value) { SaveLoadView.updateClockStart(value); }
-
 // New empty scenario
 async function newScenario() {
     const voidWorld = {
@@ -738,25 +774,27 @@ async function newScenario() {
     };
     try {
         const resp = await fetch('/api/load', {
-            method: 'POST', headers: {'Content-Type': 'application/json'},
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(voidWorld)
         });
         const data = await resp.json();
-        if (data.error) { toastError('Error: ' + data.error); return; }
+        if (data.error) {
+            toastError('Error: ' + data.error);
+            return;
+        }
         toastInfo('New empty scenario created.');
         worldState.fetch();
-    } catch(e) { toastError('Failed to create new scenario: ' + e.message); }
+    }
+    catch (e) {
+        toastError('Failed to create new scenario: ' + e.message);
+    }
 }
-
 // Restart scenario
 async function restartScenario() { SaveLoadView.restartScenario(); }
-
 // Toggle spectator
 function toggleSpectator() { SaveLoadView.toggleSpectator(); }
-
 /** Populate the new settings form fields from current config values */
 function populateSettingsForm() { SettingsView.populateForm(); }
-
 // Auto-scroll toggle
 document.addEventListener('DOMContentLoaded', () => {
     const scrollToggle = document.getElementById('stream-auto-scroll');
@@ -767,19 +805,16 @@ document.addEventListener('DOMContentLoaded', () => {
             scrollToggle.title = events.autoScroll ? 'Auto-scroll (on)' : 'Auto-scroll (off)';
         });
     }
-
     if (window.SaveLoadView && typeof window.SaveLoadView.initScenarioNameEditor === 'function') {
         window.SaveLoadView.initScenarioNameEditor();
     }
 });
-
 // ============================================
 // INITIALIZATION
 // ============================================
 (async function init() {
     // Wait for config to load from IndexedDB
     await config._initPromise;
-
     // lit-bootstrap.js is a deferred module script, so window.Lit may not
     // be stamped yet even though main.js runs right after its tag. block
     // until it is ready before anything that renders via window.Lit.
@@ -787,23 +822,21 @@ document.addEventListener('DOMContentLoaded', () => {
     while (!window.Lit && Date.now() < litDeadline) {
         await new Promise(resolve => setTimeout(resolve, 20));
     }
-
     // Show the inspector's lit empty-state on boot (index.html ships no
     // static placeholder — lit never removes children it doesn't own, so a
     // static one would linger above every subsequent render). Skip if the
     // user already selected something before Lit finished loading.
     const bootPanel = document.getElementById('inspector-panel');
-    if (bootPanel && !bootPanel.firstElementChild) inspector.hide();
-
+    if (bootPanel && !bootPanel.firstElementChild)
+        inspector.hide();
     // Restore event log from IndexedDB (survives refresh)
     await events.restoreLog();
-    
     // Configure LLM client from persisted config
     llmClient.configure(config.toLLMConfig());
     llmClient._manualMode = !!config.manualMode;
-    
     // Sync filter checkboxes from persisted config
-    const syncFilter = (id, val) => { const el = document.getElementById(id); if (el) el.checked = val; };
+    const syncFilter = (id, val) => { const el = document.getElementById(id); if (el)
+        el.checked = val; };
     syncFilter('filter-thoughts', config.filterThoughts);
     syncFilter('filter-speech', config.filterSpeech);
     syncFilter('filter-actions', config.filterActions);
@@ -811,45 +844,36 @@ document.addEventListener('DOMContentLoaded', () => {
     syncFilter('filter-rawllm', config.filterRawLLM);
     syncFilter('filter-recalls', config.filterRecalls);
     syncFilter('filter-npc', config.filterNpc);
-    
     // Initialize agent UI controls
     ui.initAgentUI();
-    
     // Initialize profiles and settings
     await ui.initProfiles();
-    
     // Initialize graph network
     await graphManager.init();
-    
     // Initial state fetch
     await worldState.fetch();
     agentLens.init();
-    
     // Fetch equipment slot configuration
     await worldState.fetchEquipSlots();
-    
     // Persist event log every 5 seconds
     setInterval(() => events._persistLog(), 5000);
-    
     // Wire state change handler for UI rendering
     worldState.on('update', (state) => {
         // Re-initialize or clear turn queue after scenario load/reset
         if (state?.players) {
             if (Object.keys(state.players).length === 0) {
                 agent.turnQueue.length = 0;
-            } else if (agent.turnQueue.length === 0) {
+            }
+            else if (agent.turnQueue.length === 0) {
                 agent.initializeTurnQueue();
             }
         }
         ui.renderAll(state);
-        
         // Update play/pause buttons
         ui.showPlayPause(!config.running, config.running);
-        
         // Reload graph data to reflect any changes (nodes deleted, edges added/removed, etc.)
         graphManager.loadGraphData();
     });
-    
     // Command input handler & Tab autocomplete (task-6)
     const inputField = document.getElementById('command-input');
     if (inputField) {
@@ -860,26 +884,25 @@ document.addEventListener('DOMContentLoaded', () => {
             options: [],
             index: -1
         };
-
         const resetAutocomplete = () => {
             autocompleteState = { active: false, verb: '', prefix: '', options: [], index: -1 };
         };
-
-        inputField.addEventListener('keydown', async function(e) {
+        inputField.addEventListener('keydown', async function (e) {
             if (e.key === 'Tab') {
                 const val = this.value;
                 const match = val.match(/^(\S+)\s+(.*)$/);
-                if (!match) return; // Only trigger if verb + space typed
-
+                if (!match)
+                    return; // Only trigger if verb + space typed
                 e.preventDefault();
                 const verb = match[1].toLowerCase();
                 const typedPrefix = match[2];
-
                 if (autocompleteState.active && autocompleteState.verb === verb && autocompleteState.prefix === typedPrefix) {
-                    if (autocompleteState.options.length === 0) return;
+                    if (autocompleteState.options.length === 0)
+                        return;
                     if (e.shiftKey) {
                         autocompleteState.index = (autocompleteState.index - 1 + autocompleteState.options.length) % autocompleteState.options.length;
-                    } else {
+                    }
+                    else {
                         autocompleteState.index = (autocompleteState.index + 1) % autocompleteState.options.length;
                     }
                     const selected = autocompleteState.options[autocompleteState.index];
@@ -887,7 +910,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     autocompleteState.prefix = selected;
                     return;
                 }
-
                 const activeChar = (typeof ui !== 'undefined' && ui.selectedAgent) ? ui.selectedAgent : null;
                 const res = await ApiClient.getAutocomplete(verb, typedPrefix, activeChar);
                 const opts = res?.options || [];
@@ -895,7 +917,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     resetAutocomplete();
                     return;
                 }
-
                 const firstOpt = opts[0];
                 autocompleteState = {
                     active: true,
@@ -907,83 +928,78 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.value = `${verb} ${firstOpt}`;
                 return;
             }
-
             if (e.key !== 'Shift') {
                 resetAutocomplete();
             }
         });
-
-        inputField.addEventListener('keypress', function(e) {
+        inputField.addEventListener('keypress', function (e) {
             if (e.key === 'Enter' && this.value.trim()) {
                 resetAutocomplete();
                 const cmd = this.value.trim();
                 events.log('> ' + cmd, 'user-msg');
                 this.value = '';
-                api.action(cmd).then(data => {
+                api.action(cmd).then((data) => {
                     const msg = data?.output || data?.error || cmd;
                     events.log(msg, msg.includes('ValueError') ? 'error-msg' : 'system-msg');
                     if (data?.system_messages) {
-                        data.system_messages.forEach(sm => events.log(sm, 'system-msg'));
+                        data.system_messages.forEach((sm) => events.log(sm, 'system-msg'));
                     }
                     worldState.fetch();
                 });
             }
         });
     }
-    
-                // Initialize ghost mode toggle from backend
-                (async () => {
-                    try {
-                        const res = await ApiClient.getGhostMode();
-                        const cb = document.getElementById('agent-ghost-mode');
-                        if (cb) {
-                            cb.checked = res.ghost_mode;
-                            config.ghostMode = res.ghost_mode;
-                            cb.addEventListener('change', async () => {
-                                config.ghostMode = cb.checked;
-                                await ApiClient.setGhostMode(cb.checked);
-                                // Rebuild turn queue to reflect new ghost mode state
-                                if (config.turnBased) {
-                                    agent.initializeTurnQueue();
-                                }
-                                events.log(`👻 Ghost mode ${cb.checked ? 'activated' : 'deactivated'}`, 'system-msg');
-                            });
-                        }
-                    } catch (e) {
-                        console.warn('Ghost mode init:', e);
-                        // If backend doesn't support it, still check config persistence
-                        const cb = document.getElementById('agent-ghost-mode');
-                        if (cb) {
-                            cb.checked = config.ghostMode;
-                            cb.addEventListener('change', () => {
-                                config.ghostMode = cb.checked;
-                                if (config.turnBased) {
-                                    agent.initializeTurnQueue();
-                                }
-                            });
-                        }
+    // Initialize ghost mode toggle from backend
+    (async () => {
+        try {
+            const res = await ApiClient.getGhostMode();
+            const cb = document.getElementById('agent-ghost-mode');
+            if (cb) {
+                cb.checked = res.ghost_mode;
+                config.ghostMode = res.ghost_mode;
+                cb.addEventListener('change', async () => {
+                    config.ghostMode = cb.checked;
+                    await ApiClient.setGhostMode(cb.checked);
+                    // Rebuild turn queue to reflect new ghost mode state
+                    if (config.turnBased) {
+                        agent.initializeTurnQueue();
                     }
-                })();
-
-                // Initialize narration mode select from backend
-                (async () => {
-                    try {
-                        await window.narrationUI._initPromise;
-                        const select = document.getElementById('narration-select');
-                        if (select) {
-                            select.value = window.narrationUI.getMode();
-                        }
-                    } catch (e) {
-                        console.warn('Narration init:', e);
+                    events.log(`👻 Ghost mode ${cb.checked ? 'activated' : 'deactivated'}`, 'system-msg');
+                });
+            }
+        }
+        catch (e) {
+            console.warn('Ghost mode init:', e);
+            // If backend doesn't support it, still check config persistence
+            const cb = document.getElementById('agent-ghost-mode');
+            if (cb) {
+                cb.checked = !!config.ghostMode;
+                cb.addEventListener('change', () => {
+                    config.ghostMode = cb.checked;
+                    if (config.turnBased) {
+                        agent.initializeTurnQueue();
                     }
-                })();
-
-                // Initialize panel resizing
-                _initResizable();
-
-                events.log('VirtualWorld Engine initialized', 'system-msg');
-            })();
-
+                });
+            }
+        }
+    })();
+    // Initialize narration mode select from backend
+    (async () => {
+        try {
+            await window.narrationUI._initPromise;
+            const select = document.getElementById('narration-select');
+            if (select) {
+                select.value = window.narrationUI.getMode();
+            }
+        }
+        catch (e) {
+            console.warn('Narration init:', e);
+        }
+    })();
+    // Initialize panel resizing
+    _initResizable();
+    events.log('VirtualWorld Engine initialized', 'system-msg');
+})();
 /** Initialize drag-to-resize for panel dividers */
 function _initResizable() {
     // Left panel resize
@@ -1013,7 +1029,6 @@ function _initResizable() {
             leftHandle.style.pointerEvents = 'none';
         });
     }
-
     // Event stream vertical resize
     const eventSection = document.getElementById('event-section');
     if (eventSection) {
@@ -1026,7 +1041,6 @@ function _initResizable() {
         vHandle.style.zIndex = '10';
         vHandle.title = 'Drag to resize event stream';
         eventSection.parentNode.insertBefore(vHandle, eventSection);
-
         vHandle.addEventListener('mousedown', (e) => {
             e.preventDefault();
             const startY = e.clientY;

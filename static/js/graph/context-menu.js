@@ -1,3 +1,4 @@
+"use strict";
 /**
  * GraphContextMenu — context menu for graph nodes and edges
  * Provides right-click context menus with actions tailored to node types.
@@ -9,8 +10,10 @@
  * @relates driven by GraphEventHandlers.onContext; delegates to GraphNodeOps + the inspector
  * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 const contextMenuHtmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
-
+// ApiClient's remaining graph/character endpoints and two classic-script helpers
+// (EdgeTypes, filterItemLibrary) are not in globals.d.ts; reached through casts.
 window.GraphContextMenu = {
     /**
      * Shows a context menu at the given event position for a graph node.
@@ -24,61 +27,60 @@ window.GraphContextMenu = {
         graphManager._contextTarget = { nodeData, nodeId, nodeType: nodeData?.type };
         const name = nodeData?.name || nodeId;
         const menu = document.getElementById('context-menu');
-        if (!menu) return;
-
+        if (!menu)
+            return;
         const typeIcons = { area: '🏠', item: '📦', way: '🚪', character: '🧍' };
-        const typeIcon = typeIcons[nodeData?.type] || '📄';
-        const items = [contextMenuHtmlTag`<div class="context-menu-header" style="padding:6px 12px;font-size:10px;color:var(--text-dim);border-bottom:1px solid var(--border-light);text-transform:uppercase;letter-spacing:0.5px;">${typeIcon} ${nodeData?.type || 'node'} · ${name}</div>`];
-        items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('inspect')}>🔍 Inspect</div>`);
-
+        const typeIcon = (nodeData?.type ? typeIcons[nodeData.type] : undefined) || '📄';
+        const items = [contextMenuHtmlTag `<div class="context-menu-header" style="padding:6px 12px;font-size:10px;color:var(--text-dim);border-bottom:1px solid var(--border-light);text-transform:uppercase;letter-spacing:0.5px;">${typeIcon} ${nodeData?.type || 'node'} · ${name}</div>`];
+        items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('inspect')}>🔍 Inspect</div>`);
         if (nodeData?.type === 'area') {
-            items.push(contextMenuHtmlTag`<div class="context-menu-separator"></div>`);
-            items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('add_item')}>📦 Add Item to Area</div>`);
-            items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('move_character')}>🧍 Move Character Here</div>`);
-            items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('create_character')}>✨ Create Character Here</div>`);
-            items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('attach_item')}>🔗 Attach Edge…</div>`);
-            items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('connect_to')}>👆 Connect to…</div>`);
-            items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('create_trigger')}>⚡ Add Trigger Edge</div>`);
-            items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('connect_trigger')}>⚡ Connect Trigger to…</div>`);
-            items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('place_on_map')}>📍 Place on Map…</div>`);
-        } else if (nodeData?.type === 'item') {
-            items.push(contextMenuHtmlTag`<div class="context-menu-separator"></div>`);
-            items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('edit')}>✏️ Edit Item</div>`);
-            items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('save_to_lib')}>📚 Save to Library</div>`);
-            items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('attach_item')}>🔗 Attach Edge…</div>`);
-            items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('connect_to')}>👆 Connect to…</div>`);
-            items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('create_trigger')}>⚡ Add Trigger Edge</div>`);
-            items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('connect_trigger')}>⚡ Connect Trigger to…</div>`);
-            items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('delete')}>🗑️ Delete Item</div>`);
-        } else if (nodeData?.type === 'way') {
-            items.push(contextMenuHtmlTag`<div class="context-menu-separator"></div>`);
-            items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('edit')}>✏️ Edit Way</div>`);
-            items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('attach_item')}>🔗 Attach Edge…</div>`);
-            items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('connect_to')}>👆 Connect to…</div>`);
-            items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('create_trigger')}>⚡ Add Trigger Edge</div>`);
-            items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('connect_trigger')}>⚡ Connect Trigger to…</div>`);
-            items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('delete')}>🗑️ Delete Way</div>`);
-        } else if (nodeData?.type === 'character') {
-            items.push(contextMenuHtmlTag`<div class="context-menu-separator"></div>`);
-            items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('edit')}>✏️ Edit Character</div>`);
-            items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('attach_item')}>🔗 Attach Edge…</div>`);
-            items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('connect_to')}>👆 Connect to…</div>`);
-            items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('create_trigger')}>⚡ Add Trigger Edge</div>`);
-            items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('connect_trigger')}>⚡ Connect Trigger to…</div>`);
+            items.push(contextMenuHtmlTag `<div class="context-menu-separator"></div>`);
+            items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('add_item')}>📦 Add Item to Area</div>`);
+            items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('move_character')}>🧍 Move Character Here</div>`);
+            items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('create_character')}>✨ Create Character Here</div>`);
+            items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('attach_item')}>🔗 Attach Edge…</div>`);
+            items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('connect_to')}>👆 Connect to…</div>`);
+            items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('create_trigger')}>⚡ Add Trigger Edge</div>`);
+            items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('connect_trigger')}>⚡ Connect Trigger to…</div>`);
+            items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('place_on_map')}>📍 Place on Map…</div>`);
         }
-
-        items.push(contextMenuHtmlTag`<div class="context-menu-separator"></div>`);
-        items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('duplicate')}>📋 Duplicate</div>`);
-        items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('lib_search')}>📚 Show in Library</div>`);
-        items.push(contextMenuHtmlTag`<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('delete')}>🗑️ Delete Node</div>`);
-
-        window.Lit.render(contextMenuHtmlTag`${items}`, menu);
+        else if (nodeData?.type === 'item') {
+            items.push(contextMenuHtmlTag `<div class="context-menu-separator"></div>`);
+            items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('edit')}>✏️ Edit Item</div>`);
+            items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('save_to_lib')}>📚 Save to Library</div>`);
+            items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('attach_item')}>🔗 Attach Edge…</div>`);
+            items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('connect_to')}>👆 Connect to…</div>`);
+            items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('create_trigger')}>⚡ Add Trigger Edge</div>`);
+            items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('connect_trigger')}>⚡ Connect Trigger to…</div>`);
+            items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('delete')}>🗑️ Delete Item</div>`);
+        }
+        else if (nodeData?.type === 'way') {
+            items.push(contextMenuHtmlTag `<div class="context-menu-separator"></div>`);
+            items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('edit')}>✏️ Edit Way</div>`);
+            items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('attach_item')}>🔗 Attach Edge…</div>`);
+            items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('connect_to')}>👆 Connect to…</div>`);
+            items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('create_trigger')}>⚡ Add Trigger Edge</div>`);
+            items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('connect_trigger')}>⚡ Connect Trigger to…</div>`);
+            items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('delete')}>🗑️ Delete Way</div>`);
+        }
+        else if (nodeData?.type === 'character') {
+            items.push(contextMenuHtmlTag `<div class="context-menu-separator"></div>`);
+            items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('edit')}>✏️ Edit Character</div>`);
+            items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('attach_item')}>🔗 Attach Edge…</div>`);
+            items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('connect_to')}>👆 Connect to…</div>`);
+            items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('create_trigger')}>⚡ Add Trigger Edge</div>`);
+            items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('connect_trigger')}>⚡ Connect Trigger to…</div>`);
+        }
+        items.push(contextMenuHtmlTag `<div class="context-menu-separator"></div>`);
+        items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('duplicate')}>📋 Duplicate</div>`);
+        items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('lib_search')}>📚 Show in Library</div>`);
+        items.push(contextMenuHtmlTag `<div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('delete')}>🗑️ Delete Node</div>`);
+        window.Lit.render(contextMenuHtmlTag `${items}`, menu);
         menu.style.display = 'block';
         menu.style.left = event.clientX + 'px';
         menu.style.top = event.clientY + 'px';
         setTimeout(() => document.addEventListener('click', () => menu.style.display = 'none', { once: true }), 0);
     },
-
     /**
      * Handles a context menu action based on the action name.
      * Dispatches to the appropriate graphManager method or VW module.
@@ -87,11 +89,12 @@ window.GraphContextMenu = {
      */
     ctxAction(action) {
         const menu = document.getElementById('context-menu');
-        if (menu) menu.style.display = 'none';
+        if (menu)
+            menu.style.display = 'none';
         const target = graphManager._contextTarget;
-        if (!target) return;
+        if (!target)
+            return;
         const name = target.nodeData?.name || target.nodeId;
-
         switch (action) {
             case 'inspect': {
                 if (target.isEdge) {
@@ -99,23 +102,31 @@ window.GraphContextMenu = {
                     if (target.edgeData) {
                         graphManager._showEdgeInspector(target.edgeData);
                     }
-                } else {
+                }
+                else {
                     VW?.inspector?.showNode(target.nodeId);
                 }
                 break;
             }
-            case 'add_item': VW?.itemLib?.openForRoom(name); break;
-            case 'edit': VW?.inspector?.showNode(target.nodeId); break;
-            case 'save_to_lib': VW?.itemLib?.saveWorldItem(target.nodeId); break;
-            case 'delete': graphManager._deleteNode(target.nodeId); break;
+            case 'add_item':
+                VW?.itemLib?.openForRoom(name);
+                break;
+            case 'edit':
+                VW?.inspector?.showNode(target.nodeId);
+                break;
+            case 'save_to_lib':
+                VW?.itemLib?.saveWorldItem(target.nodeId);
+                break;
+            case 'delete':
+                graphManager._deleteNode(target.nodeId);
+                break;
             case 'delete_edge': {
                 if (target.edgeData) {
                     let rawType = target.edgeData.type || 'connection';
                     if (worldState.graph && worldState.graph.edges && (!rawType || rawType === 'connection')) {
-                        const matched = worldState.graph.edges.find(e =>
-                            e.source === target.edgeData.from && e.target === target.edgeData.to
-                        );
-                        if (matched) rawType = matched.type || 'connection';
+                        const matched = worldState.graph.edges.find((e) => e.source === target.edgeData.from && e.target === target.edgeData.to);
+                        if (matched)
+                            rawType = matched.type || 'connection';
                     }
                     graphManager._deleteEdge(target.edgeData.from, target.edgeData.to, rawType);
                 }
@@ -129,15 +140,20 @@ window.GraphContextMenu = {
                         events.log(`Cannot flip '${rawType}' edges`, 'error-msg');
                         break;
                     }
-                    ApiClient.flipEdge(target.edgeData.from, target.edgeData.to, rawType).then(res => {
-                        if (res.error) { events.log(`Flip failed: ${res.error}`, 'error-msg'); return; }
+                    ApiClient.flipEdge(target.edgeData.from, target.edgeData.to, rawType).then((res) => {
+                        if (res.error) {
+                            events.log(`Flip failed: ${res.error}`, 'error-msg');
+                            return;
+                        }
                         events.log(`Flipped edge ${res.source} ↔ ${res.target}`, 'system-msg');
                         worldState.fetch();
                     });
                 }
                 break;
             }
-            case 'duplicate': graphManager._duplicateNode(target.nodeId); break;
+            case 'duplicate':
+                graphManager._duplicateNode(target.nodeId);
+                break;
             case 'move_character': {
                 const players = Object.keys(worldState.players || {});
                 if (players.length === 0) {
@@ -149,8 +165,11 @@ window.GraphContextMenu = {
                     events.log('Character not found.', 'error-msg');
                     return;
                 }
-                ApiClient.movePlayerToRoom(characterName, name).then(res => {
-                    if (res.error) { events.log(`Move failed: ${res.error}`, 'error-msg'); return; }
+                ApiClient.movePlayerToRoom(characterName, name).then((res) => {
+                    if (res.error) {
+                        events.log(`Move failed: ${res.error}`, 'error-msg');
+                        return;
+                    }
                     events.log(`Moved "${characterName}" to "${name}"`, 'system-msg');
                     worldState.fetch();
                 });
@@ -158,9 +177,13 @@ window.GraphContextMenu = {
             }
             case 'create_character': {
                 const newName = prompt('Enter name for new character:', 'New Character');
-                if (!newName?.trim()) return;
-                ApiClient.createCharacter(newName.trim()).then(res => {
-                    if (res.error) { events.log(`Create failed: ${res.error}`, 'error-msg'); return; }
+                if (!newName?.trim())
+                    return;
+                ApiClient.createCharacter(newName.trim()).then((res) => {
+                    if (res.error) {
+                        events.log(`Create failed: ${res.error}`, 'error-msg');
+                        return;
+                    }
                     events.log(`Created "${newName}"`, 'system-msg');
                     // Move to area
                     ApiClient.movePlayerToRoom(newName.trim(), name).then(() => {
@@ -175,8 +198,9 @@ window.GraphContextMenu = {
             case 'connect_to': {
                 const fromNodeId = target.nodeId;
                 const fromNode = graphManager.nodes.get(fromNodeId);
-                if (!fromNode) break;
-                const edgeTypes = EdgeTypes.validForSource(fromNode.type);
+                if (!fromNode)
+                    break;
+                const edgeTypes = window.EdgeTypes.validForSource(fromNode.type);
                 graphManager.startPendingConnection(fromNodeId, edgeTypes[0]);
                 break;
             }
@@ -191,7 +215,8 @@ window.GraphContextMenu = {
                 const scopeId = props.world_scope_id || 'world';
                 if (window.VW && VW.worldPainter && typeof VW.worldPainter.open === 'function') {
                     VW.worldPainter.open(scopeId, { tool: 'area', areaId: target.nodeId });
-                } else if (typeof toastError === 'function') {
+                }
+                else if (typeof toastError === 'function') {
                     toastError('The WorldPainter is not available.');
                 }
                 break;
@@ -203,13 +228,13 @@ window.GraphContextMenu = {
                 VW?.itemLib?.open();
                 if (target.nodeType === 'item') {
                     const search = document.getElementById('item-lib-search');
-                    if (search) search.value = name;
-                    filterItemLibrary();
+                    if (search)
+                        search.value = name;
+                    window.filterItemLibrary();
                 }
                 break;
         }
     },
-
     /**
      * Shows a context menu for a graph edge (connection between nodes).
      * Provides Inspect Edge and Delete Edge options.
@@ -220,9 +245,9 @@ window.GraphContextMenu = {
     showEdgeContextMenu(event, edgeData) {
         graphManager._contextTarget = { edgeData, isEdge: true };
         const menu = document.getElementById('context-menu');
-        if (!menu) return;
-
-        window.Lit.render(contextMenuHtmlTag`
+        if (!menu)
+            return;
+        window.Lit.render(contextMenuHtmlTag `
             <div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('inspect')}>🔍 Inspect Edge</div>
             <div class="context-menu-separator"></div>
             <div class="context-menu-item" @click=${() => GraphContextMenu.ctxAction('flip_edge')}>🔀 Flip Edge</div>

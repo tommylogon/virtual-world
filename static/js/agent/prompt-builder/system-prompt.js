@@ -1,3 +1,4 @@
+"use strict";
 /**
  * prompt-builder/system-prompt.js — Character system prompt (compact ACTIONS core
  * + rules). Per-verb availability is dynamic and lives in the per-turn context via
@@ -19,11 +20,10 @@
  * @relates needs schema-fragments.js loaded first (EMOTE_RULES_SYSTEM); per-verb availability lives in contextual-actions.js
  * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */
-
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 window.PromptBuilder = window.PromptBuilder || {};
 (() => {
     'use strict';
-
     const ACTIONS_CORE = `
 
 === ACTIONS ===
@@ -50,18 +50,15 @@ Your turn context shows what's around you — each item, door, exit, person, and
   - ANTI-REPEAT: Your === CONVERSATION === section lists lines you already said. Do not repeat one of them unless you are genuinely insisting. If you have nothing new, staying silent is better than echoing yourself.
   - GROUP COLLABORATION: You are part of a group. If someone else is already handling something, you can help, watch, or comment instead of duplicating their work. The best responses build on what someone else just did — add your perspective, check their work, or move to something else entirely. Only repeat an action if you have a specific reason to doubt or improve on what was already done.
 `;
-
     const GHOST_ACTIONS = `
 
 You are dead. You can observe and move as a ghost, but cannot interact physically without a skill check.
 | Manifest | manifest | manifest | Ghost only: become visible |
 | Vanish | vanish | vanish | Ghost only: become invisible |`;
-
     const ITEMS_VS_FLAVOR = `
 
 === ITEMS vs FLAVOR ===
 The "Items that catch your attention:" list is everything you can interact with in the area. Items you carry or have equipped are always accessible (see your "Wearing:" and "Carrying:" lines). Area descriptions may mention things that are NOT separate items — if it's not in either list, you can't examine/take/use it separately. Use "inventory" to see what you're carrying, "look" for the full area view.`;
-
     const ACTION_STRUCTURE = `
 
 === ACTION STRUCTURE ===
@@ -81,7 +78,6 @@ Examples:
 - {"action":"put","item":"the pen","target":"the table","relation":"on"}  → place on a surface
 - {"action":"give","item":"the key","target":"the stranger"}   → hand to someone nearby
 - {"action":"use_on","item":"ink pen","target":"parchment","text":"Don't go there"}  → WRITE the text onto a writable item (leave "text" null for other use_on actions)`;
-
     const MATURE_ACTIONS = `
 
 === INTIMACY (adult worlds only) ===
@@ -89,7 +85,6 @@ Intimate verbs are available: kiss, caress, lick, suck, bite, pinch, blow, tickl
 - {"action":"kiss","target":"lydia","where":"lips"}             → a kiss
 - {"action":"pinch","target":"lydia","where":"left nipple","intensity":"firm"}  → sharp contact — can hurt
 `;
-
     const SPEECH_VOLUME = `
 
 === SPEECH & VOLUME ===
@@ -103,28 +98,28 @@ For a speech-only turn, omit "action". If you say nothing, set "speech": null. T
 - Never add fields that aren't in the examples (no "stats", no "inventory", no extras)
 
 `;
-
     /** World-lore header shared by both system prompts ('' when there is no lore). */
     function _loreHeader(player) {
         const lore = worldState.data?.world_lore || [];
-        if (!lore.length) return '';
-        const charTags = (player?.tags || []).map(t => String(t).toLowerCase());
-        const visible = lore.filter(entry => {
-            const allowed = (entry.allowed_tags || []);
-            if (!allowed.length) return true;
-            return allowed.some(t => charTags.includes(String(t).toLowerCase()));
+        if (!lore.length)
+            return '';
+        const charTags = (player?.tags || []).map((t) => String(t).toLowerCase());
+        const visible = lore.filter((entry) => {
+            const allowed = entry.allowed_tags || [];
+            if (!allowed.length)
+                return true;
+            return allowed.some((t) => charTags.includes(String(t).toLowerCase()));
         });
-        if (!visible.length) return '';
-        const lines = visible.map(entry => `[${entry.category || 'general'}] ${entry.title}: ${entry.content}`);
+        if (!visible.length)
+            return '';
+        const lines = visible.map((entry) => `[${entry.category || 'general'}] ${entry.title}: ${entry.content}`);
         return `\n=== WORLD LORE ===\n${lines.join('\n')}\n`;
     }
-
     /** Brevity instruction; `tail` names the fields this phase is allowed to emit. */
     function _brevityRule(softMaxTokens, tail) {
-        const limit = softMaxTokens || config.maxTokens || 512;
+        const limit = softMaxTokens || Number(config.maxTokens) || 512;
         return `\n\n=== RESPONSE LENGTH ===\nKeep your response under ${limit} tokens. Be concise — ${tail}`;
     }
-
     /**
      * Build the character system prompt — the core personality and rules prompt
      * that defines how the character should behave and what commands are available.
@@ -134,25 +129,23 @@ For a speech-only turn, omit "action". If you say nothing, set "speech": null. T
      * @returns {string} Full system prompt string
      */
     function buildCharacterSystemPrompt(charName, player, softMaxTokens) {
-        if (!player) throw new Error(`buildCharacterSystemPrompt: player is null for "${charName}" — call site should validate before caching history`);
+        if (!player)
+            throw new Error(`buildCharacterSystemPrompt: player is null for "${charName}" — call site should validate before caching history`);
         const dead = player.state === 'dead';
-
         let prompt = _loreHeader(player);
         const brevityRule = _brevityRule(softMaxTokens, 'inner monologue, speech, and action should be brief and natural.');
-
         const parts = [
             ACTIONS_CORE,
             PromptBuilder.EMOTE_RULES_SYSTEM,
         ];
-        if (dead) parts.push(GHOST_ACTIONS);
-        if (window.config?.matureContent) parts.push(MATURE_ACTIONS);
+        if (dead)
+            parts.push(GHOST_ACTIONS);
+        if (config?.matureContent)
+            parts.push(MATURE_ACTIONS);
         parts.push(ITEMS_VS_FLAVOR, ACTION_STRUCTURE, SPEECH_VOLUME, brevityRule);
-
         prompt += parts.join('');
-
         return prompt;
     }
-
     /**
      * Dedicated minimal system prompt for the result-reaction call. The react
      * phase cannot take actions, so the action-law blocks (ACTIONS / ACTION
@@ -162,22 +155,19 @@ For a speech-only turn, omit "action". If you say nothing, set "speech": null. T
      * speech & volume (the react instructions reference it), JSON rules, length.
      */
     function buildReactSystemPrompt(charName, player, softMaxTokens) {
-        if (!player) throw new Error(`buildReactSystemPrompt: player is null for "${charName}"`);
+        if (!player)
+            throw new Error(`buildReactSystemPrompt: player is null for "${charName}"`);
         let prompt = _loreHeader(player);
         const brevityRule = _brevityRule(softMaxTokens, 'inner monologue, speech, and emote should be brief and natural.');
-
         const parts = [
             `\n=== REACT MODE ===\nThis is the instant after your own action resolved. You cannot take new actions in this phase — respond only with inner_monologue, speech (rarely), emote, memory, and emotion.`,
             PromptBuilder.EMOTE_RULES_SYSTEM,
             SPEECH_VOLUME,
             brevityRule,
         ];
-
         prompt += parts.join('');
-
         return prompt;
     }
-
     Object.assign(window.PromptBuilder, {
         buildCharacterSystemPrompt,
         buildReactSystemPrompt

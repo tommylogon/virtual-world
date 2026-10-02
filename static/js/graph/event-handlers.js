@@ -1,3 +1,4 @@
+"use strict";
 /**
  * GraphEventHandlers — click, context, and manipulation event handlers for the vis.js graph
  * Handles node/edge clicks, right-click context menus, and the vis.js addNode/addEdge
@@ -10,7 +11,10 @@
  * @relates wired in GraphNetwork.init; delegates to GraphContextMenu + GraphNodeOps + GraphBackground
  * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */
-window.GraphEventHandlers = {
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+// Named `GraphEventHandlersModule` because the global `GraphEventHandlers`
+// ambient declaration below would otherwise collide with a same-named const.
+const GraphEventHandlersModule = {
     /**
      * The modifier keys of a vis.js interaction (bug-49).
      *
@@ -31,7 +35,8 @@ window.GraphEventHandlers = {
         const raw = params && params.event;
         const list = Array.isArray(raw) ? raw : [raw];
         for (const ev of list) {
-            if (!ev) continue;
+            if (!ev)
+                continue;
             const src = ev.srcEvent || ev;
             if (src.shiftKey || src.ctrlKey || src.metaKey || src.altKey) {
                 return {
@@ -44,7 +49,6 @@ window.GraphEventHandlers = {
         }
         return { shiftKey: false, ctrlKey: false, metaKey: false, altKey: false };
     },
-
     /**
      * Handles click events on the vis.js network.
      * Opens the inspector for the clicked node or edge, or hides the inspector on empty click.
@@ -62,30 +66,35 @@ window.GraphEventHandlers = {
         if (params.nodes.length > 0) {
             // task-378: shift-click toggles bulk selection (no inspector open).
             // `modifiers` reads srcEvent — params.event itself has no shiftKey.
-            if (GraphEventHandlers.modifiers(params).shiftKey && !graphManager._pendingConnection) {
+            if (GraphEventHandlersModule.modifiers(params).shiftKey && !graphManager._pendingConnection) {
                 graphManager._toggleBulkSelect(params.nodes[0]);
                 return;
             }
             const nodeId = params.nodes[0];
             const nodeData = graphManager.nodes.get(nodeId);
             if (nodeData?.type === 'character' && nodeData.name && worldState.players?.[nodeData.name]) {
-                if (typeof ui !== 'undefined' && ui.selectAgent) ui.selectAgent(nodeData.name);
-                else VW?.inspector?.showNode(nodeId);
-            } else {
+                if (typeof ui !== 'undefined' && ui.selectAgent)
+                    ui.selectAgent(nodeData.name);
+                else
+                    VW?.inspector?.showNode(nodeId);
+            }
+            else {
                 VW?.inspector?.showNode(nodeId);
             }
             GraphNetwork.revealItemsForNode(nodeId);
             if (nodeData?.type === 'way') {
                 GraphNetwork.revealAreasForWay(nodeId);
             }
-        } else if (params.edges.length > 0) {
+        }
+        else if (params.edges.length > 0) {
             const edgeId = params.edges[0];
             let edgeData = null;
             if (graphManager.network.body?.data?.edges) {
                 edgeData = graphManager.network.body.data.edges.get(edgeId);
             }
             graphManager._showEdgeInspector(edgeData || { id: edgeId, from: edgeId, to: edgeId, label: 'unknown' });
-        } else {
+        }
+        else {
             if (graphManager._pendingConnection) {
                 graphManager.cancelPendingConnection();
                 return;
@@ -96,7 +105,6 @@ window.GraphEventHandlers = {
             hideInspectorPanel();
         }
     },
-
     /**
      * Double-click: if the node is a placed child zone (a feature cell carrying
      * `child_scope_id`), load that scope into the graph — the level-scoped
@@ -106,15 +114,17 @@ window.GraphEventHandlers = {
      */
     onDoubleClick(params) {
         const nodeId = params?.nodes?.[0];
-        if (!nodeId) return;
+        if (!nodeId)
+            return;
         const nodeData = graphManager.nodes.get(nodeId);
         const childScope = nodeData?.properties?.child_scope_id;
-        if (!childScope) return;
+        if (!childScope)
+            return;
         const sel = document.getElementById('graph-scope-filter');
         graphManager.setScopeFilter(childScope);
-        if (sel) sel.value = childScope;
+        if (sel)
+            sel.value = String(childScope);
     },
-
     /**
      * Handles right-click (context) events on the vis.js network.
      * Shows a context menu for the clicked node or edge.
@@ -122,25 +132,27 @@ window.GraphEventHandlers = {
      * @param {Object} params - vis.js context event parameters (nodes, edges arrays, event)
      */
     onContext(params) {
-        params.event.preventDefault();
+        const rawEvent = params.event;
+        (Array.isArray(rawEvent) ? rawEvent[0] : rawEvent)?.preventDefault?.();
         if (params.nodes.length > 0) {
             const nodeId = params.nodes[0];
             const nodeData = graphManager.nodes.get(nodeId);
             GraphContextMenu.showContextMenu(params.event, nodeData, nodeId);
-        } else if (params.edges.length > 0) {
+        }
+        else if (params.edges.length > 0) {
             const edgeId = params.edges[0];
             let edgeData = null;
             if (graphManager.network.body?.data?.edges) {
                 edgeData = graphManager.network.body.data.edges.get(edgeId);
             }
             GraphContextMenu.showEdgeContextMenu(params.event, edgeData || { id: edgeId, from: edgeId, to: edgeId, label: 'unknown' });
-        } else if (window.GraphBackground) {
+        }
+        else if (window.GraphBackground) {
             // Empty canvas → the graph-map menu (add/edit/crop the background,
             // lock nodes, save the layout).
             window.GraphBackground.showCanvasMenu(params.event);
         }
     },
-
     /**
      * Handles the vis.js addNode manipulation event.
      * Opens a create area modal and creates the new area on submit.
@@ -151,14 +163,20 @@ window.GraphEventHandlers = {
     onAddNode(data, callback) {
         callback(null);
         openCreateModal('area', async (formData) => {
-            if (!formData.name) { toastInfo('Area name required'); return; }
+            if (!formData.name) {
+                toastInfo('Area name required');
+                return;
+            }
             const res = await ApiClient.createRoom(formData);
-            if (res.error) toastError('Error: ' + res.error);
-            else { events.log(`Created area: ${formData.name}`, 'system-msg'); worldState.fetch(); }
+            if (res.error)
+                toastError('Error: ' + res.error);
+            else {
+                events.log(`Created area: ${formData.name}`, 'system-msg');
+                worldState.fetch();
+            }
             graphEditor.setTool('select');
         });
     },
-
     /**
      * Handles the vis.js addEdge manipulation event.
      * Validates the connection (must be between areas) and opens
@@ -168,49 +186,67 @@ window.GraphEventHandlers = {
      * @param {Function} callback - vis.js callback to finalize edge creation
      */
     onAddEdge(data, callback) {
-        if (data.from === data.to) { toastInfo('Cannot connect node to itself.'); callback(null); return; }
+        if (data.from === data.to) {
+            toastInfo('Cannot connect node to itself.');
+            callback(null);
+            return;
+        }
         callback(null);
         const fromNode = graphManager.nodes.get(data.from);
         const toNode = graphManager.nodes.get(data.to);
-        if (!fromNode || !toNode) { toastInfo('Invalid nodes.'); return; }
+        if (!fromNode || !toNode) {
+            toastInfo('Invalid nodes.');
+            return;
+        }
         if (fromNode.type === 'area' && toNode.type === 'area') {
             openCreateModal('connection', async (formData) => {
-            if (!formData.room1 || !formData.room2) { toastInfo('Select both areas'); return; }
-            if (formData.room1 === formData.room2) { toastInfo('Pick two different areas.'); return; }
-            const payload = {
-                room1: formData.room1, room2: formData.room2,
-                dir1: formData.dir1.trim(), dir2: formData.dir2.trim(),
-                name: formData.name || '',
-                one_way: formData.one_way || false,
-                state: formData.state || (formData.locked ? 'locked' : 'open'),
-                description: formData.description || `A ${formData.locked ? 'locked' : ''} way`.trim(),
-                way_id: formData.way_id || '',
-                pass_message: formData.pass_message || '',
-                auto_close: formData.auto_close || false,
-                see_through: formData.see_through || false,
-                needs_open: formData.needs_open || { enabled: false, skill: 'Athletics', dc: 15 },
-                tags: formData.tags || [],
-                triggers: formData.triggers || [],
-                view_from_a: formData.view_from_a || '',
-                view_from_b: formData.view_from_b || '',
-            };
+                if (!formData.room1 || !formData.room2) {
+                    toastInfo('Select both areas');
+                    return;
+                }
+                if (formData.room1 === formData.room2) {
+                    toastInfo('Pick two different areas.');
+                    return;
+                }
+                const payload = {
+                    room1: formData.room1, room2: formData.room2,
+                    dir1: formData.dir1.trim(), dir2: formData.dir2.trim(),
+                    name: formData.name || '',
+                    one_way: formData.one_way || false,
+                    state: formData.state || (formData.locked ? 'locked' : 'open'),
+                    description: formData.description || `A ${formData.locked ? 'locked' : ''} way`.trim(),
+                    way_id: formData.way_id || '',
+                    pass_message: formData.pass_message || '',
+                    auto_close: formData.auto_close || false,
+                    see_through: formData.see_through || false,
+                    needs_open: formData.needs_open || { enabled: false, skill: 'Athletics', dc: 15 },
+                    tags: formData.tags || [],
+                    triggers: formData.triggers || [],
+                    view_from_a: formData.view_from_a || '',
+                    view_from_b: formData.view_from_b || '',
+                };
                 const res = await ApiClient.connectRooms(payload);
-                if (res.error) toastError('Error: ' + res.error);
-                else { events.log(connectSummary(res, { room1: formData.room1, room2: formData.room2, way_id: formData.way_id }), 'system-msg'); worldState.fetch(); }
+                if (res.error)
+                    toastError('Error: ' + res.error);
+                else {
+                    events.log(connectSummary(res, { room1: formData.room1, room2: formData.room2, way_id: formData.way_id }), 'system-msg');
+                    worldState.fetch();
+                }
                 graphEditor.setTool('select');
             });
-        } else {
+        }
+        else {
             graphManager._createEdgeWithType(data.from);
         }
     },
-
     /**
      * Handles drag end events on the vis.js network (position saving).
      * Reserved for future use — currently a no-op.
      *
      * @param {Object} params - vis.js drag end event parameters
      */
-    onDragEnd(/* params */) {
+    onDragEnd( /* params */) {
         // Reserved for future position-saving implementation
     }
 };
+window.GraphEventHandlers = GraphEventHandlersModule;

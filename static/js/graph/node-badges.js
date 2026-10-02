@@ -1,3 +1,4 @@
+"use strict";
 /**
  * NodeBadges — compact emoji indicators for graph node labels.
  * Trait badges (mechanics) appear before tag-library icons; both are capped
@@ -12,22 +13,22 @@
  * @relates used by GraphNetwork.buildNodeConfig; reads the tag library
  * @docs docs/virtualWorld/Library System/Tags System.md
  */
-window.NodeBadges = {
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+// Named `NodeBadgesModule` rather than assigning straight to `window.NodeBadges`
+// so the module keeps a real type and self-references resolve to it.
+const NodeBadgesModule = {
     MAX_TRAIT_BADGES: 5,
     MAX_TAG_ICONS: 2,
-
     /** States/styles drawn on the node shape — no duplicate emoji on the label. */
     NODE_GRAPH_VISUALS: {
         way: ['open', 'closed', 'locked', 'hidden', 'blocked', 'broken', 'one_way_border'],
         item: ['lit', 'broken', 'depleted'],
     },
-
     WAY_REQUIRES: {
         jump: { emoji: '🦘', title: 'Jump passage (jump <dir>)' },
         climb: { emoji: '🧗', title: 'Climb passage (climb <dir>)' },
         crawl: { emoji: '🐛', title: 'Crawl passage (auto-crawl on go)' },
     },
-
     MAX_SIZE: {
         tiny: { emoji: '🐜', title: 'Max size: tiny' },
         small: { emoji: '🐀', title: 'Max size: small' },
@@ -36,22 +37,21 @@ window.NodeBadges = {
         giant: { emoji: '🦣', title: 'Max size: giant' },
         titanic: { emoji: '🐋', title: 'Max size: titanic' },
     },
-
     /**
      * @param {Object} nodeData
      * @returns {Array<{emoji:string, title:string}>}
      */
     collectTraitBadges(nodeData) {
-        if (!nodeData) return [];
+        if (!nodeData)
+            return [];
         switch (nodeData.type) {
-            case 'way': return NodeBadges._wayBadges(nodeData);
-            case 'item': return NodeBadges._itemBadges(nodeData);
-            case 'character': return NodeBadges._characterBadges(nodeData);
-            case 'area': return NodeBadges._areaBadges(nodeData);
+            case 'way': return NodeBadgesModule._wayBadges(nodeData);
+            case 'item': return NodeBadgesModule._itemBadges(nodeData);
+            case 'character': return NodeBadgesModule._characterBadges(nodeData);
+            case 'area': return NodeBadgesModule._areaBadges(nodeData);
             default: return [];
         }
     },
-
     /**
      * Build the vis-network label: trait emojis + tag icons + name.
      * @param {Object} nodeData
@@ -66,24 +66,23 @@ window.NodeBadges = {
         if (!name && nodeData?.id) {
             name = nodeData.id.replace(/^(area|item|way|character|trigger|logic_trigger)_/, '');
         }
-        if (!name) name = '?';
-        const traits = NodeBadges.collectTraitBadges(nodeData)
-            .slice(0, NodeBadges.MAX_TRAIT_BADGES)
-            .map(b => b.emoji)
+        if (!name)
+            name = '?';
+        const traits = NodeBadgesModule.collectTraitBadges(nodeData)
+            .slice(0, NodeBadgesModule.MAX_TRAIT_BADGES)
+            .map((b) => b.emoji)
             .join('');
         const tags = (tagMeta || [])
-            .slice(0, NodeBadges.MAX_TAG_ICONS)
-            .map(m => m.icon)
+            .slice(0, NodeBadgesModule.MAX_TAG_ICONS)
+            .map((m) => m.icon)
             .join('');
         const prefix = traits + tags;
         return prefix ? `${prefix} ${name}` : name;
     },
-
     /** Plain-text lines for tooltips describing active trait badges. */
     traitTooltipLines(nodeData) {
-        return NodeBadges.collectTraitBadges(nodeData).map(b => `${b.emoji} ${b.title}`);
+        return NodeBadgesModule.collectTraitBadges(nodeData).map((b) => `${b.emoji} ${b.title}`);
     },
-
     /** HTML fragment for the graph legend. */
     legendHtml() {
         return `<div style="font-size:9px;color:var(--text-muted);margin:6px 0 2px;">Label badges:</div>
@@ -96,107 +95,100 @@ window.NodeBadges = {
             <div class="legend-row"><span style="font-size:11px;">🌑🏢</span><span style="font-size:9px;"> dark area / not on the ground storey</span></div>
             <div style="font-size:9px;color:var(--text-muted);margin-top:4px;">Way/item state (open, locked, lit…) uses node color — see legend above.</div>`;
     },
-
     _push(badges, seen, entry) {
-        if (!entry || seen.has(entry.title)) return;
+        if (!entry || seen.has(entry.title))
+            return;
         seen.add(entry.title);
         badges.push(entry);
     },
-
     _normalizeTags(props) {
         let tags = props?.tags || [];
-        if (typeof tags === 'string') tags = tags.split(',').map(t => t.trim()).filter(Boolean);
-        return Array.isArray(tags) ? tags.map(t => String(t).toLowerCase()) : [];
+        if (typeof tags === 'string')
+            tags = tags.split(',').map((t) => t.trim()).filter(Boolean);
+        return Array.isArray(tags) ? tags.map((t) => String(t).toLowerCase()) : [];
     },
-
     _triggerCount(nodeId) {
         const edges = worldState?.graph?.edges || [];
-        return edges.filter(e => e.type === 'triggers' && (e.source === nodeId || e.target === nodeId)).length;
+        return edges.filter((e) => e.type === 'triggers' && (e.source === nodeId || e.target === nodeId)).length;
     },
-
     _wayBadges(nodeData) {
         const props = nodeData.properties || {};
         const badges = [];
         const seen = new Set();
-
-        const req = (props.requires || '').toLowerCase();
-        if (NodeBadges.WAY_REQUIRES[req]) NodeBadges._push(badges, seen, NodeBadges.WAY_REQUIRES[req]);
-
+        const req = String(props.requires || '').toLowerCase();
+        if (NodeBadgesModule.WAY_REQUIRES[req]) {
+            NodeBadgesModule._push(badges, seen, NodeBadgesModule.WAY_REQUIRES[req]);
+        }
         const needsOpen = props.needs_open || {};
         if (needsOpen.enabled) {
             const skill = needsOpen.skill || 'Athletics';
             const dc = needsOpen.dc ?? 15;
-            NodeBadges._push(badges, seen, { emoji: '💪', title: `Skill check to open (${skill} DC ${dc})` });
+            NodeBadgesModule._push(badges, seen, { emoji: '💪', title: `Skill check to open (${skill} DC ${dc})` });
         }
-
         // one_way: blue border on the triangle — no ➡️ badge
-        if (props.see_through) NodeBadges._push(badges, seen, { emoji: '👁', title: 'See-through (view beyond)' });
-        if (props.auto_close) NodeBadges._push(badges, seen, { emoji: '🔄', title: 'Auto-closes after use' });
-
-        const maxSize = (props.max_size || '').toLowerCase();
-        if (maxSize && maxSize !== 'none' && NodeBadges.MAX_SIZE[maxSize]) {
-            NodeBadges._push(badges, seen, NodeBadges.MAX_SIZE[maxSize]);
+        if (props.see_through)
+            NodeBadgesModule._push(badges, seen, { emoji: '👁', title: 'See-through (view beyond)' });
+        if (props.auto_close)
+            NodeBadgesModule._push(badges, seen, { emoji: '🔄', title: 'Auto-closes after use' });
+        const maxSize = String(props.max_size || '').toLowerCase();
+        if (maxSize && maxSize !== 'none' && NodeBadgesModule.MAX_SIZE[maxSize]) {
+            NodeBadgesModule._push(badges, seen, NodeBadgesModule.MAX_SIZE[maxSize]);
         }
-
         return badges;
     },
-
     _itemBadges(nodeData) {
         const props = nodeData.properties || {};
         const badges = [];
         const seen = new Set();
-        const tags = NodeBadges._normalizeTags(props);
-
+        const tags = NodeBadgesModule._normalizeTags(props);
         // current_state (lit/broken/depleted/locked): node color or tooltip — no emoji
-
-        if (tags.includes('container')) NodeBadges._push(badges, seen, { emoji: '🧰', title: 'Container' });
-        if ((props.equip_slots || []).length > 0) NodeBadges._push(badges, seen, { emoji: '👕', title: 'Equippable' });
-
-        const triggerCount = NodeBadges._triggerCount(nodeData.id);
+        if (tags.includes('container'))
+            NodeBadgesModule._push(badges, seen, { emoji: '🧰', title: 'Container' });
+        if ((props.equip_slots || []).length > 0)
+            NodeBadgesModule._push(badges, seen, { emoji: '👕', title: 'Equippable' });
+        const triggerCount = NodeBadgesModule._triggerCount(nodeData.id);
         if (triggerCount > 0) {
-            NodeBadges._push(badges, seen, {
+            NodeBadgesModule._push(badges, seen, {
                 emoji: '⚡',
                 title: triggerCount === 1 ? 'Has trigger' : `Has ${triggerCount} triggers`,
             });
         }
-
         return badges;
     },
-
     _characterBadges(nodeData) {
         const name = nodeData.name;
         const player = worldState?.players?.[name];
         const badges = [];
         const seen = new Set();
-
         let controlMode = 'llm';
         if (typeof eventStream !== 'undefined' && eventStream.getControlMode) {
             controlMode = eventStream.getControlMode(name);
-        } else if (player?.simple_npc) {
+        }
+        else if (player?.simple_npc) {
             controlMode = 'npc';
         }
-
-        if (controlMode === 'npc') NodeBadges._push(badges, seen, { emoji: '🤖', title: 'Scripted NPC' });
-        else if (controlMode === 'human') NodeBadges._push(badges, seen, { emoji: '👤', title: 'Human-controlled' });
-        else NodeBadges._push(badges, seen, { emoji: '🧠', title: 'LLM agent' });
-
+        if (controlMode === 'npc')
+            NodeBadgesModule._push(badges, seen, { emoji: '🤖', title: 'Scripted NPC' });
+        else if (controlMode === 'human')
+            NodeBadgesModule._push(badges, seen, { emoji: '👤', title: 'Human-controlled' });
+        else
+            NodeBadgesModule._push(badges, seen, { emoji: '🧠', title: 'LLM agent' });
         if (player) {
             const state = (player.state || '').toLowerCase();
-            if (state === 'dead') NodeBadges._push(badges, seen, { emoji: '💀', title: 'Dead' });
-            else if (state === 'unconscious') NodeBadges._push(badges, seen, { emoji: '😴', title: 'Unconscious' });
-
+            if (state === 'dead')
+                NodeBadgesModule._push(badges, seen, { emoji: '💀', title: 'Dead' });
+            else if (state === 'unconscious')
+                NodeBadgesModule._push(badges, seen, { emoji: '😴', title: 'Unconscious' });
             const activity = player.activity?.type || player.activity;
-            if (activity === 'sleep') NodeBadges._push(badges, seen, { emoji: '💤', title: 'Sleeping' });
+            if (activity === 'sleep')
+                NodeBadgesModule._push(badges, seen, { emoji: '💤', title: 'Sleeping' });
         }
-
         return badges;
     },
-
     _areaBadges(nodeData) {
         const props = nodeData.properties || {};
         const badges = [];
         const seen = new Set();
-
         // `floor` is a storey index (0 ground, 1 up, -1 down, unbounded). A
         // non-numeric value is a save written before the ground material moved to
         // `properties.surface`; it counts as ground rather than a storey called
@@ -204,27 +196,29 @@ window.NodeBadges = {
         const parsed = Number(props.floor ?? 0);
         const floor = Number.isFinite(parsed) ? Math.round(parsed) : 0;
         if (floor !== 0) {
-            NodeBadges._push(badges, seen, {
+            NodeBadgesModule._push(badges, seen, {
                 emoji: floor > 0 ? '🏢' : '🕳️',
                 title: floor > 0 ? `Floor ${floor}` : `Floor ${floor} (below ground)`,
             });
         }
-
         const light = props.environment?.light;
         if (typeof light === 'number' && light <= 20) {
-            NodeBadges._push(badges, seen, { emoji: '🌑', title: 'Very dark' });
-        } else if (typeof light === 'string' && ['dark', 'pitch black', 'dim'].includes(light.toLowerCase())) {
-            NodeBadges._push(badges, seen, { emoji: '🌑', title: 'Dark area' });
+            NodeBadgesModule._push(badges, seen, { emoji: '🌑', title: 'Very dark' });
         }
-
-        const triggerCount = NodeBadges._triggerCount(nodeData.id);
+        else if (typeof light === 'string' && ['dark', 'pitch black', 'dim'].includes(light.toLowerCase())) {
+            NodeBadgesModule._push(badges, seen, { emoji: '🌑', title: 'Dark area' });
+        }
+        const triggerCount = NodeBadgesModule._triggerCount(nodeData.id);
         if (triggerCount > 0) {
-            NodeBadges._push(badges, seen, {
+            NodeBadgesModule._push(badges, seen, {
                 emoji: '⚡',
                 title: triggerCount === 1 ? 'Area trigger' : `${triggerCount} area triggers`,
             });
         }
-
         return badges;
     },
 };
+window.NodeBadges = NodeBadgesModule;
+// `eventStream` has no ambient declaration, and this module is loaded before
+// it in some graph-only pages, so it is read defensively through the window.
+const eventStream = window.eventStream;

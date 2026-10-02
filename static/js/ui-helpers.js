@@ -1,3 +1,4 @@
+"use strict";
 /**
  * @module ui-helpers — shared UI utilities
  * @contributes toast/notify helpers (Notyf) plus select-enhancement helpers
@@ -5,12 +6,16 @@
  * @relates leaf utility used app-wide (saveload-view, settings-view, engine-config-view, …)
  * @docs none
  */
-
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 // ─── Notyf Toast Notifications ───
+// The first statement must stay a value declaration: tsc drops a file's leading
+// JSDoc when the first statement is type-only, and js_module_index.py reads
+// `@module` out of the emitted .js. All interfaces therefore live at the bottom.
 let _notyf = null;
 function getNotyf() {
     if (!_notyf) {
-        _notyf = new Notyf({
+        const NotyfCtor = window.Notyf;
+        _notyf = new NotyfCtor({
             duration: 3000,
             position: { x: 'right', y: 'top' },
             dismissible: true,
@@ -24,25 +29,25 @@ function getNotyf() {
     }
     return _notyf;
 }
-
 function toast(msg, type = 'success') {
     try {
         getNotyf().open({ type, message: msg });
-    } catch (e) {
+    }
+    catch (e) {
         console.log(`[toast ${type}] ${msg}`);
     }
 }
-
 function toastSuccess(msg) { toast(msg, 'success'); }
 function toastError(msg) { toast(msg, 'error'); }
 function toastInfo(msg) { toast(msg, 'info'); }
 function toastWarning(msg) { toast(msg, 'warning'); }
-
 // ─── Choices.js Select Helpers ───
 function enhanceSelect(el, opts = {}) {
-    if (!el || typeof Choices === 'undefined') return null;
+    const ChoicesCtor = window.Choices;
+    if (!el || !ChoicesCtor)
+        return null;
     try {
-        return new Choices(el, {
+        return new ChoicesCtor(el, {
             allowHTML: true,
             searchEnabled: opts.searchEnabled !== false,
             itemSelectText: '',
@@ -54,36 +59,43 @@ function enhanceSelect(el, opts = {}) {
             noChoicesText: 'No options available',
             ...opts
         });
-    } catch (e) {
+    }
+    catch (e) {
         console.warn('Choices init failed:', e);
         return null;
     }
 }
-
 // Re-scan the document for choices-enhanced selects (call after dynamic content is added)
 function reinitChoices(container) {
-    if (typeof Choices === 'undefined') return;
+    if (!window.Choices)
+        return;
     const root = container || document;
     root.querySelectorAll('select.choices-init').forEach(el => {
-        if (!el._choices) {
-            el._choices = enhanceSelect(el);
+        const enhanced = el;
+        if (!enhanced._choices) {
+            enhanced._choices = enhanceSelect(enhanced);
         }
     });
 }
-
 // ─── Dropdown Menus (top bar "Game ▾", toolbar "More ▾") ───
 function closeTopMenus() {
     document.querySelectorAll('.dropdown-menu.menu-open').forEach(m => { m.style.display = 'none'; m.classList.remove('menu-open'); });
     document.removeEventListener('click', closeTopMenus);
     // Toolbar popovers carry aria-expanded; this helper is called straight from
     // their menu items, so it has to leave the triggers' state truthful too.
-    if (window.GraphToolbar) GraphToolbar.syncAria();
+    // GraphToolbar is declared as a bare global (not on Window) in
+    // types/globals.d.ts. `typeof` keeps the original "absent means skip"
+    // semantics — a bare `GraphToolbar.syncAria()` would throw a ReferenceError
+    // on a page that never loaded graph/toolbar.js.
+    if (typeof GraphToolbar !== 'undefined' && GraphToolbar)
+        GraphToolbar.syncAria();
 }
-
 function toggleTopMenu(ev, id) {
-    if (ev) ev.stopPropagation();
+    if (ev)
+        ev.stopPropagation();
     const menu = document.getElementById(id);
-    if (!menu) return;
+    if (!menu)
+        return;
     const wasOpen = menu.classList.contains('menu-open');
     closeTopMenus();
     if (!wasOpen) {

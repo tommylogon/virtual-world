@@ -1,3 +1,4 @@
+"use strict";
 /**
  * human-turn-composer.js — the human turn PANEL (task-333 full redesign)
  *
@@ -30,21 +31,24 @@
  * Load AFTER response-parser.js / turn-scene-view.js / turn-you-strip.js /
  * turn-feed.js, BEFORE agent-engine.js.
  */
-
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 // Lazy lit-html tag: window.Lit is only available at call time (deferred
 // module bootstrap). Unique per file so top-level consts never collide.
 const htcPanelTag = (strings, ...values) => window.Lit.html(strings, ...values);
-
-window.HumanTurnComposer = (() => {
+// Named `HumanTurnComposerModule` rather than assigning straight to
+// `window.HumanTurnComposer` so the module keeps a real type.
+const HumanTurnComposerModule = (() => {
     'use strict';
-
-    let _activeResolve = null;   // compose/burst phase resolver
-    let _reactResolve = null;    // react phase resolver
+    let _activeResolve = null; // compose/burst phase resolver
+    let _reactResolve = null; // react phase resolver
     let _built = false;
-    let _modal = null;
-    let _overlay = null;
+    // Non-null by construction: every entry point (open/request/react) calls
+    // build() first, and nothing below reads these before that. Typed as
+    // HTMLElement rather than `| null` so the ~40 read sites stay readable.
+    let _modal;
+    let _overlay;
     let _charName = null;
-    let _phase = 'compose';      // 'compose' | 'burst' | 'react'
+    let _phase = 'compose';
     let _lastResult = '';
     let _volume = 'say';
     // task-610: set by a person-menu "Whisper to X" pick; consumed by
@@ -59,13 +63,16 @@ window.HumanTurnComposer = (() => {
     // Set when the committed action examines a person; consumed by the react
     // phase to open that character's portrait (CharacterArt.open).
     let _pendingPortrait = null;
-
+    // The panel's own markup is static, so every `#htc-*` lookup below is
+    // non-null by construction. These two helpers keep the ~70 call sites
+    // readable instead of scattering `as HTMLElement` across the file.
+    const q = (sel) => _modal.querySelector(sel);
+    const qa = (sel) => Array.from(_modal.querySelectorAll(sel));
     const STYLE_ID = 'htc-styles';
-
     // ── styles ───────────────────────────────────────────────────────
-
     function ensureStyles() {
-        if (document.getElementById(STYLE_ID)) return;
+        if (document.getElementById(STYLE_ID))
+            return;
         const style = document.createElement('style');
         style.id = STYLE_ID;
         style.textContent = `
@@ -143,15 +150,12 @@ window.HumanTurnComposer = (() => {
         `;
         document.head.appendChild(style);
     }
-
     function el(template) {
         const t = document.createElement('div');
         window.Lit.render(template, t);
         return t.firstElementChild;
     }
-
     // ── typed one-box parsing ────────────────────────────────────────
-
     const VERBS = [
         'look', 'go', 'approach', 'take', 'drop', 'place', 'put', 'give', 'use', 'examine',
         'attack', 'open', 'close', 'read', 'search', 'wear', 'equip', 'remove', 'unequip',
@@ -167,11 +171,11 @@ window.HumanTurnComposer = (() => {
         'kiss', 'caress', 'lick', 'suck', 'bite', 'pinch', 'blow', 'tickle',
     ];
     const VOLUME_WORDS = ['scream', 'shout', 'whisper'];
-
     /** Typed input → draft parts. Unknown verbs become speech. */
     function parseCmd(raw) {
         const t = (raw || '').trim();
-        if (!t) return {};
+        if (!t)
+            return {};
         const lower = t.toLowerCase();
         for (const vol of VOLUME_WORDS) {
             if (lower.startsWith(vol + ' ')) {
@@ -179,23 +183,25 @@ window.HumanTurnComposer = (() => {
             }
         }
         const verb = lower.split(/\s+/)[0];
-        if (!VERBS.includes(verb)) return { speech: t };
+        if (!VERBS.includes(verb))
+            return { speech: t };
         const rest = t.slice(verb.length).trim();
         const out = { action: verb };
         if (verb === 'give' || verb === 'steal' || verb === 'teach') {
             const m = rest.split(/\s+(?:to|from)\s+/i);
             out.item = m[0] || '';
             out.target = m[1] || '';
-        } else if (verb === 'use') {
+        }
+        else if (verb === 'use') {
             const on = rest.split(/\s+on\s+/i);
             out.item = on[0] || '';
             out.target = on[1] || '';
-        } else if (rest) {
+        }
+        else if (rest) {
             out.item = rest;
         }
         return out;
     }
-
     /** Build the structured payload from the current rows. */
     function buildPayload() {
         const m = _modal;
@@ -207,24 +213,30 @@ window.HumanTurnComposer = (() => {
         const p = {};
         if (parsed.action) {
             p.action = parsed.action;
-            if (parsed.item) p.item = parsed.item;
-            if (parsed.target) p.target = parsed.target;
+            if (parsed.item)
+                p.item = parsed.item;
+            if (parsed.target)
+                p.target = parsed.target;
             const rel = m.querySelector('#htc-relation').value;
-            if ((parsed.action === 'put' || parsed.action === 'place') && rel) p.relation = rel;
+            if ((parsed.action === 'put' || parsed.action === 'place') && rel)
+                p.relation = rel;
         }
         if (speech) {
             p.speech = speech;
             p.volume = parsed.volume || _volume;
-            if (p.volume === 'whisper' && _pendingSpeechTarget) p.target = _pendingSpeechTarget;
+            if (p.volume === 'whisper' && _pendingSpeechTarget)
+                p.target = _pendingSpeechTarget;
         }
-        if (emote) p.emote = emote;
-        if (memory) p.memory = memory;
+        if (emote)
+            p.emote = emote;
+        if (memory)
+            p.memory = memory;
         return p;
     }
-
     /** Same normalization an agent reply goes through. */
     function normalizeReply(p) {
-        if (!p || typeof p !== 'object') return { action: '', speech: null, speechVolume: 'say', emote: null, memory: null, target: null };
+        if (!p || typeof p !== 'object')
+            return { action: '', speech: null, speechVolume: 'say', emote: null, memory: null, target: null };
         const { speech, volume } = ActionNormalizer.extractSpeechVolume(p);
         return {
             action: ActionNormalizer.normalizeStructuredAction(p),
@@ -237,28 +249,30 @@ window.HumanTurnComposer = (() => {
             memory: ResponseParser.extractMemory(p.memory),
         };
     }
-
     function updatePreview() {
-        const node = _modal.querySelector('#htc-preview');
-        if (_jsonMode || _phase === 'react') { node.style.display = 'none'; return; }
+        const node = q('#htc-preview');
+        if (_jsonMode || _phase === 'react') {
+            node.style.display = 'none';
+            return;
+        }
         const p = buildPayload();
-        if (!Object.keys(p).length) { node.style.display = 'none'; return; }
+        if (!Object.keys(p).length) {
+            node.style.display = 'none';
+            return;
+        }
         node.style.display = 'block';
         node.textContent = JSON.stringify(p, null, 1);
     }
-
     // ── build ────────────────────────────────────────────────────────
-
     function build() {
-        if (_built) return;
+        if (_built)
+            return;
         _built = true;
         ensureStyles();
-
-        _overlay = el(htcPanelTag`<div id="htc-overlay" style="display:none"></div>`);
-        _modal = el(htcPanelTag`<div id="htc-modal"></div>`);
+        _overlay = el(htcPanelTag `<div id="htc-overlay" style="display:none"></div>`);
+        _modal = el(htcPanelTag `<div id="htc-modal"></div>`);
         _overlay.appendChild(_modal);
-
-        window.Lit.render(htcPanelTag`
+        window.Lit.render(htcPanelTag `
           <div class="htc-header">
             <strong class="htc-title">✈ <span id="htc-title">Your turn</span></strong>
             <span class="htc-spacer"></span>
@@ -332,11 +346,9 @@ window.HumanTurnComposer = (() => {
           </div>
           <datalist id="htc-names"></datalist>
         `, _modal);
-
         document.body.appendChild(_overlay);
-
         // volume segment
-        const volseg = _modal.querySelector('#htc-volseg');
+        const volseg = q('#htc-volseg');
         for (const vol of ['say', 'whisper', 'shout', 'scream']) {
             const btn = document.createElement('button');
             btn.type = 'button';
@@ -344,120 +356,123 @@ window.HumanTurnComposer = (() => {
             btn.dataset.vol = vol;
             btn.addEventListener('click', () => {
                 _volume = vol;
-                if (vol !== 'whisper') _pendingSpeechTarget = null;
+                if (vol !== 'whisper')
+                    _pendingSpeechTarget = null;
                 syncVolumeButtons();
                 updatePreview();
             });
             volseg.appendChild(btn);
         }
         syncVolumeButtons();
-
         // composer actions
-        _modal.querySelector('#htc-act').addEventListener('click', onActButton);
-        _modal.querySelector('#htc-end').addEventListener('click', () => finishAct({ endTurn: true }));
+        q('#htc-act').addEventListener('click', onActButton);
+        q('#htc-end').addEventListener('click', () => finishAct({ endTurn: true }));
         // On the human's turn this is the natural home for a timeskip: their
         // character runs on a policy while everyone else soaks (task-464/474).
-        _modal.querySelector('#htc-timeskip').addEventListener('click', () => {
-            if (window.Timeskip && typeof window.Timeskip.openDialog === 'function') {
-                window.Timeskip.openDialog();
+        q('#htc-timeskip').addEventListener('click', () => {
+            if (htcGlobals.Timeskip && typeof htcGlobals.Timeskip.openDialog === 'function') {
+                htcGlobals.Timeskip.openDialog();
             }
         });
-        _modal.querySelector('#htc-skip-react').addEventListener('click', () => finishReact({ endTurn: true }));
-        _modal.querySelector('#htc-clear-do').addEventListener('click', () => {
-            _modal.querySelector('#htc-do').value = '';
+        q('#htc-skip-react').addEventListener('click', () => finishReact({ endTurn: true }));
+        q('#htc-clear-do').addEventListener('click', () => {
+            q('#htc-do').value = '';
             updatePreview();
         });
-        _modal.querySelector('#htc-do').addEventListener('input', updatePreview);
-        _modal.querySelector('#htc-speech').addEventListener('input', updatePreview);
-        _modal.querySelector('#htc-emote').addEventListener('input', updatePreview);
-        _modal.querySelector('#htc-emote-toggle').addEventListener('click', () => {
-            const wrap = _modal.querySelector('#htc-emote-palette');
+        q('#htc-do').addEventListener('input', updatePreview);
+        q('#htc-speech').addEventListener('input', updatePreview);
+        q('#htc-emote').addEventListener('input', updatePreview);
+        q('#htc-emote-toggle').addEventListener('click', () => {
+            const wrap = q('#htc-emote-palette');
             EmotePicker.toggle(wrap, {
                 onPick: (emote) => {
-                    const input = _modal.querySelector('#htc-emote');
-                    if (input) input.value = emote;
+                    const input = q('#htc-emote');
+                    if (input)
+                        input.value = emote;
                     updatePreview();
                 }
             });
         });
-        _modal.querySelector('#htc-act').addEventListener('click', () => {
-            EmotePicker.close(_modal.querySelector('#htc-emote-palette'));
+        q('#htc-act').addEventListener('click', () => {
+            EmotePicker.close(q('#htc-emote-palette'));
         });
-        _modal.querySelector('#htc-memory').addEventListener('input', updatePreview);
+        q('#htc-memory').addEventListener('input', updatePreview);
         for (const id of ['htc-do', 'htc-speech', 'htc-emote']) {
-            _modal.querySelector('#' + id).addEventListener('keydown', (e) => {
+            q('#' + id).addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     e.preventDefault();
                     onActButton();
                 }
             });
         }
-
         // advanced / json
-        _modal.querySelector('#htc-advanced-toggle').addEventListener('click', () => {
+        q('#htc-advanced-toggle').addEventListener('click', () => {
             _advanced = !_advanced;
-            _modal.querySelector('#htc-advanced').style.display = _advanced ? 'flex' : 'none';
-            _modal.querySelector('#htc-advanced-toggle').textContent = _advanced ? '▾ advanced' : '▸ advanced';
+            q('#htc-advanced').style.display = _advanced ? 'flex' : 'none';
+            q('#htc-advanced-toggle').textContent = _advanced ? '▾ advanced' : '▸ advanced';
         });
-        _modal.querySelector('#htc-confirm-toggle').addEventListener('change', (e) => {
+        q('#htc-confirm-toggle').addEventListener('change', (e) => {
             _confirmBeforeAct = e.target.checked;
         });
-        _modal.querySelector('#htc-json-toggle').addEventListener('click', () => {
+        q('#htc-json-toggle').addEventListener('click', () => {
             _jsonMode = !_jsonMode;
-            if (_jsonMode) _jsonText = JSON.stringify(buildPayload() || {}, null, 1);
+            if (_jsonMode)
+                _jsonText = JSON.stringify(buildPayload() || {}, null, 1);
             syncJsonMode();
         });
-        _modal.querySelector('#htc-json-text').addEventListener('input', (e) => { _jsonText = e.target.value; });
-        _modal.querySelector('#htc-json-act').addEventListener('click', () => {
+        q('#htc-json-text').addEventListener('input', (e) => { _jsonText = e.target.value; });
+        q('#htc-json-act').addEventListener('click', () => {
             let parsedRaw;
             try {
                 parsedRaw = JSON.parse(_jsonText || '{}');
-            } catch (err) {
+            }
+            catch (err) {
                 events.log(`⚠️ Human turn JSON error: ${err.message}`, 'error-msg');
                 return;
             }
             tryResolveAct(normalizeReply(parsedRaw));
         });
-
         // digest / interject (task-334 lanes 2+3, client-side)
-        _modal.querySelector('#htc-interject-btn').addEventListener('click', interject);
-        _modal.querySelector('#htc-interject').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') interject();
+        q('#htc-interject-btn').addEventListener('click', interject);
+        q('#htc-interject').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter')
+                interject();
         });
-        _modal.querySelector('#htc-digest-dismiss').addEventListener('click', () => {
+        q('#htc-digest-dismiss').addEventListener('click', () => {
             TurnFeed.clearDigest();
-            _modal.querySelector('#htc-digest').style.display = 'none';
+            q('#htc-digest').style.display = 'none';
         });
-
         _modal.addEventListener('click', (e) => e.stopPropagation());
         _overlay.addEventListener('click', () => onOverlayDismiss());
         const closeOnEsc = (e) => {
-            if (e.key === 'Escape' && _overlay.style.display !== 'none') onOverlayDismiss();
+            if (e.key === 'Escape' && _overlay.style.display !== 'none')
+                onOverlayDismiss();
         };
         document.addEventListener('keydown', closeOnEsc);
     }
-
     function syncVolumeButtons() {
-        if (!_modal) return;
-        for (const btn of _modal.querySelectorAll('#htc-volseg button')) {
+        if (!_modal)
+            return;
+        for (const btn of qa('#htc-volseg button')) {
             btn.classList.toggle('on', btn.dataset.vol === _volume);
         }
     }
-
     function syncJsonMode() {
-        const m = _modal;
-        m.querySelector('#htc-json').style.display = _jsonMode ? 'block' : 'none';
-        const rows = m.querySelectorAll('.htc-crow, #htc-preview, .htc-footer-row');
-        for (const row of rows) row.style.display = _jsonMode ? 'none' : '';
-        m.querySelector('#htc-json-toggle').textContent = _jsonMode ? '▾ raw json' : '▸ raw json';
-        if (_jsonMode) m.querySelector('#htc-json-text').value = _jsonText;
-        if (!_jsonMode) updatePreview();
+        q('#htc-json').style.display = _jsonMode ? 'block' : 'none';
+        const rows = qa('.htc-crow, #htc-preview, .htc-footer-row');
+        for (const row of rows)
+            row.style.display = _jsonMode ? 'none' : '';
+        q('#htc-json-toggle').textContent = _jsonMode ? '▾ raw json' : '▸ raw json';
+        if (_jsonMode)
+            q('#htc-json-text').value = _jsonText;
+        if (!_jsonMode)
+            updatePreview();
     }
-
     async function interject() {
-        const input = _modal.querySelector('#htc-interject');
+        const input = q('#htc-interject');
         const text = (input.value || '').trim();
-        if (!text || !_charName) return;
+        if (!text || !_charName)
+            return;
         input.value = '';
         // bug-33: attribute the aside to a card for this character so the
         // interjection and its result don't float in the bare stream above the
@@ -468,46 +483,52 @@ window.HumanTurnComposer = (() => {
             const data = await ApiClient.action('say ' + text, _charName);
             if (data?.output) {
                 events.log(data.output, 'msg-result', { outcome: data?.success !== false ? 'success' : 'failure' });
-            } else if (data?.error) {
+            }
+            else if (data?.error) {
                 events.log(`❌ ${data.error}`, 'error-msg');
             }
             if (Array.isArray(data?.choices)) {
-                for (const group of data.choices) events.logChoices(group.verb, group.options, _charName);
+                for (const group of data.choices)
+                    events.logChoices(group.verb, group.options, _charName);
             }
-        } catch (err) {
+        }
+        catch (err) {
             events.log(`❌ Interjection failed: ${err.message}`, 'error-msg');
         }
         TurnFeed.clearDigest();
-        _modal.querySelector('#htc-digest').style.display = 'none';
+        q('#htc-digest').style.display = 'none';
     }
-
     // ── phase / resolve plumbing ─────────────────────────────────────
-
     function setPhase(phase) {
         _phase = phase;
-        const m = _modal;
-        const pill = m.querySelector('#htc-phase');
+        const pill = q('#htc-phase');
         pill.classList.remove('burst', 'react');
-        if (phase === 'burst') { pill.textContent = '⚡ dash burst — one more action'; pill.classList.add('burst'); }
-        else if (phase === 'react') { pill.textContent = '② react to the result'; pill.classList.add('react'); }
-        else pill.textContent = '① compose';
-        m.querySelector('#htc-phase-note').textContent = phase === 'react'
+        if (phase === 'burst') {
+            pill.textContent = '⚡ dash burst — one more action';
+            pill.classList.add('burst');
+        }
+        else if (phase === 'react') {
+            pill.textContent = '② react to the result';
+            pill.classList.add('react');
+        }
+        else
+            pill.textContent = '① compose';
+        q('#htc-phase-note').textContent = phase === 'react'
             ? 'say / emote / note only — the world already answered'
             : 'one turn = do + say + emote together · menus fill the draft';
-        m.querySelector('#htc-do-row').style.display = phase === 'react' ? 'none' : 'flex';
-        m.querySelector('#htc-result').style.display = phase === 'react' ? 'block' : 'none';
-        const actBtn = m.querySelector('#htc-act');
+        q('#htc-do-row').style.display = phase === 'react' ? 'none' : 'flex';
+        q('#htc-result').style.display = phase === 'react' ? 'block' : 'none';
+        const actBtn = q('#htc-act');
         actBtn.textContent = phase === 'react' ? 'close turn' : (phase === 'burst' ? 'Act (last one)' : 'Act');
         actBtn.classList.toggle('gold', phase === 'react');
-        m.querySelector('#htc-skip-react').style.display = phase === 'react' ? '' : 'none';
-        m.querySelector('#htc-end').style.display = phase === 'react' ? 'none' : '';
-        m.querySelector('#htc-speech').placeholder = phase === 'react'
+        q('#htc-skip-react').style.display = phase === 'react' ? '' : 'none';
+        q('#htc-end').style.display = phase === 'react' ? 'none' : '';
+        q('#htc-speech').placeholder = phase === 'react'
             ? 'react to what just happened…'
             : 'what they say — stacks with the action';
     }
-
     function showResult(text) {
-        const node = _modal.querySelector('#htc-result');
+        const node = q('#htc-result');
         node.textContent = '';
         const b = document.createElement('b');
         b.textContent = 'result: ';
@@ -515,14 +536,17 @@ window.HumanTurnComposer = (() => {
         node.appendChild(document.createTextNode(text || ''));
         node.style.display = 'block';
     }
-
     function renderDigest() {
         const entries = TurnFeed.digest().slice(-4);
-        const box = _modal.querySelector('#htc-digest');
-        if (_phase === 'react' || !entries.length) { box.style.display = 'none'; return; }
-        const lines = _modal.querySelector('#htc-digest-lines');
+        const box = q('#htc-digest');
+        if (_phase === 'react' || !entries.length) {
+            box.style.display = 'none';
+            return;
+        }
+        const lines = q('#htc-digest-lines');
         lines.textContent = '';
-        for (const entry of entries) lines.appendChild(el(htcPanelTag`<div class="di"></div>`));
+        for (const entry of entries)
+            lines.appendChild(el(htcPanelTag `<div class="di"></div>`));
         lines.textContent = '';
         for (const entry of entries) {
             const line = document.createElement('div');
@@ -532,38 +556,47 @@ window.HumanTurnComposer = (() => {
         }
         box.style.display = 'block';
     }
-
     function renderMeta() {
-        const meta = _modal.querySelector('#htc-meta');
+        const meta = q('#htc-meta');
         const bits = [];
-        if (typeof worldState !== 'undefined' && worldState.tick) bits.push(`tick ${worldState.tick}`);
+        if (typeof worldState !== 'undefined' && worldState.tick)
+            bits.push(`tick ${worldState.tick}`);
         let nextUp = '';
         try {
             if (config.turnBased && typeof TurnQueue !== 'undefined') {
                 nextUp = TurnQueue.getCurrentCharacter?.() || '';
             }
-        } catch { /* queue not initialized */ }
-        if (nextUp && nextUp !== _charName) bits.push(`next up: <b>${nextUp}</b>`);
-        else if (nextUp) bits.push('next up: <b>you</b>');
+        }
+        catch { /* queue not initialized */ }
+        if (nextUp && nextUp !== _charName)
+            bits.push(`next up: <b>${nextUp}</b>`);
+        else if (nextUp)
+            bits.push('next up: <b>you</b>');
         meta.innerHTML = bits.join(' · ');
     }
-
     function renderDatalist() {
-        const dl = _modal.querySelector('#htc-names');
+        const dl = q('#htc-names');
         dl.textContent = '';
-        if (!_scene) return;
+        if (!_scene)
+            return;
         const names = new Set();
-        for (const item of _scene.items || []) names.add(item.name);
-        for (const p of _scene.people || []) names.add(p.display_name);
-        for (const way of _scene.ways || []) { names.add(way.direction); if (way.to) names.add(way.to); }
-        for (const inv of [...(_scene.you?.carrying || []), ...(_scene.you?.wearing || [])]) names.add(inv.name);
+        for (const item of (_scene.items || []))
+            names.add(item.name);
+        for (const p of (_scene.people || []))
+            names.add(p.display_name);
+        for (const way of (_scene.ways || [])) {
+            names.add(way.direction);
+            if (way.to)
+                names.add(way.to);
+        }
+        for (const inv of [...(_scene.you?.carrying || []), ...(_scene.you?.wearing || [])])
+            names.add(inv.name);
         for (const name of names) {
             const opt = document.createElement('option');
-            opt.value = name;
+            opt.value = String(name);
             dl.appendChild(opt);
         }
     }
-
     /**
      * If a committed action examines someone in the room, return that person's
      * {name, nodeId} so the react phase can show their portrait. The examine
@@ -571,28 +604,33 @@ window.HumanTurnComposer = (() => {
      * displayed names ("the woman" for a stranger, the real name once met).
      */
     function _portraitForAction(payload) {
-        if (!payload || payload.action !== 'examine' || !_scene) return null;
+        if (!payload || payload.action !== 'examine' || !_scene)
+            return null;
         const target = String(payload.item || payload.target || '').trim().toLowerCase();
-        if (!target) return null;
-        const person = (_scene.people || []).find(
-            (p) => String(p.display_name || '').toLowerCase() === target);
+        if (!target)
+            return null;
+        const person = (_scene.people || []).find((p) => String(p.display_name || '').toLowerCase() === target);
         return person ? { name: person.display_name, nodeId: person.id } : null;
     }
-
     /** Draft fill entry point for scene menus + the You strip. */
-    function applyDraft(parts) {        const m = _modal;
-        if (!parts) return;
-        if (_phase === 'react') return; // menus are compose-phase only
-        m.querySelector('#htc-do').value = [parts.action, parts.item, parts.target]
+    function applyDraft(parts) {
+        if (!parts)
+            return;
+        if (_phase === 'react')
+            return; // menus are compose-phase only
+        q('#htc-do').value = [parts.action, parts.item, parts.target]
             .filter(Boolean).join(' ');
         updatePreview();
-        m.querySelector('#htc-speech').focus();
+        q('#htc-speech').focus();
     }
-
     function onActButton() {
-        if (_phase === 'react') { closeTurn(); return; }
+        if (_phase === 'react') {
+            closeTurn();
+            return;
+        }
         const payload = buildPayload();
-        if (!payload.action && !payload.speech && !payload.emote) return;
+        if (!payload.action && !payload.speech && !payload.emote)
+            return;
         _pendingPortrait = _portraitForAction(payload);
         if (_confirmBeforeAct && !_pendingConfirm) {
             _pendingConfirm = payload;
@@ -603,14 +641,12 @@ window.HumanTurnComposer = (() => {
         hideConfirm();
         tryResolveAct(normalizeReply(payload));
     }
-
     function closeTurn() {
-        const m = _modal;
         const payload = {
-            speech: (m.querySelector('#htc-speech').value || '').trim(),
+            speech: (q('#htc-speech').value || '').trim(),
             volume: _volume,
-            emote: (m.querySelector('#htc-emote').value || '').trim(),
-            memory: (m.querySelector('#htc-memory').value || '').trim(),
+            emote: (q('#htc-emote').value || '').trim(),
+            memory: (q('#htc-memory').value || '').trim(),
         };
         if (!payload.speech && !payload.emote && !payload.memory) {
             finishReact({ endTurn: true });
@@ -618,35 +654,38 @@ window.HumanTurnComposer = (() => {
         }
         finishReact(normalizeReply(payload));
     }
-
     function tryResolveAct(reply) {
-        if (typeof _activeResolve !== 'function') return;
+        if (typeof _activeResolve !== 'function')
+            return;
         const resolve = _activeResolve;
         _activeResolve = null;
         TurnFeed.markTurnEnd();
         hidePanel();
         resolve(reply);
     }
-
     function finishAct(reply) { tryResolveAct(reply); }
-
     function finishReact(reply) {
-        if (typeof _reactResolve !== 'function') return;
+        if (typeof _reactResolve !== 'function')
+            return;
         const resolve = _reactResolve;
         _reactResolve = null;
         TurnFeed.markTurnEnd();
         hidePanel();
         resolve(reply);
     }
-
     function onOverlayDismiss() {
-        if (_pendingConfirm) { _pendingConfirm = null; hideConfirm(); return; }
-        if (typeof _reactResolve === 'function') { finishReact({ endTurn: true }); return; }
+        if (_pendingConfirm) {
+            _pendingConfirm = null;
+            hideConfirm();
+            return;
+        }
+        if (typeof _reactResolve === 'function') {
+            finishReact({ endTurn: true });
+            return;
+        }
         finishAct({ endTurn: true });
     }
-
     // ── confirm overlay ──────────────────────────────────────────────
-
     function showConfirm(payload) {
         hideConfirm();
         const scrim = document.createElement('div');
@@ -683,37 +722,35 @@ window.HumanTurnComposer = (() => {
         document.body.appendChild(box);
         _confirmNodes = [scrim, box];
     }
-
     let _confirmNodes = null;
     function hideConfirm() {
         if (_confirmNodes) {
-            for (const node of _confirmNodes) node.remove();
+            for (const node of _confirmNodes)
+                node.remove();
             _confirmNodes = null;
         }
     }
-
     // ── panel open/close ─────────────────────────────────────────────
-
     function hidePanel() {
-        if (_overlay) _overlay.style.display = 'none';
+        if (_overlay)
+            _overlay.style.display = 'none';
         hideConfirm();
         // task-612: the scene view appends its context menu and scrim to
         // document.body, so hiding the overlay orphans both. The scrim is
         // position:fixed inset:0 with pointer-events:auto, so a stale one taxes
         // the next click. Close the menu whenever the panel goes away.
-        if (_scene && typeof _scene.closeMenu === 'function') _scene.closeMenu();
+        if (_scene && typeof _scene.closeMenu === 'function')
+            _scene.closeMenu();
     }
-
     function resetRows() {
         for (const id of ['htc-do', 'htc-speech', 'htc-emote', 'htc-memory']) {
-            _modal.querySelector('#' + id).value = '';
+            q('#' + id).value = '';
         }
-        _modal.querySelector('#htc-relation').value = '';
+        q('#htc-relation').value = '';
         _pendingSpeechTarget = null;
         _jsonText = '';
         updatePreview();
     }
-
     /**
      * Shared panel open for both phases. phase: 'compose' | 'burst' | 'react'.
      * compose/burst resolve via _activeResolve; react via _reactResolve.
@@ -725,50 +762,51 @@ window.HumanTurnComposer = (() => {
         _pendingConfirm = null;
         hideConfirm();
         resetRows();
-
-        const m = _modal;
-        m.querySelector('#htc-title').textContent = charName + "'s turn";
+        q('#htc-title').textContent = charName + "'s turn";
         if (phase === 'burst') {
-            m.querySelector('#htc-do').placeholder = 'second action — your dash bought you one more…';
-        } else {
-            m.querySelector('#htc-do').placeholder = 'action — click things above or type "take burrito", "open door"…';
+            q('#htc-do').placeholder = 'second action — your dash bought you one more…';
         }
-
+        else {
+            q('#htc-do').placeholder = 'action — click things above or type "take burrito", "open door"…';
+        }
         setPhase(phase);
-        if (phase === 'react') showResult(_lastResult);
-
+        if (phase === 'react')
+            showResult(_lastResult);
         // scene + feed + you strip + meta + datalist
-        const sceneHost = m.querySelector('#htc-scene');
+        const sceneHost = q('#htc-scene');
         sceneHost.textContent = 'reading the room…';
         const stripHandlers = {
             onDraft: applyDraft,
-            menu: (x, y, title, buttons) =>
-                window.TurnSceneView.menu(x, y, title, buttons, applyDraft),
+            menu: (x, y, title, buttons) => htcGlobals.TurnSceneView
+                .menu(x, y, title, buttons, applyDraft),
         };
-        if (window.TurnSceneView) {
-            window.TurnSceneView.fetch(charName).then((scene) => {
-                if (!scene || scene.error || _charName !== charName) return;
+        if (htcGlobals.TurnSceneView) {
+            const sceneView = htcGlobals.TurnSceneView;
+            sceneView.fetch(charName).then((scene) => {
+                if (!scene || scene.error || _charName !== charName)
+                    return;
                 _scene = scene;
-                window.TurnSceneView.renderScene(sceneHost, scene, {
+                sceneView.renderScene(sceneHost, scene, {
                     onDraft: applyDraft,
                     // task-610: a person/area "talk" pick sets the speech volume
                     // (and a whisper recipient) and focuses the speech row.
-                    onTalkFocus: (opts) => {
-                        if (opts && opts.volume) {
-                            _volume = opts.volume;
+                    onTalkFocus: (talkOpts) => {
+                        if (talkOpts && talkOpts.volume) {
+                            _volume = talkOpts.volume;
                             syncVolumeButtons();
                         }
-                        _pendingSpeechTarget = (opts && opts.volume === 'whisper' && opts.target) ? opts.target : null;
+                        _pendingSpeechTarget = (talkOpts && talkOpts.volume === 'whisper' && talkOpts.target) ? talkOpts.target : null;
                         updatePreview();
-                        m.querySelector('#htc-speech').focus();
+                        q('#htc-speech').focus();
                     },
                 });
-                window.TurnYouStrip.render(m.querySelector('#htc-you'), scene.you, stripHandlers);
+                htcGlobals.TurnYouStrip
+                    .render(q('#htc-you'), scene.you, stripHandlers);
                 renderDatalist();
                 // React phase: an examine that targeted someone opens their
                 // portrait (current full body, else profile) as the big view.
-                if (phase === 'react' && _pendingPortrait && window.CharacterArt) {
-                    window.CharacterArt.open(_pendingPortrait);
+                if (phase === 'react' && _pendingPortrait && htcGlobals.CharacterArt) {
+                    htcGlobals.CharacterArt.open(_pendingPortrait.name);
                 }
                 _pendingPortrait = null;
             }).catch(() => {
@@ -776,17 +814,15 @@ window.HumanTurnComposer = (() => {
                 sceneHost.appendChild(document.createTextNode('scene unavailable.'));
             });
         }
-        TurnFeed.render(m.querySelector('#htc-feed-lines'));
+        TurnFeed.render(q('#htc-feed-lines'));
         renderMeta();
         renderDigest();
-
-        m.querySelector('#htc-json').style.display = 'none';
+        q('#htc-json').style.display = 'none';
         _jsonMode = false;
         syncJsonMode();
         _overlay.style.display = 'flex';
-        (phase === 'react' ? m.querySelector('#htc-speech') : m.querySelector('#htc-do')).focus();
+        q(phase === 'react' ? '#htc-speech' : '#htc-do').focus();
     }
-
     /**
      * Compose (or burst) phase. Resolves with the normalized act reply
      * or {endTurn:true}. opts: { burst:boolean, lastResult:string }.
@@ -798,7 +834,6 @@ window.HumanTurnComposer = (() => {
         openPanel(charName, opts.burst ? 'burst' : 'compose', opts);
         return new Promise((resolve) => { _activeResolve = resolve; });
     }
-
     /**
      * React phase (task-334 lane 1): say/emote/memory bound to lastResult.
      * Resolves with the normalized react reply or {endTurn:true}.
@@ -810,6 +845,9 @@ window.HumanTurnComposer = (() => {
         openPanel(charName, 'react', { lastResult });
         return new Promise((resolve) => { _reactResolve = resolve; });
     }
-
     return { request, react };
 })();
+window.HumanTurnComposer = HumanTurnComposerModule;
+// Globals this panel calls that `types/globals.d.ts` does not declare. Read
+// through `window` so each stays optional, exactly as the call sites test it.
+const htcGlobals = window;

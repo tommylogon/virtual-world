@@ -1,3 +1,4 @@
+"use strict";
 /**
  * plan-tracker.js — Plan state ownership and step tracking
  *
@@ -18,10 +19,9 @@
  * @relates owns state that used to be inline in agent-engine; read by prompt-builder hasPlan/context-sections
  * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */
-
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 window.PlanTracker = (() => {
     'use strict';
-
     const plans = {};
     const planTick = {};
     const planProgress = {};
@@ -33,11 +33,9 @@ window.PlanTracker = (() => {
     // task-185: stop-word list for step tracking — the old >2 char filter passed
     // "the", so any action containing "the" completed any step containing "the".
     const STOP_WORDS = new Set(['the', 'a', 'an', 'to', 'of', 'and', 'or', 'at', 'in', 'on', 'for', 'with', 'is', 'are', 'was', 'it', 'its', "it's"]);
-
     function getPlan(charName) {
         return plans[charName] || [];
     }
-
     function setPlan(charName, steps, turnNumber) {
         plans[charName] = steps;
         // task-185: record the TURN clock (shouldReplan compares against
@@ -47,22 +45,21 @@ window.PlanTracker = (() => {
         planProgress[charName] = 0;
         planFailures[charName] = {};
     }
-
     function getProgress(charName) {
         return planProgress[charName] || 0;
     }
-
     /** Failure counts per step index (task-185: prompt builders read via PlanTracker now). */
     function getFailures(charName) {
         return planFailures[charName] || {};
     }
-
     /** Advance or block the current plan step based on backend success flag. */
-    function trackStep(charName, executedAction, resultText, succeeded) {
+    function trackStep(charName, executedAction, _resultText, succeeded) {
         const plan = plans[charName];
-        if (!plan || !plan.length) return;
+        if (!plan || !plan.length)
+            return;
         const idx = planProgress[charName] || 0;
-        if (idx >= plan.length) return;
+        if (idx >= plan.length)
+            return;
         const step = plan[idx];
         if (succeeded === false) {
             planFailures[charName] = planFailures[charName] || {};
@@ -77,8 +74,8 @@ window.PlanTracker = (() => {
         }
         const actionNorm = (executedAction || '').toLowerCase().trim();
         const stepNorm = String(step ?? '').toLowerCase();
-        const stepWords = stepNorm.split(/\s+/).filter(w => w && !STOP_WORDS.has(w));
-        const actionWords = actionNorm.split(/\s+/).filter(w => w && !STOP_WORDS.has(w));
+        const stepWords = stepNorm.split(/\s+/).filter((w) => w && !STOP_WORDS.has(w));
+        const actionWords = actionNorm.split(/\s+/).filter((w) => w && !STOP_WORDS.has(w));
         // task-185: an action WITH a target must match a non-verb step word too —
         // "approach the order counter" must not complete "approach the round the
         // corner to oak lane" on the shared verb alone. Bare-verb actions
@@ -86,15 +83,14 @@ window.PlanTracker = (() => {
         const verbOnlyAction = actionWords.length <= 1;
         const overlap = stepNorm.includes(actionNorm) || actionNorm.includes(stepNorm)
             || (verbOnlyAction
-                ? actionWords.some(w => stepWords.includes(w))
-                : actionWords.slice(1).some(w => stepWords.includes(w)));
+                ? actionWords.some((w) => stepWords.includes(w))
+                : actionWords.slice(1).some((w) => stepWords.includes(w)));
         if (overlap) {
             planProgress[charName] = idx + 1;
             planFailures[charName] = planFailures[charName] || {};
             planFailures[charName][idx] = 0;
         }
     }
-
     /**
      * Check whether the character needs a fresh plan.
      * task-185: returns a human-readable REASON string (consumed by the
@@ -102,7 +98,8 @@ window.PlanTracker = (() => {
      * Side effects unchanged.
      */
     function shouldReplan(charName, turnNumber, threatAlert, vitals) {
-        if (threatAlert) return 'threat detected';
+        if (threatAlert)
+            return 'threat detected';
         // Needs-driven replanning (task-92): fire when needs CROSS into critical
         // territory, then re-nudge at most every 5 turns while still critical.
         // Without the crossing gate a starving character would regenerate their
@@ -120,14 +117,16 @@ window.PlanTracker = (() => {
             return null;
         }
         lastCriticalSet[charName] = '';
-        if (!plans[charName]) return 'no plan';
-        if ((turnNumber - (planTick[charName] || 0)) >= 10) return 'plan aged out';
+        if (!plans[charName])
+            return 'no plan';
+        if ((turnNumber - (planTick[charName] || 0)) >= 10)
+            return 'plan aged out';
         const idx = planProgress[charName] || 0;
         const stepFails = (planFailures[charName] || {})[idx] || 0;
-        if (stepFails >= 3) return 'current step failed repeatedly';
+        if (stepFails >= 3)
+            return 'current step failed repeatedly';
         return null;
     }
-
     /**
      * Vitals currently past their critical threshold, as human-readable labels
      * (task-92). Boundaries come from VitalThresholds (task-322 R5) — Bladder
@@ -136,7 +135,8 @@ window.PlanTracker = (() => {
      * @returns {string[]} e.g. ["exhaustion — rest or sleep", "hunger — eat"]
      */
     function criticalNeeds(vitals) {
-        if (!vitals) return [];
+        if (!vitals)
+            return [];
         const labels = {
             Energy: 'exhaustion — you need to rest or sleep',
             Hunger: 'hunger — you need to eat',
@@ -146,12 +146,15 @@ window.PlanTracker = (() => {
             Bladder: 'a bursting bladder — you need a bathroom'
         };
         const out = [];
+        // VitalThresholds (agent/vital-thresholds.js) is a window singleton that
+        // is not declared in static/js/types/globals.d.ts, hence the local cast.
+        const thresholds = window.VitalThresholds;
         for (const key of Object.keys(labels)) {
-            if (VitalThresholds.isCritical(key, vitals[key])) out.push(labels[key]);
+            if (thresholds.isCritical(key, vitals[key]))
+                out.push(labels[key]);
         }
         return out;
     }
-
     function reset(charName) {
         delete plans[charName];
         delete planTick[charName];
@@ -160,29 +163,30 @@ window.PlanTracker = (() => {
         delete lastCriticalSet[charName];
         delete lastCriticalReplanTick[charName];
     }
-
     function resetAll() {
-        for (const key of Object.keys(plans)) reset(key);
+        for (const key of Object.keys(plans))
+            reset(key);
     }
-
     /** Format previous plan issues for the plan-generation prompt. */
     function previousPlanIssues(charName) {
         const plan = plans[charName];
-        if (!plan?.length) return '';
+        if (!plan?.length)
+            return '';
         const progress = planProgress[charName] || 0;
         const failures = planFailures[charName] || {};
         const parts = [];
         for (let i = 0; i < plan.length; i++) {
             if (i < progress && !(failures[i] >= 3)) {
                 parts.push(`"${plan[i]}" (done)`);
-            } else if (failures[i] >= 3) {
+            }
+            else if (failures[i] >= 3) {
                 parts.push(`"${plan[i]}" (FAILED ${failures[i]} times — do NOT repeat; find an alternative or pursue a different goal)`);
             }
         }
-        if (!parts.length) return '';
+        if (!parts.length)
+            return '';
         return `\n=== PREVIOUS PLAN ===\nYour previous plan: ${parts.join('; ')}.\nDo not re-attempt steps marked FAILED.`;
     }
-
     return {
         getPlan,
         setPlan,

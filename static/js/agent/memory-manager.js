@@ -1,3 +1,4 @@
+"use strict";
 /**
  * memory-manager.js — Memory storage and reflection
  *
@@ -17,10 +18,9 @@
  * @relates writes the backend Player.memories[]; read back by prompt-builder/memory-context.js
  * @docs docs/virtualWorld/AI & Narration/Memory System.md
  */
-
-window.AgentMemory = (() => {
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+const AgentMemory = (() => {
     'use strict';
-
     /**
      * Perform memory reflection for a character.
      *
@@ -31,41 +31,48 @@ window.AgentMemory = (() => {
      * @param {string} charName - Character name to reflect for
      */
     async function reflect(charName) {
-        if (!charName) return;
+        if (!charName)
+            return;
         try {
             const allMemories = await fetch(`/api/players/${encodeURIComponent(charName)}/memories`, {
                 headers: { 'Accept': 'application/json' }
             }).then(resp => resp.json()).catch(() => ({ memories: [] }));
             const memories = allMemories.memories || [];
-            const importantMemories = memories.filter(m => (m.importance || 0) >= 6).slice(0, 10);
-            if (importantMemories.length < 3) return;
-            const memoryText = importantMemories.map(m => `[${events.tickToRelative(m.tick)}] ${m.text}`).join('\n');
+            const importantMemories = memories.filter((m) => (m.importance || 0) >= 6).slice(0, 10);
+            if (importantMemories.length < 3)
+                return;
+            const memoryText = importantMemories.map((m) => `[${events.tickToRelative(m.tick)}] ${m.text}`).join('\n');
             const prompt = `Summarize these memories into 1-2 insights:\n${memoryText}\n\nRespond ONLY with a JSON object: {"insights": ["insight 1"]}`;
             const response = await llmClient.chat([{ role: 'user', content: prompt }], { temperature: 0.7, max_tokens: 200, streaming: false, label: 'reflect', responseFormat: window.StructuredFormats?.insights });
-            if (!response) return;
+            if (!response)
+                return;
             let cleaned = response.trim();
             const codeBlockMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-            if (codeBlockMatch) cleaned = codeBlockMatch[1].trim();
-
+            if (codeBlockMatch)
+                cleaned = codeBlockMatch[1].trim();
             // Safer JSON parsing — LLMs often add text around the array or trailing commas
             let parsed;
             try {
                 parsed = JSON.parse(cleaned);
-            } catch (e) {
+            }
+            catch (e) {
                 const arrayMatch = cleaned.match(/\[[\s\S]*\]/);
                 if (arrayMatch) {
-                    try { parsed = JSON.parse(arrayMatch[0]); }
-                    catch (e2) { return; }
-                } else {
+                    try {
+                        parsed = JSON.parse(arrayMatch[0]);
+                    }
+                    catch (e2) {
+                        return;
+                    }
+                }
+                else {
                     return;
                 }
             }
-
             // Structured output wraps in {"insights":[...]}; the old raw-array
             // contract stays accepted for providers on the plain-prompt path.
             const parsedList = Array.isArray(parsed) ? parsed
                 : (parsed && typeof parsed === 'object' && Array.isArray(parsed.insights) ? parsed.insights : null);
-
             if (Array.isArray(parsedList)) {
                 const currentTick = worldState?.data?.time_ticks || 0;
                 const insights = parsedList.filter(i => typeof i === 'string' && i.length > 10);
@@ -74,15 +81,15 @@ window.AgentMemory = (() => {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ insights, tick: currentTick })
-                    }).catch(() => {});
+                    }).catch(() => { });
                 }
                 events.log(`🧠 ${charName} reflected on ${importantMemories.length} memories`, 'system-msg');
             }
-        } catch (error) {
+        }
+        catch (error) {
             // Reflection errors are non-critical — swallow silently
         }
     }
-
     /**
      * Store a memory entry for a character.
      *
@@ -109,32 +116,39 @@ window.AgentMemory = (() => {
      * @returns {string[]} Cleaned single-word conceptual tags
      */
     function _sanitizeTags(tags) {
-        if (!Array.isArray(tags)) return [];
+        if (!Array.isArray(tags))
+            return [];
         // Entity names we never want as memory tags (people, items, areas)
         const entityNames = new Set();
         const g = worldState?.data || {};
-        for (const name of Object.keys(g.players || {})) entityNames.add(name.toLowerCase());
+        for (const name of Object.keys(g.players || {}))
+            entityNames.add(name.toLowerCase());
         for (const node of Object.values(worldState?.graph?.nodes || {})) {
-            if (node?.name) entityNames.add(String(node.name).toLowerCase());
+            if (node?.name)
+                entityNames.add(String(node.name).toLowerCase());
         }
         const singleWord = /^[a-z0-9_]+$/;
         const seen = new Set();
         const out = [];
-        for (let t of tags) {
-            t = String(t || '').trim().toLowerCase();
-            if (!t) continue;
-            if (!singleWord.test(t)) continue;              // multi-word / hyphenated → drop
-            if (entityNames.has(t)) continue;               // person/item/area name → drop
-            if (seen.has(t)) continue;                      // dedupe
+        for (const raw of tags) {
+            const t = String(raw || '').trim().toLowerCase();
+            if (!t)
+                continue;
+            if (!singleWord.test(t))
+                continue; // multi-word / hyphenated → drop
+            if (entityNames.has(t))
+                continue; // person/item/area name → drop
+            if (seen.has(t))
+                continue; // dedupe
             seen.add(t);
             out.push(t);
         }
         return out;
     }
-
     function storeMemory(charName, text, importance, type, tick = null, entity_ids = [], tags = [], emotion = null, emotions = null) {
         try {
-            if (!text) return;
+            if (!text)
+                return;
             const memoryTick = (tick !== null && tick !== undefined) ? tick : (worldState.data?.time_ticks || 0);
             const cleanTags = _sanitizeTags(tags);
             const payload = {
@@ -154,25 +168,27 @@ window.AgentMemory = (() => {
                 body: JSON.stringify(payload)
             }).then(resp => resp.ok ? resp.json() : null).then(data => {
                 _embedAndStoreVector(charName, data?.entry?.id, text);
-            }).catch(() => {});
+            }).catch(() => { });
             // Register any new single-word tags into the tag library (id-keyed → dedupes)
             if (cleanTags.length > 0) {
-                cleanTags.forEach(tagId => _ensureLibraryTag(tagId));
+                cleanTags.forEach((tagId) => _ensureLibraryTag(tagId));
             }
-        } catch (error) {
+        }
+        catch (error) {
             // Store errors are non-critical
         }
     }
-
     /**
      * Fire-and-forget: embed a stored memory's text and upsert the vector into
      * the backend store (task-91). Any failure is silent — semantic recall just
      * degrades to keyword-only for that memory.
      */
     function _embedAndStoreVector(charName, memoryId, text) {
-        if (!memoryId || !window.EmbeddingClient?.configured()) return;
-        EmbeddingClient.embed(text).then(vector => {
-            if (!vector) return;
+        if (!memoryId || !window.EmbeddingClient?.configured())
+            return;
+        EmbeddingClient.embed(text).then((vector) => {
+            if (!vector)
+                return;
             fetch('/api/memory/embeddings', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -181,10 +197,9 @@ window.AgentMemory = (() => {
                     model: config.embedModel,
                     dims: vector.length
                 })
-            }).catch(() => {});
-        }).catch(() => {});
+            }).catch(() => { });
+        }).catch(() => { });
     }
-
     /**
      * Fire-and-forget register a single-word tag in the library ONLY if it doesn't
      * already exist. The library is id-keyed, but re-posting an existing tag would
@@ -193,38 +208,41 @@ window.AgentMemory = (() => {
      */
     const _checkedTagIds = new Set();
     function _ensureLibraryTag(tagId) {
-        if (_checkedTagIds.has(tagId)) return;
+        if (_checkedTagIds.has(tagId))
+            return;
         _checkedTagIds.add(tagId);
         try {
             fetch("/api/tags/search?q=" + encodeURIComponent(tagId))
                 .then(r => r.json())
-                .then(tags => {
-                    const exists = Array.isArray(tags) && tags.some(t => (t.id || '').toLowerCase() === tagId.toLowerCase());
-                    if (exists) return;
-                    const tagData = {
-                        id: tagId,
-                        name: tagId.charAt(0).toUpperCase() + tagId.slice(1),
-                        description: "Auto-generated from agent memory",
-                        category: "custom",
-                        color: "#888888",
-                        icon: "🎗️",
-                        applies_to: [],
-                        examples: []
-                    };
-                    fetch("/api/library/tags", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(tagData)
-                    }).catch(() => {});
-                })
-                .catch(() => {});
-        } catch (error) {
+                .then((tags) => {
+                const exists = Array.isArray(tags) && tags.some((t) => (t.id || '').toLowerCase() === tagId.toLowerCase());
+                if (exists)
+                    return;
+                const tagData = {
+                    id: tagId,
+                    name: tagId.charAt(0).toUpperCase() + tagId.slice(1),
+                    description: "Auto-generated from agent memory",
+                    category: "custom",
+                    color: "#888888",
+                    icon: "🎗️",
+                    applies_to: [],
+                    examples: []
+                };
+                fetch("/api/library/tags", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(tagData)
+                }).catch(() => { });
+            })
+                .catch(() => { });
+        }
+        catch (error) {
             // Non-critical
         }
     }
-
     return {
         reflect,
         storeMemory
     };
 })();
+window.AgentMemory = AgentMemory;

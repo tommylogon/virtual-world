@@ -1,3 +1,4 @@
+"use strict";
 /**
  * index.js — Natural-Language Editor Main Controller (task-387).
  *
@@ -10,11 +11,15 @@
  * @relates the entry point for the whole nl-editor cluster
  * @docs docs/virtualWorld/dev_tasks/done/graph/task-387-natural-language-editor-mode.md
  */
-
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 window.NLEditor = (() => {
     'use strict';
-
     class NaturalLanguageEditor {
+        staging;
+        router;
+        agent;
+        ui;
+        initialized;
         constructor() {
             this.staging = new NLEditorStaging.StagingBuffer();
             this.router = new NLEditorTools.ToolRouter(this.staging);
@@ -22,17 +27,15 @@ window.NLEditor = (() => {
             this.ui = new NLEditorUI.UI(this);
             this.initialized = false;
         }
-
         init() {
-            if (this.initialized) return;
+            if (this.initialized)
+                return;
             this.initialized = true;
             this.ui.init();
-
             // Wire staging changes to UI
             this.staging.onChange((ops) => {
                 this.ui.updateStagedOps(ops);
             });
-
             // Wire agent events to UI
             this.agent.onUpdate((event, data) => {
                 switch (event) {
@@ -46,7 +49,8 @@ window.NLEditor = (() => {
                     case 'message:added':
                         if (data.role === 'user') {
                             this.ui.appendUserMessage(data.content);
-                        } else if (data.role === 'assistant') {
+                        }
+                        else if (data.role === 'assistant') {
                             this.ui.appendAssistantMessage(data.content, data.tool_calls);
                         }
                         break;
@@ -75,13 +79,13 @@ window.NLEditor = (() => {
                         this.ui.appendErrorMessage(data?.error);
                         break;
                     case 'session:reset':
-                        if (this.ui.chatList) this.ui.chatList.innerHTML = '';
+                        if (this.ui.chatList)
+                            this.ui.chatList.innerHTML = '';
                         this.ui.hideClarification();
                         this.ui.setStatus('Ready', false);
                         break;
                 }
             });
-
             // Listen for scenario change / restart from worldState
             if (typeof worldState !== 'undefined' && worldState?.on) {
                 let lastScenario = null;
@@ -94,20 +98,17 @@ window.NLEditor = (() => {
                 });
             }
         }
-
         /** Submit user message to agent */
         async send(userText) {
             this.init();
             return this.agent.runUserTurn(userText);
         }
-
         /** Reset session */
         reset() {
             this.staging.clear();
             this.agent.resetSession();
             this.ui.hideClarification();
         }
-
         /** Apply staged mutations to live world */
         async apply() {
             const res = await this.staging.apply();
@@ -116,20 +117,22 @@ window.NLEditor = (() => {
                 if (typeof toastError === 'function') {
                     toastError('Validation failed — nothing applied. Fix the flagged ops.');
                 }
-            } else if (res.success) {
+            }
+            else if (res.success) {
                 if (typeof toastSuccess === 'function') {
                     toastSuccess(`Applied ${res.appliedCount} changes to world.`);
                 }
                 this.agent.resetSession();
-            } else if (res.errors && res.errors.length > 0) {
+            }
+            else if (res.errors && res.errors.length > 0) {
                 if (typeof toastError === 'function') {
                     toastError(`Apply partially failed — ${res.remaining ?? 0} op(s) still staged: ${res.errors.join(', ')}`);
                 }
             }
-            if (typeof NLEditorGhosts !== 'undefined') NLEditorGhosts?.refresh();
+            if (typeof NLEditorGhosts !== 'undefined')
+                NLEditorGhosts?.refresh();
             return res;
         }
-
         /** Apply only the checked staged ops; unchecked stay staged. */
         async applySelected(ids) {
             const res = await this.staging.apply(ids);
@@ -138,28 +141,29 @@ window.NLEditor = (() => {
                 if (typeof toastError === 'function') {
                     toastError('Validation failed — nothing applied. Fix the flagged ops.');
                 }
-            } else if (res.success) {
+            }
+            else if (res.success) {
                 if (typeof toastSuccess === 'function') {
                     toastSuccess(`Applied ${res.appliedCount} changes. ${this.staging.getOps().length} still staged.`);
                 }
                 this.agent.resetSession();
-            } else if (res.errors && res.errors.length > 0) {
+            }
+            else if (res.errors && res.errors.length > 0) {
                 if (typeof toastError === 'function') {
                     toastError(`Apply partially failed — ${res.remaining ?? 0} op(s) still staged: ${res.errors.join(', ')}`);
                 }
             }
-            if (typeof NLEditorGhosts !== 'undefined') NLEditorGhosts?.refresh();
+            if (typeof NLEditorGhosts !== 'undefined')
+                NLEditorGhosts?.refresh();
             return res;
         }
-
         /** Open NL Editor side panel */
         openPanel() {
             this.init();
             if (typeof ui !== 'undefined' && ui?.switchLeftTab) {
                 ui.switchLeftTab('nl-editor');
-            } else if (window.ui?.switchLeftTab) {
-                window.ui.switchLeftTab('nl-editor');
-            } else {
+            }
+            else {
                 const tabBtn = document.querySelector('[data-tab="nl-editor"]');
                 tabBtn?.click();
             }
@@ -168,15 +172,13 @@ window.NLEditor = (() => {
             }, 100);
         }
     }
-
     const instance = new NaturalLanguageEditor();
-
     // Auto-init when DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => instance.init());
-    } else {
+    }
+    else {
         setTimeout(() => instance.init(), 100);
     }
-
     return instance;
 })();

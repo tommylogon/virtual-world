@@ -1,3 +1,4 @@
+"use strict";
 /**
  * prompt-builder/context-sections.js — Shared context-fragment registry.
  *
@@ -22,11 +23,10 @@
  * @relates sections call back into character-state.js builders; consumed by turn-prompts.js
  * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */
-
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 window.PromptBuilder = window.PromptBuilder || {};
 (() => {
     'use strict';
-
     // Ghost/dead flavor text differs slightly per phase — reaction spells out
     // the DC 15 check, decide is terse, observe/react are plain restatements.
     // Keyed by the `phase` string each builder passes in ctx.phase.
@@ -42,7 +42,6 @@ window.PromptBuilder = window.PromptBuilder || {};
         decide: 'Cannot act.',
         react: 'You are dead.',
     };
-
     // Plan-guidance text also differs by phase: observe just prompts
     // reflection ("how does this relate to your plan?"), decide is a
     // directive to actually follow it. Only these two phases use it — react
@@ -51,7 +50,6 @@ window.PromptBuilder = window.PromptBuilder || {};
         observe: '\nYou have a plan. How do your current observations relate to it?',
         decide: '\n=== PLAN FOLLOW ===\nFollow your plan. Your next action should be the next step in your plan above. Only deviate if circumstances have fundamentally changed (new threat, blocked path, discovered critical info).',
     };
-
     const CONTEXT_SECTIONS = {
         vitals: (p, ctx) => ctx.vitalsNL || '',
         encumbrance: (p) => PromptBuilder.buildEncumbranceContext(p),
@@ -66,10 +64,9 @@ window.PromptBuilder = window.PromptBuilder || {};
         grappled: (p) => p.grappled_by
             ? `\n⚠️ You are being held by ${p.grappled_by}. You can try to break free with "escape" (STR save), or go along. You cannot move on your own while held.`
             : '',
-        ghost: (p, ctx) => (p.state === 'dead' && config.ghostMode) ? `\n⚠️ ${GHOST_TEXT[ctx.phase]}` : '',
-        dead: (p, ctx) => (p.state === 'dead' && !config.ghostMode) ? `\n${DEAD_TEXT[ctx.phase]}` : '',
+        ghost: (p, ctx) => (p.state === 'dead' && config.ghostMode) ? `\n⚠️ ${GHOST_TEXT[String(ctx.phase)]}` : '',
+        dead: (p, ctx) => (p.state === 'dead' && !config.ghostMode) ? `\n${DEAD_TEXT[String(ctx.phase)]}` : '',
     };
-
     /**
      * Assemble a context block from an ordered list of section keys.
      * @param {Object} player
@@ -78,7 +75,7 @@ window.PromptBuilder = window.PromptBuilder || {};
      * @returns {string}
      */
     function buildContextBlock(player, ctx, sections) {
-        return sections.map(key => {
+        return sections.map((key) => {
             const fn = CONTEXT_SECTIONS[key];
             if (!fn) {
                 console.warn(`[PromptBuilder] Unknown context section: "${key}"`);
@@ -87,7 +84,6 @@ window.PromptBuilder = window.PromptBuilder || {};
             return fn(player, ctx);
         }).join('');
     }
-
     /**
      * Plan-guidance text for phases that check it (observe, decide).
      * Returns '' if the character has no active plan.
@@ -101,7 +97,6 @@ window.PromptBuilder = window.PromptBuilder || {};
         }
         return PromptBuilder.hasPlan(player.name) ? PLAN_TEXT[phase] : '';
     }
-
     Object.assign(window.PromptBuilder, {
         CONTEXT_SECTIONS,
         buildContextBlock,

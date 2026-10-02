@@ -1,0 +1,149 @@
+/**
+ * emote-picker.js — reusable, searchable, categorized emote quick-pick.
+ *
+ * A standalone window.EmotePicker that renders a search box + chip grid into
+ * any container and calls a callback when an emote is picked. Shared by the
+ * human turn composer (and available to lift into a standalone panel later —
+ * anytime-emote / emote browser).
+ *
+ * Emotes are bare verb phrases, never including a character name (see
+ * schema-fragments.js EMOTE_RULES), so anything picked here is engine-valid.
+ *
+ * API:
+ *   EmotePicker.open(container, { onPick(emote) })
+ *   EmotePicker.close(container)
+ *   EmotePicker.toggle(container, opts)
+ *   EmotePicker.setCatalog(catalog)   // optional override, e.g. from library
+ *
+ * Uses window.Lit at call time only (deferred module bootstrap); load after
+ * the lit-html shim, before any consumer that mounts it.
+ *
+ * @module agent/emote-picker — reusable emote quick-pick
+ * @contributes EmotePicker.open/close/toggle + setCatalog (searchable chip grid)
+ * @powers Character art — picking an emote in the human turn composer
+ * @relates emits bare verb phrases per schema-fragments EMOTE_RULES; used by human-turn-composer
+ * @docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
+ */
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+(window as unknown as { EmotePicker: EmotePickerApi }).EmotePicker = (() => {
+    'use strict';
+
+    const STYLE_ID = 'emote-picker-styles';
+
+    let _catalog: EmoteCategory[] = [
+        { cat: 'neutral',  items: ['glances around the room', 'shifts their weight', 'watches you carefully', 'stares into the distance'] },
+        { cat: 'movement', items: ['sneaks closer', 'steps back', 'moves toward the door', 'leans in close', 'paces anxiously', 'stops short'] },
+        { cat: 'social',   items: ['nods slowly', 'shakes their head', 'offers a small smile', 'gives a warm handshake', 'crosses their arms', 'raises an eyebrow'] },
+        { cat: 'comfort',  items: ['rests a hand on their shoulder', 'gives a reassuring pat', 'offers a gentle hug', 'runs a hand through their hair', 'lets out a soft sigh'] },
+        { cat: 'unease',   items: ['fidgets with their hands', 'bites their lip', 'glances over their shoulder', 'wrings their hands', 'takes a shaky breath', 'rubs the back of their neck'] },
+        { cat: 'hostile',  items: ['bares their teeth', 'clenches their fists', 'drops into a defensive stance', 'draws themselves up tall', 'eyes the newcomer warily'] },
+        { cat: 'polite',   items: ['inclines their head politely', 'touches their brow in a small bow', 'offers their hand', 'holds the door open for you'] },
+        { cat: 'focus',    items: ['leans forward for a closer look', 'squints at the object', 'runs a finger along the surface', 'steps aside to let you see'] },
+        { cat: 'warmth',   items: ['brushes a stray lock behind their ear', 'offers a playful grin', 'tilts their head with a soft laugh', 'lets their gaze linger'] },
+        { cat: 'hands',    items: ['holds out the item', 'places the object in your hand', 'sets the key on the table', 'nods toward the door'] },
+    ];
+
+    function ensureStyles() {
+        if (document.getElementById(STYLE_ID)) return;
+        const style = document.createElement('style');
+        style.id = STYLE_ID;
+        style.textContent = [
+            '.ep-q { width:100%; background:#141820; border:1px solid #2a303b; color:#e6e8ee; border-radius:7px; padding:6px 9px; font-size:12px; outline:none; color-scheme:dark; box-sizing:border-box; }',
+            '.ep-q:focus { border-color:#4f9cf9; }',
+            '.ep-list { max-height:240px; overflow-y:auto; margin-top:6px; }',
+            '.ep-group { margin-bottom:7px; }',
+            '.ep-cat { font-size:10px; text-transform:uppercase; letter-spacing:1px; color:#6b7686; margin-bottom:4px; }',
+            '.ep-grid { display:flex; flex-wrap:wrap; gap:5px; }',
+            '.ep-chip { background:#1d212a; border:1px solid #2a303b; color:#c6cdd6; border-radius:999px; padding:4px 10px; font-size:11.5px; cursor:pointer; }',
+            '.ep-chip:hover { border-color:#4f9cf9; color:#fff; background:#232833; }',
+            '.ep-none { font-size:11px; color:#6b7686; padding:6px 2px; }',
+        ].join(String.fromCharCode(10));
+        document.head.appendChild(style);
+    }
+
+    const html = (s: TemplateStringsArray, ...v: unknown[]) => window.Lit.html(s, ...v);
+
+    function renderList(list: HTMLElement | null, filter: string): void {
+        if (!list) return;
+        const f = (filter || '').trim().toLowerCase();
+        const groups = _catalog.map(g => {
+            const items = f ? g.items.filter(i => i.toLowerCase().includes(f)) : g.items;
+            if (!items.length) return null;
+            return html`<div class="ep-group"><div class="ep-cat">${g.cat}</div><div class="ep-grid">${items.map(it => html`<button type="button" class="ep-chip" data-emote=${it}>${it}</button>`)}</div></div>`;
+        }).filter(Boolean);
+        window.Lit.render(html`${groups.length ? groups : html`<div class="ep-none">no emotes match</div>`}`, list);
+    }
+
+    function open(container: EmoteContainer | null | undefined, opts: EmoteOpenOptions = {}): void {
+        if (!container) return;
+        ensureStyles();
+        const onPick = opts.onPick;
+        window.Lit.render(html`
+            <input class="ep-q" type="text" placeholder="search emotes…" autocomplete="off">
+            <div class="ep-list"></div>` , container);
+        const q = container.querySelector('.ep-q') as HTMLInputElement;
+        const list = container.querySelector<HTMLElement>('.ep-list');
+        renderList(list, '');
+        q.oninput = () => renderList(list, q.value);
+        q.onkeydown = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.preventDefault(); close(container); } };
+        container.onclick = (e: MouseEvent) => {
+            const target = e.target;
+            const chip = target instanceof Element ? target.closest<HTMLElement>('.ep-chip') : null;
+            if (chip) {
+                const emote = chip.dataset.emote;
+                if (onPick) onPick(emote);
+                close(container);
+            }
+        };
+        container._emoteOnPick = onPick;
+        container.classList.add('open');
+        q.focus();
+    }
+
+    function close(container: EmoteContainer | null | undefined): void {
+        if (!container) return;
+        container.classList.remove('open');
+        container.onclick = null;
+        container._emoteOnPick = null;
+    }
+
+    function toggle(container: EmoteContainer | null | undefined, opts?: EmoteOpenOptions): void {
+        if (container && container.classList.contains('open')) close(container);
+        else open(container, opts);
+    }
+
+    function setCatalog(catalog: EmoteCategory[]): void {
+        if (Array.isArray(catalog) && catalog.length) _catalog = catalog;
+    }
+
+    return { open, close, toggle, setCatalog, renderList, get catalog() { return _catalog; } };
+})();
+
+/*
+ * Type declarations live below the first value statement on purpose: TypeScript
+ * drops a file's leading JSDoc block when the first statement is type-only, and
+ * `tools/js_module_index.py` reads `@module` out of the emitted `.js`.
+ */
+
+interface EmoteCategory {
+    cat: string;
+    items: string[];
+}
+
+interface EmoteOpenOptions {
+    onPick?(emote: string | undefined): void;
+}
+
+/** The host element: the picker stamps its own bookkeeping field on it. */
+interface EmoteContainer extends HTMLElement {
+    _emoteOnPick?: ((emote: string | undefined) => void) | null;
+}
+
+interface EmotePickerApi {
+    open(container: EmoteContainer | null | undefined, opts?: EmoteOpenOptions): void;
+    close(container: EmoteContainer | null | undefined): void;
+    toggle(container: EmoteContainer | null | undefined, opts?: EmoteOpenOptions): void;
+    setCatalog(catalog: EmoteCategory[]): void;
+    renderList(list: HTMLElement | null, filter: string): void;
+    readonly catalog: EmoteCategory[];
+}

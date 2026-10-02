@@ -440,6 +440,9 @@
  "static/js/shared/json-utils.js": {
   "__repairStats": 5
  },
+ "static/js/shared/lit-bootstrap.js": {
+  "Lit": 5
+ },
  "static/js/shared/scope-options.js": {
   "ScopeOptions": 2
  },

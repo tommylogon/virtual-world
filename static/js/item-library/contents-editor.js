@@ -1,3 +1,4 @@
+"use strict";
 /**
  * ItemLibraryContents — Container contents editor for library items
  * Extracted from item-library.js
@@ -11,10 +12,9 @@
  * @relates runs on an ItemLibrary instance; renders through lit-html
  * @docs docs/virtualWorld/Items & Inventory/Items Overview.md
  */
-
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 // Lazy tag: window.Lit only exists at call time (deferred module bootstrap).
 const itemLibraryContentsHtmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
-
 window.ItemLibraryContents = {
     /**
      * Render the contents list for a container as a lit template.
@@ -27,7 +27,7 @@ window.ItemLibraryContents = {
     renderContentsSection(contents) {
         const items = contents || [];
         if (items.length === 0) {
-            return itemLibraryContentsHtmlTag`<div style="font-size:11px;color:var(--text-muted);padding:4px 0;">No contained items. Add items that should be inside this container.</div>`;
+            return itemLibraryContentsHtmlTag `<div style="font-size:11px;color:var(--text-muted);padding:4px 0;">No contained items. Add items that should be inside this container.</div>`;
         }
         const rows = items.map((contentItem, idx) => {
             const itemLabel = typeof contentItem === 'string' ? contentItem : (contentItem.name || contentItem.id);
@@ -37,9 +37,9 @@ window.ItemLibraryContents = {
                 ? parseFloat(contentItem.weight)
                 : (libEntry?.weight ?? null);
             const weightBadge = (w != null && !isNaN(w))
-                ? itemLibraryContentsHtmlTag`<span style="font-size:9px;color:var(--text-dim);white-space:nowrap;">⚖️ ${w} kg</span>`
+                ? itemLibraryContentsHtmlTag `<span style="font-size:9px;color:var(--text-dim);white-space:nowrap;">⚖️ ${w} kg</span>`
                 : window.Lit.nothing;
-            return itemLibraryContentsHtmlTag`<div style="display:flex;align-items:center;gap:4px;padding:4px 8px;background:var(--bg-inset);border-radius:4px;margin-bottom:3px;border-left:3px solid var(--green);">
+            return itemLibraryContentsHtmlTag `<div style="display:flex;align-items:center;gap:4px;padding:4px 8px;background:var(--bg-inset);border-radius:4px;margin-bottom:3px;border-left:3px solid var(--green);">
                 <span style="flex:1;font-size:11px;">📦 ${itemLabel}</span>
                 ${weightBadge}
                 <button class="btn btn-sm btn-ghost" @click=${() => VW.itemLib._removeContent(idx)} style="font-size:9px;color:var(--red);">✕</button>
@@ -52,10 +52,9 @@ window.ItemLibraryContents = {
                 : (this.data?.[itemId]?.weight ?? 0);
             return sum + (isNaN(w) ? 0 : w);
         }, 0);
-        return itemLibraryContentsHtmlTag`${rows}
+        return itemLibraryContentsHtmlTag `${rows}
             <div style="display:flex;justify-content:flex-end;font-size:10px;color:var(--text-dim);padding:2px 2px 0;">⚖️ Total: ${total.toFixed(1)} kg</div>`;
     },
-
     /**
      * Remove a content item from the container contents array by index.
      * @param {number} idx - Index to remove
@@ -66,22 +65,19 @@ window.ItemLibraryContents = {
         contents.splice(idx, 1);
         field.value = JSON.stringify(contents);
         const listEl = document.getElementById('lib-contents-list');
-        if (listEl) window.Lit.render(this.renderContentsSection(contents), listEl);
+        if (listEl)
+            window.Lit.render(this.renderContentsSection(contents), listEl);
     },
-
     /**
      * Show a modal UI for adding a new item to the container contents.
      * Shows a datalist of existing library items for autocomplete.
      */
     addContentUi() {
         // Get available library item names for autocomplete
-        const itemOptions = Object.entries(this.data).map(([id, item]) =>
-            itemLibraryContentsHtmlTag`<option value=${id}>${item.name || id}</option>`
-        );
-
+        const itemOptions = Object.entries(this.data).map(([id, item]) => itemLibraryContentsHtmlTag `<option value=${id}>${item.name || id}</option>`);
         const overlay = document.createElement('div');
         overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;';
-        window.Lit.render(itemLibraryContentsHtmlTag`
+        window.Lit.render(itemLibraryContentsHtmlTag `
             <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px;width:380px;">
                 <h3 style="margin:0 0 12px;">📦 Add Contained Item</h3>
                 <div class="field"><label>Item ID (from library or type new)</label>
@@ -98,7 +94,6 @@ window.ItemLibraryContents = {
             </div>`, overlay);
         document.body.appendChild(overlay);
     },
-
     /**
      * Save a new content item from the "add content" overlay form.
      * Reads the form fields and appends to the contents array.
@@ -107,16 +102,18 @@ window.ItemLibraryContents = {
     saveContent(btn) {
         const overlay = btn.closest('[style*="fixed"]');
         const itemId = document.getElementById('content-item-id').value.trim();
-        if (!itemId) { toastInfo('Item ID is required.'); return; }
+        if (!itemId) {
+            toastInfo('Item ID is required.');
+            return;
+        }
         const itemName = document.getElementById('content-item-name').value.trim() || itemId;
-
         const field = document.getElementById('lib-item-contents');
         const contents = JSON.parse(field.value || '[]');
         contents.push({ id: itemId, name: itemName });
         field.value = JSON.stringify(contents);
-
         const listEl = document.getElementById('lib-contents-list');
-        if (listEl) window.Lit.render(this.renderContentsSection(contents), listEl);
+        if (listEl)
+            window.Lit.render(this.renderContentsSection(contents), listEl);
         overlay.remove();
         events.log(`Added "${itemName}" to container contents.`, 'system-msg');
     }

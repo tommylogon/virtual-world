@@ -1,3 +1,4 @@
+"use strict";
 /**
  * sky-scape.js — Engine-driven Sky Clock (task-228/229/234 UI, roadmap 3.3).
  *
@@ -19,10 +20,12 @@
  * @relates pure presentation over /api/state; refreshes on state:updated
  * @docs docs/design/sky-widget-reconciled.md
  */
-
-window.SkyScape = (() => {
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+// The local binding is `_SkyScape` because `SkyScape` is already a declared
+// ambient global in types/globals.d.ts; a top-level `const SkyScape` would be a
+// duplicate declaration.
+const _SkyScape = (() => {
     'use strict';
-
     // ── Weather chips (from Time & Weather.md + forecast states) ──
     const WEATHER_CHIP = {
         'clear': '☀️', 'cloudy': '☁️', 'rainy': '🌧️', 'stormy': '⛈️',
@@ -38,12 +41,9 @@ window.SkyScape = (() => {
     // postMessage — while the engine read a season nowhere, so "winter" only ever
     // meant a sky tint. The engine resolves the season from the clock and ships it
     // in world_state; these two functions are the one place it is read.
-
     let _modalEl = null;
     let _timer = null;
-
     // ── state helpers ──────────────────────────────────────────────────
-
     function _monthName(m) {
         return ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][m % 13] || '';
     }
@@ -55,20 +55,21 @@ window.SkyScape = (() => {
      */
     function _season(state) {
         const fromEngine = state?.season;
-        if (typeof fromEngine === 'string' && fromEngine) return fromEngine;
+        if (typeof fromEngine === 'string' && fromEngine)
+            return fromEngine;
         const m = Math.max(1, Math.min(12, (state?.game_month || 1)));
         return ['winter', 'winter', 'spring', 'spring', 'spring',
             'summer', 'summer', 'summer', 'autumn', 'autumn', 'autumn',
             'winter'][m - 1] || 'summer';
     }
-
     /** Effective weather: override wins, else the forecast entry at "now". */
     function effectiveWeather(state) {
         const ov = state?.forecast_override;
-        if (ov && ov.weather) return ov.weather;
+        if (ov && ov.weather)
+            return ov.weather;
         const sched = state?.forecast_schedule;
         if (sched && Array.isArray(sched.entries) && sched.entries.length) {
-            const period = { hourly: 1440, weekly: 10080, yearly: 525600 }[sched.granularity] || 1440;
+            const period = GRANULARITY_MINUTES[sched.granularity || ''] || 1440;
             const day = (state?.game_day || 1) - 1;
             const [hh, mm] = (state?.game_time || '00:00').split(':').map(Number);
             const offset = ((sched.granularity === 'hourly' ? 0 : day * 1440) + (hh || 0) * 60 + (mm || 0)) % period;
@@ -77,18 +78,22 @@ window.SkyScape = (() => {
                 const e = sched.entries[i];
                 const start = Number(e.offset || 0);
                 const end = i + 1 < sched.entries.length ? Number(sched.entries[i + 1].offset || 0) : period;
-                if (start <= offset && offset < end) { found = e; break; }
+                if (start <= offset && offset < end) {
+                    found = e;
+                    break;
+                }
             }
-            if (found && found.weather) return found.weather;
+            if (found && found.weather)
+                return found.weather;
         }
         return 'clear';
     }
-
     /** Next forecast change from "now" (minutes + label), for the widget. */
     function nextForecastChange(state) {
         const sched = state?.forecast_schedule;
-        if (!sched || !Array.isArray(sched.entries) || sched.entries.length < 2) return null;
-        const period = { hourly: 1440, weekly: 10080, yearly: 525600 }[sched.granularity] || 1440;
+        if (!sched || !Array.isArray(sched.entries) || sched.entries.length < 2)
+            return null;
+        const period = GRANULARITY_MINUTES[sched.granularity || ''] || 1440;
         const day = sched.granularity === 'hourly' ? 0 : ((state?.game_day || 1) - 1) * 1440;
         const [hh, mm] = (state?.game_time || '00:00').split(':').map(Number);
         const now = (day + (hh || 0) * 60 + (mm || 0)) % period;
@@ -106,23 +111,23 @@ window.SkyScape = (() => {
         const delta = Math.round(first - now);
         return { when: `${Math.floor(delta / 60)}h`, weather: sorted[0]?.weather, label: `in ${Math.floor(delta / 60)}h` };
     }
-
     // ── top-bar widget ─────────────────────────────────────────────────
-
     function renderTopBar(el, state) {
-        if (!el) return;
+        if (!el)
+            return;
         const moon = state?.moon_phase || {};
         const weather = effectiveWeather(state);
-        const moonIcon = MOON_CHIP[moon.name] || '🌑';
+        const moonIcon = MOON_CHIP[moon.name || ''] || '🌑';
         const weatherIcon = WEATHER_CHIP[weather] || '☀️';
-        const date = `${_monthName(state?.game_month)} Day ${state?.game_day || 1}`;
+        const date = `${_monthName(state?.game_month || 0)} Day ${state?.game_day || 1}`;
         const moonLabel = (moon.name || '').replace(/_/g, ' ');
         const next = nextForecastChange(state);
         let html = `🕐 ${(state?.game_time || '').slice(0, 5)}`;
         html += ` · ${date}`;
         html += ` · <span title="Moon phase (light bonus ${moon.light_bonus || 0})">${moonIcon} ${moonLabel}</span>`;
         html += ` · <span title="Weather">${weatherIcon} ${weather}</span>`;
-        if (next) html += ` · <span title="Next forecast change">${next.weather ? WEATHER_CHIP[next.weather] || '⛅' : ''} ${next.label}</span>`;
+        if (next)
+            html += ` · <span title="Next forecast change">${next.weather ? WEATHER_CHIP[next.weather] || '⛅' : ''} ${next.label}</span>`;
         el.textContent = '';
         el.title = 'World Sky — click to open';
         el.style.cursor = 'pointer';
@@ -131,14 +136,16 @@ window.SkyScape = (() => {
         el.appendChild(span);
         if (!el._skyClickBound) {
             el._skyClickBound = true;
-            el.addEventListener('click', () => SkyScape.openWorldSky());
+            el.addEventListener('click', () => _SkyScape.openWorldSky());
         }
     }
-
     // ── World Sky modal ────────────────────────────────────────────────
-
     function openWorldSky() {
-        if (_modalEl) { _modalEl.style.display = 'flex'; _sendStateToIframe(); return; }
+        if (_modalEl) {
+            _modalEl.style.display = 'flex';
+            _sendStateToIframe();
+            return;
+        }
         const overlay = document.createElement('div');
         overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);display:flex;align-items:flex-start;justify-content:center;z-index:21000;';
         const box = document.createElement('div');
@@ -194,7 +201,8 @@ window.SkyScape = (() => {
         overlay.appendChild(box);
         document.body.appendChild(overlay);
         _modalEl = overlay;
-        overlay.addEventListener('mousedown', (ev) => { if (ev.target === overlay) _closeSky(); });
+        overlay.addEventListener('mousedown', (ev) => { if (ev.target === overlay)
+            _closeSky(); });
         box.querySelector('#sky-close').addEventListener('click', _closeSky);
         box.querySelectorAll('.sky-skip').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -211,20 +219,23 @@ window.SkyScape = (() => {
         iframe.addEventListener('load', () => _sendStateToIframe());
         // Listen for 'sky:ready' from the iframe
         window.addEventListener('message', (ev) => {
-            if (ev.data?.type === 'sky:ready') _sendStateToIframe();
+            if (ev.data?.type === 'sky:ready')
+                _sendStateToIframe();
         });
         _populateControls();
         _sendStateToIframe();
         // Poll state updates to the iframe
-        if (_timer) clearInterval(_timer);
+        if (_timer)
+            clearInterval(_timer);
         _timer = setInterval(() => {
-            if (document.contains(overlay)) _sendStateToIframe();
+            if (document.contains(overlay))
+                _sendStateToIframe();
         }, 3000);
     }
-
     function _sendStateToIframe() {
         const iframe = document.getElementById('sky-atmosphere-frame');
-        if (!iframe || !iframe.contentWindow) return;
+        if (!iframe || !iframe.contentWindow)
+            return;
         const state = _state();
         const t = (state?.game_time || '09:40').split(':').map(Number);
         const hour = (t[0] || 0) + (t[1] || 0) / 60;
@@ -234,7 +245,7 @@ window.SkyScape = (() => {
         const weatherMap = { clear: 'clear', cloudy: 'overcast', rainy: 'rain', stormy: 'storm', snowy: 'snow', foggy: 'fog', windy: 'partly' };
         const moonIdx = { new_moon: 0, crescent: 1, quarter: 2, gibbous: 3, full_moon: 4, waning: 5, blood_moon: 4 };
         const moon = state?.moon_phase || {};
-        const phase = moonIdx[moon.name] !== undefined ? moonIdx[moon.name] : 0;
+        const phase = moonIdx[moon.name || ''] !== undefined ? moonIdx[moon.name || ''] : 0;
         iframe.contentWindow.postMessage({
             type: 'engine:sky-state',
             t: hour,
@@ -245,17 +256,18 @@ window.SkyScape = (() => {
             engineDay: state?.game_day || 1,
         }, '*');
     }
-
     function _closeSky() {
-        if (_timer) { clearInterval(_timer); _timer = null; }
-        if (_modalEl) _modalEl.remove();
+        if (_timer) {
+            clearInterval(_timer);
+            _timer = null;
+        }
+        if (_modalEl)
+            _modalEl.remove();
         _modalEl = null;
     }
-
     function _state() {
         return (typeof worldState !== 'undefined' && worldState.data) || {};
     }
-
     function _skipTime(minutes) {
         const state = _state();
         const [hh, mm] = (state.game_time || '08:00').split(':').map(Number);
@@ -267,59 +279,65 @@ window.SkyScape = (() => {
             body: JSON.stringify({ clock_start_hour: Math.floor(clamped / 60), clock_start_minute: clamped % 60 })
         }).then(() => worldState?.fetch?.());
     }
-
     function _setExactTime() {
         const input = document.getElementById('sky-time-input');
-        if (!input || !input.value) return;
+        if (!input || !input.value)
+            return;
         const [h, m] = input.value.split(':').map(Number);
-        if (isNaN(h) || isNaN(m)) return;
+        if (isNaN(h) || isNaN(m))
+            return;
         fetch('/api/settings/clock_start', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ clock_start_hour: h, clock_start_minute: m })
         }).then(() => worldState?.fetch?.());
     }
-
     function _setExactDate() {
-        const d = parseInt(document.getElementById('sky-date-day')?.value);
-        const m = parseInt(document.getElementById('sky-date-month')?.value);
-        const y = parseInt(document.getElementById('sky-date-year')?.value);
-        if (isNaN(d) && isNaN(m) && isNaN(y)) return;
+        const d = parseInt(document.getElementById('sky-date-day')?.value || '');
+        const m = parseInt(document.getElementById('sky-date-month')?.value || '');
+        const y = parseInt(document.getElementById('sky-date-year')?.value || '');
+        if (isNaN(d) && isNaN(m) && isNaN(y))
+            return;
         const body = {};
-        if (!isNaN(d)) body.day = d;
-        if (!isNaN(m)) body.month = m;
-        if (!isNaN(y)) body.year = y;
+        if (!isNaN(d))
+            body.day = d;
+        if (!isNaN(m))
+            body.month = m;
+        if (!isNaN(y))
+            body.year = y;
         fetch('/api/settings/date', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body)
         }).then(() => worldState?.fetch?.());
     }
-
     function _setOverride() {
         const weather = document.getElementById('sky-override-weather')?.value || '';
         const wind = document.getElementById('sky-override-wind')?.value || '';
         const humidity = document.getElementById('sky-override-humidity')?.value || '';
         const dur = parseInt(document.getElementById('sky-override-duration')?.value || '5');
         const data = {};
-        if (weather) data.weather = weather;
-        if (wind) data.wind = wind;
-        if (humidity) data.humidity = humidity;
-        if (dur > 0) data.duration_ticks = dur;
+        if (weather)
+            data.weather = weather;
+        if (wind)
+            data.wind = wind;
+        if (humidity)
+            data.humidity = humidity;
+        if (dur > 0)
+            data.duration_ticks = dur;
         fetch('/api/settings/forecast-override', {
             method: 'POST', headers: { 'Content-Type': 'application/json', 'X-WV-Editor': 'sky-widget' },
             body: JSON.stringify(data)
         }).then(() => worldState?.fetch?.());
     }
-
     function _clearOverride() {
         fetch('/api/settings/forecast-override', {
             method: 'POST', headers: { 'Content-Type': 'application/json', 'X-WV-Editor': 'sky-widget' },
             body: JSON.stringify({ clear_all: true })
         }).then(() => worldState?.fetch?.());
     }
-
     function _populateControls() {
         const state = _state();
-        if (!state) return;
+        if (!state)
+            return;
         const timeInput = document.getElementById('sky-time-input');
         const dayInput = document.getElementById('sky-date-day');
         const monthInput = document.getElementById('sky-date-month');
@@ -332,13 +350,17 @@ window.SkyScape = (() => {
             const t = (state.game_time || '09:40').slice(0, 5);
             timeInput.value = t;
         }
-        if (dayInput) dayInput.value = state.game_day || 1;
-        if (monthInput) monthInput.value = state.game_month || 1;
-        if (yearInput) yearInput.value = state.game_year || 1;
-        if (clockReadout) clockReadout.textContent = `${state.game_time || '?'} · Day ${state.game_day || 1}, ${_monthName(state.game_month || 1)} ${state.game_year || 1}`;
+        if (dayInput)
+            dayInput.value = String(state.game_day || 1);
+        if (monthInput)
+            monthInput.value = String(state.game_month || 1);
+        if (yearInput)
+            yearInput.value = String(state.game_year || 1);
+        if (clockReadout)
+            clockReadout.textContent = `${state.game_time || '?'} · Day ${state.game_day || 1}, ${_monthName(state.game_month || 1)} ${state.game_year || 1}`;
         if (moonReadout) {
             const moon = state.moon_phase || {};
-            const icon = MOON_CHIP[moon.name] || '🌑';
+            const icon = MOON_CHIP[moon.name || ''] || '🌑';
             const label = (moon.name || '').replace(/_/g, ' ');
             const bonus = moon.light_bonus || 0;
             const next = nextForecastChange(state);
@@ -355,38 +377,48 @@ window.SkyScape = (() => {
             overrideActive.style.display = ov ? 'inline' : 'none';
         }
     }
-
     // ── wiring ─────────────────────────────────────────────────────────
-
+    // Declared before `wire` is bound so `_done` is a plain `boolean` rather
+    // than the `false` literal TypeScript would otherwise infer here.
+    const _wireState = { done: false };
     function wire() {
-        if (wire._done) return;
-        wire._done = true;
+        if (_wireState.done)
+            return;
+        _wireState.done = true;
         function _paint() {
             const el = document.getElementById('sky-time');
-            if (el && worldState?.data) renderTopBar(el, _state());
-            if (_modalEl) _sendStateToIframe();
+            if (el && worldState?.data)
+                renderTopBar(el, _state());
+            if (_modalEl)
+                _sendStateToIframe();
         }
         try {
-            if (window.appEvents && typeof window.appEvents.on === 'function') {
-                window.appEvents.on('state:updated', _paint);
+            const bus = window.appEvents;
+            if (bus && typeof bus.on === 'function') {
+                bus.on('state:updated', _paint);
             }
             if (typeof worldState !== 'undefined' && worldState?.on) {
                 worldState.on('update', _paint);
             }
-        } catch (e) { /* event wiring optional */ }
+        }
+        catch (e) { /* event wiring optional */ }
         _paint();
         setTimeout(_paint, 600);
     }
-
     return {
         renderTopBar, effectiveWeather, nextForecastChange,
         openWorldSky, close: _closeSky, wire,
     };
 })();
-
+window.SkyScape = _SkyScape;
 // Auto-wire after DOM ready.
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => window.SkyScape?.wire());
-} else {
+}
+else {
     setTimeout(() => window.SkyScape?.wire(), 200);
 }
+/** Minutes in one schedule period, by granularity. */
+const GRANULARITY_MINUTES = {
+    hourly: 1440, weekly: 10080, yearly: 525600,
+};

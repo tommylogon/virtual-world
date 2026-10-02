@@ -1,3 +1,4 @@
+"use strict";
 /**
  * plan-manager.js — Plan generation and status checking for character agents
  *
@@ -15,20 +16,31 @@
  * @relates stores into PlanTracker; the plan text feeds the decide prompt's PLAN FOLLOW
  * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */
-
-window.PlanManager = (() => {
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+const PlanManager = (() => {
     'use strict';
-
+    /**
+     * `window.StructuredFormats` (shared/structured-formats.js) is not declared in
+     * types/globals.d.ts, so it is read through a local cast rather than edited
+     * into the shared hub.
+     */
+    function _structuredFormats() {
+        return window.StructuredFormats;
+    }
+    /** `repairJSON` (shared/json-utils.js) is a bare global function, not on Window. */
+    function _repairJSON(text) {
+        const fn = globalThis.repairJSON;
+        return fn ? fn(text) : text;
+    }
     /**
      * Check whether the given config requires an API key.
      * Local endpoints (localhost, 127.0.0.1) are assumed keyless.
-     * @param {Object} cfg - Configuration object with .apiBase
-     * @returns {boolean} True if an API key is required
+     * @param cfg - Configuration object with .apiBase
+     * @returns True if an API key is required
      */
     function _needsKey(cfg) {
         return !cfg.apiBase?.includes('localhost') && !cfg.apiBase?.includes('127.0.0.1');
     }
-
     /**
      * One-line summary of the previous action result (N7). The full result can
      * be a move dump (room prose + exits) that duplicates the observation the
@@ -38,7 +50,6 @@ window.PlanManager = (() => {
         const lines = String(text || '').split('\n').map(s => s.trim()).filter(Boolean);
         return lines[0] || '';
     }
-
     /**
      * Generate a multi-step plan for a character using the LLM.
      *
@@ -50,29 +61,33 @@ window.PlanManager = (() => {
      * @returns {Promise<string[]>} Array of up to 5 plan step strings, or empty on failure
      */
     async function generate(charName) {
-        if (!charName || (!config.apiKey && _needsKey(config)) || !config.model) return [];
+        if (!charName || (!config.apiKey && _needsKey(config)) || !config.model)
+            return [];
         try {
             const state = worldState?.data;
             const player = state?.players?.[charName];
-            if (!player) return [];
-
+            if (!player)
+                return [];
             const currentArea = state?.areas?.[player.current_area] || null;
             const roomContext = PromptBuilder.buildRoomContext(state, charName, player, currentArea, false);
             const vitals = PromptBuilder.describeVitals(player, state, charName);
             const emotion = PromptBuilder.buildEmotionContext(player);
             const memories = await PromptBuilder.buildMemoryContext(charName);
             const lastThought = events.getCharacterState(charName)?.lastThought || '';
-            const lastResult = config.lastActionResult?.[charName] || '';
-
+            const lastActionResults = (config.lastActionResult || {});
+            const lastResult = lastActionResults[charName] || '';
             // Threat detection — check for hostile actors in the same room
             const allPlyrs = state?.players || {};
             const areaPlayers = state?.players_in_area || [];
             const threatsInRoom = [];
             for (const person of areaPlayers) {
-                if (person.name === charName) continue;
+                if (person.name === charName)
+                    continue;
                 const other = allPlyrs[person.name];
-                if (!other) continue;
-                if (other.state === 'hidden' || other.state === 'stealthed') continue;
+                if (!other)
+                    continue;
+                if (other.state === 'hidden' || other.state === 'stealthed')
+                    continue;
                 const rel = other.relationships?.[charName]?.closeness;
                 if (other.traits?.hostile || (rel !== undefined && rel < -20)) {
                     threatsInRoom.push(person.name);
@@ -81,7 +96,6 @@ window.PlanManager = (() => {
             const threatNote = threatsInRoom.length > 0
                 ? `\n?? THREAT WARNING: ${threatsInRoom.join(', ')} ${threatsInRoom.length > 1 ? 'are' : 'is'} hostile to you and in this room. Your plan MUST address this threat first — flee, hide, fight, or warn others. Do NOT plan exploration or item examination while a threat is active.`
                 : '';
-
             // task-92: critical vitals force the plan to address them first.
             // Maslow's hierarchy of needs: physiological needs (hunger, thirst,
             // sleep, safety) are the base of the pyramid and MUST be satisfied
@@ -102,12 +116,11 @@ window.PlanManager = (() => {
                 || pTags.includes('undead')
                 || pTags.includes('ghost');
             const filteredNeeds = noPhysNeeds
-                ? criticalNeedsList.filter(n => !/^hunger|thirst|sleep/i.test(n))
+                ? criticalNeedsList.filter((n) => !/^hunger|thirst|sleep/i.test(n))
                 : criticalNeedsList;
             const maslowNote = filteredNeeds.length > 0
                 ? `\n\n=== CRITICAL NEEDS (MASLOW — address these FIRST) ===\nYou are suffering from: ${filteredNeeds.join('; ')}.\n\nThese are PHYSIOLOGICAL needs — the base of Maslow's hierarchy. They outrank every other goal: safety, exploration, investigation, and social connection can wait. Build the FIRST step of your plan around satisfying the most urgent need (eat your food, drink your water, find shelter, rest).\n\nA short detour toward another goal is fine ONLY if you return to the urgent need immediately after. Don't let curiosity or a side-task stand between you and the pressing need.`
                 : '';
-
             const prompt = `${roomContext}
 
 === YOUR STATE ===
@@ -126,12 +139,13 @@ Create a practical 3-5 step plan based only on the information above.
 - Plans are suggestions — if something changes (a threat appears, someone attacks, a new person arrives), the plan may no longer apply. Re-evaluate before acting.
 
 Respond ONLY with a JSON object: {"steps": ["step 1", "step 2"]}`;
-
-            const response = await llmClient.chat([{ role: 'user', content: prompt }], { temperature: 0.7, max_tokens: 200, streaming: false, label: 'plan', responseFormat: window.StructuredFormats?.plan });
-            if (!response) return [];
-            let cleaned = repairJSON(response);
+            const response = await llmClient.chat([{ role: 'user', content: prompt }], { temperature: 0.7, max_tokens: 200, streaming: false, label: 'plan', responseFormat: _structuredFormats()?.plan });
+            if (!response)
+                return [];
+            let cleaned = _repairJSON(response);
             const codeBlockMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-            if (codeBlockMatch) cleaned = codeBlockMatch[1].trim();
+            if (codeBlockMatch)
+                cleaned = codeBlockMatch[1].trim();
             const parsed = JSON.parse(cleaned);
             // Structured output wraps in {"steps":[...]}; the old raw-array
             // contract (and the legacy object-array variant) stay accepted for
@@ -140,51 +154,54 @@ Respond ONLY with a JSON object: {"steps": ["step 1", "step 2"]}`;
                 : (Array.isArray(parsed?.steps) ? parsed.steps : null);
             if (Array.isArray(arr)) {
                 const steps = arr.filter(step => typeof step === 'string').slice(0, 5);
-                if (steps.length > 0) return steps;
+                if (steps.length > 0)
+                    return steps;
             }
             if (Array.isArray(arr) && typeof arr[0] === 'object' && arr[0] !== null) {
                 const steps = arr.map(entry => entry.examine || entry.action || entry.step || '').filter(Boolean).slice(0, 5);
-                if (steps.length > 0) return steps;
+                if (steps.length > 0)
+                    return steps;
             }
             return [];
-        } catch (error) {
+        }
+        catch (error) {
             return [];
         }
     }
-
     /**
      * Collect what the previous plan accomplished/failed at, so regeneration
      * does not repeat steps that already failed 3+ times.
      */
     function _previousPlanIssues(charName) {
         const plan = PlanTracker.getPlan(charName);
-        if (!plan.length) return '';
+        if (!plan.length)
+            return '';
         const progress = PlanTracker.getProgress(charName);
         const fullPlan = PlanTracker.getPlan(charName);
         const parts = [];
         for (let i = 0; i < fullPlan.length; i++) {
             if (i < progress) {
                 parts.push(`"${fullPlan[i]}" (done)`);
-            } else {
+            }
+            else {
                 parts.push(`"${fullPlan[i]}" (available)`);
             }
         }
-        if (!parts.length) return '';
+        if (!parts.length)
+            return '';
         return `\n=== PREVIOUS PLAN ===\nYour previous plan: ${parts.join('; ')}.\nContinue from where you left off.`;
     }
-
     /**
      * Check whether a character has an active plan with remaining steps.
-     * @param {string} charName - Character name
-     * @returns {boolean} True if a plan exists and has uncompleted steps
+     * @param charName - Character name
+     * @returns True if a plan exists and has uncompleted steps
      */
     function hasPlan(charName) {
         return PlanTracker.getPlan(charName).length > 0;
     }
-
     return {
         generate,
         hasPlan
     };
 })();
-
+window.PlanManager = PlanManager;

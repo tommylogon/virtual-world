@@ -1,3 +1,4 @@
+"use strict";
 /**
  * character-art — one resolver for a character's live art, plus a portrait viewer.
  *
@@ -19,16 +20,18 @@
  * otherwise the profile enlarged. It is opened by examining a character (and by
  * clicking a chip's avatar).
  */
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 window.CharacterArt = (() => {
     'use strict';
-
     // Canonical expression keys (fallback if InspectorHelpers isn't loaded yet).
     const CANONICAL = ['neutral', 'happy', 'sad', 'angry', 'afraid', 'surprised',
         'disgusted', 'aroused', 'affectionate', 'ashamed', 'envious', 'calm'];
-
-    function _expr(props) { return (props && props.expressions) || {}; }
-    function _slot(props, key) { return _expr(props)[key] || {}; }
-
+    function _expr(props) {
+        return (props && props.expressions) || {};
+    }
+    function _slot(props, key) {
+        return _expr(props)[key] || {};
+    }
     /**
      * Profile (bust/avatar) for a character, chosen by emotion.
      * @param {object} props - graph node properties (expressions/profile_image/image)
@@ -42,7 +45,6 @@ window.CharacterArt = (() => {
             || (props && (props.profile_image || props.image))
             || '';
     }
-
     /**
      * Full-body art for a character, chosen by emotion.
      * @param {object} props
@@ -56,22 +58,20 @@ window.CharacterArt = (() => {
             || (props && props.image)
             || '';
     }
-
     /** Both renders at once. */
     function artFor(props, emotionKey) {
         return { profile: avatarFor(props, emotionKey), full: fullArtFor(props, emotionKey) };
     }
-
     /** Current emotion key for a named player (worldState), else 'neutral'. */
     function emotionOf(name) {
         try {
             const p = window.worldState && worldState.players && worldState.players[name];
             return (p && p.emotion && p.emotion.current) || 'neutral';
-        } catch (e) {
+        }
+        catch (e) {
             return 'neutral';
         }
     }
-
     /**
      * The expression key that should drive a character's art.
      *
@@ -81,37 +81,40 @@ window.CharacterArt = (() => {
      * free-text moods like "relieved but vigilant" are not), else 'neutral'.
      */
     function emotionKeyFor(player) {
-        if (!player) return 'neutral';
+        if (!player)
+            return 'neutral';
         const e = player.emotion || {};
-        if (e.expression) return e.expression;
+        if (e.expression)
+            return e.expression;
         const cur = e.current;
-        const order = (window.InspectorHelpers && window.InspectorHelpers.EXPRESSION_ORDER) || CANONICAL;
+        const order = (window.InspectorHelpers)?.EXPRESSION_ORDER
+            || CANONICAL;
         return (cur && order.indexOf(cur) !== -1) ? cur : 'neutral';
     }
-
     /** Same as emotionKeyFor but keyed by character name. */
     function emotionKeyForName(name) {
         try {
             return emotionKeyFor(window.worldState && worldState.players && worldState.players[name]);
-        } catch (e) {
+        }
+        catch (e) {
             return 'neutral';
         }
     }
-
     /** Graph node by id, tolerating either worldState accessor. */
     function _node(nodeId) {
         try {
             if (window.worldState && typeof worldState.getNode === 'function') {
                 const n = worldState.getNode(nodeId);
-                if (n) return n;
+                if (n)
+                    return n;
             }
             return window.worldState && worldState.graph && worldState.graph.nodes
                 && worldState.graph.nodes[nodeId];
-        } catch (e) {
+        }
+        catch (e) {
             return null;
         }
     }
-
     /**
      * Resolve {name, emotion, profile, full} for a graph node id. The node's real
      * name gives the current emotion (the node carries the art, the player carries
@@ -124,20 +127,18 @@ window.CharacterArt = (() => {
         const emotion = name ? emotionKeyForName(name) : 'neutral';
         return Object.assign({ name, emotion }, artFor(props, emotion));
     }
-
     // ── portrait viewer (DOM) ────────────────────────────────────────
-
     let _overlay = null;
-
     function close() {
-        if (_overlay) { _overlay.remove(); _overlay = null; }
+        if (_overlay) {
+            _overlay.remove();
+            _overlay = null;
+        }
     }
-
     function _esc(v) {
         return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;')
             .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
-
     /**
      * Open the large portrait overlay.
      * @param {object} opts - {name, nodeId, props, emotionKey, full, profile}
@@ -155,14 +156,15 @@ window.CharacterArt = (() => {
             profile = profile || a.profile;
             full = full || a.full;
             emotion = opts.emotionKey || a.emotion;
-        } else if (opts.props) {
+        }
+        else if (opts.props) {
             profile = profile || avatarFor(opts.props, emotion);
             full = full || fullArtFor(opts.props, emotion);
         }
         // Big view = full body if there is one, else the profile enlarged.
         const big = full || profile;
-        if (!big) return;   // nothing to show
-
+        if (!big)
+            return; // nothing to show
         const root = document.createElement('div');
         root.id = 'character-portrait';
         root.style.cssText = 'position:fixed;inset:0;z-index:1450;background:rgba(0,0,0,0.82);'
@@ -182,12 +184,12 @@ window.CharacterArt = (() => {
         root.addEventListener('click', close);
         document.body.appendChild(root);
         _overlay = root;
-
         root.querySelectorAll('.cp-tab').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const img = root.querySelector('#cp-img');
-                if (img) img.src = btn.dataset.src;
+                if (img)
+                    img.src = btn.dataset.src;
                 root.querySelectorAll('.cp-tab').forEach(b => {
                     const on = b === btn;
                     b.style.background = on ? '#2b1f42' : '#1d212a';
@@ -197,11 +199,9 @@ window.CharacterArt = (() => {
             });
         });
     }
-
     function emoLabel(emotion) {
         return emotion ? `showing: ${String(emotion).replace(/_/g, ' ')}` : '';
     }
-
     return { avatarFor, fullArtFor, artFor, artForNodeId, emotionOf,
-             emotionKeyFor, emotionKeyForName, open, close };
+        emotionKeyFor, emotionKeyForName, open, close };
 })();

@@ -1,0 +1,206 @@
+/**
+ * Shared JSON parsing utilities.
+ * Many functions across the codebase strip ```json code fences and extract JSON.
+ * This centralises that pattern.
+ *
+ * @module shared/json-utils — JSON extraction and repair
+ * @contributes code-fence stripping, JSON extraction, repairJSON()
+ * @powers parsing messy LLM output everywhere (agent turns, AI generators, triggers)
+ * @relates leaf utility; used by agent/response-parser + shared/ai-generator + shared/json-schemas
+ * @docs none
+ */
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+
+/**
+ * `window.__repairStats` is stamped by repairJSON() so callers can surface
+ * "salvaged from broken JSON" instead of silently dropping fields (N1). It is
+ * declared locally rather than on Window because globals.d.ts is a shared hub.
+ */
+
+/** Extract the top-level JSON value (object OR array) from arbitrary text.
+ *  Models returning `[...]` arrays (e.g. the trigger suggester) must not have
+ *  their brackets stripped by brace-only extraction. */
+function extractTopLevelJSON(text: unknown): string {
+    const s = String(text || '').trim();
+    const firstBracket = s.indexOf('[');
+    const firstBrace = s.indexOf('{');
+    if (firstBracket !== -1 && (firstBrace === -1 || firstBracket < firstBrace)) {
+        const lastBracket = s.lastIndexOf(']');
+        if (lastBracket > firstBracket) return s.substring(firstBracket, lastBracket + 1);
+    }
+    const firstB = s.indexOf('{');
+    const lastB = s.lastIndexOf('}');
+    if (firstB !== -1 && lastB > firstB) return s.substring(firstB, lastB + 1);
+    return s;
+}
+
+/** Strip a JSON (```json ... ```) and extract JSON from a response string.
+ *  Returns { json, raw, error } where json is the parsed object or null,
+ *  raw is the extracted string, and error (when json is null) is the parser's
+ *  complaint — useful for AI-repair callbacks that can pass it back to the
+ *  LLM. Falls back to repairJSON when the clean extract fails, so slightly
+ *  broken model output (stray trailing chars, wrapped prefix/suffix, missing
+ *  commas) is salvaged instead of surfacing a hard parse error. */
+function parseJSONFromResponse(response: string | null | undefined): ParsedResponse {
+    if (!response) return { json: null, raw: '', error: '' };
+    let content = response.trim();
+    const match = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (match) {
+        content = match[1].trim();
+    } else {
+        content = extractTopLevelJSON(content);
+    }
+    try {
+        return { json: JSON.parse(content), raw: content, error: null };
+    } catch (e) {
+        // Try the aggressive repair path (handles missing commas, trailing
+        // commas, raw control chars, unbalanced brackets, wrapped JSON).
+        if (typeof repairJSON === 'function') {
+            try {
+                const repaired = repairJSON(content);
+                const repairedContent = extractTopLevelJSON(repaired);
+                return { json: JSON.parse(repairedContent), raw: repairedContent, error: null };
+            } catch (e2) {
+                /* fall through to null, keep the first parser error which is more literal */
+            }
+        }
+        return { json: null, raw: content, error: e instanceof Error ? e.message : String(e) };
+    }
+}
+
+/** Safe parse a JSON string, returning null on failure instead of throwing */
+function parseJsonSafely(str: string): unknown {
+    try {
+        return JSON.parse(str);
+    } catch {
+        return null;
+    }
+}
+
+/** Recursively sort object keys + normalize so deep comparison is key-order insensitive. */
+function canonicalizeJSON(value: unknown): unknown {
+    if (value === null || value === undefined) return value;
+    if (Array.isArray(value)) return value.map(canonicalizeJSON);
+    if (typeof value === 'object') {
+        const out: Record<string, unknown> = {};
+        for (const k of Object.keys(value).sort()) out[k] = canonicalizeJSON((value as Record<string, unknown>)[k]);
+        return out;
+    }
+    return value;
+}
+
+/** Key-order-insensitive deep equality between two values. */
+function jsonDeepEqual(a: unknown, b: unknown): boolean {
+    const ca = canonicalizeJSON(a);
+    const cb = canonicalizeJSON(b);
+    const sa = ca === undefined || ca === null ? '' : JSON.stringify(ca);
+    const sb = cb === undefined || cb === null ? '' : JSON.stringify(cb);
+    return sa === sb;
+}
+
+
+/** Extract assistant-visible text from raw LLM output (API envelope, thinking prefix, fences). */
+function extractAssistantText(raw: unknown): string {
+    if (raw == null) return '';
+    let text = String(raw).trim();
+    if (!text) return '';
+
+    if (text.startsWith('{') && text.includes('"choices"')) {
+        try {
+            const envelope = JSON.parse(text);
+            const fromMessage = envelope?.choices?.[0]?.message?.content;
+            if (fromMessage) text = String(fromMessage).trim();
+        } catch {
+            // repairJSON may still salvage inner JSON
+        }
+    }
+
+    text = text.replace(/^\uFEFF/, '');
+    text = text.replace(/^🧠\s*thinking\.\.\./i, '').trim();
+    text = text.replace(/^thinking\.\.\./i, '').trim();
+    text = text.replace(/<think>[\s\S]*?<\/think>\s*/gi, '').trim();
+
+    const fenced = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (fenced) text = fenced[1].trim();
+
+    return text;
+}
+
+/** Repair common LLM JSON formatting failures before parsing.
+ *  Handles: code fences, raw newlines/tabs in strings, non-ASCII chars,
+ *  trailing commas before ]/}, missing commas between properties, and
+ *  missing closing braces/brackets.
+ *  Returns the repaired string; falls back to the raw input on failure.
+ *  Sets window.__repairStats.repaired = true when the input needed fixing,
+ *  so callers can surface "salvaged from broken JSON" instead of silently
+ *  dropping fields (N1). */
+function repairJSON(raw: string): string {
+    const _stats = () => (window as unknown as { __repairStats?: { repaired: boolean } });
+    _stats().__repairStats = _stats().__repairStats || { repaired: false };
+    _stats().__repairStats!.repaired = false;
+    let s = raw.trim();
+    s = s.replace(/^\uFEFF/, '');
+    const fence = s.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (fence) {
+        s = fence[1].trim();
+    } else {
+        const first = s.indexOf('{');
+        const last = s.lastIndexOf('}');
+        if (first !== -1) {
+            s = last > first ? s.substring(first, last + 1) : s.substring(first);
+        } else if (last !== -1) {
+            s = '{' + s.substring(0, last).trim() + '}';
+        } else if (!/[:]/.test(s)) {
+            return s;
+        }
+    }
+    // If it already parses cleanly, return as-is and skip aggressive repair
+    try { JSON.parse(s); return s; } catch {}
+    // Anything past this point was repaired — flag it.
+    _stats().__repairStats!.repaired = true;
+    // Qwen 3.5 with empty-assistant-message workaround sometimes drops the outer {}.
+    // If the string does not start with { or [, wrap it in {} so the parser
+    // gets a valid object. Only do this if the content looks like JSON.
+    const trimmed = s.trim();
+    if (!/^[{\[]/.test(trimmed) && /[:]/.test(trimmed)) {
+        s = '{' + s + '}';
+    }
+    if (!s.includes('{')) return s;
+    // Fix missing commas between properties: a closing-quote not preceded
+    // by backslash, followed by whitespace (including newlines), followed
+    // by an opening-quote of the next key. Skips escaped quotes inside
+    // string values (\").
+    s = s.replace(/(?<!")\s+"/g, ',"');
+    s = s.replace(/\r\n/g, '\n');
+    s = s.replace(/\\n/g, '\\\\n');
+    s = s.replace(/\\r/g, '\\\\r');
+    s = s.replace(/\\t/g, '\\\\t');
+    s = s.replace(/[^\u0020-\u007E\n\t]/g, (c: string) => {
+        const code = c.charCodeAt(0);
+        if (code > 0x7F) return '\\u' + code.toString(16).padStart(4, '0');
+        return c;
+    });
+    s = s.replace(/\n/g, '\\n');
+    s = s.replace(/\r/g, '\\r');
+    s = s.replace(/\t/g, '\\t');
+    s = s.replace(/,([ \t]*[}\]])/g, '$1');
+    const openBrackets = (s.match(/\[/g) || []).length;
+    const closeBrackets = (s.match(/\]/g) || []).length;
+    if (openBrackets > closeBrackets) s += ']'.repeat(openBrackets - closeBrackets);
+    const openBraces = (s.match(/\{/g) || []).length;
+    const closeBraces = (s.match(/\}/g) || []).length;
+    if (openBraces > closeBraces) s += '}'.repeat(openBraces - closeBraces);
+    return s;
+}
+
+/*
+ * Type declarations live below the first value statement on purpose: TypeScript
+ * drops a file's leading JSDoc block when the first statement is type-only, and
+ * `tools/js_module_index.py` reads `@module` out of the emitted `.js`.
+ */
+
+interface ParsedResponse {
+    json: unknown;
+    raw: string;
+    error: string | null;
+}

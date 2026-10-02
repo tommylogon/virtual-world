@@ -1,3 +1,4 @@
+"use strict";
 /**
  * agent-loop.js — Multi-turn ReAct Agent Loop for Natural-Language Editor (task-387).
  *
@@ -10,26 +11,30 @@
  * @relates drives tools.js; results are buffered by staging.js
  * @docs docs/virtualWorld/dev_tasks/done/graph/task-387-natural-language-editor-mode.md
  */
-
-window.NLEditorAgent = (() => {
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+const NLEditorAgent = (() => {
     'use strict';
-
     class AgentLoop {
+        staging;
+        router;
+        messages;
+        contextManager;
+        busy;
+        maxIterations;
+        listeners;
         constructor(stagingBuffer, toolRouter) {
             this.staging = stagingBuffer;
             this.router = toolRouter;
             this.messages = [];
-            const CWM = typeof ContextWindowManager !== 'undefined' ? ContextWindowManager : (typeof window !== 'undefined' ? window.ContextWindowManager : null);
-            this.contextManager = CWM ? new CWM({ maxTokens: 60000, maxMessages: 30, recentTurnCount: 8 }) : { prune: m => m, addMessage: () => {}, reset: () => {} };
+            const CWM = _contextWindowManager();
+            this.contextManager = CWM ? new CWM({ maxTokens: 60000, maxMessages: 30, recentTurnCount: 8 }) : { prune: (m) => m, addMessage: () => { }, reset: () => { } };
             this.busy = false;
             this.maxIterations = 100;
             this.listeners = [];
         }
-
         onUpdate(callback) {
             this.listeners.push(callback);
         }
-
         /**
          * Parse XML-ish tool-call prose from a model reply into real tool_calls.
          * Handles nested `<param>value</param>` children:
@@ -38,18 +43,18 @@ window.NLEditorAgent = (() => {
          * Only known tool names (from TOOL_DEFINITIONS) are matched. Returns [] when nothing found.
          */
         _extractXmlToolCalls(text) {
-            if (!text) return [];
-            const known = new Set(
-                (typeof NLEditorTools !== 'undefined' && NLEditorTools?.TOOL_DEFINITIONS || [])
-                    .map(t => t?.function?.name)
-                    .filter(Boolean)
-            );
+            if (!text)
+                return [];
+            const known = new Set((_nlEditorTools()?.TOOL_DEFINITIONS || [])
+                .map((t) => t?.function?.name)
+                .filter((name) => !!name));
             const calls = [];
             const topRe = /<([a-zA-Z_][a-zA-Z0-9_]*)>\s*([\s\S]*?)\s*<\/\1>/g;
             let m, n = 0;
             while ((m = topRe.exec(text)) !== null) {
                 const name = m[1];
-                if (!known.has(name)) continue;
+                if (!known.has(name))
+                    continue;
                 const inner = m[2];
                 const args = {};
                 const paramRe = /<([a-zA-Z_][a-zA-Z0-9_]*)>\s*([\s\S]*?)\s*<\/\1>/g;
@@ -57,8 +62,12 @@ window.NLEditorAgent = (() => {
                 while ((pm = paramRe.exec(inner)) !== null) {
                     const pkey = pm[1];
                     const pval = pm[2].trim();
-                    try { args[pkey] = JSON.parse(pval); }
-                    catch (e) { args[pkey] = pval; }
+                    try {
+                        args[pkey] = JSON.parse(pval);
+                    }
+                    catch (e) {
+                        args[pkey] = pval;
+                    }
                 }
                 n++;
                 calls.push({
@@ -69,13 +78,16 @@ window.NLEditorAgent = (() => {
             }
             return calls;
         }
-
         _notify(event, data) {
             for (const cb of this.listeners) {
-                try { cb(event, data); } catch (e) { console.error('Agent loop listener error:', e); }
+                try {
+                    cb(event, data);
+                }
+                catch (e) {
+                    console.error('Agent loop listener error:', e);
+                }
             }
         }
-
         /** Rebuild system prompt containing rules, schemas, and live world context */
         buildSystemPrompt() {
             const worldSummary = this.router.overlay.listWorldSummary();
@@ -111,7 +123,6 @@ ${this._buildWorldContext()}
 ${worldSummary}
 `;
         }
-
         /** Live world context: scenario, theme, lore, and the user's selection. */
         _buildWorldContext() {
             let out = '\n### LIVE WORLD CONTEXT\n';
@@ -129,30 +140,35 @@ ${worldSummary}
                         const title = entry.title ? `${entry.title}: ` : '';
                         out += `  · [${entry.category || 'general'}] ${title}${String(entry.content || '').slice(0, 220)}\n`;
                     }
-                } else {
+                }
+                else {
                     out += '- World lore: none yet — create flavor consistent with the theme.\n';
                 }
                 const view = (typeof VW !== 'undefined' && VW?.inspector) ? VW.inspector._currentView : null;
                 if (view && view.type === 'node' && view.id && typeof worldState?.getNode === 'function') {
                     const n = worldState.getNode(view.id);
-                    if (n) out += `- Selected node (user's current graph selection — their default "this room/node"): ${n.name} (id: ${n.id}) [${n.type}]\n`;
-                    else out += '- Selected node: (stale — verify with search_graph_nodes)\n';
-                } else {
+                    if (n)
+                        out += `- Selected node (user's current graph selection — their default "this room/node"): ${n.name} (id: ${n.id}) [${n.type}]\n`;
+                    else
+                        out += '- Selected node: (stale — verify with search_graph_nodes)\n';
+                }
+                else {
                     out += '- Selected node: none — when a target is ambiguous, use search_graph_nodes or request_clarification.\n';
                 }
-                const bg = (typeof window !== 'undefined' && window.GraphBackground?._state) || null;
+                const bg = (typeof window !== 'undefined' && _graphBackground()?._state) || null;
                 if (bg && bg.imagePath) {
                     const r = bg.rect
                         ? ` placed at ${Math.round(bg.rect.x)},${Math.round(bg.rect.y)} spanning ${Math.round(bg.rect.width)}×${Math.round(bg.rect.height)} graph units`
                         : '';
                     out += `- Background map image: ${bg.imagePath}${r}${bg.locked ? ' (layout locked)' : ''}. You know this image exists but cannot see its pixels — call get_background_map for its transform.\n`;
-                } else {
+                }
+                else {
                     out += '- Background map image: none set for this scenario.\n';
                 }
-            } catch (e) { /* context is best-effort */ }
+            }
+            catch (e) { /* context is best-effort */ }
             return out + '\n';
         }
-
         /** Reset or start a new session */
         resetSession() {
             this.messages = [];
@@ -162,7 +178,6 @@ ${worldSummary}
             this.contextManager.addMessage(sys, { importance: 3, keepAlways: true });
             this._notify('session:reset', { messages: this.messages });
         }
-
         /** Execute a turn based on user input */
         async runUserTurn(userPrompt, options = {}) {
             if (this.busy) {
@@ -170,43 +185,36 @@ ${worldSummary}
             }
             this.busy = true;
             this._notify('turn:start', { prompt: userPrompt });
-
             if (this.messages.length === 0) {
                 this.resetSession();
-            } else {
+            }
+            else {
                 // Update system prompt with fresh overlay summary
                 this.messages[0] = { role: 'system', content: this.buildSystemPrompt() };
             }
-
             const userMsg = { role: 'user', content: userPrompt };
             this.messages.push(userMsg);
             this.contextManager.addMessage(userMsg, { importance: 1 });
             this._notify('message:added', userMsg);
-
             let currentIteration = 0;
             let finalAssistantResponse = '';
             let suspended = false;
             let turnError = null;
-
             try {
                 while (currentIteration < this.maxIterations) {
                     currentIteration++;
                     const pruned = this.contextManager.prune(this.messages);
-
                     this._notify('llm:calling', { iteration: currentIteration });
                     const response = await llmClient.chatWithTools(pruned, {
-                        tools: NLEditorTools.TOOL_DEFINITIONS,
+                        tools: _nlEditorTools()?.TOOL_DEFINITIONS,
                         tool_choice: 'auto',
                         label: `nl-editor-${currentIteration}`
                     });
-
                     if (!response) {
                         throw new Error('No response from LLM.');
                     }
-
                     const { content, tool_calls } = response;
                     let effectiveToolCalls = tool_calls || null;
-
                     // Fallback: some providers/models write tool calls as XML-ish prose
                     // (e.g. "<search_library_items>\n<query>lantern</query>\n</search_library_items>")
                     // instead of native function_call entries — typically after a poisoned
@@ -219,67 +227,61 @@ ${worldSummary}
                             effectiveToolCalls = parsed;
                         }
                     }
-
                     const assistantMsg = {
                         role: 'assistant',
                         content: content || '',
                         tool_calls: effectiveToolCalls || undefined
                     };
-
                     this.messages.push(assistantMsg);
                     this.contextManager.addMessage(assistantMsg, { importance: effectiveToolCalls ? 2 : 1 });
                     this._notify('message:added', assistantMsg);
-
-                    if (content) finalAssistantResponse = content;
-
+                    if (content)
+                        finalAssistantResponse = content;
                     if (!effectiveToolCalls || effectiveToolCalls.length === 0) {
                         // Model finished thinking and issued final text
                         break;
                     }
-
                     // Execute tool calls
                     for (const call of effectiveToolCalls) {
                         const fnName = call.function?.name;
                         let fnArgs = {};
                         try {
                             fnArgs = JSON.parse(call.function?.arguments || '{}');
-                        } catch (e) {
+                        }
+                        catch (e) {
                             fnArgs = {};
                         }
-
                         this._notify('tool:start', { name: fnName, args: fnArgs, callId: call.id });
-
                         const result = await this.router.execute(fnName, fnArgs, {
                             onClarify: (question, choices) => {
                                 suspended = true;
                                 this._notify('clarification:requested', { question, choices, callId: call.id });
                             }
                         });
-
                         const toolMsg = {
                             role: 'tool',
                             tool_call_id: call.id,
                             name: fnName,
                             content: JSON.stringify(result)
                         };
-
                         this.messages.push(toolMsg);
                         this.contextManager.addMessage(toolMsg, { importance: 1 });
                         this._notify('tool:finished', { name: fnName, result, callId: call.id });
                     }
-
                     if (suspended) {
                         // Loop pauses waiting for user interaction on clarification
                         break;
                     }
                 }
-            } catch (err) {
+            }
+            catch (err) {
                 console.error('NL Editor agent error:', err);
-                turnError = err.message;
-                const errorMsg = { role: 'system', content: `[Error: ${err.message}]` };
+                turnError = err instanceof Error ? err.message : String(err);
+                const errorMsg = { role: 'system', content: `[Error: ${turnError}]` };
                 this.messages.push(errorMsg);
-                this._notify('error', { error: err.message });
-            } finally {
+                this._notify('error', { error: turnError });
+            }
+            finally {
                 this.busy = false;
                 this._notify('turn:end', {
                     response: finalAssistantResponse,
@@ -287,7 +289,6 @@ ${worldSummary}
                     error: turnError
                 });
             }
-
             return {
                 messages: this.messages,
                 response: finalAssistantResponse,
@@ -296,6 +297,34 @@ ${worldSummary}
             };
         }
     }
-
     return { AgentLoop };
 })();
+window.NLEditorAgent = NLEditorAgent;
+/**
+ * Type declarations live BELOW the first value statement on purpose: TypeScript
+ * drops a file's leading JSDoc when the first statement is type-only, and
+ * `tools/js_module_index.py` reads `@module` out of the emitted .js.
+ *
+ * The three accessor helpers above are the same shape: `ContextWindowManager`,
+ * `NLEditorTools` and `window.GraphBackground` are real runtime globals but are
+ * not declared in types/globals.d.ts, which is a shared hub under concurrent
+ * edit, so they are read through local casts rather than added there.
+ */
+/** Resolve the optional ContextWindowManager global, if the page loaded it. */
+function _contextWindowManager() {
+    const bare = globalThis.ContextWindowManager;
+    if (typeof bare !== 'undefined' && bare)
+        return bare;
+    return window.ContextWindowManager || null;
+}
+/** Resolve the optional NLEditorTools global (nl-editor/tools.js). */
+function _nlEditorTools() {
+    const bare = globalThis.NLEditorTools;
+    if (typeof bare !== 'undefined' && bare)
+        return bare;
+    return window.NLEditorTools;
+}
+/** Read the graph-background module's private state for the system prompt. */
+function _graphBackground() {
+    return window.GraphBackground;
+}

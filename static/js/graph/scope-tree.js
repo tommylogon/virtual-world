@@ -1,3 +1,4 @@
+"use strict";
 /**
  * GraphScopeTree — the scope hierarchy as a tree, beside the graph (task-397 step 4).
  *
@@ -30,13 +31,11 @@
  * @relates driven by graph-manager (the flat scope list and setScopeFilter); pairs with GraphToolbar's scope breadcrumb
  * @docs docs/virtualWorld/World Building/Graph System.md
  */
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 window.GraphScopeTree = (function () {
     'use strict';
-
-    const WHOLE_WORLD = '';   // the sentinel the picker already uses for "no scope"
-
+    const WHOLE_WORLD = ''; // the sentinel the picker already uses for "no scope"
     // ── pure rules ──────────────────────────────────────────────────────
-
     /**
      * Nest a flat scope list into a tree.
      *
@@ -53,7 +52,8 @@ window.GraphScopeTree = (function () {
         const root = { id: null, name: 'Whole world', children: [] };
         const nodes = new Map();
         for (const scope of scopes || []) {
-            if (!scope || !scope.id || nodes.has(scope.id)) continue;
+            if (!scope || !scope.id || nodes.has(scope.id))
+                continue;
             nodes.set(scope.id, {
                 id: scope.id,
                 name: scope.name || scope.id,
@@ -73,24 +73,26 @@ window.GraphScopeTree = (function () {
         // iteration and make the tree depend on the list's order.
         for (const scope of scopes || []) {
             const node = scope && nodes.get(scope.id);
-            if (!node || node.placed) continue;
+            if (!node || node.placed)
+                continue;
             node.placed = true;
             const parentId = node.parentId;
             if (!parentId || !nodes.has(parentId) || reaches(nodes, parentId, node.id)) {
                 root.children.push(node);
-            } else {
+            }
+            else {
                 nodes.get(parentId).children.push(node);
             }
         }
         return root;
     }
-
     /** Would following `fromId`'s parent links ever arrive back at `targetId`? */
     function reaches(nodes, fromId, targetId) {
         const seen = new Set();
         let current = fromId;
         while (current && !seen.has(current)) {
-            if (current === targetId) return true;
+            if (current === targetId)
+                return true;
             seen.add(current);
             const node = nodes.get(current);
             const parentId = node && node.parentId;
@@ -98,7 +100,6 @@ window.GraphScopeTree = (function () {
         }
         return false;
     }
-
     /**
      * Collapse a tree into the rows a panel should draw.
      *
@@ -118,13 +119,15 @@ window.GraphScopeTree = (function () {
         (function walk(node, depth) {
             if (node.id === null) {
                 // The synthetic root is not a card: its children are the top level.
-                for (const child of node.children) walk(child, 0);
+                for (const child of node.children)
+                    walk(child, 0);
                 return;
             }
             // Belt and braces: `buildTree` already breaks cycles, so a card
             // appearing twice means the manifest is malformed, and hanging the
             // panel is the one outcome that cannot be recovered from.
-            if (walked.has(node.id)) return;
+            if (walked.has(node.id))
+                return;
             walked.add(node.id);
             const hasChildren = node.children.length > 0;
             const isCollapsed = hasChildren && hidden.has(node.id);
@@ -143,12 +146,13 @@ window.GraphScopeTree = (function () {
                 itemCount: node.itemCount,
                 hasCharacter: node.hasCharacter,
             });
-            if (isCollapsed) return;
-            for (const child of node.children) walk(child, depth + 1);
+            if (isCollapsed)
+                return;
+            for (const child of node.children)
+                walk(child, depth + 1);
         })(tree || { id: null, children: [] }, 0);
         return rows;
     }
-
     /**
      * Toggle one scope's collapsed state, returning a new Set.
      *
@@ -157,12 +161,14 @@ window.GraphScopeTree = (function () {
      */
     function toggleCollapsed(collapsed, id) {
         const next = new Set(collapsed || []);
-        if (!id) return next;
-        if (next.has(id)) next.delete(id);
-        else next.add(id);
+        if (!id)
+            return next;
+        if (next.has(id))
+            next.delete(id);
+        else
+            next.add(id);
         return next;
     }
-
     /**
      * The one-line text of a scope card: name, then what the manifest says it holds.
      *
@@ -171,32 +177,32 @@ window.GraphScopeTree = (function () {
      * different facts and the panel has to distinguish them.
      */
     function rowLabel(row) {
-        if (!row) return '';
-         const counts = [];
+        if (!row)
+            return '';
+        const counts = [];
         // task-615: 'unmade' is a materialisation state, not a claim about contents,
         // and the two come apart -- 'goblin_camp' is state:'unmade' while holding
         // 21 areas and 10 characters present. Keying the row off 'unmade' rendered
         // it as 'not built' on a line that also said '10 here now'.
-         if (row.areaCount) counts.push(row.areaCount + ' ' + plural(row.areaCount, 'area'));
-         if (row.itemCount) counts.push(row.itemCount + ' ' + plural(row.itemCount, 'item'));
-         if (row.unmade) counts.push(counts.length ? 'unmade' : 'not built');
+        if (row.areaCount)
+            counts.push(row.areaCount + ' ' + plural(row.areaCount, 'area'));
+        if (row.itemCount)
+            counts.push(row.itemCount + ' ' + plural(row.itemCount, 'item'));
+        if (row.unmade)
+            counts.push(counts.length ? 'unmade' : 'not built');
         if (row.hasCharacter) {
             // "here now" is invariant in number — one person is also "here now".
             counts.push(`${row.characterCount} here now`);
         }
         return `${row.name} — ${counts.join(' · ')}`;
     }
-
     function plural(n, noun) {
         return n === 1 ? noun : `${noun}s`;
     }
-
     // ── the panel ───────────────────────────────────────────────────────
-
     function panel() {
         return document.getElementById('scope-tree');
     }
-
     /**
      * Put the host at the top of the Outline tab, above the area rows (task-592).
      *
@@ -211,7 +217,8 @@ window.GraphScopeTree = (function () {
     function mountInOutline() {
         const container = document.getElementById('outline-container');
         const pane = container && container.closest('.left-tab-pane');
-        if (!container || !pane) return false;
+        if (!container || !pane)
+            return false;
         let host = panel();
         if (!host) {
             host = document.createElement('nav');
@@ -219,13 +226,13 @@ window.GraphScopeTree = (function () {
             host.className = 'scope-tree';
             host.setAttribute('aria-label', 'World scope hierarchy');
             pane.insertBefore(host, container);
-        } else if (host.nextElementSibling !== container) {
+        }
+        else if (host.nextElementSibling !== container) {
             pane.insertBefore(host, container);
         }
         render();
         return true;
     }
-
     /**
      * Redraw the panel from the graph manager's flat scope list.
      *
@@ -237,7 +244,8 @@ window.GraphScopeTree = (function () {
      */
     function render(scopes, selectedId) {
         const host = panel();
-        if (!host) return;
+        if (!host)
+            return;
         const gm = window.graphManager;
         const list = scopes || (gm && gm._scopeSummaries) || [];
         const selected = selectedId !== undefined
@@ -245,7 +253,6 @@ window.GraphScopeTree = (function () {
             : (gm && gm._scopeFilter) || WHOLE_WORLD;
         const rows = visibleRows(buildTree(list), state.collapsed, selected);
         host.innerHTML = '';
-
         const whole = document.createElement('button');
         whole.type = 'button';
         whole.className = 'scope-tree-row scope-tree-whole'
@@ -254,13 +261,11 @@ window.GraphScopeTree = (function () {
         whole.textContent = '🌍 Whole world';
         whole.addEventListener('click', () => load(WHOLE_WORLD));
         host.appendChild(whole);
-
         for (const row of rows) {
             host.appendChild(rowElement(row, selected));
         }
         host.hidden = false;
     }
-
     function rowElement(row, selected) {
         const el = document.createElement('div');
         el.className = 'scope-tree-row'
@@ -268,7 +273,6 @@ window.GraphScopeTree = (function () {
             + (row.unmade ? ' unmade' : '')
             + (row.hasCharacter ? ' occupied' : '');
         el.style.paddingLeft = `${8 + row.depth * 14}px`;
-
         const twist = document.createElement('button');
         twist.type = 'button';
         twist.className = 'scope-tree-twist';
@@ -281,7 +285,8 @@ window.GraphScopeTree = (function () {
                 state.collapsed = toggleCollapsed(state.collapsed, row.id);
                 render();
             });
-        } else {
+        }
+        else {
             // Keeps the label aligned without offering a control that does nothing.
             twist.textContent = '·';
             twist.classList.add('leaf');
@@ -289,7 +294,6 @@ window.GraphScopeTree = (function () {
             twist.tabIndex = -1;
         }
         el.appendChild(twist);
-
         const card = document.createElement('button');
         card.type = 'button';
         card.className = 'scope-tree-card';
@@ -301,7 +305,6 @@ window.GraphScopeTree = (function () {
             : `${row.name} — ${row.areaCount} area(s), ${row.itemCount} item(s)`;
         card.addEventListener('click', () => load(row.id));
         el.appendChild(card);
-
         // A scope with nothing built in it is the one row where the reader cannot
         // act, because building a scope is the WorldPainter's ⚙ Generate and the
         // graph cannot do it (see this module's header). So the row offers the
@@ -318,7 +321,7 @@ window.GraphScopeTree = (function () {
             jump.addEventListener('click', (ev) => {
                 ev.stopPropagation();
                 if (window.VW && VW.worldPainter
-                        && typeof VW.worldPainter.open === 'function') {
+                    && typeof VW.worldPainter.open === 'function') {
                     VW.worldPainter.open(row.id);
                 }
             });
@@ -326,22 +329,21 @@ window.GraphScopeTree = (function () {
         }
         return el;
     }
-
     function load(scopeId) {
         // Go through the toolbar's entry point when it is there: it is the one
         // place that also keeps the flat picker's value in step, and two ways to
         // change the loaded scope is how they drift apart.
-        if (window.GraphToolbar && typeof GraphToolbar.loadScope === 'function') {
+        if (window.GraphToolbar
+            && typeof GraphToolbar.loadScope === 'function') {
             GraphToolbar.loadScope(scopeId || WHOLE_WORLD);
             return;
         }
-        if (window.graphManager && typeof graphManager.setScopeFilter === 'function') {
+        if (window.graphManager
+            && typeof graphManager.setScopeFilter === 'function') {
             graphManager.setScopeFilter(scopeId || null);
         }
     }
-
     const state = { collapsed: new Set() };
-
     return {
         buildTree,
         visibleRows,

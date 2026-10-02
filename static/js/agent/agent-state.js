@@ -1,3 +1,4 @@
+"use strict";
 /**
  * agent-state.js — Agent turn eligibility and state tracking
  *
@@ -16,35 +17,43 @@
  *
  * Load BEFORE agent-engine.js.
  */
-
-window.AgentState = (() => {
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+const AgentState = (() => {
     'use strict';
-
     const resting = {};
     const unconscious = {};
-
     function isBusy(charName, lastResult, player) {
         if (player) {
             const busyStates = new Set(['busy', 'unconscious']);
-            if (busyStates.has(player.state)) { resting[charName] = true; return true; }
+            if (busyStates.has(String(player.state))) {
+                resting[charName] = true;
+                return true;
+            }
             const busyActivities = new Set(['sleeping', 'resting', 'waiting', 'meditating', 'bathing', 'sitting', 'lying down']);
-            if (busyActivities.has(player.activity?.type)) { resting[charName] = true; return true; }
+            if (busyActivities.has(String(player.activity?.type))) {
+                resting[charName] = true;
+                return true;
+            }
         }
-        if (resting[charName]) { resting[charName] = false; return false; }
-        if ((lastResult || '').toLowerCase().includes('you rest')) { resting[charName] = true; return true; }
+        if (resting[charName]) {
+            resting[charName] = false;
+            return false;
+        }
+        if (String(lastResult || '').toLowerCase().includes('you rest')) {
+            resting[charName] = true;
+            return true;
+        }
         return false;
     }
-
     function markUnconscious(charName, player, state, worldState) {
         if (!unconscious[charName]) {
             unconscious[charName] = true;
-            const timer = player?.state_timer || 0;
+            const timer = Number(player?.state_timer || 0);
             const msg = `💤 ${charName} is unconscious — cannot act. ${timer > 0 ? timer + ' ticks until waking...' : ''}`;
             return { message: msg, wasJustSet: true };
         }
         return { wasJustSet: false };
     }
-
     function clearUnconscious(charName, player) {
         if (unconscious[charName]) {
             unconscious[charName] = false;
@@ -52,11 +61,9 @@ window.AgentState = (() => {
         }
         return null;
     }
-
     function isUnconscious(charName) {
         return !!unconscious[charName];
     }
-
     return {
         isBusy,
         markUnconscious,
@@ -64,3 +71,4 @@ window.AgentState = (() => {
         isUnconscious
     };
 })();
+window.AgentState = AgentState;

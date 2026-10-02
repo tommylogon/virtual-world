@@ -1,3 +1,4 @@
+"use strict";
 /**
  * prompt-builder/turn-prompts.js — Phase prompt builders (observe/decide/react).
  *
@@ -41,22 +42,21 @@
  * builders and their exports were deleted; `git log` has them if the phase split
  * is ever revived.
  */
-
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 window.PromptBuilder = window.PromptBuilder || {};
 (() => {
     'use strict';
-
     /**
      * Assemble the shared user-message head in the NEW section order:
-     * tick → personality → === YOUR STATE === → === I REMEMBER === →
-     * appearance → carrying → room → exits → items → people →
-     * available actions → witnessed → plan. `memoryNL` carries its own
-     * "=== I REMEMBER ===" header (from buildMemoryContext).
-     * @param {Object} parts - buildRoomContextParts result
-     * @param {string} stateBlock - Content for the "=== YOUR STATE ===" block
-     * @param {string} memoryNL - Memory context string (own header already included)
-     * @returns {string} Assembled head text
-     */
+    * tick → personality → === YOUR STATE === → === I REMEMBER === →
+    * appearance → carrying → room → exits → items → people →
+    * available actions → witnessed → plan. `memoryNL` carries its own
+    * "=== I REMEMBER ===" header (from buildMemoryContext).
+    * @param {Object} parts - buildRoomContextParts result
+    * @param {string} stateBlock - Content for the "=== YOUR STATE ===" block
+    * @param {string} memoryNL - Memory context string (own header already included)
+    * @returns {string} Assembled head text
+    */
     function assembleMessageHead(parts, stateBlock, memoryNL) {
         const blocks = [
             parts.tickHead,
@@ -78,22 +78,22 @@ window.PromptBuilder = window.PromptBuilder || {};
         ];
         return blocks.map(block => String(block || '').trim()).filter(Boolean).join('\n\n');
     }
-
     function _summaryLine(text) {
         // N7: RECENTLY must be a one-line summary — the previous action's full
         // output (room prose + exits) duplicates the current observation block
         // on every call. First line only; the important part is the outcome.
         const lines = String(text || '').split('\n').map(s => s.trim()).filter(Boolean);
-        if (!lines.length) return '';
+        if (!lines.length)
+            return '';
         // task-479: a dice breakdown must survive even when it is not the first
         // line. Otherwise the model narrates the outcome ("You fail to climb")
         // with no idea what was rolled, and cannot explain it. Keep the first
         // line as the outcome and prepend the check line.
         const check = lines.find(l => /^\[(Skill Check|Save|Check|Grab)\b/.test(l));
-        if (check && check !== lines[0]) return `${check} — ${lines[0]}`;
+        if (check && check !== lines[0])
+            return `${check} — ${lines[0]}`;
         return lines[0];
     }
-
     /**
      * Build the reaction prompt (non-reactive mode) — a combined think/say/do prompt.
      * This is the "single phase" mode where the character thinks, speaks, and acts in one LLM call.
@@ -111,21 +111,17 @@ window.PromptBuilder = window.PromptBuilder || {};
         const last = lastResult
             ? `\n\n=== RECENTLY ===\n${_summaryLine(lastResult)}`
             : '\n\n=== START ===\nThis is your first moment in this world. What do you think, say, and do?';
-
         const ctx = { phase: 'reaction', vitalsNL, emotionNL, relationshipNL, memoryNL };
-        const context = PromptBuilder.buildContextBlock(player, ctx,
-            ['perceived', 'vitals', 'encumbrance', 'emotion', 'insanity', 'trait', 'size', 'activity', 'grappled', 'ghost', 'dead']);
-
+        const context = PromptBuilder.buildContextBlock(player, ctx, ['perceived', 'vitals', 'encumbrance', 'emotion', 'insanity', 'trait', 'size', 'activity', 'grappled', 'ghost', 'dead']);
         // End-of-turn memory is OPTIONAL (memories normally come at turn START).
         const wantMemory = includeMemory && config.endOfTurnMemory === true;
         const memoryInstruction = wantMemory ? PromptBuilder.MEMORY_INSTRUCTION_REACT : '';
-
         const schemaFields = ['inner_monologue', 'action_use_on', 'speech', 'volume', 'emote'];
-        if (includeFeelings) schemaFields.push('emotion_toward', 'learned_names');
-        if (wantMemory) schemaFields.push('memory', 'emotion_toward', 'learned_names');
-
+        if (includeFeelings)
+            schemaFields.push('emotion_toward', 'learned_names');
+        if (wantMemory)
+            schemaFields.push('memory', 'emotion_toward', 'learned_names');
         const head = PromptBuilder.assembleMessageHead(parts, context, memoryNL);
-
         return `${head}${last}
 
 First, think about what's happening around you (inner_monologue). Then decide what you do, what you say out loud, and your body language (emote) — all in ONE response. The action will be executed by the system and its result comes back in the next message — do not assume the outcome of your action in your inner monologue or speech.
@@ -142,7 +138,6 @@ If you say nothing but still emote:
 If you have no emote, omit it:
 {"inner_monologue":"...","action":"look","target":"the archway","speech":null,"volume":null,"item":null,"emote":null,"memory":null,"emotion":null,"learned_names":[]}`;
     }
-
     /**
      * Build the result reaction prompt (reactive mode, react phase) — respond to action outcome.
      * The character processes what happened after taking an action.
@@ -165,15 +160,15 @@ If you have no emote, omit it:
         // of its own earlier speech, invents a different answer and the
         // character contradicts itself (e.g. changing its favorite color).
         const happenedLines = [];
-        if (saidThisTurn) happenedLines.push(`You said: "${saidThisTurn}"`);
-        if (action) happenedLines.push(`Your action: ${action}`);
-        if (actionResult) happenedLines.push(PromptBuilder.frameSelfSpeech(charName, actionResult));
+        if (saidThisTurn)
+            happenedLines.push(`You said: "${saidThisTurn}"`);
+        if (action)
+            happenedLines.push(`Your action: ${action}`);
+        if (actionResult)
+            happenedLines.push(PromptBuilder.frameSelfSpeech(charName, actionResult));
         const whatHappened = happenedLines.length ? happenedLines.join('\n') : 'Nothing happened.';
-
         const ctx = { phase: 'react', vitalsNL, emotionNL, relationshipNL, memoryNL };
-        const context = PromptBuilder.buildContextBlock(player, ctx,
-            ['perceived', 'vitals', 'encumbrance', 'emotion', 'insanity', 'trait', 'activity', 'ghost', 'dead']);
-
+        const context = PromptBuilder.buildContextBlock(player, ctx, ['perceived', 'vitals', 'encumbrance', 'emotion', 'insanity', 'trait', 'activity', 'ghost', 'dead']);
         // task-XXX: the react call is a fresh 2-message conversation (no decide
         // replay), so the persona must ride in THIS message — the model has no
         // other source for voice and identity.
@@ -187,7 +182,6 @@ If you have no emote, omit it:
             String(memoryNL || '').trim(),
         ];
         const head = headBlocks.filter(Boolean).join('\n\n');
-
         return `${head}\n\n=== WHAT HAPPENED ===\n${whatHappened}
 
 Based on the outcome of your action, how do you react to it? 
@@ -208,7 +202,6 @@ If you stay silent but emote:
 If you have nothing to react with:
 {"inner_monologue":"...","speech":null,"volume":null,"emote":null,"memory":null,"emotion":null,"learned_names":[]}`;
     }
-
     /**
      * Build the chained follow-up prompt after an action with a CHAIN_RULES
      * entry (task-104): dash→go (the original), lead→go/approach/release,
@@ -233,12 +226,10 @@ This is a quick decision — no speech, no emote, no memory.
 Respond ONLY raw JSON, every field shown (null what you don't need):
 ${PromptBuilder.buildJsonExample(['full_action'])}`;
     }
-
     /** @deprecated Use buildChainFollowUpPrompt (dash is one CHAIN_RULES family). */
     function buildDashFollowUpPrompt(charName, roomContext, dashResult) {
         return buildChainFollowUpPrompt(charName, roomContext, dashResult, 'dashed', ['go', 'wait']);
     }
-
     /**
      * Invalid-action auto-retry prompt (task-361): feed back the failed action
      * and its reason, direct a different choice. Same-turn, ONE retry — the
@@ -258,7 +249,6 @@ ${PromptBuilder.buildJsonExample(['full_action'])}`;
             + 'otherwise pick something else you can do right now. '
             + 'Keep the same JSON schema as a normal decision, with only action/item/target fields';
     }
-
     Object.assign(window.PromptBuilder, {
         assembleMessageHead,
         buildReactionPrompt,

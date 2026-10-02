@@ -1,3 +1,4 @@
+"use strict";
 /**
  * grid-model.js — pure helpers for the WorldPainter editor.
  *
@@ -18,15 +19,14 @@
  * @relates static/js/worldpainter/editor.js; engine/world_grid.py; routes/world_grid_ops.py
  * @docs docs/design/worldpainter-knowledge-and-fog.md
  */
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 (function () {
     'use strict';
-
     const MODES = ['world', 'town', 'interior'];
     // Mirrors engine/world_grid.py PAINT_LAYERS. A layer missing from either list
     // is dropped on save (the backend normalises against its own tuple) or paints
     // a colour nothing reads — so the two must move together.
     const PAINT_LAYERS = ['biome', 'road', 'floor', 'climate'];
-
     // The coarse climates a grid may be painted with, and the colours that make
     // one readable at a glance (task-557). The **ids and base °C come from the
     // server** (`/api/world/painter/vocabulary`) and land in `CLIMATE_IDS` /
@@ -52,7 +52,6 @@
     };
     const CLIMATE_IDS = Object.keys(CLIMATES);
     const DEFAULT_CLIMATE = 'temperate';
-
     /**
      * Adopt the server's climate list: ids and base °C from the backend, colours
      * kept from the local table. Called once the vocabulary arrives, so a new
@@ -60,12 +59,14 @@
      */
     function useClimatesFromVocab(vocab) {
         const list = vocab && (vocab.climates || (vocab.c && vocab.c.climates));
-        if (!Array.isArray(list) || !list.length) return false;
+        if (!Array.isArray(list) || !list.length)
+            return false;
         const next = {};
         const ids = [];
         list.forEach((row) => {
             const id = String((row && row.id) || '').trim();
-            if (!id) return;
+            if (!id)
+                return;
             next[id] = {
                 label: (CLIMATE_LABELS[id] || id),
                 base: Number(row.base),
@@ -73,14 +74,14 @@
             };
             ids.push(id);
         });
-        if (!ids.length) return false;
+        if (!ids.length)
+            return false;
         Object.keys(CLIMATES).forEach((k) => { delete CLIMATES[k]; });
         ids.forEach((id) => { CLIMATES[id] = next[id]; });
         CLIMATE_IDS.length = 0;
         ids.forEach((id) => CLIMATE_IDS.push(id));
         return true;
     }
-
     // Keys are the real ids in `data/worldpainter/biomes.json` / `features`, so a
     // painted cell reads at a glance; anything else gets a deterministic hash
     // colour, so an unknown value is still stable (never blank).
@@ -106,31 +107,29 @@
         tunnel: '#3a3a42', town: '#a8763f', village: '#a8763f', ruin: '#6b6157',
         building: '#8a6b5a',
     };
-
     function cellKey(x, y) {
         return `${Math.trunc(x)},${Math.trunc(y)}`;
     }
-
     function parseCellKey(key) {
         const parts = String(key == null ? '' : key).split(',');
-        if (parts.length !== 2) return null;
+        if (parts.length !== 2)
+            return null;
         const x = Number(parts[0]);
         const y = Number(parts[1]);
-        if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+        if (!Number.isFinite(x) || !Number.isFinite(y))
+            return null;
         return { x, y };
     }
-
     function cellId(scopeId, x, y) {
         return `${scopeId}:${Math.trunc(x)},${Math.trunc(y)}`;
     }
-
     /** The mode a child scope should open in, given its parent's mode. */
     function nextMode(mode) {
         const i = MODES.indexOf(mode);
-        if (i < 0) return MODES[0];
+        if (i < 0)
+            return MODES[0];
         return MODES[Math.min(i + 1, MODES.length - 1)];
     }
-
     function _hash(text) {
         let h = 0;
         const s = String(text == null ? '' : text);
@@ -139,15 +138,18 @@
         }
         return Math.abs(h);
     }
-
     function layerColor(layer, value) {
-        if (value == null || value === '') return null;
+        if (value == null || value === '')
+            return null;
         const key = String(value).toLowerCase();
-        if (layer === 'biome') return BIOME_COLORS[key] || `hsl(${_hash(key) % 360},45%,45%)`;
-        if (layer === 'road') return ROAD_COLORS[key] || `hsl(${_hash(key) % 360},18%,55%)`;
+        if (layer === 'biome')
+            return BIOME_COLORS[key] || `hsl(${_hash(key) % 360},45%,45%)`;
+        if (layer === 'road')
+            return ROAD_COLORS[key] || `hsl(${_hash(key) % 360},18%,55%)`;
         if (layer === 'floor') {
             const n = Number(value);
-            if (!Number.isFinite(n)) return '#666';
+            if (!Number.isFinite(n))
+                return '#666';
             // Storeys, not a 0..1 height: 0 is ground, up is cooler/lighter, down
             // is warmer/darker. The clamp is for *colour* only — a cell may sit
             // at 80 or -900, and every one of those should still read as "far
@@ -165,7 +167,6 @@
         }
         return `hsl(${_hash(key) % 360},40%,50%)`;
     }
-
     /**
      * A cell's **storey index** as a number, or `null` when the cell is unpainted.
      *
@@ -174,20 +175,22 @@
      * 0 so a typo cannot silently become ground.
      */
     function floorNumber(value) {
-        if (value === null || value === undefined || value === '') return null;
+        if (value === null || value === undefined || value === '')
+            return null;
         const n = Number(value);
-        if (!Number.isFinite(n)) return null;
+        if (!Number.isFinite(n))
+            return null;
         return Math.round(n);
     }
-
     /** How a storey index reads out loud: "ground", "floor 3", "3 below ground". */
     function floorLabel(value) {
         const n = floorNumber(value);
-        if (n === null) return '—';
-        if (n === 0) return 'ground (0)';
+        if (n === null)
+            return '—';
+        if (n === 0)
+            return 'ground (0)';
         return n > 0 ? `floor ${n}` : `${-n} below ground (${n})`;
     }
-
     /**
      * Bresenham line of cells from *a* to *b*, inclusive. The route tool uses
      * this so a two-click route paints the exact cells a straight trail covers
@@ -206,29 +209,38 @@
         let err = dx - dy;
         for (;;) {
             cells.push({ x: x0, y: y0 });
-            if (x0 === x1 && y0 === y1) break;
+            if (x0 === x1 && y0 === y1)
+                break;
             const e2 = 2 * err;
-            if (e2 > -dy) { err -= dy; x0 += sx; }
-            if (e2 < dx) { err += dx; y0 += sy; }
+            if (e2 > -dy) {
+                err -= dy;
+                x0 += sx;
+            }
+            if (e2 < dx) {
+                err += dx;
+                y0 += sy;
+            }
         }
         return cells;
     }
-
     /** Chain waypoint segments into one de-duplicated cell path. */
     function routeCells(points) {
         const pts = points || [];
         const out = [];
         const seen = {};
-        if (pts.length === 1) return [{ x: Math.trunc(pts[0].x), y: Math.trunc(pts[0].y) }];
+        if (pts.length === 1)
+            return [{ x: Math.trunc(pts[0].x), y: Math.trunc(pts[0].y) }];
         for (let i = 0; i + 1 < pts.length; i += 1) {
             lineCells(pts[i], pts[i + 1]).forEach((c) => {
                 const k = cellKey(c.x, c.y);
-                if (!seen[k]) { seen[k] = true; out.push(c); }
+                if (!seen[k]) {
+                    seen[k] = true;
+                    out.push(c);
+                }
             });
         }
         return out;
     }
-
     /**
      * Turn a cell count into the game-time figures the world is authored in:
      * 1 cell = 1 turn = 1 minute, 60 turns/hour (240 cells => "4 h 00 m").
@@ -243,17 +255,14 @@
             : `${cellCount} cells · ${turns} turns`;
         return { cells: cellCount, turns, minutes: turns, hours: hours + mins / 60, label };
     }
-
     function cellValue(payload, layer, x, y) {
         const layers = (payload && payload.layers) || {};
         return (layers[layer] || {})[cellKey(x, y)];
     }
-
     function featureAt(payload, x, y) {
         const feature = (payload && payload.feature) || {};
         return feature[cellKey(x, y)] || null;
     }
-
     /**
      * The author's name for a cell, or `null` (task-560).
      *
@@ -268,19 +277,18 @@
         const text = value == null ? '' : String(value).trim();
         return text || null;
     }
-
     function placementFor(payload, childId) {
         const list = (payload && payload.placements) || [];
         return list.find((p) => p.id === childId) || null;
     }
-
     /**
      * Full render model: rows of cells (y-major) carrying paint + feature, so the
      * editor only maps colours to styles. Off-grid when the scope has no grid.
      */
     function buildRows(payload) {
         const grid = (payload && payload.grid) || null;
-        if (!grid || !grid.w || !grid.h) return [];
+        if (!grid || !grid.w || !grid.h)
+            return [];
         const rows = [];
         for (let y = 0; y < grid.h; y += 1) {
             const row = [];
@@ -299,7 +307,6 @@
         }
         return rows;
     }
-
     /** Feature placements as a Map-like lookup for selection/badges. */
     function featureMap(payload) {
         const out = {};
@@ -308,7 +315,6 @@
         });
         return out;
     }
-
     /**
      * Pure mirror of `engine/world_grid.ensure_grid` pruning, used by the editor's
      * resize dialog to warn how much paint/placement a shrink would drop.
@@ -320,9 +326,11 @@
             const kept = {};
             Object.keys(payload.layers[layer]).forEach((key) => {
                 const pos = parseCellKey(key);
-                if (pos && inBounds(pos.x, pos.y)) kept[key] = payload.layers[layer][key];
+                if (pos && inBounds(pos.x, pos.y))
+                    kept[key] = payload.layers[layer][key];
             });
-            if (Object.keys(kept).length) layers[layer] = kept;
+            if (Object.keys(kept).length)
+                layers[layer] = kept;
         });
         const placements = ((payload && payload.placements) || [])
             .filter((p) => inBounds(p.x, p.y));
@@ -331,7 +339,6 @@
             placementsKept: placements.length,
         };
     }
-
     /**
      * How many areas + ways a painted grid would compile to, so the author sees
      * the node cost *before* minting it (a 5,000-cell paint is 5,000 areas plus
@@ -356,15 +363,17 @@
         const cells = Object.keys(biome).concat(Object.keys(road))
             .filter((k, i, all) => all.indexOf(k) === i)
             .sort((a, b) => {
-                const pa = parseCellKey(a) || { x: 0, y: 0 };
-                const pb = parseCellKey(b) || { x: 0, y: 0 };
-                return (pa.y - pb.y) || (pa.x - pb.x);
-            });
-        if (!cells.length) return { areas: 0, ways: 0, total: 0, isolated: 0, links: 0 };
+            const pa = parseCellKey(a) || { x: 0, y: 0 };
+            const pb = parseCellKey(b) || { x: 0, y: 0 };
+            return (pa.y - pb.y) || (pa.x - pb.x);
+        });
+        if (!cells.length)
+            return { areas: 0, ways: 0, total: 0, isolated: 0, links: 0 };
         // What *kind* of place a cell is: the road if painted, else the biome.
         const identity = (k) => {
             const r = road[k];
-            if (r != null && r !== '') return `road:${r}`;
+            if (r != null && r !== '')
+                return `road:${r}`;
             return `biome:${biome[k]}`;
         };
         const present = {};
@@ -375,7 +384,8 @@
         const taken = Object.keys(areaMap(payload));
         taken.forEach((k) => { delete present[k]; });
         const liveCells = cells.filter((k) => present[k]);
-        if (!liveCells.length) return { areas: 0, ways: 0, total: 0, isolated: 0, links: 0, placed: taken.length };
+        if (!liveCells.length)
+            return { areas: 0, ways: 0, total: 0, isolated: 0, links: 0, placed: taken.length };
         // 8-neighbour deltas. The four "south half" ones (east, south, south-
         // east, south-west) count each shared pair exactly once; the full ring
         // is used for connectivity checks and region flood-fill.
@@ -385,17 +395,18 @@
         };
         const halfNeighbours = (k) => [at(k, 1, 0), at(k, 0, 1), at(k, 1, 1), at(k, -1, 1)];
         const ring = (k) => [at(k, 1, 0), at(k, -1, 0), at(k, 0, 1), at(k, 0, -1),
-                             at(k, 1, 1), at(k, -1, 1), at(k, 1, -1), at(k, -1, -1)];
-
+            at(k, 1, 1), at(k, -1, 1), at(k, 1, -1), at(k, -1, -1)];
         // One region per cell, or a same-identity flood-fill (8-neighbour) region
         // under merge.
         const regionOf = {};
         let rid = 0;
         if (!regionMerge) {
             liveCells.forEach((k) => { regionOf[k] = rid++; });
-        } else {
+        }
+        else {
             liveCells.forEach((start) => {
-                if (regionOf[start] != null) return;
+                if (regionOf[start] != null)
+                    return;
                 const kind = identity(start);
                 const stack = [start];
                 regionOf[start] = rid;
@@ -411,12 +422,12 @@
                 rid += 1;
             });
         }
-
         // One way per adjacent region pair (each pair counted once).
         const pairs = {};
         liveCells.forEach((k) => {
             halfNeighbours(k).forEach((nk) => {
-                if (!nk || !present[nk] || regionOf[nk] === regionOf[k]) return;
+                if (!nk || !present[nk] || regionOf[nk] === regionOf[k])
+                    return;
                 const a = regionOf[k];
                 const b = regionOf[nk];
                 pairs[`${Math.min(a, b)},${Math.max(a, b)}`] = true;
@@ -428,42 +439,44 @@
             degree[a] = (degree[a] || 0) + 1;
             degree[b] = (degree[b] || 0) + 1;
         });
-
         // The compiler joins every disconnected component but the main one with
         // a single way, so add (components - 1) links.
         const parent = Array.from({ length: rid }, (_, i) => i);
         const find = (i) => {
             let j = i;
-            while (parent[j] !== j) { parent[j] = parent[parent[j]]; j = parent[j]; }
+            while (parent[j] !== j) {
+                parent[j] = parent[parent[j]];
+                j = parent[j];
+            }
             return j;
         };
         Object.keys(pairs).forEach((key) => {
             const [a, b] = key.split(',').map(Number);
             const ra = find(a);
             const rb = find(b);
-            if (ra !== rb) parent[Math.max(ra, rb)] = Math.min(ra, rb);
+            if (ra !== rb)
+                parent[Math.max(ra, rb)] = Math.min(ra, rb);
         });
         const roots = new Set();
-        for (let i = 0; i < rid; i += 1) roots.add(find(i));
+        for (let i = 0; i < rid; i += 1)
+            roots.add(find(i));
         const links = Math.max(0, roots.size - 1);
-
         let isolated = 0;
-        for (let i = 0; i < rid; i += 1) if (!degree[i]) isolated += 1;
+        for (let i = 0; i < rid; i += 1)
+            if (!degree[i])
+                isolated += 1;
         const ways = Object.keys(pairs).length + links;
         return { areas: rid, ways, total: rid + ways, isolated, links };
     }
-
     function childrenAvailable(payload) {
         return ((payload && payload.children) || []).filter((c) => !c.placed);
     }
-
     // ── placed areas (task-528) ────────────────────────────────────────────
     //
     // A placed area is an area node the author wrote by hand, parked on a cell
     // (`area_placements` in the payload). It is a different kind of occupant from
     // a child-scope placement: the node already exists in the graph, and the
     // compiler skips the cell so Generate cannot mint a second area on top.
-
     /** `{cellKey: area}` for every placed area, mirroring `featureMap`. */
     function areaMap(payload) {
         const out = {};
@@ -472,18 +485,15 @@
         });
         return out;
     }
-
     /** The area placed on a cell, or null. */
     function areaAt(payload, x, y) {
         return areaMap(payload)[cellKey(x, y)] || null;
     }
-
     /** Where an area is placed on this grid, or null. */
     function areaPlacementFor(payload, areaId) {
         return ((payload && payload.area_placements) || [])
             .find((a) => a.id === areaId) || null;
     }
-
     /**
      * Every area the place tool's picker offers, flattened across the scope
      * groups — the areas already on this grid, this scope's unplaced areas, and
@@ -494,7 +504,6 @@
         const groups = areaGroups(payload, selectedId);
         return groups.reduce((all, g) => all.concat(g.areas), []);
     }
-
     /**
      * The picker grouped by scope (task-541).
      *
@@ -523,16 +532,18 @@
             // The server already leaves placed areas out of `unplaced_areas`, but
             // an area on this grid belongs in the `placed` group only — never
             // listed twice.
-            if (byId[a.id]) return;
+            if (byId[a.id])
+                return;
             const entry = { ...a, placedHere: null };
-            if (!a.scope_id || a.scope_id === scopeId) mine.push(entry);
-            else elsewhere.push(entry);
+            if (!a.scope_id || a.scope_id === scopeId)
+                mine.push(entry);
+            else
+                elsewhere.push(entry);
         });
         const onGrid = (payload && payload.area_placements) || [];
         const groups = [
-            { key: 'placed', label: `On this grid (${onGrid.length})`, areas: onGrid.map(
-                (a) => ({ id: a.id, name: a.name, x: a.x, y: a.y, scope_id: scopeId,
-                           placedHere: { x: a.x, y: a.y } })) },
+            { key: 'placed', label: `On this grid (${onGrid.length})`, areas: onGrid.map((a) => ({ id: a.id, name: a.name, x: a.x, y: a.y, scope_id: scopeId,
+                    placedHere: { x: a.x, y: a.y } })) },
             { key: 'mine', label: `This scope, not placed (${mine.length})`, areas: mine },
             { key: 'elsewhere', label: 'Elsewhere in the world', areas: elsewhere },
         ];
@@ -545,14 +556,13 @@
                 const group = !known || !known.scope_id || known.scope_id === scopeId
                     ? groups[1] : groups[2];
                 group.areas.push({ id: selectedId, name: known ? known.name : selectedId,
-                                   scope_id: known ? known.scope_id : scopeId,
-                                   placedHere: null });
+                    scope_id: known ? known.scope_id : scopeId,
+                    placedHere: null });
                 group.label = group.label.replace(/\(\d+\)/, `(${group.areas.length})`);
             }
         }
         return groups.filter((g) => g.areas.length);
     }
-
     /**
      * What is on a cell (task-540) — the payload half of the painter's cell
      * inspector, kept pure so it can be unit-tested without a canvas.
@@ -575,7 +585,7 @@
         const childId = featureAt(payload, x, y);
         const card = (payload && payload.placements || []).find((c) => c.id === childId);
         const child = childId ? { id: childId, name: card ? card.name : childId,
-                                  kind: card ? card.kind : null } : null;
+            kind: card ? card.kind : null } : null;
         const name = cellName(payload, x, y);
         return {
             x, y,
@@ -596,10 +606,9 @@
             child,
             painted: Boolean(biome || road || floor !== null),
             empty: !biome && !road && floor === null && !name
-                   && !area && !child,
+                && !area && !child,
         };
     }
-
     /**
      * What lies on the four cells touching (x, y) — the painter's answer to
      * "where is the exit from here?" (task-596). The ways a grid compiles into
@@ -632,7 +641,6 @@
         });
         return out;
     }
-
     /**
      * The bounding box, in cells, of everything the author has put on the grid
      * (task-597) — paint, names, placed areas, placed scopes.
@@ -643,33 +651,43 @@
      * draws no box rather than a box over nothing.
      */
     function paintedBounds(payload) {
-        if (!payload) return null;
-        let minX = Infinity; let minY = Infinity;
-        let maxX = -Infinity; let maxY = -Infinity;
+        if (!payload)
+            return null;
+        let minX = Infinity;
+        let minY = Infinity;
+        let maxX = -Infinity;
+        let maxY = -Infinity;
         const put = (x, y) => {
-            if (!Number.isFinite(x) || !Number.isFinite(y)) return;
-            if (x < minX) minX = x;
-            if (y < minY) minY = y;
-            if (x > maxX) maxX = x;
-            if (y > maxY) maxY = y;
+            if (!Number.isFinite(x) || !Number.isFinite(y))
+                return;
+            if (x < minX)
+                minX = x;
+            if (y < minY)
+                minY = y;
+            if (x > maxX)
+                maxX = x;
+            if (y > maxY)
+                maxY = y;
         };
         const layers = payload.layers || {};
         Object.keys(layers).forEach((layer) => {
             Object.keys(layers[layer] || {}).forEach((k) => {
                 const c = parseCellKey(k);
-                if (c) put(c.x, c.y);
+                if (c)
+                    put(c.x, c.y);
             });
         });
         Object.keys(payload.names || {}).forEach((k) => {
             const c = parseCellKey(k);
-            if (c) put(c.x, c.y);
+            if (c)
+                put(c.x, c.y);
         });
         (payload.area_placements || []).forEach((a) => put(a.x, a.y));
         (payload.placements || []).forEach((a) => put(a.x, a.y));
-        if (!Number.isFinite(minX)) return null;
+        if (!Number.isFinite(minX))
+            return null;
         return { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1 };
     }
-
     /**
      * The resize handles on the grid frame (task-597). The origin is fixed at
      * (0,0) — moving it would re-key every painted cell — so only the far edges
@@ -683,28 +701,30 @@
             s: { x: w / 2, y: h },
         };
     }
-
     /** Snap a dragged resize handle to whole cells, never below 1×1 (task-597). */
     function gridHandleDrag(w, h, key, cell) {
         let nw = w;
         let nh = h;
-        if (key === 'e' || key === 'se') nw = Math.max(1, Math.round(cell.x));
-        if (key === 's' || key === 'se') nh = Math.max(1, Math.round(cell.y));
+        if (key === 'e' || key === 'se')
+            nw = Math.max(1, Math.round(cell.x));
+        if (key === 's' || key === 'se')
+            nh = Math.max(1, Math.round(cell.y));
         return { w: nw, h: nh };
     }
-
     /** How a painted cell is to movement, or null when it is a place (task-562). */
     function cellKind(vocab, biomeId) {
-        if (!biomeId) return null;
+        if (!biomeId)
+            return null;
         const biome = ((vocab && vocab.biomes) || []).find((b) => b.id === biomeId);
         const tags = ((biome && biome.tags) || []).map((t) => String(t).toLowerCase());
-        if (!tags.includes('not_a_place')) return null;
+        if (!tags.includes('not_a_place'))
+            return null;
         for (const tag of tags) {
-            if (tag.indexOf('cell_kind:') === 0) return tag.split(':')[1];
+            if (tag.indexOf('cell_kind:') === 0)
+                return tag.split(':')[1];
         }
         return 'solid';
     }
-
     /**
      * How a building cell is entered, or '' when it is not a building (task-563).
      *
@@ -717,14 +737,16 @@
      * rather than two, which is the only way a preview stays true.
      */
     function cellEnter(vocab, biomeId, child) {
-        if (!biomeId) return '';
+        if (!biomeId)
+            return '';
         const biome = ((vocab && vocab.biomes) || []).find((b) => b.id === biomeId);
         const tags = ((biome && biome.tags) || []).map((t) => String(t).toLowerCase());
-        if (!tags.includes('building')) return '';
-        if (child) return `in → ${child.name || child.id}`;
+        if (!tags.includes('building'))
+            return '';
+        if (child)
+            return `in → ${child.name || child.id}`;
         return biome && biome.refusal ? `in → ${biome.refusal}` : 'in';
     }
-
     /**
      * A grid whose aspect ratio matches a reference image (the `▦ match` button).
      *
@@ -744,13 +766,13 @@
     function gridForImageAspect(gridW, imgW, imgH) {
         const iw = Number(imgW) || 0;
         const ih = Number(imgH) || 0;
-        if (iw <= 0 || ih <= 0) return null;
+        if (iw <= 0 || ih <= 0)
+            return null;
         const w = Math.max(1, Math.min(400, Number(gridW) || 160));
         const raw = Math.round(w * ih / iw);
         const h = Math.max(1, Math.min(MAX_GRID_CELLS, Math.floor(MAX_GRID_CELLS / w), raw));
         return { w, h, cells: w * h, aspect: iw / ih };
     }
-
     /**
      * How much of a grid's content would fall outside it if it were resized to
      * `{w, h}` — the number the `▦ match` button shows before it acts, because a
@@ -760,24 +782,28 @@
     function strandedCount(payload, w, h) {
         const nw = Number(w) || 0;
         const nh = Number(h) || 0;
-        if (!payload || nw < 1 || nh < 1) return 0;
+        if (!payload || nw < 1 || nh < 1)
+            return 0;
         let count = 0;
         Object.keys((payload.layers) || {}).forEach((layer) => {
             Object.keys(payload.layers[layer] || {}).forEach((key) => {
                 const cell = parseCellKey(key);
-                if (!cell) return;
-                if (cell.x < 0 || cell.y < 0 || cell.x >= nw || cell.y >= nh) count += 1;
+                if (!cell)
+                    return;
+                if (cell.x < 0 || cell.y < 0 || cell.x >= nw || cell.y >= nh)
+                    count += 1;
             });
         });
         ((payload.area_placements) || []).forEach((a) => {
-            if (a.x < 0 || a.y < 0 || a.x >= nw || a.y >= nh) count += 1;
+            if (a.x < 0 || a.y < 0 || a.x >= nw || a.y >= nh)
+                count += 1;
         });
         ((payload.placements) || []).forEach((a) => {
-            if (a.x < 0 || a.y < 0 || a.x >= nw || a.y >= nh) count += 1;
+            if (a.x < 0 || a.y < 0 || a.x >= nw || a.y >= nh)
+                count += 1;
         });
         return count;
     }
-
     /**
      * Fit a reference image into a grid (contain, centred), in **cell** units.
      * Used when the reference has no stored rect (task-524).
@@ -792,7 +818,6 @@
         const h = ih * s;
         return { x: ((gw || w) - w) / 2, y: ((gh || h) - h) / 2, w, h };
     }
-
     /**
      * The eight handle anchors for a reference rect (cell units): corners
      * (`nw`/`ne`/`sw`/`se`) resize, edges (`n`/`e`/`s`/`w`) crop.
@@ -805,7 +830,6 @@
             w: { x, y: y + h / 2 }, e: { x: x + w, y: y + h / 2 },
         };
     }
-
     /**
      * New `{rect, crop}` after dragging a handle to (cx, cy) in cell units.
      *
@@ -820,28 +844,46 @@
         if (key.length === 2) {
             const right = rect.x + rect.w;
             const bottom = rect.y + rect.h;
-            if (key.indexOf('w') >= 0) { r.x = Math.min(cx, right - 0.5); r.w = right - r.x; }
-            if (key.indexOf('e') >= 0) { r.w = Math.max(0.5, cx - rect.x); }
-            if (key.indexOf('n') >= 0) { r.y = Math.min(cy, bottom - 0.5); r.h = bottom - r.y; }
-            if (key.indexOf('s') >= 0) { r.h = Math.max(0.5, cy - rect.y); }
+            if (key.indexOf('w') >= 0) {
+                r.x = Math.min(cx, right - 0.5);
+                r.w = right - r.x;
+            }
+            if (key.indexOf('e') >= 0) {
+                r.w = Math.max(0.5, cx - rect.x);
+            }
+            if (key.indexOf('n') >= 0) {
+                r.y = Math.min(cy, bottom - 0.5);
+                r.h = bottom - r.y;
+            }
+            if (key.indexOf('s') >= 0) {
+                r.h = Math.max(0.5, cy - rect.y);
+            }
             return { rect: r, crop: c };
         }
         const fx = Math.min(0.95, Math.max(0.05, (cx - rect.x) / rect.w));
         const fy = Math.min(0.95, Math.max(0.05, (cy - rect.y) / rect.h));
         if (key === 'w') {
-            r.x = rect.x + fx * rect.w; r.w = rect.w * (1 - fx);
-            c.x = crop.x + fx * crop.w; c.w = crop.w * (1 - fx);
-        } else if (key === 'e') {
-            r.w = rect.w * fx; c.w = crop.w * fx;
-        } else if (key === 'n') {
-            r.y = rect.y + fy * rect.h; r.h = rect.h * (1 - fy);
-            c.y = crop.y + fy * crop.h; c.h = crop.h * (1 - fy);
-        } else if (key === 's') {
-            r.h = rect.h * fy; c.h = crop.h * fy;
+            r.x = rect.x + fx * rect.w;
+            r.w = rect.w * (1 - fx);
+            c.x = crop.x + fx * crop.w;
+            c.w = crop.w * (1 - fx);
+        }
+        else if (key === 'e') {
+            r.w = rect.w * fx;
+            c.w = crop.w * fx;
+        }
+        else if (key === 'n') {
+            r.y = rect.y + fy * rect.h;
+            r.h = rect.h * (1 - fy);
+            c.y = crop.y + fy * crop.h;
+            c.h = crop.h * (1 - fy);
+        }
+        else if (key === 's') {
+            r.h = rect.h * fy;
+            c.h = crop.h * fy;
         }
         return { rect: r, crop: c };
     }
-
     const gridModel = {
         MODES, PAINT_LAYERS, BIOME_COLORS, ROAD_COLORS,
         CLIMATES, CLIMATE_IDS, DEFAULT_CLIMATE, useClimatesFromVocab,

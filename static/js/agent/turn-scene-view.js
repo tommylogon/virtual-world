@@ -1,3 +1,4 @@
+"use strict";
 /**
  * turn-scene-view.js — scene-first view for the human turn panel
  * (task-333 Phase 1)
@@ -20,14 +21,21 @@
  * @relates feeds human-turn-composer via onDraft; shares the context-menu helper with turn-you-strip
  * @docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
  */
-
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 window.TurnSceneView = (() => {
     'use strict';
-
     const STYLE_ID = 'tsv-styles';
-
+    /**
+     * character-art.js is a classic-script global absent from the declared
+     * Window surface. Read it lazily, never cached at load, because it may
+     * not have run yet when this script first executes.
+     */
+    function characterArt() {
+        return window.CharacterArt;
+    }
     function ensureStyles() {
-        if (document.getElementById(STYLE_ID)) return;
+        if (document.getElementById(STYLE_ID))
+            return;
         const style = document.createElement('style');
         style.id = STYLE_ID;
         style.textContent = `
@@ -80,14 +88,14 @@ window.TurnSceneView = (() => {
         `;
         document.head.appendChild(style);
     }
-
     function el(tagName, className, text) {
         const node = document.createElement(tagName);
-        if (className) node.className = className;
-        if (text !== undefined && text !== null) node.textContent = text;
+        if (className)
+            node.className = className;
+        if (text !== undefined && text !== null)
+            node.textContent = text;
         return node;
     }
-
     /** Draft payload → composer fields. parts: {action,item,target} */
     function draftParts(parts) {
         return {
@@ -96,7 +104,6 @@ window.TurnSceneView = (() => {
             target: parts.target || '',
         };
     }
-
     /**
      * Legacy data stores the literal "none" for walk-through ways (the
      * engine's movement.py special-cases it). Return '' for none-like
@@ -106,9 +113,7 @@ window.TurnSceneView = (() => {
         const req = String(way.requires || '').trim().toLowerCase();
         return (req && !['none', 'nothing', 'no'].includes(req)) ? way.requires : '';
     }
-
     // ── menu builders ────────────────────────────────────────────────
-
     function buildItemMenu(entry) {
         // Backend contract: TriggerSystem._get_available_actions entries
         // ({action,label,enabled,reason}) already encode state gates.
@@ -116,7 +121,8 @@ window.TurnSceneView = (() => {
         const menus = [];
         menus.push({ label: `Examine ${entry.name}`, run: () => draftParts({ action: 'examine', item: entry.name }) });
         for (const a of actions) {
-            if (a.action === 'examine') continue;
+            if (a.action === 'examine')
+                continue;
             menus.push({
                 label: a.label || a.action,
                 enabled: a.enabled !== false,
@@ -127,9 +133,8 @@ window.TurnSceneView = (() => {
         }
         return menus;
     }
-
     function buildWayMenu(way, conditions, atWayId) {
-        const grappled = (conditions || []).some(c => String(c).toLowerCase().includes('grappl'));
+        const grappled = (conditions || []).some((c) => String(c).toLowerCase().includes('grappl'));
         const requires = requiresGate(way);
         const closed = way.state !== 'open';
         const dirText = way.direction || '';
@@ -140,14 +145,18 @@ window.TurnSceneView = (() => {
         }
         if (requires) {
             menus.push({ label: `Go ${destText}`, enabled: false, reason: `requires ${requires}` });
-        } else if (grappled) {
+        }
+        else if (grappled) {
             menus.push({ label: `Go ${destText}`, enabled: false, reason: 'something holds you back' });
-        } else if (way.state === 'locked') {
+        }
+        else if (way.state === 'locked') {
             // state only reported locked once discovered (backend flag)
             menus.push({ label: `Go ${dirText}`, enabled: false, reason: 'locked' });
-        } else if (way.state === 'blocked') {
+        }
+        else if (way.state === 'blocked') {
             menus.push({ label: `Go ${dirText}`, enabled: false, reason: 'blocked' });
-        } else {
+        }
+        else {
             menus.push({ label: `Go ${destText}`, run: () => draftParts({ action: 'go', item: dirText }) });
         }
         if (!requires && closed && !['locked', 'blocked'].includes(way.state)) {
@@ -158,7 +167,6 @@ window.TurnSceneView = (() => {
         }
         return menus;
     }
-
     // task-610: the backend dispatches ~23 character-to-character verbs but
     // the person menu exposed only Talk / Examine / Attack. This mirrors the
     // full person-directed set. The menu is an affordance only — every entry
@@ -166,19 +174,16 @@ window.TurnSceneView = (() => {
     // whose argument the menu cannot know (a steal target's inventory, a
     // name alias) are deliberately not offered; see task-610 notes.
     function buildPersonMenu(person, scene) {
-        const you = (scene && scene.you) || {};
+        const you = ((scene && scene.you) || {});
         const conditions = (you.conditions || []).map((c) => String(c).toLowerCase());
         const grappled = conditions.some((c) => c.includes('grappl'));
         const carrying = you.carrying || [];
         const abilities = you.known_abilities || [];
         // Prefer the world's own toggle (the engine gate); the client config
         // mirrors it and is used only as a fallback before state loads.
-        const mature = !!(
-            (window.worldState && worldState.data && worldState.data.mature_content)
-            || (window.config && window.config.matureContent)
-        );
+        const mature = !!((window.worldState && worldState.data && worldState.data.mature_content)
+            || (window.config?.matureContent));
         const who = person.display_name;
-
         // Speaking to someone is two different things, so the menu offers both:
         //   · Whisper to them — directed. Only they hear it, plus anyone standing
         //     close enough to be "at" you who is a friend or better (the engine's
@@ -199,7 +204,9 @@ window.TurnSceneView = (() => {
                 // "Big overlay on examine": examining a character shows their
                 // live art (current full body, else the profile enlarged) even
                 // when the draft can't be submitted (react phase).
-                if (window.CharacterArt) window.CharacterArt.open({ name: person.display_name, nodeId: person.id });
+                const artView = characterArt();
+                if (artView)
+                    artView.open({ name: person.display_name, nodeId: person.id });
                 return draftParts({ action: 'examine', target: person.display_name });
             },
         });
@@ -207,9 +214,9 @@ window.TurnSceneView = (() => {
         menus.push({ label: `Grab ${who} (grapple)`, run: () => draftParts({ action: 'grab', target: who }) });
         menus.push({ label: `Lead ${who}`, run: () => draftParts({ action: 'lead', target: who }) });
         menus.push({ label: `Wake ${who}`, run: () => draftParts({ action: 'wake', target: who }) });
-        if (grappled) menus.push({ label: 'Escape the grapple', run: () => draftParts({ action: 'escape' }) });
+        if (grappled)
+            menus.push({ label: 'Escape the grapple', run: () => draftParts({ action: 'escape' }) });
         menus.push({ label: `Release ${who}`, run: () => draftParts({ action: 'release', target: who }) });
-
         // Give: choose from what you are actually carrying. applyDraft joins
         // action/item/target with spaces, so the connector lives in the action
         // phrase ("give Dagger to" + "Tester"), not a separate field.
@@ -254,38 +261,46 @@ window.TurnSceneView = (() => {
         }
         return menus;
     }
-
     // ── hover look cards (free look) ─────────────────────────────────
-
     function lookLines(scene, kind, obj) {
         if (scene.area.dark && kind !== 'area') {
             return { title: '…something', body: 'too dark to make out much.', foot: 'free look · no turn cost' };
         }
         if (kind === 'area') {
             return {
-                title: obj.display_name || obj.name,
+                title: (obj.display_name || obj.name),
                 body: obj.desc + (obj.dark ? '\n\nthe light here is poor.' : ''),
                 foot: 'free look · no turn cost',
             };
         }
         if (kind === 'exit') {
             const bits = [`${obj.direction}${obj.to ? ' → ' + obj.to : ''}`];
-            if (obj.state === 'locked') bits.push('locked');
-            else if (obj.state === 'blocked') bits.push('blocked');
-            else if (obj.state !== 'open') bits.push('closed');
+            if (obj.state === 'locked')
+                bits.push('locked');
+            else if (obj.state === 'blocked')
+                bits.push('blocked');
+            else if (obj.state !== 'open')
+                bits.push('closed');
             let body = [obj.desc, bits.join(' · ')].filter(Boolean).join('\n');
-            if (obj.visible_in_direction) body += `\n\nthrough it you can see: ${obj.visible_in_direction}`;
-            else if (obj.see_through && obj.to) body += `\n\nthrough it: the ${obj.to}, faintly.`;
-            if (obj.needs_force_known) body += '\n\nclearly stuck — opening it will take muscle.';
-            if (obj.known_locked) body += '\n\nlocked.';
+            if (obj.visible_in_direction)
+                body += `\n\nthrough it you can see: ${obj.visible_in_direction}`;
+            else if (obj.see_through && obj.to)
+                body += `\n\nthrough it: the ${obj.to}, faintly.`;
+            if (obj.needs_force_known)
+                body += '\n\nclearly stuck — opening it will take muscle.';
+            if (obj.known_locked)
+                body += '\n\nlocked.';
             const reqText = requiresGate(obj);
-            if (reqText) body += `\n\ngetting through needs ${reqText}.`;
-            if (obj.auto_close) body += '\n\nit swings shut behind people.';
+            if (reqText)
+                body += `\n\ngetting through needs ${reqText}.`;
+            if (obj.auto_close)
+                body += '\n\nit swings shut behind people.';
             return { title: obj.name, body, foot: 'free look · no turn cost' };
         }
         if (kind === 'person') {
             let body = obj.desc;
-            if (obj.tags.length) body += `\n\n(${obj.tags.join(', ')})`;
+            if (obj.tags.length)
+                body += `\n\n(${obj.tags.join(', ')})`;
             let foot = 'free look · no turn cost';
             if (!obj.name) {
                 foot = obj.met
@@ -303,16 +318,15 @@ window.TurnSceneView = (() => {
             foot: 'free look · no turn cost',
         };
     }
-
     // ── render ───────────────────────────────────────────────────────
-
     function attachHover(host, getPos, getContent) {
         const card = el('div', 'tsv-hovercard');
         card.style.display = 'none';
         document.body.appendChild(card);
         const show = (e) => {
             const content = getContent();
-            if (!content) return;
+            if (!content)
+                return;
             card.textContent = '';
             card.appendChild(el('div', 'tsv-ht', content.title));
             card.appendChild(el('div', 'tsv-hb', content.body));
@@ -328,7 +342,6 @@ window.TurnSceneView = (() => {
         host.addEventListener('click', hide);
         return hide;
     }
-
     function openMenu(x, y, title, buttons, onDraft, onTalkFocus) {
         closeMenu();
         const scrim = el('div', 'tsv-scrim');
@@ -337,28 +350,39 @@ window.TurnSceneView = (() => {
         box.appendChild(el('div', 'tsv-ctx-title', title));
         for (const b of buttons) {
             const btn = el('button');
-            if (b.danger) btn.classList.add('tsv-danger');
-            if (b.talkFocus) btn.classList.add('tsv-back');
+            if (b.danger)
+                btn.classList.add('tsv-danger');
+            if (b.talkFocus)
+                btn.classList.add('tsv-back');
             btn.appendChild(document.createTextNode(b.label));
-            if (b.reason) btn.appendChild(el('span', 'why', '— ' + b.reason));
+            if (b.reason)
+                btn.appendChild(el('span', 'why', '— ' + b.reason));
             btn.disabled = b.enabled === false;
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 closeMenu();
-                if (b.enabled === false) return;
+                if (b.enabled === false)
+                    return;
                 // task-610: "talk" entries set the composer's speech volume
                 // (and a directed-whisper target) instead of drafting a command.
-                if (b.talk) { if (onTalkFocus) onTalkFocus({ volume: b.volume, target: b.target }); return; }
+                if (b.talk) {
+                    if (onTalkFocus)
+                        onTalkFocus({ volume: b.volume, target: b.target });
+                    return;
+                }
                 // Nested menu (give/teach/intimacy): reopen at the same spot,
                 // with a Back entry that rebuilds the parent list.
                 if (b.sub) {
-                    openMenu(x, y, b.sub.title,
-                        [{ label: '‹ back', sub: { title, buttons } }].concat(b.sub.buttons),
-                        onDraft, onTalkFocus);
+                    openMenu(x, y, b.sub.title, [{ label: '‹ back', sub: { title, buttons } }].concat(b.sub.buttons), onDraft, onTalkFocus);
                     return;
                 }
-                if (b.talkFocus) { if (onTalkFocus) onTalkFocus(); return; }
-                if (typeof b.run === 'function' && onDraft) onDraft(b.run());
+                if (b.talkFocus) {
+                    if (onTalkFocus)
+                        onTalkFocus();
+                    return;
+                }
+                if (typeof b.run === 'function' && onDraft)
+                    onDraft(b.run());
             });
             box.appendChild(btn);
         }
@@ -368,12 +392,13 @@ window.TurnSceneView = (() => {
         document.body.appendChild(box);
         _menuCleanup = () => { scrim.remove(); box.remove(); };
     }
-
     let _menuCleanup = null;
     function closeMenu() {
-        if (_menuCleanup) { _menuCleanup(); _menuCleanup = null; }
+        if (_menuCleanup) {
+            _menuCleanup();
+            _menuCleanup = null;
+        }
     }
-
     /**
      * Fetch the raw scene payload (the composer also uses it for the
      * autocomplete datalist and meta line).
@@ -383,7 +408,6 @@ window.TurnSceneView = (() => {
         // window property) — reference it bare, like the rest of the app.
         return ApiClient.getScene(charName);
     }
-
     /** Render a fetched scene payload into *host*. */
     function renderScene(host, scene, handlers) {
         ensureStyles();
@@ -391,16 +415,12 @@ window.TurnSceneView = (() => {
         host.textContent = '';
         host.className = '';
         const dark = !!(scene.area && scene.area.dark);
-        if (dark) host.classList.add('tsv-dark');
-
-        const chipClick = (e, title, buttons) =>
-            openMenu(e.clientX, Math.min(e.clientY, window.innerHeight - 260),
-                     title, buttons, handlers.onDraft, handlers.onTalkFocus);
-
+        if (dark)
+            host.classList.add('tsv-dark');
+        const chipClick = (e, title, buttons) => openMenu(e.clientX, Math.min(e.clientY, window.innerHeight - 260), title, buttons, handlers.onDraft, handlers.onTalkFocus);
         // area header chip + description
         const areaRow = el('div', 'tsv-zone');
-        const areaBtn = el('button', 'tsv-chip tsv-area',
-                           '📍 ' + (scene.area.display_name || scene.area.name));
+        const areaBtn = el('button', 'tsv-chip tsv-area', '📍 ' + (scene.area.display_name || scene.area.name));
         areaBtn.addEventListener('click', (e) => chipClick(e, scene.area.name, [
             { label: 'Examine the room', run: () => draftParts({ action: 'examine', item: 'room' }) },
             { label: 'Look around', run: () => draftParts({ action: 'look' }) },
@@ -412,15 +432,12 @@ window.TurnSceneView = (() => {
             { label: 'Shout', talk: true, volume: 'shout' },
             { label: 'Scream', talk: true, volume: 'scream' },
         ]));
-        attachHover(areaBtn, () => areaBtn,
-                    () => lookLines(scene, 'area', Object.assign({}, scene.area, { dark })));
+        attachHover(areaBtn, () => areaBtn, () => lookLines(scene, 'area', Object.assign({}, scene.area, { dark })));
         areaRow.appendChild(areaBtn);
         host.appendChild(areaRow);
-
-        const desc = el('p', 'tsv-desc',
-                        dark ? 'shapes in the gloom — details are lost.' : (scene.area.desc || ''));
-        if (desc.textContent) host.appendChild(desc);
-
+        const desc = el('p', 'tsv-desc', dark ? 'shapes in the gloom — details are lost.' : (scene.area.desc || ''));
+        if (desc.textContent)
+            host.appendChild(desc);
         const zone = (label) => {
             const z = el('div', 'tsv-zone');
             z.appendChild(el('div', 'tsv-zlabel', label));
@@ -429,23 +446,21 @@ window.TurnSceneView = (() => {
             host.appendChild(z);
             return chips;
         };
-
         const mkChip = (parent, cls, labelText, onClick, hoverContent) => {
             const chip = el('button', 'tsv-chip' + (cls ? ' ' + cls : ''), labelText);
             chip.addEventListener('click', onClick);
-            if (hoverContent) attachHover(chip, () => chip, hoverContent);
+            if (hoverContent)
+                attachHover(chip, () => chip, hoverContent);
             parent.appendChild(chip);
             return chip;
         };
-
         // people
         const peopleChips = zone('People here');
-        if (!scene.people.length) peopleChips.appendChild(el('span', 'tsv-hint', 'nobody.'));
+        if (!scene.people.length)
+            peopleChips.appendChild(el('span', 'tsv-hint', 'nobody.'));
         for (const p of scene.people) {
-            const chip = mkChip(peopleChips, 'tsv-person', p.display_name,
-                (e) => chipClick(e, p.display_name, buildPersonMenu(p, scene)),
-                () => lookLines(scene, 'person', p));
-            const art = window.CharacterArt && window.CharacterArt.artForNodeId(p.id);
+            const chip = mkChip(peopleChips, 'tsv-person', p.display_name, (e) => chipClick(e, p.display_name, buildPersonMenu(p, scene)), () => lookLines(scene, 'person', p));
+            const art = characterArt()?.artForNodeId(p.id);
             if (art && art.profile) {
                 const img = document.createElement('img');
                 img.className = 'tsv-avatar';
@@ -453,52 +468,46 @@ window.TurnSceneView = (() => {
                 img.alt = '';
                 img.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    window.CharacterArt.open({ name: p.display_name, nodeId: p.id });
+                    characterArt()?.open({ name: p.display_name, nodeId: p.id });
                 });
                 chip.insertBefore(img, chip.firstChild);
             }
             chip.title = '';
         }
-
         // items
         const itemChips = zone('Things you can see');
-        if (!scene.items.length) itemChips.appendChild(el('span', 'tsv-hint', 'nothing of note.'));
+        if (!scene.items.length)
+            itemChips.appendChild(el('span', 'tsv-hint', 'nothing of note.'));
         for (const item of scene.items) {
             const label = dark ? 'something' : item.name;
-            mkChip(itemChips, '', label,
-                (e) => chipClick(e, item.name, buildItemMenu(item)),
-                () => lookLines(scene, 'item', item));
+            mkChip(itemChips, '', label, (e) => chipClick(e, item.name, buildItemMenu(item)), () => lookLines(scene, 'item', item));
         }
-
         // ways
         const wayChips = zone('Ways out');
-        if (!scene.ways.length) wayChips.appendChild(el('span', 'tsv-hint', 'no ways out.'));
+        if (!scene.ways.length)
+            wayChips.appendChild(el('span', 'tsv-hint', 'no ways out.'));
         for (const way of scene.ways) {
             const shut = way.state !== 'open' && !way.see_through;
-            const markers =
-                (way.state === 'locked' ? ' 🔒' : '') +
+            const markers = (way.state === 'locked' ? ' 🔒' : '') +
                 (way.state === 'blocked' ? ' ⛔' : '') +
                 (requiresGate(way) ? ' ⛰' : '');
             const em = el('span', 'tsv-em', `${way.direction}${markers}`);
             const chip = el('button', 'tsv-chip tsv-exit' + (shut ? ' tsv-shut' : ''));
             chip.appendChild(document.createTextNode((dark ? 'a way' : way.name) + ' '));
             chip.appendChild(em);
-            chip.addEventListener('click', (e) =>
-                chipClick(e, way.name, buildWayMenu(way, scene.you.conditions, scene.you.at_way_id)));
+            chip.addEventListener('click', (e) => chipClick(e, way.name, buildWayMenu(way, scene.you.conditions, scene.you.at_way_id)));
             attachHover(chip, () => chip, () => lookLines(scene, 'exit', way));
             wayChips.appendChild(chip);
         }
-
-        host.appendChild(el('div', 'tsv-hint',
-            'hover = free look · click = what you can do with it · picks fill the draft, nothing fires until Act'));
+        host.appendChild(el('div', 'tsv-hint', 'hover = free look · click = what you can do with it · picks fill the draft, nothing fires until Act'));
     }
-
     /** Convenience wrapper: fetch + renderScene, with inline error note. */
     async function render(charName, host, handlers) {
         let scene;
         try {
             scene = await fetch(charName);
-        } catch (err) {
+        }
+        catch (err) {
             ensureStyles();
             host.textContent = '';
             host.className = '';
@@ -509,17 +518,14 @@ window.TurnSceneView = (() => {
             ensureStyles();
             host.textContent = '';
             host.className = '';
-            host.appendChild(el('div', 'tsv-hint',
-                `scene unavailable (${(scene && scene.error) || 'unknown'})`));
+            host.appendChild(el('div', 'tsv-hint', `scene unavailable (${(scene && scene.error) || 'unknown'})`));
             return;
         }
         renderScene(host, scene, handlers);
     }
-
     /** Shared context-menu entry point (the You strip uses it too). */
     function menu(x, y, title, buttons, onDraft) {
         openMenu(x, y, title, buttons, onDraft, null);
     }
-
     return { render, renderScene, fetch, menu, lookLines, attachHover, closeMenu };
 })();

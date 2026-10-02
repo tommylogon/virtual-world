@@ -1,3 +1,4 @@
+"use strict";
 /**
  * prompt-builder/helpers.js — Leaf-level utility functions for prompt building.
  *
@@ -15,11 +16,10 @@
  * @relates the leaf layer; used by room-context, contextual-actions, character-state
  * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */
-
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 window.PromptBuilder = window.PromptBuilder || {};
 (() => {
     'use strict';
-
     /**
      * Convert a numeric light value (0-100) to a level string.
      * Mirrors engine/lighting.py:light_to_level.
@@ -27,28 +27,29 @@ window.PromptBuilder = window.PromptBuilder || {};
      * @returns {string} Level name: 'pitch_black' | 'dim' | 'normal' | 'bright' | 'blinding'
      */
     function lightToLevel(value) {
-        const numValue = parseInt(value) || 50;
-        if (numValue <= 20) return 'pitch_black';
-        if (numValue <= 40) return 'dim';
-        if (numValue <= 70) return 'normal';
-        if (numValue <= 90) return 'bright';
+        const numValue = parseInt(String(value)) || 50;
+        if (numValue <= 20)
+            return 'pitch_black';
+        if (numValue <= 40)
+            return 'dim';
+        if (numValue <= 70)
+            return 'normal';
+        if (numValue <= 90)
+            return 'bright';
         return 'blinding';
     }
-
     /**
      * Strip a leading article from a description fragment ("a tall man" → "tall man").
      */
     function stripLeadingArticle(text) {
         return text.replace(/^(a|an|the)\s+/i, '');
     }
-
     /**
      * Indefinite article for an item name ("a toy_box", "an Ink Pen").
      */
     function indefiniteArticle(name) {
         return /^[aeiou]/i.test(String(name || '')) ? 'an' : 'a';
     }
-
     /**
      * A reference handle for an exit/way: the exit label (direction) when set,
      * else a short name derived from the way node's name (strip the source area's
@@ -61,18 +62,19 @@ window.PromptBuilder = window.PromptBuilder || {};
      */
     function wayHandle(exitData, doorNode, areaName) {
         const label = String(exitData?.label ?? exitData?.direction ?? '').trim();
-        if (label) return label;
+        if (label)
+            return label;
         if (doorNode?.name) {
             let name = String(doorNode.name).trim();
             if (areaName && name.toLowerCase().startsWith(`${String(areaName).toLowerCase()} - `)) {
                 name = name.slice(areaName.length + 3).trim();
             }
             name = name.replace(/_/g, ' ').trim();
-            if (name) return name;
+            if (name)
+                return name;
         }
         return 'door';
     }
-
     /**
      * Map item id → { prep, anchorName } for every item that sits in a spatial
      * relation (on/under/behind/beside/at/in) to an anchor item that is itself
@@ -85,13 +87,16 @@ window.PromptBuilder = window.PromptBuilder || {};
     function buildRelationMap(areaItems) {
         const relationMap = {};
         const spatialTypes = ['on', 'under', 'behind', 'beside', 'at', 'in'];
-        const areaItemIds = new Set(areaItems.map(item => item.id));
+        const areaItemIds = new Set(areaItems.map((item) => item.id));
         for (const edge of worldState.graph?.edges || []) {
-            if (!spatialTypes.includes(edge.type)) continue;
+            if (!spatialTypes.includes(edge.type))
+                continue;
             const anchorId = edge.target;
-            if (!areaItemIds.has(anchorId)) continue;
+            if (!areaItemIds.has(anchorId))
+                continue;
             const sourceNode = worldState.getNode(edge.source);
-            if (!sourceNode || sourceNode.type !== 'item') continue;
+            if (!sourceNode || sourceNode.type !== 'item')
+                continue;
             const anchorNode = worldState.getNode(anchorId);
             relationMap[edge.source] = {
                 prep: edge.type,
@@ -100,23 +105,22 @@ window.PromptBuilder = window.PromptBuilder || {};
         }
         return relationMap;
     }
-
     /**
      * Does *charName* already know *targetName* — either because they have met,
      * or because the authored `known` registry lists them? A known character is
      * never masked as a stranger (task-154), for faces AND for voices.
      */
     function isKnownToViewer(charName, targetName) {
-        if (worldState.hasMet(charName, targetName)) return true;
+        if (worldState.hasMet(charName, targetName))
+            return true;
         const viewer = worldState.data?.players?.[charName];
-        const known = new Set((viewer?.known || []).map(String));
-        const knownLower = new Set([...known].map(value => value.toLowerCase()));
+        const known = new Set((viewer?.known || []).map((value) => String(value)));
+        const knownLower = new Set([...known].map((value) => value.toLowerCase()));
         const targetSlug = String(targetName || '').toLowerCase().replace(/\s+/g, '_');
         return knownLower.has(String(targetName || '').toLowerCase())
             || knownLower.has('player_' + targetSlug)
             || knownLower.has('character_' + targetSlug);
     }
-
     /**
      * Return how this character should refer to another.
      * Known characters are called by their real name. Strangers (no relationship
@@ -124,7 +128,8 @@ window.PromptBuilder = window.PromptBuilder || {};
      * learns a name they haven't been told (task-154).
      */
     function anonymousName(charName, targetName, targetDesc) {
-        if (isKnownToViewer(charName, targetName)) return targetName;
+        if (isKnownToViewer(charName, targetName))
+            return targetName;
         const player = worldState.data?.players?.[targetName] || {};
         const tagMap = {
             female: 'the woman', male: 'the man', woman: 'the woman', man: 'the man',
@@ -132,13 +137,14 @@ window.PromptBuilder = window.PromptBuilder || {};
         };
         for (const tag of (player.tags || [])) {
             const mapped = tagMap[String(tag).toLowerCase()];
-            if (mapped) return mapped;
+            if (mapped)
+                return mapped;
         }
         const firstSentence = (targetDesc || '').split(/[.!?]/)[0].trim();
-        if (firstSentence) return `the ${stripLeadingArticle(firstSentence).toLowerCase()}`;
+        if (firstSentence)
+            return `the ${stripLeadingArticle(firstSentence).toLowerCase()}`;
         return 'the stranger';
     }
-
     /**
      * How a character should refer to someone they can HEAR but not see
      * (cross-room speech). If you know someone, you know their voice — a met or
@@ -148,7 +154,8 @@ window.PromptBuilder = window.PromptBuilder || {};
      * generic voice.
      */
     function voiceLabel(charName, targetName) {
-        if (isKnownToViewer(charName, targetName)) return targetName;
+        if (isKnownToViewer(charName, targetName))
+            return targetName;
         const player = worldState.data?.players?.[targetName] || {};
         const tagMap = {
             female: 'woman', male: 'man', woman: 'woman', man: 'man',
@@ -157,16 +164,20 @@ window.PromptBuilder = window.PromptBuilder || {};
         let gender = '';
         for (const tag of (player.tags || [])) {
             const mapped = tagMap[String(tag).toLowerCase()];
-            if (mapped) { gender = mapped; break; }
+            if (mapped) {
+                gender = mapped;
+                break;
+            }
         }
         if (!gender) {
             const desc = player.base_description || player.description || '';
-            if (/\b(she|her|hers)\b/i.test(desc)) gender = 'woman';
-            else if (/\b(he|him|his)\b/i.test(desc)) gender = 'man';
+            if (/\b(she|her|hers)\b/i.test(desc))
+                gender = 'woman';
+            else if (/\b(he|him|his)\b/i.test(desc))
+                gender = 'man';
         }
         return gender ? `a ${gender}'s voice` : 'a voice';
     }
-
     /**
      * Check if a character has an active plan in the AgentEngine.
      * @param {string} charName - Character name
@@ -177,7 +188,6 @@ window.PromptBuilder = window.PromptBuilder || {};
         const plan = window.PlanTracker?.getPlan(charName);
         return !!plan && plan.length > 0;
     }
-
     /**
      * Re-frame a third-person appearance description into second person so the
      * character reads about THEMSELVES ("You are a woman who stands... your
@@ -186,16 +196,15 @@ window.PromptBuilder = window.PromptBuilder || {};
      * swaps (she/her/his/him → you/your), and verb agreement ("you stands").
      */
     function secondPersonDesc(desc) {
-        if (!desc) return '';
+        if (!desc)
+            return '';
         let text = desc.trim();
         const subjectVerbs = 'stands?|sits?|lies?|rests?|leans?|kneels?|looks?|stares?|moves?|walks?|hangs?|awaits?|seems?';
-        text = text.replace(new RegExp(`^(?:A|An|The)\\s+(.+?)\\s+(${subjectVerbs})\\b`, 'i'),
-            (match, noun, verb) => {
-                const article = match.startsWith('A ') ? 'a' : match.startsWith('An ') ? 'an' : match.startsWith('The ') ? 'the' : match.startsWith('a ') ? 'a' : match.startsWith('an ') ? 'an' : match.startsWith('the ') ? 'the' : '';
-                return `You are ${article} ${noun} who ${verb}`;
-            });
-        text = text.replace(new RegExp(`^(She|He)\\s+(${subjectVerbs})\\b`, 'i'),
-            (match, pronoun, verb) => `You ${verb.replace(/s$/, '')}`);
+        text = text.replace(new RegExp(`^(?:A|An|The)\\s+(.+?)\\s+(${subjectVerbs})\\b`, 'i'), (match, noun, verb) => {
+            const article = match.startsWith('A ') ? 'a' : match.startsWith('An ') ? 'an' : match.startsWith('The ') ? 'the' : match.startsWith('a ') ? 'a' : match.startsWith('an ') ? 'an' : match.startsWith('the ') ? 'the' : '';
+            return `You are ${article} ${noun} who ${verb}`;
+        });
+        text = text.replace(new RegExp(`^(She|He)\\s+(${subjectVerbs})\\b`, 'i'), (match, pronoun, verb) => `You ${verb.replace(/s$/, '')}`);
         text = text.replace(/\bshe\b/gi, 'you');
         text = text.replace(/\bher\b/gi, 'your');
         text = text.replace(/\bhers\b/gi, 'yours');
@@ -203,30 +212,27 @@ window.PromptBuilder = window.PromptBuilder || {};
         text = text.replace(/\bhim\b/gi, 'you');
         text = text.replace(/\bhis\b/gi, 'your');
         // fix verb agreement after "you" (preserving case): "You stands" → "You stand"
-        text = text.replace(new RegExp(`\\b(you)\\s+(${subjectVerbs})\\b`, 'gi'),
-            (match, pronoun, verb) => `${pronoun} ${verb.replace(/s$/, '')}`);
+        text = text.replace(new RegExp(`\\b(you)\\s+(${subjectVerbs})\\b`, 'gi'), (match, pronoun, verb) => `${pronoun} ${verb.replace(/s$/, '')}`);
         // fix plural possessive agreement: "your breasts rests" → "your breasts rest"
         // (nouns ending in s are treated as plural — regular plurals only)
-        text = text.replace(/\byour\s+(\w+s)\s+(stands?|sits?|lies?|rests?|rises?|falls?|hangs?|looks?|moves?|seems?)\b/gi,
-            (match, noun, verb) => `your ${noun} ${verb.replace(/s$/, '')}`);
+        text = text.replace(/\byour\s+(\w+s)\s+(stands?|sits?|lies?|rests?|rises?|falls?|hangs?|looks?|moves?|seems?)\b/gi, (match, noun, verb) => `your ${noun} ${verb.replace(/s$/, '')}`);
         return text;
     }
-
     /**
      * Render a player's activity (task-131) as a short flavor string.
      * @param {object} activity - {type, target_item, ...}
      * @returns {string} e.g. "sleeping in the bed"
      */
     function describeActivity(activity) {
-        if (!activity) return '';
-        const type = activity.type || '';
+        if (!activity)
+            return '';
+        const type = String(activity.type || '');
         const target = activity.target_item;
         if (target && (type === 'sleeping' || type === 'bathing' || type === 'resting')) {
             return `${type} in the ${target}`;
         }
         return type;
     }
-
     /**
      * Re-frame an agent's own action-result text in first person.
      *
@@ -240,15 +246,16 @@ window.PromptBuilder = window.PromptBuilder || {};
      * @returns {string} Text with the agent's own name re-framed in first person
      */
     function frameSelfSpeech(charName, text) {
-        if (!text || !charName) return text || '';
+        if (!text || !charName)
+            return text || '';
         const escaped = charName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const nameRe = new RegExp(`\\[${escaped}\\]`, 'gi');
-        if (!nameRe.test(text)) return text;
+        if (!nameRe.test(text))
+            return text;
         return text
             .replace(new RegExp(`\\[${escaped}\\]\\s*says:`, 'gi'), 'You said:')
             .replace(nameRe, 'you');
     }
-
     Object.assign(window.PromptBuilder, {
         lightToLevel,
         stripLeadingArticle,

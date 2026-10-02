@@ -1,3 +1,4 @@
+"use strict";
 /**
  * staging.js — Staging buffer for Natural-Language Editor (task-387).
  *
@@ -10,26 +11,37 @@
  * @relates consumed by index.js + ghosts.js; applied through the graph API
  * @docs docs/virtualWorld/dev_tasks/done/graph/task-387-natural-language-editor-mode.md
  */
-
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 window.NLEditorStaging = (() => {
     'use strict';
-
+    /**
+     * The HTTP surface this buffer needs. `globals.d.ts` declares only the
+     * named ApiClient wrappers converted code makes, and this file is the
+     * first converted caller of createNode/createEdge/deleteEdge/deleteNode/
+     * placeItemFromLibrary. A function, not a captured const, so ApiClient is
+     * still read at call time exactly as the original did from inside methods.
+     */
+    function api() {
+        return ApiClient;
+    }
     class StagingBuffer {
         constructor() {
             this.ops = [];
             this.listeners = [];
         }
-
         onChange(callback) {
             this.listeners.push(callback);
         }
-
         _notify() {
             for (const cb of this.listeners) {
-                try { cb(this.ops); } catch (e) { console.error('Staging listener error:', e); }
+                try {
+                    cb(this.ops);
+                }
+                catch (e) {
+                    console.error('Staging listener error:', e);
+                }
             }
         }
-
         /** Generate a deterministic, unique node ID */
         mintId(kind, name) {
             const cleanKind = (kind || 'item').toLowerCase().trim();
@@ -37,12 +49,10 @@ window.NLEditorStaging = (() => {
             const randSuffix = Math.random().toString(36).substring(2, 6);
             return `${cleanKind}_${cleanName}_${randSuffix}`;
         }
-
         /** Mint an operation ID */
         _mintOpId() {
             return `op_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
         }
-
         /** Add an operation to the staging buffer */
         addOp(type, payload, summary) {
             const op = {
@@ -56,40 +66,36 @@ window.NLEditorStaging = (() => {
             this._notify();
             return op;
         }
-
         /** Remove a specific staged operation */
         removeOp(opId) {
             const initialLen = this.ops.length;
-            this.ops = this.ops.filter(op => op.id !== opId);
+            this.ops = this.ops.filter((op) => op.id !== opId);
             if (this.ops.length !== initialLen) {
                 this._notify();
                 return true;
             }
             return false;
         }
-
         /** Replace an op's payload in place (inline tweaker). */
         updateOp(opId, payload) {
-            const op = this.ops.find(o => o.id === opId);
-            if (!op) return false;
+            const op = this.ops.find((o) => o.id === opId);
+            if (!op)
+                return false;
             op.payload = payload;
             op.summary = `${op.type}: ${JSON.stringify(payload).slice(0, 50)}`;
             op.updatedAt = Date.now();
             this._notify();
             return true;
         }
-
         /** Clear all staged operations */
         clear() {
             this.ops = [];
             this._notify();
         }
-
         /** Get all currently staged operations */
         getOps() {
             return [...this.ops];
         }
-
         /** Get dictionary of uncommitted created nodes: id -> node object */
         getStagedCreations() {
             const creations = {};
@@ -105,7 +111,8 @@ window.NLEditorStaging = (() => {
                             staged: true
                         };
                     }
-                } else if (op.type === 'connect_areas') {
+                }
+                else if (op.type === 'connect_areas') {
                     const wayId = op.payload.way_id || op.payload.id;
                     if (wayId) {
                         creations[wayId.toLowerCase()] = {
@@ -120,7 +127,6 @@ window.NLEditorStaging = (() => {
             }
             return creations;
         }
-
         /** Get set of node IDs staged for deletion */
         getStagedDeletions() {
             const deletions = new Set();
@@ -131,7 +137,6 @@ window.NLEditorStaging = (() => {
             }
             return deletions;
         }
-
         /** Get map of staged patches: id -> merged properties patch */
         getStagedUpdates() {
             const updates = {};
@@ -143,7 +148,6 @@ window.NLEditorStaging = (() => {
             }
             return updates;
         }
-
         /** Get staged relation edges */
         getStagedEdges() {
             const edges = [];
@@ -156,7 +160,8 @@ window.NLEditorStaging = (() => {
                         properties: op.payload.properties || {},
                         staged: true
                     });
-                } else if (op.type === 'connect_areas') {
+                }
+                else if (op.type === 'connect_areas') {
                     const wayId = op.payload.way_id;
                     const areaA = op.payload.area_a_id;
                     const areaB = op.payload.area_b_id;
@@ -170,7 +175,6 @@ window.NLEditorStaging = (() => {
             }
             return edges;
         }
-
         /**
          * Apply all staged operations.
          *
@@ -184,14 +188,15 @@ window.NLEditorStaging = (() => {
          *        unchecked ops stay staged for later (selective apply).
          */
         async apply(opFilter = null) {
-            const targets = opFilter ? this.ops.filter(o => opFilter.has(o.id)) : this.ops;
-            if (targets.length === 0) return { success: true, appliedCount: 0 };
-
-            const opsPayload = targets.map(op => ({ type: op.type, payload: op.payload }));
+            const targets = opFilter ? this.ops.filter((o) => opFilter.has(o.id)) : this.ops;
+            if (targets.length === 0)
+                return { success: true, appliedCount: 0 };
+            const opsPayload = targets.map((op) => ({ type: op.type, payload: op.payload }));
             let batch;
             try {
-                batch = await ApiClient.post('/api/graph/batch', { ops: opsPayload, strict_validation: true });
-            } catch (e) {
+                batch = await api().post('/api/graph/batch', { ops: opsPayload, strict_validation: true });
+            }
+            catch (e) {
                 batch = null;
             }
             if (batch && batch.status === 'invalid') {
@@ -199,7 +204,7 @@ window.NLEditorStaging = (() => {
                 // applied; keep every op staged and surface the findings.
                 const issues = batch.validation || [];
                 const messages = (batch.errors || issues)
-                    .map(er => er.message || er.error || String(er))
+                    .map((er) => er.message || er.error || String(er))
                     .filter(Boolean);
                 return {
                     success: false,
@@ -218,10 +223,12 @@ window.NLEditorStaging = (() => {
                 const appliedIds = new Set();
                 for (const entry of (batch.applied || [])) {
                     const op = targets[entry.index];
-                    if (op) appliedIds.add(op.id);
+                    if (op)
+                        appliedIds.add(op.id);
                 }
-                const errs = (batch.errors || []).map(er => {
-                    if (typeof er === 'string') return er;
+                const errs = (batch.errors || []).map((er) => {
+                    if (typeof er === 'string')
+                        return er;
                     const label = er.type || 'op';
                     const name = targets[er.index]?.summary || `#${er.index}`;
                     return `${name} (${label}): ${er.error}`;
@@ -235,30 +242,29 @@ window.NLEditorStaging = (() => {
                     errors: errs
                 };
             }
-
             // ── Fallback: per-op replay (stale server, no atomic undo) ──
             const errors = [];
             const appliedIds = new Set();
-
-            const creates = targets.filter(o => o.type === 'create_node' || o.type === 'spawn_library_item' || o.type === 'connect_areas');
-            const updates = targets.filter(o => o.type === 'update_node' || o.type === 'link_to_library');
-            const edges = targets.filter(o => o.type === 'attach' || o.type === 'detach');
-            const deletes = targets.filter(o => o.type === 'delete_node');
+            const creates = targets.filter((o) => o.type === 'create_node' || o.type === 'spawn_library_item' || o.type === 'connect_areas');
+            const updates = targets.filter((o) => o.type === 'update_node' || o.type === 'link_to_library');
+            const edges = targets.filter((o) => o.type === 'attach' || o.type === 'detach');
+            const deletes = targets.filter((o) => o.type === 'delete_node');
             const sortedOps = [...creates, ...updates, ...edges, ...deletes];
-
             for (const op of sortedOps) {
                 try {
                     switch (op.type) {
                         case 'create_node': {
                             const nodeData = op.payload.node || op.payload;
-                            const res = await ApiClient.createNode({
+                            const res = await api().createNode({
                                 id: nodeData.id,
                                 type: nodeData.type || nodeData.kind || 'item',
                                 name: nodeData.name,
                                 properties: nodeData.properties || {}
                             });
-                            if (res?.error) errors.push(`${op.summary}: ${res.error}`);
-                            else appliedIds.add(op.id);
+                            if (res?.error)
+                                errors.push(`${op.summary}: ${res.error}`);
+                            else
+                                appliedIds.add(op.id);
                             break;
                         }
                         case 'spawn_library_item': {
@@ -266,22 +272,28 @@ window.NLEditorStaging = (() => {
                             const parentNode = (typeof worldState?.getNode === 'function' ? worldState.getNode(p.parent_id) : null)
                                 || (typeof worldState?.getNodeByIdentifier === 'function' ? worldState.getNodeByIdentifier(p.parent_id) : null);
                             let target;
-                            if (parentNode?.type === 'area') target = { type: 'area', name: parentNode.name };
-                            else if (parentNode?.type === 'character') target = { type: 'character', id: parentNode.id };
-                            else if (parentNode?.type === 'item') target = { type: 'container', id: parentNode.id };
-                            else target = { type: 'area', name: p.parent_id };
-                            const res = await ApiClient.placeItemFromLibrary(target, p.library_id);
+                            if (parentNode?.type === 'area')
+                                target = { type: 'area', name: parentNode.name };
+                            else if (parentNode?.type === 'character')
+                                target = { type: 'character', id: parentNode.id };
+                            else if (parentNode?.type === 'item')
+                                target = { type: 'container', id: parentNode.id };
+                            else
+                                target = { type: 'area', name: p.parent_id };
+                            const res = await api().placeItemFromLibrary(target, p.library_id);
                             // custom rename (place route has no rename)
                             if (!res?.error && p.rename && res?.node_id) {
-                                await ApiClient.updateNode(res.node_id, { name: p.rename });
+                                await api().updateNode(res.node_id, { name: p.rename });
                             }
-                            if (res?.error) errors.push(`${op.summary}: ${res.error}`);
-                            else appliedIds.add(op.id);
+                            if (res?.error)
+                                errors.push(`${op.summary}: ${res.error}`);
+                            else
+                                appliedIds.add(op.id);
                             break;
                         }
                         case 'connect_areas': {
                             const p = op.payload;
-                            const wayRes = await ApiClient.createNode({
+                            const wayRes = await api().createNode({
                                 id: p.way_id,
                                 type: 'way',
                                 name: p.way_name || 'Door',
@@ -295,19 +307,21 @@ window.NLEditorStaging = (() => {
                             const dirB = p.direction_b || 'south';
                             // Canonical pattern: area→way (direction + visible),
                             // way→area (direction only).
-                            await ApiClient.createEdge(p.area_a_id, p.way_id, 'connection', { direction: dirA, visible_in_direction: '' });
-                            await ApiClient.createEdge(p.way_id, p.area_b_id, 'connection', { direction: dirB });
-                            await ApiClient.createEdge(p.area_b_id, p.way_id, 'connection', { direction: dirB, visible_in_direction: '' });
-                            await ApiClient.createEdge(p.way_id, p.area_a_id, 'connection', { direction: dirA });
+                            await api().createEdge(p.area_a_id, p.way_id, 'connection', { direction: dirA, visible_in_direction: '' });
+                            await api().createEdge(p.way_id, p.area_b_id, 'connection', { direction: dirB });
+                            await api().createEdge(p.area_b_id, p.way_id, 'connection', { direction: dirB, visible_in_direction: '' });
+                            await api().createEdge(p.way_id, p.area_a_id, 'connection', { direction: dirA });
                             appliedIds.add(op.id);
                             break;
                         }
                         case 'update_node': {
                             const p = op.payload;
                             const patch = this._nodePatch(p.patch || {});
-                            const ok = await ApiClient.updateNode(p.node_id, patch);
-                            if (!ok) errors.push(`${op.summary}: node update rejected`);
-                            else appliedIds.add(op.id);
+                            const ok = await api().updateNode(p.node_id, patch);
+                            if (!ok)
+                                errors.push(`${op.summary}: node update rejected`);
+                            else
+                                appliedIds.add(op.id);
                             break;
                         }
                         case 'update_matching_nodes': {
@@ -323,38 +337,46 @@ window.NLEditorStaging = (() => {
                         }
                         case 'link_to_library': {
                             const p = op.payload;
-                            const ok = await ApiClient.updateNode(p.node_id, { properties: { template_id: p.library_id } });
-                            if (!ok) errors.push(`${op.summary}: link rejected`);
-                            else appliedIds.add(op.id);
+                            const ok = await api().updateNode(p.node_id, { properties: { template_id: p.library_id } });
+                            if (!ok)
+                                errors.push(`${op.summary}: link rejected`);
+                            else
+                                appliedIds.add(op.id);
                             break;
                         }
                         case 'attach': {
                             const p = op.payload;
-                            const res = await ApiClient.createEdge(p.from_id, p.to_id, p.relation || 'in', p.properties || {});
-                            if (res?.error) errors.push(`${op.summary}: ${res.error}`);
-                            else appliedIds.add(op.id);
+                            const res = await api().createEdge(p.from_id, p.to_id, p.relation || 'in', p.properties || {});
+                            if (res?.error)
+                                errors.push(`${op.summary}: ${res.error}`);
+                            else
+                                appliedIds.add(op.id);
                             break;
                         }
                         case 'detach': {
                             const p = op.payload;
-                            const res = await ApiClient.deleteEdge(p.from_id, p.to_id, p.relation || 'in');
-                            if (res?.error) errors.push(`${op.summary}: ${res.error}`);
-                            else appliedIds.add(op.id);
+                            const res = await api().deleteEdge(p.from_id, p.to_id, p.relation || 'in');
+                            if (res?.error)
+                                errors.push(`${op.summary}: ${res.error}`);
+                            else
+                                appliedIds.add(op.id);
                             break;
                         }
                         case 'delete_node': {
                             const p = op.payload;
-                            const res = await ApiClient.deleteNode(p.node_id);
-                            if (res?.error) errors.push(`${op.summary}: ${res.error}`);
-                            else appliedIds.add(op.id);
+                            const res = await api().deleteNode(p.node_id);
+                            if (res?.error)
+                                errors.push(`${op.summary}: ${res.error}`);
+                            else
+                                appliedIds.add(op.id);
                             break;
                         }
                     }
-                } catch (err) {
-                    errors.push(`${op.summary}: ${err.message}`);
+                }
+                catch (err) {
+                    errors.push(`${op.summary}: ${err instanceof Error ? err.message : String(err)}`);
                 }
             }
-
             await this._refreshWorld();
             this._removeOps(appliedIds);
             this._notify();
@@ -365,33 +387,36 @@ window.NLEditorStaging = (() => {
                 errors
             };
         }
-
         /** Remove only the ops that actually applied; failures stay staged. */
         _removeOps(opIds) {
-            if (!opIds || opIds.size === 0) return;
-            this.ops = this.ops.filter(o => !opIds.has(o.id));
+            if (!opIds || opIds.size === 0)
+                return;
+            this.ops = this.ops.filter((o) => !opIds.has(o.id));
         }
-
         /** Wrap an NL-editor flat property patch for the PATCH route.
          *  Mirrors the batch route's folding: a top-level `name` is a rename,
          *  every other flat key becomes a property. */
         _nodePatch(patch) {
-            if ('properties' in patch || 'id' in patch) return patch;
+            if ('properties' in patch || 'id' in patch)
+                return patch;
             const rest = { ...patch };
             const out = {};
-            if (typeof rest.name === 'string') { out.name = rest.name; delete rest.name; }
-            if (Object.keys(rest).length) out.properties = rest;
+            if (typeof rest.name === 'string') {
+                out.name = rest.name;
+                delete rest.name;
+            }
+            if (Object.keys(rest).length)
+                out.properties = rest;
             return out;
         }
-
         async _refreshWorld() {
             try {
                 if (typeof worldState !== 'undefined' && worldState?.fetch) {
                     await worldState.fetch();
                 }
-            } catch (e) { /* world refresh failure must not fail the apply */ }
+            }
+            catch (e) { /* world refresh failure must not fail the apply */ }
         }
     }
-
     return { StagingBuffer };
 })();

@@ -1,3 +1,4 @@
+"use strict";
 /**
  * ui.js — User Interface components for Natural-Language Editor (task-387).
  *
@@ -10,11 +11,17 @@
  * @relates renders the nl-editor panel; driven by index.js
  * @docs docs/virtualWorld/dev_tasks/done/graph/task-387-natural-language-editor-mode.md
  */
-
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 window.NLEditorUI = (() => {
     'use strict';
-
     class UI {
+        controller;
+        container;
+        chatList;
+        inputField;
+        stagedTray;
+        statusBadge;
+        _checked; // op.id -> bool (selective apply)
         constructor(controller) {
             this.controller = controller;
             this.container = null;
@@ -22,13 +29,12 @@ window.NLEditorUI = (() => {
             this.inputField = null;
             this.stagedTray = null;
             this.statusBadge = null;
-            this._checked = new Map(); // op.id -> bool (selective apply)
+            this._checked = new Map();
         }
-
         init(containerId = 'left-tab-nl-editor') {
             this.container = document.getElementById(containerId);
-            if (!this.container) return;
-
+            if (!this.container)
+                return;
             this.container.innerHTML = `
                 <div class="nl-editor-root" style="display:flex;flex-direction:column;height:100%;font-size:12px;">
                     <div class="nl-header" style="padding:8px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg-card);">
@@ -73,29 +79,25 @@ window.NLEditorUI = (() => {
                     </div>
                 </div>
             `;
-
             this.chatList = document.getElementById('nl-chat-list');
             this.inputField = document.getElementById('nl-input');
             this.stagedTray = document.getElementById('nl-staged-tray');
             this.statusBadge = document.getElementById('nl-status');
-
             this._bindEvents();
         }
-
         _bindEvents() {
             const sendBtn = document.getElementById('nl-send-btn');
             const resetBtn = document.getElementById('nl-reset-btn');
             const applyBtn = document.getElementById('nl-apply-btn');
             const rejectBtn = document.getElementById('nl-reject-btn');
             const clearStagedBtn = document.getElementById('nl-clear-staged-btn');
-
             const handleSend = () => {
                 const text = this.inputField.value.trim();
-                if (!text) return;
+                if (!text)
+                    return;
                 this.inputField.value = '';
                 this.controller.send(text);
             };
-
             sendBtn?.addEventListener('click', handleSend);
             this.inputField?.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -103,13 +105,11 @@ window.NLEditorUI = (() => {
                     handleSend();
                 }
             });
-
             resetBtn?.addEventListener('click', () => {
                 if (confirm('Reset NL Editor chat session?')) {
                     this.controller.reset();
                 }
             });
-
             applyBtn?.addEventListener('click', async () => {
                 applyBtn.disabled = true;
                 applyBtn.textContent = 'Applying...';
@@ -117,43 +117,41 @@ window.NLEditorUI = (() => {
                 applyBtn.disabled = false;
                 applyBtn.textContent = 'Apply Changes';
             });
-
             const applySelectedBtn = document.getElementById('nl-apply-selected-btn');
             applySelectedBtn?.addEventListener('click', async () => {
                 const ids = new Set();
                 for (const [opId, checked] of this._checked) {
-                    if (checked) ids.add(opId);
+                    if (checked)
+                        ids.add(opId);
                 }
-                if (ids.size === 0) return;
+                if (ids.size === 0)
+                    return;
                 applySelectedBtn.disabled = true;
                 applySelectedBtn.textContent = 'Applying...';
                 await this.controller.applySelected(ids);
                 applySelectedBtn.disabled = false;
             });
-
             rejectBtn?.addEventListener('click', () => {
                 this.controller.staging.clear();
             });
-
             clearStagedBtn?.addEventListener('click', () => {
                 this.controller.staging.clear();
             });
         }
-
         appendUserMessage(text) {
-            if (!this.chatList) return;
+            if (!this.chatList)
+                return;
             const bubble = document.createElement('div');
             bubble.style.cssText = 'align-self:flex-end;max-width:85%;background:var(--primary);color:#fff;padding:6px 10px;border-radius:8px 8px 0 8px;font-size:11px;line-height:1.4;';
             bubble.textContent = text;
             this.chatList.appendChild(bubble);
             this.chatList.scrollTop = this.chatList.scrollHeight;
         }
-
         appendAssistantMessage(content, toolCalls = null) {
-            if (!this.chatList) return;
+            if (!this.chatList)
+                return;
             const bubble = document.createElement('div');
             bubble.style.cssText = 'align-self:flex-start;max-width:88%;background:var(--bg-card);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:8px 8px 8px 0;font-size:11px;line-height:1.4;';
-
             let html = '';
             if (toolCalls && toolCalls.length > 0) {
                 html += `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;">`;
@@ -169,42 +167,44 @@ window.NLEditorUI = (() => {
             this.chatList.appendChild(bubble);
             this.chatList.scrollTop = this.chatList.scrollHeight;
         }
-
         appendErrorMessage(text) {
-            if (!this.chatList || !text) return;
+            if (!this.chatList || !text)
+                return;
             const bubble = document.createElement('div');
             bubble.style.cssText = 'align-self:flex-start;max-width:88%;background:rgba(248,81,73,0.12);border:1px solid var(--red,#f85149);color:var(--red,#f85149);padding:6px 10px;border-radius:8px;font-size:11px;line-height:1.4;';
             bubble.textContent = `⚠ ${text}`;
             this.chatList.appendChild(bubble);
             this.chatList.scrollTop = this.chatList.scrollHeight;
         }
-
         /** Render the pre-Apply validation gate's findings (task-461). */
         showValidationIssues(issues, blocked = false) {
-            if (!this.chatList || !issues || !issues.length) return;
+            if (!this.chatList || !issues || !issues.length)
+                return;
             const bubble = document.createElement('div');
             bubble.style.cssText = 'align-self:flex-start;max-width:88%;background:rgba(210,153,34,0.12);border:1px solid #d29922;color:#d29922;padding:6px 10px;border-radius:8px;font-size:11px;line-height:1.5;white-space:pre-wrap;';
             const shown = issues.slice(0, 8);
             const lines = shown.map(i => `• op #${(i.index ?? 0) + 1}${i.type ? ` [${i.type}]` : ''}: ${i.message}`);
-            if (issues.length > shown.length) lines.push(`+${issues.length - shown.length} more`);
+            if (issues.length > shown.length)
+                lines.push(`+${issues.length - shown.length} more`);
             bubble.textContent = `${blocked ? '⛔ Apply blocked — fix these first:' : '⚠ Validation:'}\n${lines.join('\n')}`;
             this.chatList.appendChild(bubble);
             this.chatList.scrollTop = this.chatList.scrollHeight;
         }
-
         appendToolEvent(name, result) {
-            if (!this.chatList) return;
+            if (!this.chatList)
+                return;
             const chip = document.createElement('div');
             chip.style.cssText = 'align-self:flex-start;font-size:10px;color:var(--text-muted);padding:2px 6px;background:var(--bg-input);border-radius:4px;border:1px dashed var(--border);';
-            const resSummary = typeof result === 'object' ? (result.summary || (result.matches ? `${result.matches.length} matches` : JSON.stringify(result).slice(0, 40))) : String(result);
+            const res = result;
+            const resSummary = typeof result === 'object' ? (res.summary || (res.matches ? `${res.matches.length} matches` : JSON.stringify(result).slice(0, 40))) : String(result);
             chip.textContent = `↳ [${name}] ${resSummary}`;
             this.chatList.appendChild(chip);
             this.chatList.scrollTop = this.chatList.scrollHeight;
         }
-
         /** Show a live "running" chip for an in-flight tool call. */
         appendToolRunning(name) {
-            if (!this.chatList) return;
+            if (!this.chatList)
+                return;
             const chip = document.createElement('div');
             chip.style.cssText = 'align-self:flex-start;font-size:10px;color:var(--primary);padding:2px 6px;background:var(--bg-input);border-radius:4px;border:1px dashed var(--primary);';
             chip.textContent = `⏳ ${name}…`;
@@ -213,18 +213,17 @@ window.NLEditorUI = (() => {
             this.chatList.scrollTop = this.chatList.scrollHeight;
             return chip;
         }
-
         hideClarification() {
             const tray = document.getElementById('nl-clarify-tray');
-            if (tray) tray.style.display = 'none';
+            if (tray)
+                tray.style.display = 'none';
         }
-
         showClarification(question, options) {
             const tray = document.getElementById('nl-clarify-tray');
             const qEl = document.getElementById('nl-clarify-question');
             const optsEl = document.getElementById('nl-clarify-options');
-            if (!tray || !qEl || !optsEl) return;
-
+            if (!tray || !qEl || !optsEl)
+                return;
             qEl.innerHTML = `
                 <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
                     <span>${this._escapeHtml(question)}</span>
@@ -232,12 +231,10 @@ window.NLEditorUI = (() => {
                 </div>
             `;
             optsEl.innerHTML = '';
-
             document.getElementById('nl-clarify-dismiss')?.addEventListener('click', () => {
                 this.hideClarification();
             });
-
-            (options || []).forEach(opt => {
+            (options || []).forEach((opt) => {
                 const btn = document.createElement('button');
                 btn.className = 'btn btn-sm';
                 btn.style.cssText = 'font-size:11px;padding:4px 8px;border:1px solid var(--primary);background:var(--bg-input);color:var(--primary);cursor:pointer;border-radius:4px;text-align:left;line-height:1.3;';
@@ -251,7 +248,6 @@ window.NLEditorUI = (() => {
             tray.style.display = 'block';
             this.chatList.scrollTop = this.chatList.scrollHeight;
         }
-
         updateStagedOps(ops) {
             const tray = document.getElementById('nl-staged-tray');
             const listEl = document.getElementById('nl-staged-list');
@@ -259,46 +255,46 @@ window.NLEditorUI = (() => {
             const applyBtn = document.getElementById('nl-apply-btn');
             const rejectBtn = document.getElementById('nl-reject-btn');
             const applySelectedBtn = document.getElementById('nl-apply-selected-btn');
-
-            if (!tray || !listEl || !countEl) return;
-
+            if (!tray || !listEl || !countEl)
+                return;
             // Prune checkbox state for ops that disappeared; keep existing checks.
-            const opIds = new Set(ops.map(o => o.id));
+            const opIds = new Set(ops.map((o) => o.id));
             for (const id of this._checked.keys()) {
-                if (!opIds.has(id)) this._checked.delete(id);
+                if (!opIds.has(id))
+                    this._checked.delete(id);
             }
-
-            countEl.textContent = ops.length;
+            countEl.textContent = String(ops.length);
             if (ops.length === 0) {
                 tray.style.display = 'none';
-                if (applyBtn) applyBtn.style.display = 'none';
-                if (rejectBtn) rejectBtn.style.display = 'none';
-                if (applySelectedBtn) applySelectedBtn.style.display = 'none';
+                if (applyBtn)
+                    applyBtn.style.display = 'none';
+                if (rejectBtn)
+                    rejectBtn.style.display = 'none';
+                if (applySelectedBtn)
+                    applySelectedBtn.style.display = 'none';
                 return;
             }
-
             tray.style.display = 'block';
-            if (applyBtn) applyBtn.style.display = 'inline-block';
-            if (rejectBtn) rejectBtn.style.display = 'inline-block';
-            if (applySelectedBtn) applySelectedBtn.style.display = 'inline-block';
-
+            if (applyBtn)
+                applyBtn.style.display = 'inline-block';
+            if (rejectBtn)
+                rejectBtn.style.display = 'inline-block';
+            if (applySelectedBtn)
+                applySelectedBtn.style.display = 'inline-block';
             listEl.innerHTML = '';
-            ops.forEach(op => listEl.appendChild(this._renderStagedRow(op)));
+            ops.forEach((op) => listEl.appendChild(this._renderStagedRow(op)));
             this._updateApplySelectedCount(ops);
         }
-
         _renderStagedRow(op) {
             const row = document.createElement('div');
             row.style.cssText = 'display:flex;flex-direction:column;background:var(--bg-input);border-radius:3px;';
-
-            if (!this._checked.has(op.id)) this._checked.set(op.id, true);
-
+            if (!this._checked.has(op.id))
+                this._checked.set(op.id, true);
             const head = document.createElement('div');
             head.style.cssText = 'display:flex;align-items:center;gap:5px;padding:3px 6px;';
-
             const cb = document.createElement('input');
             cb.type = 'checkbox';
-            cb.checked = this._checked.get(op.id);
+            cb.checked = this._checked.get(op.id) ?? false;
             cb.title = 'Include in Apply Selected';
             cb.style.cssText = 'accent-color:var(--primary);margin:0;cursor:pointer;flex-shrink:0;';
             cb.onchange = () => {
@@ -306,39 +302,37 @@ window.NLEditorUI = (() => {
                 this._updateApplySelectedCount(this.controller.staging.getOps());
             };
             head.appendChild(cb);
-
             const summary = document.createElement('span');
-            summary.textContent = op.summary;
+            summary.textContent = op.summary ?? '';
             summary.style.cssText = 'flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;';
             summary.title = 'Click to edit op payload';
             head.appendChild(summary);
-
             const editBtn = document.createElement('button');
             editBtn.className = 'btn btn-sm btn-ghost';
             editBtn.textContent = '✎';
             editBtn.style.cssText = 'padding:0 4px;font-size:11px;flex-shrink:0;';
             editBtn.title = 'Tweak op payload';
             head.appendChild(editBtn);
-
             const removeBtn = document.createElement('button');
             removeBtn.className = 'btn btn-sm btn-ghost';
             removeBtn.textContent = '✕';
             removeBtn.style.cssText = 'padding:0 4px;color:var(--red,#e57373);font-size:11px;flex-shrink:0;';
             removeBtn.title = 'Unstage op';
             head.appendChild(removeBtn);
-
             removeBtn.onclick = () => this.controller.staging.removeOp(op.id);
             row.appendChild(head);
-
             // ── Property-level diff preview (task-461) ──
-            if (typeof NLEditorDiff !== 'undefined') {
+            if (window.NLEditorDiff) {
                 let lines = [];
                 try {
-                    lines = NLEditorDiff.summaryLines(op, {
+                    lines = window.NLEditorDiff.summaryLines(op, {
                         nodes: (typeof worldState !== 'undefined' && worldState?.graph?.nodes) || {},
                         creations: this.controller.staging.getStagedCreations(),
                     });
-                } catch (e) { lines = []; }
+                }
+                catch (e) {
+                    lines = [];
+                }
                 if (lines.length) {
                     const diffEl = document.createElement('div');
                     diffEl.style.cssText = 'padding:0 6px 4px 24px;font-size:10px;color:var(--text-muted);line-height:1.5;white-space:pre-wrap;';
@@ -346,7 +340,6 @@ window.NLEditorUI = (() => {
                     row.appendChild(diffEl);
                 }
             }
-
             // ── Inline payload tweaker ──
             const editor = document.createElement('div');
             editor.style.cssText = 'display:none;padding:4px 6px 6px;gap:4px;flex-direction:column;';
@@ -372,17 +365,18 @@ window.NLEditorUI = (() => {
             editor.appendChild(ta);
             editor.appendChild(bar);
             row.appendChild(editor);
-
             const toggleOpen = () => {
                 const open = editor.style.display === 'flex';
                 editor.style.display = open ? 'none' : 'flex';
                 err.style.display = 'none';
-                if (!open) { ta.value = JSON.stringify(op.payload, null, 2); ta.focus(); }
+                if (!open) {
+                    ta.value = JSON.stringify(op.payload, null, 2);
+                    ta.focus();
+                }
             };
             editBtn.onclick = toggleOpen;
             summary.onclick = toggleOpen;
             cancelBtn.onclick = toggleOpen;
-
             saveBtn.onclick = () => {
                 try {
                     const payload = JSON.parse(ta.value);
@@ -391,39 +385,39 @@ window.NLEditorUI = (() => {
                     }
                     this.controller.staging.updateOp(op.id, payload);
                     editor.style.display = 'none';
-                } catch (e) {
-                    err.textContent = e.message;
+                }
+                catch (e) {
+                    err.textContent = e instanceof Error ? e.message : String(e);
                     err.style.display = 'block';
                 }
             };
-
             return row;
         }
-
         _updateApplySelectedCount(ops) {
             const btn = document.getElementById('nl-apply-selected-btn');
-            if (!btn) return;
-            const n = ops.filter(o => this._checked.get(o.id) !== false).length;
+            if (!btn)
+                return;
+            const n = ops.filter((o) => this._checked.get(o.id) !== false).length;
             btn.textContent = `Apply Selected (${n})`;
         }
-
         setStatus(status, isBusy = false) {
-            if (!this.statusBadge) return;
+            if (!this.statusBadge)
+                return;
             this.statusBadge.textContent = status;
             if (isBusy) {
                 this.statusBadge.style.color = 'var(--primary)';
                 this.statusBadge.style.borderColor = 'var(--primary)';
-            } else {
+            }
+            else {
                 this.statusBadge.style.color = 'var(--text-muted)';
                 this.statusBadge.style.borderColor = 'var(--border)';
             }
         }
-
         _escapeHtml(str) {
-            if (!str) return '';
+            if (!str)
+                return '';
             return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
     }
-
     return { UI };
 })();

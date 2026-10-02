@@ -10,8 +10,8 @@
  *   parent-before-child scope list as real `<optgroup>` nesting
  * @powers the `#graph-scope-filter` dropdown in the graph toolbar
  */
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 'use strict';
-
 /**
  * Render a scope list into a <select> as a real tree.
  *
@@ -34,14 +34,14 @@
  */
 function populate(sel, scopes, make) {
     const create = make || ((tag) => document.createElement(tag));
-    const stack = [];   // stack[d] = the group currently open at depth d
+    const stack = []; // stack[d] = the group currently open at depth d
     const list = scopes || [];
     for (const scope of list) {
         const opt = create('option');
         opt.value = scope.id;
         opt.textContent = scope.name;
         const depth = Math.max(0, scope.depth || 0);
-        stack.length = Math.min(stack.length, depth);   // close deeper branches
+        stack.length = Math.min(stack.length, depth); // close deeper branches
         if (depth === 0) {
             sel.appendChild(opt);
             continue;
@@ -56,7 +56,6 @@ function populate(sel, scopes, make) {
     }
     return list.length;
 }
-
 /**
  * Normalise the scope list from EITHER shape the API can return.
  *
@@ -81,25 +80,29 @@ function populate(sel, scopes, make) {
  * @returns {Array} flat summaries, each {id, name, depth, parent_id, ...rest}
  */
 function flattenScopes(payload) {
-    if (!payload) return [];
+    if (!payload)
+        return [];
     // Already flat (and already carrying `depth`) -- use it as it stands.
-    if (Array.isArray(payload.scopes)) return payload.scopes.slice();
-    if (!Array.isArray(payload.children)) return [];
-
+    if (Array.isArray(payload.scopes))
+        return payload.scopes.slice();
+    if (!Array.isArray(payload.children))
+        return [];
     const out = [];
     const seen = new Set();
     const walk = (nodes, depth, parentId) => {
-        for (const node of nodes) {
-            if (typeof node === 'string') {
+        for (const raw of nodes) {
+            if (typeof raw === 'string') {
                 // Bare id: the API declined to inline the node again, so we have
                 // no name for it. Keep the scope reachable rather than dropping it.
-                if (!seen.has(node)) {
-                    seen.add(node);
-                    out.push({ id: node, name: node, depth, parent_id: parentId });
+                if (!seen.has(raw)) {
+                    seen.add(raw);
+                    out.push({ id: raw, name: raw, depth, parent_id: parentId });
                 }
                 continue;
             }
-            if (!node || node.id === undefined || seen.has(node.id)) continue;
+            const node = raw;
+            if (!node || node.id === undefined || seen.has(node.id))
+                continue;
             seen.add(node.id);
             const d = node.depth != null ? node.depth : depth;
             out.push(Object.assign({}, node, {
@@ -112,5 +115,5 @@ function flattenScopes(payload) {
     walk(payload.children, 0, null);
     return out;
 }
-
-window.ScopeOptions = { populate, flattenScopes };
+window
+    .ScopeOptions = { populate, flattenScopes };

@@ -1,3 +1,4 @@
+"use strict";
 /**
  * @module graph/layout-engine — map layout: painted grid or cardinal fallback
  * @contributes window.GraphLayoutEngine.applyCardinalLayout(nodesObj), gridPosition, hasPaintedGrid
@@ -14,6 +15,7 @@
  *  - CARDINAL (fallback) — hand-authored worlds with no painted coords: BFS the
  *    exits onto an integer grid and let hybrid physics settle it, as before.
  */
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 window.GraphLayoutEngine = {
     /**
      * Lay areas out for map mode. Returns which layout was used — `'grid'` when
@@ -24,37 +26,37 @@ window.GraphLayoutEngine = {
      * @returns {'grid'|'cardinal'|null}
      */
     applyCardinalLayout(nodesObj) {
-        if (!graphManager.network) return null;
+        if (!graphManager.network)
+            return null;
         const nodesDS = graphManager.network.body.data.nodes;
-        if (!nodesDS) return null;
-
+        if (!nodesDS)
+            return null;
         // Painted grid → exact map, no guessing and no physics.
-        if (GraphLayoutEngine.hasPaintedGrid(nodesObj)) {
-            GraphLayoutEngine._applyGridLayout(nodesObj, nodesDS);
+        if (window.GraphLayoutEngine.hasPaintedGrid(nodesObj)) {
+            window.GraphLayoutEngine._applyGridLayout(nodesObj, nodesDS);
             return 'grid';
         }
-
         const rooms = worldState.areas || {};
         const roomNames = Object.keys(rooms).sort();
-        if (roomNames.length === 0) return null;
-
+        if (roomNames.length === 0)
+            return null;
         const nameToId = {};
         for (const [nodeId, nodeData] of Object.entries(nodesObj)) {
-            if (nodeData.type === 'area' && nodeData.name) nameToId[nodeData.name] = nodeId;
+            if (nodeData.type === 'area' && nodeData.name)
+                nameToId[nodeData.name] = nodeId;
         }
-
-        const CARDINALS = { 'n':'north','ne':'northeast','e':'east','se':'southeast','s':'south','sw':'southwest','w':'west','nw':'northwest','u':'up','d':'down' };
+        const CARDINALS = { 'n': 'north', 'ne': 'northeast', 'e': 'east', 'se': 'southeast', 's': 'south', 'sw': 'southwest', 'w': 'west', 'nw': 'northwest', 'u': 'up', 'd': 'down' };
         const normalizeCardinal = (cardinalStr) => {
-            if (!cardinalStr) return '';
+            if (!cardinalStr)
+                return '';
             const lowered = cardinalStr.toLowerCase().trim();
             return CARDINALS[lowered] || lowered;
         };
-        const dirOffsets = { north:{x:0,y:-1}, south:{x:0,y:1}, east:{x:1,y:0}, west:{x:-1,y:0}, up:{x:0,y:-2}, down:{x:0,y:2}, northeast:{x:1,y:-1}, northwest:{x:-1,y:-1}, southeast:{x:1,y:1}, southwest:{x:-1,y:1} };
-
+        const dirOffsets = { north: { x: 0, y: -1 }, south: { x: 0, y: 1 }, east: { x: 1, y: 0 }, west: { x: -1, y: 0 }, up: { x: 0, y: -2 }, down: { x: 0, y: 2 }, northeast: { x: 1, y: -1 }, northwest: { x: -1, y: -1 }, southeast: { x: 1, y: 1 }, southwest: { x: -1, y: 1 } };
         // Build adjacency from exits
         const adj = {};
-        roomNames.forEach(areaName => { adj[areaName] = {}; });
-        roomNames.forEach(areaName => {
+        roomNames.forEach((areaName) => { adj[areaName] = {}; });
+        roomNames.forEach((areaName) => {
             const exits = rooms[areaName].exits || {};
             Object.entries(exits).forEach(([direction, exitData]) => {
                 const target = typeof exitData === 'object' ? (exitData.target || exitData.targetAreaName || exitData.targetAreaId) : exitData;
@@ -63,16 +65,16 @@ window.GraphLayoutEngine = {
                     const cardinal = normalizeCardinal(rawCardinal);
                     if (cardinal && dirOffsets[cardinal]) {
                         adj[areaName][direction] = { target, cardinal };
-                        const reverseCardinal = { north:'south', south:'north', east:'west', west:'east', up:'down', down:'up', northeast:'southwest', northwest:'southeast', southeast:'northwest', southwest:'northeast' }[cardinal];
-                        if (reverseCardinal && !adj[target][reverseCardinal]) adj[target][reverseCardinal] = { target: areaName, cardinal: reverseCardinal };
+                        const reverseCardinal = { north: 'south', south: 'north', east: 'west', west: 'east', up: 'down', down: 'up', northeast: 'southwest', northwest: 'southeast', southeast: 'northwest', southwest: 'northeast' }[cardinal];
+                        if (reverseCardinal && !adj[target][reverseCardinal])
+                            adj[target][reverseCardinal] = { target: areaName, cardinal: reverseCardinal };
                     }
                 }
             });
         });
-
         // BFS to calculate anchor grid positions
         const placed = {}, grid = {};
-        const seed = roomNames.find(areaName => Object.values(adj[areaName]).some(entry => entry.cardinal)) || roomNames[0];
+        const seed = roomNames.find((areaName) => Object.values(adj[areaName]).some(entry => entry.cardinal)) || roomNames[0];
         const queue = [seed];
         placed[seed] = true;
         grid[seed] = { x: 0, y: 0 };
@@ -80,31 +82,36 @@ window.GraphLayoutEngine = {
         while (head < queue.length) {
             const current = queue[head++], position = grid[current];
             Object.values(adj[current]).forEach(entry => {
-                if (placed[entry.target]) return;
+                if (placed[entry.target])
+                    return;
                 const offset = dirOffsets[entry.cardinal];
-                if (!offset) return;
+                if (!offset)
+                    return;
                 grid[entry.target] = { x: position.x + offset.x, y: position.y + offset.y };
                 placed[entry.target] = true;
                 queue.push(entry.target);
             });
         }
-
         // Calculate bounding box and scale to pixel positions
         const cellW = 500, cellH = 350, padX = 150, padY = 150;
         const keys = Object.keys(grid);
-        if (keys.length === 0) return null;
+        if (keys.length === 0)
+            return null;
         let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = Infinity;
-        keys.forEach(areaName => {
+        keys.forEach((areaName) => {
             const gridPos = grid[areaName];
-            if (gridPos.x < minX) minX = gridPos.x;
-            if (gridPos.x > maxX) maxX = gridPos.x;
-            if (gridPos.y < minY) minY = gridPos.y;
-            if (gridPos.y > maxY) maxY = gridPos.y;
+            if (gridPos.x < minX)
+                minX = gridPos.x;
+            if (gridPos.x > maxX)
+                maxX = gridPos.x;
+            if (gridPos.y < minY)
+                minY = gridPos.y;
+            if (gridPos.y > maxY)
+                maxY = gridPos.y;
         });
-
         // Calculate anchor positions (where rooms SHOULD be based on cardinals)
         const anchors = {};
-        keys.forEach(areaName => {
+        keys.forEach((areaName) => {
             const nodeId = nameToId[areaName];
             if (nodeId) {
                 anchors[nodeId] = {
@@ -113,12 +120,12 @@ window.GraphLayoutEngine = {
                 };
             }
         });
-
         // Build node updates with anchor positions as targets
         const areaUpdates = [];
-        keys.forEach(areaName => {
+        keys.forEach((areaName) => {
             const nodeId = nameToId[areaName];
-            if (!nodeId || !nodesDS.get(nodeId)) return;
+            if (!nodeId || !nodesDS.get(nodeId))
+                return;
             const anchor = anchors[nodeId];
             areaUpdates.push({
                 id: nodeId,
@@ -129,8 +136,7 @@ window.GraphLayoutEngine = {
                 fixed: { x: false, y: false }
             });
         });
-
-        roomNames.forEach(areaName => {
+        roomNames.forEach((areaName) => {
             if (!placed[areaName]) {
                 const nodeId = nameToId[areaName];
                 if (nodeId && nodesDS.get(nodeId)) {
@@ -138,16 +144,16 @@ window.GraphLayoutEngine = {
                 }
             }
         });
-
         // Way nodes: midpoint between connected rooms
         const wayUpdates = [];
         const edges = worldState.graph?.edges || [];
         for (const [wayId, wayNode] of Object.entries(nodesObj)) {
-            if (wayNode.type !== 'way') continue;
-            if (!nodesDS.get(wayId)) continue;
-
+            if (wayNode.type !== 'way')
+                continue;
+            if (!nodesDS.get(wayId))
+                continue;
             const connectedRooms = [];
-            edges.filter(e => e.type === 'connection').forEach(edge => {
+            edges.filter((e) => e.type === 'connection').forEach((edge) => {
                 if (edge.source === wayId || edge.target === wayId) {
                     const otherId = edge.source === wayId ? edge.target : edge.source;
                     const otherNode = nodesObj[otherId];
@@ -156,13 +162,12 @@ window.GraphLayoutEngine = {
                     }
                 }
             });
-
-            if (connectedRooms.length < 2) continue;
-
+            if (connectedRooms.length < 2)
+                continue;
             const anchorA = anchors[connectedRooms[0].id];
             const anchorB = anchors[connectedRooms[1].id];
-            if (!anchorA || !anchorB) continue;
-
+            if (!anchorA || !anchorB)
+                continue;
             wayUpdates.push({
                 id: wayId,
                 x: (anchorA.x + anchorB.x) / 2,
@@ -171,34 +176,39 @@ window.GraphLayoutEngine = {
                 fixed: { x: false, y: false }
             });
         }
-
         // Item/character positions near parent room (with physics)
         const graphEdges = worldState.graph?.edges || [];
         const areaToItems = {};
         const areaToChars = {};
         for (const edge of graphEdges) {
-            if (edge.type !== 'in') continue;
+            if (edge.type !== 'in')
+                continue;
             const sourceNode = nodesObj[edge.source];
             const targetNode = nodesObj[edge.target];
-            if (!sourceNode || !targetNode || targetNode.type !== 'area') continue;
+            if (!sourceNode || !targetNode || targetNode.type !== 'area')
+                continue;
             if (sourceNode.type === 'item') {
-                if (!areaToItems[edge.target]) areaToItems[edge.target] = [];
+                if (!areaToItems[edge.target])
+                    areaToItems[edge.target] = [];
                 areaToItems[edge.target].push(edge.source);
-            } else if (sourceNode.type === 'character') {
-                if (!areaToChars[edge.target]) areaToChars[edge.target] = [];
+            }
+            else if (sourceNode.type === 'character') {
+                if (!areaToChars[edge.target])
+                    areaToChars[edge.target] = [];
                 areaToChars[edge.target].push(edge.source);
             }
         }
-
         const looseUpdates = [];
         for (const [areaId, itemIds] of Object.entries(areaToItems)) {
             const anchor = anchors[areaId];
-            if (!anchor) continue;
+            if (!anchor)
+                continue;
             const baseX = anchor.x;
             const baseY = anchor.y + 150;
             const totalCols = Math.min(itemIds.length, 6);
             itemIds.forEach((itemId, index) => {
-                if (!nodesDS.get(itemId)) return;
+                if (!nodesDS.get(itemId))
+                    return;
                 const col = index % totalCols;
                 const row = Math.floor(index / totalCols);
                 looseUpdates.push({
@@ -210,15 +220,16 @@ window.GraphLayoutEngine = {
                 });
             });
         }
-
         for (const [areaId, charIds] of Object.entries(areaToChars)) {
             const anchor = anchors[areaId];
-            if (!anchor) continue;
+            if (!anchor)
+                continue;
             const baseX = anchor.x + 250;
             const baseY = anchor.y;
             const totalCols = Math.min(charIds.length, 3);
             charIds.forEach((charId, index) => {
-                if (!nodesDS.get(charId)) return;
+                if (!nodesDS.get(charId))
+                    return;
                 const col = index % totalCols;
                 const row = Math.floor(index / totalCols);
                 looseUpdates.push({
@@ -230,7 +241,6 @@ window.GraphLayoutEngine = {
                 });
             });
         }
-
         // Apply all updates. A node the user froze ("Physics enabled" off in the
         // inspector) is left exactly as it is: its position is theirs and its
         // physics is already off, so re-anchoring it here is what made a placed
@@ -239,8 +249,7 @@ window.GraphLayoutEngine = {
             const props = (nodesObj[id] || {}).properties || {};
             return props.central_gravity_enabled === false;
         };
-        nodesDS.update([...areaUpdates, ...wayUpdates, ...looseUpdates].filter(u => u && !frozen(u.id)));
-
+        nodesDS.update([...areaUpdates, ...wayUpdates, ...looseUpdates].filter((u) => u && !frozen(u.id)));
         // Enable hybrid physics: force-directed with anchor attraction
         // - Strong repulsion between area nodes (prevent overlap)
         // - Edge springs (keep connected rooms close)
@@ -269,23 +278,20 @@ window.GraphLayoutEngine = {
                 }
             }
         });
-
-        if (window.GraphToolbar) GraphToolbar.syncAll();
-
+        if (window.GraphToolbar)
+            GraphToolbar.syncAll();
         setTimeout(() => {
             graphManager.network.redraw();
             graphManager.network.fit({ animation: { duration: 500, easingFunction: 'easeInOutQuad' } });
         }, 100);
         return 'cardinal';
     },
-
     /**
      * Engine units per painted cell — mirrors `CELL_CANVAS_UNITS`
      * (`engine/world_compile.py`). The compiler stores `cell * 40`, so a node's
      * stored `x`/`y` is a cell index times this.
      */
     PAINT_UNITS_PER_CELL: 40,
-
     /**
      * Canvas px between adjacent painted cells — the map's spacing/margin.
      *
@@ -299,16 +305,15 @@ window.GraphLayoutEngine = {
     mapSpacing() {
         if (typeof config !== 'undefined' && config) {
             const value = Number(config.graphMapSpacing);
-            if (value > 0) return value;
+            if (value > 0)
+                return value;
         }
         return 40;
     },
-
     /** Canvas px per painted *unit*, for `gridPosition` (spacing / 40). */
     get GRID_SCALE() {
-        return GraphLayoutEngine.mapSpacing() / GraphLayoutEngine.PAINT_UNITS_PER_CELL;
+        return window.GraphLayoutEngine.mapSpacing() / window.GraphLayoutEngine.PAINT_UNITS_PER_CELL;
     },
-
     /**
      * How much larger everything drawn on a painted map should be than in the
      * graph view, derived from the map pitch (bug-53).
@@ -323,15 +328,14 @@ window.GraphLayoutEngine = {
      * pitch exactly (see :func:`mapSpacing`); only the drawing is clamped.
      */
     mapScale() {
-        const spacing = GraphLayoutEngine.mapSpacing();
-        if (!(spacing > 0)) return 1;
-        const ratio = spacing / GraphLayoutEngine.PAINT_UNITS_PER_CELL;
-        return Math.max(GraphLayoutEngine.MAP_SCALE_MIN, Math.min(2.5, ratio));
+        const spacing = window.GraphLayoutEngine.mapSpacing();
+        if (!(spacing > 0))
+            return 1;
+        const ratio = spacing / window.GraphLayoutEngine.PAINT_UNITS_PER_CELL;
+        return Math.max(window.GraphLayoutEngine.MAP_SCALE_MIN, Math.min(2.5, ratio));
     },
-
     /** Floor for :func:`mapScale` — a dot-sized map is the limit, not a smear. */
     MAP_SCALE_MIN: 0.4,
-
     /**
      * Pixels per cell below which an area is drawn as a compact dot instead of a
      * named card (task-526).
@@ -349,7 +353,6 @@ window.GraphLayoutEngine = {
      * reads as topology instead of overlapping boxes.
      */
     MAP_CARD_MIN_PITCH: 140,
-
     /**
      * Draw compact dots rather than named cards?
      *
@@ -358,19 +361,17 @@ window.GraphLayoutEngine = {
      * lattice and have no overlap to solve.
      */
     mapCompact() {
-        return GraphLayoutEngine.mapSpacing() < GraphLayoutEngine.MAP_CARD_MIN_PITCH;
+        return window.GraphLayoutEngine.mapSpacing() < window.GraphLayoutEngine.MAP_CARD_MIN_PITCH;
     },
-
     /**
      * Dot diameter for the compact map, in px — tied to the **cell**, not to
      * `mapScale`, so a dot always sits inside its own cell whatever the pitch
      * (and stays visible when zoomed out on a 200×133 world).
      */
     mapDotSize() {
-        const spacing = GraphLayoutEngine.mapSpacing();
+        const spacing = window.GraphLayoutEngine.mapSpacing();
         return Math.max(6, Math.min(28, spacing * 0.55));
     },
-
     /**
      * Where loose nodes (items, characters) sit beside the painted area that
      * holds them, in **cells of the current pitch**.
@@ -381,7 +382,7 @@ window.GraphLayoutEngine = {
      * WorldPainter draws, so "beside the room" means one thing at any pitch.
      */
     mapBesideOffsets() {
-        const pitch = GraphLayoutEngine.mapSpacing();
+        const pitch = window.GraphLayoutEngine.mapSpacing();
         return {
             itemX: -1.75 * pitch, itemY: 1.75 * pitch,
             charX: 3.25 * pitch, charY: 0,
@@ -389,7 +390,6 @@ window.GraphLayoutEngine = {
             perRow: 4,
         };
     },
-
     /**
      * True when the payload has painted-grid areas (`properties.cell`), i.e. it
      * came from the WorldPainter compiler rather than hand authoring.
@@ -404,7 +404,6 @@ window.GraphLayoutEngine = {
         }
         return false;
     },
-
     /**
      * The painted extent of a scope in cells: `{w, h}`, or `null` when nothing
      * carries a `cell`.
@@ -419,17 +418,21 @@ window.GraphLayoutEngine = {
         let maxY = -1;
         for (const node of Object.values(nodesObj || {})) {
             const cell = node && node.type === 'area' && (node.properties || {}).cell;
-            if (!cell) continue;
+            if (!cell)
+                continue;
             const x = Number(cell.x);
             const y = Number(cell.y);
-            if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
-            if (x > maxX) maxX = x;
-            if (y > maxY) maxY = y;
+            if (!Number.isFinite(x) || !Number.isFinite(y))
+                continue;
+            if (x > maxX)
+                maxX = x;
+            if (y > maxY)
+                maxY = y;
         }
-        if (maxX < 0 || maxY < 0) return null;
+        if (maxX < 0 || maxY < 0)
+            return null;
         return { w: maxX + 1, h: maxY + 1 };
     },
-
     /**
      * A map pitch that makes this scope readable without hand-tuning (task-526).
      *
@@ -447,20 +450,20 @@ window.GraphLayoutEngine = {
      * @returns {number|null}
      */
     autoMapSpacing(nodesObj, spanPx) {
-        const extent = GraphLayoutEngine.paintedExtent(nodesObj);
-        if (!extent) return null;
-        const span = Number(spanPx) > 0 ? Number(spanPx) : GraphLayoutEngine.AUTO_SPAN_PX;
+        const extent = window.GraphLayoutEngine.paintedExtent(nodesObj);
+        if (!extent)
+            return null;
+        const span = Number(spanPx) > 0 ? Number(spanPx) : window.GraphLayoutEngine.AUTO_SPAN_PX;
         const longest = Math.max(extent.w, extent.h);
-        if (!(longest > 0)) return null;
+        if (!(longest > 0))
+            return null;
         const raw = span / longest;
-        const pitch = Math.max(GraphLayoutEngine.AUTO_SPACING_MIN,
-            Math.min(GraphLayoutEngine.AUTO_SPACING_MAX, raw));
+        const pitch = Math.max(window.GraphLayoutEngine.AUTO_SPACING_MIN, Math.min(window.GraphLayoutEngine.AUTO_SPACING_MAX, raw));
         // A tidy stepper value: multiples of 10 once the pitch is roomy enough
         // for the difference to be visible, multiples of 5 below that.
         const step = pitch >= 100 ? 10 : 5;
         return Math.round(pitch / step) * step;
     },
-
     /**
      * On-screen width a painted map should span, in px (task-526).
      *
@@ -481,11 +484,9 @@ window.GraphLayoutEngine = {
      * readable in the stepper.
      */
     AUTO_SPAN_PX: 10000,
-
     /** Clamp for the derived pitch — never tighter than this, never wider. */
     AUTO_SPACING_MIN: 24,
     AUTO_SPACING_MAX: 600,
-
     /**
      * Painted coords → canvas position. Pure, so it is unit-tested.
      * @param {Object} properties - node properties with numeric x/y
@@ -494,11 +495,11 @@ window.GraphLayoutEngine = {
      */
     gridPosition(properties, scale) {
         const p = properties || {};
-        const s = typeof scale === 'number' ? scale : GraphLayoutEngine.GRID_SCALE;
-        if (typeof p.x !== 'number' || typeof p.y !== 'number') return null;
+        const s = typeof scale === 'number' ? scale : window.GraphLayoutEngine.GRID_SCALE;
+        if (typeof p.x !== 'number' || typeof p.y !== 'number')
+            return null;
         return { x: p.x * s, y: p.y * s };
     },
-
     /**
      * The scope a compiled node belongs to. Areas and ways both store
      * `world_scope_id`; a gateway also carries `generated.scope_id`.
@@ -511,7 +512,6 @@ window.GraphLayoutEngine = {
             || (props.generated && props.generated.scope_id)
             || null;
     },
-
     /**
      * A node's map offset in canvas px, from the per-scope offset table.
      *
@@ -526,14 +526,13 @@ window.GraphLayoutEngine = {
     offsetPxFor(node, offsets, spacing) {
         const table = offsets || ((typeof graphManager !== 'undefined' && graphManager)
             ? graphManager._scopeOffsets : null) || {};
-        const scopeId = GraphLayoutEngine.nodeScopeId(node);
+        const scopeId = window.GraphLayoutEngine.nodeScopeId(node);
         const off = scopeId ? table[scopeId] : null;
-        const gap = typeof spacing === 'number' ? spacing : GraphLayoutEngine.mapSpacing();
+        const gap = typeof spacing === 'number' ? spacing : window.GraphLayoutEngine.mapSpacing();
         const x = off && isFinite(Number(off.x)) ? Number(off.x) : 0;
         const y = off && isFinite(Number(off.y)) ? Number(off.y) : 0;
         return { x: x * gap, y: y * gap };
     },
-
     /**
      * Painted coords + this node's scope offset → canvas position. Pure.
      * @param {Object} properties
@@ -543,12 +542,12 @@ window.GraphLayoutEngine = {
      * @returns {{x:number,y:number}|null}
      */
     scopedGridPosition(properties, node, offsets, scale) {
-        const base = GraphLayoutEngine.gridPosition(properties, scale);
-        if (!base) return null;
-        const off = GraphLayoutEngine.offsetPxFor(node, offsets);
+        const base = window.GraphLayoutEngine.gridPosition(properties, scale);
+        if (!base)
+            return null;
+        const off = window.GraphLayoutEngine.offsetPxFor(node, offsets);
         return { x: base.x + off.x, y: base.y + off.y };
     },
-
     /**
      * Whether the *author* placed this node rather than letting the solver move
      * it: the inspector's "Physics enabled" off (`central_gravity_enabled:
@@ -560,14 +559,13 @@ window.GraphLayoutEngine = {
      * @returns {boolean}
      */
     isFrozen(node) {
-        if (typeof GraphRelativeLayout !== 'undefined' && GraphRelativeLayout
-                && typeof GraphRelativeLayout.isStatic === 'function') {
-            return GraphRelativeLayout.isStatic(node);
+        if (typeof window.GraphRelativeLayout !== 'undefined' && window.GraphRelativeLayout
+            && typeof window.GraphRelativeLayout.isStatic === 'function') {
+            return window.GraphRelativeLayout.isStatic(node);
         }
         const props = (node || {}).properties || {};
         return props.central_gravity_enabled === false || props.layout_static === true;
     },
-
     /**
      * Position updates for a painted map: every node with coords at its painted
      * cell (plus its scope's map offset, task-523), and items/characters held in
@@ -582,29 +580,31 @@ window.GraphLayoutEngine = {
         const updates = [];
         const placed = new Set();
         const anchors = {};
-
         const edges = (worldState.graph && worldState.graph.edges) || [];
         // way id -> the areas it joins, so a coordinate-less way can be placed
         // from its rooms rather than from a stale saved position.
         const wayAreas = {};
         for (const edge of edges) {
-            if (edge.type !== 'connection') continue;
+            if (edge.type !== 'connection')
+                continue;
             const source = nodesObj[edge.source];
             const target = nodesObj[edge.target];
-            if (!source || !target) continue;
+            if (!source || !target)
+                continue;
             if (source.type === 'way' && target.type === 'area') {
                 (wayAreas[edge.source] = wayAreas[edge.source] || []).push(edge.target);
-            } else if (target.type === 'way' && source.type === 'area') {
+            }
+            else if (target.type === 'way' && source.type === 'area') {
                 (wayAreas[edge.target] = wayAreas[edge.target] || []).push(edge.source);
             }
         }
         const isPaintedArea = (id) => {
             const room = nodesObj[id];
-            return !!room && GraphLayoutEngine.hasPaintedCoords((room.properties) || {});
+            return !!room && window.GraphLayoutEngine.hasPaintedCoords((room.properties) || {});
         };
-
         for (const [id, node] of Object.entries(nodesObj)) {
-            if (!nodesDS.get(id)) continue;
+            if (!nodesDS.get(id))
+                continue;
             const props = (node || {}).properties || {};
             // Painted coords are the compiler's ENGINE units, so they are scaled
             // by the map pitch and translated by the scope's offset. A node the
@@ -615,10 +615,11 @@ window.GraphLayoutEngine = {
             // once creeps away from everything for good (bug-52's latent twin,
             // which the `cell`-only guard never closed for ways or characters).
             let p = null;
-            if (GraphLayoutEngine.hasPaintedCoords(props)) {
-                p = GraphLayoutEngine.scopedGridPosition(props, node, offsets);
-            } else if (typeof props.x === 'number' && typeof props.y === 'number'
-                    && isFinite(props.x) && isFinite(props.y)) {
+            if (window.GraphLayoutEngine.hasPaintedCoords(props)) {
+                p = window.GraphLayoutEngine.scopedGridPosition(props, node, offsets);
+            }
+            else if (typeof props.x === 'number' && typeof props.y === 'number'
+                && isFinite(props.x) && isFinite(props.y)) {
                 // A way whose room(s) are painted belongs *on the map*: a saved
                 // graph-mode position is a different frame from the cell-scaled
                 // map, so using it verbatim stranded the way thousands of px
@@ -629,9 +630,11 @@ window.GraphLayoutEngine = {
                 // node (task-530).
                 const rooms = wayAreas[id] || [];
                 const belongsToMap = node.type === 'way' && rooms.some(isPaintedArea);
-                if (!belongsToMap) p = { x: props.x, y: props.y };
+                if (!belongsToMap)
+                    p = { x: props.x, y: props.y };
             }
-            if (!p) continue;
+            if (!p)
+                continue;
             const isArea = node.type === 'area';
             const isWay = node.type === 'way';
             // Areas are pinned: the cells are the map, and the background art is
@@ -643,7 +646,7 @@ window.GraphLayoutEngine = {
             // global field to drag a child off its parent, so their edge spring
             // holds them to the area that has them. An author-frozen node keeps
             // physics off.
-            const frozen = GraphLayoutEngine.isFrozen(node);
+            const frozen = window.GraphLayoutEngine.isFrozen(node);
             // An *area* and a *painted way* are both placed by the grid: their
             // cell (or their rooms' cells) is their map position, so they are
             // pinned there. Letting the solver "pull a painted way toward its
@@ -652,7 +655,7 @@ window.GraphLayoutEngine = {
             // empty space (task-618). A way with no cell is either placed from
             // its rooms (pass below) or, if it has no painted rooms, left to the
             // solver like any other node (task-530).
-            const pinnedToGrid = isArea || (isWay && GraphLayoutEngine.hasPaintedCoords(props));
+            const pinnedToGrid = isArea || (isWay && window.GraphLayoutEngine.hasPaintedCoords(props));
             updates.push({
                 id,
                 x: p.x,
@@ -665,24 +668,28 @@ window.GraphLayoutEngine = {
                 fixed: pinnedToGrid ? { x: true, y: true } : { x: false, y: false },
             });
             placed.add(id);
-            if (isArea) anchors[id] = p;
+            if (isArea)
+                anchors[id] = p;
         }
-
         // Items/characters without their own coords sit beside their area.
         const heldIn = {};
         for (const edge of edges) {
-            if (edge.type !== 'in') continue;
+            if (edge.type !== 'in')
+                continue;
             const source = nodesObj[edge.source];
             const target = nodesObj[edge.target];
-            if (!source || !target || target.type !== 'area') continue;
+            if (!source || !target || target.type !== 'area')
+                continue;
             (heldIn[edge.target] = heldIn[edge.target] || []).push(edge.source);
         }
         for (const [areaId, ids] of Object.entries(heldIn)) {
             const anchor = anchors[areaId];
-            if (!anchor) continue;
-            const beside = GraphLayoutEngine.mapBesideOffsets();
+            if (!anchor)
+                continue;
+            const beside = window.GraphLayoutEngine.mapBesideOffsets();
             ids.forEach((id, index) => {
-                if (placed.has(id) || !nodesDS.get(id)) return;
+                if (placed.has(id) || !nodesDS.get(id))
+                    return;
                 const isChar = (nodesObj[id] || {}).type === 'character';
                 updates.push({
                     id,
@@ -694,13 +701,14 @@ window.GraphLayoutEngine = {
                 });
             });
         }
-
         // Ways that belong to the map were skipped by the loop above; place them
         // at the mean of their rooms' anchors, in the same scaled map frame.
         for (const [wayId, areaIds] of Object.entries(wayAreas)) {
-            if (placed.has(wayId) || !nodesDS.get(wayId)) continue;
+            if (placed.has(wayId) || !nodesDS.get(wayId))
+                continue;
             const rooms = areaIds.map((areaId) => anchors[areaId]).filter(Boolean);
-            if (!rooms.length) continue;
+            if (!rooms.length)
+                continue;
             const x = rooms.reduce((sum, room) => sum + room.x, 0) / rooms.length;
             const y = rooms.reduce((sum, room) => sum + room.y, 0) / rooms.length;
             updates.push({ id: wayId, x, y, physics: false, fixed: { x: true, y: true } });
@@ -708,7 +716,6 @@ window.GraphLayoutEngine = {
         }
         return updates;
     },
-
     /**
      * Whether a node's coordinates are *painted* — i.e. the WorldPainter
      * compiler's `cell * 40` engine units, which the Map layout scales by the map
@@ -724,7 +731,6 @@ window.GraphLayoutEngine = {
         return !!p.cell && typeof p.x === 'number' && typeof p.y === 'number'
             && isFinite(p.x) && isFinite(p.y);
     },
-
     /**
      * Lay the graph out exactly as painted: areas and ways at their stored cell
      * positions (plus each scope's map offset), items/characters beside the area
@@ -746,23 +752,23 @@ window.GraphLayoutEngine = {
         const frozen = (id) => {
             const props = ((nodesObj[id] || {}).properties) || {};
             return props.central_gravity_enabled === false
-                && !GraphLayoutEngine.hasPaintedCoords(props);
+                && !window.GraphLayoutEngine.hasPaintedCoords(props);
         };
-        const updates = GraphLayoutEngine._gridUpdates(nodesObj, nodesDS, offsets)
+        const updates = window.GraphLayoutEngine._gridUpdates(nodesObj, nodesDS, offsets)
             .filter((u) => u && !frozen(u.id));
         nodesDS.update(updates);
-        GraphNetwork.applyModePhysics(false);
+        window.GraphNetwork.applyModePhysics(false);
         // The solver is off for this placement pass only. The user's preference
         // (`graphManager._physicsEnabled`) is deliberately NOT cleared here: the
         // load path restores it when the user wants physics in Map mode, so the
         // painted lattice is a starting point rather than a freeze.
-        if (window.GraphToolbar) GraphToolbar.syncAll();
+        if (window.GraphToolbar)
+            GraphToolbar.syncAll();
         setTimeout(() => {
             graphManager.network.redraw();
             graphManager.network.fit({ animation: { duration: 400, easingFunction: 'easeInOutQuad' } });
         }, 60);
     },
-
     /**
      * Re-place painted nodes after a zone offset changed, **without** refitting
      * the camera — a live drag must keep the viewport still. Returns the number
@@ -772,13 +778,16 @@ window.GraphLayoutEngine = {
      * @returns {number}
      */
     refreshGridLayout(nodesObj, offsets) {
-        if (!graphManager.network) return 0;
+        if (!graphManager.network)
+            return 0;
         const nodesDS = graphManager.network.body && graphManager.network.body.data
             && graphManager.network.body.data.nodes;
-        if (!nodesDS) return 0;
+        if (!nodesDS)
+            return 0;
         const src = nodesObj || graphManager._graphNodesObj || {};
-        const updates = GraphLayoutEngine._gridUpdates(src, nodesDS, offsets);
-        if (!updates.length) return 0;
+        const updates = window.GraphLayoutEngine._gridUpdates(src, nodesDS, offsets);
+        if (!updates.length)
+            return 0;
         nodesDS.update(updates);
         graphManager.network.redraw();
         return updates.length;

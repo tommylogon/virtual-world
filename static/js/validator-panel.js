@@ -1,3 +1,4 @@
+"use strict";
 /**
  * ValidatorPanel — World Issues triage panel (task-393).
  *
@@ -21,13 +22,13 @@
  * @relates uses /api/triggers/validate; dismissals are stored on the node
  * @docs docs/virtualWorld/Scenario Workflows & UI Audit.md
  */
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 (() => {
     const validatorPanelTag = (strings, ...values) => window.Lit.html(strings, ...values);
     const SEV_COLORS = { error: '#f85149', warning: '#e3b341', info: '#8b949e' };
     const SEV_ICONS = { error: '✕', warning: '⚠', info: 'ℹ' };
     const SEV_NAME = { error: 'error', warning: 'warning', info: 'info' };
     const SEV_ORDER = { error: 0, warning: 1, info: 2 };
-
     const CODE_LABELS = {
         empty_trigger: 'empty trigger',
         orphan_trigger_edge: 'orphan trigger edge',
@@ -42,26 +43,28 @@
         library_mismatch: 'drifted from library',
     };
     const friendly = (code) => CODE_LABELS[code] || code.replace(/_/g, ' ');
-
     let _timer = null;
-
     class ValidatorPanel {
+        _lastIssues;
+        _mode;
+        _showIgnored;
         constructor() {
             this._lastIssues = [];
             this._mode = localStorage.getItem('vp-group') || 'node';
             this._showIgnored = localStorage.getItem('vp-show-ignored') === '1';
-            if (window.appEvents) {
-                appEvents.on('state:updated', () => this._scheduleRefresh());
+            // appEvents is attached to window by event-bus.js but is not on the declared Window surface.
+            const bus = window.appEvents;
+            if (bus) {
+                bus.on('state:updated', () => this._scheduleRefresh());
             }
             document.addEventListener('DOMContentLoaded', () => this.refresh());
         }
-
         /** Debounce auto-refresh so rapid state updates don't spam the backend. */
         _scheduleRefresh(delay = 2000) {
-            if (_timer) clearTimeout(_timer);
+            if (_timer)
+                clearTimeout(_timer);
             _timer = setTimeout(() => this.refresh(), delay);
         }
-
         async fetchIssues(nodeId = '') {
             const url = nodeId
                 ? `/api/triggers/validate?node_id=${encodeURIComponent(nodeId)}`
@@ -70,124 +73,141 @@
                 const resp = await fetch(url);
                 const data = await resp.json();
                 return data.issues || [];
-            } catch (e) {
+            }
+            catch (e) {
                 console.warn('[ValidatorPanel] fetch failed:', e);
                 return [];
             }
         }
-
         async refresh() {
             const issues = await this.fetchIssues();
             this._lastIssues = issues;
             this.render(issues);
         }
-
         /** Validate just one node's triggers (used by the inspector). */
         async validateNode(nodeId) {
             return this.fetchIssues(nodeId);
         }
-
         /** Fetch + render a single node's issues into *containerEl* (inline). */
         async validateNodeInline(nodeId, containerEl) {
-            if (!containerEl) return;
+            if (!containerEl)
+                return;
             containerEl.style.display = 'block';
-            window.Lit.render(validatorPanelTag`<div class="alert-empty">Scanning…</div>`, containerEl);
+            window.Lit.render(validatorPanelTag `<div class="alert-empty">Scanning…</div>`, containerEl);
             const issues = await this.fetchIssues(nodeId);
             if (issues.length === 0) {
-                window.Lit.render(validatorPanelTag`<div class="alert-empty">No broken references ✅</div>`, containerEl);
+                window.Lit.render(validatorPanelTag `<div class="alert-empty">No broken references ✅</div>`, containerEl);
                 return;
             }
             this.render(issues, containerEl);
         }
-
         jumpTo(nodeId) {
             try {
                 graphManager.showNodeAndFocus(nodeId);
-            } catch (e) {
+            }
+            catch (e) {
                 try {
-                    if (window.VW?.inspector) VW.inspector.showNode(nodeId);
-                } catch (_) { /* node gone — nothing to open */ }
+                    if (window.VW?.inspector)
+                        VW.inspector.showNode(nodeId);
+                }
+                catch (_) { /* node gone — nothing to open */ }
             }
         }
-
         _nodeLabel(nodeId) {
             try {
                 const n = worldState.getNode(nodeId);
                 return n?.name || nodeId;
-            } catch (e) { return nodeId; }
+            }
+            catch (e) {
+                return nodeId;
+            }
         }
-
         _nodeIgnored(nodeId) {
             try {
                 const n = worldState.getNode(nodeId);
                 return (n?.properties?.ignored_issues) || [];
-            } catch (e) { return []; }
+            }
+            catch (e) {
+                return [];
+            }
         }
-
         /** Dismiss (ignore=true) or restore (ignore=false) a code on a node. */
         async setIgnore(nodeId, code, ignore) {
-            if (!nodeId || !code) return;
+            if (!nodeId || !code)
+                return;
             try {
-                await ApiClient.post('/api/triggers/ignore', { node_id: nodeId, code, ignore });
-            } catch (e) {
+                // ApiClient's declared surface in globals.d.ts omits post(); it exists at runtime.
+                const client = ApiClient;
+                await client.post('/api/triggers/ignore', { node_id: nodeId, code, ignore });
+            }
+            catch (e) {
                 console.warn('[ValidatorPanel] ignore toggle failed:', e);
             }
             worldState.fetch && worldState.fetch();
             this.refresh();
         }
-
         /**
          * Remove a node's empty logic_trigger stubs (triggers with no effects)
          * as ONE batch so a single Undo reverts it. Also clears them from any
          * dismiss list, since the problem vanishes.
          */
         async removeEmptyTriggers(nodeId) {
-            if (!nodeId) return;
+            if (!nodeId)
+                return;
             try {
-                const edges = (worldState?.graph?.edges) || [];
+                const edges = (worldState?.graph?.edges || []);
                 const nodes = worldState?.graph?.nodes || {};
-                const empties = edges.filter(e =>
-                    String(e.source).toLowerCase() === String(nodeId).toLowerCase() &&
-                    e.type === 'triggers'
-                ).map(e => e.target).filter(tid => {
+                const empties = edges.filter((e) => String(e.source).toLowerCase() === String(nodeId).toLowerCase() &&
+                    e.type === 'triggers').map((e) => e.target).filter((tid) => {
                     const tn = nodes[tid];
-                    if (!tn || tn.type !== 'logic_trigger') return false;
+                    if (!tn || tn.type !== 'logic_trigger')
+                        return false;
                     const props = tn.properties || {};
                     return !(props.effects && props.effects.length) && !(props.conditions && Object.keys(props.conditions).length);
                 });
-                if (!empties.length) { this.refresh(); return; }
-                const ops = empties.map(id => ({ type: 'delete_node', payload: { node_id: id } }));
+                if (!empties.length) {
+                    this.refresh();
+                    return;
+                }
+                const ops = empties.map((id) => ({ type: 'delete_node', payload: { node_id: id } }));
                 await ApiClient.batchGraph(ops);
-            } catch (e) {
+            }
+            catch (e) {
                 console.warn('[ValidatorPanel] remove-empty failed:', e);
             }
             worldState.fetch && worldState.fetch();
             this.refresh();
         }
-
         /**
          * Quick-fix for info-level mechanical issues: write the engine's
          * default values (light_level→'dim', target_temperature→30,
          * heating_rate→0.5) onto the node so the nudge clears itself.
          */
         async quickFix(nodeId) {
-            if (!nodeId) return;
+            if (!nodeId)
+                return;
             const node = worldState.getNode(nodeId);
-            const props = (node && node.properties) || {};
+            const props = ((node && node.properties) || {});
             const patch = {};
-            if (!props.light_level) patch.light_level = 'dim';
-            if (!props.target_temperature) patch.target_temperature = 30;
-            if (!props.heating_rate) patch.heating_rate = 0.5;
-            if (!Object.keys(patch).length) { this.refresh(); return; }
+            if (!props.light_level)
+                patch.light_level = 'dim';
+            if (!props.target_temperature)
+                patch.target_temperature = 30;
+            if (!props.heating_rate)
+                patch.heating_rate = 0.5;
+            if (!Object.keys(patch).length) {
+                this.refresh();
+                return;
+            }
             const ok = await ApiClient.updateNode(nodeId, { properties: patch });
             if (ok) {
                 worldState.fetch && worldState.fetch();
-            } else {
+            }
+            else {
                 console.warn('[ValidatorPanel] quick-fix save failed for', nodeId);
             }
             this.refresh();
         }
-
         /**
          * Way-orientation triage (task-395 rework):
          *   1. CLEAN — remove any values our OLD bulk-fill invented ("north"
@@ -203,22 +223,24 @@
             // 1. Clean mints from the earlier implementation.
             try {
                 await ApiClient.batchGraph([{ type: 'clear_way_fix_fields', payload: {} }]);
-            } catch (e) {
+            }
+            catch (e) {
                 console.warn('[ValidatorPanel] way-cleaning batch failed:', e);
             }
             // 2. Reuse the way-inspector's AI improve for the missing-field ways.
-            if (typeof window.InspectorWayView?.improveWayWithAI === 'function') {
-                const nodes = [...new Set(
-                    this._lastIssues
-                        .filter(i => i.code === 'way_missing_pass_message' ||
-                                     i.code === 'way_missing_cardinal' ||
-                                     i.code === 'way_missing_view_direction')
-                        .map(i => i.source_node_id).filter(Boolean)
-                )];
+            // inspector/way-authoring.js is not on the declared Window surface.
+            const wayView = window.InspectorWayView;
+            if (typeof wayView?.improveWayWithAI === 'function') {
+                const nodes = [...new Set(this._lastIssues
+                        .filter((i) => i.code === 'way_missing_pass_message' ||
+                        i.code === 'way_missing_cardinal' ||
+                        i.code === 'way_missing_view_direction')
+                        .map((i) => i.source_node_id)
+                        .filter((id) => Boolean(id)))];
                 if (nodes.length) {
                     const first = nodes.shift();
                     events.log(`🧭 Drafting way flavor for ${nodes.length + 1} ways with AI (one at a time, review & Apply each)…`, 'system-msg');
-                    window.InspectorWayView.improveWayWithAI(first);
+                    wayView.improveWayWithAI(first);
                     // The AI improve is per-node + interactive; we open the top
                     // one and leave the rest for the panel's next 🔍 pass rather
                     // than queueing blind writes.
@@ -227,88 +249,87 @@
             worldState.fetch && worldState.fetch();
             this.refresh();
         }
-
         /** Batch quick-fix every node behind the given code (one undo). */
         async fixAll(code) {
-            const nodes = [...new Set(
-                this._lastIssues.filter(i => i.code === code).map(i => i.source_node_id).filter(Boolean)
-            )];
-            if (!nodes.length) return;
+            const nodes = [...new Set(this._lastIssues.filter((i) => i.code === code)
+                    .map((i) => i.source_node_id)
+                    .filter((id) => Boolean(id)))];
+            if (!nodes.length)
+                return;
             const ops = [];
             for (const nodeId of nodes) {
                 const node = worldState.getNode(nodeId);
-                const props = (node && node.properties) || {};
+                const props = ((node && node.properties) || {});
                 const patch = {};
-                if (!props.light_level) patch.light_level = 'dim';
-                if (!props.target_temperature) patch.target_temperature = 30;
-                if (!props.heating_rate) patch.heating_rate = 0.5;
+                if (!props.light_level)
+                    patch.light_level = 'dim';
+                if (!props.target_temperature)
+                    patch.target_temperature = 30;
+                if (!props.heating_rate)
+                    patch.heating_rate = 0.5;
                 if (Object.keys(patch).length) {
                     ops.push({ type: 'update_node', payload: { node_id: nodeId, patch: { properties: patch } } });
                 }
             }
             if (ops.length) {
-                try { await ApiClient.batchGraph(ops); }
-                catch (e) { console.warn('[ValidatorPanel] fix-all failed:', e); }
+                try {
+                    await ApiClient.batchGraph(ops);
+                }
+                catch (e) {
+                    console.warn('[ValidatorPanel] fix-all failed:', e);
+                }
             }
             worldState.fetch && worldState.fetch();
             this.refresh();
         }
-
         setGroupMode(mode) {
             this._mode = mode;
             localStorage.setItem('vp-group', mode);
             this.render(this._lastIssues);
         }
-
         setShowIgnored() {
             this._showIgnored = !this._showIgnored;
             localStorage.setItem('vp-show-ignored', this._showIgnored ? '1' : '0');
             this.render(this._lastIssues);
         }
-
         // ── Grouping ───────────────────────────────────────────────────
-
         _groupByNode(issues) {
             const map = new Map();
             for (const issue of issues) {
                 const id = issue.source_node_id || '??';
-                if (!map.has(id)) map.set(id, { nodeId: id, issues: [] });
+                if (!map.has(id))
+                    map.set(id, { nodeId: id, issues: [] });
                 map.get(id).issues.push(issue);
             }
-            return Array.from(map.values()).sort((a, b) =>
-                this._worst(b.issues) - this._worst(a.issues));
+            return Array.from(map.values()).sort((a, b) => this._worst(b.issues) - this._worst(a.issues));
         }
-
         _groupByCode(issues) {
             const map = new Map();
             for (const issue of issues) {
                 const code = issue.code || '?';
-                if (!map.has(code)) map.set(code, { code, issues: [] });
+                if (!map.has(code))
+                    map.set(code, { code, issues: [] });
                 map.get(code).issues.push(issue);
             }
-            return Array.from(map.values()).sort((a, b) =>
-                this._worst(b.issues) - this._worst(a.issues));
+            return Array.from(map.values()).sort((a, b) => this._worst(b.issues) - this._worst(a.issues));
         }
-
         _worst(issues) {
             let w = 9;
             for (const i of issues) {
                 const s = SEV_ORDER[i.severity] ?? 9;
-                if (s < w) w = s;
+                if (s < w)
+                    w = s;
             }
             return w;
         }
-
         // ── Rendering ──────────────────────────────────────────────────
-
         render(issues, targetEl = null) {
             const listEl = targetEl || document.getElementById('validator-list');
-            if (!listEl) return;
-
+            if (!listEl)
+                return;
             // The list must scroll — the panel header stays pinned.
             listEl.style.maxHeight = '45vh';
             listEl.style.overflowY = 'auto';
-
             const countEl = document.getElementById('validator-count');
             const errors = issues.filter(i => i.severity === 'error').length;
             const warnings = issues.filter(i => i.severity === 'warning').length;
@@ -318,30 +339,27 @@
                     : '';
                 countEl.style.color = errors ? '#f85149' : (warnings ? '#e3b341' : '#3fb950');
             }
-
             if (targetEl) {
                 // Inline (inspector) rendering — keep the flat one-line list.
                 const flat = issues.map(issue => this._flatRow(issue, targetEl)).join('');
-                window.Lit.render(validatorPanelTag`${window.Lit.unsafeHTML(flat)}`, listEl);
+                window.Lit.render(validatorPanelTag `${window.Lit.unsafeHTML(flat)}`, listEl);
                 return;
             }
-
-            const top = window.Lit.unsafeHTML(
-                this._toolbarHtml(issues) + (issues.length ? this._progressHtml(issues) : '')
-            );
+            const top = window.Lit.unsafeHTML(this._toolbarHtml(issues) + (issues.length ? this._progressHtml(issues) : ''));
             let body = '';
             if (issues.length === 0) {
                 body = `<div class="alert-empty">No broken triggers ✅</div>`;
-            } else if (this._mode === 'code') {
+            }
+            else if (this._mode === 'code') {
                 const groups = this._groupByCode(issues);
                 body = groups.map(g => this._codeGroupHtml(g)).join('');
-            } else {
+            }
+            else {
                 const groups = this._groupByNode(issues);
                 body = groups.map(g => this._nodeGroupHtml(g)).join('');
             }
-            window.Lit.render(validatorPanelTag`${top}${window.Lit.unsafeHTML(body)}`, listEl);
+            window.Lit.render(validatorPanelTag `${top}${window.Lit.unsafeHTML(body)}`, listEl);
         }
-
         _toolbarHtml(issues) {
             return `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:10px;margin:2px 0 6px;">
                 <span style="color:var(--text-muted);">Group:</span>
@@ -352,7 +370,6 @@
                 </label>
             </div>`;
         }
-
         _progressHtml(issues) {
             // Derived world progress — recomputed from live graph + live issues,
             // so it can't drift. Audited = every item/way/area node; clean = one
@@ -360,12 +377,14 @@
             // to clean automatically.
             let audited = 0;
             const unresolved = new Set();
-            const nodes = (worldState && worldState.graph && worldState.graph.nodes) || {};
+            const nodes = ((worldState && worldState.graph && worldState.graph.nodes) || {});
             for (const issue of issues) {
-                if (issue.source_node_id) unresolved.add(issue.source_node_id);
+                if (issue.source_node_id)
+                    unresolved.add(issue.source_node_id);
             }
             for (const n of Object.values(nodes)) {
-                if (n && (n.type === 'item' || n.type === 'way' || n.type === 'area')) audited++;
+                if (n && (n.type === 'item' || n.type === 'way' || n.type === 'area'))
+                    audited++;
             }
             const clean = Math.max(0, audited - unresolved.size);
             const pct = audited ? Math.round((clean / audited) * 100) : 100;
@@ -378,12 +397,10 @@
                 <span>${clean}/${audited} clean</span>
             </div>`;
         }
-
         _sevDot(issue) {
             const color = SEV_COLORS[issue.severity] || SEV_COLORS.info;
             return `<span class="validator-sev" style="background:${color};" title="${SEV_NAME[issue.severity] || issue.severity}"></span>`;
         }
-
         _actionsHtml(issue, sourceNodeId) {
             const nodeId = sourceNodeId || issue.source_node_id;
             const out = [];
@@ -400,9 +417,9 @@
             }
             return out.join('');
         }
-
         _dismissButtons(nodeId, code) {
-            if (!nodeId || !code) return '';
+            if (!nodeId || !code)
+                return '';
             const ignored = this._nodeIgnored(nodeId);
             if (ignored.includes(code)) {
                 return `<button class="validator-jump" title="Restore this issue (no longer dismissed)" onclick="ValidatorPanel.setIgnore('${String(nodeId).replace(/'/g, "\\'")}','${String(code).replace(/'/g, "\\'")}',false)">🔓</button>`;
@@ -415,18 +432,17 @@
             }
             return `<button class="validator-jump" title="Dismiss this issue on this node (survives reloads; resets if you edit the node)" onclick="ValidatorPanel.setIgnore('${String(nodeId).replace(/'/g, "\\'")}','${String(code).replace(/'/g, "\\'")}',true)">🚫</button>`;
         }
-
         // task-443: info rows are grouped into a default-collapsed section so
         // they do not crowd the actionable errors/warnings. The pinned header
         // count still includes them.
         _infoSection(infoIssues, rowFn) {
-            if (!infoIssues.length) return '';
+            if (!infoIssues.length)
+                return '';
             return `<details class="validator-group validator-info" style="margin:2px 0 2px 8px;">
                 <summary style="font-size:9px;color:var(--text-muted);cursor:pointer;">ℹ ${infoIssues.length} info note${infoIssues.length === 1 ? '' : 's'}</summary>
                 ${infoIssues.map(rowFn).join('')}
             </details>`;
         }
-
         _flatRow(issue, scopeEl) {
             const nodeId = issue.source_node_id;
             const icon = SEV_ICONS[issue.severity] || 'ℹ';
@@ -436,7 +452,6 @@
                 ${this._actionsHtml(issue, nodeId)}
             </div>`;
         }
-
         _nodeGroupHtml(group) {
             const { nodeId, issues } = group;
             const worst = this._worst(issues);
@@ -452,8 +467,8 @@
                     ${this._actionsHtml(issue, nodeId)}
                 </div>`;
             };
-            const actionable = issues.filter(i => i.severity !== 'info');
-            const info = issues.filter(i => i.severity === 'info');
+            const actionable = issues.filter((i) => i.severity !== 'info');
+            const info = issues.filter((i) => i.severity === 'info');
             const rows = actionable.map(row).join('') + this._infoSection(info, row);
             const allInfo = actionable.length === 0;
             return `<details class="validator-group" ${(!allInfo && issues.length === 1) ? 'open' : ''} style="margin-bottom:2px;border-bottom:1px solid var(--border-light);">
@@ -467,12 +482,12 @@
                 ${rows}
             </details>`;
         }
-
         _codeGroupHtml(group) {
             const { code, issues } = group;
             const worst = this._worst(issues);
             const worstSev = { 0: 'error', 1: 'warning', 2: 'info' }[worst] || 'info';
-            const nodeIds = [...new Set(issues.map(i => i.source_node_id).filter(Boolean))];
+            const nodeIds = [...new Set(issues.map((i) => i.source_node_id)
+                    .filter((id) => Boolean(id)))];
             const row = (issue) => {
                 const nodeId = issue.source_node_id;
                 const icon = SEV_ICONS[issue.severity] || 'ℹ';
@@ -483,15 +498,15 @@
                     ${this._actionsHtml(issue, nodeId)}
                 </div>`;
             };
-            const actionable = issues.filter(i => i.severity !== 'info');
-            const info = issues.filter(i => i.severity === 'info');
+            const actionable = issues.filter((i) => i.severity !== 'info');
+            const info = issues.filter((i) => i.severity === 'info');
             const rows = actionable.map(row).join('') + this._infoSection(info, row);
             const wayFixAll = ['way_missing_pass_message', 'way_missing_cardinal', 'way_missing_view_direction'].includes(code) && nodeIds.length;
             const fixAll = wayFixAll
                 ? `<button class="validator-jump" title="Clean AI-minted placeholders, then draft missing pass/view/cardinal flavor with AI (review per way)" onclick="ValidatorPanel.fixAllWayOrientation()">✨ AI-write ways</button>`
-                : (code === 'mechanical_tag_missing_props' && issues.some(i => i.severity === 'info') && nodeIds.length)
-                ? `<button class="validator-jump" title="Apply engine defaults on all ${nodeIds.length} nodes (one undo)" onclick="ValidatorPanel.fixAll('${code}')">⚡ Fix all</button>`
-                : '';
+                : (code === 'mechanical_tag_missing_props' && issues.some((i) => i.severity === 'info') && nodeIds.length)
+                    ? `<button class="validator-jump" title="Apply engine defaults on all ${nodeIds.length} nodes (one undo)" onclick="ValidatorPanel.fixAll('${code}')">⚡ Fix all</button>`
+                    : '';
             return `<details class="validator-group" style="margin-bottom:2px;border-bottom:1px solid var(--border-light);">
                 <summary style="font-size:10px;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:6px;">
                     <span class="validator-sev" style="background:${SEV_COLORS[worstSev]};" title="${worstSev}"></span>
@@ -505,8 +520,8 @@
             </details>`;
         }
     }
-
-    window.ValidatorPanel = new ValidatorPanel();
-    window.VW = window.VW || {};
-    VW.validatorPanel = window.ValidatorPanel;
+    const validatorPanelWindow = window;
+    validatorPanelWindow.ValidatorPanel = new ValidatorPanel();
+    validatorPanelWindow.VW = validatorPanelWindow.VW || {};
+    VW.validatorPanel = validatorPanelWindow.ValidatorPanel;
 })();

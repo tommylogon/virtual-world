@@ -1,23 +1,27 @@
-/**
- * TriggerSuggestAI — shared AI trigger suggester for graph nodes.
- *
- * Uses the same shared AIGenerator as every other AI feature in the app
- * (scenario wizard, mock generation, item improve...). Given raw node fields
- * and a kind ('item' | 'way' | 'area'), asks the LLM for a full set of triggers
- * and returns them cleaned to the trigger-editor's schema shape.
- *
- * Usage:
- *   const triggers = await TriggerSuggestAI.suggest(fields, 'item');
- *   // → [{ trigger_type, target_name, target_state, conditions, effects,
- *   //      success_message, fail_message }, ...]  |  null (config/failure)
- *
- * @module shared/trigger-suggest-ai — AI trigger suggestions
- * @contributes TriggerSuggestAI.suggest(fields, kind) → cleaned trigger objects, or null
- * @powers Trigger / effect editor — the "✨ Suggest (AI)" button on item / way / area nodes
- * @relates uses shared/ai-generator; its output flows through trigger-suggest-diff
- * @docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
- */
+"use strict";
+// Type declarations live here, below the first value statement on purpose: tsc
+// drops a file's leading JSDoc when the first statement is type-only, which
+// would strip the `@module` header from the emitted .js. They are also scoped
+// to the IIFE body rather than the script, because this file is a classic
+// script (no imports) and a top-level `declare const` would become a global
+// that collides with whichever module owns AIGenerator.
 window.TriggerSuggestAI = (() => {
+    /**
+     * The shared AIGenerator is a **top-level `const` in a classic script**, so
+     * it is a global *lexical* binding: reachable as bare `AIGenerator`, and
+     * `window.AIGenerator` is `undefined`. It must therefore be read bare.
+     * globals.d.ts does not declare it, and a `declare const` here would be a
+     * TS2451 "cannot redeclare block-scoped variable" against ai-generator.ts in
+     * the project build — hence the scoped @ts-ignore. Delete it once the hub
+     * declares AIGenerator.
+     *
+     * The local is named `aiGenerator`, not `AIGenerator`: a same-named local
+     * would shadow the global inside its OWN initializer (TDZ ReferenceError).
+     */
+    const aiGenerator = (() => {
+        // @ts-ignore -- global lexical binding from shared/ai-generator.js; see above
+        return typeof AIGenerator === 'undefined' ? undefined : AIGenerator;
+    })();
     /**
      * Build the trigger-suggestion system prompt for a node kind.
      * @param {string} kind - 'item' | 'way' | 'area'
@@ -27,8 +31,8 @@ window.TriggerSuggestAI = (() => {
         const kindLine = kind === 'way'
             ? `\nThis is a WAY — a door, passage or path between two areas. Suggest: on_examine (appearance), on_open / on_close (action flavor), on_enter (arrive/leave narration), on_use_on (unlock). Do NOT use adjust_vital or spawn_item on a way.`
             : kind === 'area'
-            ? `\nThis is an AREA — a room or location. Suggest: on_enter (arrival flavor), on_examine (survey of the room), on_tick ambience gated by a random_chance condition so it does not repeat every tick, on_speech if it reacts to words. Do NOT use adjust_vital here unless the area directly heals/harms.`
-            : '';
+                ? `\nThis is an AREA — a room or location. Suggest: on_enter (arrival flavor), on_examine (survey of the room), on_tick ambience gated by a random_chance condition so it does not repeat every tick, on_speech if it reacts to words. Do NOT use adjust_vital here unless the area directly heals/harms.`
+                : '';
         return `You are a trigger author for a text adventure game. Given a game node, return a single valid JSON OBJECT (never a bare array — always wrap in {"triggers": [...]}). No markdown, no code fences.${kindLine}
 
 THE ONLY top-level key is "triggers", holding the array of trigger objects the engine can run. EVERY trigger MUST have a non-empty "effects" array (1+ effects); a trigger with effects: [] fires and does NOTHING. Put ALL narrative text inside the effect's params.message OR adjust_vital's params.success_message. Leave the trigger's top-level "success_message"/"fail_message" as "" unless a specific example below says otherwise.
@@ -149,7 +153,6 @@ A haunted object (take-whisper + scheduled dread):
 
 Return ONLY the JSON object {"triggers": [...]}.`;
     }
-
     /**
      * Build the trigger-suggestion user prompt for raw fields.
      * @param {object} fields - { name, description, tags, actions, uses, current_state, requires }
@@ -163,21 +166,24 @@ Return ONLY the JSON object {"triggers": [...]}.`;
         const description = f.description || '';
         const tags = (f.tags || []).join(', ');
         const actions = (f.actions || []).join(', ');
-        const usesRaw = parseInt(f.uses ?? -1);
+        const usesRaw = parseInt(String(f.uses ?? -1));
         const uses = Number.isNaN(usesRaw) || usesRaw === -1 ? 'infinite' : String(usesRaw);
         const extras = [];
-        if (f.current_state) extras.push(`current_state: ${f.current_state}`);
-        if (f.requires) extras.push(`requires: ${f.requires}`);
+        if (f.current_state)
+            extras.push(`current_state: ${f.current_state}`);
+        if (f.requires)
+            extras.push(`requires: ${f.requires}`);
         let prompt = `Node kind: ${kind}\nName: ${name}\nDescription: ${description}\nTags: ${tags || '(none)'}\nActions: ${actions || '(none)'}\nUses: ${uses}`;
-        if (extras.length) prompt += `\n${extras.join('\n')}`;
+        if (extras.length)
+            prompt += `\n${extras.join('\n')}`;
         if (plan && plan.length) {
             prompt += `\n\nREQUIRED: the "triggers" array must contain EXACTLY these trigger types, in this order, one trigger object per type, with none missing and no extras: ${plan.join(', ')}.`;
-        } else {
+        }
+        else {
             prompt += `\n\nGenerate a full set of useful triggers for this ${kind}.`;
         }
         return prompt;
     }
-
     /**
      * Ask the shared AIGenerator for suggested triggers.
      * @param {object} fields - { name, description, tags, actions, uses, ... }
@@ -187,11 +193,13 @@ Return ONLY the JSON object {"triggers": [...]}.`;
      *   the call failed; [] when the model returned nothing usable.
      */
     async function suggest(fields, kind, plan) {
-        if (typeof AIGenerator === 'undefined' || !AIGenerator.isConfigured()) return null;
+        if (!aiGenerator || !aiGenerator.isConfigured())
+            return null;
         const label = `✨ trigger-AI (${kind || 'item'})`;
-        const result = await AIGenerator.generate(buildPrompt(fields, kind, plan), buildSystem(kind), { temperature: 0.7 });
+        const result = await aiGenerator.generate(buildPrompt(fields, kind, plan), buildSystem(kind), { temperature: 0.7 });
         if (!result.success) {
-            if (typeof toastError === 'function') toastError(result.error || 'AI trigger generation failed.');
+            if (typeof toastError === 'function')
+                toastError(result.error || 'AI trigger generation failed.');
             return null;
         }
         // Surface the raw LLM reply in the event stream exactly like every
@@ -199,7 +207,8 @@ Return ONLY the JSON object {"triggers": [...]}.`;
         if (typeof events !== 'undefined' && events.logRawLLMResponse && result.raw) {
             events.logRawLLMResponse(label, result.raw);
         }
-        const triggers = Array.isArray(result.data) ? result.data : (result.data && result.data.triggers);
+        const data = result.data;
+        const triggers = Array.isArray(data) ? data : data && !Array.isArray(data) ? data.triggers : undefined;
         if (!Array.isArray(triggers)) {
             if (typeof events !== 'undefined' && events.log) {
                 events.log(`${label} returned no trigger array — nothing usable.`, 'error-msg');
@@ -209,29 +218,32 @@ Return ONLY the JSON object {"triggers": [...]}.`;
         const cleaned = triggers
             .filter(t => t && t.trigger_type)
             .map(t => ({
-                trigger_type: t.trigger_type,
-                target_name: t.target_name || '',
-                target_state: t.target_state || '',
-                conditions: Array.isArray(t.conditions) ? t.conditions : [],
-                effects: Array.isArray(t.effects) ? t.effects : [],
-                success_message: t.success_message || '',
-                fail_message: t.fail_message || '',
-            }));
+            trigger_type: String(t.trigger_type),
+            target_name: t.target_name ? String(t.target_name) : '',
+            target_state: t.target_state ? String(t.target_state) : '',
+            conditions: Array.isArray(t.conditions) ? t.conditions : [],
+            effects: Array.isArray(t.effects) ? t.effects : [],
+            success_message: t.success_message ? String(t.success_message) : '',
+            fail_message: t.fail_message ? String(t.fail_message) : '',
+        }));
         // When a plan is required, key results to the plan: keep the AI's data
         // for types it produced, ignore extras (the caller backfills missing
         // plan types from the heuristic floor).
         if (plan && plan.length) {
             const byType = new Map(cleaned.map(t => [t.trigger_type, t]));
+            const planned = [];
+            for (const type of plan) {
+                const hit = byType.get(type);
+                if (hit)
+                    planned.push(hit);
+            }
             cleaned.length = 0;
-            cleaned.push(...plan
-                .filter(type => byType.has(type))
-                .map(type => byType.get(type)));
+            cleaned.push(...planned);
         }
         if (typeof events !== 'undefined' && events.log) {
             events.log(`${label} suggested ${cleaned.length} trigger${cleaned.length === 1 ? '' : 's'}: ${cleaned.map(t => t.trigger_type).join(', ') || '(none)'}`, 'system-msg');
         }
         return cleaned;
     }
-
     return { suggest, buildSystem, buildPrompt };
 })();

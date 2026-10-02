@@ -1,3 +1,4 @@
+"use strict";
 /**
  * GraphNodeOps — node and edge CRUD operations for the graph
  * Provides create, delete, duplicate operations for graph nodes and edges.
@@ -9,11 +10,13 @@
  * @relates called by GraphContextMenu + GraphEventHandlers; writes through the graph API
  * @docs docs/virtualWorld/World Building/Graph System.md
  */
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 // Lazy lit-html tag: window.Lit is only available at call time (deferred module
 // bootstrap), not at parse time. Unique per file so top-level consts never collide.
 const graphNodeOpsTag = (strings, ...values) => window.Lit.html(strings, ...values);
-
-window.GraphNodeOps = {
+// Named `GraphNodeOpsModule` because the global `GraphNodeOps` ambient
+// declaration below would otherwise collide with a same-named const.
+const GraphNodeOpsModule = {
     /**
      * Shows a confirmation modal with yes/no buttons.
      */
@@ -22,7 +25,7 @@ window.GraphNodeOps = {
             const overlay = document.createElement('div');
             overlay.className = 'modal-overlay';
             const titleHtml = title || 'Confirm';
-            window.Lit.render(graphNodeOpsTag`
+            window.Lit.render(graphNodeOpsTag `
                 <div class="modal-window" style="width:400px;max-width:90vw;">
                     <div class="modal-head"><h3 style="margin:0;font-size:14px;">${titleHtml}</h3></div>
                     <div style="padding:0 20px 16px;font-size:12px;color:var(--text);">${window.Lit.unsafeHTML(message)}</div>
@@ -35,10 +38,12 @@ window.GraphNodeOps = {
             const cleanup = () => { overlay.remove(); };
             overlay.querySelector('#modal-cancel-btn').onclick = () => { cleanup(); resolve(false); };
             overlay.querySelector('#modal-confirm-btn').onclick = () => { cleanup(); resolve(true); };
-            overlay.addEventListener('click', (e) => { if (e.target === overlay) { cleanup(); resolve(false); } });
+            overlay.addEventListener('click', (e) => { if (e.target === overlay) {
+                cleanup();
+                resolve(false);
+            } });
         });
     },
-
     /**
      * Shows a yes/no modal for duplicate-related choices.
      */
@@ -47,7 +52,7 @@ window.GraphNodeOps = {
             const overlay = document.createElement('div');
             overlay.className = 'modal-overlay';
             const titleHtml = title || 'Duplicate Options';
-            window.Lit.render(graphNodeOpsTag`
+            window.Lit.render(graphNodeOpsTag `
                 <div class="modal-window" style="width:440px;max-width:90vw;">
                     <div class="modal-head"><h3 style="margin:0;font-size:14px;">${titleHtml}</h3></div>
                     <div style="padding:0 20px 16px;font-size:12px;color:var(--text);">${window.Lit.unsafeHTML(question)}</div>
@@ -60,10 +65,12 @@ window.GraphNodeOps = {
             const cleanup = () => { overlay.remove(); };
             overlay.querySelector('#dup-no-btn').onclick = () => { cleanup(); resolve(false); };
             overlay.querySelector('#dup-yes-btn').onclick = () => { cleanup(); resolve(true); };
-            overlay.addEventListener('click', (e) => { if (e.target === overlay) { cleanup(); resolve(false); } });
+            overlay.addEventListener('click', (e) => { if (e.target === overlay) {
+                cleanup();
+                resolve(false);
+            } });
         });
     },
-
     /**
      * Shows a modal for entering a duplicate node name.
      */
@@ -71,7 +78,7 @@ window.GraphNodeOps = {
         return new Promise((resolve) => {
             const overlay = document.createElement('div');
             overlay.className = 'modal-overlay';
-            window.Lit.render(graphNodeOpsTag`
+            window.Lit.render(graphNodeOpsTag `
                 <div class="modal-window" style="width:420px;max-width:90vw;">
                     <div class="modal-head"><h3 style="margin:0;font-size:14px;">Rename Duplicate</h3></div>
                     <div style="padding:0 20px 16px;font-size:12px;color:var(--text);">
@@ -91,31 +98,34 @@ window.GraphNodeOps = {
                 cleanup();
                 resolve(value);
             };
-            overlay.addEventListener('click', (e) => { if (e.target === overlay) { cleanup(); resolve(null); } });
+            overlay.addEventListener('click', (e) => { if (e.target === overlay) {
+                cleanup();
+                resolve(null);
+            } });
             // Focus and select the input
             setTimeout(() => {
                 const input = document.getElementById('dup-name-input');
-                if (input) { input.focus(); input.select(); }
+                if (input) {
+                    input.focus();
+                    input.select();
+                }
             }, 50);
         });
     },
-
     async deleteNode(nodeId) {
-        const confirmed = await this._showConfirmModal(
-            'Delete <strong>' + nodeId + '</strong> and all its connections?',
-            'Delete Node'
-        );
-        if (!confirmed) return;
-        const data = await ApiClient.deleteNode(nodeId);
+        const confirmed = await this._showConfirmModal('Delete <strong>' + nodeId + '</strong> and all its connections?', 'Delete Node');
+        if (!confirmed)
+            return;
+        const data = await NodeOpsApi.deleteNode(nodeId);
         if (data.status === 'success') {
             events.log('Node deleted.', 'system-msg');
             hideInspectorPanel();
             worldState.fetch();
-        } else {
+        }
+        else {
             events.log(`Error: ${data.error}`, 'error-msg');
         }
     },
-
     /**
      * Deletes a graph edge between two nodes via the API.
      * Confirms with the user before proceeding.
@@ -125,35 +135,33 @@ window.GraphNodeOps = {
      * @param {string} edgeType - The edge type (connection, unlocks, triggers)
      */
     async deleteEdge(source, target, edgeType) {
-        const confirmed = await this._showConfirmModal(
-            'Delete edge <strong>' + source + ' &rarr; ' + target + '</strong>?',
-            'Delete Edge'
-        );
-        if (!confirmed) return;
-        const data = await ApiClient.deleteEdge(source, target, edgeType);
+        const confirmed = await this._showConfirmModal('Delete edge <strong>' + source + ' &rarr; ' + target + '</strong>?', 'Delete Edge');
+        if (!confirmed)
+            return;
+        const data = await NodeOpsApi.deleteEdge(source, target, edgeType);
         if (data.status === 'success') {
             events.log('Edge deleted.', 'system-msg');
             hideInspectorPanel();
             worldState.fetch();
-        } else {
+        }
+        else {
             events.log(`Error: ${data.error}`, 'error-msg');
         }
     },
-
     /** Build a deduplicated list of unique IDs from an array of objects. */
     _uniqueIds(arr) {
         const seen = new Set();
         const result = [];
         for (const obj of arr) {
-            const id = typeof obj === 'string' ? obj : obj.id || obj.target || obj.source;
-            if (id && !seen.has(id)) {
-                seen.add(id);
-                result.push(id);
+            const rec = (typeof obj === 'object' && obj !== null ? obj : {});
+            const id = typeof obj === 'string' ? obj : (rec.id || rec.target || rec.source);
+            if (id && !seen.has(String(id))) {
+                seen.add(String(id));
+                result.push(String(id));
             }
         }
         return result;
     },
-
     /**
      * Duplicates a graph node including all its edges.
      * Prompts for the new node name, then shows modals for each category
@@ -163,14 +171,12 @@ window.GraphNodeOps = {
      */
     async duplicateNode(nodeId) {
         const nodeData = graphManager.nodes.get(nodeId);
-        if (!nodeData) return;
-        const newName = await this._showDuplicateNameModal(
-            nodeData.name || nodeId,
-            (nodeData.name || nodeId) + '_copy'
-        );
-        if (!newName?.trim()) return;
+        if (!nodeData)
+            return;
+        const newName = await this._showDuplicateNameModal(nodeData.name || nodeId, (nodeData.name || nodeId) + '_copy');
+        if (!newName?.trim())
+            return;
         const trimmedName = newName.trim();
-
         // Characters are real players: they need a Player object registered
         // (world.players) plus a player_<name> graph node, not just a bare node.
         if (nodeData.type === 'character') {
@@ -188,7 +194,7 @@ window.GraphNodeOps = {
                 if (charName !== trimmedName) {
                     events.log(`Duplicate name "${trimmedName}" was taken — creating as "${charName}" instead.`, 'system-msg');
                 }
-                const res = await ApiClient.createCharacter(charName);
+                const res = await NodeOpsApi.createCharacter(charName);
                 if (res.error) {
                     events.log(`Duplicate failed: ${res.error}`, 'error-msg');
                     return;
@@ -200,27 +206,28 @@ window.GraphNodeOps = {
                 if (origPlayer) {
                     const copy = {};
                     ['description', 'base_description', 'personality', 'traits', 'tags',
-                     'stats', 'skills', 'equipped', 'npc_behavior',
-                     'npc_action_interval', 'simple_npc'].forEach(key => {
-                        if (origPlayer[key] !== undefined && origPlayer[key] !== null) copy[key] = origPlayer[key];
+                        'stats', 'skills', 'equipped', 'npc_behavior',
+                        'npc_action_interval', 'simple_npc'].forEach(key => {
+                        if (origPlayer[key] !== undefined && origPlayer[key] !== null)
+                            copy[key] = origPlayer[key];
                     });
                     if (Object.keys(copy).length > 0) {
                         await ApiClient.updateCharacter(charName, copy);
                     }
                 }
-                await this._copyEdgesWithModals(nodeId, newId, nodeData.type);
+                await this._copyEdgesWithModals(nodeId, newId, String(nodeData.type));
                 if (origPlayer?.current_area) {
-                    await ApiClient.movePlayerToRoom(charName, origPlayer.current_area);
+                    await NodeOpsApi.movePlayerToRoom(charName, origPlayer.current_area);
                 }
                 events.log(`Duplicated "${nodeData.name}" as "${charName}" with edges.`, 'system-msg');
                 worldState.fetch();
-            } catch (err) {
+            }
+            catch (err) {
                 console.error('Character duplicate error:', err);
-                events.log(`Duplicate failed: ${err.message}`, 'error-msg');
+                events.log(`Duplicate failed: ${err instanceof Error ? err.message : String(err)}`, 'error-msg');
             }
             return;
         }
-
         // Resolve a unique id/name. If the derived id is already taken, auto-append
         // a numeric suffix instead of dead-ending on an "already exists" error.
         const idFromName = (nm) => `${nodeData.type}_${nm.replace(/\s+/g, '_')}`.toLowerCase();
@@ -240,31 +247,33 @@ window.GraphNodeOps = {
         try {
             let res = null;
             for (let attempt = 0; attempt < 5; attempt++) {
-                res = await ApiClient.createNode({
+                res = await NodeOpsApi.createNode({
                     type: nodeData.type,
                     name: copyName,
                     id: newId,
                     properties: JSON.parse(JSON.stringify(nodeData.properties || {}))
                 });
-                if (!res.error) break;
-                if (!/already exists/i.test(res.error || '')) break;
+                if (!res.error)
+                    break;
+                if (!/already exists/i.test(res.error || ''))
+                    break;
                 copySuffix++;
                 copyName = `${trimmedName}_${copySuffix}`;
                 newId = idFromName(copyName);
             }
-            if (res.error) {
-                events.log(`Duplicate failed: ${res.error}`, 'error-msg');
+            if (!res || res.error) {
+                events.log(`Duplicate failed: ${res?.error}`, 'error-msg');
                 return;
             }
-            await this._copyEdgesWithModals(nodeId, newId, nodeData.type);
+            await this._copyEdgesWithModals(nodeId, newId, String(nodeData.type));
             events.log(`Duplicated "${nodeData.name}" as "${copyName}" with edges.`, 'system-msg');
             worldState.fetch();
-        } catch (err) {
+        }
+        catch (err) {
             console.error('Node duplicate error:', err);
-            events.log(`Duplicate failed: ${err.message}`, 'error-msg');
+            events.log(`Duplicate failed: ${err instanceof Error ? err.message : String(err)}`, 'error-msg');
         }
     },
-
     /** Copy edges from source node to new node, with modals for each category.
      *  Creates actual copies of related nodes instead of linking to originals.
      *  @param {string} sourceId - Original node ID
@@ -275,8 +284,7 @@ window.GraphNodeOps = {
         // Use ONE edges snapshot for the whole duplication tree. Re-fetching on
         // every recursion was the runaway-loop bug: newly created edges made the
         // clone discover its own copies and keep duplicating forever.
-        const edgesArr = edgesSnapshot !== null ? edgesSnapshot : await ApiClient.getGraphEdges();
-
+        const edgesArr = edgesSnapshot !== null ? edgesSnapshot : await NodeOpsApi.getGraphEdges();
         // Gather all outgoing edges (source -> target) and incoming edges (target <- source)
         const outgoingEdges = [];
         const incomingEdges = [];
@@ -288,140 +296,142 @@ window.GraphNodeOps = {
                 incomingEdges.push(edge);
             }
         }
-
         // Track which nodes we've duplicated (id map: originalId -> newCopyId).
         // The map is shared across the whole recursion so each original node is
         // cloned at most once, no matter how many paths reach it.
         const dupMap = sharedDupMap !== null ? sharedDupMap : new Map();
         dupMap.set(sourceId, newId);
-
         // Group ALL edges (outgoing + incoming) by target type.
         // Outgoing: area → item/way/character/area (e.g. area unlocks a way)
         // Incoming: item → area / character → area / way → area (e.g. item in room)
-        const itemsOut = [];       // edges where target/source is an item
-        const waysOut = [];        // edges where target/source is a way
-        const charsOut = [];       // edges where target/source is a character
-        const areasOut = [];       // edges where target/source is an area
-        const triggersOut = [];    // edges where target/source is a trigger node
+        const itemsOut = []; // edges where target/source is an item
+        const waysOut = []; // edges where target/source is a way
+        const charsOut = []; // edges where target/source is a character
+        const areasOut = []; // edges where target/source is an area
+        const triggersOut = []; // edges where target/source is a trigger node
         // 'unlocks' edges are obsolete — ignored during duplication
-
         // Process outgoing edges (source === sourceId)
         for (const edge of outgoingEdges) {
-            if (edge.type === 'unlocks') continue;
+            if (edge.type === 'unlocks')
+                continue;
             const targetNode = graphManager.nodes.get(edge.target);
-            if (!targetNode) continue;
+            if (!targetNode)
+                continue;
             if (edge.type === 'triggers') {
                 triggersOut.push(edge);
-            } else if (edge.type === 'equipped' || edge.type === 'carrying') {
+            }
+            else if (edge.type === 'equipped' || edge.type === 'carrying') {
                 itemsOut.push(edge);
-            } else {
+            }
+            else {
                 switch (targetNode.type) {
-                    case 'item': itemsOut.push(edge); break;
-                    case 'way': waysOut.push(edge); break;
-                    case 'character': charsOut.push(edge); break;
-                    case 'area': areasOut.push(edge); break;
+                    case 'item':
+                        itemsOut.push(edge);
+                        break;
+                    case 'way':
+                        waysOut.push(edge);
+                        break;
+                    case 'character':
+                        charsOut.push(edge);
+                        break;
+                    case 'area':
+                        areasOut.push(edge);
+                        break;
                     default: break;
                 }
             }
         }
-
         // Process incoming edges (target === sourceId)
         // These represent things INSIDE or CONNECTED TO the area from outside
         // e.g. item → area (item in room), character → area (person in room), way → area (door into room)
         for (const edge of incomingEdges) {
-            if (edge.type === 'unlocks') continue;
+            if (edge.type === 'unlocks')
+                continue;
             const sourceNode = graphManager.nodes.get(edge.source);
-            if (!sourceNode) continue;
+            if (!sourceNode)
+                continue;
             if (edge.type === 'triggers') {
                 triggersOut.push({ source: edge.target, target: edge.source, type: 'triggers', properties: edge.properties });
-            } else if (edge.type === 'equipped' || edge.type === 'carrying') {
+            }
+            else if (edge.type === 'equipped' || edge.type === 'carrying') {
                 itemsOut.push(edge);
-            } else {
+            }
+            else {
                 switch (sourceNode.type) {
-                    case 'item': itemsOut.push(edge); break;
-                    case 'way': waysOut.push(edge); break;
-                    case 'character': charsOut.push(edge); break;
-                    case 'area': areasOut.push(edge); break;
+                    case 'item':
+                        itemsOut.push(edge);
+                        break;
+                    case 'way':
+                        waysOut.push(edge);
+                        break;
+                    case 'character':
+                        charsOut.push(edge);
+                        break;
+                    case 'area':
+                        areasOut.push(edge);
+                        break;
                     default: break;
                 }
             }
         }
-
         // Ask about duplicating each category that has relevant edges
         const _nodeName = (e) => {
             const nodeId = e.type === 'triggers' ? (e.source === sourceId ? e.target : e.source) : (e.source === sourceId ? e.target : e.source);
             return graphManager.nodes.get(nodeId)?.name || nodeId;
         };
         if (itemsOut.length > 0 && !skipModals) {
-            const dupItems = await this._showDuplicateChoiceModal(
-                `This ${sourceType} has <strong>${itemsOut.length}</strong> item(s) attached (${itemsOut.map(_nodeName).join(', ')}).<br><br>Duplicate these items?`,
-                'Duplicate Items?'
-            );
+            const dupItems = await this._showDuplicateChoiceModal(`This ${sourceType} has <strong>${itemsOut.length}</strong> item(s) attached (${itemsOut.map(_nodeName).join(', ')}).<br><br>Duplicate these items?`, 'Duplicate Items?');
             if (dupItems) {
                 await this._duplicateNodesByType(itemsOut, 'item', sourceId, newId, dupMap, true, edgesArr);
             }
-        } else if (itemsOut.length > 0 && skipModals) {
+        }
+        else if (itemsOut.length > 0 && skipModals) {
             await this._duplicateNodesByType(itemsOut, 'item', sourceId, newId, dupMap, true, edgesArr);
         }
-
         if (waysOut.length > 0 && !skipModals) {
-            const dupWays = await this._showDuplicateChoiceModal(
-                `This ${sourceType} has <strong>${waysOut.length}</strong> way(s) connected (${waysOut.map(_nodeName).join(', ')}).<br><br>Duplicate these ways?`,
-                'Duplicate Ways?'
-            );
+            const dupWays = await this._showDuplicateChoiceModal(`This ${sourceType} has <strong>${waysOut.length}</strong> way(s) connected (${waysOut.map(_nodeName).join(', ')}).<br><br>Duplicate these ways?`, 'Duplicate Ways?');
             if (dupWays) {
                 await this._duplicateNodesByType(waysOut, 'way', sourceId, newId, dupMap, true, edgesArr);
             }
-        } else if (waysOut.length > 0 && skipModals) {
+        }
+        else if (waysOut.length > 0 && skipModals) {
             await this._duplicateNodesByType(waysOut, 'way', sourceId, newId, dupMap, true, edgesArr);
         }
-
         if (charsOut.length > 0 && !skipModals) {
-            const dupChars = await this._showDuplicateChoiceModal(
-                `This ${sourceType} has <strong>${charsOut.length}</strong> character(s) in it (${charsOut.map(_nodeName).join(', ')}).<br><br>Duplicate these characters?`,
-                'Duplicate Characters?'
-            );
+            const dupChars = await this._showDuplicateChoiceModal(`This ${sourceType} has <strong>${charsOut.length}</strong> character(s) in it (${charsOut.map(_nodeName).join(', ')}).<br><br>Duplicate these characters?`, 'Duplicate Characters?');
             if (dupChars) {
                 await this._duplicateNodesByType(charsOut, 'character', sourceId, newId, dupMap, true, edgesArr);
             }
-        } else if (charsOut.length > 0 && skipModals) {
+        }
+        else if (charsOut.length > 0 && skipModals) {
             await this._duplicateNodesByType(charsOut, 'character', sourceId, newId, dupMap, true, edgesArr);
         }
-
         if (areasOut.length > 0 && !skipModals) {
-            const dupAreas = await this._showDuplicateChoiceModal(
-                `This ${sourceType} is connected to <strong>${areasOut.length}</strong> area(s) (${areasOut.map(_nodeName).join(', ')}).<br><br>Duplicate these areas?`,
-                'Duplicate Areas?'
-            );
+            const dupAreas = await this._showDuplicateChoiceModal(`This ${sourceType} is connected to <strong>${areasOut.length}</strong> area(s) (${areasOut.map(_nodeName).join(', ')}).<br><br>Duplicate these areas?`, 'Duplicate Areas?');
             if (dupAreas) {
                 await this._duplicateNodesByType(areasOut, 'area', sourceId, newId, dupMap, true, edgesArr);
             }
-        } else if (areasOut.length > 0 && skipModals) {
+        }
+        else if (areasOut.length > 0 && skipModals) {
             await this._duplicateNodesByType(areasOut, 'area', sourceId, newId, dupMap, true, edgesArr);
         }
-
         // Ask about duplicating triggers
         if (triggersOut.length > 0 && !skipModals) {
-            const dupTriggers = await this._showDuplicateChoiceModal(
-                `This ${sourceType} has <strong>${triggersOut.length}</strong> trigger(s) attached (${triggersOut.map(_nodeName).join(', ')}).<br><br>Duplicate these triggers?`,
-                'Duplicate Triggers?'
-            );
+            const dupTriggers = await this._showDuplicateChoiceModal(`This ${sourceType} has <strong>${triggersOut.length}</strong> trigger(s) attached (${triggersOut.map(_nodeName).join(', ')}).<br><br>Duplicate these triggers?`, 'Duplicate Triggers?');
             if (dupTriggers) {
                 await this._duplicateNodesByType(triggersOut, 'trigger', sourceId, newId, dupMap, false, edgesArr);
             }
-        } else if (triggersOut.length > 0 && skipModals) {
+        }
+        else if (triggersOut.length > 0 && skipModals) {
             await this._duplicateNodesByType(triggersOut, 'trigger', sourceId, newId, dupMap, false, edgesArr);
         }
-
         // All categories with edges have been handled by modals above.
         // If user said NO to a category, those edges are simply not copied.
         // Obsolete 'unlocks' edges and unknown edge types are always ignored.
-
         // Handle incoming edges (edges pointing TO the source from outside)
         // Do NOT create edges from external nodes to the new copy.
         // A hallway connecting to room A should NOT auto-connect to room A_copy.
     },
-
     /** Duplicate a batch of edges targeting nodes of a specific type.
      *  Creates copies of the target nodes and links them to the given parent.
      *  @param {Array} edges - Edges to process
@@ -443,28 +453,30 @@ window.GraphNodeOps = {
             // Resolve the related node: outgoing edges have it at target, incoming at source
             const relatedNodeId = edge.source === sourceId ? edge.target : edge.source;
             const targetNode = graphManager.nodes.get(relatedNodeId);
-            if (!targetNode) continue;
+            if (!targetNode)
+                continue;
             // Skip if already duplicated
-            if (dupMap.has(relatedNodeId)) continue;
-
+            if (dupMap.has(relatedNodeId))
+                continue;
             const copyName = targetNode.name + '_copy';
             // Use the actual node type from the target, not the edge type
             const actualType = targetNode.type || targetType;
             const copyId = `${actualType}_${copyName.replace(/\s+/g, '_')}`.toLowerCase();
-
             // For characters, special handling needed
             if (targetType === 'character') {
                 const charShortName = copyName.replace(/\s+/g, '_');
-                const res = await ApiClient.createCharacter(charShortName);
-                if (res.error) continue;
+                const res = await NodeOpsApi.createCharacter(charShortName);
+                if (res.error)
+                    continue;
                 const charNewId = `player_${charShortName}`;
                 const origPlayer = worldState.players?.[targetNode.name];
                 if (origPlayer) {
                     const copy = {};
                     ['description', 'base_description', 'personality', 'traits', 'tags',
-                     'stats', 'skills', 'equipped', 'npc_behavior',
-                     'npc_action_interval', 'simple_npc'].forEach(key => {
-                        if (origPlayer[key] !== undefined && origPlayer[key] !== null) copy[key] = origPlayer[key];
+                        'stats', 'skills', 'equipped', 'npc_behavior',
+                        'npc_action_interval', 'simple_npc'].forEach(key => {
+                        if (origPlayer[key] !== undefined && origPlayer[key] !== null)
+                            copy[key] = origPlayer[key];
                     });
                     if (Object.keys(copy).length > 0) {
                         await ApiClient.updateCharacter(charShortName, copy);
@@ -474,54 +486,57 @@ window.GraphNodeOps = {
                 // Determine correct edge direction based on original
                 const isOutgoing = edge.source === sourceId;
                 if (isOutgoing) {
-                    await ApiClient.createEdge(parentId, charNewId, edge.type, JSON.parse(JSON.stringify(edge.properties || {})));
-                } else {
-                    await ApiClient.createEdge(charNewId, parentId, edge.type, JSON.parse(JSON.stringify(edge.properties || {})));
+                    await NodeOpsApi.createEdge(parentId, charNewId, edge.type, JSON.parse(JSON.stringify(edge.properties || {})));
+                }
+                else {
+                    await NodeOpsApi.createEdge(charNewId, parentId, edge.type, JSON.parse(JSON.stringify(edge.properties || {})));
                 }
                 // Recursively duplicate the ORIGINAL character's own edges (no modals),
                 // using the shared snapshot/map so nothing is cloned twice.
                 if (recurse) {
                     await this._copyEdgesWithModals(relatedNodeId, charNewId, 'character', true, edgesSnapshot, dupMap);
                 }
-            } else {
-                const res = await ApiClient.createNode({
+            }
+            else {
+                const res = await NodeOpsApi.createNode({
                     type: actualType,
                     name: copyName,
                     id: copyId,
                     properties: JSON.parse(JSON.stringify(targetNode.properties || {}))
                 });
-                if (res.error) continue;
+                if (res.error)
+                    continue;
                 dupMap.set(relatedNodeId, copyId);
                 // Determine correct edge direction based on original
                 const isOutgoing = edge.source === sourceId;
                 if (isOutgoing) {
-                    await ApiClient.createEdge(parentId, copyId, edge.type, JSON.parse(JSON.stringify(edge.properties || {})));
-                } else {
-                    await ApiClient.createEdge(copyId, parentId, edge.type, JSON.parse(JSON.stringify(edge.properties || {})));
+                    await NodeOpsApi.createEdge(parentId, copyId, edge.type, JSON.parse(JSON.stringify(edge.properties || {})));
+                }
+                else {
+                    await NodeOpsApi.createEdge(copyId, parentId, edge.type, JSON.parse(JSON.stringify(edge.properties || {})));
                 }
                 // Recursively duplicate the ORIGINAL copied node's own edges (no modals),
                 // using the shared snapshot/map so nothing is cloned twice.
                 if (recurse) {
-                    await this._copyEdgesWithModals(relatedNodeId, copyId, actualType, true, edgesSnapshot, dupMap);
+                    await this._copyEdgesWithModals(relatedNodeId, copyId, String(actualType), true, edgesSnapshot, dupMap);
                 }
             }
         }
     },
-
     /** Copy all edges from the original node onto the new one.
      *  For edges pointing to items (not rooms/areas), new copies of
      *  those items are created so the duplicate gets its own attached
      *  items rather than sharing the originals.
      *  @deprecated Use _copyEdgesWithModals instead. Kept for fallback. */
     async _copyEdges(sourceId, newId) {
-        const edgesArr = await ApiClient.getGraphEdges();
+        const edgesArr = await NodeOpsApi.getGraphEdges();
         for (const edgeObj of edgesArr) {
             if (edgeObj.source === sourceId) {
                 const targetNode = graphManager.nodes.get(edgeObj.target);
                 if (targetNode && targetNode.type === 'item') {
                     const copyName = targetNode.name + '_copy';
                     const copyId = `item_${copyName.replace(/\s+/g, '_')}`.toLowerCase();
-                    const res = await ApiClient.createNode({
+                    const res = await NodeOpsApi.createNode({
                         type: 'item',
                         name: copyName,
                         id: copyId,
@@ -529,18 +544,18 @@ window.GraphNodeOps = {
                     });
                     if (!res.error) {
                         await this._copyEdges(edgeObj.target, copyId);
-                        await ApiClient.createEdge(newId, copyId, edgeObj.type, JSON.parse(JSON.stringify(edgeObj.properties || {})));
+                        await NodeOpsApi.createEdge(newId, copyId, edgeObj.type, JSON.parse(JSON.stringify(edgeObj.properties || {})));
                     }
-                } else {
-                    await ApiClient.createEdge(newId, edgeObj.target, edgeObj.type, JSON.parse(JSON.stringify(edgeObj.properties || {})));
+                }
+                else {
+                    await NodeOpsApi.createEdge(newId, edgeObj.target, edgeObj.type, JSON.parse(JSON.stringify(edgeObj.properties || {})));
                 }
             }
             if (edgeObj.target === sourceId) {
-                await ApiClient.createEdge(edgeObj.source, newId, edgeObj.type, JSON.parse(JSON.stringify(edgeObj.properties || {})));
+                await NodeOpsApi.createEdge(edgeObj.source, newId, edgeObj.type, JSON.parse(JSON.stringify(edgeObj.properties || {})));
             }
         }
     },
-
     /**
      * Creates a special edge (triggers, unlocks) between two nodes.
      * Prompts the user to select a target node from a list of candidates
@@ -552,67 +567,68 @@ window.GraphNodeOps = {
      */
     async createSpecialEdge(fromNodeId, edgeType, emoji) {
         const fromNode = graphManager.nodes.get(fromNodeId);
-        if (!fromNode) return;
-
+        if (!fromNode)
+            return;
         // Build a list of possible target nodes to connect to
         const allNodes = Array.from(graphManager.nodes.entries());
         const roomNodes = allNodes.filter(([id, nodeData]) => nodeData.type === 'area');
         const doorNodes = allNodes.filter(([id, nodeData]) => nodeData.type === 'way');
         const itemNodes = allNodes.filter(([id, nodeData]) => nodeData.type === 'item');
-
         // Suggest appropriate targets based on edge type
         let candidates = [];
         let promptMsg = '';
         if (edgeType === 'unlocks') {
             candidates = doorNodes;
             promptMsg = `🔓 Which way should "${fromNode.name}" unlock?\n`;
-        } else if (edgeType === 'triggers') {
+        }
+        else if (edgeType === 'triggers') {
             candidates = [...roomNodes, ...doorNodes, ...itemNodes];
             promptMsg = `⚡ What should "${fromNode.name}" trigger?\n`;
         }
-
         if (candidates.length === 0) {
             events.log(`No suitable target nodes found for ${edgeType} edge.`, 'error-msg');
             return;
         }
-
         // Show prompt with numbered list
-        const candidateList = candidates.map(([id, nodeData], index) =>
-            `${index + 1}. ${nodeData.name || id} (${nodeData.type})`
-        ).join('\n');
-
+        const candidateList = candidates.map(([id, nodeData], index) => `${index + 1}. ${nodeData.name || id} (${nodeData.type})`).join('\n');
         const desc = prompt(promptMsg + candidateList + '\n\nEnter number, or node ID:', '1');
-        if (!desc) return;
-
+        if (!desc)
+            return;
         // Parse: either a number or node ID
         let targetId = null;
         const num = parseInt(desc);
         if (num > 0 && num <= candidates.length) {
             targetId = candidates[num - 1][0];
-        } else {
+        }
+        else {
             // Try as direct node ID
             if (graphManager.nodes.has(desc.trim())) {
                 targetId = desc.trim();
             }
         }
-
         if (!targetId || targetId === fromNodeId) {
             events.log('Invalid target selected.', 'error-msg');
             return;
         }
-
         // Ask for optional description
         const description = prompt(`Enter a description for this ${edgeType} edge (optional):`, '');
-
         const properties = {};
-        if (description) properties.description = description;
-
-        const result = await ApiClient.createEdge(fromNodeId, targetId, edgeType, properties);
+        if (description)
+            properties.description = description;
+        const result = await NodeOpsApi.createEdge(fromNodeId, targetId, edgeType, properties);
         if (result.status === 'success') {
             events.log(`${emoji} Created ${edgeType} edge: ${fromNode.name} → ${graphManager.nodes.get(targetId)?.name || targetId}`, 'system-msg');
             worldState.fetch();
-        } else {
+        }
+        else {
             events.log(`Failed to create edge: ${result.error || 'unknown error'}`, 'error-msg');
         }
     }
 };
+window.GraphNodeOps = GraphNodeOpsModule;
+/**
+ * types/globals.d.ts declares only the ApiClient surface converted modules use,
+ * and this shared hub is edited by other lanes concurrently — so the extra calls
+ * this file makes are cast in here instead. Add them to the hub in a follow-up.
+ */
+const NodeOpsApi = ApiClient;

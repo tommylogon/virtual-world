@@ -1,3 +1,4 @@
+"use strict";
 /**
  * GraphProjector — the pure "what should be visible" model for the graph.
  *
@@ -14,8 +15,8 @@
  * @relates used by GraphNetwork.applyVisibility; side-effect-free so the rules stay testable
  * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 window.GraphProjector = {
-
     /**
      * A node's **storey index**: 0 ground, 1 up, -1 down, unbounded.
      *
@@ -29,7 +30,6 @@ window.GraphProjector = {
         const parsed = Number((nodeData && nodeData.properties && nodeData.properties.floor) ?? 0);
         return Number.isFinite(parsed) ? Math.round(parsed) : 0;
     },
-
     /**
      * Read the current UI view-state off the GraphManager. Centralized so the
      * pure compute functions can take a plain view-state bag instead of
@@ -58,7 +58,6 @@ window.GraphProjector = {
             showItems: !!graphManager._showItems
         };
     },
-
     /**
      * Does a node match a search query by name OR by any of its tags?
      *
@@ -71,17 +70,20 @@ window.GraphProjector = {
      * @returns {boolean}
      */
     nodeMatchesQuery(node, q) {
-        if (!node || !q) return false;
-        if (String(node.name || node.id || '').toLowerCase().includes(q)) return true;
+        if (!node || !q)
+            return false;
+        if (String(node.name || node.id || '').toLowerCase().includes(q))
+            return true;
         const tags = node.properties?.tags;
-        if (!tags) return false;
+        if (!tags)
+            return false;
         const list = Array.isArray(tags) ? tags : String(tags).split(',');
         for (const t of list) {
-            if (String(t || '').trim().toLowerCase().includes(q)) return true;
+            if (String(t || '').trim().toLowerCase().includes(q))
+                return true;
         }
         return false;
     },
-
     /**
      * Compute the set of visible node ids from raw graph data + view state.
      *
@@ -99,7 +101,6 @@ window.GraphProjector = {
      */
     computeVisibleNodeIds(nodesObj, edgesArr, state) {
         const query = state.searchQuery;
-
         // ── SEARCH MODE ────────────────────────────────────────────────
         if (query) {
             const matchIds = new Set();
@@ -108,20 +109,22 @@ window.GraphProjector = {
                     matchIds.add(id);
                 }
             }
-            if (matchIds.size === 0) return new Set();
+            if (matchIds.size === 0)
+                return new Set();
             const visible = new Set(matchIds);
             for (const e of edgesArr) {
-                if (matchIds.has(e.source)) visible.add(e.target);
-                if (matchIds.has(e.target)) visible.add(e.source);
+                if (matchIds.has(e.source))
+                    visible.add(e.target);
+                if (matchIds.has(e.target))
+                    visible.add(e.source);
             }
             return visible;
         }
-
         const revealedIds = new Set(state.revealedAreaIds);
         for (const childSet of state.revealedItemIds.values()) {
-            for (const cid of childSet) revealedIds.add(cid);
+            for (const cid of childSet)
+                revealedIds.add(cid);
         }
-
         // Inhabited-areas mode: an area is visible if it has a character (an
         // 'in' edge from a character) or is manually revealed; everything else
         // is visible only if it sits one hop from a visible area.
@@ -129,16 +132,19 @@ window.GraphProjector = {
         if (state.showOnlyInhabitedAreas) {
             const seeded = new Set(state.revealedAreaIds);
             for (const e of edgesArr) {
-                if (e.type !== 'in') continue;
-                if (nodesObj[e.source]?.type === 'character') seeded.add(e.target);
+                if (e.type !== 'in')
+                    continue;
+                if (nodesObj[e.source]?.type === 'character')
+                    seeded.add(e.target);
             }
             linkedIds = new Set(seeded);
             for (const e of edgesArr) {
-                if (seeded.has(e.source)) linkedIds.add(e.target);
-                if (seeded.has(e.target)) linkedIds.add(e.source);
+                if (seeded.has(e.source))
+                    linkedIds.add(e.target);
+                if (seeded.has(e.target))
+                    linkedIds.add(e.source);
             }
         }
-
         // Floor filter: only areas on the active storey, plus their direct links.
         // `floor` is a storey index (GraphProjector.floorOf), so the filter value
         // is compared numerically rather than as a string.
@@ -150,31 +156,35 @@ window.GraphProjector = {
             floorChildren = new Set();
             for (const id in nodesObj) {
                 if (nodesObj[id].type === 'area'
-                        && this.floorOf(nodesObj[id]) === targetFloor) {
+                    && this.floorOf(nodesObj[id]) === targetFloor) {
                     floorAreas.add(id);
                 }
             }
             for (const e of edgesArr) {
-                if (floorAreas.has(e.source) && !floorAreas.has(e.target)) floorChildren.add(e.target);
-                if (floorAreas.has(e.target) && !floorAreas.has(e.source)) floorChildren.add(e.source);
+                if (floorAreas.has(e.source) && !floorAreas.has(e.target))
+                    floorChildren.add(e.target);
+                if (floorAreas.has(e.target) && !floorAreas.has(e.source))
+                    floorChildren.add(e.source);
             }
         }
-
         const visible = new Set();
         for (const id in nodesObj) {
             const nd = nodesObj[id];
-            if (floorAreas && !(nd.type === 'area' ? floorAreas.has(id) : floorChildren.has(id))) continue;
-            if (linkedIds && !linkedIds.has(id)) continue;
-            if (nd.type === 'logic_trigger' && !state.showTriggers) continue;
-            if (nd.type === 'item' && !state.showItems && !revealedIds.has(id)) continue;
+            if (floorAreas && !(nd.type === 'area' ? floorAreas.has(id) : floorChildren.has(id)))
+                continue;
+            if (linkedIds && !linkedIds.has(id))
+                continue;
+            if (nd.type === 'logic_trigger' && !state.showTriggers)
+                continue;
+            if (nd.type === 'item' && !state.showItems && !revealedIds.has(id))
+                continue;
             visible.add(id);
         }
-
         // Revealed nodes stay visible even if a spatial filter would hide them.
-        for (const rid of revealedIds) visible.add(rid);
+        for (const rid of revealedIds)
+            visible.add(rid);
         return visible;
     },
-
     /**
      * Is a single edge visible given the visible node set? Edges inherit
      * visibility from their endpoints — an edge is visible only when BOTH
@@ -187,7 +197,6 @@ window.GraphProjector = {
     edgeVisible(visibleIds, edge) {
         return (visibleIds.has(edge.from) && visibleIds.has(edge.to));
     },
-
     /**
      * Sync a live vis.js dataset's hidden flags to match the projection.
      * Diffs BEFORE updating so unchanged nodes/edges are left untouched —
@@ -197,23 +206,27 @@ window.GraphProjector = {
      * @param {Set<string>} visibleIds - visible node ids
      */
     applyVisibility(network, visibleIds) {
-        if (!network) return;
+        if (!network)
+            return;
         const nodesDs = network.body?.data?.nodes;
         const edgesDs = network.body?.data?.edges;
-        if (!nodesDs || !edgesDs) return;
-
+        if (!nodesDs || !edgesDs)
+            return;
         const nodeUpdates = [];
         nodesDs.forEach((node) => {
             const shouldHide = !visibleIds.has(node.id);
-            if (node.hidden !== shouldHide) nodeUpdates.push({ id: node.id, hidden: shouldHide });
+            if (node.hidden !== shouldHide)
+                nodeUpdates.push({ id: node.id, hidden: shouldHide });
         });
-        if (nodeUpdates.length > 0) nodesDs.update(nodeUpdates);
-
+        if (nodeUpdates.length > 0)
+            nodesDs.update(nodeUpdates);
         const edgeUpdates = [];
         edgesDs.forEach((edge) => {
             const shouldHide = !(visibleIds.has(edge.from) && visibleIds.has(edge.to));
-            if (edge.hidden !== shouldHide) edgeUpdates.push({ id: edge.id, hidden: shouldHide });
+            if (edge.hidden !== shouldHide)
+                edgeUpdates.push({ id: edge.id, hidden: shouldHide });
         });
-        if (edgeUpdates.length > 0) edgesDs.update(edgeUpdates);
+        if (edgeUpdates.length > 0)
+            edgesDs.update(edgeUpdates);
     }
 };

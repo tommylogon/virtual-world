@@ -1,3 +1,4 @@
+"use strict";
 /**
  * scenario-wizard.js — "Scenario from Text" world-creation wizard.
  *
@@ -17,12 +18,10 @@
  * @relates uses shared/ai-generator; applies through POST /api/load (undo-snapshotted)
  * @docs docs/virtualWorld/ScenarioCreationGuide.md
  */
-
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 window.ScenarioWizard = (() => {
     'use strict';
-
     const OPPOSITE = { north: 'south', south: 'north', east: 'west', west: 'east', up: 'down', down: 'up', in: 'out', out: 'in', left: 'right', right: 'left', inside: 'outside', outside: 'inside' };
-
     const SYSTEM_PROMPT = `You are a world architect for a text-based AI-agent RPG engine. Convert a scenario premise into ONE complete world draft. Respond with ONLY raw JSON — no markdown, no code fences, no commentary.
 
 Schema (exact shape):
@@ -54,21 +53,31 @@ RULES:
 - The protagonist goes in "player" (never in characters). Supporting cast go in "characters", each with a starting "area" that exists in areas.
 - world_lore: short, writerly entries that ground the premise.
 - Keep every string evocative but compact.`;
-
     let _overlay = null;
     let _state = null;
-
+    /**
+     * The shared AIGenerator is a **top-level `const` in a classic script**, so
+     * it is a global *lexical* binding: reachable as bare `AIGenerator`, and
+     * `window.AIGenerator` is `undefined`. It must therefore be read bare.
+     * globals.d.ts does not declare it, and a `declare const` here would be a
+     * TS2451 "cannot redeclare block-scoped variable" against ai-generator.ts in
+     * the project build — hence the scoped @ts-ignore. Delete it once the hub
+     * declares AIGenerator.
+     *
+     * The local is named `aiGenerator`, not `AIGenerator`: a same-named local
+     * would shadow the global inside its OWN initializer (TDZ ReferenceError).
+     */
+    const aiGenerator = (() => {
+        // @ts-ignore -- global lexical binding from shared/ai-generator.js; see above
+        return typeof AIGenerator === 'undefined' ? undefined : AIGenerator;
+    })();
     // ────────────────────────── helpers ──────────────────────────
-
     const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-
     function slugKey(s) { return String(s || '').toLowerCase().replace(/\s+/g, ' ').trim(); }
-
     function opposite(dir) {
         const d = String(dir || '').toLowerCase();
         return OPPOSITE[d] || d;
     }
-
     /** Fix the draft into a valid template: dedupe names, mirror exits, drop dangling. */
     function normalizeDraft(d) {
         const draft = JSON.parse(JSON.stringify(d || {}));
@@ -81,19 +90,20 @@ RULES:
             const clean = String(name || '').trim() || `Room ${Object.keys(areas).length + 1}`;
             let unique = clean;
             let n = 2;
-            while (slugKey(unique) in areas) unique = `${clean} (${n++})`;
+            while (slugKey(unique) in areas)
+                unique = `${clean} (${n++})`;
             areas[unique] = area && typeof area === 'object' ? area : {};
         }
         draft.areas = areas;
-
         // Mirror + validate exits.
         const areaKeys = new Set(Object.keys(areas).map(slugKey));
         for (const [name, area] of Object.entries(areas)) {
             const exits = {};
             for (const [dir, data] of Object.entries(area.exits || {})) {
-                const exitData = (data && typeof data === 'object') ? data : { target: data };
+                const exitData = ((data && typeof data === 'object') ? data : { target: data });
                 const target = String(exitData.target || '').trim();
-                if (!target || !areaKeys.has(slugKey(target))) continue; // dangling
+                if (!target || !areaKeys.has(slugKey(target)))
+                    continue; // dangling
                 const canonicalDir = String(dir || '').toLowerCase().trim() || 'way';
                 exits[canonicalDir] = { ...exitData, target };
             }
@@ -103,12 +113,13 @@ RULES:
             const seen = new Set();
             for (const [dir, data] of Object.entries(area.exits || {})) {
                 const key = `${slugKey(data.target)}|${dir}`;
-                if (seen.has(key)) continue;
+                if (seen.has(key))
+                    continue;
                 seen.add(key);
                 const targetArea = areas[data.target];
                 const backDir = opposite(dir);
                 const backKey = `${slugKey(name)}|${backDir}`;
-                const exists = Object.values(targetArea.exits || {}).some(d => d && d.target && slugKey(d.target) === slugKey(name));
+                const exists = Object.values(targetArea.exits || {}).some((d) => d && d.target && slugKey(d.target) === slugKey(name));
                 if (!exists) {
                     targetArea.exits = targetArea.exits || {};
                     if (!Object.keys(targetArea.exits).includes(backDir)) {
@@ -119,9 +130,7 @@ RULES:
         }
         return draft;
     }
-
     // ────────────────────────── UI builders ──────────────────────────
-
     function baseBox() {
         // Close any previous wizard overlay before stacking a new one — the
         // wizard can be re-opened/re-rendered (review ↔ input) mid-session.
@@ -137,11 +146,9 @@ RULES:
         document.body.appendChild(overlay);
         return { overlay, box };
     }
-
     function renderInput() {
         const { overlay, box } = baseBox();
         _overlay = overlay;
-
         const header = document.createElement('div');
         header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;';
         const title = document.createElement('h3');
@@ -154,18 +161,15 @@ RULES:
         header.appendChild(title);
         header.appendChild(close);
         box.appendChild(header);
-
         const hint = document.createElement('div');
         hint.style.cssText = 'font-size:11px;color:var(--text-muted);';
         hint.textContent = 'Describe a world in one or two sentences. The AI drafts rooms, doors, items, characters, and lore — you review every card before anything touches the graph. Applying REPLACES the current world; ↩ Undo restores it.';
         box.appendChild(hint);
-
         const textarea = document.createElement('textarea');
         textarea.rows = 5;
         textarea.placeholder = 'e.g. A mountain hunting lodge cut off by a blizzard. Eight guests, one dead, an old grudge in the walls. The survivor has to find out who killed the guide before the lights go out.';
         textarea.style.cssText = 'width:100%;font-size:12px;padding:8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:8px;resize:vertical;';
         box.appendChild(textarea);
-
         const nameRow = document.createElement('div');
         nameRow.style.cssText = 'display:flex;gap:8px;align-items:center;font-size:11px;color:var(--text-dim);';
         const nameInput = document.createElement('input');
@@ -174,7 +178,6 @@ RULES:
         nameInput.style.cssText = 'flex:1;font-size:11px;padding:5px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:6px;';
         nameRow.appendChild(nameInput);
         box.appendChild(nameRow);
-
         const actions = document.createElement('div');
         actions.style.cssText = 'display:flex;gap:8px;justify-content:flex-end;';
         const cancel = document.createElement('button');
@@ -186,45 +189,49 @@ RULES:
         gen.textContent = '🪄 Draft World';
         gen.onclick = () => {
             const premise = textarea.value.trim();
-            if (!premise) { gen.textContent = 'Type a premise first'; setTimeout(() => { gen.textContent = '🪄 Draft World'; }, 1200); return; }
-            if (typeof AIGenerator === 'undefined' || !AIGenerator.isConfigured()) return;
+            if (!premise) {
+                gen.textContent = 'Type a premise first';
+                setTimeout(() => { gen.textContent = '🪄 Draft World'; }, 1200);
+                return;
+            }
+            if (!aiGenerator || !aiGenerator.isConfigured())
+                return;
             gen.disabled = true;
             gen.textContent = 'Architecting…';
-            AIGenerator.generate(`Scenario premise:\n\n${premise}\n\nBuild the world draft JSON now.`, SYSTEM_PROMPT, { temperature: 0.8 })
-                .then(result => {
-                    if (result.success && result.data) {
-                        _state = { draft: normalizeDraft(result.data), name: nameInput.value.trim() || result.data.name || 'Generated Scenario', premise, include: { rooms: {}, items: {}, chars: {}, lore: {} } };
-                        try {
-                            renderReview();
-                        } catch (e) {
-                            console.error('[scenario-wizard] review render failed:', e);
-                            toastError('Draft parsed, but review failed: ' + (e.message || e));
-                            renderInput();
-                        }
-                    } else {
-                        toastError('Draft failed: ' + (result.error || 'unknown error'));
-                        gen.disabled = false;
-                        gen.textContent = '🪄 Draft World';
+            aiGenerator.generate(`Scenario premise:\n\n${premise}\n\nBuild the world draft JSON now.`, SYSTEM_PROMPT, { temperature: 0.8 })
+                .then((result) => {
+                if (result.success && result.data) {
+                    _state = { draft: normalizeDraft(result.data), name: nameInput.value.trim() || result.data.name || 'Generated Scenario', premise, include: { rooms: {}, items: {}, chars: {}, lore: {} } };
+                    try {
+                        renderReview();
                     }
-                })
-                .catch(err => {
-                    toastError('Draft failed: ' + (err.message || err));
+                    catch (e) {
+                        console.error('[scenario-wizard] review render failed:', e);
+                        toastError('Draft parsed, but review failed: ' + (e instanceof Error ? e.message : e));
+                        renderInput();
+                    }
+                }
+                else {
+                    toastError('Draft failed: ' + (result.error || 'unknown error'));
                     gen.disabled = false;
                     gen.textContent = '🪄 Draft World';
-                });
+                }
+            })
+                .catch((err) => {
+                toastError('Draft failed: ' + (err instanceof Error ? err.message : err));
+                gen.disabled = false;
+                gen.textContent = '🪄 Draft World';
+            });
         };
         actions.appendChild(cancel);
         actions.appendChild(gen);
         box.appendChild(actions);
-
         setTimeout(() => textarea.focus(), 50);
     }
-
     function renderReview() {
         const { overlay, box } = baseBox();
         _overlay = overlay;
         box.style.width = '720px';
-
         const header = document.createElement('div');
         header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;gap:8px;';
         const title = document.createElement('h3');
@@ -244,7 +251,6 @@ RULES:
         header.appendChild(nameInput);
         header.appendChild(close);
         box.appendChild(header);
-
         const d = _state.draft;
         const roomNames = Object.keys(d.areas);
         const itemCount = roomNames.reduce((n, r) => n + (d.areas[r].items || []).length, 0);
@@ -252,11 +258,9 @@ RULES:
         stats.style.cssText = 'font-size:10px;color:var(--text-muted);';
         stats.textContent = `🏠 ${roomNames.length} rooms · 📦 ${itemCount} items · 🧍 ${(d.characters || []).length} characters · 📖 ${(d.world_lore || []).length} lore entries — ticking a card off skips it.`;
         box.appendChild(stats);
-
         const list = document.createElement('div');
         list.style.cssText = 'overflow-y:auto;max-height:52vh;display:flex;flex-direction:column;gap:8px;';
         box.appendChild(list);
-
         // Characters
         if ((d.characters || []).length) {
             list.appendChild(renderGroup('🧍 Characters', (d.characters || []).map((c, i) => {
@@ -271,7 +275,6 @@ RULES:
                 return el;
             })));
         }
-
         // Lore
         if ((d.world_lore || []).length) {
             list.appendChild(renderGroup('📖 World Lore', (d.world_lore || []).map((l, i) => {
@@ -281,12 +284,11 @@ RULES:
                 el.appendChild(cb);
                 const body = document.createElement('div');
                 body.style.cssText = 'flex:1;font-size:11px;';
-                body.innerHTML = `<strong>${esc(l.title || 'untitled')}</strong> <span style="color:var(--text-dim);">[${esc(l.category || '')}]</span><br><span style="color:var(--text-dim);">${esc((l.content || '').slice(0, 180))}</span>`;
+                body.innerHTML = `<strong>${esc(l.title || 'untitled')}</strong> <span style="color:var(--text-dim);">[${esc(l.category || '')}]</span><br><span style="color:var(--text-dim);">${esc(String(l.content ?? '').slice(0, 180))}</span>`;
                 el.appendChild(body);
                 return el;
             })));
         }
-
         // Rooms
         roomNames.forEach((roomName, idx) => {
             const area = d.areas[roomName];
@@ -308,18 +310,15 @@ RULES:
             regen.onclick = () => regenerateRoom(idx, card);
             head.appendChild(regen);
             card.appendChild(head);
-
-            const env = area.environment || {};
+            const env = (area.environment || {});
             const badge = document.createElement('div');
             badge.style.cssText = 'font-size:10px;color:var(--text-dim);margin:4px 0;';
             badge.textContent = `🌡 ${env.temperature ?? 21}°C · 💡 ${env.light ?? 80} · ${env.air ?? 'fresh'} · ${env.smell ?? 'neutral'} · ${env.noise ?? 'quiet'}`;
             card.appendChild(badge);
-
             const desc = document.createElement('div');
             desc.style.cssText = 'font-size:11px;color:var(--text-dim);white-space:pre-wrap;max-height:70px;overflow-y:auto;';
             desc.textContent = area.description || '';
             card.appendChild(desc);
-
             const exits = Object.entries(area.exits || {});
             if (exits.length) {
                 const x = document.createElement('div');
@@ -327,7 +326,6 @@ RULES:
                 x.innerHTML = exits.map(([dir, data]) => `<span style="margin-right:6px;">🚪 ${esc(dir)} → <strong>${esc(data && data.target)}</strong></span>`).join('');
                 card.appendChild(x);
             }
-
             const items = area.items || [];
             if (items.length) {
                 const block = document.createElement('div');
@@ -341,7 +339,8 @@ RULES:
                     cb.checked = _state.include.items[key] !== false;
                     cb.onchange = () => { _state.include.items[key] = cb.checked; };
                     const span = document.createElement('span');
-                    span.textContent = `📦 ${it.name || 'item'}${it.tags && it.tags.length ? ` [${it.tags.join(', ')}]` : ''}`;
+                    const tags = Array.isArray(it.tags) ? it.tags : [];
+                    span.textContent = `📦 ${it.name || 'item'}${tags.length ? ` [${tags.join(', ')}]` : ''}`;
                     row.appendChild(cb);
                     row.appendChild(span);
                     block.appendChild(row);
@@ -350,7 +349,6 @@ RULES:
             }
             list.appendChild(card);
         });
-
         // Footer
         const footer = document.createElement('div');
         footer.style.cssText = 'display:flex;justify-content:space-between;align-items:center;';
@@ -380,81 +378,89 @@ RULES:
         footer.appendChild(right);
         box.appendChild(footer);
     }
-
     function docCheckbox(container, key, defaultValue, onChange) {
         const cb = document.createElement('input');
         cb.type = 'checkbox';
         cb.checked = container[key] !== false;
-        cb.onchange = () => { container[key] = cb.checked; if (onChange) onChange(); };
+        cb.onchange = () => { container[key] = cb.checked; if (onChange)
+            onChange(); };
         return cb;
     }
-
     function renderGroup(label, items) {
         const wrap = document.createElement('div');
         const h = document.createElement('div');
         h.style.cssText = 'font-size:11px;font-weight:600;color:var(--text-dim);margin:4px 0 2px;';
         h.textContent = label;
         wrap.appendChild(h);
-        items.forEach(i => wrap.appendChild(i));
+        items.forEach((i) => wrap.appendChild(i));
         return wrap;
     }
-
     function renameRoom(idx, newName) {
         const d = _state.draft;
         const names = Object.keys(d.areas);
         const oldName = names[idx];
         const clean = String(newName || oldName).trim() || oldName;
-        if (clean === oldName) return;
+        if (clean === oldName)
+            return;
         // Update the key and every exit target that referenced the old name.
         d.areas = Object.fromEntries(Object.entries(d.areas).map(([k, v]) => [k === oldName ? clean : k, v]));
         for (const area of Object.values(d.areas)) {
             for (const exit of Object.values(area.exits || {})) {
-                if (exit && exit.target && slugKey(exit.target) === slugKey(oldName)) exit.target = clean;
+                if (exit && exit.target && slugKey(exit.target) === slugKey(oldName))
+                    exit.target = clean;
             }
         }
         renderReview();
     }
-
     function regenerateRoom(idx, card) {
         const names = Object.keys(_state.draft.areas);
         const name = names[idx];
         const area = _state.draft.areas[name];
-        const neighbors = Object.values(area.exits || {}).map(e => e.target).join(', ');
+        const neighbors = Object.values(area.exits || {}).map((e) => e.target).join(', ');
         const prompt = `Regenerate ONLY the room "${name}" (keep its identity and position, improve content).\nPremise: ${_state.premise || _state.name}\nNeighbors: ${neighbors || 'none'}\nCurrent description: ${area.description || 'none'}\nReturn ONLY the room JSON in this exact shape: {\"name\":\"...\",\"description\":\"...\",\"environment\":{\"light\":80,\"temperature\":21,\"air\":\"fresh\",\"smell\":\"neutral\",\"noise\":\"quiet\"},\"exits\":{\"<direction>\":{\"target\":\"<room>\",\"state\":\"open\",\"hidden\":false,\"description\":\"...\"}},\"items\":[...]}\nKeep verbatim: the room name and any exit target names that already exist.`;
-        card.querySelectorAll('button').forEach(b => b.disabled = true);
-        AIGenerator.generate(prompt, 'You refine one room of a world draft. Respond with ONLY raw JSON.', { temperature: 0.75 })
-            .then(result => {
-                if (!result.success || !result.data) throw new Error(result.error || 'no data');
-                const room = result.data;
-                if (!room || !room.name) throw new Error('missing name');
-                const d = _state.draft;
-                const key = room.name;
-                d.areas[key] = { description: room.description || '', environment: room.environment || {}, exits: room.exits || {}, items: Array.isArray(room.items) ? room.items : [] };
-                if (key !== name) {
-                    for (const a of Object.values(d.areas)) {
-                        for (const e of Object.values(a.exits || {})) {
-                            if (e && e.target && slugKey(e.target) === slugKey(name)) e.target = key;
-                        }
+        card.querySelectorAll('button').forEach((b) => b.disabled = true);
+        if (!aiGenerator || !aiGenerator.isConfigured()) {
+            toastError('AI not configured');
+            return;
+        }
+        aiGenerator.generate(prompt, 'You refine one room of a world draft. Respond with ONLY raw JSON.', { temperature: 0.75 })
+            .then((result) => {
+            if (!result.success || !result.data)
+                throw new Error(result.error || 'no data');
+            const room = result.data;
+            if (!room || !room.name)
+                throw new Error('missing name');
+            const d = _state.draft;
+            const key = room.name;
+            d.areas[key] = { description: room.description || '', environment: room.environment || {}, exits: room.exits || {}, items: Array.isArray(room.items) ? room.items : [] };
+            if (key !== name) {
+                for (const a of Object.values(d.areas)) {
+                    for (const e of Object.values(a.exits || {})) {
+                        if (e && e.target && slugKey(e.target) === slugKey(name))
+                            e.target = key;
                     }
                 }
-                _state.draft = normalizeDraft(d);
-                renderReview();
-            })
-            .catch(err => {
-                toastError('Room regen failed: ' + (err.message || err));
-                renderReview();
-            });
+            }
+            _state.draft = normalizeDraft(d);
+            renderReview();
+        })
+            .catch((err) => {
+            toastError('Room regen failed: ' + (err instanceof Error ? err.message : err));
+            renderReview();
+        });
     }
-
     function applyDraft(btn) {
         const d = _state.draft;
         const names = Object.keys(d.areas).filter((_, i) => _state.include.rooms[i] !== false);
-        if (!names.length) { toastInfo('Nothing selected — tick at least one room.'); return; }
+        if (!names.length) {
+            toastInfo('Nothing selected — tick at least one room.');
+            return;
+        }
         const appendMode = document.getElementById('wz-append')?.checked === true;
         if (!confirm(appendMode
             ? `Append "${_state.name}"?\n\nNew rooms/ways/items/characters/lore get MERGED into the current world. Existing room names are skipped. The world is on the undo stack — use ↩ Undo to revert.`
-            : `Apply "${_state.name}"?\n\nThis REPLACES the current world (${names.length} rooms). The previous world is kept on the undo stack — use ↩ Undo (or Ctrl+Z) to restore it.`)) return;
-
+            : `Apply "${_state.name}"?\n\nThis REPLACES the current world (${names.length} rooms). The previous world is kept on the undo stack — use ↩ Undo (or Ctrl+Z) to restore it.`))
+            return;
         const out = {
             name: _state.name || 'Generated Scenario',
             player: d.player || {},
@@ -468,12 +474,12 @@ RULES:
             const items = (area.items || []).filter((_, i) => _state.include.items[`${idx}::${i}`] !== false);
             const exits = {};
             for (const [dir, data] of Object.entries(area.exits || {})) {
-                if (!data || !data.target) continue;
+                if (!data || !data.target)
+                    continue;
                 exits[dir] = { target: data.target, state: data.state || 'open', hidden: !!data.hidden, description: data.description || '' };
             }
             out.areas[roomName] = { description: area.description || '', environment: area.environment || {}, exits, items };
         });
-
         btn.disabled = true;
         btn.textContent = 'Applying…';
         if (appendMode) {
@@ -485,23 +491,28 @@ RULES:
             })
                 .then(resp => resp.json().then(j => ({ ok: resp.ok, j })))
                 .then(({ ok, j }) => {
-                    if (!ok) throw new Error(j.error || 'append failed');
-                    worldState.fetch().then(() => {
-                        try { events.log(`✨ Appended "${out.name}" — ${j.added_areas?.length || 0} new rooms, ${j.ways_created || 0} ways, ${j.items_created || 0} items.`, 'system-msg'); } catch (e) {}
-                        closeOverlay();
-                        const skippedNote = j.skipped_areas?.length ? ` (skipped: ${j.skipped_areas.join(', ')})` : '';
-                        if (typeof toastInfo === 'function') toastInfo(`Appended: ${j.added_areas?.length || 0} rooms${skippedNote}. Undo (↩) reverts.`);
-                    });
-                })
-                .catch(err => {
-                    console.error('[scenario-wizard] append failed:', err);
-                    toastError('Append failed: ' + (err.message || err));
-                    btn.disabled = false;
-                    btn.textContent = '🚀 Apply World';
+                if (!ok)
+                    throw new Error(j.error || 'append failed');
+                worldState.fetch().then(() => {
+                    try {
+                        events.log(`✨ Appended "${out.name}" — ${j.added_areas?.length || 0} new rooms, ${j.ways_created || 0} ways, ${j.items_created || 0} items.`, 'system-msg');
+                    }
+                    catch (e) { }
+                    closeOverlay();
+                    const skippedNote = j.skipped_areas?.length ? ` (skipped: ${j.skipped_areas.join(', ')})` : '';
+                    if (typeof toastInfo === 'function')
+                        toastInfo(`Appended: ${j.added_areas?.length || 0} rooms${skippedNote}. Undo (↩) reverts.`);
                 });
+            })
+                .catch(err => {
+                console.error('[scenario-wizard] append failed:', err);
+                toastError('Append failed: ' + (err.message || err));
+                btn.disabled = false;
+                btn.textContent = '🚀 Apply World';
+            });
             return;
         }
-        out.persist = true;  // wizard builds a new scenario — write it to scenarios/
+        out.persist = true; // wizard builds a new scenario — write it to scenarios/
         fetch('/api/load', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -509,27 +520,31 @@ RULES:
         })
             .then(resp => resp.json().then(j => ({ ok: resp.ok, j })))
             .then(({ ok, j }) => {
-                if (!ok) throw new Error(j.error || 'load failed');
-                worldState.fetch().then(() => {
-                    try { events.log(`✨ Scenario "${out.name}" applied — ${names.length} rooms from text.`, 'system-msg'); } catch (e) {}
-                    closeOverlay();
-                    if (typeof toastInfo === 'function') toastInfo(`World built: ${names.length} rooms. Undo (↩) restores the previous world.`);
-                });
-            })
-            .catch(err => {
-                console.error('[scenario-wizard] apply failed:', err);
-                toastError('Apply failed: ' + (err.message || err));
-                btn.disabled = false;
-                btn.textContent = '🚀 Apply World';
+            if (!ok)
+                throw new Error(j.error || 'load failed');
+            worldState.fetch().then(() => {
+                try {
+                    events.log(`✨ Scenario "${out.name}" applied — ${names.length} rooms from text.`, 'system-msg');
+                }
+                catch (e) { }
+                closeOverlay();
+                if (typeof toastInfo === 'function')
+                    toastInfo(`World built: ${names.length} rooms. Undo (↩) restores the previous world.`);
             });
+        })
+            .catch(err => {
+            console.error('[scenario-wizard] apply failed:', err);
+            toastError('Apply failed: ' + (err instanceof Error ? err.message : err));
+            btn.disabled = false;
+            btn.textContent = '🚀 Apply World';
+        });
     }
-
     function closeOverlay() {
-        if (_overlay && _overlay.parentNode) _overlay.parentNode.removeChild(_overlay);
+        if (_overlay && _overlay.parentNode)
+            _overlay.parentNode.removeChild(_overlay);
         _overlay = null;
         _state = null;
     }
-
     return {
         open() { renderInput(); },
         _normalizeDraft: normalizeDraft

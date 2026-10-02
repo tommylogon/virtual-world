@@ -1,3 +1,4 @@
+"use strict";
 /**
  * prompt-builder/contextual-actions.js — Non-redundant action availability.
  *
@@ -23,14 +24,12 @@
  * @relates uses helpers.js; complements room-context.js; gates are guidance, the backend resolves leniently
  * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */
-
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 window.PromptBuilder = window.PromptBuilder || {};
 (() => {
     'use strict';
-
     // Canonical display order for item action brackets.
     const BRACKET_ORDER = ['take', 'use', 'use_on', 'open', 'close', 'eat', 'drink', 'read', 'wear', 'remove', 'toggle', 'drop', 'examine'];
-
     // Mirror of engine/item_actions.py:INVERSE_ACTIONS — an item that declares
     // one side of a pair is also credited with the other (take→drop, equip→
     // unequip, open→close). Kept in sync so the prompt agrees with the backend.
@@ -42,69 +41,76 @@ window.PromptBuilder = window.PromptBuilder || {};
         open: 'close',
         close: 'open',
     };
-
     /** Expand an action list with each declared action's inverse (idempotent). */
     function expandInverseActions(actions) {
         const out = [...actions];
         for (const action of [...out]) {
             const inverse = INVERSE_ACTIONS[action];
-            if (inverse && !out.includes(inverse)) out.push(inverse);
+            if (inverse && !out.includes(inverse))
+                out.push(inverse);
         }
         return out;
     }
-
     /** Normalize an action/tags property that may be a string ("a,b") or array. */
     function asArray(value) {
-        if (value == null) return [];
-        if (Array.isArray(value)) return value.map(String);
+        if (value == null)
+            return [];
+        if (Array.isArray(value))
+            return value.map(String);
         return String(value).split(',').map(s => s.trim()).filter(Boolean);
     }
-
     /** Chart the char node id for a character (matches world-state.js). */
     function charNodeId(charName) {
         return `player_${String(charName).replace(/\s+/g, '_')}`;
     }
-
     /** Trigger types on an item: trigger edges whose source is this item. */
     function itemTriggerTypes(itemId) {
         const types = new Set();
         for (const edge of worldState.graph?.edges || []) {
-            if (edge.type !== 'triggers') continue;
-            if (String(edge.source) !== String(itemId)) continue;
+            if (edge.type !== 'triggers')
+                continue;
+            if (String(edge.source) !== String(itemId))
+                continue;
             const triggerNode = worldState.getNode(edge.target);
-            if (!triggerNode) continue;
+            if (!triggerNode)
+                continue;
             const tt = triggerNode.properties?.trigger_type;
-            (Array.isArray(tt) ? tt : [tt]).filter(Boolean).forEach(t => types.add(String(t)));
+            (Array.isArray(tt) ? tt : [tt]).filter(Boolean).forEach((t) => types.add(String(t)));
         }
         return [...types];
     }
-
     /** target_name of the first on_use_on trigger on an item, if any. */
     function useOnTargetName(itemId) {
         for (const edge of worldState.graph?.edges || []) {
-            if (edge.type !== 'triggers') continue;
-            if (String(edge.source) !== String(itemId)) continue;
+            if (edge.type !== 'triggers')
+                continue;
+            if (String(edge.source) !== String(itemId))
+                continue;
             const triggerNode = worldState.getNode(edge.target);
-            if (!triggerNode) continue;
+            if (!triggerNode)
+                continue;
             const tt = triggerNode.properties?.trigger_type;
             const list = Array.isArray(tt) ? tt : (tt ? [tt] : []);
             if (list.includes('on_use_on')) {
                 const name = triggerNode.properties?.target_name;
-                if (name) return String(name);
+                if (name)
+                    return String(name);
             }
         }
         return '';
     }
-
     /** All item nodes the character carries or has equipped. */
     function carriedItemNodes(charName) {
         const id = charNodeId(charName);
         const bySource = new Map();
         for (const edge of worldState.graph?.edges || []) {
-            if (edge.target !== id) continue;
-            if (edge.type !== 'carrying' && edge.type !== 'equipped') continue;
+            if (edge.target !== id)
+                continue;
+            if (edge.type !== 'carrying' && edge.type !== 'equipped')
+                continue;
             const node = worldState.getNode(edge.source);
-            if (!node || node.type !== 'item') continue;
+            if (!node || node.type !== 'item')
+                continue;
             // Consistent worlds have exactly ONE edge per item (equip removes the
             // carrying edge). Legacy data can carry both; equipped is the
             // stronger state and wins — "wearing" is just equipped.
@@ -113,26 +119,25 @@ window.PromptBuilder = window.PromptBuilder || {};
         }
         return [...bySource.values()];
     }
-
     /** All ability/spell item nodes the character knows (EDGE_KNOWN). */
     function knownAbilityNodes(charName) {
         const id = charNodeId(charName);
         const items = [];
         for (const edge of worldState.graph?.edges || []) {
-            if (edge.target !== id || edge.type !== 'known') continue;
+            if (edge.target !== id || edge.type !== 'known')
+                continue;
             const node = worldState.getNode(edge.source);
-            if (!node || node.type !== 'item') continue;
+            if (!node || node.type !== 'item')
+                continue;
             items.push({ id: edge.source, name: node.name, properties: node.properties });
         }
         return items;
     }
-
     /** Whether a character has already examined/discovered an item by name. */
     function isDiscovered(player, itemName) {
-        return new Set((player?.discovered_items || []).map(n => String(n).toLowerCase().trim()))
+        return new Set((player?.discovered_items || []).map((n) => String(n).toLowerCase().trim()))
             .has(String(itemName || '').toLowerCase().trim());
     }
-
     /**
      * True when an item is an intrinsic ability (a spell/talent/power) rather
      * than a physical object. Mirrors engine/equipment.py:_is_intrinsic_ability.
@@ -143,15 +148,14 @@ window.PromptBuilder = window.PromptBuilder || {};
         const tags = asArray(props?.tags || []).map(t => String(t).toLowerCase());
         return ['spell', 'ability', 'innate', 'intrinsic', 'power'].some(t => tags.includes(t));
     }
-
     /**
      * The allowed action verbs for an item node in the given context.
      * Mirrors engine/trigger_system.py:_get_available_actions, client-side.
      *
-     * @param {Object} item  - { id, name, properties } (as returned by getItemsInArea)
-     * @param {Object} player - Player data (discovered_items)
-     * @param {Object} [carry] - { equipped } when the item is carried/equipped
-     * @returns {string[]} verbs in BRACKET_ORDER
+     * @param item  - { id, name, properties } (as returned by getItemsInArea)
+     * @param player - Player data (discovered_items)
+     * @param carry - { equipped } when the item is carried/equipped
+     * @returns verbs in BRACKET_ORDER
      */
     function computeItemActions(item, player, carry) {
         const props = item?.properties || {};
@@ -160,19 +164,22 @@ window.PromptBuilder = window.PromptBuilder || {};
         const state = String(props.current_state || '').toLowerCase();
         const triggerTypes = itemTriggerTypes(item.id);
         const verbs = new Set();
-
-        if (actions.includes('take') && !carry) verbs.add('take');
-
-        if (actions.includes('use') || triggerTypes.includes('on_use') || triggerTypes.includes('on_use_progressive') || triggerTypes.includes('on_use_on')) verbs.add('use');
-        if (triggerTypes.includes('on_use_on')) verbs.add('use_on');
-
-        if (actions.includes('open') && ['closed', 'normal', ''].includes(state)) verbs.add('open');
-        if (actions.includes('close') && state === 'open') verbs.add('close');
-
-        if (actions.includes('eat') || tags.includes('food')) verbs.add('eat');
-        if (actions.includes('drink') || tags.includes('drink')) verbs.add('drink');
-        if (actions.includes('read') || actions.includes('search') || tags.includes('readable') || tags.includes('read')) verbs.add('read');
-
+        if (actions.includes('take') && !carry)
+            verbs.add('take');
+        if (actions.includes('use') || triggerTypes.includes('on_use') || triggerTypes.includes('on_use_progressive') || triggerTypes.includes('on_use_on'))
+            verbs.add('use');
+        if (triggerTypes.includes('on_use_on'))
+            verbs.add('use_on');
+        if (actions.includes('open') && ['closed', 'normal', ''].includes(state))
+            verbs.add('open');
+        if (actions.includes('close') && state === 'open')
+            verbs.add('close');
+        if (actions.includes('eat') || tags.includes('food'))
+            verbs.add('eat');
+        if (actions.includes('drink') || tags.includes('drink'))
+            verbs.add('drink');
+        if (actions.includes('read') || actions.includes('search') || tags.includes('readable') || tags.includes('read'))
+            verbs.add('read');
         // wear/remove are the prompt display names for the equip/unequip pair.
         // Equippable when the item declares the pair, is tagged wearable, OR has
         // non-empty equip_slots (the engine's gate — equipment.py equips anything
@@ -180,29 +187,29 @@ window.PromptBuilder = window.PromptBuilder || {};
         const intrinsic = isIntrinsicAbility(props);
         const slots = Array.isArray(props.equip_slots) ? props.equip_slots : [];
         const equippable = !intrinsic && (actions.includes('equip') || actions.includes('unequip') || actions.includes('wear') || actions.includes('remove') || tags.includes('wearable') || slots.length > 0);
-        if (equippable && !(carry && carry.equipped)) verbs.add('wear');
-        if (!intrinsic && carry && carry.equipped && (actions.includes('unequip') || actions.includes('remove') || slots.length > 0)) verbs.add('remove');
-
-        if (triggerTypes.includes('on_toggle_on') || triggerTypes.includes('on_toggle_off')) verbs.add('toggle');
-
-        if (carry && actions.includes('drop') && !isIntrinsicAbility(props)) verbs.add('drop');
-
+        if (equippable && !(carry && carry.equipped))
+            verbs.add('wear');
+        if (!intrinsic && carry && carry.equipped && (actions.includes('unequip') || actions.includes('remove') || slots.length > 0))
+            verbs.add('remove');
+        if (triggerTypes.includes('on_toggle_on') || triggerTypes.includes('on_toggle_off'))
+            verbs.add('toggle');
+        if (carry && actions.includes('drop') && !isIntrinsicAbility(props))
+            verbs.add('drop');
         // examine — shown unless the character has already examined/discovered it,
         // the item is an intrinsic ability the character always knows, or the item
         // is currently equipped/worn: the engine's item matcher only reaches
         // carrying + area items (matching._match_item_name), so an examine on
         // worn gear would always fail.
-        if (!(carry && carry.equipped) && !isDiscovered(player, item?.name) && !isIntrinsicAbility(props)) verbs.add('examine');
-
+        if (!(carry && carry.equipped) && !isDiscovered(player, item?.name || '') && !isIntrinsicAbility(props))
+            verbs.add('examine');
         return BRACKET_ORDER.filter(v => verbs.has(v));
     }
-
     /** "[take, use]" style bracket from a verb list; '' when empty. */
     function formatActionBrackets(verbs) {
-        if (!verbs || !verbs.length) return '';
+        if (!verbs || !verbs.length)
+            return '';
         return `[${verbs.join(', ')}]`;
     }
-
     /**
      * Build the per-turn `=== AVAILABLE ACTIONS ===` block for a character.
      *
@@ -213,11 +220,11 @@ window.PromptBuilder = window.PromptBuilder || {};
      * requirement-gated passage verbs (crawl/climb/jump), and the always-on
      * examine-room/look/inventory/stats/wait set.
      *
-     * @param {Object} state - Full world state data (players / players_in_area / ...)
-     * @param {string} charName - Character name
-     * @param {Object} player - Player data
-     * @param {Object} currentArea - Current area data object (exits, name)
-     * @returns {string} The block ('' if nothing would be listed — never happens)
+     * @param state - Full world state data (players / players_in_area / ...)
+     * @param charName - Character name
+     * @param player - Player data
+     * @param currentArea - Current area data object (exits, name)
+     * @returns The block ('' if nothing would be listed — never happens)
      */
     function buildAvailableActionsBlock(state, charName, player, currentArea) {
         const lines = [];
@@ -228,57 +235,60 @@ window.PromptBuilder = window.PromptBuilder || {};
         const hasDarkVision = traits.dark_vision === true || traits.darkvision === true;
         const vitals = player?.vitals || {};
         const carried = carriedItemNodes(charName);
-
         const viewExits = (window.PromptBuilder?.viewerExits)
             ? window.PromptBuilder.viewerExits(state, charName, currentArea)
             : (currentArea?.exits || {});
         const visibleExits = Object.entries(viewExits).filter(([, ed]) => !ed.hidden);
-
         for (const [dir, exitData] of visibleExits) {
             const doorNode = worldState.getNode(exitData.way_id);
             const handle = PromptBuilder.wayHandle({ ...exitData, label: dir }, doorNode, currentArea?.name) || dir;
             const req = String(doorNode?.properties?.requires || '').toLowerCase();
-
             // Requirement-gated passage verbs aren't in the door's standard
             // bracket list, so they live here to stay visible.
-            if (req === 'crawl') lines.push(`crawl — crawl through the ${handle}`);
-            else if (req === 'climb') lines.push(`climb — climb the ${handle}`);
-            else if (req === 'jump') lines.push(`jump — jump across the ${handle}`);
+            if (req === 'crawl')
+                lines.push(`crawl — crawl through the ${handle}`);
+            else if (req === 'climb')
+                lines.push(`climb — climb the ${handle}`);
+            else if (req === 'jump')
+                lines.push(`jump — jump across the ${handle}`);
         }
-
-        const others = (state.players_in_area || []).filter(p => p && p.name && p.name !== charName);
+        const others = (state.players_in_area || []).filter((p) => p && p.name && p.name !== charName);
         if (others.length) {
-            const names = others.map(p =>
-                PromptBuilder.anonymousName(charName, p.name, worldState.data?.players?.[p.name]?.description || p.description || '')
-            ).filter(Boolean);
+            const names = others.map((p) => 
+            // The filter above guarantees p.name; `|| ''` is that same
+            // narrowing expressed so the index type is a string.
+            PromptBuilder.anonymousName(charName, p.name || '', worldState.data?.players?.[p.name || '']?.description || p.description || '')).filter(Boolean);
             const target = names.join(', ');
             lines.push(`attack — fight ${target}`);
             lines.push(`grab — seize ${target}`);
             lines.push(`lead — guide ${target}`);
-            if (carried.length) lines.push(`give — hand an item to ${target}`);
+            if (carried.length)
+                lines.push(`give — hand an item to ${target}`);
             lines.push(`steal — take from ${target}`);
         }
-
-        if (player?.grappled_by) lines.push('escape — break free (you are being held)');
-        if ((player?.state === 'prone') || !!(player?.conditions?.prone)) lines.push('stand — get back up (you are prone)');
+        if (player?.grappled_by)
+            lines.push('escape — break free (you are being held)');
+        if ((player?.state === 'prone') || !!(player?.conditions?.prone))
+            lines.push('stand — get back up (you are prone)');
         const energy = vitals.Energy;
-        if (energy !== undefined && energy < 50) lines.push('rest — rest to recover energy (you are tired)');
+        if (energy !== undefined && energy < 50)
+            lines.push('rest — rest to recover energy (you are tired)');
         const bladder = vitals.Bladder;
-        if (bladder !== undefined && bladder >= 65) lines.push('relieve — relieve yourself (your bladder is full)');
-        if (blind) lines.push('listen — listen hard (you are blind)');
-        if (!hasDarkVision && (blind || level === 'pitch_black' || level === 'dim')) lines.push('fumble — blind search in the darkness');
-
-        if (currentArea?.name) lines.push(`examine — examine ${currentArea.name}`);
-
+        if (bladder !== undefined && bladder >= 65)
+            lines.push('relieve — relieve yourself (your bladder is full)');
+        if (blind)
+            lines.push('listen — listen hard (you are blind)');
+        if (!hasDarkVision && (blind || level === 'pitch_black' || level === 'dim'))
+            lines.push('fumble — blind search in the darkness');
+        if (currentArea?.name)
+            lines.push(`examine — examine ${currentArea.name}`);
         lines.push('look — look around');
         lines.push('inventory — check your inventory');
         lines.push('stats — check your stats');
         lines.push('wait — wait or hold still');
-
         const intro = 'Other than what you see around the room, what you are wearing or carrying, or who else is here, you can do these actions:';
         return `\n=== AVAILABLE ACTIONS ===\n${intro}\n${lines.join('\n')}`;
     }
-
     Object.assign(window.PromptBuilder, {
         computeItemActions,
         formatActionBrackets,

@@ -1,3 +1,4 @@
+"use strict";
 /**
  * GraphFocus — search reveal + camera/physics focus for the graph (task-394).
  *
@@ -24,23 +25,18 @@
  * @relates works with GraphProjector for visibility; driven by the graph search box
  * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 window.GraphFocus = {
-
     /** Debounce timer handle (module state, not graphManager). */
     _searchDebounceTimer: undefined,
-
     /** True once the active query has clustered results (positions saved). */
     _clusterActive: false,
-
     /** Saved node positions ({ id: {x,y} }) for the cluster frame before move. */
     _savedPositions: null,
-
     /** Saved viewport ({ position, scale }) before moving the camera. */
     _savedView: null,
-
     /** Nodes we parked (physics:false) this session, to restore on clear. */
     _parked: null,
-
     /**
      * Sets the search query and instantly reveals matches (cheap — only toggles
      * node/edge hidden flags). The frame-fit + physics kick are deferred to
@@ -60,9 +56,9 @@ window.GraphFocus = {
         // Keep-in-place only means anything while matches are on screen, so the
         // toolbar greys it out for an empty query instead of letting it flip a
         // preference that does nothing (task-530).
-        if (window.GraphToolbar) GraphToolbar.syncDisabled();
+        if (window.GraphToolbar)
+            GraphToolbar.syncDisabled();
     },
-
     /**
      * Called when a search should "settle": park the hidden set, then (unless
      * keep-in-place) cluster the matches toward the viewport center, then run a
@@ -71,21 +67,21 @@ window.GraphFocus = {
      */
     settleSearch() {
         const q = graphManager._searchQuery;
-        if (!q) return;
+        if (!q)
+            return;
         GraphFocus._parkHiddenSet();
         const keep = graphManager._searchKeepInPlace ?? GraphFocus.isKeepInPlace();
         if (keep) {
             GraphFocus._fitToSearchMatches();
-        } else {
+        }
+        else {
             GraphFocus._clusterResults();
         }
     },
-
     /** Whether keep-in-place mode is on (persists across reloads). */
     isKeepInPlace() {
         return localStorage.getItem('graph-search-keep-in-place') === '1';
     },
-
     /**
      * Toggle keep-in-place. Turning ON during an active cluster un-clusters
      * (restores positions) but keeps the hidden set frozen; turning OFF during
@@ -96,48 +92,53 @@ window.GraphFocus = {
         localStorage.setItem('graph-search-keep-in-place', on ? '1' : '0');
         graphManager._searchKeepInPlace = on;
         const q = graphManager._searchQuery;
-        if (!q) return;
+        if (!q)
+            return;
         if (on && GraphFocus._clusterActive) {
             GraphFocus._unCluster();
-        } else if (!on) {
+        }
+        else if (!on) {
             GraphFocus._clusterResults();
         }
     },
-
     /** The currently-visible node ids (matches + visible one-hop neighbours). */
     _visibleSet() {
         return GraphNetwork._computeVisibleNodeIds();
     },
-
     /**
      * Exclude every currently-hidden node from the physics sim so it stops
      * repelling the visible results. Newly-revealed nodes are restored to their
      * normal physics. Diff-based so per-keystroke runs stay cheap.
      */
     _parkHiddenSet() {
-        if (!graphManager.network) return;
+        if (!graphManager.network)
+            return;
         const nodesDs = graphManager.network.body?.data?.nodes;
-        if (!nodesDs) return;
+        if (!nodesDs)
+            return;
         const visible = GraphFocus._visibleSet();
         GraphFocus._parked = GraphFocus._parked || {};
         const updates = [];
         nodesDs.forEach((node) => {
             const hidden = !visible.has(node.id);
             if (hidden) {
-                if (node.physics !== false) { updates.push({ id: node.id, physics: false }); GraphFocus._parked[node.id] = true; }
-            } else if (!hidden && node.physics === false && GraphFocus._parked[node.id]) {
+                if (node.physics !== false) {
+                    updates.push({ id: node.id, physics: false });
+                    GraphFocus._parked[node.id] = true;
+                }
+            }
+            else if (!hidden && node.physics === false && GraphFocus._parked[node.id]) {
                 updates.push({ id: node.id, physics: GraphFocus._nodeDefaultPhysics(node.id) });
                 GraphFocus._parked[node.id] = false;
             }
         });
-        if (updates.length) nodesDs.update(updates);
+        if (updates.length)
+            nodesDs.update(updates);
     },
-
     _nodeDefaultPhysics(id) {
         const nd = (graphManager._graphNodesObj || {})[id];
         return nd ? (nd.properties?.central_gravity_enabled !== false) : true;
     },
-
     /**
      * Restore the pre-search layout & any parked physics after a query clears.
      * Idempotent / safe to call with nothing pending.
@@ -150,41 +151,49 @@ window.GraphFocus = {
         GraphFocus._savedPositions = null;
         GraphFocus._savedView = null;
     },
-
     _restoreParkedPhysics() {
-        if (!graphManager.network || !GraphFocus._parked) return;
+        if (!graphManager.network || !GraphFocus._parked)
+            return;
         const nodesDs = graphManager.network.body?.data?.nodes;
-        if (!nodesDs) return;
+        if (!nodesDs)
+            return;
         const updates = [];
         for (const id in GraphFocus._parked) {
             if (GraphFocus._parked[id]) {
                 const nd = (graphManager._graphNodesObj || {})[id];
                 const phys = nd ? (nd.properties?.central_gravity_enabled !== false) : true;
                 const n = nodesDs.get(id);
-                if (n && n.physics !== phys) updates.push({ id, physics: phys });
+                if (n && n.physics !== phys)
+                    updates.push({ id, physics: phys });
             }
         }
-        if (updates.length) nodesDs.update(updates);
+        if (updates.length)
+            nodesDs.update(updates);
     },
-
     /**
      * Gather the visible match cluster into a compact grid at the viewport
      * center. Saves prior positions + viewport so clearing the search restores
      * the exact layout the user had.
      */
     _clusterResults() {
-        if (!graphManager.network) return;
+        if (!graphManager.network)
+            return;
         const network = graphManager.network;
         const visible = GraphFocus._visibleSet();
         const ids = [...visible];
-        if (ids.length === 0) { GraphFocus._fitToSearchMatches(); return; }
-
+        if (ids.length === 0) {
+            GraphFocus._fitToSearchMatches();
+            return;
+        }
         // First fit so the visible set is what we center on.
         const ds = network.body?.data?.nodes;
         let present = ids;
-        if (ds) present = ids.filter(id => ds.get(id) !== null);
-        if (!present.length) { GraphFocus._fitToSearchMatches(); return; }
-
+        if (ds)
+            present = ids.filter(id => ds.get(id) !== null);
+        if (!present.length) {
+            GraphFocus._fitToSearchMatches();
+            return;
+        }
         // Respect frozen nodes: a node with physics disabled belongs to the
         // user's hand-made layout, so clustering must not drag it off. Only
         // movable matches take part in the grid.
@@ -194,12 +203,23 @@ window.GraphFocus = {
                 return !n || n.physics !== false;
             });
         }
-        if (!present.length) { GraphFocus._fitToSearchMatches(); return; }
-
+        if (!present.length) {
+            GraphFocus._fitToSearchMatches();
+            return;
+        }
         // Save current layout (only for nodes we're about to move).
-        try { GraphFocus._savedPositions = network.getPositions(present); } catch (e) { GraphFocus._savedPositions = null; }
-        try { GraphFocus._savedView = { position: network.getViewPosition(), scale: network.getScale() }; } catch (e) { GraphFocus._savedView = null; }
-
+        try {
+            GraphFocus._savedPositions = network.getPositions(present);
+        }
+        catch (e) {
+            GraphFocus._savedPositions = null;
+        }
+        try {
+            GraphFocus._savedView = { position: network.getViewPosition(), scale: network.getScale() };
+        }
+        catch (e) {
+            GraphFocus._savedView = null;
+        }
         const view = network.getViewPosition();
         const scale = network.getScale() || 1;
         const cols = Math.min(6, Math.max(1, Math.ceil(Math.sqrt(present.length))));
@@ -211,15 +231,14 @@ window.GraphFocus = {
             const y = view.y + (row - (Math.ceil(present.length / cols) - 1) / 2) * spacing;
             network.moveNode(id, x, y);
         });
-
         network.fit({ nodes: present, animation: true, maxZoomLevel: 1.2 });
         GraphFocus._clusterActive = true;
         GraphFocus._kickClusterPhysics();
     },
-
     /** Undo a cluster: return moved nodes to their saved positions + viewport. */
     _unCluster() {
-        if (!graphManager.network || !GraphFocus._clusterActive) return;
+        if (!graphManager.network || !GraphFocus._clusterActive)
+            return;
         const network = graphManager.network;
         if (GraphFocus._savedPositions) {
             // _savedPositions is a snapshot of every node present when the
@@ -228,13 +247,17 @@ window.GraphFocus = {
             // so filter against the live DataSet first (bug-36).
             const live = new Set(network.body?.data?.nodes?.getIds?.() || []);
             for (const id in GraphFocus._savedPositions) {
-                if (!live.has(id)) continue;
+                if (!live.has(id))
+                    continue;
                 const p = GraphFocus._savedPositions[id];
                 network.moveNode(id, p.x, p.y);
             }
         }
         if (GraphFocus._savedView) {
-            try { network.moveTo({ position: GraphFocus._savedView.position, scale: GraphFocus._savedView.scale, animation: true }); } catch (e) { /* ignore */ }
+            try {
+                network.moveTo({ position: GraphFocus._savedView.position, scale: GraphFocus._savedView.scale, animation: true });
+            }
+            catch (e) { /* ignore */ }
         }
         // Keep physics parking until restore runs (parking is cleared in the
         // same clear flow); if called mid-search (keep-in-place toggle on),
@@ -243,16 +266,16 @@ window.GraphFocus = {
         GraphFocus._savedPositions = null;
         GraphFocus._savedView = null;
     },
-
     /**
      * Fits the camera to the current search-match cluster so the revealed
      * results are brought into view (keep-in-place path — no repositioning).
      */
     _fitToSearchMatches() {
         const q = graphManager._searchQuery;
-        if (!q) return;
-        if (!graphManager.network) return;
-
+        if (!q)
+            return;
+        if (!graphManager.network)
+            return;
         const nodesObj = graphManager._graphNodesObj || {};
         const edgesArr = graphManager._graphEdgesArr || [];
         const matches = new Set();
@@ -261,12 +284,15 @@ window.GraphFocus = {
                 matches.add(id);
             }
         }
-        if (matches.size === 0) return;
+        if (matches.size === 0)
+            return;
         // Include one-hop neighbours so the connected cluster is framed.
         const frame = new Set(matches);
         for (const e of edgesArr) {
-            if (matches.has(e.source)) frame.add(e.target);
-            if (matches.has(e.target)) frame.add(e.source);
+            if (matches.has(e.source))
+                frame.add(e.target);
+            if (matches.has(e.target))
+                frame.add(e.source);
         }
         const frameIds = [...frame];
         const ds = graphManager.network.body?.data?.nodes;
@@ -278,7 +304,6 @@ window.GraphFocus = {
         }
         GraphFocus._kickClusterPhysics();
     },
-
     /**
      * Gives the physics solver a short kick so just-revealed nodes (which were
      * parked while hidden and excluded from forces) re-join the simulation and
@@ -286,20 +311,23 @@ window.GraphFocus = {
      * user's physics on/off state afterwards.
      */
     _kickClusterPhysics() {
-        if (!graphManager.network) return;
+        if (!graphManager.network)
+            return;
         // NEVER spin up the solver when the user has physics off: the kick would
         // re-settle a hand-made layout (stabilize() moves nodes even though the
         // toggle is off). The cluster is arranged by explicit moveNode() calls,
         // so it does not need the solver at all.
-        if (graphManager._physicsEnabled === false) return;
+        if (graphManager._physicsEnabled === false)
+            return;
         const nodes = graphManager.network.body?.data?.nodes;
-        if (!nodes) return;
+        if (!nodes)
+            return;
         GraphNetwork.applyModePhysics(true);
         try {
             graphManager.network.stabilize(60);
-        } catch (e) { /* ignore */ }
+        }
+        catch (e) { /* ignore */ }
     },
-
     /**
      * Public entry point for filtering graph nodes by name/tag. Sets the query
      * and debounces the camera fit + physics kick so they only run once typing
@@ -309,7 +337,6 @@ window.GraphFocus = {
      */
     filterNodes(query) {
         GraphFocus.applyFilter(query);
-
         if (typeof GraphFocus._searchDebounceTimer !== 'undefined') {
             clearTimeout(GraphFocus._searchDebounceTimer);
         }
@@ -318,12 +345,12 @@ window.GraphFocus = {
             GraphFocus._searchDebounceTimer = setTimeout(() => {
                 GraphFocus.settleSearch();
             }, 450);
-        } else {
+        }
+        else {
             clearTimeout(GraphFocus._searchDebounceTimer);
             GraphFocus._searchDebounceTimer = undefined;
         }
     },
-
     /** Sync the toolbar checkbox (and manager flag) with persisted state. */
     init() {
         const on = GraphFocus.isKeepInPlace();
@@ -338,26 +365,31 @@ window.GraphFocus = {
         };
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', sync);
-        } else if (typeof graphManager === 'undefined' || !graphManager) {
+        }
+        else if (typeof graphManager === 'undefined' || !graphManager) {
             // graphManager loads after this script; sync once it exists.
-            const handler = () => { if (typeof graphManager !== 'undefined' && graphManager) sync(); };
+            const handler = () => { if (typeof graphManager !== 'undefined' && graphManager)
+                sync(); };
             if (typeof appEvents !== 'undefined' && appEvents.on) {
                 appEvents.on('state:updated', handler);
                 // Guarded by the typeof check above, so once graphManager exists
                 // the checkbox is applied and later handlers are no-ops.
             }
-        } else {
+        }
+        else {
             sync();
         }
     },
-
     _applyCheckbox(on) {
         const cb = document.getElementById('search-keep-in-place');
-        if (!cb) return;
+        if (!cb)
+            return;
         cb.checked = !!on;
-        if (cb.parentElement) cb.parentElement.classList.toggle('active', !!on);
-        if (window.GraphToolbar) GraphToolbar.syncDisabled();
+        if (cb.parentElement)
+            cb.parentElement.classList.toggle('active', !!on);
+        if (window.GraphToolbar)
+            GraphToolbar.syncDisabled();
     }
 };
-
-if (typeof document !== 'undefined') GraphFocus.init();
+if (typeof document !== 'undefined')
+    GraphFocus.init();

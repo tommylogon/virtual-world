@@ -1,3 +1,4 @@
+"use strict";
 /**
  * prompt-builder/conversation-context.js — Speech salience + conversation instinct.
  *
@@ -20,18 +21,15 @@
  * @relates used by room-context.js when assembling witnessed speech; reads player.recent_hearing + vitals.social
  * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */
-
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 window.PromptBuilder = window.PromptBuilder || {};
 (() => {
     'use strict';
-
     const GROUP_WORDS = [
         'everyone', 'everybody', 'everyone here', 'anyone', 'anybody',
         'you all', 'you two', 'you both', 'you guys', 'folks', 'everybody here'
     ];
-
     // ────────────────────────── Salience classification ─────────────────────
-
     /**
      * Classify how directly a line of spoken text seems aimed at the listener.
      * @param {string} text - The spoken line (no wrapping narration).
@@ -45,31 +43,31 @@ window.PromptBuilder = window.PromptBuilder || {};
      */
     function classifySpeechType(text, charName, player) {
         const lower = String(text || '').toLowerCase().replace(/\s+/g, ' ').trim();
-        if (!lower) return 'overheard';
-
+        if (!lower)
+            return 'overheard';
         // Names/aliases the listener answers to — name call is the strongest mark.
         const nameParts = [charName, player?.name]
             .filter(Boolean)
             .map(n => String(n).toLowerCase().trim());
         for (const candidate of nameParts) {
-            if (!candidate) continue;
+            if (!candidate)
+                continue;
             const boundary = candidate.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             const re = new RegExp(`(?:^|[^a-z0-9])${boundary}(?:$|[^a-z0-9])`);
-            if (re.test(lower)) return 'addressed_to_you';
+            if (re.test(lower))
+                return 'addressed_to_you';
         }
-
         // Group-open wording — spoken to a room, not one person.
         for (const word of GROUP_WORDS) {
-            if (lower.includes(word)) return 'to_group';
+            if (lower.includes(word))
+                return 'to_group';
         }
-
         // A clear second-person pronoun pointing at the listener (you / your /
         // you're / yours / you've). Ambiguous third-person talk stays overhead.
-        if (/\b(you|your|yours|you're|you've|you'll|you'd)\b/.test(lower)) return 'to_you';
-
+        if (/\b(you|your|yours|you're|you've|you'll|you'd)\b/.test(lower))
+            return 'to_you';
         return 'overheard';
     }
-
     /**
      * Render a human label for a classification tag ('' for overheard).
      * @param {string} type - One of the classifySpeechType results.
@@ -83,7 +81,6 @@ window.PromptBuilder = window.PromptBuilder || {};
             default: return '';
         }
     }
-
     /**
      * Wrap a WITNESSED line so its direction is visible at a glance, e.g.
      *   "[Heard] a voice said: "hey lyrie, watch out!""  (overheard → unchanged)
@@ -97,7 +94,8 @@ window.PromptBuilder = window.PromptBuilder || {};
     function markSpeechLine(line, text, charName, player) {
         const type = classifySpeechType(text, charName, player);
         const label = salienceLabel(type);
-        if (!label || !line) return line;
+        if (!label || !line)
+            return line;
         // Insert the marker right after the leading [Heard]/[anon] bracket.
         if (line.indexOf(']') !== -1) {
             const close = line.indexOf(']');
@@ -105,7 +103,6 @@ window.PromptBuilder = window.PromptBuilder || {};
         }
         return `[${label}] ${line}`;
     }
-
     /**
      * Collect the lines this character recently SAID themselves (for a soft
      * anti-repeat guard). `recent_hearing` includes the speaker's own lines, so
@@ -116,20 +113,21 @@ window.PromptBuilder = window.PromptBuilder || {};
      */
     function ownRecentSpeech(player, charName) {
         const hearing = player?.recent_hearing || [];
-        const mine = hearing.filter(h => h.type !== 'sound_source' && h.speaker === charName);
+        const mine = hearing.filter((h) => h.type !== 'sound_source' && h.speaker === charName);
         const seen = new Set();
         const out = [];
         for (const h of mine.slice(-5)) {
             const text = String(h.text || '').trim();
-            if (!text) continue;
+            if (!text)
+                continue;
             const key = text.toLowerCase();
-            if (seen.has(key)) continue;
+            if (seen.has(key))
+                continue;
             seen.add(key);
             out.push(`"${text}"`);
         }
         return out;
     }
-
     /**
      * A short per-turn "conversation disposition" hint derived from existing
      * state (never a mandate — just how the character currently feels about
@@ -139,17 +137,20 @@ window.PromptBuilder = window.PromptBuilder || {};
      * @returns {string} A disposition phrase, or '' when neutral.
      */
     function talkinessHint(player) {
-        if (!player) return '';
-        const social = parseInt(player.vitals?.social) || 50;
+        if (!player)
+            return '';
+        const social = parseInt(String(player.vitals?.social)) || 50;
         const conditions = player.conditions || {};
         const hindered = ['exhausted', 'unconscious', 'frightened', 'anxious', 'stunned', 'pain', 'sick']
             .some(c => (conditions[c] || []).length > 0);
-        if (hindered && social < 40) return 'You feel worn down and quiet — you speak only if you must.';
-        if (social >= 75) return 'You feel sociable right now — inclined to speak up.';
-        if (social <= 25) return 'You feel withdrawn right now — you\'re not inclined to speak unless something needs saying.';
+        if (hindered && social < 40)
+            return 'You feel worn down and quiet — you speak only if you must.';
+        if (social >= 75)
+            return 'You feel sociable right now — inclined to speak up.';
+        if (social <= 25)
+            return 'You feel withdrawn right now — you\'re not inclined to speak unless something needs saying.';
         return '';
     }
-
     /**
      * Assemble the conversation instinct note for the context: what the character
      * recently said themself (anti-repeat) plus a soft inclination hint.
@@ -161,11 +162,12 @@ window.PromptBuilder = window.PromptBuilder || {};
         const own = ownRecentSpeech(player, charName);
         const vibe = talkinessHint(player);
         const parts = [];
-        if (own.length) parts.push(`You recently said: ${own.join('; ')}` + '\nDo not repeat a line you already said, unless you are genuinely insisting.');
-        if (vibe) parts.push(vibe);
+        if (own.length)
+            parts.push(`You recently said: ${own.join('; ')}` + '\nDo not repeat a line you already said, unless you are genuinely insisting.');
+        if (vibe)
+            parts.push(vibe);
         return parts.length ? '\n\n=== CONVERSATION ===\n' + parts.join('\n') : '';
     }
-
     Object.assign(window.PromptBuilder, {
         classifySpeechType,
         salienceLabel,

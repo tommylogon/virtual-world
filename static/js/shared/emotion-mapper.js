@@ -1,3 +1,4 @@
+"use strict";
 /**
  * emotion-mapper.js — turn any emotion label into an affect dimension.
  *
@@ -19,9 +20,18 @@
  * @relates mirrors engine/emotion.py LABEL_TO_DIM; uses shared/embedding-client
  * @docs docs/virtualWorld/Characters/Emotion & Affect System.md
  */
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 (() => {
     'use strict';
-
+    /**
+     * `window.EmbeddingClient` is not declared on the Window interface in
+     * types/globals.d.ts (that hub is shared and concurrently edited), so the
+     * presence check goes through a local cast. `EmbeddingClient` itself IS
+     * declared there and is used bare below.
+     */
+    function _embeddingClient() {
+        return window.EmbeddingClient;
+    }
     // Curated label -> affect dimension (mirrors engine/emotion.py LABEL_TO_DIM).
     const LABEL_TO_DIM = {
         neutral: 'calm',
@@ -45,7 +55,6 @@
         determined: 'excited', brave: 'proud', resolute: 'excited', focused: 'content',
         surprised: 'surprised'
     };
-
     // Semantic anchors: one short phrase per dimension to embed for cosine match.
     const DIM_ANCHORS = {
         happy: 'happy joy glad', elated: 'elated ecstatic overjoyed', excited: 'excited thrilled',
@@ -63,61 +72,68 @@
         calm: 'calm serene tranquil', content: 'content at ease', peaceful: 'peaceful peaceful',
         satisfied: 'satisfied fulfilled', surprised: 'surprised astonished startled'
     };
-
     const _anchorCache = { embed: false, vectors: null };
-
     // Resolved-label cache: a novel label resolves (and embeds) once per
     // session; repeated preview/turn builds reuse the stored dimension —
     // including negative results, so unresolvable labels stop re-embedding.
     const _labelCache = Object.create(null);
-
     async function _anchorVectors() {
-        if (!window.EmbeddingClient || !EmbeddingClient.configured()) return null;
-        if (_anchorCache.embed && _anchorCache.vectors) return _anchorCache.vectors;
+        if (!_embeddingClient() || !EmbeddingClient.configured())
+            return null;
+        if (_anchorCache.embed && _anchorCache.vectors)
+            return _anchorCache.vectors;
         const phrases = Object.values(DIM_ANCHORS);
         const vecs = await EmbeddingClient.embed(phrases);
-        if (!vecs || !Array.isArray(vecs)) return null;
+        if (!vecs || !Array.isArray(vecs))
+            return null;
         const map = {};
         Object.keys(DIM_ANCHORS).forEach((dim, i) => { map[dim] = vecs[i]; });
         _anchorCache.embed = true;
         _anchorCache.vectors = map;
         return map;
     }
-
     function _cosine(a, b) {
-        if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return 0;
+        if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length)
+            return 0;
         let dot = 0, na = 0, nb = 0;
         for (let i = 0; i < a.length; i++) {
-            dot += a[i] * b[i]; na += a[i] * a[i]; nb += b[i] * b[i];
+            dot += a[i] * b[i];
+            na += a[i] * a[i];
+            nb += b[i] * b[i];
         }
         return dot / Math.max(1e-12, Math.sqrt(na) * Math.sqrt(nb));
     }
-
     async function _semanticDim(label) {
         const anchors = await _anchorVectors();
-        if (!anchors) return null;
+        if (!anchors)
+            return null;
         const q = await EmbeddingClient.embed(label);
-        if (!q) return null;
+        if (!q)
+            return null;
         let best = null, bestScore = -1;
         for (const dim in anchors) {
             const s = _cosine(q, anchors[dim]);
-            if (s > bestScore) { bestScore = s; best = dim; }
+            if (s > bestScore) {
+                bestScore = s;
+                best = dim;
+            }
         }
         return bestScore >= 0.15 ? best : null;
     }
-
     /**
      * Resolve an emotion label to an affect dimension.
-     * @param {string} label
-     * @returns {Promise<{dimension:string,label:string}|null>}
+     * @param label
      */
     async function resolve(label) {
         const key = String(label || '').trim().toLowerCase();
-        if (!key) return null;
-        if (LABEL_TO_DIM[key]) return { dimension: LABEL_TO_DIM[key], label: label };
+        if (!key)
+            return null;
+        if (LABEL_TO_DIM[key])
+            return { dimension: LABEL_TO_DIM[key], label: label };
         // substring fallback
         for (const lab in LABEL_TO_DIM) {
-            if (lab.includes(key) || key.includes(lab)) return { dimension: LABEL_TO_DIM[lab], label: label };
+            if (lab.includes(key) || key.includes(lab))
+                return { dimension: LABEL_TO_DIM[lab], label: label };
         }
         // semantic fallback for novel labels — resolved once, then cached
         if (key in _labelCache) {
@@ -128,6 +144,6 @@
         _labelCache[key] = dim || null;
         return dim ? { dimension: dim, label: label } : null;
     }
-
-    window.EmotionMapper = { resolve, LABEL_TO_DIM, DIM_ANCHORS };
+    const EmotionMapper = { resolve, LABEL_TO_DIM, DIM_ANCHORS };
+    window.EmotionMapper = EmotionMapper;
 })();

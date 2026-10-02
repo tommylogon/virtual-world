@@ -1,3 +1,4 @@
+"use strict";
 /**
  * GraphNetwork — vis.js network setup and management for the graph
  * Handles vis.Network initialization, options building, data loading,
@@ -10,15 +11,14 @@
  * @relates driven by graph-manager; collaborators in static/js/graph/*
  * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 // Lazy lit-html tag: window.Lit is only available at call time (deferred module
 // bootstrap), not at parse time. Unique per file so top-level consts never collide.
 const networkManagerHtmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
-
 // Item → parent attachment edge types: the child points AT its parent
 // (salt --[on]--> table, top --[equipped]--> char). These springs render
 // shorter so attached items cluster around the node that holds them.
 const GRAPH_ATTACH_EDGE_TYPES = new Set(['in', 'on', 'under', 'behind', 'beside', 'at', 'carrying', 'equipped', 'known']);
-
 /**
  * How wide an edge label may get before it wraps (task-558).
  *
@@ -29,7 +29,6 @@ const GRAPH_ATTACH_EDGE_TYPES = new Set(['in', 'on', 'under', 'behind', 'beside'
  * running across half the canvas.
  */
 const EDGE_LABEL_WRAP = 160;
-
 /**
  * Edge length from the label *as it will be drawn*, not as it was written.
  *
@@ -44,14 +43,14 @@ const EDGE_LABEL_WRAP = 160;
  */
 function _labelEdgeLength(label) {
     const text = String(label || '').trim();
-    if (!text) return 45;
+    if (!text)
+        return 45;
     const lines = _wrapLabel(text, EDGE_LABEL_WRAP);
     const widest = lines.reduce((n, line) => Math.max(n, line.length), 0);
-    const CHAR = 3.2;                 // the old per-character estimate, kept
-    const LINE = 9;                   // one line of 8px label plus its leading
+    const CHAR = 3.2; // the old per-character estimate, kept
+    const LINE = 9; // one line of 8px label plus its leading
     return Math.min(130, Math.max(45, 35 + widest * CHAR + (lines.length - 1) * LINE));
 }
-
 /**
  * Break a label into the lines vis will draw: on spaces, greedy. A single word
  * longer than the wrap width is left as one line — a long id or URL has no spaces
@@ -59,23 +58,28 @@ function _labelEdgeLength(label) {
  */
 function _wrapLabel(text, maxWidth) {
     const words = String(text).split(/\s+/).filter(Boolean);
-    if (!words.length) return [''];
+    if (!words.length)
+        return [''];
     const maxChars = Math.max(1, Math.floor(maxWidth / 3.2));
     const lines = [];
     let current = '';
     words.forEach((word) => {
-        if (!current) { current = word; return; }
+        if (!current) {
+            current = word;
+            return;
+        }
         if (current.length + 1 + word.length <= maxChars) {
             current = `${current} ${word}`;
-        } else {
+        }
+        else {
             lines.push(current);
             current = word;
         }
     });
-    if (current) lines.push(current);
+    if (current)
+        lines.push(current);
     return lines;
 }
-
 /**
  * The opening of a prose label, whole sentences only, never more than *maxLines*
  * lines (task-558).
@@ -89,21 +93,23 @@ function _wrapLabel(text, maxWidth) {
  */
 function _firstSentence(text, maxLines) {
     const body = String(text || '').trim();
-    if (!body) return '';
+    if (!body)
+        return '';
     const maxChars = Math.floor(maxLines * (EDGE_LABEL_WRAP / 3.2));
     const sentences = body.match(/[^.!?]+[.!?]+/g);
     if (sentences) {
         let out = '';
         sentences.forEach((s) => {
-            if (out.length && `${out} ${s}`.trim().length > maxChars) return;
+            if (out.length && `${out} ${s}`.trim().length > maxChars)
+                return;
             out = `${out} ${s}`.trim();
         });
-        if (out.length >= body.replace(/\s*$/, '').length) return out;
+        if (out.length >= body.replace(/\s*$/, '').length)
+            return out;
         return `${out.replace(/[\s.]+$/, '')}…`;
     }
     return body.length <= maxChars ? body : `${body.slice(0, maxChars - 1).trimEnd()}…`;
 }
-
 window.GraphNetwork = {
     /**
      * Initializes the vis.js Network on the graph container element.
@@ -112,57 +118,52 @@ window.GraphNetwork = {
      */
     async init() {
         const container = document.getElementById('graph-container');
-        if (!container) return;
-
+        if (!container)
+            return;
         const options = GraphNetwork.buildOptions();
         graphManager.network = new vis.Network(container, { nodes: [], edges: [] }, options);
-        if (window.GraphRelativeLayout) window.GraphRelativeLayout.attach(graphManager.network);
-
+        if (window.GraphRelativeLayout)
+            window.GraphRelativeLayout.attach(graphManager.network);
         // Create legend overlay (after vis.js so it doesn't get cleared)
         graphManager._legendEl = document.createElement('div');
         graphManager._legendEl.className = 'graph-legend';
-        window.Lit.render(networkManagerHtmlTag`${window.Lit.unsafeHTML(GraphNetwork.buildLegendHTML())}`, graphManager._legendEl);
+        window.Lit.render(networkManagerHtmlTag `${window.Lit.unsafeHTML(GraphNetwork.buildLegendHTML())}`, graphManager._legendEl);
         graphManager._legendVisible = false;
         graphManager._legendEl.style.display = 'none';
         container.appendChild(graphManager._legendEl);
-
         // Create tag filter overlay (colored tag indicators + click-to-filter)
         graphManager._tagPanelEl = document.createElement('div');
         graphManager._tagPanelEl.className = 'graph-legend graph-tag-panel';
-        window.Lit.render(networkManagerHtmlTag`<div class="graph-legend-inner"><div style="font-size:10px;font-weight:600;color:var(--text-dim);margin-bottom:4px;">🏷️ Tags</div></div>`, graphManager._tagPanelEl);
+        window.Lit.render(networkManagerHtmlTag `<div class="graph-legend-inner"><div style="font-size:10px;font-weight:600;color:var(--text-dim);margin-bottom:4px;">🏷️ Tags</div></div>`, graphManager._tagPanelEl);
         graphManager._tagPanelVisible = false;
         graphManager._tagPanelEl.style.display = 'none';
         graphManager._tagFilter = null;
         graphManager._tagLibrary = null;
         container.appendChild(graphManager._tagPanelEl);
         GraphNetwork.ensureTagLibrary();
-
         graphManager.network.on("click", (params) => GraphEventHandlers.onClick(params));
         graphManager.network.on("doubleClick", (params) => GraphEventHandlers.onDoubleClick(params));
         GraphNetwork._syncLayoutButton && GraphNetwork._syncLayoutButton();
         graphManager.network.on("oncontext", (params) => GraphEventHandlers.onContext(params));
         GraphNetwork._bindEdgeHoverTooltips();
-
         // Label LOD: re-decide which names to draw when the zoom settles.
         let labelZoomTimer = null;
         graphManager.network.on("zoom", () => {
-            if (labelZoomTimer) clearTimeout(labelZoomTimer);
+            if (labelZoomTimer)
+                clearTimeout(labelZoomTimer);
             labelZoomTimer = setTimeout(() => GraphNetwork.applyNodeLabelVisibility(), 140);
         });
-
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && graphManager._pendingConnection) {
                 graphManager.cancelPendingConnection();
             }
         });
-
         // Scope offsets must be known before the first layout, or a moved zone
         // would render at its painted position until the next reload (task-523).
         await graphManager.loadScopeFilterOptions();
         await GraphNetwork.loadGraphData();
         setTimeout(() => GraphNetwork.fitView(), 100);
     },
-
     /**
      * The central gravity the *current* layout wants.
      *
@@ -189,12 +190,12 @@ window.GraphNetwork = {
         const current = layout || (gm && typeof gm.activeLayout === 'function'
             ? gm.activeLayout()
             : (gm && gm._levelsMode && gm._levelsMode() ? 'levels' : (gm && gm._cardinalLayout ? 'map' : 'graph')));
-        if (current === 'map' || current === 'levels') return 0;
+        if (current === 'map' || current === 'levels')
+            return 0;
         // Per solver, because the two formulations are not on the same scale
         // (barnesHut's historical default is 0.3, forceAtlas2's is 0.005).
         return ((config || {}).graphSolver || 'forceAtlas2Based') === 'barnesHut' ? 0.3 : 0.05;
     },
-
     /**
      * The one place a layout switch pushes solver settings.
      *
@@ -207,7 +208,8 @@ window.GraphNetwork = {
      */
     applyModePhysics(enabled) {
         const gm = (typeof graphManager !== 'undefined' && graphManager) || null;
-        if (!gm || !gm.network || !gm.network.setOptions) return;
+        if (!gm || !gm.network || !gm.network.setOptions)
+            return;
         const cfg = config || {};
         const solver = cfg.graphSolver || 'forceAtlas2Based';
         gm.network.setOptions({
@@ -217,7 +219,6 @@ window.GraphNetwork = {
             }
         });
     },
-
     /**
      * Builds and returns the vis.js options object with physics, interaction,
      * manipulation, and group styling configuration.
@@ -292,23 +293,22 @@ window.GraphNetwork = {
                 addEdge: (data, callback) => GraphEventHandlers.onAddEdge(data, callback)
             },
             groups: {
-            // NOTE: `shape` is deliberately NOT set on groups. vis-network's
-            // group options override a node's own `shape`, so an image node
-            // (shape: circularImage) was silently drawn as its group shape and
-            // the image never appeared. Shapes are assigned per node in
-            // buildNodeConfig instead; groups keep color/font/size only.
-            //
-            // Sizes scale with the map pitch so a wide painted map does not turn
-            // its rooms into specks (bug-53). Fonts only get an explicit size
-            // where they already had one, so a scaled way label is not a surprise.
-            area: { color: { background: '#2d333b', border: '#58a6ff' }, font: { color: '#c9d1d9', size: 14 * GraphNetwork.mapSizeScale() }, borderWidth: 2, margin: { top: 21 * GraphNetwork.mapSizeScale(), bottom: 21 * GraphNetwork.mapSizeScale(), left: 27 * GraphNetwork.mapSizeScale(), right: 27 * GraphNetwork.mapSizeScale() } },
-            item: { color: { background: '#3d2e1a', border: '#e3b341' }, font: { color: '#e3b341', size: 12 * GraphNetwork.mapSizeScale() }, size: 18 * GraphNetwork.mapSizeScale(), borderWidth: 1 },
-            way: { color: { background: '#1a3a2a', border: '#4ec9b0' }, font: { color: '#4ec9b0' }, size: 14 * GraphNetwork.mapSizeScale(), borderWidth: 1 },
-            character: { color: { background: '#2a1a3d', border: '#bc8cff' }, font: { color: '#bc8cff', size: 14 * GraphNetwork.mapSizeScale() }, size: 24 * GraphNetwork.mapSizeScale(), borderWidth: 2 }
+                // NOTE: `shape` is deliberately NOT set on groups. vis-network's
+                // group options override a node's own `shape`, so an image node
+                // (shape: circularImage) was silently drawn as its group shape and
+                // the image never appeared. Shapes are assigned per node in
+                // buildNodeConfig instead; groups keep color/font/size only.
+                //
+                // Sizes scale with the map pitch so a wide painted map does not turn
+                // its rooms into specks (bug-53). Fonts only get an explicit size
+                // where they already had one, so a scaled way label is not a surprise.
+                area: { color: { background: '#2d333b', border: '#58a6ff' }, font: { color: '#c9d1d9', size: 14 * GraphNetwork.mapSizeScale() }, borderWidth: 2, margin: { top: 21 * GraphNetwork.mapSizeScale(), bottom: 21 * GraphNetwork.mapSizeScale(), left: 27 * GraphNetwork.mapSizeScale(), right: 27 * GraphNetwork.mapSizeScale() } },
+                item: { color: { background: '#3d2e1a', border: '#e3b341' }, font: { color: '#e3b341', size: 12 * GraphNetwork.mapSizeScale() }, size: 18 * GraphNetwork.mapSizeScale(), borderWidth: 1 },
+                way: { color: { background: '#1a3a2a', border: '#4ec9b0' }, font: { color: '#4ec9b0' }, size: 14 * GraphNetwork.mapSizeScale(), borderWidth: 1 },
+                character: { color: { background: '#2a1a3d', border: '#bc8cff' }, font: { color: '#bc8cff', size: 14 * GraphNetwork.mapSizeScale() }, size: 24 * GraphNetwork.mapSizeScale(), borderWidth: 2 }
             }
         };
     },
-
     /**
      * The size factor for nodes drawn on a painted map (bug-53): the map pitch
      * relative to the default 40px cell, and **only** in the Map layout.
@@ -318,22 +318,22 @@ window.GraphNetwork = {
      * view and Levels look exactly as they always have.
      */
     mapSizeScale() {
-        if (!graphManager || graphManager._cardinalLayout !== true) return 1;
+        if (!graphManager || graphManager._cardinalLayout !== true)
+            return 1;
         return (typeof GraphLayoutEngine !== 'undefined' && GraphLayoutEngine.mapScale)
             ? GraphLayoutEngine.mapScale() : 1;
     },
-
     /**
      * Draw the painted map's areas as compact dots instead of named cards
      * (task-526). False outside the Map layout, so the graph view and Levels are
      * untouched at every pitch.
      */
     mapCompact() {
-        if (!graphManager || graphManager._cardinalLayout !== true) return false;
+        if (!graphManager || graphManager._cardinalLayout !== true)
+            return false;
         return !!(typeof GraphLayoutEngine !== 'undefined'
             && GraphLayoutEngine.mapCompact && GraphLayoutEngine.mapCompact());
     },
-
     /**
      * Adopt a pitch derived from the painted extent, unless the user has taken the
      * pitch into their own hands (task-526).
@@ -348,36 +348,46 @@ window.GraphNetwork = {
      * and a scope switch must not silently re-derive it out from under them.
      */
     applyAutoMapSpacing(nodesObj) {
-        if (!graphManager || graphManager._cardinalLayout !== true) return false;
-        if (graphManager._mapSpacingAuto === false) return false;
-        if (typeof config === 'undefined' || !config) return false;
+        if (!graphManager || graphManager._cardinalLayout !== true)
+            return false;
+        if (graphManager._mapSpacingAuto === false)
+            return false;
+        if (typeof config === 'undefined' || !config)
+            return false;
         let next;
         try {
             next = GraphLayoutEngine.autoMapSpacing(nodesObj);
-        } catch (err) {
+        }
+        catch (err) {
             return false;
         }
-        if (!next) return false;
+        if (!next)
+            return false;
         const current = Number(config.graphMapSpacing);
-        if (Number.isFinite(current) && Math.round(current) === next) return false;
+        if (Number.isFinite(current) && Math.round(current) === next)
+            return false;
         config.graphMapSpacing = next;
         // Deliberately not persisted: this is a derived default, so the stored
         // value stays "whatever the user last chose" and the flag stays the truth
         // about whether they chose one.
-        if (graphManager._syncMapSpacingButton) graphManager._syncMapSpacingButton();
+        if (graphManager._syncMapSpacingButton)
+            graphManager._syncMapSpacingButton();
         if (window.GraphBackground && window.GraphBackground.reconcileAllForGapChange) {
             // The art is positioned in px from this same pitch, so it has to move
             // with it — for *every* mounted reference, because the whole-world view
             // has no single grid and the ordinary per-scope reconcile stops there.
             // Not `fitToPaintedGrid`: that persists the world, and this is a load
             // path. Not awaited — a grid fetch per scope must not stall the layout.
-            try { void window.GraphBackground.reconcileAllForGapChange(); } catch (err) { /* ignore */ }
+            try {
+                void window.GraphBackground.reconcileAllForGapChange();
+            }
+            catch (err) { /* ignore */ }
         }
         return true;
     },
-
     applyGraphSettings() {
-        if (!graphManager.network) return;
+        if (!graphManager.network)
+            return;
         graphManager._lastSig = '';
         const levelsOn = ((typeof config !== 'undefined' && config && config.graphLayoutMode) || 'free') === 'levels';
         graphManager._physicsEnabled = !levelsOn;
@@ -385,13 +395,15 @@ window.GraphNetwork = {
         // Settings changed, so let the contents re-derive their arrangement —
         // otherwise a moved "Item Edge Length" (Hug Parent) would not re-orbit
         // anything, because remembered offsets win.
-        if (window.GraphRelativeLayout && !levelsOn) window.GraphRelativeLayout.reseed();
+        if (window.GraphRelativeLayout && !levelsOn)
+            window.GraphRelativeLayout.reseed();
         GraphNetwork.loadGraphData();
         // Hierarchical layout places every node itself, so there is nothing to
         // simulate — and stabilize() would turn the solver back on and undo it.
         if (levelsOn) {
             GraphNetwork._syncLayoutButton();
-            if (window.GraphToolbar) GraphToolbar.syncAll();
+            if (window.GraphToolbar)
+                GraphToolbar.syncAll();
             return;
         }
         // Re-run the simulation with the new force parameters. After the
@@ -400,10 +412,11 @@ window.GraphNetwork = {
         // re-stabilize so slider changes actually reshape the layout.
         try {
             graphManager.network.stabilize(200);
-        } catch (err) { /* ignore — settings apply on the next reload */ }
-        if (window.GraphToolbar) GraphToolbar.syncAll();
+        }
+        catch (err) { /* ignore — settings apply on the next reload */ }
+        if (window.GraphToolbar)
+            GraphToolbar.syncAll();
     },
-
     /**
      * Fetches node and edge data from the API and updates the vis.js network.
      * Includes a signature-based deduplication to skip redundant reloads,
@@ -411,7 +424,8 @@ window.GraphNetwork = {
      * or search filters as needed.
      */
     async loadGraphData() {
-        if (!graphManager.network) return;
+        if (!graphManager.network)
+            return;
         try {
             // A selected scope loads only that scope's slice (areas + ways +
             // characters, items optional); without one the whole world loads.
@@ -425,20 +439,22 @@ window.GraphNetwork = {
                     const sub = await ApiClient.getScopeSubgraph(scopeId, true);
                     nodesObj = sub.nodes || {};
                     edgesArr = sub.edges || [];
-                } catch (err) {
+                }
+                catch (err) {
                     // Stale selection (e.g. after a scenario load): drop it and
                     // fall back to the whole world rather than showing nothing.
                     graphManager._scopeFilter = null;
                     const sel = document.getElementById('graph-scope-filter');
-                    if (sel) sel.value = '';
+                    if (sel)
+                        sel.value = '';
                     nodesObj = await ApiClient.getGraphNodes();
                     edgesArr = await ApiClient.getGraphEdges();
                 }
-            } else {
+            }
+            else {
                 nodesObj = await ApiClient.getGraphNodes();
                 edgesArr = await ApiClient.getGraphEdges();
             }
-
             // Skip reload if graph structure hasn't changed (avoids jitter on tick updates).
             // The signature must include the RESOLVED character avatar (current
             // emotion -> profile), not just `properties.image`: an emotion change
@@ -447,24 +463,26 @@ window.GraphNetwork = {
             const nodeSig = Object.entries(nodesObj)
                 .sort(([a], [b]) => a.localeCompare(b))
                 .map(([id, nodeData]) => {
-                    const avatar = window.CharacterArt
-                        ? window.CharacterArt.avatarFor(nodeData.properties, window.CharacterArt.emotionKeyForName(nodeData.name))
-                        : (nodeData.properties?.image || '');
-                    return `${id}:${nodeData.type}:${nodeData.properties?.current_state || ''}:${nodeData.properties?.central_gravity_enabled !== false}:${avatar}`;
-                })
+                const avatar = window.CharacterArt
+                    ? window.CharacterArt.avatarFor(nodeData.properties, window.CharacterArt.emotionKeyForName(nodeData.name))
+                    : (nodeData.properties?.image || '');
+                return `${id}:${nodeData.type}:${nodeData.properties?.current_state || ''}:${nodeData.properties?.central_gravity_enabled !== false}:${avatar}`;
+            })
                 .join('|');
             const edgeSig = edgesArr
-                .map(edgeObj => `${edgeObj.source}:${edgeObj.target}:${edgeObj.type}:${edgeObj.properties?.description || ''}`)
+                .map((edgeObj) => `${edgeObj.source}:${edgeObj.target}:${edgeObj.type}:${edgeObj.properties?.description || ''}`)
                 .sort()
                 .join('|');
             const sig = `${graphManager._scopeFilter || '*'}|${nodeSig}|${edgeSig}`;
-            if (sig === graphManager._lastSig) return;
+            if (sig === graphManager._lastSig)
+                return;
             graphManager._lastSig = sig;
-
             // Preserve node positions before reload
             let savedPositions = {};
-            try { savedPositions = graphManager.network.getPositions(); } catch (err) { /* ignore */ }
-
+            try {
+                savedPositions = graphManager.network.getPositions();
+            }
+            catch (err) { /* ignore */ }
             // Preserve the camera too. vis.js setData() emits initPhysics, and the
             // physics engine (re)stabilization ends in a View.fit() that snaps the
             // viewport to the fit-all position/scale — destroying the user's zoom
@@ -478,8 +496,8 @@ window.GraphNetwork = {
                         scale: graphManager.network.getScale()
                     };
                 }
-            } catch (err) { /* ignore */ }
-
+            }
+            catch (err) { /* ignore */ }
             graphManager.nodes.clear();
             graphManager._revealedItemIds = new Map();
             graphManager._revealedAreaIds.clear();
@@ -491,33 +509,32 @@ window.GraphNetwork = {
             graphManager._graphNodesObj = nodesObj;
             graphManager._graphEdgesArr = edgesArr;
             graphManager._edgeTooltipHtml = {};
-
             // Decide the map pitch before anything reads it: node sizes, the
             // lattice and the background art are all derived from it, so a pitch
             // settled afterwards would leave them disagreeing (task-526).
-            try { this.applyAutoMapSpacing(nodesObj); } catch (err) { /* keep the current pitch */ }
+            try {
+                this.applyAutoMapSpacing(nodesObj);
+            }
+            catch (err) { /* keep the current pitch */ }
             // The stepper reads the effective pitch and whether it is derived, and
             // the menu says so when the map is drawing dots — both cheap DOM writes
             // that must be told the truth on every load, not only when it moves.
-            if (graphManager._syncMapSpacingButton) graphManager._syncMapSpacingButton();
-
+            if (graphManager._syncMapSpacingButton)
+                graphManager._syncMapSpacingButton();
             // Visibility (floor filter, inhabited-areas, items/triggers toggles,
             // revealed areas/items, search) is applied in place later by
             // applyVisibility(), so toggles never need a full setData() rebuild
             // (which was causing zoom/pan loss + jitter). Build every node here.
-
             for (const id in nodesObj) {
                 const nodeData = nodesObj[id];
                 graphManager.nodes.set(id, nodeData);
                 visNodes.push(this.buildNodeConfig(nodeData));
             }
-
             const renderedConnectionPairs = new Set();
-
             // Node-type lookup for endpoint-aware edge suppression.
             const nodeTypeById = {};
-            for (const id in nodesObj) nodeTypeById[id] = nodesObj[id] && nodesObj[id].type;
-
+            for (const id in nodesObj)
+                nodeTypeById[id] = nodesObj[id] && nodesObj[id].type;
             // The backend emits both a carrying and an equipped edge to the same
             // item↔character pair. Track equipped pairs so the redundant carrying
             // edge is suppressed.
@@ -527,64 +544,59 @@ window.GraphNetwork = {
                     equippedPairs.add([e.source, e.target].sort().join('|'));
                 }
             }
-
             for (const edgeObj of edgesArr) {
                 const rawType = edgeObj.type || 'connection';
                 const edgeType = EdgeTypes.resolve(rawType);
                 const style = edgeObj.properties?.style || {};
-
                 // Never draw a "connection" edge between a character and an item —
                 // the backend sometimes emits one alongside carrying/equipped.
                 if (edgeType === 'connection') {
                     const st = nodeTypeById[edgeObj.source];
                     const tt = nodeTypeById[edgeObj.target];
-                    if ((st === 'character' && tt === 'item') || (st === 'item' && tt === 'character')) continue;
+                    if ((st === 'character' && tt === 'item') || (st === 'item' && tt === 'character'))
+                        continue;
                 }
                 // An equipped item is not separately "carrying" — drop the duplicate.
                 if (edgeType === 'carrying') {
                     const pairKey = [edgeObj.source, edgeObj.target].sort().join('|');
-                    if (equippedPairs.has(pairKey)) continue;
+                    if (equippedPairs.has(pairKey))
+                        continue;
                 }
                 const typeCfg = EdgeTypes.getConfig(edgeType);
                 let defaultColor = typeCfg.color;
                 let defaultDashes = edgeType === 'unlocks';
-
                 let edgeLabel = '';
                 if (graphManager._showEdgeLabels) {
                     edgeLabel = edgeType;
-                } else if (edgeType === 'unlocks') {
+                }
+                else if (edgeType === 'unlocks') {
                     // A whole `properties.description` is arbitrary-length
                     // author-written prose, which is the one label that cannot be
                     // trusted to be short (task-558). Three lines is what fits the
                     // edge without pushing its ends apart; the full text stays on
                     // the hover tooltip that is already built for this edge.
-                    edgeLabel = _firstSentence(
-                        edgeObj.properties?.description || 'unlocks', 3);
+                    edgeLabel = _firstSentence(edgeObj.properties?.description || 'unlocks', 3);
                 }
-
                 // Collapse bidirectional connection pairs into a single visual edge
                 if (edgeType === 'connection') {
                     const pairKey = [edgeObj.source, edgeObj.target].sort().join('|');
-                    if (renderedConnectionPairs.has(pairKey)) continue;
+                    if (renderedConnectionPairs.has(pairKey))
+                        continue;
                     renderedConnectionPairs.add(pairKey);
-                    const otherEdges = edgesArr.filter(e =>
-                        e.type === 'connection' &&
+                    const otherEdges = edgesArr.filter((e) => e.type === 'connection' &&
                         ((e.source === edgeObj.target && e.target === edgeObj.source) ||
-                         (e.source === edgeObj.source && e.target === edgeObj.target))
-                    );
+                            (e.source === edgeObj.source && e.target === edgeObj.target)));
                     if (otherEdges.length > 1) {
-                        const dirs = otherEdges.map(e => e.properties?.direction).filter(Boolean);
+                        const dirs = otherEdges.map((e) => e.properties?.direction).filter(Boolean);
                         edgeLabel = (graphManager._showEdgeLabels ? '↔ ' : '') + dirs.join(' ↔ ');
                     }
                 }
-
                 if (typeof WayAuthoring !== 'undefined') {
                     const tip = WayAuthoring.buildEdgeTooltipForVis(edgeObj.source, edgeObj.target, nodesObj, edgesArr);
                     if (tip) {
                         graphManager._edgeTooltipHtml[`${edgeObj.source}|${edgeObj.target}`] = tip.html;
                     }
                 }
-
                 // Attachment edges (item -> its parent, or a trigger -> its host)
                 // get short springs so a child settles next to its parent rather
                 // than floating at the global length. Children are in the solver
@@ -592,7 +604,6 @@ window.GraphNetwork = {
                 // (there is no central gravity to fight).
                 const isAttachment = GRAPH_ATTACH_EDGE_TYPES.has(edgeType)
                     || edgeType === 'triggers' || edgeType === 'grappled';
-
                 // In hierarchical mode a relation edge is the level link: orient
                 // it parent -> child from the resolved relations rather than the
                 // stored direction, which is inconsistent for `in` (bug-44).
@@ -604,7 +615,6 @@ window.GraphNetwork = {
                             ? window.GraphRelativeLayout.connectionLevelEdge(edgeObj.source, edgeObj.target, nodesObj)
                             : null))
                     : null;
-
                 let edgeLength = undefined;
                 if (edgeType === 'connection') {
                     const targetNode = nodesObj[edgeObj.target];
@@ -612,7 +622,8 @@ window.GraphNetwork = {
                     const wayNode = targetNode?.type === 'way' ? targetNode : sourceNode?.type === 'way' ? sourceNode : null;
                     if (wayNode) {
                         const len = wayNode.properties?.edge_length;
-                        if (len && len > 0) edgeLength = len;
+                        if (len && len > 0)
+                            edgeLength = len;
                     }
                     // Dynamic default: a connection edge is only as long as its
                     // labels need. A short name ("west") stays tight; a long one
@@ -625,7 +636,8 @@ window.GraphNetwork = {
                         // Capped so a two-sided label can't stretch the layout.
                         edgeLength = _labelEdgeLength(edgeLabel);
                     }
-                } else if (isAttachment) {
+                }
+                else if (isAttachment) {
                     const len = (config || {}).graphItemEdgeLength || 35;
                     edgeLength = len;
                 }
@@ -662,7 +674,8 @@ window.GraphNetwork = {
             // Restore positions only for nodes that still exist
             const newNodeIds = new Set(visNodes.map(nodeConfig => nodeConfig.id));
             for (const [id, pos] of Object.entries(savedPositions)) {
-                if (!newNodeIds.has(id)) continue;
+                if (!newNodeIds.has(id))
+                    continue;
                 graphManager.network.moveNode(id, pos.x, pos.y);
             }
             // Apply cardinal-based area layout only in MAP mode: the Map tab
@@ -686,20 +699,19 @@ window.GraphNetwork = {
             // physics as unavailable rather than offering a toggle that the
             // next reload silently undoes.
             graphManager._paintedGridLayout = layoutKind === 'grid';
-
-
-        // Items, characters and triggers sit relative to whatever holds them,
-        // derived fresh each load (task-485) — never a saved snapshot, so a
-        // carried item follows its carrier. This must run in Map mode too: a
-        // painted grid places areas and ways, but items/characters have no
-        // painted coords and would otherwise pile up at the origin, fanning
-        // their edges across the map (the follow timer sleeps itself when
-        // physics is off, so there is no steady-state cost to leave it on).
-        if (window.GraphRelativeLayout) {
-            try { window.GraphRelativeLayout.apply(); } catch (err) { /* ignore */ }
-        }
-
-
+            // Items, characters and triggers sit relative to whatever holds them,
+            // derived fresh each load (task-485) — never a saved snapshot, so a
+            // carried item follows its carrier. This must run in Map mode too: a
+            // painted grid places areas and ways, but items/characters have no
+            // painted coords and would otherwise pile up at the origin, fanning
+            // their edges across the map (the follow timer sleeps itself when
+            // physics is off, so there is no steady-state cost to leave it on).
+            if (window.GraphRelativeLayout) {
+                try {
+                    window.GraphRelativeLayout.apply();
+                }
+                catch (err) { /* ignore */ }
+            }
             // Physics follows the user's choice, in Map mode too. The grid layout
             // turns the solver off only to place the lattice; the preference is
             // restored below, so a painted scope with physics on simulates after
@@ -712,7 +724,6 @@ window.GraphNetwork = {
                 graphManager._physicsEnabled = true;
                 GraphNetwork.applyModePhysics(true);
             }
-
             // Put the camera back where the user had it (setData's internal
             // stabilization re-fit it to the whole graph; positions were restored
             // above, now the viewport too).
@@ -723,47 +734,46 @@ window.GraphNetwork = {
                         scale: savedView.scale,
                         animation: false
                     });
-                } catch (err) { /* ignore */ }
+                }
+                catch (err) { /* ignore */ }
             }
-
             // Apply visibility in place (floor filter, inhabited areas, items,
             // triggers, revealed nodes, and active search). Reuses the dataset we
             // just built so no second rebuild happens here.
             GraphNetwork.applyVisibility();
-
             // Attach rich tippy tooltips to nodes and edges
             GraphNetwork._attachTippyTooltips();
-
             // Re-apply trait + tag label decorations (tag library may load async)
             GraphNetwork._applyNodeLabelDecorations();
-
             // Now that labels are decorated, apply the zoom-LOD decision.
             GraphNetwork.applyNodeLabelVisibility(true);
-
             // Refresh floor picker options from areas now present
             graphManager.refreshFloorOptions();
-
             // Re-apply live NL-editor ghost previews (staged ops) after the
             // setData() rebuild wipes the dataset's extra nodes/edges.
             if (window.NLEditorGhosts?.refresh) {
-                try { window.NLEditorGhosts.refresh(); } catch (err) { /* ignore */ }
+                try {
+                    window.NLEditorGhosts.refresh();
+                }
+                catch (err) { /* ignore */ }
             }
-
             // Snapshot the structural styles BEFORE any overlay recolours them,
             // so switching overlays can reset in place (task-642). Without this
             // a trigger overlay's dim-everything (opacity 0.2, grey) stayed under
             // the next overlay and made heat/sound/light read alike.
             GraphNetwork._captureBaseStyles();
             // Re-render overlay views (map/outline) if active
-            if (graphManager._viewMode !== 'graph') graphManager._renderCurrentView();
+            if (graphManager._viewMode !== 'graph')
+                graphManager._renderCurrentView();
             // The toolbar's loaded-node stat reads _graphNodesObj, so repaint it
             // only now that the new dataset is in place (task-530).
-            if (window.GraphToolbar) GraphToolbar.syncAll();
-        } catch (err) {
+            if (window.GraphToolbar)
+                GraphToolbar.syncAll();
+        }
+        catch (err) {
             console.warn("Graph API unavailable:", err);
         }
     },
-
     /**
      * Computes the set of node ids that should be visible right now based on
      * all active graph filters. See GraphProjector.computeVisibleNodeIds.
@@ -771,13 +781,8 @@ window.GraphNetwork = {
      * @returns {Set<string>} ids of currently-visible nodes
      */
     _computeVisibleNodeIds() {
-        return GraphProjector.computeVisibleNodeIds(
-            graphManager._graphNodesObj || {},
-            graphManager._graphEdgesArr || [],
-            GraphProjector._viewState()
-        );
+        return GraphProjector.computeVisibleNodeIds(graphManager._graphNodesObj || {}, graphManager._graphEdgesArr || [], GraphProjector._viewState());
     },
-
     /**
      * Applies the current visibility state to the live vis.js dataset in place.
      * Hides nodes via the `hidden` flag and hides edges whose endpoints are not
@@ -788,7 +793,6 @@ window.GraphNetwork = {
         const visibleIds = GraphNetwork._computeVisibleNodeIds();
         GraphProjector.applyVisibility(graphManager.network, visibleIds);
     },
-
     /**
      * Should node names be drawn right now? The manual toggle plus a zoom LOD:
      * a dense painted map (more than `graphLabelMaxNodes`, default 400) hides
@@ -796,33 +800,41 @@ window.GraphNetwork = {
      * the overview is topology, not a wall of text. A small graph always shows.
      */
     _nodeLabelPolicy() {
-        if (!graphManager._showNodeLabels) return false;
+        if (!graphManager._showNodeLabels)
+            return false;
         // A compact map draws areas as bare dots, so a name under every dot is
         // the wall of text the dot switch exists to avoid (task-526). The
         // decision is cached and restored with every other label change, so
         // raising the pitch brings the names back verbatim.
-        if (GraphNetwork.mapCompact()) return false;
+        if (GraphNetwork.mapCompact())
+            return false;
         const total = Object.keys(graphManager._graphNodesObj || {}).length;
         const max = Number((typeof config !== 'undefined' && config && config.graphLabelMaxNodes)) || 400;
-        if (total <= max) return true;
+        if (total <= max)
+            return true;
         let scale = 1;
-        try { scale = graphManager.network.getScale(); } catch (err) { /* ignore */ }
+        try {
+            scale = graphManager.network.getScale();
+        }
+        catch (err) { /* ignore */ }
         const minScale = Number((typeof config !== 'undefined' && config && config.graphLabelMinScale)) || 0.6;
         return scale >= minScale;
     },
-
     /**
      * Apply the label policy in one DataSet pass — only when the decision
      * changes, so zooming does not re-write 1k nodes every frame. Decorated
      * labels are cached while hidden and restored verbatim.
      */
     applyNodeLabelVisibility(force) {
-        if (!graphManager.network) return;
+        if (!graphManager.network)
+            return;
         const nodesDS = graphManager.network.body && graphManager.network.body.data
             && graphManager.network.body.data.nodes;
-        if (!nodesDS) return;
+        if (!nodesDS)
+            return;
         const show = GraphNetwork._nodeLabelPolicy();
-        if (!force && show === graphManager._nodeLabelsShown) return;
+        if (!force && show === graphManager._nodeLabelsShown)
+            return;
         graphManager._nodeLabelsShown = show;
         const src = graphManager._graphNodesObj || {};
         const updates = [];
@@ -831,13 +843,18 @@ window.GraphNetwork = {
                 graphManager._labelCache = {};
                 for (const id in src) {
                     const datum = nodesDS.get(id);
-                    if (datum) graphManager._labelCache[id] = datum.label || '';
+                    if (datum)
+                        graphManager._labelCache[id] = datum.label || '';
                 }
             }
-            for (const id in src) if (nodesDS.get(id)) updates.push({ id, label: '' });
-        } else if (graphManager._labelCache) {
+            for (const id in src)
+                if (nodesDS.get(id))
+                    updates.push({ id, label: '' });
+        }
+        else if (graphManager._labelCache) {
             for (const [id, label] of Object.entries(graphManager._labelCache)) {
-                if (nodesDS.get(id)) updates.push({ id, label });
+                if (nodesDS.get(id))
+                    updates.push({ id, label });
             }
             graphManager._labelCache = null;
         }
@@ -847,9 +864,9 @@ window.GraphNetwork = {
         }
         // The zoom LOD never changes the toggle itself: the button shows the
         // manual preference, the LOD is a rendering decision.
-        if (window.GraphToolbar) GraphToolbar.syncToggles();
+        if (window.GraphToolbar)
+            GraphToolbar.syncToggles();
     },
-
     /**
      * Builds a plain-text tooltip string for a graph node.
      * Shows different information depending on node type (area, item, way, character).
@@ -861,39 +878,32 @@ window.GraphNetwork = {
     buildTooltip(nodeData) {
         return GraphTooltips.buildTooltip(nodeData);
     },
-
     /** @deprecated Use GraphTooltips._escHtml */
     _escHtml(s) {
         return GraphTooltips._escHtml(s);
     },
-
     /** @deprecated Use GraphTooltips.buildTooltipHtml */
     buildTooltipHtml(nodeData) {
         return GraphTooltips.buildTooltipHtml(nodeData);
     },
-
     /** @deprecated Use GraphTooltips.bindEdgeHoverTooltips */
     _bindEdgeHoverTooltips() {
         return GraphTooltips.bindEdgeHoverTooltips();
     },
-
     /** @deprecated Use GraphTooltips.findGraphEdge */
     _findGraphEdge(fromId, toId) {
         return GraphTooltips.findGraphEdge(fromId, toId);
     },
-
     /** @deprecated Use GraphTooltips.attachNodeTooltips */
     _attachTippyTooltips() {
         return GraphTooltips.attachNodeTooltips();
     },
-
     /**
      * Fits the network view to show all nodes with animation.
      */
     fitView() {
         graphManager.network.fit({ animation: true });
     },
-
     /**
      * Toggle vis's hierarchical (level) layout against the free physics layout
      * (task-485). Levels needs no per-frame work: the layout engine places every
@@ -905,11 +915,16 @@ window.GraphNetwork = {
         cfg.graphLayoutMode = cfg.graphLayoutMode === 'levels' ? 'free' : 'levels';
         GraphNetwork._syncLayoutButton();
         GraphNetwork.applyGraphSettings();
-        if (cfg.save) { try { cfg.save(); } catch (err) { /* ignore */ } }
+        if (cfg.save) {
+            try {
+                cfg.save();
+            }
+            catch (err) { /* ignore */ }
+        }
     },
-
     _syncLayoutButton() {
-        if (window.GraphToolbar) GraphToolbar.syncLayout();
+        if (window.GraphToolbar)
+            GraphToolbar.syncLayout();
     },
     /**
      * Toggles physics simulation on/off for the vis.js network. The button's
@@ -919,27 +934,28 @@ window.GraphNetwork = {
     togglePhysics() {
         graphManager._physicsEnabled = !graphManager._physicsEnabled;
         GraphNetwork.applyModePhysics(graphManager._physicsEnabled);
-        if (window.GraphToolbar) GraphToolbar.syncAll();
+        if (window.GraphToolbar)
+            GraphToolbar.syncAll();
     },
-
     /**
      * Toggles the graph legend overlay visibility. The legend also has its own
      * ✕ (GraphToolbar.closeLegend); both go through the same flag so the View ▾
      * toggle and the panel can never disagree.
      */
     toggleLegend() {
-        if (!graphManager._legendEl) return;
+        if (!graphManager._legendEl)
+            return;
         graphManager._legendVisible = !graphManager._legendVisible;
         graphManager._legendEl.style.display = graphManager._legendVisible ? 'block' : 'none';
-        if (window.GraphToolbar) GraphToolbar.syncToggles();
+        if (window.GraphToolbar)
+            GraphToolbar.syncToggles();
     },
-
     toggleTriggers() {
         graphManager._showTriggers = !graphManager._showTriggers;
-        if (window.GraphToolbar) GraphToolbar.syncToggles();
+        if (window.GraphToolbar)
+            GraphToolbar.syncToggles();
         GraphNetwork.applyVisibility();
     },
-
     /**
      * Toggle node image thumbnails on the graph. Persists the preference so it
      * survives reloads. Requires node `image` properties (see the inspector
@@ -950,38 +966,43 @@ window.GraphNetwork = {
         graphManager._showImages = !graphManager._showImages;
         try {
             localStorage.setItem('vw_graphShowImages', graphManager._showImages ? '1' : '0');
-        } catch (e) { /* ignore */ }
-        if (window.GraphToolbar) GraphToolbar.syncToggles();
+        }
+        catch (e) { /* ignore */ }
+        if (window.GraphToolbar)
+            GraphToolbar.syncToggles();
         graphManager._lastSig = '';
         GraphNetwork.loadGraphData();
     },
-
     toggleItems() {
         graphManager._showItems = !graphManager._showItems;
-        if (window.GraphToolbar) GraphToolbar.syncToggles();
+        if (window.GraphToolbar)
+            GraphToolbar.syncToggles();
         if (graphManager._showItems) {
             this.hideRevealedItems();
         }
         GraphNetwork.applyVisibility();
     },
-
     toggleInhabitedAreas() {
         graphManager._showOnlyInhabitedAreas = !graphManager._showOnlyInhabitedAreas;
-        if (window.GraphToolbar) GraphToolbar.syncToggles();
+        if (window.GraphToolbar)
+            GraphToolbar.syncToggles();
         if (!graphManager._showOnlyInhabitedAreas) {
             graphManager._revealedAreaIds.clear();
         }
         GraphNetwork.applyVisibility();
     },
-
     revealAreasForWay(wayId) {
-        if (!graphManager._showOnlyInhabitedAreas) return;
+        if (!graphManager._showOnlyInhabitedAreas)
+            return;
         const edgesArr = graphManager._graphEdgesArr || [];
         const connectedAreas = new Set();
         for (const edgeObj of edgesArr) {
-            if (edgeObj.type !== 'connection') continue;
-            if (edgeObj.source === wayId) connectedAreas.add(edgeObj.target);
-            if (edgeObj.target === wayId) connectedAreas.add(edgeObj.source);
+            if (edgeObj.type !== 'connection')
+                continue;
+            if (edgeObj.source === wayId)
+                connectedAreas.add(edgeObj.target);
+            if (edgeObj.target === wayId)
+                connectedAreas.add(edgeObj.source);
         }
         let changed = false;
         for (const areaId of connectedAreas) {
@@ -994,13 +1015,12 @@ window.GraphNetwork = {
             GraphNetwork.applyVisibility();
         }
     },
-
     hideRevealedAreas() {
-        if (graphManager._revealedAreaIds.size === 0) return;
+        if (graphManager._revealedAreaIds.size === 0)
+            return;
         graphManager._revealedAreaIds.clear();
         GraphNetwork.applyVisibility();
     },
-
     /**
      * Builds a vis.js node config object for a node from its raw graph data.
      * Centralized so reveal-on-click can reuse the same label/tooltip/color
@@ -1031,7 +1051,6 @@ window.GraphNetwork = {
             // The image branch below overrides this with circularImage.
             shape: { area: 'box', item: 'diamond', way: 'triangle', character: 'ellipse' }[nodeData.type] || 'ellipse'
         };
-
         // A compact map draws a painted area as a bare dot (task-526). A card's
         // width is driven by its *name*, which does not shrink with the pitch, so
         // below the card threshold the boxes are what overlap. The dot is sized
@@ -1041,7 +1060,6 @@ window.GraphNetwork = {
             nodeConfig.size = (typeof GraphLayoutEngine !== 'undefined'
                 && GraphLayoutEngine.mapDotSize) ? GraphLayoutEngine.mapDotSize() : 8;
         }
-
         // Saved layout: a node whose x/y were persisted to the world (right-click
         // → 🗺 → 💾 Save layout) loads back in place instead of being freshly
         // simulated. Whether it then HOLDS is the job of the physics lock.
@@ -1049,21 +1067,25 @@ window.GraphNetwork = {
             nodeConfig.x = nodeData.properties.x;
             nodeConfig.y = nodeData.properties.y;
         }
-
         // Way nodes: color by state
         if (nodeData.type === 'way') {
             const state = (nodeData.properties?.current_state || 'closed').toLowerCase();
             if (state === 'open') {
                 nodeConfig.color = { background: '#1a3a2a', border: '#3fb950' };
-            } else if (state === 'closed') {
+            }
+            else if (state === 'closed') {
                 nodeConfig.color = { background: '#2d3a1a', border: '#e3b341' };
-            } else if (state === 'locked') {
+            }
+            else if (state === 'locked') {
                 nodeConfig.color = { background: '#3a1a1a', border: '#f85149' };
-            } else if (state === 'hidden') {
+            }
+            else if (state === 'hidden') {
                 nodeConfig.color = { background: '#1a1a2a', border: '#6e7681' };
-            } else if (state === 'blocked') {
+            }
+            else if (state === 'blocked') {
                 nodeConfig.color = { background: '#3a2a1a', border: '#f0883e' };
-            } else if (state === 'broken') {
+            }
+            else if (state === 'broken') {
                 nodeConfig.color = { background: '#3a1a1a', border: '#f85149' };
             }
             if (nodeData.properties?.one_way) {
@@ -1071,19 +1093,19 @@ window.GraphNetwork = {
                 nodeConfig.color.border = '#58a6ff';
             }
         }
-
         // Item nodes: color by state
         if (nodeData.type === 'item') {
             const state = (nodeData.properties?.current_state || 'normal').toLowerCase();
             if (state === 'lit') {
                 nodeConfig.color = { background: '#3d2a0a', border: '#f0883e' };
-            } else if (state === 'broken') {
+            }
+            else if (state === 'broken') {
                 nodeConfig.color = { background: '#2d2d2d', border: '#6e7681' };
-            } else if (state === 'depleted') {
+            }
+            else if (state === 'depleted') {
                 nodeConfig.color = { background: '#2d251a', border: '#8b7355' };
             }
         }
-
         // Node image mode (task-249): when enabled and the node carries art,
         // render it as a circular thumbnail instead of the plain colored shape.
         // The label stays so names remain readable; the rich tooltip still
@@ -1103,10 +1125,8 @@ window.GraphNetwork = {
             // rather than letting the image's own bounds set the node size.
             nodeConfig.shapeProperties = { useBorderWithImage: true, useImageSize: false };
         }
-
         return nodeConfig;
     },
-
     /**
      * Reveals the items directly connected to a node, used when items are
      * hidden. Clicking an area shows its items, a character shows carried +
@@ -1117,19 +1137,23 @@ window.GraphNetwork = {
      * @param {string} nodeId - id of the clicked node
      */
     revealItemsForNode(nodeId) {
-        if (graphManager._showItems) return; // items already visible
+        if (graphManager._showItems)
+            return; // items already visible
         const edgesArr = graphManager._graphEdgesArr || [];
         const revealed = new Set();
         for (const edgeObj of edgesArr) {
             const type = EdgeTypes.resolve(edgeObj.type || 'connection');
-            if (type === 'connection' || type === 'unlocks' || type === 'triggers' || type === 'requires') continue;
-            if (edgeObj.target !== nodeId) continue;
+            if (type === 'connection' || type === 'unlocks' || type === 'triggers' || type === 'requires')
+                continue;
+            if (edgeObj.target !== nodeId)
+                continue;
             const itemNodeData = graphManager.nodes.get(edgeObj.source);
-            if (!itemNodeData || itemNodeData.type !== 'item') continue;
+            if (!itemNodeData || itemNodeData.type !== 'item')
+                continue;
             revealed.add(edgeObj.source);
         }
-        if (revealed.size === 0) return;
-
+        if (revealed.size === 0)
+            return;
         // If nodeId is already a revealed item we're drilling into a child;
         // otherwise this is a new parent branch and we clear the previous set.
         let isDrillingIntoChild = false;
@@ -1142,7 +1166,6 @@ window.GraphNetwork = {
         if (!isDrillingIntoChild) {
             this.hideRevealedItems();
         }
-
         // Only track items not already revealed under some parent. The nodes
         // themselves are already in the dataset (built for the whole graph);
         // applyVisibility() unhides them and their edges in place.
@@ -1155,23 +1178,23 @@ window.GraphNetwork = {
                     break;
                 }
             }
-            if (!alreadyRevealed) added = true;
+            if (!alreadyRevealed)
+                added = true;
         }
         if (added) {
             graphManager._revealedItemIds.set(nodeId, revealed);
             GraphNetwork.applyVisibility();
         }
     },
-
     /**
      * Removes any temporarily revealed item nodes from the network.
      */
     hideRevealedItems() {
-        if (!graphManager._revealedItemIds || graphManager._revealedItemIds.size === 0) return;
+        if (!graphManager._revealedItemIds || graphManager._revealedItemIds.size === 0)
+            return;
         graphManager._revealedItemIds = new Map();
         GraphNetwork.applyVisibility();
     },
-
     /**
      * Legend panel chrome: title + a ✕. Every legend body (structural and the
      * per-overlay ones) is wrapped in it, so the panel is always closable —
@@ -1191,7 +1214,6 @@ window.GraphNetwork = {
             ${rows}
         </div>`;
     },
-
     /**
      * Builds and returns the HTML content for the graph legend.
      * Shows node type colors and state color mappings.
@@ -1201,7 +1223,6 @@ window.GraphNetwork = {
     buildLegendHTML() {
         return GraphNetwork.legendChrome('📖 Legend');
     },
-
     /** The structural legend's rows (everything that is not the panel chrome). */
     buildLegendRows() {
         return `
@@ -1221,11 +1242,9 @@ window.GraphNetwork = {
             <div class="legend-row"><span class="legend-swatch" style="background:#2d251a;border:2px solid #8b7355;"></span><span style="font-size:9px;"> depleted</span></div>
             ${typeof NodeBadges !== 'undefined' ? NodeBadges.legendHtml() : ''}`;
     },
-
     // ──────────────────────────────────────────────
     //  TAG INDICATORS & FILTER
     // ──────────────────────────────────────────────
-
     /**
      * Load the tag library (GET /api/tags/search with no query returns all
      * tags) and cache it as {id: {id, name, icon, color}}. Re-applies node
@@ -1238,16 +1257,16 @@ window.GraphNetwork = {
         }
         fetch('/api/tags/search')
             .then(r => r.json())
-            .then(tags => {
-                const byId = {};
-                (tags || []).forEach(t => { byId[t.id] = t; });
-                graphManager._tagLibrary = byId;
-                GraphNetwork._applyNodeLabelDecorations();
-                if (graphManager._tagPanelVisible) GraphNetwork.renderTagPanel();
-            })
+            .then((tags) => {
+            const byId = {};
+            (tags || []).forEach((t) => { byId[t.id] = t; });
+            graphManager._tagLibrary = byId;
+            GraphNetwork._applyNodeLabelDecorations();
+            if (graphManager._tagPanelVisible)
+                GraphNetwork.renderTagPanel();
+        })
             .catch(() => { graphManager._tagLibrary = {}; });
     },
-
     /**
      * Return {icon, color} for a node's tags, preferring library entries and
      * falling back to a deterministic hash color for unknown tags.
@@ -1255,12 +1274,15 @@ window.GraphNetwork = {
     _tagMetaFor(nodeData) {
         const props = nodeData.properties || {};
         let tags = props.tags || [];
-        if (typeof tags === 'string') tags = tags.split(',').map(t => t.trim()).filter(Boolean);
-        if (!Array.isArray(tags) || tags.length === 0) return [];
+        if (typeof tags === 'string')
+            tags = tags.split(',').map(t => t.trim()).filter(Boolean);
+        if (!Array.isArray(tags) || tags.length === 0)
+            return [];
         const lib = graphManager._tagLibrary || {};
         const hashColor = (s) => {
             let h = 0;
-            for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+            for (let i = 0; i < s.length; i++)
+                h = (h * 31 + s.charCodeAt(i)) >>> 0;
             return '#' + ((h % 0xffffff)).toString(16).padStart(6, '0');
         };
         return tags.map(tag => {
@@ -1268,67 +1290,69 @@ window.GraphNetwork = {
             return { tag, icon: entry?.icon || '🏷️', color: entry?.color || hashColor(tag) };
         });
     },
-
     /**
      * Apply trait badges + tag icons to node labels as visual indicators.
      */
     _applyNodeLabelDecorations() {
         const nodes = graphManager.network?.body?.data?.nodes;
-        if (!nodes || typeof NodeBadges === 'undefined') return;
+        if (!nodes || typeof NodeBadges === 'undefined')
+            return;
         nodes.forEach((node) => {
             const nodeData = graphManager.nodes.get(node.id);
-            if (!nodeData) return;
+            if (!nodeData)
+                return;
             const label = NodeBadges.formatLabel(nodeData, GraphNetwork._tagMetaFor(nodeData));
-            if (node.label !== label) nodes.update({ id: node.id, label, decoratedLabel: true });
+            if (node.label !== label)
+                nodes.update({ id: node.id, label, decoratedLabel: true });
         });
     },
-
     /** @deprecated Use _applyNodeLabelDecorations */
     _applyTagIconsToLabels() {
         GraphNetwork._applyNodeLabelDecorations();
     },
-
     /**
      * Toggle the tag filter panel visibility.
      */
     toggleTagPanel() {
-        if (!graphManager._tagPanelEl) return;
+        if (!graphManager._tagPanelEl)
+            return;
         graphManager._tagPanelVisible = !graphManager._tagPanelVisible;
         graphManager._tagPanelEl.style.display = graphManager._tagPanelVisible ? 'block' : 'none';
-        if (graphManager._tagPanelVisible) GraphNetwork.renderTagPanel();
+        if (graphManager._tagPanelVisible)
+            GraphNetwork.renderTagPanel();
     },
-
     /**
      * Render the tag filter panel: one clickable row per tag used in the
      * world, showing its color dot, icon, name, and node count.
      */
     renderTagPanel() {
-        if (!graphManager._tagPanelEl) return;
+        if (!graphManager._tagPanelEl)
+            return;
         const lib = graphManager._tagLibrary || {};
         const counts = {};
         const metaById = {};
         graphManager.nodes.forEach((nodeData) => {
-            GraphNetwork._tagMetaFor(nodeData).forEach(m => {
-                if (!metaById[m.tag]) metaById[m.tag] = m;
+            GraphNetwork._tagMetaFor(nodeData).forEach((m) => {
+                if (!metaById[m.tag])
+                    metaById[m.tag] = m;
                 counts[m.tag] = (counts[m.tag] || 0) + 1;
             });
         });
         const entries = Object.keys(counts).sort();
-        const inner = [networkManagerHtmlTag`<div style="font-size:10px;font-weight:600;color:var(--text-dim);margin-bottom:4px;">🏷️ Tags <span style="color:var(--text-muted);font-weight:400;">(click to filter)</span></div>`];
+        const inner = [networkManagerHtmlTag `<div style="font-size:10px;font-weight:600;color:var(--text-dim);margin-bottom:4px;">🏷️ Tags <span style="color:var(--text-muted);font-weight:400;">(click to filter)</span></div>`];
         if (graphManager._tagFilter) {
-            inner.push(networkManagerHtmlTag`<div class="tag-filter-row tag-filter-active" data-tag="" @click=${() => GraphNetwork.setTagFilter('')}>✕ Clear filter</div>`);
+            inner.push(networkManagerHtmlTag `<div class="tag-filter-row tag-filter-active" data-tag="" @click=${() => GraphNetwork.setTagFilter('')}>✕ Clear filter</div>`);
         }
-        entries.forEach(tag => {
+        entries.forEach((tag) => {
             const m = metaById[tag];
             const active = graphManager._tagFilter === tag;
-            inner.push(networkManagerHtmlTag`
+            inner.push(networkManagerHtmlTag `
                 <div class="tag-filter-row ${active ? 'tag-filter-active' : ''}" data-tag="${tag}" @click=${() => GraphNetwork.setTagFilter(tag)}>
                     <span class="legend-swatch" style="background:${m.color};"></span> ${m.icon} ${m.name || tag} <span style="color:var(--text-muted);">(${counts[tag]})</span>
                 </div>`);
         });
-        window.Lit.render(networkManagerHtmlTag`<div class="graph-legend-inner">${inner}</div>`, graphManager._tagPanelEl);
+        window.Lit.render(networkManagerHtmlTag `<div class="graph-legend-inner">${inner}</div>`, graphManager._tagPanelEl);
     },
-
     /**
      * Set the active tag filter and re-apply node visibility. Empty string
      * clears the filter.
@@ -1338,26 +1362,26 @@ window.GraphNetwork = {
         GraphNetwork.applyTagFilter();
         GraphNetwork.renderTagPanel();
     },
-
     /**
      * Apply the active tag filter: matching nodes stay at full opacity with a
      * highlighted border, others are dimmed.
      */
     applyTagFilter() {
         const nodes = graphManager.network?.body?.data?.nodes;
-        if (!nodes) return;
+        if (!nodes)
+            return;
         const filter = graphManager._tagFilter;
         nodes.forEach((node) => {
             const nodeData = graphManager.nodes.get(node.id);
             let match = !filter;
             if (nodeData && filter) {
-                match = GraphNetwork._tagMetaFor(nodeData).some(m => m.tag === filter);
+                match = GraphNetwork._tagMetaFor(nodeData).some((m) => m.tag === filter);
             }
             const opacity = match ? 1.0 : 0.15;
-            if (node.opacity !== opacity) nodes.update({ id: node.id, opacity });
+            if (node.opacity !== opacity)
+                nodes.update({ id: node.id, opacity });
         });
     },
-
     /**
      * Applies a search filter to graph nodes by hiding non-matching nodes
      * and edges. Only nodes whose labels contain the query stay visible;
@@ -1369,51 +1393,41 @@ window.GraphNetwork = {
     applyFilter(query) {
         return GraphFocus.applyFilter(query);
     },
-
     /** @deprecated Use GraphFocus.settleSearch */
     settleSearch() {
         return GraphFocus.settleSearch();
     },
-
     /** @deprecated Use GraphFocus._fitToSearchMatches */
     _fitToSearchMatches() {
         return GraphFocus._fitToSearchMatches();
     },
-
     /** @deprecated Use GraphFocus._kickClusterPhysics */
     _kickClusterPhysics() {
         return GraphFocus._kickClusterPhysics();
     },
-
     /** @deprecated Use GraphFocus.filterNodes */
     filterNodes(query) {
         return GraphFocus.filterNodes(query);
     },
-
     // ──────────────────────────────────────────────
     //  GRAPH VIEW OVERLAYS
     // ──────────────────────────────────────────────
-
     /** @deprecated Use GraphOverlays.lightToInt */
     _lightToInt(raw) {
         return GraphOverlays.lightToInt(raw);
     },
-
     /** @deprecated Use GraphOverlays.lightColors */
     _lightColors(level) {
         return GraphOverlays.lightColors(level);
     },
-
     /** @deprecated Use GraphOverlays.heatColors */
     _heatColors(temp) {
         return GraphOverlays.heatColors(temp);
     },
-
     /** @deprecated Use GraphOverlays.noiseColors */
     _noiseColors(noise) {
         return GraphOverlays.noiseColors(noise);
     },
-
     /**
      * Legacy alias for the cached ambient-light table. See
      * GraphOverlays.computeAmbientLight (now change-cached: only recomputes
@@ -1423,7 +1437,6 @@ window.GraphNetwork = {
     _computeAmbientLight() {
         return GraphOverlays.computeAmbientLight();
     },
-
     /**
      * Apply the Light overlay — color areas by ambient light with spill.
      */
@@ -1431,7 +1444,6 @@ window.GraphNetwork = {
         GraphOverlays.applyLightOverlay();
         GraphNetwork._updateOverlayLegend('light', GraphOverlays.computeAmbientLight());
     },
-
     /**
      * Apply the Heat overlay — color areas by temperature with propagation.
      */
@@ -1439,7 +1451,6 @@ window.GraphNetwork = {
         GraphOverlays.applyHeatOverlay();
         GraphNetwork._updateOverlayLegend('heat');
     },
-
     /**
      * Apply the Sound overlay — color areas by noise level with propagation.
      */
@@ -1447,7 +1458,6 @@ window.GraphNetwork = {
         GraphOverlays.applySoundOverlay();
         GraphNetwork._updateOverlayLegend('sound');
     },
-
     /**
      * Apply the Trigger overlay — highlight trigger sources/targets, dim others.
      */
@@ -1455,7 +1465,6 @@ window.GraphNetwork = {
         GraphOverlays.applyTriggerOverlay();
         GraphNetwork._updateOverlayLegend('trigger');
     },
-
     /**
      * Apply the Cardinal overlay — label ways with cardinal direction.
      */
@@ -1463,7 +1472,6 @@ window.GraphNetwork = {
         GraphOverlays.applyCardinalOverlay();
         GraphNetwork._updateOverlayLegend('cardinal');
     },
-
     /**
      * Clear overlay styles and restore default structural view.
      */
@@ -1476,7 +1484,6 @@ window.GraphNetwork = {
             GraphNetwork.applyModePhysics(true);
         }
     },
-
     /**
      * Update the legend for the current overlay view.
      *
@@ -1486,12 +1493,14 @@ window.GraphNetwork = {
      * from View ▾ ▸ Legend, or close it with its own ✕.
      */
     _updateOverlayLegend(mode, extraData) {
-        if (!graphManager._legendEl) return;
+        if (!graphManager._legendEl)
+            return;
         let title = null;
         let rows = '';
         if (mode === 'structural') {
-            return;   // the structural legend is already in the panel
-        } else if (mode === 'light') {
+            return; // the structural legend is already in the panel
+        }
+        else if (mode === 'light') {
             title = '💡 Light Overlay';
             rows = `
                 <div class="legend-row"><span class="legend-swatch" style="background:#0a0a0a;border:1px solid #333;"></span> pitch black 0-20</div>
@@ -1500,7 +1509,8 @@ window.GraphNetwork = {
                 <div class="legend-row"><span class="legend-swatch" style="background:#3a3518;border:1px solid #e3b341;"></span> bright 71-90</div>
                 <div class="legend-row"><span class="legend-swatch" style="background:#4a4020;border:1px solid #fff;"></span> blinding 91-100</div>
                 <div class="legend-row" style="margin-top:4px;"><span class="legend-swatch" style="background:#3d2a0a;border:1px solid #f0883e;"></span><span style="font-size:9px;"> lit item</span></div>`;
-        } else if (mode === 'heat') {
+        }
+        else if (mode === 'heat') {
             title = '🌡️ Heat Overlay';
             rows = `
                 <div class="legend-row"><span class="legend-swatch" style="background:#0a0a2e;border:1px solid #6e9eff;"></span> ≤ -20°C freezing</div>
@@ -1511,7 +1521,8 @@ window.GraphNetwork = {
                 <div class="legend-row"><span class="legend-swatch" style="background:#4a2818;border:1px solid #f0883e;"></span> 45°C hot</div>
                 <div class="legend-row"><span class="legend-swatch" style="background:#4a1010;border:1px solid #f85149;"></span> ≥ 50°C blazing</div>
                 <div class="legend-row" style="margin-top:4px;"><span class="legend-swatch" style="background:#4a2818;border:1px solid #f0883e;"></span><span style="font-size:9px;"> heat source</span></div>`;
-        } else if (mode === 'sound') {
+        }
+        else if (mode === 'sound') {
             title = '🔊 Sound Overlay';
             rows = `
                 <div class="legend-row"><span class="legend-swatch" style="background:#0a0a0a;border:1px solid #333;"></span> silent</div>
@@ -1519,26 +1530,29 @@ window.GraphNetwork = {
                 <div class="legend-row"><span class="legend-swatch" style="background:#2d333b;border:1px solid #58a6ff;"></span> moderate</div>
                 <div class="legend-row"><span class="legend-swatch" style="background:#3a2a18;border:1px solid #e3b341;"></span> loud</div>
                 <div class="legend-row"><span class="legend-swatch" style="background:#4a1010;border:1px solid #f85149;"></span> deafening</div>`;
-        } else if (mode === 'trigger') {
+        }
+        else if (mode === 'trigger') {
             title = '⚡ Trigger Overlay';
             rows = `
                 <div class="legend-row"><span class="legend-swatch" style="background:#2d333b;border:2px solid #bc8cff;"></span> trigger node</div>
                 <div class="legend-row"><span class="legend-swatch" style="background:#1a1a1a;border:1px solid #333;"></span> non-trigger node</div>
                 <div class="legend-row"><span style="color:#bc8cff;font-size:14px;">━─▶</span> trigger edge</div>
                 <div class="legend-row"><span style="color:#30363d;font-size:14px;">──▶</span> normal edge</div>`;
-        } else if (mode === 'cardinal') {
+        }
+        else if (mode === 'cardinal') {
             title = '🧭 Way directions';
             rows = `
                 <div style="font-size:9px;color:var(--text-muted);">Ways labeled with their direction</div>
                 <div style="font-size:9px;color:var(--text-muted);">N S E W NE NW SE SW U D</div>
                 <div style="font-size:9px;color:var(--text-muted);margin-top:4px;">A label overlay — it does not rearrange anything</div>`;
         }
-        if (!title) return;
-        window.Lit.render(networkManagerHtmlTag`${window.Lit.unsafeHTML(GraphNetwork.legendChrome(title, rows))}`, graphManager._legendEl);
+        if (!title)
+            return;
+        window.Lit.render(networkManagerHtmlTag `${window.Lit.unsafeHTML(GraphNetwork.legendChrome(title, rows))}`, graphManager._legendEl);
         // In place only: the panel keeps whatever visibility the user chose.
-        if (window.GraphToolbar) GraphToolbar.syncToggles();
+        if (window.GraphToolbar)
+            GraphToolbar.syncToggles();
     },
-
     /**
      * Snapshot every rendered node/edge's structural style.
      *
@@ -1551,7 +1565,8 @@ window.GraphNetwork = {
     _captureBaseStyles() {
         const data = graphManager.network && graphManager.network.body
             && graphManager.network.body.data;
-        if (!data) return;
+        if (!data)
+            return;
         const nodeStyles = {};
         if (data.nodes) {
             data.nodes.forEach((node) => {
@@ -1570,69 +1585,83 @@ window.GraphNetwork = {
         graphManager._baseNodeStyles = nodeStyles;
         graphManager._baseEdgeStyles = edgeStyles;
     },
-
     /** Restore the styles snapshotted by `_captureBaseStyles`. */
     resetOverlayStyles() {
         const data = graphManager.network && graphManager.network.body
             && graphManager.network.body.data;
-        if (!data) return;
+        if (!data)
+            return;
         const baseNodes = graphManager._baseNodeStyles;
         if (baseNodes && data.nodes) {
             const updates = [];
             data.nodes.forEach((node) => {
                 const s = baseNodes[node.id];
-                if (s) updates.push({ id: node.id, color: s.color, label: s.label, opacity: 1 });
+                if (s)
+                    updates.push({ id: node.id, color: s.color, label: s.label, opacity: 1 });
             });
-            if (updates.length) data.nodes.update(updates);
+            if (updates.length)
+                data.nodes.update(updates);
         }
         const baseEdges = graphManager._baseEdgeStyles;
         if (baseEdges && data.edges) {
             const updates = [];
             data.edges.forEach((edge) => {
                 const s = baseEdges[edge.id];
-                if (s) updates.push({
-                    id: edge.id, color: s.color, dashes: s.dashes,
-                    width: s.width, label: s.label, opacity: 1,
-                });
+                if (s)
+                    updates.push({
+                        id: edge.id, color: s.color, dashes: s.dashes,
+                        width: s.width, label: s.label, opacity: 1,
+                    });
             });
-            if (updates.length) data.edges.update(updates);
+            if (updates.length)
+                data.edges.update(updates);
         }
         // A label overlay (cardinal) rewrites names, so re-apply the LOD
         // decision or a reset map is left showing the previous overlay's labels.
         GraphNetwork.applyNodeLabelVisibility(true);
     },
-
     /**
      * Apply a named overlay to the graph.
      * @param {string} mode - 'light' | 'heat' | 'sound' | 'trigger' | 'cardinal' | 'structural'
      */
     applyOverlay(mode) {
-        if (!graphManager.network) { console.warn('Graph not initialized'); return; }
+        if (!graphManager.network) {
+            console.warn('Graph not initialized');
+            return;
+        }
         GraphNetwork.applyModePhysics(false);
         graphManager._overlayMode = mode;
-
         if (mode === 'structural') {
             GraphNetwork._clearOverlay();
             return;
         }
-
         // Each overlay starts from the structural styles, never from the last
         // overlay's recolour (task-642).
         GraphNetwork.resetOverlayStyles();
-
         const t0 = performance.now();
         try {
             switch (mode) {
-                case 'light': GraphNetwork._applyLightOverlay(); break;
-                case 'heat': GraphNetwork._applyHeatOverlay(); break;
-                case 'sound': GraphNetwork._applySoundOverlay(); break;
-                case 'trigger': GraphNetwork._applyTriggerOverlay(); break;
-                case 'cardinal': GraphNetwork._applyCardinalOverlay(); break;
+                case 'light':
+                    GraphNetwork._applyLightOverlay();
+                    break;
+                case 'heat':
+                    GraphNetwork._applyHeatOverlay();
+                    break;
+                case 'sound':
+                    GraphNetwork._applySoundOverlay();
+                    break;
+                case 'trigger':
+                    GraphNetwork._applyTriggerOverlay();
+                    break;
+                case 'cardinal':
+                    GraphNetwork._applyCardinalOverlay();
+                    break;
             }
             const dt = Math.round(performance.now() - t0);
-            const overlayNames = { light:'Light', heat:'Heat', sound:'Sound', trigger:'Trigger', cardinal:'Cardinal' };
+            const overlayNames = { light: 'Light', heat: 'Heat', sound: 'Sound', trigger: 'Trigger', cardinal: 'Cardinal' };
             events.log(`📊 ${overlayNames[mode] || mode} overlay applied (${dt}ms)`, 'system-msg');
-        } catch (err) {
+        }
+        catch (err) {
             console.error('Overlay error:', err);
             events.log(`⚠️ Overlay "${mode}" failed: ${err.message}`, 'error-msg');
             GraphNetwork._clearOverlay();

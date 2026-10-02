@@ -1,3 +1,4 @@
+"use strict";
 /**
  * emote-picker.js — reusable, searchable, categorized emote quick-pick.
  *
@@ -24,26 +25,25 @@
  * @relates emits bare verb phrases per schema-fragments EMOTE_RULES; used by human-turn-composer
  * @docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
  */
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 window.EmotePicker = (() => {
     'use strict';
-
     const STYLE_ID = 'emote-picker-styles';
-
     let _catalog = [
-        { cat: 'neutral',  items: ['glances around the room', 'shifts their weight', 'watches you carefully', 'stares into the distance'] },
+        { cat: 'neutral', items: ['glances around the room', 'shifts their weight', 'watches you carefully', 'stares into the distance'] },
         { cat: 'movement', items: ['sneaks closer', 'steps back', 'moves toward the door', 'leans in close', 'paces anxiously', 'stops short'] },
-        { cat: 'social',   items: ['nods slowly', 'shakes their head', 'offers a small smile', 'gives a warm handshake', 'crosses their arms', 'raises an eyebrow'] },
-        { cat: 'comfort',  items: ['rests a hand on their shoulder', 'gives a reassuring pat', 'offers a gentle hug', 'runs a hand through their hair', 'lets out a soft sigh'] },
-        { cat: 'unease',   items: ['fidgets with their hands', 'bites their lip', 'glances over their shoulder', 'wrings their hands', 'takes a shaky breath', 'rubs the back of their neck'] },
-        { cat: 'hostile',  items: ['bares their teeth', 'clenches their fists', 'drops into a defensive stance', 'draws themselves up tall', 'eyes the newcomer warily'] },
-        { cat: 'polite',   items: ['inclines their head politely', 'touches their brow in a small bow', 'offers their hand', 'holds the door open for you'] },
-        { cat: 'focus',    items: ['leans forward for a closer look', 'squints at the object', 'runs a finger along the surface', 'steps aside to let you see'] },
-        { cat: 'warmth',   items: ['brushes a stray lock behind their ear', 'offers a playful grin', 'tilts their head with a soft laugh', 'lets their gaze linger'] },
-        { cat: 'hands',    items: ['holds out the item', 'places the object in your hand', 'sets the key on the table', 'nods toward the door'] },
+        { cat: 'social', items: ['nods slowly', 'shakes their head', 'offers a small smile', 'gives a warm handshake', 'crosses their arms', 'raises an eyebrow'] },
+        { cat: 'comfort', items: ['rests a hand on their shoulder', 'gives a reassuring pat', 'offers a gentle hug', 'runs a hand through their hair', 'lets out a soft sigh'] },
+        { cat: 'unease', items: ['fidgets with their hands', 'bites their lip', 'glances over their shoulder', 'wrings their hands', 'takes a shaky breath', 'rubs the back of their neck'] },
+        { cat: 'hostile', items: ['bares their teeth', 'clenches their fists', 'drops into a defensive stance', 'draws themselves up tall', 'eyes the newcomer warily'] },
+        { cat: 'polite', items: ['inclines their head politely', 'touches their brow in a small bow', 'offers their hand', 'holds the door open for you'] },
+        { cat: 'focus', items: ['leans forward for a closer look', 'squints at the object', 'runs a finger along the surface', 'steps aside to let you see'] },
+        { cat: 'warmth', items: ['brushes a stray lock behind their ear', 'offers a playful grin', 'tilts their head with a soft laugh', 'lets their gaze linger'] },
+        { cat: 'hands', items: ['holds out the item', 'places the object in your hand', 'sets the key on the table', 'nods toward the door'] },
     ];
-
     function ensureStyles() {
-        if (document.getElementById(STYLE_ID)) return;
+        if (document.getElementById(STYLE_ID))
+            return;
         const style = document.createElement('style');
         style.id = STYLE_ID;
         style.textContent = [
@@ -59,37 +59,42 @@ window.EmotePicker = (() => {
         ].join(String.fromCharCode(10));
         document.head.appendChild(style);
     }
-
     const html = (s, ...v) => window.Lit.html(s, ...v);
-
     function renderList(list, filter) {
-        if (!list) return;
+        if (!list)
+            return;
         const f = (filter || '').trim().toLowerCase();
         const groups = _catalog.map(g => {
             const items = f ? g.items.filter(i => i.toLowerCase().includes(f)) : g.items;
-            if (!items.length) return null;
-            return html`<div class="ep-group"><div class="ep-cat">${g.cat}</div><div class="ep-grid">${items.map(it => html`<button type="button" class="ep-chip" data-emote=${it}>${it}</button>`)}</div></div>`;
+            if (!items.length)
+                return null;
+            return html `<div class="ep-group"><div class="ep-cat">${g.cat}</div><div class="ep-grid">${items.map(it => html `<button type="button" class="ep-chip" data-emote=${it}>${it}</button>`)}</div></div>`;
         }).filter(Boolean);
-        window.Lit.render(html`${groups.length ? groups : html`<div class="ep-none">no emotes match</div>`}`, list);
+        window.Lit.render(html `${groups.length ? groups : html `<div class="ep-none">no emotes match</div>`}`, list);
     }
-
     function open(container, opts = {}) {
-        if (!container) return;
+        if (!container)
+            return;
         ensureStyles();
         const onPick = opts.onPick;
-        window.Lit.render(html`
+        window.Lit.render(html `
             <input class="ep-q" type="text" placeholder="search emotes…" autocomplete="off">
-            <div class="ep-list"></div>` , container);
+            <div class="ep-list"></div>`, container);
         const q = container.querySelector('.ep-q');
         const list = container.querySelector('.ep-list');
         renderList(list, '');
         q.oninput = () => renderList(list, q.value);
-        q.onkeydown = (e) => { if (e.key === 'Escape') { e.preventDefault(); close(container); } };
+        q.onkeydown = (e) => { if (e.key === 'Escape') {
+            e.preventDefault();
+            close(container);
+        } };
         container.onclick = (e) => {
-            const chip = e.target.closest('.ep-chip');
+            const target = e.target;
+            const chip = target instanceof Element ? target.closest('.ep-chip') : null;
             if (chip) {
                 const emote = chip.dataset.emote;
-                if (onPick) onPick(emote);
+                if (onPick)
+                    onPick(emote);
                 close(container);
             }
         };
@@ -97,22 +102,22 @@ window.EmotePicker = (() => {
         container.classList.add('open');
         q.focus();
     }
-
     function close(container) {
-        if (!container) return;
+        if (!container)
+            return;
         container.classList.remove('open');
         container.onclick = null;
         container._emoteOnPick = null;
     }
-
     function toggle(container, opts) {
-        if (container && container.classList.contains('open')) close(container);
-        else open(container, opts);
+        if (container && container.classList.contains('open'))
+            close(container);
+        else
+            open(container, opts);
     }
-
     function setCatalog(catalog) {
-        if (Array.isArray(catalog) && catalog.length) _catalog = catalog;
+        if (Array.isArray(catalog) && catalog.length)
+            _catalog = catalog;
     }
-
     return { open, close, toggle, setCatalog, renderList, get catalog() { return _catalog; } };
 })();

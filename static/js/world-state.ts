@@ -1,0 +1,359 @@
+/**
+ * WorldState — Reactive state management
+ * Fetches world state from the backend and notifies listeners
+ *
+ * @module world-state — reactive cache of the server's `/api/state` payload
+ * @contributes the `worldState` singleton: data, fetch/poll, getNode/players/areas helpers
+ * @powers every panel's view of the world (graph, inspector, agent list, turn panel)
+ * @relates fetches via api.js and the `/api/events` SSE stream; emits `state:updated`
+ * @docs none
+ */
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+class WorldState {
+    /** Raw payload from /api/state; null until the first successful fetch. */
+    declare data: any;
+    /** event name -> subscriber callbacks. */
+    declare _listeners: Record<string, Array<(data?: any) => void>>;
+    /** Spectator-mode poll handle; null when not polling. */
+    declare _pollTimer: number | null;
+    /** Cached /api/settings/equip_slots; null until fetched. */
+    declare _equipSlots: Record<string, any> | null;
+
+    constructor() {
+        this.data = null; // raw state from /api/state
+        this._listeners = {};
+        this._pollTimer = null;
+        this._equipSlots = null;
+    }
+
+    /** Subscribe to state changes */
+    on(event: string, callback: (data?: any) => void) {
+        if (!this._listeners[event]) this._listeners[event] = [];
+        this._listeners[event].push(callback);
+        if (event === 'update' && this.data) {
+            callback(this.data); // Immediately notify if we have data
+        }
+    }
+
+    _emit(event: string, data?: any) {
+        const subs = this._listeners[event] || [];
+        subs.forEach(cb => cb(data));
+    }
+
+    /** Sync backend turn events into the frontend area event log */
+    _syncTurnEvents(state: any) {
+        if (!(window as unknown as { events?: unknown }).events || !state.turn_events) return;
+        for (const evt of state.turn_events) {
+            if (!evt.area) continue;
+            const roomLog = events._areaEventLog[evt.area];
+            // Only add if we don't already have this event (check by tick+actor+description)
+            if (!roomLog) {
+                events._areaEventLog[evt.area] = [{
+                    tick: evt.tick,
+                    actor: evt.actor,
+                    action: evt.action,
+                    result: evt.description || ''
+                }];
+            } else {
+                const exists = roomLog.some((e: any) => e.tick === evt.tick && e.actor === evt.actor && e.action === evt.action);
+                if (!exists) {
+                    roomLog.push({
+                        tick: evt.tick,
+                        actor: evt.actor,
+                        action: evt.action,
+                        result: evt.description || ''
+                    });
+                    if (roomLog.length > 50) roomLog.shift();
+                }
+            }
+        }
+    }
+
+    /** Fetch latest state from backend */
+    async fetch() {
+        try {
+            const resp = await fetch('/api/state');
+            const state = await resp.json();
+            this.data = state;
+            this._syncTurnEvents(state);
+            // Rebuild the turn queue if the roster changed (new/dead characters)
+            // so freshly added characters join the initiative loop mid-run.
+            const tq = (window as unknown as { TurnQueue?: { reconcile(): void } }).TurnQueue;
+            if (tq) tq.reconcile();
+            this._emit('update', state);
+            const bus = (window as unknown as { appEvents?: { emit(event: string, data?: unknown): void } }).appEvents;
+            if (bus) bus.emit('state:updated', state);
+            return state;
+        } catch (e) {
+            console.error('State fetch failed:', e);
+            return this.data;
+        }
+    }
+
+    /** Start polling for spectator mode */
+    startPolling(intervalMs = 1500) {
+        this.stopPolling();
+        this._pollTimer = setInterval(() => {
+            // The agent loop already pushes UI updates via renderAll while running.
+            // Polling /api/state on top of that doubles the stream and re-triggers
+            // the whole inspector/lens render cascade — skip it while running.
+            // `config` is a top-level const lexical global — window.config is
+            // always undefined (would make this guard dead code).
+            if (typeof config !== 'undefined' && config.running) return;
+            this.fetch();
+        }, intervalMs);
+    }
+
+    stopPolling() {
+        if (this._pollTimer) {
+            clearInterval(this._pollTimer);
+            this._pollTimer = null;
+        }
+    }
+
+    /** Accessors for current state */
+    get areas() { return this.data?.areas || {}; }
+    get players() { return this.data?.players || {}; }
+    get activePlayer() { return this.data?.active_player || null; }
+    get currentArea() { return this.data?.current_area || null; }
+    get tick() { return this.data?.time_ticks || 0; }
+    get gameTime() { return this.data?.game_time || ''; }
+    get graph() { return this.data?.graph || null; }
+    get turnEvents() { return this.data?.turn_events || []; }
+    get playersInRoom() { return this.data?.players_in_area || []; }
+    get itemRegistry() { return this.data?.item_registry || {}; }
+    get ways() { return this.data?.ways || {}; }
+    get equipSlots() { return this._equipSlots || {}; }
+
+    /** Fetch equipment slot configuration from backend */
+    async fetchEquipSlots() {
+        if (this._equipSlots) return this._equipSlots;
+        try {
+            const resp = await fetch('/api/settings/equip_slots');
+            const data = await resp.json();
+            this._equipSlots = data.equip_slots || {};
+            return this._equipSlots;
+        } catch (e) {
+            console.error('Equip slots fetch failed:', e);
+            return {};
+        }
+    }
+
+    /** Graph node lookup helper — case-insensitive (ids are always lowercase) */
+    getNode(id: string) {
+        if (!this.graph?.nodes) return null;
+        if (this.graph.nodes[id]) return this.graph.nodes[id];
+        const key = String(id).toLowerCase();
+        return this.graph.nodes[key] || null;
+    }
+
+    /** Find the parent node of a trigger node via the triggers edge */
+    _findTriggerParent(triggerId: string | number) {
+        if (!this.graph?.edges) return null;
+        const tid = String(triggerId).toLowerCase();
+        for (const edge of this.graph.edges) {
+            if (edge.type !== 'triggers') continue;
+            if (String(edge.target).toLowerCase() === tid) return edge.source;
+            if (String(edge.source).toLowerCase() === tid) return edge.target;
+        }
+        return null;
+    }
+
+    /** Find the triggers edge object for a given trigger node ID */
+    _findTriggerEdge(triggerId: string | number) {
+        if (!this.graph?.edges) return null;
+        const tid = String(triggerId).toLowerCase();
+        for (const edge of this.graph.edges) {
+            if (edge.type !== 'triggers') continue;
+            if (String(edge.target).toLowerCase() === tid || String(edge.source).toLowerCase() === tid) return edge;
+        }
+        return null;
+    }
+
+    /**
+     * True when *charName* already knows *targetName*'s identity.
+     *
+     * A relationship record means they've shared space, but the record is
+     * stamped `first_sighting: true` by the backend on the first meeting and
+     * only cleared on the NEXT encounter — so the name stays hidden for the
+     * rest of the first-sighting turn, matching area_description.py's rule.
+     */
+    hasMet(charName: string, targetName: string) {
+        const player = this.data?.players?.[charName];
+        const rel = player?.relationships?.[targetName];
+        if (!rel || rel.closeness === undefined) return false;
+        return !rel.first_sighting;
+    }
+
+    getNodesByType(type: string): Array<Record<string, any>> {
+        const result: Array<Record<string, any>> = [];
+        if (!this.graph?.nodes) return result;
+        for (const [id, node] of Object.entries(this.graph.nodes) as Array<[string, any]>) {
+            if (node.type === type) result.push({ id, ...node });
+        }
+        return result;
+    }
+
+    /** Get character inventory from graph — optionally filter by edge types */
+    getInventory(charName: string, edgeTypes?: string[]): string[] {
+        const charNodeId = `player_${charName.replace(/\s+/g, '_')}`;
+        const types = edgeTypes || ['carrying', 'equipped', 'known'];
+        const inventory: string[] = [];
+        const seenIds = new Set<string>();
+        for (const edge of this.graph?.edges || []) {
+            if (edge.target === charNodeId && types.includes(edge.type)) {
+                if (seenIds.has(edge.source)) continue;
+                seenIds.add(edge.source);
+                const itemNode = this.getNode(edge.source);
+                if (itemNode && itemNode.type === 'item') {
+                    inventory.push(itemNode.name);
+                }
+            }
+        }
+        return inventory;
+    }
+
+    /**
+     * Character's item node **ids** by edge type — the id-based sibling of
+     * `getInventory`, which returns display names.
+     *
+     * Use this for anything that has to *identify* or compare items. Names are
+     * not identity: three mages can each know a "Fireball", a camp can hold two
+     * items called "Bag", and `getInventory` collapses them into one string. A
+     * caller that compares names will both wrongly hide a distinct item and
+     * wrongly offer one that is already held.
+     *
+     * @param {string} charName
+     * @param {string[]} [edgeTypes] defaults to carrying, equipped and known
+     * @returns {string[]} node ids, in edge order, deduplicated by id
+     */
+    getInventoryIds(charName: string, edgeTypes?: string[]): string[] {
+        const charNodeId = `player_${charName.replace(/\s+/g, '_')}`;
+        const types = edgeTypes || ['carrying', 'equipped', 'known'];
+        const ids: string[] = [];
+        const seen = new Set<string>();
+        for (const edge of this.graph?.edges || []) {
+            if (edge.target !== charNodeId || !types.includes(edge.type)) continue;
+            if (seen.has(edge.source)) continue;
+            seen.add(edge.source);
+            const itemNode = this.getNode(edge.source);
+            if (itemNode && itemNode.type === 'item') ids.push(edge.source);
+        }
+        return ids;
+    }
+
+    /** Look up a node by its identifier (name or ID) */
+    getNodeByIdentifier(name: string) {
+        if (!this.graph?.nodes) return null;
+        // First try exact ID match
+        for (const [id, node] of Object.entries(this.graph.nodes) as Array<[string, any]>) {
+            if (id === name || node.name === name) {
+                return { id, ...node };
+            }
+        }
+        return null;
+    }
+
+    /** Get items in a area from graph */
+    getItemsInArea(areaName: string): Array<Record<string, any>> {
+        const items: Array<Record<string, any>> = [];
+        // Resolve the actual area node id by name — ids may differ in case
+        // from the derived id (e.g. "Task 3 - main area" vs "area_Task_3_-_main_area"),
+        // which used to make every item in such areas invisible.
+        let areaId = null;
+        for (const [nodeId, node] of Object.entries(this.graph?.nodes || {}) as Array<[string, any]>) {
+            if (node.type === 'area' && (node.name === areaName || nodeId === areaName)) {
+                areaId = nodeId;
+                break;
+            }
+        }
+        if (!areaId) areaId = `area_${areaName.toLowerCase().replace(/\s+/g, '_')}`;
+        const candidates = [areaId];
+        const areaEdgeTypes = ['in'];
+        const pushItem = (edgeSource: string, node: any) => {
+            if (node && node.type === 'item' && node.properties?.current_state !== 'hidden' && !items.some(item => item.id === edgeSource)) {
+                items.push({ id: edgeSource, name: node.name, properties: node.properties });
+            }
+        };
+        // Directly placed items (in the area) — these are also the anchors that
+        // spatially-placed items hang off of.
+        const anchorIds = new Set();
+        for (const edge of this.graph?.edges || []) {
+            if (candidates.includes(edge.target) && areaEdgeTypes.includes(edge.type)) {
+                const itemNode = this.getNode(edge.source);
+                pushItem(edge.source, itemNode);
+                anchorIds.add(edge.source);
+            }
+        }
+        // Spatially placed items (on/under/behind/beside/at) — attached to the
+        // area itself or to a surface that is in the area, so they are present
+        // and visible like any other item.
+        const spatialTypes = ['on', 'under', 'behind', 'beside', 'at'];
+        const anchors = new Set([...anchorIds, areaId]);
+        for (const edge of this.graph?.edges || []) {
+            if (spatialTypes.includes(edge.type) && anchors.has(edge.target)) {
+                const itemNode = this.getNode(edge.source);
+                pushItem(edge.source, itemNode);
+            }
+        }
+        // Also include items inside containers in the area, at ANY depth and
+        // behind the same state gate the engine applies (task-493). This used
+        // to be one flat level that only skipped `locked`, so a prompt could
+        // list a battery in a `closed` cabinet, miss a part three levels down,
+        // and disagree with the engine about both. window.ItemContainment is
+        // the one walk; the engine's engine/item_reach.py is the other half.
+        for (const container of [...items]) {
+            const containerNode = this.getNode(container.id);
+            if (!containerNode || containerNode.type !== 'item') continue;
+            const contained = ((window as unknown as {
+            ItemContainment: { collectReachable(ids: string[], ctx: unknown): Array<{ id: string; name?: string; properties?: unknown; depth?: number }> };
+        }).ItemContainment).collectReachable([container.id], {
+                getNode: (id: string) => this.getNode(id),
+                edges: this.graph?.edges || [],
+            });
+            for (const inner of contained) {
+                if (inner.depth === 0) continue;   // the container itself
+                if (!items.some(item => item.id === inner.id)) {
+                    items.push({ id: inner.id, name: inner.name, properties: inner.properties });
+                }
+            }
+        }
+        return items;
+    }
+}
+
+// Singleton
+(window as unknown as { worldState: WorldState }).worldState = new WorldState();
+
+// ── Live world-edit push (EventSource) ──────────────────────────────
+// The server broadcasts a `world_changed` event over /api/events for every
+// mutating API call — including edits made by external agents through the MCP
+// server. Refetch world state in real time so those edits appear in the GUI
+// without a manual refresh, and log a thin line when a non-local editor acted.
+// Runs immediately (no `load` race) and lets the browser auto-reconnect.
+(function connectLiveEdits() {
+  if (typeof EventSource === 'undefined') return;
+  let es = null;
+  function refresh() {
+    if (window.worldState) window.worldState.fetch();
+  }
+  try {
+    es = new EventSource('/api/events');
+    es.onmessage = function (msg) {
+      let ev;
+      try { ev = JSON.parse(msg.data); } catch (e) { return; }
+      if (!ev || ev.type !== 'world_changed') return;
+      refresh();
+      // task-384: re-emit on the event bus so the per-edit undo feed
+      // (EditFeed) can render without opening its own EventSource.
+      const bus = (window as unknown as { appEvents?: { emit(event: string, data?: unknown): void } }).appEvents;
+      if (bus) bus.emit('world:changed', ev);
+      const editor = ev.editor && ev.editor !== 'app' ? ev.editor : '';
+      if (editor && typeof events !== 'undefined') {
+        events.log('World edited by ' + editor + ' — ' + (ev.method || '') + ' ' + (ev.path || ''), 'system-msg');
+      }
+    };
+    // Do not close on error — the browser reconnects the EventSource itself.
+    es.onerror = function () { /* auto-reconnect */ };
+  } catch (e) { /* keep the GUI safe if the stream is unavailable */ }
+})();

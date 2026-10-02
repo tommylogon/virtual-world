@@ -1,0 +1,929 @@
+/**
+ * InspectorHelpers — Shared utility methods used across inspector views
+ * Extracted from inspector.js for modularity.
+ * All functions access globals (worldState, api, events, VW.inspector) directly.
+ *
+ * task-216: HTML-producing functions return lit-html TemplateResults
+ * (via window.Lit.html) instead of strings, so consumers can nest them
+ * in their own templates without escaping issues.
+ *
+ * @module inspector/helpers — shared inspector field/section builders
+ * @contributes InspectorHelpers: field/row builders, tag editor, common sections (lit-html templates)
+ * @powers Node inspectors — consistent forms and validation across every inspector view
+ * @relates used by all inspector/* views; reads worldState + api + events directly
+ * @docs docs/virtualWorld/UI & Settings/Inspector Panels.md
+ */
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+
+const InspectorHelpersModule = (() => {
+    const H = {} as InspectorHelpersApi;
+    // Lazy tag: classic scripts run before the deferred module bootstrap,
+    // so window.Lit only exists at call time (when views render).
+    const htmlTag = (strings: TemplateStringsArray, ...values: unknown[]) => window.Lit.html(strings, ...values);
+
+    /**
+     * Build lit-html for the per-node graph physics control
+     *
+     * The checkbox is bound through `live()` rather than `?checked`: the user can
+     * change this control without a re-render, and lit only diffs the value it last
+     * *bound*, so a plain binding left the DOM showing the previously inspected
+     * node's state (bug-37). `live()` compares against the element's current
+     * property every render and rewrites it when they differ.
+     *
+     * @param {string} nodeId - Graph node ID
+     * @param {object} props - Node properties
+     * @returns {TemplateResult}
+     */
+    H.graphGravityControl = function(nodeId: string, props: NodeProps = {}) {
+        const enabled = props.central_gravity_enabled !== false && props.layout_static !== true;
+        const num = (value: unknown) => (Number(value) > 0 ? Number(value) : '');
+        return htmlTag`<div class="inspector-section">
+            <h3>Graph Physics</h3>
+            <div class="field">
+                <label title="When off, this node is excluded from graph physics and stays where it is.">
+                    <input type="checkbox" .checked=${window.Lit.live(enabled)}
+                        @change=${(ev: Event) => H.setCentralGravity(nodeId, (ev.target as HTMLInputElement).checked)}>
+                    Physics enabled
+                </label>
+                <div class="section-hint" style="margin-top:4px;">Turn off to freeze this node in place while the rest of the graph settles.</div>
+            </div>
+            <div class="field">
+                <label title="How far this node sits from the thing that holds it (its parent). Blank = whatever the parent or the graph setting says.">
+                    Distance from parent
+                    <input type="number" min="0" step="5" .value=${window.Lit.live(num(props.layout_distance))}
+                        @change=${(ev: Event) => H.setLayoutNumber(nodeId, 'layout_distance', (ev.target as HTMLInputElement).value)}>
+                </label>
+                <label title="How far this node's own contents sit from it. Blank = the graph-wide setting.">
+                    Distance of my contents
+                    <input type="number" min="0" step="5" .value=${window.Lit.live(num(props.layout_child_distance))}
+                        @change=${(ev: Event) => H.setLayoutNumber(nodeId, 'layout_child_distance', (ev.target as HTMLInputElement).value)}>
+                </label>
+                <label title="The gap between this node's contents. Blank = derived from the distance.">
+                    Spacing of my contents
+                    <input type="number" min="0" step="5" .value=${window.Lit.live(num(props.layout_child_spacing))}
+                        @change=${(ev: Event) => H.setLayoutNumber(nodeId, 'layout_child_spacing', (ev.target as HTMLInputElement).value)}>
+                </label>
+                <div class="section-hint" style="margin-top:4px;">Per-node physics distances. Leave blank to use the Item Edge Length setting.</div>
+            </div>
+        </div>`;
+    };
+
+    /**
+     * Set a numeric layout property on a node (blank clears it back to the
+     * inherited setting) and re-derive the contents' arrangement.
+     * @param {string} nodeId - Graph node ID
+     * @param {string} key - layout_distance | layout_child_distance | layout_child_spacing
+     * @param {string|number} rawValue - the input's value
+     */
+    H.setLayoutNumber = async function(nodeId: string, key: string, rawValue: string | number) {
+        const value = Number(rawValue);
+        const patch: NodeProps = {};
+        patch[key] = Number.isFinite(value) && value > 0 ? value : null;
+        const saved = await api.updateNode(nodeId, { properties: patch });
+        if (!saved) {
+            console.warn(`Could not update ${key} for node ${nodeId}`);
+            return;
+        }
+        const relativeLayout = (window as unknown as {
+            GraphRelativeLayout?: { reseed(): void };
+        }).GraphRelativeLayout;
+        if (relativeLayout) relativeLayout.reseed();
+        await worldState.fetch();
+        if (graphManager) {
+            graphManager.loadGraphData();
+        }
+    };
+
+    /**
+     * The inspector's "Physics enabled" switch for a node.
+     *
+     * The stored flag is still `central_gravity_enabled`, but it no longer means
+     * anything about gravity: the solver has none (`centralGravity: 0` in
+     * graph/network-manager.js). It is a straight "simulate this node or pin it
+     * where it is" — off for any node type, and a frozen node's dragged position
+     * is written back so it survives a reload.
+     * @param {string} nodeId - Graph node ID
+     * @param {boolean} enabled - Whether the node is simulated
+     */
+    H.setCentralGravity = async function(nodeId: string, enabled: boolean) {
+        const saved = await api.updateNode(nodeId, {
+            properties: { central_gravity_enabled: enabled }
+        });
+        if (!saved) {
+            console.warn(`Could not update graph physics for node ${nodeId}`);
+            return;
+        }
+        const relativeLayout = (window as unknown as {
+            GraphRelativeLayout?: { reseed(): void };
+        }).GraphRelativeLayout;
+        if (relativeLayout) relativeLayout.reseed();
+        await worldState.fetch();
+        if (graphManager) {
+            graphManager.loadGraphData();
+        }
+    };
+
+    /**
+     * Add a parameter key-value pair to a node (reads from #param-key-{nodeId}, #param-val-{nodeId})
+     * @param {string} nodeId - Graph node ID
+     */
+    H.addParam = async function(nodeId: string) {
+        const keyInput = document.getElementById(`param-key-${nodeId}`) as HTMLInputElement | null;
+        const valInput = document.getElementById(`param-val-${nodeId}`) as HTMLInputElement | null;
+        if (!keyInput || !valInput) return;
+        const key = keyInput.value.trim();
+        const val = valInput.value.trim();
+        if (!key) { events.log('Parameter key cannot be empty.', 'error-msg'); return; }
+        const node = worldState.getNode(nodeId);
+        if (!node) return;
+        const params: Record<string, string> = Object.assign({}, node.properties?.parameters || {});
+        params[key] = val;
+        await api.updateNode(nodeId, { properties: { parameters: params } });
+        worldState.fetch();
+    };
+
+    /**
+     * Remove a parameter by key from a node
+     * @param {string} nodeId - Graph node ID
+     * @param {string} key - Parameter key to remove
+     */
+    H.removeParam = async function(nodeId: string, key: string) {
+        const node = worldState.getNode(nodeId);
+        if (!node) return;
+        const params: Record<string, string> = Object.assign({}, node.properties?.parameters || {});
+        delete params[key];
+        await api.updateNode(nodeId, { properties: { parameters: params } });
+        worldState.fetch();
+    };
+
+    /**
+     * Update a parameter key name
+     * @param {string} nodeId - Graph node ID
+     * @param {string} oldKey - Current key name
+     * @param {string} newKey - New key name
+     */
+    H.updateParamKey = async function(nodeId: string, oldKey: string, newKey: string) {
+        const node = worldState.getNode(nodeId);
+        if (!node) return;
+        const params: Record<string, string> = Object.assign({}, node.properties?.parameters || {});
+        if (!(oldKey in params)) return;
+        if (oldKey === newKey) return;
+        if (!newKey.trim()) { events.log('Key cannot be empty.', 'error-msg'); return; }
+        params[newKey.trim()] = params[oldKey];
+        delete params[oldKey];
+        await api.updateNode(nodeId, { properties: { parameters: params } });
+        worldState.fetch();
+    };
+
+    /**
+     * Update a parameter value
+     * @param {string} nodeId - Graph node ID
+     * @param {string} key - Parameter key
+     * @param {string} value - New value
+     */
+    H.updateParamValue = async function(nodeId: string, key: string, value: string) {
+        const node = worldState.getNode(nodeId);
+        if (!node) return;
+        const params: Record<string, string> = Object.assign({}, node.properties?.parameters || {});
+        params[key] = value;
+        await api.updateNode(nodeId, { properties: { parameters: params } });
+        worldState.fetch();
+    };
+
+    /**
+     * Save personality text from the inspector textarea
+     * @param {string} charName - Character name
+     */
+    H.savePersonality = async function(charName: string) {
+        const ta = document.getElementById('inspector-personality') as HTMLTextAreaElement | null;
+        if (!ta) return;
+        await ApiClient.updateCharacter(charName, { personality: ta.value });
+        worldState.fetch();
+        events.log('Personality saved.', 'system-msg');
+    };
+
+    /**
+     * Save description and base description from inspector textareas
+     * @param {string} charName - Character name
+     */
+    H.saveDescription = async function(charName: string) {
+        const ta = document.getElementById('inspector-description') as HTMLTextAreaElement | null;
+        const baseTa = document.getElementById('inspector-base-description') as HTMLTextAreaElement | null;
+        const payload: NodeProps = {};
+        if (ta) payload.description = ta.value;
+        if (baseTa) payload.base_description = baseTa.value;
+        await ApiClient.updateCharacter(charName, payload);
+        worldState.fetch();
+        events.log('Appearance saved.', 'system-msg');
+    };
+
+    /**
+     * Is this node's id owned by the world compiler? WorldPainter's grid
+     * compiler stamps `properties.generated` on every area/way cell it emits and
+     * derives the id from the cell (`way_world_area_human_road_area_world_17_6`)
+     * — a filename, not a name. Renaming it is meaningless: the next compile
+     * regenerates that id. The inspector shows such an id read-only instead of
+     * inviting an edit that cannot stick (task-622).
+     * @param {string} nodeId
+     * @returns {boolean}
+     */
+    H.isGeneratedNode = function(nodeId: string): boolean {
+        const node = (typeof worldState !== 'undefined' && worldState
+            && typeof worldState.getNode === 'function') ? worldState.getNode(nodeId) : null;
+        return !!(node && node.properties && node.properties.generated);
+    };
+
+    /**
+     * Rename a graph node
+     * @param {string} oldId - Current node ID
+     * @param {string} newId - Desired new node ID
+     */
+    H.renameNode = async function(oldId: string, newId: string) {
+        const cleaned = newId.toLowerCase().replace(/\s+/g, '_');
+        if (cleaned === oldId) return;
+        if (!cleaned) { events.log('ID cannot be empty.', 'error-msg'); return; }
+        const res = await (ApiClient as unknown as {
+            renameNode(oldId: string, newId: string): Promise<{ error?: string }>;
+        }).renameNode(oldId, cleaned);
+        if (res.error) { events.log(`Rename failed: ${res.error}`, 'error-msg'); return; }
+        events.log(`Renamed "${oldId}" → "${cleaned}"`, 'system-msg');
+        worldState.fetch();
+        if (window.VW?.inspector) (window.VW as unknown as {
+            inspector: { showNode(id: string): void };
+        }).inspector.showNode(cleaned);
+    };
+
+    /**
+     * Sync node ID from its display name: derives {type}_{sanitized_name}
+     * and renames if different. Handles duplicate protection (backend returns 409).
+     * @param {string} nodeId - Current node ID
+     * @param {string} displayName - Current display name
+     */
+    H.syncIdFromName = async function(nodeId: string, displayName: string) {
+        const prefix = nodeId.includes('_') ? nodeId.split('_')[0] + '_' : '';
+        const sanitized = displayName.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+        const newId = prefix + sanitized;
+        if (newId === nodeId) {
+            events.log('ID already matches name.', 'system-msg');
+            return;
+        }
+        await H.renameNode(nodeId, newId);
+    };
+
+    /**
+     * Save skill check configuration for a node
+     * @param {string} nodeId - Graph node ID
+     */
+    H.saveSkillCheck = async function(nodeId: string) {
+        const escId = nodeId.replace(/'/g, "\\'");
+        const skill = (document.getElementById(`skill-name-${escId}`) as HTMLInputElement | null)?.value || '';
+        const dc = parseInt((document.getElementById(`skill-dc-${escId}`) as HTMLInputElement | null)?.value as string) || 10;
+        await api.updateNode(nodeId, { properties: { skill_check: { skill, dc } } });
+        worldState.fetch();
+    };
+
+    // ──────────────────────────────────────────────
+    // Shared HTML/escaping helpers (previously duplicated in every view)
+    // ──────────────────────────────────────────────
+
+    /**
+     * HTML-escape double quotes for attribute safety.
+     * @param {string} text - Text to escape
+     * @returns {string} Escaped text
+     */
+    H.esc = function(text: string | null | undefined): string {
+        return (text || '').replace(/"/g, '&quot;');
+    };
+
+    /**
+     * Escape a node ID for safe inline-handler embedding (single quotes → \').
+     * @param {string} nodeId - Graph node ID
+     * @returns {string} Escaped ID
+     */
+    H.escId = function(nodeId: string | null | undefined): string {
+        return String(nodeId || '').replace(/'/g, "\\'");
+    };
+
+    /**
+     * Build an HTML section for binding an image to a graph node (task-249).
+     * Supports uploading a bundled file, pasting an explicit URL/path, or
+     * removing the current image. Images render as graph thumbnails when the
+     * 🖼 Images graph toggle is on.
+     * @param {string} nodeId - Graph node ID
+     * @param {object} props - Node properties (reads `image`)
+     * @returns {string} HTML string
+     */
+    H.renderImageSection = function(nodeId: string, props: NodeProps = {}): string {
+        const escId = H.escId(nodeId);
+        const image = props.image || '';
+        const preview = image
+            ? `<img src="${H.esc(image)}" alt="Node image" style="max-width:100px;max-height:100px;border-radius:6px;border:1px solid var(--border);display:block;margin-bottom:6px;">`
+            : `<div style="font-size:11px;color:var(--text-muted);padding:4px 0;">No image set.</div>`;
+        const removeBtn = image
+            ? `<button class="btn btn-sm btn-danger" onclick="InspectorHelpers.clearNodeImage('${escId}')">🗑 Remove</button>`
+            : '';
+        return `<div class="inspector-section">
+            <h3>🖼 Image</h3>
+            <div id="img-preview-${escId}">${preview}</div>
+            <div style="display:flex;gap:4px;align-items:center;margin-top:2px;">
+                <input type="file" accept="image/*" onchange="InspectorHelpers.setNodeImage('${escId}', this)" title="Upload an image (bundled under static/images) — works offline" style="flex:1;font-size:10px;">
+            </div>
+            <div class="field" style="display:flex;gap:4px;align-items:center;margin-top:4px;">
+                <input type="text" id="img-url-${escId}" placeholder="...or paste a URL / path" value="${H.esc(image)}" style="flex:1;font-size:11px;">
+                <button class="btn btn-sm" onclick="InspectorHelpers.setNodeImageUrl('${escId}')">Set</button>
+            </div>
+            <div id="img-actions-${escId}" style="display:flex;gap:4px;margin-top:4px;">${removeBtn}</div>
+            <div class="section-hint" style="margin-top:4px;">Shown as a thumbnail on the graph when the 🖼 Images toggle is on.</div>
+        </div>`;
+    };
+
+    /**
+     * Refresh the inline image preview + URL field in place after a change.
+     * @param {string} nodeId - Graph node ID
+     * @param {string} image - New image URL/path ('' to clear)
+     */
+    H._refreshImagePreview = function(nodeId: string, image: string): void {
+        const previewEl = document.getElementById(`img-preview-${nodeId}`);
+        if (previewEl) {
+            const previewLit = image
+                ? htmlTag`<img src=${image} alt="Node image" style="max-width:100px;max-height:100px;border-radius:6px;border:1px solid var(--border);display:block;margin-bottom:6px;">`
+                : htmlTag`<div style="font-size:11px;color:var(--text-muted);padding:4px 0;">No image set.</div>`;
+            window.Lit.render(previewLit, previewEl);
+        }
+        const urlEl = document.getElementById(`img-url-${nodeId}`) as HTMLInputElement | null;
+        if (urlEl) urlEl.value = image || '';
+        const removeBtn = image ? htmlTag`<button class="btn btn-sm btn-danger" @click=${() => H.clearNodeImage(nodeId)}>🗑 Remove</button>` : window.Lit.nothing;
+        const wrap = document.getElementById(`img-actions-${nodeId}`);
+        if (wrap) window.Lit.render(removeBtn, wrap);
+    };
+
+    /**
+     * Upload a file as a node's image via the endpoint, then refresh the world.
+     * @param {string} nodeId - Graph node ID
+     * @param {HTMLInputElement} inputEl - The file input
+     */
+    H.setNodeImage = async function(nodeId: string, inputEl: HTMLInputElement | null): Promise<void> {
+        const file = inputEl && inputEl.files && inputEl.files[0];
+        if (!file) return;
+        const res = await api.uploadNodeImage(nodeId, file);
+        if (res.error) {
+            events.log('Image upload failed: ' + res.error, 'error-msg');
+            return;
+        }
+        events.log('Image set.', 'system-msg');
+        H._refreshImagePreview(nodeId, res.image || '');
+        if (graphManager) graphManager._lastSig = '';
+        worldState.fetch();
+        if (graphManager) graphManager.loadGraphData();
+    };
+
+    /**
+     * Bind an explicit image URL/path to a node (from the URL text input).
+     * @param {string} nodeId - Graph node ID
+     */
+    H.setNodeImageUrl = async function(nodeId: string) {
+        const inputEl = document.getElementById(`img-url-${nodeId}`) as HTMLInputElement | null;
+        const url = (inputEl && inputEl.value.trim()) || '';
+        if (!url) { events.log('Image URL is empty.', 'error-msg'); return; }
+        await api.updateNode(nodeId, { properties: { image: url } });
+        events.log('Image URL set.', 'system-msg');
+        H._refreshImagePreview(nodeId, url);
+        if (graphManager) graphManager._lastSig = '';
+        worldState.fetch();
+        if (graphManager) graphManager.loadGraphData();
+    };
+
+    /**
+     * Clear a node's image binding.
+     * @param {string} nodeId - Graph node ID
+     */
+    H.clearNodeImage = async function(nodeId: string) {
+        await api.removeNodeImage(nodeId);
+        events.log('Image removed.', 'system-msg');
+        H._refreshImagePreview(nodeId, '');
+        if (graphManager) graphManager._lastSig = '';
+        worldState.fetch();
+        if (graphManager) graphManager.loadGraphData();
+    };
+
+    // ─────────────────── Expression Pack (SillyTavern-style) ───────────────────
+
+    /** Known expression keys, in display order. Custom keys append after. */
+    const EXPRESSION_ORDER = ['neutral', 'happy', 'sad', 'angry', 'afraid',
+        'surprised', 'disgusted', 'aroused', 'affectionate', 'ashamed',
+        'envious', 'calm'];
+    const EXPRESSION_ICONS = {
+        neutral: '😐', happy: '😊', sad: '😢', angry: '😠', afraid: '😨',
+        surprised: '😲', disgusted: '🤢', aroused: '😳', affectionate: '🥰',
+        ashamed: '😖', envious: '😒', calm: '😌',
+    };
+    // Exposed so the sprite-sheet splitter (SpriteSheet.defaultNames) uses the
+    // same canonical order instead of keeping its own copy in sync.
+    H.EXPRESSION_ORDER = EXPRESSION_ORDER;
+    H.EXPRESSION_ICONS = EXPRESSION_ICONS;
+
+    H._exprCache = {};   // nodeId -> props (last rendered)
+    H._exprTab = {};     // nodeId -> 'profile' | 'full'
+
+    /** Normalise an arbitrary expression name to a filename-safe key. */
+    H.expressionKeySafe = function(value: unknown): string {
+        return String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+    };
+
+    /** Resolve the image URL for one expression slot (with neutral fallbacks). */
+    H.expressionImageFor = function(props: NodeProps | null | undefined, kind: string, key: string): string {
+        const expr = ((props && props.expressions) || {}) as Record<string, Record<string, string>>;
+        const direct = (expr[key] || {})[kind];
+        if (direct) return direct;
+        if (key === 'neutral') {
+            return kind === 'profile'
+                ? (props!.profile_image || props!.image || '')
+                : (props!.image || '');
+        }
+        return '';
+    };
+
+    /** Ordered expression keys: known emotions first, then custom (sorted). */
+    H.expressionKeys = function(props: NodeProps | null | undefined): string[] {
+        const expr = (props && props.expressions) || {};
+        const present = new Set<string>(['neutral', ...Object.keys(expr)]);
+        const known = EXPRESSION_ORDER.filter(k => present.has(k));
+        const custom = [...present].filter(k => !EXPRESSION_ORDER.includes(k)).sort();
+        return [...known, ...custom];
+    };
+
+    /** Inject the expression-card stylesheet once. */
+    H._ensureExprStyles = function(): void {
+        if (document.getElementById('expr-pack-styles')) return;
+        const style = document.createElement('style');
+        style.id = 'expr-pack-styles';
+        style.textContent = `
+            .expr-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(92px,1fr)); gap:6px; }
+            /* The whole card is the upload control (a <label> around the file
+               input), so it has to read as clickable — it is a 92px target, not a
+               14px arrow. */
+            .expr-card { position:relative; display:flex; flex-direction:column; align-items:center; gap:4px;
+                padding:6px; border:1px solid var(--border); border-radius:8px; background:var(--bg-input);
+                cursor:pointer; transition:border-color .12s, background .12s; }
+            .expr-card:hover { border-color:#3f6fa8; background:#182130; }
+            .expr-card.expr-current { border-color:#57c98f; box-shadow:0 0 0 1px #2c4a36; }
+            .expr-card.expr-drop { border-color:#4f9cf9; background:#14243a; }
+            /* Focus ring for the keyboard path: the input is visually hidden but
+               not display:none, so it is still tabbable. */
+            .expr-card:focus-within { border-color:#4f9cf9; box-shadow:0 0 0 1px #1d3a5c; }
+            .expr-thumb { width:100%; aspect-ratio:1; border-radius:6px; overflow:hidden; display:flex;
+                align-items:center; justify-content:center; border:1px dashed var(--border); }
+            .expr-thumb.has-art { border-style:solid; }
+            .expr-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+            .expr-thumb .expr-empty { font-size:18px; opacity:.35; }
+            .expr-name { font-size:10px; text-align:center; max-width:100%; white-space:nowrap;
+                overflow:hidden; text-overflow:ellipsis; }
+            .expr-actions { display:flex; gap:4px; opacity:.45; transition:opacity .12s; }
+            .expr-card:hover .expr-actions, .expr-card:focus-within .expr-actions { opacity:1; }
+            .expr-upload { cursor:pointer; pointer-events:none; }
+            /* Visually hidden, still focusable — the label wraps the card. */
+            .expr-file { position:absolute; width:1px; height:1px; margin:0; padding:0; border:0;
+                opacity:0; overflow:hidden; clip:rect(0 0 0 0); clip-path:inset(50%); }
+            .expr-current-badge { position:absolute; top:4px; right:4px; font-size:8.5px; letter-spacing:.4px;
+                background:#14231a; color:#57c98f; border:1px solid #2c4a36; border-radius:6px; padding:0 4px; }`;
+        document.head.appendChild(style);
+    };
+
+    /** Card grid HTML: thumbnail + label + upload/remove, drop target, live highlight. */
+    H._expressionCardsHtml = function(nodeId: string, props: NodeProps, kind: string): string {
+        const escId = H.escId(nodeId);
+        const node = worldState.getNode ? worldState.getNode(nodeId) as InspectorNode | null : null;
+        const currentKey = ((window as unknown as {
+            CharacterArt?: { emotionKeyForName(name: string): string };
+        }).CharacterArt && node)
+            ? (window as unknown as { CharacterArt: { emotionKeyForName(name: string): string } })
+                .CharacterArt.emotionKeyForName(node.name as string) : 'neutral';
+        return H.expressionKeys(props).map((key: string) => {
+            const safeKey = H.expressionKeySafe(key);
+            const url = H.expressionImageFor(props, kind, key);
+            const icon = EXPRESSION_ICONS[key as keyof typeof EXPRESSION_ICONS] || '🎭';
+            const label = H.esc(String(key).replace(/_/g, ' '));
+            const isCurrent = H.expressionKeySafe(currentKey) === safeKey;
+            const thumb = url
+                ? `<img src="${H.esc(url)}" alt="${label}">`
+                : `<span class="expr-empty" title="No ${kind} image">🎭</span>`;
+            const remove = url
+                // Inside a <label>, so the click has to be cut off from the label's
+                // own activation or clearing an image would also open the picker.
+                ? `<button class="btn btn-sm btn-danger" title="Remove ${label}" onclick="event.preventDefault();event.stopPropagation();InspectorHelpers.clearExpressionImage('${escId}','${kind}','${safeKey}')">🗑</button>`
+                : '';
+            // The card IS the label, so a click anywhere on it opens the picker —
+            // the arrow is decoration, not the target. The input stays focusable
+            // (visually hidden, not display:none) so the slot is reachable by
+            // keyboard too.
+            return `<label class="expr-card${isCurrent ? ' expr-current' : ''}" data-key="${safeKey}"
+                        title="Click or drop an image here — upload / replace ${label}"
+                        ondragover="event.preventDefault();this.classList.add('expr-drop');"
+                        ondragleave="this.classList.remove('expr-drop');"
+                        ondrop="InspectorHelpers.dropExpressionImage('${escId}','${kind}','${safeKey}',event)">
+                <div class="expr-thumb${url ? ' has-art' : ''}">${thumb}</div>
+                <div class="expr-name" title="${label}">${icon} ${label}</div>
+                <span class="expr-actions">
+                    <span class="btn btn-sm expr-upload" aria-hidden="true">⬆</span>
+                    ${remove}
+                </span>
+                <input class="expr-file" type="file" accept="image/*" tabindex="0"
+                    aria-label="Upload ${kind} image for ${label}"
+                    onchange="InspectorHelpers.setExpressionImage('${escId}','${kind}','${safeKey}',this)">
+                ${isCurrent ? '<span class="expr-current-badge">NOW</span>' : ''}
+            </label>`;
+        }).join('');
+    };
+
+    H._refreshExpressionGrid = function(nodeId: string, kindOverride?: string): void {
+        const escId = H.escId(nodeId);
+        const kind = kindOverride || H._exprTab[nodeId] || 'profile';
+        const props = H._exprCache[nodeId] || {};
+        const grid = document.getElementById(`expr-grid-${escId}`);
+        if (grid) {
+            grid.dataset.kind = kind;
+            grid.innerHTML = H._expressionCardsHtml(nodeId, props, kind);
+        }
+        document.querySelectorAll(`#expr-section-${escId} .expr-tab`).forEach((btn: Element) => {
+            btn.classList.toggle('btn-blue', (btn as HTMLElement).dataset.kind === kind);
+        });
+    };
+
+    H.setExpressionTab = function(nodeId: string, kind: string): void {
+        H._exprTab[nodeId] = kind;
+        H._refreshExpressionGrid(nodeId, kind);
+    };
+
+    /**
+     * Render the expression-pack gallery (Profile / Full-body tabs + a row per
+     * expression key). Live character art that follows the character's emotion.
+     * @param {string} nodeId - Graph node ID
+     * @param {object} props - Node properties (reads `expressions`, `image`, `profile_image`)
+     * @returns {string} HTML string
+     */
+    H.renderExpressionSection = function(nodeId: string, props: NodeProps = {}): string {
+        const escId = H.escId(nodeId);
+        H._exprCache[nodeId] = props;
+        H._ensureExprStyles();
+        const kind = H._exprTab[nodeId] || 'profile';
+        const tab = (value: string, label: string) => {
+            const on = value === kind ? ' btn-blue' : '';
+            return `<button class="btn btn-sm expr-tab${on}" data-kind="${value}" onclick="InspectorHelpers.setExpressionTab('${escId}','${value}')">${label}</button>`;
+        };
+        return `<div class="inspector-section" id="expr-section-${escId}">
+            <h3>🎭 Expression Pack</h3>
+            <div style="display:flex;gap:4px;margin-bottom:6px;">
+                ${tab('profile', '🖼 Profile')}
+                ${tab('full', '🧍 Full body')}
+                <span style="flex:1;"></span>
+                <button class="btn btn-sm" title="Slice a grid sprite sheet into one image per expression slot"
+                    onclick="SpriteSheet.openDialog('${escId}','${kind}')">✂️ Split sheet</button>
+            </div>
+            <div id="expr-grid-${escId}" class="expr-grid" data-kind="${kind}">
+                ${H._expressionCardsHtml(nodeId, props, kind)}
+            </div>
+            <div style="display:flex;gap:4px;margin-top:6px;">
+                <input type="text" id="expr-new-${escId}" placeholder="add expression (happy, attack…)" style="flex:1;font-size:11px;">
+                <button class="btn btn-sm btn-green" onclick="InspectorHelpers.addExpressionKey('${escId}')">Add</button>
+            </div>
+            <div class="section-hint" style="margin-top:4px;">Profile is the character's avatar and follows their current emotion; full body is the portrait art. The "neutral" slot is the fallback. Click a card (or drop an image on it) to set it — the whole card is the target.</div>
+        </div>`;
+    };
+
+    /** Shared upload path for the picker and drag-and-drop. */
+    H.uploadExpressionFile = async function(nodeId: string, kind: string, key: string, file: File | null) {
+        if (!file) return;
+        const res = await api.uploadNodeImage(nodeId, file, kind, key);
+        if (res.error) {
+            events.log('Image upload failed: ' + res.error, 'error-msg');
+            return;
+        }
+        const props = H._exprCache[nodeId] || (H._exprCache[nodeId] = {});
+        props.expressions = res.expressions || props.expressions || {};
+        if (H.expressionKeySafe(key) === 'neutral') {
+            if (kind === 'profile') props.profile_image = res.image;
+            else props.image = res.image;
+        }
+        events.log('Expression image set.', 'system-msg');
+        H._refreshExpressionGrid(nodeId, kind);
+        if (graphManager) graphManager._lastSig = '';
+        worldState.fetch();
+        if (graphManager) graphManager.loadGraphData();
+    };
+
+    /** Drop-to-set: an image file dropped on an expression card. */
+    H.dropExpressionImage = function(nodeId: string, kind: string, key: string, ev: DragEvent): void {
+        if (ev && ev.preventDefault) ev.preventDefault();
+        const card = ev && ev.currentTarget;
+        if (card) (card as HTMLElement).classList.remove('expr-drop');
+        const file = ev && ev.dataTransfer && ev.dataTransfer.files && ev.dataTransfer.files[0];
+        if (file) H.uploadExpressionFile(nodeId, kind, key, file);
+    };
+
+    H.setExpressionImage = function(nodeId: string, kind: string, key: string, inputEl: HTMLInputElement | null): void {
+        const file = inputEl && inputEl.files && inputEl.files[0];
+        if (file) H.uploadExpressionFile(nodeId, kind, key, file);
+    };
+
+    H.clearExpressionImage = async function(nodeId: string, kind: string, key: string) {
+        const res = await api.removeExpressionImage(nodeId, kind, key);
+        if (res.error) {
+            events.log('Remove failed: ' + res.error, 'error-msg');
+            return;
+        }
+        const props = H._exprCache[nodeId] || (H._exprCache[nodeId] = {});
+        props.expressions = res.expressions || {};
+        if (H.expressionKeySafe(key) === 'neutral') {
+            if (kind === 'profile') delete props.profile_image;
+            else delete props.image;
+        }
+        events.log('Expression image removed.', 'system-msg');
+        H._refreshExpressionGrid(nodeId, kind);
+        if (graphManager) graphManager._lastSig = '';
+        worldState.fetch();
+        if (graphManager) graphManager.loadGraphData();
+    };
+
+    H.addExpressionKey = function(nodeId: string): void {
+        const input = document.getElementById(`expr-new-${H.escId(nodeId)}`) as HTMLInputElement | null;
+        const key = H.expressionKeySafe(input && input.value);
+        if (!key) return;
+        const props = H._exprCache[nodeId] || (H._exprCache[nodeId] = {});
+        props.expressions = props.expressions || {};
+        if (!props.expressions[key]) props.expressions[key] = {};
+        if (input) input.value = '';
+        H._refreshExpressionGrid(nodeId);
+    };
+
+    /**
+     * Render a field-lock toggle for AI Improve. Locked fields are preserved
+     * during AI Improve/Refresh.
+     * @param {string} field - Property field name
+     * @param {string[]} lockedFields - Currently locked fields
+     * @param {string} nodeId - Graph node ID
+     * @returns {TemplateResult}
+     */
+    H.renderLockToggle = function(field: string, lockedFields: string[] | null | undefined, nodeId: string) {
+        const isLocked = (lockedFields || []).includes(field);
+        const icon = isLocked ? '🔒' : '🔓';
+        const color = isLocked ? 'var(--orange)' : 'var(--text-muted)';
+        return htmlTag`<span style="cursor:pointer;font-size:12px;color:${color};"
+            @click=${(ev: Event) => { ev.preventDefault(); H.toggleFieldLock(nodeId, field); }}
+            title="${isLocked ? 'Unlock' : 'Lock'} ${field} — locked fields are preserved during Improve">${icon}</span>`;
+    };
+
+    /**
+     * Toggle a field's locked state on a node.
+     * @param {string} nodeId - Graph node ID
+     * @param {string} field - Property field name
+     */
+    H.toggleFieldLock = function(nodeId: string, field: string): void {
+        const node = worldState.getNode(nodeId) as InspectorNode | null;
+        if (!node) return;
+        const locked: string[] = [...(node.properties?.locked_fields || [])];
+        const idx = locked.indexOf(field);
+        if (idx >= 0) locked.splice(idx, 1);
+        else locked.push(field);
+        api.updateNode(nodeId, { properties: { locked_fields: locked } }).then(() => worldState.fetch());
+    };
+
+    /**
+     * Get the locked-field list from a node's properties.
+     * @param {object} props - Node properties
+     * @returns {string[]} Locked fields
+     */
+    H.getLockedFields = function(props: NodeProps | null | undefined): string[] {
+        return props?.locked_fields || [];
+    };
+
+    /**
+     * Shared "AI Improve" flow used by way/item/area inspectors.
+     *
+     * Handles the parts that are identical across all three: existence +
+     * description + API-key checks, button busy state, LLM call with JSON
+     * extraction, node update + refresh + re-render, and error handling.
+     *
+     * @param {string} nodeId - Graph node ID
+     * @param {object} spec - { btnId, id, system, buildPrompt, apply }
+     *   - btnId: id of the Improve button to disable while running
+     *   - id: a short name for the node kind ('way' | 'item' | 'area'), used to
+     *     label the LLM exchange so the inspector says which Improve was pressed
+     *   - system: system prompt string for the LLM
+     *   - buildPrompt(node, lockedFields): returns the user prompt string
+     *   - apply(parsed, node, lockedFields, update): mutate `update` with
+     *     the parsed name/properties to save
+     */
+    H.improveWithAI = async function(nodeId: string, spec: ImproveSpec) {
+        const node = worldState.getNode(nodeId) as InspectorNode | null;
+        if (!node) return;
+        const props = node.properties || {};
+        const description = props.description || '';
+        const lockedFields: string[] = props.locked_fields || [];
+
+        if (!description) { toastInfo('Add a description first, then run Improve.'); return; }
+        if (!config.apiKey || !config.model) { toastInfo('Configure API key and model in Settings first.'); return; }
+
+        const improveBtn = document.getElementById(spec.btnId) as HTMLButtonElement | null;
+        if (improveBtn) { improveBtn.disabled = true; improveBtn.textContent = '⏳ Improving...'; }
+
+        try {
+            const resp = await llmClient.chat([
+                { role: 'system', content: spec.system },
+                { role: 'user', content: spec.buildPrompt(node, lockedFields) }
+            ], { temperature: 0.7, responseFormat: (window as unknown as { StructuredFormats?: { jsonObject: unknown } }).StructuredFormats?.jsonObject, label: `inspector/edit-${spec.id || 'node'}` });
+            if (!resp) { toastError('No response from LLM.'); return; }
+
+            let cleaned = resp.trim();
+            const jsonMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+            if (jsonMatch) cleaned = jsonMatch[1].trim();
+            else { const firstBrace = cleaned.indexOf('{'), lastBrace = cleaned.lastIndexOf('}'); if (firstBrace !== -1 && lastBrace > firstBrace) cleaned = cleaned.substring(firstBrace, lastBrace + 1); }
+            const parsed = JSON.parse(cleaned);
+
+            const update: NodeProps = {};
+            spec.apply(parsed, node, lockedFields, update);
+
+            await api.updateNode(nodeId, update);
+            events.log(`AI improved ${node.name || nodeId}`, 'system-msg');
+            worldState.fetch().then(() => {
+                if (window.VW?.inspector) (window.VW as unknown as {
+                    inspector: { showNode(id: string): void };
+                }).inspector.showNode(nodeId);
+            });
+        } catch (error) {
+            console.error(error);
+            toastError('AI improvement failed: ' + (error as Error).message);
+        } finally {
+            if (improveBtn) { improveBtn.disabled = false; improveBtn.textContent = '✨ Improve'; }
+        }
+    };
+
+    /**
+     * Build a lit-html section for an editable Aliases area (subjective names
+     * that resolve to this node in commands — works for items, ways, areas,
+     * and characters). Comma-separated; saved on Enter or blur.
+     * @param {string} nodeId - Graph node ID
+     * @param {Array|string} aliases - Current aliases
+     * @returns {TemplateResult}
+     */
+    H.renderAliasesSection = function(nodeId: string, aliases: string[] | string = []) {
+        const list = Array.isArray(aliases) ? aliases : [];
+        const value = list.join(', ');
+        const save = (ev: KeyboardEvent) => { if (ev.key && ev.key !== 'Enter') return; if (ev.key === 'Enter') ev.preventDefault(); H.saveAliases(nodeId, (ev.target as HTMLInputElement).value); };
+        return htmlTag`<div class="inspector-section" id="aliases-section-${nodeId}">
+            <h3>🔖 Aliases</h3>
+            <div class="field">
+                <input type="text" id="aliases-input-${nodeId}" .value=${value}
+                    placeholder="Other names this resolves to (comma-separated)"
+                    title="Subjective names characters use for this — e.g. 'the Butcher', 'trapdoor'. Saved on Enter or blur."
+                    style="width:100%;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;"
+                    @keydown=${save}
+                    @blur=${save}>
+                <div class="section-hint" style="margin-top:4px;">Other names that target this in commands (use, go, take, attack, examine...). Comma-separated.</div>
+            </div>
+        </div>`;
+    };
+
+    /**
+     * Save a node's aliases from a comma-separated input value.
+     * @param {string} nodeId - Graph node ID (unescaped)
+     * @param {string} value - Comma-separated aliases
+     */
+    H.saveAliases = async function(nodeId: string, value: string) {
+        const aliases = String(value || '')
+            .split(/[,\|]/)
+            .map((a: string) => a.trim())
+            .filter(Boolean);
+        await api.updateNode(nodeId, { properties: { aliases } });
+        worldState.fetch();
+    };
+
+    /**
+     * Replace {param:key} placeholders in way text with values from the way parameters dict.
+     * Unresolved keys are left as-is.
+     * @param {string} text
+     * @param {Object} parameters
+     * @returns {string}
+     */
+    H.resolveWayParams = function(text: string, parameters: Record<string, unknown> = {}): string {
+        if (!text) return '';
+        return String(text).replace(/\{param:([^}]+)\}/g, (match: string, key: string) => {
+            const trimmed = String(key || '').trim();
+            if (trimmed && Object.prototype.hasOwnProperty.call(parameters, trimmed)) {
+                return String(parameters[trimmed]);
+            }
+            return match;
+        });
+    };
+
+    /**
+     * Keys referenced as {param:key} in text but missing from parameters.
+     * @param {string} text
+     * @param {Object} parameters
+     * @returns {string[]}
+     */
+    H.unresolvedParamKeys = function(text: string, parameters: Record<string, unknown> = {}): string[] {
+        const missing: string[] = [];
+        const seen = new Set<string>();
+        const re = /\{param:([^}]+)\}/g;
+        let match;
+        while ((match = re.exec(String(text || ''))) !== null) {
+            const key = String(match[1] || '').trim();
+            if (!key || seen.has(key)) continue;
+            seen.add(key);
+            if (!Object.prototype.hasOwnProperty.call(parameters, key)) missing.push(key);
+        }
+        return missing;
+    };
+
+    /**
+     * HTML block showing resolved parameter preview + unresolved warnings.
+     * @param {string} text - Raw text with {param:key} placeholders
+     * @param {Object} parameters
+     * @returns {string}
+     */
+    H.renderParamPreviewBlock = function(text: string, parameters: Record<string, unknown> = {}): string {
+        if (!text || !/\{param:/.test(text)) return '';
+        const resolved = H.resolveWayParams(text, parameters);
+        const unresolved = H.unresolvedParamKeys(text, parameters);
+        let html = `<div class="way-param-preview" style="margin-top:4px;padding:6px 8px;background:var(--bg-inset);border-radius:4px;font-size:10px;">`;
+        html += `<div style="color:var(--text-dim);margin-bottom:2px;">Resolved preview:</div>`;
+        html += `<div style="color:var(--text);white-space:pre-wrap;">${H.esc(resolved)}</div>`;
+        if (unresolved.length) {
+            html += `<div style="color:var(--orange);margin-top:4px;">⚠ Missing parameters: ${unresolved.map((k: string) => H.esc(k)).join(', ')}</div>`;
+        }
+        html += `</div>`;
+        return html;
+    };
+
+    return H;
+})();
+
+(window as unknown as { InspectorHelpers: InspectorHelpersApi }).InspectorHelpers = InspectorHelpersModule;
+
+// Type declarations sit below the first value statement on purpose: TypeScript
+// drops a file's leading JSDoc when the first statement is type-only, which
+// would strip the `@module` header `tools/js_module_index.py` reads.
+type NodeProps = Record<string, any>;
+
+interface InspectorNode {
+    id?: string;
+    name?: string;
+    properties?: NodeProps;
+}
+
+interface ImproveSpec {
+    btnId: string;
+    id?: string;
+    system: string;
+    buildPrompt(node: InspectorNode, lockedFields: string[]): string;
+    apply(parsed: any, node: InspectorNode, lockedFields: string[], update: NodeProps): void;
+}
+
+interface InspectorHelpersApi {
+    graphGravityControl(nodeId: string, props?: NodeProps): unknown;
+    setLayoutNumber(nodeId: string, key: string, rawValue: string | number): Promise<void>;
+    setCentralGravity(nodeId: string, enabled: boolean): Promise<void>;
+    addParam(nodeId: string): Promise<void>;
+    removeParam(nodeId: string, key: string): Promise<void>;
+    updateParamKey(nodeId: string, oldKey: string, newKey: string): Promise<void>;
+    updateParamValue(nodeId: string, key: string, value: string): Promise<void>;
+    savePersonality(charName: string): Promise<void>;
+    saveDescription(charName: string): Promise<void>;
+    isGeneratedNode(nodeId: string): boolean;
+    renameNode(oldId: string, newId: string): Promise<void>;
+    syncIdFromName(nodeId: string, displayName: string): Promise<void>;
+    saveSkillCheck(nodeId: string): Promise<void>;
+    esc(text: string | null | undefined): string;
+    escId(nodeId: string | null | undefined): string;
+    renderImageSection(nodeId: string, props?: NodeProps): string;
+    _refreshImagePreview(nodeId: string, image: string): void;
+    setNodeImage(nodeId: string, inputEl: HTMLInputElement | null): Promise<void>;
+    setNodeImageUrl(nodeId: string): Promise<void>;
+    clearNodeImage(nodeId: string): Promise<void>;
+    EXPRESSION_ORDER: string[];
+    EXPRESSION_ICONS: Record<string, string>;
+    _exprCache: Record<string, NodeProps>;
+    _exprTab: Record<string, string>;
+    expressionKeySafe(value: unknown): string;
+    expressionImageFor(props: NodeProps | null | undefined, kind: string, key: string): string;
+    expressionKeys(props: NodeProps | null | undefined): string[];
+    _ensureExprStyles(): void;
+    _expressionCardsHtml(nodeId: string, props: NodeProps, kind: string): string;
+    _refreshExpressionGrid(nodeId: string, kindOverride?: string): void;
+    setExpressionTab(nodeId: string, kind: string): void;
+    renderExpressionSection(nodeId: string, props?: NodeProps): string;
+    uploadExpressionFile(nodeId: string, kind: string, key: string, file: File | null): Promise<void>;
+    dropExpressionImage(nodeId: string, kind: string, key: string, ev: DragEvent): void;
+    setExpressionImage(nodeId: string, kind: string, key: string, inputEl: HTMLInputElement | null): void;
+    clearExpressionImage(nodeId: string, kind: string, key: string): Promise<void>;
+    addExpressionKey(nodeId: string): void;
+    renderLockToggle(field: string, lockedFields: string[] | null | undefined, nodeId: string): unknown;
+    toggleFieldLock(nodeId: string, field: string): void;
+    getLockedFields(props: NodeProps | null | undefined): string[];
+    improveWithAI(nodeId: string, spec: ImproveSpec): Promise<void>;
+    renderAliasesSection(nodeId: string, aliases?: string[] | string): unknown;
+    saveAliases(nodeId: string, value: string): Promise<void>;
+    resolveWayParams(text: string, parameters?: Record<string, unknown>): string;
+    unresolvedParamKeys(text: string, parameters?: Record<string, unknown>): string[];
+    renderParamPreviewBlock(text: string, parameters?: Record<string, unknown>): string;
+}

@@ -1,3 +1,4 @@
+"use strict";
 /**
  * undo-history.js — visible undo history dropdown (task-371).
  *
@@ -11,22 +12,23 @@
  * @relates reads the undo stack; opened from the 📜 button in the graph toolbar
  * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */
-
-window.UndoHistory = (() => {
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+const UndoHistory = (() => {
     'use strict';
-
     let _open = false;
-
     function menuEl() { return document.getElementById('undo-history-menu'); }
-
     async function refresh() {
         const menu = menuEl();
-        if (!menu) return;
+        if (!menu)
+            return;
         let entries = [];
         try {
             const resp = await fetch('/api/undo/list');
             entries = (await resp.json()).entries || [];
-        } catch (e) { entries = []; }
+        }
+        catch (e) {
+            entries = [];
+        }
         menu.textContent = '';
         if (!entries.length) {
             const none = document.createElement('div');
@@ -55,7 +57,6 @@ window.UndoHistory = (() => {
             menu.appendChild(row);
         });
     }
-
     async function restoreTo(idx) {
         try {
             const resp = await fetch('/api/undo', {
@@ -64,44 +65,57 @@ window.UndoHistory = (() => {
                 body: JSON.stringify({ steps: idx + 1 })
             });
             const data = await resp.json();
-            if (data.error) { toastError('Undo failed: ' + data.error); return; }
-            try { graphManager.loadGraphData(); } catch (e) {}
+            if (data.error) {
+                toastError('Undo failed: ' + data.error);
+                return;
+            }
+            try {
+                graphManager.loadGraphData();
+            }
+            catch (e) { }
             worldState.fetch();
-            if (typeof toastInfo === 'function') toastInfo('Restored (' + (idx + 1) + ' step' + (idx ? 's' : '') + ').');
+            if (typeof toastInfo === 'function')
+                toastInfo('Restored (' + (idx + 1) + ' step' + (idx ? 's' : '') + ').');
             close();
-        } catch (e) {
+        }
+        catch (e) {
             console.error('[undo-history] restore failed:', e);
-            toastError('Undo failed: ' + (e.message || e));
+            toastError('Undo failed: ' + (e instanceof Error ? e.message : String(e)));
         }
     }
-
     function close() {
         _open = false;
         const menu = menuEl();
-        if (menu) menu.style.display = 'none';
+        if (menu)
+            menu.style.display = 'none';
     }
-
     async function toggle() {
         const menu = menuEl();
-        if (!menu) return;
+        if (!menu)
+            return;
         _open = !_open;
         if (_open) {
             menu.style.display = 'block';
             await refresh();
-        } else {
+        }
+        else {
             menu.style.display = 'none';
         }
     }
-
     // Close on outside click / Escape.
     document.addEventListener('click', (ev) => {
         const menu = menuEl();
-        if (!menu || menu.style.display === 'none') return;
-        if (ev.target.closest && ev.target.closest('#undo-history-menu')) return;
-        if (ev.target.closest && ev.target.closest('[data-role="undo-history-toggle"]')) return;
+        if (!menu || menu.style.display === 'none')
+            return;
+        const target = ev.target;
+        if (target?.closest && target.closest('#undo-history-menu'))
+            return;
+        if (target?.closest && target.closest('[data-role="undo-history-toggle"]'))
+            return;
         close();
     });
-    document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') close(); });
-
+    document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape')
+        close(); });
     return { toggle, refresh, close };
 })();
+window.UndoHistory = UndoHistory;

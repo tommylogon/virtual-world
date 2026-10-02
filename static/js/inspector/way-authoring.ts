@@ -1,0 +1,393 @@
+/**
+ * WayAuthoring — shared helpers for way inspector, area exits, graph tooltips, agent lens.
+ *
+ * @module inspector/way-authoring — shared way/door authoring helpers
+ * @contributes WayAuthoring: way naming, state, cardinal/direction helpers, vis edge tooltips
+ * @powers Way authoring — consistent way editing across the way inspector, area exits, graph tooltips, and agent lens
+ * @relates used by way-view + area-view + graph/network-manager (edge tooltips)
+ * @docs docs/virtualWorld/World Building/Doors & Connections.md
+ */
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+const WayAuthoringModule = (() => {
+    const WA = {} as WayAuthoringApi;
+
+    const esc = (s: unknown) => (typeof InspectorHelpers !== 'undefined' ? InspectorHelpers.esc(s) : String(s || ''));
+
+    WA.STATE_STYLE = {
+        open: { icon: '🟢', color: 'var(--green)', label: 'open' },
+        closed: { icon: '🟡', color: 'var(--yellow)', label: 'closed' },
+        locked: { icon: '🔴', color: 'var(--red)', label: 'locked' },
+        hidden: { icon: '⚫', color: 'var(--text-muted)', label: 'hidden' },
+        blocked: { icon: '⛔', color: 'var(--orange)', label: 'blocked' },
+        broken: { icon: '💥', color: 'var(--orange)', label: 'broken' },
+    };
+
+    WA.REQUIRES_LABEL = {
+        crawl: { emoji: '🐛', label: 'crawl', hint: 'go auto-crawls' },
+        climb: { emoji: '🧗', label: 'climb', hint: 'climb <dir>' },
+        jump: { emoji: '🦘', label: 'jump', hint: 'jump <dir>' },
+    };
+
+    /** @returns {{ areaId, areaName, command, viewWhenOpen, cardinal, targetAreaName, edge }[]} */
+    WA.getWaySides = function(wayId: string): WaySide[] {
+        const edges: WayEdge[] = worldState.graph?.edges || [];
+        const nodes: Record<string, WayNode> = worldState.graph?.nodes || {};
+        const wayLower = String(wayId).toLowerCase();
+        const sides: WaySide[] = [];
+
+        edges.filter((e: WayEdge) => e.type === 'connection' && String(e.target).toLowerCase() === wayLower)
+            .forEach((edge: WayEdge) => {
+                const areaNode = nodes[edge.source];
+                if (!areaNode || areaNode.type !== 'area') return;
+                const areaName = areaNode.name || edge.source;
+                const returnEdge = edges.find((e: WayEdge) =>
+                    e.type === 'connection'
+                    && String(e.source).toLowerCase() === wayLower
+                    && String(e.target).toLowerCase() === String(edge.source).toLowerCase()
+                );
+                let targetAreaName = '?';
+                const otherAreaEdge = edges.find((e: WayEdge) =>
+                    e.type === 'connection'
+                    && String(e.target).toLowerCase() === wayLower
+                    && String(e.source).toLowerCase() !== String(edge.source).toLowerCase()
+                );
+                if (otherAreaEdge) {
+                    const otherNode = nodes[otherAreaEdge.source];
+                    targetAreaName = otherNode?.name || otherAreaEdge.source;
+                }
+                sides.push({
+                    areaId: edge.source,
+                    areaName,
+                    command: edge.properties?.direction || '',
+                    viewWhenOpen: edge.properties?.visible_in_direction || '',
+                    cardinal: edge.properties?.cardinal || '',
+                    allowSeeCharacters: !!edge.properties?.allow_see_characters,
+                    visibleItems: edge.properties?.visible_items || [],
+                    targetAreaName,
+                    edge,
+                    returnEdge,
+                });
+            });
+        return sides.sort((a, b) => a.areaName.localeCompare(b.areaName));
+    };
+
+    WA.getWayAreaPair = function(wayId: string): WayAreaPair {
+        const sides = WA.getWaySides(wayId);
+        return {
+            from: sides[0]?.areaName || null,
+            to: sides[1]?.areaName || sides[0]?.targetAreaName || null,
+            sides,
+        };
+    };
+
+    WA.movementHint = function(wayNode: WayNode | null | undefined, command: string): string {
+        if (!wayNode) return '';
+        const req = String(wayNode.properties?.requires || '').toLowerCase();
+        if (!req || req === 'none') return '';
+        const meta = WA.REQUIRES_LABEL[req];
+        if (!meta) return '';
+        const cmd = command || '<dir>';
+        if (req === 'crawl') return ` (${meta.label}: go ${cmd} auto-crawls)`;
+        return ` (${meta.label}: ${meta.hint.replace('<dir>', cmd)})`;
+    };
+
+    WA.collectExitBadges = function(exitData: Record<string, unknown> | null | undefined, wayNode: WayNode | null | undefined): WayBadge[] {
+        const badges: WayBadge[] = [];
+        const wayId = String(exitData?.way_id || wayNode?.id || '');
+        const state = String(exitData?.state || wayNode?.properties?.current_state || 'closed');
+        const stateStyle = WA.STATE_STYLE[state] || { icon: '❓', color: 'var(--text-muted)', label: state };
+
+        badges.push({
+            kind: 'state',
+            emoji: stateStyle.icon,
+            title: `Way state: ${stateStyle.label}`,
+            wayId,
+        });
+
+        if (wayNode) {
+            const req = String(wayNode.properties?.requires || '').toLowerCase();
+            if (WA.REQUIRES_LABEL[req]) {
+                const meta = WA.REQUIRES_LABEL[req];
+                badges.push({
+                    kind: 'movement',
+                    emoji: meta.emoji,
+                    title: `Requires ${meta.label} (${meta.hint})`,
+                    wayId,
+                });
+            }
+            const tags: string[] = (wayNode.properties?.tags || []).slice(0, 2);
+            tags.forEach((tag: string) => {
+                badges.push({
+                    kind: 'tag',
+                    emoji: '🏷',
+                    title: `Tag: ${tag}`,
+                    label: tag,
+                    wayId,
+                });
+            });
+            const params = wayNode.properties?.parameters || {};
+            const rawDesc = String(exitData?.description || wayNode.properties?.description || '');
+            if (/\{param:/.test(rawDesc)) {
+                const resolved = String(InspectorHelpers.resolveWayParams(rawDesc, params));
+                const unresolved = InspectorHelpers.unresolvedParamKeys(rawDesc, params);
+                badges.push({
+                    kind: 'param',
+                    emoji: unresolved.length ? '⚠' : '📝',
+                    title: unresolved.length
+                        ? `Unresolved params: ${unresolved.join(', ')}`
+                        : `Resolved: ${resolved.substring(0, 80)}${resolved.length > 80 ? '…' : ''}`,
+                    preview: resolved,
+                    wayId,
+                });
+            }
+        }
+        return badges;
+    };
+
+    WA.renderBadgeRow = function(badges: WayBadge[], wayId: string): string {
+        const extra = badges.filter((b: WayBadge) => b.kind !== 'state');
+        if (!extra.length) return '';
+        const escWay = esc(wayId).replace(/'/g, "\\'");
+        return `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;align-items:center;">
+            <span style="font-size:9px;color:var(--text-muted);">Also:</span>
+            ${extra.map((b: WayBadge) => {
+                let label = b.emoji;
+                if (b.kind === 'tag') label += ` ${esc(b.label)}`;
+                else if (b.kind === 'movement') label += ` ${esc(b.title.replace(/^Requires /, ''))}`;
+                else if (b.kind === 'param') label += ' param preview';
+                const title = esc(b.title);
+                return `<button type="button" class="btn btn-sm btn-ghost way-exit-badge"
+                    title="${title} — click to open way inspector"
+                    style="font-size:10px;padding:1px 6px;line-height:1.4;cursor:pointer;"
+                    onclick="VW.inspector.showNode('${escWay}')">${label}</button>`;
+            }).join('')}
+        </div>`;
+    };
+
+    WA.tagSanityWarnings = function(wayNode: WayNode | null | undefined): string[] {
+        if (!wayNode) return [];
+        const props = wayNode.properties || {};
+        const warnings: string[] = [];
+        const req = String(props.requires || '').toLowerCase();
+        const tags: string[] = (props.tags || []).map((t: unknown) => String(t).toLowerCase());
+        const state = String(props.current_state || 'closed');
+
+        if (req === 'jump' && tags.includes('clearance')) {
+            warnings.push('clearance tag on a jump passage — usually belongs on a door, not a jump pit');
+        }
+        if (req === 'climb' && tags.includes('clearance')) {
+            warnings.push('clearance tag on a climb passage — double-check this is intentional');
+        }
+        if (state === 'locked' && !tags.length) {
+            const triggerEdges = (worldState.graph?.edges || []).filter((e: WayEdge) =>
+                e.type === 'triggers' && (e.source === wayNode.id || e.target === wayNode.id)
+            );
+            if (!triggerEdges.length && !(props.triggers || []).length) {
+                warnings.push('locked way has no tags and no visible unlock trigger (heuristic)');
+            }
+        }
+        const desc = String(props.description || '');
+        const missing = InspectorHelpers.unresolvedParamKeys(desc, props.parameters || {});
+        if (missing.length) {
+            warnings.push(`description references missing parameters: ${missing.join(', ')}`);
+        }
+        return warnings;
+    };
+
+    WA.renderSanityWarnings = function(wayNode: WayNode | null | undefined): string {
+        const warnings = WA.tagSanityWarnings(wayNode);
+        if (!warnings.length) return '';
+        return `<div class="way-sanity-warnings" style="margin-top:6px;padding:6px 8px;background:#3a2a1022;border:1px solid var(--orange);border-radius:4px;font-size:10px;color:var(--orange);">
+            ${warnings.map((w: string) => `<div>⚠ ${esc(w)}</div>`).join('')}
+        </div>`;
+    };
+
+    WA._findNode = function(nodesObj: Record<string, WayNode> | null | undefined, id: string): WayNode | null {
+        if (!nodesObj || !id) return null;
+        if (nodesObj[id]) return nodesObj[id];
+        const key = Object.keys(nodesObj).find((k: string) => k.toLowerCase() === String(id).toLowerCase());
+        return key ? nodesObj[key] : null;
+    };
+
+    WA._findEdge = function(edgesArr: WayEdge[] | null | undefined, source: string, target: string, type = 'connection'): WayEdge | undefined {
+        return (edgesArr || []).find((e: WayEdge) => e.type === type
+            && String(e.source).toLowerCase() === String(source).toLowerCase()
+            && String(e.target).toLowerCase() === String(target).toLowerCase());
+    };
+
+    /**
+     * Tooltip for a single collapsed vis edge (area↔way shows one bidirectional line;
+     * command/view come from the area→way edge for the area on this link).
+     */
+    WA.buildEdgeTooltipForVis = function(fromId: string, toId: string, nodesObj: Record<string, WayNode>, edgesArr: WayEdge[]): EdgeTooltip | null {
+        const fromNode = WA._findNode(nodesObj, fromId);
+        const toNode = WA._findNode(nodesObj, toId);
+        if (!fromNode || !toNode) return null;
+
+        let areaNode: WayNode, wayNode: WayNode, areaId: string, wayId: string;
+        if (fromNode.type === 'area' && toNode.type === 'way') {
+            areaNode = fromNode; wayNode = toNode; areaId = fromId; wayId = toId;
+        } else if (fromNode.type === 'way' && toNode.type === 'area') {
+            areaNode = toNode; wayNode = fromNode; areaId = toId; wayId = fromId;
+        } else {
+            return null;
+        }
+
+        const areaToWay = WA._findEdge(edgesArr, areaId, wayId);
+        const wayToArea = WA._findEdge(edgesArr, wayId, areaId);
+        const props = wayNode.properties || {};
+        const areaName = areaNode.name || areaId;
+        const wayName = wayNode.name || wayId;
+
+        let targetAreaName = '?';
+        (edgesArr || []).forEach((e: WayEdge) => {
+            if (e.type !== 'connection') return;
+            if (String(e.target).toLowerCase() !== String(wayId).toLowerCase()) return;
+            if (String(e.source).toLowerCase() === String(areaId).toLowerCase()) return;
+            const other = WA._findNode(nodesObj, e.source);
+            if (other?.type === 'area') targetAreaName = other.name || e.source;
+        });
+
+        const command = String(areaToWay?.properties?.direction || wayToArea?.properties?.direction || '?');
+        const view = String(areaToWay?.properties?.visible_in_direction || '');
+        const state = String(props.current_state || 'closed');
+        const req = String(props.requires || '').toLowerCase();
+        const reqMeta = WA.REQUIRES_LABEL[req];
+        const movement = reqMeta ? `${reqMeta.label} (${reqMeta.hint})` : 'go (default)';
+        const tags = (props.tags || []).join(', ') || '—';
+        const viewSnippet = view ? (view.length > 80 ? view.substring(0, 80) + '…' : view) : '—';
+
+        const plain = [
+            `🔗 ${areaName} ↔ ${wayName}`,
+            `Command (from ${areaName}): go "${command}" → ${targetAreaName}`,
+            `Way state: ${state}`,
+            `Movement: ${movement}`,
+            `Tags: ${tags}`,
+            `View when open: "${viewSnippet}"`,
+        ].join('\n');
+
+        let html = '<div style="font-size:10px;min-width:200px;line-height:1.45;">';
+        html += `<div style="font-weight:600;margin-bottom:4px;">🔗 ${esc(areaName)} ↔ ${esc(wayName)}</div>`;
+        html += `<div style="font-size:9px;color:var(--text-muted);margin-bottom:4px;">One graph edge — area→way + return path collapsed</div>`;
+        html += `<div><span style="color:var(--text-dim);">Command (from ${esc(areaName)}):</span> go "${esc(command)}" → ${esc(targetAreaName)}</div>`;
+        html += `<div><span style="color:var(--text-dim);">Way state:</span> ${esc(state)}</div>`;
+        html += `<div><span style="color:var(--text-dim);">Movement:</span> ${esc(movement)}</div>`;
+        html += `<div><span style="color:var(--text-dim);">Tags:</span> ${esc(tags)}</div>`;
+        html += `<div style="margin-top:4px;color:var(--text-muted);"><span style="color:var(--text-dim);">View when open:</span> "${esc(viewSnippet)}"</div>`;
+        html += '</div>';
+        return { html, plain };
+    };
+
+    /** @deprecated use buildEdgeTooltipForVis */
+    WA.buildConnectionEdgeTooltip = function(edgeData: WayEdge | null): string | null {
+        const nodesObj = graphManager?._graphNodesObj || worldState.graph?.nodes || {};
+        const edgesArr = graphManager?._graphEdgesArr || worldState.graph?.edges || [];
+        if (!edgeData) return null;
+        const tip = WA.buildEdgeTooltipForVis(edgeData.source, edgeData.target, nodesObj, edgesArr);
+        return tip?.html || null;
+    };
+
+    WA.enhanceWayNodeTooltip = function(nodeData: WayNode, baseHtml: string): string {
+        const pair = WA.getWayAreaPair(String(nodeData.id));
+        let extra = '';
+        if (pair.from || pair.to) {
+            extra += `<div style="margin:2px 0;">📍 ${esc(pair.from || '?')} ↔ ${esc(pair.to || '?')}</div>`;
+        }
+        const tags = nodeData.properties?.tags || [];
+        if (tags.length) {
+            extra += `<div style="margin:2px 0;">🏷️ ${esc(tags.join(', '))}</div>`;
+        }
+        if (!extra) return baseHtml;
+        const insertAt = baseHtml.lastIndexOf('</div>');
+        if (insertAt === -1) return baseHtml + extra;
+        return baseHtml.slice(0, insertAt) + extra + baseHtml.slice(insertAt);
+    };
+
+    return WA;
+})();
+
+(window as unknown as { WayAuthoring: typeof WayAuthoringModule }).WayAuthoring = WayAuthoringModule;
+
+// Declared below the first value statement on purpose: TypeScript drops a
+// file's leading JSDoc block when the first statement is type-only, which would
+// strip the `@module` header tools/js_module_index.py reads.
+interface WayNode {
+    id?: string;
+    type?: string;
+    name?: string;
+    properties?: WayNodeProperties;
+}
+
+interface WayNodeProperties {
+    requires?: string;
+    tags?: string[];
+    current_state?: string;
+    description?: string;
+    parameters?: Record<string, unknown>;
+    triggers?: unknown[];
+    [key: string]: unknown;
+}
+
+interface WayEdge {
+    type?: string;
+    source: string;
+    target: string;
+    properties?: {
+        direction?: string;
+        visible_in_direction?: string;
+        cardinal?: string;
+        allow_see_characters?: boolean;
+        visible_items?: string[];
+        [key: string]: unknown;
+    };
+}
+
+interface WaySide {
+    areaId: string;
+    areaName: string;
+    command: string;
+    viewWhenOpen: string;
+    cardinal: string;
+    allowSeeCharacters: boolean;
+    visibleItems: string[];
+    targetAreaName: string;
+    edge: WayEdge;
+    returnEdge?: WayEdge;
+}
+
+interface WayAreaPair {
+    from: string | null;
+    to: string | null;
+    sides: WaySide[];
+}
+
+interface WayBadge {
+    kind: string;
+    emoji: string;
+    title: string;
+    label?: string;
+    preview?: string;
+    wayId: string;
+}
+
+interface EdgeTooltip {
+    html: string;
+    plain: string;
+}
+
+interface WayAuthoringApi {
+    STATE_STYLE: Record<string, { icon: string; color: string; label: string }>;
+    REQUIRES_LABEL: Record<string, { emoji: string; label: string; hint: string }>;
+    getWaySides(wayId: string): WaySide[];
+    getWayAreaPair(wayId: string): WayAreaPair;
+    movementHint(wayNode: WayNode | null | undefined, command: string): string;
+    collectExitBadges(exitData: Record<string, unknown> | null | undefined, wayNode: WayNode | null | undefined): WayBadge[];
+    renderBadgeRow(badges: WayBadge[], wayId: string): string;
+    tagSanityWarnings(wayNode: WayNode | null | undefined): string[];
+    renderSanityWarnings(wayNode: WayNode | null | undefined): string;
+    _findNode(nodesObj: Record<string, WayNode> | null | undefined, id: string): WayNode | null;
+    _findEdge(edgesArr: WayEdge[] | null | undefined, source: string, target: string, type?: string): WayEdge | undefined;
+    buildEdgeTooltipForVis(fromId: string, toId: string, nodesObj: Record<string, WayNode>, edgesArr: WayEdge[]): EdgeTooltip | null;
+    buildConnectionEdgeTooltip(edgeData: WayEdge | null): string | null;
+    enhanceWayNodeTooltip(nodeData: WayNode, baseHtml: string): string;
+}

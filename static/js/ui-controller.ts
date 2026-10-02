@@ -1,0 +1,666 @@
+/**
+ * UIController — Renders left panel: agent list, vitals, alerts, turn info
+ * Also handles initialization of form controls
+ *
+ * @module ui-controller — the left-hand roster panel
+ * @contributes UIController: agent list, per-agent vitals bars, alerts, turn info, form init
+ * @powers the agent list you click to select/inspect a character, and its vitals readout
+ * @relates reads worldState; drives agent selection used by the turn panel and inspector
+ * @docs none
+ */
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+// `any` because window.Lit.html is declared as returning `unknown`; the templates
+// are interpolated straight back into render() calls, never inspected.
+const uiControllerHtmlTag = (strings: TemplateStringsArray, ...values: unknown[]): any => window.Lit.html(strings, ...values);
+
+// Module state lives on the instance; the declarations are `declare` so they add
+// nothing to the emitted classic script (a bare field would emit `AGENT_COLORS;`).
+declare const agent: any;              // VW.agent, the turn-queue owner (agent/turn-queue.js)
+declare const agentLens: { refresh(): void };
+declare const GraphTreeView: { renderOutlinePanel(target: Element | null): void };
+declare function selectAgent(name: string): void;
+declare const LLMClient: {
+    normalizeBase(base: string): string;
+    getFallbackModels(base: string): string[];
+};
+/** Feature-detected `window` members this module reads. */
+type UIWin = {
+    appEvents?: { on(event: string, cb: (state: unknown) => void): void };
+    VitalThresholds?: { temperatureBand(player: unknown): { cold_mild: number; heat_severe: number } };
+    SkyScape?: { wire?: { _done?: boolean }; renderTopBar(el: HTMLElement, state: unknown): void };
+    ValidatorPanel?: { refresh(): void };
+    graphManager?: { _selectRoom(area: string): void };
+    agent?: { _rateLimiter?: { msUntilAvailable(): number }; turnQueue?: string[]; currentTurnIndex?: number; turnNumber?: number };
+};
+
+class UIController {
+    declare private AGENT_COLORS: string[];
+    declare private _agentColorMap: Record<string, string>;
+    declare private _modelList: string[];
+    declare private _rateLimitTimer: ReturnType<typeof setInterval> | null;
+
+    constructor() {
+        this.AGENT_COLORS = ['#4ec9b0', '#58a6ff', '#ff7eb6', '#e3b341', '#bc8cff', '#f0883e', '#3fb950', '#f85149'];
+        this._agentColorMap = {};
+        this._modelList = [];
+        this._rateLimitTimer = null;
+        if ((window as unknown as UIWin).appEvents) {
+            appEvents.on('state:updated', state => this.renderAll(state));
+        }
+    }
+
+    getAgentColor(name: string) {
+        if (!this._agentColorMap[name]) {
+            this._agentColorMap[name] = this.AGENT_COLORS[Object.keys(this._agentColorMap).length % this.AGENT_COLORS.length];
+        }
+        return this._agentColorMap[name];
+    }
+
+    // --- Agent List ---
+
+    renderAgentList(state: any) {
+        const listEl = document.getElementById('agent-list');
+        if (!listEl) return;
+        const players = state.players || {};
+        const activeName = state.active_player;
+
+        // Turn-order markers when turn-based is active and a queue exists
+        const orderActive = !!config.turnBased && agent.turnQueue.length > 0;
+        const ctc = agent.getCurrentTurnCharacter();
+        const rerollBtn = document.getElementById('reroll-init-btn');
+        if (rerollBtn) rerollBtn.style.display = (orderActive && config.turnOrder === 'initiative') ? 'inline-block' : 'none';
+
+        let names = Object.keys(players);
+        let orderInfo: Record<string, any> = {};
+        if (orderActive) {
+            names = agent.turnQueue.filter((n: string) => players[n]);
+            for (let i = 0; i < agent.turnQueue.length; i++) {
+                const name = agent.turnQueue[i];
+                if (!players[name]) continue;
+                const roll = agent.initiativeRolls?.[name];
+                const noTurnsYet = agent.turnNumber === 0 && Object.keys(config.lastActionResult || {}).length === 0;
+                const isCurrent = name === ctc;
+                const isDone = i < agent.currentTurnIndex;
+                orderInfo[name] = {
+                    pos: i + 1,
+                    icon: isCurrent ? '▶️' : (isDone ? '✅' : '⏳'),
+                    isCurrent,
+                    isDone,
+                    rollStr: roll !== undefined ? ` <span style="font-size:9px;color:var(--text-dim);">(${roll})</span>` : '',
+                    statusStr: isCurrent ? (noTurnsYet ? 'up next' : 'ACTING…') : (isDone ? 'done' : 'waiting'),
+                    statusColor: isCurrent ? 'var(--green)' : 'var(--text-muted)'
+                };
+            }
+        }
+
+        let rows: unknown[] = [];
+        for (const name of names) {
+            const p = players[name];
+            if (!p) continue;
+            const isSelected = (name === activeName);
+            const color = this.getAgentColor(name);
+            let statusClass = 'idle';
+            if (p.state === 'dead') statusClass = 'stuck';
+            else if (config.busy && config.controllingPlayer === name) statusClass = 'acting';
+
+            const vitals = p.vitals || {};
+            let lowestVital = 100;
+            for (const v of ['HP', 'Energy', 'Hunger', 'Thirst'] as (keyof typeof vitals)[]) {
+                if (vitals[v] !== undefined && vitals[v] < lowestVital) lowestVital = vitals[v];
+            }
+            const vitalColor = lowestVital > 50 ? '#3fb950' : (lowestVital > 20 ? '#e3b341' : '#f85149');
+
+            const isSimpleNpc = p.simple_npc;
+            const agentIcon = isSimpleNpc ? '🐱' : '🧍';
+            const ord = orderInfo[name];
+            const orderChips = ord
+                ? uiControllerHtmlTag`<span class="initiative-pos" style="font-size:9px;color:var(--text-dim);min-width:14px;">${ord.pos}.</span><span style="font-size:9px;">${ord.icon}</span>${window.Lit.unsafeHTML(ord.rollStr)}`
+                : '';
+            const statusText = ord
+                ? uiControllerHtmlTag`<span class="initiative-status" style="font-size:9px;color:${ord.statusColor};margin-left:auto;font-weight:${ord.isCurrent ? '600' : '400'};">${ord.statusStr}</span>`
+                : '';
+            const soak = p.soak;
+            let soakText = '';
+            if (soak) {
+                const soakLabels: Record<string, string> = { idle: 'wait', leisure: 'mingle', search: 'search', explore: 'explore', travel: 'travel' };
+                const left = Math.round(soak.remaining_minutes || 0);
+                const verb = soakLabels[soak.intent] || soak.intent;
+                soakText = uiControllerHtmlTag`<span class="initiative-status" title="Soaking — ${soak.intent}, ${left} min left" style="font-size:9px;color:#a371f7;margin-left:auto;font-weight:600;display:inline-flex;align-items:center;gap:3px;">⏩ ${verb} ${left}m <button type="button" class="soak-cancel" title="Cancel this soak order" @click=${(e: any) => { e.stopPropagation(); this.cancelSoak(name); }} style="background:none;border:0;color:#a371f7;cursor:pointer;padding:0 2px;font-size:9px;">✕</button></span>`;
+            }
+            if (!window.Lit) return; // startup race: first state:updated can arrive before Lit bootstrap
+
+            rows.push(uiControllerHtmlTag`<div class="agent-item ${isSelected ? 'selected' : ''} ${statusClass === 'stuck' ? 'stuck' : ''}" @click=${() => selectAgent(name)} style="${isSimpleNpc ? 'opacity:0.85;cursor:pointer;' : ''}">
+                <div class="agent-dot ${statusClass}" style="background:${color}"></div>
+                ${orderChips}
+                <span class="agent-name">${agentIcon} ${name}</span>
+                ${p.current_area
+                    ? uiControllerHtmlTag`<span class="agent-location" title="Focus area in graph" @click=${(e: any) => { e.stopPropagation(); if ((window as unknown as UIWin).graphManager) graphManager._selectRoom(p.current_area); }} style="cursor:pointer;text-decoration:underline dotted;">${p.current_area}</span>`
+                    : uiControllerHtmlTag`<span class="agent-location">?</span>`}
+                <div class="agent-need-bar"><div class="agent-need-fill" style="width:${lowestVital}%; background:${vitalColor}"></div></div>
+                ${soakText || statusText}
+            </div>`);
+        }
+        let listTemplate;
+        if (orderActive) {
+            listTemplate = uiControllerHtmlTag`<div style="margin-bottom:4px;font-size:10px;color:var(--text-muted);display:flex;justify-content:space-between;"><span>Round ${agent.turnNumber + 1}</span>${config.turnOrder === 'initiative' ? uiControllerHtmlTag`<span>Init + DEX</span>` : ''}</div>${rows}`;
+        } else {
+            listTemplate = uiControllerHtmlTag`${rows}<div style="padding:8px 12px;font-size:10px;color:var(--text-muted);">Turn-based mode is off — no initiative order. Toggle ⏭️ Turn-Based Mode below to show it.</div>`;
+        }
+        window.Lit.render(listTemplate, listEl);
+    }
+
+    /**
+     * Cancel a character's soak order from the roster row (task-481) and refresh
+     * so the badge and queue update.
+     */
+    async cancelSoak(name: string) {
+        try {
+            await (ApiClient as unknown as { cancelSoak(name: string): Promise<unknown> }).cancelSoak(name);
+            await worldState.fetch();
+        } catch (err) {
+            console.error('Cancel soak failed:', err);
+        }
+    }
+
+    // --- Agent Overview ---
+
+    renderSelectedAgentOverview(state: any) {
+        const section = document.getElementById('agent-overview-section');
+        if (!section) return;
+        const name = state.active_player;
+        const player = state.players?.[name];
+        if (!name || !player) { section.style.display = 'none'; return; }
+        section.style.display = 'block';
+        document.getElementById('agent-overview-name')!.textContent = name;
+        document.getElementById('agent-overview-status')!.textContent = `${player.state || 'awake'} · ${player.current_area || '?'}`;
+        
+        const lastAction = (config.lastActionResult as Record<string, string>)?.[name] || '';
+        document.getElementById('agent-overview-action')!.textContent = lastAction.length > 80 ? lastAction + '...' : (lastAction || 'No recent action');
+
+        const vitalsEl = document.getElementById('agent-vitals');
+        const vitals = player.vitals || {};
+        const polarity = state.vital_polarity || {};
+        let vitalsRows: unknown[] = [];
+        for (const v of ['HP', 'Energy', 'Hunger', 'Thirst', 'Hygiene', 'Social', 'Bladder', 'Sanity', 'Entertainment']) {
+            if (v === 'Max_HP' || vitals[v] === undefined) continue;
+            const val = vitals[v];
+            const max = v === 'HP' ? (vitals.Max_HP || 100) : 100;
+            const pct = (val / max) * 100;
+            const isDrive = polarity[v] === 'drive';
+            const color = isDrive
+                ? (val > 50 ? '#f85149' : (val > 20 ? '#e3b341' : '#3fb950'))
+                : (val > 50 ? '#3fb950' : (val > 20 ? '#e3b341' : '#f85149'));
+            vitalsRows.push(uiControllerHtmlTag`<div class="vital-mini"><span class="vital-mini-label">${v}</span><div class="vital-mini-bar"><div class="vital-mini-fill" style="width:${pct}%; background:${color}"></div></div><span class="vital-mini-val">${val}</span></div>`);
+        }
+        // Temperature mini-bar (Celsius, safe range 35-39)
+        const temp = vitals.Temperature;
+        if (temp !== undefined) {
+            const tempPct = Math.max(0, Math.min(100, ((temp - 25) / 20) * 100));
+            let tempColor: string;
+            if (temp < 33) tempColor = '#f85149';
+            else if (temp < 35) tempColor = '#58a6ff';
+            else if (temp <= 39) tempColor = '#3fb950';
+            else if (temp <= 40) tempColor = '#e3b341';
+            else tempColor = '#f85149';
+            vitalsRows.push(uiControllerHtmlTag`<div class="vital-mini"><span class="vital-mini-label">Temp</span><div class="vital-mini-bar"><div class="vital-mini-fill" style="width:${tempPct}%; background:${tempColor}"></div></div><span class="vital-mini-val">${temp}°</span></div>`);
+        }
+        window.Lit.render(uiControllerHtmlTag`${vitalsRows}`, vitalsEl!);
+    }
+
+    // --- Alerts ---
+
+    renderAlerts(state: any) {
+        const alertEl = document.getElementById('alert-list');
+        if (!alertEl) return;
+        const alerts: { type: string; name: string; text: string }[] = [];
+        for (const [name, p] of Object.entries(state.players || {}) as [string, any][]) {
+            const vitals = p.vitals || {};
+            const maxHp = vitals.Max_HP || 100;
+            const hpCriticalThreshold = Math.max(1, Math.floor(maxHp * 0.2));
+            if (vitals.HP > 0 && vitals.HP <= hpCriticalThreshold) alerts.push({ type: 'error', name, text: `${name}: HP critical (${vitals.HP})` });
+            else if (vitals.HP === 0) alerts.push({ type: 'error', name, text: `${name}: DEAD` });
+            if (vitals.Energy <= 15) alerts.push({ type: 'warning', name, text: `${name}: Exhausted (${vitals.Energy})` });
+            if (vitals.Hunger >= 85) alerts.push({ type: 'warning', name, text: `${name}: Starving (${vitals.Hunger})` });
+            if (vitals.Thirst >= 85) alerts.push({ type: 'warning', name, text: `${name}: Dehydrated (${vitals.Thirst})` });
+            if (vitals.Bladder >= 85) alerts.push({ type: 'warning', name, text: `${name}: Bladder full (${vitals.Bladder}%)` });
+            if (vitals.Sanity <= 15) alerts.push({ type: 'warning', name, text: `${name}: Losing sanity (${vitals.Sanity})` });
+            if (vitals.Entertainment <= 15) alerts.push({ type: 'warning', name, text: `${name}: Bored (${vitals.Entertainment})` });
+            // Species-aware: a cold-blooded frog at 20°C is comfortable, not critical.
+            const tempBand = (window as unknown as UIWin).VitalThresholds?.temperatureBand?.(p);
+            if (vitals.Temperature !== undefined && tempBand
+                    && (vitals.Temperature < tempBand.cold_mild - 1 || vitals.Temperature > tempBand.heat_severe)) {
+                alerts.push({ type: 'danger', name, text: `${name}: Critical body temp (${Number(vitals.Temperature).toFixed(1)}°C)` });
+            }
+        }
+        // Click an alert to select & inspect the affected agent.
+        window.Lit.render(alerts.length === 0
+            ? uiControllerHtmlTag`<div class="alert-empty">No alerts</div>`
+            : uiControllerHtmlTag`${alerts.map(a => uiControllerHtmlTag`<div class="alert-item ${a.type}" title="Click to inspect ${a.name}" @click=${() => selectAgent(a.name)}>${a.text}</div>`)}`, alertEl);
+    }
+
+    // --- Turn Info ---
+
+    renderTurnInfo(state: any) {
+        const turnEl = document.getElementById('turn-display');
+        const stepEl = document.getElementById('step-display');
+        const activeEl = document.getElementById('active-char-display');
+
+        // When turn queue is empty (no turn-based mode / single character scenario),
+        // fall back to world state tick info
+        if (agent.turnQueue.length === 0) {
+            const tick = state?.time_ticks ?? 0;
+            if (turnEl) turnEl.textContent = `Turn: ${tick}`;
+            if (stepEl) stepEl.textContent = `Step: ${tick}`;
+        } else {
+            if (turnEl) turnEl.textContent = `Turn: ${agent.turnNumber}`;
+            if (stepEl) stepEl.textContent = `Step: ${agent.currentTurnIndex + 1}/${agent.turnQueue.length}`;
+        }
+
+        const ctc = agent.getCurrentTurnCharacter();
+        const activeName = state?.active_player || ctc || '—';
+        if (activeEl) activeEl.textContent = `Active: ${activeName}`;
+    }
+
+    /**
+     * @deprecated Folded into renderAgentList (agents + initiative unified per task-250).
+     */
+    _renderInitiative(state: any) {
+        // Initiative order now renders inline in the merged agent list.
+    }
+
+    // --- Full Render ---
+
+    renderAll(state: any) {
+        this.renderAgentList(state);
+        this.renderSelectedAgentOverview(state);
+        this.renderAlerts(state);
+        this.renderTurnInfo(state);
+        const timeEl = document.getElementById('sky-time');
+        if (timeEl && state.game_time) {
+            // task-387: if the SkyScape widget is active, it manages #sky-time;
+            // the legacy clock-text overwrite would wipe the widget's span.
+            if (typeof (window as unknown as UIWin).SkyScape !== 'undefined' && (window as unknown as UIWin).SkyScape!.wire?._done) {
+                (window as unknown as UIWin).SkyScape!.renderTopBar(timeEl, state);
+            } else {
+                timeEl.textContent = `🕐 ${state.game_time.slice(0, 5)}`;
+            }
+        }
+        const outlinePane = document.getElementById('left-tab-outline');
+        if (outlinePane && outlinePane.classList.contains('active')) {
+            GraphTreeView.renderOutlinePanel(document.getElementById('outline-container'));
+        }
+    }
+
+    // --- Left Panel Tabs ---
+
+    switchLeftTab(tabName: string) {
+        document.querySelectorAll<HTMLElement>('#left-tabs .left-tab').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.tab === tabName);
+        });
+        ['agents', 'outline', 'lens', 'issues', 'nl-editor'].forEach(name => {
+            const pane = document.getElementById('left-tab-' + name);
+            if (pane) pane.classList.toggle('active', name === tabName);
+        });
+        const leftPanel = document.getElementById('left-panel');
+        if (leftPanel) leftPanel.classList.toggle('left-panel--lens', tabName === 'lens');
+        if (tabName === 'outline') {
+            GraphTreeView.renderOutlinePanel(document.getElementById('outline-container'));
+        }
+        if (tabName === 'lens') {
+            agentLens.refresh();
+        }
+        if (tabName === 'issues' && (window as unknown as UIWin).ValidatorPanel) {
+            ValidatorPanel.refresh();
+        }
+    }
+
+    // --- Character Select ---
+
+    selectAgent(name: string) {
+        if (worldState.players?.[name]) {
+            (ApiClient as unknown as { setActivePlayer(name: string): Promise<unknown> }).setActivePlayer(name).then(async () => {
+                await worldState.fetch();
+                VW?.inspector?.showAgent(name);
+                config.controllingPlayer = name;
+                graphManager.focusNode(`player_${name.replace(/\s+/g, '_')}`);
+            });
+        }
+    }
+
+    // --- Agent UI form controls ---
+
+    initAgentUI() {
+        const k = document.getElementById('agent-api-key') as HTMLInputElement | null;
+        const b = document.getElementById('agent-api-base') as HTMLInputElement | null;
+        const m = document.getElementById('agent-model') as HTMLInputElement | null;
+        const lc = document.getElementById('agent-show-logs') as HTMLInputElement | null;
+        const sc = document.getElementById('agent-streaming') as HTMLInputElement | null;
+
+        // Init turn-based controls
+        const turnBasedCb = document.getElementById('agent-turn-based') as HTMLInputElement | null;
+        const turnOrderSel = document.getElementById('agent-turn-order') as HTMLSelectElement | null;
+        const turnSettings = document.getElementById('turn-settings');
+        if (turnBasedCb) {
+            turnBasedCb.checked = config.turnBased as boolean;
+            turnBasedCb.onchange = () => {
+                config.turnBased = turnBasedCb.checked;
+                config.save();
+                if (turnSettings) turnSettings.style.display = turnBasedCb.checked ? 'block' : 'none';
+                events.log(turnBasedCb.checked ? 'Turn-based enabled' : 'Turn-based disabled', 'system-msg');
+                if ((window as unknown as UIWin).appEvents) (appEvents as unknown as { emit(event: string, payload?: unknown): void }).emit('state:updated', worldState?.data);
+            };
+        }
+        if (turnOrderSel) turnOrderSel.value = config.turnOrder as string;
+        if (turnSettings) turnSettings.style.display = config.turnBased ? 'block' : 'none';
+
+        // Fill form fields from config
+        if (k) k.value = config.apiKey as string;
+        const kVisible = document.getElementById('api-key-input') as HTMLInputElement | null;
+        if (kVisible) kVisible.value = config.apiKey as string;
+        if (b) b.value = config.apiBase as string;
+        const bVisible = document.getElementById('api-base-input') as HTMLInputElement | null;
+        if (bVisible) bVisible.value = config.apiBase as string;
+        if (m) m.value = config.model as string;
+        if (lc) {
+            lc.checked = !!config.showLogs;
+            lc.addEventListener('change', () => {
+                config.showLogs = lc.checked;
+                events.log("LLM logs " + (lc.checked ? "ON" : "OFF"), "system-msg");
+            });
+        }
+        if (sc) {
+            sc.checked = !!config.streaming;
+            sc.addEventListener('change', () => {
+                config.streaming = sc.checked;
+                events.log("Streaming " + (sc.checked ? "ON" : "OFF"), "system-msg");
+            });
+        }
+
+        // Restore temperature slider from config
+        const tempSlider = document.getElementById('agent-temperature') as HTMLInputElement | null;
+        const tempVal = document.getElementById('agent-temperature-val');
+        if (tempSlider) {
+            tempSlider.value = (config.temperature as string) || '0.7';
+            if (tempVal) tempVal.textContent = parseFloat((config.temperature as string) || '0.7').toFixed(2);
+        }
+
+        // Restore max tokens from config
+        const maxTokensInput = document.getElementById('max-tokens-input') as HTMLInputElement | null;
+        if (maxTokensInput) maxTokensInput.value = (config.maxTokens || '512') as string;
+
+        this.updateButtons();
+        this.setStatus("Idle.", "info");
+    }
+
+    updateButtons() {
+        const stepBtn = document.getElementById('sim-step') as HTMLButtonElement | null;
+        if (stepBtn) stepBtn.disabled = (config.busy || config.running) as boolean;
+        const cancelBtn = document.getElementById('sim-cancel');
+        if (cancelBtn) cancelBtn.style.display = (config.busy || config.running) ? 'inline-flex' : 'none';
+        const maxInput = document.getElementById('sim-max-steps') as HTMLInputElement | null;
+        if (maxInput) maxInput.disabled = config.running as boolean;
+        // task-533: only meaningful in a simultaneous mode, where a round waits
+        // on the player. Turn-based mode already closes a round on its own.
+        const endRoundBtn = document.getElementById('sim-end-round');
+        if (endRoundBtn) {
+            const showEndRound = !!config.simultaneousMode && !config.busy;
+            endRoundBtn.style.display = showEndRound ? 'inline-flex' : 'none';
+        }
+    }
+
+    setStatus(text: string, kind: string) {
+        const el = document.getElementById('agent-status');
+        if (el) {
+            el.innerText = text;
+            el.style.color = (kind === 'error') ? '#f85149' : '#8b949e';
+        }
+    }
+
+    /** Show API rate-limit countdown beside max-steps (0 = hide). */
+    setRateLimitCountdown(seconds: number) {
+        const el = document.getElementById('sim-rate-limit');
+        if (!el) return;
+        const sec = Math.ceil(Number(seconds) || 0);
+        if (sec <= 0) {
+            el.hidden = true;
+            el.textContent = '';
+            return;
+        }
+        el.hidden = false;
+        el.textContent = `⏱ ${sec}s`;
+    }
+
+    clearRateLimitCountdown() {
+        this.setRateLimitCountdown(0);
+    }
+
+    /** Tick the toolbar countdown from the agent rate limiter (idle between steps). */
+    syncRateLimitDisplay() {
+        const limiter = (window as unknown as UIWin).agent?._rateLimiter;
+        const rpm = (config.rpmLimit || 0) as number;
+        if (!limiter || rpm <= 0) {
+            this.stopRateLimitMonitor();
+            return;
+        }
+        const ms = limiter.msUntilAvailable();
+        if (ms <= 0) {
+            this.stopRateLimitMonitor();
+            return;
+        }
+        this.setRateLimitCountdown(Math.ceil(ms / 1000));
+        if (!this._rateLimitTimer) {
+            this._rateLimitTimer = setInterval(() => this._tickRateLimitDisplay(), 1000);
+        }
+    }
+
+    _tickRateLimitDisplay() {
+        const limiter = (window as unknown as UIWin).agent?._rateLimiter;
+        if (!limiter || !((config.rpmLimit as number) > 0)) {
+            this.stopRateLimitMonitor();
+            return;
+        }
+        const ms = limiter.msUntilAvailable();
+        if (ms <= 0) {
+            this.stopRateLimitMonitor();
+            return;
+        }
+        this.setRateLimitCountdown(Math.ceil(ms / 1000));
+    }
+
+    stopRateLimitMonitor() {
+        if (this._rateLimitTimer) {
+            clearInterval(this._rateLimitTimer);
+            this._rateLimitTimer = null;
+        }
+        this.clearRateLimitCountdown();
+    }
+
+    showPlayPause(showPlay: boolean, showPause: boolean) {
+        const playBtn = document.getElementById('sim-play');
+        const pauseBtn = document.getElementById('sim-pause');
+        if (playBtn) playBtn.style.display = showPlay ? 'flex' : 'none';
+        if (pauseBtn) pauseBtn.style.display = showPause ? 'flex' : 'none';
+    }
+
+    updateMaxStepsDisplay() {
+        const el = document.getElementById('step-display');
+        if (!el) return;
+        if (config.running && (config.maxSteps as number) > 0) {
+            const turnsRun: number = config.turnBased ? Math.floor((config.stepsRun as number) / Math.max(1, ((window as unknown as UIWin).agent?.turnQueue?.length || 1))) : (config.stepsRun as number);
+            const remaining = Math.max(0, (config.maxSteps as number) - turnsRun);
+            const label = config.turnBased ? 'Turn' : 'Step';
+            el.textContent = `${label}: ${turnsRun}/${config.maxSteps} (${remaining} left)`;
+        } else {
+            const turnQueue = (window as unknown as UIWin).agent?.turnQueue || [];
+            const idx = (window as unknown as UIWin).agent?.currentTurnIndex ?? 0;
+            if (config.turnBased && turnQueue.length > 0) {
+                const turnNum = (window as unknown as UIWin).agent?.turnNumber ?? 0;
+                el.textContent = `Turn ${turnNum + 1} — ${idx + 1}/${turnQueue.length}`;
+            } else {
+                el.textContent = `Step: ${idx + 1}/${turnQueue.length}`;
+            }
+        }
+    }
+
+    // --- Profile Select ---
+
+    async populateModelSelect(apiBase?: string) {
+        const modelSelect = document.getElementById('agent-model-select') as HTMLSelectElement | null;
+        if (!modelSelect) return;
+        
+        const base = LLMClient.normalizeBase(apiBase || config.apiBase || 'https://api.openai.com/v1');
+        const apiKey = config.apiKey || '';
+        
+        window.Lit.render(uiControllerHtmlTag`<option value="" disabled>Loading models...</option>`, modelSelect);
+        modelSelect.disabled = true;
+        
+        let models: string[] | null = null;
+        try {
+            models = await llmClient.fetchModels(base, apiKey);
+        } catch (e) {}
+        
+        const hadModels = models && models.length > 0;
+        if (!hadModels && apiKey) {
+            models = LLMClient.getFallbackModels(base);
+        }
+        
+        this._modelList = models || [];
+        
+        // Populate hidden select for test compat
+        modelSelect.disabled = false;
+        while (modelSelect.firstChild) {
+            modelSelect.removeChild(modelSelect.firstChild);
+        }
+        if (this._modelList.length === 0) {
+            const msg = document.createElement('option');
+            msg.value = '';
+            msg.textContent = '⚠️ Could not fetch models — type manually';
+            msg.disabled = true;
+            modelSelect.appendChild(msg);
+        } else {
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.textContent = '-- Select model --';
+            placeholder.disabled = true;
+            modelSelect.appendChild(placeholder);
+            this._modelList.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m;
+                opt.textContent = m;
+                modelSelect.appendChild(opt);
+            });
+        }
+        
+        this.renderModelList();
+        
+        // Wire search + sort once
+        const searchInput = document.getElementById('model-search') as (HTMLInputElement & { _wired?: boolean }) | null;
+        const sortSelect = document.getElementById('model-sort') as (HTMLSelectElement & { _wired?: boolean }) | null;
+        if (searchInput && !searchInput._wired) {
+            searchInput._wired = true;
+            searchInput.addEventListener('input', () => this.renderModelList());
+        }
+        if (sortSelect && !sortSelect._wired) {
+            sortSelect._wired = true;
+            sortSelect.addEventListener('change', () => this.renderModelList());
+        }
+    }
+
+    renderModelList() {
+        const listEl = document.getElementById('model-list')!;
+        if (!listEl) return;
+        
+        const searchInput = document.getElementById('model-search') as (HTMLInputElement & { _wired?: boolean }) | null;
+        const sortSelect = document.getElementById('model-sort') as (HTMLSelectElement & { _wired?: boolean }) | null;
+        const query = (searchInput?.value || '').toLowerCase();
+        const sort = sortSelect?.value || 'name-asc';
+        
+        let models = this._modelList.slice();
+        if (query) {
+            models = models.filter(m => m.toLowerCase().includes(query));
+        }
+        models.sort((a, b) => {
+            const cmp = a.toLowerCase().localeCompare(b.toLowerCase());
+            return sort === 'name-asc' ? cmp : -cmp;
+        });
+        
+        // Imperative wipe: Lit.render() only clears content between its own
+        // comment markers, so items appended via appendChild would survive it
+        // and stack up on every keystroke/sort change.
+        while (listEl.firstChild) {
+            listEl.removeChild(listEl.firstChild);
+        }
+        if (models.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'model-list-empty';
+            empty.textContent = query ? 'No matches' : 'No models loaded';
+            listEl.appendChild(empty);
+            return;
+        }
+        
+        const currentModel = config.model || '';
+        models.forEach(m => {
+            const item = document.createElement('div');
+            item.className = 'model-list-item' + (m === currentModel ? ' selected' : '');
+            item.textContent = m;
+            item.addEventListener('click', () => {
+                const modelInput = document.getElementById('agent-model') as HTMLInputElement | null;
+                if (modelInput) modelInput.value = m;
+                config.model = m;
+                config.save();
+                VW?.llm?.configure((config.toLLMConfig as () => unknown)());
+                listEl.querySelectorAll('.model-list-item').forEach(el => el.classList.remove('selected'));
+                item.classList.add('selected');
+            });
+            listEl.appendChild(item);
+        });
+    }
+
+    async populateProfileSelect() {
+        const sel = document.getElementById('profile-select') as HTMLSelectElement | null;
+        if (!sel) return;
+        const currentValue = sel.value;
+        while (sel.firstChild) {
+            sel.removeChild(sel.firstChild);
+        }
+        const profiles = await (config.getProfiles as () => Promise<Record<string, unknown>>)();
+        const names = Object.keys(profiles);
+        if (names.length === 0) {
+            sel.appendChild(new Option('-- No profiles --', ''));
+            return;
+        }
+        names.forEach(name => sel.appendChild(new Option(name, name)));
+        if (names.includes(currentValue)) {
+            sel.value = currentValue;
+        } else {
+            sel.value = names[0];
+        }
+    }
+
+    async initProfiles() {
+        await config._initPromise;
+        
+        // Ensure defaults are seeded
+        const profiles = await (config.getProfiles as () => Promise<Record<string, unknown>>)();
+        const names = Object.keys(profiles);
+        
+        await this.populateProfileSelect();
+        
+        // Restore last used profile
+        let targetProfile = null;
+        if (config.lastProfile && names.includes(config.lastProfile as string)) {
+            targetProfile = config.lastProfile as string;
+        } else {
+            targetProfile = names[0];
+        }
+        
+        if (targetProfile) {
+            const sel = document.getElementById('profile-select') as HTMLSelectElement | null;
+            if (sel) sel.value = targetProfile;
+            await (config.applyProfile as (name: string) => Promise<unknown>)(targetProfile);
+        }
+    }
+}
+
+// Singleton
+const ui = new UIController();

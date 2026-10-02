@@ -1,6 +1,7 @@
+"use strict";
 /**
  * Shared AI Generator — handles the common LLM call + response parsing pattern.
- * 
+ *
  * Usage:
  *   const result = await AIGenerator.generate(
  *       userPrompt,
@@ -20,17 +21,17 @@
  * @relates wraps llm-client + shared/json-utils + shared/json-schemas; used across the UI
  * @docs docs/virtualWorld/AI & Narration/LLM Providers.md
  */
-
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 const AIGenerator = {
     /** Check if AI is configured (API key + model). Shows toast if missing. */
     isConfigured() {
         if (!config.apiKey || !config.model) {
-            if (typeof toastInfo === 'function') toastInfo('Configure API key and model in Settings first.');
+            if (typeof toastInfo === 'function')
+                toastInfo('Configure API key and model in Settings first.');
             return false;
         }
         return true;
     },
-
     /** Call LLM with system + user messages, parse JSON response.
      *  Returns { success, data, raw, error }.
      *  If LLM returns empty/no response, auto-generates a mock fallback. */
@@ -41,13 +42,12 @@ const AIGenerator = {
         // back to a derived placeholder, which is traceable but not a name — and a
         // caller that knows what it is asking for should say so.
         const label = options.label || 'ai-generator/generate';
-
-        if (!userPrompt) return { success: false, data: null, raw: '', error: 'No prompt provided' };
-        if (!this.isConfigured()) return { success: false, data: null, raw: '', error: 'AI not configured' };
-
+        if (!userPrompt)
+            return { success: false, data: null, raw: '', error: 'No prompt provided' };
+        if (!this.isConfigured())
+            return { success: false, data: null, raw: '', error: 'AI not configured' };
         const t0 = performance.now();
         let response = null;
-
         try {
             response = await llmClient.chat([
                 { role: 'system', content: systemMessage },
@@ -58,9 +58,10 @@ const AIGenerator = {
                 // json_object tier: dynamic/recursive shapes can't be a closed
                 // schema, but guaranteed-valid JSON already removes the parse
                 // failures. The client strips this when disabled/unsupported.
-                responseFormat: options.responseFormat || window.StructuredFormats?.jsonObject || null
+                responseFormat: options.responseFormat
+                    || window.StructuredFormats?.jsonObject
+                    || null
             });
-
             if (!response && fallback) {
                 const fallbackData = typeof fallback === 'function' ? fallback(userPrompt) : fallback;
                 return { success: true, data: fallbackData, raw: JSON.stringify(fallbackData), error: null };
@@ -68,12 +69,10 @@ const AIGenerator = {
             if (!response) {
                 return { success: false, data: null, raw: '', error: 'No response from LLM' };
             }
-
-            const parsed = parseJSONFromResponse(response);
+            const parsed = window.parseJSONFromResponse(response);
             if (parsed.json) {
                 return { success: true, data: parsed.json, raw: parsed.raw, error: null };
             }
-
             // Heuristics (extract + repairJSON) gave up — hand the broken JSON
             // and the parser's complaint back to the LLM and let it fix itself.
             if (typeof events !== 'undefined' && events.log) {
@@ -81,25 +80,26 @@ const AIGenerator = {
             }
             const aiRepaired = await this._repairJSONWithAI(parsed.raw, parsed.error);
             if (aiRepaired) {
-                const reparsed = parseJSONFromResponse(aiRepaired.raw);
+                const reparsed = window.parseJSONFromResponse(aiRepaired.raw);
                 if (reparsed.json) {
                     return { success: true, data: reparsed.json, raw: reparsed.raw, error: null };
                 }
             }
-
             return { success: false, data: null, raw: response, error: 'Failed to parse JSON from response' };
-        } catch (err) {
-            return { success: false, data: null, raw: response || '', error: err.message || 'Unknown error' };
+        }
+        catch (err) {
+            return { success: false, data: null, raw: response || '', error: (err instanceof Error ? err.message : String(err)) || 'Unknown error' };
         }
     },
-
     /** AI repair fallback: when heuristic JSON repair fails, send the broken
      *  JSON plus the parser error back to the LLM and ask it to return only
      *  the corrected JSON object. Returns { raw, error } (raw re-parsed by
      *  the caller) or null when the LLM is unavailable / also fails. */
     async _repairJSONWithAI(brokenJSON, parserError) {
-        if (!brokenJSON) return null;
-        if (typeof llmClient === 'undefined' || !llmClient) return null;
+        if (!brokenJSON)
+            return null;
+        if (typeof llmClient === 'undefined' || !llmClient)
+            return null;
         const repairSystem = 'You fix malformed JSON objects produced by another language model. '
             + 'Given the invalid JSON and a parser error message, return ONLY the corrected, '
             + 'valid single JSON object. Preserve every field and value — fix only the syntax '
@@ -122,24 +122,27 @@ const AIGenerator = {
                 // a repair pair, and an inspector full of generate entries cannot
                 // say which half produced the JSON being read (task-593).
                 label: 'ai-generator/repair',
-                responseFormat: window.StructuredFormats?.jsonObject || null
+                responseFormat: window
+                    .StructuredFormats?.jsonObject || null
             });
-            if (!repaired) return null;
+            if (!repaired)
+                return null;
             return { raw: String(repaired).trim() };
-        } catch (err) {
+        }
+        catch (err) {
             if (typeof events !== 'undefined' && events.log) {
-                events.log('⚡ AI JSON repair attempted but failed: ' + (err.message || err), 'error-msg');
+                events.log('⚡ AI JSON repair attempted but failed: ' + ((err instanceof Error ? err.message : String(err)) || err), 'error-msg');
             }
             return null;
         }
     },
-
     /** Convenience: generate and populate result via a setter callback.
      *  Returns { success, data } or shows error toast. */
     async generateAndPopulate(userPrompt, systemMessage, setFormData, options = {}) {
         const result = await this.generate(userPrompt, systemMessage, options);
         if (result.success && result.data) {
-            if (typeof setFormData === 'function') setFormData(result.data);
+            if (typeof setFormData === 'function')
+                setFormData(result.data);
             return { success: true, data: result.data };
         }
         if (result.error && typeof toastError === 'function') {
@@ -147,7 +150,6 @@ const AIGenerator = {
         }
         return { success: false, data: null, error: result.error };
     },
-
     /** Build a system message that includes available trigger/effect/condition types. */
     buildItemSystem(extra = '') {
         let msg = 'You are a procedural item generator. Generate an item based on the description. Respond with ONLY raw JSON.\n\n'
@@ -178,7 +180,8 @@ const AIGenerator = {
             + 'For two-handed: include "two_handed" in tags. equip_slots: ["hand_left","hand_right"]. '
             + 'For full-body suits (EVA suits, hardsuits): list every covered slot in equip_slots and include "equips_all_slots" in tags. '
             + 'For containers: container: true.';
-        if (extra) msg += '\n\n' + extra;
+        if (extra)
+            msg += '\n\n' + extra;
         return msg;
     }
 };

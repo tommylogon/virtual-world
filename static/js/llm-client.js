@@ -1,3 +1,4 @@
+"use strict";
 /**
  * LLMClient — OpenAI-compatible API calls with streaming support
  * Handles URL normalization, auth, retry logic, streaming, and error handling.
@@ -8,12 +9,13 @@
  * @relates configured from config.toLLMConfig(); feeds dataset-collector.captureRaw
  * @docs docs/virtualWorld/AI & Narration/LLM Providers.md
  */
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 class LLMClient {
     constructor() {
         this.apiKey = '';
         this.apiBase = 'http://localhost:1234/v1';
         this.model = 'qwen3.5-0.8b';
-        this.provider = 'openai';  // Provider type (openai, lmstudio, openrouter, etc.)
+        this.provider = 'openai'; // Provider type (openai, lmstudio, openrouter, etc.)
         this.temperature = 0.7;
         this.streaming = false;
         this.showLogs = false;
@@ -32,11 +34,9 @@ class LLMClient {
         this._structuredLogged = new Set();
         this._schemaIgnoredWarned = new Set();
     }
-
     static normalizeBase(url) {
-    return (url || '').replace(/\/+$/, '');
-}
-
+        return (url || '').replace(/\/+$/, '');
+    }
     configure(config) {
         this.apiKey = config.apiKey || this.apiKey;
         this.apiBase = config.apiBase || this.apiBase;
@@ -50,7 +50,6 @@ class LLMClient {
         this.suppressLocalThinking = config.suppressLocalThinking !== undefined ? config.suppressLocalThinking : this.suppressLocalThinking;
         this.apiFormat = config.apiFormat || this.apiFormat;
     }
-
     /** Chat completion with retry: 3 attempts, 1s/2s/4s backoff on 429/5xx/network errors.
      *  options.label — human name for this call shown on the raw-LLM chips
      *  (e.g. 'think-decide', 'result-reaction', 'plan', 'reflect'); defaults
@@ -64,29 +63,27 @@ class LLMClient {
         const base = LLMClient.normalizeBase(this.apiBase);
         const format = this._resolveFormat();
         const isResponses = format === 'responses';
-
         // Store last messages for clipboard export
         this._lastMessages = messages;
-
         // Manual mode: return injected response instead of calling API
         // Response stays active until replaced or manual mode turned off
         if (this._manualMode && this._manualResponse !== null) {
             VW?.events?.log('✋ Using manual response instead of API call', 'system-msg');
             return this._manualResponse;
         }
-
         // Log full request to event stream for all LLM calls
         if (VW?.events?.logRawLLMRequest && !this._manualMode) {
             // token estimate computed here so the chip can show a budget meter
             let est = 0;
-            try { est = Math.round(messages.reduce((n, m) => n + (m.content || '').length, 0) / 4); } catch (e) {}
+            try {
+                est = Math.round(messages.reduce((n, m) => n + (m.content || '').length, 0) / 4);
+            }
+            catch (e) { }
             VW.events.logRawLLMRequest(label, messages, est);
         }
-
         const maxRetries = 3;
         let lastError = null;
         const startedAt = Date.now();
-
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             // Structured output (task: structured output): response_format is
             // requested per-call via options.responseFormat, gated by the
@@ -102,12 +99,16 @@ class LLMClient {
                     ? this._buildResponsesBody(messages, { model, temperature, streaming, maxTokens: options.max_tokens, tools: options.tools, tool_choice: options.tool_choice, responseFormat })
                     : (() => {
                         const body = { model, messages, temperature: parseFloat(temperature) || 0.7 };
-                        if (streaming) body.stream = true;
-                        if (options.max_tokens) body.max_tokens = options.max_tokens;
-                        if (responseFormat) body.response_format = responseFormat;
+                        if (streaming)
+                            body.stream = true;
+                        if (options.max_tokens)
+                            body.max_tokens = options.max_tokens;
+                        if (responseFormat)
+                            body.response_format = responseFormat;
                         if (options.tools && Array.isArray(options.tools)) {
                             body.tools = options.tools;
-                            if (options.tool_choice) body.tool_choice = options.tool_choice;
+                            if (options.tool_choice)
+                                body.tool_choice = options.tool_choice;
                         }
                         // Thinking mode (DeepSeek reasoning models): extra_body + reasoning_effort.
                         // DeepSeek defaults thinking ON at effort `high`, so we must send an
@@ -126,15 +127,16 @@ class LLMClient {
                         if (!thinkingOff) {
                             body.reasoning_effort = this.thinkingEffort || 'high';
                             body.extra_body = { thinking: { type: 'enabled' } };
-                        } else {
+                        }
+                        else {
                             body.extra_body = { thinking: { type: 'disabled' } };
                             body.reasoning = { exclude: true };
                             body.enable_thinking = false;
-                            if (this.suppressLocalThinking) body.messages.push({ role: 'assistant', content: ' ' });
+                            if (this.suppressLocalThinking)
+                                body.messages.push({ role: 'assistant', content: ' ' });
                         }
                         return body;
                     })();
-
                 const headers = { 'Content-Type': 'application/json' };
                 if (this.apiKey && this.apiKey !== 'not-needed' && this.apiKey !== 'none') {
                     headers['Authorization'] = 'Bearer ' + this.apiKey;
@@ -144,12 +146,17 @@ class LLMClient {
                     headers,
                     body: JSON.stringify(requestBody), signal
                 });
-
                 if (!resp.ok) {
                     let errText = '';
                     let errBody = null;
-                    try { errBody = await resp.json(); errText = errBody.error?.message || JSON.stringify(errBody); }
-                    catch (e) { errText = await resp.text(); errBody = { text: errText }; }
+                    try {
+                        errBody = await resp.json();
+                        errText = errBody.error?.message || JSON.stringify(errBody);
+                    }
+                    catch (e) {
+                        errText = await resp.text();
+                        errBody = { text: errText };
+                    }
                     // Capture provider error shapes (400/429/500) too (task-405).
                     this._captureRawExchange(label, requestBody, errBody || { error: errText }, resp, startedAt, headers);
                     // Provider rejected structured output (unknown param, json
@@ -159,17 +166,19 @@ class LLMClient {
                     if (responseFormat && (resp.status === 400 || resp.status === 422)
                         && /response_format|json_schema|json object|structured|word ['"]?json['"]?/i.test(errText)) {
                         this._structuredUnsupported = true;
-                        if (VW?.events) VW.events.log('⚠️ Provider rejected structured output — falling back to plain prompts for this session.', 'system-msg');
+                        if (VW?.events)
+                            VW.events.log('⚠️ Provider rejected structured output — falling back to plain prompts for this session.', 'system-msg');
                         continue;
                     }
                     if ((resp.status === 429 || resp.status >= 500) && attempt < maxRetries) {
                         const delay = Math.pow(2, attempt - 1) * 1000;
-                        if (VW?.events) VW.events.log(`⏱️ LLM retry ${attempt}/${maxRetries} after ${resp.status}...`, 'system-msg');
-                        await new Promise(r => setTimeout(r, delay)); continue;
+                        if (VW?.events)
+                            VW.events.log(`⏱️ LLM retry ${attempt}/${maxRetries} after ${resp.status}...`, 'system-msg');
+                        await new Promise(r => setTimeout(r, delay));
+                        continue;
                     }
                     throw new Error(`HTTP ${resp.status}: ${errText}`);
                 }
-
                 if (streaming) {
                     const streamed = await this._handleStream(resp, format, options.onChunk, label, messages, options);
                     // A stream isn't reassembled into a provider envelope, so
@@ -180,7 +189,8 @@ class LLMClient {
                 }
                 const completion = await resp.json();
                 this._captureRawExchange(label, requestBody, completion, resp, startedAt, headers);
-                if (completion?.error) throw new Error(completion.error.message || JSON.stringify(completion.error));
+                if (completion?.error)
+                    throw new Error(completion.error.message || JSON.stringify(completion.error));
                 const content = isResponses
                     ? this._extractResponsesContent(completion)
                     : this._extractChatCompletionContent(completion);
@@ -194,26 +204,27 @@ class LLMClient {
                     return { content, tool_calls };
                 }
                 return content;
-
-            } catch (e) {
-                if (e.name === 'AbortError') return null;
+            }
+            catch (e) {
+                if (e.name === 'AbortError')
+                    return null;
                 lastError = e;
                 if (attempt < maxRetries && (e.message.includes('Failed to fetch') || e.message.includes('NetworkError'))) {
                     const delay = Math.pow(2, attempt - 1) * 1000;
-                    if (VW?.events) VW.events.log(`⏱️ LLM retry ${attempt}/${maxRetries} after network error...`, 'system-msg');
-                    await new Promise(r => setTimeout(r, delay)); continue;
+                    if (VW?.events)
+                        VW.events.log(`⏱️ LLM retry ${attempt}/${maxRetries} after network error...`, 'system-msg');
+                    await new Promise(r => setTimeout(r, delay));
+                    continue;
                 }
                 throw e;
             }
         }
         throw lastError || new Error('LLM request failed after retries');
     }
-
     /** Chat completion helper for tool calling (forces non-streaming and returns { content, tool_calls }). */
     async chatWithTools(messages, options = {}) {
         return this.chat(messages, { ...options, streaming: false, withTools: true });
     }
-
     /**
      * Capture the full HTTP exchange for the LLM Inspector (task-405).
      * No-ops unless `config.showRawLLM` is on and the collector is loaded;
@@ -221,10 +232,15 @@ class LLMClient {
      */
     _captureRawExchange(label, requestBody, body, resp, startedAt, requestHeaders) {
         try {
-            if (typeof window === 'undefined' || !window.DatasetCollector?.captureRaw) return;
-            if (typeof config !== 'undefined' && config && !config.showRawLLM) return;
+            if (typeof window === 'undefined' || !window.DatasetCollector?.captureRaw)
+                return;
+            if (typeof config !== 'undefined' && config && !config.showRawLLM)
+                return;
             const responseHeaders = {};
-            try { resp?.headers?.forEach?.((v, k) => { responseHeaders[k] = v; }); } catch (e) { /* ignore */ }
+            try {
+                resp?.headers?.forEach?.((v, k) => { responseHeaders[k] = v; });
+            }
+            catch (e) { /* ignore */ }
             window.DatasetCollector.captureRaw({
                 label,
                 model: requestBody?.model || this.model,
@@ -237,9 +253,9 @@ class LLMClient {
                 body,
                 durationMs: startedAt ? (Date.now() - startedAt) : null,
             });
-        } catch (e) { /* capture must never affect the call */ }
+        }
+        catch (e) { /* capture must never affect the call */ }
     }
-
     /**
      * Resolve the response_format to send for this call, or null when
      * structured output is off, unsupported, or mixed with tool calls
@@ -248,13 +264,16 @@ class LLMClient {
      * @returns {Object|null} response_format payload or null
      */
     _effectiveResponseFormat(options) {
-        if (!options.responseFormat) return null;
-        if (options.tools && Array.isArray(options.tools)) return null;
-        if (this._structuredUnsupported) return null;
-        if (typeof config !== 'undefined' && config && config.structuredOutput === false) return null;
+        if (!options.responseFormat)
+            return null;
+        if (options.tools && Array.isArray(options.tools))
+            return null;
+        if (this._structuredUnsupported)
+            return null;
+        if (typeof config !== 'undefined' && config && config.structuredOutput === false)
+            return null;
         return options.responseFormat;
     }
-
     /**
      * Detect providers that silently IGNORE a strict json_schema (LM Studio
      * does this for models without grammar support — no error is raised, the
@@ -264,32 +283,40 @@ class LLMClient {
      * since continuing would only burn request tokens on an ignored payload.
      */
     _checkSchemaEnforcement(content, responseFormat) {
-        if (!responseFormat || responseFormat.type !== 'json_schema') return;
+        if (!responseFormat || responseFormat.type !== 'json_schema')
+            return;
         const def = responseFormat.json_schema;
-        if (this._schemaIgnoredWarned.has(def.name)) return;
+        if (this._schemaIgnoredWarned.has(def.name))
+            return;
         let parsed;
         try {
             parsed = JSON.parse(String(content || '').replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, ''));
-        } catch (e) { return; } // parse failures are the repair path's job, not ours
-        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return;
+        }
+        catch (e) {
+            return;
+        } // parse failures are the repair path's job, not ours
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed))
+            return;
         const allowed = def.schema && def.schema.properties;
-        if (!allowed) return;
+        if (!allowed)
+            return;
         const extras = Object.keys(parsed).filter(k => !(k in allowed));
-        if (!extras.length) return;
+        if (!extras.length)
+            return;
         this._schemaIgnoredWarned.add(def.name);
         this._structuredUnsupported = true;
-        if (VW?.events) VW.events.log(`⚠️ ${def.name}: provider ignored the JSON schema (unexpected keys: ${extras.join(', ')}) — the loaded model likely can't do structured output (LM Studio: models under 7B usually can't). Structured output disabled for this session.`, 'error-msg');
+        if (VW?.events)
+            VW.events.log(`⚠️ ${def.name}: provider ignored the JSON schema (unexpected keys: ${extras.join(', ')}) — the loaded model likely can't do structured output (LM Studio: models under 7B usually can't). Structured output disabled for this session.`, 'error-msg');
     }
-
     getLastPrompt() {
-        if (!this._lastMessages) return '';
+        if (!this._lastMessages)
+            return '';
         return this._lastMessages.map(m => {
             const role = m.role || 'user';
             const content = m.content || '';
             return `=== ${role.toUpperCase()} ===\n${content}`;
         }).join('\n\n');
     }
-
     /**
      * Resolve which API format to use for requests.
      * auto currently routes to chat-completions (DeepSeek v4-pro only works on chat-completions
@@ -297,28 +324,28 @@ class LLMClient {
      * 'responses' activates the new path. Reserved for future smart routing.
      */
     _resolveFormat() {
-        if (this.apiFormat === 'responses') return 'responses';
+        if (this.apiFormat === 'responses')
+            return 'responses';
         return 'chat-completions';
     }
-
     /** Strip provider wrappers; never return chain-of-thought reasoning text. */
     _normalizeAssistantText(raw) {
-        if (typeof extractAssistantText === 'function') return extractAssistantText(raw);
+        if (typeof extractAssistantText === 'function')
+            return extractAssistantText(raw);
         return String(raw || '').trim();
     }
-
     _extractChatCompletionContent(completion) {
         const msg = completion?.choices?.[0]?.message;
-        if (!msg) return '';
+        if (!msg)
+            return '';
         return this._normalizeAssistantText(msg.content || '');
     }
-
     _logAssistantResponse(label, content) {
         const text = this._normalizeAssistantText(content);
-        if (!text || !VW?.events?.logRawLLMResponse) return;
+        if (!text || !VW?.events?.logRawLLMResponse)
+            return;
         VW.events.logRawLLMResponse(label || 'LLM', text);
     }
-
     /** Feed one completed request/response pair to the dataset collector.
      *  Never throws — capture is best-effort and must not affect gameplay. */
     _captureDataset(messages, content, label, options) {
@@ -328,18 +355,20 @@ class LLMClient {
                     responseFormat: options && options.responseFormat ? options.responseFormat.type : null,
                 });
             }
-        } catch (e) {}
+        }
+        catch (e) { }
     }
-
     /** Build a Responses API request body from chat-style messages. */
     _buildResponsesBody(messages, opts) {
         const systemMessage = messages.find(m => m.role === 'system');
         const input = [];
         for (const m of messages) {
-            if (m === systemMessage) continue;
+            if (m === systemMessage)
+                continue;
             // Tool results must become function_call_output entries.
             if (m.role === 'tool') {
-                if (m.tool_call_id) input.push({ type: 'function_call_output', call_id: m.tool_call_id, output: String(m.content ?? '') });
+                if (m.tool_call_id)
+                    input.push({ type: 'function_call_output', call_id: m.tool_call_id, output: String(m.content ?? '') });
                 continue;
             }
             // Assistant tool calls become function_call entries; their text is dropped
@@ -363,9 +392,12 @@ class LLMClient {
             input,
             temperature: parseFloat(opts.temperature) || 0.7
         };
-        if (systemMessage?.content) body.instructions = systemMessage.content;
-        if (opts.streaming) body.stream = true;
-        if (opts.maxTokens) body.max_output_tokens = opts.maxTokens;
+        if (systemMessage?.content)
+            body.instructions = systemMessage.content;
+        if (opts.streaming)
+            body.stream = true;
+        if (opts.maxTokens)
+            body.max_output_tokens = opts.maxTokens;
         // Responses API uses a flat function tool shape:
         //   { type: 'function', name, description, parameters }
         // (chat-completions nests them:  { type:'function', function:{...} })
@@ -374,7 +406,8 @@ class LLMClient {
                 const fn = t.function || {};
                 return { type: 'function', name: fn.name, description: fn.description, parameters: fn.parameters };
             });
-            if (opts.tool_choice !== undefined) body.tool_choice = opts.tool_choice;
+            if (opts.tool_choice !== undefined)
+                body.tool_choice = opts.tool_choice;
         }
         // Responses API carries structured output under text.format (flat shape).
         if (opts.responseFormat) {
@@ -395,38 +428,36 @@ class LLMClient {
         body.reasoning = { effort: thinkingOff ? 'none' : (this.thinkingEffort || 'high') };
         return body;
     }
-
     /** Extract tool_calls from a Responses API completion (output[] entries of type 'function_call'). */
     _extractResponsesToolCalls(completion) {
         const output = Array.isArray(completion?.output) ? completion.output : [];
         const calls = output
-            .filter(o => o.type === 'function_call')
-            .map(o => ({
-                id: o.call_id || o.id,
-                type: 'function',
-                function: { name: o.name, arguments: o.arguments || '{}' }
-            }));
+            .filter((o) => o.type === 'function_call')
+            .map((o) => ({
+            id: o.call_id || o.id,
+            type: 'function',
+            function: { name: o.name, arguments: o.arguments || '{}' }
+        }));
         return calls.length ? calls : null;
     }
-
     /**
      * Extract text content from a non-stream Responses API response.
      * Prefers top-level output_text (DeepSeek), falls back to concatenating
      * output[] message items (LM Studio), then empty string.
      */
     _extractResponsesContent(completion) {
-        if (completion?.output_text) return completion.output_text;
+        if (completion?.output_text)
+            return completion.output_text;
         if (Array.isArray(completion?.output)) {
             return completion.output
-                .filter(item => item.type === 'message')
-                .map(item => Array.isArray(item.content)
-                    ? item.content.map(c => c.text || '').join('')
-                    : (item.content || ''))
+                .filter((item) => item.type === 'message')
+                .map((item) => Array.isArray(item.content)
+                ? item.content.map((c) => c.text || '').join('')
+                : (item.content || ''))
                 .join('');
         }
         return '';
     }
-
     /** Handle streaming response — OpenAI SSE + LM Studio formats (chat-completions and responses) */
     async _handleStream(resp, format, onChunk, label, messages, options) {
         const reader = resp.body.getReader();
@@ -434,21 +465,26 @@ class LLMClient {
         let buffer = '', fullContent = '', currentEvent = '';
         const isResponses = format === 'responses';
         const yieldToBrowser = () => new Promise(r => setTimeout(r, 0));
-
         while (true) {
             const { done, value } = await reader.read();
-            if (done) break;
+            if (done)
+                break;
             buffer += decoder.decode(value, { stream: true });
             const lines = buffer.split('\n');
             buffer = lines.pop();
-
             for (const line of lines) {
                 const trimmed = line.trim();
-                if (!trimmed) continue;
-                if (trimmed.startsWith('event:')) { currentEvent = trimmed.slice(6).trim(); continue; }
-                if (!trimmed.startsWith('data:')) continue;
+                if (!trimmed)
+                    continue;
+                if (trimmed.startsWith('event:')) {
+                    currentEvent = trimmed.slice(6).trim();
+                    continue;
+                }
+                if (!trimmed.startsWith('data:'))
+                    continue;
                 const data = trimmed.slice(5).trim();
-                if (data === '[DONE]' || currentEvent === 'chat.end') continue;
+                if (data === '[DONE]' || currentEvent === 'chat.end')
+                    continue;
                 // Responses API has no [DONE] — terminate on response.completed / response.failed
                 if (isResponses && (currentEvent === 'response.completed' || currentEvent === 'response.failed')) {
                     // Some local providers emit NO delta chunks — the whole
@@ -462,9 +498,11 @@ class LLMClient {
                         const env = JSON.parse(data);
                         if (env && env.response) {
                             const full = this._extractResponsesContent(env.response);
-                            if (full && !fullContent) fullContent = full;
+                            if (full && !fullContent)
+                                fullContent = full;
                         }
-                    } catch (e) {}
+                    }
+                    catch (e) { }
                     fullContent = this._normalizeAssistantText(fullContent);
                     if (VW?.events?.logRawLLMResponse && fullContent && !onChunk) {
                         this._logAssistantResponse(label, fullContent);
@@ -479,7 +517,8 @@ class LLMClient {
                         if (parsed?.type === 'response.completed' || parsed?.type === 'response.failed') {
                             if (parsed.response) {
                                 const full = this._extractResponsesContent(parsed.response);
-                                if (full && !fullContent) fullContent = full;
+                                if (full && !fullContent)
+                                    fullContent = full;
                             }
                             fullContent = this._normalizeAssistantText(fullContent);
                             if (VW?.events?.logRawLLMResponse && fullContent && !onChunk) {
@@ -489,15 +528,22 @@ class LLMClient {
                             return fullContent;
                         }
                         content = parsed?.delta || parsed?.output_text || '';
-                    } else {
+                    }
+                    else {
                         // Content tokens only — ignore reasoning/thinking deltas (Nemotron, DeepSeek, etc.)
                         content = parsed.choices?.[0]?.delta?.content
                             || parsed.choices?.[0]?.message?.content
                             || parsed.content
                             || '';
                     }
-                    if (content) { fullContent += content; if (onChunk) onChunk(content); await yieldToBrowser(); }
-                } catch (e) {}
+                    if (content) {
+                        fullContent += content;
+                        if (onChunk)
+                            onChunk(content);
+                        await yieldToBrowser();
+                    }
+                }
+                catch (e) { }
             }
         }
         fullContent = this._normalizeAssistantText(fullContent);
@@ -507,12 +553,13 @@ class LLMClient {
         this._captureDataset(messages, fullContent, label, options);
         return fullContent;
     }
-
     async fetchModels(apiBase, apiKey) {
         const base = LLMClient.normalizeBase(apiBase || this.apiBase);
-        if (base.toLowerCase().includes('deepseek')) return null;
+        if (base.toLowerCase().includes('deepseek'))
+            return null;
         const isLocal = base.includes('localhost') || base.includes('127.0.0.1');
-        if (!apiKey && !isLocal) return null;
+        if (!apiKey && !isLocal)
+            return null;
         try {
             const headers = { 'Content-Type': 'application/json' };
             if (apiKey && apiKey !== 'not-needed' && apiKey !== 'none') {
@@ -524,15 +571,18 @@ class LLMClient {
             });
             if (resp.ok) {
                 const data = await resp.json();
-                if (data.data && Array.isArray(data.data)) return data.data.map(m => m.id || m.name || m).filter(Boolean).sort();
-                if (Array.isArray(data)) return data.map(m => m.id || m.name || m).filter(Boolean).sort();
+                if (data.data && Array.isArray(data.data))
+                    return data.data.map((m) => m.id || m.name || m).filter(Boolean).sort();
+                if (Array.isArray(data))
+                    return data.map((m) => m.id || m.name || m).filter(Boolean).sort();
             }
-        } catch (e) {}
+        }
+        catch (e) { }
         return null;
     }
-
     async embeddings(input) {
-        if (!input) return null;
+        if (!input)
+            return null;
         const base = (this.apiBase || '').toLowerCase();
         // Only OpenAI and LM Studio / local proxies support this embeddings API
         if (!base.includes('openai') && !base.includes('127.0.0.1') && !base.includes('localhost')) {
@@ -544,24 +594,39 @@ class LLMClient {
                 headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + this.apiKey },
                 body: JSON.stringify({ model: config?.embeddingModel || 'text-embedding-3-small', input: input })
             });
-            if (!resp.ok) return null;
+            if (!resp.ok)
+                return null;
             const data = await resp.json();
             return data.data?.[0]?.embedding || null;
-        } catch (e) { return null; }
+        }
+        catch (e) {
+            return null;
+        }
     }
-
     static getFallbackModels(apiBase) {
         const base = (apiBase || '').toLowerCase();
-        if (base.includes('openai')) return ['gpt-4.1-mini', 'gpt-4o', 'gpt-4o-mini', 'o1', 'o3-mini'];
-        if (base.includes('deepseek')) return ['deepseek-flash', 'deepseek-v4-pro'];
-        if (base.includes('groq')) return ['llama3-70b-8192', 'llama3-8b-8192', 'mixtral-8x7b-32768', 'gemma2-9b-it'];
-        if (base.includes('openrouter')) return ['openai/gpt-4o', 'anthropic/claude-3.5-sonnet', 'google/gemini-2.0-flash-001', 'meta-llama/llama-3.3-70b-instruct', 'deepseek/deepseek-chat', 'mistralai/mistral-7b-instruct'];
-        if (base.includes('127.0.0.1') || base.includes('localhost')) return ['local-model'];
-        if (base.includes('anthropic')) return ['claude-3-haiku-20240307', 'claude-3-sonnet-20240229'];
-        if (base.includes('googleapis') || base.includes('gemini')) return ['gemini-2.0-flash', 'gemini-pro'];
-        if (base.includes('mistral')) return ['mistral-small-latest', 'mistral-medium-latest'];
+        if (base.includes('openai'))
+            return ['gpt-4.1-mini', 'gpt-4o', 'gpt-4o-mini', 'o1', 'o3-mini'];
+        if (base.includes('deepseek'))
+            return ['deepseek-flash', 'deepseek-v4-pro'];
+        if (base.includes('groq'))
+            return ['llama3-70b-8192', 'llama3-8b-8192', 'mixtral-8x7b-32768', 'gemma2-9b-it'];
+        if (base.includes('openrouter'))
+            return ['openai/gpt-4o', 'anthropic/claude-3.5-sonnet', 'google/gemini-2.0-flash-001', 'meta-llama/llama-3.3-70b-instruct', 'deepseek/deepseek-chat', 'mistralai/mistral-7b-instruct'];
+        if (base.includes('127.0.0.1') || base.includes('localhost'))
+            return ['local-model'];
+        if (base.includes('anthropic'))
+            return ['claude-3-haiku-20240307', 'claude-3-sonnet-20240229'];
+        if (base.includes('googleapis') || base.includes('gemini'))
+            return ['gemini-2.0-flash', 'gemini-pro'];
+        if (base.includes('mistral'))
+            return ['mistral-small-latest', 'mistral-medium-latest'];
         return [];
     }
 }
-
-const llmClient = new LLMClient();
+// globals.d.ts already declares `llmClient: any` so every other module can reach
+// this singleton without importing it, which rules out re-declaring the same
+// `const` here. Publishing through `window` is equivalent for a classic script:
+// a bare `llmClient` reference in another file resolves through the global
+// object, exactly as it did when this was a top-level `const`.
+window.llmClient = new LLMClient();

@@ -1,3 +1,4 @@
+"use strict";
 /**
  * action-normalizer.js — Action schema translation and validation
  *
@@ -13,10 +14,11 @@
  * @relates used by agent-engine; mirrors the verb list advertised in the system prompt
  * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */
-
-window.ActionNormalizer = (() => {
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+// Local name differs from the global (`ActionNormalizer` is declared in
+// types/globals.d.ts) so the two do not collide in the build's scope.
+const ActionNormalizerModule = (() => {
     'use strict';
-
     const VALID_VERBS = new Set([
         'do', 'go', 'dash', 'crawl', 'climb', 'jump', 'grab', 'escape', 'struggle',
         'open', 'close', 'take', 'get', 'pickup', 'drop', 'put', 'place', 'give', 'hand',
@@ -29,47 +31,55 @@ window.ActionNormalizer = (() => {
         'stow', 'combine', 'split', 'craft', 'make', 'teach',
         'bind', 'enchant', 'fear', 'interest', 'write', 'inscribe'
     ]);
-
     // task-211: intimacy verbs are only valid actions in mature worlds. Kept
     // out of the base set so non-mature scenarios never accept/emit them.
     const MATURE_VERBS = new Set(['kiss', 'caress', 'lick', 'suck', 'bite', 'pinch', 'blow', 'tickle']);
     const INTENSITY_ADVERBS = { light: 'gently', firm: 'firmly' };
-
     function matureEnabled() {
-        return !!(window.config && window.config.matureContent);
+        // MUST stay `window.config`, not bare `config`: the bare form throws
+        // ReferenceError when config.js has not loaded (the unit sandbox never
+        // loads it), where `window.config` is simply undefined. Rewriting it to
+        // satisfy the type checker is what broke test_fear_verbs.
+        const cfg = window.config;
+        return !!(cfg && cfg.matureContent);
     }
-
     let _matureCache = null;
     function allVerbs() {
-        if (!matureEnabled()) return VALID_VERBS;
-        if (!_matureCache) _matureCache = new Set([...VALID_VERBS, ...MATURE_VERBS]);
+        if (!matureEnabled())
+            return VALID_VERBS;
+        if (!_matureCache)
+            _matureCache = new Set([...VALID_VERBS, ...MATURE_VERBS]);
         return _matureCache;
     }
-
     const MOVE_VERBS = new Set(['go', 'dash', 'crawl', 'climb', 'jump']);
     /** Check whether an action string uses a supported verb or matches a known exit name. */
     function isValidAction(action, charName) {
-        if (typeof action !== 'string' || action.trim() === '') return false;
+        if (typeof action !== 'string' || action.trim() === '')
+            return false;
         const trimmed = action.trim();
-        if (trimmed.includes('command from') || trimmed.includes('your ') || trimmed.includes('your_') || trimmed.includes('](')) return false;
+        if (trimmed.includes('command from') || trimmed.includes('your ') || trimmed.includes('your_') || trimmed.includes(']('))
+            return false;
         const verb = trimmed.split(/\s+/)[0].toLowerCase();
-        if (allVerbs().has(verb)) return true;
+        if (allVerbs().has(verb))
+            return true;
         if (charName) {
             const player = worldState.data?.players?.[charName];
             const area = player?.current_area ? worldState.areas?.[player.current_area] : null;
             if (area?.exits) {
                 const exitNames = Object.keys(area.exits).map(exitName => exitName.toLowerCase());
-                if (exitNames.includes(trimmed.toLowerCase())) return true;
+                if (exitNames.includes(trimmed.toLowerCase()))
+                    return true;
             }
         }
         return false;
     }
-
     /** Convert structured {action, item, target, relation} into a backend command string. */
     function normalizeStructuredAction(p) {
-        if (!p) return '';
+        if (!p)
+            return '';
         const verb = String(p.action || '').trim();
-        if (!verb) return '';
+        if (!verb)
+            return '';
         const item = String(p.item || '').trim();
         const target = String(p.target || '').trim();
         const relation = String(p.relation || '').trim().toLowerCase() || 'on';
@@ -79,7 +89,8 @@ window.ActionNormalizer = (() => {
         // silently degrade the action to a bare verb.
         const obj = target || item;
         const isPlain = /\s/.test(verb) || /^(use .* on |go |take |open |close |examine |attack |whisper |say |shout |scream )/.test(verb);
-        if (isPlain) return verb;
+        if (isPlain)
+            return verb;
         switch (verb) {
             case 'use': return item ? `use ${item}` : 'use';
             case 'use_on':
@@ -95,45 +106,71 @@ window.ActionNormalizer = (() => {
                     return `use ${item} on "${t}" "${x}"`;
                 }
                 // task-196: amount for quantity ("use 2 eggs on pan").
-                const amount = parseInt(p.amount, 10);
+                const amount = parseInt(String(p.amount ?? ''), 10);
                 if (item && target && Number.isInteger(amount) && amount > 1) {
                     return `use ${amount} ${item} on ${target}`;
                 }
                 return item && target ? `use ${item} on ${target}` : (item ? `use ${item}` : 'use');
             }
-            case 'go': case 'dash': case 'crawl': case 'climb': case 'jump': return obj ? `${verb} ${obj}` : verb;
+            case 'go':
+            case 'dash':
+            case 'crawl':
+            case 'climb':
+            case 'jump': return obj ? `${verb} ${obj}` : verb;
             case 'approach': return obj ? `approach ${obj}` : verb;
-            case 'open': case 'close': return obj ? `${verb} ${obj}` : verb;
-            case 'take': case 'drop': case 'pickup': return item ? `${verb} ${item}` : verb;
-            case 'put': case 'place': {
+            case 'open':
+            case 'close': return obj ? `${verb} ${obj}` : verb;
+            case 'take':
+            case 'drop':
+            case 'pickup': return item ? `${verb} ${item}` : verb;
+            case 'put':
+            case 'place': {
                 const rel = ['on', 'under', 'beside', 'behind', 'at', 'in'].includes(relation) ? relation : 'on';
                 return item && target ? `put ${item} ${rel} ${target}` : (item ? `put ${item}` : verb);
             }
-            case 'give': case 'hand': return item && target ? `give ${item} to ${target}` : verb;
+            case 'give':
+            case 'hand': return item && target ? `give ${item} to ${target}` : verb;
             case 'teach': return item && target ? `teach ${item} to ${target}` : verb;
-            case 'eat': case 'consume': return obj ? `eat ${obj}` : 'eat';
-            case 'drink': case 'quaff': return obj ? `drink ${obj}` : 'drink';
+            case 'eat':
+            case 'consume': return obj ? `eat ${obj}` : 'eat';
+            case 'drink':
+            case 'quaff': return obj ? `drink ${obj}` : 'drink';
             case 'steal': return item && target ? `steal ${item} from ${target}` : (item ? `steal ${item}` : verb);
             case 'lead': return obj ? `lead ${obj}` : verb;
-            case 'listen': case 'stand': return verb;
-            case 'examine': case 'read': case 'search': case 'inspect': case 'check': return obj ? `examine ${obj}` : verb;
+            case 'listen':
+            case 'stand': return verb;
+            case 'examine':
+            case 'read':
+            case 'search':
+            case 'inspect':
+            case 'check': return obj ? `examine ${obj}` : verb;
             case 'attack': {
                 const where = String(p.where || '').trim();
                 return where ? `attack ${obj} on ${where}` : (obj ? `attack ${obj}` : verb);
             }
-            case 'kiss': case 'caress': case 'lick': case 'suck':
-            case 'bite': case 'pinch': case 'blow': case 'tickle': {
+            case 'kiss':
+            case 'caress':
+            case 'lick':
+            case 'suck':
+            case 'bite':
+            case 'pinch':
+            case 'blow':
+            case 'tickle': {
                 // task-211: intimacy verbs carry body part + intensity.
                 // Schema: {action:"kiss", target:"lydia", where:"neck", intensity:"light|normal|firm"}
-                if (!matureEnabled()) return 'look';
-                if (!obj) return verb;
+                if (!matureEnabled())
+                    return 'look';
+                if (!obj)
+                    return verb;
                 const where = String(p.where || '').trim();
                 const intensity = String(p.intensity || 'normal').trim().toLowerCase();
                 const adv = INTENSITY_ADVERBS[intensity] || '';
                 const parts = [];
-                if (adv) parts.push(adv);
+                if (adv)
+                    parts.push(adv);
                 parts.push(verb, obj);
-                if (where) parts.push('on', where);
+                if (where)
+                    parts.push('on', where);
                 return parts.join(' ');
             }
             case 'grab': return obj ? `grab ${obj}` : verb;
@@ -141,17 +178,50 @@ window.ActionNormalizer = (() => {
             // these cases the target was silently dropped (bare "wake"/"release").
             case 'wake': return obj ? `wake ${obj}` : verb;
             case 'release': return obj ? `release ${obj}` : verb;
-            case 'fear': case 'interest': return obj ? `${verb} ${obj}` : verb;
-            case 'escape': case 'struggle': return verb;
-            case 'wear': case 'equip': return item ? `wear ${item}` : verb;
-            case 'remove': case 'unequip': return item ? `remove ${item}` : verb;
-            case 'rest': case 'sleep': {
+            case 'fear':
+            case 'interest': return obj ? `${verb} ${obj}` : verb;
+            case 'escape':
+            case 'struggle': return verb;
+            case 'wear':
+            case 'equip': return item ? `wear ${item}` : verb;
+            case 'remove':
+            case 'unequip': return item ? `remove ${item}` : verb;
+            case 'rest':
+            case 'sleep': {
                 const dur = item && /^\d+$/.test(item) ? item : (target && /^\d+$/.test(target) ? target : '');
                 return dur ? `${verb} ${dur}` : verb;
             }
-            case 'whisper': case 'say': case 'shout': case 'scream': case 'speak': return verb;
-            case 'look': case 'inventory': case 'i': case 'inv': case 'stats': case 'status': case 'wait': case 'nothing': case 'pause': case 'stay': case 'relieve': case 'fumble': case 'manifest': case 'vanish': case 'toggle': case 'light': case 'ignite': case 'grab': case 'snatch': case 'collect': case 'hit': case 'strike': case 'punch': case 'yell': return verb;
-            case 'bind': case 'enchant': {
+            case 'whisper':
+            case 'say':
+            case 'shout':
+            case 'scream':
+            case 'speak': return verb;
+            case 'look':
+            case 'inventory':
+            case 'i':
+            case 'inv':
+            case 'stats':
+            case 'status':
+            case 'wait':
+            case 'nothing':
+            case 'pause':
+            case 'stay':
+            case 'relieve':
+            case 'fumble':
+            case 'manifest':
+            case 'vanish':
+            case 'toggle':
+            case 'light':
+            case 'ignite':
+            case 'grab':
+            case 'snatch':
+            case 'collect':
+            case 'hit':
+            case 'strike':
+            case 'punch':
+            case 'yell': return verb;
+            case 'bind':
+            case 'enchant': {
                 // task-242: agent-authored item trigger. Schema:
                 //   {action:"bind", item:"<name>", when:"on_use|on_take|...", effect:"message|...", effect_params:{...}}
                 // Command: `bind <item> <when>:<effect> [json params]`
@@ -165,31 +235,46 @@ window.ActionNormalizer = (() => {
             default: return verb;
         }
     }
-
     /** Extract speech text + volume from a parsed response object. */
     function extractSpeechVolume(p) {
-        if (!p) return { speech: null, volume: 'say' };
+        if (!p)
+            return { speech: null, volume: 'say' };
         let speech = null;
         let volume = 'say';
         const normVol = (v) => {
             const s = String(v || '').toLowerCase();
-            if (s === 'whisper' || s === 'shout' || s === 'scream') return s;
-            if (s === 'speak' || s === 'talk') return 'say';
+            if (s === 'whisper' || s === 'shout' || s === 'scream')
+                return s;
+            if (s === 'speak' || s === 'talk')
+                return 'say';
             return 'say';
         };
-        if (p.speech != null && p.speech !== '') { speech = p.speech; volume = normVol(p.volume); }
-        else if (p.whisper != null) { speech = p.whisper; volume = 'whisper'; }
-        else if (p.say != null) { speech = p.say; volume = normVol(p.volume); }
-        else if (p.shout != null) { speech = p.shout; volume = 'shout'; }
-        else if (p.scream != null) { speech = p.scream; volume = 'scream'; }
+        if (p.speech != null && p.speech !== '') {
+            speech = p.speech;
+            volume = normVol(p.volume);
+        }
+        else if (p.whisper != null) {
+            speech = p.whisper;
+            volume = 'whisper';
+        }
+        else if (p.say != null) {
+            speech = p.say;
+            volume = normVol(p.volume);
+        }
+        else if (p.shout != null) {
+            speech = p.shout;
+            volume = 'shout';
+        }
+        else if (p.scream != null) {
+            speech = p.scream;
+            volume = 'scream';
+        }
         return { speech, volume };
     }
-
     /** Volume → verb for event stream labels. */
     function volVerb(volume) {
-        return { whisper: 'whispers', say: 'says', shout: 'shouts', scream: 'screams' }[volume || 'say'] || 'says';
+        return VOL_VERBS[volume || 'say'] || 'says';
     }
-
     return {
         isValidAction,
         normalizeStructuredAction,
@@ -197,3 +282,5 @@ window.ActionNormalizer = (() => {
         volVerb
     };
 })();
+window.ActionNormalizer = ActionNormalizerModule;
+const VOL_VERBS = { whisper: 'whispers', say: 'says', shout: 'shouts', scream: 'screams' };

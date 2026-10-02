@@ -1,3 +1,4 @@
+"use strict";
 /**
  * StorageProvider — IndexedDB-based persistent storage
  * Replaces localStorage with async, quota-unlimited storage.
@@ -10,6 +11,7 @@
  * @relates consumed by config.js and most feature modules; no dependencies of its own
  * @docs none
  */
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 class StorageProvider {
     constructor(dbName = 'VirtualWorldDB', version = 5) {
         this.dbName = dbName;
@@ -17,14 +19,13 @@ class StorageProvider {
         this._db = null;
         this._ready = this._init();
     }
-
     async _init() {
         return new Promise((resolve, reject) => {
             const req = indexedDB.open(this.dbName, this.version);
             req.onupgradeneeded = (e) => {
-                const db = e.target.result;
-                const oldVersion = e.oldVersion;
-                
+                const upgrade = e;
+                const db = upgrade.target.result;
+                const oldVersion = upgrade.oldVersion;
                 // Delete old stores with wrong keyPath (bugfix: was 'id' but code uses 'key')
                 if (oldVersion < 2) {
                     // Version 2: fix store keyPaths - use 'key' consistently
@@ -34,7 +35,6 @@ class StorageProvider {
                         }
                     }
                 }
-                
                 // Create object stores with correct keyPath === 'key'
                 if (!db.objectStoreNames.contains('config')) {
                     db.createObjectStore('config', { keyPath: 'key' });
@@ -80,17 +80,16 @@ class StorageProvider {
             };
         });
     }
-
     async _ensureReady() {
         await this._ready;
-        if (!this._db) return false;
+        if (!this._db)
+            return false;
         return true;
     }
-
     // --- Generic CRUD ---
-
     async get(storeName, key) {
-        if (!await this._ensureReady()) return this._localFallback('get', storeName, key);
+        if (!await this._ensureReady())
+            return this._localFallback('get', storeName, key);
         return new Promise((resolve) => {
             try {
                 const tx = this._db.transaction(storeName, 'readonly');
@@ -98,12 +97,17 @@ class StorageProvider {
                 const req = store.get(key);
                 req.onsuccess = () => resolve(req.result ? req.result.value : null);
                 req.onerror = () => resolve(null);
-            } catch (e) { resolve(null); }
+            }
+            catch (e) {
+                resolve(null);
+            }
         });
     }
-
     async set(storeName, key, value) {
-        if (!await this._ensureReady()) { this._localFallback('set', storeName, key, value); return; }
+        if (!await this._ensureReady()) {
+            this._localFallback('set', storeName, key, value);
+            return;
+        }
         return new Promise((resolve) => {
             try {
                 const tx = this._db.transaction(storeName, 'readwrite');
@@ -111,12 +115,17 @@ class StorageProvider {
                 store.put({ key, value });
                 tx.oncomplete = () => resolve(true);
                 tx.onerror = () => resolve(false);
-            } catch (e) { resolve(false); }
+            }
+            catch (e) {
+                resolve(false);
+            }
         });
     }
-
     async delete(storeName, key) {
-        if (!await this._ensureReady()) { this._localFallback('delete', storeName, key); return; }
+        if (!await this._ensureReady()) {
+            this._localFallback('delete', storeName, key);
+            return;
+        }
         return new Promise((resolve) => {
             try {
                 const tx = this._db.transaction(storeName, 'readwrite');
@@ -124,12 +133,15 @@ class StorageProvider {
                 store.delete(key);
                 tx.oncomplete = () => resolve(true);
                 tx.onerror = () => resolve(false);
-            } catch (e) { resolve(false); }
+            }
+            catch (e) {
+                resolve(false);
+            }
         });
     }
-
     async getAll(storeName) {
-        if (!await this._ensureReady()) return this._localFallback('getAll', storeName);
+        if (!await this._ensureReady())
+            return this._localFallback('getAll', storeName);
         return new Promise((resolve) => {
             try {
                 const tx = this._db.transaction(storeName, 'readonly');
@@ -138,16 +150,19 @@ class StorageProvider {
                 req.onsuccess = () => {
                     const items = req.result || [];
                     const map = {};
-                    items.forEach(item => { map[item.key] = item.value; });
+                    items.forEach((item) => { map[item.key] = item.value; });
                     resolve(map);
                 };
                 req.onerror = () => resolve({});
-            } catch (e) { resolve({}); }
+            }
+            catch (e) {
+                resolve({});
+            }
         });
     }
-
     async getAllAsArray(storeName) {
-        if (!await this._ensureReady()) return [];
+        if (!await this._ensureReady())
+            return [];
         return new Promise((resolve) => {
             try {
                 const tx = this._db.transaction(storeName, 'readonly');
@@ -155,12 +170,15 @@ class StorageProvider {
                 const req = store.getAll();
                 req.onsuccess = () => resolve(req.result || []);
                 req.onerror = () => resolve([]);
-            } catch (e) { resolve([]); }
+            }
+            catch (e) {
+                resolve([]);
+            }
         });
     }
-
     async clear(storeName) {
-        if (!await this._ensureReady()) return;
+        if (!await this._ensureReady())
+            return;
         return new Promise((resolve) => {
             try {
                 const tx = this._db.transaction(storeName, 'readwrite');
@@ -168,10 +186,12 @@ class StorageProvider {
                 store.clear();
                 tx.oncomplete = () => resolve(true);
                 tx.onerror = () => resolve(false);
-            } catch (e) { resolve(false); }
+            }
+            catch (e) {
+                resolve(false);
+            }
         });
     }
-
     // --- LocalStorage fallback for graceful degradation ---
     _localFallback(op, storeName, key, value) {
         const prefix = `vw_${storeName}_`;
@@ -189,87 +209,78 @@ class StorageProvider {
                 case 'getAll': {
                     const map = {};
                     for (let i = 0; i < localStorage.length; i++) {
-                        const k = localStorage.key(i);
+                        const k = localStorage.key(i) ?? '';
                         if (k && k.startsWith(prefix)) {
                             const storeKey = k.slice(prefix.length);
-                            try { map[storeKey] = JSON.parse(localStorage.getItem(k)); } catch (e) {}
+                            try {
+                                map[storeKey] = JSON.parse(String(localStorage.getItem(k)));
+                            }
+                            catch (e) { }
                         }
                     }
                     return map;
                 }
             }
-        } catch (e) { return null; }
+        }
+        catch (e) {
+            return null;
+        }
     }
-
     // --- Convenience methods ---
-
     async getConfig(key) {
         const val = await this.get('config', key);
         return val !== null ? val : null;
     }
-
     async setConfig(key, value) {
         return this.set('config', key, value);
     }
-
     async getProfile(id) {
         return this.get('profiles', id);
     }
-
     async setProfile(id, data) {
         return this.set('profiles', id, data);
     }
-
     async getAllProfiles() {
         return this.getAll('profiles');
     }
-
     async deleteProfile(id) {
         return this.delete('profiles', id);
     }
-
     async getLibraryItem(id) {
         return this.get('item_library', id);
     }
-
     async setLibraryItem(id, data) {
         return this.set('item_library', id, data);
     }
-
     async getAllLibraryItems() {
         return this.getAll('item_library');
     }
-
     async deleteLibraryItem(id) {
         return this.delete('item_library', id);
     }
-
     async getCharacterHistory(charName) {
         const val = await this.get('character_histories', charName);
         return val || null;
     }
-
     async setCharacterHistory(charName, history) {
         return this.set('character_histories', charName, history);
     }
-
     async deleteCharacterHistory(charName) {
         return this.delete('character_histories', charName);
     }
-
     async getSetting(id) {
         return this.get('settings', id);
     }
-
     async setSetting(id, value) {
         return this.set('settings', id, value);
     }
-
     // --- Event Log persistence ---
-
     async saveEventLog(entries) {
         return new Promise((resolve) => {
-            if (!this._db) { resolve(false); return; }
+            if (!this._db) {
+                resolve(false);
+                return;
+            }
             try {
                 const tx = this._db.transaction('event_log', 'readwrite');
                 const store = tx.objectStore('event_log');
@@ -280,13 +291,18 @@ class StorageProvider {
                 }
                 tx.oncomplete = () => resolve(true);
                 tx.onerror = () => resolve(false);
-            } catch (e) { resolve(false); }
+            }
+            catch (e) {
+                resolve(false);
+            }
         });
     }
-
     async loadEventLog() {
         return new Promise((resolve) => {
-            if (!this._db) { resolve([]); return; }
+            if (!this._db) {
+                resolve([]);
+                return;
+            }
             try {
                 const tx = this._db.transaction('event_log', 'readonly');
                 const store = tx.objectStore('event_log');
@@ -297,14 +313,21 @@ class StorageProvider {
                     resolve(items.map(item => item.html));
                 };
                 req.onerror = () => resolve([]);
-            } catch (e) { resolve([]); }
+            }
+            catch (e) {
+                resolve([]);
+            }
         });
     }
-
     async clearEventLog() {
         return this.clear('event_log');
     }
 }
-
-// Singleton instance
-const storage = new StorageProvider();
+// Singleton instance.
+// The local name is `storageSingleton` because `storage` is already declared
+// as a global in static/js/types/globals.d.ts, and this file is a classic
+// script (not a module), so a same-named top-level `const` is a redeclaration.
+// The original relied on a script-level lexical binding being visible to every
+// other classic script (config.js reads bare `storage`), so publish it on
+// window to keep exactly that reachability.
+window.storage = new StorageProvider();
