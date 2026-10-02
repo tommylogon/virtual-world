@@ -18,9 +18,11 @@ and each one looked fine until something read it:
   `for slot, stack in equipped.items(): if not isinstance(stack, list): continue`
   (`routes/library_ops.py:567`), so the slot vanishes with no error.
 
-- **A node id with no inventory entry resolves to nothing.** Import matches
-  strings against item *names* on the player's carrying edges, so an id it
-  cannot match simply leaves the slot empty.
+- **A reference with no inventory entry resolves to nothing.** Import matches an
+  equipped reference against the loaded inventory by node id, library id and
+  name, so a reference it cannot match simply leaves the slot empty. An
+  inventory entry may be a plain library id string or a dict carrying
+  `node_id`/`library_id`, and its properties may live in the template.
 
 None of these are hypothetical: this file was written the same day one of them
 took down the running app. This checker exists so the next one is caught by a
@@ -70,13 +72,14 @@ CHECKS = {
         "import skips non-list slots outright (library_ops.py:567), so the "
         "equipment is dropped with no error.",
     ),
-    "equipped_id_not_in_inventory": (
-        ERROR,
-        "equipped node id has no matching inventory entry",
-        "import resolves strings against item names on the carrying edges, so "
-        "an id with no inventory entry leaves the slot empty. Either add the "
-        "item to inventory or drop it from equipped.",
-    ),
+        "equipped_id_not_in_inventory": (
+            ERROR,
+            "equipped reference has no matching inventory entry",
+            "import resolves a reference against the loaded inventory by node id, "
+            "library id and name, so a reference with no inventory entry leaves "
+            "the slot empty. Either add the item to inventory or drop it from "
+            "equipped.",
+        ),
     "missing_node_id": (
         WARN,
         "inventory entry has no node_id",
@@ -87,7 +90,8 @@ CHECKS = {
         WARN,
         "inventory entry has no properties",
         "import materialises the item with no props: no equip_slots, no "
-        "weight, no actions. See task-519 on lossy materialization.",
+        "weight, no actions. A `library_id`-backed entry is exempt -- its props "
+        "come from the template. See task-519 on lossy materialization.",
     ),
     "slot_not_declared": (
         WARN,
@@ -131,24 +135,71 @@ def _normalise_identity(text: str) -> str:
     return "".join(ch for ch in str(text or "").lower() if ch.isalnum())
 
 
-def check_character(path: Path, data: dict, library_ids: set) -> list:
-    """Return (check_id, detail) pairs for one character entry."""
+def check_character(path: Path, data: dict, library_items) -> list:
+    """Return (check_id, detail) pairs for one character entry.
+
+    ``library_items`` maps a library item id to its template dict. A plain set of
+    ids is also accepted (older callers/tests): templates then resolve to empty
+    and only the id-existence checks run.
+    """
     found = []
 
-    inventory = {}
+    if isinstance(library_items, dict):
+        templates = library_items
+    else:
+        templates = {str(k): {} for k in (library_items or ())}
+    known_ids = set(templates)
+
+    # Both forms of inventory entry resolve to a reference key: a string entry
+    # keys by its library id, a dict entry by its node id (falling back to the
+    # library id). `inventory_declared` maps that key to the item's equip_slots
+    # so slot placement can be checked whether the props are inline or from the
+    # template.
+    inventory_node_ids = set()
+    inventory_lib_ids = set()
+    inventory_names = {}
+    inventory_declared = {}
+
     for entry in data.get("inventory") or []:
+        if isinstance(entry, str):
+            lib_id = entry.strip()
+            if not lib_id:
+                continue
+            if lib_id not in known_ids:
+                found.append(("unknown_library_id", lib_id))
+            template = templates.get(lib_id) or {}
+            inventory_lib_ids.add(lib_id)
+            inventory_declared[lib_id] = template.get("equip_slots") or []
+            name = template.get("name") or lib_id
+            inventory_names[str(name).lower()] = lib_id
+            continue
         if not isinstance(entry, dict):
             continue
         node_id = entry.get("node_id")
+        lib_id = entry.get("library_id")
         if node_id:
-            inventory[node_id] = entry
+            inventory_node_ids.add(node_id)
         else:
             found.append(("missing_node_id", entry.get("name", "<unnamed>")))
-        if not entry.get("properties"):
+        props = entry.get("properties") or {}
+        # task-519: a library-id-backed entry materializes from its template, so
+        # absent inline properties are not a defect while the id resolves.
+        if not props and not (lib_id and lib_id in known_ids):
             found.append(("missing_properties", entry.get("name", "<unnamed>")))
-        lib_id = entry.get("library_id")
-        if lib_id and lib_id not in library_ids:
-            found.append(("unknown_library_id", str(lib_id)))
+        if lib_id:
+            if lib_id not in known_ids:
+                found.append(("unknown_library_id", str(lib_id)))
+            else:
+                inventory_lib_ids.add(lib_id)
+        declared = props.get("equip_slots")
+        if declared is None and lib_id and lib_id in known_ids:
+            declared = (templates.get(lib_id) or {}).get("equip_slots") or []
+        key = node_id or lib_id
+        if key:
+            inventory_declared[key] = declared or []
+        name = entry.get("name") or (templates.get(lib_id) or {}).get("name")
+        if name:
+            inventory_names[str(name).lower()] = key or str(name).lower()
 
     equipped = data.get("equipped")
     if isinstance(equipped, dict):
@@ -162,11 +213,15 @@ def check_character(path: Path, data: dict, library_ids: set) -> list:
                     continue
                 if item and str(item).startswith("__"):
                     continue  # runtime marker, not a node id
-                if item not in inventory:
+                key = str(item)
+                if key in inventory_node_ids or key in inventory_lib_ids:
+                    lookup_key = key
+                elif key.lower() in inventory_names:
+                    lookup_key = inventory_names[key.lower()]
+                else:
                     found.append(("equipped_id_not_in_inventory", f"{slot}: {item}"))
                     continue
-                props = inventory[item].get("properties") or {}
-                declared = props.get("equip_slots") or []
+                declared = inventory_declared.get(lookup_key) or []
                 if declared and slot not in declared:
                     found.append((
                         "slot_not_declared",
@@ -183,7 +238,7 @@ def check_character(path: Path, data: dict, library_ids: set) -> list:
 
 def scan() -> dict:
     """Every finding, keyed by check id -> list of (filename, detail)."""
-    library_ids = {p.stem for p in ITEM_DIR.glob("*.json")}
+    library_items = {p.stem: (_load(p) or {}) for p in ITEM_DIR.glob("*.json")}
     results = {cid: [] for cid in CHECKS}
     scanned = 0
     for path in sorted(CHAR_DIR.glob("*.json")):
@@ -192,7 +247,7 @@ def scan() -> dict:
             results.setdefault("unparseable", []).append((path.name, "not a JSON object"))
             continue
         scanned += 1
-        for check_id, detail in check_character(path, data, library_ids):
+        for check_id, detail in check_character(path, data, library_items):
             results.setdefault(check_id, []).append((path.name, detail))
     return {"scanned": scanned, "findings": results}
 
