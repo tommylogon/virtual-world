@@ -389,4 +389,4 @@ Characters often start with vitals below 100 to simulate pre-existing conditions
 ## Related tasks
 
 - [[dev_tasks/review/characters/task-28-character_needs_system|task-28: Character needs system]]
-- [[bug_5-rat-11-10-hp-with-low-hp-warning 1|bug-5: Rat 11/10 HP with low HP warning]]
+- [[bug_5-rat-11-10-hp-with-low-hp-warning|bug-5: Rat 11/10 HP with low HP warning]]

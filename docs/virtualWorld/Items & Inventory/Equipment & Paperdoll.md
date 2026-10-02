@@ -317,7 +317,7 @@ The paperdoll is rendered in `static/js/inspector/paperdoll-view.js`:
 - [[task-87-paperdoll_icon_art|task-87: Paperdoll icon art]]
 - [[dev_tasks/review/items/task-54-weapon_system|task-54: Weapon system]]
 - [[dev_tasks/done/bugs/bug_2-choices-equip-slots-white-bg|bug-2: Choices equip slots white bg]]
-- [[bug_6-inspector-equip-slots-white-bg 1|bug-6: Inspector equip slots white bg]]
+- [[bug_6-inspector-equip-slots-white-bg|bug-6: Inspector equip slots white bg]]
 
 ## See Also
 
@@ -325,4 +325,4 @@ The paperdoll is rendered in `static/js/inspector/paperdoll-view.js`:
 - `data/library/items/eva_suit.json` — EVA suit example (vacuum_sealed, insulation)
 - `data/library/items/heavy_fur_lined_coat.json` — Cold weather gear example
 - [[Combat System]] — Defense reduction and weapon damage
-- [[Temperature System]] — Effective temperature from equipment
+- [[Environment/Temperature System|Temperature System]] — Effective temperature from equipment

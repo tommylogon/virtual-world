@@ -1,6 +1,6 @@
 ---
 group: Items
-wiki: "[[UI & Settings/Inspector]]"
+wiki: "[[UI & Settings/Inspector Panels|Inspector]]"
 ---
 
 # Auto-Add Inverse Actions (take↔drop, equip↔unequip)

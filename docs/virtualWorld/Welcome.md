@@ -4,7 +4,7 @@ This is the Obsidian vault for the VirtualWorld engine — a text-based simulati
 
 **Start here → [[_Index]]** for the full wiki index.
 
-**Active tasks** → [[dev_tasks/todo/]] for what's on the bench right now.
+**Active tasks** → `docs/virtualWorld/dev_tasks/todo/` for what's on the bench right now.
 
 Quick links to the big topics:
 - [[World Building/Graph System|Graph System]] — how everything connects

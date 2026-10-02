@@ -228,4 +228,4 @@ The generic registry handler at `library_routes.py:58` accepts either nested `{i
 - [[dev_tasks/done/items/task-95-idempotent-sync-to-library|task-95: Idempotent sync to library]]
 - [[dev_tasks/inprogress/items/task-106-tag-library-and-multiselect|task-106: Tag library and multiselect]]
 - [[dev_tasks/review/items/task-44-remove_add_from_library|task-44: Remove add from library]]
-- [[bug_3-library-slow-open 1|bug-3: Library slow open]]
+- [[bug_3-library-slow-open|bug-3: Library slow open]]

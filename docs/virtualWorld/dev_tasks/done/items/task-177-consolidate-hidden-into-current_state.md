@@ -1,6 +1,6 @@
 ---
 group: Tech Debt & Testing
-wiki: "[[World Building/Item System]]"
+wiki: "[[Items & Inventory/Items Overview|Items Overview]]"
 ---
 
 # Task 177: Consolidate `hidden` Boolean into `current_state`

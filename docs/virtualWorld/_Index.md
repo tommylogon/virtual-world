@@ -121,7 +121,7 @@ This is the Obsidian vault for **VirtualWorld** — a Flask + JS text-based game
 
 ## 📋 Active Tasks
 
-> [[dev_tasks/todo/|📥 Todo]] · [[dev_tasks/inprogress/|🔧 In Progress]] · [[dev_tasks/review/|👀 Review]] · [[dev_tasks/done/|✅ Done]]
+> **📥 Todo** · **🔧 In Progress** · **👀 Review** · **✅ Done** — each is a folder under `dev_tasks/`
 >
 > Tasks live in the `dev_tasks/` folder in this vault. Each task file is an `.md` with notes, design decisions, and code references. Tasks are grouped by category (characters, environment, items, gameplay, triggers, graph, ui, prompting, testing, refactor) within each status folder. The folder-move workflow: `todo/` → `inprogress/` → `review/` → `done/`.
 

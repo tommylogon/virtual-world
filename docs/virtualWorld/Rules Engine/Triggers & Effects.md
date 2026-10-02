@@ -320,4 +320,4 @@ Defined in `static/js/shared/trigger-editor.js`. The frontend trigger editor all
 - [[dev_tasks/review/triggers/task-50-trigger_condition_has_item_dropdown|task-50: Trigger condition has_item dropdown]]
 - [[dev_tasks/review/triggers/task-51-trigger_multi_effect_conditions|task-51: Trigger multi effect conditions]]
 - [[dev_tasks/review/triggers/task-52-trigger_success_fail_messages|task-52: Trigger success/fail messages]]
-- [[bug_1-trigger-editor-effOpts-undefined 1|bug-1: Trigger editor effOpts undefined]]
+- [[bug_1-trigger-editor-effOpts-undefined|bug-1: Trigger editor effOpts undefined]]

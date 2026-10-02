@@ -523,4 +523,4 @@ The `weight` property exists on items (`Item.__init__`, `item.py`) but there is 
 - [[dev_tasks/review/triggers/task-34-generate_triggers_for_new_items|task-34: Generate triggers for new items]]
 - [[dev_tasks/review/items/task-53-use_item_with_parameters|task-53: Use item with parameters]]
 - [[dev_tasks/todo/items/task-433-character-inscription-persistent-notes|task-433: Agent-reachable inscription (task-53 follow-up)]]
-- [[bug_6-inspector-equip-slots-white-bg 1|bug-6: Inspector equip slots white bg]]
+- [[bug_6-inspector-equip-slots-white-bg|bug-6: Inspector equip slots white bg]]

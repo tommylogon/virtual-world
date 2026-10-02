@@ -63,7 +63,7 @@ Counts as of 2026-10-01, measured from this file (58 numbered rows, 10 of them `
 | 20 | Emotion | Emotion model, reflection, residue | wired | [[Emotion & Affect System]] |
 | 21 | Relationships | Per-character relationships and their deltas | wired | [[Relationships System]] |
 | 22 | Memory | What a character remembers, and recall by need | wired | [[Memory System]] |
-| 23 | Temperature | Body and environment temperature, clothing, equipment | wired | [[Temperature System]] |
+| 23 | Temperature | Body and environment temperature, clothing, equipment | wired | [[Environment/Temperature System|Temperature System]] |
 | 24 | Light | Ambient light, sources, seeing in the dark | wired | [[Light System]] |
 | 25 | Time & weather | Calendar, clock, forecast, and weather that reaches the world | wired | [[Time & Weather]] |
 | 26 | Activities & states | Multi-tick activities; busy, unconscious, asleep | wired | [[Activities & States]] |

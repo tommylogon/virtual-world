@@ -126,7 +126,7 @@ and product (item vs character):
   collapse. (slice 1: 23/23 at both 1 and 15 min/tick)
 - [x] Food counts stabilize instead of monotonically falling to zero. (4 -> 50 over a week)
 - [x] A plant never exceeds 10 produce and never grows past its cap; growth resets
-  cleanly at 100. [[`tests/test_renewable_plants.py`]]
+  cleanly at 100. `tests/test_renewable_plants.py`
 - [x] Deterministic under a fixed seed; spawned food is trace-visible.
 - [x] Plant items remain intact (not removed) as their counters move.
   [[`test_mature_plant_spawns_produce_and_resets`,

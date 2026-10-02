@@ -326,6 +326,15 @@ def iter_entries(root: Path, use_cache: bool = True) -> List[Entry]:
 # ── git ──────────────────────────────────────────────────────────────────
 
 
+def _load_doc_links():
+    """Import tools/doc_links.py whether run as a script or as ``tools.tasks``."""
+    try:
+        from tools import doc_links
+    except ImportError:
+        import doc_links  # when tools/ itself is on sys.path
+    return doc_links
+
+
 def _git(args: List[str], cwd: Path) -> bool:
     try:
         r = subprocess.run(["git", *args], cwd=str(cwd),
@@ -447,7 +456,21 @@ def cmd_move(args) -> int:
     if not git_mv(src, dst, args.root):
         shutil.move(str(src), str(dst))
     _rewrite_status(dst, args.status)
+
+    # A move changes the vault-relative path every path-style [[wikilink]] cites,
+    # which is how inbound links silently rotted (task-662). Rewrite them to the
+    # new basename, which Obsidian resolves from any status folder.
+    vault = args.root.parent
+    old_key = src.relative_to(vault).with_suffix("").as_posix()
+    moved = 0
+    try:
+        _, moved = _load_doc_links().retarget_links(vault, old_key, dst.stem)
+    except Exception as exc:  # never let link repair block the move
+        print(f"warn: could not rewrite inbound links: {exc}", file=sys.stderr)
+
     print(f"{src}  ->  {dst}")
+    if moved:
+        print(f"  rewrote {moved} inbound wikilink(s)")
     return 0
 
 
@@ -541,6 +564,17 @@ def cmd_validate(args) -> int:
     return 1 if errors else 0
 
 
+def cmd_links(args) -> int:
+    """Check the vault's [[wikilinks]] (delegates to tools/doc_links.py)."""
+    try:
+        doc_links = _load_doc_links()
+    except ImportError as exc:
+        print(f"error: cannot import tools/doc_links.py: {exc}", file=sys.stderr)
+        return 2
+    argv = ["--report"] if getattr(args, "report", False) else ["--check"]
+    return doc_links.main(argv)
+
+
 def _norm(status: str) -> str:
     return status.strip().lower().replace("_", "").replace("-", "")
 
@@ -561,6 +595,7 @@ Commands:
     move      move a file between status folders (updates frontmatter)
     list      list tasks/bugs, optionally filtered
     validate  check ids, filenames, folders and cross-references
+    links     check the vault's [[wikilinks]] against the notes on disk
     index     rebuild or clear the derived frontmatter cache
     help      show this guide, or `help <command>` for one command
 
@@ -651,6 +686,20 @@ reported as warnings, everything else as errors (exit code 1).
 
   python tools/tasks.py validate
   python tools/tasks.py validate --quiet
+""",
+    "links": """\
+links [--report]
+
+Resolve every [[wikilink]] in the vault against the notes on disk and fail if
+any is broken. This is the guard that keeps a task move from rotting the notes
+that cite it: `move` rewrites inbound links, and this catches what it misses.
+
+  --report  list the broken links, grouped by target
+
+  python tools/tasks.py links
+  python tools/tasks.py links --report
+
+Implementation lives in tools/doc_links.py.
 """,
     "index": """\
 index [--clear]
@@ -826,6 +875,10 @@ def build_parser() -> argparse.ArgumentParser:
     ix = sub.add_parser("index", help="rebuild or clear the derived frontmatter cache")
     ix.add_argument("--clear", action="store_true", help="delete the cache instead")
     ix.set_defaults(func=cmd_index)
+
+    lk = sub.add_parser("links", help="check the vault's [[wikilinks]]")
+    lk.add_argument("--report", action="store_true", help="list the broken links")
+    lk.set_defaults(func=cmd_links)
 
     hp = sub.add_parser("help", help="show the guide, or help for one command")
     hp.add_argument("topic", nargs="?", choices=sorted(HELP_TOPICS))

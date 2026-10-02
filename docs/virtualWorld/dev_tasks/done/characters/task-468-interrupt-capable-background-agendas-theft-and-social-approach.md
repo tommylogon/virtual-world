@@ -27,10 +27,10 @@ evaluator (task-466) has nothing actor-driven to react to.
 - [x] Deliberate social approach: `background_social.run_social_approach()` lets a
   co-located background character initiate a `chat` toward the active player, writes
   a `social_approach` turn event, and gives the player the memory; the timeskip
-  interrupts with kind `social`. [[done in task-469 slice, tests/test_social_approach.py]]
+  interrupts with kind `social`. `tests/test_social_approach.py` (task-469 slice)
 - [x] Theft agenda: a trait/need-driven background character attempts `steal_item`
   on a co-located target (theft already emits a "notices" line the evaluator reads).
-  [[`background_social.run_theft_pass`, tests/test_background_agendas.py]]
+  `background_social.run_theft_pass`, `tests/test_background_agendas.py`
 - [x] Approach variety beyond `chat` (compliment/tease/confide by relationship band);
   currently forced to `chat` so the first touch is neutral.
   [[`choose_approach_action`, band-gated; test_cold_band_never_confides_or_flirts,
