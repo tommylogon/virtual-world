@@ -1,6 +1,6 @@
 ---
 type: task
-status: review
+status: done
 area: characters
 priority: high
 ---
@@ -159,4 +159,41 @@ python -m pytest tests/test_equipment_system.py tests/test_library_character_imp
 
 The five failures in `test_scenario_data_integrity.py` / `test_character_identity.py`
 are the documented pre-existing baseline and are unrelated.
+
+### Live verification — 2026-10-02, `python app.py` on `VW_PORT=4466`
+
+The reporting interaction for this task was an API call, so the API was driven
+directly rather than through the inspector (which the task's own note already
+settled: the Equipment surface exists and works; the API write was the broken
+path).
+
+1. Created `item_live_task654_hatchet` (`damage: 1d6+3`, `equip_slots:
+   [hand_right]`) and put it in `Blizzard Forest Clearing`.
+2. Moved `rat` into the same area, made Kaelen the active player.
+3. **Equipped it with no other writer involved** —
+   `POST /api/players/Kaelen%20Voss {"equipped": {"hand_right":
+   ["item_live_task654_hatchet"]}}` → `200 {"status": "updated"}`.
+4. **The graph edges existed immediately** (`GET /api/graph/edges`):
+
+       equipped: item_live_task654_hatchet slot=hand_right
+
+   and no `carrying` edge for it — worn, not held.
+5. **Combat used it.** `POST /api/action {"command": "attack rat"}` →
+   `Kaelen Voss attacks rat with Live Task654 Hatchet!` — i.e. the weapon was
+   reachable by `combat._best_weapon_node`, which is the reader that was blind
+   to the API write.
+6. **Clearing the slot demotes rather than orphans.**
+   `POST ... {"equipped": {"hand_right": []}}` → the `equipped` edge is gone and
+   `carrying: item_live_task654_hatchet` is back.
+   (Combat still reaches it, correctly: `_best_weapon_node` scans `carrying` and
+   `equipped` by design, so a carried weapon is still a usable one. The claim
+   under test — that the API write is inert — is disproved by step 5.)
+7. **The inverse.** With the item equipped again,
+   `DELETE /api/graph/node/item_live_task654_hatchet` → `200`, and
+   `equipped.hand_right` went from `item_live_task654_hatchet` to empty rather
+   than keeping an id for a node that no longer exists.
+
+Live world returned to its prior state afterwards (rat moved back to the
+Kitchen, Kaelen active, no test nodes left).
+
 
