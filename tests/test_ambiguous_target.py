@@ -78,3 +78,42 @@ def test_key_target_from_the_chooser_hits_exactly_that_character(monkeypatch):
 
     assert body.get("choices") is None, "a key target is unambiguous"
     assert seen.get("target") == chosen
+
+
+def test_ambiguous_lead_offers_the_chooser_instead_of_erroring():
+    """`lead` is a real verb; an ambiguous one must ask, not 500.
+
+    Regression: the ambiguity branch left `target_player` None and then read
+    `target_player.current_area`, so `lead violet` raised AttributeError and the
+    route returned 500 with the chooser discarded.
+    """
+    app, w, vkeys = _app_with_two_violets()
+    resp = app.test_client().post(
+        "/api/action", json={"character": "Attacker", "command": "lead violet"}
+    )
+    body = resp.get_json()
+
+    assert resp.status_code == 200, body
+    assert "choices" in body
+    group = body["choices"][0]
+    assert group["verb"] == "lead"
+    assert {o["key"] for o in group["options"]} == set(vkeys)
+    assert "Do you mean" in body["output"]
+
+
+def test_lead_by_key_reaches_the_chosen_character(monkeypatch):
+    app, w, vkeys = _app_with_two_violets()
+    chosen = vkeys[0]
+    seen = {}
+
+    def fake_lead(attacker, target, *args, **kwargs):
+        seen["target"] = target
+        return "ok"
+
+    monkeypatch.setattr(w.grapple, "lead", fake_lead)
+    body = app.test_client().post(
+        "/api/action", json={"character": "Attacker", "command": f"lead key:{chosen}"}
+    ).get_json()
+
+    assert body.get("choices") is None
+    assert seen.get("target") == chosen

@@ -1119,8 +1119,9 @@ def handle_take_action(app):
                 elif candidates:
                     note_ambiguity("lead", candidates)
                     lead_ambiguous = True
-            if not target_player and not lead_ambiguous:
-                add_output(f"Can't lead {target or 'that'} — no one by that name is here.")
+            if not target_player:
+                if not lead_ambiguous:
+                    add_output(f"Can't lead {target or 'that'} — no one by that name is here.")
             elif resolved_target == world.active_player:
                 add_output("You can't lead yourself.")
             elif target_player.current_area != world.current_area.name:

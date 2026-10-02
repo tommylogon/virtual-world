@@ -98,3 +98,19 @@ JS units 491 passed; `npm run lint` / `npm run typecheck` clean.
   the chooser.
 - `tests/test_matching.py`, `tests/test_ambiguous_target.py`.
 
+## Follow-up (2026-10-02): `lead` was a broken verb
+
+Review caught that the ambiguity guard I added to `lead` was incomplete: it set
+`lead_ambiguous` and left `target_player` as `None`, then fell through to
+`elif target_player.current_area`, so `lead violet` raised `AttributeError` and
+the route returned **500 with the chooser discarded** — the exact opposite of
+"ask, never guess". `attack`/`grab` were guarded; `lead` was not, and my
+integration test only covered `attack`.
+
+Now the null check owns the whole branch, so an ambiguous `lead` returns the
+chooser like every other verb. Two regression tests
+(`test_ambiguous_lead_offers_the_chooser_instead_of_erroring`,
+`test_lead_by_key_reaches_the_chosen_character`) pin both the non-500 and the
+key-target path; `tests/test_ambiguous_target.py -> 4 passed`.
+
+
