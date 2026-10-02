@@ -50,10 +50,17 @@ function collectHelpKeys() {
 
     // The tool rail builds its keys as `'wp-tool-' + id` from the TOOLS table,
     // so those eight never appear as literals. Derive them from the table.
+    //
+    // Scope the scan to the TOOLS array itself. A bare row pattern over a
+    // 3,395-line file also matches `row('exits', ['N', 'E', 'S', 'W'])`, which
+    // is a compass, not a tool — that fabricated a `wp-tool-N` key with no tip
+    // behind it and failed this file for a defect the app does not have.
     const editor = window.__readFile('static/js/worldpainter/editor.js');
+    const table = /const\s+TOOLS\s*=\s*\[([\s\S]*?)\n\s*\];/.exec(editor);
+    assertTrue(!!table, 'could not find the TOOLS table in worldpainter/editor.js');
     const toolsRe = /\[\s*'(\w+)'\s*,\s*'[^']*'\s*,\s*'[A-Z]'\s*,/g;
     let t;
-    while ((t = toolsRe.exec(editor)) !== null) keys.add('wp-tool-' + t[1]);
+    while ((t = toolsRe.exec(table[1])) !== null) keys.add('wp-tool-' + t[1]);
 
     return keys;
 }
