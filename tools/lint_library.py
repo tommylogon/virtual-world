@@ -37,6 +37,9 @@ import sys
 
 DEFAULT_LIB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "library")
 
+#: The registries whose **ids are filenames** and therefore checked for charset.
+_CHARSET_REGISTRIES = ("items", "characters", "areas", "tags", "ways")
+
 ERROR_CHECKS = ("dead_interests", "missing_slots", "tag_case_drift", "broken_contents",
                 "unauthored_consumables", "resource_pools")
 WARNING_CHECKS = ("singleton_tags", "area_tag_gaps", "dead_fears", "tag_id_charset",
@@ -334,23 +337,22 @@ def check_tag_id_charset(registries, report):
     """Registry ids outside ``[a-z0-9_]`` -- task-601.
 
     ``load_registry`` keys every entry by its **filename verbatim**
-    (``routes/helpers.py``), so an id is whatever the file is called. 576 of the
-    591 tag files use ``snake_case``; 15 use spaces. Both resolve by their exact
-    id, but only the exact form: ``blackwood_mansion`` does NOT find
-    ``blackwood mansion.json``. An author writing the conventional form gets a
-    silent miss, and ``tag_case_drift`` cannot see it because that check only
-    compares casing, not separators.
+    (``routes/helpers.py``), so an id is whatever the file is called. Both forms
+    resolve by their exact id, but only the exact form: ``blackwood_mansion``
+    does NOT find ``blackwood mansion.json``. An author writing the conventional
+    form gets a silent miss, and ``tag_case_drift`` cannot see it because that
+    check only compares casing, not separators.
 
-    Reported as a warning rather than an error: the spaced ids are referenced in
-    20+ places across areas, characters, items, rooms and ways, so renaming them
-    is a cross-registry migration, not a lint fix. The point of the check is to
-    stop the set growing silently.
-
-    Also reports the case where normalising would collide -- ``hidden door`` and
-    ``hidden_door`` are separate files today and normalising merges them, so
-    that one needs a human decision about whether they are the same tag.
+    Reported as a warning rather than an error: renaming a spaced id is a
+    cross-registry migration (task-646), not a lint fix. The point of the check
+    is to stop the set growing silently. As of 2026-10-02 the 15 spaced **tag**
+    ids and the ``hidden door``/``hidden_door`` collision are resolved (task-646);
+    the remaining offenders are the 37 characters and one item owned by the
+    character/item library lane.
     """
     for name, entries in (registries or {}).items():
+        if not isinstance(entries, dict):
+            continue
         offenders = [k for k in entries if not re.match(r"^[a-z0-9_]+$", str(k))]
         if not offenders:
             continue
@@ -494,7 +496,11 @@ CHECKS = {
     "unauthored_consumables": lambda ctx, r: check_unauthored_consumables(ctx["items"], r),
     "resource_pools": lambda ctx, r: check_resource_pools(ctx["items"], r),
     "singleton_tags": lambda ctx, r: check_singleton_tags(ctx["items"], r),
-    "tag_id_charset": lambda ctx, r: check_tag_id_charset(ctx, r),
+    # Explicit registry keys: the context also carries `biomes` (a taxonomy dict)
+    # and `lib_dir` (a string), and passing the whole context made this check
+    # iterate a path string character by character.
+    "tag_id_charset": lambda ctx, r: check_tag_id_charset(
+        {k: ctx[k] for k in _CHARSET_REGISTRIES if isinstance(ctx.get(k), dict)}, r),
     "area_tag_gaps": lambda ctx, r: check_area_tag_gaps(ctx["areas"], r),
     "biome_coverage": lambda ctx, r: check_biome_coverage(ctx["items"], ctx["biomes"], r),
     "stray_library_dirs": lambda ctx, r: check_stray_library_dirs(ctx["lib_dir"], r),

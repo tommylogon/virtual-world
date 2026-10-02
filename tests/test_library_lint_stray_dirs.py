@@ -42,3 +42,22 @@ def test_hidden_directories_are_ignored():
 def test_known_registry_types_logic_is_available():
     # A silently-empty set would make the check a no-op everywhere.
     assert "items" in lint_library._known_registry_types()
+
+
+def test_charset_check_ignores_non_registry_context():
+    """Regression: `lib_dir` (a string) and `biomes` in the context made the
+    charset check iterate a path character-by-character and emit nonsense."""
+    ctx = {
+        "items": {}, "characters": {}, "areas": {}, "tags": {}, "ways": {},
+        "biomes": {"resource_distribution": {}},
+        "lib_dir": "C:\\some\\path\\to\\library",
+    }
+    report = lint_library.Report()
+    lint_library.CHECKS["tag_id_charset"](ctx, report)
+    assert report.warnings == []
+
+    ctx["tags"] = {"spaced id": {}}
+    report = lint_library.Report()
+    lint_library.CHECKS["tag_id_charset"](ctx, report)
+    assert len(report.warnings) == 1
+    assert "spaced id" in report.warnings[0][1]
