@@ -22,13 +22,82 @@ flow can decide what it owns without guessing.
 
 from __future__ import annotations
 
+import hashlib
+import json
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from graph import Edge, Node
 
 UNMADE = "unmade"
 MATERIALIZED = "materialized"
+
+#: Manifest key holding, per generated node id, a hash of the last recipe output
+#: for each property key. It is what makes a regenerate able to tell a hand edit
+#: (current value differs from what the recipe last emitted) from stale recipe
+#: output (current value equals it) without keeping a second copy of the node.
+BASELINE_KEY = "generated_baselines"
+
+
+def _value_hash(value) -> str:
+    """A stable, compact fingerprint of a property value (task-585)."""
+    try:
+        blob = json.dumps(value, sort_keys=True, default=str)
+    except (TypeError, ValueError):
+        blob = repr(value)
+    return hashlib.sha256(blob.encode("utf-8")).hexdigest()[:16]
+
+
+def _props_baseline(props: dict) -> Dict[str, str]:
+    """Fingerprint a recipe's output properties, excluding provenance itself."""
+    return {k: _value_hash(v) for k, v in (props or {}).items() if k != "generated"}
+
+
+def _merge_regenerated(existing: Node, incoming: Node,
+                       baseline: Optional[Dict[str, str]]) -> Tuple[Node, Dict[str, Any], List[str]]:
+    """Merge a re-emitted recipe node over the one already in the graph (task-585).
+
+    The one rule, covering both directions:
+
+    - the **recipe is authoritative** for the shape it emits, so a genuine
+      recipe revision reaches the node — a key whose current value still equals
+      what the recipe last emitted is re-stamped to the fresh value;
+    - the **author is authoritative** for any key they changed or added since
+      the last snapshot, so a hand edit is never silently reverted.
+
+    Where both changed the same key, the author's value wins and the key is
+    reported in ``conflicts`` — a re-run must not report success while reverting
+    an edit the author did not ask it to revert.
+
+    A key whose value is *absent* now is treated as recipe-owned (the fresh
+    value is restored): a deletion of a generated property is not an authorship
+    claim on the node — delete or ungenerate the node for that. When no baseline
+    exists (a save written before this rule), the author's differing values are
+    conservatively kept rather than reverted.
+    """
+    current = dict(getattr(existing, "properties", None) or {})
+    fresh = dict(getattr(incoming, "properties", None) or {})
+    merged = dict(fresh)
+    preserved: Dict[str, Any] = {}
+    conflicts: List[str] = []
+
+    for key, val in current.items():
+        if key == "generated":
+            continue
+        changed = key not in (baseline or {}) or _value_hash(val) != baseline[key]
+        if not changed:
+            continue
+        merged[key] = val
+        preserved[key] = val
+        if baseline is not None and key in fresh:
+            fresh_changed = _value_hash(fresh[key]) != baseline.get(key)
+            if fresh_changed:
+                conflicts.append(key)
+
+    merged["generated"] = fresh.get("generated", current.get("generated"))
+    return (Node(id=existing.id, type=incoming.type, name=incoming.name,
+                 properties=merged),
+            preserved, conflicts)
 
 
 @dataclass
@@ -46,6 +115,11 @@ class GenerationReport:
     #: 0 means "asked for this and found nothing" — surfaced, never silently
     #: substituted (task-398).
     unresolved_tags: Dict[str, int] = field(default_factory=dict)
+    #: task-585: node id → the hand-edited keys a regenerate preserved.
+    preserved_properties: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    #: task-585: node id → keys where a hand edit blocked a genuine recipe
+    #: change. The author's value won; the recipe change did not reach.
+    conflicts: Dict[str, List[str]] = field(default_factory=dict)
 
     def to_dict(self) -> dict:
         return {
@@ -57,6 +131,10 @@ class GenerationReport:
             "area_ids": list(self.area_ids),
             "notes": list(self.notes),
             "unresolved_tags": dict(self.unresolved_tags),
+            "preserved_properties": {
+                nid: dict(props) for nid, props in self.preserved_properties.items()
+            },
+            "conflicts": {nid: list(keys) for nid, keys in self.conflicts.items()},
         }
 
 
@@ -100,6 +178,13 @@ def apply_patch(graph, manifest: Dict[str, dict], patch: GenerationPatch, *,
     ``allow_regenerate=True`` an incoming node whose id already exists is only
     replaced when both the existing and incoming node carry generated
     provenance; anything hand-authored is left untouched.
+
+    On a regenerate the recipe is authoritative for the keys it emits and the
+    author is authoritative for keys they changed or added — see
+    :func:`_merge_regenerated`. Hand edits that survive are reported in
+    ``report.preserved_properties``; a hand edit that blocks a genuine recipe
+    change is reported in ``report.conflicts``, so the operator is told what a
+    re-run could not apply instead of a silent revert.
     """
     report = patch.report or GenerationReport(scope_id="", recipe_id="", seed="")
     scope_id = report.scope_id
@@ -125,18 +210,30 @@ def apply_patch(graph, manifest: Dict[str, dict], patch: GenerationPatch, *,
 
     # All collisions checked before any mutation, so a rejected apply leaves the
     # graph untouched rather than half-written.
+    baselines = record.setdefault(BASELINE_KEY, {})
     for node in patch.nodes:
         existing = graph.get_node(node.id)
         if existing is None:
             graph.add_node(node)
-        else:
-            # Reached only when allow_regenerate and both nodes are generated
-            # (the check above rejected every other case). The node must be
-            # re-stamped in place, not skipped: a re-run that only *adds* missing
-            # nodes leaves every existing one with its old data, so a recipe
-            # change (e.g. the compiler adding properties.cell/x/y) never reaches
-            # the nodes it already emitted.
-            graph.replace_node(node)
+            stored = graph.get_node(node.id)
+            if stored is not None:
+                baselines[stored.id] = _props_baseline(node.properties)
+            continue
+        # Reached only when allow_regenerate and both nodes are generated (the
+        # check above rejected every other case). The node must be re-stamped in
+        # place, not skipped: a re-run that only *adds* missing nodes leaves
+        # every existing one with its old data, so a recipe change (e.g. the
+        # compiler adding properties.cell/x/y) never reaches the nodes it
+        # already emitted. A hand edit to a key the recipe also re-emits is
+        # preserved and reported (task-585).
+        merged, preserved, conflicts = _merge_regenerated(
+            existing, node, baselines.get(existing.id))
+        graph.replace_node(merged)
+        baselines[existing.id] = _props_baseline(node.properties)
+        if preserved:
+            report.preserved_properties.setdefault(existing.id, {}).update(preserved)
+        if conflicts:
+            report.conflicts.setdefault(existing.id, []).extend(conflicts)
 
     for edge in patch.edges:
         graph.add_edge(edge)

@@ -263,6 +263,75 @@ def test_a_manual_edit_to_a_generated_item_survives_a_refused_second_generate(gr
     assert graph.get_node(edited_id).properties["description"] == "hand-edited"
 
 
+# ── the allow_regenerate contract (task-585) ────────────────────────────
+
+
+def _unmade_manifest():
+    return {SCOPE: {"id": SCOPE, "name": "Apartment 3B", "kind": "apartment",
+                    "parent_id": "pines_floor_3", "children": [],
+                    "area_ids": [], "state": "unmade",
+                    "recipe": "apartment.v1", "seed": SEED}}
+
+
+def _generated_item_id(graph):
+    return next(n.id for n in graph.nodes.values()
+                if n.type == "item" and is_generated(n))
+
+
+def _revised_patch(index, node_id, key, value):
+    patch = _patch(index)
+    for node in patch.nodes:
+        if node.id == node_id:
+            node.properties[key] = value
+    return patch
+
+
+def test_a_hand_edit_survives_an_allow_regenerate_and_is_reported(graph, index):
+    """task-585, half one: the opt-in re-stamps the recipe, not the author."""
+    manifest = _unmade_manifest()
+    apply_patch(graph, manifest, _patch(index))
+    edited_id = _generated_item_id(graph)
+    graph.get_node(edited_id).properties["description"] = "hand-edited"
+
+    report = apply_patch(graph, manifest, _patch(index), allow_regenerate=True)
+
+    assert graph.get_node(edited_id).properties["description"] == "hand-edited"
+    assert report.preserved_properties[edited_id]["description"] == "hand-edited"
+    assert report.to_dict()["preserved_properties"][edited_id]["description"] == "hand-edited"
+
+
+def test_a_genuine_recipe_revision_reaches_an_existing_generated_node(graph, index):
+    """task-585, half two: a re-run that changes a key the author left alone wins."""
+    manifest = _unmade_manifest()
+    first = _patch(index)
+    apply_patch(graph, manifest, first)
+    item_id = _generated_item_id(graph)
+    assert graph.get_node(item_id).properties.get("description") != "recipe revision"
+
+    apply_patch(graph, manifest,
+                _revised_patch(index, item_id, "description", "recipe revision"),
+                allow_regenerate=True)
+
+    assert graph.get_node(item_id).properties["description"] == "recipe revision"
+
+
+def test_a_hand_edit_that_blocks_a_recipe_change_is_reported_not_silent(graph, index):
+    """A re-run must not report success while reverting an unasked-for edit."""
+    manifest = _unmade_manifest()
+    apply_patch(graph, manifest, _patch(index))
+    item_id = _generated_item_id(graph)
+    graph.get_node(item_id).properties["description"] = "hand-edited"
+
+    report = apply_patch(
+        graph, manifest,
+        _revised_patch(index, item_id, "description", "recipe revision"),
+        allow_regenerate=True)
+
+    assert graph.get_node(item_id).properties["description"] == "hand-edited"
+    assert "description" in report.conflicts[item_id]
+    assert report.to_dict()["conflicts"][item_id] == ["description"]
+
+
 # ── the graph-free promise ──────────────────────────────────────────────
 
 
