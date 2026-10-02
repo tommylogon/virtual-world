@@ -1,6 +1,6 @@
 ---
 type: task
-status: review
+status: done
 area: characters
 priority: low
 ---
@@ -103,3 +103,30 @@ python -m pytest tests/test_pleasure_system.py tests/test_body_parts.py \
 **Full suite compared by failure NAME against the clean-master baseline**: 15
 failed on both, `Compare-Object` empty.
 
+
+### Live verification — 2026-10-02, `python app.py` on `VW_PORT=4466`
+
+Each case: a probe character with `mature_content` on, one `caress` applied, the
+meter forced past the threshold, then `_pleasure_tick`.
+
+```
+=== task-545: the path is recorded and read by the gate ===
+  designated path        report.path='genitals'   conditions=['overstimulated', 'satisfied']
+   recorded paths: {}              <- cleared by the release, as designed
+
+=== task-488: the gate ===
+  designated path        report.path='genitals'   conditions=['overstimulated', 'satisfied']
+  WRONG path             report.path='mouth'      conditions=['frustrated']
+
+=== task-488: non-carriers and an unnamed route are untouched ===
+  no trait               report.path='mouth'      conditions=['overstimulated', 'satisfied']
+  trait, no route        report.path='mouth'      conditions=['overstimulated', 'satisfied']
+
+=== task-546: the ordinary cascade and the discharge ===
+  after a release, frustrated present? False
+  satisfied present? True
+```
+
+The designated route releases; a wrong route produces `frustrated` and no
+release; a non-carrier and a trait with no named route are byte-identical to the
+pre-change behaviour; and a release discharges the frustration it created.
