@@ -31,6 +31,22 @@
         "Sacks under the eaves and mice in the loft."
       ]
     },
+    "bathhouse": {
+      "name": "Bathhouse",
+      "terrain": "urban",
+      "tags": [
+        "building",
+        "settlement",
+        "civic",
+        "service",
+        "water"
+      ],
+      "surface": "stone",
+      "descriptions": [
+        "A bathhouse, steamy and tiled, with plunge pools under a vaulted roof.",
+        "Warm water, wet stone, and a keeper handing out towels."
+      ]
+    },
     "beach": {
       "name": "Beach",
       "terrain": "water",

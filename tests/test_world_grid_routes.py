@@ -34,7 +34,23 @@ def test_painter_vocabulary_lists_real_ids(tmp_path):
     assert "forest" not in biome_ids
     assert all(b["name"] for b in vocab["biomes"])
 
-    assert "road" in {f["id"] for f in vocab["features"]}
+    features_by_id = {f["id"]: f for f in vocab["features"]}
+    assert "road" in features_by_id
+    # A palette tile has to say what it is and does (task-596), so the feature
+    # carries the prose and the terrain it may cross. "Bridge" and "road" are the
+    # worked example: both are `road`-tagged, and only the crossing sentence and
+    # the `biomes` set tell them apart in the picker.
+    assert features_by_id["bridge"]["tags"] == ["road", "bridge"]
+    assert "river" in features_by_id["bridge"]["biomes"]
+    assert features_by_id["bridge"]["entry_phrase"] == "cross the bridge"
+    assert features_by_id["bridge"]["descriptions"], "a bridge has prose"
+    assert features_by_id["road"]["tags"] == ["road"]
+    assert features_by_id["road"]["entry_phrase"] == "", "a road is not entered"
+
+    # …and a biome tile carries its ground material and prose for the same reason.
+    biomes_by_id = {b["id"]: b for b in vocab["biomes"]}
+    assert biomes_by_id["temple"]["surface"] == "stone"
+    assert biomes_by_id["temple"]["descriptions"]
     # `floor` is the storey layer (0 ground, 1 up, -1 down, unbounded); the
     # 0..1 `elevation` height layer it replaced is gone. `climate` is the coarse
     # enum of task-557, which compiles to a per-area base_temperature.
@@ -163,6 +179,31 @@ def test_paint_and_erase_cell(tmp_path):
                        json={"layer": "nope", "x": 0, "y": 0, "value": "x"}).status_code == 400
     assert client.post("/api/world/scopes/the_pines/grid/paint",
                        json={"layer": "biome", "x": 9, "y": 0, "value": "x"}).status_code == 400
+
+
+def test_grid_payload_presents_every_paint_layer(tmp_path):
+    """task-651: the payload must answer with all four paint layers, each present
+    and possibly empty — not just the two that happen to hold cells.
+
+    The stored record is normalized to drop empty layers, so an unpainted scope
+    used to arrive with only ``biome``/``road`` (or neither) and no ``floor`` or
+    ``climate`` key at all. A consumer cannot tell a missing key from an
+    unimplemented layer, and the editor's layer selector offers four.
+    """
+    app = _app(tmp_path)
+    client = app.test_client()
+    client.post("/api/world/scopes/the_pines/grid", json={"w": 3, "h": 3, "mode": "town"})
+
+    empty = client.get("/api/world/scopes/the_pines/grid").get_json()
+    assert set(empty["layers"]) == {"biome", "road", "floor", "climate"}, empty["layers"]
+    assert all(empty["layers"][layer] == {} for layer in empty["layers"]), empty["layers"]
+
+    # Painting one layer leaves the other three present-and-empty.
+    painted = client.post("/api/world/scopes/the_pines/grid/paint",
+                          json={"layer": "road", "x": 1, "y": 1, "value": "road"})
+    layers = painted.get_json()["layers"]
+    assert layers["road"] == {"1,1": "road"}
+    assert layers["floor"] == {} and layers["climate"] == {} and layers["biome"] == {}
 
 
 def test_place_move_overlap_and_remove(tmp_path):
