@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: done
 area: triggers
 priority: high
 ---
@@ -71,3 +71,15 @@ user-saved ones), in the shape the item library already uses — not a floating 
   (`engine/effect_handlers/equipment.py:182` has `adjust_uses`, which accepts a negative
   delta). Task-351's Phase-1 checkbox claiming it was added is false and has been
   corrected there.
+
+## Verified (2026-10-02)
+
+- Commit `f91eb53`. `tests/test_trigger_materialize.py` 7 passed; full
+  `pytest -k "not mcp and not emote"` 6527 passed with the 3 non-baseline
+  failures A/B-reproduced on `02a8ab1` (pre-existing); `node tools/unit/run.cjs`
+  497 passed incl. "every seeded trigger-mode blueprint compiles".
+- Live browser (app on :4469, Playwright): the searchable blueprint modal listed
+  9 blueprints and filtered to 1 on "warm"/"on_use_message"; with a node context
+  it showed 9 **↳ Attach** buttons; clicking Attach on *On Use → Message*
+  created a `triggers` edge on the target item (0 → 1) and closed the modal,
+  proving `POST /api/triggers/attach` materialises ordinary logic_trigger nodes.
