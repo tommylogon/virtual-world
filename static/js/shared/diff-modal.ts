@@ -181,12 +181,12 @@ interface DiffModalWindowSurface { DiffModal: unknown }
   }
 
   // Two-pass per-entry diff: pair by id, then pair the leftovers by content.
-  function entryDiff(current: unknown, incoming: unknown): DiffRow[] {
+  function entryDiff(current: unknown, incoming: unknown): DiffModalDiffRow[] {
     const cList = toEntryList(current);
     const iList = toEntryList(incoming);
     const usedC = new Array(cList.length).fill(false);
     const usedI = new Array(iList.length).fill(false);
-    const rows: DiffRow[] = [];
+    const rows: DiffModalDiffRow[] = [];
 
     const pairBy = (keyFn: (item: unknown) => string | null) => {
       cList.forEach((cEle, ci) => {
@@ -523,7 +523,7 @@ type DiffStatus = 'same' | 'added' | 'removed' | 'changed';
 
 /** One row of a per-entry group. `key` is the id/name/text signature, or the
  *  array index when the entry has none of those. */
-interface DiffRow {
+interface DiffModalDiffRow {
     key: string | number | null;
     current: unknown;
     incoming: unknown;

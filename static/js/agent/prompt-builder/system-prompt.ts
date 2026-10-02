@@ -106,7 +106,7 @@ For a speech-only turn, omit "action". If you say nothing, set "speech": null. T
 `;
 
     /** World-lore header shared by both system prompts ('' when there is no lore). */
-    function _loreHeader(player?: PlayerLike | null) {
+    function _loreHeader(player?: SystemPromptPlayerLike | null) {
         const lore: LoreEntry[] = worldState.data?.world_lore || [];
         if (!lore.length) return '';
         const charTags = (player?.tags || []).map((t: unknown) => String(t).toLowerCase());
@@ -134,7 +134,7 @@ For a speech-only turn, omit "action". If you say nothing, set "speech": null. T
      * @param {number} softMaxTokens - Soft token limit for system prompt instruction (0 = use hard limit)
      * @returns {string} Full system prompt string
      */
-    function buildCharacterSystemPrompt(charName: string, player: PlayerLike, softMaxTokens: number) {
+    function buildCharacterSystemPrompt(charName: string, player: SystemPromptPlayerLike, softMaxTokens: number) {
         if (!player) throw new Error(`buildCharacterSystemPrompt: player is null for "${charName}" — call site should validate before caching history`);
         const dead = player.state === 'dead';
 
@@ -162,7 +162,7 @@ For a speech-only turn, omit "action". If you say nothing, set "speech": null. T
      * "MUST NOT include action or item fields". Kept: lore, emote rules,
      * speech & volume (the react instructions reference it), JSON rules, length.
      */
-    function buildReactSystemPrompt(charName: string, player: PlayerLike, softMaxTokens: number) {
+    function buildReactSystemPrompt(charName: string, player: SystemPromptPlayerLike, softMaxTokens: number) {
         if (!player) throw new Error(`buildReactSystemPrompt: player is null for "${charName}"`);
         let prompt = _loreHeader(player);
         const brevityRule = _brevityRule(softMaxTokens, 'inner monologue, speech, and emote should be brief and natural.');
@@ -196,7 +196,7 @@ interface LoreEntry {
     allowed_tags?: unknown;
 }
 
-interface PlayerLike {
+interface SystemPromptPlayerLike {
     tags?: unknown[];
     state?: string;
 }

@@ -270,7 +270,7 @@ interface NlEditorUiWindowSurface {
             this.chatList!.scrollTop = this.chatList!.scrollHeight;
         }
 
-        updateStagedOps(ops: StagedOp[]): void {
+        updateStagedOps(ops: UiStagedOp[]): void {
             const tray = document.getElementById('nl-staged-tray');
             const listEl = document.getElementById('nl-staged-list');
             const countEl = document.getElementById('nl-staged-count');
@@ -281,7 +281,7 @@ interface NlEditorUiWindowSurface {
             if (!tray || !listEl || !countEl) return;
 
             // Prune checkbox state for ops that disappeared; keep existing checks.
-            const opIds = new Set<string>(ops.map((o: StagedOp) => o.id));
+            const opIds = new Set<string>(ops.map((o: UiStagedOp) => o.id));
             for (const id of this._checked.keys()) {
                 if (!opIds.has(id)) this._checked.delete(id);
             }
@@ -301,11 +301,11 @@ interface NlEditorUiWindowSurface {
             if (applySelectedBtn) applySelectedBtn.style.display = 'inline-block';
 
             listEl.innerHTML = '';
-            ops.forEach((op: StagedOp) => listEl.appendChild(this._renderStagedRow(op)));
+            ops.forEach((op: UiStagedOp) => listEl.appendChild(this._renderStagedRow(op)));
             this._updateApplySelectedCount(ops);
         }
 
-        _renderStagedRow(op: StagedOp): HTMLElement {
+        _renderStagedRow(op: UiStagedOp): HTMLElement {
             const row = document.createElement('div');
             row.style.cssText = 'display:flex;flex-direction:column;background:var(--bg-input);border-radius:3px;';
 
@@ -418,10 +418,10 @@ interface NlEditorUiWindowSurface {
             return row;
         }
 
-        _updateApplySelectedCount(ops: StagedOp[]): void {
+        _updateApplySelectedCount(ops: UiStagedOp[]): void {
             const btn = document.getElementById('nl-apply-selected-btn');
             if (!btn) return;
-            const n = ops.filter((o: StagedOp) => this._checked.get(o.id) !== false).length;
+            const n = ops.filter((o: UiStagedOp) => this._checked.get(o.id) !== false).length;
             btn.textContent = `Apply Selected (${n})`;
         }
 
@@ -458,7 +458,7 @@ interface ToolCall {
 }
 
 /** One staged operation in the NL editor's staging area. */
-interface StagedOp {
+interface UiStagedOp {
     id: string;
     type?: string;
     summary?: string;
@@ -475,7 +475,7 @@ interface ValidationIssue {
 /** The staging area the controller exposes to this UI. */
 interface NLStaging {
     clear(): void;
-    getOps(): StagedOp[];
+    getOps(): UiStagedOp[];
     getStagedCreations(): Record<string, unknown>;
     removeOp(id: string): void;
     updateOp(id: string, payload: unknown): void;

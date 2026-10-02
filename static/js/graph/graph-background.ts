@@ -135,7 +135,7 @@ interface GraphNetwork {
 }
 
 /** The subset of the WorldPainter grid payload this module reads. */
-interface GridPayload {
+interface GraphBackgroundGridPayload {
     grid?: { w?: number; h?: number } | null;
     reference?: {
         image?: string | null;
@@ -1277,7 +1277,7 @@ interface BackgroundState {
     }
 
     /** The layer to fit: the scope's painter reference if any, else the active one. */
-    async function _layerForFit(payload: GridPayload | null,
+    async function _layerForFit(payload: GraphBackgroundGridPayload | null,
                                 scopeId: string): Promise<MapLayer | null> {
         const src = String((payload && payload.reference && payload.reference.image) || '');
         if (!src) return _active();
@@ -1312,7 +1312,7 @@ interface BackgroundState {
      * reference has no rect. The crop window is copied too, so both views show
      * the same part of the picture (task-524).
      */
-    function _applyReferenceLayout(layer: MapLayer, payload: GridPayload | null,
+    function _applyReferenceLayout(layer: MapLayer, payload: GraphBackgroundGridPayload | null,
                                    gridRect: GraphRect, scopeId?: string | null): void {
         const ref = (payload && payload.reference) || null;
         const stored = ref && ref.rect;
@@ -1358,9 +1358,9 @@ interface BackgroundState {
             events.log('🗺 Pick a scope in the graph toolbar first — "fit to painted grid" needs that scope\'s grid.', 'system-msg');
             return;
         }
-        let payload: GridPayload | null = null;
+        let payload: GraphBackgroundGridPayload | null = null;
         try {
-            payload = await ApiClient.getWorldGrid(scopeId) as GridPayload;
+            payload = await ApiClient.getWorldGrid(scopeId) as GraphBackgroundGridPayload;
         } catch (error) { payload = null; }
         const rect = paintedGridRect(payload && payload.grid);
         if (!rect) {

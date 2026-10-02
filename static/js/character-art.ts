@@ -85,7 +85,7 @@
      * to ``emotion.current`` only when it is itself a canonical key (the legacy
      * free-text moods like "relieved but vigilant" are not), else 'neutral'.
      */
-    function emotionKeyFor(player: PlayerLike | null | undefined): string {
+    function emotionKeyFor(player: CharacterArtPlayerLike | null | undefined): string {
         if (!player) return 'neutral';
         const e = player.emotion || {};
         if (e.expression) return e.expression;
@@ -236,7 +236,7 @@ interface CharacterArtNode {
     properties?: CharacterArtProps | null;
 }
 
-interface PlayerLike {
+interface CharacterArtPlayerLike {
     emotion?: { current?: string; expression?: string } | null;
 }
 
@@ -262,7 +262,7 @@ interface CharacterArtApi {
     artFor(props: CharacterArtProps | null | undefined, emotionKey?: string): { profile: string; full: string };
     artForNodeId(nodeId: string): CharacterArtResolved;
     emotionOf(name: string): string;
-    emotionKeyFor(player: PlayerLike | null | undefined): string;
+    emotionKeyFor(player: CharacterArtPlayerLike | null | undefined): string;
     emotionKeyForName(name: string): string;
     open(opts?: PortraitOpenOptions): void;
     close(): void;

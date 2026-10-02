@@ -665,7 +665,7 @@ interface WorldArea {
 }
 
 /** One effect of a compiled trigger. */
-interface TriggerEffect {
+interface TriggerHelpersTriggerEffect {
     type?: string;
     params?: Record<string, any>;
 }
@@ -673,7 +673,7 @@ interface TriggerEffect {
 /** A compiled trigger definition (edge copy merged with node copy). */
 interface TriggerDef {
     trigger_type?: string | string[];
-    effects?: TriggerEffect[];
+    effects?: TriggerHelpersTriggerEffect[];
     /** May be an array of conditions, or the `{ conditions: [...] }` envelope. */
     conditions?: unknown[] | { conditions?: unknown[] };
     name?: string;

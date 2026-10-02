@@ -21,7 +21,7 @@
 type PropBag = Record<string, any>;
 
 /** A graph node as the item inspector reads it. */
-interface ItemNode {
+interface ItemViewItemNode {
     id?: string;
     name?: string;
     type?: string;
@@ -86,7 +86,7 @@ interface PlacementTarget {
 interface InspectorItemViewApi {
     _tagMs?: TagMultiselectHandle;
 
-    showItem(nodeId: string, graphNode: ItemNode): void;
+    showItem(nodeId: string, graphNode: ItemViewItemNode): void;
     _renderItemHeader(name: string, nodeId: string): unknown;
     _renderLockToggle(field: string, lockedFields: string[], nodeId: string): unknown;
     _toggleFieldLock(nodeId: string, field: string, el?: unknown): unknown;
@@ -229,7 +229,7 @@ const _InspectorItemView: InspectorItemViewApi = (() => {
      * @param {string} nodeId - Graph node ID
      * @param {object} graphNode - Graph node data
      */
-    IV.showItem = function(nodeId: string, graphNode: ItemNode) {
+    IV.showItem = function(nodeId: string, graphNode: ItemViewItemNode) {
         const name = graphNode.name as string;
         const props: PropBag = graphNode.properties || {};
         const locked: string[] = props.locked_fields || [];
@@ -593,7 +593,7 @@ const _InspectorItemView: InspectorItemViewApi = (() => {
     IV._getItemAreaId = function(nodeId: string): string | null {
         const graph = worldState.graph;
         if (!graph?.nodes || !graph?.edges) return null;
-        const areaIds = new Set<string>(Object.values(graph.nodes as Record<string, ItemNode>)
+        const areaIds = new Set<string>(Object.values(graph.nodes as Record<string, ItemViewItemNode>)
             .filter(n => n.type === 'area').map(n => n.id as string));
         let cur: string = nodeId;
         for (let depth = 0; depth < 10; depth++) {
@@ -995,7 +995,7 @@ PROPERTIES: uses (number, -1 = infinite), weight (number 0-100), current_state (
 
 OUTPUT FORMAT: Respond with ONLY raw JSON. No markdown, no code fences, just JSON.`;
 
-        const buildPrompt = (node: ItemNode, lockedFields: string[]) => {
+        const buildPrompt = (node: ItemViewItemNode, lockedFields: string[]) => {
             const name = node.name || '';
             const props: PropBag = node.properties || {};
             const description = props.description || '';
@@ -1020,7 +1020,7 @@ OUTPUT FORMAT: Respond with ONLY raw JSON. No markdown, no code fences, just JSO
             return promptLines.join('\n');
         };
 
-        const apply = (parsed: ImprovedItem, node: ItemNode, lockedFields: string[], update: ItemUpdate) => {
+        const apply = (parsed: ImprovedItem, node: ItemViewItemNode, lockedFields: string[], update: ItemUpdate) => {
             if (parsed.name) update.name = parsed.name;
             const propUpdate: PropBag = {};
             if (parsed.description !== undefined && !lockedFields.includes('description')) propUpdate.description = parsed.description;

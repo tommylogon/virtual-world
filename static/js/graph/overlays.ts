@@ -149,7 +149,7 @@ interface OverlaysWindowSurface { GraphOverlays: GraphOverlaysApi }
 
         const lighting: Record<string, AmbientLight> = {};
         const areaNodes: Array<{ id: string; name?: string; own: number }> = [];
-        const wayNodes: Record<string, VisNode> = {};
+        const wayNodes: Record<string, OverlaysVisNode> = {};
         const areaItemContrib: Record<string, number> = {};
 
         // Scan lit items in each area
@@ -178,7 +178,7 @@ interface OverlaysWindowSurface { GraphOverlays: GraphOverlaysApi }
             }
         }
 
-        nodes.forEach((n: VisNode) => {
+        nodes.forEach((n: OverlaysVisNode) => {
             if (n.group === 'area') {
                 const env = overlays.areaEnvironment(n.id);
                 const itemLight = Math.min(100, areaItemContrib[n.id] || 0);
@@ -226,7 +226,7 @@ interface OverlaysWindowSurface { GraphOverlays: GraphOverlaysApi }
         if (!nodes) return;
         const lighting = overlays.computeAmbientLight();
         const updates: NodeUpdate[] = [];
-        nodes.forEach((node: VisNode) => {
+        nodes.forEach((node: OverlaysVisNode) => {
             if (node.group === 'area') {
                 const l = lighting[node.id];
                 const level = l ? l.total : 80;
@@ -247,7 +247,7 @@ interface OverlaysWindowSurface { GraphOverlays: GraphOverlaysApi }
         const nodes = graphManager.network?.body?.data?.nodes as VisDataSet | undefined;
         if (!nodes) return;
         const updates: NodeUpdate[] = [];
-        nodes.forEach((node: VisNode) => {
+        nodes.forEach((node: OverlaysVisNode) => {
             if (node.group === 'area') {
                 const temp = overlays.areaEnvironment(node.id).temperature;
                 updates.push({ id: node.id, color: overlays.heatColors(temp) });
@@ -267,7 +267,7 @@ interface OverlaysWindowSurface { GraphOverlays: GraphOverlaysApi }
         const nodes = graphManager.network?.body?.data?.nodes as VisDataSet | undefined;
         if (!nodes) return;
         const updates: NodeUpdate[] = [];
-        nodes.forEach((node: VisNode) => {
+        nodes.forEach((node: OverlaysVisNode) => {
             if (node.group === 'area') {
                 const noise = overlays.areaEnvironment(node.id).noise;
                 updates.push({ id: node.id, color: overlays.noiseColors(noise) });
@@ -291,7 +291,7 @@ interface OverlaysWindowSurface { GraphOverlays: GraphOverlaysApi }
             }
         }
         const nodeUpdates: NodeUpdate[] = [];
-        nodes.forEach((node: VisNode) => {
+        nodes.forEach((node: OverlaysVisNode) => {
             const isTrigger = triggerNodeIds.has(node.id);
             nodeUpdates.push({
                 id: node.id,
@@ -327,7 +327,7 @@ interface OverlaysWindowSurface { GraphOverlays: GraphOverlaysApi }
         const nodes = graphManager.network?.body?.data?.nodes as VisDataSet | undefined;
         if (!nodes) return;
         const updates: NodeUpdate[] = [];
-        nodes.forEach((node: VisNode) => {
+        nodes.forEach((node: OverlaysVisNode) => {
             if (node.group !== 'way') return;
             const nodeData = (worldState.graph?.nodes || {})[node.id] as GraphNode | undefined;
             const props = nodeData?.properties || {};
@@ -407,7 +407,7 @@ interface GraphManagerLike {
 }
 
 /** A vis.js node as this module reads it. */
-interface VisNode {
+interface OverlaysVisNode {
     id: string;
     label?: string;
     group?: string;

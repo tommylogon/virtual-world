@@ -112,7 +112,7 @@ const TurnFeedModule = (() => {
     function _areasHearingFrom(originAreaName: string, volume: string): string[] {
         const graph = (typeof worldState !== 'undefined' && worldState) ? worldState.graph : null;
         if (!graph || !originAreaName) return [];
-        const nodes: Record<string, GraphNode> = graph.nodes || {};
+        const nodes: Record<string, TurnFeedGraphNode> = graph.nodes || {};
         const edges: GraphEdge[] = graph.edges || [];
         const norm = (s: unknown) => String(s || '').toLowerCase();
         let originId: string | null = null;
@@ -781,7 +781,7 @@ interface ViewerContext {
     audible: Map<string, string[]>;
 }
 
-interface GraphNode {
+interface TurnFeedGraphNode {
     id?: string;
     type?: string;
     name?: string;

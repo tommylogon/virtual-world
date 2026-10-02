@@ -34,7 +34,7 @@
             const characters: NamedId[] = [];
             if (worldState.graph?.nodes) {
                 for (const [nodeId, rawNode] of Object.entries(worldState.graph.nodes as Record<string, unknown>)) {
-                    const node = rawNode as GraphNodeLike;
+                    const node = rawNode as PlacementGraphNodeLike;
                     if (node.type === 'item') {
                         const tags = node.properties?.tags || [];
                         if (tags.includes('container') || (node.properties?.contents?.length ?? 0) > 0) {
@@ -233,7 +233,7 @@ interface NamedId {
 }
 
 /** The graph node fields the container/character scan actually reads. */
-interface GraphNodeLike {
+interface PlacementGraphNodeLike {
     type?: string;
     name?: string;
     properties?: {

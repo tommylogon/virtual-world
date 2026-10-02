@@ -34,7 +34,7 @@ const TriggerSuggestDiffModule = (() => {
     }
 
     /** Normalize a single effect's "intent" for comparison. */
-    function effectKey(e: TriggerEffect | null | undefined): string {
+    function effectKey(e: TriggerSuggestDiffTriggerEffect | null | undefined): string {
         const p = e?.params || {};
         if (e?.type === 'adjust_vital') return `adjust_vital:${String(p.stat || '')}`;
         if (e?.type === 'save') return `save:${String(p.stat || p.skill || '')}`;
@@ -96,7 +96,7 @@ const TriggerSuggestDiffModule = (() => {
     }
 
     /** Render one effect as a short readable line. */
-    function effectLine(e: TriggerEffect | null | undefined): string {
+    function effectLine(e: TriggerSuggestDiffTriggerEffect | null | undefined): string {
         const p = e?.params || {};
         switch (e?.type) {
             case 'adjust_vital': {
@@ -112,7 +112,7 @@ const TriggerSuggestDiffModule = (() => {
     }
 
     function effectsHtml(t: TriggerSpec | null | undefined): string {
-        return (t?.effects || []).map((e: TriggerEffect) => {
+        return (t?.effects || []).map((e: TriggerSuggestDiffTriggerEffect) => {
             const p = e?.params || {};
             let color = 'var(--text)';
             if (e?.type === 'adjust_vital') color = (Number(p.amount) || 0) < 0 ? RED : GREEN;
@@ -397,14 +397,14 @@ const ESCAPES: Record<string, string> = {
 // Declared below the first value statement on purpose: TypeScript drops a
 // file's leading JSDoc block when the first statement is type-only, which would
 // strip the `@module` header tools/js_module_index.py reads.
-interface TriggerEffect {
+interface TriggerSuggestDiffTriggerEffect {
     type?: string;
     params?: Record<string, unknown>;
 }
 
 interface TriggerSpec {
     trigger_type: string | string[];
-    effects?: TriggerEffect[];
+    effects?: TriggerSuggestDiffTriggerEffect[];
     conditions?: { type?: unknown; value?: unknown }[];
     fail_message?: unknown;
 }

@@ -54,7 +54,7 @@
      * A character's act countdown: Social speeds it up, traits and exhaustion
      * slow it down. Returns a countdown in ticks (3–15).
      */
-    function cooldownFor(player?: PlayerLike | null) {
+    function cooldownFor(player?: SimultaneousPlayerLike | null) {
         if (!player) return 8;
         const traits: Record<string, unknown> = player.traits || {};
         let c = 8 + Math.round((50 - (player.vitals?.Social ?? 50)) / 25);
@@ -69,13 +69,13 @@
      * Autonomous, living characters grouped by area. Names within a room are
      * sorted so the room's sequential order is stable; rooms keep roster order.
      */
-    function groupByRoom(players: Record<string, PlayerLike> | null | undefined, options?: GroupByRoomOptions) {
+    function groupByRoom(players: Record<string, SimultaneousPlayerLike> | null | undefined, options?: GroupByRoomOptions) {
         const opts: GroupByRoomOptions = options || {};
         const isAutonomous = opts.isAutonomous || (() => true);
         const ghostMode = !!opts.ghostMode;
         const rooms: Record<string, string[]> = {};
         for (const name of Object.keys(players || {})) {
-            const p = (players as Record<string, PlayerLike>)[name];
+            const p = (players as Record<string, SimultaneousPlayerLike>)[name];
             if (!p || !isAutonomous(name)) continue;
             if (p.state === 'dead' && !ghostMode) continue;
             const area = p.current_area || '';
@@ -86,7 +86,7 @@
     }
 
     /** A room's cadence is set by its fastest member (minimum countdown). */
-    function roomCooldown(names: string[] | null | undefined, players: Record<string, PlayerLike> | null | undefined) {
+    function roomCooldown(names: string[] | null | undefined, players: Record<string, SimultaneousPlayerLike> | null | undefined) {
         if (!names || !names.length) return 8;
         let fastest = Infinity;
         for (const name of names) {
@@ -131,7 +131,7 @@
 // A leading `interface`/`type` makes TypeScript drop the file's leading JSDoc
 // block from the emitted .js, and tools/js_module_index.py reads the `@module`
 // tag out of that emitted .js.
-interface PlayerLike {
+interface SimultaneousPlayerLike {
     traits?: Record<string, unknown>;
     vitals?: Record<string, number>;
     state?: string;

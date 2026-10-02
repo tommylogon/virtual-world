@@ -44,7 +44,7 @@
     let liveStyledNodeIds: Set<string> = new Set();   // live nodes we currently restyle
     let lastStagedCount = -1;            // for auto-spotlight on new ops
 
-    function _net(): VisNetwork | null {
+    function _net(): GhostsVisNetwork | null {
         return (typeof graphManager !== 'undefined' && graphManager?.network) || null;
     }
 
@@ -101,7 +101,7 @@
     }
 
     /** Position a ghost node near an anchor, spreading spawned siblings. */
-    function _near(net: VisNetwork, anchorId: string | null, index: number): GhostPoint {
+    function _near(net: GhostsVisNetwork, anchorId: string | null, index: number): GhostPoint {
         try {
             const positions = net.getPositions([anchorId as string]);
             if (positions && positions[anchorId as string]) {
@@ -118,7 +118,7 @@
         }
     }
 
-    function _midpoint(net: VisNetwork, idA: string, idB: string): GhostPoint | null {
+    function _midpoint(net: GhostsVisNetwork, idA: string, idB: string): GhostPoint | null {
         try {
             const p = net.getPositions([idA, idB]);
             if (p[idA] && p[idB]) return { x: (p[idA].x + p[idB].x) / 2, y: (p[idA].y + p[idB].y) / 2 };
@@ -341,7 +341,7 @@ interface GhostRefreshOptions {
 }
 
 /** The vis.js network surface this module reads; `vis` is untyped globally. */
-interface VisNetwork {
+interface GhostsVisNetwork {
     body: { data: { nodes: VisDataSet; edges: VisDataSet } };
     getPositions(ids: string[]): Record<string, GhostPoint>;
     getViewPosition(): GhostPoint;

@@ -204,7 +204,7 @@ interface PromptBuilderWindowSurface { PromptBuilder: Record<string, any> }
     }
 
     function buildBeyondSuffix(state: PromptState, charName: string, exitData: ExitEntry,
-                             targetAreaName: string, doorNode: GraphNode | null): string {
+                             targetAreaName: string, doorNode: RoomContextGraphNode | null): string {
         const allowChars = !!exitData.allow_see_characters;
         const visibleItems = normalizeVisibleItems(exitData.visible_items);
         if (!allowChars && !visibleItems.length) return '';
@@ -237,9 +237,9 @@ interface PromptBuilderWindowSurface { PromptBuilder: Record<string, any> }
         return ` Beyond you can see: ${parts.join(', ')}.`;
     }
 
-    function resolveAreaNode(areaName: string): GraphNode | null {
+    function resolveAreaNode(areaName: string): RoomContextGraphNode | null {
         if (!areaName) return null;
-        for (const [nodeId, node] of Object.entries(worldState.graph?.nodes || {}) as Array<[string, GraphNode]>) {
+        for (const [nodeId, node] of Object.entries(worldState.graph?.nodes || {}) as Array<[string, RoomContextGraphNode]>) {
             if (node.type === 'area' && (node.name === areaName || nodeId === areaName)) {
                 return { id: nodeId, ...node };
             }
@@ -382,7 +382,7 @@ interface PromptBuilderWindowSurface { PromptBuilder: Record<string, any> }
             items = buildAttention(areaItems.filter((roomItem: ItemNode) => roomItem.properties?.current_state !== 'hidden'), true);
         }
         const exitLines: string[] = [];
-        const movementSuffix = (doorNode: GraphNode | null, handle: string): string => {
+        const movementSuffix = (doorNode: RoomContextGraphNode | null, handle: string): string => {
             if (typeof WayAuthoring !== 'undefined') {
                 return WayAuthoring.movementHint(doorNode, handle);
             }
@@ -1035,7 +1035,7 @@ interface PromptState {
     [key: string]: unknown;
 }
 
-interface GraphNode {
+interface RoomContextGraphNode {
     id?: string;
     name?: string;
     type?: string;
@@ -1100,7 +1100,7 @@ interface NarrationUiApi {
 /** shared/item-containment.js: the one containment walk (task-493). */
 interface ItemContainmentApi {
     collectReachable(roots: string[], graph: {
-        getNode: (id: string) => GraphNode | null;
+        getNode: (id: string) => RoomContextGraphNode | null;
         edges: unknown[];
     }): ItemNode[];
 }

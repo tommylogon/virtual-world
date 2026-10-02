@@ -17,7 +17,7 @@
     'use strict';
 
     let _overlay: HTMLElement | null = null;
-    let _list: ScenarioSummary[] = [];
+    let _list: ScenarioManagerScenarioSummary[] = [];
     let _counter: HTMLElement | null = null;
 
     // task-598: filter state survives repaints and ⟳ Refresh, so the list does
@@ -33,7 +33,7 @@
     // substring on name + source path first, then per-token, then a fuzzy
     // fallback for close spellings (reuses the browser's fuzzyRatio when it is
     // loaded, with a substring-only fallback otherwise).
-    function scenarioSearchScore(sc: ScenarioSummary) {
+    function scenarioSearchScore(sc: ScenarioManagerScenarioSummary) {
         const needle = _filterText.trim().toLowerCase();
         if (!needle) return 1;
         const name = String(sc.name || '').toLowerCase();
@@ -63,7 +63,7 @@ if (s === 0) {
         return s;
     }
 
-    function scenarioMatchesFilters(sc: ScenarioSummary) {
+    function scenarioMatchesFilters(sc: ScenarioManagerScenarioSummary) {
         if (scenarioSearchScore(sc) === 0) return false;
         const o = _filterOpts;
         if (o.modified !== 'any') {
@@ -327,7 +327,7 @@ const stat = (glyph: string, value: unknown, label: string): HTMLSpanElement => 
         return b;
     }
 
-    async function openScenario(sc: ScenarioSummary, row: HTMLElement) {
+    async function openScenario(sc: ScenarioManagerScenarioSummary, row: HTMLElement) {
         btn_guard(row, async () => {
             const resp = await fetch(`/api/scenarios/${encodeURIComponent(sc.name)}`);
             const data = await resp.json();
@@ -348,7 +348,7 @@ const stat = (glyph: string, value: unknown, label: string): HTMLSpanElement => 
         });
     }
 
-    async function auditScenario(sc: ScenarioSummary, row: HTMLElement) {
+    async function auditScenario(sc: ScenarioManagerScenarioSummary, row: HTMLElement) {
         btn_guard(row, async () => {
             const resp = await fetch(`/api/scenarios/${encodeURIComponent(sc.name)}`);
             const data = await resp.json();
@@ -393,7 +393,7 @@ const stat = (glyph: string, value: unknown, label: string): HTMLSpanElement => 
 // tag out of that emitted .js.
 
 /** One row of GET /api/scenarios. */
-interface ScenarioSummary {
+interface ScenarioManagerScenarioSummary {
     name: string;
     filename?: string;
     size?: number | string;

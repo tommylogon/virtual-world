@@ -18,7 +18,7 @@
 (() => {
     let _btn: HTMLButtonElement | null = null;
     let _panel: HTMLDivElement | null = null;
-    let _entries: RawExchange[] = [];
+    let _entries: LlmInspectorRawExchange[] = [];
 
     function _esc(s: unknown): string {
         const table: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' };
@@ -125,7 +125,7 @@
         const statusF = (panel.querySelector<HTMLInputElement>('#llm-inspector-status')!.value || '').trim();
         const searchF = (panel.querySelector<HTMLInputElement>('#llm-inspector-search')!.value || '').toLowerCase();
 
-        const rows = _entries.filter((e: RawExchange) => {
+        const rows = _entries.filter((e: LlmInspectorRawExchange) => {
             if (labelF && !String(e.label || '').toLowerCase().includes(labelF)) return false;
             if (statusF && String(e.response?.status ?? '') !== statusF) return false;
             if (searchF) {
@@ -143,7 +143,7 @@
             list.innerHTML = '<div style="color:var(--text-dim,#999);">No exchanges captured. Enable “Show Raw LLM” in Settings and make a call.</div>';
             return;
         }
-        list.innerHTML = rows.map((e: RawExchange) => {
+        list.innerHTML = rows.map((e: LlmInspectorRawExchange) => {
             const status = e.response?.status ?? '—';
             // `?? '—'` makes status `string | number`; the original code relied on
             // JS coercing '—' to NaN so both comparisons were false. The typeof
@@ -191,7 +191,7 @@
  */
 
 /** One row of the `llm_raw_exchanges` store. */
-interface RawExchange {
+interface LlmInspectorRawExchange {
     key: string;
     label?: string;
     model?: string;
@@ -225,6 +225,6 @@ interface LlmExchangeBody {
 
 /** The two DatasetCollector methods this panel calls. */
 interface DatasetCollectorApi {
-    getAllRaw?(): Promise<RawExchange[]>;
+    getAllRaw?(): Promise<LlmInspectorRawExchange[]>;
     clearRaw?(): Promise<void>;
 }

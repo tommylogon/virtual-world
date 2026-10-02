@@ -107,7 +107,7 @@ const InspectorTemplateSync = (() => {
   // Per-type library registry cache with a short TTL: populateSelector runs
   // on every inspector re-render; without a cache each re-render refetched the
   // whole registry (characters, ways, areas).
-  const _libCache: Record<string, { at: number; data: Record<string, LibraryEntry> }> = {}; // typeKey -> { at, data }
+  const _libCache: Record<string, { at: number; data: Record<string, TemplateSyncLibraryEntry> }> = {}; // typeKey -> { at, data }
   const _LIB_TTL = 30000;
 
   /**
@@ -122,7 +122,7 @@ const InspectorTemplateSync = (() => {
     const list = document.getElementById(`${type}-lib-template-${escaped}-opts`);
     const current = input.value || (worldState.getNode(nodeId)?.properties?.library_id) || '';
     const typeKey = type === 'way' ? 'ways' : `${type}s`;
-    let libData: Record<string, LibraryEntry> = {};
+    let libData: Record<string, TemplateSyncLibraryEntry> = {};
     try {
       const cached = _libCache[typeKey];
       if (cached && Date.now() - cached.at < _LIB_TTL) {
@@ -160,7 +160,7 @@ const InspectorTemplateSync = (() => {
     const libId = (select && select.value) || node.properties?.library_id || '';
     if (!libId) { toastInfo('No library template selected — cannot refresh.'); return; }
 
-    let libEntry: LibraryEntry = {};
+    let libEntry: TemplateSyncLibraryEntry = {};
     try {
       const libData = await _api().getLibraryType(type === 'way' ? 'ways' : `${type}s`);
       libEntry = libData[libId] || {};
@@ -202,7 +202,7 @@ const InspectorTemplateSync = (() => {
  */
 
 /** One entry of a library registry (name is the only field this file reads). */
-interface LibraryEntry {
+interface TemplateSyncLibraryEntry {
     name?: string;
     [key: string]: unknown;
 }
@@ -216,7 +216,7 @@ interface TemplateSyncConfig {
 
 /** The ApiClient endpoints this module needs beyond the declared shared shape. */
 interface TemplateSyncApi {
-    getLibraryType(typeKey: string): Promise<Record<string, LibraryEntry>>;
+    getLibraryType(typeKey: string): Promise<Record<string, TemplateSyncLibraryEntry>>;
     refreshFromLibrary(nodeId: string, sections: unknown, libId: string,
                        entries: unknown): Promise<{ error?: string; applied?: string[] }>;
     breakTemplateLink(nodeId: string): Promise<{ error?: string; was_linked?: boolean }>;

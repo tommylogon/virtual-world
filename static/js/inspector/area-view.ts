@@ -891,7 +891,7 @@ interface EnvPresetsApi {
 }
 
 /** shared/template-sync.js. */
-interface TemplateSyncApi {
+interface AreaViewTemplateSyncApi {
     renderTemplateRow(kind: string, nodeId: string, props: unknown): string;
     populateSelector(kind: string, nodeId: string): void;
     refreshFromLibrary(kind: string, nodeId: string): Promise<unknown>;
@@ -935,7 +935,7 @@ interface AreaViewWindow {
     events: { log(message: string, level: string): void };
     InspectorHelpers: typeof InspectorHelpers;
     InspectorTriggers: typeof InspectorTriggers;
-    InspectorTemplateSync: TemplateSyncApi;
+    InspectorTemplateSync: AreaViewTemplateSyncApi;
     EnvPresets: EnvPresetsApi;
     worldSync: { refresh(): void };
     libraryBrowser: unknown;

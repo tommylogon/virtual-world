@@ -36,7 +36,7 @@ interface SoakSnapshot {
 }
 
 interface SoakMeta {
-    defaults?: SoakRunConfig;
+    defaults?: SoakStateSoakRunConfig;
     core_vitals?: string[];
     scenarios?: unknown[];
     [key: string]: unknown;
@@ -44,7 +44,7 @@ interface SoakMeta {
 
 interface SoakReport { summary?: unknown; [key: string]: unknown; }
 
-interface SoakRunConfig { [key: string]: unknown; }
+interface SoakStateSoakRunConfig { [key: string]: unknown; }
 
 interface SoakRunData {
     run: SoakRunSummary | null;
@@ -65,7 +65,7 @@ interface SoakLabState {
     runs: SoakRunSummary[];
     selectedRunId: string | null;
     serverActiveRunId: string | null;
-    config: SoakRunConfig;
+    config: SoakStateSoakRunConfig;
     pollingPaused: boolean;
     data: SoakRunData | null; // per-run view model, see _blankData()
     lastError: string | null;
@@ -77,7 +77,7 @@ interface SoakApiClient {
     meta(): Promise<unknown>;
     listRuns(): Promise<unknown>;
     getRun(id: string, since?: number, eventSince?: number): Promise<unknown>;
-    startRun(config: SoakRunConfig): Promise<unknown>;
+    startRun(config: SoakStateSoakRunConfig): Promise<unknown>;
     stopRun(id: string): Promise<unknown>;
     deleteRun(id: string): Promise<unknown>;
     report(id: string, opts?: { download?: boolean; samples?: boolean }): Promise<unknown>;
@@ -94,7 +94,7 @@ interface SoakApiClient {
 // emitted classic script and a global name this module never had.
 type SoakWin = {
     SoakApi: SoakApiClient;
-    SoakFormat: { queryToConfig(search: string): SoakRunConfig | null };
+    SoakFormat: { queryToConfig(search: string): SoakStateSoakRunConfig | null };
 };
 
 (function () {
@@ -154,12 +154,12 @@ type SoakWin = {
         return meta;
     }
 
-    function setConfig(patch: Partial<SoakRunConfig>): void {
+    function setConfig(patch: Partial<SoakStateSoakRunConfig>): void {
         state.config = Object.assign({}, state.config, patch);
         emit('config', state.config);
     }
 
-    function getConfig(): SoakRunConfig { return Object.assign({}, state.config); }
+    function getConfig(): SoakStateSoakRunConfig { return Object.assign({}, state.config); }
 
     function coreVitals(): string[] {
         const seen = new Set<string>(state.meta ? state.meta.core_vitals : []);

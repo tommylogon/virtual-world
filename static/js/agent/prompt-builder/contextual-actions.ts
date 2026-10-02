@@ -98,9 +98,9 @@ window.PromptBuilder = window.PromptBuilder || {};
     }
 
     /** All item nodes the character carries or has equipped. */
-    function carriedItemNodes(charName: string): ItemNode[] {
+    function carriedItemNodes(charName: string): ContextualActionsItemNode[] {
         const id = charNodeId(charName);
-        const bySource = new Map<string, ItemNode>();
+        const bySource = new Map<string, ContextualActionsItemNode>();
         for (const edge of worldState.graph?.edges || []) {
             if (edge.target !== id) continue;
             if (edge.type !== 'carrying' && edge.type !== 'equipped') continue;
@@ -116,9 +116,9 @@ window.PromptBuilder = window.PromptBuilder || {};
     }
 
     /** All ability/spell item nodes the character knows (EDGE_KNOWN). */
-    function knownAbilityNodes(charName: string): ItemNode[] {
+    function knownAbilityNodes(charName: string): ContextualActionsItemNode[] {
         const id = charNodeId(charName);
-        const items: ItemNode[] = [];
+        const items: ContextualActionsItemNode[] = [];
         for (const edge of worldState.graph?.edges || []) {
             if (edge.target !== id || edge.type !== 'known') continue;
             const node = worldState.getNode(edge.source);
@@ -154,7 +154,7 @@ window.PromptBuilder = window.PromptBuilder || {};
      * @param carry - { equipped } when the item is carried/equipped
      * @returns verbs in BRACKET_ORDER
      */
-    function computeItemActions(item: ItemNode, player: PlayerLike, carry?: CarryFlag | null): string[] {
+    function computeItemActions(item: ContextualActionsItemNode, player: PlayerLike, carry?: CarryFlag | null): string[] {
         const props = item?.properties || {};
         const actions = expandInverseActions(asArray(props.actions).map(s => s.toLowerCase()));
         const tags = asArray(props.tags).map(s => s.toLowerCase());
@@ -315,7 +315,7 @@ interface ItemProps {
 }
 
 /** The `{ id, name, properties }` shape getItemsInArea / the graph returns. */
-interface ItemNode {
+interface ContextualActionsItemNode {
     id: string;
     name?: string;
     properties?: ItemProps;

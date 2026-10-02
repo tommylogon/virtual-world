@@ -177,7 +177,7 @@ interface TurnSceneViewWindowSurface { TurnSceneView: unknown }
     // whose argument the menu cannot know (a steal target's inventory, a
     // name alias) are deliberately not offered; see task-610 notes.
     function buildPersonMenu(person: ScenePerson, scene: Scene): MenuButton[] {
-        const you = ((scene && scene.you) || {}) as Partial<SceneYou>;
+        const you = ((scene && scene.you) || {}) as Partial<TurnSceneViewSceneYou>;
         const conditions = (you.conditions || []).map((c: unknown) => String(c).toLowerCase());
         const grappled = conditions.some((c) => c.includes('grappl'));
         const carrying = you.carrying || [];
@@ -655,7 +655,7 @@ interface SceneItem {
 }
 
 /** The "You" strip's slice of the scene: what the controlled character has. */
-interface SceneYou {
+interface TurnSceneViewSceneYou {
     conditions: string[];
     at_way_id: string;
     carrying: CarriedItem[];
@@ -669,7 +669,7 @@ interface Scene {
     people: ScenePerson[];
     items: SceneItem[];
     ways: SceneWay[];
-    you: SceneYou;
+    you: TurnSceneViewSceneYou;
     /** Set instead of the scene when the fetch could not produce one. */
     error?: string;
     [key: string]: unknown;

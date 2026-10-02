@@ -33,7 +33,7 @@
  *                           document.createElement. Injected by the tests.
  * @returns {number} how many scopes were rendered
  */
-function populate(sel: ElementLike, scopes: ScopeSummary[] | null | undefined, make?: ElementFactory) {
+function populate(sel: ElementLike, scopes: ScopeOptionsScopeSummary[] | null | undefined, make?: ElementFactory) {
     const create: ElementFactory = make || ((tag: string) => document.createElement(tag) as unknown as ElementLike);
     const stack: ElementLike[] = [];   // stack[d] = the group currently open at depth d
     const list = scopes || [];
@@ -81,13 +81,13 @@ function populate(sel: ElementLike, scopes: ScopeSummary[] | null | undefined, m
  * @param {object} payload a parsed /api/world/scopes response
  * @returns {Array} flat summaries, each {id, name, depth, parent_id, ...rest}
  */
-function flattenScopes(payload?: ScopePayload | null): ScopeSummary[] {
+function flattenScopes(payload?: ScopePayload | null): ScopeOptionsScopeSummary[] {
     if (!payload) return [];
     // Already flat (and already carrying `depth`) -- use it as it stands.
-    if (Array.isArray(payload.scopes)) return (payload.scopes as ScopeSummary[]).slice();
+    if (Array.isArray(payload.scopes)) return (payload.scopes as ScopeOptionsScopeSummary[]).slice();
     if (!Array.isArray(payload.children)) return [];
 
-    const out: ScopeSummary[] = [];
+    const out: ScopeOptionsScopeSummary[] = [];
     const seen = new Set<unknown>();
     const walk = (nodes: unknown[], depth: number, parentId: string | null) => {
         for (const raw of nodes) {
@@ -107,7 +107,7 @@ function flattenScopes(payload?: ScopePayload | null): ScopeSummary[] {
             out.push(Object.assign({}, node, {
                 depth: d,
                 parent_id: node.parent_id != null ? node.parent_id : (parentId || null),
-            }) as ScopeSummary);
+            }) as ScopeOptionsScopeSummary);
             walk(node.children as unknown[], d + 1, node.id);
         }
     };
@@ -136,7 +136,7 @@ interface ElementLike {
     appendChild(child: ElementLike): ElementLike;
 }
 
-interface ScopeSummary {
+interface ScopeOptionsScopeSummary {
     id?: string;
     name?: string;
     depth?: number;

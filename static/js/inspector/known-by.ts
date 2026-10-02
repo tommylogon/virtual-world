@@ -57,7 +57,7 @@ interface KnownByWindowSurface { KnownBySection: unknown }
      */
     function collectEntities(): EntityGroups {
         const out: EntityGroups = { item: [], way: [], area: [], character: [] };
-        const nodes = ((worldState && worldState.graph && worldState.graph.nodes) || {}) as Record<string, GraphNode>;
+        const nodes = ((worldState && worldState.graph && worldState.graph.nodes) || {}) as Record<string, KnownByGraphNode>;
         const areaNodeId: Record<string, string> = {};
         for (const [id, node] of Object.entries(nodes)) {
             if (!node || !node.type) continue;
@@ -468,7 +468,7 @@ interface EntityGroups {
 }
 
 /** The graph-node fields collectEntities() reads. */
-interface GraphNode {
+interface KnownByGraphNode {
     id?: string;
     name?: string;
     type?: string;

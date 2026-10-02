@@ -21,7 +21,7 @@ interface TreeViewWindowSurface {
     graphManager: GraphManagerLike;
     GraphScopeTree: {
         mountInOutline: () => void;
-        buildTree: (scopes: ScopeSummary[]) => unknown;
+        buildTree: (scopes: TreeViewScopeSummary[]) => unknown;
         visibleRows: (tree: unknown, expanded: Set<string>, selected: string | null) => ScopeRow[];
 }
     selectAgent?: (name: string) => void;
@@ -79,7 +79,7 @@ const treeViewFormatTemp = (v: unknown): string => (v == null ? '?' : (Math.roun
         const gm = (window as unknown as TreeViewWindowSurface).graphManager;
         const scopedTo = String((gm && gm._scopeFilter) || '');
         const scopedName = (gm && gm._scopeSummaries || [])
-            .find((s: ScopeSummary) => s && s.id === scopedTo);
+            .find((s: TreeViewScopeSummary) => s && s.id === scopedTo);
         const scopeNote = scopedTo
             ? ` — in ${(scopedName && scopedName.name) || scopedTo}`
             : '';
@@ -282,7 +282,7 @@ interface AreaData {
 }
 
 /** A scope row as GraphScopeTree projects it. */
-interface ScopeSummary {
+interface TreeViewScopeSummary {
     id: string;
     name?: string;
 }
@@ -299,7 +299,7 @@ interface ScopeRow {
 /** The graphManager surface this module drives. */
 interface GraphManagerLike {
     _scopeFilter?: string;
-    _scopeSummaries?: ScopeSummary[];
+    _scopeSummaries?: TreeViewScopeSummary[];
     showNodeAndFocus?(id: string): void;
     _toggleDesc?(id: string): void;
     _toggleTree?(id: string): void;

@@ -33,14 +33,14 @@ const worldSyncTag = (strings: TemplateStringsArray, ...values: unknown[]) => wi
  * the original did.
  */
 type LibraryApi = {
-    getLibraryTypes(types: string[]): Promise<Record<string, Record<string, LibraryEntry>>>;
+    getLibraryTypes(types: string[]): Promise<Record<string, Record<string, WorldSyncLibraryEntry>>>;
     saveLibraryItem(entry: Record<string, unknown>): Promise<{ error?: string } | null>;
     saveLibraryType(type: string, entry: Record<string, unknown>): Promise<{ error?: string } | null>;
 };
 
 class WorldSync {
     /** Library entries per type, keyed by library id. */
-    declare cache: Record<string, Record<string, LibraryEntry>>;
+    declare cache: Record<string, Record<string, WorldSyncLibraryEntry>>;
     /** One row per syncable entity, with its library match + status. */
     declare entities: SyncEntity[];
     /** Active tab: 'all' | 'item' | 'way' | 'area' | 'character'. */
@@ -101,8 +101,8 @@ class WorldSync {
         // name-based fallback
         const nameLower = name.toLowerCase();
         for (const [id, entry] of Object.entries(lib)) {
-            if (String((entry as LibraryEntry).name || '').toLowerCase() === nameLower) {
-                return { id, entry: entry as LibraryEntry };
+            if (String((entry as WorldSyncLibraryEntry).name || '').toLowerCase() === nameLower) {
+                return { id, entry: entry as WorldSyncLibraryEntry };
             }
         }
         return null;
@@ -462,14 +462,14 @@ const worldSync = new WorldSync();
 // block from the emitted .js, and tools/js_module_index.py reads the `@module`
 // tag out of that emitted .js.
 
-interface LibraryEntry {
+interface WorldSyncLibraryEntry {
     name?: string;
     [key: string]: unknown;
 }
 
 interface LibraryMatch {
     id: string;
-    entry: LibraryEntry;
+    entry: WorldSyncLibraryEntry;
 }
 
 /** One row of the sync list: a world entity plus its library match and status. */

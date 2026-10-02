@@ -151,8 +151,8 @@ const TurnYouStrip = (() => {
         return chip;
     }
 
-    function invButtons(kind: string, items: CarryItem[], handlers: StripHandlers): MenuButton[] {
-        const buttons: MenuButton[] = [];
+    function invButtons(kind: string, items: CarryItem[], handlers: StripHandlers): TurnYouStripMenuButton[] {
+        const buttons: TurnYouStripMenuButton[] = [];
         for (const item of items || []) {
             const actions = Array.isArray(item.actions) ? item.actions : [];
             buttons.push({
@@ -348,7 +348,7 @@ interface SceneYou {
 }
 
 /** One entry of a TurnSceneView context menu. */
-interface MenuButton {
+interface TurnYouStripMenuButton {
     label: string;
     danger?: boolean;
     run: () => { action: string; item: string; target: string };
@@ -357,7 +357,7 @@ interface MenuButton {
 /** What human-turn-composer.js passes to render(). */
 interface StripHandlers {
     onDraft(parts: { action: string; item: string; target: string }): void;
-    menu(x: number, y: number, title: string, buttons: MenuButton[]): void;
+    menu(x: number, y: number, title: string, buttons: TurnYouStripMenuButton[]): void;
 }
 
 /** The hover-card body attachHover renders. */

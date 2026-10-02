@@ -62,7 +62,7 @@ interface PlacementTarget {
 
 
 const TagMultiselectCtorGlobal = (window as unknown as {
-    TagMultiselect?: new (el: HTMLElement, opts: Record<string, unknown>) => TagMultiselectInstance;
+    TagMultiselect?: new (el: HTMLElement, opts: Record<string, unknown>) => ItemLibraryTagMultiselectInstance;
 }).TagMultiselect;
 
 /** The editor-callback payload shape shared by `TriggerEditor` and `TriggerGraph`. */
@@ -84,7 +84,7 @@ interface SuggestDiffResult {
     keep: Array<Record<string, any>>;
 }
 
-interface TagMultiselectInstance {
+interface ItemLibraryTagMultiselectInstance {
     destroy(): void;
     getValue(): string[];
 }
@@ -110,7 +110,7 @@ class ItemLibrary {
     selectedId!: string | null;
     _targetArea!: string | null;
     _multiSelect!: boolean;
-    _tagMs!: TagMultiselectInstance | null;
+    _tagMs!: ItemLibraryTagMultiselectInstance | null;
     _checkedIds!: Set<string>;
 
     constructor() {

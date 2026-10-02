@@ -25,7 +25,7 @@ const itemLibraryContentsHtmlTag = (strings: TemplateStringsArray, ...values: un
      * @param {Array} contents - Array of content item objects {id, name} or strings
      * @returns {TemplateResult} lit-html template
      */
-    renderContentsSection(this: ItemLibraryHost, contents: LibraryContentEntry[]): unknown {
+    renderContentsSection(this: ContentsEditorItemLibraryHost, contents: LibraryContentEntry[]): unknown {
         const items = contents || [];
         if (items.length === 0) {
             return itemLibraryContentsHtmlTag`<div style="font-size:11px;color:var(--text-muted);padding:4px 0;">No contained items. Add items that should be inside this container.</div>`;
@@ -61,7 +61,7 @@ const itemLibraryContentsHtmlTag = (strings: TemplateStringsArray, ...values: un
      * Remove a content item from the container contents array by index.
      * @param {number} idx - Index to remove
      */
-    removeContent(this: ItemLibraryHost, idx: number): void {
+    removeContent(this: ContentsEditorItemLibraryHost, idx: number): void {
         const field = document.getElementById('lib-item-contents') as HTMLTextAreaElement;
         const contents = JSON.parse(field.value || '[]') as LibraryContentEntry[];
         contents.splice(idx, 1);
@@ -74,7 +74,7 @@ const itemLibraryContentsHtmlTag = (strings: TemplateStringsArray, ...values: un
      * Show a modal UI for adding a new item to the container contents.
      * Shows a datalist of existing library items for autocomplete.
      */
-    addContentUi(this: ItemLibraryHost): void {
+    addContentUi(this: ContentsEditorItemLibraryHost): void {
         // Get available library item names for autocomplete
         const itemOptions = Object.entries(this.data).map(([id, item]) =>
             itemLibraryContentsHtmlTag`<option value=${id}>${(item as { name?: string }).name || id}</option>`
@@ -105,7 +105,7 @@ const itemLibraryContentsHtmlTag = (strings: TemplateStringsArray, ...values: un
      * Reads the form fields and appends to the contents array.
      * @param {HTMLElement} btn - The "Add" button that was clicked
      */
-    saveContent(this: ItemLibraryHost, btn: HTMLElement): void {
+    saveContent(this: ContentsEditorItemLibraryHost, btn: HTMLElement): void {
         const overlay = btn.closest('[style*="fixed"]') as HTMLElement;
         const itemId = (document.getElementById('content-item-id') as HTMLInputElement).value.trim();
         if (!itemId) { toastInfo('Item ID is required.'); return; }
@@ -133,7 +133,7 @@ const itemLibraryContentsHtmlTag = (strings: TemplateStringsArray, ...values: un
 type LibraryContentEntry = string | { id: string; name?: string; weight?: number | string | null };
 
 /** The ItemLibrary instance these methods are mixed onto and read `data` from. */
-interface ItemLibraryHost {
+interface ContentsEditorItemLibraryHost {
     data: Record<string, { name?: string; weight?: number | null } | undefined>;
     renderContentsSection(contents: LibraryContentEntry[]): unknown;
 }
