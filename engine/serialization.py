@@ -527,6 +527,11 @@ class WorldSerializer:
         else:
             self._legacy_loader.load(data)
 
+        # task-450: repair any item that ended up both carried and equipped. The
+        # modern branch already does this inside graph.load_from_dict; the legacy
+        # branch builds the graph directly, so the boundary call lives here too.
+        self.graph.normalize_item_hold_state()
+
         self.legacy.time_ticks = data.get("time_ticks", 0)
         self.legacy.time_per_tick_minutes = data.get("time_per_tick_minutes", 5)
         self.legacy.clock_start_hour = data.get("clock_start_hour", 8)
