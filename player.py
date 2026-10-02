@@ -198,6 +198,14 @@ class Player:
         # (task-187), or the property's default would silently outrank every
         # hand-authored trait and the way max_size gate would stop working.
         self.size = None
+        # Species (task-549): what KIND of creature this is — "goblin", "human",
+        # "animal". This is the identity the need layer reads, and it is what
+        # makes "would an animal use a latrine?" a question about the data rather
+        # than about which tags somebody put on a room. `None` means *unspecified*
+        # and permits everything, so all 70 library characters and every scenario
+        # load unchanged. See engine/species.py — it is deliberately an
+        # opt-in exclusion list, never a guessed rule.
+        self.species = None
         # Tags: identity markers for this character, checked by items/triggers/conditions.
         # Examples: ["vampire", "faction:guard", "synthetic", "nobility"]
         self.tags = []
@@ -1150,6 +1158,7 @@ class Player:
             "relationships": self._relationships_to_dict(),
             "traits": dict(self.traits),
             "size": getattr(self, "size", None) or "normal",
+            "species": getattr(self, "species", None),
             "tags": list(self.tags),
             "interest_tags": list(self.interest_tags),
             "fear_tags": list(self.fear_tags),

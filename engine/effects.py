@@ -511,6 +511,13 @@ class Effects:
         # typo resolves to `normal` rather than to an unknown tier.
         _size = str(lib_data.get("size", "") or "").strip().lower()
         p.size = _size if _size in SIZE_TIERS else SIZE_DEFAULT
+        # task-549: species, normalised. Absent leaves it None = "unspecified",
+        # which permits every service, so no existing library character changes.
+        _species = lib_data.get("species")
+        if isinstance(_species, (list, tuple)):
+            _species = _species[0] if _species else None
+        _species = str(_species).strip().lower() if _species else None
+        p.species = _species or None
         p.tags = list(lib_data.get("tags", []))
         p.sync_vitals_with_tags()
         p.interest_tags = list(lib_data.get("interest_tags", []))

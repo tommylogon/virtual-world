@@ -296,6 +296,10 @@ class WorldSerializer:
         p.base_description = pdata.get("base_description", "")
         p.equipped = pdata.get("equipped", dict(p.equipped))
         p.stats = pdata.get("stats", {})
+        # task-549: species is optional. Absent (every pre-existing save) leaves
+        # it None, which means "unspecified" and permits every service — the
+        # backward-compatible default that makes adding the field safe.
+        p.species = pdata.get("species")
         p.vitals = {**p.vitals, **canonical_vitals(pdata.get("vitals", {}))}
         # task-538: `hit_dice` derives Max_HP when the save does not carry one
         # explicitly; an authored Max_HP always wins. Then clamp to *this*

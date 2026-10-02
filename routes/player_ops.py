@@ -568,6 +568,15 @@ def handle_update_player(app, name):
     if "tags" in data:
         player.tags = data["tags"]
         player.sync_vitals_with_tags()
+    # task-549: species is a free-text kind ("goblin", "forest goblin"), not a
+    # closed enum — the whole point is that an author can name a species nobody
+    # registered. It is normalised and stored, never validated away, because an
+    # unknown species permits everything rather than nothing.
+    if "species" in data:
+        raw_species = data["species"]
+        if isinstance(raw_species, (list, tuple)):
+            raw_species = raw_species[0] if raw_species else None
+        player.species = str(raw_species).strip().lower() or None if raw_species else None
     if "known" in data:
         player.known = [str(k) for k in (data["known"] or []) if str(k).strip()]
     if "interest_tags" in data:
