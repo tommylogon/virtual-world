@@ -36,6 +36,7 @@ from engine.logging_events import GameLogger
 from engine.skills import SkillSystem
 from engine.legacy_compat import LegacyCompat
 from engine.node_ids import NodeIDHelper
+from engine.world.index import GlobalScopeIndex
 
 class AmbiguousItemError(ValueError):
     """Raised when multiple items match a name and user must pick one."""
@@ -136,6 +137,13 @@ class VirtualWorld:
         # {scope_id: {id, kind, name, parent_id, children, area_ids, state, generation}}
         # Optional: scenarios without a manifest behave exactly as before.
         self.world_scopes = {}
+
+        # task-583: the small resident index that survives an unloaded scope —
+        # scope parents, area ownership, character/item location, gateways and
+        # due work. Derived from the graph on a full load, persisted in a save.
+        # Its loader (how a scope is materialised on demand) is registered by
+        # whoever owns the chunk store, not persisted.
+        self.world_index = GlobalScopeIndex()
 
         # ── Calendar (task-228) ──
         self.calendar_config = {

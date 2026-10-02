@@ -297,6 +297,13 @@ class WorldSerializer:
             "world_lore": self.legacy.world_lore,
             # task-397: hierarchy manifest (authored), not a projection. Optional.
             "world_scopes": getattr(self.legacy, "world_scopes", {}) or {},
+            # task-583: the resident scope index (ownership, location, gateways,
+            # due work). A derived cache of the loaded graph, but saved so an
+            # unloaded scope's ownership and gateways survive a round trip.
+            "world_index": (
+                self.legacy.world_index.to_dict()
+                if getattr(self.legacy, "world_index", None) is not None else {}
+            ),
             "calendar_config": getattr(self.legacy, "calendar_config", None),
             "forecast_schedule": getattr(self.legacy, "forecast_schedule", None),
             "forecast_override": getattr(self.legacy, "forecast_override", None),
@@ -510,6 +517,9 @@ class WorldSerializer:
         data.pop("areas", None)
         data.pop("rooms", None)
         data.pop("areas_by_id", None)
+        # The scope index is derived from the authored graph + manifest, so a
+        # scenario re-derives it on load rather than carrying a second copy.
+        data.pop("world_index", None)
         data.pop("ways", None)
         data.pop("item_registry", None)
         # Omit an empty name rather than writing "": the load path tests
@@ -641,6 +651,19 @@ class WorldSerializer:
         # task-397: optional hierarchy manifest; absent in legacy scenarios.
         raw_scopes = data.get("world_scopes")
         self.legacy.world_scopes = raw_scopes if isinstance(raw_scopes, dict) else {}
+        # task-583: restore the resident scope index. A save may carry entries
+        # for scopes it did not load (ownership, gateways, due work); when it
+        # does not, derive them from the graph so a legacy world gets an index.
+        index = getattr(self.legacy, "world_index", None)
+        if index is not None:
+            from engine.world.index import GlobalScopeIndex
+            raw_index = data.get("world_index")
+            if isinstance(raw_index, dict) and raw_index:
+                restored = GlobalScopeIndex.from_dict(raw_index)
+                self.legacy.world_index = restored
+                restored.augment_from_graph(self.graph, self.legacy.world_scopes)
+            else:
+                index.reindex(self.graph, self.legacy.world_scopes)
         # Graph background map: image path + transform (presentation only).
         background = data.get("graph_background")
         self.legacy.graph_background = background if isinstance(background, dict) else {}

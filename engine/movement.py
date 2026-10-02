@@ -631,10 +631,22 @@ class MovementSystem:
             if conn.target != area_id:
                 target_area_id = conn.target
                 break
+        # task-583: if this way is a gateway into a scope that has been evicted,
+        # materialise the destination scope *before* resolving the node. Without
+        # this the crossing dereferenced a node that was not in the graph; with a
+        # scope that has no loader it now fails cleanly instead.
+        world_index = getattr(self.gs, "world_index", None)
+        if world_index is not None and way_id:
+            loaded_target = world_index.ensure_destination_loaded(self.graph, way_id)
+            if loaded_target:
+                target_area_id = loaded_target
         if not target_area_id:
             raise ValueError(f"The {direction} leads nowhere.")
 
         target_area_node = self.graph.get_node(target_area_id)
+        if target_area_node is None:
+            raise ValueError(
+                f"The {direction} leads to a place that is not loaded here.")
 
         # Trigger NPC behaviors for leaving area
         if self.gs.active_player and old_area_name:

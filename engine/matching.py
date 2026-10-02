@@ -842,3 +842,8 @@ class NameMatching:
                 break
         self.graph.add_edge(Edge(source=player_node_id, target=new_area_id, type=EDGE_IN))
         player.current_area = area_name
+        # task-583: keep the resident index's id-keyed location record in step
+        # with the authoritative `in` edge it mirrors.
+        index = getattr(self.gs, "world_index", None)
+        if index is not None:
+            index.set_character_location(player_node_id, new_area_id)

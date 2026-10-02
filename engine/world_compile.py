@@ -848,6 +848,11 @@ def _gateway(parent_id: str, child_id: str, parent_area: str, parent_name: str,
         "area_to": entry_name,
         "area_from_id": parent_area,
         "area_to_id": entry_area,
+        # task-583: a gateway names its remote end explicitly, so the global
+        # index (and load-before-you-move) can find the destination scope
+        # without scanning the graph. The legacy names stay for consumers.
+        "target_area_id": entry_area,
+        "target_scope_id": child_id,
         "direction": enter,
         "return_direction": leave,
         "current_state": "open",
@@ -1032,6 +1037,9 @@ def _enter_way(scope_id: str, child_id: Optional[str], from_area: str,
         # even though the provenance says the parent (the gateway's rule), so
         # regenerating an interior cannot leave a way pointing into nothing.
         props["child_scope_id"] = child_id
+        # task-583: explicit remote end for the global index (see `_gateway`).
+        props["target_scope_id"] = child_id
+        props["target_area_id"] = to_area
     # The phrase is recorded as a phrase, not only as a direction (task-529), so
     # the description can offer the move — "you could enter the tavern" — instead
     # of listing `[enter the tavern]` beside the compass ways like a fourth wall.
