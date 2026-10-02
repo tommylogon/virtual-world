@@ -7,6 +7,11 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
+class ScopeOwnershipError(ValueError):
+    """A scope/chunk operation would touch a node another scope owns (task-582)."""
+
+
 @dataclass
 class Node:
     """A generic graph node."""
@@ -508,6 +513,164 @@ class WorldGraph:
         self._normalize_edge_endpoints()
         self.normalize_in_edge_directions()
         self._rebuild_indexes()
+
+    # ── task-582: scope/chunk load, unload and merge ───────────────────
+    #
+    # ``load_from_dict`` clears the whole graph, so it cannot materialise one
+    # scope into a live world. These operations do: a scope is added to or
+    # removed from the graph without touching any node another scope owns.
+    # Ownership is the node's ``properties.world_scope_id`` (areas, hand-placed
+    # things) or its ``properties.generated.scope_id`` (compiled/generated
+    # nodes); a node with neither is scope-less (characters, library items) and
+    # is addressed through its edges rather than removed by a scope unload.
+
+    @staticmethod
+    def _declared_scope(node) -> Optional[str]:
+        """The scope a node claims ownership by, or None (task-582)."""
+        props = getattr(node, "properties", None) or {}
+        owner = props.get("world_scope_id")
+        if owner:
+            return str(owner)
+        generated = props.get("generated") or {}
+        if generated.get("scope_id"):
+            return str(generated["scope_id"])
+        return None
+
+    @staticmethod
+    def _declared_scope_dict(ndata: dict) -> Optional[str]:
+        props = (ndata or {}).get("properties") or {}
+        owner = props.get("world_scope_id")
+        if owner:
+            return str(owner)
+        generated = props.get("generated") or {}
+        if generated.get("scope_id"):
+            return str(generated["scope_id"])
+        return None
+
+    def scope_owners(self) -> Dict[str, List[str]]:
+        """scope id → sorted node ids it owns (task-582/583)."""
+        owners: Dict[str, List[str]] = {}
+        for node_id, node in self.nodes.items():
+            scope = self._declared_scope(node)
+            if scope:
+                owners.setdefault(scope, []).append(node_id)
+        return {scope: sorted(ids) for scope, ids in owners.items()}
+
+    def nodes_owned_by(self, scope_id: str) -> List[str]:
+        """Node ids owned by *scope_id* (task-582)."""
+        scope_id = str(scope_id)
+        return sorted(nid for nid, node in self.nodes.items()
+                      if self._declared_scope(node) == scope_id)
+
+    def is_scope_loaded(self, scope_id: str) -> bool:
+        """True when at least one node owned by *scope_id* is in the graph.
+
+        A scope whose nodes are all unloaded is *not* materialised; `load_from_dict`
+        and `clear` make every scope unloaded. This is the graph-local view;
+        task-583's global index is authoritative across a save.
+        """
+        return bool(self.nodes_owned_by(scope_id))
+
+    def merge_scope(self, scope_id: str, data: dict, *,
+                    replace: bool = False) -> dict:
+        """Materialise one scope's nodes/edges into the live graph (task-582).
+
+        ``data`` is a ``{"nodes": {id: node_dict}, "edges": [...]}`` slice.
+        Ownership is checked **before any mutation**, so a rejected merge leaves
+        the graph exactly as it was:
+
+        - every incoming node that declares an owner must declare *this* scope;
+        - an id already present in the graph is refused unless it is owned by
+          this scope and ``replace`` is set (re-stamp, never steal another
+          scope's node).
+
+        Returns ``{"scope_id", "added", "replaced", "skipped"}``.
+        """
+        scope_id = str(scope_id or "")
+        if not scope_id:
+            raise ScopeOwnershipError("merge_scope requires a scope id")
+        incoming_nodes = (data or {}).get("nodes", {}) or {}
+        incoming_edges = (data or {}).get("edges", []) or []
+
+        for node_id, ndata in incoming_nodes.items():
+            declared = self._declared_scope_dict(ndata)
+            if declared is not None and declared != scope_id:
+                raise ScopeOwnershipError(
+                    f"node {node_id!r} declares scope {declared!r}, not {scope_id!r}")
+            existing = self.get_node(node_id)
+            if existing is None:
+                continue
+            existing_scope = self._declared_scope(existing)
+            if existing_scope == scope_id and replace:
+                continue
+            raise ScopeOwnershipError(
+                f"node {node_id!r} is already loaded "
+                f"(owner {existing_scope or 'none'}); "
+                f"{'pass replace=True' if existing_scope == scope_id else 'it belongs to another scope'}")
+
+        added: List[str] = []
+        replaced: List[str] = []
+        for node_id, ndata in incoming_nodes.items():
+            existing = self.get_node(node_id)
+            if existing is None:
+                node = Node(**ndata)
+                self.add_node(node)
+                added.append(node.id)
+            else:
+                self.replace_node(Node(**ndata))
+                replaced.append(existing.id)
+        for edata in incoming_edges:
+            self.add_edge(Edge(**edata))
+        return {"scope_id": scope_id, "added": sorted(added),
+                "replaced": sorted(replaced),
+                "skipped": sorted(set(incoming_nodes) - set(added) - set(replaced))}
+
+    def unload_scope(self, scope_id: str) -> dict:
+        """Remove every node *scope_id* owns, and the edges touching them.
+
+        Nodes owned by another scope, and scope-less nodes (characters, library
+        items), are never removed. An edge with one endpoint in the unloaded
+        scope is dropped with it — the cross-scope policy for carried/equipped
+        items and delayed events is task-584's, not silently decided here.
+        Returns ``{"scope_id", "removed", "edges_removed"}``.
+        """
+        scope_id = str(scope_id or "")
+        if not scope_id:
+            raise ScopeOwnershipError("unload_scope requires a scope id")
+        doomed = set(self.nodes_owned_by(scope_id))
+        if not doomed:
+            return {"scope_id": scope_id, "removed": [], "edges_removed": 0}
+        doomed_lower = {nid.lower() for nid in doomed}
+        for node_id in doomed:
+            self.nodes.pop(node_id, None)
+            self._id_index.pop(str(node_id).lower(), None)
+        for alias, target in list(self._id_aliases.items()):
+            if target.lower() in doomed_lower:
+                self._id_aliases.pop(alias, None)
+        before = len(self.edges)
+        self.edges = [
+            e for e in self.edges
+            if str(e.source).lower() not in doomed_lower
+            and str(e.target).lower() not in doomed_lower
+        ]
+        self._rebuild_indexes()
+        return {"scope_id": scope_id, "removed": sorted(doomed),
+                "edges_removed": before - len(self.edges)}
+
+    def slice_scope(self, scope_id: str) -> dict:
+        """A ``merge_scope`` payload for exactly the nodes *scope_id* owns.
+
+        Self-contained: only edges whose **both** endpoints are owned by the
+        scope are included, so a slice can be reloaded without dragging in a
+        neighbour. A gateway into a child scope is owned by the parent and is
+        therefore part of the parent's slice; the child side lives in the global
+        index (task-583).
+        """
+        included = set(self.nodes_owned_by(scope_id))
+        nodes = {nid: self.nodes[nid].to_dict() for nid in sorted(included)}
+        edges = [e.to_dict() for e in self.edges
+                 if e.source in included and e.target in included]
+        return {"scope_id": str(scope_id), "nodes": nodes, "edges": edges}
 
     def normalize_in_edge_directions(self):
         """Swap container -> contained ``in`` edges into contained -> container.
