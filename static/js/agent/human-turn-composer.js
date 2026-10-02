@@ -851,3 +851,4 @@ window.HumanTurnComposer = HumanTurnComposerModule;
 // Globals this panel calls that `types/globals.d.ts` does not declare. Read
 // through `window` so each stays optional, exactly as the call sites test it.
 const htcGlobals = window;
+/** `EmotePicker` (shared/emote-picker.js) is not in types/globals.d.ts. */

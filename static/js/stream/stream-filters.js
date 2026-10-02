@@ -123,7 +123,10 @@ class StreamFilters {
         }
         return true;
     }
-    setAgentFilter() { this.applyFilters(); }
+    // event-stream.ts calls this with an actor, but this method has never
+    // taken one - verified in the pre-migration .js. The extra argument was
+    // always ignored at runtime, so the parameter is optional and unused.
+    setAgentFilter(_actor) { this.applyFilters(); }
     noteActor(name) {
         if (!this._bus._knownActors.has(name)) {
             this._bus._knownActors.add(name);

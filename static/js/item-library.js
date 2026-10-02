@@ -19,6 +19,9 @@ const TriggerTypesNs = window.TriggerTypes;
 // The library endpoints are not in the ambient ApiClient shape. `ItemLibraryApi`
 // is the same object as `ApiClient` at runtime; only its local type is wider.
 const ItemLibraryApi = ApiClient;
+// Collaborator modules that `types/globals.d.ts` does not declare. They are
+// loaded by <script> tags before this file, so a bare global read keeps the
+// original `typeof X === 'undefined'` guards meaningful.
 const DocPanel = window.DocPanel;
 const TagMultiselectCtorGlobal = window.TagMultiselect;
 // The library modal's markup is static, so every id/selector lookup below is

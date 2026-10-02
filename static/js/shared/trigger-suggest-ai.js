@@ -1,10 +1,24 @@
 "use strict";
-// Type declarations live here, below the first value statement on purpose: tsc
-// drops a file's leading JSDoc when the first statement is type-only, which
-// would strip the `@module` header from the emitted .js. They are also scoped
-// to the IIFE body rather than the script, because this file is a classic
-// script (no imports) and a top-level `declare const` would become a global
-// that collides with whichever module owns AIGenerator.
+/**
+ * TriggerSuggestAI — shared AI trigger suggester for graph nodes.
+ *
+ * Uses the same shared AIGenerator as every other AI feature in the app
+ * (scenario wizard, mock generation, item improve...). Given raw node fields
+ * and a kind ('item' | 'way' | 'area'), asks the LLM for a full set of triggers
+ * and returns them cleaned to the trigger-editor's schema shape.
+ *
+ * Usage:
+ *   const triggers = await TriggerSuggestAI.suggest(fields, 'item');
+ *   // → [{ trigger_type, target_name, target_state, conditions, effects,
+ *   //      success_message, fail_message }, ...]  |  null (config/failure)
+ *
+ * @module shared/trigger-suggest-ai — AI trigger suggestions
+ * @contributes TriggerSuggestAI.suggest(fields, kind) → cleaned trigger objects, or null
+ * @powers Trigger / effect editor — the "✨ Suggest (AI)" button on item / way / area nodes
+ * @relates uses shared/ai-generator; its output flows through trigger-suggest-diff
+ * @docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
+ */
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 window.TriggerSuggestAI = (() => {
     /**
      * The shared AIGenerator is a **top-level `const` in a classic script**, so
@@ -247,3 +261,9 @@ Return ONLY the JSON object {"triggers": [...]}.`;
     }
     return { suggest, buildSystem, buildPrompt };
 })();
+// Type declarations live here, below the first value statement on purpose: tsc
+// drops a file's leading JSDoc when the first statement is type-only, which
+// would strip the `@module` header from the emitted .js. They are also scoped
+// to the IIFE body rather than the script, because this file is a classic
+// script (no imports) and a top-level `declare const` would become a global
+// that collides with whichever module owns AIGenerator.

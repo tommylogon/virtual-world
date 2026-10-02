@@ -174,6 +174,11 @@ const GraphEventHandlersModule = {
                 events.log(`Created area: ${formData.name}`, 'system-msg');
                 worldState.fetch();
             }
+            // PRE-EXISTING DEFECT, PRESERVED. `setTool` appears zero times
+            // in the pre-migration main.js (checked at 2c21bd5a), so this
+            // call has always thrown. Cast rather than invented - adding
+            // the method is a product decision, not a typing one. Same
+            // pattern as the viewerExitMap note in prompt-builder/room-context.ts.
             graphEditor.setTool('select');
         });
     },

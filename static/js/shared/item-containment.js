@@ -1,9 +1,30 @@
 "use strict";
-// Type declarations sit below the first value statement on purpose: tsc drops a
-// file's leading JSDoc when the first statement is type-only, which would strip
-// the `@module` header from the emitted .js. They are scoped to the IIFE body
-// because this is a classic script (no imports), so a top-level `declare`
-// would leak a global.
+/**
+ * item-containment.js — ONE rule for what a character can see inside things.
+ *
+ * @module shared/item-containment — the single item-containment walk
+ * @contributes `window.ItemContainment`: sealed/hidden predicates, any-depth
+ *   `walkContents`, and a reachability-ordered `collectReachable`
+ * @powers Take / drop / give — the item listings in world-state.js and
+ *   agent/prompt-builder/room-context.js
+ * @relates mirrors `engine/item_reach.py` (`_CLOSED_STATES`, `_is_hidden`,
+ *   `_is_open`, `_visible_ordered`) — the client half of that rule
+ * @docs docs/virtualWorld/Items & Inventory/Items Overview.md
+ *
+ * Why this exists: every renderer that re-implemented "what is inside this?"
+ * drifted. The engine walks any depth and honours container state; the client
+ * walked ONE level and checked almost nothing, so a prompt could list a battery
+ * inside a locked cabinet, or a part three levels down, or nothing at all
+ * depending on which code path ran. This is the one walk, so the two agree by
+ * construction rather than by review.
+ *
+ * The rules, from `engine/item_reach.py`:
+ *   - a `hidden` node is pruned entirely, and so is everything inside it;
+ *   - a node that is `closed`/`locked`/`sealed` (or has `locked: true`) is
+ *     still listed — the box is there — but its contents are sealed away;
+ *   - otherwise descend, to any depth.
+ */
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 window.ItemContainment = (() => {
     'use strict';
     /** States that seal a container's contents away (the node stays visible). */
@@ -87,3 +108,8 @@ window.ItemContainment = (() => {
     }
     return { CLOSED_STATES, isHidden, isOpen, walkContents, collectReachable };
 })();
+// Type declarations sit below the first value statement on purpose: tsc drops a
+// file's leading JSDoc when the first statement is type-only, which would strip
+// the `@module` header from the emitted .js. They are scoped to the IIFE body
+// because this is a classic script (no imports), so a top-level `declare`
+// would leak a global.

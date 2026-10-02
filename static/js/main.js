@@ -870,7 +870,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         ui.renderAll(state);
         // Update play/pause buttons
-        ui.showPlayPause(!config.running, config.running);
+        ui.showPlayPause(!config.running, Boolean(config.running));
         // Reload graph data to reflect any changes (nodes deleted, edges added/removed, etc.)
         graphManager.loadGraphData();
     });
@@ -910,7 +910,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     autocompleteState.prefix = selected;
                     return;
                 }
-                const activeChar = (typeof ui !== 'undefined' && ui.selectedAgent) ? ui.selectedAgent : null;
+                // PRE-EXISTING DEFECT, PRESERVED. The pre-migration
+                // ui-controller.js contains zero occurrences of `selectedAgent`,
+                // so this has always read `undefined` and activeChar was always
+                // null on this path. Verified against 2c21bd5a. Cast rather than
+                // "fixed" because whether UIController should expose the
+                // selected agent is a product decision, not a typing one.
+                const uiSel = ui;
+                const activeChar = (typeof ui !== 'undefined' && uiSel.selectedAgent) ? uiSel.selectedAgent : null;
                 const res = await ApiClient.getAutocomplete(verb, typedPrefix, activeChar);
                 const opts = res?.options || [];
                 if (opts.length === 0) {

@@ -1,4 +1,44 @@
 "use strict";
+/**
+ * DiffModal — Reusable conflict-resolution modal for world↔library sync.
+ *
+ * @module shared/diff-modal — world↔library conflict resolution
+ * @contributes DiffModal.show(current, incoming, sections, options) → update / duplicate / cancel, with per-entry selection
+ * @powers choosing exactly which library sections (or individual entries) overwrite a world node
+ * @relates used by template-sync and the item-library refresh flows
+ * @docs docs/virtualWorld/Library System/diff-modal.md
+ *
+ * Shows a section-by-section comparison between the current (on-disk library)
+ * entry and the incoming (world) payload. The user picks which sections to
+ * update, saves as a duplicate, or cancels.
+ *
+ * Per-entry upgrade (v2):
+ *   Sections can opt into per-entry granularity by setting `perEntry: true`.
+ *   Such sections render as an expandable group whose rows are individual
+ *   entries (a memory, an item, a condition, one relationship, etc.) with
+ *   their own checkboxes plus an `all of category` toggle. This lets you
+ *   carry over just a few memories or items instead of clobbering the whole
+ *   category.
+ *
+ * Usage:
+ *   const result = await DiffModal.show(currentLibEntry, worldPayload, sections, options);
+ *   // result = null (cancel)
+ *   //        | { action: 'update',    sections: [...], entries: {...} }
+ *   //        | { action: 'duplicate', name, id, sections: [...], entries: {...} }
+ *
+ *   `sections`  — whole-section keys to apply.
+ *   `entries`   — { key: [entryKey, ...] } per-entry selection for
+ *                 perEntry sections that are only partially selected.
+ *
+ * Sections format:
+ *   [{ key: 'description', label: 'Description' },
+ *    { key: 'memories',    label: 'Memories', perEntry: true }]
+ *
+ * Entry identifiers: for object sections (relationships, conditions, equipped,
+ * vitals, ...) the identifier is the object key; for array sections (memories,
+ * items) it is `id` when present, else `name`.
+ */
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 window.DiffModal = (() => {
     const esc = (text) => (text || '').replace(/"/g, '&quot;');
     function isEmptyValue(value) {

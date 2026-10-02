@@ -1836,9 +1836,9 @@
     function _applyLockState(network) {
         if (state.layoutLocked) {
             if (network)
-                network.setOptions({ physics: { enabled: true } });
+                network.setOptions({ physics: { enabled: false } });
             if (typeof graphManager !== 'undefined' && graphManager)
-                graphManager._physicsEnabled = true;
+                graphManager._physicsEnabled = false;
             state.physicsDisabledByLock = true;
         }
         else if (state.physicsDisabledByLock) {

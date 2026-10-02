@@ -38,7 +38,6 @@
  * items) it is `id` when present, else `name`.
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
-interface DiffModalWindowSurface { DiffModal: unknown }
 (window as unknown as DiffModalWindowSurface).DiffModal = (() => {
   const esc = (text: unknown): string => ((text || '') as string).replace(/"/g, '&quot;');
 
@@ -558,3 +557,9 @@ interface DiffOptions {
     /** 'to-world' applies the library onto the world; anything else saves world→lib. */
     direction?: string;
 }
+
+// Type declarations relocated from the top of this file: a leading
+// type-only statement makes tsc drop this file's leading JSDoc, and
+// js_module_index.py reads @module/@contributes from the emitted .js.
+// Types hoist, so position is semantically irrelevant.
+interface DiffModalWindowSurface { DiffModal: unknown }

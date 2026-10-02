@@ -45,25 +45,25 @@ interface CharacterStreamState {
 
 class EventBus {
     // `declare` keeps the emitted class free of field initializers.
-    declare private MAX_LINES: number;
-    declare private autoScroll: boolean;
-    declare private _subscribers: Record<string, ((data?: unknown) => void)[]>;
-    declare private _streamSpans: Record<string, HTMLElement>;
-    declare private _streamLabels: Record<string, string>;
-    declare private _isStreaming: boolean;
-    declare private _areaEventLog: Record<string, any[]>;
-    declare private _characterState: Record<string, CharacterStreamState>;
-    declare private _characterAutonomy: Record<string, unknown>;
-    declare private _knownActors: Set<string>;
-    declare private _lineSeq: number;
+    declare MAX_LINES: number;
+    declare autoScroll: boolean;
+    declare _subscribers: Record<string, ((data?: unknown) => void)[]>;
+    declare _streamSpans: Record<string, HTMLElement>;
+    declare _streamLabels: Record<string, string>;
+    declare _isStreaming: boolean;
+    declare _areaEventLog: Record<string, any[]>;
+    declare _characterState: Record<string, CharacterStreamState>;
+    declare _characterAutonomy: Record<string, unknown>;
+    declare _knownActors: Set<string>;
+    declare _lineSeq: number;
     declare private _streamMode: string;
     declare private _lastGap: { minutes: number; day: number } | null;
-    declare private _cards: StreamTurnCards;
-    declare private _filters: StreamFilters;
-    declare private _rawllm: StreamRawLLM;
-    declare private _persist: StreamPersistence;
-    declare private _scrubber: StreamScrubber;
-    declare private _controlMode: StreamControlMode;
+    declare _cards: StreamTurnCards;
+    declare _filters: StreamFilters;
+    declare _rawllm: StreamRawLLM;
+    declare _persist: StreamPersistence;
+    declare _scrubber: StreamScrubber;
+    declare _controlMode: StreamControlMode;
 
     constructor() {
         this.MAX_LINES = 5000;
@@ -75,7 +75,7 @@ class EventBus {
         this._areaEventLog = {};
         this._characterState = {};
         this._characterAutonomy = {};
-        this._knownActors = new Set();
+        this._knownActors = new Set<string>();
         this._lineSeq = 0;
         this._streamMode = 'cards';
         this._lastGap = null;
@@ -376,7 +376,7 @@ class EventBus {
     }
 
     /** Time compression: ≥30 unlogged game-minutes become a visible gap row. */
-    _insertTimeGap(target: HTMLElement | null): void {
+    _insertTimeGap(target: Element | null): void {
         if (!target) return;
         const clock = this._gameClock();
         if (this._lastGap) {
@@ -668,7 +668,7 @@ class EventBus {
 
     // --- Raw LLM payloads (delegated to stream-raw-llm.js) ---
 
-    logRawLLMRequest(phaseName: string, messages: unknown, estTokens?: number): void { this._rawllm.logRequest(phaseName, messages, estTokens); }
+    logRawLLMRequest(phaseName: string, messages: LlmMessage[], estTokens?: number): void { this._rawllm.logRequest(phaseName, messages, estTokens); }
     logRawLLMResponse(label: string, content: unknown): void { this._rawllm.logResponse(label, content); }
     logRawLLM(contentOrLabel: string, optionalContent?: string): void { this._rawllm.log(contentOrLabel, optionalContent); }
     storeRawResponse(charName: string, phase: string, raw: string): any { return this._rawllm.storeRawResponse(charName, phase, raw); }

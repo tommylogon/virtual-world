@@ -20,6 +20,9 @@ class StreamRawLLM {
     _rawResponses;
     _rawSeq;
     TOKEN_WARN;
+    /** `| null` because event-stream.ts explicitly resets it with `= null`,
+     *  not `undefined`. Typing it `ParseStreak | undefined` made that reset an
+     *  error while accepting a value the original always produced. */
     _streak;
     constructor(bus) {
         this._bus = bus;

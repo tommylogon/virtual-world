@@ -32,8 +32,6 @@
  * @docs docs/virtualWorld/Items & Inventory/Items Overview.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
-interface ConsumableTriggersWindowSurface { ItemLibraryTriggerSuggester: unknown }
-
 (window as unknown as ConsumableTriggersWindowSurface).ItemLibraryTriggerSuggester = (() => {
     // ── Action → trigger type map ─────────────────────────────────────
     // The 8 core actions determine WHICH triggers to offer. Each maps to a
@@ -492,3 +490,10 @@ interface SuggestedTrigger {
     success_message: string;
     fail_message: string;
 }
+
+// Type declarations relocated from the top of this file: a leading
+// type-only statement makes tsc drop this file's leading JSDoc, and
+// js_module_index.py reads @module/@contributes from the emitted .js.
+// Types hoist, so position is semantically irrelevant.
+interface ConsumableTriggersWindowSurface { ItemLibraryTriggerSuggester: unknown }
+

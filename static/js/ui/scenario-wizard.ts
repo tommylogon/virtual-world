@@ -73,7 +73,7 @@ RULES:
      * The local is named `aiGenerator`, not `AIGenerator`: a same-named local
      * would shadow the global inside its OWN initializer (TDZ ReferenceError).
      */
-    const aiGenerator: AIGeneratorApi | undefined = (() => {
+    const aiGenerator: typeof AIGenerator | undefined = (() => {
         // @ts-ignore -- global lexical binding from shared/ai-generator.js; see above
         return typeof AIGenerator === 'undefined' ? undefined : AIGenerator;
     })();
@@ -211,7 +211,7 @@ RULES:
             gen.disabled = true;
             gen.textContent = 'Architecting…';
             aiGenerator.generate(`Scenario premise:\n\n${premise}\n\nBuild the world draft JSON now.`, SYSTEM_PROMPT, { temperature: 0.8 })
-                .then((result: AIGeneratorResult) => {
+                .then((result: AIGenerateResult) => {
                     if (result.success && result.data) {
                         _state = { draft: normalizeDraft(result.data), name: nameInput.value.trim() || (result.data as Partial<WorldDraft>).name || 'Generated Scenario', premise, include: { rooms: {}, items: {}, chars: {}, lore: {} } };
                         try {
@@ -445,7 +445,7 @@ RULES:
         card.querySelectorAll('button').forEach((b: HTMLButtonElement) => b.disabled = true);
         if (!aiGenerator || !aiGenerator.isConfigured()) { toastError('AI not configured'); return; }
         aiGenerator.generate(prompt, 'You refine one room of a world draft. Respond with ONLY raw JSON.', { temperature: 0.75 })
-            .then((result: AIGeneratorResult) => {
+            .then((result: AIGenerateResult) => {
                 if (!result.success || !result.data) throw new Error(result.error || 'no data');
                 const room = result.data as DraftRoom;
                 if (!room || !room.name) throw new Error('missing name');
@@ -649,7 +649,7 @@ interface ApplyPayload {
 /** The slice of the shared AIGenerator (shared/ai-generator.js) used here. */
 interface AIGeneratorApi {
     isConfigured(): boolean;
-    generate(userPrompt: string, systemPrompt: string, options?: Record<string, unknown>): Promise<AIGeneratorResult>;
+    generate(userPrompt: string, systemPrompt: string, options?: AIGenerateOptions): Promise<AIGeneratorResult>;
 }
 
 interface AIGeneratorResult {

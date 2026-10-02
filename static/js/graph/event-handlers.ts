@@ -159,7 +159,12 @@ const GraphEventHandlersModule = {
             const res = await (ApiClient as unknown as EventHandlersApiClient).createRoom(formData);
             if (res.error) toastError('Error: ' + res.error);
             else { events.log(`Created area: ${formData.name}`, 'system-msg'); worldState.fetch(); }
-            graphEditor.setTool('select');
+        // PRE-EXISTING DEFECT, PRESERVED. `setTool` appears zero times
+        // in the pre-migration main.js (checked at 2c21bd5a), so this
+        // call has always thrown. Cast rather than invented - adding
+        // the method is a product decision, not a typing one. Same
+        // pattern as the viewerExitMap note in prompt-builder/room-context.ts.
+            (graphEditor as unknown as { setTool(tool: string): void }).setTool('select');
         });
     },
 
@@ -201,7 +206,7 @@ const GraphEventHandlersModule = {
                 const res = await (ApiClient as unknown as EventHandlersApiClient).connectRooms(payload);
                 if (res.error) toastError('Error: ' + res.error);
                 else { events.log(connectSummary(res, { room1: formData.room1, room2: formData.room2, way_id: formData.way_id }), 'system-msg'); worldState.fetch(); }
-                graphEditor.setTool('select');
+                (graphEditor as unknown as { setTool(tool: string): void }).setTool('select');
             });
         } else {
             graphManager._createEdgeWithType(data.from);

@@ -71,7 +71,14 @@ function parseJSONFromResponse(response) {
         return { json: null, raw: content, error: e instanceof Error ? e.message : String(e) };
     }
 }
-/** Safe parse a JSON string, returning null on failure instead of throwing */
+/** Safe parse a JSON string, returning null on failure instead of throwing.
+ *
+ *  Return type is `any`, NOT `unknown`, and that is the honest annotation:
+ * JSON.parse returns `any`, and every caller indexes straight into the result.
+ * Declaring `unknown` here pushed the error to ~50 call sites, each of which
+ * then needed a cast or an `any` - strictly worse than saying so once, here,
+ * where the contract really is "arbitrary JSON or null".
+ */
 function parseJsonSafely(str) {
     try {
         return JSON.parse(str);

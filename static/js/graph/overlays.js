@@ -1,14 +1,22 @@
 "use strict";
-// The overlay object references itself (`overlays.lightToInt` etc. inside
-// `computeAmbientLight`), so it is built as a local const and stamped on window
-// afterwards — a `window.GraphOverlays =` assignment has no binding to refer to.
-// IIFE, not a top-level const: the overlay object references itself
-// (`overlays.lightToInt` inside `computeAmbientLight`), and a top-level
-// `const overlays` would be a global lexical binding colliding at parse
-// time with any other script declaring that name. Scoping it to the arrow
-// function keeps every self-reference working; the property is assigned once.
-// Named overlays rather than GraphOverlays: globals.d.ts already declares a
-// bare `declare const GraphOverlays`, and a same-named local is a redeclaration.
+/**
+ * GraphOverlays — the ambient visualisation overlays for the graph.
+ *
+ * Extracted from the network-manager monolith. Each overlay recolors the
+ * nodes/edges in the live vis.js dataset based on area environment (light,
+ * heat, sound), trigger edges, or cardinal layout. The leaf functions keep
+ * identical color/label behaviour to the originals; `computeAmbientLight` is
+ * now CACHED against a cheap signature of the world state because it walks
+ * every edge per lit item — the main perf hot-spot in the old monolithic
+ * version.
+ *
+ * @module graph/overlays — the ambient visual overlays
+ * @contributes GraphOverlays: light/heat/sound/trigger/cardinal recolouring + cached computeAmbientLight
+ * @powers Light, The map — the graph's overlay modes and their legends
+ * @relates driven by GraphNetwork.applyOverlay; reads worldState + area environments
+ * @docs docs/virtualWorld/Environment/Light System.md
+ */
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 window.GraphOverlays = (() => {
     const overlays = {
         // Cache for computeAmbientLight(), keyed on the change-detection signature.
@@ -343,3 +351,13 @@ window.GraphOverlays = (() => {
     };
     return overlays;
 })();
+// The overlay object references itself (`overlays.lightToInt` etc. inside
+// `computeAmbientLight`), so it is built as a local const and stamped on window
+// afterwards — a `window.GraphOverlays =` assignment has no binding to refer to.
+// IIFE, not a top-level const: the overlay object references itself
+// (`overlays.lightToInt` inside `computeAmbientLight`), and a top-level
+// `const overlays` would be a global lexical binding colliding at parse
+// time with any other script declaring that name. Scoping it to the arrow
+// function keeps every self-reference working; the property is assigned once.
+// Named overlays rather than GraphOverlays: globals.d.ts already declares a
+// bare `declare const GraphOverlays`, and a same-named local is a redeclaration.

@@ -514,3 +514,50 @@ declare const ItemLibraryPlacement: {
     updatePlaceButton(...args: any[]): any;
 };
 // <<< ambient shapes <<<
+
+/**
+ * The GraphManager instance's fields (graph-manager.js), which is still plain
+ * JS and so has no declarations of its own.
+ *
+ * Needed by `build:ts`, which includes only .ts files: with graph-manager.js
+ * excluded from that program, `GraphManager` resolves to nothing else. It is
+ * inert for `tsconfig.check.json`, which includes the .js and prefers the real
+ * class - the same config asymmetry documented for `config`.
+ *
+ * `any` rather than inferred shapes on purpose: `unknown` rejects every
+ * property access, which just moves the error to each reader.
+ *
+ * Disappears when graph-manager.js converts.
+ */
+interface GraphManager {
+    _bulkBar: any;
+    _bulkScopesFilled: boolean;
+    _bulkSelection: any;
+    _cardinalLayout: any;
+    _contextTarget: any;
+    _edgeLabelSize: number;
+    _floorFilter: string;
+    _floorOptions: any;
+    _labelCache: any;
+    _lastSig: string;
+    _legendEl: any;
+    _mapSpacingAuto: any;
+    _nodeLabelsShown: any;
+    _paintedGridLayout: boolean;
+    _pendingConnection: any;
+    _physicsEnabled: boolean;
+    _revealedAreaIds: any;
+    _revealedItemIds: any;
+    _scopeFilter: any;
+    _scopeOffsets: any;
+    _scopeSummaries: any;
+    _searchQuery: string;
+    _showEdgeLabels: boolean;
+    _showImages: any;
+    _showItems: boolean;
+    _showNodeLabels: any;
+    _showOnlyInhabitedAreas: boolean;
+    _viewMode: string;
+    network: any;
+    nodes: any;
+}

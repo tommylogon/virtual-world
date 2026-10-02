@@ -18,15 +18,6 @@
  * @docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
-interface TriggerSuggestAIWindowSurface { TriggerSuggestAI: unknown }
-
-// Type declarations live here, below the first value statement on purpose: tsc
-// drops a file's leading JSDoc when the first statement is type-only, which
-// would strip the `@module` header from the emitted .js. They are also scoped
-// to the IIFE body rather than the script, because this file is a classic
-// script (no imports) and a top-level `declare const` would become a global
-// that collides with whichever module owns AIGenerator.
-
 (window as unknown as TriggerSuggestAIWindowSurface).TriggerSuggestAI = (() => {
     /**
      * The slice of the shared AIGenerator (shared/ai-generator.js) this module
@@ -34,7 +25,7 @@ interface TriggerSuggestAIWindowSurface { TriggerSuggestAI: unknown }
      */
     interface AIGeneratorApi {
         isConfigured(): boolean;
-        generate(userPrompt: string, systemPrompt: string, options?: Record<string, unknown>): Promise<{
+        generate(userPrompt: string, systemPrompt: string, options?: AIGenerateOptions): Promise<{
             success: boolean;
             data?: unknown;
             error?: string;
@@ -76,7 +67,7 @@ interface TriggerSuggestAIWindowSurface { TriggerSuggestAI: unknown }
      * The local is named `aiGenerator`, not `AIGenerator`: a same-named local
      * would shadow the global inside its OWN initializer (TDZ ReferenceError).
      */
-    const aiGenerator: AIGeneratorApi | undefined = (() => {
+    const aiGenerator: typeof AIGenerator | undefined = (() => {
         // @ts-ignore -- global lexical binding from shared/ai-generator.js; see above
         return typeof AIGenerator === 'undefined' ? undefined : AIGenerator;
     })();
@@ -301,3 +292,17 @@ Return ONLY the JSON object {"triggers": [...]}.`;
 
     return { suggest, buildSystem, buildPrompt };
 })();
+
+// Type declarations relocated from the top of this file: a leading
+// type-only statement makes tsc drop this file's leading JSDoc, and
+// js_module_index.py reads @module/@contributes from the emitted .js.
+// Types hoist, so position is semantically irrelevant.
+interface TriggerSuggestAIWindowSurface { TriggerSuggestAI: unknown }
+
+// Type declarations live here, below the first value statement on purpose: tsc
+// drops a file's leading JSDoc when the first statement is type-only, which
+// would strip the `@module` header from the emitted .js. They are also scoped
+// to the IIFE body rather than the script, because this file is a classic
+// script (no imports) and a top-level `declare const` would become a global
+// that collides with whichever module owns AIGenerator.
+

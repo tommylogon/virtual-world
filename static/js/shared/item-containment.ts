@@ -24,14 +24,6 @@
  *   - otherwise descend, to any depth.
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
-interface ItemContainmentWindowSurface { ItemContainment: unknown }
-
-// Type declarations sit below the first value statement on purpose: tsc drops a
-// file's leading JSDoc when the first statement is type-only, which would strip
-// the `@module` header from the emitted .js. They are scoped to the IIFE body
-// because this is a classic script (no imports), so a top-level `declare`
-// would leak a global.
-
 (window as unknown as ItemContainmentWindowSurface).ItemContainment = (() => {
     'use strict';
 
@@ -145,3 +137,16 @@ interface ItemContainmentWindowSurface { ItemContainment: unknown }
 
     return { CLOSED_STATES, isHidden, isOpen, walkContents, collectReachable };
 })();
+
+// Type declarations relocated from the top of this file: a leading
+// type-only statement makes tsc drop this file's leading JSDoc, and
+// js_module_index.py reads @module/@contributes from the emitted .js.
+// Types hoist, so position is semantically irrelevant.
+interface ItemContainmentWindowSurface { ItemContainment: unknown }
+
+// Type declarations sit below the first value statement on purpose: tsc drops a
+// file's leading JSDoc when the first statement is type-only, which would strip
+// the `@module` header from the emitted .js. They are scoped to the IIFE body
+// because this is a classic script (no imports), so a top-level `declare`
+// would leak a global.
+

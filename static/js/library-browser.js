@@ -33,7 +33,6 @@ function wordBoundary(text, token) {
 const LibraryApi = ApiClient;
 const DiffModalTyped = DiffModal;
 const itemLibRef = window.itemLib;
-const ItemLibraryPlacement = window.ItemLibraryPlacement;
 const EDITOR_IDS = {
     characters: 'lib-char-editor', areas: 'lib-area-editor',
     traits: 'lib-trait-editor', conditions: 'lib-cond-editor',

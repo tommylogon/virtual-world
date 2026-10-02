@@ -680,3 +680,12 @@ window.InspectorPaperdoll = (() => {
     };
     return P;
 })();
+/**
+ * PRE-EXISTING BUG, deliberately preserved: `durabilityChip` is a `const`
+ * declared inside renderPaperdollEquipmentHtml (HEAD line 216) but is called
+ * from showSlotModal (HEAD line 453), so that call is out of scope and throws
+ * ReferenceError before the slot modal renders. This `declare` keeps tsc happy
+ * while leaving the runtime behaviour exactly as shipped; the call still
+ * resolves to an undefined binding. Fixing it is a behaviour change and is not
+ * part of this conversion - see the report.
+ */

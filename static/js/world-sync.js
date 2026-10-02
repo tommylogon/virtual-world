@@ -198,11 +198,11 @@ class WorldSync {
     }
     // ── Opening an entity → existing DiffModal flow ─────────────────
     openEntity(entity) {
-        if (entity.type === 'item')
+        if (entity.type === 'item' && entity.nodeId)
             return itemLib.saveWorldItem(entity.nodeId);
         if (entity.type === 'way')
             return InspectorWayView._saveToLibrary(entity.nodeId);
-        if (entity.type === 'area')
+        if (entity.type === 'area' && entity.name)
             return libraryBrowser.saveAreaByName(entity.name);
         if (entity.type === 'character')
             return libraryBrowser.saveCharacterByName(entity.name);

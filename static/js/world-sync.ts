@@ -157,7 +157,7 @@ class WorldSync {
     _buildItem(nodeId: string, node: any, depth = 0, seen: Set<string> | null = null): SyncEntity | null {
         const built = itemLib._buildWorldItemPayload(nodeId);
         if (!built) return null;
-        const payload = built.payload;
+        const payload = built.payload as Record<string, unknown>;
         // Restore linkage hints for matching (not written to the library entry).
         const props = node.properties || {};
         if (props.library_id) payload.library_id = props.library_id;
@@ -228,9 +228,9 @@ class WorldSync {
     // ── Opening an entity → existing DiffModal flow ─────────────────
 
     openEntity(entity: SyncEntity) {
-        if (entity.type === 'item') return itemLib.saveWorldItem(entity.nodeId);
+        if (entity.type === 'item' && entity.nodeId) return itemLib.saveWorldItem(entity.nodeId);
         if (entity.type === 'way') return InspectorWayView._saveToLibrary(entity.nodeId);
-        if (entity.type === 'area') return libraryBrowser.saveAreaByName(entity.name);
+        if (entity.type === 'area' && entity.name) return libraryBrowser.saveAreaByName(entity.name);
         if (entity.type === 'character') return libraryBrowser.saveCharacterByName(entity.name);
     }
 

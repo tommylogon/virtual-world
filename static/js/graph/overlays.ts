@@ -16,18 +16,6 @@
  * @docs docs/virtualWorld/Environment/Light System.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
-interface OverlaysWindowSurface { GraphOverlays: GraphOverlaysApi }
-
-// The overlay object references itself (`overlays.lightToInt` etc. inside
-// `computeAmbientLight`), so it is built as a local const and stamped on window
-// afterwards — a `window.GraphOverlays =` assignment has no binding to refer to.
-// IIFE, not a top-level const: the overlay object references itself
-// (`overlays.lightToInt` inside `computeAmbientLight`), and a top-level
-// `const overlays` would be a global lexical binding colliding at parse
-// time with any other script declaring that name. Scoping it to the arrow
-// function keeps every self-reference working; the property is assigned once.
-// Named overlays rather than GraphOverlays: globals.d.ts already declares a
-// bare `declare const GraphOverlays`, and a same-named local is a redeclaration.
 (window as unknown as { GraphOverlays: GraphOverlaysApi }).GraphOverlays = (() => {
     const overlays: GraphOverlaysApi = {
     // Cache for computeAmbientLight(), keyed on the change-detection signature.
@@ -463,3 +451,20 @@ interface GraphOverlaysApi {
     applyTriggerOverlay(): void;
     applyCardinalOverlay(): void;
 }
+
+// Type declarations relocated from the top of this file: a leading
+// type-only statement makes tsc drop this file's leading JSDoc, and
+// js_module_index.py reads @module/@contributes from the emitted .js.
+// Types hoist, so position is semantically irrelevant.
+interface OverlaysWindowSurface { GraphOverlays: GraphOverlaysApi }
+
+// The overlay object references itself (`overlays.lightToInt` etc. inside
+// `computeAmbientLight`), so it is built as a local const and stamped on window
+// afterwards — a `window.GraphOverlays =` assignment has no binding to refer to.
+// IIFE, not a top-level const: the overlay object references itself
+// (`overlays.lightToInt` inside `computeAmbientLight`), and a top-level
+// `const overlays` would be a global lexical binding colliding at parse
+// time with any other script declaring that name. Scoping it to the arrow
+// function keeps every self-reference working; the property is assigned once.
+// Named overlays rather than GraphOverlays: globals.d.ts already declares a
+// bare `declare const GraphOverlays`, and a same-named local is a redeclaration.

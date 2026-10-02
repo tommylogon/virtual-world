@@ -1,4 +1,38 @@
 "use strict";
+/**
+ * ItemLibraryTriggerSuggester — "⚡ Suggest" for items (heuristic, offline).
+ *
+ * The item's ACTIONS decide WHICH triggers to make. Only the core actions
+ * (examine, use, take, drop, equip, unequip, eat, drink, read) map to triggers,
+ * one on_* per action. Tags/category then decide WHAT those triggers contain:
+ *   • eat/drink → correct vital (food→Hunger, drink→Thirst, energy→Energy,
+ *     medicine→HP, alcohol→Sanity)
+ *   • finite uses → uses_above 0 guard + "empty" fail message
+ *   • tainted/cursed → CON save that applies poisoned on fail, plus an
+ *     on_examine that reveals the truth on a save
+ *   • haunted → on_take whisper
+ *   • lights (tag light_source/candle/etc.) → on_light (fires with the toggle)
+ *     + on_toggle_off lit/unlit
+ *   • books (tag book/readable) → on_read excerpt
+ *   • consumables whose action list lacks eat/drink → their on_use carries the
+ *     vital adjust instead
+ *
+ * A heuristic can only guarantee correct STRUCTURE, not great prose — so the
+ * ✨ Suggest (AI) path (TriggerSuggestAI) authors the actual messages/saves.
+ * Ways and areas get their own templates via suggestForNode().
+ *
+ * Pure heuristic — no AI calls, works offline, fully reviewable in the editor.
+ * Usage:
+ *   ItemLibraryTriggerSuggester.suggest({ name, description, tags, actions, uses })
+ *   → [{ trigger_type, conditions, effects, ... }, ...]
+ *
+ * @module item-library/consumable-triggers — heuristic trigger suggester
+ * @contributes ItemLibraryTriggerSuggester.suggest() (offline, no AI) + suggestForNode() for ways/areas
+ * @powers the "⚡ Suggest" button on items — correct trigger STRUCTURE per action/tag
+ * @relates leaves prose to trigger-suggest-ai; results are reviewed via trigger-suggest-diff
+ * @docs docs/virtualWorld/Items & Inventory/Items Overview.md
+ */
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 window.ItemLibraryTriggerSuggester = (() => {
     // ── Action → trigger type map ─────────────────────────────────────
     // The 8 core actions determine WHICH triggers to offer. Each maps to a
