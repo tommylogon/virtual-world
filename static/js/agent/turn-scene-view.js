@@ -179,9 +179,16 @@ window.TurnSceneView = (() => {
         );
         const who = person.display_name;
 
+        // Speaking to someone is two different things, so the menu offers both:
+        //   · Whisper to them — directed. Only they hear it, plus anyone standing
+        //     close enough to be "at" you who is a friend or better (the engine's
+        //     whisper audience, engine/speech.py). Use it for a secret.
+        //   · Say it aloud — undirected. Everyone in the area hears it, exactly
+        //     as if you had simply spoken. This is the "the whole room can hear"
+        //     option, and it is NOT addressed to this person in any way.
         const menus = [
-            { label: `Talk to ${who}`, talk: true, volume: 'say' },
             { label: `Whisper to ${who}`, talk: true, volume: 'whisper', target: who },
+            { label: `Say aloud (everyone hears)`, talk: true, volume: 'say' },
         ];
         // Examine resolves real names, aliases, AND descriptive labels
         // (matching.py _match_character_name tiers) — the masked stranger
@@ -398,7 +405,10 @@ window.TurnSceneView = (() => {
             { label: 'Examine the room', run: () => draftParts({ action: 'examine', item: 'room' }) },
             { label: 'Look around', run: () => draftParts({ action: 'look' }) },
             { label: 'Listen', run: () => draftParts({ action: 'listen' }) },
-            { label: 'Say (room)', talk: true, volume: 'say' },
+            // Focus the speech row without changing the volume — the "just let me
+            // say something" affordance, kept distinct from the explicit volumes.
+            { label: 'Speak…', talkFocus: true },
+            { label: 'Say it to the room', talk: true, volume: 'say' },
             { label: 'Shout', talk: true, volume: 'shout' },
             { label: 'Scream', talk: true, volume: 'scream' },
         ]));

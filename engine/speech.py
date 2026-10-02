@@ -15,6 +15,18 @@ from typing import Optional
 from graph import EDGE_IN
 
 
+#: How close a bystander must stand to a speaker to catch a directed whisper.
+#: "Nearby" is the same area — the whisper's sound penetration is already 0, so
+#: nothing crosses a wall. What decides it is the RELATIONSHIP: the people close
+#: enough to be leaned toward are the ones close to you, so a whisper is heard by
+#: its recipient plus anyone in the room at least this friendly with the speaker.
+#: A stranger at the same table hears nothing, which is what makes a whisper worth
+#: choosing over a line of talk. Uses the shared band ladder from
+#: ``engine.relationships`` so this cannot drift from how the rest of the engine
+#: bands closeness.
+WHISPER_EAVESDROP_BAND = "friend"
+
+
 class SpeechBroadcaster:
     """Delivers speech events to hearers and records them.
 
@@ -84,6 +96,33 @@ class SpeechBroadcaster:
             if pname.lower() == wanted_lower or wanted_lower in pname.lower():
                 return pname
         return None
+
+    # ──────────────────── Whisper audience ──────────────────────────
+
+    def _whisper_audience(self, speaker_name: str, target_area: str,
+                          resolved_target: str) -> set:
+        """Names (besides the speaker) who hear a directed whisper's words.
+
+        The recipient always does. So does anyone standing in the same area who
+        is at least ``WHISPER_EAVESDROP_BAND`` friendly with the speaker — the
+        people close enough to be "at" them. A stranger at the same table hears
+        nothing (they only see the gesture), which is what makes a whisper worth
+        choosing over talking to the room.
+        """
+        from engine.relationships import band_at_least, get_relationship
+
+        audience = {resolved_target}
+        for pname, player_obj in self.player_manager.players.items():
+            if pname == speaker_name or pname in audience:
+                continue
+            if getattr(player_obj, "current_area", None) != target_area:
+                continue
+            rel = get_relationship(player_obj, speaker_name)
+            if not rel:
+                continue
+            if band_at_least(rel.get("closeness", 0), WHISPER_EAVESDROP_BAND):
+                audience.add(pname)
+        return audience
 
     # ──────────────────── Spoken-name learning (task-339) ────────────────
 
@@ -202,6 +241,13 @@ class SpeechBroadcaster:
 
         is_directed_whisper = speech_level == "whisper" and resolved_target is not None
 
+        # A directed whisper is heard by its recipient plus same-area friends of
+        # the speaker (see _whisper_audience); everyone else sees only the gesture.
+        whisper_audience = (
+            self._whisper_audience(speaker_name, target_area, resolved_target)
+            if is_directed_whisper else None
+        )
+
         is_ghost_speech = speaker and speaker.state == "dead"
 
         event = {
@@ -215,6 +261,7 @@ class SpeechBroadcaster:
         }
         if is_directed_whisper:
             event["whisper_target"] = resolved_target
+            event["whisper_audience"] = sorted(whisper_audience - {resolved_target})
             # A private aside is an intimate exchange — both parties warm
             # slightly toward each other (task-94: closeness gate).
             tick = event.get("tick", 0) or 0
@@ -266,8 +313,9 @@ class SpeechBroadcaster:
                 continue
             if not hasattr(player_obj, "recent_hearing"):
                 player_obj.recent_hearing = []
-            # Directed whisper (task-248): only the target hears the words.
-            if is_directed_whisper and pname != resolved_target:
+            # Directed whisper: the words reach its audience (recipient + the
+            # speaker's same-area friends); everyone else sees only the gesture.
+            if is_directed_whisper and pname not in whisper_audience:
                 continue
             hearing_entry = dict(event)
             if is_ghost_speech and player_obj.state != "dead":

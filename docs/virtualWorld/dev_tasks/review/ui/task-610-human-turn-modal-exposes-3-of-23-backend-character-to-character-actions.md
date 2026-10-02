@@ -70,6 +70,48 @@ Screenshots: `review-verify/610-menu-top.png` (whole menu open),
 `review-verify/610-composer-whisper.png` (whisper volume + directed target in
 the payload preview).
 
+## Follow-up (2026-10-02): speech audience, reviewed with the user)
+
+Reviewing the whisper path against the current sound propagation showed the
+volume→audience mapping was only half-specified, so it was checked and corrected:
+
+- **`engine/speech.py` — a directed whisper now has a defined audience.** It was
+  target-only (task-248). It now also reaches anyone standing in the same area
+  who is a **friend or better** with the speaker (`WHISPER_EAVESDROP_BAND`,
+  reusing the `closeness_band` ladder in `engine/relationships.py` so the two
+  cannot drift). A stranger at the same table still hears nothing, and nothing
+  crosses a wall (whisper penetration is already 0). The event records
+  `whisper_audience`. An undirected whisper stays room-wide — that existing
+  contract is unchanged.
+- **Menu wording made the distinction real.** "Talk to X" was misleading: it set
+  no target, so it was a room-wide line that merely sat under someone's name.
+  The person menu now offers **Whisper to X** (directed) and **Say aloud
+  (everyone hears)** (undirected) as two explicit choices.
+- **`Speak…` kept as an option.** It focuses the speech row *without* changing
+  the selected volume — "just let me say something" is distinct from picking a
+  volume, so `talkFocus` is live again rather than dead.
+- **`teach` added to `parseCmd`'s `VERBS`.** The Teach submenu drafts
+  `teach skill:X to Y`; without the verb listed, `parseCmd` returned it as speech
+  and the give/steal/teach split was unreachable. Found by review, not by the
+  earlier live pass, which only captured the raw draft.
+
+Live check (`VW_PORT=4463`, Playwright, real clicks):
+
+```
+PERSON_MENU ["Whisper to Tester","Say aloud (everyone hears)","Examine Tester",
+  "Attack Tester","Grab Tester (grapple)","Lead Tester","Wake Tester","Release Tester"]
+WHISPER_PREVIEW {"speech":"the vault code is 4417","volume":"whisper","target":"Tester"}
+SAY_PREVIEW     {"speech":"anyone listening?","volume":"say"}
+AREA_MENU ["Examine the room","Look around","Listen","Speak…","Say it to the room","Shout","Scream"]
+VOL_BEFORE_SPEAK ["shout"] -> SPEECH_FOCUS_VOL_UNCHANGED ["shout"] (FOCUS_IS_SPEECH htc-speech)
+```
+
+Engine (new `TestWhisperAudience`, 6 tests):
+`python -m pytest tests/test_realism_perception.py -q -> 23 passed`
+(target hears; stranger does not; a friend does; an acquaintance does not; the
+event names the audience).
+
+
 ## Files
 
 - `static/js/agent/turn-scene-view.js` — `buildPersonMenu`, nested/talk menus,

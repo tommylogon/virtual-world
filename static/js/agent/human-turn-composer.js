@@ -159,6 +159,9 @@ window.HumanTurnComposer = (() => {
         'steal', 'light', 'ignite', 'vanish', 'manifest', 'toggle', 'listen',
         'wake', 'meditate', 'bathe', 'stand', 'release', 'escape', 'struggle', 'lead',
         'fear', 'interest',
+        // task-610: 'teach' must be a listed verb or parseCmd returns it as
+        // speech before reaching the give/steal/teach split below.
+        'teach',
         // task-610: intimacy verbs drafted by the person menu. When mature
         // content is off, normalizeStructuredAction degrades them to 'look'.
         'kiss', 'caress', 'lick', 'suck', 'bite', 'pinch', 'blow', 'tickle',
