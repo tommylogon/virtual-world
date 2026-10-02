@@ -48,14 +48,18 @@ def handle_spike_emotion(app, name):
         if resolved and hasattr(player, "_FELT_TO_DIM"):
             other = resolved
             valid = tuple(player._FELT_TO_DIM.keys())
+    # task-652: one normaliser for a declared feeling. This route used
+    # `map_label`, which substring-matches, so an LLM saying "hangry" became
+    # "angry" on a coincidence — the exact failure task-505 was filed to prevent,
+    # and the reason `felt_from_llm` exists. Using it here means the authored
+    # vocabulary is consulted too: "terrified", "furious" and "sadness" are
+    # declared aliases in engine/emotion.py and were being dropped here.
     if emotion not in valid:
-        # task-96/350: agents use free-form vocabulary. Unknown labels go
-        # through the same semantic resolver as recall (/emotions/map) —
-        # never a 400; a truly unknown label is a documented graceful no-op.
-        mapped = emotion_engine.map_label(emotion)
-        if not mapped:
+        resolved = emotion_engine.felt_from_llm(
+            {"label": emotion, "intensity": data.get("intensity") or 5})
+        if not resolved:
             return jsonify({"emotions": player.emotions_map(), "ignored": emotion})
-        emotion = mapped[0][0]
+        emotion = resolved[0]
     if emotion not in valid:
         return jsonify({"emotions": player.emotions_map(), "ignored": emotion})
 

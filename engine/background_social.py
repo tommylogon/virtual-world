@@ -216,6 +216,95 @@ BASE_IGNORE_WEIGHT = 4.0
 SOCIAL_LOW = 50
 ENTERTAINMENT_LOW = 50
 
+# ─────────────────── task-652: feelings steer behaviour ───────────────────
+#
+# The affect map had eleven writers and **one** reader (`derive.py`, for
+# consent). Every system in this file *wrote* a feeling — `TIER_EMOTION`,
+# `TIER_TARGET_EMOTION`, `FEAR_COSTS` — and nothing that *chose* an action read
+# one. A character who had just been frightened and one who had just been
+# complimented drew from the identical table, which is the task's own goal
+# ("that state ... steers behaviour and shapes social interaction") going
+# unbuilt: the feeling was a consequence of behaviour and never a cause of it.
+#
+# So each action now declares which raised affect axes it *expresses*, and a
+# character feels their way to the draw. Three deliberate constraints:
+#
+# * **Opt-in and additive.** A feeling multiplies an existing weight; it never
+#   opens a gate. An action gated out by the relationship band stays gated out
+#   however frightened you are — a frightened character does not suddenly become
+#   willing to flirt with a stranger.
+# * **Only a *raised* axis counts.** `emotion.raised_axes` reports movement above
+#   resting, so a character who has never been angry is not biased toward
+#   aggression by a baseline that happens to sit above zero.
+# * **It scales, it does not switch.** The multipliers are small enough that the
+#   band and the traits still dominate; a strong feeling tilts a draw, it does
+#   not decide it.
+#: Actions are weighted by **dimensions**, never by labels. `afraid` is a
+#: dimension; `terrified` is a label that resolves to it. Naming a label here is a
+#: rule that can never fire — `amused` and `hopeful` were in an early draft of
+#: this table and are neither dimensions nor declared labels anywhere, so those
+#: two affinities were dead on arrival. Pinned by
+#: `test_every_affinity_names_a_real_dimension`.
+AFFECT_AFFINITY: dict[str, tuple[str, ...]] = {
+    "chat": (),
+    "joke": ("excited", "elated", "proud"),
+    "compliment": ("grateful", "admiring", "affectionate", "content"),
+    "tease": ("excited", "proud"),
+    "confide": ("sad", "lonely", "melancholic", "nostalgic", "afraid",
+                "grateful", "guilty"),
+    "flirt": ("eager", "craving", "affectionate", "loving", "admiring"),
+    "apologise": ("guilty", "ashamed", "embarrassed", "afraid"),
+    "bully": ("angry", "irritated", "resentful", "jealous", "envious"),
+}
+
+#: How hard one strongly-felt axis tilts an action it expresses. Kept small on
+#: purpose: the relationship band and the traits are the dominant signals here,
+#: and a feeling that overrode them would make social behaviour unreadable.
+AFFECT_TILT = 1.6
+
+#: A raised axis at or above this many points counts as "felt" for weighting.
+#: Below it the character is barely moved and the tilt would be noise.
+AFFECT_FELT_THRESHOLD = 15.0
+
+
+def felt_axes(player) -> dict:
+    """The actor's affect axes that are actually raised, and by how much.
+
+    Reads the map through ``engine.emotion`` rather than re-deriving it, so
+    "raised" means exactly what the rest of the engine means by it.
+    """
+    try:
+        from engine.emotion import raised_axes
+    except Exception:
+        return {}
+    try:
+        axes = raised_axes(getattr(player, "emotions_map", lambda: {})())
+    except Exception:
+        return {}
+    return {axis: float(amount) for axis, amount in (axes or {}).items()
+            if float(amount) >= AFFECT_FELT_THRESHOLD}
+
+
+def _apply_affect(weights: dict, actor) -> dict:
+    """Tilt the action draw toward whatever the actor is currently feeling."""
+    axes = felt_axes(actor)
+    if not axes:
+        return weights
+    strongest = max(axes.values()) or 1.0
+    for name, affinity in AFFECT_AFFINITY.items():
+        if not affinity or name not in weights:
+            continue
+        # The strongest axis this action expresses decides how much it is
+        # tilted, so a character who is 20 angry and 60 afraid does not get the
+        # union of both effects.
+        match = max((axes[axis] for axis in affinity if axis in axes),
+                    default=0.0)
+        if match <= 0:
+            continue
+        strength = min(1.0, match / strongest)
+        weights[name] = weights[name] * (1.0 + (AFFECT_TILT - 1.0) * strength)
+    return weights
+
 
 def _traits(player) -> dict:
     """The boolean/numeric trait facts the weight table reads."""
@@ -299,6 +388,12 @@ def action_weights(actor, target, closeness: Optional[float] = None) -> dict:
     if vitals.get("Entertainment", 100) <= ENTERTAINMENT_LOW:
         for name in ("joke", "tease"):
             weights[name] = weights.get(name, 0.0) * 1.3
+
+    # task-652: what the character is *feeling* tilts the draw, after the band
+    # and the traits and the needs — so a feeling is a modifier on behaviour, not
+    # a replacement for it. Gated actions stay gated; this only re-weights what
+    # was already on offer.
+    weights = _apply_affect(weights, actor)
 
     return {name: max(0.0, w) for name, w in weights.items()}
 

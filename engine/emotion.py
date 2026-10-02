@@ -169,6 +169,15 @@ LABEL_TO_DIM: dict[str, str] = {
     "relieved": "calm", "safe": "calm", "quiet": "calm",
     "determined": "excited", "brave": "proud", "resolute": "excited", "focused": "content",
     "surprised": "surprised",
+    # task-652: the eleven AXIS names, declared here so they are read as authored
+    # vocabulary rather than falling out of `AXIS_TO_EXPRESSION` by the back door.
+    # `map_label` has always resolved "sadness" and "anger" — but because it
+    # happens to invert the *expression* table, which is a different concern that
+    # happens to share eleven names. Those eleven names belong here, next to
+    # `terrified` and `furious`, where an author can see them.
+    "joy": "happy", "sadness": "sad", "fear": "afraid", "anger": "angry",
+    "arousal": "aroused", "bond": "affectionate", "shame": "ashamed",
+    "envy": "envious", "disgust": "disgusted", "surprise": "surprised",
 }
 
 #: Dimension -> (relationship drive, sign factor). Used when a socially-recalled
@@ -348,6 +357,31 @@ def dominant_dimension(values: dict, min_margin: float | None = None) -> str | N
         if over > best_margin and over >= margin:
             best, best_margin = key, over
     return best
+
+
+def raised_axes(values: dict, min_margin: float | None = None) -> dict:
+    """Every dimension sitting above its baseline, and by how much (task-652).
+
+    :func:`dominant_dimension` answers "which feeling leads"; this answers "what
+    is this character actually feeling, all of it". The behaviour layer needed
+    the second question — a frightened character expresses fear through
+    `confide` as well as through `bully` being suppressed — and it needed it as
+    a property of **the model**, not as arithmetic re-derived per call site.
+
+    Only axes clear of ``min_margin`` (the same bar that decides a label counts
+    as a feeling) appear, so a baseline that happens to sit above zero does not
+    make a character permanently "feeling" it.
+    """
+    margin = _expression_margin() if min_margin is None else min_margin
+    out = {}
+    for key, value in (values or {}).items():
+        try:
+            over = float(value) - float(BASELINES.get(key, 0.0))
+        except (TypeError, ValueError):
+            continue
+        if over >= margin:
+            out[key] = over
+    return out
 
 
 def dominant_intensity(values: dict, min_margin: float | None = None) -> float:
@@ -733,15 +767,21 @@ def felt_from_llm(raw, max_intensity: float | None = None,
     """Normalize an LLM-declared ``{"label","intensity"}`` into (dim, delta).
 
     Returns None when unusable. Intensity 1-10 maps to a capped point spike
-    (``emotion.llm_spike_max``). A label that is not a dimension name may be
-    resolved semantically (task-505), so a creative LLM lands on the nearest real
-    dimension instead of being dropped.
+    (``emotion.llm_spike_max``).
 
-    Deliberately **not** :func:`map_label`: that also substring-matches, and
-    "hangry" contains "angry". A declared feeling is a deliberate act by the
-    model, so it gets the semantic bridge or nothing — never a coincidental
-    substring. A label nothing can resolve is still ignored, so an LLM cannot
-    invent dimensions.
+    Resolution is **authored vocabulary first, semantic bridge second, never a
+    substring** — task-652, and it fixes two ways this was wrong:
+
+    * It used to consult only :data:`BASELINES`, so every alias this module
+      declares was silently dropped: ``terrified`` (an alias of ``afraid``),
+      ``furious``, ``tired``. ``set_emotion("terrified")`` worked and
+      the LLM path rejected the same word, which is the definition of two
+      vocabularies for one thing.
+    * The *route* used :func:`map_label` instead of this, which substring-matches,
+      so ``hangry`` became ``angry`` on a coincidence — precisely what
+      task-505 was filed to prevent. ``hangry`` is now resolved through
+      :data:`LABEL_TO_DIM` if an author has said so, through the semantic bridge
+      if one is configured, and otherwise ignored.
     """
     if not isinstance(raw, dict):
         return None
@@ -749,10 +789,16 @@ def felt_from_llm(raw, max_intensity: float | None = None,
     if not label:
         return None
     if label not in BASELINES:
-        semantic = resolve_label_semantic(label, embed_fn=embed_fn)
-        if not semantic or semantic not in BASELINES:
-            return None
-        label = semantic
+        # Authored vocabulary first: `terrified`, `furious`, `sadness` and the
+        # other declared aliases were all being dropped.
+        mapped = LABEL_TO_DIM.get(label)
+        if mapped and mapped in BASELINES:
+            label = mapped
+        else:
+            semantic = resolve_label_semantic(label, embed_fn=embed_fn)
+            if not semantic or semantic not in BASELINES:
+                return None
+            label = semantic
     try:
         intensity = float(raw.get("intensity") or 0)
     except (TypeError, ValueError):
