@@ -1,6 +1,6 @@
 ---
 type: bug
-status: review
+status: done
 area: bugs
 priority: high
 ---
@@ -77,3 +77,17 @@ built by the same `saveLoadViewTag` used for the row.
 
 Acceptance met by construction; the row markup cannot contain a raw `<span …>`
 string any more (only the two element templates, which Lit owns).
+
+## Second live verification — 2026-10-02 (port 4471)
+
+Opened `#load-game-modal` and rendered the real list via
+`SaveLoadView.loadGameList()`:
+
+- `#save-game-list` visible text contains **no** literal `<span` (regex
+  `/<span/i` → false).
+- The autosave row's text is `AUTOAutosavev1.3.0` — badge text with no markup —
+  and the list holds **2 real `<span>` elements** (the AUTO badge and the
+  version badge), so Lit rendered them as elements.
+- Row: `20261002 102656 · 08:00 · Kaelen Voss · world_template · 3 PCs · 19 areas · 560.2 KB`.
+
+No page errors.

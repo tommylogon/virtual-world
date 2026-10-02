@@ -1,6 +1,6 @@
 ---
 type: bug
-status: review
+status: done
 area: graph
 priority: medium
 ---
@@ -91,3 +91,20 @@ across every scenario and library file and would break existing saves for no gai
 
 - `static/js/inspector/helpers.js` — binding + label
 - `static/js/graph/tooltips.js` — "Graph gravity disabled" tooltip wording
+
+## Second live verification — 2026-10-02 (port 4471)
+
+Reproduced the exact sequence with two physics-on area nodes (the acceptance
+case: A on, B on) and a real click, not a DOM poke. A =
+`area_abandoned_hunter's_cabin`, B = `area_bathroom` (B's flag set on via
+`api.updateNode` for the test, restored afterwards).
+
+| step | Physics enabled | expected |
+|---|---|---|
+| show A | `true` | true |
+| click A to uncheck | `false` | false |
+| select B (also on) | **`true`** | true — the bug left A's stale `false` here |
+| reselect A | **`false`** | A's own toggled value |
+
+`pass: true`. No page errors. The 250 ms debounce was never awaited; B was
+selected immediately after the click. Flags restored (A on, B off).
