@@ -20,6 +20,10 @@ searches the wilds". Tables name type tags (``fruit``, ``tool``, ``coin``,
 eligible — so a search draws from a curated pool instead of matching a cauldron
 or a nail-polish kit just because both say ``food``/``tool``. Biome preference
 lives in the tables (:data:`AREA_SKILL_BONUS`), not on the items.
+
+@module foraging
+@contributes the skill-gated forage draw, area tables, and regrowth
+@docs docs/virtualWorld/Gameplay/Search & Forage.md
 """
 
 from __future__ import annotations

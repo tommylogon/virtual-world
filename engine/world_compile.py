@@ -66,6 +66,10 @@ The observer-view model (2026-09-26, locked with the author):
 Determinism is absolute: no ``random``, no clock. The same manifest + scope +
 options yield identical nodes/edges, choosing description fragments by a stable
 hash of ``seed:cell``.
+
+@module world_compile
+@contributes the grid-to-graph compiler
+@docs docs/virtualWorld/World Building/Grid to Graph.md
 """
 
 from __future__ import annotations

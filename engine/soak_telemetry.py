@@ -59,6 +59,10 @@ intuit wrongly. At 120 moves/day/char x 7 days x 20 characters that is 16,800
 intervals, roughly 1.9 MB: the same order as a 30-day lived log, and ~11,000x
 smaller than the "record everything every tick" proposal. **Memory is not the
 constraint here; resolution is.**
+
+@module soak_telemetry
+@contributes run-owned measurement telemetry, separate from the lived_log
+@docs docs/virtualWorld/UI & Settings/Soak Lab.md
 """
 
 from __future__ import annotations

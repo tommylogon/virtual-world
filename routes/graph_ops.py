@@ -1,3 +1,10 @@
+"""graph_ops: graph node/edge operations and the batch apply path.
+
+@module graph_ops
+@contributes graph node/edge operations and the batch apply path
+@docs docs/virtualWorld/World Building/Graph System.md
+"""
+
 import logging
 import time
 import random

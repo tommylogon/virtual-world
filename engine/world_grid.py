@@ -109,6 +109,10 @@ scope so a later Generate respects it. ``suppress`` means "I deleted this and do
 not want it back"; ``hand`` means "I wrote my own way for this seam" and names it.
 Both stop the compiler re-minting the pair. Keyed by the generated way id, which
 is stable across runs because it is derived from the two area ids.
+
+@module world_grid
+@contributes the painted scope grid record: layers, paint, place, floor
+@docs docs/virtualWorld/World Building/WorldPainter.md
 """
 
 from __future__ import annotations

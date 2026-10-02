@@ -1,3 +1,10 @@
+"""library_ops: the library registry API and item materialisation.
+
+@module library_ops
+@contributes the library registry API and item materialisation
+@docs docs/virtualWorld/Library System/Library System Overview.md
+"""
+
 import os
 import re
 import json

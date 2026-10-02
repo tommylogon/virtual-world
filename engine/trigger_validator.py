@@ -14,6 +14,10 @@ at and reports issues that would silently break at runtime:
 Each issue is a dict with a ``source_node_id`` so the frontend can render a
 clickable "open node" button that jumps the inspector + graph to the owner
 of the broken trigger.
+
+@module trigger_validator
+@contributes the live-world trigger, way and mechanical-item validator
+@docs docs/virtualWorld/UI & Settings/Validator & Issues.md
 """
 
 import json

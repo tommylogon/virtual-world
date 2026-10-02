@@ -15,6 +15,10 @@ Severity:
 - ``warning`` — the op will apply but probably not as intended (id casing,
                 duplicate area display name, unknown item action, deleted node
                 still referenced).
+
+@module nl_editor_validation
+@contributes the pre-Apply validator for staged NL-editor ops
+@docs docs/virtualWorld/UI & Settings/NL Editor.md
 """
 
 import re

@@ -13,6 +13,10 @@ task-398's generation contract.
 Undo/autosave: these POSTs are covered by ``app.py``'s after-mutation hook, but
 each mutating handler pushes its own **pre-state** snapshot (the hook is told to
 skip these paths) so the first Undo actually reverts the edit.
+
+@module world_grid_ops
+@contributes WorldPainter grid handlers and the vocabulary endpoint
+@docs docs/virtualWorld/World Building/WorldPainter.md
 """
 
 from __future__ import annotations

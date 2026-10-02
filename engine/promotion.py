@@ -28,6 +28,10 @@ duplicate what the character remembers:
   so foreground actions between two background spans are never summarized, and
   a second promotion of the same span finds no new entries and writes nothing.
 * Both marks serialize with the save (``player.py`` / ``engine/serialization.py``).
+
+@module promotion
+@contributes the promote/demote memory bridge over the lived_log
+@docs docs/virtualWorld/Characters/Background Simulation.md
 """
 
 from __future__ import annotations
