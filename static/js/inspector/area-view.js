@@ -205,25 +205,51 @@ window.InspectorAreaView = (() => {
      * @returns {TemplateResult}
      */
     RV._renderEnvironmentSection = function(env, actualNodeId) {
+        // `light` is numeric (0-100) in some areas and an enum word in others —
+        // both are valid and `engine/lighting.py`'s get_light_int reads either.
+        // A select could only show the enum half, and a numeric 80 selected no
+        // option at all (silently showing "pitch black"). A text field with the
+        // presets as suggestions round-trips both (task-640).
         const lightValue = env.light ?? 'normal';
-        const lightOptions = ['pitch_black', 'dim', 'normal', 'bright', 'blinding'].map(lightName =>
-            htmlTag`<option value=${lightName} ?selected=${lightValue === lightName}>${lightName.replace(/_/g, ' ')}</option>`
-        );
+        const lightPresets = ['pitch_black', 'dim', 'normal', 'bright', 'blinding'];
 
         const airValue = env.air || 'fresh';
         const airOptions = ['fresh', 'stale', 'humid', 'toxic', 'smoky', 'fragrant'].map(airName =>
             htmlTag`<option value=${airName} ?selected=${airValue === airName}>${airName.charAt(0).toUpperCase() + airName.slice(1)}</option>`
         );
 
+        // `noise` is free text in the data ("busy", "dripping water"), so a
+        // closed select loses what is there and cannot represent it. Suggestions
+        // cover both the engine's mechanical vocabulary (silent/quiet/normal/
+        // loud/chaotic — engine/sound.py `_noise_levels`) and the descriptive
+        // words already authored (task-640).
         const noiseValue = env.noise || 'quiet';
-        const noiseOptions = ['quiet', 'dripping', 'humming', 'windy', 'loud', 'chaotic', 'silent'].map(noiseName =>
-            htmlTag`<option value=${noiseName} ?selected=${noiseValue === noiseName}>${noiseName.charAt(0).toUpperCase() + noiseName.slice(1)}</option>`
-        );
+        const noisePresets = ['silent', 'quiet', 'normal', 'loud', 'chaotic', 'dripping', 'humming', 'windy'];
+
+        // The world forecast drives daylight and the top-bar sky; an area's own
+        // weather drives only that area's prose (engine/area_description.py:459).
+        // They are independent, and the editor used to show the area value with
+        // no sign of the world one, so "clear" here read as if it contradicted the
+        // header's "overcast". Surface the world value (task-640).
+        let worldWeather = 'clear';
+        try {
+            const data = (typeof worldState !== 'undefined' && worldState && worldState.data) || {};
+            // Use the sky widget's own resolver so the hint and the top bar can
+            // never disagree; fall back to the same precedence inline.
+            if (window.SkyScape && typeof window.SkyScape.effectiveWeather === 'function') {
+                worldWeather = window.SkyScape.effectiveWeather(data) || 'clear';
+            } else {
+                const override = data.forecast_override && data.forecast_override.weather;
+                const entries = (data.forecast_schedule && data.forecast_schedule.entries) || [];
+                worldWeather = override || (entries.length ? entries[0].weather : '') || 'clear';
+            }
+        } catch (error) { /* keep the default */ }
 
 return htmlTag`<div class="inspector-section"><h3>🌡️ Environment</h3>
             <div class="field" style="display:flex;align-items:center;gap:8px;">
                 <label style="min-width:50px;">Light</label>
-                <select id="room-light" @change=${(ev) => RV._updateEnv(actualNodeId, 'light', ev.target.value)} style="flex:1;font-size:11px;">${lightOptions}</select>
+                <input type="text" id="room-light" list="room-light-presets" .value=${lightValue} style="flex:1;font-size:11px;" title="A number 0–100 or a preset word — the engine reads either" @change=${(ev) => RV._updateEnvLight(actualNodeId, ev.target.value)}>
+                <datalist id="room-light-presets">${lightPresets.map(lightName => htmlTag`<option value=${lightName}></option>`)}</datalist>
             </div>
             <div class="field" style="display:flex;align-items:center;gap:8px;">
                 <label style="min-width:50px;">Temp °C</label>
@@ -239,14 +265,16 @@ return htmlTag`<div class="inspector-section"><h3>🌡️ Environment</h3>
             </div>
             <div class="field" style="display:flex;align-items:center;gap:8px;">
                 <label style="min-width:50px;">Noise</label>
-                <select @change=${(ev) => RV._updateEnv(actualNodeId, 'noise', ev.target.value)} style="flex:1;">${noiseOptions}</select>
+                <input type="text" list="room-noise-presets" .value=${noiseValue} style="flex:1;font-size:11px;" title="Free text for the prose. The mechanics read silent, quiet, normal, loud, chaotic." @change=${(ev) => RV._updateEnv(actualNodeId, 'noise', ev.target.value)}>
+                <datalist id="room-noise-presets">${noisePresets.map(noiseName => htmlTag`<option value=${noiseName}></option>`)}</datalist>
             </div>
             <div class="field" style="display:flex;align-items:center;gap:8px;">
                 <label style="min-width:50px;">Weather</label>
                 <select @change=${(ev) => RV._updateEnv(actualNodeId, 'weather', ev.target.value)} style="flex:1;">
                     ${['', 'clear', 'cloudy', 'windy', 'rainy', 'stormy', 'foggy', 'snowy'].map(w =>
-                        htmlTag`<option value=${w} ?selected=${(env.weather || '') === w}>${w === '' ? '— area default —' : w}</option>`)}
+                        htmlTag`<option value=${w} ?selected=${(env.weather || '') === w}>${w === '' ? '— none (no weather line) —' : w}</option>`)}
                 </select>
+                <span style="font-size:10px;color:var(--text-muted);white-space:nowrap;" title="This area's weather drives its prose only. The world forecast (top bar) drives daylight and the sky; it is a separate field and is not overridden here.">world: ${worldWeather}</span>
             </div>
             <div class="field" style="display:flex;align-items:center;gap:8px;">
                 <label style="min-width:50px;">Wind</label>
@@ -583,6 +611,18 @@ return htmlTag`<div class="inspector-section"><h3>🌡️ Environment</h3>
         const env = { ...(node.properties?.environment || {}) };
         env[key] = value;
         api.updateNode(nodeId, { properties: { environment: env } }).then(() => worldState.fetch());
+    };
+
+    /**
+     * Light accepts both shapes the data uses: a 0-100 number or a preset word.
+     * Store a number when the author typed one, otherwise the word.
+     * @param {string} nodeId
+     * @param {string} raw
+     */
+    RV._updateEnvLight = function(nodeId, raw) {
+        const text = String(raw == null ? '' : raw).trim();
+        const numeric = text !== '' && !Number.isNaN(Number(text));
+        RV._updateEnv(nodeId, 'light', numeric ? Number(text) : (text || 'normal'));
     };
 
     /**
