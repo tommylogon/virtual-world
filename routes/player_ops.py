@@ -573,8 +573,12 @@ def handle_update_player(app, name):
         player.interest_tags = data["interest_tags"]
     if "fear_tags" in data:
         player.fear_tags = data["fear_tags"]
+    # task-654: an `equipped` payload is written through the equipment system so
+    # the graph edges are updated with the dict. Assigning `player.equipped`
+    # directly left the item visible in the inspector and inert in combat, because
+    # weapon selection and damage reduction read the edges.
     if "equipped" in data:
-        player.equipped = data["equipped"]
+        app.world.equipment.set_equipped_payload(player, data["equipped"])
     if "behaviors" in data:
         player.behaviors = data["behaviors"]
     if "npc_state" in data:
@@ -658,7 +662,9 @@ def handle_import_player(app):
     if 'base_description' in data:
         player.base_description = data.get('base_description', '')
     if 'equipped' in data:
-        player.equipped = data.get('equipped', player.equipped)
+        # task-654: edges too — see the update route above.
+        app.world.equipment.set_equipped_payload(
+            player, data.get('equipped', player.equipped))
     player.state = data.get('state', player.state) or 'awake'
     player.stats = data.get('stats', player.stats) or player.stats
     player.vitals = data.get('vitals', player.vitals) or player.vitals

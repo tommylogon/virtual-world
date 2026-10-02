@@ -486,9 +486,13 @@ def handle_library_import_character(app, char_id):
     conditions = cdata.get('conditions')
     if conditions:
         player.load_conditions(conditions)
+    # task-654: the raw payload is resolved to graph node ids *below* (once the
+    # inventory nodes exist) and written through `set_equipped_payload`, so the
+    # equipment edges are created with it. The direct assignment that used to
+    # live here was overwritten a few lines later anyway, and because the later
+    # block ran on `cdata.get('equipped') or {}` it also cleared a character's
+    # equipment outright when the library entry had none.
     equipped = cdata.get('equipped')
-    if equipped:
-        player.equipped = dict(equipped)
     activity = cdata.get('activity')
     if activity:
         player.activity = activity
@@ -559,7 +563,6 @@ def handle_library_import_character(app, char_id):
                     lib_items[lib_id] = entry_data
                     save_registry(app.config['DATA_DIR'], 'items.json', lib_items)
 
-    equipped = cdata.get('equipped') or {}
     if isinstance(equipped, dict):
         resolved = {}
         for slot, stack in equipped.items():
@@ -605,7 +608,10 @@ def handle_library_import_character(app, char_id):
                         continue
                     resolved_slot.append(entry.get('node_id') or f"item_{player_name}_{name}")
             resolved[slot] = resolved_slot
-        player.equipped = resolved
+        # task-654: one writer for both truths — the dict *and* the `equipped`
+        # edges that combat and equipment_bonuses read. Assigning the dict alone
+        # left every library character wearing invisible equipment.
+        app.world.equipment.set_equipped_payload(player, resolved)
 
     if make_active:
         app.world.set_active_player(player_name)

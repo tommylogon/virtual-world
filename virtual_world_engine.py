@@ -654,6 +654,10 @@ class VirtualWorld:
     def get_full_equipment(self, player_name: str = None) -> dict:
         return self.equipment.get_full_equipment(player_name)
 
+    def set_equipped_payload(self, player, payload) -> dict:
+        """task-654: write an ``equipped`` mapping to the dict *and* the edges."""
+        return self.equipment.set_equipped_payload(player, payload)
+
     def get_equipment_narrative(self, player_name: str = None, viewer_name: str = None) -> str:
         return self.equipment.get_equipment_narrative(player_name, viewer_name)
 
