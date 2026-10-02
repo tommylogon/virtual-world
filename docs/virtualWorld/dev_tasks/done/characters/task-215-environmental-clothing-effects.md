@@ -1,6 +1,6 @@
 ---
 group: Pleasure System
-status: review
+status: done
 ---
 
 # Environmental & Clothing Effects (Wet/Transparency/Friction)

@@ -1,6 +1,6 @@
 ---
 type: task
-status: review
+status: done
 area: characters
 priority: low
 ---
@@ -126,3 +126,32 @@ failed on both, `Compare-Object` empty — including
 `test_detail_lines_carry_description_not_opacity_or_friction`, which is the test
 this task refuses to break.
 
+
+### Live verification — 2026-10-02, `python app.py` on `VW_PORT=4466`
+
+```
+=== 1. coverage defaults to 0.8, and the cancelled props stay absent ===
+  detail line: - Waxed Coat (torso): Waxed cotton, holds off rain. [coverage 0.8]
+  'opacity' advertised? False (must be False)
+  'friction' advertised? False (must be False)
+
+=== 2. a soak reaches the description ===
+  wet           : True
+  current_state : soaked
+  description BEFORE: RainSoaker is wearing Waxed Coat on their torso.
+  description AFTER : Waxed coat is soaked.
+  changed? True
+
+=== 3. drying does not wipe an authored state ===
+  current_state after drying: torn (authored value preserved)
+  wet after drying: False
+
+=== 4. the soak-all path (no node named) now works ===
+  coat wet: True
+  hat  wet: True (was silently nothing before this change)
+```
+
+Row 1 is the refusal proved live on an item that authors both cancelled props:
+they are silently absent while `coverage` defaults into view. Row 2 is the item
+task-215 lists as still open — the description actually changes now. Row 4 is
+the defect that made rain do nothing at all.
