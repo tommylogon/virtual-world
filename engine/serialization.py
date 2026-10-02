@@ -15,6 +15,7 @@ from engine.character_spatial import get_character_at_way, get_spatial_position_
 from engine.serialization_template import TemplateLoader
 from engine.serialization_legacy import LegacyLoader
 from engine.character_identity import collapse_character_identity, rewrite_known
+from version import SCHEMA_VERSION
 
 logger = logging.getLogger(__name__)
 
@@ -491,6 +492,9 @@ class WorldSerializer:
         # reads as "unnamed" and silently outranks a real name.
         if not data.get("_scenario_name"):
             data.pop("_scenario_name", None)
+        # task-453: scenario payloads carry the format schema version too, so a
+        # later breaking change can migrate or refuse them on load.
+        data["schema_version"] = SCHEMA_VERSION
         self.strip_redundant_exits(data)
         return data
 

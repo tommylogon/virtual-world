@@ -1,6 +1,6 @@
 ---
 type: bug
-status: review
+status: done
 area: bugs
 priority: medium
 ---
@@ -43,3 +43,16 @@ loadGraphData only applies the painted-grid layout when !levelsOn, so with the L
   invariant so 'Map does nothing' cannot recur" asked for. The implementation
   names bug-48 in `toggleCardinalLayout`, `mapTabDisabled` and the network load
   path, so the invariant and its origin stay together.
+
+## Second live verification — 2026-10-02 (port 4471)
+
+Real interactions on the segmented control:
+
+| action | result |
+|---|---|
+| click **Levels** | `activeLayout() === 'levels'`; Map tab `disabled=true`, `title="Map is unavailable while Levels owns the layout — pick Graph first, then Map."` |
+| programmatic `graphManager.toggleCardinalLayout()` while Levels on | returns `false`, layout stays `levels`, toast: `"❌ Map is unavailable while Levels owns the layout — pick Graph first, then Map."` |
+| pick Graph again | `activeLayout() === 'graph'` |
+
+No page errors. The refusal is visible (disabled + title) and programmatic
+reaches are both refused and explained, not silent.

@@ -1266,3 +1266,53 @@ class TestPlayerCapacityParam:
     def test_named_character_without_player_object(self, graph, player_manager, item_actions):
         add_player(graph, "Hero")
         assert item_actions._check_player_capacity(player_manager, 10, player_name="Ghost") is None
+
+
+class TestDropItem:
+    """bug-509: take puts a physical item into a *hand* (an ``equipped`` edge),
+    but ``drop_item`` used to resolve its target by scanning only ``carrying``.
+    The full take -> drop loop is the regression that matters, because it is
+    exactly the path a player takes."""
+
+    def test_take_then_drop_a_hand_held_item(self, graph, player_manager, item_actions):
+        add_player(graph, "Hero")
+        # No ``equip_slots``: take should fall back to the generic hand slots.
+        bread = add_item(graph, "bread", weight=0.2)
+        graph.add_edge(Edge(source=bread.id, target="area_test", type=EDGE_IN))
+        # A real equipped dict lets the drop path pop the hand slot, instead of
+        # a MagicMock whose ``.items()`` is empty.
+        player_manager.players["Hero"].equipped = {}
+
+        taken = item_actions.take_item(player_manager, "bread")
+        assert "bread" in taken
+        assert any(e.source == bread.id
+                   for e in graph.get_edges_for_target("player_Hero", EDGE_EQUIPPED))
+        assert bread.id in player_manager.players["Hero"].equipped["hand_right"]
+
+        dropped = item_actions.drop_item(player_manager, "bread")
+
+        assert "drop" in dropped.lower()
+        # The equipped edge is gone...
+        assert not any(e.source == bread.id
+                       for e in graph.get_edges_for_target("player_Hero", EDGE_EQUIPPED))
+        assert not any(e.source == bread.id
+                       for e in graph.get_edges_for_target("player_Hero", EDGE_CARRYING))
+        # ...the hand slot is emptied...
+        assert player_manager.players["Hero"].equipped["hand_right"] == []
+        # ...and the item is back in the area.
+        assert any(e.source == bread.id and e.type == EDGE_IN and e.target == "area_test"
+                   for e in graph.edges)
+
+    def test_drop_resolves_an_equipped_item_by_case_insensitive_name(self, graph, player_manager, item_actions):
+        """The verb handler lowercases the noun, so "Knife" must still match."""
+        add_player(graph, "Hero")
+        knife = add_item(graph, "Knife", weight=0.5)
+        graph.add_edge(Edge(source=knife.id, target="player_Hero", type=EDGE_EQUIPPED,
+                            properties={"slot": "hand_right"}))
+        player_manager.players["Hero"].equipped = {"hand_right": [knife.id]}
+
+        result = item_actions.drop_item(player_manager, "knife")
+
+        assert "drop" in result.lower()
+        assert any(e.source == knife.id and e.type == EDGE_IN and e.target == "area_test"
+                   for e in graph.edges)

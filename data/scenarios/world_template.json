@@ -3235,7 +3235,7 @@
       },
       {
         "properties": {},
-        "source": "item_bush of berries_1788218658044_568",
+        "source": "item_frost_crusted_berry_bush",
         "target": "area_frozen_thicket",
         "type": "at"
       },
@@ -3266,8 +3266,8 @@
             "on_examine"
           ]
         },
-        "source": "item_bush of berries_1788218658044_568",
-        "target": "trigger_item_bush of berries_1788218658044_568_on_examine_1788218658044_86",
+        "source": "item_frost_crusted_berry_bush",
+        "target": "trigger_item_frost_crusted_berry_bush_on_examine_1788218658044_86",
         "type": "triggers"
       },
       {
@@ -6003,9 +6003,9 @@
         "type": "item",
         "updated": 1790166149.810096
       },
-      "item_bush of berries_1788218658044_568": {
+      "item_frost_crusted_berry_bush": {
         "created": 1788218658.0445704,
-        "id": "item_bush of berries_1788218658044_568",
+        "id": "item_frost_crusted_berry_bush",
         "name": "Frost-Crusted Berry Bush",
         "properties": {
           "action_costs": {},
@@ -8642,9 +8642,9 @@
         "type": "logic_trigger",
         "updated": 1784455651.681215
       },
-      "trigger_item_bush of berries_1788218658044_568_on_examine_1788218658044_86": {
+      "trigger_item_frost_crusted_berry_bush_on_examine_1788218658044_86": {
         "created": 1788218658.0445704,
-        "id": "trigger_item_bush of berries_1788218658044_568_on_examine_1788218658044_86",
+        "id": "trigger_item_frost_crusted_berry_bush_on_examine_1788218658044_86",
         "name": "on_examine → message",
         "properties": {
           "conditions": {},

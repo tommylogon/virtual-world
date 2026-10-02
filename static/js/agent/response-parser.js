@@ -47,18 +47,6 @@ window.ResponseParser = (() => {
             : String(raw || '').trim();
     }
 
-    /** Parse an observation response — returns inner_monologue string or null on failure. */
-    function parseObservation(r) {
-        if (!r) return '';
-        try {
-            const c = repairJSON(normalizeRawResponse(r));
-            const p = JSON.parse(c);
-            return p.inner_monologue || '';
-        } catch (e) {
-            return null;
-        }
-    }
-
     /** Normalize an optional LLM-declared feeling: {label, intensity 1-10}. */
     /** Normalize an optional LLM-declared feeling: {label, intensity 1-10, toward?}. */
     function extractEmotion(raw) {
@@ -131,29 +119,9 @@ window.ResponseParser = (() => {
         }
     }
 
-    /** Parse a decision-with-speech response (legacy path). */
-    function parseDecisionWithSpeech(r) {
-        if (!r) return { finalAction: '', decisionSpeech: null, speechVolume: 'say', emote: null };
-        try {
-            const c = repairJSON(normalizeRawResponse(r));
-            const p = JSON.parse(c);
-            const { speech, volume } = ActionNormalizer.extractSpeechVolume(p);
-            return {
-                finalAction: (p.action || '').trim(),
-                decisionSpeech: speech,
-                speechVolume: volume,
-                emote: p.emote || null
-            };
-        } catch (e) {
-            return null;
-        }
-    }
-
     return {
-        parseObservation,
         parseReaction,
         parseResultReaction,
-        parseDecisionWithSpeech,
         extractMemory
     };
 })();

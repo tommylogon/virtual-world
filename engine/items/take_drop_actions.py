@@ -798,10 +798,10 @@ class TakeDropActionsMixin:
         player_id = player_manager._player_node_id(player_manager.active_player)
         item_node_id = player_manager.item_node_id(item_name)
 
-        # task-633: an equipped item is held, and the drop body below already
-        # handles the equipped edge (task-407), but this lookup only scanned
-        # EDGE_CARRYING. So an auto-equipped item -- the normal state after
-        # `take` -- could never be put down again.
+        # task-633 / bug-509: an equipped item is held, and the drop body below
+        # already handles the equipped edge (task-407), but this lookup only
+        # scanned EDGE_CARRYING. So an auto-equipped item -- the normal state
+        # after `take` -- could never be put down again.
         for edge_type in (EDGE_CARRYING, EDGE_EQUIPPED):
             for edge in self.graph.get_edges_for_target(player_id, edge_type):
                 node = self.graph.get_node(edge.source)

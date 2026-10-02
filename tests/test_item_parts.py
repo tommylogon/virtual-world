@@ -242,10 +242,9 @@ def test_a_part_cannot_be_put_away():
 def test_an_ordinary_item_is_still_put_and_taken():
     """The gates must not have been bought at the price of normal verbs.
 
-    Exercised as put → take rather than take → drop, because `drop_item` scans
-    only the `carrying` edge while `take` puts everything in a hand
-    (`equipped`) — a pre-existing gap, filed as bug-509 and deliberately not
-    fixed or relied on here.
+    Exercises put → take as its own path; the take → drop counterpart (the
+    bug-509 shape, where `take` lands an item in a hand/`equipped` edge) is
+    covered directly in `tests/test_item_actions.py::TestDropItem`.
     """
     w = _world()
     key = _place(w, "iron_key")

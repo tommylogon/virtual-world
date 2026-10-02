@@ -1,6 +1,6 @@
 ---
 type: bug
-status: review
+status: done
 area: ui
 priority: high
 ---
@@ -85,3 +85,17 @@ the information is readable and nothing is hidden behind a collapse.
 - `static/css/style.css` - header flex wrapping and the column floor
 - `static/js/inspector/area-view.js` - node-ID input sizing
 - `static/js/inspector/agent-view.js` - node-ID input sizing
+
+## Second live verification — 2026-10-02 (port 4471)
+
+Opened the area inspector on `Abandoned Hunter's Cabin`
+(`area_abandoned_hunter's_cabin` — a 28-char id with an apostrophe) at the
+default panel width and measured the header inputs from the live DOM:
+
+| element | width | content |
+|---|---|---|
+| `.inspector-header` height | 114px (buttons wrapped) | — |
+| name input | **212px** | full "Abandoned Hunter's Cabin" |
+| node-ID input | **177px** | full 28-char id |
+
+No truncation; the id is not one character. No page errors.

@@ -1,6 +1,6 @@
 ---
 type: bug
-status: review
+status: done
 area: bugs
 priority: medium
 ---
@@ -67,6 +67,19 @@ areas; exactly one `door1` node exists.
 - `npm run lint`, `npm run typecheck` — clean.
 - `node tools/unit/run.cjs` — 465 passed.
 - Live browser check of the new log line: pending.
+
+## Live verification — 2026-10-02 (port 4471)
+
+- Backend unchanged and green: `python -m pytest tests/test_way_connect_repair.py tests/test_saveload.py tests/test_scene_snapshot.py -q` → 52 passed.
+- Client log lines via the live global `connectSummary` (the helper `connectRoomsViaGraph` logs, main.js:233):
+
+```
+created: Connected "Kitchen" <-> "Study" via way 'door1'
+reused:  Way 'door1' already existed — rewired "Kitchen" <-> "Study" (no new way created)
+```
+
+Both name the two areas and the way; the bare "Connected rooms" string is gone.
+No page errors.
 
 ## Acceptance
 

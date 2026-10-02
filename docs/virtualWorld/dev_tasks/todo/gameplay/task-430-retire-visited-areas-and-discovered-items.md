@@ -66,3 +66,43 @@ freshness `observe_area` returns (it is pre-refresh and already available in
 
 - Any change to the novelty curve or the observation model.
 - Replacing `SpatialMemory` — only its input.
+
+## Implementation note (2026-10-02) — not started, classified
+
+Investigated before touching anything; this is a cross-stack change, so the
+safety bar is high and it was deliberately **not** attempted in this pass.
+
+Blast radius measured: `visited_areas` / `discovered_items` appear in 13
+non-test files and in `tests/test_item_actions.py` alone **16 times** (plus
+`test_character_record`, `test_spatial_memory`, `test_observation_memory`,
+`test_trigger_system`). The write sites are:
+
+- `engine/movement.py:788` — `player.visited_areas.add(area_name)`, on the line
+  immediately **before** `_grant_arrival_entertainment(player, perception)`.
+- `engine/items/take_drop_actions.py:159` and `examine_actions.py:318` —
+  `discovered_items` bookkeeping.
+- `routes/memories.py:306` — reads `visited_areas` into `build_known_routes`.
+- `engine/tick_manager.py:641` — `adventurous` bonus reads
+  `p.current_area not in visited_areas`.
+- `engine/character_record.py:126-128`, `engine/observation.py`,
+  `player.py:226/228`, `engine/serialization.py` — construction/round-trip.
+
+The trap is real and verified: `observe_area` runs at `movement.py:780` and
+stamps the arrival observation **before** the `visited_areas.add` at `:788`, so
+`player.has_seen(area_id)` is already `True` on the first entry. A naive swap in
+`tick_manager` inverts the `adventurous` bonus. The fix must use the freshness
+`observe_area` returns (pre-refresh) for the arrival bonus, not a post-stamp
+lookup.
+
+Safe order for the next pass (each step lands with its tests):
+1. Derive area names from `kind == "area"` observations in one helper on
+   `Player`; point `routes/memories.py` and `SpatialMemory` callers at it.
+2. Switch the arrival/`adventurous` novelty to `perception["freshness"]` (already
+   returned and pre-refresh), then delete the `visited_areas.add`.
+3. Delete the `discovered_items` writes and repoint the three prompt builders
+   (`room-context.js`, `memory-context.js`, `contextual-actions.js`) at the
+   server-derived `memory_index`.
+4. Keep the tolerant read in `engine/serialization.py`; drop the fields.
+5. Verify: `adventurous` pays on first entry only (micro-scenario), known-route
+   block non-empty for a visited area after loading an old save, and the
+   background-week soak is unchanged.

@@ -36,7 +36,10 @@ class GraphManager {
         this._legendEl = null;
         this._searchQuery = '';
         this._viewMode = 'graph';
-        this._cardinalLayout = false;
+        // bug-510: the Map tab's on/off choice persists (config.graphCardinalLayout).
+        // Re-read in init() too, after config's load promise resolves.
+        this._cardinalLayout = (typeof config !== 'undefined' && config)
+            ? config.graphCardinalLayout === true : false;
         // task-530: set by the load path when the painted grid laid the nodes out.
         // The painted lattice owns positions, so physics must be disabled — and
         // the toolbar shows that instead of pretending the toggle still works.
@@ -75,8 +78,26 @@ class GraphManager {
         await GraphNetwork.init();
         if (window.GraphBackground) await window.GraphBackground.init();
         await this._applyEngineConfigDefaults();
+        // bug-510: config._initPromise resolved before init() runs (main.js), so
+        // the persisted Map choice is available here even if the constructor saw
+        // a pre-load default.
+        if (typeof config !== 'undefined' && config && config.graphCardinalLayout === true) {
+            this._cardinalLayout = true;
+        }
         this._syncMapSpacingButton();
         this._watchScopeChanges();
+    }
+
+    /**
+     * Persist the Map-tab on/off choice (bug-510) so a reload keeps it. Mirrors
+     * the fire-and-forget save `GraphNetwork.toggleLayoutMode` uses for Levels.
+     */
+    _persistCardinalLayout() {
+        if (typeof config === 'undefined' || !config) return;
+        config.graphCardinalLayout = this._cardinalLayout === true;
+        if (typeof config.save === 'function') {
+            try { config.save(); } catch (e) { /* keep the session value */ }
+        }
     }
 
     /**
@@ -396,6 +417,7 @@ class GraphManager {
             return false;
         }
         this._cardinalLayout = !this._cardinalLayout;
+        this._persistCardinalLayout();   // bug-510: survive a reload
         if (window.GraphToolbar) GraphToolbar.syncAll();
         // The painted lattice owns positions in Map mode, so the solver defaults
         // OFF on entering it: leaving it on made vis simulate every node
@@ -1153,6 +1175,7 @@ class GraphManager {
             if (this._cardinalLayout) {
                 this._cardinalLayout = false;
                 this._physicsEnabled = true;
+                this._persistCardinalLayout();   // bug-510: the choice is real
             }
             if (this.network) {
                 GraphNetwork.applyOverlay('structural');
