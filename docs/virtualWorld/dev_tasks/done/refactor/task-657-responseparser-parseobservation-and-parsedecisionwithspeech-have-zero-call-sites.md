@@ -1,6 +1,6 @@
 ---
 type: task
-status: review
+status: done
 area: refactor
 priority: low
 ---
@@ -52,3 +52,16 @@ insertions, no other file touched.
 
 Remaining live check before `done`: one LLM turn through the real
 `parseReaction` path on a working provider (LM Studio is reachable on :1234).
+
+## Live turn — 2026-10-02 (port 4471, LM Studio on :1234)
+
+Drove a real turn with `VW.agent.stepOnce()` and watched the event stream:
+
+- stream bubbles grew 3 → 5 with **no page errors**;
+- the new entries are a thought (`💭 [Tick 19] Kaelen Voss — "The door is locked.
+  Again. ..."`) and a reaction (`🎭 [Tick 20] Kaelen Voss — "Kaelen Voss watches
+  the door handle with tired eyes..."`), i.e. the live `parseReaction` /
+  `parseResultReaction` path produced the inner monologue and the action.
+
+So the surviving parser path works in a real LLM turn, which is the behaviour the
+two deleted exports had no callers for. Moving to `done`.
