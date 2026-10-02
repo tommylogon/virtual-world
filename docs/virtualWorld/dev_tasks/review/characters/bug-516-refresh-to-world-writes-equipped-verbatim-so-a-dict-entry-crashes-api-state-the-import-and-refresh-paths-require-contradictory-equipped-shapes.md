@@ -1,6 +1,6 @@
 ---
 type: bug
-status: todo
+status: review
 area: characters
 priority: high
 ---
