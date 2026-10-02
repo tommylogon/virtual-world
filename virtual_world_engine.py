@@ -725,6 +725,48 @@ class VirtualWorld:
         """task-654: write an ``equipped`` mapping to the dict *and* the edges."""
         return self.equipment.set_equipped_payload(player, payload)
 
+    def area_occupancy(self, area_name: str = None) -> dict:
+        """task-653: how full an area is, as a sum of occupant footprints.
+
+        Accepts a display name or an area node id; resolves like every other
+        area lookup in the engine. Returns ``engine.occupancy``'s report dict.
+        """
+        from engine.occupancy import occupancy_report
+
+        name = area_name
+        if not name:
+            active = self.player_manager.get_active_player_obj()
+            name = getattr(active, "current_area", "") if active else ""
+        area_id = name
+        for candidate in (str(name), f"area_{name}"):
+            try:
+                if self.graph.get_node(candidate) is not None:
+                    area_id = candidate
+                    break
+            except Exception:
+                continue
+        return occupancy_report(area_id, players=self.players, graph=self.graph)
+
+    def would_fit(self, area_name: str, entity=None) -> bool:
+        """task-653: would *entity* fit into *area_name* right now?
+
+        *entity* defaults to the active player. This reports, it does not gate:
+        nothing refuses movement on it (see the module docstring for why a
+        leviathan in a small hall is a legitimate state rather than an error).
+        """
+        from engine.occupancy import fits
+
+        entity = entity or self.player_manager.get_active_player_obj()
+        name = area_name
+        for candidate in (str(name), f"area_{name}"):
+            try:
+                if self.graph.get_node(candidate) is not None:
+                    name = candidate
+                    break
+            except Exception:
+                continue
+        return fits(name, entity, players=self.players, graph=self.graph)
+
     def get_equipment_narrative(self, player_name: str = None, viewer_name: str = None) -> str:
         return self.equipment.get_equipment_narrative(player_name, viewer_name)
 
