@@ -58,7 +58,8 @@ CATEGORY_DEFAULTS = {
 FIELD_ORDER = [
     "name", "description", "actions", "uses", "weight", "equip_slots",
     "current_state", "light_level", "defense", "damage", "damage_type",
-    "insulation", "tags", "affinity", "provenance", "triggers", "contents",
+    "insulation", "concealed", "tags", "affinity", "provenance", "triggers",
+    "contents",
 ]
 
 

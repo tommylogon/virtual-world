@@ -239,9 +239,11 @@ def get_tools(world):
         _ensure_tick()
         return out
 
-    def tool_use_item(item_name: str, target: str = None):
+    def tool_use_item(item_name: str, target: str = None, text: str = None):
+        # task-433: `text` is the inscription payload. `use_item_on` accepts it
+        # as `params`; without a target the text has nothing to land on.
         if target:
-            out = _safe_call(world.use_item_on, item_name, target)
+            out = _safe_call(world.use_item_on, item_name, target, params=text)
         else:
             out = _safe_call(world.use_item, item_name)
         _ensure_tick()

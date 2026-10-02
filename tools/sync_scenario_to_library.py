@@ -73,6 +73,8 @@ def sync_items(scenario: dict, library_dir: Path):
             "weight": props.get("weight", 1),
             "current_state": props.get("current_state", "normal"),
             "light_level": props.get("light_level", "dim"),
+            "damage_reduction": props.get("damage_reduction", props.get("defense", 0)),
+            "evasion": props.get("evasion", 0),
             "defense": props.get("defense", 0),
             "damage": props.get("damage", props.get("damage_dice", "0")),
             "insulation": props.get("insulation", 0),

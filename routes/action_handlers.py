@@ -471,6 +471,17 @@ def handle_take_action(app):
         elif cmd == "listen":
             add_output(world.listen())
 
+        elif cmd.startswith("search ") or cmd.startswith("frisk "):
+            # task-516: search a person, not the room, to reveal concealed items.
+            person = ' '.join(tokens[1:]) if len(tokens) > 1 else ""
+            if person:
+                try:
+                    add_output(world.search_character(person))
+                except ValueError as exc:
+                    add_output(str(exc))
+            else:
+                add_output("Search whom?")
+
         elif cmd == "search":
             area_id = world._get_current_area_id()
             if not area_id:

@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: items
 priority: medium
 ---
@@ -55,3 +55,36 @@ removing `EQUIPPED` (`serialization_legacy.py`, `routes/library_ops.py`,
 
 - Changing the bug-25 take/equip wording (already shipped).
 - Character-node dedup (tracked separately in task-408).
+
+## Resolution (2026-10-02)
+
+**Duplication source found: `auto_dress` did not check worn names before
+hydrating.** `_hydrate_item(always_fresh=True)` mints a new node per call;
+`equip_item` then refuses an already-worn name, and the except block drops the
+freshly-minted node into the room. So dressing an already-dressed character a
+second time left a second same-named item on the floor (the taco_bell "one worn,
+one carried" shape). Fixed by collecting the character's worn names first and
+skipping any candidate whose name matches — the module docstring already claimed
+this idempotence, but the code did not implement it.
+
+**Invariant enforced at the load boundary.** `WorldGraph.normalize_item_hold_state()`
+removes a `carrying` edge whenever the same item→character pair also has an
+`equipped` edge (equipped wins, since demoting would make a worn item leave the
+body), and logs exactly one aggregated warning. It runs inside
+`WorldGraph.load_from_dict()` and again in `Serialization.load_from_dict()` so
+both the graph shape and the legacy loader are covered.
+
+**Audited add sites:** `equip_item` already removes `carrying` after adding
+`equipped`; `transfer_actions` retarget edges; `library_ops` import/population
+adds only `carrying` (it does not create equipped edges), so no both-edge state
+arises there. The remaining sources are save/scenario data written by older
+paths, which the load normalizer repairs.
+
+**Acceptance:**
+- [x] A save/scenario with both edges loads with exactly one (equipped) and logs
+      one warning (`tests/test_carry_equip_invariant.py`).
+- [x] Dressing a character who already wears an item creates no second node
+      (same test file; asserts node count is unchanged and the room gains
+      nothing).
+- [x] `take`/`equip` on a legitimate state cannot reach the contradiction,
+      because the state is repaired before any verb runs.

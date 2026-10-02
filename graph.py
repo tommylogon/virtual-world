@@ -512,6 +512,7 @@ class WorldGraph:
         self.normalize_edges()
         self._normalize_edge_endpoints()
         self.normalize_in_edge_directions()
+        self.normalize_item_hold_state()
         self._rebuild_indexes()
 
     # ── task-582: scope/chunk load, unload and merge ───────────────────
@@ -762,6 +763,46 @@ class WorldGraph:
         if swapped:
             logger.info("Reversed %d container edge(s) to contained->container", swapped)
         return swapped
+
+    def normalize_item_hold_state(self) -> int:
+        """An item holds at most one of carrying/equipped to a character (task-450).
+
+        bug-25: an item carrying BOTH edges reads as "already carrying" on
+        ``take`` and "already wearing" on ``equip`` -- two true statements that
+        contradict one another and send an LLM into a spiral. The engine's own
+        equip/transfer paths converge on one edge; this is the load-time boundary
+        that repairs saves and scenarios written by older paths that added
+        ``carrying`` without removing ``equipped``.
+
+        Equipped wins: worn is the more specific state, and demoting it would make
+        a worn item silently leave the body. Returns the number of edges removed.
+        """
+        equipped_to = {}
+        for e in self.edges:
+            if e.type == EDGE_EQUIPPED:
+                equipped_to.setdefault(str(e.source).lower(), set()).add(
+                    str(e.target).lower())
+        if not equipped_to:
+            return 0
+        removed = 0
+        kept = []
+        for e in self.edges:
+            if (e.type == EDGE_CARRYING
+                    and str(e.target).lower() in equipped_to.get(str(e.source).lower(), ())):
+                node = self.get_node(e.source)
+                if node is not None and node.type == "item":
+                    removed += 1
+                    continue
+            kept.append(e)
+        if removed:
+            self.edges = kept
+            self._rebuild_indexes()
+            logger.warning(
+                "Removed %d item carrying edge(s) duplicating an equipped edge "
+                "(task-450: an item can't be both carried and worn by one character)",
+                removed,
+            )
+        return removed
 
     def _normalize_edge_endpoints(self):
         """Remap edge source/target ids to the canonical stored node ids.

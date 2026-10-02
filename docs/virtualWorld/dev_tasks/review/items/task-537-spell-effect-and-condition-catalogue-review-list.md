@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: items
 priority: medium
 ---
@@ -375,6 +375,24 @@ a single source of truth for "the default" is worth more than the default itself
  not their balance or their numbers.
 - Reactions as a turn-economy feature — that is task-352, and
  `reaction_trigger` here is the engine hook it would need.
+
+## Sweep verification (2026-10-02)
+
+Re-checked the list against the tree rather than trusting the 2026-09-27 pass:
+
+- **Effect inventory holds.** `EFFECT_TYPES` is **56** (51 baseline + the 5
+  task-391 spells). `damage`/`heal`/`adjust_vital` exist; `damage_type`,
+  `set_vital`, `modify_vital_max`, `resist`, `absorb`, `revive` are still
+  absent, exactly as labelled `[M]`.
+- **The section-M latent bug is already fixed.** `handle_heal`
+  (`engine/effect_handlers/vitals.py:137`) now clamps to the target's own
+  `Max_HP`, not a hardcoded 100, and its docstring records the 7-HP-goblin
+  example. Fixed by task-538, so that "first real stat block will find it"
+  warning no longer applies.
+- The list remains a **menu, not a build list**: the `[ ]` entries carrying
+  "maybe"/"not sure"/"don't add" verdicts are still a human call. Moved to
+  `review` for those decisions; the `[x]` entries are confirmed to build and
+  should be split into their own tasks when picked up.
 
 ## Notes for whoever works this list
 

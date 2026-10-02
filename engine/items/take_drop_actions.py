@@ -22,6 +22,7 @@ from graph import (
     Node,
 )
 from engine.items.action_contract import is_portable, portable_refusal
+from engine.items.stacking import is_stackable
 from engine.items.ownership import permission_refusal
 from engine.items.errors import AmbiguousItemError
 from engine.room_perception import (
@@ -252,6 +253,27 @@ class TakeDropActionsMixin:
                 near = node
         return near
 
+    def _find_stack_by_name(self, item_name: str, area_id):
+        """A visible ``stackable`` stack in the area matching *item_name* (task-473).
+
+        Used so "take a piece" reaches the pile even while the player already
+        holds a piece — the same precedence :func:`_find_pool_by_yield` gives a
+        standing resource pool. Includes a 1-use remnant so the last unit can
+        still be picked up while a twin is in hand.
+        """
+        needle = normalize_name(item_name)
+        if not needle:
+            return None
+        for node in visible_area_items(self.graph, area_id):
+            if not is_stackable(node):
+                continue
+            name = normalize_name(node.name)
+            if not name:
+                continue
+            if needle == name or needle in name or name in needle:
+                return node
+        return None
+
     def _harvest_pool(self, player_manager, item_node, area_id, amount: int) -> str:
         """Yield real item copies from a pooled resource node (task-504).
 
@@ -382,6 +404,10 @@ class TakeDropActionsMixin:
         # 2026-08-24: miki "took" the sauce she was holding and panicked).
         player_id = player_manager._player_node_id(player_manager.active_player)
         area_id = player_manager._get_current_area_id()
+        # task-473: a standing stack, like a standing pool, keeps giving after
+        # the first pick, so "already carrying" must not short-circuit drawing
+        # another piece from the pile.
+        stack_standing = self._find_stack_by_name(item_name, area_id)
         wanted = item_name.lower().replace('_', ' ').replace('-', ' ').strip()
         if wanted:
             # task-504: a standing pool keeps giving after the first pick, so
@@ -391,7 +417,7 @@ class TakeDropActionsMixin:
             # handful already in their pack.
             pool_standing = self._find_pool_by_yield(item_name, area_id)
             for held_edge_type in (EDGE_EQUIPPED, EDGE_CARRYING):
-                if pool_standing is not None:
+                if pool_standing is not None or stack_standing is not None:
                     break
                 for edge in self.graph.get_edges_for_target(player_id, held_edge_type):
                     node = self.graph.get_node(edge.source)
@@ -421,6 +447,11 @@ class TakeDropActionsMixin:
             item_node = self.graph.get_node(item_id)
             if item_node:
                 item_node_id = item_id
+
+        if not item_node and stack_standing is not None:
+            # Prefer the pile over the twin already in hand (task-473).
+            item_node_id = stack_standing.id
+            item_node = stack_standing
 
         if not item_node:
             candidate_id = player_manager.item_node_id(item_name)
@@ -628,6 +659,17 @@ class TakeDropActionsMixin:
         # stops a whole apple tree ending up in someone's pack.
         if is_resource_pool(item_node):
             return self._harvest_pool(player_manager, item_node, area_id, amount)
+
+        # task-473: a homogeneous stack (explicit `stackable` marker) draws one
+        # unit rather than moving whole. A single-unit stack of 1 falls through
+        # to the normal move, so the last item is taken like any other prop.
+        if is_stackable(item_node):
+            try:
+                _stack_uses = int(item_node.properties.get("uses", 1) or 1)
+            except (TypeError, ValueError):
+                _stack_uses = 1
+            if _stack_uses > 1:
+                return self.take_from_stack(player_manager, item_node, amount)
 
         trigger_outputs = self._exec_triggers(item_node, "on_take")
 
@@ -850,6 +892,22 @@ class TakeDropActionsMixin:
             self.graph.get_edges_for_source(item_node_id, EDGE_EQUIPPED)
         self.graph.remove_edges_for_node(item_node_id, EDGE_CONNECTION)
         area_id = player_manager._get_current_area_id()
+
+        # task-473: dropping a stackable onto a matching stack merges it instead
+        # of leaving a second node on the floor.
+        merged = self.merge_stack_into(item_node, area_id) if item_node else None
+        if merged:
+            p_check = player_manager.players.get(player_manager.active_player)
+            if not (p_check and p_check.state == "dead"):
+                player_manager.apply_action("drop", player=player_manager.player)
+            area_name = player_manager.current_area.name if player_manager.current_area else None
+            player_manager.record_turn_event(
+                player_manager.active_player, "drop",
+                f"added the {_display_name(item_name)} to the pile", area_name=area_name)
+            if trigger_outputs:
+                merged += "\n" + "\n".join(trigger_outputs)
+            return merged
+
         restored = self._restore_last_relation(item_node, player_manager, area_id) if item_node else False
         if hold:
             if restored:

@@ -82,6 +82,12 @@ def library_item_properties(lib_item: dict, library_id: str,
         "stun_chance": lib_item.get("stun_chance"),
         "stun_duration": lib_item.get("stun_duration"),
         "library_id": library_id,
+        # task-604/607: `defense` is the historical name for damage reduction;
+        # `damage_reduction` is the new one. Either may be a dice expression.
+        # `evasion` is the signed second axis. Both are copied explicitly or a
+        # library item would silently lose its authored defence on placement.
+        "damage_reduction": lib_item.get("damage_reduction", lib_item.get("defense", 0)),
+        "evasion": _int(lib_item.get("evasion", 0)),
         "defense": lib_item.get("defense", 0),
         "damage": lib_item.get("damage", 0),
         # task-519: a weapon/armor's damage type is part of what the library
@@ -104,7 +110,7 @@ def library_item_properties(lib_item: dict, library_id: str,
     # dropped at placement, so the item's own triggers can never see it.
     if lib_item.get("parameters"):
         props["parameters"] = dict(lib_item["parameters"])
-    # Pooled resources (task-504). `take_drop_actions` reads `node.properties
+# Pooled resources (task-504). `take_drop_actions` reads `node.properties
     # .harvest` to take from a pool and `quantity` to know how many the node
     # stands for; without these a library pool placed by a generator arrives as
     # a single takeable item, which is the exact bug the pool model exists to
@@ -121,6 +127,18 @@ def library_item_properties(lib_item: dict, library_id: str,
     provenance = normalize_provenance(lib_item.get("provenance"))
     if provenance:
         props["provenance"] = provenance
+    # task-473: the homogeneous-stack marker and its charge/weight fields.
+    # Dropped here, a library pile would place as an ordinary prop. Only copied
+    # when authored, so an ordinary item node's property set is unchanged.
+    if lib_item.get("stackable"):
+        props["stackable"] = True
+        for key in ("uses", "max_uses", "base_weight"):
+            if lib_item.get(key) is not None:
+                props[key] = lib_item[key]
+    # task-516: concealment is a property of the placed item, so a hidden pouch
+    # or backup knife must carry it out of the library. Only when authored.
+    if lib_item.get("concealed"):
+        props["concealed"] = True
     if extra:
         props.update(extra)
     return props

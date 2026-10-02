@@ -30,9 +30,14 @@ import json
 import os
 import random
 
-from graph import Edge, EDGE_CARRYING, EDGE_IN
+from graph import Edge, EDGE_CARRYING, EDGE_EQUIPPED, EDGE_IN
 
 _INTRINSIC = {"spell", "ability", "innate", "intrinsic", "power"}
+
+
+def _norm_name(name) -> str:
+    """Compare item names the way ``equip_item`` does (task-450)."""
+    return str(name or "").lower().replace('_', ' ').replace('-', ' ').strip()
 
 
 def _wearable_entries():
@@ -212,6 +217,16 @@ def auto_dress(gs, player_name=None, seed=None, library_ids=None):
         # Model order is meaningful (best choice first); do not shuffle it away.
 
     player_id = pm.get_player_node_id(name)
+    # task-450: a piece the character already wears must not be hydrated at all.
+    # Equipping it would raise ("already wearing") and the except block would
+    # drop the freshly-minted duplicate node into the room -- so dressing a
+    # character twice left a second same-named item on the floor.
+    worn_names = set()
+    for edge in gs.graph.get_edges_for_target(player_id, EDGE_EQUIPPED):
+        worn_node = gs.graph.get_node(edge.source)
+        if worn_node is not None:
+            worn_names.add(_norm_name(worn_node.name))
+
     dressed = []
     skipped = []
     for cand in candidates:
@@ -220,6 +235,9 @@ def auto_dress(gs, player_name=None, seed=None, library_ids=None):
         # inner except swallows -- so the candidate silently vanished with no
         # reason recorded.
         node = None
+        if _norm_name(cand["name"]) in worn_names:
+            skipped.append((cand["name"], "already worn"))
+            continue
         try:
             node, _lib = gs.effects._hydrate_item(cand["lib_id"], {}, always_fresh=True)
             if node is None:
@@ -228,6 +246,7 @@ def auto_dress(gs, player_name=None, seed=None, library_ids=None):
             gs.graph.add_edge(Edge(source=node.id, target=player_id, type=EDGE_CARRYING))
             msg = gs.equipment.equip_item(cand["name"], slot=cand["slots"][0])
             dressed.append(cand["name"])
+            worn_names.add(_norm_name(cand["name"]))
         except Exception as e:
             # Undress the failed candidate: back to carrying, then into the room.
             if node is not None:

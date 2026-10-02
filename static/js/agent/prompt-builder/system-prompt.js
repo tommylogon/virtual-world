@@ -79,7 +79,8 @@ Examples:
 - {"action":"go","target":"the booth table"}                   → walk to an ITEM in your current room (positions you at it)
 - {"action":"take","item":"the flower crown"}                  → names are matched whole
 - {"action":"put","item":"the pen","target":"the table","relation":"on"}  → place on a surface
-- {"action":"give","item":"the key","target":"the stranger"}   → hand to someone nearby`;
+- {"action":"give","item":"the key","target":"the stranger"}   → hand to someone nearby
+- {"action":"use_on","item":"ink pen","target":"parchment","text":"Don't go there"}  → WRITE the text onto a writable item (leave "text" null for other use_on actions)`;
 
     const MATURE_ACTIONS = `
 

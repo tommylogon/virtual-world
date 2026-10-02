@@ -1,0 +1,18 @@
+{
+  "name": "Pile of Raw Meat",
+  "description": "A heaped pile of raw game, cut into strips and stacked ready for the fire. Take a piece and the pile is lighter; drop a matching piece back and it joins the stack.",
+  "actions": "examine,take,drop",
+  "uses": 12,
+  "max_uses": 12,
+  "base_weight": 6,
+  "weight": 6,
+  "stackable": true,
+  "current_state": "normal",
+  "light_level": "dim",
+  "damage": 0,
+  "defense": 0,
+  "insulation": 0,
+  "tags": ["meat", "raw", "supply", "stackable", "ingredient"],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,11 @@
+{
+  "name": "Plate Cuirass",
+  "description": "A hammered steel cuirass over a padded arming doublet. It turns most blows that reach it, but the weight sits on the shoulders and the joints stiffen -- you are slower, and easier to land a hit on, than a fighter in leather. The trade is deliberate: fewer hits hurt, but more of them land.",
+  "tags": ["armor", "clothing", "plate", "steel", "heavy", "torso"],
+  "damage_reduction": 8,
+  "evasion": -3,
+  "weight": 12,
+  "equip_slots": ["torso"],
+  "actions": ["examine", "equip", "unequip", "drop"],
+  "keywords": ["cuirass", "plate", "breastplate", "steel", "armour", "armor", "harness"]
+}

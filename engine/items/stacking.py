@@ -11,8 +11,9 @@ equipment, ghost_system, world) via the mixin pattern (task-314).
 
 import copy
 import re
+import uuid
 
-from graph import Edge, Node, EDGE_CARRYING, EDGE_EQUIPPED
+from graph import Edge, Node, EDGE_CARRYING, EDGE_EQUIPPED, EDGE_IN
 
 #: Properties that must match for two instances to be "stackable twins" (D).
 #: task-514 deliberately excludes `provenance`: per-instance acquisition history
@@ -20,9 +21,26 @@ from graph import Edge, Node, EDGE_CARRYING, EDGE_EQUIPPED
 #: keeps the surviving copy's story anyway.
 _STACKABLE_KEYS = ["actions", "tags", "current_state", "equip_slots", "max_uses"]
 
+
+def is_stackable(node) -> bool:
+    """True when an item authors the explicit ``stackable`` marker (task-473).
+
+    Deliberately opt-in: dropping two identical ``uses: -1`` props on the floor
+    must not fuse them, and the existing ``quantity`` pool (task-504) is a
+    different model. Only an item that says ``stackable: true`` participates in
+    take-from-stack and merge-on-put.
+    """
+    props = getattr(node, "properties", None) or {}
+    return bool(props.get("stackable"))
+
 #: WorldGraph.add_node appends a hex suffix to duplicate ids AND names
 #: (e.g. ``bread_5e2713ac``) — strip it so copies compare as the same kind.
 _AUTO_SUFFIX = re.compile(r"_[0-9a-f]{6,8}$")
+
+
+def _display_name(name):
+    """Strip a leading article for verb phrasing (matches take_drop_actions)."""
+    return re.sub(r'^(?:the|a|an)\s+', '', str(name or '').strip())
 
 
 def _prop_key(value):
@@ -74,6 +92,139 @@ class StackingMixin:
             ):
                 out.append(node)
         return out
+
+    def _destroy_node(self, node):
+        for edge in list(self.graph.edges):
+            if edge.source == node.id or edge.target == node.id:
+                self.graph.edges.remove(edge)
+        self.graph.remove_node(node.id)
+
+    def merge_stack_into(self, moving_node, holder_id):
+        """Merge ``moving_node`` into a matching stack at ``holder_id`` (task-473).
+
+        ``holder_id`` is a container or area node. If it already holds a
+        ``stackable`` twin (same kind/identity, via :func:`stackable_twins`), the
+        moving node's uses are added to the twin (clamped at ``max_uses``), its
+        weight recomputed, and the moving node destroyed. Returns the prose
+        result, or ``None`` when there is nothing to merge with.
+
+        Both sides must carry the explicit ``stackable`` marker: a pile of raw
+        meat merges, two ordinary identical props on the floor do not.
+        """
+        if moving_node is None or not is_stackable(moving_node):
+            return None
+        twin = None
+        for edge in self.graph.get_edges_for_target(holder_id, EDGE_IN):
+            cand = self.graph.get_node(edge.source)
+            if (cand is not None and cand.id != moving_node.id
+                    and is_stackable(cand) and stackable_twins(moving_node, cand)):
+                twin = cand
+                break
+        if twin is None:
+            return None
+
+        from engine.items.carry_weight import reconcile_item_weight
+
+        def _uses(node):
+            try:
+                return int(node.properties.get("uses", 0) or 0)
+            except (TypeError, ValueError):
+                return 0
+
+        added = _uses(moving_node)
+        current = _uses(twin)
+        # Review fix (finding 7): `uses` is a count, so a depleted (0) or
+        # inexhaustible (-1) stack is not a number of units to merge. Refuse
+        # rather than subtracting a phantom unit and destroying the node.
+        if added <= 0:
+            return None
+        max_uses = int(twin.properties.get("max_uses", 0) or 0)
+        # Review fix (finding 2): when the destination cannot hold the whole
+        # stack, refuse the merge so the normal put/drop path leaves the moving
+        # node intact. Clamping here would destroy the overflow silently.
+        if max_uses > 0 and current + added > max_uses:
+            return None
+        combined = current + added
+        twin.properties["uses"] = combined
+        reconcile_item_weight(twin)
+        self._destroy_node(moving_node)
+        return (f"You add the {_display_name(moving_node.name)} to the "
+                f"{_display_name(twin.name)} — it now holds {combined} uses.")
+
+    def take_from_stack(self, player_manager, item_node, amount: int = 1) -> str:
+        """Draw ``amount`` units from a homogeneous world stack (task-473).
+
+        The stack is one node carrying N ``uses``; taking spawns a discrete copy
+        (``uses: 1``) into the taker's inventory and decrements the stack. At
+        zero the original node is removed. Mirrors ``_harvest_pool`` but reads
+        ``uses`` rather than ``quantity`` and clones the node itself rather than
+        hydrating a declared yield.
+        """
+        from engine.items.carry_weight import reconcile_item_weight
+        from engine.room_perception import normalize_name
+
+        try:
+            remaining = int(item_node.properties.get("uses", 1) or 1)
+        except (TypeError, ValueError):
+            remaining = 1
+        if remaining < 1:
+            raise ValueError(f"The {_display_name(item_node.name)} is empty.")
+        wanted = min(max(1, int(amount or 1)), remaining)
+
+        player_id = player_manager._player_node_id(player_manager.active_player)
+        area_id = player_manager._get_current_area_id()
+
+        copies = []
+        for _ in range(wanted):
+            props = copy.deepcopy(item_node.properties)
+            props["uses"] = 1
+            new_id = f"{item_node.id}_{uuid.uuid4().hex[:8]}"
+            copy_node = Node(id=new_id, name=item_node.name, type="item",
+                             properties=props)
+            self.graph.add_node(copy_node)
+            # Review fix (finding 1): the clone inherits the stack's aggregate
+            # weight. Reconcile each unit so it weighs base_weight/max_uses
+            # rather than the whole pile.
+            reconcile_item_weight(copy_node)
+            copies.append(copy_node)
+
+        total_weight = sum(float(c.properties.get("weight", 0) or 0) for c in copies)
+        cap_error = self._check_player_capacity(player_manager, total_weight)
+        to_player = cap_error is None
+        # task-425: the draw path pays first-meeting novelty exactly as the
+        # quantity-pool path does (review fix, finding 6).
+        self._register_item_discovery(player_manager, item_node)
+        for copy_node in copies:
+            self._register_item_discovery(player_manager, copy_node)
+            if to_player:
+                self.graph.add_edge(Edge(source=copy_node.id, target=player_id,
+                                         type=EDGE_CARRYING))
+            else:
+                self.graph.add_edge(Edge(source=copy_node.id, target=area_id,
+                                         type=EDGE_IN))
+
+        item_node.properties["uses"] = remaining - wanted
+        reconcile_item_weight(item_node)
+
+        area_name = player_manager.current_area.name if player_manager.current_area else None
+        result = (f"You take {wanted} {item_node.name} from the "
+                  f"{_display_name(item_node.name)}.")
+        if not to_player:
+            result += " Your pack is full, so you leave them at your feet."
+        player_manager.record_turn_event(
+            player_manager.active_player, "take",
+            f"took {wanted} from the {_display_name(item_node.name)}",
+            area_name=area_name,
+        )
+
+        if item_node.properties["uses"] <= 0:
+            # Review fix (finding 5): empty through the shared teardown so an
+            # authored `on_depleted` / persistent-empty state is honoured.
+            result += f" The {_display_name(item_node.name)} is picked clean."
+            result = self._finish_depleted(item_node, result)
+        else:
+            result += f" {item_node.properties['uses']} remain."
+        return result
 
     def combine_items(self, player_manager, source_name: str, target_name: str) -> str:
         """Merge two stackable instances: uses add (clamped at max_uses),
@@ -153,13 +304,17 @@ class StackingMixin:
             new_props["weight"] = round(
                 float(new_props["base_weight"]) * ((uses - per) / max_uses), 3
             )
+        # task-473: a uuid suffix, not a fixed "_part". The old
+        # `f"{node.id}_part"` written by raw dict assignment meant splitting a
+        # part again produced `bread_part_part`, silently overwriting the first
+        # rather than creating a third node.
         new_node = Node(
-            id=f"{node.id}_part",
+            id=f"{node.id}_{uuid.uuid4().hex[:8]}",
             name=node.name,
             type=node.type,
             properties=new_props,
         )
-        self.graph.nodes[new_node.id] = new_node
+        self.graph.add_node(new_node)
         player_id = player_manager._player_node_id(player_manager.active_player)
         self.graph.add_edge(Edge(source=new_node.id, target=player_id, type=EDGE_CARRYING))
 

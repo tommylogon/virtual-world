@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: items
 priority: medium
 ---
@@ -53,3 +53,35 @@ Today the only "ranged" item is a scripted one-shot, not a weapon.
 ## Non-goals
 
 - Ballistics/range simulation, ammunition crafting, projectile physics.
+
+## Resolution (2026-10-02)
+
+A ranged weapon is an item tagged ``ranged`` (or ``bow``); ammunition is an
+item tagged ``ammo``. The attack is the ordinary `player_attack` path — the
+ranged weapon supplies the damage and the ammo is the gate/charge.
+
+- `engine/combat.py`:
+  - `_is_ranged_weapon()` / `_carried_ammo_node()` / `_spend_ammo()`.
+  - A ranged attack with no ammo returns a clean failure **before any roll**,
+    so no damage is dealt.
+  - Ammo is spent when the shot is *attempted*, before the hit/miss contest: a
+    miss still costs the arrow.
+  - `_spend_ammo` decrements the generic `uses` counter; a discrete arrow
+    (`uses: 1`) is removed when spent; `uses <= 0` means an inexhaustible
+    supply.
+  - `_best_weapon_node` now skips `ammo` items. A broadhead arrow
+    (`damage: 0` + `weapon`) used to be auto-selected and rolled `1d0`.
+- Content: `vekka_hunting_bow` (1d6 piercing, `ranged`), `quiver_of_arrows`
+  (20-use `ammo` stack), `arrow`/`broadhead_arrow` re-tagged `ammo`;
+  `Vekka` now carries her bow and quiver. `tools/item_content_pass1.py` updated
+  in lockstep so the pass and the shipped JSON agree.
+- Range/targeting: same-area only (no area-grid/facing tie-in).
+- **Crossbow**: left as an intentional scripted exception. It remains a
+  one-shot `on_use` message + `destroy_self` with no `damage`, because it is an
+  authored set piece whose effect is narrative, not a combat weapon. Documented
+  here rather than re-authored.
+
+Acceptance: a bow attack uses the item's damage through the normal combat
+resolution; firing consumes one arrow and an empty quiver fails with no damage;
+ammo stacks decrement via `uses`; Vekka's bow is authored and tested. Tests:
+`tests/test_ranged_combat.py` (10 passed).

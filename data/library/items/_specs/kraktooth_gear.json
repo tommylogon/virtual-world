@@ -227,18 +227,21 @@
     },
     "zikka_backup_knife": {
       "category": "weapon",
-      "name": "Backup Knife",
-      "description": "A slim blade carried against the forearm, hidden by the sleeve until needed.",
+      "name": "Zikka's Backup Knife",
+      "description": "A flat little knife carried out of sight against the small of the back, the kind you reach for only when the first weapon is gone. Nobody who has seen Zikka fight has seen this one.",
+      "actions": "examine,equip,unequip,take,drop",
       "equip_slots": [
         "hand_right"
       ],
-      "damage": 3,
+      "damage": "1d4",
       "damage_type": "piercing",
-      "weight": 0.4,
+      "weight": 0.3,
+      "concealed": true,
       "tags": [
         "weapon",
-        "kraktooth",
         "knife",
+        "metal",
+        "small",
         "concealed"
       ]
     },
@@ -759,20 +762,23 @@
     },
     "vekka_hunting_bow": {
       "category": "weapon",
-      "name": "Compact Hunting Bow",
-      "description": "A short, heavy bow of dark wood, drawn from the saddle as often as the ground.",
+      "name": "Vekka's Hunting Bow",
+      "description": "A compact hunting bow of dark goblin make, short enough to carry through scrub and strung light for a quick draw. Vekka keeps it close and does not lend it.",
+      "actions": "examine,take,equip,unequip,drop",
       "equip_slots": [
         "hand_right",
         "back"
       ],
-      "damage": 5,
+      "damage": "1d6",
       "damage_type": "piercing",
-      "weight": 1.0,
+      "weight": 1.2,
       "tags": [
         "weapon",
-        "kraktooth",
+        "ranged",
         "bow",
-        "hunting"
+        "hunting",
+        "goblin",
+        "projectile"
       ]
     },
     "vekka_curved_knife": {
@@ -962,17 +968,21 @@
     },
     "krikka_hidden_pouch": {
       "category": "accessory",
-      "name": "Hidden Pouch",
-      "description": "A flat pouch sewn against the inside of the belt, invisible under a wrap.",
+      "name": "Krikka's Hidden Pouch",
+      "description": "A small leather pouch tucked inside a jacket and tied shut, kept out of sight and out of reach. It holds the shiniest things Krikka has found and will not admit to.",
+      "actions": "examine,open,close,take,drop",
       "equip_slots": [
-        "waist"
+        "waist",
+        "accessory"
       ],
-      "weight": 0.2,
+      "weight": 0.4,
+      "concealed": true,
+      "current_state": "closed",
       "tags": [
+        "leather",
         "accessory",
-        "kraktooth",
         "container",
-        "pouch",
+        "small",
         "concealed"
       ]
     },

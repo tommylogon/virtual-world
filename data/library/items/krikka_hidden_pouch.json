@@ -1,19 +1,21 @@
 {
-  "name": "Hidden Pouch",
-  "description": "A flat pouch sewn against the inside of the belt, invisible under a wrap.",
-  "actions": "examine,take,equip,unequip",
+  "name": "Krikka's Hidden Pouch",
+  "description": "A small leather pouch tucked inside a jacket and tied shut, kept out of sight and out of reach. It holds the shiniest things Krikka has found and will not admit to.",
+  "actions": "examine,open,close,take,drop",
   "uses": -1,
-  "weight": 0.2,
+  "weight": 0.4,
   "equip_slots": [
-    "waist"
+    "waist",
+    "accessory"
   ],
-  "current_state": "normal",
+  "current_state": "closed",
   "light_level": "dim",
+  "concealed": true,
   "tags": [
+    "leather",
     "accessory",
-    "kraktooth",
     "container",
-    "pouch",
+    "small",
     "concealed"
   ],
   "triggers": [],

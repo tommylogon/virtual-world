@@ -1,22 +1,24 @@
 {
-  "name": "Compact Hunting Bow",
-  "description": "A short, heavy bow of dark wood, drawn from the saddle as often as the ground.",
-  "actions": "examine,take,equip,unequip",
+  "name": "Vekka's Hunting Bow",
+  "description": "A compact hunting bow of dark goblin make, short enough to carry through scrub and strung light for a quick draw. Vekka keeps it close and does not lend it.",
+  "actions": "examine,take,equip,unequip,drop",
   "uses": -1,
-  "weight": 1.0,
+  "weight": 1.2,
   "equip_slots": [
     "hand_right",
     "back"
   ],
   "current_state": "normal",
   "light_level": "dim",
-  "damage": 5,
+  "damage": "1d6",
   "damage_type": "piercing",
   "tags": [
     "weapon",
-    "kraktooth",
+    "ranged",
     "bow",
-    "hunting"
+    "hunting",
+    "goblin",
+    "projectile"
   ],
   "triggers": [],
   "contents": [],

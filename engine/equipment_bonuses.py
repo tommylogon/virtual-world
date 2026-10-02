@@ -63,8 +63,21 @@ def parse_damage(value) -> tuple:
 def aggregate_bonuses(player, graph) -> dict:
     """Aggregate all equipment bonuses for a player.
 
+    task-604 split the old single ``defense`` into two anti-correlated axes:
+
+    * **damage reduction** — how much of a blow does not get through. Authored
+      on an item as ``defense`` (the historical name, on ~1800 items) or the
+      newer ``damage_reduction``; both are read here.
+    * **evasion** — a *signed* modifier applied on the attack side. Positive is
+      harder to hit, negative easier; heavy armour authors a negative value so
+      it is deliberately easy to hit but hard to kill in. Omitted = 0, so the
+      penalty is an authoring act, not an accident.
+
     Returns:
-        defense (int): sum of 'defense' from armor/clothing
+        damage_reduction (int): sum of flat DR from armor/clothing
+        damage_reduction_dice (tuple|None): best dice DR, rolled per hit
+        evasion (int): signed attack-side modifier (default 0)
+        defense / defense_dice: legacy aliases for the two DR keys
         damage (int): highest flat 'damage' from weapon-tagged items
         damage_dice (tuple|None): best (count, sides, flat_bonus) from weapon
         damage_skill (str|None): skill name for damage modifier from best weapon
@@ -74,6 +87,7 @@ def aggregate_bonuses(player, graph) -> dict:
     """
     defense = 0
     defense_dice = (0, 0)
+    evasion = 0
     damage = 0
     damage_dice = (0, 0, 0)
     damage_skill = None
@@ -88,15 +102,18 @@ def aggregate_bonuses(player, graph) -> dict:
         tags = [t.lower() for t in props.get("tags", [])]
 
         if any(t in DEFENSE_TAGS for t in tags):
-            # task-607: `defense` is a DAMAGE EXPRESSION, not an integer, and is
-            # read with the same parser weapon damage already uses. An int (the
-            # common case, and what every existing item carries) takes the cheap
-            # path and behaves exactly as before, so nothing changes silently. A
-            # dice string like "d8" is collected separately and rolled per hit
-            # rather than summed here -- summing dice across a whole outfit would
-            # roll once at aggregation and then be wrong for every subsequent
-            # swing.
-            raw_defense = props.get("defense", 0)
+            # task-607: the DR field is a DAMAGE EXPRESSION, not an integer, and
+            # is read with the same parser weapon damage already uses. An int
+            # (the common case, and what every existing item carries) takes the
+            # cheap path and behaves exactly as before, so nothing changes
+            # silently. A dice string like "d8" is collected separately and
+            # rolled per hit rather than summed here -- summing dice across a
+            # whole outfit would roll once at aggregation and then be wrong for
+            # every subsequent swing.
+            #
+            # task-604: `damage_reduction` is the new name; `defense` stays as
+            # the accepted alias so the existing corpus needs no migration.
+            raw_defense = props.get("damage_reduction", props.get("defense", 0))
             if isinstance(raw_defense, (int, float)) and not isinstance(raw_defense, bool):
                 defense += int(raw_defense)
             else:
@@ -105,6 +122,16 @@ def aggregate_bonuses(player, graph) -> dict:
                     defense_dice = (parsed_defense[0], parsed_defense[1])
                 else:
                     defense += parsed_defense[2]
+
+            # task-604: evasion is a signed int, summed across worn pieces. It
+            # is deliberately NOT read from a dice expression -- it shifts the
+            # attack contour, and a per-hit random contour would make a heavy
+            # suit sometimes easy and sometimes hard to hit for no authored
+            # reason.
+            try:
+                evasion += int(props.get("evasion", 0) or 0)
+            except (ValueError, TypeError):
+                pass
 
         if "weapon" in tags:
             parsed = parse_damage(props.get("damage"))
@@ -145,6 +172,12 @@ def aggregate_bonuses(player, graph) -> dict:
         insulation = int(insulation * keep)
 
     return {
+        # task-604: canonical names. `defense`/`defense_dice` remain as aliases
+        # for existing callers (area_description, serialization, tests) and are
+        # populated with the same values.
+        "damage_reduction": defense,
+        "damage_reduction_dice": defense_dice if defense_dice != (0, 0) else None,
+        "evasion": evasion,
         "defense": defense,
         # task-607: the best (largest) dice reduction any worn piece carries, or
         # None. Rolled per hit by the caller, never summed -- see the note where

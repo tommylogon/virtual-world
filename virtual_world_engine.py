@@ -568,6 +568,10 @@ class VirtualWorld:
     def steal_item(self, item_name: str, target_name: str) -> str:
         return self.item_actions.steal_item(self, item_name, target_name)
 
+    def search_character(self, target_name: str) -> str:
+        """task-516: reveal concealed items on another character (Perception)."""
+        return self.item_actions.search_character(self, target_name)
+
     # ─────────────────── Interest / fear tags (task-469) ───────────────────
 
     def _target_tags(self, target_name: str):

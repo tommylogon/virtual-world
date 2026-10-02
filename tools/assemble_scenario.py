@@ -159,6 +159,8 @@ def build_scenario_from_components(
                     "current_state": entry.get("current_state", "normal"),
                     "hidden": entry.get("hidden", False),
                     "light_level": entry.get("light_level", "dim"),
+                    "damage_reduction": entry.get("damage_reduction", entry.get("defense", 0)),
+                    "evasion": entry.get("evasion", 0),
                     "defense": entry.get("defense", 0),
                     "damage": entry.get("damage", entry.get("damage_dice", "0")),
                     "insulation": entry.get("insulation", 0),

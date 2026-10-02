@@ -91,6 +91,10 @@ window.StructuredFormats = (() => {
                 action: NULLABLE_STR,
                 item: NULLABLE_STR,
                 target: NULLABLE_STR,
+                // task-433: the payload for `use_on` inscription ("use pen on
+                // parchment" with text). Strict mode requires every field here
+                // to be in `required`, so it is nullable rather than optional.
+                text: NULLABLE_STR,
                 speech: NULLABLE_STR,
                 volume: NULLABLE_STR,
                 emote: NULLABLE_STR,
@@ -98,7 +102,7 @@ window.StructuredFormats = (() => {
                 emotion: EMOTION,
                 learned_names: { type: ['array', 'null'], items: { type: 'string' } }
             },
-            required: ['inner_monologue', 'action', 'item', 'target', 'speech', 'volume', 'emote', 'memory', 'emotion', 'learned_names']
+            required: ['inner_monologue', 'action', 'item', 'target', 'text', 'speech', 'volume', 'emote', 'memory', 'emotion', 'learned_names']
         }
     };
 

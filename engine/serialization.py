@@ -573,7 +573,7 @@ class WorldSerializer:
         else:
             self._legacy_loader.load(data)
 
-        # task-439: a duplicate area display name is legal (ids are the identity)
+# task-439: a duplicate area display name is legal (ids are the identity)
         # but makes a name-only lookup ambiguous, so surface it at load rather
         # than let the first iteration-order match silently win.
         from engine.room_perception import duplicate_area_names
@@ -582,6 +582,10 @@ class WorldSerializer:
             logger.warning(
                 "[load] duplicate area display name(s) — resolve these by id: %s",
                 duplicate_areas)
+        # task-450: repair any item that ended up both carried and equipped. The
+        # modern branch already does this inside graph.load_from_dict; the legacy
+        # branch builds the graph directly, so the boundary call lives here too.
+        self.graph.normalize_item_hold_state()
 
         self.legacy.time_ticks = data.get("time_ticks", 0)
         self.legacy.time_per_tick_minutes = data.get("time_per_tick_minutes", 5)

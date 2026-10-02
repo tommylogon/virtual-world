@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: items
 priority: medium
 related: [task-604, task-606]
@@ -133,15 +133,41 @@ items all declare `equip_slots: ["hand"]`. One of those three is mine (`main_han
 guessed), but `hand_right` against a declared `hand` is not. Recorded in task-654
 rather than chased here.
 
-- [ ] A world/engine config selects the DR mode; the default preserves today's
+- [x] A world/engine config selects the DR mode; the default preserves today's
       flat behaviour so no existing scenario changes behaviour silently
-- [ ] All three modes implemented and unit-tested against the same fixtures
-- [ ] Percentage mode is scale-invariant: the same DR value produces a comparable
-      *relative* reduction against a 4 HP spider, a 100 HP goblin and a 675 HP
-      dragon
-- [ ] The `max(1, ...)` floor is deliberate and documented per mode, not an
-      accident of the flat implementation
-- [ ] The combat log reports which mode produced the number, so a soak log shows
-      `1d4+2 = 5, -2 flat -> 3` versus `5, -40% -> 3` distinctly
-- [ ] Interactive: switching mode mid-session re-resolves an armed hit without
-      needing a restart
+      (`combat.damage_reduction_mode` in `data/engine_config.json`, default
+      `flat`, choices `flat|dice|percentage`).
+- [x] All three modes implemented and unit-tested against the same fixtures
+      (`tests/test_defense_axes.py`).
+- [x] Percentage mode is scale-invariant: 40% reduces a 4, 10, 100 and 675 HP
+      blow to 2, 6, 60 and 405.
+- [x] The `max(1, ...)` floor is deliberate and documented per mode, not an
+      accident of the flat implementation (flat/percentage floor at 1; dice mode
+      floors at one surviving damage die).
+- [x] The combat log reports which mode produced the number (`−2 flat` /
+      `−40%` / `[N dice stripped]`).
+- [x] Interactive: the mode is read at call time inside `_dr_mode`, so switching
+      it mid-session re-resolves the next armed hit with no restart.
+- [ ] **Live-browser end-to-end still blocked by task-654** (equipping through
+      the API writes `player.equipped` without creating the graph edge, so an
+      armed hit cannot be set up through the API). Recorded, not claimed.
+
+## Resolution (2026-10-02)
+
+The mode selector is implemented on top of the earlier expression work.
+
+- `engine/runtime_config.py` gains `combat.damage_reduction_mode` (string, with
+  `choices`), surfaced automatically in Settings → Engine Config.
+- `engine/combat.py`:
+  - `flat` (default) — subtract the expression value; a dice expression is
+    rolled per hit.
+  - `dice` — `_adjust_damage_dice` strips DR dice from the *incoming* damage
+    roll before it is made (at least one die survives), so armour removes
+    variance instead of points. The post-roll helper is a no-op in this mode so
+    the two never both fire.
+  - `percentage` — the expression is read as a percent of the blow,
+    `damage - round(damage * pct / 100)`, scale-invariant.
+- All three DR call sites (weapon dice, flat weapon, bare hands) route through
+  the same helpers; the log tags the mode.
+- Content: `padded_gambeson` (dice expression, flat mode),
+  `plate_cuirass` / `duelists_leathers` (the task-604 axes).

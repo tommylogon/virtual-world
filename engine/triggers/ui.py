@@ -65,6 +65,26 @@ class UiMixin:
                 }
             )
 
+        # task-473: a stackable item can be combined with a matching stack, and
+        # a stack of more than one can be split. Neither verb was surfaced
+        # before, so `combine`/`split` were reachable only by typing them.
+        try:
+            from engine.items.stacking import is_stackable
+            if is_stackable(item_node):
+                result.append({"action": "combine",
+                               "label": "Combine with a matching stack",
+                               "enabled": True})
+                try:
+                    _uses = int(item_node.properties.get("uses", 1) or 1)
+                except (TypeError, ValueError):
+                    _uses = 1
+                if _uses > 1:
+                    result.append({"action": "split",
+                                   "label": "Split the stack",
+                                   "enabled": True})
+        except Exception:
+            pass
+
         if "open" in actions or "openable" in tags:
             if state in ("closed", "normal", ""):
                 result.append({"action": "open", "label": "Open", "enabled": True})

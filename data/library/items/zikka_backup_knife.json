@@ -1,20 +1,22 @@
 {
-  "name": "Backup Knife",
-  "description": "A slim blade carried against the forearm, hidden by the sleeve until needed.",
-  "actions": "examine,take,equip,unequip",
+  "name": "Zikka's Backup Knife",
+  "description": "A flat little knife carried out of sight against the small of the back, the kind you reach for only when the first weapon is gone. Nobody who has seen Zikka fight has seen this one.",
+  "actions": "examine,equip,unequip,take,drop",
   "uses": -1,
-  "weight": 0.4,
+  "weight": 0.3,
   "equip_slots": [
     "hand_right"
   ],
   "current_state": "normal",
   "light_level": "dim",
-  "damage": 3,
+  "damage": "1d4",
   "damage_type": "piercing",
+  "concealed": true,
   "tags": [
     "weapon",
-    "kraktooth",
     "knife",
+    "metal",
+    "small",
     "concealed"
   ],
   "triggers": [],

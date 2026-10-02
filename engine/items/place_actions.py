@@ -76,6 +76,24 @@ class PlaceActionsMixin:
         if container_state in ("closed", "locked", "sealed"):
             raise ValueError(f"The {container_name} is {container_state} — open it first.")
 
+        # task-473: a stackable put into a container holding a matching stack
+        # merges instead of adding a second node.
+        merged = self.merge_stack_into(item_node, container_node_id)
+        if merged:
+            p_merge = player_manager.players.get(player_manager.active_player)
+            if p_merge:
+                for slot, stack in list(p_merge.equipped.items()):
+                    if item_node_id in stack:
+                        stack.remove(item_node_id)
+                        break
+            if not (p_merge and p_merge.state == "dead"):
+                player_manager.apply_action("put", player=player_manager.player)
+            area_name = player_manager.current_area.name if player_manager.current_area else None
+            player_manager.record_turn_event(
+                player_manager.active_player, "put",
+                f"added the {item_name} to the {container_name}", area_name=area_name)
+            return merged
+
         p = player_manager.players.get(player_manager.active_player)
         if p:
             for slot, stack in list(p.equipped.items()):
@@ -162,6 +180,24 @@ class PlaceActionsMixin:
             cap_error = self._check_container_capacity(target_node_id, item_node.properties.get("weight", 0))
             if cap_error:
                 raise ValueError(cap_error)
+
+            # task-473: `place X in <container>` merges with a matching stack,
+            # exactly as `put` does.
+            merged = self.merge_stack_into(item_node, target_node_id)
+            if merged:
+                p_merge = player_manager.players.get(player_manager.active_player)
+                if p_merge:
+                    for slot, stack in list(p_merge.equipped.items()):
+                        if item_node_id in stack:
+                            stack.remove(item_node_id)
+                            break
+                if not (p_merge and p_merge.state == "dead"):
+                    player_manager.apply_action("put", player=player_manager.player)
+                area_name = player_manager.current_area.name if player_manager.current_area else None
+                player_manager.record_turn_event(
+                    player_manager.active_player, "put",
+                    f"added the {item_name} to the {target_name}", area_name=area_name)
+                return merged
 
         from engine.character_spatial import approach_item
         char_relation = edge_type if edge_type != EDGE_IN else EDGE_AT
