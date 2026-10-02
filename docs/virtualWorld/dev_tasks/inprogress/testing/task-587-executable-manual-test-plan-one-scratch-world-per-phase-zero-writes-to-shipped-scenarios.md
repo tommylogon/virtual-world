@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: inprogress
 area: testing
 priority: high
 supersedes: test-plan-100-items.md
