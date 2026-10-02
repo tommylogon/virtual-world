@@ -17,6 +17,65 @@ window.ScenarioManager = (() => {
 
     let _overlay = null;
     let _list = [];
+    let _counter = null;
+
+    // task-598: filter state survives repaints and ⟳ Refresh, so the list does
+    // not silently reset when an action re-renders it.
+    let _filterText = '';
+    let _filterOpts = { modified: 'any', health: 'any', characters: 'any', areas: 'any' };
+
+    function filterActive() {
+        return !!_filterText.trim() || Object.keys(_filterOpts).some(k => _filterOpts[k] !== 'any');
+    }
+
+    // Multi-strategy match, consistent with the library browser's search:
+    // substring on name + source path first, then per-token, then a fuzzy
+    // fallback for close spellings (reuses the browser's fuzzyRatio when it is
+    // loaded, with a substring-only fallback otherwise).
+    function scenarioSearchScore(sc) {
+        const needle = _filterText.trim().toLowerCase();
+        if (!needle) return 1;
+        const name = String(sc.name || '').toLowerCase();
+        const path = String(sc.filename || '').toLowerCase();
+        const tokens = needle.split(/\s+/).filter(Boolean);
+        let s = 0;
+        if (name.includes(needle) || path.includes(needle)) s += 6;
+        // task-641 kept: a bare number finds a scenario by exact area or
+        // character count ("23" -> the scenario with 23 areas).
+        if (/^\d+$/.test(needle) && (String(sc.areas) === needle || String(sc.players) === needle)) s += 6;
+        tokens.forEach(t => {
+            if (name.includes(t) || path.includes(t)) s += 3;
+        });
+        if (s === 0) {
+            const fuzzy = (typeof window.fuzzyRatio === 'function')
+                ? window.fuzzyRatio
+                : (a, b) => (!a || !b ? 0 : (a === b ? 1 : (a.includes(b) ? 0.7 : 0)));
+            const fr = Math.max(fuzzy(name, needle), fuzzy(path, needle));
+            if (fr >= 0.6) s += Math.round(fr * 6);
+        }
+        return s;
+    }
+
+    function scenarioMatchesFilters(sc) {
+        if (scenarioSearchScore(sc) === 0) return false;
+        const o = _filterOpts;
+        if (o.modified !== 'any') {
+            const ageDays = (Date.now() / 1000 - sc.modified) / 86400;
+            if (o.modified === 'today' && ageDays > 1) return false;
+            if (o.modified === 'week' && ageDays > 7) return false;
+            if (o.modified === 'month' && ageDays > 30) return false;
+            if (o.modified === 'old' && ageDays <= 30) return false;
+        }
+        const h = sc.health || {};
+        if (o.health === 'clean' && !(h.ok && !h.issues)) return false;
+        if (o.health === 'issues' && !(h.ok && h.issues > 0)) return false;
+        if (o.health === 'broken' && h.ok) return false;
+        if (o.characters === 'none' && sc.players > 0) return false;
+        if (o.characters === 'some' && !(sc.players > 0)) return false;
+        if (o.areas === 'none' && sc.areas > 0) return false;
+        if (o.areas === 'some' && !(sc.areas > 0)) return false;
+        return true;
+    }
 
     function fmtSize(bytes) {
         if (bytes < 1024) return bytes + ' B';
@@ -71,27 +130,72 @@ window.ScenarioManager = (() => {
         list.style.cssText = 'overflow-y:auto;max-height:60vh;display:flex;flex-direction:column;gap:6px;';
         box.appendChild(list);
 
-        // task-641: with a large scenario library the unfiltered list is
-        // unusable, and there was no way to narrow it. A live filter over name
-        // (and the counts, so "23" can find pines) is the smallest thing that
-        // makes the list navigable.
+        // task-598: a text search over name + source path, plus dimension
+        // filters, matching the library browser's search affordance rather than
+        // a bare name filter. task-641 added the first text filter.
         const filterRow = document.createElement('div');
         filterRow.style.cssText = 'display:flex;gap:6px;align-items:center;';
         const filter = document.createElement('input');
         filter.type = 'text';
-        filter.placeholder = 'Filter scenarios by name…';
-        filter.setAttribute('aria-label', 'Filter scenarios by name');
+        filter.placeholder = 'Search name or source path…';
+        filter.setAttribute('aria-label', 'Search scenarios by name or source path');
         filter.style.cssText = 'flex:1;font-size:12px;padding:5px 8px;background:var(--bg-input,transparent);color:inherit;border:1px solid var(--border);border-radius:6px;';
+        filter.value = _filterText;
         const counter = document.createElement('span');
         counter.style.cssText = 'font-size:10px;color:var(--text-dim);white-space:nowrap;';
-        filter.addEventListener('input', () => renderList(list, filter.value, counter));
+        _counter = counter;
+        filter.addEventListener('input', () => { _filterText = filter.value; renderList(list); });
         filterRow.appendChild(filter);
         filterRow.appendChild(counter);
         box.appendChild(filterRow);
 
+        // Dimension filters: each is a value the manager already knows.
+        const controls = document.createElement('div');
+        controls.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;align-items:center;';
+        const mkSelect = (key, label, options) => {
+            const wrap = document.createElement('label');
+            wrap.style.cssText = 'font-size:10px;color:var(--text-dim);display:flex;align-items:center;gap:3px;';
+            wrap.textContent = label + ':';
+            const sel = document.createElement('select');
+            sel.style.cssText = 'font-size:11px;padding:3px 6px;background:var(--bg-input,transparent);color:inherit;border:1px solid var(--border);border-radius:6px;';
+            sel.setAttribute('aria-label', label);
+            options.forEach(([value, text]) => {
+                const o = document.createElement('option');
+                o.value = value;
+                o.textContent = text;
+                sel.appendChild(o);
+            });
+            sel.value = _filterOpts[key];
+            sel.addEventListener('change', () => { _filterOpts[key] = sel.value; renderList(list); });
+            wrap.appendChild(sel);
+            return wrap;
+        };
+        controls.appendChild(mkSelect('modified', 'Modified', [
+            ['any', 'any time'], ['today', 'today'], ['week', 'last 7 days'],
+            ['month', 'last 30 days'], ['old', 'older than 30 days']]));
+        controls.appendChild(mkSelect('health', 'Health', [
+            ['any', 'any'], ['clean', 'clean'], ['issues', 'has issues'], ['broken', "won't parse"]]));
+        controls.appendChild(mkSelect('characters', 'Characters', [
+            ['any', 'any'], ['none', 'none'], ['some', 'has characters']]));
+        controls.appendChild(mkSelect('areas', 'Areas', [
+            ['any', 'any'], ['none', 'none'], ['some', 'has areas']]));
+        const reset = document.createElement('button');
+        reset.className = 'btn btn-sm';
+        reset.style.cssText = 'font-size:10px;';
+        reset.textContent = 'Reset';
+        reset.onclick = () => {
+            _filterText = '';
+            _filterOpts = { modified: 'any', health: 'any', characters: 'any', areas: 'any' };
+            filter.value = '';
+            controls.querySelectorAll('select').forEach(s => { s.value = 'any'; });
+            renderList(list);
+        };
+        controls.appendChild(reset);
+        box.appendChild(controls);
+
         box.appendChild(scaffoldFooter(box));
 
-        renderList(list, '', counter);
+        renderList(list);
         // Keep typing focused when the list repaints, so filtering does not
         // steal the caret on every keystroke.
         filter.focus();
@@ -111,16 +215,12 @@ window.ScenarioManager = (() => {
         return foot;
     }
 
-    async function renderList(container, filterText, counter) {
+    async function renderList(container) {
         container.textContent = 'Loading…';
         const all = await loadList();
-        const needle = String(filterText || '').trim().toLowerCase();
-        const items = needle
-            ? all.filter(sc => String(sc.name || '').toLowerCase().includes(needle)
-                || String(sc.areas) === needle || String(sc.players) === needle)
-            : all;
-        if (counter) {
-            counter.textContent = needle
+        const items = all.filter(scenarioMatchesFilters);
+        if (_counter) {
+            _counter.textContent = filterActive()
                 ? `${items.length} of ${all.length}`
                 : `${all.length} scenario${all.length === 1 ? '' : 's'}`;
         }
@@ -137,7 +237,9 @@ window.ScenarioManager = (() => {
             // distinctly from "no scenarios exist", or the list looks broken.
             const none = document.createElement('div');
             none.style.cssText = 'font-size:12px;color:var(--text-muted);padding:12px;';
-            none.textContent = `No scenario matches “${filterText}”.`;
+            none.textContent = _filterText.trim()
+                ? `No scenario matches “${_filterText}”.`
+                : 'No scenario matches the current filters.';
             container.appendChild(none);
             return;
         }
