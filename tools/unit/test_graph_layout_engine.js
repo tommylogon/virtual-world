@@ -329,6 +329,40 @@ test('items are placed beside their area at the current pitch (bug-53)', () => {
     }
 });
 
+test('a coordinate-less way on a painted map is placed between its rooms (task-618)', () => {
+    // A grid-generated way often carries no `cell` and only a stale canvas
+    // `properties.x/y` from a graph-mode save. Using that verbatim put the way
+    // thousands of px from the areas it joins, so the connection edges crossed
+    // empty space. It must be derived from its rooms instead.
+    const nodes = {
+        area_a: { type: 'area', properties: { cell: { x: 0, y: 0 }, x: 0, y: 0, world_scope_id: 's' } },
+        area_b: { type: 'area', properties: { cell: { x: 4, y: 0 }, x: 160, y: 0, world_scope_id: 's' } },
+        way_conn: { type: 'way', properties: { x: 9999, y: 9999, world_scope_id: 's' } },
+        way_hand: { type: 'way', properties: { x: 777, y: 0 } },
+    };
+    const ds = { get: (id) => (id in nodes ? { id } : null), update: () => {} };
+    const edges = [
+        { type: 'connection', source: 'way_conn', target: 'area_a' },
+        { type: 'connection', source: 'way_conn', target: 'area_b' },
+    ];
+    const prevEdges = (worldState.graph || {}).edges;
+    worldState.graph = Object.assign({}, worldState.graph, { edges });
+    try {
+        config = { graphMapSpacing: 40 };
+        const out = GraphLayoutEngine._gridUpdates(nodes, ds, {});
+        const byId = {};
+        out.forEach((u) => { byId[u.id] = u; });
+        assertEq(byId.way_conn.x, 80, 'midpoint x of its two rooms');
+        assertEq(byId.way_conn.y, 0, 'midpoint y');
+        assertEq(byId.way_conn.physics, false, 'and pinned at the derived midpoint');
+        // A way whose rooms are not painted keeps its hand-placed canvas position.
+        assertEq(byId.way_hand.x, 777, 'a way with no painted room keeps its canvas x');
+    } finally {
+        worldState.graph.edges = prevEdges;
+        config = undefined;
+    }
+});
+
 test('a hand-placed node keeps its canvas position: no rescale, no offset', () => {
     // `properties.x/y` is an overloaded field. The compiler writes ENGINE units
     // (`cell * 40`), which the map layout scales by the pitch and translates by
@@ -368,11 +402,13 @@ test('a hand-placed node keeps its canvas position: no rescale, no offset', () =
     }
 });
 
-test('the grid layout gives ways to the solver but leaves areas pinned', () => {
-    // Task-530's intent: areas sit on their painted cells, ways are free so the
-    // solver pulls them in next to their areas. `physics: false` on every node
-    // (the bug) left the global toggle spinning on an empty node list, so
-    // enabling physics appeared to do nothing at all.
+test('the grid layout pins painted areas and ways; other nodes go to the solver', () => {
+    // task-618: a way painted on a cell is part of the map, so it is pinned to
+    // its cell like an area. task-530 left it free for the solver, but the
+    // solver frame and the grid frame disagree, so a painted way drifted off
+    // its cell and its connection edges crossed empty space. A way with no
+    // painted room/no cell is still left to the solver (task-530's concern:
+    // ways piling up at a stale saved position).
     const nodes = {
         area_a: { type: 'area', properties: { cell: { x: 0, y: 0 }, x: 0, y: 0 } },
         way_door: { type: 'way', properties: { cell: { x: 0.5, y: 0 }, x: 20, y: 0 } },
@@ -390,8 +426,8 @@ test('the grid layout gives ways to the solver but leaves areas pinned', () => {
 
     assertEq(byId.area_a.physics, false, 'an area is pinned to its cell');
     assertTrue(byId.area_a.fixed.x, 'and held there');
-    assertEq(byId.way_door.physics, true, 'a way is simulated');
-    assertEq(byId.way_door.fixed.x, false, 'so the solver may move it');
+    assertEq(byId.way_door.physics, false, 'a painted way is pinned to its cell');
+    assertTrue(byId.way_door.fixed.x, 'and held there');
     assertEq(byId.way_frozen.physics, false, "an author's frozen way stays put");
     // A hand-placed character is seeded where it was put and then simulated: the
     // solver has no central gravity, so its `in` edge holds it beside its room.
