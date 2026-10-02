@@ -159,6 +159,21 @@ window.TriggerGraph = (() => {
                 </div>`;
             }
         },
+        group: {
+            label: '🔗 Group', color: '#d29922',
+            summary: (p) => `${(p.operator||'and').toUpperCase()} group`,
+            sockets: [
+                { id: 'input', side: 'left', label: '↓', color: '#d29922' },
+                { id: 'output_yes', side: 'bottom', label: '✓', color: '#3fb950' },
+                { id: 'output_no', side: 'bottom', label: '✗', color: '#f85149' },
+                { id: 'child', side: 'bottom', label: '⤵', color: '#d29922' }
+            ],
+            fields: (p) => `
+                <div class="tg-field-row"><label>Operator</label>
+                    <select class="tg-field" data-key="operator" onchange="TriggerGraph._onFieldChange(this)">${['and','or','not'].map(o => `<option value="${o}" ${(p.operator||'and')===o?'selected':''}>${o.toUpperCase()}</option>`).join('')}</select>
+                </div>
+                <div class="tg-field-row"><div style="font-size:9px;color:var(--text-muted);">Children hang off the <b>⤵</b> socket; ${(p.operator||'and').toUpperCase()} combines them. ✓ continues the chain.</div></div>`
+        },
         effect: {
             label: '⚡ Effect', color: '#58a6ff',
             summary: (p) => `${p.effect_type||'?'}${p.message ? ': "'+p.message.substring(0,25)+'"' : ''}`,
@@ -609,36 +624,50 @@ window.TriggerGraph = (() => {
         };
         nodes.push({ id: tnode, type: 'trigger', x: 50, y: 50, props: triggerProps });
 
-        let conditions = t.conditions || [];
-        let conditionTree = null;
-        if (typeof conditions === 'object' && !Array.isArray(conditions) && conditions.operator) {
-            conditionTree = conditions;
-            conditions = _flattenConditions(conditions);
+        // ── Conditions: leaves and AND/OR/NOT groups (task-502) ──
+        // A flat AND (or a bare leaf list) draws as the familiar linear chain.
+        // Anything grouped draws a real `group` node with its children chained
+        // off the group's `child` socket, so an imported OR/NOT tree is editable
+        // in the graph and compiles back to the same tree — no side-channel.
+        const rawConditions = t.conditions;
+        let topEntries;
+        if (Array.isArray(rawConditions)) {
+            topEntries = rawConditions;
+        } else if (rawConditions && typeof rawConditions === 'object' && rawConditions.operator) {
+            if (_treeIsFlat(rawConditions)) topEntries = _flattenConditions(rawConditions);
+            else if (rawConditions.operator === 'and') topEntries = rawConditions.conditions || [];
+            else topEntries = [rawConditions];  // OR/NOT root → one group node
+        } else {
+            topEntries = [];
         }
-        if (!Array.isArray(conditions)) conditions = [];
 
-        // The node graph draws a linear AND chain, so any grouping (OR/NOT, or an
-        // AND that nests one) has no node representation yet. Keep the original
-        // tree on the trigger node so compileToEngine can re-emit it unchanged
-        // instead of silently flattening it to AND (task-501).
-        if (conditionTree && !_treeIsFlat(conditionTree)) {
-            triggerProps.condition_tree = conditionTree;
-            triggerProps.condition_leaves = conditions;
-        }
+        // Emit one entry (leaf or group) wired from *from*; returns the
+        // continuation socket for the next sibling. Group children chain off the
+        // group's `child` socket, so they never bleed into the outer chain.
+        const layoutEntry = (entry, from, x, y) => {
+            if (entry && typeof entry === 'object' && !Array.isArray(entry) && entry.operator) {
+                const gnode = `n${nodeId++}`;
+                nodes.push({ id: gnode, type: 'group', x, y, props: { operator: entry.operator } });
+                wires.push({ id: `w${wires.length}`, from, to: [gnode, 'input'] });
+                let childFrom = [gnode, 'child'];
+                (entry.conditions || []).forEach((c, i) => {
+                    childFrom = layoutEntry(c, childFrom, x + 240, y + 40 + i * 120);
+                });
+                return [gnode, 'output_yes'];
+            }
+            const cnode = `n${nodeId++}`;
+            nodes.push({ id: cnode, type: 'condition', x, y, props: _conditionToGraphProps(entry) });
+            wires.push({ id: `w${wires.length}`, from, to: [cnode, 'input'] });
+            return [cnode, 'output_yes'];
+        };
 
         const effects = t.effects || [];
         let attachFrom = [tnode, 'output'];
         let lastCond = null;
 
-        conditions.forEach((c, i) => {
-            const cnode = `n${nodeId++}`;
-            nodes.push({
-                id: cnode, type: 'condition', x: 50, y: 180 + i * 120,
-                props: _conditionToGraphProps(c),
-            });
-            wires.push({ id: `w${wires.length}`, from: attachFrom, to: [cnode, 'input'] });
-            attachFrom = [cnode, 'output_yes'];
-            lastCond = cnode;
+        topEntries.forEach((c, i) => {
+            attachFrom = layoutEntry(c, attachFrom, 50, 180 + i * 120);
+            lastCond = attachFrom[0];
         });
 
         for (let i = 0; i < effects.length; i++) {
@@ -646,7 +675,7 @@ window.TriggerGraph = (() => {
             const enode = `n${nodeId++}`;
             nodes.push({
                 id: enode, type: 'effect',
-                x: 50 + (conditions.length ? 220 : 0),
+                x: 50 + (topEntries.length ? 220 : 0),
                 y: 180 + i * 120,
                 props: { effect_type: eff.type || 'message', ...(eff.params || {}) },
             });
@@ -661,7 +690,7 @@ window.TriggerGraph = (() => {
         if (t.fail_message && lastCond) {
             const fnode = `n${nodeId++}`;
             nodes.push({
-                id: fnode, type: 'effect', x: 330, y: 180 + conditions.length * 120,
+                id: fnode, type: 'effect', x: 330, y: 180 + topEntries.length * 120,
                 props: { effect_type: 'message', message: t.fail_message },
             });
             wires.push({ id: `w${wires.length}`, from: [lastCond, 'output_no'], to: [fnode, 'input'] });
@@ -1135,6 +1164,7 @@ window.TriggerGraph = (() => {
             w: 260, _expanded: true,
             props: type === 'trigger' ? { trigger_type: 'on_use' } :
                     type === 'condition' ? { condition_type: 'area_temp', value: '' } :
+                    type === 'group' ? { operator: 'and' } :
                     type === 'behavior' ? { trigger: 'on_tick', priority: 1, interval: 1 } :
                     type === 'state' ? { state: '' } :
                     type === 'action' ? { action_type: 'message', text: '' } :
@@ -1351,6 +1381,7 @@ window.TriggerGraph = (() => {
             let posStyles = '';
             if (sock.id === 'output_yes') posStyles = `right:-8px;top:30%;transform:translateY(-50%);`;
             else if (sock.id === 'output_no') posStyles = `bottom:-8px;left:50%;transform:translateX(-50%);`;
+            else if (sock.id === 'child') posStyles = `right:-8px;top:70%;transform:translateY(-50%);`;
             else if (sock.side === 'left') posStyles = `left:-8px;top:50%;transform:translateY(-50%);`;
             else if (sock.side === 'right') posStyles = `right:-8px;top:50%;transform:translateY(-50%);`;
             else if (sock.side === 'bottom') posStyles = `bottom:-8px;left:50%;transform:translateX(-50%);`;
@@ -1363,16 +1394,20 @@ window.TriggerGraph = (() => {
                 box-shadow:0 0 4px rgba(0,0,0,0.5);
             `;
             dot.title = sock.id === 'output_yes' ? '✓ Pass — continues sideways'
-                : sock.id === 'output_no' ? '✗ Fail — drops below' : sock.label;
+                : sock.id === 'output_no' ? '✗ Fail — drops below'
+                : sock.id === 'child' ? '⤵ Children — wire conditions here' : sock.label;
             dot.addEventListener('mousedown', (e) => { e.stopPropagation(); _startWireDrag(node.id, sock.id, e); });
             div.appendChild(dot);
-            if (sock.id === 'output_yes' || sock.id === 'output_no') {
+            if (sock.id === 'output_yes' || sock.id === 'output_no' || sock.id === 'child') {
                 const isYes = sock.id === 'output_yes';
+                const isChild = sock.id === 'child';
                 const label = document.createElement('span');
                 label.style.cssText = isYes
                     ? 'position:absolute;left:calc(100% + 12px);top:30%;transform:translateY(-50%);color:#3fb950;font-size:9px;font-weight:600;pointer-events:none;white-space:nowrap;'
+                    : isChild
+                    ? 'position:absolute;left:calc(100% + 12px);top:70%;transform:translateY(-50%);color:#d29922;font-size:9px;font-weight:600;pointer-events:none;white-space:nowrap;'
                     : 'position:absolute;left:50%;top:calc(100% + 10px);transform:translateX(-50%);color:#f85149;font-size:9px;font-weight:600;pointer-events:none;white-space:nowrap;';
-                label.textContent = isYes ? '✓ yes' : '✗ no';
+                label.textContent = isYes ? '✓ yes' : isChild ? '⤵ kids' : '✗ no';
                 div.appendChild(label);
             }
         }
@@ -1637,11 +1672,12 @@ window.TriggerGraph = (() => {
         ] : [
             { type: 'trigger', label: '⚡ Trigger', desc: 'Entry point (on_use, on_take...)' },
             { type: 'condition', label: '❓ Condition', desc: 'Branch with YES/NO (temp, skill...)' },
+            { type: 'group', label: '🔗 Group', desc: 'Logical group (AND/OR/NOT) holding conditions' },
             { type: 'effect', label: '⚡ Effect', desc: 'Action (message, spawn, adjust...)' }
         ];
         const q = _contextSearch.toLowerCase();
         const filtered = items.filter(i => !q || i.label.toLowerCase().includes(q) || i.desc.toLowerCase().includes(q) || i.type.includes(q));
-        const edgeColor = (t) => t === 'trigger' || t === 'behavior' ? '#e3b341' : t === 'condition' ? '#f85149' : t === 'state' ? '#bc8cff' : '#58a6ff';
+        const edgeColor = (t) => t === 'trigger' || t === 'behavior' ? '#e3b341' : t === 'condition' ? '#f85149' : t === 'group' ? '#d29922' : t === 'state' ? '#bc8cff' : '#58a6ff';
         window.Lit.render(triggerGraphTag`
             ${filtered.length > 0 ? filtered.map(i => triggerGraphTag`
                 <div class="tg-cm-item" data-type=${i.type} style="padding:6px 8px;border-radius:4px;cursor:pointer;display:flex;flex-direction:column;gap:1px;border-left:3px solid ${edgeColor(i.type)};" @mouseover=${(e) => e.currentTarget.style.background='var(--bg-hover,#2a2a3e)'} @mouseout=${(e) => e.currentTarget.style.background='transparent'} @mousedown=${(e) => { e.stopPropagation(); TriggerGraph._addNode(i.type, _contextWorldPos.x, _contextWorldPos.y); TriggerGraph._hideContextMenu(); }}>
@@ -1872,6 +1908,19 @@ window.TriggerGraph = (() => {
             }
             return { conditions, actions };
         }
+        if (node.type === 'group') {
+            const groupCond = _traceGroupCondition(nid, wires, nodes);
+            const nw = wires.find(w => w.from[0] === nid && (w.from[1] === 'output_yes' || w.from[1] === 'output'));
+            const next = nw ? _traceBehavior(nw.to[0], wires, nodes, problems) : { conditions: [], actions: [] };
+            const noW = wires.find(w => w.from[0] === nid && w.from[1] === 'output_no');
+            if (noW) {
+                const no = _traceBehavior(noW.to[0], wires, nodes, problems);
+                if (no.actions.length || no.conditions.length) {
+                    problems.push(`Behavior group "${groupCond.operator}" NO branch carries ${no.actions.length} action(s); the behavior model has no else, so it was not compiled.`);
+                }
+            }
+            return { conditions: [groupCond, ...next.conditions], actions: next.actions };
+        }
         if (node.type === 'action' || node.type === 'state') {
             const act = _buildActionFromNode(node);
             const nw = wires.find(w => w.from[0] === nid && (w.from[1] === 'output' || w.from[1] === 'right'));
@@ -2055,21 +2104,15 @@ window.TriggerGraph = (() => {
         const traced = _traceGraph(tw.to[0], graph.wires, graph.nodes);
         const problems = [...(traced.problems || [])];
 
-        // A condition tree the node graph cannot draw (OR/NOT groups) is kept on
-        // the trigger node at import and re-emitted verbatim. If its conditions
-        // have since been edited in the graph, refuse rather than quietly
-        // flattening the group to AND (task-501).
-        const storedTree = triggerNode.props.condition_tree;
-        const storedLeaves = triggerNode.props.condition_leaves;
+        // Groups now have real nodes, so the whole tree round-trips through the
+        // graph with no side-channel. A single top-level group is emitted
+        // directly (NOT/OR roots); otherwise the chain is the engine's implicit
+        // AND (task-502).
         let condTree = {};
-        if (traced.conditions.length > 0) {
-            if (storedTree && _sameShape(storedLeaves || [], traced.conditions)) {
-                condTree = storedTree;
-            } else if (storedTree) {
-                problems.push('This trigger was imported with an OR/NOT condition group; editing its conditions in the node graph is not supported yet, so it was not compiled. Revert the edits or edit the trigger JSON.');
-            } else {
-                condTree = { operator: 'and', conditions: traced.conditions };
-            }
+        if (traced.conditions.length === 1 && traced.conditions[0] && traced.conditions[0].operator) {
+            condTree = traced.conditions[0];
+        } else if (traced.conditions.length > 0) {
+            condTree = { operator: 'and', conditions: traced.conditions };
         }
 
         const result = {
@@ -2172,22 +2215,27 @@ window.TriggerGraph = (() => {
         return p;
     }
 
-    /** Canonicalise a value for shape comparison: object keys sorted, primitives
-     *  stringified, so {@link _sameShape} tolerates numeric/string drift between
-     *  an imported tree and the node graph rebuilt from it. */
-    function _canonical(v) {
-        if (Array.isArray(v)) return v.map(_canonical);
-        if (v && typeof v === 'object') {
-            const out = {};
-            Object.keys(v).sort().forEach(k => { out[k] = _canonical(v[k]); });
-            return out;
+    /** Trace a group node's children into an engine logical tree. Children are
+     *  the chain hanging off the group's `child` socket; each contributes either
+     *  a leaf condition or a nested group. `seen` guards against wire cycles. */
+    function _traceGroupCondition(nid, wires, nodes, seen) {
+        if (!seen) seen = new Set();
+        const node = nodes.find(n => n.id === nid);
+        const op = (node && node.props && node.props.operator) || 'and';
+        const children = [];
+        const cw = wires.find(w => w.from[0] === nid && w.from[1] === 'child');
+        let cur = cw ? cw.to[0] : null;
+        while (cur && !seen.has(cur)) {
+            seen.add(cur);
+            const cn = nodes.find(n => n.id === cur);
+            if (!cn) break;
+            if (cn.type === 'group') children.push(_traceGroupCondition(cur, wires, nodes, seen));
+            else if (cn.type === 'condition') children.push(_buildConditionFromNode(cn));
+            else break;
+            const nw = wires.find(w => w.from[0] === cur && w.from[1] === 'output_yes');
+            cur = nw ? nw.to[0] : null;
         }
-        if (v === undefined) return null;
-        return String(v);
-    }
-
-    function _sameShape(a, b) {
-        return JSON.stringify(_canonical(a)) === JSON.stringify(_canonical(b));
+        return { operator: op, conditions: children };
     }
 
     function _traceGraph(nid, wires, nodes) {
@@ -2220,6 +2268,36 @@ window.TriggerGraph = (() => {
                 conditions: [...conds, ...ye.conditions],
                 fail_message: failMessage || ye.fail_message || '',
                 problems,
+            };
+        }
+        if (node.type === 'group') {
+            const groupCond = _traceGroupCondition(nid, wires, nodes);
+            const label = groupCond.operator;
+            // A group's NO branch carries at most a single message, exactly like
+            // a condition's (task-501 semantics kept for groups).
+            const nw = wires.find(w => w.from[0] === nid && w.from[1] === 'output_no');
+            let failMessage = '';
+            let problems = [];
+            if (nw) {
+                const ne = _traceGraph(nw.to[0], wires, nodes);
+                const msgs = ne.effects.filter(e => e.type === 'message');
+                if (ne.conditions.length) {
+                    problems.push(`Group "${label}" NO branch chains another condition; the engine supports only a single NO message.`);
+                }
+                if (ne.effects.length === 1 && msgs.length === 1 && msgs[0].params?.message) {
+                    failMessage = msgs[0].params.message;
+                } else if (ne.effects.length > 0) {
+                    problems.push(`Group "${label}" NO branch has ${ne.effects.length} effect(s); the engine supports only a single NO message.`);
+                }
+                problems = problems.concat(ne.problems);
+            }
+            const yw = wires.find(w => w.from[0] === nid && w.from[1] === 'output_yes');
+            const ye = yw ? _traceGraph(yw.to[0], wires, nodes) : empty;
+            return {
+                effects: ye.effects,
+                conditions: [groupCond, ...ye.conditions],
+                fail_message: failMessage || ye.fail_message || '',
+                problems: problems.concat(ye.problems),
             };
         }
         if (node.type === 'effect') {
