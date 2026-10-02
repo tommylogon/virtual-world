@@ -135,6 +135,12 @@ class WorldSerializer:
             # payload; without it the control can never show a saved value and
             # would silently revert to "not set" on every render.
             "size": getattr(p, 'size', None),
+            # task-549: species needs its own key for the same reason — and
+            # because THIS serializer is the one /api/state serves, so a value
+            # written to the Player but absent here is invisible to the client
+            # that just wrote it. Two player serializers exist (`this one` and
+            # `Player.to_dict`); a field added to one is not added to the other.
+            "species": getattr(p, 'species', None),
             "tags": getattr(p, 'tags', []),
             "flags": dict(getattr(p, 'flags', {})),
             "hidden": bool(getattr(p, 'hidden', False)),

@@ -1063,6 +1063,10 @@ def _refresh_character(app, node, sections, template_id=None, entries=None):
         'stats': 'stats',
         'skills': 'skills',
         'traits': 'traits',
+        # task-549: species is free text, so it is passed through as a plain
+        # string rather than validated against an enum — an unknown species
+        # permits everything, which is the safe direction to be wrong in.
+        'species': 'species',
         'tags': ('tags', 'list'),
         'interest_tags': ('interest_tags', 'list'),
         'behaviors': 'behaviors',

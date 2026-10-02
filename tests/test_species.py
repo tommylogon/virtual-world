@@ -37,6 +37,17 @@ def world():
     return create_app({"TESTING": True}).world
 
 
+def _add(world, name, area=AREA, **attrs):
+    p = Player(name)
+    p.current_area = area
+    for key, value in attrs.items():
+        setattr(p, key, value)
+    world.add_player(p)
+    if area:
+        world.set_player_area(name, area)
+    return p
+
+
 # ── the identity is readable ─────────────────────────────────────────────
 
 def test_a_character_carries_a_species():
@@ -246,3 +257,57 @@ def test_a_character_with_no_species_never_records_a_mismatch(world):
     sim._relieve(human)
     assert not [e for e in human.lived_log
                 if str(e.get("why", "")).startswith("species:")], human.lived_log
+
+
+# ── there are TWO player serializers, and both must carry it ─────────────
+
+def test_species_survives_a_write_and_appears_in_the_api_payload():
+    """Found by driving the live API, not by reading the code.
+
+    There are two player serializers: `Player.to_dict()` and
+    `SerializationManager._serialize_player`. `/api/state` serves the **second**
+    one, so a species written through `POST /api/players/<name>` was accepted,
+    stored on the Player, and then absent from the response the client had just
+    been handed — a write that silently did not read back. A field added to one
+    serializer is not added to the other.
+    """
+    from app import create_app
+    app = create_app({"TESTING": True})
+    world = app.world
+    client = app.test_client()
+    _add(world, "TestSubject")
+
+    response = client.post("/api/players/TestSubject", json={"species": "Goblin"})
+    assert response.status_code == 200, response.get_data(as_text=True)
+
+    payload = client.get("/api/state").get_json()
+    player = payload["players"]["TestSubject"]
+    assert "species" in player, (
+        "species is written but not served: the two player serializers have "
+        "drifted apart again")
+    assert player["species"] == "goblin", player.get("species")
+
+    # And it survives the save/load round trip through that same payload.
+    assert world.players["TestSubject"].species == "goblin"
+
+
+def test_both_player_serializers_carry_the_authored_identity():
+    """The general guard, so the next field added does not repeat the mistake.
+
+    There are two player serializers and they overlap heavily but are not the
+    same function: `Player.to_dict()` and the manager's own
+    `_serialize_player`. The one `/api/state` serves is the *second*, which is
+    why a field added to only the first is invisible to the client.
+    """
+    from app import create_app
+    world = create_app({"TESTING": True}).world
+    p = _add(world, "Agreement", species="elf", size="small")
+
+    from_dict = p.to_dict()
+    served = world.serializer._serialize_player("Agreement", p)
+
+    for field in ("species", "size"):
+        assert field in from_dict, f"{field} missing from Player.to_dict()"
+        assert field in served, f"{field} missing from the /api/state serializer"
+    assert served["species"] == "elf"
+    assert served["size"] == "small"
