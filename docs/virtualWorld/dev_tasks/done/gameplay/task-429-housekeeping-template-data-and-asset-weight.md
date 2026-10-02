@@ -1,6 +1,6 @@
 ---
 type: task
-status: review
+status: done
 area: gameplay
 priority: low
 ---
@@ -110,3 +110,14 @@ are referenced by `kraktooth_goblin_camp.json` (9 refs), `world_template.json`
 (2), and `autosave.json` (2), and many filenames contain spaces (so automatic
 orphan detection is unreliable). Converting to WebP and rewriting references
 across scenarios/saves is its own task, not a housekeeping one-liner.
+
+## Live confirmation — 2026-10-02 (port 4471)
+
+The running app (booted from the edited template) reports:
+
+- `item_frost_crusted_berry_bush` → name `Frost-Crusted Berry Bush` (present);
+- its trigger `trigger_item_frost_crusted_berry_bush_on_examine_...` present and
+  wired;
+- no node carries the old item id (`item_bush of berries_1788218658044_568`).
+
+239 nodes total, matching the file. Moving to `done`.
