@@ -226,3 +226,37 @@ def test_update_player_route_clears_the_edges_when_a_slot_is_emptied():
 
     client.post("/api/players/Hero", json={"equipped": {"hand_right": []}})
     assert world.graph.get_edges_for_target(_pid(world, "Hero"), EDGE_EQUIPPED) == []
+
+
+# ── the other direction: deleting a node must not leave the dict lying ───
+
+def test_deleting_an_equipped_item_node_prunes_the_equipped_dict():
+    """The inverse divergence: the id used to outlive the node it named."""
+    from app import create_app
+    app = create_app({"TESTING": True})
+    world = app.world
+    client = app.test_client()
+
+    p = _add(world, "Hero")
+    node = _weapon(world)
+    client.post("/api/players/Hero", json={"equipped": {"hand_right": [node.id]}})
+    assert p.equipped["hand_right"] == [node.id]
+
+    response = client.delete(f"/api/graph/node/{node.id}")
+    assert response.status_code == 200, response.get_data(as_text=True)
+
+    assert node.id not in p.equipped["hand_right"], (
+        "equipped still names a node that no longer exists")
+
+
+def test_prune_leaves_markers_and_live_items_alone(world):
+    p = _add(world, "Hero")
+    node = _weapon(world)
+    marker = f"__multi_slot_{node.id}"
+    world.set_equipped_payload(p, {"hand_right": [node.id], "hand_left": [marker]})
+    world.graph.remove_node(node.id)
+
+    pruned = world.equipment.prune_dangling_equipped(p)
+    assert node.id in pruned
+    assert p.equipped["hand_right"] == []
+    assert p.equipped["hand_left"] == [marker]

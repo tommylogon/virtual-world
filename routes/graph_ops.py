@@ -718,6 +718,14 @@ def handle_delete_node(app, node_id):
     from routes.saveload import _push_undo_snapshot
     _push_undo_snapshot(app, label=f"delete {node.name}")
     app.world.graph.remove_node(node_id)
+    # task-654: `player.equipped` is not part of the graph, so removing a node
+    # left its id behind — worn in the readout, and read by `is_exposed` as
+    # "no node here", which silently flips a covered region to uncovered.
+    if node.type == 'item':
+        try:
+            app.world.equipment.prune_all_dangling_equipped()
+        except Exception:
+            pass
     return jsonify({"status": "success"})
 
 

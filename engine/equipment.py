@@ -251,6 +251,22 @@ class EquipmentSystem:
             output += "\n" + "\n".join(trigger_outputs)
         return output
 
+    def prune_all_dangling_equipped(self) -> int:
+        """Prune every character's equipped dict after a node deletion.
+
+        Iterates the **world's** ``players`` dict (``PlayerManager.players`` is
+        a list of active-player objects, not the roster).
+        """
+        roster = getattr(self.world, "players", None) or {}
+        values = roster.values() if isinstance(roster, dict) else roster
+        total = 0
+        for player in list(values):
+            try:
+                total += len(self.prune_dangling_equipped(player))
+            except Exception:
+                continue
+        return total
+
     def set_equipped_payload(self, player, payload, *, player_name: str = "") -> dict:
         """task-654: write an ``equipped`` mapping to BOTH truths, atomically.
 
@@ -365,6 +381,40 @@ class EquipmentSystem:
         if getattr(self, "world", None) is not None:
             self._maybe_update_equipment_description(player)
         return {"slots": dict(player.equipped), "unresolved": unresolved}
+
+    def prune_dangling_equipped(self, player, player_id=None) -> list:
+        """task-654: drop equipped ids whose item node no longer exists.
+
+        The second half of the same divergence, found while closing this task:
+        ``DELETE /api/graph/node/<id>`` removes the node and its edges, but the
+        ``player.equipped`` dict is not part of the graph, so the id survives the
+        node. It then lies to every reader that trusts the dict — the equipment
+        readout counts the item as worn, and ``body_parts.is_exposed`` degrades a
+        missing node to "this region is uncovered", which silently changes
+        coverage maths rather than failing.
+
+        Markers are left alone (they mirror an item that may still exist). Any
+        equipped edge whose item is gone is removed too. Returns the ids pruned.
+        """
+        player_id = player_id or self.player_manager.get_player_node_id(
+            getattr(player, "name", ""))
+        pruned = []
+        for slot, stack in list((getattr(player, "equipped", None) or {}).items()):
+            if not isinstance(stack, list):
+                continue
+            kept = []
+            for item_id in stack:
+                if self._is_marker(item_id):
+                    kept.append(item_id)
+                    continue
+                node = self.graph.get_node(item_id) if item_id else None
+                if node is not None and node.type == "item":
+                    kept.append(item_id)
+                else:
+                    pruned.append(item_id)
+                    self.graph.remove_edge(item_id, player_id, EDGE_EQUIPPED)
+            player.equipped[slot] = kept
+        return pruned
 
     def _sync_equipped_from_graph(self, player, player_id):
         """Rebuild player.equipped from graph EDGE_EQUIPPED edges to fix desyncs."""
