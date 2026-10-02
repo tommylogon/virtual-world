@@ -1,5 +1,6 @@
 ---
 group: Pleasure System
+status: review
 ---
 
 # Environmental & Clothing Effects (Wet/Transparency/Friction)
@@ -50,6 +51,45 @@ description**, not by new numeric props. This is a live-game presentation concer
   suite covers it; retire it only alongside that decision.
 
 ---
+
+## Closed by task-489 (2026-10-02, WT-characters-engine)
+
+The "Still open" list above had two items. One is closed, one was never open in
+the way it read, and the third entry — task-489's `opacity`/`friction` — is
+**refused**. All of it is recorded in task-489's file; the summary:
+
+### Closed: *"Rain -> clothing wet -> description regenerates"*
+
+`set_wet` now marks each soaked garment's `current_state`, regenerates the
+wearer's appearance description, and does both **only** through
+`_maybe_update_equipment_description`, so `world.auto_generate_descriptions`
+still governs it.
+
+Two things made this harder than "call the description updater", and both were
+found by driving it:
+
+1. **`set_wet` with no node named never worked.** The branch read
+   `game_state.active_player` — which is a **name string**, not a `Player` — and
+   passed it to `equipment.get_equipped_items`, a method that does not exist. So
+   rain, wading and flooding silently soaked *nothing*. The branch now resolves
+   the object through `player_manager.get_active_player_obj()` and reads the
+   `equipped` **edges** (task-654 made those and the dict one fact).
+2. **The code-generated description could not reflect the change even when it
+   did fire.** `_update_equipment_description` renders `ITEM DETAILS` for the LLM
+   prompt but its *fallback* text listed slot names only — so a newly soaked
+   character regenerated to byte-identical prose. That is why this read as
+   unwired. The fallback now emits an item's live state as its own sentence.
+
+### Never open in the way it read: the `friction` trickle
+
+`task-208 friction trickle` is described here as "dormant debt… left in place
+because task-208's test suite covers it". It is now **live** and firing: the tick
+pass reads `node.properties.get("friction")` on equipped items, and task-545's
+recording pass attributes that gain to the `clothing_friction` path, which makes
+it distinguishable from any touch (task-488 needs that distinction). No library
+item authors a `friction` value, so in practice it contributes nothing — the
+property is still effectively dormant, but the *mechanism* is now wired rather
+than absent, and the decision to retire it stands.
 
 ## Original problem (for reference)
 

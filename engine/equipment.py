@@ -944,6 +944,30 @@ class EquipmentSystem:
                     lines.append(f"- {node.name}: {desc}")
         return lines
 
+    @staticmethod
+    def coverage_of(node, default: float = 0.8) -> float:
+        """A garment's coverage, defaulting to ``default`` when it says nothing.
+
+        task-489. One place answers "how much does this cover", so the description
+        and `engine/body_parts.py::COVERAGE_EXPOSED_THRESHOLD` cannot drift apart
+        — the default is deliberately *that same* 0.8, which means an item with no
+        authored coverage blocks skin contact, like clothing does.
+
+        A non-numeric or out-of-range value falls back rather than propagating: a
+        garment whose coverage is ``"sheer"`` is a garment whose coverage was
+        written wrong, and refusing to describe it helps nobody.
+        """
+        props = getattr(node, "properties", None) or {}
+        if "coverage" not in props:
+            return default
+        try:
+            value = float(props["coverage"])
+        except (TypeError, ValueError):
+            return default
+        if not 0.0 <= value <= 1.0:
+            return default
+        return value
+
     def _equipment_detail_lines(self, player, full):
         """task-210/215: per-item clothing detail for the appearance prompt.
 
@@ -963,8 +987,21 @@ class EquipmentSystem:
                 props = node.properties or {}
                 desc = self._item_description_text(node)
                 meta = []
-                if 'coverage' in props:
-                    meta.append(f"coverage {props['coverage']}")
+                # task-489: `coverage` defaults to 0.8 when absent, which is the
+                # same threshold `engine/body_parts.py:COVERAGE_EXPOSED_THRESHOLD`
+                # uses to decide whether a layer blocks skin contact. So an item
+                # that says nothing is read as a *covering* garment — which is
+                # what clothing is — rather than as an author who forgot, and the
+                # default is the one number that keeps `is_exposed()` and the
+                # description agreeing with each other.
+                #
+                # Numeric `opacity`/`friction` are deliberately **not** added:
+                # task-215 re-scoped layer visibility onto the item's own
+                # description, and
+                # `tests/test_equipment_system.py::
+                # test_detail_lines_carry_description_not_opacity_or_friction`
+                # asserts they are not advertised even when authored.
+                meta.append(f"coverage {self.coverage_of(node)}")
                 state = props.get('current_state')
                 if state and state not in ('off', 'unlit'):
                     meta.append(f"state: {state}")
@@ -1034,6 +1071,29 @@ class EquipmentSystem:
             items = full.get(hand, [])
             if items:
                 fallback_parts.append(f"{items[-1]} in their {slot_labels.get(hand, hand)}")
+        # task-489: the fallback used to list slot names only, so a garment that
+        # had just been soaked regenerated to *byte-identical* text — which is
+        # what made "wet -> description regenerates" look unwired even when it
+        # was firing. The item's own live state ("soaked") is the fact that has
+        # to survive into the prose, and it is already in `detail_lines`.
+        # Rendered as its own sentence rather than appended to the wearing list,
+        # which would read "... wearing a dress on their torso, state: soaked".
+        #
+        # The detail line packs `coverage` and `state` into one bracketed tail —
+        # `- Rain Coat (torso): Waxed cotton. [coverage 0.8, state: soaked]` — so
+        # `state` is found by locating the label rather than by looking for a
+        # bracket that only exists when coverage is absent.
+        state_clauses = []
+        for detail in detail_lines:
+            _head, marker, tail = detail.partition("state:")
+            if not marker:
+                continue
+            detail_state = tail.split(",")[0].split("]")[0].strip()
+            item_name = _head.strip()[2:].split(" (")[0].split(": ")[0]
+            if detail_state and item_name:
+                state_clauses.append(f"{item_name} is {detail_state}")
+        if state_clauses:
+            parts.append(" ".join(state_clauses).capitalize() + ".")
         if fallback_parts:
             parts.append(f"{player.name} is wearing " + ", ".join(fallback_parts) + ".")
         # task-210: fallback text also carries the visible body state.
