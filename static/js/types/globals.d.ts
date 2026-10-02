@@ -9,6 +9,24 @@
  * See docs/design/typescript-migration.md.
  */
 
+/**
+ * ConfigManager (config.js) declares `const config = new ConfigManager()` at
+ * top level, so the two configs disagree about `config`:
+ *
+ * - `tsconfig.json` (build) includes only `.ts`, so the `declare const config`
+ *   below is the *only* declaration and it is what the build sees.
+ * - `tsconfig.check.json` includes `.js` with allowJs, so `config.js`'s own
+ *   declaration wins there and `config` is the inferred `ConfigManager`.
+ *
+ * That is why `controllingPlayer` has to be declared on *both*: it is assigned
+ * dynamically (34 sites) and the class does not declare it, so neither view
+ * knows it. Converting config.js is the real fix; this keeps both gates green
+ * without a runtime change.
+ */
+interface ConfigManager {
+    controllingPlayer?: string;
+}
+
 /** ConfigManager singleton (config.js): user settings + feature flags. */
 declare const config: {
     rpmLimit?: number;

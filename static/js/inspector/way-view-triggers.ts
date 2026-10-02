@@ -9,16 +9,10 @@
  * @docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
-interface ExtractedTrigger {
-    trigger_type: string;
-    effects: unknown[];
-    target_name: string;
-    target_state: string;
-    conditions: unknown;
-    success_message: string;
-    fail_message: string;
-}
-
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+// NOTE: ExtractedTrigger is declared *below* on purpose — a leading type-only
+// statement makes tsc drop this file's leading JSDoc, and js_module_index.py
+// reads @module out of the emitted .js. Keep a value declaration first.
 const InspectorWayViewTriggers = (() => {
     const api = {} as {
         _extractTriggersFromEdges(nodeId: string): ExtractedTrigger[];
@@ -60,3 +54,13 @@ const InspectorWayViewTriggers = (() => {
 
 (window as unknown as { InspectorWayViewTriggers: typeof InspectorWayViewTriggers })
     .InspectorWayViewTriggers = InspectorWayViewTriggers;
+
+interface ExtractedTrigger {
+    trigger_type: string;
+    effects: unknown[];
+    target_name: string;
+    target_state: string;
+    conditions: unknown;
+    success_message: string;
+    fail_message: string;
+}

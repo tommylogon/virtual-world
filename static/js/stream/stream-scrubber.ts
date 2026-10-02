@@ -1,4 +1,3 @@
-"use strict";
 /**
  * stream-scrubber.js — timeline minimap for the event stream (task-340)
  *
@@ -14,19 +13,20 @@
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 class StreamScrubber {
-    _bus;
-    MAX_SEGS;
-    _rebuildTimer;
-    constructor(bus) {
+    _bus: unknown;
+    MAX_SEGS: number;
+    _rebuildTimer: ReturnType<typeof setTimeout> | null;
+
+    constructor(bus: unknown) {
         this._bus = bus;
         this.MAX_SEGS = 120;
         this._rebuildTimer = null;
     }
-    el() {
+
+    el(): HTMLDivElement | null {
         const streamEl = document.getElementById('event-stream');
-        if (!streamEl)
-            return null;
-        let bar = streamEl.querySelector('.timeline-scrubber');
+        if (!streamEl) return null;
+        let bar = streamEl.querySelector<HTMLDivElement>('.timeline-scrubber');
         if (!bar) {
             // A local, so the click/scroll closures below do not re-read the
             // `let` that is still null until the assignment at the end.
@@ -47,30 +47,27 @@ class StreamScrubber {
         }
         return bar;
     }
+
     /** Debounced rebuild — called from log paths. */
-    scheduleRebuild() {
-        if (this._rebuildTimer)
-            return;
+    scheduleRebuild(): void {
+        if (this._rebuildTimer) return;
         this._rebuildTimer = setTimeout(() => { this._rebuildTimer = null; this.rebuild(); }, 800);
     }
-    rebuild() {
+
+    rebuild(): void {
         const streamEl = document.getElementById('event-stream');
-        if (!streamEl)
-            return;
+        if (!streamEl) return;
         const bar = this.el();
-        if (!bar)
-            return;
-        const entries = [];
+        if (!bar) return;
+        const entries: Element[] = [];
         for (const child of streamEl.children) {
             const cls = child.className || '';
-            if (cls.includes('timeline-scrubber') || cls.includes('stream-scope-banner') || cls.includes('turn-queue-strip'))
-                continue;
+            if (cls.includes('timeline-scrubber') || cls.includes('stream-scope-banner') || cls.includes('turn-queue-strip')) continue;
             entries.push(child);
         }
         // Rebuild segment row (keep the head element at index 0)
         const head = bar.querySelector('.scrub-head');
-        while (bar.childNodes.length > 1)
-            bar.removeChild(bar.lastChild);
+        while (bar.childNodes.length > 1) bar.removeChild(bar.lastChild!);
         const bucketCount = Math.min(this.MAX_SEGS, Math.max(entries.length, 1));
         const perBucket = entries.length / bucketCount;
         for (let i = 0; i < bucketCount; i++) {
@@ -84,29 +81,25 @@ class StreamScrubber {
             seg.className = `seg${kind ? ' ' + kind : ''}`;
             bar.appendChild(seg);
         }
-        bar.appendChild(head);
+        bar.appendChild(head!);
         this._syncHead(bar);
     }
-    _classify(node, current) {
+
+    _classify(node: Element, current: string): string {
         const cls = node.className || '';
         const text = cls.includes('turn-card') ? (node.querySelector('.turn-card-body')?.textContent || '') : (node.textContent || '');
-        if (/parse error|⚠|crisis|❌|failed/i.test(text) && current !== 'crisis')
-            return 'crisis';
-        if (cls.includes('msg-bubble-error'))
-            return 'crisis';
-        if (/💬|"|\bsay|\bwhisper/i.test(text) && current === '')
-            return 'speech';
-        if (cls.includes('msg-bubble-action'))
-            return current === '' ? 'hot' : current;
+        if (/parse error|⚠|crisis|❌|failed/i.test(text) && current !== 'crisis') return 'crisis';
+        if (cls.includes('msg-bubble-error')) return 'crisis';
+        if (/💬|"|\bsay|\bwhisper/i.test(text) && current === '') return 'speech';
+        if (cls.includes('msg-bubble-action')) return current === '' ? 'hot' : current;
         return current;
     }
-    _syncHead(bar) {
+
+    _syncHead(bar: HTMLElement): void {
         const streamEl = document.getElementById('event-stream');
-        if (!streamEl || !bar)
-            return;
-        const head = bar.querySelector('.scrub-head');
-        if (!head)
-            return;
+        if (!streamEl || !bar) return;
+        const head = bar.querySelector<HTMLElement>('.scrub-head');
+        if (!head) return;
         const range = streamEl.scrollHeight - streamEl.clientHeight;
         const ratio = range > 0 ? streamEl.scrollTop / range : 0;
         head.style.left = `${(ratio * 100).toFixed(2)}%`;

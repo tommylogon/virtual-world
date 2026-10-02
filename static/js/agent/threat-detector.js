@@ -1,3 +1,4 @@
+"use strict";
 /**
  * threat-detector.js — Room threat analysis for character agents
  *
@@ -13,59 +14,44 @@
  * @docs docs/virtualWorld/Characters/NPC Behavior System.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
-
 const ThreatDetector = (() => {
     'use strict';
-
-    function getThreatAlert(
-        charName: string,
-        player: unknown,
-        currentArea: unknown,
-        turnEvents: { actor?: string; action?: string }[] | null,
-    ): string | null {
+    function getThreatAlert(charName, player, currentArea, turnEvents) {
         const areaPlayers = worldState.data?.players_in_area || [];
         const allPlayers = worldState.data?.players || {};
-        const threats: string[] = [];
-
+        const threats = [];
         for (const person of areaPlayers) {
-            if (person.name === charName) continue;
+            if (person.name === charName)
+                continue;
             const otherPlayer = allPlayers[person.name];
-            if (!otherPlayer) continue;
-
-            if (otherPlayer.state === 'hidden' || otherPlayer.state === 'stealthed') continue;
-
+            if (!otherPlayer)
+                continue;
+            if (otherPlayer.state === 'hidden' || otherPlayer.state === 'stealthed')
+                continue;
             const hasMet = worldState.hasMet(charName, person.name);
             const threatName = hasMet ? person.name
                 : (otherPlayer.description?.split(/[.,;]/)[0]?.trim() || 'A hostile figure');
-
             if (otherPlayer.traits?.hostile) {
                 threats.push(threatName);
                 continue;
             }
-
             const theirRelToMe = otherPlayer.relationships?.[charName]?.closeness;
             if (theirRelToMe !== undefined && theirRelToMe < -20) {
                 threats.push(threatName);
                 continue;
             }
-
-            const justAttacked = (turnEvents || []).some(
-                turnEvent => turnEvent.actor === person.name && turnEvent.action === 'attack'
-            );
+            const justAttacked = (turnEvents || []).some(turnEvent => turnEvent.actor === person.name && turnEvent.action === 'attack');
             if (justAttacked) {
                 threats.push(threatName);
                 continue;
             }
         }
-
-        if (threats.length === 0) return null;
-
+        if (threats.length === 0)
+            return null;
         return `⚠️ IMMEDIATE DANGER: ${threats.join(', ')} ${threats.length > 1 ? 'are' : 'is'} in this room and hostile toward you. ` +
-               `Your current plan is INVALID. You MUST flee, hide, fight, or warn others NOW. ` +
-               `Do NOT examine items, explore doors, or follow your previous plan while a threat is present.`;
+            `Your current plan is INVALID. You MUST flee, hide, fight, or warn others NOW. ` +
+            `Do NOT examine items, explore doors, or follow your previous plan while a threat is present.`;
     }
-
     return { getThreatAlert };
 })();
-
-(window as unknown as { ThreatDetector: typeof ThreatDetector }).ThreatDetector = ThreatDetector;
+window.ThreatDetector = ThreatDetector;

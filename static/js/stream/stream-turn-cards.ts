@@ -10,11 +10,10 @@
  * @docs docs/virtualWorld/UI & Settings/Event Log Export.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
-interface TurnCardBus {
-    _turnLabel(): string;
-    _scrubber?: { scheduleRebuild(): void } | null;
-}
-
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+// NOTE: TurnCardBus is declared *below* on purpose — a leading type-only
+// statement makes tsc drop this file's leading JSDoc, and js_module_index.py
+// reads @module out of the emitted .js. Keep a value declaration first.
 class StreamTurnCards {
     _bus: TurnCardBus;
     current: HTMLDivElement | null;
@@ -73,4 +72,9 @@ class StreamTurnCards {
     rebindAll(streamEl: HTMLElement): void {
         for (const card of streamEl.querySelectorAll<HTMLElement>('.turn-card')) this._bindToggle(card);
     }
+}
+
+interface TurnCardBus {
+    _turnLabel(): string;
+    _scrubber?: { scheduleRebuild(): void } | null;
 }

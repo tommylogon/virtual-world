@@ -467,6 +467,27 @@ def cmd_plan(args) -> int:
     return 0
 
 
+def header_survived(ts_path: Path) -> tuple[bool, str]:
+    """Did ``@module`` make it into the emitted ``.js``?
+
+    tsc drops a file's leading JSDoc when the first statement is type-only (an
+    ``interface`` or ``type`` alias), because the JSDoc is attached to a node
+    that emits nothing. ``js_module_index.py`` reads ``@module`` out of the
+    *emitted* .js, so a conversion can silently strip the module contract while
+    looking perfectly correct in the .ts. Verified with a five-case probe; the
+    fix is to keep a value declaration first.
+    """
+    emitted = ts_path.with_suffix(".js")
+    if not emitted.exists():
+        return False, "emitted .js is missing"
+    if "@module" not in ts_path.read_text(encoding="utf-8"):
+        return True, "source has no @module header"
+    if "@module" in emitted.read_text(encoding="utf-8"):
+        return True, "header preserved"
+    return False, ("@module is in the .ts but NOT in the emitted .js — the first "
+                   "statement is probably type-only; move a value declaration above it")
+
+
 def cmd_convert(args) -> int:
     path = rel_of(args.path)
     if path.suffix != ".js":
@@ -514,6 +535,15 @@ def cmd_convert(args) -> int:
         print(output[:4000])
         return 1
     print("build:ts ok")
+
+    survived, why = header_survived(target)
+    if survived:
+        print("header check    ok")
+    else:
+        print(f"header check    FAILED - {why}")
+        print("                `python tools/js_module_index.py --check` will fail until this is fixed.")
+        return 1
+
     print("\nNext: python tools/ts_convert.py check " + rel)
     return 0
 
@@ -525,6 +555,21 @@ def cmd_check(args) -> int:
     steps.append(("build:ts", npm("run", "build:ts")))
     steps.append(("typecheck", npm("run", "typecheck")))
     steps.append(("lint", npm("run", "lint")))
+
+    # The module contract lives in the emitted .js, and tsc will silently drop a
+    # leading JSDoc when a file starts with a type-only statement. Checked after
+    # build:ts, not before, or it reads the previous emit.
+    def emitted_modules() -> list[Path]:
+        seen: dict[str, Path] = {}
+        for path in args.paths or source_files():
+            ts = rel_of(path)
+            if ts.suffix != ".ts":
+                ts = ts.with_suffix(".ts")
+            if not ts.exists() or "vendor" in ts.parts:
+                continue
+            seen[ts.relative_to(REPO_ROOT).as_posix()] = ts
+        return sorted(seen.values(), key=lambda p: p.as_posix())
+
     steps.append(("module:check", [sys.executable, "tools/js_module_index.py", "--check"]))
 
     for path in args.paths:
@@ -544,6 +589,21 @@ def cmd_check(args) -> int:
             tail = (proc.stdout + proc.stderr).strip().splitlines()
             for line in tail[-25:]:
                 print(f"      {line}")
+    print()
+    lost = []
+    for ts in emitted_modules():
+        survived, why = header_survived(ts)
+        if not survived:
+            lost.append(f"{ts.relative_to(REPO_ROOT).as_posix()}: {why}")
+
+    if lost:
+        print(f"  {len(lost)} converted file(s) LOST their @module header in the emitted .js:")
+        for entry in lost:
+            print(f"    - {entry}")
+        failed += 1
+    else:
+        print(f"  header survival  ok ({len(emitted_modules())} converted files)")
+
     print()
     print("gate failed" if failed else "gate green")
     return 1 if failed else 0

@@ -1,4 +1,3 @@
-"use strict";
 /**
  * stream-control-mode.js — character control mode cycling (task-340)
  *
@@ -14,13 +13,15 @@
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 class StreamControlMode {
-    _bus;
-    _autonomy;
-    constructor(bus) {
+    _bus: unknown;
+    _autonomy: Record<string, boolean>;
+
+    constructor(bus: unknown) {
         this._bus = bus;
         this._autonomy = {};
     }
-    isAutonomous(charName) {
+
+    isAutonomous(charName: string): boolean {
         if (this._autonomy[charName] === undefined) {
             // Seed from backend so a human (autonomy False) survives reloads
             // and stays human instead of reverting to LLM-driving (task-244).
@@ -29,26 +30,26 @@ class StreamControlMode {
         }
         return this._autonomy[charName];
     }
+
     /**
      * Resolve the control mode for a character:
      *   'npc'   — simple_npc (scripted behaviors, backend tick drives them)
      *   'human' — autonomy off (engine skips them — the human drives via commands)
      *   'llm'   — autonomous non-NPC (agent engine drives them)
      */
-    getControlMode(charName) {
+    getControlMode(charName: string): 'npc' | 'human' | 'llm' {
         const player = worldState.players?.[charName];
-        if (player?.simple_npc)
-            return 'npc';
-        if (!this.isAutonomous(charName))
-            return 'human';
+        if (player?.simple_npc) return 'npc';
+        if (!this.isAutonomous(charName)) return 'human';
         return 'llm';
     }
+
     /** Cycle a character through Human → LLM → NPC → Human and apply the backend changes. */
-    cycleControlMode(charName) {
+    cycleControlMode(charName: string): void {
         const order = ['human', 'llm', 'npc'];
         const current = this.getControlMode(charName);
         const next = order[(order.indexOf(current) + 1) % order.length];
-        const modeLabels = {
+        const modeLabels: Record<string, string> = {
             human: 'HUMAN-controlled', llm: 'LLM-controlled', npc: 'NPC-controlled'
         };
         const label = modeLabels[next];
@@ -58,8 +59,7 @@ class StreamControlMode {
         if (next === 'human') {
             autonomy = false;
             makeActive = true;
-        }
-        else if (next === 'npc') {
+        } else if (next === 'npc') {
             simpleNpc = true;
         }
         ApiClient.updateCharacter(charName, { simple_npc: simpleNpc, autonomy: autonomy }).then(async () => {
@@ -69,8 +69,7 @@ class StreamControlMode {
             }
             // Refetch + re-render for ALL modes so the mode badge actually updates.
             const freshState = await worldState.fetch();
-            if (freshState && worldState.data)
-                VW?.ui?.renderAll?.(freshState);
+            if (freshState && worldState.data) VW?.ui?.renderAll?.(freshState);
             events.log(`${charName} → ${label}`, 'system-msg');
         }).catch(err => {
             events.log(`Failed to switch ${charName}: ${err instanceof Error ? err.message : String(err)}`, 'error-msg');

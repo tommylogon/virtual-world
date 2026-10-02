@@ -6,8 +6,9 @@
  * @docs docs/design/event-stream-design-recommendation.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
-type EventCallback = (data?: unknown) => void;
-
+// NOTE: the type alias sits *below* the class on purpose. tsc drops a file's
+// leading JSDoc when the first statement is type-only, and js_module_index.py
+// reads @module out of the emitted .js. Keep a value declaration first.
 class AppEventBus {
     _listeners: Map<string, EventCallback[]>;
 
@@ -35,3 +36,5 @@ class AppEventBus {
 }
 const appEventsInstance = new AppEventBus();
 (window as unknown as { appEvents: AppEventBus }).appEvents = appEventsInstance;
+
+type EventCallback = (data?: unknown) => void;

@@ -1,4 +1,15 @@
 "use strict";
+/**
+ * @module event-bus — tiny synchronous pub/sub used across the UI
+ * @contributes AppEventBus (`on`/`off`/`once`/`emit`) and the `appEvents` singleton
+ * @powers Event stream — the `log` event stream that feeds the turn feed, stream filters, and panels
+ * @relates subscribed to by event-stream.js, turn-feed.js, changes-panel, and others
+ * @docs docs/design/event-stream-design-recommendation.md
+ */
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+// NOTE: the type alias sits *below* the class on purpose. tsc drops a file's
+// leading JSDoc when the first statement is type-only, and js_module_index.py
+// reads @module out of the emitted .js. Keep a value declaration first.
 class AppEventBus {
     _listeners;
     constructor() {

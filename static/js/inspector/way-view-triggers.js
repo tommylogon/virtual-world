@@ -1,4 +1,19 @@
 "use strict";
+/**
+ * InspectorWayViewTriggers — Trigger extraction for way inspector
+ * Extracted from way-view.js for modularity.
+ *
+ * @module inspector/way-view-triggers — trigger extraction for the way inspector
+ * @contributes InspectorWayViewTriggers: pull a way's trigger edges into the inspector's trigger list
+ * @powers showing a way's triggers in the way inspector
+ * @relates consumed by way-view; complements inspector/trigger-helpers
+ * @docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
+ */
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+// NOTE: ExtractedTrigger is declared *below* on purpose — a leading type-only
+// statement makes tsc drop this file's leading JSDoc, and js_module_index.py
+// reads @module out of the emitted .js. Keep a value declaration first.
 const InspectorWayViewTriggers = (() => {
     const api = {};
     api._extractTriggersFromEdges = function (nodeId) {

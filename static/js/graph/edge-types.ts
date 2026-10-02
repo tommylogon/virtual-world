@@ -10,13 +10,10 @@
  * @docs docs/virtualWorld/World Building/Graph System.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
-interface EdgeTypeConfig {
-    label: string;
-    icon: string;
-    color: string;
-    desc: string;
-}
-
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+// NOTE: EdgeTypeConfig is declared *below* on purpose — a leading type-only
+// statement makes tsc drop this file's leading JSDoc, and js_module_index.py
+// reads @module out of the emitted .js. Keep a value declaration first.
 const EdgeTypes = {
     // All edge types with display metadata
     ALL: {
@@ -93,3 +90,10 @@ const EdgeTypes = {
 };
 
 (window as unknown as { EdgeTypes: typeof EdgeTypes }).EdgeTypes = EdgeTypes;
+
+interface EdgeTypeConfig {
+    label: string;
+    icon: string;
+    color: string;
+    desc: string;
+}

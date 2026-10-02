@@ -1,4 +1,3 @@
-"use strict";
 /**
  * @module soak-presets — built-in experiment presets + locally saved run configs
  * @contributes preset definitions, localStorage-backed saved configs, merge/resolve helpers
@@ -9,10 +8,29 @@
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 (function () {
     'use strict';
+
+    type SoakConfig = Record<string, unknown>;
+
+    interface SoakPreset {
+        id: string;
+        name: string;
+        icon: string;
+        hint: string;
+        config: SoakConfig;
+        days?: number;
+    }
+
+    interface SavedSoakConfig {
+        name: string;
+        config: SoakConfig;
+        savedAt: number;
+    }
+
     const LS_KEY = 'soak.savedConfigs.v1';
+
     // `days` is resolved against the currently selected minutes/tick so a preset
     // means "one game week" regardless of tick length.
-    const PRESETS = [
+    const PRESETS: SoakPreset[] = [
         {
             id: 'authored', name: 'Authored baseline', icon: '🧭',
             hint: 'Whatever the scenario ships with, no overrides.',
@@ -64,43 +82,51 @@
             config: {}, days: 30,
         },
     ];
-    function loadSaved() {
+
+    function loadSaved(): SavedSoakConfig[] {
         try {
             const raw = localStorage.getItem(LS_KEY);
             const parsed = raw ? JSON.parse(raw) : [];
             return Array.isArray(parsed) ? parsed : [];
-        }
-        catch (err) {
+        } catch (err) {
             return [];
         }
     }
-    function saveSaved(list) {
+
+    function saveSaved(list: SavedSoakConfig[]): void {
         try {
             localStorage.setItem(LS_KEY, JSON.stringify(list.slice(0, 40)));
-        }
-        catch (err) { /* quota/private mode — silently ignore */ }
+        } catch (err) { /* quota/private mode — silently ignore */ }
     }
-    function addSaved(name, config) {
+
+    function addSaved(name: string, config: SoakConfig): SavedSoakConfig[] {
         const list = loadSaved();
         list.unshift({ name: name || 'Untitled', config: config, savedAt: Date.now() });
         saveSaved(list);
         return list;
     }
-    function removeSaved(index) {
+
+    function removeSaved(index: number): SavedSoakConfig[] {
         const list = loadSaved();
         list.splice(index, 1);
         saveSaved(list);
         return list;
     }
+
     /** Merge a preset (or saved config) over a base config, resolving `days`. */
-    function resolve(preset, baseConfig, metaDefaults) {
-        const out = Object.assign({}, baseConfig || {}, preset.config || {});
+    function resolve(
+        preset: SoakPreset,
+        baseConfig: SoakConfig | null,
+        metaDefaults?: { minutes_per_tick?: number } | null,
+    ): SoakConfig {
+        const out: SoakConfig = Object.assign({}, baseConfig || {}, preset.config || {});
         if (preset.days) {
             const mpt = Number(out.minutes_per_tick) || Number((metaDefaults || {}).minutes_per_tick) || 1;
             out.ticks = Math.max(1, Math.round((preset.days * 1440) / mpt));
         }
         return out;
     }
+
     const SoakPresets = { PRESETS, loadSaved, saveSaved, addSaved, removeSaved, resolve };
-    window.SoakPresets = SoakPresets;
+    (window as unknown as { SoakPresets: typeof SoakPresets }).SoakPresets = SoakPresets;
 })();
