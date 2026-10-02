@@ -22,7 +22,7 @@ from __future__ import annotations
 import logging
 from typing import Callable, Dict, Iterable, List, Optional
 
-from graph import EDGE_IN
+from graph import EDGE_IN, Edge
 
 logger = logging.getLogger(__name__)
 
@@ -60,6 +60,9 @@ class GlobalScopeIndex:
     def __init__(self):
         self._scope_parent: Dict[str, Optional[str]] = {}
         self._area_owner: Dict[str, str] = {}
+        # Every node's owning scope, not just areas — so a due event aimed at a
+        # trigger in an evicted scope can find which scope to load (task-584).
+        self._node_owner: Dict[str, str] = {}
         self._character_location: Dict[str, str] = {}
         self._item_location: Dict[str, str] = {}
         self._gateways: Dict[str, dict] = {}
@@ -85,6 +88,7 @@ class GlobalScopeIndex:
         """
         self._scope_parent = {}
         self._area_owner = {}
+        self._node_owner = {}
         self._character_location = {}
         self._item_location = {}
         self._gateways = {}
@@ -109,6 +113,8 @@ class GlobalScopeIndex:
             node_type = getattr(node, "type", "")
             props = getattr(node, "properties", {}) or {}
             owner = _node_scope(node)
+            if owner:
+                self._node_owner[node.id] = owner
             if node_type == "area" and owner:
                 self._area_owner[node.id] = owner
             elif node_type == "way":
@@ -151,6 +157,10 @@ class GlobalScopeIndex:
     def scope_for_area(self, area_id: str) -> Optional[str]:
         return self._area_owner.get(str(area_id))
 
+    def scope_for_node(self, node_id: str) -> Optional[str]:
+        """The scope that owns *node_id* (any type), or None if scope-less."""
+        return self._node_owner.get(str(node_id))
+
     def areas_in_scope(self, scope_id: str) -> List[str]:
         scope_id = str(scope_id)
         return sorted(a for a, s in self._area_owner.items() if s == scope_id)
@@ -174,6 +184,49 @@ class GlobalScopeIndex:
 
     def item_location(self, item_id: str) -> Optional[str]:
         return self._item_location.get(str(item_id))
+
+    def restore_locations(self, graph, scope_id: Optional[str] = None) -> int:
+        """Re-add the ``in`` edges for recorded locations now that areas load.
+
+        A character or unique item is **not** owned by the scope that holds its
+        current area: when that scope unloads, the entity survives and only its
+        location edge is dropped. Its location is kept here by id, and an
+        ``in`` edge is restored once the area is back. Idempotent — an entity
+        that already has a location edge is left alone.
+        """
+        if scope_id is not None:
+            wanted = set(self.areas_in_scope(scope_id))
+        else:
+            wanted = None
+        restored = 0
+        for mapping in (self._character_location, self._item_location):
+            for entity_id, area_id in list(mapping.items()):
+                if wanted is not None and area_id not in wanted:
+                    continue
+                if graph.get_node(area_id) is None:
+                    continue
+                if graph.get_edges_for_source(entity_id, EDGE_IN):
+                    continue
+                graph.add_edge(Edge(source=entity_id, target=area_id, type=EDGE_IN))
+                restored += 1
+        return restored
+
+    def unload(self, graph, scope_id: str) -> dict:
+        """Evict a scope while keeping the location of everything that survives.
+
+        Characters, carried/equipped items and their triggers are owned by
+        their character/item, not by the chunk they happen to stand in, so an
+        unload must remove the area and its edges but remember where those
+        entities were; :meth:`restore_locations` re-attaches them on reload.
+        Returns the graph unload report plus ``recorded_locations``.
+        """
+        doomed = set(self.areas_in_scope(scope_id))
+        recorded = {eid: aid for eid, aid in
+                    {**self._character_location, **self._item_location}.items()
+                    if aid in doomed}
+        result = graph.unload_scope(scope_id)
+        result["recorded_locations"] = recorded
+        return result
 
     # ── gateways ────────────────────────────────────────────────────────
 
@@ -232,6 +285,9 @@ class GlobalScopeIndex:
         result = graph.merge_scope(scope_id, payload)
         logger.info("loaded scope %s on demand (%d node(s))",
                     scope_id, len(result.get("added", [])))
+        # task-584: entities that survived the eviction get their location edge
+        # back now that their area is loaded again.
+        self.restore_locations(graph, scope_id)
         return graph.is_scope_loaded(scope_id)
 
     def ensure_destination_loaded(self, graph, way_id: str) -> Optional[str]:
@@ -258,6 +314,7 @@ class GlobalScopeIndex:
         return {
             "scope_parent": dict(self._scope_parent),
             "area_owner": dict(self._area_owner),
+            "node_owner": dict(self._node_owner),
             "character_location": dict(self._character_location),
             "item_location": dict(self._item_location),
             "gateways": {k: dict(v) for k, v in self._gateways.items()},
@@ -272,6 +329,8 @@ class GlobalScopeIndex:
         index._scope_parent = dict(data.get("scope_parent") or {})
         index._area_owner = {str(k): str(v)
                              for k, v in (data.get("area_owner") or {}).items()}
+        index._node_owner = {str(k): str(v)
+                             for k, v in (data.get("node_owner") or {}).items()}
         index._character_location = {str(k): str(v)
                                      for k, v in (data.get("character_location") or {}).items()}
         index._item_location = {str(k): str(v)

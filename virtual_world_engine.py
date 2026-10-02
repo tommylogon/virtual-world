@@ -189,6 +189,12 @@ class VirtualWorld:
         self.triggers = TriggerSystem(self.graph, self, self)
         from engine.event_queue import DelayedEventQueue
         self.delayed_events = DelayedEventQueue()
+        # task-584: a due event whose target lives in an evicted scope is
+        # deferred explicitly (never dropped silently). `deferred` is rebuilt
+        # each attempt; `unresolved` records the events that never found their
+        # target, so the operator can see them.
+        self.deferred_delayed_events = []
+        self.unresolved_delayed_events = []
         # task-330: transient browser-side LLM responses (llm_respond effect).
         # The engine queues; the browser generates + posts back; never saved.
         self.llm_pending_requests = []
@@ -935,17 +941,54 @@ class VirtualWorld:
         return len(self.llm_pending_requests) < before
 
     def _process_delayed_events(self):
-        """Fire all delayed events that are now due (task-90)."""
+        """Fire all delayed events that are now due (task-90 / task-584).
+
+        A target in an evicted scope is loaded on demand through the global
+        index (task-583). If it still cannot be found the event is **deferred**,
+        not dropped: it is re-queued for the next tick, and after a bounded
+        number of attempts recorded as unresolved and surfaced. A silent
+        ``continue`` here used to lose the event entirely (task-584).
+        """
         outputs = []
+        index = getattr(self, "world_index", None)
+        self.deferred_delayed_events = []
         for event in self.delayed_events.pop_due(self.time_ticks):
-            node = self.graph.get_node(event["target_node_id"])
+            target_id = event.get("target_node_id")
+            node = self.graph.get_node(target_id)
+            if node is None and index is not None:
+                scope_id = index.scope_for_node(target_id)
+                if scope_id:
+                    index.ensure_scope_loaded(scope_id, self.graph)
+                    node = self.graph.get_node(target_id)
             if node is None:
+                self._defer_delayed_event(event)
                 continue
             out = self.triggers._execute_triggers(node, event["trigger_type"], game_state=self)
             for line in out:
                 outputs.append(line)
             self.record_turn_event("__system__", "delayed", event["label"])
         return outputs
+
+    def _defer_delayed_event(self, event, max_deferrals: int = 10):
+        """Re-queue a due event whose target is not loaded (task-584)."""
+        event = dict(event)
+        event["deferrals"] = int(event.get("deferrals", 0) or 0) + 1
+        if event["deferrals"] <= max_deferrals:
+            event["fire_tick"] = int(self.time_ticks) + 1
+            self.delayed_events.events.append(event)
+            self.deferred_delayed_events.append(dict(event))
+            logger.warning(
+                "[delayed] target %s is not loaded; deferring (attempt %d/%d)",
+                event.get("target_node_id"), event["deferrals"], max_deferrals)
+        else:
+            self.unresolved_delayed_events.append(dict(event))
+            logger.error(
+                "[delayed] target %s could not be loaded after %d attempts; "
+                "recorded as unresolved rather than dropped silently",
+                event.get("target_node_id"), event["deferrals"])
+            self.add_log_entry(
+                f"[System] a scheduled event for {event.get('target_node_id')} "
+                f"could not be delivered (its location is not loaded).")
 
     def _build_graph_from_legacy(self, data: dict):
         return self.serializer._build_graph_from_legacy(data)

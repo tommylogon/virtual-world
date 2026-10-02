@@ -641,6 +641,14 @@ class WorldGraph:
         if not doomed:
             return {"scope_id": scope_id, "removed": [], "edges_removed": 0}
         doomed_lower = {nid.lower() for nid in doomed}
+        # task-584: a trigger node has no independent life — it is owned by
+        # whatever triggers it. Remember which triggers this scope's nodes
+        # referenced, so one left with no referrer is cleaned up rather than
+        # dangling on a removed node.
+        orphan_candidates = {
+            e.target for e in self.edges
+            if e.type == EDGE_TRIGGERS and str(e.source).lower() in doomed_lower
+        }
         for node_id in doomed:
             self.nodes.pop(node_id, None)
             self._id_index.pop(str(node_id).lower(), None)
@@ -654,8 +662,15 @@ class WorldGraph:
             and str(e.target).lower() not in doomed_lower
         ]
         self._rebuild_indexes()
+        edges_after_filter = len(self.edges)
+        orphans = [tid for tid in orphan_candidates
+                   if self.get_node(tid) is not None
+                   and not self.get_edges_for_target(tid)]
+        for trigger_id in orphans:
+            self.remove_node(trigger_id)
         return {"scope_id": scope_id, "removed": sorted(doomed),
-                "edges_removed": before - len(self.edges)}
+                "edges_removed": before - edges_after_filter,
+                "orphaned_triggers": sorted(orphans)}
 
     def slice_scope(self, scope_id: str) -> dict:
         """A ``merge_scope`` payload for exactly the nodes *scope_id* owns.
