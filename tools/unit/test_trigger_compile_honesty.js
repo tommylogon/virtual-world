@@ -165,6 +165,22 @@ test('a NO branch with two effects is refused, not truncated', () => {
     assertTrue(TriggerGraph.compileError(compiled).length > 0, 'the refusal reason is set');
 });
 
+test('every seeded trigger-mode blueprint compiles to an engine definition', () => {
+    const files = __listDir('data/library/triggers').filter(f => f.endsWith('.json'));
+    assertTrue(files.length > 0, 'blueprints exist');
+    let checked = 0;
+    for (const f of files) {
+        const bp = JSON.parse(__readFile('data/library/triggers/' + f));
+        if (!bp || !bp.graph || !Array.isArray(bp.graph.nodes)) continue;
+        const compiled = TriggerGraph.compileToEngine(bp.graph);
+        if (!compiled) continue; // behavior-mode / no trigger node
+        checked++;
+        assertEq(TriggerGraph.compileError(compiled), '', f + ' compiles clean');
+        assertTrue(!!compiled.trigger_type, f + ' carries a trigger_type');
+    }
+    assertTrue(checked >= 6, 'the seeded trigger blueprints all compiled (' + checked + ')');
+});
+
 // ── behavior mode (task-503) ──────────────────────────────────────────────
 
 function behaviorGraph(withNo) {

@@ -1794,42 +1794,124 @@ window.TriggerGraph = (() => {
         _fitView(true);
     }
 
+    // ─── Blueprint browser (task-442) ───
+    // A searchable picker over data/library/triggers/, in the item-library shape.
+    // Picking load a blueprint's graph into the editor; "Attach" compiles it and
+    // materialises ordinary logic_trigger nodes + triggers edges on the node the
+    // editor was opened from.
+    let _bpLibrary = {};
+
+    function _closeBlueprintModal() {
+        const m = document.getElementById('tg-blueprint-modal');
+        if (m) m.remove();
+    }
+
+    function _renderBlueprintList(filter) {
+        const listEl = document.getElementById('tg-bp-list');
+        if (!listEl) return;
+        const f = String(filter || '').toLowerCase();
+        const entries = Object.entries(_bpLibrary).filter(([id, bp]) => {
+            if (!f) return true;
+            return id.toLowerCase().includes(f)
+                || String(bp?.name || '').toLowerCase().includes(f)
+                || String(bp?.description || '').toLowerCase().includes(f);
+        });
+        if (!entries.length) {
+            window.Lit.render(triggerGraphTag`<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:11px;">No blueprints match.</div>`, listEl);
+            return;
+        }
+        const target = _sourceNodeId || _contextItemId;
+        const rows = entries.map(([id, bp]) => {
+            const n = bp?.name || id;
+            const d = bp?.description || '';
+            const count = Array.isArray(bp?.graph?.nodes) ? bp.graph.nodes.length : 0;
+            return triggerGraphTag`<div class="agent-item" style="cursor:pointer;padding:6px 10px;border-left:3px solid #e3b341;display:flex;align-items:center;gap:6px;" @click=${() => TriggerGraph._pickBlueprint(id)}>
+                <span style="font-size:14px;">📐</span>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-weight:600;font-size:12px;">${n}</div>
+                    <div style="font-size:10px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d || id}</div>
+                    <div style="font-size:9px;color:var(--text-dim);">${count} node${count === 1 ? '' : 's'}</div>
+                </div>
+                ${target ? triggerGraphTag`<button class="btn btn-sm" style="font-size:10px;flex-shrink:0;" @click=${(e) => { e.stopPropagation(); TriggerGraph._attachBlueprint(id); }} title="Compile and attach to ${target}">↳ Attach</button>` : ''}
+            </div>`;
+        });
+        window.Lit.render(triggerGraphTag`${rows}`, listEl);
+    }
+
     function _loadBlueprint() {
         fetch('/api/library/triggers')
             .then(r => r.json())
             .then(library => {
-                const entries = Object.entries(library || {});
-                if (entries.length === 0) {
+                _bpLibrary = library || {};
+                if (Object.keys(_bpLibrary).length === 0) {
                     if (confirm('No blueprints in the library yet. Import a .json file instead?')) _importBlueprintFile();
                     return;
                 }
                 const modal = document.createElement('div');
-                modal.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10000;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:14px;min-width:320px;max-height:70vh;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.5);';
-                const rows = entries.map(([id, bp]) => {
-                    const n = bp?.name || id;
-                    const d = bp?.description || '';
-                    return triggerGraphTag`<div style="padding:6px 8px;margin:2px 0;border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:11px;" @click=${() => TriggerGraph._pickBlueprint(id)}>📐 <b>${n}</b><div style="color:var(--text-muted);font-size:10px;">${d || id}</div></div>`;
-                });
-                window.Lit.render(triggerGraphTag`<div style="font-weight:600;font-size:12px;margin-bottom:8px;color:#e3b341;">📂 Load Blueprint</div>${rows}<div style="margin-top:8px;display:flex;gap:6px;"><button class="btn btn-sm" @click=${() => TriggerGraph._importBlueprintFile()} style="font-size:10px;">⬆️ Import file…</button><button class="btn btn-sm btn-ghost" @click=${(e) => e.currentTarget.closest('div').remove()} style="font-size:10px;">Close</button></div>`, modal);
+                modal.id = 'tg-blueprint-modal';
+                modal.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;';
+                window.Lit.render(triggerGraphTag`
+                    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:14px;width:420px;max-height:70vh;display:flex;flex-direction:column;box-shadow:0 8px 24px rgba(0,0,0,.5);">
+                        <div style="font-weight:600;font-size:12px;margin-bottom:8px;color:#e3b341;">📂 Load Blueprint</div>
+                        <input id="tg-bp-search" type="text" placeholder="🔍 Search blueprints..." style="width:100%;box-sizing:border-box;padding:6px 8px;border:1px solid var(--border);border-radius:4px;background:var(--bg-input);color:var(--text);font-size:11px;margin-bottom:8px;" @input=${(e) => TriggerGraph._filterBlueprints(e.currentTarget.value)}>
+                        <div id="tg-bp-list" style="flex:1;overflow-y:auto;min-height:120px;max-height:50vh;"></div>
+                        <div style="margin-top:8px;display:flex;gap:6px;">
+                            <button class="btn btn-sm" @click=${() => TriggerGraph._importBlueprintFile()} style="font-size:10px;">⬆️ Import file…</button>
+                            <div style="flex:1;"></div>
+                            <button class="btn btn-sm btn-ghost" @click=${() => TriggerGraph._closeBlueprint()} style="font-size:10px;">Close</button>
+                        </div>
+                    </div>`, modal);
+                modal.addEventListener('click', () => TriggerGraph._closeBlueprint());
                 document.body.appendChild(modal);
-                window.addEventListener('click', function h(ev) {
-                    if (ev.target === modal) { modal.remove(); window.removeEventListener('click', h); }
-                });
+                _renderBlueprintList('');
+                setTimeout(() => document.getElementById('tg-bp-search')?.focus(), 30);
             })
             .catch(err => alert('Could not load blueprints: ' + err.message));
     }
     TG._loadBlueprint = _loadBlueprint;
+    TG._closeBlueprint = _closeBlueprintModal;
+    TG._filterBlueprints = function(value) { _renderBlueprintList(value); };
 
     TG._pickBlueprint = function(id) {
-        fetch('/api/library/triggers')
-            .then(r => r.json())
-            .then(library => {
-                const bp = library[id];
-                if (!bp) throw new Error('Blueprint not found');
-                _applyBlueprint(bp);
-                document.querySelectorAll('#tg-modal + div, body > div').forEach(d => { if (d && d.style && d.style.zIndex === '10000') d.remove(); });
-            })
-            .catch(err => alert('Failed: ' + err.message));
+        const bp = _bpLibrary[id];
+        if (!bp) return;
+        _applyBlueprint(bp);
+        _closeBlueprintModal();
+    };
+
+    /** Compile a blueprint graph and materialise it onto the current node (task-442). */
+    TG._attachBlueprint = async function(id) {
+        const bp = _bpLibrary[id];
+        const target = _sourceNodeId || _contextItemId;
+        if (!bp || !bp.graph) {
+            if (typeof toastInfo === 'function') toastInfo('Blueprint has no graph.');
+            return;
+        }
+        if (!target) {
+            if (typeof toastInfo === 'function') toastInfo('Open the graph on a node to attach a blueprint.');
+            return;
+        }
+        const compiled = TG.compileToEngine(bp.graph);
+        if (!compiled) {
+            if (typeof toastInfo === 'function') toastInfo('Blueprint has no trigger node.');
+            return;
+        }
+        if (TG.reportCompileError(compiled)) return;
+        delete compiled.compile_error;
+        try {
+            const resp = await fetch('/api/triggers/attach', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ node_id: target, trigger: compiled }),
+            });
+            const res = await resp.json();
+            if (!resp.ok || res.error) throw new Error(res.error || ('HTTP ' + resp.status));
+            if (typeof toastInfo === 'function') toastInfo(`Attached blueprint → ${res.trigger_ids?.length || 0} trigger node(s).`);
+            _closeBlueprintModal();
+        } catch (err) {
+            if (typeof toastError === 'function') toastError('Attach failed: ' + err.message);
+            else alert('Attach failed: ' + err.message);
+        }
     };
 
     function _importBlueprintFile() {
@@ -1840,7 +1922,7 @@ window.TriggerGraph = (() => {
             try {
                 const text = await file.text();
                 _applyBlueprint(JSON.parse(text));
-                document.querySelectorAll('body > div').forEach(d => { if (d && d.style && d.style.zIndex === '10000') d.remove(); });
+                _closeBlueprintModal();
             } catch (err) { alert('Failed: ' + err.message); }
         };
         inp.click();

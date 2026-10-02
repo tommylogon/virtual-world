@@ -84,6 +84,47 @@ def register_triggers_routes(app):
         )
         return jsonify(result)
 
+    @app.route('/api/triggers/attach', methods=['POST'])
+    def attach_trigger():
+        """Materialise trigger definition(s) onto a live node (task-442).
+
+        This is the runtime target of the blueprint browser: the editor compiles
+        a blueprint graph to the trigger-definition JSON contract and posts it
+        here, and the node is written as ordinary ``logic_trigger`` nodes +
+        ``triggers`` edges by ``engine.triggers.materialize``.
+
+        Request JSON::
+
+            {"node_id": "item_x", "triggers": [ {...}, ... ]}
+            # or a single definition: {"node_id": "item_x", "trigger": {...}}
+
+        Returns ``{"status": "success", "node_id", "trigger_ids": [...]}``.
+        """
+        data = request.get_json() or {}
+        node_id = str(data.get('node_id') or data.get('item_id') or '').strip()
+        if not node_id:
+            return jsonify({"error": "node_id is required"}), 400
+        world = app.world
+        node = world.graph.get_node(node_id)
+        if node is None:
+            return jsonify({"error": f"Node '{node_id}' not found"}), 404
+
+        defs = data.get('triggers')
+        if defs is None:
+            single = data.get('trigger')
+            defs = [single] if isinstance(single, dict) and single else []
+        if not isinstance(defs, list) or not defs:
+            return jsonify({"error": "triggers (list) or trigger (object) is required"}), 400
+
+        from engine.triggers.materialize import materialize_triggers
+        trigger_ids = materialize_triggers(world.graph, node_id, defs)
+        world._edit_seq = getattr(world, '_edit_seq', 0) + 1
+        return jsonify({
+            "status": "success",
+            "node_id": node_id,
+            "trigger_ids": trigger_ids,
+        })
+
     @app.route('/api/triggers/validate-definition', methods=['POST'])
     def validate_trigger_definition():
         """Validate an unsaved trigger definition from the editor/graph."""
