@@ -1,4 +1,3 @@
-"use strict";
 /**
  * recent-edits.js — "where was I" rail (task-372).
  *
@@ -13,50 +12,53 @@
  * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+
 (() => {
     'use strict';
+
     const KEY = 'vw_recent_edits';
     const MAX = 10;
-    function load() {
-        try {
-            return JSON.parse(localStorage.getItem(KEY) || '[]');
-        }
-        catch (e) {
-            return [];
-        }
+
+    interface RecentEdit {
+        id: string;
+        label: string;
+        at: number;
     }
-    function save(list) {
-        try {
-            localStorage.setItem(KEY, JSON.stringify(list));
-        }
-        catch (e) { }
+
+    function load(): RecentEdit[] {
+        try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { return []; }
     }
-    function record(nodeId, label) {
-        if (!nodeId)
-            return;
+    function save(list: RecentEdit[]): void {
+        try { localStorage.setItem(KEY, JSON.stringify(list)); } catch (e) {}
+    }
+
+    function record(nodeId: string, label?: string): void {
+        if (!nodeId) return;
         let list = load().filter(e => e.id !== nodeId);
         list.unshift({ id: String(nodeId), label: label || 'edited', at: Date.now() });
         list = list.slice(0, MAX);
         save(list);
         renderBadge();
     }
-    const NODE_ICONS = { area: '🏠', item: '📦', way: '🚪', character: '🧍' };
-    function nodeLabel(id) {
+
+    const NODE_ICONS: Record<string, string> = { area: '🏠', item: '📦', way: '🚪', character: '🧍' };
+
+    function nodeLabel(id: string): string {
         const node = (window.worldState && worldState.getNode && worldState.getNode(id)) || null;
-        if (node)
-            return `${NODE_ICONS[node.type] || '📌'} ${node.name || id}`;
+        if (node) return `${NODE_ICONS[node.type] || '📌'} ${node.name || id}`;
         return id;
     }
-    function renderBadge() {
+
+    function renderBadge(): void {
         const btn = document.getElementById('recent-edits-toggle');
-        if (!btn)
-            return;
+        if (!btn) return;
         const n = load().length;
         btn.textContent = '🕘';
         btn.title = n ? `Recently edited (${n})` : 'Recently edited (none yet)';
         btn.style.opacity = n ? '1' : '0.45';
     }
-    function buildUI() {
+
+    function buildUI(): void {
         document.addEventListener('DOMContentLoaded', () => {
             const btn = document.createElement('button');
             btn.id = 'recent-edits-toggle';
@@ -64,17 +66,19 @@
             btn.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:9000;opacity:0.45;';
             btn.onclick = () => toggleList();
             document.body.appendChild(btn);
+
             const menu = document.createElement('div');
             menu.id = 'recent-edits-menu';
             menu.style.cssText = 'display:none;position:fixed;left:8px;bottom:38px;z-index:9000;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:4px;min-width:220px;max-width:320px;';
             document.body.appendChild(menu);
+
             renderBadge();
         });
     }
-    function toggleList() {
+
+    function toggleList(): void {
         const menu = document.getElementById('recent-edits-menu');
-        if (!menu)
-            return;
+        if (!menu) return;
         const showing = menu.style.display !== 'none';
         menu.style.display = showing ? 'none' : 'block';
         if (!showing) {
@@ -93,15 +97,7 @@
                 row.onmouseenter = () => { row.style.background = 'rgba(255,255,255,0.05)'; };
                 row.onmouseleave = () => { row.style.background = 'transparent'; };
                 row.onclick = () => {
-                    try {
-                        graphManager.showNodeAndFocus(entry.id);
-                    }
-                    catch (e) {
-                        try {
-                            VW.inspector.showNode(entry.id);
-                        }
-                        catch (e2) { }
-                    }
+                    try { graphManager.showNodeAndFocus(entry.id); } catch (e) { try { VW.inspector.showNode(entry.id); } catch (e2) {} }
                     menu.style.display = 'none';
                 };
                 const label = document.createElement('span');
@@ -117,21 +113,23 @@
             });
         }
     }
+
     // Hook the API client — record what WE edit, not remote agents.
     // Rest args (not named params) so the pass-through is exact: `apply(this,
     // arguments)` forwarded whatever the caller passed, and narrowing to two
     // named parameters would silently drop a third.
     const origUpdate = ApiClient.updateNode;
-    ApiClient.updateNode =
-        function (...args) {
-            record(args[0], 'updated');
-            return origUpdate.apply(this, args);
+    (ApiClient as { updateNode: (...a: unknown[]) => unknown }).updateNode =
+        function (this: unknown, ...args: unknown[]) {
+            record(args[0] as string, 'updated');
+            return (origUpdate as (...a: unknown[]) => unknown).apply(this, args);
         };
     const origDup = ApiClient.duplicateNode;
-    ApiClient.duplicateNode =
-        function (...args) {
-            record(args[0], 'duplicated');
-            return origDup.apply(this, args);
+    (ApiClient as { duplicateNode: (...a: unknown[]) => unknown }).duplicateNode =
+        function (this: unknown, ...args: unknown[]) {
+            record(args[0] as string, 'duplicated');
+            return (origDup as (...a: unknown[]) => unknown).apply(this, args);
         };
+
     buildUI();
 })();

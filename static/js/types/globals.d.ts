@@ -48,6 +48,7 @@ declare const config: {
     embedApiKey?: string;
     embedDims?: number;
     controllingPlayer?: string;
+    apiKey?: string;
     save(): void;
     [key: string]: unknown;
 };
@@ -71,6 +72,8 @@ declare const ApiClient: {
     getWorldGrid(scopeId: string): Promise<unknown>;
     setScopeOffset(scopeId: string, offset?: { x?: number; y?: number; reset?: boolean }): Promise<unknown>;
     updateCharacter(name: string, changes: unknown): Promise<unknown>;
+    updateNode(nodeId: string, data: unknown): Promise<unknown>;
+    duplicateNode(nodeId: string): Promise<unknown>;
 };
 
 /** AppEventBus singleton (event-bus.js): `state:updated` and friends. */
@@ -142,6 +145,8 @@ interface Window {
     // throughout the views — type-check at all.
     worldState: any;
     VW: any;
+    // The prompt-builder modules build this namespace with Object.assign.
+    PromptBuilder: any;
 }
 
 /** Toast helpers (ui/create-modal.js and friends): transient notifications. */

@@ -1,4 +1,3 @@
-"use strict";
 /**
  * InspectorPanel — THE single render entrypoint for #inspector-panel (task-216 migration)
  *
@@ -20,24 +19,29 @@
  * @docs docs/virtualWorld/UI & Settings/Inspector Panels.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+
 const InspectorPanel = (() => {
-    const P = {};
+    const P = {} as {
+        render(template: unknown): void;
+        renderStatic(template: unknown): void;
+        clear(): void;
+        htmlTag(strings: TemplateStringsArray, ...values: unknown[]): unknown;
+    };
+
     const panelEl = () => document.getElementById('inspector-panel');
+
     // Lazy tag: classic scripts parse before the deferred lit-bootstrap module
     // runs, so window.Lit only exists when a view actually renders.
-    const htmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
+    const htmlTag = (strings: TemplateStringsArray, ...values: unknown[]) => window.Lit.html(strings, ...values);
+
     /**
      * Render a lit-html TemplateResult into the inspector panel.
      * @param template - lit-html template
      */
-    P.render = function (template) {
+    P.render = function (template: unknown) {
         const panel = panelEl();
-        if (!panel)
-            return;
-        if (!window.Lit) {
-            console.warn('InspectorPanel.render: window.Lit not ready');
-            return;
-        }
+        if (!panel) return;
+        if (!window.Lit) { console.warn('InspectorPanel.render: window.Lit not ready'); return; }
         // lit-html never removes children it doesn't own — any pre-lit static
         // markup in the container would linger above every render. Clear it
         // once, before lit takes ownership (empty states are lit-rendered by
@@ -48,10 +52,11 @@ const InspectorPanel = (() => {
         }
         // task-579: append the documentation section for every node type in one
         // place, rather than editing all fifteen views. lit renders an array.
-        const docPanel = window.DocPanel;
+        const docPanel = (window as unknown as { DocPanel?: { section(): unknown } }).DocPanel;
         const value = docPanel ? [template, docPanel.section()] : template;
         window.Lit.render(value, panel);
     };
+
     /**
      * Render plain fallback HTML (empty states, "not found", orphan triggers).
      * These are static strings with no user data, so they are safe to inject
@@ -59,27 +64,27 @@ const InspectorPanel = (() => {
      * ownership intact. Values passed here MUST be trusted/static.
      * @param template - lit-html template
      */
-    P.renderStatic = function (template) {
+    P.renderStatic = function (template: unknown) {
         this.render(template);
     };
+
     /**
      * Clear the inspector panel back to its empty state.
      */
-    P.clear = function () {
+    P.clear = function (): void {
         const panel = panelEl();
-        if (!panel)
-            return;
-        if (!window.Lit) {
-            panel.innerHTML = '';
-            return;
-        }
+        if (!panel) return;
+        if (!window.Lit) { panel.innerHTML = ''; return; }
         window.Lit.render(window.Lit.nothing, panel);
     };
+
     /**
      * Escape helpers are obsolete under lit (auto-escaping). Kept only so any
      * straggler call doesn't hard-crash during migration.
      */
     P.htmlTag = htmlTag;
+
     return P;
 })();
-window.InspectorPanel = InspectorPanel;
+
+(window as unknown as { InspectorPanel: typeof InspectorPanel }).InspectorPanel = InspectorPanel;
