@@ -516,6 +516,15 @@ class Effects:
         p.npc_action_interval = lib_data.get("npc_action_interval", 3)
         p.npc_state = lib_data.get("npc_state", "idle")
         p.behaviors = lib_data.get("behaviors", [])
+        # task-590: resolve reusable behaviour refs from data/library/behaviours/.
+        _behavior_refs = lib_data.get("behavior_refs") or []
+        if _behavior_refs:
+            from engine import behaviors as _behavior_library
+            p.behaviors, _unresolved = _behavior_library.merge_into(p.behaviors, _behavior_refs)
+            _warning = _behavior_library.report_unresolved(f"Character '{char_id}'", _unresolved)
+            if _warning:
+                import logging
+                logging.getLogger(__name__).warning(_warning)
         p.patrol_route = lib_data.get("patrol_route", [])
         p.patrol_index = lib_data.get("patrol_index", 0)
         p.current_area = lib_data.get("current_area")

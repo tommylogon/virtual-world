@@ -1,0 +1,14 @@
+{
+  "name": "Idle hum",
+  "description": "A reusable filler behaviour: every so often the character hums tunelessly. Attach it to a simple NPC by adding \"idle_hum\" to that character's behavior_refs.",
+  "trigger": "on_tick",
+  "priority": 1,
+  "interval": 15,
+  "conditions": {},
+  "actions": [
+    {
+      "type": "message",
+      "text": "hums a tuneless phrase."
+    }
+  ]
+}

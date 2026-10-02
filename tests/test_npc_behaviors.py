@@ -72,7 +72,13 @@ def test_random_chance_accepts_fractional_chance_field():
 
 
 def test_rat_template_behaviors_parse():
-    """world_template rat has a non-empty scripted behavior tree."""
+    """world_template rat has a non-empty scripted behavior tree.
+
+    The rat's tree is **deliberately inline** (task-590): it is one bespoke
+    creature whose behaviours are coupled to its own patrol/forage loop, not a
+    reusable entry. Reusable behaviours live in ``data/library/behaviours/`` and
+    are attached with ``behavior_refs``; see ``tests/test_library_behaviors.py``.
+    """
     import json
 
     template_path = Path(__file__).resolve().parent.parent / "world_template.json"
