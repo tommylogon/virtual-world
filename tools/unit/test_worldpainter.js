@@ -340,6 +340,60 @@ test('cellInfo reports everything on a cell (task-540)', () => {
     assertEq(orphan.child, { id: 'gone', name: 'gone', kind: null }, 'orphan child');
 });
 
+test('paintedBounds frames everything the author put on the grid (task-597)', () => {
+    const payload = {
+        grid: { w: 10, h: 10 },
+        layers: { biome: { '2,3': 'sparse_forest' }, road: { '7,1': 'road' } },
+        names: { '4,8': 'The Old Oak' },
+        placements: [{ id: 'v1', x: 9, y: 9 }],
+        area_placements: [],
+    };
+    assertEq(GM.paintedBounds(payload), { x: 2, y: 1, w: 8, h: 9 }, 'covers all content');
+    // An empty grid has no box to draw.
+    assertEq(GM.paintedBounds({ grid: { w: 4, h: 4 }, layers: {} }), null, 'empty');
+    assertEq(GM.paintedBounds(null), null, 'no payload');
+});
+
+test('grid resize handles snap to whole cells and never vanish (task-597)', () => {
+    const pts = GM.gridHandlePoints(10, 6);
+    assertEq(pts.se, { x: 10, y: 6 }, 'corner at the far edge');
+    assertEq(pts.e, { x: 10, y: 3 }, 'east edge mid');
+    assertEq(pts.s, { x: 5, y: 6 }, 'south edge mid');
+    // The origin is fixed, so there is no NW/N/W handle to offer.
+    assertEq(Object.keys(pts).sort(), ['e', 's', 'se'], 'only the far edges');
+
+    assertEq(GM.gridHandleDrag(10, 6, 'se', { x: 12.4, y: 7.6 }), { w: 12, h: 8 }, 'se snaps');
+    assertEq(GM.gridHandleDrag(10, 6, 'e', { x: 3.1, y: 99 }), { w: 3, h: 6 }, 'e changes width only');
+    assertEq(GM.gridHandleDrag(10, 6, 's', { x: 99, y: 2.6 }), { w: 10, h: 3 }, 's changes height only');
+    assertEq(GM.gridHandleDrag(10, 6, 'se', { x: 0.2, y: -5 }), { w: 1, h: 1 }, 'clamped to 1x1');
+});
+
+test('cellNeighbours names the exits around a cell (task-596)', () => {
+    const vocab = { biomes: [
+        { id: 'wall', name: 'Wall', tags: ['structure', 'not_a_place', 'cell_kind:solid'] },
+    ] };
+    const payload = {
+        grid: { w: 3, h: 2 },
+        names: { '1,0': 'North Road' },
+        layers: { biome: { '1,0': 'sparse_forest' }, road: { '1,0': 'road', '2,1': 'bridge' } },
+    };
+    const n = GM.cellNeighbours(payload, 1, 1, vocab);
+    assertEq(n.N.biome, 'sparse_forest', 'north biome');
+    assertEq(n.N.road, 'road', 'north road');
+    assertEq(n.N.name, 'North Road', 'north name');
+    assertEq(n.E.road, 'bridge', 'east bridge');
+    assertEq(n.S, null, 'south is the map edge, not a wall');
+    assertEq(n.W.biome, null, 'west is empty');
+
+    // A solid neighbour is reported with its kind, so the inspector says "wall"
+    // rather than "empty" — otherwise the author cannot see the room's exits.
+    const walled = GM.cellNeighbours({
+        grid: { w: 3, h: 3 }, layers: { biome: { '2,1': 'wall' } },
+    }, 1, 1, vocab);
+    assertEq(walled.E.kind, 'solid', 'wall reads solid');
+    assertEq(walled.W.biome, null, 'empty neighbour');
+});
+
 test('a cell can carry a name, which is not paint (task-560)', () => {
     const payload = {
         scope: { id: 'downtown' },

@@ -97,6 +97,9 @@
         // window is the one cell you can see *through*, so it reads lighter than the
         // wall it sits in.
         wall: '#55525c', void: '#22222a', window: '#8fc4d8', door: '#a8763f',
+        // A public bath: pale blue stone so it reads as water without looking
+        // like a river crossed by mistake.
+        bathhouse: '#6f9bb0',
     };
     const ROAD_COLORS = {
         road: '#8a7d5f', bridge: '#7a5a3a', ford: '#5f7f96', gate: '#6f7276',
@@ -597,6 +600,99 @@
         };
     }
 
+    /**
+     * What lies on the four cells touching (x, y) — the painter's answer to
+     * "where is the exit from here?" (task-596). The ways a grid compiles into
+     * join *adjacent* cells, so a cell's exits are exactly its passable
+     * neighbours: a road, a door, open ground, or another building. A solid
+     * neighbour (`wall`, `void`) is a wall to the author's face, not an exit.
+     *
+     * Pure and grid-bounded: an off-grid direction is `null`, not an error, so
+     * the editor says "— map edge" rather than pretending the world ends in a
+     * wall. Each entry is `{dir, x, y, biome, road, kind, name}`.
+     */
+    function cellNeighbours(payload, x, y, vocab) {
+        const grid = (payload && payload.grid) || {};
+        const dirs = [['N', 0, -1], ['E', 1, 0], ['S', 0, 1], ['W', -1, 0]];
+        const out = {};
+        dirs.forEach(([dir, dx, dy]) => {
+            const nx = x + dx;
+            const ny = y + dy;
+            if (grid.w != null && (nx < 0 || ny < 0 || nx >= grid.w || ny >= grid.h)) {
+                out[dir] = null;
+                return;
+            }
+            const biome = cellValue(payload, 'biome', nx, ny) || null;
+            const road = cellValue(payload, 'road', nx, ny) || null;
+            out[dir] = {
+                dir, x: nx, y: ny, biome, road,
+                kind: cellKind(vocab, biome),
+                name: cellName(payload, nx, ny),
+            };
+        });
+        return out;
+    }
+
+    /**
+     * The bounding box, in cells, of everything the author has put on the grid
+     * (task-597) — paint, names, placed areas, placed scopes.
+     *
+     * The frame makes the grid's *extent* obvious but says nothing about how much
+     * of it is used; a 160×100 region with one road in the corner looks identical
+     * to a full one. Returns `null` when the grid is entirely empty, so the editor
+     * draws no box rather than a box over nothing.
+     */
+    function paintedBounds(payload) {
+        if (!payload) return null;
+        let minX = Infinity; let minY = Infinity;
+        let maxX = -Infinity; let maxY = -Infinity;
+        const put = (x, y) => {
+            if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+            if (x < minX) minX = x;
+            if (y < minY) minY = y;
+            if (x > maxX) maxX = x;
+            if (y > maxY) maxY = y;
+        };
+        const layers = payload.layers || {};
+        Object.keys(layers).forEach((layer) => {
+            Object.keys(layers[layer] || {}).forEach((k) => {
+                const c = parseCellKey(k);
+                if (c) put(c.x, c.y);
+            });
+        });
+        Object.keys(payload.names || {}).forEach((k) => {
+            const c = parseCellKey(k);
+            if (c) put(c.x, c.y);
+        });
+        (payload.area_placements || []).forEach((a) => put(a.x, a.y));
+        (payload.placements || []).forEach((a) => put(a.x, a.y));
+        if (!Number.isFinite(minX)) return null;
+        return { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1 };
+    }
+
+    /**
+     * The resize handles on the grid frame (task-597). The origin is fixed at
+     * (0,0) — moving it would re-key every painted cell — so only the far edges
+     * and the bottom-right corner can be dragged to grow or shrink the extent.
+     * The near edges are deliberately absent rather than present-and-broken.
+     */
+    function gridHandlePoints(w, h) {
+        return {
+            se: { x: w, y: h },
+            e: { x: w, y: h / 2 },
+            s: { x: w / 2, y: h },
+        };
+    }
+
+    /** Snap a dragged resize handle to whole cells, never below 1×1 (task-597). */
+    function gridHandleDrag(w, h, key, cell) {
+        let nw = w;
+        let nh = h;
+        if (key === 'e' || key === 'se') nw = Math.max(1, Math.round(cell.x));
+        if (key === 's' || key === 'se') nh = Math.max(1, Math.round(cell.y));
+        return { w: nw, h: nh };
+    }
+
     /** How a painted cell is to movement, or null when it is a place (task-562). */
     function cellKind(vocab, biomeId) {
         if (!biomeId) return null;
@@ -752,7 +848,8 @@
         cellKey, parseCellKey, cellId, nextMode, layerColor,
         floorNumber, floorLabel,
         lineCells, routeCells, routeStats, estimateCompile,
-        cellValue, cellName, cellKind, cellEnter, featureAt, placementFor,
+        cellValue, cellName, cellKind, cellEnter, cellNeighbours, featureAt, placementFor,
+        paintedBounds, gridHandlePoints, gridHandleDrag,
         buildRows, featureMap,
         pruneGrid, childrenAvailable,
         areaMap, areaAt, areaPlacementFor, placeableAreas, areaGroups, cellInfo,

@@ -34,7 +34,13 @@
 // per-scope grid payloads that expect the nested shape.
 const SCOPES_URL = '/api/world/scopes?flat=1';
     const CELL = 22;           // base px per cell at scale 1
-    const MIN_SCALE = 0.12;
+    // The zoom floor is a *legibility* floor, not an arithmetic one (task-595).
+    // `_drawGridLines` stops drawing the lattice below 4px per cell, so at the
+    // old 0.12 (< 3px per cell) the grid dissolved into a smear of paint blobs
+    // and the author could not tell a road from a field. 0.25 keeps a cell at
+    // 5.5px — lines still drawn, a 160-cell world still fits an 880px pane — so
+    // zooming out to the floor leaves a readable map rather than a blank one.
+    const MIN_SCALE = 0.25;
     const MAX_SCALE = 6;
     // main.js reloads the VW namespace last, so prefer the bare global it keeps.
     const GM = () => window.gridModel || window.VW.gridModel;
@@ -58,6 +64,11 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         refNode: null,
         refEdit: false,       // adjust mode: move/resize/crop the reference image
         refDrag: null,        // {kind, key, start, rect, crop} during a ref edit
+        // Grid adjust mode (task-597): drag the frame to set the scope's map
+        // layout offset, or an edge/corner handle to resize the extent, instead
+        // of typing numbers into the dialog.
+        gridEdit: false,
+        gridDrag: null,       // {kind, key, start, w, h, offset} during a grid edit
         selectedChild: null,
         selectedArea: null,   // area picked by the 📍 Area place tool (task-528)
         // Cell selection and the marquee being dragged (task-536). Keyed by scope
@@ -473,6 +484,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         state._keyDown = (e) => {
             const tag = (e.target && e.target.tagName) || '';
             const typing = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+            const isSelect = tag === 'SELECT';
             const p = state.payload;
 
             if (e.key === 'Escape') {
@@ -498,6 +510,21 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
                     if (state.routeInfoEl) state.routeInfoEl.textContent = _routeLabel();
                     _redrawDecor();
                     render();
+                }
+                return;
+            }
+            // Space pans even when a toolbar <select> still holds focus (bug-511).
+            // Choosing a biome used to leave the dropdown focused, and the next
+            // space press was consumed by the browser as "open the focused
+            // dropdown" — the keydown was swallowed by the `typing` guard below,
+            // so the pan handler never saw it. All controls blur on change (see
+            // `_valueControl`/`_layerSelect`), but the guard has to hold anyway:
+            // a control focused by Tab must not silently disable panning.
+            if (isSelect && e.code === 'Space') {
+                e.preventDefault();
+                if (!state.spaceDown) {
+                    state.spaceDown = true;
+                    _syncDraggable();
                 }
                 return;
             }
@@ -853,7 +880,8 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         if (!state.stage) return;
         const toolOwnsDrag = _isPaintTool() || state.tool === 'select'
             || state.tool === 'move';
-        state.stage.draggable(state.spaceDown || (!state.refEdit && !toolOwnsDrag));
+        state.stage.draggable(state.spaceDown
+            || (!state.refEdit && !state.gridEdit && !toolOwnsDrag));
     }
 
     function _selectTool(id) {
@@ -1091,10 +1119,26 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
             if (n === state.brush) opt.selected = true;
             brushSel.appendChild(opt);
         });
-        brushSel.addEventListener('change', () => { state.brush = parseInt(brushSel.value, 10) || 1; });
+        brushSel.addEventListener('change', () => {
+            state.brush = parseInt(brushSel.value, 10) || 1;
+            brushSel.blur();   // same focus trap as the value picker (bug-511)
+        });
         _help(wrap.appendChild(brushSel), 'wp-brush');
 
         wrap.appendChild(_btn('▦ Grid…', () => _openGridDialog(p)));
+        // Direct manipulation of the grid itself (task-597). The dialog is still
+        // there for exact numbers; this is for the common "nudge it and see".
+        const gridAdjust = _btn(state.gridEdit ? '✔ grid' : '✥ grid', () => {
+            state.gridEdit = !state.gridEdit;
+            state.gridDrag = null;
+            render();
+            _status(state.gridEdit
+                ? 'Grid adjust: drag the frame to move the scope on the graph map, '
+                  + 'drag the E/S/SE handles to resize.'
+                : 'Grid adjust off.', false);
+        }, 'padding:1px 6px;font-size:11px;');
+        gridAdjust.title = 'Move the grid on the graph map (drag the frame) or resize it (drag a handle)';
+        wrap.appendChild(gridAdjust);
         wrap.appendChild(_btn('➕ Add feature…', () => _promptNewScope(p.scope.id)));
 
         // Why this scope cannot be compiled yet, and what to do about it
@@ -1154,6 +1198,38 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         return wrap;
     }
 
+    /**
+     * One line describing a palette tile (task-596): what it is, and what it
+     * does. `rec` is the vocabulary record, which carries the same prose and
+     * tags the compiler reads, so the line cannot disagree with the world.
+     */
+    function _tileDetail(layer, rec) {
+        const name = rec.name || rec.id;
+        const desc = (rec.descriptions || [])[0] || '';
+        if (layer === 'road') {
+            const bits = [desc];
+            if ((rec.biomes || []).length) bits.push('crosses ' + rec.biomes.join(', '));
+            if (rec.entry_phrase) bits.push(`“${rec.entry_phrase}”`);
+            return `${name} — ${bits.filter(Boolean).join(' · ')}`;
+        }
+        if (layer === 'biome') {
+            const tags = (rec.tags || []).map((t) => String(t).toLowerCase());
+            let kind = 'place';
+            if (tags.includes('not_a_place')) {
+                kind = (tags.find((t) => t.indexOf('cell_kind:') === 0) || 'cell_kind:solid')
+                    .split(':')[1] || 'solid';
+                kind = `not a place (${kind})`;
+            } else if (tags.includes('building')) {
+                kind = 'building';
+            }
+            const bits = [desc, kind];
+            if (rec.surface) bits.push(`ground ${rec.surface}`);
+            if (rec.refusal) bits.push(rec.refusal);
+            return `${name} — ${bits.filter(Boolean).join(' · ')}`;
+        }
+        return `${name} — ${desc}`.replace(/ — $/, '');
+    }
+
     function _valueControl() {
         const options = _biomePalette(state.layer);
         if (state.layer === 'floor' || !options.filter((o) => !o.separator).length) {
@@ -1181,7 +1257,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         // type, and hides any heading left with nothing under it. Same affordance
         // as the Scenario Manager's filter, where it was the difference between
         // usable and not on a 22-row list.
-        const wrap = _el('div', 'display:flex;gap:4px;align-items:center;');
+        const wrap = _el('div', 'display:flex;gap:4px;align-items:center;flex-wrap:wrap;');
         const filter = _el('input',
             'width:120px;padding:3px 6px;border-radius:5px;'
             + 'border:1px solid var(--border,#444);'
@@ -1191,10 +1267,35 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         filter.title = 'Narrow the palette by tile name or id. Empty shows everything.';
         filter.setAttribute('aria-label', 'Filter tiles by name or id');
         wrap.appendChild(filter);
+        // The palette shows the tile as a colour as well as a name (task-596):
+        // this is the same colour the map paints, so picking "Wall" vs "Forest"
+        // is a decision about the map, not a guess from a label.
+        const swatch = _el('span', 'display:inline-block;width:14px;height:14px;' +
+            'border-radius:3px;border:1px solid #555;flex:0 0 auto;');
+        swatch.setAttribute('data-role', 'wp-value-swatch');
+        wrap.appendChild(swatch);
         const sel = _el('select', 'padding:3px;border-radius:5px;min-width:160px;');
         sel.setAttribute('data-role', 'wp-value');
         wrap.appendChild(sel);
         sel.title = `Value painted on the ${state.layer} layer.`;
+        // What the highlighted tile *is* and *does* (task-596), without a second
+        // panel: the palette used to be a wall of names, so "bridge" and "road"
+        // looked interchangeable and a wall looked like a biome. The detail line
+        // names the tile's prose, its ground, and — for the road layer — the
+        // terrain it crosses and the verb you arrive with, which is exactly the
+        // difference between a bridge (cross a gap) and a road (a worn track).
+        const detail = _el('div', 'font-size:11px;color:var(--text-muted,#999);' +
+            'line-height:1.4;flex-basis:100%;max-width:420px;');
+        detail.setAttribute('data-role', 'wp-value-detail');
+        detail.textContent = '';
+        const describe = (id) => {
+            const rec = options.filter((o) => !o.separator).find((o) => o.id === id);
+            const text = rec ? _tileDetail(state.layer, rec) : '';
+            detail.textContent = text;
+            detail.title = text;
+            swatch.style.background = GM().layerColor(state.layer, id) || 'transparent';
+            swatch.title = rec ? (rec.name || rec.id) : '';
+        };
         const paintable = options.filter((o) => !o.separator);
         const ids = paintable.map((o) => o.id);
         if (ids.indexOf(state.value) < 0) state.value = ids[0];
@@ -1273,7 +1374,16 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
             if (ids.indexOf(sel.value) < 0 && sel.options.length) sel.value = sel.options[0].value;
         });
         sel.value = state.value;
-        sel.addEventListener('change', () => { state.value = sel.value; });
+        describe(sel.value);
+        // Drop focus after a pick so the next space press pans instead of
+        // reopening the dropdown (bug-511). The keydown guard covers a control
+        // reached by Tab; this covers the click-pick path the bug reported.
+        sel.addEventListener('change', () => {
+            state.value = sel.value;
+            describe(sel.value);
+            sel.blur();
+        });
+        wrap.appendChild(detail);
         return wrap;
     }
 
@@ -1473,9 +1583,16 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
             'gap:6px;align-items:center;flex-wrap:wrap;background:rgba(13,17,23,0.85);' +
             'border:1px solid var(--border,#3a3a44);border-radius:6px;padding:4px 6px;' +
             'pointer-events:auto;');
-        hud.appendChild(_btn('＋', () => _zoomBy(p, 1.25), 'padding:1px 7px;'));
-        hud.appendChild(_btn('−', () => _zoomBy(p, 0.8), 'padding:1px 7px;'));
+        // Keep references so the controls can reflect the clamp (task-595): at
+        // the floor the − button is disabled rather than silently doing nothing.
+        const zoomIn = _btn('＋', () => _zoomBy(p, 1.25), 'padding:1px 7px;');
+        const zoomOut = _btn('−', () => _zoomBy(p, 0.8), 'padding:1px 7px;');
+        state.zoomInBtn = zoomIn;
+        state.zoomOutBtn = zoomOut;
+        hud.appendChild(zoomIn);
+        hud.appendChild(zoomOut);
         hud.appendChild(_btn('⤢ Fit', () => _fitGrid(p), 'padding:1px 7px;'));
+        _syncZoomButtons();   // a rebuild starts at the current scale
         hud.appendChild(_el('span', 'font-size:11px;color:var(--text-muted,#999);',
             `${p.grid.w}×${p.grid.h} · 1 cell = 1 turn`));
         hud.appendChild(_referenceControl(p));
@@ -1677,6 +1794,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         const featureShape = shape((ctx) => _drawFeatures(ctx, p));
         const routeShape = shape((ctx) => _drawRoute(ctx));
         const refShape = shape((ctx) => _drawRefHandles(ctx, p));
+        const gridHandleShape = shape((ctx) => _drawGridHandles(ctx, p));
         const refLayer = new window.Konva.Layer({ listening: false });
         const bg = new window.Konva.Layer({ listening: false });
         const paint = new window.Konva.Layer({ listening: false });
@@ -1704,6 +1822,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         decor.add(featureShape);
         decor.add(routeShape);
         decor.add(refShape);
+        decor.add(gridHandleShape);
         stage.add(refLayer);
         stage.add(bg);
         stage.add(paint);
@@ -1722,6 +1841,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
             // Rebuild (paint/layer change) keeps the author's place on the map.
             stage.scale({ x: state.view.scale, y: state.view.scale });
             stage.position({ x: state.view.x || 0, y: state.view.y || 0 });
+            _syncZoomButtons();
             _redrawGrid();
         } else {
             _fitGrid(p);
@@ -1936,12 +2056,161 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         updateReference({ rect: drag.rect, crop: drag.crop });
     }
 
+    // ───────────────── grid frame adjust (task-597) ───────────────
+
+    /** Resize handles on the grid frame; only meaningful in adjust mode. */
+    function _drawGridHandles(ctx, p) {
+        if (!state.gridEdit) return;
+        const scale = (state.stage && state.stage.scaleX()) || 1;
+        const pts = GM().gridHandlePoints(p.grid.w, p.grid.h);
+        ctx.save();
+        Object.keys(pts).forEach((key) => {
+            ctx.beginPath();
+            ctx.arc(pts[key].x * CELL, pts[key].y * CELL, 6 / scale, 0, Math.PI * 2);
+            // Corner (two letters) is the both-axes handle; edges are one axis.
+            ctx.fillStyle = key.length === 2 ? '#e3b341' : '#58a6ff';
+            ctx.fill();
+        });
+        const drag = state.gridDrag;
+        if (drag && drag.kind === 'move') {
+            const off = drag.offset;
+            ctx.fillStyle = '#e3b341';
+            ctx.font = `${Math.max(10, 12 / scale)}px sans-serif`;
+            ctx.fillText(`offset ${off.x.toFixed(1)}, ${off.y.toFixed(1)}`, 8 / scale, (p.grid.h * CELL) + 14 / scale);
+        } else if (drag && drag.w && drag.h) {
+            ctx.fillStyle = '#e3b341';
+            ctx.font = `${Math.max(10, 12 / scale)}px sans-serif`;
+            ctx.fillText(`${drag.w}×${drag.h}`, 8 / scale, (p.grid.h * CELL) + 14 / scale);
+        }
+        ctx.restore();
+    }
+
+    /** What a pointer press grabs in grid-adjust mode: a handle or the frame. */
+    function _gridHit(p, pos) {
+        const scale = (state.stage && state.stage.scaleX()) || 1;
+        const tol = 9 / scale;
+        const pts = GM().gridHandlePoints(p.grid.w, p.grid.h);
+        for (const key of Object.keys(pts)) {
+            if (Math.abs(pos.x - pts[key].x * CELL) <= tol
+                    && Math.abs(pos.y - pts[key].y * CELL) <= tol) {
+                return { kind: 'resize', key };
+            }
+        }
+        const w = p.grid.w * CELL;
+        const h = p.grid.h * CELL;
+        if (pos.x >= 0 && pos.x <= w && pos.y >= 0 && pos.y <= h) {
+            return { kind: 'move', key: null };
+        }
+        return null;
+    }
+
+    function _gridMouseDown(p) {
+        const pos = state.stage.getRelativePointerPosition();
+        if (!pos) return;
+        const target = _gridHit(p, pos);
+        if (!target) return;
+        state.gridDrag = {
+            kind: target.kind,
+            key: target.key,
+            start: { x: pos.x / CELL, y: pos.y / CELL },
+            w: p.grid.w,
+            h: p.grid.h,
+            offset: Object.assign({ x: 0, y: 0 }, p.map_offset || {}),
+        };
+    }
+
+    function _gridMouseMove(p) {
+        const drag = state.gridDrag;
+        if (!drag) return;
+        const pos = state.stage.getRelativePointerPosition();
+        if (!pos) return;
+        const cx = pos.x / CELL;
+        const cy = pos.y / CELL;
+        if (drag.kind === 'move') {
+            // Repositioning the *scope* on the graph map (task-523), not the
+            // canvas: the grid stays put; map_offset moves every node of the
+            // scope by this many cells.
+            state.gridDrag.offset = {
+                x: drag.offset.x + (cx - drag.start.x),
+                y: drag.offset.y + (cy - drag.start.y),
+            };
+        } else {
+            const next = GM().gridHandleDrag(drag.w, drag.h, drag.key, { x: cx, y: cy });
+            state.gridDrag.w = next.w;
+            state.gridDrag.h = next.h;
+        }
+        _redrawDecor();
+    }
+
+    async function _gridMouseUp(p) {
+        const drag = state.gridDrag;
+        if (!drag) return;
+        state.gridDrag = null;
+        try {
+            if (drag.kind === 'move') {
+                const offset = {
+                    x: Math.round(drag.offset.x * 10) / 10,
+                    y: Math.round(drag.offset.y * 10) / 10,
+                };
+                // The offset route answers with just the offset, not the whole
+                // grid, so adopt the field rather than replace the payload.
+                const resp = await _post(`/${encodeURIComponent(p.scope.id)}/offset`, offset);
+                p.map_offset = (resp && resp.map_offset) || offset;
+                _status(`Grid offset set to ${offset.x}, ${offset.y} cells.`, false);
+            } else if (drag.w !== p.grid.w || drag.h !== p.grid.h) {
+                const stranded = GM().strandedCount(p, drag.w, drag.h);
+                if (stranded > 0 && !window.confirm(
+                    `Resize the grid to ${drag.w}×${drag.h}?\n\n`
+                    + `${stranded} painted cell(s) or placement(s) outside it will be removed. `
+                    + 'This can be undone.')) {
+                    render();
+                    return;
+                }
+                state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid`, {
+                    w: drag.w, h: drag.h,
+                    cell_scale: (p.grid && p.grid.cell_scale) || 1,
+                    mode: p.mode,
+                });
+                _status(`Grid resized to ${drag.w}×${drag.h}` +
+                    (stranded ? `, ${stranded} out-of-bounds cell(s) removed` : '') + '.', false);
+            }
+            _notify(true);
+        } catch (e) {
+            _status(`Grid adjust failed: ${e.message}`, true);
+        }
+        render();
+    }
+
     function _drawGridLines(ctx, p) {
         const w = p.grid.w * CELL;
         const h = p.grid.h * CELL;
         ctx.save();
         // No opaque fill: the reference image (a layer beneath) must show through.
         const scale = state.stage ? state.stage.scaleX() : 1;
+        // The extent and origin have to be visible (task-597): a bold frame
+        // around the grid, a marker at cell (0,0), and a faint box around the
+        // painted content so an author can see at a glance how much of the grid
+        // is used and which corner is the origin.
+        ctx.strokeStyle = state.gridEdit ? '#e3b341' : 'rgba(255,255,255,0.35)';
+        ctx.lineWidth = 2 / scale;
+        ctx.strokeRect(0, 0, w, h);
+        const bounds = GM().paintedBounds(p);
+        if (bounds) {
+            ctx.fillStyle = 'rgba(227,179,65,0.08)';
+            ctx.fillRect(bounds.x * CELL, bounds.y * CELL, bounds.w * CELL, bounds.h * CELL);
+            ctx.strokeStyle = 'rgba(227,179,65,0.5)';
+            ctx.lineWidth = 1 / scale;
+            ctx.setLineDash([5 / scale, 4 / scale]);
+            ctx.strokeRect(bounds.x * CELL, bounds.y * CELL, bounds.w * CELL, bounds.h * CELL);
+            ctx.setLineDash([]);
+        }
+        // Origin marker at (0,0) plus its label.
+        ctx.fillStyle = '#e3b341';
+        ctx.beginPath();
+        ctx.arc(0, 0, 4 / scale, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.font = `${Math.max(9, 11 / scale)}px sans-serif`;
+        ctx.fillText(`0,0 · ${p.grid.w}×${p.grid.h}`, 6 / scale, -5 / scale);
         // Below ~4px per cell the lines become moiré — paint only.
         if (CELL * scale >= 4) {
             ctx.strokeStyle = 'rgba(255,255,255,0.07)';
@@ -2104,12 +2373,13 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         // In reference-adjust mode the drag belongs to the picture, so only space
         // pans there.
         const dragPaints = () => _isPaintTool() || state.tool === 'move';
-        stage.draggable(state.spaceDown || (!state.refEdit && !dragPaints()
+        stage.draggable(state.spaceDown || (!state.refEdit && !state.gridEdit && !dragPaints()
             && state.tool !== 'select'));        stage.on('dragstart', () => { dragged = true; });
         stage.on('dragend', _captureView);
 
         stage.on('mousedown', (e) => {
             if (state.refEdit && !state.spaceDown) { _refMouseDown(p); return; }
+            if (state.gridEdit && !state.spaceDown) { _gridMouseDown(p); return; }
             if (e.evt && e.evt.button !== 0) return;
             if (state.tool === 'select' && !state.spaceDown) {
                 const cell = _cellAtPointer(p);
@@ -2134,6 +2404,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         });
         stage.on('mousemove', () => {
             if (state.refEdit) { _refMouseMove(p); return; }
+            if (state.gridEdit) { _gridMouseMove(p); return; }
             const cell = _cellAtPointer(p);
             if (state.marquee && cell) {
                 if (cell.x !== state.marquee.to.x || cell.y !== state.marquee.to.y) {
@@ -2147,12 +2418,13 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         });
         stage.on('mouseup mouseleave', () => {
             if (state.refEdit) { _refMouseUp(); return; }
+            if (state.gridEdit) { _gridMouseUp(p); return; }
             if (state.marquee) { _commitMarquee(p); return; }
             if (state.stroking) _commitStroke(p);
         });
 
         stage.on('click tap', () => {
-            if (state.refEdit) return;    // adjust mode owns the pointer
+            if (state.refEdit || state.gridEdit) return;   // adjust modes own the pointer
             if (dragged) { dragged = false; return; }
             if (_isPaintTool()) return;   // already committed by the stroke
             if (state.tool === 'select') return;   // committed by the marquee
@@ -2163,7 +2435,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         // end you have to switch tools to inspect.
         stage.on('contextmenu', (e) => {
             e.evt.preventDefault();
-            if (state.refEdit) return;
+            if (state.refEdit || state.gridEdit) return;
             const cell = _cellAtPointer(p);
             if (cell) inspectCell(p, cell.x, cell.y);
         });
@@ -2176,6 +2448,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
             stage.scale({ x: next, y: next });
             stage.position({ x: ptr.x - gridPt.x * next, y: ptr.y - gridPt.y * next });
             _captureView();
+            _syncZoomButtons();
             _redrawGrid();
         });
     }
@@ -2425,6 +2698,19 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         row('enter', info.enter || '—');
         row('area', info.area ? `${info.area.name} (${info.area.id})` : '—');
         row('sub-zone', info.child ? `${info.child.name || info.child.id} (${info.child.id})` : '—');
+        // Where you can leave this cell (task-596). Ways join adjacent cells, so
+        // a cell's exits are its passable neighbours; a solid neighbour is a
+        // wall to your face, and the map edge is not an exit at all.
+        const neighbours = GM().cellNeighbours(p, at.x, at.y, state.vocab);
+        const label = (n) => {
+            if (n === null) return 'map edge';
+            const noun = String(n.road || n.biome || '').replace(/_/g, ' ');
+            const solid = n.kind && n.kind !== 'place' ? ` (${n.kind})` : '';
+            const what = noun ? `${noun}${solid}` : 'empty';
+            return n.name ? `${what} “${n.name}”` : what;
+        };
+        row('exits', ['N', 'E', 'S', 'W']
+            .map((d) => `${d}: ${label(neighbours[d])}`).join(' · '));
         wrap.appendChild(rows);
 
         // The cell's name (task-560) — what the place is *called*, which is what
@@ -2604,6 +2890,18 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         }
     }
 
+    /**
+     * Grey out a zoom control that is already at its clamp (task-595). The
+     * buttons used to look live at the floor and do nothing when pressed, which
+     * reads as a broken control rather than a reached limit.
+     */
+    function _syncZoomButtons() {
+        const scale = state.stage ? state.stage.scaleX() : null;
+        if (!scale) return;
+        if (state.zoomOutBtn) state.zoomOutBtn.disabled = scale <= MIN_SCALE + 1e-6;
+        if (state.zoomInBtn) state.zoomInBtn.disabled = scale >= MAX_SCALE - 1e-6;
+    }
+
     function _zoomBy(p, factor) {
         const stage = state.stage;
         if (!stage) return;
@@ -2614,6 +2912,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         stage.scale({ x: next, y: next });
         stage.position({ x: c.x - gridPt.x * next, y: c.y - gridPt.y * next });
         _captureView();
+        _syncZoomButtons();
         _redrawGrid();
     }
 
@@ -2628,6 +2927,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
             y: (stage.height() - p.grid.h * CELL * scale) / 2,
         });
         _captureView();
+        _syncZoomButtons();
         _redrawGrid();
     }
 
