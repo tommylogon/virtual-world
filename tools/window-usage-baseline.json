@@ -146,6 +146,18 @@
   "Lit": 9,
   "worldState": 1
  },
+ "static/js/graph-manager.js": {
+  "EdgeInspector": 2,
+  "GraphBackground": 13,
+  "GraphNetwork": 1,
+  "GraphToolbar": 9,
+  "InspectorPanel": 2,
+  "Lit": 5,
+  "ScopeOptions": 2,
+  "appEvents": 1,
+  "graphManager": 1,
+  "worldSync": 3
+ },
  "static/js/graph/context-menu.js": {
   "GraphContextMenu": 1,
   "Lit": 3,
