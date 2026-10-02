@@ -397,11 +397,17 @@ class GraphManager {
         }
         this._cardinalLayout = !this._cardinalLayout;
         if (window.GraphToolbar) GraphToolbar.syncAll();
-        this._physicsEnabled = true;
+        // The painted lattice owns positions in Map mode, so the solver defaults
+        // OFF on entering it: leaving it on made vis simulate every node
+        // continuously (~20fps, 82 redraws / 2s idle) and starved the inspector,
+        // scope picker and WorldPainter panels (task-527). Graph mode simulates
+        // again. This is a per-session default; an explicit toolbar toggle still
+        // wins, and only that explicit choice is persisted (line ~997) — so a
+        // reload always starts the graph view with the user's own preference.
+        this._physicsEnabled = !this._cardinalLayout;
         // Clear signature so loadGraphData doesn't skip the reload
         this._lastSig = '';
         this.loadGraphData();
-        this._saveGraphConfigKey('graph.physics_enabled', this._physicsEnabled);
         return true;
     }
 

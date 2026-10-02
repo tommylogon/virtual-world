@@ -1536,12 +1536,41 @@
         saveToWorld(true);
     }
     /* ── node layout (unchanged behaviour) ─────────────────────────────── */
+    /**
+     * Every rendered node's canvas position, **hidden nodes included**.
+     *
+     * `network.getPositions()` omits hidden nodes, so a saved/locked layout
+     * silently dropped every item or trigger that was toggled off at the time
+     * (items and triggers are hidden by default). The saved runtime store and
+     * the durable `properties.x/y` write both went through `getPositions()`, so
+     * a hidden node's position was never persisted at all (task-617). Read the
+     * vis body directly instead, filtered to ids still in the DataSet (body can
+     * hold stale entries after a rebuild).
+     */
+    function _allNodePositions(network) {
+        const out = {};
+        const body = network && network.body && network.body.nodes;
+        if (!body)
+            return out;
+        let live = null;
+        try { live = new Set(network.body.data.nodes.getIds()); } catch (error) { live = null; }
+        for (const id of Object.keys(body)) {
+            const node = body[id];
+            if (!node || !Number.isFinite(node.x) || !Number.isFinite(node.y)) continue;
+            if (live && !live.has(id)) continue;
+            out[id] = { x: node.x, y: node.y };
+        }
+        if (!Object.keys(out).length) {
+            try { return network.getPositions() || {}; } catch (error) { return out; }
+        }
+        return out;
+    }
     function _capturePositions() {
         const network = _network();
         if (!network)
             return;
         try {
-            state.positions = network.getPositions();
+            state.positions = _allNodePositions(network);
         }
         catch (error) { /* ignore */ }
     }
@@ -1597,7 +1626,7 @@
             return { saved: 0 };
         let positions = {};
         try {
-            positions = network.getPositions();
+            positions = _allNodePositions(network);
         }
         catch (error) {
             return { saved: 0 };

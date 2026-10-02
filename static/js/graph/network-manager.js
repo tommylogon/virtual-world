@@ -749,6 +749,11 @@ window.GraphNetwork = {
                 try { window.NLEditorGhosts.refresh(); } catch (err) { /* ignore */ }
             }
 
+            // Snapshot the structural styles BEFORE any overlay recolours them,
+            // so switching overlays can reset in place (task-642). Without this
+            // a trigger overlay's dim-everything (opacity 0.2, grey) stayed under
+            // the next overlay and made heat/sound/light read alike.
+            GraphNetwork._captureBaseStyles();
             // Re-render overlay views (map/outline) if active
             if (graphManager._viewMode !== 'graph') graphManager._renderCurrentView();
             // The toolbar's loaded-node stat reads _graphNodesObj, so repaint it
@@ -1535,6 +1540,69 @@ window.GraphNetwork = {
     },
 
     /**
+     * Snapshot every rendered node/edge's structural style.
+     *
+     * Taken once per data load, after label decorations + LOD have settled but
+     * before the active overlay recolours anything, so `resetOverlayStyles()`
+     * can undo an overlay without a full `loadGraphData()` rebuild (which would
+     * refit the camera and re-run layout) — the reason switching overlays used
+     * to stack colours (task-642).
+     */
+    _captureBaseStyles() {
+        const data = graphManager.network && graphManager.network.body
+            && graphManager.network.body.data;
+        if (!data) return;
+        const nodeStyles = {};
+        if (data.nodes) {
+            data.nodes.forEach((node) => {
+                nodeStyles[node.id] = { color: node.color, label: node.label, opacity: 1 };
+            });
+        }
+        const edgeStyles = {};
+        if (data.edges) {
+            data.edges.forEach((edge) => {
+                edgeStyles[edge.id] = {
+                    color: edge.color, dashes: edge.dashes, width: edge.width,
+                    label: edge.label, opacity: 1,
+                };
+            });
+        }
+        graphManager._baseNodeStyles = nodeStyles;
+        graphManager._baseEdgeStyles = edgeStyles;
+    },
+
+    /** Restore the styles snapshotted by `_captureBaseStyles`. */
+    resetOverlayStyles() {
+        const data = graphManager.network && graphManager.network.body
+            && graphManager.network.body.data;
+        if (!data) return;
+        const baseNodes = graphManager._baseNodeStyles;
+        if (baseNodes && data.nodes) {
+            const updates = [];
+            data.nodes.forEach((node) => {
+                const s = baseNodes[node.id];
+                if (s) updates.push({ id: node.id, color: s.color, label: s.label, opacity: 1 });
+            });
+            if (updates.length) data.nodes.update(updates);
+        }
+        const baseEdges = graphManager._baseEdgeStyles;
+        if (baseEdges && data.edges) {
+            const updates = [];
+            data.edges.forEach((edge) => {
+                const s = baseEdges[edge.id];
+                if (s) updates.push({
+                    id: edge.id, color: s.color, dashes: s.dashes,
+                    width: s.width, label: s.label, opacity: 1,
+                });
+            });
+            if (updates.length) data.edges.update(updates);
+        }
+        // A label overlay (cardinal) rewrites names, so re-apply the LOD
+        // decision or a reset map is left showing the previous overlay's labels.
+        GraphNetwork.applyNodeLabelVisibility(true);
+    },
+
+    /**
      * Apply a named overlay to the graph.
      * @param {string} mode - 'light' | 'heat' | 'sound' | 'trigger' | 'cardinal' | 'structural'
      */
@@ -1547,6 +1615,10 @@ window.GraphNetwork = {
             GraphNetwork._clearOverlay();
             return;
         }
+
+        // Each overlay starts from the structural styles, never from the last
+        // overlay's recolour (task-642).
+        GraphNetwork.resetOverlayStyles();
 
         const t0 = performance.now();
         try {

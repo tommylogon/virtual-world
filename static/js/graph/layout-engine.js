@@ -583,6 +583,26 @@ window.GraphLayoutEngine = {
         const placed = new Set();
         const anchors = {};
 
+        const edges = (worldState.graph && worldState.graph.edges) || [];
+        // way id -> the areas it joins, so a coordinate-less way can be placed
+        // from its rooms rather than from a stale saved position.
+        const wayAreas = {};
+        for (const edge of edges) {
+            if (edge.type !== 'connection') continue;
+            const source = nodesObj[edge.source];
+            const target = nodesObj[edge.target];
+            if (!source || !target) continue;
+            if (source.type === 'way' && target.type === 'area') {
+                (wayAreas[edge.source] = wayAreas[edge.source] || []).push(edge.target);
+            } else if (target.type === 'way' && source.type === 'area') {
+                (wayAreas[edge.target] = wayAreas[edge.target] || []).push(edge.source);
+            }
+        }
+        const isPaintedArea = (id) => {
+            const room = nodesObj[id];
+            return !!room && GraphLayoutEngine.hasPaintedCoords((room.properties) || {});
+        };
+
         for (const [id, node] of Object.entries(nodesObj)) {
             if (!nodesDS.get(id)) continue;
             const props = (node || {}).properties || {};
@@ -599,7 +619,17 @@ window.GraphLayoutEngine = {
                 p = GraphLayoutEngine.scopedGridPosition(props, node, offsets);
             } else if (typeof props.x === 'number' && typeof props.y === 'number'
                     && isFinite(props.x) && isFinite(props.y)) {
-                p = { x: props.x, y: props.y };
+                // A way whose room(s) are painted belongs *on the map*: a saved
+                // graph-mode position is a different frame from the cell-scaled
+                // map, so using it verbatim stranded the way thousands of px
+                // from its rooms and strung every connection edge across empty
+                // space (task-618). Such a way is placed from its rooms in the
+                // pass below. A way with no painted room (a hand-placed way among
+                // hand-placed rooms) keeps its canvas position, like any dragged
+                // node (task-530).
+                const rooms = wayAreas[id] || [];
+                const belongsToMap = node.type === 'way' && rooms.some(isPaintedArea);
+                if (!belongsToMap) p = { x: props.x, y: props.y };
             }
             if (!p) continue;
             const isArea = node.type === 'area';
@@ -614,22 +644,31 @@ window.GraphLayoutEngine = {
             // holds them to the area that has them. An author-frozen node keeps
             // physics off.
             const frozen = GraphLayoutEngine.isFrozen(node);
+            // An *area* and a *painted way* are both placed by the grid: their
+            // cell (or their rooms' cells) is their map position, so they are
+            // pinned there. Letting the solver "pull a painted way toward its
+            // areas" moved it off its cell instead — the map frame and the
+            // solver frame disagree — and strung the connection edges across
+            // empty space (task-618). A way with no cell is either placed from
+            // its rooms (pass below) or, if it has no painted rooms, left to the
+            // solver like any other node (task-530).
+            const pinnedToGrid = isArea || (isWay && GraphLayoutEngine.hasPaintedCoords(props));
             updates.push({
                 id,
                 x: p.x,
                 y: p.y,
-                // Everything except an area is simulated. A hand-placed character
-                // reaches here, not the `heldIn` branch below, so gating on `isWay`
-                // here would quietly leave a placed character out of the solver.
-                physics: !isArea && !frozen,
-                fixed: isArea ? { x: true, y: true } : { x: false, y: false },
+                // Everything else with its own position is simulated. A
+                // hand-placed character reaches here, not the `heldIn` branch
+                // below, so gating on `isWay` here would quietly leave a placed
+                // character out of the solver.
+                physics: !pinnedToGrid && !frozen,
+                fixed: pinnedToGrid ? { x: true, y: true } : { x: false, y: false },
             });
             placed.add(id);
             if (isArea) anchors[id] = p;
         }
 
         // Items/characters without their own coords sit beside their area.
-        const edges = (worldState.graph && worldState.graph.edges) || [];
         const heldIn = {};
         for (const edge of edges) {
             if (edge.type !== 'in') continue;
@@ -654,6 +693,18 @@ window.GraphLayoutEngine = {
                     fixed: { x: false, y: false },
                 });
             });
+        }
+
+        // Ways that belong to the map were skipped by the loop above; place them
+        // at the mean of their rooms' anchors, in the same scaled map frame.
+        for (const [wayId, areaIds] of Object.entries(wayAreas)) {
+            if (placed.has(wayId) || !nodesDS.get(wayId)) continue;
+            const rooms = areaIds.map((areaId) => anchors[areaId]).filter(Boolean);
+            if (!rooms.length) continue;
+            const x = rooms.reduce((sum, room) => sum + room.x, 0) / rooms.length;
+            const y = rooms.reduce((sum, room) => sum + room.y, 0) / rooms.length;
+            updates.push({ id: wayId, x, y, physics: false, fixed: { x: true, y: true } });
+            placed.add(wayId);
         }
         return updates;
     },
