@@ -52,3 +52,26 @@ save/reload and manual-edit survival. Only the surface is missing.
 
 - Chunk eviction or scope unloading (task-401).
 - Authoring new recipes; `apartment.v1` is the one this hangs off.
+
+## Blocked in the inspector-ui lane (2026-10-02)
+
+Not attempted. The surface this task needs does not live in this lane's files
+(`static/js/inspector/**`, `static/js/help/**`, `templates/index.html`): the
+"scope card" is `static/js/graph/scope-tree.js` and the alternative home
+(the per-scope `⚙ Generate`) is `static/js/worldpainter/editor.js`.
+
+`static/js/graph/scope-tree.js` is being changed by the **in-progress
+task-592**, which *deliberately* replaced the scope-row Generate with a
+**🖌 Paint** jump ("generating lives in the painter, per scope-tree.js's own
+rule — no Generate button on a scope row"). Re-adding a Generate there now
+would directly collide with that live work and reverse its documented decision.
+Implementing instead in the WorldPainter means editing another cluster's owned
+file.
+
+When this task is picked up it needs: (1) a preview endpoint on
+`routes/world_grid_ops.py` that builds the patch from `engine/library_nodes.py`
+without writing, returning areas/items/ways/seed/recipe version plus the
+report's missing tag candidates; (2) the Generate button + preview modal on the
+chosen surface; (3) the no-op-on-made-scope guard. Recommend resolving the
+scope-tree vs painter ownership question with task-592 first.
+
