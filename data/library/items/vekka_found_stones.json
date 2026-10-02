@@ -11,6 +11,9 @@
     "kraktooth",
     "stone"
   ],
+  "affinity": [
+    "rocky"
+  ],
   "triggers": [],
   "contents": []
 }

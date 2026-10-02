@@ -12,6 +12,9 @@
     "metal",
     "scrap"
   ],
+  "affinity": [
+    "ruin"
+  ],
   "triggers": [],
   "contents": []
 }

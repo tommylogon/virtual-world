@@ -69,6 +69,7 @@
       "name": "Metal Scrap",
       "description": "A sack of bent nails, torn sheeting and human-made fragments.",
       "weight": 2.5,
+      "affinity": ["ruin"],
       "tags": [
         "material",
         "kraktooth",
@@ -546,6 +547,7 @@
       "name": "Drying Herbs",
       "description": "Bundles of herbs hung to dry, sorted by what they cure rather than how they taste.",
       "weight": 0.2,
+      "affinity": ["forest", "woods"],
       "tags": [
         "material",
         "kraktooth",
@@ -832,6 +834,7 @@
       "name": "Found Stones",
       "description": "A pouch of odd river stones, kept for their color or their ring when struck.",
       "weight": 0.4,
+      "affinity": ["rocky"],
       "tags": [
         "material",
         "kraktooth",
@@ -978,6 +981,7 @@
       "name": "Shiny Stones",
       "description": "A double handful of glossy stones, ranked by shine on a scale only Krikka knows.",
       "weight": 0.4,
+      "affinity": ["rocky"],
       "tags": [
         "material",
         "kraktooth",

@@ -12,6 +12,9 @@
     "stone",
     "treasure"
   ],
+  "affinity": [
+    "rocky"
+  ],
   "triggers": [],
   "contents": []
 }
