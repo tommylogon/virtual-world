@@ -17,6 +17,44 @@
  */
 window.GraphOverlays = {
 
+    /**
+     * The environment block for an area, resolved by **node id**.
+     *
+     * Every overlay used to read `worldState.areas[node.label]`, but `label` is
+     * the *display* label: NodeBadges decorates it with emoji (🌑 for a dark
+     * area, ⚡ for a trigger, 🏢 for a floor) and the label LOD blanks it to `''`
+     * on a dense map. So on the very maps where the overlay matters, the lookup
+     * missed and light/heat/sound all fell back to the same default colour —
+     * the "four overlays render identically" defect (task-642).
+     *
+     * The id is the identity; the name is only how the environment is keyed in
+     * the state payload. Read the graph node's own `properties.environment`
+     * first (that is the live copy the engine mutates), then the state `areas`
+     * record by the node's real name.
+     *
+     * @param {string} nodeId
+     * @returns {Object} environment dict, `{}` when the area has none
+     */
+    areaEnvironment(nodeId) {
+        const gm = (typeof graphManager !== 'undefined' && graphManager) || null;
+        const raw = (gm && gm._graphNodesObj && gm._graphNodesObj[nodeId]) || null;
+        const props = (raw && raw.properties) || {};
+        if (props.environment && typeof props.environment === 'object') {
+            return props.environment;
+        }
+        const name = raw && raw.name;
+        const rooms = (typeof worldState !== 'undefined' && worldState)
+            ? (worldState.areas || {}) : {};
+        const byName = name ? rooms[name] : null;
+        if (byName && byName.environment && typeof byName.environment === 'object') {
+            return byName.environment;
+        }
+        const graphNode = (typeof worldState !== 'undefined' && worldState && worldState.graph
+            && worldState.graph.nodes && worldState.graph.nodes[nodeId]) || null;
+        const graphEnv = graphNode && graphNode.properties && graphNode.properties.environment;
+        return (graphEnv && typeof graphEnv === 'object') ? graphEnv : {};
+    },
+
     /** Light level enum → numeric value (mirrors engine/lighting.py) */
     lightToInt(raw) {
         if (raw === undefined || raw === null) return 80;
@@ -123,8 +161,7 @@ window.GraphOverlays = {
 
         nodes.forEach(n => {
             if (n.group === 'area') {
-                const room = worldState.areas?.[n.label];
-                const env = room?.environment || {};
+                const env = GraphOverlays.areaEnvironment(n.id);
                 const itemLight = Math.min(100, areaItemContrib[n.id] || 0);
                 const own = Math.min(100, GraphOverlays.lightToInt(env.light) + itemLight);
                 areaNodes.push({ id: n.id, name: n.label, own });
@@ -193,9 +230,7 @@ window.GraphOverlays = {
         const updates = [];
         nodes.forEach(node => {
             if (node.group === 'area') {
-                const room = worldState.areas?.[node.label];
-                const env = room?.environment || {};
-                const temp = env.temperature;
+                const temp = GraphOverlays.areaEnvironment(node.id).temperature;
                 updates.push({ id: node.id, color: GraphOverlays.heatColors(temp) });
             } else if (node.group === 'item') {
                 const nodeData = worldState.graph?.nodes?.[node.id];
@@ -215,9 +250,8 @@ window.GraphOverlays = {
         const updates = [];
         nodes.forEach(node => {
             if (node.group === 'area') {
-                const room = worldState.areas?.[node.label];
-                const env = room?.environment || {};
-                updates.push({ id: node.id, color: GraphOverlays.noiseColors(env.noise) });
+                const noise = GraphOverlays.areaEnvironment(node.id).noise;
+                updates.push({ id: node.id, color: GraphOverlays.noiseColors(noise) });
             }
         });
         nodes.update(updates);
