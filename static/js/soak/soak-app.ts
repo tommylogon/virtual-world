@@ -1,4 +1,3 @@
-"use strict";
 /**
  * @module soak-app — bootstrap for the /soak page
  * @contributes page startup: bind the UI, load meta/runs, restore the shared URL config, select a run
@@ -9,24 +8,25 @@
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 (function () {
     'use strict';
+
     function boot() {
         window.SoakUI.init();
         window.SoakState.init()
             .then(() => {
-            const meta = window.SoakState.state.meta || {};
-            if (!meta.scenarios || !meta.scenarios.length) {
-                window.SoakUI.toast('No scenario files found under data/scenarios.', 'warn', 8000);
-            }
-        })
+                const meta = window.SoakState.state.meta || {};
+                if (!meta.scenarios || !meta.scenarios.length) {
+                    window.SoakUI.toast('No scenario files found under data/scenarios.', 'warn', 8000);
+                }
+            })
             .catch((err) => {
-            console.error('[soak] init failed', err);
-            window.SoakUI.toast('Could not load Soak Lab: ' + err.message, 'error', 10000);
-        });
+                console.error('[soak] init failed', err);
+                window.SoakUI.toast('Could not load Soak Lab: ' + err.message, 'error', 10000);
+            });
     }
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', boot);
-    }
-    else {
+    } else {
         boot();
     }
 })();

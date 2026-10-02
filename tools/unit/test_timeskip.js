@@ -52,3 +52,37 @@ test('timeskip an explicit duration beats an until preset', () => {
     assertEq(g.buildPayload({ intent: 'idle', customMinutes: 30, preset: 'until:dawn' }),
         { intent: 'idle', minutes: 30 });
 });
+
+test('timeskip a soak order summarizes the order, never elapsed figures', () => {
+    const g = window.Timeskip._internals;
+    const text = g.summarize({
+        ok: true, mode: 'soak',
+        order: { intent: 'idle', declared_minutes: 30, remaining_minutes: 30,
+                 target: null, heading: null, watch_tags: [] },
+    }).join('\n');
+    assertTrue(text.indexOf('undefined') === -1, 'no undefined in: ' + text);
+    assertTrue(/30 min/.test(text), 'names the span: ' + text);
+    assertTrue(/Soak order/.test(text), 'names the mode: ' + text);
+});
+
+test('timeskip a soak order with a target and watch tags reports both', () => {
+    const g = window.Timeskip._internals;
+    const text = g.summarize({
+        ok: true, mode: 'soak',
+        order: { intent: 'travel', declared_minutes: 120, target: 'Water Source',
+                 heading: null, watch_tags: ['relic', 'treasure'] },
+    }).join('\n');
+    assertTrue(/Water Source/.test(text), 'names the target: ' + text);
+    assertTrue(/relic, treasure/.test(text), 'names the watch tags: ' + text);
+});
+
+test('timeskip a blocking advance still reports elapsed minutes and the clock', () => {
+    const g = window.Timeskip._internals;
+    const text = g.summarize({
+        ok: true, mode: 'character', elapsed_minutes: 120, ticks: 40,
+        clock_after: '10:00', vitals_before: { hunger: 50 }, vitals_after: { hunger: 62 },
+    }).join('\n');
+    assertTrue(/Elapsed: 120 min \(40 ticks\)/.test(text), 'elapsed line: ' + text);
+    assertTrue(/10:00/.test(text), 'clock line: ' + text);
+    assertTrue(/hunger 50→62/.test(text), 'vitals line: ' + text);
+});

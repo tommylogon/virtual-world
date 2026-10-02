@@ -161,6 +161,12 @@ class WorldSerializer:
                      (getattr(p, "soak_order", None) or {}).get("remaining_minutes", 0) or 0), 1)}
                 if getattr(p, "soak_order", None) else None
             ),
+            # Which runner owns this character right now: "active" is the normal
+            # LLM/simple loop, "background" is the deterministic survival runner.
+            # It is saved (player.to_dict) and was only missing here, so the page
+            # could not say why a character was acting bluntly — the same question
+            # the `soak` badge above answers for an order (task-670).
+            "simulation_mode": getattr(p, "simulation_mode", "active"),
             "manifested": bool(getattr(p, 'manifested', False)),
             "known": list(getattr(p, 'known', []) or []),
             "crafting_known": list(getattr(p, 'crafting_known', []) or []),

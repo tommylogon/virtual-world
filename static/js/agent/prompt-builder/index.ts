@@ -1,4 +1,3 @@
-"use strict";
 /**
  * prompt-builder/index.js — Module manifest.
  *

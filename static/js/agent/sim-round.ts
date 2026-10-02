@@ -1,4 +1,3 @@
-"use strict";
 /**
  * sim-round.js — round-completion bookkeeping for simultaneous modes (task-533)
  *
@@ -30,8 +29,10 @@
  * (dead means out), matching the turn queue's own filter.
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+
 const VWSimRound = (() => {
     'use strict';
+
     /**
      * Everyone whose turn counts toward a round: the living characters, human
      * and autonomous alike.
@@ -41,16 +42,19 @@ const VWSimRound = (() => {
      * @param {boolean} [opts.ghostMode] - dead characters still participate
      * @returns {string[]} names, stable order
      */
-    function participants(players, opts) {
+    function participants(
+        players: Record<string, { state?: string } | undefined>,
+        opts?: { ghostMode?: boolean },
+    ): string[] {
         const o = opts || {};
         const ghost = !!o.ghostMode;
         return Object.keys(players || {}).filter(name => {
             const p = players[name];
-            if (!p)
-                return false;
+            if (!p) return false;
             return p.state !== 'dead' || ghost;
         });
     }
+
     /**
      * Is every participant marked resolved?
      *
@@ -61,40 +65,41 @@ const VWSimRound = (() => {
      * @param {Set<string>|Array<string>} resolved
      * @returns {boolean}
      */
-    function isComplete(roster, resolved) {
-        if (!roster || roster.length === 0)
-            return false;
+    function isComplete(roster: string[], resolved: Set<string> | string[]): boolean {
+        if (!roster || roster.length === 0) return false;
         const done = resolved instanceof Set
             ? resolved
             : new Set(resolved || []);
         return roster.every(name => done.has(name));
     }
+
     /**
      * Who is still owed a turn.
      * @param {string[]} roster
      * @param {Set<string>|Array<string>} resolved
      * @returns {string[]}
      */
-    function pendingFor(roster, resolved) {
+    function pendingFor(roster: string[], resolved: Set<string> | string[]): string[] {
         const done = resolved instanceof Set
             ? resolved
             : new Set(resolved || []);
         return (roster || []).filter(name => !done.has(name));
     }
+
     /**
      * Mark a character resolved, tolerating an uninitialised set.
      * @param {Set<string>} set - mutated in place
      * @param {string} name
      * @returns {Set<string>} the same set
      */
-    function markResolved(set, name) {
-        if (!name)
-            return set;
-        if (!set || typeof set.add !== 'function')
-            return set;
+    function markResolved(set: Set<string>, name: string): Set<string> {
+        if (!name) return set;
+        if (!set || typeof set.add !== 'function') return set;
         set.add(name);
         return set;
     }
+
     return { participants, isComplete, pendingFor, markResolved };
 })();
-window.VWSimRound = VWSimRound;
+
+(window as unknown as { VWSimRound: typeof VWSimRound }).VWSimRound = VWSimRound;

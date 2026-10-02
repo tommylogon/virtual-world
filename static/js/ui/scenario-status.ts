@@ -1,4 +1,3 @@
-"use strict";
 /**
  * scenario-status.js — scenario source status chip + one-click Commit.
  *
@@ -19,23 +18,24 @@
  * @docs docs/virtualWorld/Scenario Workflows & UI Audit.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+
 const ScenarioStatus = (() => {
     'use strict';
-    let _timer = null;
+
+    let _timer: ReturnType<typeof setTimeout> | null = null;
     let _busy = false;
+
     const chip = () => document.getElementById('scenario-status-chip');
+
     async function refresh() {
-        if (_busy)
-            return;
+        if (_busy) return;
         const node = chip();
-        if (!node)
-            return;
+        if (!node) return;
         let st = null;
         try {
             const resp = await fetch('/api/scenario/status');
             st = await resp.json();
-        }
-        catch (e) {
+        } catch (e) {
             return; // older server — chip stays quiet
         }
         node.textContent = '';
@@ -44,13 +44,15 @@ const ScenarioStatus = (() => {
         icon.style.cssText = 'color:var(--text-dim);';
         icon.title = st.source ? ('Scenario source: ' + st.source) : 'No scenario source yet';
         node.appendChild(icon);
-        if (!st.dirty)
-            return;
+
+        if (!st.dirty) return;
+
         const dot = document.createElement('span');
         dot.textContent = '●';
         dot.style.cssText = 'color:#e3b341;';
         dot.title = 'Unsaved changes since the scenario source was loaded/committed';
         node.appendChild(dot);
+
         const commit = document.createElement('button');
         commit.className = 'btn btn-sm btn-green';
         commit.textContent = '💾 Commit';
@@ -61,9 +63,9 @@ const ScenarioStatus = (() => {
         // (Restart lives in the toolbar — one Restart button; the chip only
         // shows status + Commit.)
     }
+
     async function commitScenario() {
-        if (_busy)
-            return;
+        if (_busy) return;
         _busy = true;
         const node = chip();
         try {
@@ -73,42 +75,36 @@ const ScenarioStatus = (() => {
                 body: JSON.stringify({})
             });
             const data = await resp.json();
-            if (data.error)
-                throw new Error(data.error);
+            if (data.error) throw new Error(data.error);
             if (typeof toastInfo === 'function') {
                 toastInfo(`Committed to scenario "${data.name}".`);
             }
-            try {
-                events.log(`💾 Scenario "${data.name}" committed.`, 'system-msg');
-            }
-            catch (e) { }
+            try { events.log(`💾 Scenario "${data.name}" committed.`, 'system-msg'); } catch (e) {}
             try {
                 const nameText = document.getElementById('scenario-name-text');
-                if (nameText && data.name)
-                    nameText.textContent = data.name;
+                if (nameText && data.name) nameText.textContent = data.name;
                 document.body.dataset.scenarioName = data.name;
-            }
-            catch (e) { }
+            } catch (e) {}
             await refresh();
-        }
-        catch (e) {
+        } catch (e) {
             console.error('[scenario-status] commit failed:', e);
-            if (typeof toastError === 'function')
-                toastError('Commit failed: ' + (e instanceof Error ? e.message : String(e)));
-        }
-        finally {
+            if (typeof toastError === 'function') toastError('Commit failed: ' + (e instanceof Error ? e.message : String(e)));
+        } finally {
             _busy = false;
         }
     }
+
     function scheduleRefresh() {
-        if (_timer)
-            clearTimeout(_timer);
+        if (_timer) clearTimeout(_timer);
         _timer = setTimeout(() => refresh(), 1200);
     }
+
     if (typeof appEvents !== 'undefined' && appEvents) {
         appEvents.on('state:updated', scheduleRefresh);
     }
     document.addEventListener('DOMContentLoaded', () => refresh());
+
     return { refresh, commit: commitScenario };
 })();
-window.ScenarioStatus = ScenarioStatus;
+
+(window as unknown as { ScenarioStatus: typeof ScenarioStatus }).ScenarioStatus = ScenarioStatus;

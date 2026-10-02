@@ -121,14 +121,37 @@ window.Timeskip = (() => {
         return typeof value === 'number' ? Math.round(value * 10) / 10 : value;
     }
 
-    function _renderSummary(data) {
-        const box = _el('timeskip-result');
-        if (!box) return;
+    /**
+     * A shared world cannot block on one character's span: the handler hands it to
+     * the turn loop as a soak order and returns at once, so that envelope carries
+     * an order and no elapsed figures at all. Printing the elapsed line for it is
+     * what produced "Elapsed: undefined min (undefined ticks)".
+     */
+    function _soakLines(order) {
+        const who = _activeCharacter() || 'The character';
+        const span = _round(order.declared_minutes);
+        const lines = [`Soak order for ${who}: ${span} min of ${order.intent || 'idle'}`];
+        const where = [order.target, order.heading].filter(Boolean).join(' · ');
+        if (where) lines[0] += ` toward ${where}`;
+        if (order.watch_tags && order.watch_tags.length) {
+            lines.push(`Watching for: ${order.watch_tags.join(', ')}`);
+        }
+        lines.push('It runs on their turn, so the clock advances then — not now.');
+        lines.push('Control comes back early if something demands their attention.');
+        return lines;
+    }
+
+    /** Summary lines for a timeskip response. Pure, so it is unit-testable. */
+    function _summarize(data) {
         const lines = [];
         if (data.mode === 'world') {
             lines.push('No active character — the world advances.');
         }
-        lines.push(`Elapsed: ${data.elapsed_minutes} min (${data.ticks} ticks) → ${data.clock_after || ''}`);
+        if (data.mode === 'soak') {
+            lines.push(..._soakLines(data.order || {}));
+        } else {
+            lines.push(`Elapsed: ${data.elapsed_minutes} min (${data.ticks} ticks) → ${data.clock_after || ''}`);
+        }
         if (data.interrupted && data.interrupt) {
             lines.push(`Interrupted: ${data.interrupt.detail || data.interrupt.why}`);
         }
@@ -145,7 +168,13 @@ window.Timeskip = (() => {
             lines.push('');
             lines.push(...data.lines.slice(-8));
         }
-        box.textContent = lines.join('\n');
+        return lines;
+    }
+
+    function _renderSummary(data) {
+        const box = _el('timeskip-result');
+        if (!box) return;
+        box.textContent = _summarize(data).join('\n');
         box.style.display = 'block';
     }
 
@@ -186,6 +215,6 @@ window.Timeskip = (() => {
         closeDialog,
         run,
         // Pure logic exposed for tools/unit/run.cjs. Not a product API.
-        _internals: { presetMinutes, buildPayload: _buildPayload },
+        _internals: { presetMinutes, buildPayload: _buildPayload, summarize: _summarize },
     };
 })();

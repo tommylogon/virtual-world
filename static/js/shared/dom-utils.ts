@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Shared DOM utilities: HTML escaping for the classic scripts.
  *
@@ -9,7 +8,8 @@
  * @docs none
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+
 /** Escape a string for use in HTML attribute context (replaces " with &quot;) */
-function escapeForHtmlAttribute(value) {
+function escapeForHtmlAttribute(value: unknown): string {
     return String(value == null ? '' : value).replace(/"/g, '&quot;');
 }

@@ -12,6 +12,7 @@
  * @relates reads worldState + agent-state; used by agent-engine
  * @docs docs/virtualWorld/Characters/NPC Behavior System.md
  */
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 
 window.ThreatDetector = (() => {
     'use strict';

@@ -15,6 +15,7 @@
  * @relates reads vital_polarity from /api/state
  * @docs docs/virtualWorld/Characters/Vitals System.md
  */
+// GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 
 window.VitalColor = (() => {
     'use strict';

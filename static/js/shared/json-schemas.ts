@@ -1,4 +1,3 @@
-"use strict";
 /**
  * json-schemas.js — Structured output schemas for LLM calls (task: structured output).
  *
@@ -24,9 +23,18 @@
  * @docs docs/virtualWorld/AI & Narration/LLM Providers.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+
+interface ResponseFormatDef {
+    name: string;
+    strict?: boolean;
+    schema: unknown;
+}
+
 const StructuredFormats = (() => {
     'use strict';
+
     const NULLABLE_STR = { type: ['string', 'null'] };
+
     /** emotion.data — closed set of relationship deltas (engine/emotion.py). */
     const EMOTION_DATA = {
         type: ['object', 'null'],
@@ -44,6 +52,7 @@ const StructuredFormats = (() => {
         },
         required: ['fear', 'affection', 'disgust', 'anger', 'trust', 'envy', 'familiarity', 'respect', 'closeness']
     };
+
     const EMOTION = {
         type: ['object', 'null'],
         additionalProperties: false,
@@ -54,6 +63,7 @@ const StructuredFormats = (() => {
         },
         required: ['label', 'intensity', 'toward']
     };
+
     const MEMORY = {
         type: ['object', 'null'],
         additionalProperties: false,
@@ -75,6 +85,7 @@ const StructuredFormats = (() => {
         },
         required: ['text', 'importance', 'tags', 'emotions']
     };
+
     /** think-decide / combined / auto-retry / chain-follow-up — full action turn. */
     const agentAction = {
         name: 'agent_action',
@@ -101,6 +112,7 @@ const StructuredFormats = (() => {
             required: ['inner_monologue', 'action', 'item', 'target', 'text', 'speech', 'volume', 'emote', 'memory', 'emotion', 'learned_names']
         }
     };
+
     /** result-reaction — react phase, no action fields. */
     const agentReact = {
         name: 'agent_react',
@@ -120,6 +132,7 @@ const StructuredFormats = (() => {
             required: ['inner_monologue', 'speech', 'volume', 'emote', 'memory', 'emotion', 'learned_names']
         }
     };
+
     /** plan — strict schemas require an object root, hence the steps wrapper. */
     const plan = {
         name: 'plan',
@@ -133,6 +146,7 @@ const StructuredFormats = (() => {
             required: ['steps']
         }
     };
+
     /** memory reflect — same wrapper reasoning as plan. */
     const insights = {
         name: 'memory_insights',
@@ -146,6 +160,7 @@ const StructuredFormats = (() => {
             required: ['insights']
         }
     };
+
     /** character personality generation. */
     const personality = {
         name: 'personality',
@@ -160,6 +175,7 @@ const StructuredFormats = (() => {
             required: ['personality', 'description']
         }
     };
+
     /** interest-tag picking — wrapper because the old contract was a raw array. */
     const tags = {
         name: 'interest_tags',
@@ -173,13 +189,16 @@ const StructuredFormats = (() => {
             required: ['tags']
         }
     };
+
     /** Fallback tier for dynamic shapes (item/world/room generation): valid
      *  JSON guaranteed, schema not enforced. Requires the word "json" in the
      *  messages — every caller here already says it. */
     const jsonObject = { type: 'json_object' };
+
     /** Wrap a bare {name, strict, schema} into a chat-completions
      *  response_format payload. */
-    const sch = (def) => ({ type: 'json_schema', json_schema: { name: def.name, strict: def.strict !== false, schema: def.schema } });
+    const sch = (def: ResponseFormatDef) => ({ type: 'json_schema', json_schema: { name: def.name, strict: def.strict !== false, schema: def.schema } });
+
     return {
         agentAction: sch(agentAction),
         agentReact: sch(agentReact),
@@ -190,4 +209,5 @@ const StructuredFormats = (() => {
         jsonObject
     };
 })();
-window.StructuredFormats = StructuredFormats;
+
+(window as unknown as { StructuredFormats: typeof StructuredFormats }).StructuredFormats = StructuredFormats;

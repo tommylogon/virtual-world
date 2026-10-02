@@ -235,6 +235,21 @@ def test_state_payload_reports_the_soak_order_for_the_roster():
     assert soak["remaining_minutes"] == 30
 
 
+def test_state_payload_reports_which_runner_owns_each_character():
+    """The tier is saved, so the page must be able to see it too (task-670).
+
+    Without this the roster can say a character has an order but not why an
+    agent with no order is acting bluntly — it is on the deterministic runner.
+    """
+    _app, hero, client = _client()
+    other = _spawn(client.application.world, "Rikka", hero.current_area)
+    client.application.world.players["Rikka"].simulation_mode = "background"
+
+    state = client.get("/api/state").get_json()
+    assert state["players"][hero.name]["simulation_mode"] == "active"
+    assert state["players"]["Rikka"]["simulation_mode"] == "background"
+
+
 def test_soak_can_be_cancelled_by_character_name():
     app, hero, client = _client()
     other = _spawn(app.world, "Borin", hero.current_area, human=True)

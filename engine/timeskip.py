@@ -23,12 +23,14 @@ from __future__ import annotations
 
 import logging
 from collections import deque
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 
 from engine.background_simulation import BackgroundSimulation, TASK_MINUTES
 from engine import interrupts as interrupts_mod
 from engine import fear as fear_mod
 from engine.lived_log import record, summarize_window
+from graph import EDGE_IN
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +42,25 @@ HEADING_WORDS = {
     "e": "east", "east": "east", "w": "west", "west": "west",
     "up": "up", "down": "down",
 }
+
+
+@dataclass
+class PolicyStep:
+    """What one turn of a declared intent actually did.
+
+    A turn has three outcomes, not two. It used to return a node or ``None``,
+    which made "found it", "did it", and "could not do it" the same result, so a
+    skip whose intent was impossible ran the whole span in silence and reported
+    success (task-671).
+    """
+
+    found: object = None      #: a node the search turned up
+    blocked: str = ""         #: why the declared intent could not be carried out
+    detail: str = ""          #: the sentence to hand back to the player
+
+    def __bool__(self):
+        """Truthy when the step found something — the old return contract."""
+        return self.found is not None
 
 #: One active skip at a time (task-464 concurrency rule).
 _ACTIVE = False
@@ -79,6 +100,39 @@ class TimeskipResult:
         }
 
 
+@contextmanager
+def everyone_soaking(gs, keep=None):
+    """Every character except *keep* on the deterministic tier for the span.
+
+    A skip owns the clock for its span, so the rest of the cast must not hold
+    focused turns: `process_due` gives a focused character `minutes_in_turn - 1`
+    minutes — zero at a 1-minute tick — so without this a fine-grained skip merely
+    decays everyone's needs and never serves them (task-436 root cause). It is
+    also what makes a one-human skip read like a world advance: the cast soaks
+    rather than the nearby characters spending LLM turns nobody is watching.
+
+    *keep* is the character whose declared intent is driving the span. They are
+    deliberately left alone: the background pass would move them — an `idle`
+    ("wait here") skip walked the character out of the area, which also starved
+    every co-located interrupt of its subject. It is the same rule a declared
+    soak order runs under, where `process_due` skips the ordered character so
+    the generic need policy never competes with the declared intent.
+
+    Each `simulation_mode` is restored on the way out, including on an exception,
+    so the attribute a save persists is unchanged (task-670).
+    """
+    saved = [(p, getattr(p, "simulation_mode", "active"))
+             for p in list((getattr(gs, "players", None) or {}).values())
+             if p is not keep]
+    for player, _ in saved:
+        player.simulation_mode = "background"
+    try:
+        yield
+    finally:
+        for player, mode in saved:
+            player.simulation_mode = mode
+
+
 def advance_world(gs, minutes, *, rng=None) -> TimeskipResult:
     """Advance the world with **no** player policy — everyone is soak.
 
@@ -106,23 +160,13 @@ def advance_world(gs, minutes, *, rng=None) -> TimeskipResult:
     start_tick = getattr(gs, "time_ticks", 0)
     per_tick = _frame_minutes(gs)
     steps = max(1, int(round(requested / per_tick)))
-    # A world advance has no attended actor, so *everyone* must soak. `process_due`
-    # gives a focused character `minutes_in_turn - 1` minutes — zero at a 1-minute
-    # tick — so without this a fine-grained world advance merely decays everyone's
-    # needs and never serves them (task-436 root cause). Restore the modes after,
-    # so the attribute the save persists is unchanged.
-    soaked = [(p, getattr(p, "simulation_mode", "active"))
-              for p in list(getattr(gs, "players", {}).values())]
-    for player, _ in soaked:
-        player.simulation_mode = "background"
     try:
-        for _ in range(steps):
-            gs.tick_turn()
-            result.ticks += 1
-            result.elapsed_minutes = int(round(result.ticks * per_tick))
+        with everyone_soaking(gs):
+            for _ in range(steps):
+                gs.tick_turn()
+                result.ticks += 1
+                result.elapsed_minutes = int(round(result.ticks * per_tick))
     finally:
-        for player, mode in soaked:
-            player.simulation_mode = mode
         _ACTIVE = False
 
     try:
@@ -143,8 +187,9 @@ def run_policy_step(gs, sim, player, *, intent="idle", target=None,
                     remaining=None):
     """One turn of a policy for *player* (shared by skips and soak orders).
 
-    Returns a found node when a search succeeds, else None (task-481 reuses this
-    so a declared soak order behaves exactly like a timeskip policy).
+    Returns a :class:`PolicyStep`, whose three outcomes are "found it", "did it"
+    and "could not do it" (task-671). A found node is what task-481 reused, so a
+    declared soak order behaves exactly like a timeskip policy.
     """
     if remaining is None:
         remaining = _frame_minutes(gs)
@@ -223,58 +268,74 @@ def advance(gs, minutes, *, intent="idle", target=None, watch_tags=(),
         per_tick = _frame_minutes(gs)
         steps = max(1, int(round(requested / per_tick)))
         before = interrupts_mod.snapshot(gs, who)
-        for _ in range(steps):
-            # 1. the standing-in policy spends this turn.
-            if getattr(who, "state", None) != "dead" and not _busy(who):
-                try:
-                    found = _policy_step(gs, sim, who, intent, target,
-                                         watch_tags, target_type, heading,
-                                         per_tick)
-                except Exception as e:  # never let one step kill the skip
-                    logger.warning("[timeskip] %s step: %s", intent, e)
-                    found = None
-                if found is not None:
+        # The rest of the cast soaks for the span: the ordering character acts on
+        # their declared intent in step 1 and keeps their own fidelity, so a nearby
+        # character cannot spend an LLM turn nobody is watching (task-670). Same
+        # rule as `advance_world`, which has no such character to keep.
+        with everyone_soaking(gs, keep=who):
+            for _ in range(steps):
+                # 1. the standing-in policy spends this turn.
+                if getattr(who, "state", None) != "dead" and not _busy(who):
+                    try:
+                        step = _policy_step(gs, sim, who, intent, target,
+                                            watch_tags, target_type, heading,
+                                            per_tick)
+                    except Exception as e:  # never let one step kill the skip
+                        logger.warning("[timeskip] %s step: %s", intent, e)
+                        step = PolicyStep()
+                    if step.found is not None:
+                        result.interrupted = True
+                        result.interrupt = {
+                            "kind": "discovery", "why": "search:found",
+                            "detail": f"You find {step.found.name}.", "salient": True,
+                        }
+                        break
+                    if step.blocked:
+                        # The declared intent cannot be carried out. Say so and
+                        # hand control back: a span that quietly goes nowhere
+                        # reads exactly like one that worked (task-671).
+                        result.interrupted = True
+                        result.interrupt = {
+                            "kind": step.blocked, "why": f"{step.blocked}:intent",
+                            "detail": step.detail or "You cannot do that right now.",
+                            "salient": True,
+                        }
+                        break
+
+                # 2. the world advances one turn (everyone else is soak).
+                gs.tick_turn()
+                result.ticks += 1
+                result.elapsed_minutes = int(round(result.ticks * per_tick))
+
+                # 3. something the character fears is present: apply frightened and
+                #    hand control back (task-469).
+                feared = fear_mod.fear_sources(gs, who)
+                if feared:
+                    fear_mod.apply_frightening(gs, who, feared)
                     result.interrupted = True
                     result.interrupt = {
-                        "kind": "discovery", "why": "search:found",
-                        "detail": f"You find {found.name}.", "salient": True,
+                        "kind": "fear", "why": f"fear:{feared[0]['kind']}",
+                        "detail": f"You are frightened by {feared[0]['name']}.",
+                        "salient": True,
                     }
                     break
 
-            # 2. the world advances one turn (everyone else is soak).
-            gs.tick_turn()
-            result.ticks += 1
-            result.elapsed_minutes = int(round(result.ticks * per_tick))
-
-            # 3. something the character fears is present: apply frightened and
-            #    hand control back (task-469).
-            feared = fear_mod.fear_sources(gs, who)
-            if feared:
-                fear_mod.apply_frightening(gs, who, feared)
-                result.interrupted = True
-                result.interrupt = {
-                    "kind": "fear", "why": f"fear:{feared[0]['kind']}",
-                    "detail": f"You are frightened by {feared[0]['name']}.",
-                    "salient": True,
-                }
-                break
-
-            # 4. did anything else relevant happen to us?
-            after = interrupts_mod.snapshot(gs, who)
-            events = interrupts_mod.events_since(gs, before)
-            reasons = interrupts_mod.evaluate(
-                before, after, events=events, watch_tags=watch_tags,
-                target=target, intent=intent)
-            before = after
-            if reasons:
-                result.interrupted = True
-                result.interrupt = reasons[0].to_dict()
-                break
-            if getattr(who, "state", None) == "dead":
-                result.interrupted = True
-                result.interrupt = {"kind": "death", "why": "death",
-                                    "detail": "You died.", "salient": True}
-                break
+                # 4. did anything else relevant happen to us?
+                after = interrupts_mod.snapshot(gs, who)
+                events = interrupts_mod.events_since(gs, before)
+                reasons = interrupts_mod.evaluate(
+                    before, after, events=events, watch_tags=watch_tags,
+                    target=target, intent=intent)
+                before = after
+                if reasons:
+                    result.interrupted = True
+                    result.interrupt = reasons[0].to_dict()
+                    break
+                if getattr(who, "state", None) == "dead":
+                    result.interrupted = True
+                    result.interrupt = {"kind": "death", "why": "death",
+                                        "detail": "You died.", "salient": True}
+                    break
     finally:
         _ACTIVE = False
 
@@ -286,6 +347,13 @@ def advance(gs, minutes, *, intent="idle", target=None, watch_tags=(),
         result.clock_after = ""
     result.lines = summarize_window(who, since_tick=start_tick, limit=40)
     result.lines += _notable_lines(gs, start_tick, getattr(who, "current_area", ""))
+    # A search that spent the whole span without turning its target up has to
+    # say so: an hour of looking is otherwise indistinguishable from an hour of
+    # finding. Deliberately weaker than the conclusive sentence — the target is
+    # out there, the span just ran out before the walk did (task-671).
+    if (intent == "search" and target and not result.interrupted
+            and _areas_holding(gs, target)):
+        result.lines.append(f"You have not found the {target} yet.")
     _write_memory(gs, who, result, intent, target)
     return result
 
@@ -365,51 +433,106 @@ def minutes_until(gs, when):
 
 def _policy_step(gs, sim, player, intent, target, watch_tags, target_type,
                  heading, remaining):
-    """One turn of the standing-in policy. Returns a found node or None."""
+    """One turn of the standing-in policy. Returns a :class:`PolicyStep`."""
     if intent == "idle":
-        return None  # do nothing, on purpose
+        return PolicyStep()  # do nothing, on purpose
 
     if intent == "leisure":
         sim.take_action(player, served=set(), remaining=remaining)
-        return None
+        return PolicyStep()
 
     if intent == "search":
         search_tags = tuple(watch_tags or ()) + ((target_type,) if target_type else ())
         found = sim.find_matching(player, tags=search_tags, name=target)
         if found is not None:
-            return found
-        # Nothing here: drift toward an area that might hold it, else keep up
-        # the maintenance a mingle would.
+            return PolicyStep(found=found)
+        # Nothing here. A *named* target drives a route: the room you are
+        # standing in is not the world, and before task-671 a name with no tag
+        # never moved anyone at all — it fell straight through to maintenance
+        # and spent the whole span eating and sleeping.
+        if target:
+            holding = _areas_holding(gs, target)
+            if not holding:
+                return PolicyStep(blocked="notfound",
+                                  detail=_not_found_detail(target))
+            for area in holding:
+                if area == getattr(player, "current_area", None):
+                    continue
+                if sim.step_toward_area(player, area, "search"):
+                    return PolicyStep()
+            return PolicyStep(blocked="travel",
+                              detail=f"You cannot reach {holding[0]} from here.")
         if search_tags and sim.step_toward_tags(player, search_tags, "search"):
-            return None
+            return PolicyStep()
         sim.take_action(player, served=set(), remaining=remaining)
-        return None
+        return PolicyStep()
 
     if intent == "explore":
-        _explore_step(gs, player)
-        return None
+        moved, _why, _detail = _explore_step(gs, player)
+        if not moved and not getattr(player, "current_area", None):
+            return PolicyStep(blocked="explore", detail="There is nowhere to go from here.")
+        return PolicyStep()
 
     if intent == "travel":
         if target:
-            sim.step_toward_area(player, target, "timeskip")
+            here = getattr(player, "current_area", None)
+            if str(here).strip().lower() == str(target).strip().lower():
+                return PolicyStep()          # arrived: the route check said 0 hops
+            if not sim.step_toward_area(player, target, "timeskip"):
+                return PolicyStep(blocked="travel",
+                                  detail=f"You cannot reach {target} from here.")
         elif heading:
-            _move_heading(gs, player, heading)
-        return None
+            moved, why, detail = _move_heading(gs, player, heading)
+            if not moved:
+                return PolicyStep(blocked=why or "travel", detail=detail)
+        return PolicyStep()
 
-    return None
+    return PolicyStep()
+
+
+def _not_found_detail(target):
+    """The sentence for a search whose target is nowhere in the graph."""
+    return f"There is no {target} to be found."
+
+
+def _areas_holding(gs, name):
+    """Areas that could hold something called *name*.
+
+    The target may be an area in its own right ("the waterfall") or something
+    lying in one ("a ruin"), so both are collected. Every node counts, hidden
+    ones included: "there is none" has to mean none, not "none that you can see".
+    """
+    want = str(name or "").strip().lower()
+    graph = getattr(gs, "graph", None)
+    if not want or graph is None:
+        return []
+    out = []
+    for node in list(graph.nodes.values()):
+        if want not in str(getattr(node, "name", "") or "").lower():
+            continue
+        if getattr(node, "type", "") == "area":
+            if node.name not in out:
+                out.append(node.name)
+            continue
+        for edge in graph.get_edges_for_source(node.id, EDGE_IN):
+            area = graph.get_node(edge.target)
+            if area is not None and getattr(area, "type", "") == "area" \
+                    and area.name not in out:
+                out.append(area.name)
+    return out
 
 
 def _explore_step(gs, player):
     """Move through an exit, preferring one the character has not discovered."""
     area = getattr(player, "current_area", None)
     if not area:
-        return False
+        return False, "explore", "There is nowhere to go from here."
     try:
         exits = gs.build_exits_for_area(area, include_hidden=True) or {}
     except Exception:
-        return False
+        return False, "explore", "There is nowhere to go from here."
     if not exits:
-        return False
+        return False, "explore", "There is nowhere to go from here."
     discovered = {str(x) for x in (getattr(player, "discovered_exits", []) or [])}
     labels = sorted(exits.keys())
     fresh = [lbl for lbl in labels if str(lbl) not in discovered]
@@ -418,19 +541,33 @@ def _explore_step(gs, player):
 
 
 def _move_heading(gs, player, heading):
-    """Belief/direction travel: step through an exit matching the heading."""
+    """Belief/direction travel: step through an exit matching the heading.
+
+    Returns ``(moved, why, detail)``. The why/detail pair is the difference
+    between "there is nothing that way" and "that way is shut", which the player
+    is owed either way rather than a silent hour (task-671). Every exit that
+    matches is tried, so a second door on the same bearing is not mistaken for a
+    wall.
+    """
     want = HEADING_WORDS.get(str(heading).strip().lower())
     if not want:
-        return False
+        return False, "travel", f"'{heading}' is not a direction."
     area = getattr(player, "current_area", None)
     try:
         exits = gs.build_exits_for_area(area, include_hidden=True) or {}
     except Exception:
-        return False
-    for label in sorted(exits.keys()):
-        if want in str(label).lower():
-            return _move(gs, player, label)
-    return False
+        return False, "travel", f"You cannot leave {area}."
+    matches = [lbl for lbl in sorted(exits.keys()) if want in str(lbl).lower()]
+    if not matches:
+        where = {"north": "north", "south": "south", "east": "east", "west": "west",
+                 "up": "above", "down": "below"}.get(want, want)
+        return False, "no_exit", f"There is nothing {where} here."
+    why, detail = "", ""
+    for label in matches:
+        moved, why, detail = _move(gs, player, label)
+        if moved:
+            return True, "", ""
+    return False, why or "travel", detail
 
 
 # ───────────────────────────── route planning ─────────────────────────────
@@ -500,14 +637,17 @@ def _move(gs, player, label):
 
     Uses the verb the way needs and rolls ordinary ground checks; a blocked or
     failed crossing costs the turn rather than raising out of the policy.
+    Returns ``(moved, why, detail)`` so the refusal can be reported instead of
+    vanishing into the log (task-671).
     """
     from engine import traversal
     result = traversal.hop(gs, player, label, roll_fn=None)
     if not result.ok:
         logger.info("[timeskip] %s can't take %s: %s",
                     player.name, label, result.detail)
-        return False
-    return True
+        detail = result.detail or f"The way {label} is not open."
+        return False, "passage", detail
+    return True, "", ""
 
 
 # ───────────────────────────── summary ────────────────────────────────────

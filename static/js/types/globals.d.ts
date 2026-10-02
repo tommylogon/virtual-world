@@ -21,6 +21,16 @@ declare const config: {
     thinkingEffort?: string;
     matureContent?: boolean;
     showRawLLM?: boolean;
+    // Semantic-memory embeddings (shared/embedding-client.js). Declared here so
+    // converted callers get real types instead of `unknown` from the index
+    // signature, which would force a String() cast at every use.
+    embedEnabled?: boolean;
+    embedUrl?: string;
+    embedModel?: string;
+    embedApiKey?: string;
+    embedDims?: number;
+    controllingPlayer?: string;
+    save(): void;
     [key: string]: unknown;
 };
 
@@ -42,6 +52,7 @@ declare const ApiClient: {
     batchGraph(ops: unknown[]): Promise<{ errors?: unknown[] } | null>;
     getWorldGrid(scopeId: string): Promise<unknown>;
     setScopeOffset(scopeId: string, offset?: { x?: number; y?: number; reset?: boolean }): Promise<unknown>;
+    updateCharacter(name: string, changes: unknown): Promise<unknown>;
 };
 
 /** AppEventBus singleton (event-bus.js): `state:updated` and friends. */
@@ -49,6 +60,75 @@ declare const appEvents: {
     on(event: string, handler: (...args: unknown[]) => void): void;
     off?(event: string, handler: (...args: unknown[]) => void): void;
 };
+
+/**
+ * window.Lit — the vendored lit-html 3.2.1 surface, stamped by
+ * `shared/lit-bootstrap.js`.
+ *
+ * W0 of docs/design/typescript-migration-plan.md: `window.Lit` gates 46 files
+ * and ~29,800 lines, so it is declared here rather than per-call. The vendored
+ * bundle under `static/js/vendor/lit-html/` ships zero `.d.ts` and is excluded
+ * from tsconfig, so tsc cannot infer it. This is the hand-declared option the
+ * plan lists as the fallback when adding a dependency is unacceptable; the
+ * alternative is `npm i -D lit@3.2.1` plus a `paths` entry.
+ *
+ * Exactly 14 members, enumerable from lit-bootstrap.js — not a guess from call
+ * sites. Template *values* are `unknown` because these templates are dynamic by
+ * design and lit accepts anything at runtime; the directive arguments are
+ * typed.
+ */
+interface LitApi {
+    html(strings: TemplateStringsArray, ...values: unknown[]): unknown;
+    svg(strings: TemplateStringsArray, ...values: unknown[]): unknown;
+    render(result: unknown, container: Element | DocumentFragment): unknown;
+    renderInto(template: unknown, target: HTMLElement): void;
+    renderPanel(template: unknown): void;
+    nothing: symbol;
+    noChange: symbol;
+    classMap(classInfo: Record<string, boolean>): unknown;
+    styleMap(styleInfo: Record<string, string | number | null | undefined>): unknown;
+    repeat<T>(items: Iterable<T>, key: (item: T, index: number) => unknown,
+               template: (item: T, index: number) => unknown): unknown;
+    ifDefined<T>(value: T | undefined): unknown;
+    guard(deps: readonly unknown[], f: () => unknown): unknown;
+    live(value: unknown): unknown;
+    unsafeHTML(value: unknown): unknown;
+}
+
+declare const Lit: LitApi;
+
+/**
+ * Soak lab singletons (soak/soak-ui.js, soak/soak-state.js). Declared with the
+ * surface converted callers use, not a bare `any`, so soak-app.js type-checks
+ * against the real contract.
+ */
+interface SoakUiApi {
+    init(): void;
+    toast(message: string, level?: string, durationMs?: number): void;
+}
+
+interface SoakStateApi {
+    init(): Promise<void>;
+    state: { meta?: { scenarios?: unknown[] } | null };
+}
+
+declare const SoakUI: SoakUiApi;
+declare const SoakState: SoakStateApi;
+
+interface Window {
+    Lit: LitApi;
+    SoakUI: SoakUiApi;
+    SoakState: SoakStateApi;
+    // Both are declared as bare `any` above (9 such globals exist); mirroring
+    // that on Window is what makes the `window.worldState?.…` spelling — used
+    // throughout the views — type-check at all.
+    worldState: any;
+    VW: any;
+}
+
+/** Toast helpers (ui/create-modal.js and friends): transient notifications. */
+declare function toastInfo(message: string, ...rest: unknown[]): void;
+declare function toastError(message: string, ...rest: unknown[]): void;
 
 /** GraphLayoutEngine (graph/layout-engine.js): map layout helpers. */
 declare const GraphLayoutEngine: {

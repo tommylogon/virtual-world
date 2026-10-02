@@ -534,3 +534,280 @@ def test_a_character_skip_reports_character_mode():
     _safe(_hero(w))
     res = timeskip.advance(w, 3, intent="idle")
     assert res.mode == "character"
+
+
+# ───────────── one human: the whole cast soaks for the span (task-670) ─────
+
+def test_a_character_skip_soaks_the_rest_of_the_cast_while_it_runs():
+    """A one-human skip is the same advance as the no-human case: the cast soaks.
+
+    Measured from inside `tick_turn`, so this is the span and not just the
+    restore. Before task-670 the nearby cast kept `active` fidelity here and
+    spent LLM turns nobody was watching.
+    """
+    w = _world()
+    hero = _safe(_hero(w))
+    near = next(p for p in w.players.values() if p is not hero)
+    near.simulation_mode = "active"
+    assert len(w.players) > 1, "the fixture needs a second character"
+
+    seen = []
+    real_tick = w.tick_turn
+
+    def spy():
+        seen.append({p.name: p.simulation_mode for p in w.players.values()})
+        return real_tick()
+
+    w.tick_turn = spy
+    try:
+        res = timeskip.advance(w, 3, intent="idle")
+    finally:
+        w.tick_turn = real_tick
+
+    assert res.ok and res.ticks == 3
+    assert seen, "the skip never ticked"
+    for snapshot in seen:
+        others = {m for name, m in snapshot.items() if name != hero.name}
+        assert others == {"background"}, \
+            f"the rest of the cast was not soaking mid-skip: {snapshot}"
+
+
+def test_an_idle_skip_leaves_the_ordering_character_where_it_is():
+    """The ordering character is driven by its intent, not by the soak pass.
+
+    Backgrounding it too handed the hero to the deterministic runner, which moved
+    them out of the area — an `idle` ("wait here") skip walked you away, and every
+    co-located interrupt lost its subject (the social approach stopped firing).
+    """
+    w = _world()
+    hero = _safe(_hero(w))
+    area = hero.current_area
+    seen = []
+    real_tick = w.tick_turn
+
+    def spy():
+        seen.append({p.name: p.simulation_mode for p in w.players.values()})
+        return real_tick()
+
+    w.tick_turn = spy
+    try:
+        res = timeskip.advance(w, 5, intent="idle")
+    finally:
+        w.tick_turn = real_tick
+
+    assert res.ok
+    assert all(s[hero.name] == "active" for s in seen), \
+        f"the ordering character was backgrounded: {seen}"
+    assert hero.current_area == area, "an idle skip moved the character"
+
+
+def test_a_character_skip_restores_every_simulation_mode():
+    w = _world()
+    hero = _safe(_hero(w))
+    near = next(p for p in w.players.values() if p is not hero)
+    hero.simulation_mode = "active"
+    near.simulation_mode = "active"
+    before = {p.name: p.simulation_mode for p in w.players.values()}
+    timeskip.advance(w, 3, intent="idle")
+    after = {p.name: p.simulation_mode for p in w.players.values()}
+    assert after == before, "the soak span leaked into the save"
+
+
+def test_a_character_skip_restores_modes_even_when_a_tick_raises():
+    import pytest
+    w = _world()
+    _safe(_hero(w))
+    before = {p.name: p.simulation_mode for p in w.players.values()}
+
+    def boom():
+        raise RuntimeError("tick exploded")
+
+    w.tick_turn = boom
+    try:
+        with pytest.raises(RuntimeError):
+            timeskip.advance(w, 3, intent="idle")
+    finally:
+        del w.tick_turn
+    after = {p.name: p.simulation_mode for p in w.players.values()}
+    assert after == before, "an exception mid-skip left the cast background"
+
+
+def test_the_one_human_route_soaks_the_cast_and_still_answers_the_intent():
+    """The wiring case: alone -> a blocking advance (not an order), cast soaked."""
+    from app import create_app
+    app = create_app({"TESTING": True})
+    app.world.time_per_tick_minutes = 1
+    hero = _safe(_hero(app.world))
+    near = next(p for p in app.world.players.values() if p is not hero)
+    near.simulation_mode = "active"
+    before = {p.name: p.simulation_mode for p in app.world.players.values()}
+
+    seen = []
+    real_tick = app.world.tick_turn
+
+    def spy():
+        seen.append({p.name: p.simulation_mode for p in app.world.players.values()})
+        return real_tick()
+
+    app.world.tick_turn = spy
+    try:
+        resp = app.test_client().post("/api/world/timeskip",
+                                      json={"intent": "idle", "minutes": 2})
+    finally:
+        app.world.tick_turn = real_tick
+
+    data = resp.get_json()
+    assert resp.status_code == 200
+    assert data["mode"] == "character", "alone must block, not declare an order"
+    assert hero.soak_order is None
+    assert seen, "the route never ticked"
+    for snapshot in seen:
+        others = {m for name, m in snapshot.items() if name != hero.name}
+        assert others == {"background"}, \
+            f"the route left the cast focused: {snapshot}"
+    after = {p.name: p.simulation_mode for p in app.world.players.values()}
+    assert after == before
+
+
+# ───── an intent that cannot be carried out is an outcome (task-671) ───────
+#
+# Every test above exercises an intent that *works*. These are the ones that
+# used to fail silently: measured on data/scenarios/kraktooth_goblin_camp.json,
+# a blocked heading and a missing target each ran the full span, moved nobody,
+# interrupted nothing, and reported "travel for 30 min".
+
+def _no_exits_bearing(w, hero, bearing):
+    """An area with no exit that way, so the heading is impossible."""
+    for name in sorted(getattr(w, "areas", {}) or {}):
+        exits = w.build_exits_for_area(name) or {}
+        if not any(bearing in str(k).lower() for k in exits):
+            w.set_player_area(hero.name, name)
+            hero.current_area = name
+            return name
+    return None
+
+
+def _no_social_approach(monkeypatch):
+    """Silence the co-located approach so these cases measure what they claim."""
+    monkeypatch.setattr(iv, "_social", lambda *a, **k: None)
+
+
+def test_a_heading_with_no_exit_that_way_stops_and_says_so(monkeypatch):
+    w = _world()
+    hero = _safe(_hero(w))
+    _no_social_approach(monkeypatch)
+    area = _no_exits_bearing(w, hero, "west") or hero.current_area
+
+    res = timeskip.advance(w, 30, intent="travel", heading="west", player=hero)
+
+    assert res.interrupted, "an impossible heading ran the whole span in silence"
+    assert res.interrupt["kind"] == "no_exit"
+    assert "west" in res.interrupt["detail"].lower()
+    assert hero.current_area == area, "the character should not have moved"
+
+
+def _area_with_bearing_exit(w, hero):
+    """Some area that has a compass exit, so a heading can be blocked.
+
+    The fixture's start area does not necessarily face a compass direction.
+    """
+    for name in sorted(getattr(w, "areas", {}) or {}):
+        exits = w.build_exits_for_area(name) or {}
+        for b in ("west", "east", "north", "south"):
+            for k in sorted(exits):
+                if b in k.lower():
+                    w.set_player_area(hero.name, name)
+                    hero.current_area = name
+                    return name, k, b
+    return None, None, None
+
+
+def test_a_blocked_passage_stops_and_names_the_obstacle(monkeypatch):
+    w = _world()
+    hero = _safe(_hero(w))
+    _no_social_approach(monkeypatch)
+    area, label, bearing = _area_with_bearing_exit(w, hero)
+    assert area, "the fixture has no compass exit anywhere"
+    exits = w.build_exits_for_area(area) or {}
+    w.graph.get_node(exits[label]["way_id"]).properties["current_state"] = "blocked"
+    # The authoring exits view is cached on the graph revision (area_description
+    # task-407); this check reads the uncached game-facing view.
+    assert (w.build_exits_for_area(area) or {})[label]["state"] == "blocked"
+
+    res = timeskip.advance(w, 30, intent="travel", heading=bearing, player=hero)
+
+    assert res.interrupted, "a blocked passage ran the whole span in silence"
+    assert res.interrupt["kind"] == "passage"
+    assert res.interrupt["detail"], "the refusal must reach the player, not the log"
+    assert hero.current_area == area
+
+
+def test_a_search_for_something_the_world_does_not_hold_says_it_is_not_there(monkeypatch):
+    w = _world()
+    hero = _safe(_hero(w))
+    _no_social_approach(monkeypatch)
+
+    res = timeskip.advance(w, 60, intent="search", target="waterfall", player=hero)
+
+    assert res.interrupted, "a target nowhere in the world ran the whole span"
+    assert res.interrupt["kind"] == "notfound"
+    assert "waterfall" in res.interrupt["detail"].lower()
+
+
+def test_a_named_search_walks_toward_where_the_target_actually_is(monkeypatch):
+    """A name with no tag used to look in one room and then eat for an hour."""
+    w = _world()
+    hero = _safe(_hero(w))
+    _no_social_approach(monkeypatch)
+    area = hero.current_area
+    exits = w.build_exits_for_area(area) or {}
+    if not exits:
+        return  # fixture has nowhere to walk
+    label = next(iter(sorted(exits)))
+    where = exits[label]["target"]
+    _add_item(w, where, "old ruin", ["ruin"], item_id="item_the_ruin")
+
+    res = timeskip.advance(w, 60, intent="search", target="ruin", player=hero)
+
+    assert hero.current_area != area or res.interrupt["kind"] == "notfound", \
+        "a named target never moved anyone"
+    if res.interrupted and res.interrupt["kind"] == "discovery":
+        assert "ruin" in res.interrupt["detail"].lower()
+    else:
+        assert "not found the ruin" in " ".join(res.lines).lower()
+
+
+def test_run_policy_step_reports_a_blocked_heading_for_the_soak_seam():
+    """The seam task-481 shares with soak orders, which had no test at all."""
+    w = _world()
+    hero = _safe(_hero(w))
+    sim = timeskip.BackgroundSimulation(w)
+    area = _no_exits_bearing(w, hero, "west") or hero.current_area
+
+    step = timeskip.run_policy_step(w, sim, hero, intent="travel", heading="west")
+
+    assert step.found is None
+    assert step.blocked == "no_exit"
+    assert step.detail
+    assert hero.current_area == area
+
+
+def test_run_policy_step_reports_a_find_for_the_soak_seam():
+    w = _world()
+    hero = _safe(_hero(w))
+    sim = timeskip.BackgroundSimulation(w)
+    _add_item(w, hero.current_area, "old relic", ["relic"], item_id="item_seam_relic")
+
+    step = timeskip.run_policy_step(w, sim, hero, intent="search", target="relic")
+
+    assert step.found is not None and step.found.name == "old relic"
+    assert step.blocked == ""
+    assert bool(step) is True, "the old return contract was truthy-on-found"
+
+
+def test_an_idle_skip_still_reports_no_failure():
+    w = _world()
+    hero = _safe(_hero(w))
+    sim = timeskip.BackgroundSimulation(w)
+    step = timeskip.run_policy_step(w, sim, hero, intent="idle")
+    assert step.found is None and step.blocked == ""

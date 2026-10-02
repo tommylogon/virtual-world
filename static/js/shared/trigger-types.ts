@@ -1,4 +1,3 @@
-"use strict";
 /**
  * TriggerTypes — single source of truth for trigger editor dropdowns.
  * Used by item-library.js, inspector.js, and trigger-editor consumers.
@@ -27,6 +26,7 @@ const TriggerTypes = {
         'on_turn_start', 'on_turn_end',
         'on_dawn', 'on_dusk', 'on_day', 'on_night', 'on_full_moon', 'on_blood_moon'
     ],
+
     CONDITION_TYPES: [
         { value: '', label: '— Always fire —', group: 'general' },
         { value: 'area_temp', label: '🌡️ Area temp (comparator)', group: 'area' },
@@ -56,6 +56,7 @@ const TriggerTypes = {
         { value: 'item_relationship', label: '🔗 Item relationship (in/on/under...)', group: 'item' },
         { value: 'area_has_status', label: '🔥 Area has status (on_fire, flooded...)', group: 'area' }
     ],
+
     EFFECT_TYPES: [
         { value: 'message', label: '💬 Show Message', group: 'general' },
         { value: 'destroy_self', label: '💥 Destroy Self', group: 'general' },
@@ -111,4 +112,5 @@ const TriggerTypes = {
         { value: 'set_wet', label: '💧 Set Wet (soak/dry items)', group: 'item' }
     ]
 };
-window.TriggerTypes = TriggerTypes;
+
+(window as unknown as { TriggerTypes: typeof TriggerTypes }).TriggerTypes = TriggerTypes;

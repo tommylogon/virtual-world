@@ -1062,78 +1062,32 @@
             _startZoneDrag(event, scopeId);
         });
     }
-    /**
-     * The layer that IS a scope's art: the one whose image is that scope's
-     * reference. `null` when the scope has no reference or its art is not
-     * mounted, and deliberately *not* "the active layer" — a layer list can hold
-     * several scopes' maps at once, so the active one is a UI selection and says
-     * nothing about which zone is being dragged.
-     */
-    function _referenceLayerFor(scopeId, payload) {
-        const src = String((payload && payload.reference && payload.reference.image) || '');
-        if (!src) return null;
-        return state.layers.find((layer) => layer.imagePath === src || layer.imageSrc === src) || null;
+    /** Shift every visible map layer by a graph-space delta (drag feedback). */
+    function _nudgeActiveLayer(dx, dy) {
+        if (!dx && !dy)
+            return;
+        const layer = _active();
+        if (!layer || !layer.visible || !layer.rect)
+            return;
+        layer.rect.x += dx;
+        layer.rect.y += dy;
+        _render();
     }
-
-    /** The last grid payload fetched for a scope, so a drag needs no requests. */
-    function _cachedGrid(scopeId) {
-        return (state._gridPayload || {})[scopeId] || null;
-    }
-
-    function _cacheGrid(scopeId, payload) {
-        if (!scopeId) return;
-        if (!state._gridPayload) state._gridPayload = {};
-        state._gridPayload[scopeId] = payload || null;
-    }
-
-    /**
-     * Re-place a scope's art from its grid and the scope offset (the derived
-     * answer), for a layer known to belong to that scope.
-     *
-     * This is what a zone drag has to move the picture with. Nudging the rect by
-     * hand instead — as this did — was wrong twice over: it followed the *active*
-     * layer, so dragging one zone could shove another scope's map across the
-     * canvas, and the nudged rect is otherwise thrown away, because the art is
-     * re-derived from the cells on the next load. One source, one answer.
-     */
-    function _reapplyZoneArt(scopeId) {
-        const payload = _cachedGrid(scopeId);
-        if (!payload) return false;
-        const layer = _referenceLayerFor(scopeId, payload);
-        const gridRect = paintedGridRect(payload && payload.grid);
-        if (!layer || !gridRect) return false;
-        const gap = _mapUnitsPerCell();
-        const offset = _scopeOffset(scopeId);
-        _applyReferenceLayout(layer, payload, {
-            x: gridRect.x + offset.x * gap,
-            y: gridRect.y + offset.y * gap,
-            width: gridRect.width,
-            height: gridRect.height,
-        }, scopeId);
-        return true;
-    }
-
     /**
      * Drag the whole zone: record the new offset in cells, re-place the scope's
-     * painted nodes live (no camera refit), and re-place **its own** map art from
-     * the same offset so the picture tracks the rooms. On release the offset is
-     * persisted to the world — the painter's cell coords are never touched.
+     * painted nodes live (no camera refit), and nudge the active map art so it
+     * tracks the drag. On release the offset is persisted to the world — the
+     * painter's cell coords are never touched.
      */
     function _startZoneDrag(event, scopeId) {
         const network = _network();
         if (!network)
             return;
-        // Prime the grid payload so the drag can move the art synchronously; the
-        // drag itself never waits on a request.
-        if (!_cachedGrid(scopeId) && typeof ApiClient !== 'undefined') {
-            ApiClient.getWorldGrid(scopeId)
-                .then((payload) => { _cacheGrid(scopeId, payload); })
-                .catch(() => { });
-        }
         const startMouse = { x: event.clientX, y: event.clientY };
         const start = _scopeOffset(scopeId);
         const spacing = (typeof GraphLayoutEngine !== 'undefined' && GraphLayoutEngine)
             ? GraphLayoutEngine.mapSpacing() : 40;
+        let lastMouse = { x: startMouse.x, y: startMouse.y };
         if (state.zoneOverlay)
             state.zoneOverlay.style.cursor = 'grabbing';
         const onMove = (moveEvent) => {
@@ -1148,7 +1102,8 @@
                 && GraphLayoutEngine.refreshGridLayout) {
                 GraphLayoutEngine.refreshGridLayout(graphManager._graphNodesObj, table);
             }
-            if (_reapplyZoneArt(scopeId)) _render();
+            _nudgeActiveLayer((moveEvent.clientX - lastMouse.x) / (scale || 1), (moveEvent.clientY - lastMouse.y) / (scale || 1));
+            lastMouse = { x: moveEvent.clientX, y: moveEvent.clientY };
         };
         const onUp = () => {
             document.removeEventListener('mousemove', onMove);
@@ -1156,10 +1111,8 @@
             if (state.zoneOverlay)
                 state.zoneOverlay.style.cursor = 'grab';
             const final = _scopeOffset(scopeId);
-            // Settle the art one last time (the drag may have started before the
-            // payload arrived), then persist the offset for the nodes.
-            _reapplyZoneArt(scopeId);
-            _render();
+            // The art moved with the drag: persist it, then the offset for the
+            // nodes. Both stores stay single-source, so a reload aligns them.
             _persist();
             saveToWorld(true);
             if (typeof ApiClient !== 'undefined' && ApiClient.setScopeOffset) {
@@ -1264,7 +1217,6 @@
         catch (error) {
             payload = null;
         }
-        _cacheGrid(scopeId, payload);
         const rect = paintedGridRect(payload && payload.grid);
         if (!rect) {
             events.log('🗺 That scope has no painted grid to fit to.', 'system-msg');
@@ -1294,135 +1246,6 @@
         }
         catch (error) { /* ignore */ }
     }
-    /**
-     * Re-derive the loaded scope's reference art from its grid (bug-51).
-     *
-     * A saved layer rect is in **px**, so it goes stale the moment the grid
-     * changes: resize the grid, change the map pitch, or open a world whose maps
-     * were fitted to an older, larger grid and the art stops sitting on the cells
-     * it was drawn over. `_applyReferenceLayout` is the *derived* answer — the
-     * reference's own cell rect, or a fit to the whole grid — so it is re-applied
-     * on every load for the layer that is that reference, instead of waiting for
-     * someone to press "fit to painted grid".
-     *
-     * Hand placement is not lost: moving a zone (task-523) shifts the grid itself
-     * and `_scopeOffset` is added on top of the derived rect, and a reference
-     * with its own cell rect still wins over the whole-grid fit.
-     *
-     * Only the *loaded* scope is touched — in the whole-world view there is no
-     * single grid to fit to, and every painted zone shares one canvas. This runs
-     * in both view modes: a filtered scope's areas sit on the painted lattice in
-     * Graph view too, so the art has to be on it in both.
-     */
-    async function _reconcileReferenceArt() {
-        const scopeId = _currentScopeId();
-        if (!scopeId) return;                       // whole-world view: no one grid
-        if (typeof graphManager === 'undefined' || !graphManager) return;
-        // `state:updated` fires on every world fetch — after every paint stroke,
-        // every node edit — and the reconcile is only needed when the *grid* moved.
-        // Cheap signature first, so the common case costs no request at all.
-        const gap = _mapUnitsPerCell();
-        const offset = _scopeOffset(scopeId);
-        const signature = [scopeId, gap, offset.x, offset.y].join('|');
-        if (signature === state._reconciledFor) return;
-        let payload = null;
-        try { payload = await ApiClient.getWorldGrid(scopeId); }
-        catch (error) { return; }
-        _cacheGrid(scopeId, payload);
-        const ref = (payload && payload.reference) || null;
-        if (!ref || !ref.image) { state._reconciledFor = signature; return; }
-        const gridRect = paintedGridRect(payload && payload.grid);
-        if (!gridRect) { state._reconciledFor = signature; return; }
-        const src = String(ref.image);
-        const layer = state.layers.find((candidate) => candidate.imagePath === src
-            || candidate.imageSrc === src);
-        // A reference that is not mounted yet is added (and fitted) by
-        // fitToPaintedGrid; there is nothing to correct here.
-        if (!layer) { state._reconciledFor = signature; return; }
-        const placed = {
-            x: gridRect.x + offset.x * gap,
-            y: gridRect.y + offset.y * gap,
-            width: gridRect.width,
-            height: gridRect.height,
-        };
-        const before = JSON.stringify(layer.rect);
-        _applyReferenceLayout(layer, payload, placed, scopeId);
-        state._reconciledFor = signature;
-        if (JSON.stringify(layer.rect) !== before) _render();
-    }
-    /**
-     * Re-derive the art after the *scope* changed (bug-51).
-     *
-     * `_onWorldRefetched` covers the world-load path, but switching the graph to
-     * another scope fetches a subgraph and never emits `state:updated`, so the
-     * reconcile needs its own entry point there. The signature cache is dropped
-     * first, because the previous check belonged to a different grid.
-     */
-    async function refreshForScope() {
-        state._reconciledFor = null;
-        await _reconcileReferenceArt();
-    }
-
-    /**
-     * Re-derive **every** mounted reference's art, for a change that applies to the
-     * whole canvas rather than one scope — the map pitch moving (task-526).
-     *
-     * The whole-world view has no single grid, which is why the ordinary reconcile
-     * stops there. But the pitch is global: when it changes, every layer's derived
-     * rect is stale, because a rect is in **px** and the cells it came from are in
-     * cells. Skipping this is how the map ends up drawn at the old scale over areas
-     * laid out at the new one — the bug-52 shape, reached from the other side.
-     *
-     * Each layer is still derived from *its own* scope's grid and offset, never from
-     * the active scope, so this cannot move one zone's picture onto another's.
-     * Layers that are not a scope's reference (hand-placed art) are left alone.
-     */
-    async function reconcileAllForGapChange() {
-        if (typeof graphManager === 'undefined' || !graphManager) return;
-        state._reconciledFor = null;              // the gap is part of the signature
-        const mounted = state.layers || [];
-        if (!mounted.length) return;
-        let scopes = [];
-        try {
-            const data = await ApiClient.getWorldScopes(true);
-            scopes = (data && data.scopes) || [];
-        } catch (error) {
-            return;                                // no scope list: nothing to derive
-        }
-        let changed = false;
-        for (const scope of scopes) {
-            const scopeId = scope && scope.id;
-            if (!scopeId) continue;
-            let payload = _cachedGrid(scopeId);
-            if (!payload) {
-                try { payload = await ApiClient.getWorldGrid(scopeId); } catch (error) { continue; }
-                _cacheGrid(scopeId, payload);
-            }
-            const layer = _referenceLayerFor(scopeId, payload);
-            const gridRect = paintedGridRect(payload && payload.grid);
-            if (!layer || !gridRect) continue;
-            const before = JSON.stringify(layer.rect);
-            const gap = _mapUnitsPerCell();
-            const offset = _scopeOffset(scopeId);
-            _applyReferenceLayout(layer, payload, {
-                x: gridRect.x + offset.x * gap,
-                y: gridRect.y + offset.y * gap,
-                width: gridRect.width,
-                height: gridRect.height,
-            }, scopeId);
-            if (JSON.stringify(layer.rect) !== before) changed = true;
-        }
-        if (changed) {
-            _render();
-            // Reframe, because the pitch is what the previous framing was computed
-            // for: a map derived to "span about 1600px" and then left in the corner
-            // of an unchanged viewport is not the thing the auto pitch promised.
-            // Safe to move the camera *here* specifically — this runs only when the
-            // pitch actually moved, and every ordinary load preserves the view.
-            try { _network()?.fit({ animation: false }); } catch (error) { /* ignore */ }
-        }
-    }
-
     function fitToNodes(padding = 140) {
         const layer = _active();
         if (!layer || !layer.image)
@@ -1536,41 +1359,12 @@
         saveToWorld(true);
     }
     /* ── node layout (unchanged behaviour) ─────────────────────────────── */
-    /**
-     * Every rendered node's canvas position, **hidden nodes included**.
-     *
-     * `network.getPositions()` omits hidden nodes, so a saved/locked layout
-     * silently dropped every item or trigger that was toggled off at the time
-     * (items and triggers are hidden by default). The saved runtime store and
-     * the durable `properties.x/y` write both went through `getPositions()`, so
-     * a hidden node's position was never persisted at all (task-617). Read the
-     * vis body directly instead, filtered to ids still in the DataSet (body can
-     * hold stale entries after a rebuild).
-     */
-    function _allNodePositions(network) {
-        const out = {};
-        const body = network && network.body && network.body.nodes;
-        if (!body)
-            return out;
-        let live = null;
-        try { live = new Set(network.body.data.nodes.getIds()); } catch (error) { live = null; }
-        for (const id of Object.keys(body)) {
-            const node = body[id];
-            if (!node || !Number.isFinite(node.x) || !Number.isFinite(node.y)) continue;
-            if (live && !live.has(id)) continue;
-            out[id] = { x: node.x, y: node.y };
-        }
-        if (!Object.keys(out).length) {
-            try { return network.getPositions() || {}; } catch (error) { return out; }
-        }
-        return out;
-    }
     function _capturePositions() {
         const network = _network();
         if (!network)
             return;
         try {
-            state.positions = _allNodePositions(network);
+            state.positions = network.getPositions();
         }
         catch (error) { /* ignore */ }
     }
@@ -1626,33 +1420,16 @@
             return { saved: 0 };
         let positions = {};
         try {
-            positions = _allNodePositions(network);
+            positions = network.getPositions();
         }
         catch (error) {
             return { saved: 0 };
         }
         const ops = [];
-        let skippedPainted = 0;
         for (const id of Object.keys(positions)) {
             const position = positions[id];
             if (!position)
                 continue;
-            // A node with painted coordinates stores the compiler's *engine* units
-            // (`cell * 40`), which the Map layout scales by the map pitch and
-            // translates by its scope's `map_offset`. Writing a canvas position
-            // over them would scale it a second time and re-add the offset on the
-            // next layout, so the map would drift further every save (bug-52).
-            // The cell already holds the position; there is nothing to save.
-            // `hasPaintedCoords` is the one shared discriminator — a bare
-            // `props.cell` check only caught areas, so ways and characters (whose
-            // stored coords are already canvas pixels) were still being
-            // double-converted here on every save.
-            const props = ((graphManager._graphNodesObj || {})[id] || {}).properties || {};
-            if (typeof GraphLayoutEngine !== 'undefined' && GraphLayoutEngine
-                    && GraphLayoutEngine.hasPaintedCoords(props)) {
-                skippedPainted += 1;
-                continue;
-            }
             ops.push({
                 type: 'update_node',
                 payload: {
@@ -1673,11 +1450,10 @@
             const failures = result && result.errors ? result.errors.length : 0;
             try {
                 events.log(`💾 Layout saved to the world: ${ops.length} node position(s)` +
-                    (skippedPainted ? `, ${skippedPainted} painted cell(s) left on their cells` : '') +
                     (failures ? `, ${failures} failed` : '') + '.', failures ? 'error-msg' : 'system-msg');
             }
             catch (error) { /* ignore */ }
-            return { saved: ops.length, failures, skippedPainted };
+            return { saved: ops.length, failures };
         }
         catch (error) {
             try {
@@ -2060,29 +1836,20 @@
     function _applyLockState(network) {
         if (state.layoutLocked) {
             if (network)
-                GraphNetwork.applyModePhysics(false);
-            if (typeof graphManager !== 'undefined' && graphManager) {
+                network.setOptions({ physics: { enabled: false } });
+            if (typeof graphManager !== 'undefined' && graphManager)
                 graphManager._physicsEnabled = false;
-                // A locked painted map owns its positions, so the toolbar offers
-                // physics as unavailable instead of a toggle that undoes the lock
-                // on the next load (task-530).
-                graphManager._mapLayoutLocked = true;
-            }
             state.physicsDisabledByLock = true;
         }
         else if (state.physicsDisabledByLock) {
             // WE froze physics for the previous world's lock — undo it, so a new
             // scenario doesn't inherit the old one's frozen layout.
             if (network)
-                GraphNetwork.applyModePhysics(true);
-            if (typeof graphManager !== 'undefined' && graphManager) {
+                network.setOptions({ physics: { enabled: true } });
+            if (typeof graphManager !== 'undefined' && graphManager)
                 graphManager._physicsEnabled = true;
-                graphManager._mapLayoutLocked = false;
-            }
             state.physicsDisabledByLock = false;
         }
-        if (window.GraphToolbar)
-            GraphToolbar.syncAll();
     }
     /** The world was refetched: restore (or clear) this world's maps. */
     async function _onWorldRefetched() {
@@ -2090,16 +1857,9 @@
         if (state.editing)
             return;
         await _restore();
-        // The cached grids described the *previous* world (possibly a different
-        // scenario), and a zone drag re-places art from them.
-        state._gridPayload = {};
         _applyLockState(_network());
         if (Object.keys(state.positions).length)
             _applyPositions();
-        // A saved art rect is in px and goes stale when the grid changes, so the
-        // loaded scope's reference is re-derived from its cells on every load
-        // (bug-51) instead of waiting for a manual fit.
-        await _reconcileReferenceArt();
         _render();
     }
     /**
@@ -2125,8 +1885,6 @@
         showCanvasMenu,
         fitToNodes,
         fitToPaintedGrid,
-        refreshForScope,
-        reconcileAllForGapChange,
         setEditing,
         setCropping,
         setZoneMove,

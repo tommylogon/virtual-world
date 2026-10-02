@@ -1,6 +1,20 @@
 {
-  "current_area": "Training Pit",
-  "players_in_area": [],
+  "current_area": "Chief's Pit",
+  "players_in_area": [
+    {
+      "name": "Vekka",
+      "state": "awake",
+      "description": "Female goblin scout. Lean, watchful, moves quietly. Wears light leathers and carries a short bow and tracking gear.",
+      "activity": null,
+      "at_way_id": "way_pit_to_scouting",
+      "spatial_position": {
+        "relation": "at",
+        "target_id": "way_pit_to_scouting",
+        "target_type": "way",
+        "target_name": "passage to scouting rooms"
+      }
+    }
+  ],
   "area_presence": {
     "area_chief's_pit": {
       "Vekka": 0
@@ -422,7 +436,7 @@
       "patrol_route": null,
       "patrol_index": null,
       "feels_like": 18,
-      "current_carry_weight": 0.66,
+      "current_carry_weight": 0.6599999999999999,
       "max_carry_capacity": 100.0,
       "at_way_id": null,
       "facing": null,
@@ -731,10 +745,10 @@
             "endurance"
           ],
           "text": "You have been in the Camp Entrance Trail.",
-          "tick": 0,
-          "timestamp": 1790895607.0351317,
+          "tick": 1,
+          "timestamp": 1790927705.4659677,
           "type": "reaction",
-          "visits": 46
+          "visits": 47
         }
       ],
       "schedule": [],
@@ -781,7 +795,7 @@
         "Bladder": 61,
         "Sanity": 65,
         "Entertainment": 25,
-        "Temperature": 20.400000000000006,
+        "Temperature": 20.500000000000007,
         "Arousal": 0,
         "Pleasure": 0,
         "Stimulation": 0
@@ -821,7 +835,7 @@
       "grappled_by": null,
       "state_timer": 0,
       "traits": {},
-      "size": "normal",
+      "size": null,
       "tags": [
         "female",
         "animal",
@@ -998,7 +1012,7 @@
         "nostalgic": 18.0,
         "afraid": 10.0,
         "anxious": 12.0,
-        "uneasy": 13.5,
+        "uneasy": 12.0,
         "dread": 8.0,
         "spooked": 10.0,
         "angry": 8.0,
@@ -1051,10 +1065,10 @@
             "home"
           ],
           "text": "You have been in the Murk Lake.",
-          "tick": 0,
-          "timestamp": 1790895607.0351317,
+          "tick": 1,
+          "timestamp": 1790927705.4659677,
           "type": "reaction",
-          "visits": 46
+          "visits": 47
         }
       ],
       "schedule": [],
@@ -1085,26 +1099,15 @@
         "accessory": [],
         "arms": [],
         "back": [],
-        "feet": [
-          "item_heavy black boots"
-        ],
+        "feet": [],
         "hand_left": [],
-        "hand_right": [
-          "item_hand_hammer_small"
-        ],
+        "hand_right": [],
         "hands": [],
         "head": [],
-        "legs": [
-          "item_dark trousers"
-        ],
+        "legs": [],
         "neck": [],
-        "torso": [
-          "item_stained work shirt",
-          "item_apron"
-        ],
-        "waist": [
-          "item_belt_leather"
-        ]
+        "torso": [],
+        "waist": []
       },
       "stats": {
         "CHA": 9,
@@ -1115,28 +1118,45 @@
         "WIS": 10
       },
       "vitals": {
-        "Bladder": 60,
-        "Energy": 70,
-        "Entertainment": 25,
         "HP": 95,
-        "Hunger": 50,
-        "Hygiene": 55,
         "Max_HP": 100,
-        "Sanity": 85,
-        "Social": 40,
+        "Hunger": 51,
+        "Thirst": 46,
+        "Hygiene": 54,
+        "Energy": 69,
+        "Social": 39,
+        "Bladder": 60,
+        "Sanity": 84,
+        "Entertainment": 24,
         "Temperature": 37,
-        "Thirst": 45
+        "Arousal": 0,
+        "Stimulation": 0,
+        "Pleasure": 0
       },
       "skills": {
-        "Acrobatics": 0,
         "Athletics": 1,
-        "Perception": 1,
-        "Persuasion": 0,
+        "Acrobatics": 0,
         "Stealth": 0,
-        "Survival": 0
+        "Perception": 1,
+        "Survival": 0,
+        "Persuasion": 0,
+        "Animal Handling": 0,
+        "Arcana": 0,
+        "Deception": 0,
+        "History": 0,
+        "Insight": 0,
+        "Intimidation": 0,
+        "Investigation": 0,
+        "Medicine": 0,
+        "Nature": 0,
+        "Performance": 0,
+        "Religion": 0,
+        "Sleight of Hand": 0
       },
-      "state": "awake",
-      "perceived_conditions": [],
+      "state": "frightened",
+      "perceived_conditions": [
+        "Terrified of trait:paranoid."
+      ],
       "trait_behavior": [
         "You trust no one. Watch everyone and everything for threats — assume hidden motives.",
         "You've been close to death before. You take dangers seriously — and you know what pain costs."
@@ -1145,8 +1165,15 @@
         "awake": [
           {
             "duration": null,
-            "level": 0,
-            "source": null
+            "source": null,
+            "level": 0
+          }
+        ],
+        "frightened": [
+          {
+            "duration": null,
+            "source": "trait:paranoid",
+            "level": 0
           }
         ]
       },
@@ -1204,7 +1231,10 @@
         "Hygiene": 1,
         "Sanity": 1,
         "Social": 1,
-        "Thirst": 1
+        "Thirst": 1,
+        "Arousal": 1,
+        "Stimulation": 2,
+        "Pleasure": 3
       },
       "body_state": {
         "arm_left": {
@@ -1404,7 +1434,9 @@
           "text": "Goblins took three good nails and a hinge last week. I will recognize the work if I see it.",
           "tick": 0,
           "timestamp": 0,
-          "type": "observation"
+          "type": "observation",
+          "salience_override": 0,
+          "suppressions": []
         },
         {
           "embedding": null,
@@ -2175,10 +2207,10 @@
             "hunger"
           ],
           "text": "You have been in the Abandoned Farm.",
-          "tick": 0,
-          "timestamp": 1790895607.0361316,
+          "tick": 1,
+          "timestamp": 1790927705.4659677,
           "type": "reaction",
-          "visits": 46
+          "visits": 47
         },
         {
           "embedding": null,
@@ -2467,7 +2499,7 @@
         "aroused": 12.0,
         "eager": 26.0,
         "craving": 15.0,
-        "curious": 36.5,
+        "curious": 35.0,
         "affectionate": 25.0,
         "loving": 26.0,
         "grateful": 24.0,
@@ -2942,10 +2974,10 @@
             "suspicion"
           ],
           "text": "You have been in the Human Road.",
-          "tick": 0,
-          "timestamp": 1790895607.0361316,
+          "tick": 1,
+          "timestamp": 1790927705.4659677,
           "type": "reaction",
-          "visits": 46
+          "visits": 47
         },
         {
           "embedding": null,
@@ -3352,10 +3384,10 @@
             "debt"
           ],
           "text": "You have been in the Cooking Area.",
-          "tick": 0,
-          "timestamp": 1790895607.0361316,
+          "tick": 1,
+          "timestamp": 1790927705.4659677,
           "type": "reaction",
-          "visits": 46
+          "visits": 47
         }
       ],
       "schedule": [],
@@ -3722,10 +3754,10 @@
           "suppressions": [],
           "tags": [],
           "text": "You have been in the Camp Entrance Trail.",
-          "tick": 0,
-          "timestamp": 1790895607.0361316,
+          "tick": 1,
+          "timestamp": 1790927705.4659677,
           "type": "reaction",
-          "visits": 46
+          "visits": 47
         },
         {
           "embedding": null,
@@ -4168,10 +4200,10 @@
             "resolve"
           ],
           "text": "You have been in the Camp Entrance Trail.",
-          "tick": 0,
-          "timestamp": 1790895607.0361316,
+          "tick": 1,
+          "timestamp": 1790927705.4659677,
           "type": "reaction",
-          "visits": 46
+          "visits": 47
         },
         {
           "embedding": null,
@@ -4458,8 +4490,8 @@
         "melancholic": 12.0,
         "nostalgic": 18.0,
         "afraid": 10.0,
-        "anxious": 13.5,
-        "uneasy": 13.5,
+        "anxious": 12.0,
+        "uneasy": 12.0,
         "dread": 8.0,
         "spooked": 10.0,
         "angry": 8.0,
@@ -4556,10 +4588,10 @@
             "empty"
           ],
           "text": "You have been in the Scrap Pile.",
-          "tick": 0,
-          "timestamp": 1790895607.0361316,
+          "tick": 1,
+          "timestamp": 1790927705.4659677,
           "type": "reaction",
-          "visits": 46
+          "visits": 47
         }
       ],
       "schedule": [],
@@ -4906,10 +4938,10 @@
             "captivity"
           ],
           "text": "You have been in the Prison Pens.",
-          "tick": 0,
-          "timestamp": 1790895607.0361316,
+          "tick": 1,
+          "timestamp": 1790927705.4659677,
           "type": "reaction",
-          "visits": 46
+          "visits": 47
         }
       ],
       "schedule": [],
@@ -5175,7 +5207,7 @@
         "resentful": 10.0,
         "aroused": 12.0,
         "eager": 26.0,
-        "craving": 19.5,
+        "craving": 18.0,
         "curious": 35.0,
         "affectionate": 25.0,
         "loving": 26.0,
@@ -5264,10 +5296,10 @@
             "secret"
           ],
           "text": "You have been in the Workshop.",
-          "tick": 0,
-          "timestamp": 1790895607.0361316,
+          "tick": 1,
+          "timestamp": 1790927705.4659677,
           "type": "reaction",
-          "visits": 46
+          "visits": 47
         }
       ],
       "schedule": [],
@@ -5585,10 +5617,10 @@
             "wariness"
           ],
           "text": "You have been in the Northern Hills.",
-          "tick": 0,
-          "timestamp": 1790895607.0361316,
+          "tick": 1,
+          "timestamp": 1790927705.4659677,
           "type": "reaction",
-          "visits": 46
+          "visits": 47
         }
       ],
       "schedule": [],
@@ -5914,10 +5946,10 @@
             "territory"
           ],
           "text": "You have been in the Deep Forest.",
-          "tick": 0,
-          "timestamp": 1790895607.0361316,
+          "tick": 1,
+          "timestamp": 1790927705.4659677,
           "type": "reaction",
-          "visits": 46
+          "visits": 47
         }
       ],
       "schedule": [],
@@ -6612,10 +6644,10 @@
             "restless"
           ],
           "text": "You have been in the Raven River.",
-          "tick": 0,
-          "timestamp": 1790895607.0361316,
+          "tick": 1,
+          "timestamp": 1790927705.4669657,
           "type": "reaction",
-          "visits": 46
+          "visits": 47
         }
       ],
       "schedule": [],
@@ -6864,9 +6896,9 @@
         "melancholic": 12.0,
         "nostalgic": 18.0,
         "afraid": 10.0,
-        "anxious": 15.0,
+        "anxious": 13.5,
         "uneasy": 12.0,
-        "dread": 9.5,
+        "dread": 8.0,
         "spooked": 10.0,
         "angry": 8.0,
         "irritated": 12.0,
@@ -6919,10 +6951,10 @@
             "paranoia"
           ],
           "text": "You have been in the Camp Entrance.",
-          "tick": 0,
-          "timestamp": 1790895607.0361316,
+          "tick": 1,
+          "timestamp": 1790927705.4669657,
           "type": "reaction",
-          "visits": 46
+          "visits": 47
         }
       ],
       "schedule": [],
@@ -7290,10 +7322,10 @@
             "pride"
           ],
           "text": "You have been in the Cooking Area.",
-          "tick": 0,
-          "timestamp": 1790895607.0361316,
+          "tick": 1,
+          "timestamp": 1790927705.4669657,
           "type": "reaction",
-          "visits": 46
+          "visits": 47
         }
       ],
       "schedule": [],
@@ -7532,9 +7564,9 @@
       },
       "current_area": "Deep Forest",
       "emotion": {
-        "current": "craving",
-        "intensity": 0.06,
-        "expression": "aroused",
+        "current": "neutral",
+        "intensity": 0.0,
+        "expression": "neutral",
         "description": ""
       },
       "emotions": {
@@ -7556,7 +7588,7 @@
         "resentful": 10.0,
         "aroused": 12.0,
         "eager": 26.0,
-        "craving": 21.0,
+        "craving": 19.5,
         "curious": 35.0,
         "affectionate": 25.0,
         "loving": 26.0,
@@ -7599,10 +7631,10 @@
             "forage"
           ],
           "text": "You have been in the Deep Forest.",
-          "tick": 0,
-          "timestamp": 1790895607.0371315,
+          "tick": 1,
+          "timestamp": 1790927705.4669657,
           "type": "reaction",
-          "visits": 46
+          "visits": 47
         }
       ],
       "schedule": [],
@@ -7885,7 +7917,7 @@
         "resentful": 10.0,
         "aroused": 12.0,
         "eager": 26.0,
-        "craving": 19.5,
+        "craving": 18.0,
         "curious": 35.0,
         "affectionate": 25.0,
         "loving": 26.0,
@@ -8012,12 +8044,15 @@
     "Zikka": {
       "name": "Zikka",
       "personality": "You are Zikka, the Kraktooth warchief's daughter and the tribe's best fighter. Strong, loud, and respected in combat. You are tired of being seen only as an heir or enforcer. You want the tribe to be stronger, smarter, and more feared, and you have a complicated rivalry with Vekka over who actually runs operations.",
-      "description": "Female goblin fighter. Strong build, scarred, loud, always moving. Wears worn leathers and carries an oversized blade.\nZikka is wearing Spear in their right hand.",
+      "description": "Female goblin fighter. Strong build, scarred, loud, always moving. Wears worn leathers and carries an oversized blade.\nZikka is wearing Rusty Hatchet in their left hand, Spear in their right hand.",
       "base_description": "Female goblin fighter. Strong build, scarred, loud, always moving. Wears worn leathers and carries an oversized blade.",
       "id": "70455487",
       "equipped": {
         "hand_right": [
           "item_spear"
+        ],
+        "hand_left": [
+          "item_rusty_hatchet"
         ]
       },
       "stats": {
@@ -8034,8 +8069,8 @@
         "Hunger": 50,
         "Thirst": 50,
         "Hygiene": 60,
-        "Energy": 74,
-        "Social": 55,
+        "Energy": 73,
+        "Social": 56,
         "Bladder": 61,
         "Sanity": 85,
         "Entertainment": 45,
@@ -8244,9 +8279,9 @@
       },
       "current_area": "Training Pit",
       "emotion": {
-        "current": "neutral",
-        "intensity": 0.0,
-        "expression": "neutral",
+        "current": "anxious",
+        "intensity": 0.085,
+        "expression": "afraid",
         "description": ""
       },
       "emotions": {
@@ -8259,7 +8294,7 @@
         "melancholic": 12.0,
         "nostalgic": 18.0,
         "afraid": 10.0,
-        "anxious": 13.5,
+        "anxious": 20.5,
         "uneasy": 12.0,
         "dread": 8.0,
         "spooked": 10.0,
@@ -8357,10 +8392,37 @@
             "hunger"
           ],
           "text": "You have been in the Training Pit.",
-          "tick": 0,
-          "timestamp": 1790895607.0371315,
+          "tick": 1,
+          "timestamp": 1790927705.4669657,
           "type": "reaction",
-          "visits": 46
+          "visits": 47
+        },
+        {
+          "id": "mem_1790896419632_725",
+          "text": "Took the Rusty Hatchet; Thrazz's doubt about my last win still hangs in the air.",
+          "tick": 0,
+          "timestamp": 1790896419.6322274,
+          "importance": 4,
+          "type": "reaction",
+          "location": "",
+          "entity_ids": [
+            "area_training_pit"
+          ],
+          "embedding": null,
+          "tags": [
+            "determination",
+            "hunger",
+            "rivalry"
+          ],
+          "emotion": {
+            "label": "stung",
+            "intensity": 5
+          },
+          "emotions": null,
+          "memory_emotions": [],
+          "salience_override": 0,
+          "source": "auto",
+          "suppressions": []
         }
       ],
       "schedule": [],
@@ -8374,7 +8436,7 @@
       "patrol_route": null,
       "patrol_index": null,
       "feels_like": 17,
-      "current_carry_weight": 3.0,
+      "current_carry_weight": 6.0,
       "max_carry_capacity": 100.0,
       "at_way_id": null,
       "facing": null,
@@ -8382,9 +8444,9 @@
       "spatial_position": null
     }
   },
-  "active_player": "Zikka",
-  "game_time": "08:00:00",
-  "time_ticks": 0,
+  "active_player": "Arix",
+  "game_time": "08:01:00",
+  "time_ticks": 1,
   "time_per_tick_minutes": 1,
   "clock_start_hour": 8,
   "clock_start_minute": 0,
@@ -8457,7 +8519,7 @@
           "y": 280
         },
         "created": 1789781679.846446,
-        "updated": 1790878419.7553637
+        "updated": 1790896420.5913622
       },
       "area_animal_pens": {
         "id": "area_animal_pens",
@@ -8475,7 +8537,7 @@
             "light": "normal",
             "noise": "busy",
             "smell": "animal, straw, dung",
-            "temperature": 16.2
+            "temperature": 16.0
           },
           "features": [
             "pens",
@@ -8655,7 +8717,7 @@
           "y": 160
         },
         "created": 1789781679.84646,
-        "updated": 1790878419.7553637
+        "updated": 1790896420.5913622
       },
       "area_camp_entrance": {
         "id": "area_camp_entrance",
@@ -8719,7 +8781,7 @@
           "y": 40
         },
         "created": 1789781679.8464634,
-        "updated": 1790878419.7553637
+        "updated": 1790896420.5913622
       },
       "area_camp_entrance_trail": {
         "id": "area_camp_entrance_trail",
@@ -8781,7 +8843,7 @@
           "y": 200
         },
         "created": 1789781679.846467,
-        "updated": 1790878419.7553637
+        "updated": 1790896420.5913622
       },
       "area_chiefs_den": {
         "id": "area_chiefs_den",
@@ -8799,7 +8861,7 @@
             "light": "dim",
             "noise": "quiet",
             "smell": "old leather, metal, smoke",
-            "temperature": 18.3
+            "temperature": 18.4
           },
           "features": [
             "trophy_wall",
@@ -8930,7 +8992,7 @@
             "light": "bright",
             "noise": "busy",
             "smell": "smoke, meat, herbs",
-            "temperature": 21.6
+            "temperature": 21.2
           },
           "features": [
             "large_fires",
@@ -9046,7 +9108,7 @@
           "y": 120
         },
         "created": 1789781679.8464823,
-        "updated": 1790878419.7553637
+        "updated": 1790896420.5913622
       },
       "area_eldenford_interior_10_3": {
         "id": "area_eldenford_interior_10_3",
@@ -9533,7 +9595,7 @@
           "description": "A gate bars the road between posts. A road across open country. It runs south from here.",
           "environment": {
             "light": 60,
-            "temperature": 20.0
+            "temperature": 20.5
           },
           "floor": 0,
           "generated": {
@@ -11460,7 +11522,7 @@
           "y": 120
         },
         "created": 1789781679.8464856,
-        "updated": 1790878419.7553637
+        "updated": 1790896420.592363
       },
       "area_food_storage": {
         "id": "area_food_storage",
@@ -11478,7 +11540,7 @@
             "light": "dim",
             "noise": "quiet",
             "smell": "dried meat, mushrooms, spices",
-            "temperature": 15.6
+            "temperature": 15.9
           },
           "features": [
             "stone_shelves",
@@ -11655,7 +11717,7 @@
           "y": 240
         },
         "created": 1789781679.846496,
-        "updated": 1790878419.7553637
+        "updated": 1790896420.592363
       },
       "area_mine_access": {
         "id": "area_mine_access",
@@ -11673,7 +11735,7 @@
             "light": "pitch_black",
             "noise": "dripping water",
             "smell": "rock, water, minerals",
-            "temperature": 12.0
+            "temperature": 12.1
           },
           "features": [
             "narrow_tunnels",
@@ -11785,7 +11847,7 @@
           "y": 280
         },
         "created": 1789781679.846502,
-        "updated": 1790878419.7553637
+        "updated": 1790896420.592363
       },
       "area_northern_hills": {
         "id": "area_northern_hills",
@@ -11850,7 +11912,7 @@
           "y": 80
         },
         "created": 1789781679.846505,
-        "updated": 1790878419.7553637
+        "updated": 1790896420.592363
       },
       "area_nursery": {
         "id": "area_nursery",
@@ -11979,7 +12041,7 @@
           "y": 240
         },
         "created": 1789781679.8465114,
-        "updated": 1790878419.7553637
+        "updated": 1790896420.592363
       },
       "area_prison_pens": {
         "id": "area_prison_pens",
@@ -11997,7 +12059,7 @@
             "light": "dim",
             "noise": "quiet",
             "smell": "dirt, sweat, waste",
-            "temperature": 15.4
+            "temperature": 15.5
           },
           "features": [
             "wooden_cages",
@@ -12109,7 +12171,7 @@
           "y": 240
         },
         "created": 1789781679.846518,
-        "updated": 1790878419.7553637
+        "updated": 1790896420.592363
       },
       "area_scouting_rooms": {
         "id": "area_scouting_rooms",
@@ -12127,7 +12189,7 @@
             "light": "dim",
             "noise": "quiet",
             "smell": "ink, leather, smoke",
-            "temperature": 16.4
+            "temperature": 16.5
           },
           "features": [
             "map_walls",
@@ -12189,7 +12251,7 @@
             "light": "dim",
             "noise": "quiet",
             "smell": "rust, old oil, decay",
-            "temperature": 15.4
+            "temperature": 15.5
           },
           "features": [
             "rusty_swords",
@@ -12254,7 +12316,7 @@
             "light": "dim",
             "noise": "quiet",
             "smell": "herbs, smoke, something sweet and wrong",
-            "temperature": 16.4
+            "temperature": 16.5
           },
           "features": [
             "symbol_walls",
@@ -12320,7 +12382,7 @@
             "light": "pitch_black",
             "noise": "dripping water",
             "smell": "rock, damp earth",
-            "temperature": 13.0
+            "temperature": 13.2
           },
           "features": [
             "collapsed_sections",
@@ -12382,7 +12444,7 @@
             "light": "dim",
             "noise": "quiet",
             "smell": "fur, sweat, damp cloth",
-            "temperature": 17.4
+            "temperature": 17.5
           },
           "features": [
             "hammocks",
@@ -12571,7 +12633,7 @@
             "light": "dim",
             "noise": "quiet",
             "smell": "rot, dung, ash",
-            "temperature": 13.8
+            "temperature": 13.9
           },
           "features": [
             "waste_piles",
@@ -12632,7 +12694,7 @@
             "light": "dim",
             "noise": "dripping water",
             "smell": "wet stone, water",
-            "temperature": 14.2
+            "temperature": 14.8
           },
           "features": [
             "underground_pool",
@@ -14380,7 +14442,7 @@
           "description": "Scattered trees open onto patches of grass. Paths lead east.",
           "environment": {
             "light": 60,
-            "temperature": 20.0
+            "temperature": 20.5
           },
           "floor": 0,
           "generated": {
@@ -14518,8 +14580,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road along the forest line, the trees close on the south. It runs east, northeast, northwest, south, southeast and west from here. Deep Woods stands here.",
           "x": 400,
@@ -14539,7 +14605,7 @@
           }
         },
         "created": 1790580438.5167189,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_10_5": {
         "id": "area_world_10_5",
@@ -14555,8 +14621,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "Scattered trees open onto patches of grass. A track runs through it. Paths lead east, north, northeast, northwest, south, southeast and southwest.",
           "x": 400,
@@ -14574,7 +14644,7 @@
           }
         },
         "created": 1790580438.5192895,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_10_6": {
         "id": "area_world_10_6",
@@ -14590,8 +14660,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A span carries the road over the gap. A road along the forest line, the trees close on the north. It runs east, north, northeast, southeast and west from here.",
           "x": 400,
@@ -14609,7 +14683,7 @@
           }
         },
         "created": 1790580438.5223534,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_11_3": {
         "id": "area_world_11_3",
@@ -14626,8 +14700,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road across open country. It runs east, south and southwest from here.",
           "x": 440,
@@ -14646,7 +14724,7 @@
           }
         },
         "created": 1790580438.5105038,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_11_4": {
         "id": "area_world_11_4",
@@ -14663,8 +14741,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road along the forest line, the trees close on the south. It runs north, northeast, south, southeast, southwest and west from here.",
           "x": 440,
@@ -14683,7 +14765,7 @@
           }
         },
         "created": 1790580438.5173898,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_11_5": {
         "id": "area_world_11_5",
@@ -14699,8 +14781,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "Scattered trees open onto patches of grass. A track runs through it. Paths lead east, north, northwest, south, southwest and west.",
           "x": 440,
@@ -14718,7 +14804,7 @@
           }
         },
         "created": 1790580438.5195003,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_11_6": {
         "id": "area_world_11_6",
@@ -14733,8 +14819,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road in the woods. It runs north, northeast, northwest, south, southeast and west from here.",
           "x": 440,
@@ -14752,7 +14842,7 @@
           }
         },
         "created": 1790580438.5225377,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_11_7": {
         "id": "area_world_11_7",
@@ -14768,8 +14858,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "Scattered trees open onto patches of grass. A track runs through it. Paths lead east, north and northwest.",
           "x": 440,
@@ -14787,7 +14881,7 @@
           }
         },
         "created": 1790580438.5233712,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_12_3": {
         "id": "area_world_12_3",
@@ -14803,8 +14897,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A span carries the road over the gap. A road across open country. It runs east, southwest and west from here.",
           "x": 480,
@@ -14822,7 +14920,7 @@
           }
         },
         "created": 1790580438.5107872,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_12_5": {
         "id": "area_world_12_5",
@@ -14837,8 +14935,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road along the forest line, the trees close on the west. It runs northwest, southwest and west from here.",
           "x": 480,
@@ -14856,7 +14958,7 @@
           }
         },
         "created": 1790580438.5196743,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_12_7": {
         "id": "area_world_12_7",
@@ -14871,8 +14973,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road along the forest line, the trees close on the west. It runs east, northwest and west from here.",
           "x": 480,
@@ -14890,7 +14996,7 @@
           }
         },
         "created": 1790580438.5235474,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_13_3": {
         "id": "area_world_13_3",
@@ -14905,8 +15011,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road across open country. It runs east and west from here.",
           "x": 520,
@@ -14924,7 +15034,7 @@
           }
         },
         "created": 1790580438.5109422,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_13_7": {
         "id": "area_world_13_7",
@@ -14939,8 +15049,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road across open country. It runs east, northeast and west from here.",
           "x": 520,
@@ -14958,7 +15072,7 @@
           }
         },
         "created": 1790580438.5237043,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_14_3": {
         "id": "area_world_14_3",
@@ -14973,8 +15087,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road across open country. It runs east and west from here.",
           "x": 560,
@@ -14992,7 +15110,7 @@
           }
         },
         "created": 1790580438.5110867,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_14_6": {
         "id": "area_world_14_6",
@@ -15007,8 +15125,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road across open country. It runs east, northeast, south, southeast and southwest from here.",
           "x": 560,
@@ -15026,7 +15148,7 @@
           }
         },
         "created": 1790580438.522702,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_14_7": {
         "id": "area_world_14_7",
@@ -15041,8 +15163,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road across open country. It runs east, north, northeast and west from here.",
           "x": 560,
@@ -15060,7 +15186,7 @@
           }
         },
         "created": 1790580438.5238566,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_15_3": {
         "id": "area_world_15_3",
@@ -15075,8 +15201,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road across open country. It runs east, southeast and west from here.",
           "x": 600,
@@ -15094,7 +15224,7 @@
           }
         },
         "created": 1790580438.5112724,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_15_5": {
         "id": "area_world_15_5",
@@ -15109,8 +15239,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road across open country. It runs northeast, south, southeast and southwest from here.",
           "x": 600,
@@ -15128,7 +15262,7 @@
           }
         },
         "created": 1790580438.5198388,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_15_6": {
         "id": "area_world_15_6",
@@ -15143,8 +15277,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road across open country. It runs east, north, south, southwest and west from here.",
           "x": 600,
@@ -15162,7 +15300,7 @@
           }
         },
         "created": 1790580438.5228617,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_15_7": {
         "id": "area_world_15_7",
@@ -15177,8 +15315,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road across open country. It runs north, northeast, northwest, southeast and west from here.",
           "x": 600,
@@ -15196,7 +15338,7 @@
           }
         },
         "created": 1790580438.524207,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_16_3": {
         "id": "area_world_16_3",
@@ -15211,8 +15353,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road running beside the water to the east. It runs east, south and west from here.",
           "x": 640,
@@ -15230,7 +15376,7 @@
           }
         },
         "created": 1790580438.5114222,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_16_4": {
         "id": "area_world_16_4",
@@ -15245,8 +15391,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road running beside the water to the northeast. It runs north, northeast, northwest and southwest from here.",
           "x": 640,
@@ -15264,7 +15414,7 @@
           }
         },
         "created": 1790580438.5176294,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_16_6": {
         "id": "area_world_16_6",
@@ -15279,8 +15429,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road across open country. It runs east, northwest, southwest and west from here.",
           "x": 640,
@@ -15298,7 +15452,7 @@
           }
         },
         "created": 1790580438.5230138,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_16_8": {
         "id": "area_world_16_8",
@@ -15313,8 +15467,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road across open country. It runs east and northwest from here.",
           "x": 640,
@@ -15332,7 +15490,7 @@
           }
         },
         "created": 1790580438.5257351,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_17_3": {
         "id": "area_world_17_3",
@@ -15349,8 +15507,12 @@
           "floor": 0,
           "surface": "shallow_water",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A current runs steadily between its banks. A track runs through it. Paths lead east, southwest and west. Eldenford Interior stands here.",
           "x": 680,
@@ -15369,7 +15531,7 @@
           }
         },
         "created": 1790870620.5063517,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_17_6": {
         "id": "area_world_17_6",
@@ -15384,8 +15546,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road across open country. It runs southeast and west from here.",
           "x": 680,
@@ -15403,7 +15569,7 @@
           }
         },
         "created": 1790580438.5231645,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_17_8": {
         "id": "area_world_17_8",
@@ -15418,8 +15584,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road across open country. It runs northeast and west from here.",
           "x": 680,
@@ -15437,7 +15607,7 @@
           }
         },
         "created": 1790580438.5259328,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_18_3": {
         "id": "area_world_18_3",
@@ -15452,8 +15622,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road running beside the water to the west. It runs southeast and west from here.",
           "x": 720,
@@ -15471,7 +15645,7 @@
           }
         },
         "created": 1790580438.5115702,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_18_7": {
         "id": "area_world_18_7",
@@ -15486,8 +15660,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road across open country. It runs east, northwest and southwest from here.",
           "x": 720,
@@ -15505,7 +15683,7 @@
           }
         },
         "created": 1790580438.5244558,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_19_4": {
         "id": "area_world_19_4",
@@ -15520,8 +15698,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road across open country. It runs northwest and south from here.",
           "x": 760,
@@ -15539,7 +15721,7 @@
           }
         },
         "created": 1790580438.5180044,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_19_5": {
         "id": "area_world_19_5",
@@ -15554,8 +15736,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road across open country. It runs north from here.",
           "x": 760,
@@ -15573,7 +15759,7 @@
           }
         },
         "created": 1790580438.5202413,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_19_7": {
         "id": "area_world_19_7",
@@ -15588,8 +15774,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road across open country. It runs west from here.",
           "x": 760,
@@ -15607,7 +15797,7 @@
           }
         },
         "created": 1790580438.5246894,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_3_6": {
         "id": "area_world_3_6",
@@ -15622,8 +15812,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road along the forest line, the trees close on the east. It runs east and northeast from here.",
           "x": 120,
@@ -15641,7 +15835,7 @@
           }
         },
         "created": 1790580438.5205476,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_4_1": {
         "id": "area_world_4_1",
@@ -15656,8 +15850,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road across open country. It runs southeast from here.",
           "x": 160,
@@ -15675,7 +15873,7 @@
           }
         },
         "created": 1790580438.508132,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_4_5": {
         "id": "area_world_4_5",
@@ -15690,8 +15888,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road along the forest line, the trees close on the south. It runs east, northeast, south, southeast and southwest from here.",
           "x": 160,
@@ -15709,7 +15911,7 @@
           }
         },
         "created": 1790580438.5183349,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_4_6": {
         "id": "area_world_4_6",
@@ -15725,8 +15927,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "Thin woodland, easy to walk and hard to hide in. A track runs through it. Paths lead east, north, northeast and west.",
           "x": 160,
@@ -15744,7 +15950,7 @@
           }
         },
         "created": 1790580438.5210655,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_5_2": {
         "id": "area_world_5_2",
@@ -15759,8 +15965,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road across open country. It runs northwest and southeast from here.",
           "x": 200,
@@ -15778,7 +15988,7 @@
           }
         },
         "created": 1790580438.5084074,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_5_5": {
         "id": "area_world_5_5",
@@ -15793,8 +16003,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road in the woods. It runs east, north, northeast, south, southeast, southwest and west from here.",
           "x": 200,
@@ -15812,7 +16026,7 @@
           }
         },
         "created": 1790580438.5185528,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_5_6": {
         "id": "area_world_5_6",
@@ -15828,8 +16042,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "Scattered trees open onto patches of grass. A track runs through it. Paths lead east, north, northeast, northwest and west.",
           "x": 200,
@@ -15847,7 +16065,7 @@
           }
         },
         "created": 1790580438.5213022,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_6_3": {
         "id": "area_world_6_3",
@@ -15864,8 +16082,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road along the forest line, the trees close on the southeast. It runs east, northwest, south, southeast and southwest from here.",
           "x": 240,
@@ -15884,7 +16106,7 @@
           }
         },
         "created": 1790580438.5094945,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_6_4": {
         "id": "area_world_6_4",
@@ -15901,8 +16123,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road in the woods. It runs east, north, northeast, south, southeast, southwest and west from here.",
           "x": 240,
@@ -15921,7 +16147,7 @@
           }
         },
         "created": 1790580438.5131857,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_6_5": {
         "id": "area_world_6_5",
@@ -15938,8 +16164,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road in the woods. It runs east, north, northeast, northwest, south, southeast, southwest and west from here.",
           "x": 240,
@@ -15958,7 +16188,7 @@
           }
         },
         "created": 1790580438.5187697,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_6_6": {
         "id": "area_world_6_6",
@@ -15974,8 +16204,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "Thin woodland, easy to walk and hard to hide in. A track runs through it. Paths lead east, north, northeast, northwest and west.",
           "x": 240,
@@ -15993,7 +16227,7 @@
           }
         },
         "created": 1790580438.5215702,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_7_3": {
         "id": "area_world_7_3",
@@ -16010,8 +16244,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road along the forest line, the trees close on the south. It runs east, south, southwest and west from here.",
           "x": 280,
@@ -16030,7 +16268,7 @@
           }
         },
         "created": 1790580438.5097396,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_7_4": {
         "id": "area_world_7_4",
@@ -16046,8 +16284,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "Scattered trees open onto patches of grass. A track runs through it. Paths lead north, northeast, northwest, south, southwest and west.",
           "x": 280,
@@ -16065,7 +16307,7 @@
           }
         },
         "created": 1790580438.5149822,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_7_5": {
         "id": "area_world_7_5",
@@ -16081,8 +16323,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "Thin woodland, easy to walk and hard to hide in. A track runs through it. Paths lead north, northwest, south, southeast, southwest and west.",
           "x": 280,
@@ -16100,7 +16346,7 @@
           }
         },
         "created": 1790580438.5190258,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_7_6": {
         "id": "area_world_7_6",
@@ -16115,8 +16361,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road along the forest line, the trees close on the north. It runs east, north, northwest and west from here.",
           "x": 280,
@@ -16134,7 +16384,7 @@
           }
         },
         "created": 1790580438.5217714,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_8_3": {
         "id": "area_world_8_3",
@@ -16151,8 +16401,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road along the forest line, the trees close on the southwest. It runs east, southeast, southwest and west from here.",
           "x": 320,
@@ -16171,7 +16425,7 @@
           }
         },
         "created": 1790580438.509946,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_8_6": {
         "id": "area_world_8_6",
@@ -16186,8 +16440,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road along the forest line, the trees close on the northwest. It runs east, northwest and west from here.",
           "x": 320,
@@ -16205,7 +16463,7 @@
           }
         },
         "created": 1790580438.5219812,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_9_3": {
         "id": "area_world_9_3",
@@ -16222,8 +16480,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road across open country. It runs south, southeast and west from here.",
           "x": 360,
@@ -16242,7 +16504,7 @@
           }
         },
         "created": 1790580438.510316,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_9_4": {
         "id": "area_world_9_4",
@@ -16259,8 +16521,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road along the forest line, the trees close on the southeast. It runs east, north, northwest and southeast from here.",
           "x": 360,
@@ -16279,7 +16545,7 @@
           }
         },
         "created": 1790580438.5152998,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "area_world_9_6": {
         "id": "area_world_9_6",
@@ -16294,8 +16560,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "A worn track cut through the land. A road along the forest line, the trees close on the northeast. It runs east, northeast and west from here.",
           "x": 360,
@@ -16313,7 +16583,7 @@
           }
         },
         "created": 1790580438.5221598,
-        "updated": 1790878794.6512516
+        "updated": 1790896420.592363
       },
       "bush_of_berries_camp_entrance_trail_1": {
         "id": "bush_of_berries_camp_entrance_trail_1",
@@ -16335,7 +16605,7 @@
           "library_id": "bush_of_berries",
           "light_level": "dim",
           "parameters": {
-            "growth": 4
+            "growth": 5
           },
           "resistances": {},
           "skill_check": {},
@@ -16353,7 +16623,7 @@
           "weight": 2
         },
         "created": 1789989625.5763988,
-        "updated": 1790878419.7553637
+        "updated": 1790896420.5913622
       },
       "bush_of_berries_deep_forest_1": {
         "id": "bush_of_berries_deep_forest_1",
@@ -16375,7 +16645,7 @@
           "library_id": "bush_of_berries",
           "light_level": "dim",
           "parameters": {
-            "growth": 4
+            "growth": 5
           },
           "resistances": {},
           "skill_check": {},
@@ -16393,7 +16663,7 @@
           "weight": 2
         },
         "created": 1789989624.3312042,
-        "updated": 1790878419.7553637
+        "updated": 1790896420.5913622
       },
       "bush_of_berries_deep_forest_2": {
         "id": "bush_of_berries_deep_forest_2",
@@ -16415,7 +16685,7 @@
           "library_id": "bush_of_berries",
           "light_level": "dim",
           "parameters": {
-            "growth": 4
+            "growth": 5
           },
           "resistances": {},
           "skill_check": {},
@@ -16434,7 +16704,7 @@
           "aliases": []
         },
         "created": 1789989624.3322668,
-        "updated": 1790878419.7553637
+        "updated": 1790896420.5913622
       },
       "bush_of_berries_deep_forest_3": {
         "id": "bush_of_berries_deep_forest_3",
@@ -16456,7 +16726,7 @@
           "library_id": "bush_of_berries",
           "light_level": "dim",
           "parameters": {
-            "growth": 4
+            "growth": 5
           },
           "resistances": {},
           "skill_check": {},
@@ -16474,7 +16744,7 @@
           "weight": 2
         },
         "created": 1789989624.3332193,
-        "updated": 1790878419.7553637
+        "updated": 1790896420.5913622
       },
       "bush_of_berries_water_source_1": {
         "id": "bush_of_berries_water_source_1",
@@ -16496,7 +16766,7 @@
           "library_id": "bush_of_berries",
           "light_level": "dim",
           "parameters": {
-            "growth": 4
+            "growth": 5
           },
           "resistances": {},
           "skill_check": {},
@@ -16514,7 +16784,7 @@
           "weight": 2
         },
         "created": 1789989624.9787397,
-        "updated": 1790878419.7553637
+        "updated": 1790896420.5913622
       },
       "camp_drum_chiefs_pit_1": {
         "id": "camp_drum_chiefs_pit_1",
@@ -16912,7 +17182,12 @@
           ],
           "weight": 3,
           "x": -83,
-          "y": 161
+          "y": 161,
+          "last_relation": {
+            "relation": "in",
+            "target_id": "area_training_pit",
+            "target_name": "Training Pit"
+          }
         },
         "created": 1789781679.846677,
         "updated": 1789922611.8147907
@@ -29891,8 +30166,12 @@
           "floor": 0,
           "surface": "dirt",
           "environment": {
-            "light": 60,
-            "temperature": 20
+            "light": 80,
+            "temperature": 27.6,
+            "weather": "clear",
+            "wind": "breeze",
+            "humidity": "dry",
+            "air": "fresh"
           },
           "description": "Scattered trees open onto patches of grass. A track runs through it. Paths lead east, northeast, south, southeast and southwest. West Woods stands here.",
           "x": 200,
@@ -29911,7 +30190,7 @@
           }
         },
         "created": 1790878794.566251,
-        "updated": 1790878794.566251
+        "updated": 1790896420.592363
       },
       "way_world_area_world_5_4_area_world_6_3": {
         "id": "way_world_area_world_5_4_area_world_6_3",
@@ -30746,9 +31025,11 @@
       },
       {
         "source": "item_rusty_hatchet",
-        "target": "area_training_pit",
-        "type": "in",
-        "properties": {}
+        "target": "player_Zikka",
+        "type": "equipped",
+        "properties": {
+          "slot": "hand_left"
+        }
       },
       {
         "source": "item_spear",
@@ -44044,72 +44325,6 @@
         "properties": {}
       },
       {
-        "source": "player_Arix",
-        "target": "area_chiefs_pit",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Belne",
-        "target": "area_camp_entrance_trail",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Eldenford_Blacksmith",
-        "target": "area_eldenford_village",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Eldenford_Elder",
-        "target": "area_eldenford_village",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Eldenford_Farmer",
-        "target": "area_abandoned_farm",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Eldenford_Merchant",
-        "target": "area_eldenford_village",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Eldenford_Road_Guard_Captain",
-        "target": "area_human_road",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Jake_Halloway",
-        "target": "area_camp_entrance_trail",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Silver-Talon",
-        "target": "area_camp_entrance",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Tusker",
-        "target": "area_deep_forest",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Vekka",
-        "target": "area_chiefs_pit",
-        "type": "in",
-        "properties": {}
-      },
-      {
         "source": "lyrie_gold_hoop_earrings",
         "target": "area_chiefs_pit",
         "type": "in",
@@ -44188,14 +44403,94 @@
         }
       },
       {
+        "source": "player_Arix",
+        "target": "area_chiefs_pit",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "blue_butterfly_earring",
+        "target": "player_Arix",
+        "type": "connection",
+        "properties": {
+          "slot": "accessory"
+        }
+      },
+      {
+        "source": "belt_leather",
+        "target": "player_Arix",
+        "type": "connection",
+        "properties": {
+          "slot": "waist"
+        }
+      },
+      {
+        "source": "black_short_shorts",
+        "target": "player_Arix",
+        "type": "connection",
+        "properties": {
+          "slot": "legs"
+        }
+      },
+      {
+        "source": "manor_signet_ring",
+        "target": "player_Arix",
+        "type": "connection",
+        "properties": {
+          "slot": "hands"
+        }
+      },
+      {
+        "source": "player_Belne",
+        "target": "area_camp_entrance_trail",
+        "type": "in",
+        "properties": {}
+      },
+      {
         "source": "player_Croak-Mother",
         "target": "area_murk_lake",
         "type": "in",
         "properties": {}
       },
       {
+        "source": "player_Eldenford_Blacksmith",
+        "target": "area_eldenford_village",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Eldenford_Elder",
+        "target": "area_eldenford_village",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Eldenford_Farmer",
+        "target": "area_abandoned_farm",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Eldenford_Merchant",
+        "target": "area_eldenford_village",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Eldenford_Road_Guard_Captain",
+        "target": "area_human_road",
+        "type": "in",
+        "properties": {}
+      },
+      {
         "source": "player_Gribba",
         "target": "area_cooking_area",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Jake_Halloway",
+        "target": "area_camp_entrance_trail",
         "type": "in",
         "properties": {}
       },
@@ -44248,8 +44543,26 @@
         "properties": {}
       },
       {
+        "source": "player_Silver-Talon",
+        "target": "area_camp_entrance",
+        "type": "in",
+        "properties": {}
+      },
+      {
         "source": "player_Thrazz",
         "target": "area_cooking_area",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Tusker",
+        "target": "area_deep_forest",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Vekka",
+        "target": "area_chiefs_pit",
         "type": "in",
         "properties": {}
       },
@@ -44258,10 +44571,18 @@
         "target": "area_training_pit",
         "type": "in",
         "properties": {}
+      },
+      {
+        "source": "item_rusty_hatchet",
+        "target": "player_Zikka",
+        "type": "connection",
+        "properties": {
+          "slot": "hand_left"
+        }
       }
     ]
   },
-  "turn_number": 0,
+  "turn_number": 1,
   "narration_mode": "none",
   "ghost_mode": false,
   "mature_content": true,
@@ -44931,48 +45252,24 @@
       "kind": "scope",
       "layers": {
         "biome": {
-          "10,3": "orchard",
-          "11,3": "orchard",
+          "10,3": "sparse_forest",
+          "11,3": "sparse_forest",
           "11,8": "temple",
           "12,9": "market",
-          "15,4": "orchard",
-          "15,5": "orchard",
-          "16,4": "orchard",
-          "16,5": "orchard",
-          "17,4": "orchard",
-          "17,5": "orchard",
-          "17,6": "orchard",
-          "18,5": "orchard",
+          "15,4": "sparse_forest",
+          "15,5": "sparse_forest",
+          "16,4": "sparse_forest",
+          "16,5": "sparse_forest",
+          "17,4": "sparse_forest",
+          "17,5": "sparse_forest",
+          "17,6": "sparse_forest",
+          "18,5": "sparse_forest",
           "7,14": "river",
           "7,4": "cemetery",
           "8,14": "river",
           "9,16": "river",
-          "9,3": "orchard",
-          "9,5": "orchard",
-          "14,6": "watch_house",
-          "14,8": "town_hall",
-          "17,8": "shrine",
-          "15,10": "shop",
-          "17,11": "workshop",
-          "20,12": "smithy",
-          "17,13": "workshop",
-          "18,14": "workshop",
-          "13,13": "shop",
-          "11,12": "shop",
-          "19,11": "workshop",
-          "18,10": "shop",
-          "10,14": "stable",
-          "7,9": "inn",
-          "8,7": "tavern",
-          "9,9": "brothel",
-          "15,15": "bathhouse",
-          "6,11": "warehouse",
-          "6,12": "ferry_landing",
-          "6,16": "mill",
-          "3,13": "cottage",
-          "21,2": "farmland",
-          "21,8": "tenement",
-          "20,7": "mansion"
+          "9,3": "sparse_forest",
+          "9,5": "sparse_forest"
         },
         "road": {
           "10,4": "road",
@@ -45043,38 +45340,7 @@
         "opacity": 1,
         "visible": true
       },
-      "state": "materialized",
-      "names": {
-        "14,6": "Watch House",
-        "12,9": "Market Square",
-        "14,8": "Town Hall / Meeting House",
-        "17,8": "Shrine of the Hearth",
-        "15,10": "Clothier & Tailor",
-        "17,11": "Leatherworker",
-        "20,12": "Smithy",
-        "17,13": "Carpenter",
-        "18,14": "Wheelwright",
-        "13,13": "Baker",
-        "11,12": "Butcher",
-        "19,11": "Brewer",
-        "18,10": "Apothecary / Herbalist",
-        "10,14": "Stable",
-        "7,9": "The Stag Inn",
-        "8,7": "The Crooked Mug",
-        "9,9": "The Silver Lily",
-        "15,15": "Bathhouse",
-        "6,11": "Warehouse",
-        "6,12": "River Landing / Ferry",
-        "6,16": "Mill",
-        "3,13": "Fisher Huts",
-        "17,5": "Orchard & Gardens",
-        "21,2": "Farmlands",
-        "21,8": "Poor Quarter",
-        "20,7": "Wealthy Merchant Homes",
-        "11,8": "Temple",
-        "7,4": "Cemetery",
-        "14,12": "Town Green"
-      }
+      "state": "materialized"
     },
     "goblin_camp": {
       "area_ids": [

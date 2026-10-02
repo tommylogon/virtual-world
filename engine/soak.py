@@ -124,10 +124,10 @@ def _step_one(gs, sim, player, order) -> None:
         return
 
     # 2. Run the policy for this turn.
-    found = None
+    step = None
     if not getattr(player, "activity", None) and \
             getattr(player, "state", "") != "unconscious":
-        found = timeskip.run_policy_step(
+        step = timeskip.run_policy_step(
             gs, sim, player, intent=order.get("intent", "idle"),
             target=order.get("target"), watch_tags=order.get("watch_tags") or (),
             target_type=order.get("target_type"), heading=order.get("heading"),
@@ -139,10 +139,16 @@ def _step_one(gs, sim, player, order) -> None:
     # 4. Anything that happened, arrived or was found this turn. A search that
     #    turned up its target is a discovery exactly like it is for a blocking
     #    skip, so hand control back rather than searching past it (the policy
-    #    result used to be dropped here).
-    if found is not None:
+    #    result used to be dropped here). An intent that *cannot* be carried out
+    #    hands control back too — a shared-world order that quietly goes nowhere
+    #    for two hours is the same silence task-671 fixed for the blocking path.
+    if step is not None and step.found is not None:
         _promote(gs, player, order,
-                 ("discovery", f"You find {found.name}."))
+                 ("discovery", f"You find {step.found.name}."))
+        return
+    if step is not None and step.blocked:
+        _promote(gs, player, order,
+                 (step.blocked, step.detail or "You cannot do that right now."))
         return
     reason = _promote_reason(gs, player, order)
     if reason:

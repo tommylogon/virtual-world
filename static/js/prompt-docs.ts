@@ -1,4 +1,3 @@
-"use strict";
 /**
  * @module prompt-docs — shared prompt text for generation features
  * @contributes VW.PromptDocs: the ITEM_GENERATION_SYSTEM prompt (schema-aware authoring instructions)
@@ -7,7 +6,7 @@
  * @docs docs/virtualWorld/Library System/Library System Overview.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
-const vw = (window.VW || {});
+const vw = ((window as unknown as { VW?: Record<string, unknown> }).VW || {}) as Record<string, unknown>;
 vw.PromptDocs = {
     ITEM_GENERATION_SYSTEM: `You are a procedural item enhancer for a text adventure game. The item data schema supports:
 
@@ -62,4 +61,5 @@ IMPORTANT: If you extract children into contents, also add them as triggers with
 
 OUTPUT FORMAT: Respond with ONLY raw JSON. No markdown, no code fences, just JSON.`
 };
-window.VW = vw;
+
+(window as unknown as { VW: Record<string, unknown> }).VW = vw;

@@ -727,7 +727,20 @@ def handle_library_import_character(app, char_id):
     carried = _materialize_character_inventory(
         app, player_name, player_node_id, cdata.get('inventory', []),
         register_missing=True)
-    player.equipped = _resolve_character_equipped(carried, cdata.get('equipped') or {})
+    resolved_equipped = _resolve_character_equipped(carried, cdata.get('equipped') or {})
+    # task-654: the dict alone is the inert half. Every reader --
+    # `combat._best_weapon_node` and `equipment_bonuses.get_equipment_nodes` --
+    # walks EDGE_EQUIPPED, so assigning `player.equipped` directly left an
+    # imported goblin reporting five equipped slots while contributing zero
+    # defense, zero damage mitigation and no weapon in a fight. One writer for
+    # both truths.
+    result = app.world.equipment.set_equipped_payload(
+        player, resolved_equipped, player_name=player_name)
+    player.equipped = result.get("slots") or {}
+    if result.get("unresolved"):
+        logger.warning(
+            "[library] character '%s': equipped references did not resolve to an "
+            "item node: %s", player_name, ", ".join(result["unresolved"]))
 
     if make_active:
         app.world.set_active_player(player_name)
@@ -1308,10 +1321,18 @@ def _refresh_character(app, node, sections, template_id=None, entries=None):
         if entries and 'equipped' in entries and (entries['equipped'] or []):
             # Per-slot merge: only the named slots take the library's (already
             # resolved) values; every other runtime slot is left untouched.
-            player.equipped = _apply_entry_selection(
+            merged_equipped = _apply_entry_selection(
                 player.equipped or {}, resolved_equipped, entries['equipped'])
         else:
-            player.equipped = resolved_equipped
+            merged_equipped = resolved_equipped
+        # task-654: refresh is a writer too, so it writes both truths.
+        result = app.world.equipment.set_equipped_payload(
+            player, merged_equipped, player_name=player.name)
+        player.equipped = result.get("slots") or {}
+        if result.get("unresolved"):
+            logger.warning(
+                "[library] refresh '%s': equipped references did not resolve to "
+                "an item node: %s", player.name, ", ".join(result["unresolved"]))
 
     if template_id:
         props['library_id'] = template_id
