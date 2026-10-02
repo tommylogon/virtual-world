@@ -34,6 +34,7 @@ class Inspector {
 
     hide() {
         this._currentView = null;
+        if (window.DocPanel) window.DocPanel.reset();
         if (window.events) events.clearAreaFilter();
         const htmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
         window.InspectorPanel.render(htmlTag`
@@ -54,6 +55,12 @@ class Inspector {
         const graphNode = worldState.getNode(nodeId);
         if (graphNode && graphNode.type !== 'area') {
             if (window.events) events.clearAreaFilter();
+        }
+
+        // task-579: tell the doc panel what is selected (library id, else the
+        // view module that renders this node type).
+        if (window.DocPanel) {
+            window.DocPanel.setSelection(window.DocPanel.selectionForNode(graphNode));
         }
 
         if (graphNode) {
@@ -94,6 +101,9 @@ class Inspector {
     }
 
     showAgent(agentName) {
+        if (window.DocPanel) {
+            window.DocPanel.setSelection({ kind: 'module', value: 'static/js/inspector/agent-view.js' });
+        }
         return InspectorAgentView.showAgent(agentName);
     }
 
