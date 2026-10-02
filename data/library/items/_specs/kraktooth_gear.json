@@ -984,6 +984,10 @@
         "container",
         "small",
         "concealed"
+      ],
+      "contents": [
+        "shiny_coin",
+        "old_coin"
       ]
     },
     "krikka_shiny_stones": {

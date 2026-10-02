@@ -31,7 +31,11 @@ def test_every_entry_emits_a_valid_template():
         assert item.get("name"), item_id
         assert item.get("description"), item_id
         assert item.get("triggers") == []
-        assert item.get("contents") == []
+        # `contents` is emitted only where the spec authors it (a carried
+        # container); it is not a default. Blanket-assuming [] here rejected a
+        # legitimate authored pouch, so assert the spec and the emission agree.
+        spec_entry = _spec()["items"][item_id]
+        assert item.get("contents") == (spec_entry.get("contents") or [])
         for tag in item.get("tags") or []:
             assert tag == tag.strip().lower(), f"{item_id}: {tag!r}"
         if item.get("equip_slots"):

@@ -19,6 +19,9 @@
     "concealed"
   ],
   "triggers": [],
-  "contents": [],
+  "contents": [
+    "shiny_coin",
+    "old_coin"
+  ],
   "_generated_by": "gen_library_items"
 }
