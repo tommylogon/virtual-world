@@ -14,6 +14,8 @@ Warnings (exit 0):
   6. area_tag_gaps    — library areas with no tags
   9. dead_fears       — character fear_tags that no item, area, character or
      trait key carries, so engine/fear.py can never match them
+ 10. biome_coverage   — a biome's resource_distribution entry whose tags match
+      no library item, so a search there would turn up nothing (task-573)
 
 Usage:
   python tools/lint_library.py                  # all checks against default data dir
@@ -34,7 +36,8 @@ DEFAULT_LIB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..",
 
 ERROR_CHECKS = ("dead_interests", "missing_slots", "tag_case_drift", "broken_contents",
                 "unauthored_consumables", "resource_pools")
-WARNING_CHECKS = ("singleton_tags", "area_tag_gaps", "dead_fears", "tag_id_charset")
+WARNING_CHECKS = ("singleton_tags", "area_tag_gaps", "dead_fears", "tag_id_charset",
+                  "biome_coverage")
 ALL_CHECKS = ERROR_CHECKS + WARNING_CHECKS
 
 #: Items that carry `food`/`drink` (or an `eat`/`drink` action) because they sit
@@ -68,6 +71,23 @@ def load_registry(lib_dir, name):
         except (json.JSONDecodeError, UnicodeDecodeError) as exc:
             print(f"ERROR {name}/{file_id}: unparseable JSON ({exc})")
     return entries
+
+
+def load_biomes(lib_dir):
+    """Load ``<data>/worldpainter/biomes.json`` for the biome-coverage check.
+
+    The file lives beside the library (``data/worldpainter``), not inside it, so
+    a fixture ``--data-dir`` still resolves a sibling ``worldpainter/``.
+    """
+    path = os.path.join(os.path.dirname(os.path.abspath(lib_dir)), "worldpainter", "biomes.json")
+    if not os.path.isfile(path):
+        return {}
+    try:
+        with open(path, "r", encoding="utf-8") as handle:
+            return json.load(handle)
+    except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+        print(f"ERROR worldpainter/biomes.json: unparseable JSON ({exc})")
+        return {}
 
 
 def content_ref_id(ref):
@@ -361,6 +381,49 @@ def check_resource_pools(items, report):
                          f"items/{item_id}: harvest must be an object, got {type(harvest).__name__}")
 
 
+def check_biome_coverage(items, biomes_data, report):
+    """A biome's resource_distribution must resolve to a library item (task-573).
+
+    task-569's consumer picks a find by tag intersection, the way
+    ``engine/foraging.py::_pick_item`` does: an entry whose tags match no item
+    yields nothing at all. Nothing reports that today, so a biome can be painted
+    as forageable and silently produce an empty search.
+
+    The rule mirrors the consumer, curio pool included: once any item carries
+    the ``forage`` tag, only tagged items are eligible, so an entry that matches
+    only an untagged item is still a gap. A warning, not an error -- coverage
+    can legitimately be authored after the biome, and the count is the point.
+    """
+    tag_index = {}
+    for item_id, item in items.items():
+        if not isinstance(item, dict):
+            continue
+        tags = item.get("tags") or []
+        if isinstance(tags, str):
+            tags = [t.strip() for t in tags.split(",")]
+        for tag in tags:
+            low = str(tag).strip().lower()
+            if low:
+                tag_index.setdefault(low, []).append(item_id)
+    curated = set(tag_index.get("forage", []))
+
+    for biome_id, entries in sorted((biomes_data.get("resource_distribution") or {}).items()):
+        dead = []
+        for entry in entries:
+            etags = {str(t).strip().lower() for t in (entry.get("tags") or [])}
+            hits = set()
+            for tag in etags:
+                hits.update(tag_index.get(tag, []))
+            if curated:
+                hits &= curated
+            if not hits:
+                dead.append("/".join(sorted(etags)))
+        if dead:
+            report.warn("biome_coverage",
+                        f"biomes/{biome_id}: resource_distribution entries resolve to no "
+                        f"library item, so a search turns up nothing: {', '.join(dead)}")
+
+
 def check_area_tag_gaps(areas, report):
     """Library areas carrying no tags at all (informational)."""
     untagged = [area_id for area_id, area in sorted(areas.items())
@@ -384,6 +447,7 @@ CHECKS = {
     "singleton_tags": lambda ctx, r: check_singleton_tags(ctx["items"], r),
     "tag_id_charset": lambda ctx, r: check_tag_id_charset(ctx, r),
     "area_tag_gaps": lambda ctx, r: check_area_tag_gaps(ctx["areas"], r),
+    "biome_coverage": lambda ctx, r: check_biome_coverage(ctx["items"], ctx["biomes"], r),
 }
 
 
@@ -420,6 +484,8 @@ def main():
         # live (15 of them), so the charset check needs it in context.
         "tags": load_registry(lib_dir, "tags"),
         "ways": load_registry(lib_dir, "ways"),
+        # task-573: the compiler vocabulary lives next to the library, not in it.
+        "biomes": load_biomes(lib_dir),
     }
     print(f"linting {lib_dir} — items={len(ctx['items'])} "
           f"characters={len(ctx['characters'])} areas={len(ctx['areas'])}")
