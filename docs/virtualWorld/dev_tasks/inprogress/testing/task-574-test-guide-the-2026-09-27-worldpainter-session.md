@@ -382,6 +382,37 @@ costs about twenty lines.
       cause established — and if a non-listening stage is breaking paint
       drag-strokes too, that is filed separately as a pre-existing bug.
 
+## Investigation: marquee live reproduction blocked (2026-10-02, wt/testing-infra)
+
+An attempt to establish the `mousemove` cause on the live app (`VW_PORT=4470`)
+did **not** produce a valid reproduction, so no fix and no separate bug were
+written.
+
+Method: created a scope with an 8x5 grid via `POST /api/world/scopes`
+(`{w:8,h:5,mode:"world"}`), opened it with `VW.worldPainter.open`, then:
+
+- attached `mousemove`/`mousedown` counters to the last entry of `Konva.stages`;
+- drove a real Playwright drag; and
+- separately dispatched `MouseEvent('mousedown'/'mousemove'/'mouseup')` directly
+  on `stage.container()`.
+
+Every attempt counted **0** `mousedown` and **0** `mousemove`, both before and
+after runtime-injecting a listening hit surface into the select layer
+(`select.listening(true)` plus a transparent `Konva.Rect`). `elementFromPoint`
+returned the `<canvas>` at the drag origin, yet the instrumented stage received
+nothing — so the stage under test is very likely not the live surface (a stale
+entry in `Konva.stages`, or the overlay was not the active one). Per AGENTS.md
+"check the selector points at the thing you said", this is a **failed
+reproduction**, not evidence for the non-listening hypothesis.
+
+Consequences:
+- The guide's four documentation acceptance lines remain met.
+- The marquee fix is left open for the WorldPainter lane, which has the live
+  editor context. A useful first step is to assert the stage is live (paint one
+  cell and read it back) before instrumenting events; the counters above are not
+  trustworthy until that holds.
+- The paint drag-stroke bug was **not** filed, because it was not reproduced.
+
 ## Notes
 
 - Written **after** verifying by hand, which is what caught both known issues. The
