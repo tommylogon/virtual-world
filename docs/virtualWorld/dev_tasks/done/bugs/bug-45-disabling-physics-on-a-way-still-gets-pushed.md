@@ -1,6 +1,6 @@
 ---
 type: bug
-status: review
+status: done
 area: bugs
 priority: medium
 ---
@@ -51,3 +51,16 @@ Verified by instrumenting the call itself:
 | back to graph mode | 0 |
 
 A displaced area also stayed exactly where it was put through a graph-mode rebuild.
+
+## Second live verification — 2026-10-02 (port 4471)
+
+Re-ran the freeze check on `way_bathroom_door` in plain Graph mode with physics
+on (`_physicsEnabled: true`, `activeLayout(): 'graph'`):
+
+| step | result |
+|---|---|
+| `api.updateNode(way, { central_gravity_enabled: false })` + reload | dataset node `physics: false` |
+| `moveNode(way, 4321, -1234)`, 2.5s simulation | `{x:4321, y:-1234}` — **0px drift** |
+| forced full `loadGraphData()` rebuild | `{x:4321, y:-1234}` — held exactly |
+
+Flag restored afterwards. No page errors.

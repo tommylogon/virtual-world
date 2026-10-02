@@ -1,6 +1,6 @@
 ---
 type: bug
-status: review
+status: done
 area: ui
 priority: medium
 ---
@@ -70,3 +70,17 @@ loops `api.deleteSaveGame(saves[i].filename)` with no exclusion for
 - **Tests** — `tests/test_saveload.py::TestDeleteAllSaves` (4): autosave kept and
   listed in `kept`; `include_autosave: true` removes it; non-JSON files are
   ignored; no saves is a no-op. `pytest tests/test_saveload.py` → 14 passed.
+
+## Second live verification — 2026-10-02 (port 4471)
+
+Drove the real client API against the running server:
+
+| step | saves |
+|---|---|
+| before | `autosave.json [auto]` |
+| `api.saveGame('bug42-temp')` | `autosave.json [auto]`, `bug42-temp_20261002_104238.json` |
+| `api.deleteAllSaveGames(false)` | `{"status":"success","deleted":["bug42-temp_20261002_104238.json"],"kept":["autosave.json"]}` |
+| after | `autosave.json [auto]` |
+
+The bulk wipe removed only the user save and listed the autosave in `kept`; one
+request, no partial state. No page errors.
