@@ -1,7 +1,7 @@
 import logging
 from graph import EDGE_IN, EDGE_CARRYING, EDGE_EQUIPPED
 from player import BLOCKING_CONDITIONS
-from engine.vitals import is_drive, is_animal, ANIMAL_SKIPPED_VITALS
+from engine.vitals import ceiling, is_drive, is_animal, ANIMAL_SKIPPED_VITALS
 from engine.lived_log import record as lived_record
 from engine.area_tags import is_open_sky
 from vital_rates import (
@@ -666,10 +666,12 @@ class TickManager:
                     logger.warning("[tick] drop_held_items %s: %s", pname, e)
                 p.exhaustion_count = getattr(p, 'exhaustion_count', 0) + 1
                 if p.exhaustion_count >= 3:
-                    p.state = "dead"
+                    # task-538: one death path. `drop_items=False` because the
+                    # collapse one line above already made them let go of both
+                    # hands; the helper would otherwise drop them twice.
                     if pname == self.player_manager.active_player:
                         self.player_manager.add_log_entry("The cold has claimed you. Your body gives out one last time — you do not wake.")
-                    self.gs._spawn_body_item(pname, "exposure")
+                    self.gs.kill_player(pname, "exposure", drop_items=False)
                     continue
                 if pname == self.player_manager.active_player:
                     self.player_manager.add_log_entry("Your vision swims... the world tilts... you collapse from exhaustion. You have passed out.")
@@ -748,13 +750,12 @@ class TickManager:
                     cause_parts.append("heat stroke")
                 cause_of_death = " and ".join(cause_parts) if cause_parts else "unknown causes"
 
-                p.state = "dead"
-                lived_record(
-                    p, self.player_manager.time_ticks, "death",
-                    f"died of {cause_of_death}",
-                    why="cause:death", area=p.current_area, salient=True)
-                self.player_manager.add_log_entry(f"[{getattr(p, 'name', pname)}] GAME OVER: You have died from {cause_of_death}.")
-                self.gs._spawn_body_item(pname, cause_of_death)
+                # task-538: the single death path — it also writes the lived-log
+                # record, zeroes HP and drops held items, none of which this
+                # site used to do.
+                if pname == self.player_manager.active_player:
+                    self.player_manager.add_log_entry(f"[{getattr(p, 'name', pname)}] GAME OVER: You have died from {cause_of_death}.")
+                self.gs.kill_player(pname, cause_of_death, announce=False)
 
             player_area_name = p.current_area
             if player_area_name:
@@ -1018,7 +1019,7 @@ class TickManager:
             # worked because Max_HP was hardcoded to 100 everywhere; against a
             # real stat block (a 7-HP goblin) it is permanently true, so the
             # character regenerates every turn and can never be finished off.
-            _hp_ceiling = p.vitals.get("Max_HP", 100)
+            _hp_ceiling = ceiling(p.vitals, "HP")
             if (p.vitals.get("Energy", 0) > 25 and p.vitals.get("Hunger", 0) > 25 and
                 p.vitals.get("Thirst", 0) > 25 and p.vitals.get("Sanity", 0) > 25 and
                 p.vitals.get("HP", _hp_ceiling) < _hp_ceiling and

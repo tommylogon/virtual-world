@@ -9,6 +9,9 @@ from player import Player
 from area import Area
 from engine.conditions import perceived_conditions
 from engine.traits import TraitSystem, TRAIT_DEFINITIONS
+from engine.vitals import (
+    DEFAULT_MAX_HP, DEFAULT_VITAL_MAX, apply_hit_dice, clamp_to_ceiling,
+)
 from engine.item_actions import get_carry_load_ratio, sum_carry_weight, normalize_item_actions
 from engine.beyond_visibility import normalize_visible_items
 from engine.character_spatial import get_character_at_way, get_spatial_position_data
@@ -294,12 +297,16 @@ class WorldSerializer:
         p.equipped = pdata.get("equipped", dict(p.equipped))
         p.stats = pdata.get("stats", {})
         p.vitals = {**p.vitals, **canonical_vitals(pdata.get("vitals", {}))}
-        if "Max_HP" not in p.vitals:
-            p.vitals["Max_HP"] = 100
+        # task-538: `hit_dice` derives Max_HP when the save does not carry one
+        # explicitly; an authored Max_HP always wins. Then clamp to *this*
+        # character's ceiling rather than to a literal.
+        apply_hit_dice(p.vitals, {**pdata, **pdata.get("vitals", {})})
+        p.vitals.setdefault("Max_HP", DEFAULT_MAX_HP)
         if "HP" in p.vitals:
-            p.vitals["HP"] = max(0, min(p.vitals["Max_HP"], p.vitals["HP"]))
+            p.vitals["HP"] = clamp_to_ceiling(p.vitals, "HP", p.vitals["HP"])
         if "Energy" in p.vitals:
-            p.vitals["Energy"] = max(0, min(100, p.vitals["Energy"]))
+            p.vitals["Energy"] = max(0, min(DEFAULT_VITAL_MAX,
+                                           p.vitals["Energy"]))
         p.decay_rates = pdata.get("decay_rates", p.decay_rates)
         from engine.lived_log import load as _lived_log_load
         # Task-542 renamed the save key "trace" -> "lived_log". Both are read, in

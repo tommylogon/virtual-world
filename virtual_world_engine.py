@@ -483,6 +483,73 @@ class VirtualWorld:
     def _spawn_body_item(self, player_name: str, cause_of_death: str = "unknown causes"):
         return self.ghost_system.spawn_body_item(player_name, cause_of_death)
 
+    # ─────────────────── Death (task-538) ───────────────────
+    #
+    # **The `dead` condition is the single authoritative death state.**
+    # `Player.state` is *derived* from the condition hierarchy
+    # (`engine/player_conditions.get_state`, with `dead` at the top), so
+    # `state == "dead"` and `has_condition("dead")` are the same fact rather
+    # than two that can drift — that was the task's open question and it is
+    # already answered by the derived-state work.
+    #
+    # What was NOT answered was the *causes*. Four sites each set
+    # `state = "dead"` and then did a different subset of the aftermath:
+    #
+    #   tick HP <= 0        -> body + log + lived record, no drop
+    #   tick exhaustion >=3 -> body + log, no lived record
+    #   combat HP <= 0      -> body + log + drop, no lived record
+    #   POST /kill          -> body + log, no drop, no lived record
+    #
+    # So a corpse's inventory survived a killing blow but not a script, and the
+    # lived log — the record designed to explain *why* something happened —
+    # only saw environmental deaths. This is the one place that does all of it.
+
+    def kill_player(self, player_name: str, cause: str = "unknown causes",
+                    *, drop_items: bool = True, announce: bool = True) -> bool:
+        """Kill a character. Returns False if they were already dead.
+
+        ``cause`` is prose for the log and the body's item description, exactly
+        as the per-site calls already passed it. ``drop_items=False`` for a cause
+        that has *already* dropped them (the exhaustion path lets go of both
+        hands the moment Energy empties, one line before the third collapse).
+        """
+        player = self.players.get(player_name)
+        if player is None:
+            return False
+        if getattr(player, "state", "") == "dead":
+            return False
+
+        # HP to zero as well as the condition: a character that is dead with
+        # full health is the exact inconsistency task-538 was filed over, and
+        # nothing should be able to produce one any more.
+        if isinstance(getattr(player, "vitals", None), dict) and "HP" in player.vitals:
+            player.vitals["HP"] = 0
+        player.state = "dead"
+
+        try:
+            from engine.lived_log import record as lived_record
+            lived_record(player, self.time_ticks, "death",
+                         f"died of {cause}", why="cause:death",
+                         area=getattr(player, "current_area", ""), salient=True)
+        except Exception as e:
+            logger.warning("[death] lived_record %s: %s", player_name, e)
+
+        if drop_items:
+            try:
+                self.item_actions.drop_held_items(self, player_name)
+            except Exception as e:
+                logger.warning("[death] drop_held_items %s: %s", player_name, e)
+
+        try:
+            self._spawn_body_item(player_name, cause)
+        except Exception as e:
+            logger.warning("[death] spawn_body_item %s: %s", player_name, e)
+
+        if announce:
+            self.add_log_entry(
+                f"[{player_name}] has died of {cause}!")
+        return True
+
 
     # ─────────────────── Items & Inventory ───────────────────
 

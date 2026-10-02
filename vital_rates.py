@@ -154,6 +154,14 @@ def change(player, stat, per_minute, *, minutes=1, cap=None, floor=0):
     if not step:
         return 0
     if cap is None:
-        cap = vitals.get("Max_HP", 100) if stat == "HP" else 100
-    vitals[stat] = max(floor, min(cap, vitals[stat] + step))
+        # task-538: the ceiling is the character's own, never a literal. HP used
+        # to be special-cased to `vitals.get("Max_HP", 100)` here and to 100 in
+        # about nine other places, so any vital that grew a `Max_` companion had
+        # to be remembered here separately.
+        from engine.vitals import ceiling as _ceiling
+        cap = _ceiling(vitals, stat)
+    if cap == float("inf"):
+        vitals[stat] = max(floor, vitals[stat] + step)
+    else:
+        vitals[stat] = max(floor, min(cap, vitals[stat] + step))
     return step

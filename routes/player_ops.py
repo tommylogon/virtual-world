@@ -3,6 +3,7 @@ from flask import request, jsonify
 from player import Player, PERIODIC_CONDITIONS, CONDITION_DEFINITIONS
 from graph import Node, Edge, EDGE_CARRYING
 from engine.equipment_bonuses import effective_temperature, aggregate_bonuses
+from engine.vitals import ceiling
 
 logger = logging.getLogger(__name__)
 
@@ -439,12 +440,12 @@ def handle_kill_player(app, name):
         return jsonify({"error": "No such player"}), 404
 
     player = app.world.players[name]
-    player.vitals["HP"] = 0
-    player.state = "dead"
-    app.world._spawn_body_item(name, "killed by external force")
+    # task-538: the single death path, so a scripted kill is the same event a
+    # killing blow is — body, dropped items, lived-log record and all.
+    killed = app.world.kill_player(name, "killed by external force")
     app.world.add_log_entry(f"[System] {name} has been killed.")
 
-    return jsonify({"status": "killed", "player": name})
+    return jsonify({"status": "killed", "player": name, "newly_dead": killed})
 
 
 def handle_move_player(app, name):
@@ -855,11 +856,15 @@ def handle_get_vital(app, name, vital_name):
         return jsonify({"error": f"Vital '{vital_name}' not found"}), 404
 
     value = player.vitals[vital_name]
-    max_val = player.vitals.get("Max_HP" if vital_name == "HP" else f"Max_{vital_name}", 100)
+    # task-538: the ceiling is the character's own. The old lookup was
+    # `Max_HP if HP else Max_{vital}`, which is the resolver's first rule with
+    # the fallback spelled out — and it spelled 100 out again for anything that
+    # had not declared a maximum.
+    max_val = ceiling(player.vitals, vital_name)
     if vital_name == "Temperature":
         max_val = 45
-    elif vital_name == "HP":
-        max_val = player.vitals.get("Max_HP", 100)
+    elif max_val == float("inf"):
+        max_val = None
 
     base_rate = app.world.baseline_decay.get(vital_name, 0)
     override_rate = player.decay_rates.get(vital_name)
@@ -1031,10 +1036,9 @@ def handle_update_vital(app, name, vital_name):
     if vital_name == "Temperature":
         max_val = 45
         min_val = 25
-    elif vital_name == "HP":
-        max_val = player.vitals.get("Max_HP", 100)
     else:
-        max_val = 100
+        # task-538: read the character's own ceiling (see handle_get_vital).
+        max_val = ceiling(player.vitals, vital_name)
 
     if "value" in data:
         if vital_name == "Temperature":

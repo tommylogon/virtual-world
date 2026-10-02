@@ -12,6 +12,8 @@ names outside this module.
 
 from typing import Any, Dict, List, Optional, Set
 
+from engine.vitals import ceiling
+
 # ──────────────────────────────────────────────────────────────
 # Effect keys recognised by the engine
 # ──────────────────────────────────────────────────────────────
@@ -1080,8 +1082,13 @@ class TraitSystem:
         traits = player.traits
         vitals = player.vitals or {}
         if "scarred" not in traits:
-            hp = vitals.get("HP", 100)
-            max_hp = vitals.get("Max_HP", 100)
+            # task-538: the threshold is a fraction of *this character's* maximum.
+            # With a literal 100 fallback a 7-HP goblin could never be scarred at
+            # all, because `hp <= max(1, 10)` was false at 7 HP and true at
+            # nothing — the trait was unreachable for exactly the stat blocks
+            # that should have it.
+            max_hp = ceiling(vitals, "HP") or 1
+            hp = vitals.get("HP", max_hp)
             if 0 < hp <= max(1, int(max_hp * 0.1)):
                 traits["scarred"] = True
                 gained.append("scarred")

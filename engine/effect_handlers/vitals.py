@@ -1,4 +1,14 @@
-"""Vital effect handlers (damage, heal, adjust_vital, save)."""
+"""Vital effect handlers (damage, heal, adjust_vital, set_vital, save).
+
+Every write in this module goes through :func:`engine.vitals.ceiling`, the one
+answer to "what is the top of this vital on this character" (task-538). Before
+that resolver existed these handlers carried their own copies of the rule, and
+`heal` had the wrong one — it clamped to a literal 100, so healing a 7-HP
+goblin by 5 produced 12 HP. That was invisible only because `Max_HP` was itself
+always 100; the moment a stat block declared a real maximum, the bug surfaced.
+"""
+
+from engine.vitals import ceiling, clamp_to_ceiling
 
 
 def handle_damage(self, params, context, item_node=None, game_state=None):
@@ -119,19 +129,13 @@ def handle_save(self, params, context, item_node=None, game_state=None):
 def _vital_ceiling(vitals: dict, stat: str) -> float:
     """The ceiling for *stat* on a vitals dict.
 
-    HP and the other capped vitals carry an explicit ``Max_{stat}`` companion;
-    everything else in the 0-100 model tops out at 100. Temperature is the
-    exception in the other direction — it is anatomical (~37) and is driven by
-    its own band model in ``tick_manager``, not by this ceiling.
+    Thin alias kept because several callers inside this module predate the
+    resolver; it delegates so the rule exists in exactly one place
+    (``engine.vitals.ceiling``). HP resolves to an authored ``Max_HP`` and never
+    silently to 100; Temperature is anatomical (~37) and unbounded above, since
+    its own band model in ``tick_manager`` decides what is lethal.
     """
-    max_key = f"Max_{stat}"
-    if max_key in vitals:
-        return vitals[max_key]
-    if stat == "HP":
-        return 100
-    if stat == "Temperature":
-        return 100.0
-    return 100
+    return ceiling(vitals, stat)
 
 
 def handle_heal(self, params, context, item_node=None, game_state=None):
@@ -172,9 +176,12 @@ def handle_heal(self, params, context, item_node=None, game_state=None):
     if key is None:
         # Unknown vital name: fall back to HP rather than inventing a new key.
         key = "HP"
-    ceiling = _vital_ceiling(vitals, key)
     before = vitals.get(key, 0)
-    vitals[key] = max(0.0, min(ceiling, before + amount))
+    try:
+        before = float(before)
+    except (TypeError, ValueError):
+        before = 0.0
+    vitals[key] = clamp_to_ceiling(vitals, key, before + amount)
     restored = vitals[key] - before
 
     if restored <= 0:
@@ -201,8 +208,47 @@ def _resolve_vital_key(vitals, stat):
     return None
 
 
+def _effect_subject(params, game_state):
+    """Resolve ``target`` to a Player: ``self`` (default) or a named character.
+
+    Shared by every vital effect so they all accept the same ``target``
+    vocabulary, and — the reason it exists — so none of them silently acts on
+    ``game_state.player`` when the author named someone else.
+    """
+    if game_state is None:
+        return None
+    target = params.get("target", "self")
+    if target in (None, "self"):
+        return getattr(game_state, "player", None)
+    players = getattr(game_state, "players", {}) or {}
+    if not isinstance(players, dict):
+        return None
+    resolved = players.get(str(target))
+    if resolved is not None:
+        return resolved
+    # Case-insensitive second pass, so a name spelled in the wrong case lands on
+    # the right character instead of doing nothing.
+    low = str(target).strip().lower()
+    for name, player in players.items():
+        if str(name).strip().lower() == low:
+            return player
+    return None
+
+
 def handle_adjust_vital(self, params, context, item_node=None, game_state=None):
     """Adjust a vital stat (HP, Energy, Sanity, etc.) on a player.
+
+    params:
+      stat (str)    — which vital. Canonical spelling ("HP", "Energy"), resolved
+                      case-insensitively against the target's vitals.
+      amount (int)  — signed delta.
+      target (str)  — ``"self"`` (default) or a character name.
+
+    Clamped against **this character's own ceiling** (``engine.vitals.ceiling``),
+    which for HP means an authored ``Max_HP``. The old code clamped to a literal
+    100 and then re-clamped HP to ``Max_HP``, so a character with a real maximum
+    and a large negative amount behaved fine but the two clamps could disagree
+    for any other vital that later grows a ``Max_`` companion.
 
     game_state must provide:
       game_state.player
@@ -210,36 +256,111 @@ def handle_adjust_vital(self, params, context, item_node=None, game_state=None):
     """
     stat = params.get("stat", "HP")
     amount = int(params.get("amount", 0))
-    target = params.get("target", "self")
     outputs = []
-    if target == "self" and game_state and game_state.player:
-        key = _resolve_vital_key(game_state.player.vitals, stat)
-        if key is not None:
-            game_state.player.vitals[key] = max(
-                0, min(100, game_state.player.vitals[key] + amount)
-            )
-            if key == "HP":
-                max_hp = game_state.player.vitals.get("Max_HP", 100)
-                game_state.player.vitals[key] = max(
-                    0, min(max_hp, game_state.player.vitals[key])
-                )
-    elif target != "self" and game_state:
-        target_player = game_state.players.get(target)
-        if target_player:
-            key = _resolve_vital_key(target_player.vitals, stat)
-            if key is not None:
-                target_player.vitals[key] = max(
-                    0, min(100, target_player.vitals[key] + amount)
-                )
-                if key == "HP":
-                    max_hp = target_player.vitals.get("Max_HP", 100)
-                    target_player.vitals[key] = max(
-                        0, min(max_hp, target_player.vitals[key])
-                    )
+
+    subject = _effect_subject(params, game_state)
+    if subject is None:
+        return outputs
+    key = _resolve_vital_key(subject.vitals, stat)
+    if key is not None:
+        subject.vitals[key] = clamp_to_ceiling(
+            subject.vitals, key, subject.vitals[key] + amount)
+
     from engine.vitals import format_vital_change
     msg = params.get("message") or format_vital_change(stat, amount)
     msg = self._render_template_fn(msg, context)
     outputs.append(msg)
+    return outputs
+
+
+def handle_set_vital(self, params, context, item_node=None, game_state=None):
+    """Set a vital to an exact value (``task-538``, task-537 §M).
+
+    params:
+      stat (str)    — which vital (canonical spelling preferred).
+      value (num)   — the absolute value to set. Clamped to the vital's ceiling.
+      target (str)  — ``"self"`` (default) or a character name.
+
+    This is the "set the meter" counterpart to ``adjust_vital``'s "move the
+    meter", and it is what a resurrection or a scripted scene needs. It is
+    clamped, not free: a ``set_vital`` that could push Energy past its maximum
+    would break every later clamp that trusts the ceiling.
+    """
+    stat = params.get("stat", "HP")
+    outputs = []
+    subject = _effect_subject(params, game_state)
+    if subject is None:
+        return outputs
+    key = _resolve_vital_key(subject.vitals, stat)
+    if key is None:
+        outputs.append(params.get("message")
+                       or f"{subject.name} has no {stat} to set.")
+        return outputs
+    try:
+        value = float(params.get("value", 0))
+    except (TypeError, ValueError):
+        value = 0.0
+    subject.vitals[key] = clamp_to_ceiling(subject.vitals, key, value)
+    msg = params.get("message") or f"{key} set to {subject.vitals[key]:g}."
+    outputs.append(self._render_template_fn(msg, context))
+    return outputs
+
+
+def handle_modify_vital_max(self, params, context, item_node=None, game_state=None):
+    """Raise (or lower) a vital's **maximum** (``task-538``, task-537 §M).
+
+    params:
+      stat (str)    — which vital.
+      amount (num)  — signed delta to ``Max_{stat}`` (or, for HP, to a
+                      ``max_hp`` alias). A positive amount raises the ceiling.
+      target (str)  — ``"self"`` (default) or a character name.
+      scale_current (bool) — when true (default false), also raise the *current*
+                      value by the same amount, so a character that gains max HP
+                      gains the vitality with it. By default the current value
+                      is **unchanged**: a spell that lifts your maximum should
+                      not silently heal you, and the existing behaviour callers
+                      rely on is "ceiling moved, meter stayed".
+
+    This is the reason a maximum wants to be data rather than a constant: a
+    trait, a spell or a level-up effect can raise it at runtime, and the whole
+    clamp chain follows automatically because every reader asks
+    ``engine.vitals.ceiling``.
+    """
+    stat = params.get("stat", "HP")
+    outputs = []
+    subject = _effect_subject(params, game_state)
+    if subject is None:
+        return outputs
+    key = _resolve_vital_key(subject.vitals, stat)
+    if key is None:
+        outputs.append(params.get("message")
+                       or f"{subject.name} has no {stat} maximum to modify.")
+        return outputs
+    try:
+        amount = float(params.get("amount", 0))
+    except (TypeError, ValueError):
+        amount = 0.0
+    max_key = f"Max_{key}"
+    try:
+        current_max = float(subject.vitals.get(max_key,
+                                               ceiling(subject.vitals, key)))
+    except (TypeError, ValueError):
+        current_max = 0.0
+    new_max = max(0.0, current_max + amount)
+    subject.vitals[max_key] = new_max
+
+    if params.get("scale_current"):
+        subject.vitals[key] = clamp_to_ceiling(
+            subject.vitals, key, subject.vitals.get(key, 0) + amount)
+    else:
+        # A ceiling that dropped below the current value would leave the vital
+        # above its own maximum, which every later clamp would silently fix and
+        # every reader would find surprising. Bring the value back under it.
+        subject.vitals[key] = clamp_to_ceiling(
+            subject.vitals, key, subject.vitals.get(key, 0))
+
+    msg = params.get("message") or f"{max_key} is now {new_max:g}."
+    outputs.append(self._render_template_fn(msg, context))
     return outputs
 
 
@@ -296,5 +417,7 @@ HANDLERS = {
     "save": handle_save,
     "heal": handle_heal,
     "adjust_vital": handle_adjust_vital,
+    "set_vital": handle_set_vital,
+    "modify_vital_max": handle_modify_vital_max,
     "adjust_stat": handle_adjust_stat,
 }

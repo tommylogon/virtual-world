@@ -118,9 +118,21 @@ class Player:
             "INT": 10, "WIS": 10, "CHA": 10
         }
         
-        # Vitals & Needs (Max 100)
+        # Vitals & Needs
         # Hunger/Thirst are DRIVES (task-337 flip): 0 = fed/hydrated,
         # 100 = starving/dehydrated. Spawn satisfied, they fill over time.
+        #
+        # Most vitals are 0-100 percentages. Three are NOT, and that is the
+        # model rather than an oversight (task-538):
+        #   - HP is on whatever scale the character's stat block says. 100 is the
+        #     *default* for a person, so every pre-existing character hydrates to
+        #     exactly what it always did; `Max_HP: 7` (or `"hit_dice": "2d6"`)
+        #     makes a real creature possible. Nothing clamps HP to 100 — every
+        #     reader asks engine.vitals.ceiling(vitals, "HP").
+        #   - Temperature is anatomical (~37 °C) and is driven by its own band
+        #     model (cold_floor / normal / heat_ceiling), not by a ceiling.
+        #   - Hunger/Thirst/Bladder are drives that FILL toward 100.
+        # `Max_HP` is the companion value: an authored maximum, not a constant.
         self.vitals = {
             "HP": 100, "Max_HP": 100,
             "Hunger": 0, "Thirst": 0,

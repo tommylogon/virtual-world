@@ -7,6 +7,7 @@ import random
 import logging
 from typing import Optional, List
 from graph import Node, EDGE_CARRYING, EDGE_EQUIPPED
+from engine.vitals import ceiling
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +48,21 @@ class CombatSystem:
         self.skills = skills
         self.ghost_system = ghost_system
         self.npc_behaviors = npc_behaviors
+
+    def _game_state(self):
+        """The world behind the ``skills`` handle, when there is one.
+
+        The constructor parameter is a mixed bag: production passes the
+        ``VirtualWorld`` itself, while ``tests/test_combat.py`` hands over a
+        ``SkillSystem`` that has been monkey-patched with just the handful of
+        methods the attack maths calls. So the world is not always reachable
+        through ``self.skills`` directly — walk to it when it is there rather
+        than assuming either shape, which is what let the death branch below
+        raise ``AttributeError`` on a perfectly ordinary test.
+        """
+        handle = self.skills
+        world = getattr(handle, "world", None)
+        return world if world is not None and hasattr(world, "players") else handle
 
     def _wake_on_damage(self, target_name, source=None, source_type=None):
         """Damage interrupts activities (wakes sleepers). Returns wake message."""
@@ -263,7 +279,9 @@ class CombatSystem:
         if attack_roll >= defense_roll:
             target_defense = self._get_target_defense(target)
             hp_before = target.vitals.get("HP", 0)
-            hp_max = target.vitals.get("Max_HP", 100) or 100
+            # task-538: the target's own ceiling, not a literal. A `or 100`
+            # fallback here also swallowed an authored `Max_HP` of 0.
+            hp_max = ceiling(target.vitals, "HP")
 
             if weapon_node:
                 weapon_props = weapon_node.properties
@@ -445,13 +463,25 @@ class CombatSystem:
                 hit_msg += self._armor_wear_text(target)
 
             if target.vitals["HP"] <= 0:
-                target.state = "dead"
-                self.ghost_system.spawn_body_item(target_name, f"slain by {attacker_name}")
-                # drops_held_items — death: what was in the hands falls to the floor
-                try:
-                    self.skills.item_actions.drop_held_items(self.skills, target_name)
-                except Exception:
-                    pass
+                # task-538: one death path. `kill_player` also zeroes HP, drops
+                # held items and writes the lived-log record, so a body killed
+                # by a sword is indistinguishable from one the cold took. The
+                # guard is for the isolated harness, which passes a partial
+                # `skills` double with no world behind it — there the original
+                # inline handling stands in.
+                cause = f"slain by {attacker_name}"
+                game_state = self._game_state()
+                kill = getattr(game_state, "kill_player", None)
+                if callable(kill):
+                    kill(target_name, cause, announce=False)
+                else:
+                    target.state = "dead"
+                    self.ghost_system.spawn_body_item(target_name, cause)
+                    try:
+                        self.skills.item_actions.drop_held_items(
+                            self.skills, target_name)
+                    except Exception:
+                        pass
                 self.skills.add_log_entry(f"[{target_name}] has been killed by {attacker_name}!")
                 return f"{hit_msg} {target_name} collapses — dead."
             return hit_msg
