@@ -84,6 +84,10 @@ def library_item_properties(lib_item: dict, library_id: str,
         "resistances": lib_item.get("resistances", {}),
         "image": lib_item.get("image") or None,
     }
+    # task-577: an optional repo-relative doc link, carried onto the world node
+    # so a materialised instance still points at the page describing it.
+    if lib_item.get("docs"):
+        props["docs"] = lib_item["docs"]
     # Gauges (task-410: a plant's `growth` counter). Without this the counter is
     # dropped at placement, so the item's own triggers can never see it.
     if lib_item.get("parameters"):

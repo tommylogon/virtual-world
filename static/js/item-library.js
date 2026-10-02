@@ -404,6 +404,7 @@ class ItemLibrary {
                 <div style="font-size:9px;color:var(--text-muted);">Use lowercase, no spaces. E.g. "rusty_key"</div></div>
                 <div class="field"><label style="font-size:10px;">Name</label><input type="text" id="lib-item-name" .value=${item.name} placeholder="Rusty Key" @input=${isNew ? (e) => VW.itemLib._autoIdFromName(e.target) : undefined}></div>
                 <div class="field"><label style="font-size:10px;">Description</label><textarea id="lib-item-desc" rows="4" placeholder="A rusty old key..." style="width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:4px 8px;font-size:11px;font-family:inherit;resize:vertical;">${item.description}</textarea></div>
+                <div class="field"><label style="font-size:10px;">Documentation</label><input type="text" id="lib-item-docs" .value=${item.docs || ''} placeholder="docs/virtualWorld/... (optional)"><div style="font-size:9px;color:var(--text-muted);">Repo-relative path to the note describing this entry. Optional.</div></div>
                 <div class="field"><label style="font-size:10px;">Tags</label><div id="lib-item-tags-container"></div></div>
             </div>
             <div class="inspector-section" style="padding:10px 16px;border-bottom:1px solid var(--border);">
@@ -970,7 +971,8 @@ class ItemLibrary {
             tags,
             triggers,
             contents,
-            image: document.getElementById('lib-item-image')?.value || undefined
+            image: document.getElementById('lib-item-image')?.value || undefined,
+            docs: document.getElementById('lib-item-docs')?.value.trim() || undefined
         };
 
         const res = await ApiClient.saveLibraryItem(payload);
