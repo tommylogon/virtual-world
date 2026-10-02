@@ -68,7 +68,10 @@
   "equipped": {},
   "activity": null,
   "current_area": "area_scouting_rooms",
-  "inventory": [],
+  "inventory": [
+    "vekka_hunting_bow",
+    "quiver_of_arrows"
+  ],
   "emotion": {
     "current": "neutral",
     "description": "",

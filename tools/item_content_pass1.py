@@ -533,8 +533,10 @@ TOOLS = [
     ("pitchfork", "A pitchfork, tines sprung from the heat and bent true by a smith.", ["tool", "metal", "farming"], 3.0),
     ("water_scoop", "A water scoop, copper, and dented from being dropped in a full bucket.", ["container", "metal", "kitchen"], 0.3),
     ("yew_bow", "A yew bow, the long limbs and the string waxed with tallow.", ["tool", "wooden", "hunting", "projectile"], 1.5),
-    ("arrow", "An arrow, a goose shaft and a blunt head, made to be lost.", ["projectile", "fletching", "two_handed", "hunting"], 0.1),
-    ("broadhead_arrow", "A broadhead arrow, a wide steel head, and the sound it makes is a whole different thing.", ["projectile", "fletching", "two_handed", "hunting", "weapon"], 0.15),
+    # task-518: arrows are ammunition (tag `ammo`), not a `weapon` -- a
+    # broadhead used to be auto-selected as a melee weapon and rolled 1d0.
+    ("arrow", "An arrow, a goose shaft and a blunt head, made to be lost.", ["ammo", "projectile", "fletching", "hunting"], 0.1),
+    ("broadhead_arrow", "A broadhead arrow, a wide steel head, and the sound it makes is a whole different thing.", ["ammo", "projectile", "fletching", "hunting"], 0.15),
     ("fishing_line", "A fishing line, waxed flax, on a wooden reel.", ["tool", "fishing", "fibre"], 0.1),
     ("fish_hook", "A fish hook, bone-and-steel, barbless for the trout.", ["tool", "fishing", "metal"], 0.01),
     ("fishing_net", "A net, knotted by hand, mended so often it is more knot than net.", ["tool", "fishing", "fibre"], 3.0),
@@ -719,8 +721,12 @@ def build():
     for item_id, desc, tags, weight in TOWN:
         out[item_id] = thing(item_id, desc, tags, weight=weight)
 
-    for item_id, desc, tags, weight in TOOLS:
-        out[item_id] = tool(item_id, desc, tags, weight=weight)
+    for entry in TOOLS:
+        # A row may carry a 5th dict of record overrides (task-518: a ranged
+        # weapon declares damage/slots/actions, which the plain shape cannot).
+        item_id, desc, tags, weight = entry[:4]
+        extra = entry[4] if len(entry) > 4 else {}
+        out[item_id] = tool(item_id, desc, tags, weight=weight, **extra)
 
     # The four wearables, built through `worn()` so they carry a real slot. They
     # sit in their own tables above for reading order and are emitted here.

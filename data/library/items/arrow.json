@@ -9,13 +9,7 @@
   "equip_slots": [],
   "defense": 0,
   "damage": 0,
-  "tags": [
-    "tool",
-    "projectile",
-    "fletching",
-    "two_handed",
-    "hunting"
-  ],
+  "tags": ["tool", "ammo", "projectile", "fletching", "hunting"],
   "triggers": [],
   "contents": []
 }

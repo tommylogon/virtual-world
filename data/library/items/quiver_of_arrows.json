@@ -1,0 +1,18 @@
+{
+  "name": "Quiver of Arrows",
+  "description": "A leather quiver of goose-shafted arrows, fletched and ready. Each shot spends one; when the last is loosed the quiver is empty.",
+  "actions": "examine,take,drop",
+  "uses": 20,
+  "max_uses": 20,
+  "base_weight": 2,
+  "weight": 2,
+  "stackable": true,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": ["tool", "ammo", "projectile", "fletching", "hunting", "container"],
+  "triggers": [],
+  "contents": []
+}

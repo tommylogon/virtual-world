@@ -292,6 +292,17 @@ class CombatSystem:
         if weapon_node is None:
             weapon_node = self._best_weapon_node(attacker_name)
 
+        # task-518: a ranged weapon needs ammunition. Spend it when the shot is
+        # attempted -- a miss still costs the arrow -- and fail cleanly before
+        # any roll when the quiver is empty, so no damage is dealt.
+        if weapon_node is not None and self._is_ranged_weapon(weapon_node):
+            ammo = self._carried_ammo_node(attacker_name)
+            if ammo is None:
+                ranged_name = weapon_node.properties.get("name") or weapon_node.name
+                return (f"{attacker_name} raises the {ranged_name} and reaches for "
+                        f"an arrow, but has none. The shot is not taken.")
+            self._spend_ammo(ammo)
+
         # task-603: use the ability MODIFIER, not the raw score.
         # `roll_dice` added STR 9 as a +9 bonus and the defender added DEX 11 as
         # a +11 bonus, so ~10 points of free swing landed on each side and the
@@ -608,6 +619,58 @@ class CombatSystem:
             notes.append(f"{region_name} is bleeding")
         return "; ".join(notes)
 
+    def _is_ranged_weapon(self, node) -> bool:
+        """A ranged weapon declares the ``ranged`` tag (or is a ``bow``)."""
+        if node is None or node.type != "item":
+            return False
+        tags = (node.properties or {}).get("tags") or []
+        if isinstance(tags, str):
+            tags = [t.strip() for t in tags.split(",")]
+        lowered = {str(t).lower() for t in tags}
+        return "ranged" in lowered or "bow" in lowered
+
+    def _carried_ammo_node(self, attacker_name: str) -> Optional[Node]:
+        """The first carried/equipped ``ammo`` item, or None (task-518)."""
+        from engine.character_spatial import _pm_get_player_node_id
+        player_node_id = _pm_get_player_node_id(self.skills, attacker_name)
+        if not player_node_id:
+            return None
+        for edge in (self.graph.get_edges_for_target(player_node_id, EDGE_CARRYING)
+                     + self.graph.get_edges_for_target(player_node_id, EDGE_EQUIPPED)):
+            node = self.graph.get_node(edge.source)
+            if not node or node.type != "item":
+                continue
+            tags = (node.properties or {}).get("tags") or []
+            if isinstance(tags, str):
+                tags = [t.strip() for t in tags.split(",")]
+            if any(str(t).lower() == "ammo" for t in tags):
+                return node
+        return None
+
+    def _spend_ammo(self, ammo_node, count: int = 1) -> None:
+        """Decrement one shot from an ammo item; remove it when spent (task-518).
+
+        ``uses`` is the generic charge counter, so a bundle of 20 arrows decrements
+        and a single discrete arrow (uses 1) is destroyed. ``uses <= 0`` is
+        treated as an inexhaustible supply and left alone.
+        """
+        props = ammo_node.properties or {}
+        try:
+            uses = int(props.get("uses", 1))
+        except (TypeError, ValueError):
+            uses = 1
+        if uses <= 0:
+            return
+        uses -= max(1, int(count or 1))
+        props["uses"] = max(0, uses)
+        from engine.items.carry_weight import reconcile_item_weight
+        reconcile_item_weight(ammo_node)
+        if props["uses"] <= 0:
+            for edge in list(self.graph.edges):
+                if edge.source == ammo_node.id or edge.target == ammo_node.id:
+                    self.graph.edges.remove(edge)
+            self.graph.remove_node(ammo_node.id)
+
     def _find_weapon_in_inventory(self, player_name: str, weapon_name: str) -> Optional[Node]:
         """Find a weapon item node in a player's inventory by name."""
         from engine.character_spatial import _pm_get_player_node_id
@@ -650,6 +713,11 @@ class CombatSystem:
             tags = props.get("tags") or []
             if isinstance(tags, str):
                 tags = [t.strip() for t in tags.split(",")]
+            # task-518: an `ammo` item is a shaft, not a club. A broadhead arrow
+            # carries `damage: 0` + `weapon` and used to be auto-selected,
+            # rolling `1d0` and "swinging" an arrow.
+            if any(t.lower() == "ammo" for t in tags):
+                continue
             dmg = props.get("damage", 0) or 0
             if not dmg and "weapon" not in tags:
                 continue
