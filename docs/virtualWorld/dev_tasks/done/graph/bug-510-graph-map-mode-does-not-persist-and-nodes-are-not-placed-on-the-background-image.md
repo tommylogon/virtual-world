@@ -1,6 +1,6 @@
 ---
 type: bug
-status: review
+status: done
 area: graph
 priority: high
 ---
