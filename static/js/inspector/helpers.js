@@ -211,6 +211,22 @@ window.InspectorHelpers = (() => {
     };
 
     /**
+     * Is this node's id owned by the world compiler? WorldPainter's grid
+     * compiler stamps `properties.generated` on every area/way cell it emits and
+     * derives the id from the cell (`way_world_area_human_road_area_world_17_6`)
+     * — a filename, not a name. Renaming it is meaningless: the next compile
+     * regenerates that id. The inspector shows such an id read-only instead of
+     * inviting an edit that cannot stick (task-622).
+     * @param {string} nodeId
+     * @returns {boolean}
+     */
+    H.isGeneratedNode = function(nodeId) {
+        const node = (typeof worldState !== 'undefined' && worldState
+            && typeof worldState.getNode === 'function') ? worldState.getNode(nodeId) : null;
+        return !!(node && node.properties && node.properties.generated);
+    };
+
+    /**
      * Rename a graph node
      * @param {string} oldId - Current node ID
      * @param {string} newId - Desired new node ID
