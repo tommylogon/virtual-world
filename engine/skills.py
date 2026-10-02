@@ -77,8 +77,12 @@ class SkillSystem:
             player, skill_name, _ability)
 
         if auto_fail:
+            # task-479: name the condition, so a player can tell WHY an action
+            # auto-failed instead of reading a bare "a condition prevents it".
+            _adv, _dis, fail_src = checks.condition_sources(player, skill_name, _ability)
+            why = f": {', '.join(fail_src)}" if fail_src else ""
             message = (f"[Skill Check] {skill_name} vs DC {difficulty_class}: "
-                       f"AUTO-FAIL (a condition prevents it)")
+                       f"AUTO-FAIL (a condition prevents it{why})")
             self.logging_events.add_log_entry(message)
             return (False, 0, message)
 
@@ -91,7 +95,12 @@ class SkillSystem:
         diff_desc = checks.dc_band(difficulty_class)
         result_label = "success" if success else "failure"
         detail = " + ".join(str(m.value) for m in mods) or "0"
-        mode = "" if rolled.mode == "normal" else f" [{rolled.mode}]"
+        # task-479: a bare [advantage] hides its cause; name the condition.
+        mode = ""
+        if rolled.mode != "normal":
+            _adv, _dis, _fail = checks.condition_sources(player, skill_name, _ability)
+            src = _adv if rolled.mode == "advantage" else _dis
+            mode = f" [{rolled.mode}: {', '.join(src)}]" if src else f" [{rolled.mode}]"
         message = (
             f"[Skill Check] {skill_name} vs DC {difficulty_class} ({diff_desc}){mode}: "
             f"roll={rolled.kept} + {detail} = {total} => {result_label}"
@@ -146,10 +155,13 @@ class SkillSystem:
         Returns ``(success, total, message)``. The roll is logged to the
         event stream like other skill checks.
         """
-        from engine.conditions import auto_fails_saves
+        from engine.conditions import auto_fails_saves, auto_fail_save_sources
         if auto_fails_saves(player, stat):
+            # task-479: name the condition responsible.
+            src = auto_fail_save_sources(player, stat)
+            why = f": {', '.join(src)}" if src else ""
             message = (
-                f"[Save] {stat} vs DC {dc}: AUTO-FAIL (a condition prevents it)"
+                f"[Save] {stat} vs DC {dc}: AUTO-FAIL (a condition prevents it{why})"
             )
             self.logging_events.add_log_entry(message)
             return (False, 0, message)

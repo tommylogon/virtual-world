@@ -84,7 +84,14 @@ window.PromptBuilder = window.PromptBuilder || {};
         // output (room prose + exits) duplicates the current observation block
         // on every call. First line only; the important part is the outcome.
         const lines = String(text || '').split('\n').map(s => s.trim()).filter(Boolean);
-        return lines[0] || '';
+        if (!lines.length) return '';
+        // task-479: a dice breakdown must survive even when it is not the first
+        // line. Otherwise the model narrates the outcome ("You fail to climb")
+        // with no idea what was rolled, and cannot explain it. Keep the first
+        // line as the outcome and prepend the check line.
+        const check = lines.find(l => /^\[(Skill Check|Save|Check|Grab)\b/.test(l));
+        if (check && check !== lines[0]) return `${check} — ${lines[0]}`;
+        return lines[0];
     }
 
     /**
@@ -258,6 +265,7 @@ ${PromptBuilder.buildJsonExample(['full_action'])}`;
         buildResultReactionPrompt,
         buildDashFollowUpPrompt,
         buildChainFollowUpPrompt,
-        buildRetryPrompt
+        buildRetryPrompt,
+        summaryLine: _summaryLine,
     });
 })();

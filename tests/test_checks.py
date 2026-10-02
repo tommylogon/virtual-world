@@ -146,6 +146,34 @@ class TestResolve:
         res = checks.resolve(p, kind="Perception", dc=5, roll_fn=lambda: 15)
         assert res.mode == "advantage"
 
+    def test_condition_sources_names_what_applied(self, monkeypatch):
+        p = _player()
+        p.conditions["focused"] = [{}]
+        p.conditions["dazed"] = [{}]
+        monkeypatch.setattr(checks, "_condition_definitions", lambda: {
+            "focused": {"check_advantage": ["perception"]},
+            "dazed": {"auto_fail_checks": ["dexterity"]},
+        })
+        adv, dis, fail = checks.condition_sources(p, "Perception", "DEX")
+        assert adv == ["focused"] and dis == [] and fail == ["dazed"]
+
+    def test_auto_fail_message_names_the_condition(self, monkeypatch):
+        # task-479: a bare "a condition prevents it" is not legible; name it.
+        p = _player()
+        p.conditions["test_fail"] = [{}]
+        monkeypatch.setattr(checks, "_condition_definitions",
+                            lambda: {"test_fail": {"auto_fail_checks": ["dexterity"]}})
+        res = checks.resolve(p, kind="Stealth", dc=5, roll_fn=lambda: 20)
+        assert "AUTO-FAIL" in res.message and "test_fail" in res.message
+
+    def test_advantage_message_names_the_condition(self, monkeypatch):
+        p = _player()
+        p.conditions["focused"] = [{}]
+        monkeypatch.setattr(checks, "_condition_definitions",
+                            lambda: {"focused": {"check_advantage": ["perception"]}})
+        res = checks.resolve(p, kind="Perception", dc=5, roll_fn=lambda: 15)
+        assert "[advantage: focused]" in res.message
+
     def test_logs_a_breakdown(self):
         class _Logger:
             def __init__(self):

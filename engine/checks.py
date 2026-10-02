@@ -210,6 +210,30 @@ def condition_flags(player, *targets):
     return advantage, disadvantage, auto_fail
 
 
+def condition_sources(player, *targets):
+    """(advantage, disadvantage, auto_fail) condition ids that applied (task-479).
+
+    Same matching rule as :func:`condition_flags`, but returns the *names* so a
+    message can explain why a roll had advantage or auto-failed instead of just
+    that it did. Ids are sorted and de-duplicated for a stable message.
+    """
+    names = {_norm(target) for target in targets if target}
+    names.add("*")
+    names.add("all")
+    adv, dis, fail = set(), set(), set()
+    definitions = _condition_definitions()
+    for cond_id, instances in (getattr(player, "conditions", {}) or {}).items():
+        definition = definitions.get(cond_id, {}) or {}
+        for instance in (instances or [{}]):
+            for key, bucket in (("check_advantage", adv),
+                                ("check_disadvantage", dis),
+                                ("auto_fail_checks", fail)):
+                raw = instance.get(key, definition.get(key, [])) or []
+                if {_norm(x) for x in raw} & names:
+                    bucket.add(str(cond_id))
+    return sorted(adv), sorted(dis), sorted(fail)
+
+
 def skill_modifiers(player, skill: str):
     """(ability, [Modifier...]) for a skill check.
 
@@ -349,6 +373,7 @@ def resolve(player, *, kind: str, dc=None, advantage: bool = False,
             mods.append(Modifier(str(source), int(value)))
 
     cond_adv, cond_dis, auto_fail = condition_flags(player, skill, ability, kind)
+    adv_src, dis_src, fail_src = condition_sources(player, skill, ability, kind)
     advantage = bool(advantage or cond_adv)
     disadvantage = bool(disadvantage or cond_dis)
 
@@ -362,13 +387,21 @@ def resolve(player, *, kind: str, dc=None, advantage: bool = False,
     label = skill or ability or kind
     band = f" ({dc_band(dc)})" if dc is not None else ""
     detail = " + ".join(str(m.value) for m in mods) or "0"
-    mode = "" if rolled.mode == "normal" else f" [{rolled.mode}]"
+    # task-479: say WHY the roll was advantaged — a bare [advantage] hides the
+    # condition that caused it (a blinded archer and a focused one read alike).
+    mode = ""
+    if rolled.mode == "advantage":
+        mode = f" [advantage: {', '.join(adv_src)}]" if adv_src else " [advantage]"
+    elif rolled.mode == "disadvantage":
+        mode = f" [disadvantage: {', '.join(dis_src)}]" if dis_src else " [disadvantage]"
     message = (
         f"[Check] {label} vs DC {dc}{band}{mode}: "
         f"roll={rolled.kept} + {detail} = {total} => {tier}"
     )
     if auto_fail:
-        message = f"[Check] {label} vs DC {dc}{band}: AUTO-FAIL (a condition prevents it)"
+        why = f": {', '.join(fail_src)}" if fail_src else ""
+        message = (f"[Check] {label} vs DC {dc}{band}: "
+                   f"AUTO-FAIL (a condition prevents it{why})")
     if context:
         message = f"{message} ({context})"
 

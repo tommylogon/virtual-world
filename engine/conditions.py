@@ -214,6 +214,19 @@ def auto_fails_saves(player, stat: str) -> bool:
     return False
 
 
+def auto_fail_save_sources(player, stat: str) -> list:
+    """The condition ids that auto-fail saves on ability *stat* (task-479).
+
+    Same predicate as :func:`auto_fails_saves`, but names the conditions so a
+    save message can say *why* it auto-failed instead of just that it did.
+    """
+    out = []
+    for condition, instances in getattr(player, "conditions", {}).items():
+        if stat in _condition_value(condition, instances, "auto_fail_saves", []):
+            out.append(str(condition))
+    return sorted(out)
+
+
 def effective_speed(player) -> float:
     """Total movement speed multiplier across all active conditions
     (product of each condition's effective ``speed_mult``)."""
