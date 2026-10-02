@@ -285,6 +285,11 @@ class GlobalScopeIndex:
         result = graph.merge_scope(scope_id, payload)
         logger.info("loaded scope %s on demand (%d node(s))",
                     scope_id, len(result.get("added", [])))
+        # The index keeps ownership for scopes it did not load (see
+        # augment_from_graph), but a scope loaded on demand must be adopted now:
+        # its area ids, gateways and derived locations become visible, and only
+        # then can restore_locations match the scope's areas.
+        self.augment_from_graph(graph)
         # task-584: entities that survived the eviction get their location edge
         # back now that their area is loaded again.
         self.restore_locations(graph, scope_id)
