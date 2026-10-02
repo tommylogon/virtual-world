@@ -14,6 +14,9 @@
     "fish",
     "shellfish"
   ],
+  "affinity": [
+    "shore"
+  ],
   "triggers": [
     {
       "trigger_type": [

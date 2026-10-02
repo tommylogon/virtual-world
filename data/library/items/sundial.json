@@ -14,6 +14,9 @@
     "stone",
     "tool"
   ],
+  "affinity": [
+    "rocky"
+  ],
   "triggers": [],
   "contents": []
 }

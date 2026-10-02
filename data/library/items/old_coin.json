@@ -10,5 +10,9 @@
     "currency",
     "antique",
     "forage"
+  ],
+  "affinity": [
+    "forest",
+    "woods"
   ]
 }

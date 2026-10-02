@@ -14,6 +14,9 @@
     "mining",
     "stone"
   ],
+  "affinity": [
+    "rocky"
+  ],
   "triggers": [],
   "contents": []
 }

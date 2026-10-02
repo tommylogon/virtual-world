@@ -15,6 +15,10 @@
     "fletching",
     "fletching"
   ],
+  "affinity": [
+    "forest",
+    "woods"
+  ],
   "triggers": [],
   "contents": []
 }

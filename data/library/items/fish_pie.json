@@ -15,6 +15,9 @@
     "pastry",
     "fish"
   ],
+  "affinity": [
+    "shore"
+  ],
   "triggers": [
     {
       "trigger_type": [

@@ -16,6 +16,9 @@
     "evidence",
     "occult"
   ],
+  "affinity": [
+    "rocky"
+  ],
   "triggers": [
     {
       "trigger_type": [

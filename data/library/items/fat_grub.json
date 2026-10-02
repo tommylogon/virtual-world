@@ -1,35 +1,40 @@
 {
- "name": "fat_grub",
- "description": "a pale grub as long as a thumb, curled in the soil.",
- "actions": "examine,take,drop,eat",
- "uses": -1,
- "weight": 0.05,
- "current_state": "normal",
- "tags": [
-  "grub",
-  "bait",
-  "bug",
-  "food",
-  "forage"
- ],
- "triggers": [
-  {
-   "trigger_type": "on_eat",
-   "effects": [
+  "name": "fat_grub",
+  "description": "a pale grub as long as a thumb, curled in the soil.",
+  "actions": "examine,take,drop,eat",
+  "uses": -1,
+  "weight": 0.05,
+  "current_state": "normal",
+  "tags": [
+    "grub",
+    "bait",
+    "bug",
+    "food",
+    "forage"
+  ],
+  "affinity": [
+    "forest",
+    "woods",
+    "dense"
+  ],
+  "triggers": [
     {
-     "type": "adjust_vital",
-     "params": {
-      "stat": "Hunger",
-      "amount": -45,
-      "target": "self"
-     }
+      "trigger_type": "on_eat",
+      "effects": [
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Hunger",
+            "amount": -45,
+            "target": "self"
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
     }
-   ],
-   "target_name": "",
-   "target_state": "",
-   "conditions": {},
-   "success_message": "",
-   "fail_message": ""
-  }
- ]
+  ]
 }

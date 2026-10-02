@@ -1330,6 +1330,7 @@ def handle_build_item_legacy(app):
         "skill_check": data.get('skill_check', {}),
         "equip_slots": data.get('equip_slots', []),
         "tags": tags,
+        "affinity": data.get('affinity', []),
         # Mechanical props the engine reads (lighting, heat, sound, equipment
         # bonuses). Defaults mirror _spawn_library_item_node in library_ops.
         "light_level": data.get('light_level', 'dim'),

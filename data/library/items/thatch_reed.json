@@ -13,6 +13,10 @@
     "material",
     "plant"
   ],
+  "affinity": [
+    "forest",
+    "woods"
+  ],
   "triggers": [],
   "contents": []
 }

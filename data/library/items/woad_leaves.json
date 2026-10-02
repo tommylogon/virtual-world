@@ -13,6 +13,10 @@
     "herb",
     "dye"
   ],
+  "affinity": [
+    "forest",
+    "woods"
+  ],
   "triggers": [],
   "contents": []
 }

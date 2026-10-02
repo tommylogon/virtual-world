@@ -15,6 +15,10 @@
     "plant",
     "forage"
   ],
+  "affinity": [
+    "forest",
+    "woods"
+  ],
   "parameters": {
     "growth": 0
   },

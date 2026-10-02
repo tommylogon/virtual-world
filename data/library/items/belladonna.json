@@ -15,6 +15,10 @@
     "hazard",
     "poisonous"
   ],
+  "affinity": [
+    "forest",
+    "woods"
+  ],
   "triggers": [],
   "contents": []
 }

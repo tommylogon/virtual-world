@@ -14,6 +14,10 @@
     "culinary",
     "medicinal"
   ],
+  "affinity": [
+    "forest",
+    "woods"
+  ],
   "triggers": [],
   "contents": []
 }

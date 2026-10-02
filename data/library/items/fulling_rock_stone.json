@@ -15,6 +15,9 @@
     "stone",
     "textile"
   ],
+  "affinity": [
+    "rocky"
+  ],
   "triggers": [],
   "contents": []
 }

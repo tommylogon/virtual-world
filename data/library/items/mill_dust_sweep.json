@@ -15,6 +15,9 @@
     "grain",
     "filth"
   ],
+  "affinity": [
+    "farmland"
+  ],
   "triggers": [],
   "contents": []
 }

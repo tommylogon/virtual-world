@@ -16,6 +16,10 @@
     "resource_pool",
     "fodder"
   ],
+  "affinity": [
+    "forest",
+    "woods"
+  ],
   "triggers": [],
   "contents": [],
   "quantity": 2,

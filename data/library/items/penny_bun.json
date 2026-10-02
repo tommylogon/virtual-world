@@ -14,6 +14,11 @@
     "mushroom",
     "forage"
   ],
+  "affinity": [
+    "forest",
+    "woods",
+    "dense"
+  ],
   "triggers": [
     {
       "trigger_type": [

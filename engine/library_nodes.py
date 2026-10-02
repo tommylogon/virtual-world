@@ -68,6 +68,10 @@ def library_item_properties(lib_item: dict, library_id: str,
         "skill_check": lib_item.get("skill_check", {}),
         "equip_slots": lib_item.get("equip_slots", []),
         "tags": lib_item.get("tags", []),
+        # task-571: the biomes / area tags an item belongs in. Separate from
+        # `tags` so general-purpose tags are not diluted with wilderness
+        # vocabulary; engine/population.py unions the two when matching domains.
+        "affinity": lib_item.get("affinity", []),
         "current_state": "hidden" if lib_item.get("hidden", False)
                          else lib_item.get("current_state", "normal"),
         "light_level": lib_item.get("light_level", "dim"),

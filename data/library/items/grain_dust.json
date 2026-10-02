@@ -15,6 +15,9 @@
     "waste",
     "grain"
   ],
+  "affinity": [
+    "farmland"
+  ],
   "triggers": [],
   "contents": []
 }

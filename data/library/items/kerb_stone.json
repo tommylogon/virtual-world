@@ -13,6 +13,9 @@
     "road",
     "stone"
   ],
+  "affinity": [
+    "rocky"
+  ],
   "triggers": [],
   "contents": []
 }

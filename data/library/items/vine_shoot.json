@@ -13,6 +13,10 @@
     "plant",
     "fruit"
   ],
+  "affinity": [
+    "forest",
+    "woods"
+  ],
   "triggers": [],
   "contents": []
 }

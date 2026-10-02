@@ -13,6 +13,10 @@
     "herb",
     "plant"
   ],
+  "affinity": [
+    "forest",
+    "woods"
+  ],
   "triggers": [],
   "contents": []
 }

@@ -16,6 +16,10 @@
     "dye",
     "plant"
   ],
+  "affinity": [
+    "forest",
+    "woods"
+  ],
   "triggers": [],
   "contents": []
 }

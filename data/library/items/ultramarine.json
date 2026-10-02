@@ -16,6 +16,9 @@
     "valuable",
     "pigment"
   ],
+  "affinity": [
+    "rocky"
+  ],
   "triggers": [],
   "contents": []
 }

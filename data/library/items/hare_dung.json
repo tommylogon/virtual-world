@@ -14,6 +14,10 @@
     "fodder",
     "filth"
   ],
+  "affinity": [
+    "forest",
+    "woods"
+  ],
   "triggers": [],
   "contents": []
 }

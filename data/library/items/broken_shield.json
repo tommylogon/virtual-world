@@ -13,6 +13,9 @@
     "armor",
     "scrap"
   ],
+  "affinity": [
+    "ruin"
+  ],
   "triggers": [],
   "contents": []
 }

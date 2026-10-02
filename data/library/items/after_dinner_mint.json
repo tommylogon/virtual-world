@@ -14,6 +14,10 @@
     "culinary",
     "fresh"
   ],
+  "affinity": [
+    "forest",
+    "woods"
+  ],
   "triggers": [],
   "contents": []
 }

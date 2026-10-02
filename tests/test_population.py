@@ -74,6 +74,30 @@ def test_untagged_area_is_empty():
     assert plan.notes
 
 
+def test_affinity_resolves_a_wilderness_area():
+    """task-571: an item declares its biome via `affinity`, not general `tags`,
+    and the index still finds it for a compiled wilderness cell."""
+    idx = LibraryIndex({
+        "wild_berries": {"name": "Wild Berries", "tags": ["food"],
+                         "affinity": ["forest", "woods"]},
+        "mushroom": {"name": "Mushroom", "tags": ["food", "forage"],
+                     "affinity": ["forest", "woods", "dense"]},
+        "sword": {"name": "Sword", "tags": ["weapon", "armory"]},
+    })
+    plan = plan_population(["forest", "woods", "dense"], idx, random.Random(5),
+                           items_per_area=4)
+    placed = {p.library_id for p in plan.items}
+    assert placed == {"wild_berries", "mushroom"}
+    assert not plan.unresolved_domains
+    assert "sword" not in placed
+
+
+def test_affinity_accepts_a_comma_string():
+    idx = LibraryIndex({"herb": {"name": "Herb", "affinity": "forest, woods"}})
+    assert "forest" in idx.by_tag and "herb" in idx.by_tag["forest"]
+    assert "woods" in idx.by_tag and "herb" in idx.by_tag["woods"]
+
+
 def test_apply_population_uses_callbacks_and_parents():
     idx = _index()
     plan = plan_population(["kitchen"], idx, random.Random(3), items_per_area=4)

@@ -13,6 +13,10 @@
     "natural",
     "plant"
   ],
+  "affinity": [
+    "forest",
+    "woods"
+  ],
   "triggers": [],
   "contents": []
 }

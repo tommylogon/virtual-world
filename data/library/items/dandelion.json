@@ -14,6 +14,10 @@
     "forage",
     "medicinal"
   ],
+  "affinity": [
+    "forest",
+    "woods"
+  ],
   "triggers": [],
   "contents": []
 }

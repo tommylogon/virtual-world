@@ -14,6 +14,11 @@
     "fragrant",
     "root"
   ],
+  "affinity": [
+    "forest",
+    "woods",
+    "farmland"
+  ],
   "triggers": [],
   "contents": []
 }

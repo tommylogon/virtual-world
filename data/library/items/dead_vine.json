@@ -14,6 +14,10 @@
     "organic",
     "outdoor"
   ],
+  "affinity": [
+    "forest",
+    "woods"
+  ],
   "triggers": [
     {
       "trigger_type": [

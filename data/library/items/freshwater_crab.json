@@ -16,6 +16,11 @@
     "shellfish",
     "food"
   ],
+  "affinity": [
+    "forest",
+    "woods",
+    "shore"
+  ],
   "triggers": [
     {
       "trigger_type": [

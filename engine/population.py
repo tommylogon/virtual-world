@@ -60,10 +60,23 @@ class PopulationPlan:
 
 
 def _tags_of(entry: dict) -> List[str]:
-    tags = entry.get("tags") or []
-    if isinstance(tags, str):
-        tags = [t.strip() for t in tags.split(",") if t.strip()]
-    return [str(t).lower() for t in tags]
+    """Every domain tag an entry can answer to.
+
+    task-571: an item may declare a separate ``affinity`` (the wilderness /
+    area tags it belongs in) instead of overloading its general ``tags``. The
+    population index intersects area tags against this union, so an item with
+    ``affinity: ["forest", "woods"]`` is a candidate for a forest cell.
+    """
+    out = []
+    for key in ("tags", "affinity"):
+        values = entry.get(key) or []
+        if isinstance(values, str):
+            values = [t.strip() for t in values.split(",")]
+        for value in values:
+            text = str(value).strip().lower()
+            if text:
+                out.append(text)
+    return out
 
 
 class LibraryIndex:

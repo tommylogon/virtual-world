@@ -14,6 +14,11 @@
     "fruit",
     "crop"
   ],
+  "affinity": [
+    "forest",
+    "woods",
+    "farmland"
+  ],
   "triggers": [],
   "contents": []
 }

@@ -16,6 +16,9 @@
     "fish",
     "kitchen"
   ],
+  "affinity": [
+    "shore"
+  ],
   "triggers": [
     {
       "trigger_type": [

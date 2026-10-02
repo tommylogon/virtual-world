@@ -17,6 +17,9 @@
     "armory",
     "guard"
   ],
+  "affinity": [
+    "ruin"
+  ],
   "triggers": [],
   "contents": []
 }

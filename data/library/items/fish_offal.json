@@ -16,6 +16,9 @@
     "filth",
     "food"
   ],
+  "affinity": [
+    "shore"
+  ],
   "triggers": [
     {
       "trigger_type": [
