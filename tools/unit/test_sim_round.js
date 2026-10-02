@@ -86,3 +86,20 @@ test('a two-round cycle resets cleanly', () => {
     resolved = new Set();
     assertFalse(R.isComplete(roster, resolved), 'fresh round is open again');
 });
+
+// The agent-engine is DOM-heavy and not loaded in this sandbox, so this pins
+// the one line that is the whole of task-533: closing a complete simultaneous
+// round must run the world turn pipeline (`TurnQueue.endTurn()` -> applyTurn ->
+// tick_turn). Before the fix, the loop stepped characters and never advanced
+// the clock. The behavioural proof is a live-browser run (time_ticks moved);
+// this guard keeps the wiring from being deleted.
+test('closing a complete round calls the world turn pipeline (task-533)', () => {
+    const src = __readFile('static/js/agent-engine.js');
+    const start = src.indexOf('async _closeSimRoundIfComplete()');
+    assertTrue(start !== -1, 'the closer must exist');
+    const body = src.slice(start, start + 900);
+    assertTrue(/VWSimRound\.isComplete|_simRoundComplete\(\)/.test(body),
+        'it must gate on round completion');
+    assertTrue(/TurnQueue\.endTurn\(\)/.test(body),
+        'a complete round must call TurnQueue.endTurn()');
+});
