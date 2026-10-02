@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: graph
 priority: high
 ---
@@ -69,3 +69,43 @@ The remaining open question is the same one I raised, and it is sharper in this
 world: 28 items exist and **42** lack a position, so the count does not even
 match the item total -- some items do have one. What the layout does with an
 item that has no coordinate is the thing worth checking next.
+
+## Resolved 2026-10-02 (wt/graph-render)
+
+**The two stores, named.** In the *main* world graph there is only one node
+position store: `node.properties.x`/`y` (2-key, hand-authored/durable). The
+`{id, type, x, y, props}` 5-key store the finding describes is the **trigger
+flow graph** in `data/library/triggers/*.json` (`static/js/shared/trigger-graph.js`),
+a different canvas, not the world graph. The runtime store is
+`graph_background.positions` (`{id:{x,y}}` from `GraphBackground._capturePositions`),
+the layout-lock snapshot that falls back to IndexedDB.
+
+**The surviving open question, answered.** On `kraktooth_goblin_camp` today
+there are 52 nodes with no stored `properties.x/y` (equipped/carried items,
+`in`-held items, and `logic_trigger` nodes). The derived
+`GraphRelativeLayout.layoutPositions()` places **all of them** relative to their
+holder/area: measured 0 at the origin and 0 non-finite, in both the graph and
+Map layouts. The layout **derives** their position from the graph rather than
+reading a snapshot, which is the documented design (`relative-layout.js`), so
+the coordinate-less nodes are not a defect.
+
+**The real bug: the store does not persist hidden nodes.** `_capturePositions()`
+and `persistPositionsToWorld()` both read `network.getPositions()`, and
+vis's `getPositions()` **omits hidden nodes**. Items and logic_triggers are
+hidden by default (31 triggers hidden on this world), so neither
+`graph_background.positions` nor the durable `properties.x/y` write ever
+recorded their positions.
+
+**Fix** (`static/js/graph/graph-background.js`): a shared `_allNodePositions()`
+reads `network.body.nodes` (hidden nodes included), filtered to ids still in the
+DataSet, and both capture paths use it. (The `.js` is the live source of truth
+here — it has been edited 5× since `graph-background.ts` was last regenerated and
+contains bug-52's painted-coords skip the `.ts` lacks; `npm run build:ts` would
+regress it, so the fix went into the `.js`.)
+
+**Evidence** (Playwright, `kraktooth_goblin_camp` on port 4464):
+`getPositions()` 627 vs dataset 658, hidden 31;
+`GraphBackground.persistPositionsToWorld()` => `{saved: 195, failures: 0,
+skippedPainted: 463}`; `195 + 463 = 658`, i.e. every node. The old
+`getPositions()` path would have saved `627 - 463 = 164` — exactly the 31 hidden
+triggers missing.
