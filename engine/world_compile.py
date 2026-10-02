@@ -1515,7 +1515,8 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
                  region_merge: bool = False, link_islands: bool = True,
                  recipe_id: str = RECIPE_ID,
                  seed: Optional[str] = None, tick: int = 0,
-                 graph=None) -> GenerationPatch:
+                 graph=None, spawn_index=None,
+                 resources_per_area: int = 1) -> GenerationPatch:
     """Compile one scope's painted grid into an area/way ``GenerationPatch``.
 
     ``link_islands`` joins each disconnected component to the main landmass with
@@ -2640,10 +2641,31 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
                      f"not be named, so no boundary way was minted for them: "
                      f"{', '.join(sorted(boundary_unnamed)[:6])}"
                      f"{' …' if len(boundary_unnamed) > 6 else ''}")
+    # task-569: composition. A biome's resource_distribution places real library
+    # items into the areas it compiles; a tag that resolves to nothing is
+    # surfaced in the report rather than substituted. Only when a library index
+    # is supplied, so a compile without one (tests, tooling) is unchanged.
+    unresolved_tags: Dict[str, int] = {}
+    if spawn_index is not None:
+        from engine.world.spawner import spawn_resources
+        area_nodes = [n for n in nodes if n.type == "area"]
+        spawn_nodes, spawn_edges, unresolved_tags = spawn_resources(
+            area_nodes, spawn_index, scope_id=scope_id, seed=str(seed),
+            tick=int(tick), per_area=resources_per_area)
+        nodes.extend(spawn_nodes)
+        edges.extend(spawn_edges)
+        if spawn_nodes:
+            notes.append(f"{len(spawn_nodes)} resource item(s) placed from "
+                         f"biome distributions")
+        if unresolved_tags:
+            notes.append(
+                f"{len(unresolved_tags)} resource tag(s) matched no library item: "
+                f"{', '.join(sorted(unresolved_tags))}")
     report = GenerationReport(
         scope_id=scope_id, recipe_id=recipe_id, seed=str(seed),
         area_ids=sorted(area_scope_assignments),
         notes=notes,
+        unresolved_tags=unresolved_tags,
     )
     updates: Dict = {"state": "materialized",
                      "entry_area_id": entry_area_id,
