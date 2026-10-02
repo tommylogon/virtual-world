@@ -467,6 +467,120 @@ def cmd_plan(args) -> int:
     return 0
 
 
+def build_one(ts_path: Path) -> tuple[bool, str]:
+    """Type-check and emit ONE converted file, independent of the project.
+
+    This is what makes parallel conversion safe. `tsc -p tsconfig.json`
+    compiles and emits every .ts in the project with `noEmitOnError: true`, so a
+    single lane's mid-conversion file fails the build for every other lane, and
+    concurrent runs race on the same emit.
+
+    Converted files share no imports — they are classic scripts whose
+    cross-file symbols are ambient in `globals.d.ts` — so one file's typecheck
+    depends only on itself plus that declaration file. Running tsc in
+    command-line files mode therefore gives the same answer as the full build
+    while touching only this file's output.
+
+    Verified by diffing per-file emit against the project emit for every
+    converted file (see `build-one --verify`).
+    """
+    expected = ts_path.with_suffix(".js")
+
+    command = [
+        tsc_path(),
+        # TS 7 refuses command-line files mode while a tsconfig.json is present
+        # unless this is passed; the explicit flags below are the whole config.
+        "--ignoreConfig",
+        str(GLOBALS_DTS),
+        str(ts_path),
+        # outDir MUST be the rootDir, not the file's own directory: tsc computes
+        # the output path as outDir + (source relative to rootDir). Pointing
+        # outDir at the file's folder nests the emit one level deeper
+        # (static/js/shared/shared/x.js), which leaves the real .js stale and
+        # litters the tree with duplicates the typecheck then picks up.
+        "--outDir", str(JS_ROOT),
+        "--rootDir", str(JS_ROOT),
+        "--target", "ES2022",
+        "--module", "esnext",
+        "--lib", "DOM,DOM.Iterable,ES2022",
+        "--strict",
+        "--noEmitOnError",
+        "--removeComments", "false",
+        "--newLine", "lf",
+        "--skipLibCheck",
+        "--forceConsistentCasingInFileNames",
+    ]
+    proc = subprocess.run(command, cwd=str(REPO_ROOT), capture_output=True, text=True)
+    output = proc.stdout + proc.stderr
+
+    if proc.returncode != 0:
+        return False, output.strip()[:4000]
+
+    if not expected.exists():
+        return False, f"tsc reported success but did not create {expected.relative_to(REPO_ROOT).as_posix()}"
+
+    survived, why = header_survived(ts_path)
+    if not survived:
+        return False, why
+    return True, "emitted " + expected.relative_to(REPO_ROOT).as_posix()
+
+
+def cmd_build_one(args) -> int:
+    path = rel_of(args.path)
+    if path.suffix != ".ts":
+        candidate = path.with_suffix(".ts")
+        if not candidate.exists():
+            sys.exit(f"error: no .ts for {path}")
+        path = candidate
+    ok, detail = build_one(path)
+    rel = path.relative_to(REPO_ROOT).as_posix()
+    if ok:
+        print(f"  {rel:<56} {detail}")
+        return 0
+    print(f"  {rel:<56} FAILED\n")
+    print(detail)
+    return 1
+
+
+def cmd_verify_emit(args) -> int:
+    """Prove per-file emit reproduces the project emit, byte for byte.
+
+    The emit target is DELETED first and must reappear identical. Comparing a
+    rebuilt file against itself proves nothing — an earlier version of this
+    check did exactly that and passed while tsc was writing to
+    `static/js/shared/shared/`, leaving the real .js stale.
+    """
+    files = [p for p in source_files() if p.suffix == ".ts" and p.name != "globals.d.ts"]
+    if args.paths:
+        files = [rel_of(p) for p in args.paths]
+
+    mismatched, checked = [], 0
+    for ts in files:
+        target = ts.with_suffix(".js")
+        if not target.exists():
+            continue
+        original = target.read_bytes()
+        target.unlink()
+        ok, detail = build_one(ts)
+        if not ok or not target.exists():
+            mismatched.append(f"{ts.relative_to(REPO_ROOT).as_posix()}: {detail}")
+            target.write_bytes(original)
+            continue
+        checked += 1
+        if target.read_bytes() != original:
+            mismatched.append(
+                f"{ts.relative_to(REPO_ROOT).as_posix()}: per-file emit differs from the "
+                f"committed .js ({len(original)} -> {len(target.read_bytes())} bytes)"
+            )
+            target.write_bytes(original)
+
+    for entry in mismatched:
+        print("  DIFF " + entry)
+    print(f"\n{checked - len(mismatched)}/{checked} reproduce byte-identically" if checked
+          else "nothing to check")
+    return 1 if mismatched else 0
+
+
 def header_survived(ts_path: Path) -> tuple[bool, str]:
     """Did ``@module`` make it into the emitted ``.js``?
 
@@ -528,23 +642,15 @@ def cmd_convert(args) -> int:
     path.unlink()
     print(f"\nwrote {target.relative_to(REPO_ROOT).as_posix()}, removed {rel}")
 
-    code, output = run_tsc(BUILD_CONFIG)
-    if code != 0:
-        print("build:ts FAILED - the .js was not regenerated. Fix the .ts, then:")
-        print("    npm run build:ts")
-        print(output[:4000])
+    ok, detail = build_one(target)
+    if not ok:
+        print("per-file build FAILED - the .js was not regenerated. Fix the .ts, then:")
+        print("    python tools/ts_convert.py build-one " + rel)
+        print(detail)
         return 1
-    print("build:ts ok")
+    print(detail)
 
-    survived, why = header_survived(target)
-    if survived:
-        print("header check    ok")
-    else:
-        print(f"header check    FAILED - {why}")
-        print("                `python tools/js_module_index.py --check` will fail until this is fixed.")
-        return 1
-
-    print("\nNext: python tools/ts_convert.py check " + rel)
+    print("\nNext: python tools/ts_convert.py build-one " + rel)
     return 0
 
 
@@ -677,6 +783,14 @@ def main() -> int:
                    help="prepend a generated-file note to the header (default)")
     p.add_argument("--no-note", dest="note", action="store_false")
     p.set_defaults(func=cmd_convert)
+
+    p = sub.add_parser("build-one", help="type-check + emit ONE file, no project-wide build")
+    p.add_argument("path")
+    p.set_defaults(func=cmd_build_one)
+
+    p = sub.add_parser("verify-emit", help="prove per-file emit matches the project emit")
+    p.add_argument("paths", nargs="*")
+    p.set_defaults(func=cmd_verify_emit)
 
     p = sub.add_parser("check", help="the migration verification gate")
     p.add_argument("paths", nargs="*", help="converted files, to node --check the emitted .js")

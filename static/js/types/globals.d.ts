@@ -149,6 +149,54 @@ interface Window {
     PromptBuilder: any;
 }
 
+/**
+ * Provisional declarations for singletons owned by modules that are still .js.
+ *
+ * These exist so parallel conversion lanes never have to edit this file — it is
+ * a hub, and concurrent edits lose declarations. Each is `any` on purpose and
+ * honestly: the real shape belongs to the owning module, and should replace
+ * these when that module converts. The plan doc's warning applies — a file that
+ * compiles against `any` here is typed only as far as its own logic.
+ *
+ * Format: name — owning module.
+ */
+declare const InspectorHelpers: any;   // inspector/helpers.js
+declare const GraphToolbar: any;       // graph/toolbar.js
+declare const DiffModal: any;          // shared/diff-modal.js
+declare const WayAuthoring: any;       // inspector/way-authoring.js
+declare const EmbeddingClient: any;    // shared/embedding-client.js (converted; narrow when convenient)
+declare const GraphProjector: any;     // graph/projector.js
+declare const GraphEventHandlers: any; // graph/event-handlers.js
+declare const NodeBadges: any;         // graph/node-badges.js
+declare const ActionNormalizer: any;   // agent/action-normalizer.js
+declare const TurnQueue: any;          // agent/turn-queue.js
+declare const GraphContextMenu: any;   // graph/context-menu.js
+declare const InspectorAgentView: any; // inspector/agent-view.js
+declare const WorldExport: any;        // ui/world-export.js
+declare const GraphFocus: any;         // graph/focus.js
+declare const GraphOverlays: any;      // graph/overlays.js
+declare const GraphTooltips: any;      // graph/tooltips.js
+declare const HumanTurnComposer: any;  // agent/human-turn-composer.js
+declare const PlanTracker: any;        // agent/plan-tracker.js
+declare const ResponseParser: any;     // agent/response-parser.js
+declare const TriggerSuggestAI: any;   // shared/trigger-suggest-ai.js
+declare const InspectorTriggers: any;  // inspector/trigger-helpers.js
+declare const InspectorWayView: any;   // inspector/way-view.js
+declare const ValidatorPanel: any;     // validator-panel.js
+declare const ItemLibraryAI: any;      // item-library/ai-generation.js
+declare const SkyScape: any;           // sky-scape.js
+declare const Structures: any;         // structures.js
+declare const NarrationUi: any;        // narration-ui.js
+declare const GraphBackground: any;    // graph/graph-background.ts (converted)
+declare const InspectorPanelRef: any;  // inspector/panel.ts (converted)
+
+/** lit-html's template type. Our LitApi types template *values* as unknown. */
+type TemplateResult = unknown;
+
+/** Vendored / CDN globals that are not modules. */
+declare const tippy: any;              // tooltip library
+declare const vis: any;                // vis-network, canvas-rendered
+
 /** Toast helpers (ui/create-modal.js and friends): transient notifications. */
 declare function toastInfo(message: string, ...rest: unknown[]): void;
 declare function toastError(message: string, ...rest: unknown[]): void;
