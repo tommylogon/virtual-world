@@ -68,6 +68,10 @@ def library_item_properties(lib_item: dict, library_id: str,
         "skill_check": lib_item.get("skill_check", {}),
         "equip_slots": lib_item.get("equip_slots", []),
         "tags": lib_item.get("tags", []),
+        # task-571: the biomes / area tags an item belongs in. Separate from
+        # `tags` so general-purpose tags are not diluted with wilderness
+        # vocabulary; engine/population.py unions the two when matching domains.
+        "affinity": lib_item.get("affinity", []),
         "current_state": "hidden" if lib_item.get("hidden", False)
                          else lib_item.get("current_state", "normal"),
         "light_level": lib_item.get("light_level", "dim"),
@@ -80,6 +84,14 @@ def library_item_properties(lib_item: dict, library_id: str,
         "library_id": library_id,
         "defense": lib_item.get("defense", 0),
         "damage": lib_item.get("damage", 0),
+        # task-519: a weapon/armor's damage type is part of what the library
+        # declares, and combat reads `node.properties.get("damage_type")`. It was
+        # simply absent here, so every character loadout (and every placed item)
+        # lost its damage type on materialization. Default to "" (combat's own
+        # "no type" sentinel) rather than inventing one: combat.py:302 only runs
+        # typed resistance when damage_type is truthy, so a fabricated default
+        # would subject every previously-untyped weapon to that resistance.
+        "damage_type": lib_item.get("damage_type", ""),
         "insulation": lib_item.get("insulation", 0),
         "resistances": lib_item.get("resistances", {}),
         "image": lib_item.get("image") or None,
@@ -98,6 +110,13 @@ def library_item_properties(lib_item: dict, library_id: str,
         props["harvest"] = dict(lib_item["harvest"])
         if lib_item.get("quantity") is not None:
             props["quantity"] = lib_item["quantity"]
+    # task-514: a template may carry a default acquisition story; it is copied
+    # onto the instance (never the other way round) so examined/prompted gear
+    # can say where it came from.
+    from engine.items.provenance import normalize_provenance
+    provenance = normalize_provenance(lib_item.get("provenance"))
+    if provenance:
+        props["provenance"] = provenance
     if extra:
         props.update(extra)
     return props

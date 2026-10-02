@@ -15,6 +15,11 @@
     "root",
     "plant"
   ],
+  "affinity": [
+    "forest",
+    "woods",
+    "farmland"
+  ],
   "triggers": [
     {
       "trigger_type": [

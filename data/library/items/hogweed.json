@@ -14,6 +14,10 @@
     "forage",
     "hazard"
   ],
+  "affinity": [
+    "forest",
+    "woods"
+  ],
   "triggers": [
     {
       "trigger_type": [

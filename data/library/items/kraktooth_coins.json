@@ -1,0 +1,18 @@
+{
+  "name": "Goblin Coins",
+  "description": "A pouch of clipped, dented coins sorted by shine rather than by face value.",
+  "actions": "examine,take",
+  "uses": -1,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "tags": [
+    "material",
+    "kraktooth",
+    "currency",
+    "coin"
+  ],
+  "triggers": [],
+  "contents": [],
+  "_generated_by": "gen_library_items"
+}

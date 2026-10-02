@@ -1,0 +1,18 @@
+{
+  "name": "String Puppet",
+  "description": "A jointed puppet of bone and cloth on a tangle of strings.",
+  "actions": "examine,take,use",
+  "uses": -1,
+  "weight": 0.3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "tags": [
+    "tool",
+    "kraktooth",
+    "performer",
+    "puppet"
+  ],
+  "triggers": [],
+  "contents": [],
+  "_generated_by": "gen_library_items"
+}

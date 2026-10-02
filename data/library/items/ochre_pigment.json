@@ -15,6 +15,9 @@
     "stone",
     "pigment"
   ],
+  "affinity": [
+    "rocky"
+  ],
   "triggers": [],
   "contents": []
 }

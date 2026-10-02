@@ -1,0 +1,18 @@
+{
+  "name": "Charcoal Sticks",
+  "description": "Fingers of charcoal wrapped in a leaf, for marking trails nobody else should read.",
+  "actions": "examine,take,use",
+  "uses": -1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "tags": [
+    "tool",
+    "kraktooth",
+    "charcoal",
+    "scout"
+  ],
+  "triggers": [],
+  "contents": [],
+  "_generated_by": "gen_library_items"
+}

@@ -13,6 +13,9 @@
     "trap",
     "scrap"
   ],
+  "affinity": [
+    "ruin"
+  ],
   "triggers": [],
   "contents": []
 }

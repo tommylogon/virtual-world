@@ -15,6 +15,9 @@
     "food",
     "fishing"
   ],
+  "affinity": [
+    "shore"
+  ],
   "triggers": [
     {
       "trigger_type": [

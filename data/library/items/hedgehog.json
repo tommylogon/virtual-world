@@ -16,6 +16,10 @@
     "food",
     "fletching"
   ],
+  "affinity": [
+    "forest",
+    "woods"
+  ],
   "triggers": [
     {
       "trigger_type": [

@@ -16,6 +16,9 @@
     "stone",
     "magic"
   ],
+  "affinity": [
+    "rocky"
+  ],
   "triggers": [],
   "contents": []
 }

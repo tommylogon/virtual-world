@@ -15,6 +15,10 @@
     "herb",
     "tea"
   ],
+  "affinity": [
+    "forest",
+    "woods"
+  ],
   "triggers": [
     {
       "trigger_type": [

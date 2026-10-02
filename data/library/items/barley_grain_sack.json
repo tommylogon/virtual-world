@@ -13,6 +13,9 @@
     "grain",
     "store"
   ],
+  "affinity": [
+    "farmland"
+  ],
   "triggers": [],
   "contents": []
 }

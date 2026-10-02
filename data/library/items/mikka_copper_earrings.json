@@ -1,0 +1,21 @@
+{
+  "name": "Copper Earrings",
+  "description": "A row of hammered copper rings up one ear, each one traded or won.",
+  "actions": "examine,take,equip,unequip",
+  "uses": -1,
+  "weight": 0.1,
+  "equip_slots": [
+    "accessory"
+  ],
+  "current_state": "normal",
+  "light_level": "dim",
+  "tags": [
+    "accessory",
+    "kraktooth",
+    "jewelry",
+    "copper"
+  ],
+  "triggers": [],
+  "contents": [],
+  "_generated_by": "gen_library_items"
+}

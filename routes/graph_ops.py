@@ -1330,6 +1330,7 @@ def handle_build_item_legacy(app):
         "skill_check": data.get('skill_check', {}),
         "equip_slots": data.get('equip_slots', []),
         "tags": tags,
+        "affinity": data.get('affinity', []),
         # Mechanical props the engine reads (lighting, heat, sound, equipment
         # bonuses). Defaults mirror _spawn_library_item_node in library_ops.
         "light_level": data.get('light_level', 'dim'),
@@ -1345,6 +1346,10 @@ def handle_build_item_legacy(app):
     for _prop in ("damage_skill", "damage_type", "stun_chance", "stun_duration", "image"):
         if data.get(_prop) is not None:
             props[_prop] = data[_prop]
+    from engine.items.provenance import normalize_provenance
+    _provenance = normalize_provenance(data.get("provenance"))
+    if _provenance:
+        props["provenance"] = _provenance
     contents = data.get('contents', [])
     if isinstance(contents, list) and len(contents) > 0:
         props["contents"] = contents

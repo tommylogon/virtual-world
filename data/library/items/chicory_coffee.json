@@ -15,6 +15,11 @@
     "forage",
     "root"
   ],
+  "affinity": [
+    "forest",
+    "woods",
+    "farmland"
+  ],
   "triggers": [
     {
       "trigger_type": [

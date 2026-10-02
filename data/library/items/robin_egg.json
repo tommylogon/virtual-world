@@ -16,6 +16,10 @@
     "hazard",
     "fletching"
   ],
+  "affinity": [
+    "forest",
+    "woods"
+  ],
   "triggers": [
     {
       "trigger_type": [

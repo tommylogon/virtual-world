@@ -1,0 +1,20 @@
+{
+  "name": "Leather Leg Wraps",
+  "description": "Strips of hide wound tight from knee to ankle, bound with cord.",
+  "actions": "examine,take,equip,unequip",
+  "uses": -1,
+  "weight": 1.0,
+  "equip_slots": [
+    "legs"
+  ],
+  "current_state": "normal",
+  "light_level": "dim",
+  "tags": [
+    "clothing",
+    "kraktooth",
+    "leather"
+  ],
+  "triggers": [],
+  "contents": [],
+  "_generated_by": "gen_library_items"
+}

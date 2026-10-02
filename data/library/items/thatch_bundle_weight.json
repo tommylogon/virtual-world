@@ -16,6 +16,10 @@
     "plant",
     "wooden"
   ],
+  "affinity": [
+    "forest",
+    "woods"
+  ],
   "triggers": [],
   "contents": []
 }

@@ -1,0 +1,17 @@
+{
+  "name": "Scrap Leather",
+  "description": "Offcuts and strips of tanned hide, some still stinking of the tanning pit.",
+  "actions": "examine,take",
+  "uses": -1,
+  "weight": 0.7,
+  "current_state": "normal",
+  "light_level": "dim",
+  "tags": [
+    "material",
+    "kraktooth",
+    "leather"
+  ],
+  "triggers": [],
+  "contents": [],
+  "_generated_by": "gen_library_items"
+}

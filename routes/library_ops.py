@@ -172,6 +172,155 @@ def _materialize_contained_items(app, parent_node_id, contents, logger_ctx=""):
         graph_add_relation_edge(app.world.graph, child_node_id, parent_node_id, _content_relation(child_ref))
 
 
+def _ensure_carrying_edge(graph, source_id, target_id):
+    """Idempotently link a carried item node to its player."""
+    for e in graph.edges:
+        if e.source == source_id and e.target == target_id and e.type == EDGE_CARRYING:
+            return
+    graph.add_edge(Edge(source=source_id, target=target_id, type=EDGE_CARRYING))
+
+
+def _materialize_character_inventory(app, player_name, player_node_id, inventory,
+                                     register_missing=False):
+    """Materialize a character's authored ``inventory`` onto the world graph.
+
+    One implementation for both import and refresh-to-world (bug-516/task-519),
+    so the two paths cannot disagree about what an inventory entry means:
+
+    - a **string** entry is a library-id reference;
+    - a **dict** entry may carry a stable ``node_id``, a ``library_id`` and
+      per-instance ``properties`` overrides.
+
+    Both go through :func:`engine.library_nodes.library_item_properties`, so
+    ``equip_slots``, ``damage``/``damage_type``, ``defense``, ``insulation``,
+    ``light_level``, ``triggers`` and ``contents`` survive the character path the
+    same way they survive ``place_library_item``. Idempotent: an existing node id
+    is reused, never duplicated.
+
+    Returns ``[(node_id, library_id, name), ...]`` for everything the character
+    carries -- including items that already existed -- so equipped references can
+    be resolved against it.
+    """
+    graph = app.world.graph
+    lib_items = load_registry(app.config['DATA_DIR'], 'items.json')
+    carried = []
+
+    for entry in inventory or []:
+        lib_id = None
+        node_id = None
+        name = None
+        overrides = {}
+        if isinstance(entry, str):
+            lib_id = entry.strip()
+        elif isinstance(entry, dict):
+            lib_id = str(entry.get('library_id') or '').strip()
+            node_id = entry.get('node_id') or None
+            name = entry.get('name') or None
+            if isinstance(entry.get('properties'), dict):
+                overrides = entry['properties']
+        else:
+            continue
+
+        lib_item = lib_items.get(lib_id) if lib_id else None
+        if lib_item is None and lib_id and overrides and register_missing:
+            # Legacy import convenience: a self-contained dict entry whose
+            # library_id is not yet a template registers its inline copy, so a
+            # later refresh can resolve it. Refresh must not mutate the library,
+            # so this only happens on import.
+            entry_data = dict(overrides)
+            entry_data.setdefault('name', name or lib_id)
+            lib_items[lib_id] = entry_data
+            save_registry(app.config['DATA_DIR'], 'items.json', lib_items)
+            lib_item = entry_data
+        if lib_item is None and not overrides:
+            logger.warning("Character '%s' inventory references missing library item '%s'",
+                           player_name, lib_id)
+            continue
+
+        if not node_id:
+            base = (lib_item.get('name') if lib_item else None) or name or lib_id or 'item'
+            node_id = f"item_{player_name}_{base}".lower()
+
+        node = graph.get_node(node_id)
+        if node is None:
+            if lib_item is not None:
+                node_id = _spawn_library_item_node(app, lib_id, lib_item, node_id=node_id)
+                node = graph.get_node(node_id)
+            else:
+                props = dict(overrides)
+                props.setdefault('library_id', lib_id or '')
+                node = Node(id=node_id, type='item', name=name or 'Item', properties=props)
+                graph.add_node(node)
+        if node is not None and overrides:
+            node.properties.update(overrides)
+        if node is not None and name:
+            node.name = name
+
+        _ensure_carrying_edge(graph, node_id, player_node_id)
+        node = graph.get_node(node_id)
+        carried.append((
+            node_id,
+            (node.properties or {}).get('library_id') if node else lib_id,
+            node.name if node else name,
+        ))
+    return carried
+
+
+def _resolve_character_equipped(carried, raw_equipped):
+    """Resolve authored equipped references to runtime node-id strings.
+
+    ``carried`` is :func:`_materialize_character_inventory`'s output. A reference
+    may be an existing node id, a carried inventory node's id, its library id, or
+    its display name -- checked in that order. Anything that does not resolve is
+    dropped, never written through: ``player.equipped[slot]`` must hold node-id
+    strings everywhere it is read (bug-516; engine/equipment.py:205/:265,
+    engine/body_parts.py:260).
+
+    ``__...`` runtime markers (``__multi_slot_<id>``) pass through untouched.
+    """
+    by_node = {}
+    by_lib = {}
+    by_name = {}
+    for node_id, lib_id, name in carried:
+        by_node[str(node_id)] = node_id
+        if lib_id:
+            by_lib.setdefault(str(lib_id), node_id)
+        if name:
+            by_name.setdefault(str(name).strip().lower(), node_id)
+
+    resolved = {}
+    if not isinstance(raw_equipped, dict):
+        return resolved
+    for slot, stack in raw_equipped.items():
+        if not isinstance(stack, list):
+            logger.warning("Equipped slot '%s' is not a list -- ignored", slot)
+            continue
+        out = []
+        for ref in stack:
+            if not ref:
+                continue
+            if isinstance(ref, dict):
+                key = ref.get('node_id') or ref.get('library_id') or ref.get('name')
+            else:
+                key = ref
+            if key is None:
+                continue
+            if str(key).startswith('__'):
+                out.append(key)
+                continue
+            match = (by_node.get(str(key))
+                     or by_lib.get(str(key))
+                     or by_name.get(str(key).strip().lower()))
+            if match:
+                out.append(match)
+            else:
+                logger.warning(
+                    "Equipped slot '%s' references '%s', which is not in inventory -- dropped",
+                    slot, key)
+        resolved[slot] = out
+    return resolved
+
+
 def handle_library_entities(app):
     data_dir = app.config['DATA_DIR']
     result = {}
@@ -376,6 +525,7 @@ def place_library_item(app, item_id, container_id=None, character_id=None,
         "skill_check": lib_item.get('skill_check', {}),
         "equip_slots": lib_item.get('equip_slots', []),
         "tags": tags,
+        "affinity": lib_item.get('affinity', []),
         "current_state": "hidden" if lib_item.get('hidden', False) else lib_item.get('current_state', 'normal'),
         "light_level": lib_item.get('light_level', 'dim'),
         "target_temperature": lib_item.get('target_temperature'),
@@ -387,6 +537,10 @@ def place_library_item(app, item_id, container_id=None, character_id=None,
         "library_id": item_id,
         "image": lib_item.get('image') or None
     }
+    from engine.items.provenance import normalize_provenance
+    provenance = normalize_provenance(lib_item.get('provenance'))
+    if provenance:
+        props["provenance"] = provenance
     graph = app.world.graph
     node = graph.get_node(node_id)
     if not node:
@@ -505,9 +659,6 @@ def handle_library_import_character(app, char_id):
     conditions = cdata.get('conditions')
     if conditions:
         player.load_conditions(conditions)
-    equipped = cdata.get('equipped')
-    if equipped:
-        player.equipped = dict(equipped)
     activity = cdata.get('activity')
     if activity:
         player.activity = activity
@@ -532,99 +683,16 @@ def handle_library_import_character(app, char_id):
         except Exception as e:
             logger.warning(f"Could not place '{player_name}' in area '{target_area}': {e}")
 
-    inventory = cdata.get('inventory', [])
-    if isinstance(inventory, list):
-        lib_items = load_registry(app.config['DATA_DIR'], 'items.json')
-        player_node_id = f"player_{player_name}".replace(' ', '_')
-        for inv_entry in inventory:
-            if isinstance(inv_entry, str):
-                lib_id = inv_entry
-                if lib_id in lib_items:
-                    item_data = lib_items[lib_id].copy()
-                    item_name = item_data.get('name', lib_id)
-                    node_id = f"item_{player_name}_{item_name}"
-                    props = {
-                        "description": item_data.get('description', ''),
-                        "actions": normalize_item_actions(item_data.get('actions', 'examine,take,use')),
-                        "uses": int(item_data.get('uses', -1)),
-                        "weight": float(item_data.get('weight', 0.1)),
-                        "tags": item_data.get('tags', []),
-                        "current_state": "hidden" if item_data.get('hidden', False) else item_data.get('current_state', 'normal'),
-                        "library_id": lib_id,
-                        "image": item_data.get('image') or None
-                    }
-                    node = Node(id=node_id, type='item', name=item_name, properties=props)
-                    app.world.graph.add_node(node)
-                    app.world.graph.add_edge(
-                        Edge(source=node_id, target=player_node_id, type=EDGE_CARRYING)
-                    )
-            elif isinstance(inv_entry, dict):
-                item_name = inv_entry.get('name', 'Item')
-                lib_id = inv_entry.get('library_id') or ''
-                node_id = inv_entry.get('node_id') or f"item_{player_name}_{item_name}_{random.randint(100,999)}"
-                if app.world.graph.get_node(node_id):
-                    node_id = f"item_{player_name}_{item_name}_{random.randint(100,999)}"
-                props = dict(inv_entry.get('properties', {}))
-                props.setdefault('library_id', lib_id)
-                if not props.get('name'):
-                    props['name'] = item_name
-                node = Node(id=node_id, type='item', name=item_name, properties=props)
-                app.world.graph.add_node(node)
-                app.world.graph.add_edge(
-                    Edge(source=node_id, target=player_node_id, type=EDGE_CARRYING)
-                )
-                if lib_id and lib_id not in lib_items:
-                    entry_data = {k: v for k, v in props.items()}
-                    lib_items[lib_id] = entry_data
-                    save_registry(app.config['DATA_DIR'], 'items.json', lib_items)
-
-    equipped = cdata.get('equipped') or {}
-    if isinstance(equipped, dict):
-        resolved = {}
-        for slot, stack in equipped.items():
-            if not isinstance(stack, list):
-                continue
-            resolved_slot = []
-            for entry in stack:
-                if not entry or str(entry).startswith('__'):
-                    resolved_slot.append(entry)
-                    continue
-                name = entry.get('name', entry) if isinstance(entry, dict) else entry
-                node_id = entry.get('node_id') if isinstance(entry, dict) else None
-                if node_id and app.world.graph.get_node(node_id):
-                    resolved_slot.append(node_id)
-                    continue
-                found = None
-                for edge in app.world.graph.get_edges_for_target(player_node_id, EDGE_CARRYING):
-                    n = app.world.graph.get_node(edge.source)
-                    if n and n.name == name:
-                        found = n.id
-                        break
-                if found:
-                    resolved_slot.append(found)
-                elif isinstance(entry, dict):
-                    # Self-contained: if the embedded item def carries properties and
-                    # the node isn't already in the world, materialize it from the
-                    # embedded copy (so a character is portable without item files).
-                    props = entry.get('properties') if isinstance(entry.get('properties'), dict) else None
-                    node_id = entry.get('node_id')
-                    if props and (not node_id or not app.world.graph.get_node(node_id)):
-                        item_name = entry.get('name') or props.get('name') or 'Item'
-                        node_id = entry.get('node_id') or f"item_{player_name}_{item_name}_{random.randint(100,999)}"
-                        if app.world.graph.get_node(node_id):
-                            node_id = f"item_{player_name}_{item_name}_{random.randint(100,999)}"
-                        props2 = dict(props)
-                        props2.setdefault('library_id', entry.get('library_id') or '')
-                        if not props2.get('name'):
-                            props2['name'] = item_name
-                        newnode = Node(id=node_id, type='item', name=item_name, properties=props2)
-                        app.world.graph.add_node(newnode)
-                        app.world.graph.add_edge(Edge(source=node_id, target=player_node_id, type=EDGE_CARRYING))
-                        resolved_slot.append(node_id)
-                        continue
-                    resolved_slot.append(entry.get('node_id') or f"item_{player_name}_{name}")
-            resolved[slot] = resolved_slot
-        player.equipped = resolved
+    # task-519/bug-516: materialize inventory first, then resolve equipped
+    # against what was actually loaded. Both the string (library-id) and dict
+    # forms go through one shared materializer, so nothing is dropped and the
+    # resolved shape is node-id strings.
+    player_node_id = app.world.player_manager.get_player_node_id(player_name) \
+        if getattr(app.world, 'player_manager', None) is not None else Player.node_id_for(player_name)
+    carried = _materialize_character_inventory(
+        app, player_name, player_node_id, cdata.get('inventory', []),
+        register_missing=True)
+    player.equipped = _resolve_character_equipped(carried, cdata.get('equipped') or {})
 
     if make_active:
         app.world.set_active_player(player_name)
@@ -837,10 +905,13 @@ def _refresh_item(app, node, sections, template_id=None):
             'target_temperature': 'target_temperature', 'heating_rate': 'heating_rate',
             'sound_level': 'sound_level', 'sound_pattern': 'sound_pattern',
             'stun_chance': 'stun_chance', 'stun_duration': 'stun_duration',
-            'defense': 'defense', 'damage': 'damage', 'insulation': 'insulation',
+            'defense': 'defense', 'damage': 'damage', 'damage_type': 'damage_type',
+            'insulation': 'insulation',
             'resistances': 'resistances', 'action_costs': 'action_costs',
             'skill_check': 'skill_check', 'contents': 'contents',
-            'aliases': 'aliases', 'tags': 'tags', 'image': 'image',
+            'aliases': 'aliases', 'tags': 'tags', 'affinity': 'affinity',
+            'provenance': 'provenance',
+            'image': 'image',
         }
         if 'name' in sections and 'name' not in locked and lib_item.get('name'):
             node.name = lib_item['name']
@@ -859,6 +930,7 @@ def _refresh_item(app, node, sections, template_id=None):
             "weight": float(lib_item.get('weight', 0.1)),
             "equip_slots": lib_item.get('equip_slots', []),
             "tags": lib_item.get('tags', []),
+            "affinity": lib_item.get('affinity', []),
             "current_state": "hidden" if lib_item.get('hidden', False) else lib_item.get('current_state', 'normal'),
             "light_level": lib_item.get('light_level', 'dim'),
             "target_temperature": lib_item.get('target_temperature'),
@@ -869,6 +941,7 @@ def _refresh_item(app, node, sections, template_id=None):
             "stun_duration": lib_item.get('stun_duration'),
             "defense": lib_item.get('defense', 0),
             "damage": lib_item.get('damage', 0),
+            "damage_type": lib_item.get('damage_type', ''),
             "insulation": lib_item.get('insulation', 0),
             "resistances": lib_item.get('resistances', {}),
             "action_costs": lib_item.get('action_costs', {}),
@@ -877,6 +950,10 @@ def _refresh_item(app, node, sections, template_id=None):
             "aliases": lib_item.get('aliases', []),
             "image": lib_item.get('image') or None,
         }
+        from engine.items.provenance import normalize_provenance
+        provenance = normalize_provenance(lib_item.get('provenance'))
+        if provenance:
+            lib_props["provenance"] = provenance
         if lib_item.get('name'):
             node.name = lib_item['name']
         for key, val in lib_props.items():
@@ -1089,7 +1166,6 @@ def _refresh_character(app, node, sections, template_id=None, entries=None):
         'vitals': ('vitals', 'dict'),
         'decay_rates': ('decay_rates', 'dict'),
         'conditions': ('conditions', 'dict'),
-        'equipped': ('equipped', 'dict'),
         'recent_hearing': ('recent_hearing', 'list'),
         'activity': ('activity', 'scalar'),
         'current_area': ('current_area', 'area'),
@@ -1128,6 +1204,21 @@ def _refresh_character(app, node, sections, template_id=None, entries=None):
         else:
             setattr(player, player_field, value)
 
+    # task-519/bug-516: refresh must never write the raw template `equipped`
+    # shape through. Materialize the authored inventory first (idempotent), then
+    # resolve equipped against it, so runtime equipment is node-id strings
+    # exactly as import produces. Equipment is only touched when the refresh
+    # actually covers it.
+    resolved_equipped = {}
+    touches_equipment = sections is None or 'equipped' in sections or 'inventory' in sections
+    if touches_equipment:
+        player_node_id = app.world.player_manager.get_player_node_id(player) \
+            if getattr(app.world, 'player_manager', None) is not None else node.id
+        carried = _materialize_character_inventory(
+            app, node.name, player_node_id, lib_char.get('inventory') or [])
+        resolved_equipped = _resolve_character_equipped(
+            carried, lib_char.get('equipped') or {})
+
     if sections is None:
         for section_key, target in editable_map.items():
             if isinstance(target, tuple):
@@ -1162,7 +1253,7 @@ def _refresh_character(app, node, sections, template_id=None, entries=None):
             assign(player_field, lib_char[section_key], kind)
         applied = sections
 
-    # task-590: resolve reusable behaviour refs into the inline list the
+# task-590: resolve reusable behaviour refs into the inline list the
     # evaluator reads. `merge_into` is idempotent, so refreshing twice does not
     # double the tree; an unresolvable ref is logged rather than dropped.
     refs = lib_char.get('behavior_refs') or []
@@ -1173,6 +1264,15 @@ def _refresh_character(app, node, sections, template_id=None, entries=None):
             f"Character '{node.name}' (library '{char_id}')", unresolved)
         if warning:
             logger.warning(warning)
+    applies_equipped = sections is None or 'equipped' in sections
+    if applies_equipped and lib_char.get('equipped') is not None:
+        if entries and 'equipped' in entries and (entries['equipped'] or []):
+            # Per-slot merge: only the named slots take the library's (already
+            # resolved) values; every other runtime slot is left untouched.
+            player.equipped = _apply_entry_selection(
+                player.equipped or {}, resolved_equipped, entries['equipped'])
+        else:
+            player.equipped = resolved_equipped
 
     if template_id:
         props['library_id'] = template_id

@@ -15,6 +15,9 @@
     "stone",
     "valuable"
   ],
+  "affinity": [
+    "rocky"
+  ],
   "triggers": [],
   "contents": []
 }

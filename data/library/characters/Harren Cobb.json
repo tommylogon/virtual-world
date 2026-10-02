@@ -59,13 +59,9 @@
   ],
   "interest_tags": [
     "metal",
-    "tools",
-    "goblin_raids",
-    "iron",
-    "repair",
-    "temper",
-    "the_merchant",
-    "the_road"
+    "tool",
+    "hammer",
+    "weapon"
   ],
   "state": "awake",
   "conditions": {

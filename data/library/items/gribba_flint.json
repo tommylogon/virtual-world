@@ -1,0 +1,18 @@
+{
+  "name": "Flint and Striker",
+  "description": "A knapped flint and a scrap of steel, kept dry in a twist of cloth.",
+  "actions": "examine,take,use",
+  "uses": -1,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "tags": [
+    "tool",
+    "kraktooth",
+    "fire",
+    "flint"
+  ],
+  "triggers": [],
+  "contents": [],
+  "_generated_by": "gen_library_items"
+}

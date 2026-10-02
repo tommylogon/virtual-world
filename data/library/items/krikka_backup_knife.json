@@ -1,0 +1,23 @@
+{
+  "name": "Climber's Backup Knife",
+  "description": "A stubby knife wedged where a harness strap hides it from a casual eye.",
+  "actions": "examine,take,equip,unequip",
+  "uses": -1,
+  "weight": 0.3,
+  "equip_slots": [
+    "hand_right"
+  ],
+  "current_state": "normal",
+  "light_level": "dim",
+  "damage": 3,
+  "damage_type": "piercing",
+  "tags": [
+    "weapon",
+    "kraktooth",
+    "knife",
+    "concealed"
+  ],
+  "triggers": [],
+  "contents": [],
+  "_generated_by": "gen_library_items"
+}

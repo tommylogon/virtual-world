@@ -1,0 +1,22 @@
+{
+  "name": "Scrap-Metal Plates",
+  "description": "Plates of salvaged metal riveted onto the vest over heart and ribs.",
+  "actions": "examine,take,equip,unequip",
+  "uses": -1,
+  "weight": 4.0,
+  "equip_slots": [
+    "torso"
+  ],
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 2,
+  "tags": [
+    "armor",
+    "kraktooth",
+    "metal",
+    "scavenged"
+  ],
+  "triggers": [],
+  "contents": [],
+  "_generated_by": "gen_library_items"
+}

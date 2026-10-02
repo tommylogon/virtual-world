@@ -1,0 +1,22 @@
+{
+  "name": "Hooded Cloak",
+  "description": "A weather-stained cloak whose hood can swallow the whole face.",
+  "actions": "examine,take,equip,unequip",
+  "uses": -1,
+  "weight": 1.2,
+  "equip_slots": [
+    "back"
+  ],
+  "current_state": "normal",
+  "light_level": "dim",
+  "insulation": 2,
+  "tags": [
+    "clothing",
+    "kraktooth",
+    "cloak",
+    "hood"
+  ],
+  "triggers": [],
+  "contents": [],
+  "_generated_by": "gen_library_items"
+}

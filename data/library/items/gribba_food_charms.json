@@ -1,0 +1,21 @@
+{
+  "name": "Food Charms",
+  "description": "Little carved tokens strung on sinew, meant to keep a stew from turning.",
+  "actions": "examine,take,equip,unequip",
+  "uses": -1,
+  "weight": 0.1,
+  "equip_slots": [
+    "neck"
+  ],
+  "current_state": "normal",
+  "light_level": "dim",
+  "tags": [
+    "accessory",
+    "kraktooth",
+    "charm",
+    "cooking"
+  ],
+  "triggers": [],
+  "contents": [],
+  "_generated_by": "gen_library_items"
+}

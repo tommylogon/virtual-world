@@ -58,13 +58,12 @@
     "faction:human"
   ],
   "interest_tags": [
-    "livestock",
-    "forest",
-    "traps",
-    "soil",
-    "harvest",
-    "henhouse",
-    "the_farm"
+    "trap",
+    "plant",
+    "vegetation",
+    "ingredient",
+    "tool",
+    "water"
   ],
   "state": "awake",
   "conditions": {

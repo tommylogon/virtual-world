@@ -15,6 +15,10 @@
     "leather",
     "large"
   ],
+  "affinity": [
+    "forest",
+    "woods"
+  ],
   "triggers": [],
   "contents": []
 }

@@ -11,5 +11,9 @@
     "relic",
     "old",
     "forage"
+  ],
+  "affinity": [
+    "forest",
+    "woods"
   ]
 }

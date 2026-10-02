@@ -50,9 +50,9 @@
     "raven"
   ],
   "interest_tags": [
-    "food_scraps",
-    "messages",
-    "camp"
+    "food",
+    "meat",
+    "bone"
   ],
   "state": "awake",
   "conditions": {

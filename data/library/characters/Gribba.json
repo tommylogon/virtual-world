@@ -52,8 +52,9 @@
   ],
   "interest_tags": [
     "food",
-    "mushrooms",
-    "debts"
+    "mushroom",
+    "herb",
+    "knife"
   ],
   "state": "awake",
   "conditions": {
@@ -65,10 +66,43 @@
       }
     ]
   },
-  "equipped": {},
+  "equipped": {
+    "torso": [
+      "gribba_leather_clothes",
+      "gribba_butchers_apron"
+    ],
+    "head": [
+      "gribba_head_wrap"
+    ],
+    "arms": [
+      "gribba_forearm_guards"
+    ],
+    "hand_right": [
+      "gribba_butchers_knife"
+    ],
+    "neck": [
+      "gribba_food_charms"
+    ],
+    "waist": [
+      "kraktooth_belt"
+    ]
+  },
   "activity": null,
   "current_area": "area_cooking_area",
-  "inventory": [],
+  "inventory": [
+    "kraktooth_belt",
+    "gribba_leather_clothes",
+    "gribba_butchers_apron",
+    "gribba_head_wrap",
+    "gribba_forearm_guards",
+    "gribba_butchers_knife",
+    "gribba_meat_hook",
+    "gribba_cooking_spoon",
+    "gribba_flint",
+    "gribba_herbs",
+    "gribbas_good_knife",
+    "gribba_food_charms"
+  ],
   "emotion": {
     "current": "neutral",
     "description": "",

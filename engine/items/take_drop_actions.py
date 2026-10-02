@@ -753,6 +753,13 @@ class TakeDropActionsMixin:
             player_manager.apply_action("take", item_node.properties.get("action_costs", {}).get("take", {}), player=player_manager.player)
 
         area_name = player_manager.current_area.name if player_manager.current_area else None
+        # task-514: an item taken out of a container gains the story of where it
+        # was found (only when it had none already -- a richer existing record,
+        # e.g. a theft, is not overwritten by a later move).
+        if was_in_container and container_name and not item_node.properties.get("provenance"):
+            from engine.items.provenance import stamp_provenance
+            stamp_provenance(item_node, text=f"Taken from the {container_name}.",
+                             source=container_name, area=area_name)
         if spatial_relation and spatial_surface_name:
             prep = {EDGE_ON: "off", EDGE_UNDER: "from under", EDGE_BEHIND: "from behind", EDGE_BESIDE: "from beside", EDGE_AT: "from near"}.get(spatial_relation, "from")
             source = f" {prep} the {spatial_surface_name}"

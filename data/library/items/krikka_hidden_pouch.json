@@ -1,0 +1,22 @@
+{
+  "name": "Hidden Pouch",
+  "description": "A flat pouch sewn against the inside of the belt, invisible under a wrap.",
+  "actions": "examine,take,equip,unequip",
+  "uses": -1,
+  "weight": 0.2,
+  "equip_slots": [
+    "waist"
+  ],
+  "current_state": "normal",
+  "light_level": "dim",
+  "tags": [
+    "accessory",
+    "kraktooth",
+    "container",
+    "pouch",
+    "concealed"
+  ],
+  "triggers": [],
+  "contents": [],
+  "_generated_by": "gen_library_items"
+}

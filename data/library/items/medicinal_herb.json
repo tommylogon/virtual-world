@@ -10,5 +10,9 @@
     "medicinal",
     "plant",
     "forage"
+  ],
+  "affinity": [
+    "forest",
+    "woods"
   ]
 }

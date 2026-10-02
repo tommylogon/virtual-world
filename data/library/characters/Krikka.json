@@ -53,7 +53,8 @@
   "interest_tags": [
     "shiny",
     "climbing",
-    "secrets"
+    "secret",
+    "climb"
   ],
   "state": "awake",
   "conditions": {
@@ -65,10 +66,39 @@
       }
     ]
   },
-  "equipped": {},
+  "equipped": {
+    "torso": [
+      "krikka_fitted_leather"
+    ],
+    "hands": [
+      "krikka_reinforced_palms"
+    ],
+    "legs": [
+      "krikka_climbing_guards"
+    ],
+    "hand_right": [
+      "krikka_hooked_blade"
+    ],
+    "waist": [
+      "krikka_hidden_pouch"
+    ]
+  },
   "activity": null,
   "current_area": "area_scrap_pile",
-  "inventory": [],
+  "inventory": [
+    "kraktooth_belt",
+    "kraktooth_rope",
+    "krikka_fitted_leather",
+    "krikka_reinforced_palms",
+    "krikka_climbing_guards",
+    "krikka_hooked_blade",
+    "krikka_backup_knife",
+    "krikka_climbing_rope",
+    "krikka_harness",
+    "krikka_resin",
+    "krikka_hidden_pouch",
+    "krikka_shiny_stones"
+  ],
   "emotion": {
     "current": "neutral",
     "description": "",

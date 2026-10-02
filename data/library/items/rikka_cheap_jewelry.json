@@ -1,0 +1,20 @@
+{
+  "name": "Cheap Jewelry",
+  "description": "A fistful of bright, worthless jewelry, chosen for how it catches firelight.",
+  "actions": "examine,take,equip,unequip",
+  "uses": -1,
+  "weight": 0.2,
+  "equip_slots": [
+    "accessory"
+  ],
+  "current_state": "normal",
+  "light_level": "dim",
+  "tags": [
+    "accessory",
+    "kraktooth",
+    "jewelry"
+  ],
+  "triggers": [],
+  "contents": [],
+  "_generated_by": "gen_library_items"
+}

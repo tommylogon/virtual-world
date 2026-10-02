@@ -15,6 +15,9 @@
     "art",
     "monument"
   ],
+  "affinity": [
+    "rocky"
+  ],
   "triggers": [],
   "contents": []
 }

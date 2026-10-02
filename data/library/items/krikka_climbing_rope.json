@@ -1,0 +1,18 @@
+{
+  "name": "Climbing Rope",
+  "description": "A long rope knotted at intervals, each knot tested by somebody who survived it.",
+  "actions": "examine,take,use",
+  "uses": -1,
+  "weight": 2.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "tags": [
+    "tool",
+    "kraktooth",
+    "rope",
+    "climb"
+  ],
+  "triggers": [],
+  "contents": [],
+  "_generated_by": "gen_library_items"
+}

@@ -15,6 +15,11 @@
     "hazard",
     "root"
   ],
+  "affinity": [
+    "forest",
+    "woods",
+    "farmland"
+  ],
   "triggers": [],
   "contents": []
 }

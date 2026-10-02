@@ -1,0 +1,17 @@
+{
+  "name": "Whetstone",
+  "description": "A palm-sized grey stone, hollowed in the middle by years of sharpening.",
+  "actions": "examine,take,use",
+  "uses": -1,
+  "weight": 0.6,
+  "current_state": "normal",
+  "light_level": "dim",
+  "tags": [
+    "tool",
+    "kraktooth",
+    "sharpening"
+  ],
+  "triggers": [],
+  "contents": [],
+  "_generated_by": "gen_library_items"
+}

@@ -15,6 +15,9 @@
     "stone",
     "hazard"
   ],
+  "affinity": [
+    "rocky"
+  ],
   "triggers": [],
   "contents": []
 }

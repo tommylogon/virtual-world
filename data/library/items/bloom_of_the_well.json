@@ -16,6 +16,10 @@
     "plant",
     "elven"
   ],
+  "affinity": [
+    "forest",
+    "woods"
+  ],
   "triggers": [
     {
       "trigger_type": [

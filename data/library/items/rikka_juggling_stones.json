@@ -1,0 +1,18 @@
+{
+  "name": "Juggling Stones",
+  "description": "A set of smooth stones matched by weight, their surfaces polished by catching.",
+  "actions": "examine,take,use",
+  "uses": -1,
+  "weight": 0.8,
+  "current_state": "normal",
+  "light_level": "dim",
+  "tags": [
+    "tool",
+    "kraktooth",
+    "performer",
+    "juggling"
+  ],
+  "triggers": [],
+  "contents": [],
+  "_generated_by": "gen_library_items"
+}

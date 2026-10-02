@@ -14,6 +14,11 @@
     "brewing",
     "crop"
   ],
+  "affinity": [
+    "forest",
+    "woods",
+    "farmland"
+  ],
   "triggers": [],
   "contents": []
 }

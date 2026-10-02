@@ -17,6 +17,11 @@
     "crop",
     "fibre"
   ],
+  "affinity": [
+    "forest",
+    "woods",
+    "farmland"
+  ],
   "triggers": [],
   "contents": [],
   "quantity": 2,

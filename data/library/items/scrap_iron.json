@@ -10,5 +10,10 @@
     "junk",
     "metal",
     "forage"
+  ],
+  "affinity": [
+    "forest",
+    "woods",
+    "ruin"
   ]
 }

@@ -51,9 +51,9 @@
     "fighter"
   ],
   "interest_tags": [
-    "weapons",
-    "training",
-    "prestige"
+    "weapon",
+    "trophy",
+    "armor"
   ],
   "state": "awake",
   "conditions": {
@@ -65,10 +65,48 @@
       }
     ]
   },
-  "equipped": {},
+  "equipped": {
+    "torso": [
+      "zikka_patchwork_vest"
+    ],
+    "legs": [
+      "zikka_leather_leg_wraps"
+    ],
+    "arms": [
+      "zikka_shoulder_plate"
+    ],
+    "feet": [
+      "zikka_heavy_boots"
+    ],
+    "hand_right": [
+      "zikka_cleaver"
+    ],
+    "neck": [
+      "zikka_bone_necklace"
+    ],
+    "waist": [
+      "kraktooth_belt"
+    ],
+    "accessory": [
+      "zikka_trophy_tags"
+    ]
+  },
   "activity": null,
   "current_area": "area_training_pit",
-  "inventory": [],
+  "inventory": [
+    "kraktooth_belt",
+    "kraktooth_metal_scrap",
+    "zikka_patchwork_vest",
+    "zikka_leather_leg_wraps",
+    "zikka_shoulder_plate",
+    "zikka_heavy_boots",
+    "zikka_cleaver",
+    "zikka_hooked_knife",
+    "zikka_backup_knife",
+    "zikka_whetstone",
+    "zikka_bone_necklace",
+    "zikka_trophy_tags"
+  ],
   "emotion": {
     "current": "neutral",
     "description": "",

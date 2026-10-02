@@ -52,8 +52,9 @@
   ],
   "interest_tags": [
     "scrap",
-    "tools",
-    "mechanisms"
+    "tool",
+    "mechanism",
+    "metal"
   ],
   "state": "awake",
   "conditions": {
@@ -65,10 +66,43 @@
       }
     ]
   },
-  "equipped": {},
+  "equipped": {
+    "torso": [
+      "mikka_work_vest",
+      "mikka_scrap_plates"
+    ],
+    "legs": [
+      "mikka_work_trousers"
+    ],
+    "hands": [
+      "mikka_fingerless_gloves"
+    ],
+    "hand_right": [
+      "mikka_prybar_dagger"
+    ],
+    "waist": [
+      "kraktooth_pouch"
+    ],
+    "accessory": [
+      "mikka_copper_earrings"
+    ]
+  },
   "activity": null,
   "current_area": "area_workshop",
-  "inventory": [],
+  "inventory": [
+    "kraktooth_pouch",
+    "mikka_work_vest",
+    "mikka_work_trousers",
+    "mikka_fingerless_gloves",
+    "mikka_scrap_plates",
+    "mikka_prybar_dagger",
+    "mikka_hammer",
+    "mikka_pliers",
+    "mikka_wrench",
+    "mikka_lockpicks",
+    "mikka_copper_earrings",
+    "mikka_gears"
+  ],
   "emotion": {
     "current": "neutral",
     "description": "",

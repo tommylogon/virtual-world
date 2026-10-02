@@ -1,0 +1,23 @@
+{
+  "name": "Short Goblin Cleaver",
+  "description": "A short, heavy cleaver with a chipped edge and a grip wrapped in old cord.",
+  "actions": "examine,take,equip,unequip",
+  "uses": -1,
+  "weight": 2.0,
+  "equip_slots": [
+    "hand_right"
+  ],
+  "current_state": "normal",
+  "light_level": "dim",
+  "damage": 6,
+  "damage_type": "slashing",
+  "tags": [
+    "weapon",
+    "kraktooth",
+    "knife",
+    "cleaver"
+  ],
+  "triggers": [],
+  "contents": [],
+  "_generated_by": "gen_library_items"
+}

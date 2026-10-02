@@ -253,7 +253,15 @@ def is_exposed(player, region_id, graph, threshold=COVERAGE_EXPOSED_THRESHOLD):
     slots = coverage_slots(region_id)
     for slot in slots:
         stack = (player.equipped or {}).get(slot) or []
-        outer_ids = [i for i in stack if i and not str(i).startswith("__multi_slot")]
+        # bug-516: an equipped slot must hold node-id strings, but a refresh that
+        # wrote a raw template value used to put dicts here, and `get_node` then
+        # raised TypeError (unhashable dict) and took down GET /api/state. Skip
+        # anything that is not a string the same way the `__multi_slot_` markers
+        # are skipped -- the malformed entry is not a covering item, not a crash.
+        outer_ids = [
+            i for i in stack
+            if isinstance(i, str) and i and not i.startswith("__multi_slot")
+        ]
         if not outer_ids:
             continue
         outer_id = outer_ids[-1]

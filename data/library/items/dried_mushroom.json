@@ -15,6 +15,11 @@
     "preserve",
     "mushroom"
   ],
+  "affinity": [
+    "forest",
+    "woods",
+    "dense"
+  ],
   "triggers": [
     {
       "trigger_type": [

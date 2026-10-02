@@ -1,0 +1,22 @@
+{
+  "name": "Scavenged Shoulder Plate",
+  "description": "A curved plate of stolen human metal strapped over one shoulder.",
+  "actions": "examine,take,equip,unequip",
+  "uses": -1,
+  "weight": 3.0,
+  "equip_slots": [
+    "arms"
+  ],
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 2,
+  "tags": [
+    "armor",
+    "kraktooth",
+    "metal",
+    "scavenged"
+  ],
+  "triggers": [],
+  "contents": [],
+  "_generated_by": "gen_library_items"
+}

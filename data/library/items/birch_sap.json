@@ -16,6 +16,10 @@
     "plant",
     "tree"
   ],
+  "affinity": [
+    "forest",
+    "woods"
+  ],
   "triggers": [
     {
       "trigger_type": [

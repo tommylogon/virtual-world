@@ -37,12 +37,10 @@
   ],
   "interest_tags": [
     "mechanism",
-    "monsters",
-    "maps",
-    "goblins",
-    "camp",
-    "the_squire",
-    "faeon"
+    "map",
+    "weapon",
+    "armor",
+    "food"
   ],
   "relationships": {
     "Kiala": {

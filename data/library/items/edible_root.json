@@ -1,33 +1,38 @@
 {
- "name": "edible_root",
- "description": "a knotted root, pale under the dirt. filling, if plain.",
- "actions": "examine,take,drop,eat",
- "uses": -1,
- "weight": 0.3,
- "current_state": "normal",
- "tags": [
-  "root",
-  "food",
-  "forage"
- ],
- "triggers": [
-  {
-   "trigger_type": "on_eat",
-   "effects": [
+  "name": "edible_root",
+  "description": "a knotted root, pale under the dirt. filling, if plain.",
+  "actions": "examine,take,drop,eat",
+  "uses": -1,
+  "weight": 0.3,
+  "current_state": "normal",
+  "tags": [
+    "root",
+    "food",
+    "forage"
+  ],
+  "affinity": [
+    "forest",
+    "woods",
+    "farmland"
+  ],
+  "triggers": [
     {
-     "type": "adjust_vital",
-     "params": {
-      "stat": "Hunger",
-      "amount": -45,
-      "target": "self"
-     }
+      "trigger_type": "on_eat",
+      "effects": [
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Hunger",
+            "amount": -45,
+            "target": "self"
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
     }
-   ],
-   "target_name": "",
-   "target_state": "",
-   "conditions": {},
-   "success_message": "",
-   "fail_message": ""
-  }
- ]
+  ]
 }

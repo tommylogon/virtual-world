@@ -51,9 +51,10 @@
     "entertainer"
   ],
   "interest_tags": [
-    "attention",
-    "jokes",
-    "chaos"
+    "clothing",
+    "jewelry",
+    "music",
+    "toy"
   ],
   "state": "awake",
   "conditions": {
@@ -65,10 +66,37 @@
       }
     ]
   },
-  "equipped": {},
+  "equipped": {
+    "torso": [
+      "rikka_asymmetric_wrap",
+      "rikka_light_leather"
+    ],
+    "hand_right": [
+      "rikka_performance_stick"
+    ],
+    "waist": [
+      "kraktooth_pouch"
+    ],
+    "accessory": [
+      "rikka_bells",
+      "rikka_cheap_jewelry"
+    ]
+  },
   "activity": null,
   "current_area": "area_chiefs_pit",
-  "inventory": [],
+  "inventory": [
+    "kraktooth_pouch",
+    "rikka_asymmetric_wrap",
+    "rikka_light_leather",
+    "rikka_throwing_knives",
+    "rikka_performance_stick",
+    "rikka_juggling_stones",
+    "rikka_string_puppet",
+    "rikka_little_drum",
+    "rikka_bells",
+    "rikka_beads",
+    "rikka_cheap_jewelry"
+  ],
   "emotion": {
     "current": "neutral",
     "description": "",

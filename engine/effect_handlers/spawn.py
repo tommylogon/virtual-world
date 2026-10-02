@@ -176,6 +176,16 @@ def handle_give_item(self, params, context, item_node=None, game_state=None):
     if params.get("current_state") and node is not None:
         node.properties["current_state"] = params["current_state"]
 
+    # task-514: a give_item effect may record how the recipient acquired it.
+    from engine.items.provenance import normalize_provenance, stamp_provenance
+    if params.get("provenance") is not None:
+        provenance = normalize_provenance(params["provenance"])
+        if provenance:
+            node.properties["provenance"] = provenance
+    elif params.get("source"):
+        stamp_provenance(node, text=f"Acquired from {params['source']}.",
+                         source=str(params["source"]))
+
     item_weight = float(node.properties.get("weight", 0) or 0)
     cap_error = self._check_target_capacity(game_state, pname, player_node_id, item_weight)
     if cap_error:

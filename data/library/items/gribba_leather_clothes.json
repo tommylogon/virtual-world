@@ -1,0 +1,20 @@
+{
+  "name": "Loose Leather Clothes",
+  "description": "Loose leather clothing cut for long hours over a fire, not for running.",
+  "actions": "examine,take,equip,unequip",
+  "uses": -1,
+  "weight": 1.8,
+  "equip_slots": [
+    "torso"
+  ],
+  "current_state": "normal",
+  "light_level": "dim",
+  "tags": [
+    "clothing",
+    "kraktooth",
+    "leather"
+  ],
+  "triggers": [],
+  "contents": [],
+  "_generated_by": "gen_library_items"
+}

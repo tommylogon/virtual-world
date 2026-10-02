@@ -15,6 +15,10 @@
     "preserve",
     "forage"
   ],
+  "affinity": [
+    "forest",
+    "woods"
+  ],
   "triggers": [
     {
       "trigger_type": [

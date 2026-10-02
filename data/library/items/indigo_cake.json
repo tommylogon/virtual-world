@@ -14,6 +14,10 @@
     "dye",
     "alchemical"
   ],
+  "affinity": [
+    "forest",
+    "woods"
+  ],
   "triggers": [],
   "contents": []
 }

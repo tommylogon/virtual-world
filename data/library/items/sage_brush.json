@@ -12,6 +12,10 @@
   "tags": [
     "herb"
   ],
+  "affinity": [
+    "forest",
+    "woods"
+  ],
   "triggers": [],
   "contents": []
 }

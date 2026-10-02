@@ -10,5 +10,10 @@
     "debris",
     "wood",
     "forage"
+  ],
+  "affinity": [
+    "forest",
+    "woods",
+    "ruin"
   ]
 }

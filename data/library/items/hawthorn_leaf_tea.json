@@ -15,6 +15,10 @@
     "tea",
     "medicinal"
   ],
+  "affinity": [
+    "forest",
+    "woods"
+  ],
   "triggers": [],
   "contents": []
 }

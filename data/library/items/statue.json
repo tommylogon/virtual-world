@@ -14,6 +14,9 @@
     "stone",
     "art"
   ],
+  "affinity": [
+    "rocky"
+  ],
   "triggers": [],
   "contents": []
 }

@@ -1,0 +1,18 @@
+{
+  "name": "Meat Hook",
+  "description": "A heavy iron hook, its point honed and its grip wrapped in cord.",
+  "actions": "examine,take,use",
+  "uses": -1,
+  "weight": 1.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "tags": [
+    "tool",
+    "kraktooth",
+    "hook",
+    "cooking"
+  ],
+  "triggers": [],
+  "contents": [],
+  "_generated_by": "gen_library_items"
+}

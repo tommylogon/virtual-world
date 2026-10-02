@@ -1,0 +1,17 @@
+{
+  "name": "Goblin Hammer",
+  "description": "A chipped hammer that has opened more locks than it has driven nails.",
+  "actions": "examine,take,use",
+  "uses": -1,
+  "weight": 1.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "tags": [
+    "tool",
+    "kraktooth",
+    "hammer"
+  ],
+  "triggers": [],
+  "contents": [],
+  "_generated_by": "gen_library_items"
+}

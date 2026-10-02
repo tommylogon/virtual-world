@@ -1,0 +1,20 @@
+{
+  "name": "Trophy Tags",
+  "description": "A jingling cluster of tags, teeth and buckles taken from the fallen.",
+  "actions": "examine,take,equip,unequip",
+  "uses": -1,
+  "weight": 0.2,
+  "equip_slots": [
+    "accessory"
+  ],
+  "current_state": "normal",
+  "light_level": "dim",
+  "tags": [
+    "accessory",
+    "kraktooth",
+    "trophy"
+  ],
+  "triggers": [],
+  "contents": [],
+  "_generated_by": "gen_library_items"
+}

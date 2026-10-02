@@ -1,0 +1,17 @@
+{
+  "name": "Bone Offcuts",
+  "description": "Knuckles, splinters and offcuts saved from every kill for tools and charms.",
+  "actions": "examine,take",
+  "uses": -1,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "tags": [
+    "material",
+    "kraktooth",
+    "bone"
+  ],
+  "triggers": [],
+  "contents": [],
+  "_generated_by": "gen_library_items"
+}

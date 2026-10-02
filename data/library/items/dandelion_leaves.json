@@ -15,6 +15,11 @@
     "vegetable",
     "forage"
   ],
+  "affinity": [
+    "forest",
+    "woods",
+    "farmland"
+  ],
   "triggers": [
     {
       "trigger_type": [

@@ -51,9 +51,10 @@
     "scout"
   ],
   "interest_tags": [
-    "maps",
-    "routes",
-    "secrets"
+    "map",
+    "secret",
+    "rope",
+    "tool"
   ],
   "state": "awake",
   "conditions": {
@@ -65,10 +66,38 @@
       }
     ]
   },
-  "equipped": {},
+  "equipped": {
+    "torso": [
+      "vekka_layered_leather"
+    ],
+    "back": [
+      "vekka_hooded_cloak"
+    ],
+    "arms": [
+      "vekka_thin_guards"
+    ],
+    "hand_right": [
+      "vekka_curved_knife"
+    ],
+    "waist": [
+      "kraktooth_belt"
+    ]
+  },
   "activity": null,
   "current_area": "area_scouting_rooms",
-  "inventory": [],
+  "inventory": [
+    "kraktooth_belt",
+    "kraktooth_rope",
+    "vekka_layered_leather",
+    "vekka_hooded_cloak",
+    "vekka_thin_guards",
+    "vekka_hunting_bow",
+    "vekka_curved_knife",
+    "vekka_small_mirror",
+    "vekka_folded_map",
+    "vekka_charcoal",
+    "vekka_found_stones"
+  ],
   "emotion": {
     "current": "neutral",
     "description": "",

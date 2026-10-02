@@ -1,0 +1,20 @@
+{
+  "name": "Cloth Head Wrap",
+  "description": "A strip of clean cloth wound over the brow to keep sweat and hair from the pot.",
+  "actions": "examine,take,equip,unequip",
+  "uses": -1,
+  "weight": 0.1,
+  "equip_slots": [
+    "head"
+  ],
+  "current_state": "normal",
+  "light_level": "dim",
+  "tags": [
+    "clothing",
+    "kraktooth",
+    "cloth"
+  ],
+  "triggers": [],
+  "contents": [],
+  "_generated_by": "gen_library_items"
+}

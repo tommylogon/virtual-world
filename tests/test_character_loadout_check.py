@@ -133,6 +133,41 @@ def test_clean_character_produces_nothing():
     assert _check(data) == []
 
 
+# ─────────────────── template-aware resolution (string refs) ─────────────────
+
+
+def _check_with_templates(data, templates):
+    return clc.check_character(Path(f"{data['name']}.json"), data, templates)
+
+
+def test_string_inventory_ref_equipped_by_library_id_is_accepted():
+    """The canonical authored shape: inventory is a library-id ref and equipped
+    names it, resolved against the template's equip_slots."""
+    data = _char(equipped={"hand_right": ["goblin_cleaver"]},
+                 inventory=["goblin_cleaver"])
+    templates = {"goblin_cleaver": {"name": "Goblin Cleaver",
+                                    "equip_slots": ["hand_right"]}}
+    assert _check_with_templates(data, templates) == []
+
+
+def test_library_id_equipped_into_an_undeclared_slot_is_flagged():
+    data = _char(equipped={"torso": ["goblin_cleaver"]},
+                 inventory=["goblin_cleaver"])
+    templates = {"goblin_cleaver": {"name": "Goblin Cleaver",
+                                    "equip_slots": ["hand_right"]}}
+    ids = {cid for cid, _ in _check_with_templates(data, templates)}
+    assert "slot_not_declared" in ids
+
+
+def test_library_id_entry_without_inline_properties_does_not_warn():
+    """A library-id-backed entry takes its props from the template, so absent
+    inline `properties` is not a defect while the id resolves."""
+    data = _char(inventory=[{"library_id": "scavenged_plate", "node_id": "item_x"}])
+    templates = {"scavenged_plate": {"name": "Plate", "equip_slots": ["torso"]}}
+    ids = {cid for cid, _ in _check_with_templates(data, templates)}
+    assert "missing_properties" not in ids
+
+
 # ─────────────────────────────── the tool itself ─────────────────────────────
 
 

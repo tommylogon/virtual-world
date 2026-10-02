@@ -1,0 +1,17 @@
+{
+  "name": "Bent Iron Hooks",
+  "description": "A bundle of hand-bent iron hooks, good for climbing, hanging meat or prying.",
+  "actions": "examine,take,use",
+  "uses": -1,
+  "weight": 0.8,
+  "current_state": "normal",
+  "light_level": "dim",
+  "tags": [
+    "tool",
+    "kraktooth",
+    "climb"
+  ],
+  "triggers": [],
+  "contents": [],
+  "_generated_by": "gen_library_items"
+}

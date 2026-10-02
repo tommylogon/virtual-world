@@ -25,6 +25,10 @@
     "forage",
     "resource_pool"
   ],
+  "affinity": [
+    "forest",
+    "woods"
+  ],
   "triggers": [],
   "contents": []
 }

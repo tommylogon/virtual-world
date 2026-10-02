@@ -15,6 +15,9 @@
     "machine",
     "heavy"
   ],
+  "affinity": [
+    "rocky"
+  ],
   "triggers": [],
   "contents": []
 }

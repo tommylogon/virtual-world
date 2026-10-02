@@ -14,6 +14,10 @@
     "nut",
     "fence"
   ],
+  "affinity": [
+    "forest",
+    "woods"
+  ],
   "triggers": [],
   "contents": []
 }

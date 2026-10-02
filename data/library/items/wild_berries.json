@@ -1,34 +1,38 @@
 {
- "name": "wild_berries",
- "description": "a handful of small dark berries, bitter but edible.",
- "actions": "examine,take,drop,eat",
- "uses": -1,
- "weight": 0.1,
- "current_state": "normal",
- "tags": [
-  "berry",
-  "fruit",
-  "food",
-  "forage"
- ],
- "triggers": [
-  {
-   "trigger_type": "on_eat",
-   "effects": [
+  "name": "wild_berries",
+  "description": "a handful of small dark berries, bitter but edible.",
+  "actions": "examine,take,drop,eat",
+  "uses": -1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "tags": [
+    "berry",
+    "fruit",
+    "food",
+    "forage"
+  ],
+  "affinity": [
+    "forest",
+    "woods"
+  ],
+  "triggers": [
     {
-     "type": "adjust_vital",
-     "params": {
-      "stat": "Hunger",
-      "amount": -45,
-      "target": "self"
-     }
+      "trigger_type": "on_eat",
+      "effects": [
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Hunger",
+            "amount": -45,
+            "target": "self"
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
     }
-   ],
-   "target_name": "",
-   "target_state": "",
-   "conditions": {},
-   "success_message": "",
-   "fail_message": ""
-  }
- ]
+  ]
 }

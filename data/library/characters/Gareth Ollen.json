@@ -58,13 +58,11 @@
     "faction:human"
   ],
   "interest_tags": [
-    "people",
     "trade",
-    "goblins",
-    "harvest",
-    "the_roads",
-    "decision",
-    "burial"
+    "coin",
+    "currency",
+    "food",
+    "tool"
   ],
   "state": "awake",
   "conditions": {

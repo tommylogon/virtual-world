@@ -13,6 +13,9 @@
     "material",
     "stone"
   ],
+  "affinity": [
+    "rocky"
+  ],
   "triggers": [],
   "contents": []
 }

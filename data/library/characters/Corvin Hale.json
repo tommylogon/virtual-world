@@ -58,13 +58,10 @@
     "faction:human"
   ],
   "interest_tags": [
-    "the_road",
-    "patrols",
-    "goblins",
-    "discipline",
-    "the_trail",
-    "orders",
-    "the_elder"
+    "weapon",
+    "armor",
+    "road",
+    "map"
   ],
   "state": "awake",
   "conditions": {

@@ -16,6 +16,10 @@
     "fibre",
     "material"
   ],
+  "affinity": [
+    "forest",
+    "woods"
+  ],
   "triggers": [],
   "contents": []
 }

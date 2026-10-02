@@ -15,6 +15,9 @@
     "farming",
     "store"
   ],
+  "affinity": [
+    "farmland"
+  ],
   "triggers": [],
   "contents": []
 }

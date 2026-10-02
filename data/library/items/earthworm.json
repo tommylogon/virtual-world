@@ -16,6 +16,11 @@
     "fishing",
     "fodder"
   ],
+  "affinity": [
+    "forest",
+    "woods",
+    "dense"
+  ],
   "triggers": [
     {
       "trigger_type": [
