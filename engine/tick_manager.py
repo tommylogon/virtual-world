@@ -1316,6 +1316,100 @@ class TickManager:
         sign = "+" if energy_restored >= 0 else ""
         return f"You rest for {actual_minutes} minutes{' on ' + target_item_name if target_item_name else ''}. Energy restored: {sign}{energy_restored}%. Current Energy: {final_energy}%."
 
+    def _release_gate(self, p, stim):
+        """Can this character's build actually release? task-488.
+
+        Returns ``(allowed, reason)``. For everyone without the trait this is
+        ``(True, "")`` — the ordinary cascade is untouched, which is the property
+        the task asks for and the reason this is a gate rather than a branch
+        inside the cascade.
+
+        `single_track` names one designated route and refuses every other one.
+        The designated route lives in the trait's params (the trait already has a
+        `params` field, so this adds no new field on the character). Absent a
+        designated route the trait cannot gate anything — and rather than
+        inventing one, the trait is inert, because "single track" with no track
+        named is not a rule an engine can execute.
+        """
+        try:
+            from engine.traits import TraitSystem
+        except Exception:
+            return True, ""
+        if not TraitSystem.has_effect(p, "single_track"):
+            return True, ""
+        designated = self._single_track_designated(p)
+        if not designated:
+            return True, ""
+        share = p.stimulation_from_path(designated) if \
+            hasattr(p, "stimulation_from_path") else 0.0
+        if share > 0:
+            return True, ""
+        last = getattr(p, "stimulation_last_path", None)
+        return False, f"only {designated} releases for you"
+
+    @staticmethod
+    def _single_track_designated(p) -> str:
+        """The one route this character's `single_track` releases through.
+
+        Read from the trait params, where task-545's path key already lives, and
+        matched against the *recorded* keys so a trait can name a region id, an
+        ancestor region (``genitals`` covers ``genitals_inner`` through
+        ``region_chain``), or a non-interactive source. An exact match wins over
+        an ancestor match, so naming the precise route is worth doing.
+        """
+        from engine.traits import TRAIT_DEFINITIONS, TraitSystem
+
+        for trait_id, params in (getattr(p, "traits", None) or {}).items():
+            definition = TRAIT_DEFINITIONS.get(trait_id) or {}
+            if not (definition.get("effects") or {}).get("single_track"):
+                continue
+            if not isinstance(params, dict):
+                params = {}
+            named = (params.get("path") or params.get("region")
+                     or params.get("route"))
+            if not named:
+                return ""
+            named = str(named).strip().lower()
+            recorded = set(getattr(p, "stimulation_paths", None) or {})
+            if named in recorded:
+                return named
+            # An ancestor route counts: naming `torso` should cover a record under
+            # `genitals`, because `region_chain` walks that region up through its
+            # parents. The test is `named in chain(recorded_key)` — checking the
+            # key against its *own* chain would be true for every key and would
+            # match the very first recorded path no matter what was named, which
+            # made the gate a no-op that released everything.
+            try:
+                from engine.body_parts import region_chain
+                for key in sorted(recorded):
+                    if named in set(region_chain(key) or [key]):
+                        return key
+            except Exception:
+                pass
+            return named
+        return ""
+
+    def _build_frustration(self, p, pname, stim, reason):
+        """task-546: a build that cannot release accumulates frustration.
+
+        A condition rather than a vital, mirroring `sensitized`: it needs no
+        serializer change, it is visible in the existing condition/perception
+        pipeline, and it gets the same free disposal by duration. `stack:
+        accumulate` is what makes it a *build* rather than a flag.
+
+        Deliberately **does not block release on its own.** The gate above is
+        `single_track` and only `single_track`; frustration is the visible
+        consequence of a blocked build, not a second, invisible gate that would
+        change the cascade for every character in every world.
+        """
+        if not hasattr(p, "add_condition"):
+            return False
+        p.add_condition("frustrated", duration=15)
+        if pname == self.player_manager.active_player:
+            self.player_manager.add_log_entry(
+                "The tension has nowhere to go — frustration settles in.")
+        return True
+
     def _pleasure_tick(self, p, pname):
         """task-207/208: per-tick pleasure-system maintenance.
 
@@ -1351,7 +1445,18 @@ class TickManager:
         if friction_sum > 0:
             trickle = max(0, min(3, round(friction_sum)))
             if trickle:
-                vitals["Arousal"] = min(100, vitals.get("Arousal", 0) + trickle)
+                before_arousal = vitals.get("Arousal", 0)
+                vitals["Arousal"] = min(100, before_arousal + trickle)
+                # task-545: friction is not a *path*. It has no region and no
+                # verb, so it is filed under its own source key — which is what
+                # lets a path-gated effect (task-488) tell "you were touched
+                # somewhere else" apart from "nobody touched you, your clothes
+                # did it".
+                actual = vitals.get("Arousal", 0) - before_arousal
+                if actual > 0 and hasattr(p, "record_stimulation_path"):
+                    p.record_stimulation_path(
+                        p.stimulation_path_key(source="clothing_friction"),
+                        actual)
 
         # ── Edging (task-208): 50 <= Stimulation < 65 ──
         stim = vitals.get("Stimulation", 0)
@@ -1363,12 +1468,40 @@ class TickManager:
 
         # ── Release (task-208): Stimulation >= 65 AND Arousal >= 40 ──
         if stim >= 65 and arousal >= 40:
+            # task-545: a release is the end of a build, so the path record goes
+            # with it. Everything below the gate reads the record *before* this
+            # line, so a path-gated check (task-488) sees the history that led
+            # here rather than an empty dict it just cleared.
+            release_allowed, blocked_reason = self._release_gate(p, stim)
+            if not release_allowed:
+                # task-488: the meter is full and the gate refuses, so the build
+                # continues. Frustration (task-546) is what accumulates here;
+                # without it a gated character would sit at 65 forever with
+                # nothing to show for it.
+                self._build_frustration(p, pname, stim, blocked_reason)
+                return
             vitals["Energy"] = max(0, vitals.get("Energy", 100) - 20)
             vitals["Entertainment"] = min(100, vitals.get("Entertainment", 0) + 30)
             vitals["Hygiene"] = max(0, vitals.get("Hygiene", 100) - 10)
             vitals["Sanity"] = min(100, vitals.get("Sanity", 100) + 15)
             vitals["Stimulation"] = 5
             vitals["Arousal"] = max(0, arousal - 30)
+            # task-545: the record is scoped to a build, so a release empties it.
+            if hasattr(p, "clear_stimulation_paths"):
+                p.clear_stimulation_paths()
+            # task-546: honour `ends_on: ["release"]` here. Four mature
+            # conditions declared it (`sensitized`, `highly_aroused`, `frantic`
+            # and the new `frustrated`) and **nothing ever ended them**, because
+            # `Player.end_instances` had no caller — so "discharge on release"
+            # was authored and inert. This is the one place a release happens,
+            # so this is the one line that makes the declaration true, and it
+            # discharges frustration (task-546) as a side effect rather than a
+            # special case.
+            if hasattr(p, "end_instances"):
+                try:
+                    p.end_instances("release")
+                except Exception as e:
+                    logger.warning("[tick] release end_instances %s: %s", pname, e)
             if hasattr(p, "add_condition"):
                 p.add_condition("satisfied", duration=20)
                 overstim_duration = 5

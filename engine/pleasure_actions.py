@@ -193,6 +193,23 @@ def apply_stimulation(actor, target, verb: str, region_id: str,
     report["overstimulated"] = overstim
     if overstim and hasattr(target, "add_condition"):
         target.add_condition("overstimulated", duration=3)
+
+    # task-545: file the gain under its path before it is forgotten. The report
+    # already carried `region` back for the caller to write a message about and
+    # nothing else, so a release threshold had no way to know how the meter got
+    # to where it was.
+    #
+    # Maturity is gated by the same proxy this function already used one screen
+    # ago — the pleasure vitals exist only while `world.mature_content` is on —
+    # so with the toggle off this line is unreachable, no path is recorded and no
+    # state is created.
+    if getattr(target, "record_stimulation_path", None) and stim_gain > 0:
+        path_key = target.stimulation_path_key(
+            region_id=region_id, verb=verb, source="interaction")
+        target.record_stimulation_path(path_key, stim_gain, region_id=region_id,
+                                       verb=verb)
+        report["path"] = path_key
+
     return report
 
 

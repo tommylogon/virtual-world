@@ -37,8 +37,12 @@ class TestDerivedCatalog:
         assert pc.PERCEPTION_SKIP == {"awake", "dead", "grappled"}
 
     def test_mature_conditions_flagged_in_data(self):
-        assert len(pc.MATURE_CONDITIONS) == 10
+        # 11 since task-546 added `frustrated`, which is deliberately mature: it
+        # is pleasure-vital bookkeeping and must be stripped with the toggle, so
+        # `Player.sync_pleasure_vitals(False)` can drop it along with the vitals.
+        assert len(pc.MATURE_CONDITIONS) == 11
         assert "aroused" in pc.MATURE_CONDITIONS
+        assert "frustrated" in pc.MATURE_CONDITIONS
         assert "poisoned" not in pc.MATURE_CONDITIONS
 
     def test_every_entry_carries_the_metadata_keys(self):
