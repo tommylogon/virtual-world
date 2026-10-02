@@ -3,6 +3,7 @@ from flask import request, jsonify
 from player import Player, PERIODIC_CONDITIONS, CONDITION_DEFINITIONS
 from graph import Node, Edge, EDGE_CARRYING
 from engine.equipment_bonuses import effective_temperature, aggregate_bonuses
+from engine.abilities import normalize_stat_block
 from engine.vitals import ceiling, clamp_to_ceiling
 
 logger = logging.getLogger(__name__)
@@ -380,7 +381,7 @@ def handle_create_player(app):
         return jsonify({"error": "Missing player 'name'"}), 400
 
     player = Player(name)
-    player.stats = data.get('stats', player.stats)
+    player.stats = normalize_stat_block(data.get('stats', player.stats))
     player.vitals = data.get('vitals', player.vitals)
     player.skills = data.get('skills', player.skills)
     player.traits = data.get('traits', player.traits)
@@ -547,7 +548,7 @@ def handle_update_player(app, name):
     if "base_description" in data:
         player.base_description = data["base_description"]
     if "stats" in data:
-        player.stats = data["stats"]
+        player.stats = normalize_stat_block(data["stats"]) or player.stats
     if "skills" in data:
         player.skills = data["skills"]
     if "traits" in data:
@@ -654,7 +655,19 @@ def handle_update_player(app, name):
                         v["name"] = str(k)
                     player.relationships[key] = v
 
-    return jsonify({"status": "updated", "player": player.name})
+    response = {"status": "updated", "player": player.name}
+
+    # task-606: a stat block that contradicts its own size is **reported, not
+    # refused**. A leviathan at STR 9 is storable and always was; the point is
+    # that the author who just typed it finds out, in the response, rather than
+    # discovering it the next time something tries to move the thing.
+    if {"stats", "size"} & set(data):
+        from engine.abilities import scale_issues
+        issues = scale_issues(entity=player)
+        if issues:
+            response["scale_warnings"] = issues
+
+    return jsonify(response)
 
 
 def handle_import_player(app):
@@ -676,7 +689,7 @@ def handle_import_player(app):
         app.world.equipment.set_equipped_payload(
             player, data.get('equipped', player.equipped))
     player.state = data.get('state', player.state) or 'awake'
-    player.stats = data.get('stats', player.stats) or player.stats
+    player.stats = normalize_stat_block(data.get('stats', player.stats)) or player.stats
     player.vitals = data.get('vitals', player.vitals) or player.vitals
     player.skills = data.get('skills', player.skills) or player.skills
     player.traits = data.get('traits', player.traits) or player.traits

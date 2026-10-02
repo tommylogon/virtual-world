@@ -5,12 +5,12 @@
   "base_description": "a pastoral, athletic woman in her mid-twenties with long black hair in a ponytail, bangs over one eye, and warm light-brown eyes, sun-kissed. She wears a practical sky-blue jumpsuit with work boots and a blue cap with a small heart. Her manner is soft, cheerful, and quietly hard-working.",
   "unknown_name": "",
   "stats": {
-    "cha": 12,
-    "con": 12,
-    "dex": 11,
-    "int": 11,
-    "str": 10,
-    "wis": 12
+    "CHA": 12,
+    "CON": 12,
+    "DEX": 11,
+    "INT": 11,
+    "STR": 10,
+    "WIS": 12
   },
   "vitals": {
     "Bladder": 0,
@@ -114,5 +114,6 @@
   "npc_action_interval": 3,
   "npc_state": "idle",
   "simple_npc": false,
-  "recent_hearing": []
+  "recent_hearing": [],
+  "size": "normal"
 }

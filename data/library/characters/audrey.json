@@ -5,12 +5,12 @@
   "base_description": "a sunny barista woman in a small mountain town, bundled in knit warmth, who keeps her guitar and her voice a private, guarded secret.",
   "unknown_name": "",
   "stats": {
-    "cha": 10,
-    "con": 10,
-    "dex": 10,
-    "int": 10,
-    "str": 10,
-    "wis": 10
+    "CHA": 10,
+    "CON": 10,
+    "DEX": 10,
+    "INT": 10,
+    "STR": 10,
+    "WIS": 10
   },
   "vitals": {
     "Bladder": 0,
@@ -103,5 +103,6 @@
   "npc_action_interval": 3,
   "npc_state": "idle",
   "simple_npc": false,
-  "recent_hearing": []
+  "recent_hearing": [],
+  "size": "normal"
 }

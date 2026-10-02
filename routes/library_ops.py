@@ -9,6 +9,7 @@ from player import Player
 from graph import Node, Edge, EDGE_CARRYING, EDGE_TRIGGERS, EDGE_IN, EDGE_ON, EDGE_UNDER, EDGE_BEHIND, EDGE_BESIDE, EDGE_AT
 from engine.item_actions import normalize_item_actions
 from engine import sync
+from engine.abilities import normalize_stat_block
 from engine.library_nodes import RELATION_EDGE_TYPES, library_item_properties
 from engine.serialization import canonical_vitals
 from routes.helpers import load_registry, save_registry, delete_registry_entry, _registry_subdir, validate_tags_on_save
@@ -462,7 +463,8 @@ def handle_library_import_character(app, char_id):
     player_name = cdata.get('name', char_id)
 
     player = Player(player_name)
-    player.stats = cdata.get('stats', player.stats)
+    # task-606: fold either stat-key case (see engine/abilities.normalize_stat_block).
+    player.stats = normalize_stat_block(cdata.get('stats', player.stats))
     # Lowercase vital duplicates in library files fold into the canonical keys
     player.vitals = {**player.vitals, **canonical_vitals(cdata.get('vitals', player.vitals))}
     player.decay_rates = cdata.get('decay_rates', player.decay_rates)

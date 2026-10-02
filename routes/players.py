@@ -116,3 +116,16 @@ def register_players_routes(app):
     @app.route('/api/players/<name>/vitals/<vital_name>', methods=['PATCH'])
     def api_update_vital(name, vital_name):
         return handle_update_vital(app, name, vital_name)
+
+    @app.route('/api/abilities/curve', methods=['GET'])
+    def api_ability_curve():
+        """task-606: the scale-correct ability curve, so an author picking a size
+        can read what that size expects instead of guessing."""
+        from engine.abilities import describe_curve, stats_for_size
+        from engine.size import SIZE_TIERS
+        return jsonify({
+            "curve": describe_curve(),
+            "tiers": list(SIZE_TIERS),
+            "abilities": ["STR", "DEX", "CON", "INT", "WIS", "CHA"],
+            "defaults": {tier: stats_for_size(tier) for tier in SIZE_TIERS},
+        })

@@ -8,6 +8,7 @@ from graph import EDGE_CONNECTION, EDGE_IN, EDGE_ON, EDGE_UNDER, EDGE_BEHIND, ED
 from player import Player
 from area import Area
 from engine.conditions import perceived_conditions
+from engine.abilities import normalize_stat_block
 from engine.traits import TraitSystem, TRAIT_DEFINITIONS
 from engine.vitals import (
     DEFAULT_MAX_HP, DEFAULT_VITAL_MAX, apply_hit_dice, clamp_to_ceiling,
@@ -301,7 +302,9 @@ class WorldSerializer:
         p.description = pdata.get("description", "")
         p.base_description = pdata.get("base_description", "")
         p.equipped = pdata.get("equipped", dict(p.equipped))
-        p.stats = pdata.get("stats", {})
+        # task-606: fold either stat-key case, so a lowercase block does not
+        # silently leave the character with no readable STR/CON.
+        p.stats = normalize_stat_block(pdata.get("stats", {}))
         # task-549: species is optional. Absent (every pre-existing save) leaves
         # it None, which means "unspecified" and permits every service — the
         # backward-compatible default that makes adding the field safe.

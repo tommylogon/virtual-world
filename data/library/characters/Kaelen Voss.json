@@ -504,5 +504,7 @@
     "Social": 94,
     "Temperature": 34.90000000000001,
     "Thirst": 43
-  }
+  },
+  "size": "normal",
+  "species": "human"
 }

@@ -6,7 +6,11 @@
   "unknown_name": "",
   "stats": {
     "DEX": 14,
-    "WIS": 13
+    "WIS": 13,
+    "STR": 11,
+    "CON": 11,
+    "INT": 10,
+    "CHA": 10
   },
   "vitals": {
     "Bladder": 23,

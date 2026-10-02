@@ -5,12 +5,12 @@
   "base_description": "a tall, athletic twenty-one-year-old woman with orange-red hair in a high messy ponytail, green eyes, fair skin with freckles on her nose, shoulders and body, and an athletic curvy figure with thick thighs, wide hips and heavy breasts. She wears too-tight sports bras, running shorts that ride up, and stolen hoodies two sizes too large.",
   "unknown_name": "",
   "stats": {
-    "cha": 13,
-    "con": 12,
-    "dex": 14,
-    "int": 10,
-    "str": 11,
-    "wis": 8
+    "CHA": 13,
+    "CON": 12,
+    "DEX": 14,
+    "INT": 10,
+    "STR": 11,
+    "WIS": 8
   },
   "vitals": {
     "Bladder": 0,
@@ -109,5 +109,6 @@
   "npc_action_interval": 3,
   "npc_state": "idle",
   "simple_npc": false,
-  "recent_hearing": []
+  "recent_hearing": [],
+  "size": "normal"
 }

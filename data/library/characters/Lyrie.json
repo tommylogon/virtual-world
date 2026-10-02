@@ -960,5 +960,7 @@
     "Social": 95,
     "Temperature": 34.35999999999999,
     "Thirst": 6
-  }
+  },
+  "size": "normal",
+  "species": "elf"
 }

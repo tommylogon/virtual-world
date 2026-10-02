@@ -5,12 +5,12 @@
   "base_description": "a woman in her early thirties with a lean, capable build. her skin is fair and lightly scarred from years of field work, the most notable being a thin white line cutting through her left eyebrow. her face is practical rather than pretty, with high cheekbones, a straight nose, and a mouth more often set in a thoughtful line than a smile. her dark hair, when loose, falls past her shoulders. her breasts are small and firm, reflecting an athletic, functional physique rather than a curvaceous one.",
   "unknown_name": "",
   "stats": {
-    "cha": 8,
-    "con": 11,
-    "dex": 12,
-    "int": 14,
-    "str": 10,
-    "wis": 13
+    "CHA": 8,
+    "CON": 11,
+    "DEX": 12,
+    "INT": 14,
+    "STR": 10,
+    "WIS": 13
   },
   "vitals": {
     "Bladder": 0,
@@ -545,5 +545,6 @@
   "npc_action_interval": 3,
   "npc_state": "idle",
   "simple_npc": false,
-  "recent_hearing": []
+  "recent_hearing": [],
+  "size": "normal"
 }

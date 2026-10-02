@@ -5,12 +5,12 @@
   "base_description": "a slim, lithe nineteen-year-old with pale, freckled skin, a short crooked light-brown bob cut, and big stark-green eyes behind thick round glasses. She has a small soft figure, a shy hunched posture, and wears practical geeky clothes, with game-print underwear and socks peeking out.",
   "unknown_name": "",
   "stats": {
-    "cha": 10,
-    "con": 10,
-    "dex": 10,
-    "int": 10,
-    "str": 10,
-    "wis": 10
+    "CHA": 10,
+    "CON": 10,
+    "DEX": 10,
+    "INT": 10,
+    "STR": 10,
+    "WIS": 10
   },
   "vitals": {
     "Bladder": 0,
@@ -104,5 +104,6 @@
   "npc_action_interval": 3,
   "npc_state": "idle",
   "simple_npc": false,
-  "recent_hearing": []
+  "recent_hearing": [],
+  "size": "normal"
 }

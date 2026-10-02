@@ -118,5 +118,7 @@
       "timestamp": 0,
       "type": "observation"
     }
-  ]
+  ],
+  "size": "small",
+  "species": "human"
 }

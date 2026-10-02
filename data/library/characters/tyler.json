@@ -74,5 +74,6 @@
   "npc_action_interval": 6,
   "npc_state": "idle",
   "simple_npc": true,
-  "recent_hearing": []
+  "recent_hearing": [],
+  "size": "normal"
 }

@@ -5,12 +5,12 @@
   "base_description": "a twelve-foot-tall bipedal lopunny coated in close, warm dark-brown fur with cream accents on her wrists, fur-tipped long ears, and tail, reddish-pink eyes in black, and curvy, voluptuous proportions — H-cup chest, wide hips, thick thighs, and a jiggly rump. She steps lightly for her size, wears nothing but white stockings with a golden band, smells gentle and soothing, and her long ears are soft and very much loved by her.",
   "unknown_name": "",
   "stats": {
-    "cha": 10,
-    "con": 10,
-    "dex": 10,
-    "int": 10,
-    "str": 10,
-    "wis": 10
+    "CHA": 10,
+    "CON": 10,
+    "DEX": 10,
+    "INT": 10,
+    "STR": 10,
+    "WIS": 10
   },
   "vitals": {
     "Bladder": 0,
@@ -97,5 +97,6 @@
   "npc_action_interval": 3,
   "npc_state": "idle",
   "simple_npc": false,
-  "recent_hearing": []
+  "recent_hearing": [],
+  "size": "normal"
 }

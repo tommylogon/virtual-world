@@ -28,6 +28,7 @@ from engine.effect_handlers.scry import HANDLERS as SCRY_HANDLERS
 from engine.effect_handlers.weather import HANDLERS as WEATHER_HANDLERS
 from engine.effect_handlers.tags import HANDLERS as TAG_HANDLERS
 from engine.effect_handlers.spells import HANDLERS as SPELL_HANDLERS
+from engine.abilities import normalize_stat_block
 from engine.size import SIZE_TIERS, SIZE_DEFAULT
 from engine.vitals import (
     DEFAULT_MAX_HP, DEFAULT_VITAL_MAX, apply_hit_dice, clamp_to_ceiling,
@@ -486,7 +487,10 @@ class Effects:
         p.personality = lib_data.get("personality", "")
         p.description = lib_data.get("description", "")
         p.base_description = lib_data.get("base_description", "")
-        p.stats = lib_data.get("stats", {})
+        # task-606: folded from either case. The library had two vocabularies for
+        # the same six abilities (STR/str) and a lowercase block silently left
+        # the character with no readable STR at all.
+        p.stats = normalize_stat_block(lib_data.get("stats", {}))
         p.vitals = {**p.vitals, **lib_data.get("vitals", {})}
         # task-538: a stat block may declare `hit_dice` instead of `Max_HP`
         # ("7d8+14" -> 49), so a family of creatures can be authored by formula.

@@ -148,13 +148,23 @@ def test_an_unspecified_character_can_use_every_service():
 
 
 def test_every_library_character_still_loads_and_behaves_identically():
-    """70 characters, none of which declare a species, so every one of them must
-    be unrestricted — this is what makes adding the field safe."""
+    """70 characters, none of which declared a species when task-549 landed, so
+    every one of them must be unrestricted — that is what makes adding the field
+    safe.
+
+    task-606's authoring pass has since given 35 of them a `species` (derived
+    from the tags they already carried), so this no longer asserts that *none*
+    do; it asserts the thing that actually matters, which is that declaring one
+    **grants** nothing and **denies** nothing by accident. A species that
+    restricted a goblin from a latrine would have been a behaviour change nobody
+    asked for.
+    """
     root = Path(__file__).parent.parent / "data" / "library" / "characters"
     files = sorted(root.glob("*.json"))
     assert len(files) >= 68, f"expected the whole library, found {len(files)}"
 
     with_species = 0
+    restricted = []
     for path in files:
         data = json.loads(path.read_text(encoding="utf-8-sig"))
         p = Player(data.get("name", path.stem))
@@ -162,12 +172,16 @@ def test_every_library_character_still_loads_and_behaves_identically():
         if declared:
             p.species = declared
             with_species += 1
-        for service in SERVICES:
-            assert can_use_service(p, service) is True, (
-                f"{path.name} is restricted by an absent/absent profile")
-    assert with_species == 0, (
-        "some library characters now declare a species — this test's whole point "
-        "is that none do yet")
+        denied = [s for s in SERVICES if not can_use_service(p, s)]
+        # An animal does not use a relief *fixture* — that is task-549's decided
+        # behaviour and it changes comfort, never permission. Nothing else in the
+        # library may be denied anything.
+        unexpected = [s for s in denied if not (
+            denied == ["relief"] and "animal" in str(declared))]
+        if unexpected:
+            restricted.append(f"{path.name} ({declared}) -> {unexpected}")
+    assert not restricted, restricted
+    assert with_species, "expected the task-606 authoring pass to have set some"
 
 
 def test_a_save_without_species_round_trips_unchanged():

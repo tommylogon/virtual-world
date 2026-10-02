@@ -29,5 +29,13 @@
   "emotion": {
     "current": "neutral",
     "intensity": 0
+  },
+  "stats": {
+    "STR": 11,
+    "DEX": 12,
+    "CON": 11,
+    "INT": 10,
+    "WIS": 10,
+    "CHA": 10
   }
 }

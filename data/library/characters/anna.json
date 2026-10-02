@@ -5,12 +5,12 @@
   "base_description": "a petite nineteen-year-old with fair skin and long jet-black hair, half-korean and half-white, slouched in an oversized stolen hoodie and cutoff shorts. chipped nails, a burn scar on her forearm, and the smell of menthol smoke tell you she's been surviving a while. she looks tired, sharp-tongued, and quietly devoted to the only person in the world who matters to her.",
   "unknown_name": "",
   "stats": {
-    "cha": 10,
-    "con": 10,
-    "dex": 10,
-    "int": 10,
-    "str": 10,
-    "wis": 10
+    "CHA": 10,
+    "CON": 10,
+    "DEX": 10,
+    "INT": 10,
+    "STR": 10,
+    "WIS": 10
   },
   "vitals": {
     "Bladder": 0,
@@ -100,5 +100,7 @@
   "npc_action_interval": 3,
   "npc_state": "idle",
   "simple_npc": false,
-  "recent_hearing": []
+  "recent_hearing": [],
+  "size": "normal",
+  "species": "human"
 }
