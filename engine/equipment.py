@@ -608,9 +608,11 @@ class EquipmentSystem:
             if not any(t in ("armor", "clothing") for t in tags):
                 continue
             # task-607: `defense` may be a dice expression ("d8"), so a raw int()
-            # would raise. Positive flat value or any dice expression counts.
+            # would raise. task-604 made `damage_reduction` the canonical name
+            # with `defense` as the alias, so resolve both here — otherwise an
+            # item authored with the new name is skipped by this scan.
             from engine.equipment_bonuses import parse_damage
-            _dr = parse_damage(props.get("defense", 0))
+            _dr = parse_damage(props.get("damage_reduction", props.get("defense", 0)))
             if _dr[0] <= 0 and _dr[2] <= 0:
                 continue
             uses = int(props.get("uses", -1) or 0)

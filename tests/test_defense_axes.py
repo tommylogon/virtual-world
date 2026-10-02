@@ -13,7 +13,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import pytest
-from graph import Node, Edge, EDGE_IN, EDGE_EQUIPPED, WorldGraph
+from graph import Node, Edge, EDGE_IN, EDGE_EQUIPPED, EDGE_CARRYING, WorldGraph
 from player import Player
 from engine.combat import CombatSystem
 from engine.ghost import GhostSystem
@@ -176,7 +176,7 @@ class TestDiceMode:
         h.add_player("T")
         h.equip("T", {"defense": 2})
         target = h.player_manager.players["T"]
-        assert h.combat._adjust_damage_dice(5, target) == 3
+        assert h.combat._adjust_damage_dice(5, target) == (3, 2)
 
     def test_leaves_at_least_one_die(self, dr_mode):
         dr_mode("dice")
@@ -184,7 +184,7 @@ class TestDiceMode:
         h.add_player("T")
         h.equip("T", {"defense": 99})
         target = h.player_manager.players["T"]
-        assert h.combat._adjust_damage_dice(2, target) == 1
+        assert h.combat._adjust_damage_dice(2, target) == (1, 1)
 
     def test_dice_mode_does_not_also_subtract_points(self, dr_mode):
         dr_mode("dice")
@@ -201,7 +201,63 @@ class TestDiceMode:
         h.add_player("T")
         h.equip("T", {"defense": 2})
         target = h.player_manager.players["T"]
-        assert h.combat._adjust_damage_dice(5, target) == 5
+        assert h.combat._adjust_damage_dice(5, target) == (5, 0)
+
+    def test_dice_mode_reports_stripped_dice_in_the_combat_log(self, dr_mode):
+        dr_mode("dice")
+        h = Harness()
+        h.add_player("Attacker", {"STR": 14, "DEX": 10})
+        h.add_player("T", {"STR": 10, "DEX": 10})
+        pid = h.player_manager.get_player_node_id("Attacker")
+        weapon = Node(id="item_sword", type="item", name="Sword", properties={
+            "name": "Sword", "damage": "3d6", "damage_type": "slashing",
+            "tags": ["weapon"], "actions": ["examine", "take"],
+            "current_state": "normal",
+        })
+        h.graph.add_node(weapon)
+        h.graph.add_edge(Edge(source=weapon.id, target=pid, type=EDGE_CARRYING))
+        h.equip("T", {"damage_reduction": 2})  # strips 2 dice
+
+        logs = []
+        h.skills.add_log_entry = lambda msg, *a, **k: logs.append(msg)
+        calls = {"n": 0}
+
+        def fake(n, sides, bonus=0):
+            if sides == 20:
+                calls["n"] += 1
+                return (20 + bonus) if calls["n"] == 1 else 1
+            return 1
+
+        h.skills.roll_dice = fake
+        h.combat.player_attack("Attacker", "T")
+
+        joined = "\n".join(logs)
+        assert "2 dice stripped" in joined, joined
+        assert "dice armor" in joined, joined
+
+
+class TestWearScanReadsNewName:
+    def test_armor_authored_with_damage_reduction_wears(self):
+        from virtual_world_engine import VirtualWorld
+        from player import Player
+        world = VirtualWorld()
+        world.add_player(Player("Wearer"))
+        p = world.player_manager.get_player("Wearer")
+        node = Node(id="item_coat", type="item", name="Riveted Coat", properties={
+            "name": "Riveted Coat", "tags": ["armor", "clothing"],
+            "damage_reduction": 4, "uses": 2, "max_uses": 2,
+            "weight": 4, "base_weight": 4, "equip_slots": ["torso"],
+            "current_state": "normal", "actions": ["examine", "equip"],
+        })
+        world.graph.add_node(node)
+        world.graph.add_edge(Edge(source=node.id,
+                                  target=world._player_node_id("Wearer"),
+                                  type=EDGE_EQUIPPED, properties={"slot": "torso"}))
+        world.player_manager.get_player("Wearer").equipped.setdefault("torso", []).append(node.id)
+
+        world.equipment.decrement_armor_uses_on_hit(p)
+
+        assert node.properties["uses"] == 1, "the new DR name must not be skipped"
 
 
 # ── percentage mode ─────────────────────────────────────────────────────

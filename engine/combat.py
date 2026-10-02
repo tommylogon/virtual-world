@@ -123,29 +123,29 @@ class CombatSystem:
         dice = bonuses.get("damage_reduction_dice")
         return flat, dice if dice and dice[0] > 0 else None
 
-    def _get_target_defense(self, target_player) -> int:
-        """Flat damage reduction (legacy accessor; used for the armor note)."""
-        return self._damage_reduction_value(target_player)[0]
-
     def _get_target_evasion(self, target_player) -> int:
         """Signed attack-side modifier (task-604). Positive = harder to hit."""
         from engine.equipment_bonuses import aggregate_bonuses
         bonuses = aggregate_bonuses(target_player, self.graph)
         return int(bonuses.get("evasion") or 0)
 
-    def _adjust_damage_dice(self, count: int, target_player) -> int:
+    def _adjust_damage_dice(self, count: int, target_player) -> tuple:
         """``dice`` mode (task-607): strip DR dice from an incoming damage roll.
 
         The DR value is read as a *number of damage dice removed* -- `2` removes
         two dice, a `d6` removes 1-6 -- leaving at least one die so a hit never
         vanishes entirely. This runs before the roll, which is what makes armour
         lose dice rather than points; every other mode is a no-op here.
+
+        Returns ``(adjusted_count, stripped)`` so the caller can name the mode in
+        the log (review fix, finding 3).
         """
         if self._dr_mode() != "dice":
-            return count
+            return count, 0
         flat, dice = self._damage_reduction_value(target_player)
         remove = flat + (self.skills.roll_dice(dice[0], dice[1], 0) if dice else 0)
-        return max(1, count - remove)
+        adjusted = max(1, count - remove)
+        return adjusted, count - adjusted
 
     def _apply_damage_reduction(self, damage: int, target_player) -> tuple:
         """Reduce `damage` by the target's worn armour.
@@ -357,29 +357,33 @@ class CombatSystem:
                 if parsed[0] > 0:
                     count, sides, flat = parsed
                     # task-607 dice mode: strip DR dice before the roll.
-                    rolled_count = self._adjust_damage_dice(count, target)
+                    rolled_count, dice_stripped = self._adjust_damage_dice(count, target)
                     dmg_mod = stat_mod + flat + (attack_bonus if self.skills.is_slasher(attacker_name) else 0)
                     damage = self.skills.roll_dice(rolled_count, sides, dmg_mod)
                     damage_raw = damage - dmg_mod
                     dmg_desc = f"{rolled_count}d{sides} ({damage_raw}) + {stat_mod} stat + {flat} flat"
-                    if rolled_count != count:
-                        dmg_desc += f" [{count - rolled_count} dice stripped]"
+                    if dice_stripped:
+                        dmg_desc += f" [{dice_stripped} dice stripped]"
                     if self.skills.is_slasher(attacker_name):
                         dmg_desc += f" + {attack_bonus} attack_bonus"
                     damage, _dr, _mode, dr_label = self._apply_damage_reduction(damage, target)
+                    if dice_stripped:
+                        dr_label = f"−{dice_stripped} dice"
                     dmg_desc += f" = {damage} total, {dr_label} armor" if dr_label else f" = {damage} total, −0 armor"
                 else:
                     base_damage = parsed[2] or 5
-                    rolled_count = self._adjust_damage_dice(1, target)
+                    rolled_count, dice_stripped = self._adjust_damage_dice(1, target)
                     dmg_mod = stat_mod + (attack_bonus if self.skills.is_slasher(attacker_name) else 0)
                     damage = self.skills.roll_dice(rolled_count, base_damage, dmg_mod)
                     damage_raw = damage - dmg_mod
                     dmg_desc = f"{rolled_count}d{base_damage} ({damage_raw}) + {stat_mod} stat"
-                    if rolled_count != 1:
-                        dmg_desc += f" [1 die stripped]"
+                    if dice_stripped:
+                        dmg_desc += f" [{dice_stripped} dice stripped]"
                     if self.skills.is_slasher(attacker_name):
                         dmg_desc += f" + {attack_bonus} attack_bonus"
                     damage, _dr, _mode, dr_label = self._apply_damage_reduction(damage, target)
+                    if dice_stripped:
+                        dr_label = f"−{dice_stripped} dice"
                     dmg_desc += f" = {damage} total, {dr_label} armor" if dr_label else f" = {damage} total, −0 armor"
 
                 if damage_type:
@@ -454,6 +458,7 @@ class CombatSystem:
                     f"[COMBAT] {attacker_name} attacks {target_name} with {weapon_name}! "
                     f"Attack d20({attack_raw}) + {str_mod_display} STR + {attack_mod} mod = {attack_roll} "
                     f"vs d20({defense_raw}) + {defense_stat_mod} DEX = {defense_total}{evasion_display}: HIT — {wound}"
+                    f" [{dmg_desc}]"
                 )
                 self.skills.record_turn_event(
                     attacker_name, "combat",
@@ -484,10 +489,16 @@ class CombatSystem:
                     hit_msg += f" {target_name} is stunned!"
             else:
                 str_bonus = max(0, (attacker.stats.get("STR", 10) - 10) // 2)
-                _fists_dice = self._adjust_damage_dice(1, target)
+                _fists_dice, dice_stripped = self._adjust_damage_dice(1, target)
                 damage = self.skills.roll_dice(_fists_dice, 4, str_bonus)
                 damage_raw = damage - str_bonus
                 damage, _dr, _mode, dr_label = self._apply_damage_reduction(damage, target)
+                if dice_stripped:
+                    dr_label = f"−{dice_stripped} dice"
+                dmg_desc = f"{_fists_dice}d4 ({damage_raw}) + {str_bonus} STR"
+                if dice_stripped:
+                    dmg_desc += f" [{dice_stripped} dice stripped]"
+                dmg_desc += f" = {damage} total, {dr_label} armor" if dr_label else f" = {damage} total, −0 armor"
                 target.vitals["HP"] = max(0, target.vitals["HP"] - damage)
                 wake_msg = self._wake_on_damage(
                     target_name, source=attacker_name, source_type="character"
@@ -510,6 +521,7 @@ class CombatSystem:
                     f"[COMBAT] {attacker_name} attacks {target_name} with bare hands! "
                     f"Attack d20({attack_raw}) + {str_mod_display} STR + {attack_mod} mod = {attack_roll} "
                     f"vs d20({defense_raw}) + {defense_stat_mod} DEX = {defense_total}{evasion_display}: HIT — {wound}"
+                    f" [{dmg_desc}]"
                 )
                 self.skills.record_turn_event(
                     attacker_name, "combat",
@@ -666,10 +678,17 @@ class CombatSystem:
         from engine.items.carry_weight import reconcile_item_weight
         reconcile_item_weight(ammo_node)
         if props["uses"] <= 0:
-            for edge in list(self.graph.edges):
-                if edge.source == ammo_node.id or edge.target == ammo_node.id:
-                    self.graph.edges.remove(edge)
-            self.graph.remove_node(ammo_node.id)
+            # Review fix (finding 5): empty through the shared teardown so an
+            # authored `on_depleted` / persistent empty state (an empty quiver)
+            # is honoured rather than silently stripping the node.
+            item_actions = getattr(self.skills, "item_actions", None)
+            if item_actions is not None and hasattr(item_actions, "_finish_depleted"):
+                item_actions._finish_depleted(ammo_node, "")
+            else:
+                for edge in list(self.graph.edges):
+                    if edge.source == ammo_node.id or edge.target == ammo_node.id:
+                        self.graph.edges.remove(edge)
+                self.graph.remove_node(ammo_node.id)
 
     def _find_weapon_in_inventory(self, player_name: str, weapon_name: str) -> Optional[Node]:
         """Find a weapon item node in a player's inventory by name."""

@@ -247,3 +247,52 @@ class TestAuthoredContent:
         assert "container" in data["tags"]
         assert len(data["contents"]) >= 2
         assert len(set(data["contents"])) == len(data["contents"])
+
+
+# ── review regressions ───────────────────────────────────────────────────
+
+
+class TestReviewRegressions:
+    def test_taken_unit_weighs_one_share_not_the_pile(self):
+        g = make_graph()
+        ia, pm = make_actions(g)
+        pile = add_stack(g, "item_pile", uses=12, max_uses=12, weight=6)
+        g.add_edge(Edge(source=pile.id, target="area_test", type=EDGE_IN))
+
+        ia.take_item(pm, "Pile of Raw Meat")
+
+        copy = [g.get_node(e.source) for e in
+                g.get_edges_for_target("player_Hero", EDGE_CARRYING)][0]
+        assert abs(copy.properties["weight"] - 0.5) < 1e-6, copy.properties["weight"]
+
+    def test_merge_refuses_when_destination_is_full(self):
+        g = make_graph()
+        ia, pm = make_actions(g)
+        ground = add_stack(g, "item_ground", uses=10, max_uses=10)
+        g.add_edge(Edge(source=ground.id, target="area_test", type=EDGE_IN))
+        held = add_stack(g, "item_held", uses=3, max_uses=10)
+        g.add_edge(Edge(source=held.id, target="player_Hero", type=EDGE_CARRYING))
+
+        ia.drop_item(pm, "Pile of Raw Meat")
+
+        assert ground.properties["uses"] == 10, "full twin must not be overfilled"
+        assert g.get_node("item_held") is not None, "overflow must not be destroyed"
+
+    def test_merge_refuses_an_inexhaustible_stack(self):
+        g = make_graph()
+        ia, pm = make_actions(g)
+        ground = add_stack(g, "item_ground", uses=5, max_uses=10)
+        g.add_edge(Edge(source=ground.id, target="area_test", type=EDGE_IN))
+        always = Node(id="item_held", type="item", name="Pile of Raw Meat", properties={
+            "name": "Pile of Raw Meat", "uses": -1, "max_uses": 10,
+            "weight": 5, "base_weight": 5, "stackable": True,
+            "current_state": "normal", "actions": ["examine", "take", "drop"],
+            "tags": ["food"],
+        })
+        g.add_node(always)
+        g.add_edge(Edge(source=always.id, target="player_Hero", type=EDGE_CARRYING))
+
+        ia.drop_item(pm, "Pile of Raw Meat")
+
+        assert ground.properties["uses"] == 5, "-1 must not subtract a unit"
+        assert g.get_node("item_held") is not None

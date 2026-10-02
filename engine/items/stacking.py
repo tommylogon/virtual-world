@@ -122,12 +122,26 @@ class StackingMixin:
 
         from engine.items.carry_weight import reconcile_item_weight
 
-        added = int(moving_node.properties.get("uses", 1) or 1)
-        current = int(twin.properties.get("uses", 1) or 1)
+        def _uses(node):
+            try:
+                return int(node.properties.get("uses", 0) or 0)
+            except (TypeError, ValueError):
+                return 0
+
+        added = _uses(moving_node)
+        current = _uses(twin)
+        # Review fix (finding 7): `uses` is a count, so a depleted (0) or
+        # inexhaustible (-1) stack is not a number of units to merge. Refuse
+        # rather than subtracting a phantom unit and destroying the node.
+        if added <= 0:
+            return None
         max_uses = int(twin.properties.get("max_uses", 0) or 0)
+        # Review fix (finding 2): when the destination cannot hold the whole
+        # stack, refuse the merge so the normal put/drop path leaves the moving
+        # node intact. Clamping here would destroy the overflow silently.
+        if max_uses > 0 and current + added > max_uses:
+            return None
         combined = current + added
-        if max_uses > 0:
-            combined = min(max_uses, combined)
         twin.properties["uses"] = combined
         reconcile_item_weight(twin)
         self._destroy_node(moving_node)
@@ -156,22 +170,29 @@ class StackingMixin:
 
         player_id = player_manager._player_node_id(player_manager.active_player)
         area_id = player_manager._get_current_area_id()
-        weight_each = float(item_node.properties.get("weight", 0) or 0)
 
         copies = []
         for _ in range(wanted):
             props = copy.deepcopy(item_node.properties)
             props["uses"] = 1
-            props.pop("base_weight", None)
             new_id = f"{item_node.id}_{uuid.uuid4().hex[:8]}"
             copy_node = Node(id=new_id, name=item_node.name, type="item",
                              properties=props)
             self.graph.add_node(copy_node)
+            # Review fix (finding 1): the clone inherits the stack's aggregate
+            # weight. Reconcile each unit so it weighs base_weight/max_uses
+            # rather than the whole pile.
+            reconcile_item_weight(copy_node)
             copies.append(copy_node)
 
-        cap_error = self._check_player_capacity(player_manager, weight_each * wanted)
+        total_weight = sum(float(c.properties.get("weight", 0) or 0) for c in copies)
+        cap_error = self._check_player_capacity(player_manager, total_weight)
         to_player = cap_error is None
+        # task-425: the draw path pays first-meeting novelty exactly as the
+        # quantity-pool path does (review fix, finding 6).
+        self._register_item_discovery(player_manager, item_node)
         for copy_node in copies:
+            self._register_item_discovery(player_manager, copy_node)
             if to_player:
                 self.graph.add_edge(Edge(source=copy_node.id, target=player_id,
                                          type=EDGE_CARRYING))
@@ -194,8 +215,10 @@ class StackingMixin:
         )
 
         if item_node.properties["uses"] <= 0:
-            self._destroy_node(item_node)
+            # Review fix (finding 5): empty through the shared teardown so an
+            # authored `on_depleted` / persistent-empty state is honoured.
             result += f" The {_display_name(item_node.name)} is picked clean."
+            result = self._finish_depleted(item_node, result)
         else:
             result += f" {item_node.properties['uses']} remain."
         return result
