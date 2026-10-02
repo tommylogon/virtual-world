@@ -499,3 +499,18 @@ declare function selectAgent(name: string): void;
 
 // viewerExitMap — owner: agent/prompt-builder/room-context.ts
 declare const viewerExitMap: Record<string, ExitEntry>;
+
+// >>> ambient shapes for still-unconverted .js modules >>>
+// owner: static/js/item-library/placement.js
+declare const ItemLibraryPlacement: {
+    pickTarget(...args: any[]): any;
+    // The generator stopped after pickTarget: a multi-line template literal
+    // inside it desynchronised the brace-depth walk, so the three members
+    // defined later in the same literal were not seen. Added by hand from
+    // item-library/placement.js:134, :160, :202. They are `this`-bound and
+    // item-library.ts calls them via .call(this), hence the loose signatures.
+    placeInRoom(...args: any[]): any;
+    placeSelectedInRoom(...args: any[]): any;
+    updatePlaceButton(...args: any[]): any;
+};
+// <<< ambient shapes <<<

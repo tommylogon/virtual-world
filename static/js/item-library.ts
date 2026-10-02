@@ -54,7 +54,7 @@ interface LibraryItem {
 }
 
 /** The target chosen by the shared placement picker. */
-interface PlacementTarget {
+interface ItemLibraryHostPlacementTarget {
     type: string;
     id: string;
     name?: string;

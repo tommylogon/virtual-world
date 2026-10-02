@@ -18,7 +18,7 @@
 // and indexes `worldState.areas`, so it reads them through a local shape.
 interface TreeViewWindowSurface {
     GraphTreeView: unknown;
-    graphManager: GraphManagerLike;
+    graphManager: TreeViewGraphManagerLike;
     GraphScopeTree: {
         mountInOutline: () => void;
         buildTree: (scopes: TreeViewScopeSummary[]) => unknown;
@@ -119,7 +119,7 @@ const treeViewFormatTemp = (v: unknown): string => (v == null ? '?' : (Math.roun
             if (exits.length) {
                 const exitNodes: unknown[] = [];
                 exits.forEach(([direction, exitData]: [string, unknown]) => {
-                    const exit = (typeof exitData === 'object' && exitData !== null ? exitData : {}) as ExitData;
+                    const exit = (typeof exitData === 'object' && exitData !== null ? exitData : {}) as TreeViewExitData;
                     const target = typeof exitData === 'object' ? (exit.target || exit.targetAreaName || exit.targetAreaId || '?') : exitData;
                     const wayId = typeof exitData === 'object' ? (exit.way_id || '') : '';
                     const hasWay = Boolean(wayId);
@@ -189,7 +189,7 @@ const treeViewFormatTemp = (v: unknown): string => (v == null ? '?' : (Math.roun
             if (area.description) text += `      ${area.description.replace(/\n/g, ' ')}\n`;
             const exits = Object.entries(area.exits || {});
             if (exits.length) text += `      🚪 ${exits.map(([direction, exitData]: [string, unknown]) => {
-                const exit = (typeof exitData === 'object' && exitData !== null ? exitData : {}) as ExitData;
+                const exit = (typeof exitData === 'object' && exitData !== null ? exitData : {}) as TreeViewExitData;
                 const target = typeof exitData === 'object' ? (exit.target || exit.targetAreaName || exit.targetAreaId || '?') : exitData;
                 return `${direction} → ${target}`;
             }).join(', ')}\n`;
@@ -267,7 +267,7 @@ interface AreaEnvironment {
 }
 
 /** An area's exit entry; the value is either a target name or an object. */
-interface ExitData {
+interface TreeViewExitData {
     target?: string;
     targetAreaName?: string;
     targetAreaId?: string;
@@ -297,7 +297,7 @@ interface ScopeRow {
 }
 
 /** The graphManager surface this module drives. */
-interface GraphManagerLike {
+interface TreeViewGraphManagerLike {
     _scopeFilter?: string;
     _scopeSummaries?: TreeViewScopeSummary[];
     showNodeAndFocus?(id: string): void;

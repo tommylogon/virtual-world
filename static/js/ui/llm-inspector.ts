@@ -179,8 +179,8 @@
      * the Window interface in types/globals.d.ts, which is a shared hub under
      * concurrent edit, so it is read through a local cast.
      */
-    function _datasetCollector(): DatasetCollectorApi | undefined {
-        return (window as unknown as { DatasetCollector?: DatasetCollectorApi }).DatasetCollector;
+    function _datasetCollector(): LlmInspectorDatasetCollectorApi | undefined {
+        return (window as unknown as { DatasetCollector?: LlmInspectorDatasetCollectorApi }).DatasetCollector;
     }
 })();
 
@@ -224,7 +224,7 @@ interface LlmExchangeBody {
 }
 
 /** The two DatasetCollector methods this panel calls. */
-interface DatasetCollectorApi {
+interface LlmInspectorDatasetCollectorApi {
     getAllRaw?(): Promise<LlmInspectorRawExchange[]>;
     clearRaw?(): Promise<void>;
 }

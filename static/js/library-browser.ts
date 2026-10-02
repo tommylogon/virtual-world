@@ -44,9 +44,9 @@ const DiffModalTyped = DiffModal as DiffModalStatic;
 
 const itemLibRef = (window as unknown as { itemLib: unknown }).itemLib;
 
-const ItemLibraryPlacement = (window as unknown as {
-    ItemLibraryPlacement?: { pickTarget(title: string, opts: { tabs: string[] }): Promise<{ type: string; name?: string; id: string } | null> };
-}).ItemLibraryPlacement;
+// ItemLibraryPlacement is declared once in globals.d.ts, generated from
+// item-library/placement.js. A local `const` alias here both redeclared it
+// (TS2451) and gave item-library.ts a narrower type than the real API.
 
 type LibraryTab = 'items' | 'characters' | 'areas' | 'ways' | 'traits' | 'conditions' | 'behaviours' | 'tags';
 

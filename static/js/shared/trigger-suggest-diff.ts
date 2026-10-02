@@ -68,8 +68,8 @@ const TriggerSuggestDiffModule = (() => {
      * @param {Array} suggestedTriggers - [{ trigger_type, effects, ... }]
      * @returns {Array} rows of { type, status, existing, suggested }
      */
-    function diff(existing: TriggerSpec[] | null | undefined, plannedTypes: string[], suggestedTriggers: TriggerSpec[]): DiffRow[] {
-        const rows: DiffRow[] = [];
+    function diff(existing: TriggerSpec[] | null | undefined, plannedTypes: string[], suggestedTriggers: TriggerSpec[]): TriggerSuggestDiffDiffRow[] {
+        const rows: TriggerSuggestDiffDiffRow[] = [];
         const suggestedByType = new Map<string, TriggerSpec>(suggestedTriggers.map((t: TriggerSpec) => [String(t.trigger_type), t]));
         const existingByType = new Map<string, TriggerSpec>();
         for (const ex of existing || []) {
@@ -134,9 +134,9 @@ const TriggerSuggestDiffModule = (() => {
         return `<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;letter-spacing:.3px;color:${m.color};border:1px solid ${m.color}55;background:${m.color}14;border-radius:10px;padding:2px 8px;white-space:nowrap;">${m.icon} ${m.label}</span>`;
     }
 
-    function summaryHtml(rows: DiffRow[]): string {
+    function summaryHtml(rows: TriggerSuggestDiffDiffRow[]): string {
         const counts: Record<string, number> = { keep: 0, add: 0, conflict: 0 };
-        rows.forEach((r: DiffRow) => { if (counts[r.status] != null) counts[r.status]++; });
+        rows.forEach((r: TriggerSuggestDiffDiffRow) => { if (counts[r.status] != null) counts[r.status]++; });
         const parts: string[] = [];
         if (counts.add) parts.push(`<b style="color:${BLUE};">${counts.add} new</b>`);
         if (counts.conflict) parts.push(`<b style="color:${ORANGE};">${counts.conflict} conflict${counts.conflict === 1 ? '' : 's'}</b>`);
@@ -149,7 +149,7 @@ const TriggerSuggestDiffModule = (() => {
      * Build one trigger card: header (type + status badge), effect blocks for
      * existing/suggested, and the per-row choice pills when applicable.
      */
-    function buildRow(row: DiffRow, i: number, opts?: unknown): HTMLElement {
+    function buildRow(row: TriggerSuggestDiffDiffRow, i: number, opts?: unknown): HTMLElement {
         const card = document.createElement('div');
         const accent = statusMeta(row.status).color;
         card.style.cssText = `border:1px solid var(--border);border-left:3px solid ${accent};border-radius:8px;padding:10px 12px;background:var(--bg-inset);`;
@@ -195,7 +195,7 @@ const TriggerSuggestDiffModule = (() => {
     }
 
     /** Pill-style radio group for one row. */
-    function choicePills(row: DiffRow, i: number): HTMLElement {
+    function choicePills(row: TriggerSuggestDiffDiffRow, i: number): HTMLElement {
         const wrap = document.createElement('div');
         wrap.style.cssText = 'margin-top:10px;padding-top:9px;border-top:1px dashed var(--border-light);display:flex;flex-wrap:wrap;gap:6px;align-items:center;';
         wrap.dataset.row = String(i);
@@ -230,10 +230,10 @@ const TriggerSuggestDiffModule = (() => {
         return wrap;
     }
 
-    function collect(panel: HTMLElement, rows: DiffRow[]): MergeResult {
+    function collect(panel: HTMLElement, rows: TriggerSuggestDiffDiffRow[]): MergeResult {
         const result: MergeResult = { keep: [], replace: [], add: [] };
         const keepTypes = new Set<string>();
-        rows.forEach((row: DiffRow, i: number) => {
+        rows.forEach((row: TriggerSuggestDiffDiffRow, i: number) => {
             let choice: string = row.status;
             if (row.status === 'add' || row.status === 'conflict') {
                 const sel = panel.querySelector<HTMLInputElement>(`input[name="tsd-choice-${i}"]:checked`);
@@ -260,7 +260,7 @@ const TriggerSuggestDiffModule = (() => {
      * @returns {HTMLElement} the overlay
      */
     function show(opts: DiffOpts): HTMLElement {
-        const rows: DiffRow[] = opts.rows || [];
+        const rows: TriggerSuggestDiffDiffRow[] = opts.rows || [];
         const panel = document.createElement('div');
         panel.style.cssText = 'background:var(--bg-panel);border:1px solid var(--border);border-radius:10px;width:94%;max-width:780px;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 14px 48px rgba(0,0,0,.55);';
 
@@ -289,7 +289,7 @@ const TriggerSuggestDiffModule = (() => {
         if (!rows.length) {
             body.innerHTML = '<div style="font-size:12px;color:var(--text-muted);">Everything planned is already covered — nothing to change.</div>';
         } else {
-            rows.forEach((row: DiffRow, i: number) => body.appendChild(buildRow(row, i)));
+            rows.forEach((row: TriggerSuggestDiffDiffRow, i: number) => body.appendChild(buildRow(row, i)));
         }
         panel.appendChild(body);
 
@@ -319,7 +319,7 @@ const TriggerSuggestDiffModule = (() => {
             if (n === 0) {
                 summary.textContent = 'No changes to apply.';
                 applyBtn.textContent = 'Done';
-                applyBtn.disabled = rows.some((r: DiffRow) => r.status === 'conflict' || r.status === 'add');
+                applyBtn.disabled = rows.some((r: TriggerSuggestDiffDiffRow) => r.status === 'conflict' || r.status === 'add');
             } else {
                 summary.textContent = `${n} trigger${n === 1 ? '' : 's'} will be changed.`;
                 applyBtn.textContent = `Apply ${n} change${n === 1 ? '' : 's'}`;
@@ -409,7 +409,7 @@ interface TriggerSpec {
     fail_message?: unknown;
 }
 
-interface DiffRow {
+interface TriggerSuggestDiffDiffRow {
     type: string;
     status: string;
     existing?: TriggerSpec;
@@ -430,7 +430,7 @@ interface MergeResult {
 interface DiffOpts {
     title?: string;
     subtitle?: string;
-    rows?: DiffRow[];
+    rows?: TriggerSuggestDiffDiffRow[];
     onApply?(result: MergeResult): void;
     onCancel?(): void;
 }

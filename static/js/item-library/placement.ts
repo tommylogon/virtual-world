@@ -25,9 +25,9 @@
      * @param {Object} [options] - { tabs: ['area'] } restricts the visible tabs
      * @returns {Promise<{type: string, name?: string, id?: string}|null>}
      */
-    pickTarget(title: string, options: PickTargetOptions = {}): Promise<PlacementTarget | null> {
+    pickTarget(title: string, options: PickTargetOptions = {}): Promise<ItemLibraryPlacementTarget | null> {
         const allowedTabs = Array.isArray(options?.tabs) ? options.tabs as string[] : null;
-        return new Promise<PlacementTarget | null>(resolve => {
+        return new Promise<ItemLibraryPlacementTarget | null>(resolve => {
             const rooms = Object.keys(worldState.areas || {});
             // Collect containers (items with container tag) + characters
             const containers: NamedId[] = [];
@@ -79,7 +79,7 @@
                 const opt = (evt.target as Element | null)?.closest<HTMLElement>('.target-option');
                 if (opt) {
                     const type = opt.dataset.type as string;
-                    const result: PlacementTarget = type === 'area'
+                    const result: ItemLibraryPlacementTarget = type === 'area'
                         ? { type: 'area', name: opt.dataset.name as string }
                         : { type, id: opt.dataset.id as string };
                     document.body.removeChild(overlay);
@@ -135,13 +135,13 @@
             toastInfo('Select a saved item first.');
             return;
         }
-        let target: PlacementTarget | null = this._targetArea ? { type: 'area', name: this._targetArea } : null;
+        let target: ItemLibraryPlacementTarget | null = this._targetArea ? { type: 'area', name: this._targetArea } : null;
         if (!target) {
             target = await this._pickTarget('Place item in:');
             if (!target) return;
         }
         const res = await (ApiClient as unknown as {
-            placeItemFromLibrary(target: PlacementTarget, itemId: string): Promise<{ error?: string }>;
+            placeItemFromLibrary(target: ItemLibraryPlacementTarget, itemId: string): Promise<{ error?: string }>;
         }).placeItemFromLibrary(target, this.selectedId);
         if (res.error) { toastError('Error: ' + res.error); return; }
         const label = target.type === 'area' ? target.name : target.id;
@@ -178,7 +178,7 @@
             const name = ((itemData?.name || id) || '').toLowerCase();
             if (existing.has(name)) { skipped++; continue; }
             const res = await (ApiClient as unknown as {
-            placeItemFromLibrary(target: PlacementTarget, itemId: string): Promise<{ error?: string }>;
+            placeItemFromLibrary(target: ItemLibraryPlacementTarget, itemId: string): Promise<{ error?: string }>;
         }).placeItemFromLibrary({ type: 'area', name: targetArea }, id);
             if (!res.error) { placed++; existing.add(name); }
         }
@@ -221,7 +221,7 @@ interface PickTargetOptions {
 }
 
 /** What a target picker resolved to: an area by name, or a node by id. */
-interface PlacementTarget {
+interface ItemLibraryPlacementTarget {
     type: string;
     name?: string;
     id?: string;
@@ -249,12 +249,12 @@ interface ItemLibraryPlacementHost {
     _multiSelect: boolean;
     _checkedIds: Set<string>;
     data: Record<string, { name?: string } | undefined>;
-    _pickTarget(title: string, options?: PickTargetOptions): Promise<PlacementTarget | null>;
+    _pickTarget(title: string, options?: PickTargetOptions): Promise<ItemLibraryPlacementTarget | null>;
     close(): void;
 }
 
 interface ItemLibraryPlacementApi {
-    pickTarget(title: string, options?: PickTargetOptions): Promise<PlacementTarget | null>;
+    pickTarget(title: string, options?: PickTargetOptions): Promise<ItemLibraryPlacementTarget | null>;
     placeInRoom(): Promise<void>;
     placeSelectedInRoom(): Promise<void>;
     updatePlaceButton(): void;

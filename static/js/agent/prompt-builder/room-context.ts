@@ -51,8 +51,8 @@ interface PromptBuilderWindowSurface { PromptBuilder: Record<string, any> }
     }
 
     /** ApiClient's declared surface in globals.d.ts omits playerSpeak. */
-    function apiClient(): ApiClientWithSpeak {
-        return ApiClient as unknown as ApiClientWithSpeak;
+    function apiClient(): RoomContextApiClientWithSpeakLocal {
+        return ApiClient as unknown as RoomContextApiClientWithSpeakLocal;
     }
 
     function embeddingClient(): EmbeddingClientApi {
@@ -914,7 +914,7 @@ return {
 // ---------------------------------------------------------------------------
 
 /** ApiClient plus the one method this module calls. */
-interface ApiClientWithSpeak {
+interface RoomContextApiClientWithSpeakLocal {
     playerSpeak(charName: string, text: string, areaName: string): Promise<unknown>;
 }
 
@@ -1109,11 +1109,6 @@ interface ItemContainmentApi {
 interface EmbeddingClientApi {
     configured(): boolean;
     embed(text: string): Promise<number[] | null>;
-}
-
-/** ApiClient plus the one method this module calls. */
-interface ApiClientWithSpeak {
-    playerSpeak(charName: string, text: string, areaName: string): Promise<unknown>;
 }
 
 // ---------------------------------------------------------------------------

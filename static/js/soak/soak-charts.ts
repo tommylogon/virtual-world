@@ -311,8 +311,8 @@
     }
 
     /** Resolve window.SoakFormat (soak/soak-format.js) through a local cast. */
-    function _soakFormat(): SoakFormatApi {
-        return (window as unknown as { SoakFormat: SoakFormatApi }).SoakFormat;
+    function _soakFormat(): SoakChartsFormatApi {
+        return (window as unknown as { SoakFormat: SoakChartsFormatApi }).SoakFormat;
     }
 
     const SoakCharts = {
@@ -329,7 +329,7 @@
  */
 
 /** The formatting/colour helpers every renderer reads through `F`. */
-interface SoakFormatApi {
+interface SoakChartsFormatApi {
     esc(s: unknown): string;
     fmtNum(v: number, digits?: number): string;
     fmtInt(v: number): string;

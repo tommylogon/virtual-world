@@ -50,7 +50,7 @@ interface InspectorAreaViewWindowSurface { InspectorAreaView: unknown }
      * @param {string} nodeId - Graph node ID
      * @param {object} graphNode - Graph node data
      */
-    RV.showArea = function(nodeId: string, graphNode: GraphNode) {
+    RV.showArea = function(nodeId: string, graphNode: AreaViewGraphNode) {
         const name = graphNode.name as string;
         const props = graphNode.properties || {};
         const description = props.description || '';
@@ -59,7 +59,7 @@ interface InspectorAreaViewWindowSurface { InspectorAreaView: unknown }
         // Resolve actual graph node ID
         let actualNodeId = nodeId;
         if (!worldState.getNode(nodeId) && worldState.graph?.nodes) {
-            const found = (Object.entries(worldState.graph.nodes) as Array<[string, GraphNode]>)
+            const found = (Object.entries(worldState.graph.nodes) as Array<[string, AreaViewGraphNode]>)
                 .find(([, node]) => node.type === 'area' && node.name === name);
             if (found) actualNodeId = found[0];
         }
@@ -94,7 +94,7 @@ interface InspectorAreaViewWindowSurface { InspectorAreaView: unknown }
             <div class="inspector-section"><h3>🚪 Exits <span class="section-hint">(${exitEntries.length} found)</span></h3>
                 <div style="display:flex;flex-direction:column;gap:4px;">
                     ${exitEntries.length > 0
-                        ? (exitEntries as Array<[string, ExitData]>).map(([exitName, exitData]) => RV._renderExitItem(exitName, exitData, actualNodeId))
+                        ? (exitEntries as Array<[string, AreaViewExitData]>).map(([exitName, exitData]) => RV._renderExitItem(exitName, exitData, actualNodeId))
                         : htmlTag`<div style="font-size:11px;color:var(--text-muted);padding:4px 0;">No exits from this area.</div>`}
                 </div>
             </div>
@@ -573,7 +573,7 @@ return htmlTag`<div class="inspector-section"><h3>🌡️ Environment</h3>
      * @param {string} actualNodeId - Graph node ID (unused but passed for context)
      * @returns {TemplateResult}
      */
-    RV._renderExitItem = function(exitName: string, exitData: ExitData, actualNodeId: string): TemplateResult {
+    RV._renderExitItem = function(exitName: string, exitData: AreaViewExitData, actualNodeId: string): TemplateResult {
         const state = exitData.state || 'closed';
         const wayId = exitData.way_id || '';
         let stateIcon: string, stateColor: string;
@@ -667,7 +667,7 @@ ENVIRONMENT: light (0-100), temperature (C, -50 to 100), air (fresh/stale/humid/
 
 OUTPUT FORMAT: Respond with ONLY raw JSON. No markdown, no code fences, just JSON.`;
 
-        const buildPrompt = (node: GraphNode, lockedFields: string[]) => {
+        const buildPrompt = (node: AreaViewGraphNode, lockedFields: string[]) => {
             const name = node.name || '';
             const props = node.properties || {};
             const description = props.description || '';
@@ -685,7 +685,7 @@ Current environment:
 Improve this area's description and environment settings. Make the description much richer — paint a vivid picture with sensory details (sights, sounds, smells, textures, atmosphere). Suggest appropriate environment values that match the mood. Return the full area as JSON with name, description, and environment fields.`;
         };
 
-        const apply = (parsed: Record<string, any>, node: GraphNode, lockedFields: string[], update: Record<string, any>) => {
+        const apply = (parsed: Record<string, any>, node: AreaViewGraphNode, lockedFields: string[], update: Record<string, any>) => {
             const props = node.properties || {};
             const env = props.environment || {};
             if (parsed.name) update.name = parsed.name;
@@ -742,7 +742,7 @@ Improve this area's description and environment settings. Make the description m
     if ((window as unknown as AreaViewWindow).InspectorTemplateSync) {
         (window as unknown as AreaViewWindow).InspectorTemplateSync.register('area', {
             title: 'Refresh Area from Library',
-            buildWorldPayload(nodeId: string, node: GraphNode | null) {
+            buildWorldPayload(nodeId: string, node: AreaViewGraphNode | null) {
                 const name = (node && node.name) || '';
                 if (!name) return null;
                 if ((window as unknown as AreaViewWindow).libraryBrowser && libraryBrowserRef()._buildAreaPayload) {
@@ -777,7 +777,7 @@ Improve this area's description and environment settings. Make the description m
 /** The area inspector's public surface. `RV` is populated member by member
  *  below, so the interface is what the assignments are checked against. */
 interface AreaViewApi {
-    showArea(nodeId: string, graphNode: GraphNode): void;
+    showArea(nodeId: string, graphNode: AreaViewGraphNode): void;
     improveRoomWithAI(nodeId: string): Promise<void>;
     populateArea(nodeId: string): Promise<void>;
     _renderRoomHeader(name: string, actualNodeId: string): TemplateResult;
@@ -786,7 +786,7 @@ interface AreaViewApi {
     _renderEnvPresetRow(env: AreaEnv, actualNodeId: string): TemplateResult;
     _renderFloorSection(props: NodeProps, actualNodeId: string): TemplateResult;
     _renderScopeSection(props: NodeProps, actualNodeId: string): TemplateResult;
-    _renderExitItem(exitName: string, exitData: ExitData, actualNodeId: string): TemplateResult;
+    _renderExitItem(exitName: string, exitData: AreaViewExitData, actualNodeId: string): TemplateResult;
     _saveEnvPreset(env: AreaEnv): void;
     _deleteEnvPreset(): void;
     _applyEnvPreset(actualNodeId: string): Promise<void>;
@@ -800,7 +800,7 @@ interface AreaViewApi {
 }
 
 /** A graph node as the inspector reads it. */
-interface GraphNode {
+interface AreaViewGraphNode {
     name?: string;
     type?: string;
     properties?: NodeProps;
@@ -840,7 +840,7 @@ interface NodeProps {
 }
 
 /** One authored way, as the area inspector lists it. */
-interface ExitData {
+interface AreaViewExitData {
     state?: string;
     way_id?: string;
     description?: string;
@@ -901,7 +901,7 @@ interface AreaViewTemplateSyncApi {
 /** The registration this view hands the template-sync pattern. */
 interface TemplateSyncSpec {
     title: string;
-    buildWorldPayload(nodeId: string, node: GraphNode | null): unknown;
+    buildWorldPayload(nodeId: string, node: AreaViewGraphNode | null): unknown;
     sections: Array<{ key: string; label: string }>;
 }
 

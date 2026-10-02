@@ -297,8 +297,8 @@ interface DiffModalWindowSurface { DiffModal: unknown }
       + '</div>';
   }
 
-  function show(current: DiffEntry, incoming: DiffEntry, sections: DiffSection[],
-                options: DiffOptions = {}): Promise<DiffResult | null> {
+  function show(current: DiffEntry, incoming: DiffEntry, sections: DiffModalDiffSection[],
+                options: DiffOptions = {}): Promise<DiffModalDiffResult | null> {
     return new Promise((resolve) => {
       const overlay = document.createElement('div');
       overlay.className = 'modal-overlay';
@@ -310,7 +310,7 @@ interface DiffModalWindowSurface { DiffModal: unknown }
 
       const modal = document.createElement('div');
       modal.className = 'modal-window';
-      const diffs: DiffSectionState[] = sections.map((s: DiffSection) => {
+      const diffs: DiffSectionState[] = sections.map((s: DiffModalDiffSection) => {
         const isDifferent = compareValues(current?.[s.key], incoming?.[s.key]);
         const clobber = toWorld
           ? isDifferent && !isEmptyValue(incoming?.[s.key]) && isEmptyValue(current?.[s.key])
@@ -404,7 +404,7 @@ interface DiffModalWindowSurface { DiffModal: unknown }
         }
       });
 
-      const collectResult = (action: DiffAction, extra?: Record<string, unknown>): DiffResult => {
+      const collectResult = (action: DiffAction, extra?: Record<string, unknown>): DiffModalDiffResult => {
         const selected: string[] = [];
         const entries: Record<string, string[]> = {};
         (modal.querySelectorAll('.pe') as NodeListOf<HTMLElement>).forEach((group) => {
@@ -421,7 +421,7 @@ interface DiffModalWindowSurface { DiffModal: unknown }
         });
         (modal.querySelectorAll('.diff-section:not(.pe) .diff-section-toggle') as NodeListOf<HTMLInputElement>)
           .forEach((t) => { if (t.checked && !selected.includes(t.dataset.key as string)) selected.push(t.dataset.key as string); });
-        const base: DiffResult = { action, sections: selected, entries };
+        const base: DiffModalDiffResult = { action, sections: selected, entries };
         return extra ? Object.assign(base, extra) : base;
       };
 
@@ -503,7 +503,7 @@ interface DiffModalWindowSurface { DiffModal: unknown }
 type DiffEntry = Record<string, unknown>;
 
 /** One comparable category, as callers declare it. */
-interface DiffSection {
+interface DiffModalDiffSection {
     key: string;
     label: string;
     /** True when the section holds addressable entries (memories, items, ...). */
@@ -511,7 +511,7 @@ interface DiffSection {
 }
 
 /** A section after `show` has resolved it against both sides. */
-interface DiffSectionState extends DiffSection {
+interface DiffSectionState extends DiffModalDiffSection {
     isDifferent: boolean;
     /** The world (or library) has data where the other side is empty. */
     clobber: boolean;
@@ -539,7 +539,7 @@ interface EntryListItem {
 type DiffAction = 'update' | 'duplicate';
 
 /** What `show` resolves with when the user applies their selection. */
-interface DiffResult {
+interface DiffModalDiffResult {
     action: DiffAction;
     /** Whole-section keys to apply. */
     sections: string[];

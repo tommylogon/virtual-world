@@ -33,8 +33,8 @@ interface TurnSceneViewWindowSurface { TurnSceneView: unknown }
      * Window surface. Read it lazily, never cached at load, because it may
      * not have run yet when this script first executes.
      */
-    function characterArt(): CharacterArtApi | undefined {
-        return (window as unknown as { CharacterArt?: CharacterArtApi }).CharacterArt;
+    function characterArt(): TurnSceneViewArtApi | undefined {
+        return (window as unknown as { CharacterArt?: TurnSceneViewArtApi }).CharacterArt;
     }
 
     function ensureStyles() {
@@ -708,7 +708,7 @@ interface SceneHandlers {
 }
 
 /** The subset of character-art.js this panel touches. */
-interface CharacterArtApi {
+interface TurnSceneViewArtApi {
     open(ref: { name: string; nodeId: string }): void;
     artForNodeId(nodeId: string): { profile?: string } | null;
 }

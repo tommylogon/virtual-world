@@ -51,7 +51,7 @@ const InspectorLore = (() => {
      * Render the World Lore view through InspectorPanel
      */
     L.renderWorldLore = async function(): Promise<void> {
-        let lore: LoreEntry[] = [];
+        let lore: LoreViewLoreEntry[] = [];
         try {
             const res = await AC.getWorldLore();
             lore = res.lore || [];
@@ -62,7 +62,7 @@ const InspectorLore = (() => {
         const catColors: Record<string, string> = { geography:'#3fb950', history:'#58a6ff', factions:'#e3b341', characters:'#f0883e', magic:'#bc8cff', religion:'#f85149', general:'#8b949e' };
 
         const entries = (lore.length > 0)
-            ? lore.map((entry: LoreEntry, idx: number) => {
+            ? lore.map((entry: LoreViewLoreEntry, idx: number) => {
                 const id = entry.id || `lore_${idx}`;
                 const cat = entry.category || 'general';
                 const color = catColors[cat] || '#8b949e';
@@ -132,11 +132,11 @@ const InspectorLore = (() => {
      * @param {string|null} entryId - Lore entry ID (null for new)
      */
     L.showLoreEditor = async function(entryId: string | null): Promise<void> {
-        let existing: LoreEntry | null = null;
+        let existing: LoreViewLoreEntry | null = null;
         if (entryId) {
             try {
                 const res = await AC.getWorldLore();
-                existing = (res.lore || []).find((e: LoreEntry) => e.id === entryId) || null;
+                existing = (res.lore || []).find((e: LoreViewLoreEntry) => e.id === entryId) || null;
             } catch (e) {}
         }
         const categories = ['general','geography','history','characters','factions','magic','religion','culture','bestiary'];
@@ -237,7 +237,7 @@ const InspectorLore = (() => {
 // Declared below the first value statement on purpose: TypeScript drops a
 // file's leading JSDoc block when the first statement is type-only, which would
 // strip the `@module` header tools/js_module_index.py reads.
-interface LoreEntry {
+interface LoreViewLoreEntry {
     id?: string;
     category?: string;
     title?: string;
@@ -250,8 +250,8 @@ interface LoreEntry {
 }
 
 interface LoreApiClient {
-    getWorldLore(): Promise<{ lore?: LoreEntry[] }>;
-    setWorldLore(entries: LoreEntry[]): Promise<unknown>;
+    getWorldLore(): Promise<{ lore?: LoreViewLoreEntry[] }>;
+    setWorldLore(entries: LoreViewLoreEntry[]): Promise<unknown>;
     addWorldLoreEntry(entry: Record<string, unknown>): Promise<unknown>;
     updateWorldLoreEntry(entryId: string, entry: Record<string, unknown>): Promise<unknown>;
     deleteWorldLoreEntry(entryId: string): Promise<unknown>;

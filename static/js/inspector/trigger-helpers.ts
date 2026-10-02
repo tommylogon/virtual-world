@@ -51,7 +51,7 @@ const _InspectorTriggers = (() => {
     api.getDoorOptions = function(): string {
         const doors: Array<{ id: string; name: string }> = [];
         if (worldState.graph?.nodes) {
-            for (const [id, node] of Object.entries(worldState.graph.nodes as Record<string, GraphNode>)) {
+            for (const [id, node] of Object.entries(worldState.graph.nodes as Record<string, TriggerHelpersGraphNode>)) {
                 if (node.type === 'way') {
                     doors.push({ id, name: node.name || id });
                 }
@@ -69,7 +69,7 @@ const _InspectorTriggers = (() => {
         const opts: Array<{ value: string; label: string }> = [];
 
         if (worldState.graph?.nodes) {
-            for (const [id, node] of Object.entries(worldState.graph.nodes as Record<string, GraphNode>)) {
+            for (const [id, node] of Object.entries(worldState.graph.nodes as Record<string, TriggerHelpersGraphNode>)) {
                 const lbl = node.name || id;
                 if (node.type === 'way' && !seen.has(lbl)) {
                     seen.add(lbl);
@@ -117,7 +117,7 @@ const _InspectorTriggers = (() => {
         const seen = new Set<string>();
         const opts: Array<{ value: string; label: string }> = [];
         if (worldState.graph?.nodes) {
-            for (const [id, node] of Object.entries(worldState.graph.nodes as Record<string, GraphNode>)) {
+            for (const [id, node] of Object.entries(worldState.graph.nodes as Record<string, TriggerHelpersGraphNode>)) {
                 if (node.type !== 'item') continue;
                 const lbl = node.name || id;
                 if (!seen.has(lbl)) {
@@ -140,11 +140,11 @@ const _InspectorTriggers = (() => {
      * @param lockedFields - Currently locked fields
      */
     api.buildTriggersHtml = function(nodeId: string, lockedFields?: string[]) {
-        const triggers: GraphEdge[] = [];
+        const triggers: TriggerHelpersGraphEdge[] = [];
         const locked = lockedFields || [];
         const nodeIdLower = String(nodeId).toLowerCase();
         if (worldState.graph?.edges) {
-            for (const edge of worldState.graph.edges as GraphEdge[]) {
+            for (const edge of worldState.graph.edges as TriggerHelpersGraphEdge[]) {
                 if (String(edge.source).toLowerCase() === nodeIdLower && edge.type === 'triggers') {
                     triggers.push(edge);
                 }
@@ -337,11 +337,11 @@ const _InspectorTriggers = (() => {
      * @param nodeId - Graph node ID
      * @returns trigger edges
      */
-    api._getNodeTriggers = function(nodeId: string): GraphEdge[] {
-        const out: GraphEdge[] = [];
+    api._getNodeTriggers = function(nodeId: string): TriggerHelpersGraphEdge[] {
+        const out: TriggerHelpersGraphEdge[] = [];
         const lower = String(nodeId).toLowerCase();
         if (worldState.graph?.edges) {
-            for (const edge of worldState.graph.edges as GraphEdge[]) {
+            for (const edge of worldState.graph.edges as TriggerHelpersGraphEdge[]) {
                 if (String(edge.source).toLowerCase() === lower && edge.type === 'triggers') {
                     out.push(edge);
                 }
@@ -586,9 +586,9 @@ const _InspectorTriggers = (() => {
      * @param nodeId - Graph node ID
      */
     api.buildContentsHtml = function(nodeId: string) {
-        const contained: Array<{ id: string; name: string; node: GraphNode | undefined }> = [];
+        const contained: Array<{ id: string; name: string; node: TriggerHelpersGraphNode | undefined }> = [];
         if (worldState.graph?.edges) {
-            for (const edge of worldState.graph.edges as GraphEdge[]) {
+            for (const edge of worldState.graph.edges as TriggerHelpersGraphEdge[]) {
                 if (edge.target === nodeId && edge.type === 'in') {
                     const cn = worldState.getNode(edge.source);
                     contained.push({ id: edge.source, name: cn?.name || edge.source, node: cn });
@@ -632,7 +632,7 @@ const _InspectorTriggers = (() => {
  */
 
 /** The graph node fields these helpers read. */
-interface GraphNode {
+interface TriggerHelpersGraphNode {
     id?: string;
     type?: string;
     name?: string;
@@ -640,7 +640,7 @@ interface GraphNode {
 }
 
 /** The graph edge fields these helpers read. */
-interface GraphEdge {
+interface TriggerHelpersGraphEdge {
     source: string;
     target: string;
     type: string;
@@ -684,7 +684,7 @@ interface TriggerDef {
 
 /** graph/trigger-graph.js — not declared in types/globals.d.ts. */
 interface TriggerGraphApi {
-    triggerDefFromEdge(edge: GraphEdge, nodes: unknown): TriggerDef;
+    triggerDefFromEdge(edge: TriggerHelpersGraphEdge, nodes: unknown): TriggerDef;
     triggersFromGraphEdges(edges: unknown, nodes: unknown, nodeId: string): TriggerDef[];
     triggerToGraph(data: TriggerDef): unknown;
     compileToEngine(graph: unknown): TriggerDef;
@@ -768,7 +768,7 @@ interface TriggerHelpersApi {
     buildTriggersHtml(nodeId: string, lockedFields?: string[]): unknown;
     validateNode(nodeId: string): Promise<void>;
     _openGraphEditor(escId: string): void;
-    _getNodeTriggers(nodeId: string): GraphEdge[];
+    _getNodeTriggers(nodeId: string): TriggerHelpersGraphEdge[];
     createTriggerOnNode(nodeId: string, data: TriggerDef): Promise<void>;
     _suggestFieldsForNode(nodeId: string): SuggestFields | null;
     suggestForNode(nodeId: string, useAI?: boolean, btn?: HTMLButtonElement): Promise<void>;

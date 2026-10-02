@@ -124,7 +124,7 @@ interface ConsumableTriggersWindowSurface { ItemLibraryTriggerSuggester: unknown
         return hasTag(tags, HAUNT_TAGS);
     }
 
-    function basicTrigger(triggerType: string, effects: TriggerEffect[], extra: { conditions?: TriggerCondition[]; success_message?: string; fail_message?: string } = {}): SuggestedTrigger {
+    function basicTrigger(triggerType: string, effects: TriggerEffect[], extra: { conditions?: ConsumableTriggersTriggerCondition[]; success_message?: string; fail_message?: string } = {}): SuggestedTrigger {
         return {
             trigger_type: triggerType,
             target_name: '',
@@ -211,7 +211,7 @@ interface ConsumableTriggersWindowSurface { ItemLibraryTriggerSuggester: unknown
             : `a sharp, off note hides in it — this has been tampered with.`;
 
         const effects: TriggerEffect[] = [];
-        let conditions: TriggerCondition[] = [];
+        let conditions: ConsumableTriggersTriggerCondition[] = [];
         let fail_message = '';
 
         if (type === 'on_examine') {
@@ -477,7 +477,7 @@ interface TriggerEffect {
 }
 
 /** One condition gating a suggested trigger. */
-interface TriggerCondition {
+interface ConsumableTriggersTriggerCondition {
     type: string;
     [key: string]: unknown;
 }
@@ -487,7 +487,7 @@ interface SuggestedTrigger {
     trigger_type: string;
     target_name: string;
     target_state: string;
-    conditions: TriggerCondition[];
+    conditions: ConsumableTriggersTriggerCondition[];
     effects: TriggerEffect[];
     success_message: string;
     fail_message: string;

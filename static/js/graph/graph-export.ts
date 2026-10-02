@@ -198,7 +198,7 @@
     }
 
     /** Redraw every visible map layer into the current (graph-space) transform. */
-    function _drawMapLayers(ctx: CanvasRenderingContext2D, layers?: ExportLayer[]) {
+    function _drawMapLayers(ctx: CanvasRenderingContext2D, layers?: GraphExportLayer[]) {
         for (const layer of layers || []) {
             const image = layer.image;
             const rect = layer.rect;
@@ -219,7 +219,7 @@
     }
 
     /** Flatten the map layers and the offscreen vis canvas into one image. */
-    function _composite(visCanvas: HTMLCanvasElement, layers: ExportLayer[], net: VisNetwork) {
+    function _composite(visCanvas: HTMLCanvasElement, layers: GraphExportLayer[], net: VisNetwork) {
         const composite = document.createElement('canvas');
         composite.width = visCanvas.width;
         composite.height = visCanvas.height;
@@ -350,7 +350,7 @@
 
             const visCanvas = net.canvas.frame.canvas;
             const background = (window as unknown as {
-                GraphBackground?: { getExportLayers?: () => ExportLayer[] };
+                GraphBackground?: { getExportLayers?: () => GraphExportLayer[] };
             }).GraphBackground;
             const layers = background && typeof background.getExportLayers === 'function'
                 ? background.getExportLayers()
@@ -405,7 +405,7 @@ interface CropRect {
 }
 
 /** One map background layer, as GraphBackground.getExportLayers() reports it. */
-interface ExportLayer {
+interface GraphExportLayer {
     image?: CanvasImageSource & { width: number; height: number };
     rect?: { x: number; y: number; width: number; height: number };
     crop?: CropRect;

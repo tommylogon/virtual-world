@@ -342,7 +342,7 @@ interface GhostRefreshOptions {
 
 /** The vis.js network surface this module reads; `vis` is untyped globally. */
 interface GhostsVisNetwork {
-    body: { data: { nodes: VisDataSet; edges: VisDataSet } };
+    body: { data: { nodes: GhostsVisDataSet; edges: GhostsVisDataSet } };
     getPositions(ids: string[]): Record<string, GhostPoint>;
     getViewPosition(): GhostPoint;
     getScale(): number;
@@ -351,7 +351,7 @@ interface GhostsVisNetwork {
     selectNodes(ids: string[]): void;
 }
 
-interface VisDataSet {
+interface GhostsVisDataSet {
     get(options?: { filter?: (item: Record<string, unknown>) => boolean }): Array<Record<string, unknown>>;
     remove(ids: unknown[]): void;
     update(items: Record<string, unknown> | Array<Record<string, unknown>>): void;

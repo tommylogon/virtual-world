@@ -34,7 +34,7 @@ const InspectorHelpersModule = (() => {
      * @param {object} props - Node properties
      * @returns {TemplateResult}
      */
-    H.graphGravityControl = function(nodeId: string, props: NodeProps = {}) {
+    H.graphGravityControl = function(nodeId: string, props: HelpersNodeProps = {}) {
         const enabled = props.central_gravity_enabled !== false && props.layout_static !== true;
         const num = (value: unknown) => (Number(value) > 0 ? Number(value) : '');
         return htmlTag`<div class="inspector-section">
@@ -77,7 +77,7 @@ const InspectorHelpersModule = (() => {
      */
     H.setLayoutNumber = async function(nodeId: string, key: string, rawValue: string | number) {
         const value = Number(rawValue);
-        const patch: NodeProps = {};
+        const patch: HelpersNodeProps = {};
         patch[key] = Number.isFinite(value) && value > 0 ? value : null;
         const saved = await api.updateNode(nodeId, { properties: patch });
         if (!saved) {
@@ -209,7 +209,7 @@ const InspectorHelpersModule = (() => {
     H.saveDescription = async function(charName: string) {
         const ta = document.getElementById('inspector-description') as HTMLTextAreaElement | null;
         const baseTa = document.getElementById('inspector-base-description') as HTMLTextAreaElement | null;
-        const payload: NodeProps = {};
+        const payload: HelpersNodeProps = {};
         if (ta) payload.description = ta.value;
         if (baseTa) payload.base_description = baseTa.value;
         await ApiClient.updateCharacter(charName, payload);
@@ -313,7 +313,7 @@ const InspectorHelpersModule = (() => {
      * @param {object} props - Node properties (reads `image`)
      * @returns {string} HTML string
      */
-    H.renderImageSection = function(nodeId: string, props: NodeProps = {}): string {
+    H.renderImageSection = function(nodeId: string, props: HelpersNodeProps = {}): string {
         const escId = H.escId(nodeId);
         const image = props.image || '';
         const preview = image
@@ -431,7 +431,7 @@ const InspectorHelpersModule = (() => {
     };
 
     /** Resolve the image URL for one expression slot (with neutral fallbacks). */
-    H.expressionImageFor = function(props: NodeProps | null | undefined, kind: string, key: string): string {
+    H.expressionImageFor = function(props: HelpersNodeProps | null | undefined, kind: string, key: string): string {
         const expr = ((props && props.expressions) || {}) as Record<string, Record<string, string>>;
         const direct = (expr[key] || {})[kind];
         if (direct) return direct;
@@ -444,7 +444,7 @@ const InspectorHelpersModule = (() => {
     };
 
     /** Ordered expression keys: known emotions first, then custom (sorted). */
-    H.expressionKeys = function(props: NodeProps | null | undefined): string[] {
+    H.expressionKeys = function(props: HelpersNodeProps | null | undefined): string[] {
         const expr = (props && props.expressions) || {};
         const present = new Set<string>(['neutral', ...Object.keys(expr)]);
         const known = EXPRESSION_ORDER.filter(k => present.has(k));
@@ -490,7 +490,7 @@ const InspectorHelpersModule = (() => {
     };
 
     /** Card grid HTML: thumbnail + label + upload/remove, drop target, live highlight. */
-    H._expressionCardsHtml = function(nodeId: string, props: NodeProps, kind: string): string {
+    H._expressionCardsHtml = function(nodeId: string, props: HelpersNodeProps, kind: string): string {
         const escId = H.escId(nodeId);
         const node = worldState.getNode ? worldState.getNode(nodeId) as InspectorNode | null : null;
         const currentKey = ((window as unknown as {
@@ -561,7 +561,7 @@ const InspectorHelpersModule = (() => {
      * @param {object} props - Node properties (reads `expressions`, `image`, `profile_image`)
      * @returns {string} HTML string
      */
-    H.renderExpressionSection = function(nodeId: string, props: NodeProps = {}): string {
+    H.renderExpressionSection = function(nodeId: string, props: HelpersNodeProps = {}): string {
         const escId = H.escId(nodeId);
         H._exprCache[nodeId] = props;
         H._ensureExprStyles();
@@ -692,7 +692,7 @@ const InspectorHelpersModule = (() => {
      * @param {object} props - Node properties
      * @returns {string[]} Locked fields
      */
-    H.getLockedFields = function(props: NodeProps | null | undefined): string[] {
+    H.getLockedFields = function(props: HelpersNodeProps | null | undefined): string[] {
         return props?.locked_fields || [];
     };
 
@@ -739,7 +739,7 @@ const InspectorHelpersModule = (() => {
             else { const firstBrace = cleaned.indexOf('{'), lastBrace = cleaned.lastIndexOf('}'); if (firstBrace !== -1 && lastBrace > firstBrace) cleaned = cleaned.substring(firstBrace, lastBrace + 1); }
             const parsed = JSON.parse(cleaned);
 
-            const update: NodeProps = {};
+            const update: HelpersNodeProps = {};
             spec.apply(parsed, node, lockedFields, update);
 
             await api.updateNode(nodeId, update);
@@ -863,12 +863,12 @@ const InspectorHelpersModule = (() => {
 // Type declarations sit below the first value statement on purpose: TypeScript
 // drops a file's leading JSDoc when the first statement is type-only, which
 // would strip the `@module` header `tools/js_module_index.py` reads.
-type NodeProps = Record<string, any>;
+type HelpersNodeProps = Record<string, any>;
 
 interface InspectorNode {
     id?: string;
     name?: string;
-    properties?: NodeProps;
+    properties?: HelpersNodeProps;
 }
 
 interface ImproveSpec {
@@ -876,11 +876,11 @@ interface ImproveSpec {
     id?: string;
     system: string;
     buildPrompt(node: InspectorNode, lockedFields: string[]): string;
-    apply(parsed: any, node: InspectorNode, lockedFields: string[], update: NodeProps): void;
+    apply(parsed: any, node: InspectorNode, lockedFields: string[], update: HelpersNodeProps): void;
 }
 
 interface InspectorHelpersApi {
-    graphGravityControl(nodeId: string, props?: NodeProps): unknown;
+    graphGravityControl(nodeId: string, props?: HelpersNodeProps): unknown;
     setLayoutNumber(nodeId: string, key: string, rawValue: string | number): Promise<void>;
     setCentralGravity(nodeId: string, enabled: boolean): Promise<void>;
     addParam(nodeId: string): Promise<void>;
@@ -895,23 +895,23 @@ interface InspectorHelpersApi {
     saveSkillCheck(nodeId: string): Promise<void>;
     esc(text: string | null | undefined): string;
     escId(nodeId: string | null | undefined): string;
-    renderImageSection(nodeId: string, props?: NodeProps): string;
+    renderImageSection(nodeId: string, props?: HelpersNodeProps): string;
     _refreshImagePreview(nodeId: string, image: string): void;
     setNodeImage(nodeId: string, inputEl: HTMLInputElement | null): Promise<void>;
     setNodeImageUrl(nodeId: string): Promise<void>;
     clearNodeImage(nodeId: string): Promise<void>;
     EXPRESSION_ORDER: string[];
     EXPRESSION_ICONS: Record<string, string>;
-    _exprCache: Record<string, NodeProps>;
+    _exprCache: Record<string, HelpersNodeProps>;
     _exprTab: Record<string, string>;
     expressionKeySafe(value: unknown): string;
-    expressionImageFor(props: NodeProps | null | undefined, kind: string, key: string): string;
-    expressionKeys(props: NodeProps | null | undefined): string[];
+    expressionImageFor(props: HelpersNodeProps | null | undefined, kind: string, key: string): string;
+    expressionKeys(props: HelpersNodeProps | null | undefined): string[];
     _ensureExprStyles(): void;
-    _expressionCardsHtml(nodeId: string, props: NodeProps, kind: string): string;
+    _expressionCardsHtml(nodeId: string, props: HelpersNodeProps, kind: string): string;
     _refreshExpressionGrid(nodeId: string, kindOverride?: string): void;
     setExpressionTab(nodeId: string, kind: string): void;
-    renderExpressionSection(nodeId: string, props?: NodeProps): string;
+    renderExpressionSection(nodeId: string, props?: HelpersNodeProps): string;
     uploadExpressionFile(nodeId: string, kind: string, key: string, file: File | null): Promise<void>;
     dropExpressionImage(nodeId: string, kind: string, key: string, ev: DragEvent): void;
     setExpressionImage(nodeId: string, kind: string, key: string, inputEl: HTMLInputElement | null): void;
@@ -919,7 +919,7 @@ interface InspectorHelpersApi {
     addExpressionKey(nodeId: string): void;
     renderLockToggle(field: string, lockedFields: string[] | null | undefined, nodeId: string): unknown;
     toggleFieldLock(nodeId: string, field: string): void;
-    getLockedFields(props: NodeProps | null | undefined): string[];
+    getLockedFields(props: HelpersNodeProps | null | undefined): string[];
     improveWithAI(nodeId: string, spec: ImproveSpec): Promise<void>;
     renderAliasesSection(nodeId: string, aliases?: string[] | string): unknown;
     saveAliases(nodeId: string, value: string): Promise<void>;
