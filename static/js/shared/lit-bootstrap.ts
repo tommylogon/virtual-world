@@ -20,6 +20,7 @@
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 import { html, svg, render, nothing, noChange } from 'lit-html';
+import type { TemplateResult } from 'lit-html';
 import { classMap } from 'lit-html/directives/class-map.js';
 import { styleMap } from 'lit-html/directives/style-map.js';
 import { repeat } from 'lit-html/directives/repeat.js';
@@ -27,26 +28,27 @@ import { ifDefined } from 'lit-html/directives/if-defined.js';
 import { guard } from 'lit-html/directives/guard.js';
 import { live } from 'lit-html/directives/live.js';
 import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
+
 /**
  * Render a lit-html TemplateResult into the inspector panel.
  * Central render point so nothing can accidentally write raw innerHTML
  * to the same container (which breaks lit-html's diffing).
  * @param {TemplateResult} template - lit-html template to render
  */
-export function renderPanel(template) {
+export function renderPanel(template: TemplateResult): void {
     const panel = document.getElementById('inspector-panel');
-    if (!panel)
-        return;
+    if (!panel) return;
     render(template, panel);
 }
+
 /**
  * Render a lit-html TemplateResult into any element.
  * @param {TemplateResult} template - lit-html template to render
  * @param {HTMLElement} target - element to render into
  */
-export function renderInto(template, target) {
-    if (!target)
-        return;
+export function renderInto(template: TemplateResult, target: HTMLElement): void {
+    if (!target) return;
     render(template, target);
 }
+
 window.Lit = { html, svg, render, renderInto, renderPanel, nothing, noChange, classMap, styleMap, repeat, ifDefined, guard, live, unsafeHTML };

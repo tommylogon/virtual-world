@@ -9,6 +9,7 @@
     "acorn-walk": "^8.3.5",
     "eslint": "^9.0.0",
     "globals": "^16.0.0",
+    "lit-html": "3.2.1",
     "typescript": "^7.0.2"
   },
   "scripts": {
