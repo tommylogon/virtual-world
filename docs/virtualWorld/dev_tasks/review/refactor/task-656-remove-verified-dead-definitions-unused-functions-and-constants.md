@@ -169,7 +169,7 @@ count for a cross-section of the removed names is now **0** —
 (`templates/index.html:1156`) was written only by `explainAction`, so it is now
 an orphan element — no writer, no superseding live path. Per the repo's
 dead-code rule that is "verify feature intent", not "dead": either wire a writer
-or delete the element and its CSS rule. Filed as follow-up rather than fixed
-here to keep this task a pure deletion.
+or delete the element and its CSS rule. Left as follow-up (not filed) to keep
+this task a pure deletion.
 
 No further code change. Moving to `review`.
