@@ -253,6 +253,19 @@ untouched by its introduction.
    never written, which is precisely the failure the function existed to fix.
    Every `except` in it now logs instead of passing.
 
+### A third, found only by driving the live API
+
+`PATCH /api/players/<n>/vitals/Max_HP` with `{"value": 8}` on a 100-HP character
+returned `200` and left **HP at 100 — 1250% of its own maximum**, which the
+route then reported as `percentage: 1250`. The route clamped the value it was
+writing against the *old* ceiling and never re-clamped the vital that ceiling
+bounded. That is the same inconsistency `modify_vital_max` explicitly fixes,
+reachable through a different door, so `handle_update_vital` now re-clamps the
+paired vital — and only re-clamps it when a `Max_*` is being written, so
+raising a maximum does not silently heal. Pinned by three tests, because the
+three directions are the three ways to get it wrong.
+
+
 ### Three decisions worth recording
 
 1. **`ceiling` returns `inf` for Temperature**, not 100. Temperature is a body
@@ -285,11 +298,44 @@ untouched by its introduction.
 ### Verify
 
 ```
-python -m pytest tests/test_health_model.py -q          # 43 passed
+python -m pytest tests/test_health_model.py -q          # 46 passed
 python -m pytest tests/test_health_model.py tests/test_health_model_fixes.py \
   tests/test_spell_effects.py tests/test_traits.py tests/test_combat.py \
   tests/test_conditions.py -q                          # 236 passed
 ```
+
+**Live — 2026-10-02, `python app.py` on `VW_PORT=4466`.** The health model's
+user-visible surface is the vitals API and the inspector bars behind it, so
+that is what was driven.
+
+**1. The `Max_*` write no longer strands the vital above its own ceiling.**
+This is the bug the read-only pass would have missed:
+
+```
+POST   /api/players                       {"name":"HealthProbe"}
+PATCH  /api/players/HealthProbe/vitals/Max_HP  {"value": 8}   -> 200
+GET    /api/players/HealthProbe/vitals/HP
+  -> {"value": 8.0, "max": 8.0, "percentage": 100.0}
+```
+
+Before the fix the same three calls returned `value: 100, max: 8.0,
+percentage: 1250.0`.
+
+**2. One death path, through the route the task named.**
+
+```
+POST /api/players/HealthProbe/kill
+  -> {"status":"killed","player":"HealthProbe","newly_dead":true}
+GET  /api/state -> HealthProbe.state == "dead", vitals.HP == 0,
+                  lived_log contains exactly 1 entry with kind "death"
+```
+
+**3. It is idempotent** — a second `POST .../kill` returned
+`newly_dead: false` and the lived log still held **one** death entry, so the
+guard actually prevents a second corpse rather than merely reporting the fact.
+
+Live world returned to its prior state afterwards (probe characters and their
+body nodes removed).
 
 **Full suite, compared by failure NAME against a clean `master` worktree** at
 `7a44135` (the AGENTS.md table of 12 is stale; master measures 15 today):

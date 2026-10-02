@@ -521,6 +521,52 @@ def test_the_library_already_ships_a_real_stat_block_on_a_non_100_scale():
         f"— the masked bug, in shipped data ({out})")
 
 
+def test_writing_a_max_through_the_route_reclamps_the_vital_it_bounds():
+    """Found live, not by reading: PATCH .../vitals/Max_HP to 8 on a 100-HP
+    character left HP at 100 — 1250% of its own maximum. The inspector would
+    have drawn it at 1250% and every later clamp would have silently repaired
+    it."""
+    from app import create_app
+    app = create_app({"TESTING": True})
+    world = app.world
+    client = app.test_client()
+    _add(world, "Probe")
+
+    r = client.patch("/api/players/Probe/vitals/Max_HP", json={"value": 8})
+    assert r.status_code == 200, r.get_data(as_text=True)
+    p = world.players["Probe"]
+    assert p.vitals["Max_HP"] == 8
+    assert p.vitals["HP"] == 8, f"HP left above its own ceiling: {p.vitals['HP']}"
+
+    body = client.get("/api/players/Probe/vitals/HP").get_json()
+    assert body["max"] == 8, body
+    assert body["percentage"] <= 100, body
+
+
+def test_raising_a_max_above_the_current_value_leaves_it_alone():
+    """The other direction must not heal: a ceiling moving up is not a heal."""
+    from app import create_app
+    app = create_app({"TESTING": True})
+    world = app.world
+    client = app.test_client()
+    p = _add(world, "Probe2", max_hp=8, hp=3)
+
+    client.patch("/api/players/Probe2/vitals/Max_HP", json={"value": 50})
+    assert p.vitals["Max_HP"] == 50
+    assert p.vitals["HP"] == 3
+
+
+def test_patching_a_vital_still_cannot_exceed_its_own_ceiling():
+    from app import create_app
+    app = create_app({"TESTING": True})
+    world = app.world
+    client = app.test_client()
+    p = _add(world, "Probe3", max_hp=8, hp=3)
+
+    client.patch("/api/players/Probe3/vitals/HP", json={"value": 5000})
+    assert p.vitals["HP"] == 8
+
+
 def test_a_fresh_player_still_hydrates_to_the_100_default():
     """The backward-compatibility floor: an unauthored character is unchanged."""
     p = Player("Nobody In Particular")

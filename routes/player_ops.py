@@ -3,7 +3,7 @@ from flask import request, jsonify
 from player import Player, PERIODIC_CONDITIONS, CONDITION_DEFINITIONS
 from graph import Node, Edge, EDGE_CARRYING
 from engine.equipment_bonuses import effective_temperature, aggregate_bonuses
-from engine.vitals import ceiling
+from engine.vitals import ceiling, clamp_to_ceiling
 
 logger = logging.getLogger(__name__)
 
@@ -1040,9 +1040,28 @@ def handle_update_vital(app, name, vital_name):
         # task-538: read the character's own ceiling (see handle_get_vital).
         max_val = ceiling(player.vitals, vital_name)
 
+    # task-538: writing a `Max_*` companion also re-clamps the vital it bounds.
+    # Setting Max_HP to 8 while HP sits at 100 otherwise leaves the character at
+    # 1250% of its maximum, which every later clamp would silently repair and
+    # every reader would find surprising — the same reason
+    # `modify_vital_max` brings the current value back under a lowered ceiling.
+    paired = None
+    if vital_name.startswith("Max_"):
+        paired = vital_name[len("Max_"):]
+        if paired not in player.vitals:
+            paired = None
+
     if "value" in data:
         if vital_name == "Temperature":
             player.vitals[vital_name] = max(min_val, min(max_val, float(data["value"])))
+        elif paired:
+            # A `Max_*` write is not bounded by the old ceiling (that is the
+            # point of it), but the value it bounds is re-clamped against the
+            # new one.
+            player.vitals[vital_name] = max(0, int(data["value"]))
+            player.vitals[paired] = clamp_to_ceiling(
+                player.vitals, paired, player.vitals.get(paired, 0))
+            max_val = ceiling(player.vitals, paired)
         else:
             player.vitals[vital_name] = max(0, min(max_val, int(data["value"])))
     if "decay_rate" in data:
