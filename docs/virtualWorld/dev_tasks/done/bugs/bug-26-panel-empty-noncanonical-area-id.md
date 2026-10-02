@@ -48,3 +48,27 @@ item and way.
 - pytest full suite 1126 passed
 - Browser: reload jake's turn in the men's restroom — toilet chip, "out"
   way, and the area description must all render.
+
+## Live server verification — 2026-10-02 (port 4471)
+
+The Taco Bell repro world is not in this worktree, but the same shape exists:
+`area_abandoned_hunter's_cabin` (apostrophe keeps the non-canonical id). Drove
+the real endpoints:
+
+1. `POST /api/players/Kaelen Voss/move {area: "Abandoned Hunter's Cabin"}`
+2. `GET /api/scene/Kaelen Voss`
+
+Result:
+
+```
+area.id   = "area_abandoned_hunter's_cabin"
+area.name = "Abandoned Hunter's Cabin"
+area.desc = "The cabin slumps under the weight of snow, its roof caved in on one side."
+ways      = [ { id: "way_cabin_door", direction: "cabin door", to: "Frozen Lake Clearing" } ]
+items     = [ { name: "Frozen Corpse", ... } ]
+```
+
+All three graph walks (description, ways, items) resolve for the
+non-canonical id; the panel would not be empty. Player moved back to
+"Blizzard Forest Clearing" afterwards. `tests/test_scene_snapshot.py` also
+green in the same run (52 passed with the other selections).

@@ -1,6 +1,6 @@
 ---
 type: bug
-status: review
+status: done
 area: bugs
 priority: medium
 ---
@@ -17,3 +17,17 @@ Reported: 'something went pretty wrong? im in world_template, but it seems to ha
 ## Acceptance
 
 - TODO
+
+## Second live verification — 2026-10-02 (port 4471)
+
+Drove the live `events._persist` (`StreamPersistence`) directly, changing the
+in-memory `worldState.data._scenario_name` to simulate a world switch:
+
+| step | `event_log_world` | persisted entries |
+|---|---|---|
+| persist in `world_template` | `world_template` | 4 |
+| persist after switching to `kraktooth_goblin_camp` | `kraktooth_goblin_camp` | **0** (dropped, not mixed) |
+| restore with a stale stored key `some_old_world` | reset to `world_template` | **0** (stale log not restored) |
+
+So a world change drops the previous world's bubbles on persist, and a stale
+stored log is not restored into a different world. No page errors.

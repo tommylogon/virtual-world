@@ -1,6 +1,6 @@
 ---
 type: bug
-status: review
+status: done
 area: graph
 priority: high
 ---
@@ -89,3 +89,21 @@ scenario (`kraktooth_goblin_camp`) confirmed intact afterwards.
 When backgrounds become a **list**, the emptiness test must move with them: an empty list or
 an empty block must still clear. The predicate is `_hasBackground()`, kept as one place so the
 list form has a single thing to extend.
+
+## Second live verification — 2026-10-02 (port 4471)
+
+Exercised the real `state:updated → _onWorldRefetched() → _restore()` path in the
+running app: fabricated an empty world block (`worldState.data.graph_background = {}`,
+exactly what a mapless scenario serializes) and emitted `state:updated`.
+
+| step | layers | image | rect |
+|---|---|---|---|
+| before (world_template) | 2 | true | true |
+| empty block + refetch | **0** | **false** | **false** |
+| after reload | 2 | true | true |
+
+`imagePath` also went `null` and came back. So a genuinely empty block now
+**clears** the previous map instead of being taken as a real record (the old
+`{}`-is-truthy bug). Additionally, `tools/unit/test_graph_background.js` covers
+`_hasBackground({}) === false` and `_hasBackground({layers: []}) === false`
+(green in the 485-test run). No page errors.
