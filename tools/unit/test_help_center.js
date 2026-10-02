@@ -138,3 +138,19 @@ test('a tour is reachable from the tips that belong to it', () => {
         assertTrue(linked, `tour "${id}" is not referenced by any tip`);
     }
 });
+
+test('the newer systems added by task-521 have hooks with reachable targets', () => {
+    // These were the named gaps: turn/time model, background simulation, and
+    // the auto-regenerating description. Each is a data-help tip whose target
+    // selector must be the same key the control carries, or "Show me" lands
+    // nowhere.
+    const required = ['turn-model', 'background-sim', 'auto-description'];
+    for (const id of required) {
+        const tip = TIPS.find((t) => t.id === id);
+        assertTrue(!!tip, `missing tip "${id}"`);
+        assertEq(tip.event, 'data-help', `${id} should fire from its data-help hook`);
+        assertTrue(!!tip.target, `${id} has no spotlight target`);
+        const m = /\[data-help=["']([^"']+)["']\]/.exec(tip.target);
+        assertTrue(!!m && tip.match(m[1]), `${id} target does not match its hook`);
+    }
+});

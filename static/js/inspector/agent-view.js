@@ -818,7 +818,7 @@ window.InspectorAgentView = (() => {
             <div style="background:var(--bg-inset);border:1px dashed var(--border);border-radius:4px;padding:4px 6px;font-size:10px;color:var(--text-muted);margin-bottom:4px;">
                 <span style="font-weight:600;">First impression:</span> <span id="inspector-first-impression">${firstImpression}</span>
             </div>
-            <button class="btn btn-sm" onclick="InspectorAgentView._generateDescription('${escName}')">🤖 Generate from Equipment</button>
+            <button class="btn btn-sm" data-help="auto-description" onclick="InspectorAgentView._generateDescription('${escName}')" title="Regenerate the visible description from the base description plus worn gear. It also refreshes on its own after equip/unequip or a body-state change, so a manual edit here can be overwritten by the next equipment change.">🤖 Generate from Equipment</button>
         </div>`;
 
         // Relationships

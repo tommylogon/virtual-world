@@ -111,7 +111,7 @@
                     <h4 class="panel-heading">🧍 Agents <span class="section-hint">(click to select active)</span>
                         <button class="btn btn-sm" id="reroll-init-btn" onclick="TurnQueue.rerollInitiatives(); if (window.appEvents) appEvents.emit('state:updated', worldState?.data);" title="Re-roll all initiative rolls (d20 + DEX)" style="margin-left:auto;font-size:10px;padding:1px 6px;display:none;">🎲 Re-roll</button>
                     </h4>
-                    <div id="agent-list" role="list" aria-label="Agent list"></div>
+                    <div id="agent-list" role="list" aria-label="Agent list" data-help="background-sim"></div>
                     <div class="agent-add-row">
                         <input type="text" id="char-name" placeholder="New agent name..." aria-label="New agent name">
                         <button class="btn btn-sm btn-green" onclick="createCharacter()">+</button>
@@ -119,7 +119,7 @@
                 </div>
                 <div class="settings-group" style="border-top:1px solid var(--border-light);margin-top:6px;">
                     <div class="settings-group-title"><span class="group-icon">🎮</span> Turn Order</div>
-                    <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-turn-based" onchange="config.turnBased=this.checked;if(this.checked&&window.VWSimultaneous.isSimultaneous(config.turnOrder)){config.setTurnMode('sequential');}else{config.save();}events.log(this.checked?'Turn-based enabled':'Turn-based disabled','system-msg');if(window.appEvents)appEvents.emit('state:updated',worldState?.data);"> ⏭️ Turn-Based Mode</label><span class="toggle-desc" id="agent-turn-based-desc">Characters act one at a time</span></div>
+                    <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-turn-based" data-help="turn-model" onchange="config.turnBased=this.checked;if(this.checked&&window.VWSimultaneous.isSimultaneous(config.turnOrder)){config.setTurnMode('sequential');}else{config.save();}events.log(this.checked?'Turn-based enabled':'Turn-based disabled','system-msg');if(window.appEvents)appEvents.emit('state:updated',worldState?.data);"> ⏭️ Turn-Based Mode</label><span class="toggle-desc" id="agent-turn-based-desc">Characters act one at a time</span></div>
                     <div class="settings-field"><label for="agent-turn-order" data-help="simultaneous">Turn mode</label><select id="agent-turn-order" style="width:210px;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.setTurnMode(this.value)"><option value="sequential">Sequential — one at a time</option><option value="random">Random — reshuffled each round</option><option value="initiative">Initiative — d20 + DEX</option><option value="simultaneous">Simultaneous — every character on a countdown</option><option value="simultaneous_room">Simultaneous per room — rooms independent, order within a room</option></select></div>
                 </div>
             </div>

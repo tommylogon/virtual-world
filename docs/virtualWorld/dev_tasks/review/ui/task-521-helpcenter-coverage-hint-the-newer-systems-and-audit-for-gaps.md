@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: ui
 priority: medium
 ---
@@ -16,20 +16,67 @@ The coach-tip registry (window.HelpCenter in static/js/ui/help-center.js) only c
 
 ## Acceptance
 
-- Every listed gap below is either given a tip + `data-help` hook, or
+- [x] Every listed gap below is either given a tip + `data-help` hook, or
   explicitly recorded as deliberately un-hinted with a reason.
-- Each new tip has a unique `id`, a `group`, a `title`, a `body`, and (where a
-  physical control exists) a `target` selector that the spotlight can reach.
-- The `data-help` key on each hooked element matches its tip's `match` exactly
-  (case-sensitive), and the element is reachable in the state the tip fires.
-- An in-editor control tip (if added) uses a `data-help` on the control built by
-  `static/js/worldpainter/editor.js`, not just the toolbar launcher.
-- The Help index (`F1` / ❓) lists the new tips and any new tour renders and runs
-  end to end; `Reset all` restores them.
-- No tip references a control that no longer exists, and no two tips share an id.
-- JS checked with `node --check`, `npm run lint`, `npm run typecheck`; JS units
-  (`node tools/unit/run.cjs`) stay at baseline (currently 226 passed, 13
-  pre-existing `test_plan_tracker` failures).
+- [x] Each new tip has a unique `id`, a `group`, a `title`, a `body`, and a
+  `target` selector that the spotlight can reach.
+- [x] The `data-help` key on each hooked element matches its tip's `match`
+  exactly (case-sensitive), and the element is reachable in the state the tip
+  fires (verified live, below).
+- [x] An in-editor control tip (if added) uses a `data-help` on the control built
+  by `static/js/worldpainter/editor.js`, not just the toolbar launcher.
+- [x] The Help index (`F1` / ❓) lists the new tips and any new tour renders and
+  runs end to end; `Reset all` restores them.
+- [x] No tip references a control that no longer exists, and no two tips share an
+  id.
+- [x] JS checked with `node --check`, `npm run lint`, `npm run typecheck`; JS
+  units stay green (`486 passed, 0 failed`).
+
+## Gap-by-gap disposition (2026-10-02)
+
+- **WorldPainter in-editor controls** — DONE in task-575 (21 hooks, `paint-a-town`
+  tour, registry guard). The launcher `worldpainter` tip already covers
+  `⚙ Generate` per-scope; no further work here.
+- **Scope tree / unmade-scope Generate** — **deferred to task-580**, which owns
+  that affordance. It is outside this lane's files (`static/js/graph/scope-tree.js`
+  is in-progress under task-592, which *deliberately* replaced a scope-row
+  Generate with a Paint jump). task-580 must add its own `data-help="scope-generate"`
+  hook + tip when it lands; recorded here so the gap is not silently dropped. The
+  painter's own `⚙ Generate` is already hinted by `wp-generate`.
+- **Consume/depletion contract** — folded into the existing `inspector-item` tip
+  (now: "Consumables spend themselves … authored food/drink must not spend a use
+  by hand").
+- **Auto-regenerating descriptions** — new tip `auto-description`, hooked on the
+  `🤖 Generate from Equipment` button (`data-help="auto-description"`), explaining
+  the derived description, auto-refresh, and Base Description as the durable home.
+- **Turn/time model** — new tip `turn-model`, hooked on `#agent-turn-based`
+  (`data-help="turn-model"`).
+- **Background simulation** — new tip `background-sim`, hooked on `#agent-list`
+  (`data-help="background-sim"`).
+- **Audit** — the registry guard (`tools/unit/test_help_center.js`) already
+  sweeps every `data-help=` / `_help('…')` key in `static/js` + `templates` and
+  fails on an orphan hook; extended with a targeted test for the three new tips.
+
+## Verification (live browser, 2026-10-02)
+
+`VW_PORT=4463`, Playwright, real clicks:
+
+```
+TURN_TIP          "💡 Time, turns and travel"
+BACKGROUND_TIP    "💡 The world keeps moving without you"
+AUTO_DESC_BTN_PRESENT true
+AUTO_DESC_TIP     "💡 Descriptions regenerate from gear"
+HELP_INDEX {"tipCount":45,"tours":["First five minutes","Triggers & effects",
+  "Scenario workflow","Painting a world","Painting a town"],
+  "hasTurn":true,"hasBg":true,"hasAuto":true}
+AFTER_RESET {"stored":null,"cards":0}
+Help index scrolled to bottom: SCROLL_REMAINING 0
+```
+
+Screenshots: `review-verify/521-turn-tip.png`,
+`review-verify/521-autodesc-tip.png`, `review-verify/521-help-index.png`,
+`review-verify/521-help-index-bottom.png`.
+
 
 ## How the system works (so the additions fit it)
 
