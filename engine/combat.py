@@ -99,37 +99,93 @@ class CombatSystem:
             return f"a heavy hit lands in the {region}, knocking the wind out of them."
         return f"a glancing hit lands in the {region}."
 
-    def _get_target_defense(self, target_player):
-        from engine.equipment_bonuses import aggregate_bonuses, resisted_damage
-        bonuses = aggregate_bonuses(target_player, self.graph)
-        return bonuses["defense"]
+    def _dr_mode(self) -> str:
+        """The configured damage-reduction mode (task-607).
 
-    def _apply_damage_reduction(self, damage: int, target_player) -> tuple:
-        """Reduce `damage` by the target's worn armour. Returns (damage, amount).
+        Read at call time so switching it mid-session re-resolves the next armed
+        hit with no restart. An unknown value degrades to ``flat`` -- the mode
+        that preserves historical behaviour -- rather than inventing a fourth.
+        """
+        from engine.runtime_config import config
+        mode = str(config.get("combat.damage_reduction_mode", "flat") or "flat").lower()
+        return mode if mode in ("flat", "dice", "percentage") else "flat"
 
-        task-607: `defense` is a damage *expression* read by the same parser the
-        weapon-damage field uses, so a suit can carry `20` (flat, and what every
-        existing item carries -- unchanged behaviour) or `d8` (drop the worst
-        eight). The dice form is rolled HERE, per hit, rather than summed during
-        aggregation: an outfit rolled once at aggregation would subtract the same
-        number from every subsequent swing.
+    def _damage_reduction_value(self, target_player) -> tuple:
+        """``(flat, dice)`` for the target's worn DR expression.
 
-        The floor stays at 1 in every mode. That is the one behaviour carried over
-        unchanged, and it is the cliff this task exists to remove -- see the
-        task file for why percentage is the natural third form rather than a
-        default.
+        ``flat`` is the summed numeric value; ``dice`` is the best ``(count,
+        sides)`` or ``None``. Shared by every mode so there is one read of the
+        equipment state.
         """
         from engine.equipment_bonuses import aggregate_bonuses
         bonuses = aggregate_bonuses(target_player, self.graph)
-        flat = int(bonuses.get("defense") or 0)
-        dice = bonuses.get("defense_dice")
-        rolled = 0
-        if dice and dice[0] > 0:
-            rolled = self.skills.roll_dice(dice[0], dice[1], 0)
+        flat = int(bonuses.get("damage_reduction") or 0)
+        dice = bonuses.get("damage_reduction_dice")
+        return flat, dice if dice and dice[0] > 0 else None
+
+    def _get_target_defense(self, target_player) -> int:
+        """Flat damage reduction (legacy accessor; used for the armor note)."""
+        return self._damage_reduction_value(target_player)[0]
+
+    def _get_target_evasion(self, target_player) -> int:
+        """Signed attack-side modifier (task-604). Positive = harder to hit."""
+        from engine.equipment_bonuses import aggregate_bonuses
+        bonuses = aggregate_bonuses(target_player, self.graph)
+        return int(bonuses.get("evasion") or 0)
+
+    def _adjust_damage_dice(self, count: int, target_player) -> int:
+        """``dice`` mode (task-607): strip DR dice from an incoming damage roll.
+
+        The DR value is read as a *number of damage dice removed* -- `2` removes
+        two dice, a `d6` removes 1-6 -- leaving at least one die so a hit never
+        vanishes entirely. This runs before the roll, which is what makes armour
+        lose dice rather than points; every other mode is a no-op here.
+        """
+        if self._dr_mode() != "dice":
+            return count
+        flat, dice = self._damage_reduction_value(target_player)
+        remove = flat + (self.skills.roll_dice(dice[0], dice[1], 0) if dice else 0)
+        return max(1, count - remove)
+
+    def _apply_damage_reduction(self, damage: int, target_player) -> tuple:
+        """Reduce `damage` by the target's worn armour.
+
+        Returns ``(damage, amount, mode, label)`` where ``label`` is a short
+        mode-tagged fragment for the combat log (``−2 flat`` / ``−40%``), so a
+        soak log distinguishes which mode produced the number.
+
+        task-607: `defense`/`damage_reduction` is a damage *expression* read by
+        the same parser the weapon-damage field uses, so a suit can carry `20`
+        (flat, and what every existing item carries -- unchanged behaviour) or
+        `d8`. The mode (engine config ``combat.damage_reduction_mode``) decides
+        what that value does:
+
+        * ``flat`` (default) -- subtract the value; a dice expression is rolled
+          per hit, never summed at aggregation.
+        * ``percentage`` -- the value is a percent of the incoming blow, so the
+          same number blunts a knife and a cannon alike.
+        * ``dice`` -- handled before the roll by :meth:`_adjust_damage_dice`; a
+          no-op here so the two implementations never both fire.
+
+        The floor is 1 in flat and percentage mode: a landed hit always bruises,
+        which is deliberate and unchanged from before task-607. In dice mode the
+        floor lives in the dice count (at least one die is always rolled).
+        """
+        mode = self._dr_mode()
+        if mode == "dice":
+            return damage, 0, mode, ""
+        flat, dice = self._damage_reduction_value(target_player)
+        rolled = self.skills.roll_dice(dice[0], dice[1], 0) if dice else 0
+        if mode == "percentage":
+            pct = max(0, min(100, flat + rolled))
+            if pct <= 0:
+                return damage, 0, mode, ""
+            reduced = max(1, damage - int(round(damage * pct / 100.0)))
+            return reduced, damage - reduced, mode, f"−{pct}%"
         total = flat + rolled
         if total <= 0:
-            return damage, 0
-        return max(1, damage - total), total
+            return damage, 0, mode, ""
+        return max(1, damage - total), total, mode, f"−{total} flat"
 
     def player_attack(self, attacker_name: str, target_name: str, weapon_node=None,
                       where=None) -> str:
@@ -248,8 +304,16 @@ class CombatSystem:
         attack_stat_mod = ability_mod(attacker.stats.get("STR", 10))
         defense_stat_mod = ability_mod(target.stats.get("DEX", 10))
 
+        # task-604: evasion is a signed attack-side modifier authored on worn
+        # gear. Positive raises the bar to hit (light armour, agility); negative
+        # lowers it, which is how a suit deliberately trades "how often I am
+        # hit" for "how much each hit matters". Omitted = 0.
+        target_evasion = self._get_target_evasion(target)
+
         attack_roll = self.skills.roll_dice(1, 20, attack_stat_mod + attack_mod)
         defense_roll = self.skills.roll_dice(1, 20, defense_stat_mod)
+        defense_total = defense_roll + target_evasion
+        evasion_display = f" + {target_evasion} evasion" if target_evasion else ""
 
         # Break the totals back into raw die + modifier for the breakdown.
         attack_raw = attack_roll - (attack_stat_mod + attack_mod)
@@ -260,10 +324,11 @@ class CombatSystem:
             {"combat_actors": [attacker_name, target_name]}
         )
 
-        if attack_roll >= defense_roll:
-            target_defense = self._get_target_defense(target)
+        if attack_roll >= defense_total:
             hp_before = target.vitals.get("HP", 0)
             hp_max = target.vitals.get("Max_HP", 100) or 100
+            # task-607: populated by whichever DR mode fired, for the armor note.
+            dr_label = ""
 
             if weapon_node:
                 weapon_props = weapon_node.properties
@@ -280,24 +345,31 @@ class CombatSystem:
                 parsed = parse_damage(weapon_props.get("damage", 5))
                 if parsed[0] > 0:
                     count, sides, flat = parsed
+                    # task-607 dice mode: strip DR dice before the roll.
+                    rolled_count = self._adjust_damage_dice(count, target)
                     dmg_mod = stat_mod + flat + (attack_bonus if self.skills.is_slasher(attacker_name) else 0)
-                    damage = self.skills.roll_dice(count, sides, dmg_mod)
+                    damage = self.skills.roll_dice(rolled_count, sides, dmg_mod)
                     damage_raw = damage - dmg_mod
-                    dmg_desc = f"{count}d{sides} ({damage_raw}) + {stat_mod} stat + {flat} flat"
+                    dmg_desc = f"{rolled_count}d{sides} ({damage_raw}) + {stat_mod} stat + {flat} flat"
+                    if rolled_count != count:
+                        dmg_desc += f" [{count - rolled_count} dice stripped]"
                     if self.skills.is_slasher(attacker_name):
                         dmg_desc += f" + {attack_bonus} attack_bonus"
-                    damage, _dr = self._apply_damage_reduction(damage, target)
-                    dmg_desc += f" = {damage} total, −{target_defense} armor" if target_defense > 0 else f" = {damage} total, −0 armor"
+                    damage, _dr, _mode, dr_label = self._apply_damage_reduction(damage, target)
+                    dmg_desc += f" = {damage} total, {dr_label} armor" if dr_label else f" = {damage} total, −0 armor"
                 else:
                     base_damage = parsed[2] or 5
+                    rolled_count = self._adjust_damage_dice(1, target)
                     dmg_mod = stat_mod + (attack_bonus if self.skills.is_slasher(attacker_name) else 0)
-                    damage = self.skills.roll_dice(1, base_damage, dmg_mod)
+                    damage = self.skills.roll_dice(rolled_count, base_damage, dmg_mod)
                     damage_raw = damage - dmg_mod
-                    dmg_desc = f"1d{base_damage} ({damage_raw}) + {stat_mod} stat"
+                    dmg_desc = f"{rolled_count}d{base_damage} ({damage_raw}) + {stat_mod} stat"
+                    if rolled_count != 1:
+                        dmg_desc += f" [1 die stripped]"
                     if self.skills.is_slasher(attacker_name):
                         dmg_desc += f" + {attack_bonus} attack_bonus"
-                    damage, _dr = self._apply_damage_reduction(damage, target)
-                    dmg_desc += f" = {damage} total, −{target_defense} armor" if target_defense > 0 else f" = {damage} total, −0 armor"
+                    damage, _dr, _mode, dr_label = self._apply_damage_reduction(damage, target)
+                    dmg_desc += f" = {damage} total, {dr_label} armor" if dr_label else f" = {damage} total, −0 armor"
 
                 if damage_type:
                     resisted = resisted_damage(damage, damage_type,
@@ -361,7 +433,7 @@ class CombatSystem:
                 # Narrative-first result — NO hit-point numbers. Characters live
                 # in wounds and conditions; HP stays engine-internal.
                 wound = self._wound_sentence(damage, damage_type, region_phrase)
-                armor_note = " Armor blunted the blow." if target_defense > 0 else ""
+                armor_note = " Armor blunted the blow." if dr_label else ""
                 resist_note = f" ({resisted_by} resisted)" if resisted_by > 0 else ""
                 if undead_note:
                     # Nothing solid was struck, so no wound sentence and no
@@ -370,7 +442,7 @@ class CombatSystem:
                 self.skills.add_log_entry(
                     f"[COMBAT] {attacker_name} attacks {target_name} with {weapon_name}! "
                     f"Attack d20({attack_raw}) + {str_mod_display} STR + {attack_mod} mod = {attack_roll} "
-                    f"vs d20({defense_raw}) + {defense_stat_mod} DEX = {defense_roll}: HIT — {wound}"
+                    f"vs d20({defense_raw}) + {defense_stat_mod} DEX = {defense_total}{evasion_display}: HIT — {wound}"
                 )
                 self.skills.record_turn_event(
                     attacker_name, "combat",
@@ -380,7 +452,7 @@ class CombatSystem:
                 hit_msg = (
                     f"{attacker_name} attacks {target_name} with {weapon_name}!\n"
                     f"  Attack: d20({attack_raw}) + {str_mod_display} STR + {attack_mod} mod = {attack_roll} "
-                    f"vs d20({defense_raw}) + {defense_stat_mod} DEX = {defense_roll} → HIT\n"
+                    f"vs d20({defense_raw}) + {defense_stat_mod} DEX = {defense_total}{evasion_display} → HIT\n"
                     f"  Result: {wound}{armor_note}{resist_note}"
                 )
                 if wake_msg:
@@ -401,9 +473,10 @@ class CombatSystem:
                     hit_msg += f" {target_name} is stunned!"
             else:
                 str_bonus = max(0, (attacker.stats.get("STR", 10) - 10) // 2)
-                damage = self.skills.roll_dice(1, 4, str_bonus)
+                _fists_dice = self._adjust_damage_dice(1, target)
+                damage = self.skills.roll_dice(_fists_dice, 4, str_bonus)
                 damage_raw = damage - str_bonus
-                damage, _dr = self._apply_damage_reduction(damage, target)
+                damage, _dr, _mode, dr_label = self._apply_damage_reduction(damage, target)
                 target.vitals["HP"] = max(0, target.vitals["HP"] - damage)
                 wake_msg = self._wake_on_damage(
                     target_name, source=attacker_name, source_type="character"
@@ -421,11 +494,11 @@ class CombatSystem:
                         target, hit_region, injury_target, damage, attacker_name, ""
                     )
                 wound = self._wound_sentence(damage, "", region_phrase)
-                armor_note = " Armor blunted the blow." if target_defense > 0 else ""
+                armor_note = " Armor blunted the blow." if dr_label else ""
                 self.skills.add_log_entry(
                     f"[COMBAT] {attacker_name} attacks {target_name} with bare hands! "
                     f"Attack d20({attack_raw}) + {str_mod_display} STR + {attack_mod} mod = {attack_roll} "
-                    f"vs d20({defense_raw}) + {defense_stat_mod} DEX = {defense_roll}: HIT — {wound}"
+                    f"vs d20({defense_raw}) + {defense_stat_mod} DEX = {defense_total}{evasion_display}: HIT — {wound}"
                 )
                 self.skills.record_turn_event(
                     attacker_name, "combat",
@@ -435,7 +508,7 @@ class CombatSystem:
                 hit_msg = (
                     f"{attacker_name} attacks {target_name} with bare hands!\n"
                     f"  Attack: d20({attack_raw}) + {str_mod_display} STR + {attack_mod} mod = {attack_roll} "
-                    f"vs d20({defense_raw}) + {defense_stat_mod} DEX = {defense_roll} → HIT\n"
+                    f"vs d20({defense_raw}) + {defense_stat_mod} DEX = {defense_total}{evasion_display} → HIT\n"
                     f"  Result: {wound}{armor_note}"
                 )
                 if wake_msg:
@@ -459,7 +532,7 @@ class CombatSystem:
             self.skills.add_log_entry(
                 f"[COMBAT] {attacker_name} attacks {target_name} with bare hands! "
                 f"Attack d20({attack_raw}) + {str_mod_display} STR + {attack_mod} mod = {attack_roll} "
-                f"vs d20({defense_raw}) + {defense_stat_mod} DEX = {defense_roll}: MISSED"
+                f"vs d20({defense_raw}) + {defense_stat_mod} DEX = {defense_total}{evasion_display}: MISSED"
             )
             self.skills.record_turn_event(
                 attacker_name, "combat",
@@ -471,12 +544,12 @@ class CombatSystem:
                 return (
                     f"{attacker_name} swings the {weapon_name} at {target_name} but misses!\n"
                     f"  Attack: d20({attack_raw}) + {str_mod_display} STR + {attack_mod} mod = {attack_roll} "
-                    f"vs d20({defense_raw}) + {defense_stat_mod} DEX = {defense_roll} → MISS"
+                    f"vs d20({defense_raw}) + {defense_stat_mod} DEX = {defense_total}{evasion_display} → MISS"
                 )
             return (
                 f"{attacker_name} lunges at {target_name} with bare hands but misses!\n"
                 f"  Attack: d20({attack_raw}) + {str_mod_display} STR + {attack_mod} mod = {attack_roll} "
-                f"vs d20({defense_raw}) + {defense_stat_mod} DEX = {defense_roll} → MISS"
+                f"vs d20({defense_raw}) + {defense_stat_mod} DEX = {defense_total}{evasion_display} → MISS"
             )
 
     def _get_target_resistances(self, target_player):

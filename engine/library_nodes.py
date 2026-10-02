@@ -78,6 +78,12 @@ def library_item_properties(lib_item: dict, library_id: str,
         "stun_chance": lib_item.get("stun_chance"),
         "stun_duration": lib_item.get("stun_duration"),
         "library_id": library_id,
+        # task-604/607: `defense` is the historical name for damage reduction;
+        # `damage_reduction` is the new one. Either may be a dice expression.
+        # `evasion` is the signed second axis. Both are copied explicitly or a
+        # library item would silently lose its authored defence on placement.
+        "damage_reduction": lib_item.get("damage_reduction", lib_item.get("defense", 0)),
+        "evasion": _int(lib_item.get("evasion", 0)),
         "defense": lib_item.get("defense", 0),
         "damage": lib_item.get("damage", 0),
         "insulation": lib_item.get("insulation", 0),

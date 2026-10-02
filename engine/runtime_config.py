@@ -89,6 +89,12 @@ DEFAULTS: dict = {
     "relationship.decay_per_day": 0.5,
     # engine/novelty.py — Entertainment from fresh places/things/people
     "entertainment.novelty_recovery_minutes": 120,
+    # engine/combat.py (task-607) — how an equipped `defense`/`damage_reduction`
+    # expression is applied to incoming damage. ``flat`` is the historical
+    # behaviour (subtract the value) and is the default so no scenario changes
+    # silently. ``dice`` strips damage dice instead of points; ``percentage``
+    # treats the value as a percent of the incoming blow (scale-invariant).
+    "combat.damage_reduction_mode": "flat",
 }
 
 #: Consuming modules read values at call time via config.get(); no module
@@ -103,6 +109,7 @@ _SECTION_DESCRIPTIONS: dict[str, str] = {
     "memory": "Character memories — retention cap (0 = keep everything)",
     "relationship": "Relationships — closeness drift toward neutral when nobody maintains the bond",
     "entertainment": "Entertainment — how long a place, thing or person stays familiar before it is fresh (and entertaining) again",
+    "combat": "Combat defence (task-604/607) — how worn damage-reduction is applied to incoming damage",
 }
 
 #: Default config file location, relative to this module file.
@@ -332,4 +339,7 @@ SCHEMA: dict[str, dict] = {
     # consumer reads "not exterior" as "apply to every area", so without the set a
     # typo would widen the weather to interiors in silence.
     "forecast.apply_scope": {"section": "forecast", "label": "Baseline-applied areas", "type": "string", "choices": ["exterior", "all"]},
+    # task-607: the DR grammar is the one weapon damage already uses, so an author
+    # types `20` or `d8`. The mode decides what that value *does*.
+    "combat.damage_reduction_mode": {"section": "combat", "label": "Damage reduction mode", "type": "string", "choices": ["flat", "dice", "percentage"]},
 }

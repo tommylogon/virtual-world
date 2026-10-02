@@ -597,7 +597,11 @@ class EquipmentSystem:
             tags = [t.lower() for t in (props.get("tags", []) or [])]
             if not any(t in ("armor", "clothing") for t in tags):
                 continue
-            if int(props.get("defense", 0) or 0) <= 0:
+            # task-607: `defense` may be a dice expression ("d8"), so a raw int()
+            # would raise. Positive flat value or any dice expression counts.
+            from engine.equipment_bonuses import parse_damage
+            _dr = parse_damage(props.get("defense", 0))
+            if _dr[0] <= 0 and _dr[2] <= 0:
                 continue
             uses = int(props.get("uses", -1) or 0)
             if uses > 0:
