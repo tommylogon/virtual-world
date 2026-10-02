@@ -15,6 +15,9 @@ import re
 from graph import Edge, Node, EDGE_CARRYING, EDGE_EQUIPPED
 
 #: Properties that must match for two instances to be "stackable twins" (D).
+#: task-514 deliberately excludes `provenance`: per-instance acquisition history
+#: would make two otherwise-identical loaves unmergeable, and the merged stack
+#: keeps the surviving copy's story anyway.
 _STACKABLE_KEYS = ["actions", "tags", "current_state", "equip_slots", "max_uses"]
 
 #: WorldGraph.add_node appends a hex suffix to duplicate ids AND names

@@ -97,6 +97,13 @@ def library_item_properties(lib_item: dict, library_id: str,
     # dropped at placement, so the item's own triggers can never see it.
     if lib_item.get("parameters"):
         props["parameters"] = dict(lib_item["parameters"])
+    # task-514: a template may carry a default acquisition story; it is copied
+    # onto the instance (never the other way round) so examined/prompted gear
+    # can say where it came from.
+    from engine.items.provenance import normalize_provenance
+    provenance = normalize_provenance(lib_item.get("provenance"))
+    if provenance:
+        props["provenance"] = provenance
     if extra:
         props.update(extra)
     return props

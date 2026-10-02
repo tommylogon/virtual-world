@@ -198,6 +198,13 @@ class TransferActionsMixin:
             player_id = player_manager._player_node_id(player_manager.active_player)
             self.graph.add_edge(Edge(source=item_node_id, target=player_id, type=EDGE_CARRYING))
 
+            # task-514: a theft is a new acquisition, so it rewrites the story.
+            from engine.items.provenance import stamp_provenance
+            steal_area = player_manager.current_area.name if player_manager.current_area else None
+            steal_tick = getattr(player_manager, "time_ticks", 0) or 0
+            stamp_provenance(item_node, text=f"Stolen from {target_name}.",
+                             source=target_name, area=steal_area, tick=steal_tick)
+
             player_manager.add_log_entry(
                 f"{player_manager.active_player} steals {item_node.name} from {target_name}."
             )

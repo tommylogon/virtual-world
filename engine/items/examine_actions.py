@@ -80,6 +80,15 @@ class ExamineActionsMixin:
         """
         if node is None:
             return ""
+        from engine.items.provenance import render_provenance
+
+        provenance_line = render_provenance(node.properties.get("provenance"))
+
+        def _with_provenance(text):
+            if provenance_line:
+                return f"{text}\n{provenance_line}".strip() if text else provenance_line
+            return text
+
         desc = node.properties.get("description", "")
         # task-191: freshness state joins the treated description naturally —
         # no numbers, just what senses tell you.
@@ -101,10 +110,10 @@ class ExamineActionsMixin:
             except Exception:
                 pass
         if not desc or not self.trigger_system:
-            return desc
+            return _with_provenance(desc)
         from engine.trigger_system import TriggerSystem
         if not isinstance(self.trigger_system, TriggerSystem):
-            return desc
+            return _with_provenance(desc)
         context = {
             "item_params": node.properties.get("parameters", {}) or {},
             "item_properties": node.properties or {},
@@ -112,9 +121,9 @@ class ExamineActionsMixin:
             "item_state": node.properties.get("current_state", ""),
         }
         try:
-            return self.trigger_system._render_template(desc, context)
+            return _with_provenance(self.trigger_system._render_template(desc, context))
         except Exception:
-            return desc
+            return _with_provenance(desc)
 
     def get_item_desc(self, player_manager, target_name: str) -> str:
         """Describe an item or exit by name. Items checked first (with fuzzy match),

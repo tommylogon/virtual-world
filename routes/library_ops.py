@@ -531,6 +531,10 @@ def place_library_item(app, item_id, container_id=None, character_id=None,
         "library_id": item_id,
         "image": lib_item.get('image') or None
     }
+    from engine.items.provenance import normalize_provenance
+    provenance = normalize_provenance(lib_item.get('provenance'))
+    if provenance:
+        props["provenance"] = provenance
     graph = app.world.graph
     node = graph.get_node(node_id)
     if not node:
@@ -886,6 +890,7 @@ def _refresh_item(app, node, sections, template_id=None):
             'resistances': 'resistances', 'action_costs': 'action_costs',
             'skill_check': 'skill_check', 'contents': 'contents',
             'aliases': 'aliases', 'tags': 'tags', 'affinity': 'affinity',
+            'provenance': 'provenance',
             'image': 'image',
         }
         if 'name' in sections and 'name' not in locked and lib_item.get('name'):
@@ -925,6 +930,10 @@ def _refresh_item(app, node, sections, template_id=None):
             "aliases": lib_item.get('aliases', []),
             "image": lib_item.get('image') or None,
         }
+        from engine.items.provenance import normalize_provenance
+        provenance = normalize_provenance(lib_item.get('provenance'))
+        if provenance:
+            lib_props["provenance"] = provenance
         if lib_item.get('name'):
             node.name = lib_item['name']
         for key, val in lib_props.items():

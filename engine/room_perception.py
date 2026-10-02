@@ -178,12 +178,19 @@ def describe_item(node, description: str = "") -> str:
     count = item_quantity(node)
     props = getattr(node, "properties", None) or {}
     desc = " ".join(str(description or "").split())
+    # task-514: one bounded provenance line, so the prompt can say where gear
+    # came from without turning into a log dump.
+    from engine.items.provenance import render_provenance
+    provenance = render_provenance(props.get("provenance"))
+    provenance_suffix = f" [{provenance}]" if provenance else ""
     if any(token in desc for token in QUANTITY_TOKENS):
-        return (desc.replace("{qty}", str(count))
-                   .replace("{quantity}", str(count))
-                   .replace("{name}", str(node.name or "")))
+        line = (desc.replace("{qty}", str(count))
+                    .replace("{quantity}", str(count))
+                    .replace("{name}", str(node.name or "")))
+        return line + provenance_suffix
     label = describe_item_quantity(node)
-    return f"{label}, {desc}" if desc else label
+    line = f"{label}, {desc}" if desc else label
+    return line + provenance_suffix
 
 
 def characters_in_area(graph, area_id, exclude_name: Optional[str] = None) -> list:
