@@ -186,7 +186,3 @@
     return instance;
 })();
 
-declare const NLEditorStaging: any;
-declare const NLEditorTools: any;
-declare const NLEditorUI: any;
-declare const NLEditorGhosts: any;

@@ -369,11 +369,72 @@ declare const EmotePicker: {
 };
 
 // GraphNetwork — owner: graph/event-handlers.ts
+// owner: static/js/graph/network-manager.js
 declare const GraphNetwork: {
-    revealItemsForNode(nodeId: string): void;
-    revealAreasForWay(nodeId: string): void;
-    hideRevealedItems(): void;
-    hideRevealedAreas(): void;
+    _applyCardinalOverlay(...args: any[]): any;
+    _applyHeatOverlay(...args: any[]): any;
+    _applyLightOverlay(...args: any[]): any;
+    _applyNodeLabelDecorations(...args: any[]): any;
+    _applySoundOverlay(...args: any[]): any;
+    _applyTagIconsToLabels(...args: any[]): any;
+    _applyTriggerOverlay(...args: any[]): any;
+    _attachTippyTooltips(...args: any[]): any;
+    _bindEdgeHoverTooltips(...args: any[]): any;
+    _captureBaseStyles(...args: any[]): any;
+    _clearOverlay(...args: any[]): any;
+    _computeAmbientLight(...args: any[]): any;
+    _computeVisibleNodeIds(...args: any[]): any;
+    _escHtml(...args: any[]): any;
+    _findGraphEdge(...args: any[]): any;
+    _fitToSearchMatches(...args: any[]): any;
+    _heatColors(...args: any[]): any;
+    _kickClusterPhysics(...args: any[]): any;
+    _lightColors(...args: any[]): any;
+    _lightToInt(...args: any[]): any;
+    _nodeLabelPolicy(...args: any[]): any;
+    _noiseColors(...args: any[]): any;
+    _syncLayoutButton(...args: any[]): any;
+    _tagMetaFor(...args: any[]): any;
+    _updateOverlayLegend(...args: any[]): any;
+    applyAutoMapSpacing(...args: any[]): any;
+    applyFilter(...args: any[]): any;
+    applyGraphSettings(...args: any[]): any;
+    applyModePhysics(...args: any[]): any;
+    applyNodeLabelVisibility(...args: any[]): any;
+    applyOverlay(...args: any[]): any;
+    applyTagFilter(...args: any[]): any;
+    applyVisibility(...args: any[]): any;
+    buildLegendHTML(...args: any[]): any;
+    buildLegendRows(...args: any[]): any;
+    buildNodeConfig(...args: any[]): any;
+    buildOptions(...args: any[]): any;
+    buildTooltip(...args: any[]): any;
+    buildTooltipHtml(...args: any[]): any;
+    centralGravityFor(...args: any[]): any;
+    ensureTagLibrary(...args: any[]): any;
+    filterNodes(...args: any[]): any;
+    fitView(...args: any[]): any;
+    hideRevealedAreas(...args: any[]): any;
+    hideRevealedItems(...args: any[]): any;
+    init(...args: any[]): any;
+    legendChrome(...args: any[]): any;
+    loadGraphData(...args: any[]): any;
+    mapCompact(...args: any[]): any;
+    mapSizeScale(...args: any[]): any;
+    renderTagPanel(...args: any[]): any;
+    resetOverlayStyles(...args: any[]): any;
+    revealAreasForWay(...args: any[]): any;
+    revealItemsForNode(...args: any[]): any;
+    setTagFilter(...args: any[]): any;
+    settleSearch(...args: any[]): any;
+    toggleImages(...args: any[]): any;
+    toggleInhabitedAreas(...args: any[]): any;
+    toggleItems(...args: any[]): any;
+    toggleLayoutMode(...args: any[]): any;
+    toggleLegend(...args: any[]): any;
+    togglePhysics(...args: any[]): any;
+    toggleTagPanel(...args: any[]): any;
+    toggleTriggers(...args: any[]): any;
 };
 
 // GraphTreeView — owner: ui-controller.ts

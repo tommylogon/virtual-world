@@ -899,7 +899,3 @@ interface RequestOptions {
 interface OpenPanelOptions extends RequestOptions {}
 
 /** `EmotePicker` (shared/emote-picker.js) is not in types/globals.d.ts. */
-declare const EmotePicker: {
-    toggle(wrap: HTMLElement, opts: { onPick(emote: string): void }): void;
-    close(wrap: HTMLElement): void;
-};

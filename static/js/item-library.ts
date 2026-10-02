@@ -32,24 +32,6 @@ const ItemLibraryApi = ApiClient as unknown as {
 // Collaborator modules that `types/globals.d.ts` does not declare. They are
 // loaded by <script> tags before this file, so a bare global read keeps the
 // original `typeof X === 'undefined'` guards meaningful.
-declare const ItemLibraryContents: {
-    renderContentsSection(this: ItemLibrary, contents: unknown): unknown;
-    removeContent(this: ItemLibrary, idx: unknown): unknown;
-    addContentUi(this: ItemLibrary): unknown;
-    saveContent(this: ItemLibrary, btn: unknown): unknown;
-};
-declare const TriggerEditor: {
-    _renderConditionSummary(conditions: unknown): string[];
-    show(...args: unknown[]): unknown;
-};
-declare const TriggerGraph: {
-    triggerToGraph(triggerData: unknown): unknown;
-    show(...args: unknown[]): unknown;
-    compileToEngine(graph: unknown): Record<string, any> | null;
-    reportCompileError(compiled: unknown): boolean;
-    engineToFormData(compiled: unknown): Record<string, any>;
-    triggersFromGraphEdges(...args: unknown[]): unknown[];
-};
 
 const DocPanel = (window as unknown as {
     DocPanel?: { format(rows: unknown): DocPreview };

@@ -19,7 +19,6 @@
  * globals.d.ts. Declared locally (or cast locally) so this file does not reach
  * into the shared ambient declaration that other lanes are editing.
  */
-declare function runAction(command: string, charName: string): void;
 type AVWin = { [key: string]: any };
 
 (window as unknown as AVWin).InspectorAgentView = (() => {

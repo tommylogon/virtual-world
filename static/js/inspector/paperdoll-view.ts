@@ -704,4 +704,3 @@ type RunActionFn = (verb: string, who: string) => Promise<unknown>;
  * resolves to an undefined binding. Fixing it is a behaviour change and is not
  * part of this conversion - see the report.
  */
-declare const durabilityChip: (props: unknown) => string;

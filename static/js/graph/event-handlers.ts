@@ -231,13 +231,6 @@ const GraphEventHandlersModule = {
  * names are declared here instead. `tools/globalsd-declarations.md` lists them
  * for a follow-up hub edit.
  */
-declare const GraphNetwork: {
-    revealItemsForNode(nodeId: string): void;
-    revealAreasForWay(nodeId: string): void;
-    hideRevealedItems(): void;
-    hideRevealedAreas(): void;
-};
-
 /** Extra ApiClient surface this file uses but the shared hub does not declare. */
 interface EventHandlersApiClient {
     createRoom(formData: Record<string, unknown>): Promise<{ error?: string; [key: string]: unknown }>;

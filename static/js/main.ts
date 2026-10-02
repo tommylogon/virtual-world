@@ -34,9 +34,6 @@ const mainJsTag = (strings: TemplateStringsArray, ...values: unknown[]) => Lit.h
 // still introduces no runtime binding and cannot collide with another lane.
 // Bare-name reads below are exactly what HEAD emitted.
 // ─────────────────────────────────────────────────────────────────────────────
-declare const SaveLoadView: any;       // ui/save-load-view.js
-declare const CreateModal: any;       // ui/create-modal.js
-declare const inspector: any;         // inspector/inspector.js
 
 /**
  * The prompt-preview modal is a plain <div> that this file stashes the

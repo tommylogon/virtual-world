@@ -114,4 +114,3 @@ const EdgeInspector = (() => {
 
 (window as unknown as { EdgeInspector: typeof EdgeInspector }).EdgeInspector = EdgeInspector;
 
-declare function hideInspectorPanel(): void;

@@ -912,7 +912,6 @@ return {
 // product decision rather than a type-level one. This ambient declaration lets
 // the pre-existing reference type-check; the inner `const` shadows it.
 // ---------------------------------------------------------------------------
-declare const viewerExitMap: Record<string, ExitEntry>;
 
 /** ApiClient plus the one method this module calls. */
 interface ApiClientWithSpeak {
