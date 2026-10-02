@@ -153,3 +153,22 @@ line to that doc distinguishing them, or retitle it to "instrumentation".
   a boundary, nothing else.
 - Deciding the telemetry `why` vocabulary. Deliberately left to task-537's notes
   so it is decided before capture, not after.
+
+## Verification pass (2026-10-02)
+
+Re-checked the rename end to end. `engine/lived_log.py`,
+`engine/soak_telemetry.py`, `docs/design/lived-log-format.md` and the
+`lived_log` save key all exist; `engine/trace.py` and
+`docs/design/trace-format.md` do not. Two stale path references survived the
+rename and are now fixed:
+
+- `engine/promotion.py:15` docstring pointed at `engine/trace.py` ->
+  `engine/lived_log.py`.
+- `engine/background_simulation.py:22` docstring pointed at
+  `docs/design/trace-format.md` -> `docs/design/lived-log-format.md`.
+
+Targeted run: `python -m pytest tests -k "lived_log or promotion or soak_telemetry"
+--ignore=tests/test_tick_time_scaling.py` -> 51 passed, 1 failed. The failure,
+`test_promotion.py::test_observe_route_queues_residents_and_404s_unknown_scope`,
+is on the repo's known pre-existing baseline (AGENTS.md), and the edits here are
+docstring-only. Full-suite A/B was not re-run for a path-only change.

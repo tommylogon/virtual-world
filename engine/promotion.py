@@ -12,7 +12,7 @@ This module owns the *memory* half of that seam:
   banked, so a long span cannot become a burst when it lifts.
 * :func:`promote` hands them back and turns the trace written while they were
   background into **one bounded subjective memory** (``source="background"``).
-  The trace is the objective record (``engine/trace.py``); the memory is the
+  The trace is the objective record (``engine/lived_log.py``); the memory is the
   bounded read of it.
 
 Everything here is deterministic and templated — **no LLM call is made** (v1;

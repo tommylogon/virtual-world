@@ -19,7 +19,7 @@ v1 scope — survival only:
     toward a known food/water area when the local area has none.
 
 Every decision writes an objective trace entry with a reason tag
-(docs/design/trace-format.md) so the span can later be summarized into memory.
+(docs/design/lived-log-format.md) so the span can later be summarized into memory.
 
 Deliberately NOT here yet: schedules/work, relationships, dialogue, combat.
 Those are the next slices. No LLM calls are made.
