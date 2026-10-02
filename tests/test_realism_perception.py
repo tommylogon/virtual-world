@@ -147,6 +147,71 @@ class TestDirectedWhisper:
         assert any("anyone there?" in h["text"] for h in bystander.recent_hearing)
 
 
+class TestWhisperAudience:
+    """A whisper reaches its target plus whoever is close enough to overhear.
+
+    The recipient always hears it; so does anyone standing in the same area who is
+    a friend or better with the speaker. A stranger at the same table hears nothing.
+    """
+
+    def _world(self, closeness):
+        world = VirtualWorld()
+        speaker = world.player_manager.get_player(world.active_player)
+        world.set_player_area(speaker.name, "foyer")
+        target = Player("Target")
+        world.add_player(target)
+        world.set_player_area("Target", "foyer")
+        neighbor = Player("Neighbor")
+        world.add_player(neighbor)
+        world.set_player_area("Neighbor", "foyer")
+        if closeness:
+            neighbor.update_relationship(speaker.name, 0, closeness)
+        return world, speaker, target, neighbor
+
+    def test_target_always_hears(self):
+        world, speaker, target, _ = self._world(closeness=0)
+        world.broadcast_speech(speaker.name, "the code is 4417",
+                               speech_level="whisper", whisper_target="Target")
+        assert any("4417" in h["text"] for h in target.recent_hearing)
+
+    def test_stranger_in_the_room_hears_nothing(self):
+        world, speaker, target, neighbor = self._world(closeness=0)
+        world.broadcast_speech(speaker.name, "the code is 4417",
+                               speech_level="whisper", whisper_target="Target")
+        assert not any("4417" in h["text"] for h in neighbor.recent_hearing)
+
+    def test_a_friend_at_the_speaker_hears_it(self):
+        world, speaker, target, neighbor = self._world(closeness=40)
+        world.broadcast_speech(speaker.name, "the code is 4417",
+                               speech_level="whisper", whisper_target="Target")
+        assert any("4417" in h["text"] for h in neighbor.recent_hearing)
+
+    def test_an_acquaintance_is_not_close_enough(self):
+        # 10 sits in the `acquaintance` band, below the `friend` threshold.
+        world, speaker, target, neighbor = self._world(closeness=10)
+        world.broadcast_speech(speaker.name, "the code is 4417",
+                               speech_level="whisper", whisper_target="Target")
+        assert not any("4417" in h["text"] for h in neighbor.recent_hearing)
+
+    def test_the_event_records_who_else_overheard(self):
+        world, speaker, target, neighbor = self._world(closeness=40)
+        world.broadcast_speech(speaker.name, "the code is 4417",
+                               speech_level="whisper", whisper_target="Target")
+        events = [e for e in world.speech_log
+                  if e.get("whisper_target") == "Target"]
+        assert events and events[-1]["whisper_audience"] == ["Neighbor"]
+
+    def test_a_voice_carrying_across_rooms_does_not_matter(self):
+        """The band is the whole gate: shout volume is not a whisper bypass."""
+        world, speaker, target, neighbor = self._world(closeness=0)
+        world.broadcast_speech(speaker.name, "the code is 4417",
+                               speech_level="whisper", whisper_target="Target")
+        # Same-room stranger heard nothing even though they were present for a
+        # plain spoken line.
+        world.broadcast_speech(speaker.name, "anyone listening?", speech_level="normal")
+        assert any("anyone listening?" in h["text"] for h in neighbor.recent_hearing)
+
+
 # ─────────────────── task-94: closeness hooks ───────────────────
 
 

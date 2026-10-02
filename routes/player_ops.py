@@ -3,6 +3,7 @@ from flask import request, jsonify
 from player import Player, PERIODIC_CONDITIONS, CONDITION_DEFINITIONS
 from graph import Node, Edge, EDGE_CARRYING
 from engine.equipment_bonuses import effective_temperature, aggregate_bonuses
+from engine.vitals import polarity as vital_polarity
 
 logger = logging.getLogger(__name__)
 
@@ -881,6 +882,10 @@ def handle_get_vital(app, name, vital_name):
         "decay_rate_override": override_rate,
         "base_decay_rate": base_rate,
         "time_to_empty": time_to_empty,
+        # task-635: 'resource' drains toward 0, 'drive' fills toward 100,
+        # 'band' is a comfort window. The source of truth is engine/vitals.py;
+        # the modal reads this to describe the direction it actually moves.
+        "polarity": vital_polarity(vital_name),
         "conditions_affecting": conditions_affecting
     }
 

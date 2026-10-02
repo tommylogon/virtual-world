@@ -159,18 +159,42 @@ window.TurnSceneView = (() => {
         return menus;
     }
 
-    function buildPersonMenu(person) {
-        // Meeting is sighting-based (task-154): looking at the room registers
-        // the acquaintance — the name reveals on the NEXT scene render. No
-        // introduction action exists or is needed; Talk just focuses say.
+    // task-610: the backend dispatches ~23 character-to-character verbs but
+    // the person menu exposed only Talk / Examine / Attack. This mirrors the
+    // full person-directed set. The menu is an affordance only — every entry
+    // drafts text the server validates, exactly like the way menu. Entries
+    // whose argument the menu cannot know (a steal target's inventory, a
+    // name alias) are deliberately not offered; see task-610 notes.
+    function buildPersonMenu(person, scene) {
+        const you = (scene && scene.you) || {};
+        const conditions = (you.conditions || []).map((c) => String(c).toLowerCase());
+        const grappled = conditions.some((c) => c.includes('grappl'));
+        const carrying = you.carrying || [];
+        const abilities = you.known_abilities || [];
+        // Prefer the world's own toggle (the engine gate); the client config
+        // mirrors it and is used only as a fallback before state loads.
+        const mature = !!(
+            (window.worldState && worldState.data && worldState.data.mature_content)
+            || (window.config && window.config.matureContent)
+        );
+        const who = person.display_name;
+
+        // Speaking to someone is two different things, so the menu offers both:
+        //   · Whisper to them — directed. Only they hear it, plus anyone standing
+        //     close enough to be "at" you who is a friend or better (the engine's
+        //     whisper audience, engine/speech.py). Use it for a secret.
+        //   · Say it aloud — undirected. Everyone in the area hears it, exactly
+        //     as if you had simply spoken. This is the "the whole room can hear"
+        //     option, and it is NOT addressed to this person in any way.
         const menus = [
-            { label: 'Talk to', talkFocus: true },
+            { label: `Whisper to ${who}`, talk: true, volume: 'whisper', target: who },
+            { label: `Say aloud (everyone hears)`, talk: true, volume: 'say' },
         ];
         // Examine resolves real names, aliases, AND descriptive labels
         // (matching.py _match_character_name tiers) — the masked stranger
         // label drafts fine and resolves server-side.
         menus.push({
-            label: `Examine ${person.display_name}`,
+            label: `Examine ${who}`,
             run: () => {
                 // "Big overlay on examine": examining a character shows their
                 // live art (current full body, else the profile enlarged) even
@@ -179,11 +203,55 @@ window.TurnSceneView = (() => {
                 return draftParts({ action: 'examine', target: person.display_name });
             },
         });
-        menus.push({
-            label: `Attack ${person.display_name}`,
-            danger: true,
-            run: () => draftParts({ action: 'attack', target: person.display_name }),
-        });
+        menus.push({ label: `Attack ${who}`, danger: true, run: () => draftParts({ action: 'attack', target: who }) });
+        menus.push({ label: `Grab ${who} (grapple)`, run: () => draftParts({ action: 'grab', target: who }) });
+        menus.push({ label: `Lead ${who}`, run: () => draftParts({ action: 'lead', target: who }) });
+        menus.push({ label: `Wake ${who}`, run: () => draftParts({ action: 'wake', target: who }) });
+        if (grappled) menus.push({ label: 'Escape the grapple', run: () => draftParts({ action: 'escape' }) });
+        menus.push({ label: `Release ${who}`, run: () => draftParts({ action: 'release', target: who }) });
+
+        // Give: choose from what you are actually carrying. applyDraft joins
+        // action/item/target with spaces, so the connector lives in the action
+        // phrase ("give Dagger to" + "Tester"), not a separate field.
+        if (carrying.length) {
+            menus.push({
+                label: `Give… (${carrying.length})`,
+                sub: {
+                    title: `Give what to ${who}?`,
+                    buttons: carrying.slice(0, 20).map((item) => ({
+                        label: item.name,
+                        run: () => draftParts({ action: `give ${item.name} to`, target: who }),
+                    })),
+                },
+            });
+        }
+        // Teach: choose from the abilities you know.
+        if (abilities.length) {
+            menus.push({
+                label: `Teach… (${abilities.length})`,
+                sub: {
+                    title: `Teach what to ${who}?`,
+                    buttons: abilities.slice(0, 20).map((ability) => ({
+                        label: ability,
+                        run: () => draftParts({ action: `teach skill:${ability} to`, target: who }),
+                    })),
+                },
+            });
+        }
+        // Intimacy verbs are only valid in mature worlds (task-211); offer the
+        // submenu behind the same toggle the engine gates on.
+        if (mature) {
+            menus.push({
+                label: 'Intimacy…',
+                sub: {
+                    title: `Intimacy with ${who}`,
+                    buttons: ['kiss', 'caress', 'lick', 'suck', 'bite', 'pinch', 'blow', 'tickle'].map((verb) => ({
+                        label: verb[0].toUpperCase() + verb.slice(1),
+                        run: () => draftParts({ action: verb, target: who }),
+                    })),
+                },
+            });
+        }
         return menus;
     }
 
@@ -278,6 +346,17 @@ window.TurnSceneView = (() => {
                 e.stopPropagation();
                 closeMenu();
                 if (b.enabled === false) return;
+                // task-610: "talk" entries set the composer's speech volume
+                // (and a directed-whisper target) instead of drafting a command.
+                if (b.talk) { if (onTalkFocus) onTalkFocus({ volume: b.volume, target: b.target }); return; }
+                // Nested menu (give/teach/intimacy): reopen at the same spot,
+                // with a Back entry that rebuilds the parent list.
+                if (b.sub) {
+                    openMenu(x, y, b.sub.title,
+                        [{ label: '‹ back', sub: { title, buttons } }].concat(b.sub.buttons),
+                        onDraft, onTalkFocus);
+                    return;
+                }
                 if (b.talkFocus) { if (onTalkFocus) onTalkFocus(); return; }
                 if (typeof b.run === 'function' && onDraft) onDraft(b.run());
             });
@@ -326,6 +405,12 @@ window.TurnSceneView = (() => {
             { label: 'Examine the room', run: () => draftParts({ action: 'examine', item: 'room' }) },
             { label: 'Look around', run: () => draftParts({ action: 'look' }) },
             { label: 'Listen', run: () => draftParts({ action: 'listen' }) },
+            // Focus the speech row without changing the volume — the "just let me
+            // say something" affordance, kept distinct from the explicit volumes.
+            { label: 'Speak…', talkFocus: true },
+            { label: 'Say it to the room', talk: true, volume: 'say' },
+            { label: 'Shout', talk: true, volume: 'shout' },
+            { label: 'Scream', talk: true, volume: 'scream' },
         ]));
         attachHover(areaBtn, () => areaBtn,
                     () => lookLines(scene, 'area', Object.assign({}, scene.area, { dark })));
@@ -358,7 +443,7 @@ window.TurnSceneView = (() => {
         if (!scene.people.length) peopleChips.appendChild(el('span', 'tsv-hint', 'nobody.'));
         for (const p of scene.people) {
             const chip = mkChip(peopleChips, 'tsv-person', p.display_name,
-                (e) => chipClick(e, p.display_name, buildPersonMenu(p)),
+                (e) => chipClick(e, p.display_name, buildPersonMenu(p, scene)),
                 () => lookLines(scene, 'person', p));
             const art = window.CharacterArt && window.CharacterArt.artForNodeId(p.id);
             if (art && art.profile) {

@@ -227,6 +227,14 @@ class TestSavingThrows:
                 break
         assert all_fail
 
+    def test_auto_fail_save_names_the_condition(self, skills, player_manager):
+        """task-479: an auto-failed save names the condition, not just 'a condition'."""
+        player = self._player(player_manager)
+        player.conditions["paralysed"] = [{}]
+        success, total, msg = skills.saving_throw(player, "DEX", 10)
+        assert success is False and total == 0
+        assert "AUTO-FAIL" in msg and "paralysed" in msg
+
     def test_skill_save(self, skills, player_manager):
         """A skill name (not a stat) rolls the raw skill value."""
         player = self._player(player_manager)

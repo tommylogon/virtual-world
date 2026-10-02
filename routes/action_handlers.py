@@ -294,6 +294,22 @@ def handle_take_action(app):
             if text:
                 output_lines.append(text)
 
+        # task-448: when a character target is ambiguous, never auto-pick. Emit a
+        # readable list with a distinguishing detail per candidate, and attach a
+        # structured chooser the client can render. The pick resolves to the
+        # candidate's identity key, which _match_character_name accepts verbatim.
+        choice_groups = []
+
+        def note_ambiguity(verb, candidates):
+            options = world.character_candidate_details(candidates)
+            rendered = [
+                f"{o['label']} ({o['detail']})" if o.get('detail') else o['label']
+                for o in options
+            ]
+            add_output("You don't know exactly who that is. Do you mean: "
+                       + "; ".join(rendered) + "?")
+            choice_groups.append({"verb": verb, "options": options})
+
         gate_msg = _activity_gate(cmd, world, add_output)
         if gate_msg:
             raise ValueError(gate_msg)
@@ -971,7 +987,7 @@ def handle_take_action(app):
                         target_player = world.players[resolved]
                     elif candidates:
                         ambiguous_target = True
-                        add_output(f"You don't know exactly who that is. Do you mean: {', '.join(candidates)}?")
+                        note_ambiguity("attack", candidates)
                 if target_player:
                     player_in_same_area = (target_player.current_area == world.current_area.name)
                     if player_in_same_area:
@@ -1001,11 +1017,14 @@ def handle_take_action(app):
             else:
                 target_player = world.players.get(target)
                 resolved_target = target
+                candidates = []
                 if target_player is None:
                     resolved, candidates = world._match_character_name(target)
                     if resolved:
                         resolved_target = resolved
                         target_player = world.players[resolved]
+                    elif candidates:
+                        note_ambiguity("grab", candidates)
                 if target_player:
                     if resolved_target == world.active_player:
                         add_output("You can't grab yourself.")
@@ -1013,7 +1032,7 @@ def handle_take_action(app):
                         add_output(world._grapple_grab(world.active_player, resolved_target))
                     else:
                         add_output(f"{resolved_target} isn't here.")
-                else:
+                elif not candidates:
                     try:
                         add_output(world.take_item(target))
                     except Exception as grab_err:
@@ -1075,7 +1094,7 @@ def handle_take_action(app):
                                 resolved_target = resolved
                                 target_player = world.players[resolved]
                             elif candidates:
-                                add_output(f"You don't know exactly who that is. Do you mean: {', '.join(candidates)}?")
+                                note_ambiguity(verb, candidates)
                                 resolved_target = None
                         if resolved_target is not None:
                             if target_player and target_player.current_area == world.current_area.name:
@@ -1091,13 +1110,18 @@ def handle_take_action(app):
             target = ' '.join(tokens[1:]) if len(tokens) > 1 else ""
             resolved_target = target
             target_player = world.players.get(target)
+            lead_ambiguous = False
             if target_player is None and target:
                 resolved, candidates = world._match_character_name(target)
                 if resolved:
                     resolved_target = resolved
                     target_player = world.players[resolved]
+                elif candidates:
+                    note_ambiguity("lead", candidates)
+                    lead_ambiguous = True
             if not target_player:
-                add_output(f"Can't lead {target or 'that'} — no one by that name is here.")
+                if not lead_ambiguous:
+                    add_output(f"Can't lead {target or 'that'} — no one by that name is here.")
             elif resolved_target == world.active_player:
                 add_output("You can't lead yourself.")
             elif target_player.current_area != world.current_area.name:
@@ -1349,6 +1373,10 @@ def handle_take_action(app):
     world.player_manager.active_player = prev_active
 
     response = {"output": "\n".join(output_lines), "success": not failed}
+    if choice_groups:
+        # task-448: structured chooser for the client; the readable list is
+        # already in the output text.
+        response["choices"] = choice_groups
     if hasattr(world, 'scenario_ended') and world.scenario_ended:
         response["scenario_ended"] = True
         if hasattr(world, '_restart_requested') and world._restart_requested:

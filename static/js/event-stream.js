@@ -188,6 +188,55 @@ class EventBus {
         this._routeToStream(text, className, meta, actor);
     }
 
+    /** task-448: a disambiguation chooser. Renders one button per candidate,
+     *  each labelled with a distinguishing detail; clicking re-runs the action
+     *  against that candidate's identity key (`verb key`), which the matcher
+     *  accepts verbatim. Never auto-picks. */
+    logChoices(verb, options, actor) {
+        if (!verb || !Array.isArray(options) || !options.length) return;
+        const text = 'Which one did you mean?';
+        this.emit('log', { text, className: 'msg-choices', meta: {}, actor: actor || null });
+        const streamEl = document.getElementById('event-stream');
+        if (!streamEl) return;
+        const bubble = document.createElement('div');
+        bubble.className = 'msg-bubble msg-bubble-choices';
+        bubble.setAttribute('data-actor', actor || '');
+        bubble.setAttribute('data-tick', VW?.state?.tick || 0);
+        const label = document.createElement('span');
+        label.className = 'bubble-text bubble-choices-text';
+        label.textContent = text + ' ';
+        bubble.appendChild(label);
+        for (const option of options) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn btn-sm choice-btn';
+            btn.style.cssText = 'margin:2px 4px 2px 0;font-size:10px;';
+            btn.textContent = option.detail ? `${option.label} — ${option.detail}` : option.label;
+            btn.title = `Target ${option.key}`;
+            btn.addEventListener('click', async () => {
+                btn.disabled = true;
+                try {
+                    const data = await ApiClient.action(`${verb} key:${option.key}`, actor || undefined);
+                    if (data?.output) {
+                        this.log(data.output, 'msg-result', { outcome: data?.success !== false ? 'success' : 'failure' });
+                    } else if (data?.error) {
+                        this.log('❌ ' + data.error, 'error-msg');
+                    }
+                } catch (err) {
+                    this.log('❌ ' + err.message, 'error-msg');
+                }
+                if (window.worldState && typeof worldState.fetch === 'function') worldState.fetch();
+            });
+            bubble.appendChild(btn);
+        }
+        const body = this._cards.current?.querySelector('.turn-card-body');
+        if (body) body.appendChild(bubble);
+        else streamEl.appendChild(bubble);
+        this._trimStream(streamEl);
+        this._scrubber.scheduleRebuild();
+        if (this.autoScroll) streamEl.scrollTop = streamEl.scrollHeight;
+    }
+
     tickToTime(tick) {
         const raw = VW?.state?.data || {};
         const tpm = raw.time_per_tick_minutes ?? 5;

@@ -2,14 +2,15 @@
  * InspectorAgentView — Full agent inspector (showAgent + all agent-related methods)
  *
  * @module inspector/agent-view — the full character inspector
- * @contributes InspectorAgentView: Inventory/Bio/Advanced tabs, paperdoll, traits, relationships, memories
+ * @contributes InspectorAgentView: Inventory/Bio/Images/Advanced tabs, paperdoll, traits, relationships, memories
  * @powers clicking a character to inspect and edit them, their timeline, and export
  * @relates uses inspector/helpers + paperdoll-view + memory-view + behaviors-view
  * @docs docs/virtualWorld/UI & Settings/Inspector Panels.md
  * Extracted from inspector.js for modularity.
  * Tabs: Inventory (paperdoll on top + gear below), Bio (personality, appearance,
- * stats/skills/traits, interest + fear tags, relationships, memories), Advanced
- * (graph physics, behaviors, timeline, save/export).
+ * stats/skills/traits, interest + fear tags, relationships, memories), Images
+ * (Expression Pack + sheet splitter), Advanced (graph physics, behaviors,
+ * timeline, save/export).
  */
 window.InspectorAgentView = (() => {
     const AV = {};
@@ -42,7 +43,7 @@ window.InspectorAgentView = (() => {
     const EMOTION_ICONS = { happy: '😊', sad: '😢', angry: '😠', afraid: '😨', surprised: '😲', disgusted: '🤢', neutral: '😐' };
     const STAT_LABELS = { STR: '\u{1F4AA} Strength', DEX: '\u{1F938} Dexterity', CON: '\u{1F6E1}\uFE0F Constitution', INT: '\u{1F9E0} Intelligence', WIS: '\u{1F441}\uFE0F Wisdom', CHA: '\u{1F4AC} Charisma' };
     const SKILL_LIST = ['Athletics', 'Acrobatics', 'Stealth', 'Perception', 'Investigation', 'Survival', 'Persuasion', 'Performance', 'Medicine', 'Arcana', 'Intimidation', 'Lockpicking'];
-    const TABS = ['Inventory', 'Bio', 'Advanced'];
+    const TABS = ['Inventory', 'Bio', 'Images', 'Advanced'];
 
     /**
      * HTML-escape double quotes for attribute safety
@@ -77,11 +78,6 @@ window.InspectorAgentView = (() => {
             .find(([, node]) => node.type === 'character' && node.name === agentName);
 
         let html = AV._renderAgentHeader(agentName, player, color, characterNode);
-        // Expression pack lives right under the name — the character's face is
-        // not an "Advanced" setting.
-        if (characterNode) {
-            html += window.InspectorHelpers.renderExpressionSection(characterNode[0], characterNode[1].properties || {});
-        }
         html += AV._renderStatusRow(agentName, player, color, isAuto, escName);
         html += AV._renderEmotionSelector(agentName, player, escName);
         html += AV._renderVitals(player, agentName);
@@ -94,6 +90,10 @@ window.InspectorAgentView = (() => {
 
         // Bio tab (personality, appearance, stats/skills/traits, relationships, memories)
         html += AV._renderBioTab(agentName, player, charState, area, escName, isAuto, color);
+
+        // Images tab (Expression Pack + sheet splitter) — task-512: art lives on
+        // its own tab so the overview stays about who the character is.
+        html += AV._renderImagesTab(agentName, player, characterNode);
 
         // Advanced tab (behaviors, timeline, save/export)
         html += AV._renderAdvancedTab(agentName, player, charState, escName, isAuto, characterNode);
@@ -824,7 +824,7 @@ window.InspectorAgentView = (() => {
             <div style="background:var(--bg-inset);border:1px dashed var(--border);border-radius:4px;padding:4px 6px;font-size:10px;color:var(--text-muted);margin-bottom:4px;">
                 <span style="font-weight:600;">First impression:</span> <span id="inspector-first-impression">${firstImpression}</span>
             </div>
-            <button class="btn btn-sm" onclick="InspectorAgentView._generateDescription('${escName}')">🤖 Generate from Equipment</button>
+            <button class="btn btn-sm" data-help="auto-description" onclick="InspectorAgentView._generateDescription('${escName}')" title="Regenerate the visible description from the base description plus worn gear. It also refreshes on its own after equip/unequip or a body-state change, so a manual edit here can be overwritten by the next equipment change.">🤖 Generate from Equipment</button>
         </div>`;
 
         // Relationships
@@ -952,6 +952,27 @@ window.InspectorAgentView = (() => {
         html += window.InspectorMemory.renderMemoriesHtml(agentName, player, escName, esc);
 
         html += `</div>`;  // End Bio tab
+        return html;
+    };
+
+    /**
+     * Render the Images tab: the character Expression Pack and sheet splitter.
+     * Character-only — the caller only renders this for character nodes.
+     * @param {string} agentName - Character name
+     * @param {object} player - Player data
+     * @param {Array|null} characterNode - [nodeId, node] for the character, if found
+     * @returns {string} HTML
+     */
+    AV._renderImagesTab = function(agentName, player, characterNode) {
+        const showTab = (tabName) => _activeTab === tabName ? '' : 'display:none;';
+        let html = `<div data-tab="Images" style="${showTab('Images')}">`;
+        if (characterNode) {
+            html += window.InspectorHelpers.renderExpressionSection(characterNode[0], characterNode[1].properties || {});
+        } else {
+            html += `<div class="inspector-section"><h3>🎭 Expression Pack</h3>
+                <div class="section-hint">No character node yet — art is available once this character is placed on the graph.</div></div>`;
+        }
+        html += `</div>`;  // End Images tab
         return html;
     };
 

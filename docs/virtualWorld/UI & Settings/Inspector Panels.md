@@ -99,12 +99,14 @@ Features:
 - Save/export/import character cards (library integration)
 - Kill/remove character buttons
 - AI personality generation from text prompt (`_generatePersonality`, line 114)
-- **Expression pack** gallery under the character name (see below)
+- **Images** tab: the Expression Pack gallery (see below)
 
 ### Character images & expression packs (user guide)
 
-Open a character (click them on the graph, or Characters list) — the
-**Expression Pack** panel sits right under their name, above the tabs.
+Open a character (click them on the graph, or Characters list) and select the
+**🖼️ Images** tab. The **Expression Pack** panel lives there, so the overview
+(Inventory/Bio) stays about who the character is; the character's art is one
+click away. (`task-512`.)
 
 1. Choose the **Profile / Full body** tab. *Profile* is the small avatar;
    *Full body* is the portrait art.

@@ -435,8 +435,64 @@ class TestLibrarySyncWarnings:
         graph.add_node(Node(id="item_torch", type="item", name="Old Name",
                             properties={"tags": ["light_source"], "library_id": "torch",
                                         "actions": ["examine", "take"], "light_level": "bright"}))
+        # task-443: the identity drift (name) is the warning.
         issue = only(validator.validate(), "library_mismatch")
-        assert "name" in issue["message"] and "light_level" in issue["message"]
+        assert issue["severity"] == "warning"
+        assert "name" in issue["message"]
+        assert "light_level" not in issue["message"]
+        # The engine-defaulted drift is split out as info.
+        info = [i for i in validator.validate()
+                if i["code"] == "mechanical_tag_missing_props" and i["severity"] == "info"]
+        assert any("light_level" in i["message"] for i in info)
+
+    def test_engine_defaulted_drift_alone_is_info(self, graph, validator, tmp_path):
+        """A light_level-only difference must not be a library_mismatch warning."""
+        lib = tmp_path / "items"
+        lib.mkdir()
+        (lib / "torch.json").write_text(
+            '{"id": "torch", "name": "Torch", "actions": "examine,take", '
+            '"light_level": "dim"}', encoding="utf-8")
+        graph.add_node(Node(id="item_torch", type="item", name="Torch",
+                            properties={"tags": [], "library_id": "torch",
+                                        "actions": ["examine", "take"], "light_level": "bright"}))
+        warnings = [i for i in validator.validate()
+                    if i["code"] == "library_mismatch" and i["severity"] == "warning"]
+        assert warnings == []
+        info = [i for i in validator.validate()
+                if i["code"] == "mechanical_tag_missing_props" and i["severity"] == "info"]
+        assert any("light_level" in i["message"] for i in info)
+
+    def test_actions_drift_still_warns(self, graph, validator, tmp_path):
+        """The acceptance: real mechanical drift (actions/uses) is never lost."""
+        lib = tmp_path / "items"
+        lib.mkdir()
+        (lib / "torch.json").write_text(
+            '{"id": "torch", "name": "Torch", "actions": "examine,take"}',
+            encoding="utf-8")
+        graph.add_node(Node(id="item_torch", type="item", name="Torch",
+                            properties={"tags": [], "library_id": "torch",
+                                        "actions": ["examine"]}))
+        issue = only(validator.validate(), "library_mismatch")
+        assert issue["severity"] == "warning"
+        assert "actions" in issue["message"]
+        assert "mechanical" in issue["message"]
+
+    def test_runtime_state_drift_is_info_not_warning(self, graph, validator, tmp_path):
+        """current_state / contents drift is what an instance is for."""
+        lib = tmp_path / "items"
+        lib.mkdir()
+        (lib / "lamp.json").write_text(
+            '{"id": "lamp", "name": "Lamp", "current_state": "off"}', encoding="utf-8")
+        graph.add_node(Node(id="item_lamp", type="item", name="Lamp",
+                            properties={"tags": [], "library_id": "lamp",
+                                        "current_state": "on"}))
+        warnings = [i for i in validator.validate()
+                    if i["code"] == "library_mismatch" and i["severity"] == "warning"]
+        assert warnings == []
+        info = [i for i in validator.validate()
+                if i["code"] == "library_mismatch" and i["severity"] == "info"]
+        assert any("current_state" in i["message"] for i in info)
+
 
     def test_in_sync_item_clean(self, graph, validator, tmp_path):
         lib = tmp_path / "items"

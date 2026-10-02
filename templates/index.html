@@ -111,7 +111,7 @@
                     <h4 class="panel-heading">🧍 Agents <span class="section-hint">(click to select active)</span>
                         <button class="btn btn-sm" id="reroll-init-btn" onclick="TurnQueue.rerollInitiatives(); if (window.appEvents) appEvents.emit('state:updated', worldState?.data);" title="Re-roll all initiative rolls (d20 + DEX)" style="margin-left:auto;font-size:10px;padding:1px 6px;display:none;">🎲 Re-roll</button>
                     </h4>
-                    <div id="agent-list" role="list" aria-label="Agent list"></div>
+                    <div id="agent-list" role="list" aria-label="Agent list" data-help="background-sim"></div>
                     <div class="agent-add-row">
                         <input type="text" id="char-name" placeholder="New agent name..." aria-label="New agent name">
                         <button class="btn btn-sm btn-green" onclick="createCharacter()">+</button>
@@ -119,7 +119,7 @@
                 </div>
                 <div class="settings-group" style="border-top:1px solid var(--border-light);margin-top:6px;">
                     <div class="settings-group-title"><span class="group-icon">🎮</span> Turn Order</div>
-                    <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-turn-based" onchange="config.turnBased=this.checked;if(this.checked&&window.VWSimultaneous.isSimultaneous(config.turnOrder)){config.setTurnMode('sequential');}else{config.save();}events.log(this.checked?'Turn-based enabled':'Turn-based disabled','system-msg');if(window.appEvents)appEvents.emit('state:updated',worldState?.data);"> ⏭️ Turn-Based Mode</label><span class="toggle-desc" id="agent-turn-based-desc">Characters act one at a time</span></div>
+                    <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-turn-based" data-help="turn-model" onchange="config.turnBased=this.checked;if(this.checked&&window.VWSimultaneous.isSimultaneous(config.turnOrder)){config.setTurnMode('sequential');}else{config.save();}events.log(this.checked?'Turn-based enabled':'Turn-based disabled','system-msg');if(window.appEvents)appEvents.emit('state:updated',worldState?.data);"> ⏭️ Turn-Based Mode</label><span class="toggle-desc" id="agent-turn-based-desc">Characters act one at a time</span></div>
                     <div class="settings-field"><label for="agent-turn-order" data-help="simultaneous">Turn mode</label><select id="agent-turn-order" style="width:210px;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.setTurnMode(this.value)"><option value="sequential">Sequential — one at a time</option><option value="random">Random — reshuffled each round</option><option value="initiative">Initiative — d20 + DEX</option><option value="simultaneous">Simultaneous — every character on a countdown</option><option value="simultaneous_room">Simultaneous per room — rooms independent, order within a room</option></select></div>
                 </div>
             </div>
@@ -976,6 +976,20 @@
     let _vitalModalPlayer = '';
     let _vitalModalName = '';
 
+    function escVital(s) {
+        return String(s == null ? '' : s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    // Locale-independent number: round to 1 decimal, drop a trailing .0.
+    function fmtVitalNum(n) {
+        const r = Math.round(Number(n) * 10) / 10;
+        return String(r);
+    }
+
     function openVitalModal(playerName, vitalName) {
         _vitalModalPlayer = playerName;
         _vitalModalName = vitalName;
@@ -993,11 +1007,53 @@
                     return;
                 }
                 const isTemp = _vitalModalName === 'Temperature';
-                const tte = isTemp
-                    ? ''
-                    : (data.time_to_empty != null
-                        ? `<span style="font-weight:600;">${data.time_to_empty} turns</span>`
-                        : '<span style="color:var(--text-muted);">No decay</span>');
+
+                // task-635: speak the direction the vital actually moves. The
+                // polarity comes from the engine (engine/vitals.py); drives
+                // (Hunger/Thirst/Bladder) FILL toward 100, resources DRAIN
+                // toward 0, Temperature is a comfort band handled separately.
+                const polarity = data.polarity
+                    || (['Hunger', 'Thirst', 'Bladder'].indexOf(_vitalModalName) !== -1 ? 'drive' : 'resource');
+                const rate = Number(data.decay_rate) || 0;
+                const rateWords = rate >= 1
+                    ? `about ${Math.round(rate)} points per turn`
+                    : `about 1 point every ${Math.round(1 / rate)} turns`;
+
+                let rateHtml = '';
+                if (isTemp) {
+                    rateHtml = '';
+                } else if (rate <= 0) {
+                    rateHtml = '<div style="font-size:11px;color:var(--text-muted);margin-bottom:12px;">Stable — it does not change on its own over time.</div>';
+                } else if (polarity === 'drive') {
+                    const remaining = Math.max(0, Number(data.max) - Number(data.value));
+                    const turns = fmtVitalNum(remaining / rate);
+                    const reach = remaining <= 0
+                        ? 'it is already at the top — most urgent.'
+                        : `it reaches the top (most urgent) in about ${turns} turns.`;
+                    rateHtml = `<div style="font-size:11px;color:var(--text-muted);margin-bottom:12px;">Fills toward ${escVital(data.max)} at ${rateWords} — ${reach}</div>`;
+                } else {
+                    const turns = fmtVitalNum(Number(data.value) / rate);
+                    const reach = Number(data.value) <= 0
+                        ? 'it is already empty.'
+                        : `it empties in about ${turns} turns.`;
+                    rateHtml = `<div style="font-size:11px;color:var(--text-muted);margin-bottom:12px;">Drains toward 0 at ${rateWords} — ${reach}</div>`;
+                }
+
+                // Natural-language read, from the same helper the vital hover
+                // uses (VitalThresholds.hoverText + PromptBuilder.describeVital).
+                let nlHtml = '';
+                if (!isTemp) {
+                    try {
+                        const partial = {};
+                        partial[_vitalModalName] = data.value;
+                        if (_vitalModalName === 'HP') partial.Max_HP = data.max;
+                        if (_vitalModalName === 'Mana') partial.Max_Mana = data.max;
+                        const nl = window.VitalThresholds?.hoverText?.(partial, _vitalModalName) || '';
+                        if (nl) {
+                            nlHtml = '<div style="font-size:11px;line-height:1.5;background:var(--bg-inset);border-radius:6px;padding:8px;margin-bottom:12px;white-space:pre-line;">' + escVital(nl) + '</div>';
+                        }
+                    } catch (e) { nlHtml = ''; }
+                }
 
                 // Temperature-specific info
                 let tempExtraHtml = '';
@@ -1090,21 +1146,24 @@
                         <div style="font-size:11px;color:var(--text-muted);">${data.percentage}%</div>
                     </div>
                     ${tempExtraHtml}
-                    <div class="field">
-                        <label>Value (${isTemp ? data.min + '–' + data.max : '0–' + data.max})</label>
-                        <input type="number" id="vital-edit-value" value="${data.value}" min="${isTemp ? data.min : 0}" max="${data.max}" step="${isTemp ? '0.1' : '1'}" style="width:100%;font-size:12px;">
-                    </div>
-                    <div class="field">
-                        <label>Decay Rate (per turn)</label>
-                        <input type="number" id="vital-edit-decay" value="${data.decay_rate}" step="0.1" style="width:100%;font-size:12px;">
-                        <div style="font-size:9px;color:var(--text-muted);margin-top:2px;">
-                            Base: ${data.base_decay_rate} | Override: ${data.decay_rate_override != null ? data.decay_rate_override : '—'}
+                    ${nlHtml}
+                    ${rateHtml}
+                    <details style="margin-top:12px;border-top:1px solid var(--border);padding-top:8px;">
+                        <summary style="cursor:pointer;font-size:11px;color:var(--text-muted);">Advanced — edit value${isTemp ? '' : ' &amp; rate'}</summary>
+                        <div style="margin-top:8px;">
+                            <div class="field">
+                                <label>Value (${isTemp ? data.min + '–' + data.max : '0–' + data.max})</label>
+                                <input type="number" id="vital-edit-value" value="${data.value}" min="${isTemp ? data.min : 0}" max="${data.max}" step="${isTemp ? '0.1' : '1'}" style="width:100%;font-size:12px;">
+                            </div>
+                            ${!isTemp ? `<div class="field">
+                                <label>Rate (per turn)</label>
+                                <input type="number" id="vital-edit-decay" value="${data.decay_rate}" step="0.1" style="width:100%;font-size:12px;">
+                                <div style="font-size:9px;color:var(--text-muted);margin-top:2px;">
+                                    Base: ${data.base_decay_rate} | Override: ${data.decay_rate_override != null ? data.decay_rate_override : 'none — using base'}
+                                </div>
+                            </div>` : ''}
                         </div>
-                    </div>
-                    ${!isTemp ? `<div class="field">
-                        <label>Time to Empty</label>
-                        <div style="font-size:12px;">${tte}</div>
-                    </div>` : ''}
+                    </details>
                     <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:12px;">
                         <label style="font-size:11px;font-weight:600;color:var(--pink);">Conditions Affecting</label>
                         <div style="margin-top:6px;display:flex;flex-direction:column;gap:4px;">${conds}</div>

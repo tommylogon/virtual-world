@@ -407,7 +407,24 @@
             if (ignored.includes(code)) {
                 return `<button class="validator-jump" title="Restore this issue (no longer dismissed)" onclick="ValidatorPanel.setIgnore('${String(nodeId).replace(/'/g, "\\'")}','${String(code).replace(/'/g, "\\'")}',false)">🔓</button>`;
             }
+            // task-443: a library_mismatch is dismissed as "this instance is
+            // deliberately different" — label that intent explicitly rather
+            // than a generic dismiss.
+            if (code === 'library_mismatch') {
+                return `<button class="validator-jump" title="Mark this instance as intended — keep the instance value; hides the mismatch until you edit the node" onclick="ValidatorPanel.setIgnore('${String(nodeId).replace(/'/g, "\\'")}','${String(code).replace(/'/g, "\\'")}',true)">✓</button>`;
+            }
             return `<button class="validator-jump" title="Dismiss this issue on this node (survives reloads; resets if you edit the node)" onclick="ValidatorPanel.setIgnore('${String(nodeId).replace(/'/g, "\\'")}','${String(code).replace(/'/g, "\\'")}',true)">🚫</button>`;
+        }
+
+        // task-443: info rows are grouped into a default-collapsed section so
+        // they do not crowd the actionable errors/warnings. The pinned header
+        // count still includes them.
+        _infoSection(infoIssues, rowFn) {
+            if (!infoIssues.length) return '';
+            return `<details class="validator-group validator-info" style="margin:2px 0 2px 8px;">
+                <summary style="font-size:9px;color:var(--text-muted);cursor:pointer;">ℹ ${infoIssues.length} info note${infoIssues.length === 1 ? '' : 's'}</summary>
+                ${infoIssues.map(rowFn).join('')}
+            </details>`;
         }
 
         _flatRow(issue, scopeEl) {
@@ -426,7 +443,7 @@
             const worstSev = { 0: 'error', 1: 'warning', 2: 'info' }[worst] || 'info';
             const icon = SEV_ICONS[worstSev];
             const label = this._nodeLabel(nodeId);
-            const rows = issues.map(issue => {
+            const row = (issue) => {
                 const icon2 = SEV_ICONS[issue.severity] || 'ℹ';
                 return `<div class="validator-item" data-code="${issue.code}" style="padding-left:8px;">
                     <span class="validator-sev" style="background:${SEV_COLORS[issue.severity] || SEV_COLORS.info};" title="${SEV_NAME[issue.severity] || issue.severity}"></span>
@@ -434,8 +451,12 @@
                     ${this._dismissButtons(nodeId, issue.code)}
                     ${this._actionsHtml(issue, nodeId)}
                 </div>`;
-            }).join('');
-            return `<details class="validator-group" ${issues.length === 1 ? 'open' : ''} style="margin-bottom:2px;border-bottom:1px solid var(--border-light);">
+            };
+            const actionable = issues.filter(i => i.severity !== 'info');
+            const info = issues.filter(i => i.severity === 'info');
+            const rows = actionable.map(row).join('') + this._infoSection(info, row);
+            const allInfo = actionable.length === 0;
+            return `<details class="validator-group" ${(!allInfo && issues.length === 1) ? 'open' : ''} style="margin-bottom:2px;border-bottom:1px solid var(--border-light);">
                 <summary style="font-size:10px;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:6px;">
                     <span class="validator-sev" style="background:${SEV_COLORS[worstSev]};" title="${worstSev}"></span>
                     <span style="font-weight:600;color:${SEV_COLORS[worstSev]};">${icon}</span>
@@ -452,7 +473,7 @@
             const worst = this._worst(issues);
             const worstSev = { 0: 'error', 1: 'warning', 2: 'info' }[worst] || 'info';
             const nodeIds = [...new Set(issues.map(i => i.source_node_id).filter(Boolean))];
-            const rows = issues.map(issue => {
+            const row = (issue) => {
                 const nodeId = issue.source_node_id;
                 const icon = SEV_ICONS[issue.severity] || 'ℹ';
                 return `<div class="validator-item" data-code="${code}" style="padding-left:8px;">
@@ -461,7 +482,10 @@
                     ${this._dismissButtons(nodeId, code)}
                     ${this._actionsHtml(issue, nodeId)}
                 </div>`;
-            }).join('');
+            };
+            const actionable = issues.filter(i => i.severity !== 'info');
+            const info = issues.filter(i => i.severity === 'info');
+            const rows = actionable.map(row).join('') + this._infoSection(info, row);
             const wayFixAll = ['way_missing_pass_message', 'way_missing_cardinal', 'way_missing_view_direction'].includes(code) && nodeIds.length;
             const fixAll = wayFixAll
                 ? `<button class="validator-jump" title="Clean AI-minted placeholders, then draft missing pass/view/cardinal flavor with AI (review per way)" onclick="ValidatorPanel.fixAllWayOrientation()">✨ AI-write ways</button>`
