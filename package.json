@@ -18,6 +18,9 @@
     "build:ts": "tsc -p tsconfig.json",
     "loglint": "node tools/log_lint.cjs",
     "unit": "node tools/unit/run.cjs",
-    "module:check": "python tools/js_module_index.py --check"
+    "module:check": "python tools/js_module_index.py --check",
+    "chars:check": "python tools/character_loadout_check.py --check",
+    "scenario-tags:check": "python tools/scenario_tag_check.py --check",
+    "precommit": "python tools/character_loadout_check.py --check && python tools/scenario_tag_check.py --check && python tools/way_property_index.py --check"
   }
 }

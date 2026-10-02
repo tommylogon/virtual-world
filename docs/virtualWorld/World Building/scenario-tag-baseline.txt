@@ -1,0 +1,201 @@
+# Known scenario/save dead-tag findings, accepted as-is.
+# Regenerate: python tools/scenario_tag_check.py --update-baseline
+# Lines are check_id|scenario|player|tag. --check fails only on NEW lines.
+dead_fears|kraktooth_goblin_camp.json|Arix|insects
+dead_fears|kraktooth_goblin_camp.json|Arix|predators
+dead_fears|kraktooth_goblin_camp.json|Arix|shackles
+dead_fears|kraktooth_goblin_camp.json|Arix|symbols
+dead_fears|kraktooth_goblin_camp.json|Arix|trapped
+dead_fears|kraktooth_goblin_camp.json|Croak-Mother|earth
+dead_fears|kraktooth_goblin_camp.json|Croak-Mother|firelight
+dead_fears|kraktooth_goblin_camp.json|Eldenford Blacksmith|creature
+dead_fears|kraktooth_goblin_camp.json|Eldenford Blacksmith|dark
+dead_fears|kraktooth_goblin_camp.json|Eldenford Farmer|abandoned
+dead_fears|kraktooth_goblin_camp.json|Eldenford Farmer|darkness
+dead_fears|kraktooth_goblin_camp.json|Eldenford Farmer|dread
+dead_fears|kraktooth_goblin_camp.json|Eldenford Farmer|forgotten
+dead_fears|kraktooth_goblin_camp.json|Eldenford Farmer|ghost
+dead_fears|kraktooth_goblin_camp.json|Eldenford Farmer|goblins
+dead_fears|kraktooth_goblin_camp.json|Eldenford Farmer|isolation
+dead_fears|kraktooth_goblin_camp.json|Eldenford Farmer|silence
+dead_fears|kraktooth_goblin_camp.json|Gribba|cold
+dead_fears|kraktooth_goblin_camp.json|Gribba|empty
+dead_fears|kraktooth_goblin_camp.json|Gribba|rations
+dead_fears|kraktooth_goblin_camp.json|Gribba|rival
+dead_fears|kraktooth_goblin_camp.json|Gribba|swarm
+dead_fears|kraktooth_goblin_camp.json|Kiala|authority
+dead_fears|kraktooth_goblin_camp.json|Kiala|dark
+dead_fears|kraktooth_goblin_camp.json|Kiala|predators
+dead_fears|kraktooth_goblin_camp.json|Kiala|storm
+dead_fears|kraktooth_goblin_camp.json|Krikka|chains
+dead_fears|kraktooth_goblin_camp.json|Krikka|falls
+dead_fears|kraktooth_goblin_camp.json|Krikka|sky
+dead_fears|kraktooth_goblin_camp.json|Krikka|thunder
+dead_fears|kraktooth_goblin_camp.json|Krikka|trapped
+dead_fears|kraktooth_goblin_camp.json|Leslie|blades
+dead_fears|kraktooth_goblin_camp.json|Leslie|dark
+dead_fears|kraktooth_goblin_camp.json|Leslie|patrol
+dead_fears|kraktooth_goblin_camp.json|Leslie|shackles
+dead_fears|kraktooth_goblin_camp.json|Old Iron-Back|cages
+dead_fears|kraktooth_goblin_camp.json|Rag-Tail|snares
+dead_fears|kraktooth_goblin_camp.json|Rikka|crowds
+dead_fears|kraktooth_goblin_camp.json|Rikka|manacles
+dead_fears|kraktooth_goblin_camp.json|Rikka|quiet
+dead_fears|kraktooth_goblin_camp.json|Rikka|stages
+dead_fears|kraktooth_goblin_camp.json|Shadow-Pelt|cages
+dead_fears|kraktooth_goblin_camp.json|Shadow-Pelt|lanterns
+dead_fears|kraktooth_goblin_camp.json|Thrazz|control
+dead_fears|kraktooth_goblin_camp.json|Thrazz|humiliation
+dead_fears|kraktooth_goblin_camp.json|Thrazz|loss
+dead_fears|kraktooth_goblin_camp.json|Thrazz|oath-breakers
+dead_fears|kraktooth_goblin_camp.json|Thrazz|outmaneuvered
+dead_fears|kraktooth_goblin_camp.json|Thrazz|rise
+dead_fears|kraktooth_goblin_camp.json|Thrazz|surprise
+dead_fears|kraktooth_goblin_camp.json|Thrazz|weakness
+dead_fears|kraktooth_goblin_camp.json|Vekka|hunters
+dead_fears|kraktooth_goblin_camp.json|Vekka|patrol
+dead_fears|kraktooth_goblin_camp.json|Vekka|shackles
+dead_fears|kraktooth_goblin_camp.json|Vekka|sky
+dead_fears|kraktooth_goblin_camp.json|Vekka|thrazz
+dead_fears|kraktooth_goblin_camp.json|Zikka|hunters
+dead_fears|kraktooth_goblin_camp.json|Zikka|shackles
+dead_interests|kraktooth_goblin_camp.json|Arix|chaos
+dead_interests|kraktooth_goblin_camp.json|Arix|coins
+dead_interests|kraktooth_goblin_camp.json|Arix|gems
+dead_interests|kraktooth_goblin_camp.json|Arix|jokes
+dead_interests|kraktooth_goblin_camp.json|Belne|belonging
+dead_interests|kraktooth_goblin_camp.json|Belne|kindness
+dead_interests|kraktooth_goblin_camp.json|Croak-Mother|health
+dead_interests|kraktooth_goblin_camp.json|Croak-Mother|marsh
+dead_interests|kraktooth_goblin_camp.json|Croak-Mother|spirits
+dead_interests|kraktooth_goblin_camp.json|Eldenford Blacksmith|goblin_raids
+dead_interests|kraktooth_goblin_camp.json|Eldenford Blacksmith|iron
+dead_interests|kraktooth_goblin_camp.json|Eldenford Blacksmith|repair
+dead_interests|kraktooth_goblin_camp.json|Eldenford Blacksmith|temper
+dead_interests|kraktooth_goblin_camp.json|Eldenford Blacksmith|the_merchant
+dead_interests|kraktooth_goblin_camp.json|Eldenford Blacksmith|the_road
+dead_interests|kraktooth_goblin_camp.json|Eldenford Blacksmith|tools
+dead_interests|kraktooth_goblin_camp.json|Eldenford Elder|burial
+dead_interests|kraktooth_goblin_camp.json|Eldenford Elder|decision
+dead_interests|kraktooth_goblin_camp.json|Eldenford Elder|goblins
+dead_interests|kraktooth_goblin_camp.json|Eldenford Elder|harvest
+dead_interests|kraktooth_goblin_camp.json|Eldenford Elder|people
+dead_interests|kraktooth_goblin_camp.json|Eldenford Elder|the_roads
+dead_interests|kraktooth_goblin_camp.json|Eldenford Farmer|forest
+dead_interests|kraktooth_goblin_camp.json|Eldenford Farmer|harvest
+dead_interests|kraktooth_goblin_camp.json|Eldenford Farmer|henhouse
+dead_interests|kraktooth_goblin_camp.json|Eldenford Farmer|livestock
+dead_interests|kraktooth_goblin_camp.json|Eldenford Farmer|soil
+dead_interests|kraktooth_goblin_camp.json|Eldenford Farmer|the_farm
+dead_interests|kraktooth_goblin_camp.json|Eldenford Farmer|traps
+dead_interests|kraktooth_goblin_camp.json|Eldenford Merchant|credit
+dead_interests|kraktooth_goblin_camp.json|Eldenford Merchant|goblins
+dead_interests|kraktooth_goblin_camp.json|Eldenford Merchant|orcs
+dead_interests|kraktooth_goblin_camp.json|Eldenford Merchant|price
+dead_interests|kraktooth_goblin_camp.json|Eldenford Merchant|the_roads
+dead_interests|kraktooth_goblin_camp.json|Eldenford Road Guard Captain|discipline
+dead_interests|kraktooth_goblin_camp.json|Eldenford Road Guard Captain|goblins
+dead_interests|kraktooth_goblin_camp.json|Eldenford Road Guard Captain|orders
+dead_interests|kraktooth_goblin_camp.json|Eldenford Road Guard Captain|patrols
+dead_interests|kraktooth_goblin_camp.json|Eldenford Road Guard Captain|the_elder
+dead_interests|kraktooth_goblin_camp.json|Eldenford Road Guard Captain|the_road
+dead_interests|kraktooth_goblin_camp.json|Eldenford Road Guard Captain|the_trail
+dead_interests|kraktooth_goblin_camp.json|Gribba|game
+dead_interests|kraktooth_goblin_camp.json|Gribba|mushrooms
+dead_interests|kraktooth_goblin_camp.json|Jake Halloway|camp
+dead_interests|kraktooth_goblin_camp.json|Jake Halloway|faeon
+dead_interests|kraktooth_goblin_camp.json|Jake Halloway|goblins
+dead_interests|kraktooth_goblin_camp.json|Jake Halloway|maps
+dead_interests|kraktooth_goblin_camp.json|Jake Halloway|monsters
+dead_interests|kraktooth_goblin_camp.json|Jake Halloway|the_squire
+dead_interests|kraktooth_goblin_camp.json|Kiala|blade
+dead_interests|kraktooth_goblin_camp.json|Kiala|civilization
+dead_interests|kraktooth_goblin_camp.json|Kiala|master
+dead_interests|kraktooth_goblin_camp.json|Kiala|squire
+dead_interests|kraktooth_goblin_camp.json|Krikka|blades
+dead_interests|kraktooth_goblin_camp.json|Krikka|climbing
+dead_interests|kraktooth_goblin_camp.json|Krikka|gear
+dead_interests|kraktooth_goblin_camp.json|Krikka|rope
+dead_interests|kraktooth_goblin_camp.json|Krikka|secrets
+dead_interests|kraktooth_goblin_camp.json|Leslie|attention
+dead_interests|kraktooth_goblin_camp.json|Leslie|blade
+dead_interests|kraktooth_goblin_camp.json|Leslie|freedom
+dead_interests|kraktooth_goblin_camp.json|Leslie|purpose
+dead_interests|kraktooth_goblin_camp.json|Mikka|mechanisms
+dead_interests|kraktooth_goblin_camp.json|Mikka|tools
+dead_interests|kraktooth_goblin_camp.json|Old Iron-Back|blade
+dead_interests|kraktooth_goblin_camp.json|Old Iron-Back|offerings
+dead_interests|kraktooth_goblin_camp.json|Old Iron-Back|territory
+dead_interests|kraktooth_goblin_camp.json|Rag-Tail|blades
+dead_interests|kraktooth_goblin_camp.json|Rag-Tail|coins
+dead_interests|kraktooth_goblin_camp.json|Rag-Tail|goblin_trails
+dead_interests|kraktooth_goblin_camp.json|Rag-Tail|pelts
+dead_interests|kraktooth_goblin_camp.json|Rag-Tail|territory
+dead_interests|kraktooth_goblin_camp.json|Rikka|attention
+dead_interests|kraktooth_goblin_camp.json|Rikka|chaos
+dead_interests|kraktooth_goblin_camp.json|Rikka|drum
+dead_interests|kraktooth_goblin_camp.json|Rikka|fabrics
+dead_interests|kraktooth_goblin_camp.json|Rikka|fireworks
+dead_interests|kraktooth_goblin_camp.json|Rikka|jokes
+dead_interests|kraktooth_goblin_camp.json|Rikka|noisemakers
+dead_interests|kraktooth_goblin_camp.json|Rikka|trinkets
+dead_interests|kraktooth_goblin_camp.json|Shadow-Pelt|blades
+dead_interests|kraktooth_goblin_camp.json|Shadow-Pelt|goblin_trails
+dead_interests|kraktooth_goblin_camp.json|Shadow-Pelt|pelts
+dead_interests|kraktooth_goblin_camp.json|Shadow-Pelt|territory
+dead_interests|kraktooth_goblin_camp.json|Silver-Talon|camp
+dead_interests|kraktooth_goblin_camp.json|Silver-Talon|food_scraps
+dead_interests|kraktooth_goblin_camp.json|Silver-Talon|messages
+dead_interests|kraktooth_goblin_camp.json|Thrazz|chief
+dead_interests|kraktooth_goblin_camp.json|Thrazz|goblin
+dead_interests|kraktooth_goblin_camp.json|Thrazz|goblin_camp
+dead_interests|kraktooth_goblin_camp.json|Thrazz|scout
+dead_interests|kraktooth_goblin_camp.json|Tusker|roots
+dead_interests|kraktooth_goblin_camp.json|Tusker|territory
+dead_interests|kraktooth_goblin_camp.json|Vekka|bow
+dead_interests|kraktooth_goblin_camp.json|Vekka|maps
+dead_interests|kraktooth_goblin_camp.json|Vekka|routes
+dead_interests|kraktooth_goblin_camp.json|Vekka|secrets
+dead_interests|kraktooth_goblin_camp.json|Vekka|tracking
+dead_interests|kraktooth_goblin_camp.json|Zikka|axes
+dead_interests|kraktooth_goblin_camp.json|Zikka|blade
+dead_interests|kraktooth_goblin_camp.json|Zikka|pelts
+dead_interests|kraktooth_goblin_camp.json|Zikka|prestige
+dead_interests|kraktooth_goblin_camp.json|Zikka|training
+dead_interests|kraktooth_goblin_camp.json|Zikka|weapons
+dead_interests|mansion.json|ghost|locket
+dead_interests|mansion.json|kyrie johansen|wrench
+dead_interests|violet_parr_scenario.json|Bob Parr|family
+dead_interests|violet_parr_scenario.json|Bob Parr|the amalgam
+dead_interests|violet_parr_scenario.json|Bob Parr|the woods
+dead_interests|violet_parr_scenario.json|Brutus|smells
+dead_interests|violet_parr_scenario.json|Brutus|threats
+dead_interests|violet_parr_scenario.json|Chelsea|gossip
+dead_interests|violet_parr_scenario.json|Chelsea|popularity
+dead_interests|violet_parr_scenario.json|Dash Parr|family
+dead_interests|violet_parr_scenario.json|Dash Parr|racing
+dead_interests|violet_parr_scenario.json|Dash Parr|the mill
+dead_interests|violet_parr_scenario.json|Erin Halloway|family
+dead_interests|violet_parr_scenario.json|Erin Halloway|safety
+dead_interests|violet_parr_scenario.json|Helen Parr|family
+dead_interests|violet_parr_scenario.json|Helen Parr|the amalgam
+dead_interests|violet_parr_scenario.json|Jack-Jack Parr|mum
+dead_interests|violet_parr_scenario.json|Jake Halloway|electromagnetism
+dead_interests|violet_parr_scenario.json|Jake Halloway|the mill
+dead_interests|violet_parr_scenario.json|Jake Halloway|violet
+dead_interests|violet_parr_scenario.json|Leah Halloway|the mill
+dead_interests|violet_parr_scenario.json|Leah Halloway|the residue
+dead_interests|violet_parr_scenario.json|Leah Halloway|truth
+dead_interests|violet_parr_scenario.json|Maddie|books
+dead_interests|violet_parr_scenario.json|Maddie|observing
+dead_interests|violet_parr_scenario.json|Marcus Halloway|the mill
+dead_interests|violet_parr_scenario.json|Marcus Halloway|the woods
+dead_interests|violet_parr_scenario.json|The Amalgam|children
+dead_interests|violet_parr_scenario.json|The Amalgam|heat
+dead_interests|violet_parr_scenario.json|The Amalgam|the mill
+dead_interests|violet_parr_scenario.json|Vi Halloway|questions
+dead_interests|violet_parr_scenario.json|Vi Halloway|the barn
+dead_interests|violet_parr_scenario.json|Violet Parr|chemistry
+dead_interests|violet_parr_scenario.json|Violet Parr|jake
+dead_interests|violet_parr_scenario.json|Violet Parr|secrets
+dead_interests|world_template.json|Lyrie|shelter
