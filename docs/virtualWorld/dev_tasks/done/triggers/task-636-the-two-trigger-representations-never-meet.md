@@ -1,6 +1,6 @@
 ---
 type: task
-status: review
+status: done
 area: triggers
 priority: high
 ---
@@ -53,3 +53,7 @@ had no single compiler and could disagree invisibly.
 ## Evidence
 
 - Commit `9a0348f`; `node tools/unit/run.cjs` = 497 passed / 0 failed.
+- Live browser (app on :4469, Playwright): on the live world graph,
+  `TriggerGraph.triggersFromGraphEdges` and `VW.itemLib._extractTriggersFromEdges`
+  returned byte-identical trigger sets for a node with a materialised trigger —
+  the item library and the inspector now read the same compiler.
