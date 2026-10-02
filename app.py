@@ -37,8 +37,18 @@ def create_app(config=None):
     # Initialize the world instance (will be attached to app for route access)
     world = VirtualWorld()
 
-    # Load world from template JSON instead of creating bare default area
-    template_path = os.path.join(os.path.dirname(__file__), 'world_template.json')
+    # Load world from template JSON instead of creating bare default area.
+    # Under TESTING the world boots from the declared regression fixture
+    # (tests/fixtures/world.json, task-586): a copy of the boot content whose
+    # cast is inert, so nothing moves unless a test moves it. The shipped
+    # template stays the boot default for a real (non-TESTING) player.
+    testing = bool(app.config.get('TESTING'))
+    fixture_path = os.path.join(os.path.dirname(__file__), 'tests', 'fixtures', 'world.json')
+    if testing:
+        template_path = fixture_path
+        app.config['TESTING_TEMPLATE'] = fixture_path
+    else:
+        template_path = os.path.join(os.path.dirname(__file__), 'world_template.json')
     if os.path.exists(template_path):
         try:
             with open(template_path, 'r', encoding='utf-8-sig') as f:
@@ -58,8 +68,13 @@ def create_app(config=None):
         world.add_area(spawn)
         world.set_current_area("Living Area")
 
-    # Track the scenario source file for Save Scenario
-    world._scenario_source = template_path if os.path.exists(template_path) else None
+    # Track the scenario source file for Save Scenario. Under TESTING it stays
+    # unset: the fixture is read-only, and _save_scenario() refuses to write when
+    # there is no source, so a stray commit cannot reach it. Non-TESTING keeps
+    # the shipped template as the source, exactly as before.
+    world._scenario_source = (
+        None if testing else (template_path if os.path.exists(template_path) else None)
+    )
 
     # Seed the data-driven conditions/traits catalogs on first run (never
     # overwrites existing full-schema files). Runs before routes import the

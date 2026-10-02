@@ -469,6 +469,15 @@ class NPCBehaviorSystem:
         for pname, player in list(self.gs.players.items()):
             if not player.simple_npc:
                 continue
+            # `autonomy` is the engine's one "does this character act on its own"
+            # switch — background_simulation.py:234 already refuses to puppet a
+            # non-autonomous character. A declared simple NPC that is not
+            # autonomous keeps its behaviour tree but does not run it until a
+            # caller turns autonomy on. tests/fixtures/world.json relies on this
+            # to be inert by default (task-586); tests that want NPC behaviour opt
+            # in explicitly.
+            if getattr(player, "autonomy", True) is False:
+                continue
             if player.state == "dead":
                 continue
             # A packmate's call reaches further than this character's own eyes,

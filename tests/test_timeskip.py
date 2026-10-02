@@ -21,6 +21,13 @@ def _hero(w):
     p = w.get_active_player_obj()
     if p is None:
         p = next(iter(w.players.values()))
+    # The fixture (task-586) ships an inert cast with `autonomy` False, but that
+    # is the engine's "human-driven" marker and the timeskip route counts another
+    # such character as an attended human. These tests are about the hero as the
+    # one attended human, so declare the rest NPCs.
+    for other in w.players.values():
+        if other is not p:
+            other.autonomy = True
     return p
 
 

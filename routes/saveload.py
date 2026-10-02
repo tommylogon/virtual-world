@@ -157,15 +157,24 @@ def register_saveload_routes(app):
             _push_undo_snapshot(app, label="reset")
             new_world = VirtualWorld()
             source = getattr(app.world, '_scenario_source', None)
+            testing = bool(app.config.get('TESTING'))
             if source and os.path.exists(source):
                 template_path = source
+            elif testing:
+                # A TESTING boot has no scenario source (the fixture is
+                # read-only), so reset reloads the same fixture the boot used.
+                template_path = app.config.get('TESTING_TEMPLATE') or os.path.join(
+                    app.root_path, 'world_template.json')
             else:
                 template_path = os.path.join(app.root_path, 'world_template.json')
             if os.path.exists(template_path):
                 with open(template_path, 'r', encoding='utf-8-sig') as f:
                     template_data = json.load(f)
                 new_world.load_from_dict(template_data)
-                new_world.set_scenario_source(template_path)
+                # Under TESTING the fixture must stay read-only: do not point
+                # the new world at it, or a later commit would write the fixture.
+                if not testing:
+                    new_world.set_scenario_source(template_path)
                 logger.info(f"Reset world from {template_path}")
             else:
                 logger.warning("No scenario file found, using blank world")

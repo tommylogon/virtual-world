@@ -57,12 +57,43 @@ Also: no decorative items with names tests collide with, and **no `Living Area`*
 
 ## Acceptance
 
-- `create_app({"TESTING": True})` loads `tests/fixtures/world.json`, and `tests/test_fixture_contract.py` passes.
-- The full suite is still **1 failed / 5025 passed** — the only survivor being `test_templates.py::test_generator_covers_every_effect_type` (missing `data/library/items/template_polymorph_target.json`). Compare failure *names*, not counts.
-- `tests/test_social_company.py` passes with its `skip_npcs=True` line **removed**, proving the fixture is inert rather than the test working around it. (If it needs the flag, the fixture is not inert and this task is not done.)
-- No TESTING run can write to the fixture: `git status` is clean after the suite, and a `POST /api/scenario/commit` under TESTING writes into a temp dir or fails loudly.
-- Every test that reads the template as a file points at the fixture or has been repointed.
-- Every one of the "wrong reason" tests named in step 6 either fails without the template or asserts its own node.
+- [x] `create_app({"TESTING": True})` loads `tests/fixtures/world.json`, and `tests/test_fixture_contract.py` passes.
+- [x] The full suite still matches the clean-`master` failure *names*. Measured 2026-10-02: baseline `15 failed / 6607 passed`; after this work `16 failed / 6644 passed`, the only extra being the pre-existing flaky `test_undead_resistance.py::TestCombatHook::test_a_magic_blade_hurts_a_ghost`, which fails 3/8 on a clean `master` worktree too. (The old "1 failed / 5025" figure is stale.)
+- [x] `tests/test_social_company.py` passes with its `skip_npcs=True` line **removed**, proving the fixture is inert rather than the test working around it. (If it needs the flag, the fixture is not inert and this task is not done.)
+- [x] No TESTING run can write to the fixture: `git status` is clean after the suite, and a `POST /api/scenario/commit` under TESTING writes nothing (`_scenario_source` is unset).
+- [x] Every test that reads the template as a file points at the fixture or has been repointed.
+- [x] Every one of the "wrong reason" tests named in step 6 either fails without the template or asserts its own node.
+
+## Outcome (2026-10-02)
+
+- `tests/fixtures/world.json` is the fixture: a copy of the shipped content with
+  **every player's `autonomy` set False and `npc_behavior` stationary**. The
+  graph/areas/items are untouched so all ~146 `create_app()` sites see the same
+  content; only the cast stops acting. `tests/test_fixture_contract.py` (15 tests)
+  asserts every contract row plus the negative rows (`no Living Area`, no
+  autonomous NPC, the cast does not move on a full turn) and the write-safety.
+- `app.py` boots the fixture under TESTING (`app.config['TESTING_TEMPLATE']`) and
+  leaves `world._scenario_source = None`, so `_save_scenario()` refuses. Reset
+  reloads the fixture but keeps the source unset (both `routes/saveload.py`).
+- Inertness needed one engine seam: `engine/npc_behaviors.process_simple_npcs`
+  now honours `autonomy is False`, the same marker
+  `background_simulation.py:234` already uses. A simple NPC with `autonomy` False
+  keeps its behaviour tree (so `test_rat_template_behaviors_parse` still parses
+  it) but does not run it until a test opts in.
+- `tests/conftest.py` gains `new_world()`, `solo()`, `company()` and a `world`
+  fixture.
+- Repointed the file-reading tests (`test_npc_behaviors`, `test_decay_rate_bake`)
+  at the fixture. `test_soak_runner`'s assertion is about the scenario *picker*
+  scanning `data/scenarios/`, not the boot template, so it is unchanged by design.
+- The fixture exposed a second use of `autonomy: False` — the timeskip route's
+  "another attended human" check — so `test_soak_orders._hero` and
+  `test_timeskip._hero` now declare the rest of the cast NPCs, and
+  `test_health_model_fixes`'s regen test ticks with `skip_npcs=True` (its gate is
+  the per-character block, not the water policy).
+
+**Follow-ups (unchanged):** the boot default a real player starts from, deleting
+`data/scenarios/world_template.json` (the duplicate), and applying
+`solo()`/`company()` suite-wide (task-572).
 
 ## Follow-ups (deliberately NOT this task)
 

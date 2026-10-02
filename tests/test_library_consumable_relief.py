@@ -51,13 +51,14 @@ def _library(name):
 def _world_with_item(item_id, area_name=AREA):
     """A real world with the shipped library item sitting in a real area.
 
-    Both the `name` and the node `id` are suffixed, because
-    `world_template.json` already ships items called `Bread` with the id
-    `item_bread`. A colliding *name* makes `find_item_node` resolve the
-    template's copy; a colliding *id* is worse — `add_node` replaces it, which
-    silently put the template's triggers on the node under test and made the
-    whole assertion vacuous. Only `name` and `id` differ; every tag, trigger and
-    `uses` value is the shipped data.
+    Both the `name` and the node `id` are made unique, because the fixture
+    already ships items called `Bread` with the id `item_bread`. A colliding
+    *name* makes `find_item_node` resolve the fixture's copy instead of this
+    one. A colliding *id* is **not** destructive — `graph.add_node` suffixes an
+    item id (and name) rather than replacing it (graph.py:162-170) — but the
+    suffix would make the asserted id unpredictable, so this test picks its own.
+    Only `name` and `id` differ; every tag, trigger and `uses` value is the
+    shipped data.
     """
     app = create_app({"TESTING": True})
     world = app.world

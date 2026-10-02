@@ -26,6 +26,9 @@ import pytest
 from vital_rates import BASELINE_DECAY, BLADDER_FILL, SOCIAL_COMPANY_GAIN
 
 ROOT = Path(__file__).parent.parent
+#: What create_app({"TESTING": True}) boots (task-586). The scenario-shape tests
+#: below still scan data/scenarios, which includes the duplicate template.
+FIXTURE = ROOT / "tests" / "fixtures" / "world.json"
 CANONICAL = {**BASELINE_DECAY, "Bladder": BLADDER_FILL}
 
 #: Scenarios allowed to disagree with a canonical value, with the reason. Empty
@@ -35,7 +38,7 @@ DOCUMENTED_DRIFT = {}
 
 
 def _scenario_files():
-    files = [ROOT / "world_template.json"]
+    files = [FIXTURE]
     files += sorted((ROOT / "data" / "scenarios").glob("*.json"))
     return [f for f in files if f.exists()]
 
@@ -86,8 +89,8 @@ def test_no_scenario_bakes_a_rate_that_contradicts_the_engine_default(path):
 
 
 def test_the_boot_template_matches_the_engine_defaults():
-    """The world every new game starts from must not freeze stale rates."""
-    assert _drift(ROOT / "world_template.json") == {}
+    """The world every TESTING boot starts from must not freeze stale rates."""
+    assert _drift(FIXTURE) == {}
 
 
 def test_the_camp_social_rate_matches_the_engine_default():
