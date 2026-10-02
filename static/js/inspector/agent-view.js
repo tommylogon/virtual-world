@@ -868,11 +868,21 @@ window.InspectorAgentView = (() => {
         const agentNode = worldState.getNode(agentNodeId);
         html += AV._deferredAliasesSection(agentNodeId, agentNode?.properties?.aliases || []);
 
+        // bug-514: both generators are useless without a provider, so say so on
+        // the button instead of letting the click vanish. `_isAiConfigured` is a
+        // side-effect-free read (AIGenerator.isConfigured() toasts, which must
+        // not happen on every render).
+        const aiReady = AV._isAiConfigured();
+        const aiTitleSuffix = aiReady
+            ? ''
+            : ' — No AI provider configured. Add an API key and model in Settings first.';
+        const aiDisabled = aiReady ? '' : 'disabled';
+
         // Interest tags — what this character pays attention to in a room
         html += `<div class="inspector-section"><h3>✨ Interest Tags</h3>
             <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Items matching these surface in the agent's prompt. Examine/take removes them from attention.</div>
             <div id="interest-tag-multiselect-agent-${escName}"></div>
-            <button class="btn btn-sm" onclick="InspectorAgentView._generateInterestTags('${escName}')" style="font-size:10px;padding:2px 10px;margin-top:4px;" title="Ask the character's LLM to pick interest tags. It is shown the tags already in this world and the tags the library holds that the world has not used yet, and may create new ids. Your hand-placed tags are kept — picks are added.">✨ Generate from Personality</button>
+            <button class="btn btn-sm" ${aiDisabled} onclick="InspectorAgentView._generateInterestTags('${escName}')" style="font-size:10px;padding:2px 10px;margin-top:4px;" title="Ask the character's LLM to pick interest tags. It is shown the tags already in this world and the tags the library holds that the world has not used yet, and may create new ids. Your hand-placed tags are kept — picks are added.${aiTitleSuffix}">✨ Generate from Personality</button>
         </div>`;
 
         // Fear tags — same id vocabulary, opposite meaning. engine/fear.py
@@ -882,7 +892,7 @@ window.InspectorAgentView = (() => {
         html += `<div class="inspector-section"><h3>😨 Fear Tags</h3>
             <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Meeting a co-located character, item, or area carrying any of these tags makes this character <code>frightened</code>. Leave empty for a character nothing unsettles.</div>
             <div id="fear-tag-multiselect-agent-${escName}"></div>
-            <button class="btn btn-sm" onclick="InspectorAgentView._generateFearTags('${escName}')" style="font-size:10px;padding:2px 10px;margin-top:4px;" title="Ask the character's LLM to pick fear tags. It is shown the tags already in this world and the tags the library holds that the world has not used yet, and may create new ids — but a fear only fires on something that actually carries the tag. Your hand-placed tags are kept — picks are added.">😨 Generate from Personality</button>
+            <button class="btn btn-sm" ${aiDisabled} onclick="InspectorAgentView._generateFearTags('${escName}')" style="font-size:10px;padding:2px 10px;margin-top:4px;" title="Ask the character's LLM to pick fear tags. It is shown the tags already in this world and the tags the library holds that the world has not used yet, and may create new ids — but a fear only fires on something that actually carries the tag. Your hand-placed tags are kept — picks are added.${aiTitleSuffix}">😨 Generate from Personality</button>
         </div>`;
 
         // Crafting (task-2): recipes this character knows + craft buttons
@@ -2098,6 +2108,15 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
     };
 
     /**
+     * Side-effect-free provider check. `AIGenerator.isConfigured()` toasts when
+     * it is false, so it must not be called from render — only from a click.
+     * @returns {boolean}
+     */
+    AV._isAiConfigured = function() {
+        return !!(typeof config !== 'undefined' && config && config.apiKey && config.model);
+    };
+
+    /**
      * LLM interest-tag generator (task-325). interest_tags is matched against
      * items only — the room attention list scores an item by exact tag match or
      * by the tag appearing in the item's name (room-context.js:305-307), and
@@ -2107,6 +2126,11 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
      * @param {string} charName - Character name
      */
     AV._generateInterestTags = async function(charName) {
+        // bug-514: check before the async tag/vocabulary collection, so the
+        // "not configured" toast is immediate. When it lived inside
+        // `_generateTagsFromPersonality` the collection could take long enough
+        // that the click looked like it did nothing.
+        if (!AIGenerator.isConfigured()) return;
         const items = await AV._collectItemTags();
         const base = await AV._collectTagVocabulary();
         const vocab = { live: items, library: base.library, known: new Set([...items, ...base.live, ...base.library]) };
@@ -2134,6 +2158,8 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
      * @param {string} charName - Character name
      */
     AV._generateFearTags = async function(charName) {
+        // bug-514: immediate feedback, before the async vocabulary collection.
+        if (!AIGenerator.isConfigured()) return;
         const vocab = await AV._collectTagVocabulary();
         await AV._generateTagsFromPersonality({
             charName,
