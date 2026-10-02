@@ -27,7 +27,7 @@ window.ActionNormalizer = (() => {
         'whisper', 'scream', 'pick', 'wear', 'equip', 'remove', 'unequip', 'wait',
         'nothing', 'pause', 'stay', 'stand', 'listen', 'lead', 'approach',
         'stow', 'combine', 'split', 'craft', 'make', 'teach',
-        'bind', 'enchant', 'fear', 'interest'
+        'bind', 'enchant', 'fear', 'interest', 'write', 'inscribe'
     ]);
 
     // task-211: intimacy verbs are only valid actions in mature worlds. Kept
@@ -82,7 +82,18 @@ window.ActionNormalizer = (() => {
         if (isPlain) return verb;
         switch (verb) {
             case 'use': return item ? `use ${item}` : 'use';
-            case 'use_on': {
+            case 'use_on':
+            case 'write':
+            case 'inscribe': {
+                // task-433: a text payload becomes a quoted inscription
+                // ("use ink pen on \"parchment\" \"hello\""), which is the only
+                // form the command parser carries as `params`.
+                const text = String(p.text || '').trim();
+                if (item && target && text) {
+                    const t = target.replace(/"/g, "'");
+                    const x = text.replace(/"/g, "'");
+                    return `use ${item} on "${t}" "${x}"`;
+                }
                 // task-196: amount for quantity ("use 2 eggs on pan").
                 const amount = parseInt(p.amount, 10);
                 if (item && target && Number.isInteger(amount) && amount > 1) {

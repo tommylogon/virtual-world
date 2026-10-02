@@ -20,6 +20,38 @@ from graph import (
 
 from engine.items.ownership import permission_refusal
 
+#: task-433: a tool must declare one of these (tag) to write.
+WRITING_TOOL_TAGS = {"writing", "pen", "pencil", "quill", "charcoal", "chalk", "stylus", "ink"}
+#: task-433: a target must declare one of these (tag), or `writable: true`.
+WRITABLE_TARGET_TAGS = {
+    "writable", "paper", "parchment", "book", "journal", "notebook",
+    "letter", "sign", "noticeboard", "wall", "page", "scroll",
+}
+#: task-433 limits: long enough for a note, short enough not to bloat a save.
+INSCRIPTION_MAX_LEN = 2000
+INSCRIPTION_MAX_COUNT = 20
+
+
+def item_tag_set(node) -> set:
+    tags = (getattr(node, "properties", None) or {}).get("tags") or []
+    if isinstance(tags, str):
+        tags = [t.strip() for t in tags.split(",")]
+    return {str(t).strip().lower() for t in tags}
+
+
+def sanitize_inscription(text: str) -> str:
+    """Strip control characters, collapse whitespace, cap the length.
+
+    Deliberately drops control chars rather than escaping them: the value is
+    rendered into prose, not HTML, but a NUL or an escape sequence in a save is
+    still a defect waiting for the next reader.
+    """
+    cleaned = "".join(
+        ch for ch in str(text or "") if ch == "\n" or ch == "\t" or ord(ch) >= 32
+    )
+    cleaned = "\n".join(line.rstrip() for line in cleaned.splitlines()).strip()
+    return cleaned[:INSCRIPTION_MAX_LEN]
+
 
 class UseActionsMixin:
     """use_item / use_item_on plus the descriptive-target failure fallback."""
@@ -226,6 +258,49 @@ class UseActionsMixin:
 
         return result
 
+    def _inscribe(self, player_manager, tool_node, target_node, text: str) -> str:
+        """Write *text* onto *target_node* with *tool_node* (task-433).
+
+        Gated so ordinary `use X on Y` can never inscribe: the tool must carry a
+        writing tag and the target a writable tag (or `writable: true`). The
+        record lands in ``properties.inscriptions`` as ``{by, tick, text}`` so
+        the prose is never overwritten and authorship survives.
+        """
+        tool_tags = item_tag_set(tool_node)
+        target_tags = item_tag_set(target_node)
+        if not (tool_tags & WRITING_TOOL_TAGS):
+            raise ValueError(f"The {tool_node.name} isn't something you can write with.")
+        if not (target_tags & WRITABLE_TARGET_TAGS) and not target_node.properties.get("writable"):
+            raise ValueError(f"You can't write on the {target_node.name}.")
+
+        clean = sanitize_inscription(text)
+        if not clean:
+            raise ValueError("There's nothing to write.")
+
+        records = target_node.properties.get("inscriptions")
+        if not isinstance(records, list):
+            records = []
+            target_node.properties["inscriptions"] = records
+        if len(records) >= INSCRIPTION_MAX_COUNT:
+            raise ValueError(f"The {target_node.name} is full — there's no room left to write.")
+
+        tick = getattr(player_manager, "time_ticks", 0) or 0
+        records.append({
+            "by": player_manager.active_player,
+            "tick": tick,
+            "text": clean,
+        })
+        target_node.updated = time.time()
+
+        area_name = player_manager.current_area.name if player_manager.current_area else None
+        preview = clean if len(clean) <= 60 else clean[:57] + "..."
+        player_manager.record_turn_event(
+            player_manager.active_player, "use",
+            f"wrote on the {target_node.name}: \"{preview}\"", area_name=area_name,
+        )
+        return (f"You use the {tool_node.name} on the {target_node.name}, "
+                f"writing: \"{preview}\".")
+
     def use_item_on(self, player_manager, item_name: str, target_name: str = None, params: str = None, amount: int = 1) -> str:
         if not target_name:
             return self.use_item(player_manager, item_name)
@@ -317,12 +392,11 @@ class UseActionsMixin:
                 from engine.item_reach import find_reachable
                 target_node = find_reachable(self.graph, self.matching, player_manager, target_name)
             if target_node:
-                old_desc = target_node.properties.get("description", "")
-                target_node.properties["description"] = old_desc + f"\n[Inscribed: \"{params}\"]"
-                target_node.updated = time.time()
-                area_name = player_manager.current_area.name if player_manager.current_area else None
-                player_manager.record_turn_event(player_manager.active_player, "use", f"wrote on the {target_name}: \"{params}\"", area_name=area_name)
-                return f"You use the {item_name} on the {target_name}, inscribing: \"{params}\"."
+                # task-433: deliberate, gated, structured inscription. The tool
+                # must be a writing implement and the target writable, the text
+                # is sanitised and length-capped, and it lands in
+                # `properties.inscriptions` rather than overwriting the prose.
+                return self._inscribe(player_manager, item_node, target_node, params)
 
         area_id = player_manager._get_current_area_id()
         area_node = self.graph.get_node(area_id) if area_id else None

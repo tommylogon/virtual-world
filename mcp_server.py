@@ -80,10 +80,18 @@ def drop(item_name: str) -> str:
 
 
 @mcp.tool()
-def use(item_name: str, target: str = "") -> str:
-    """Use an item, optionally on a target (e.g. 'key' on 'door')."""
+def use(item_name: str, target: str = "", text: str = "") -> str:
+    """Use an item, optionally on a target (e.g. 'key' on 'door').
+
+    `text`, with a writing tool and a writable target, inscribes it (task-433).
+    Both target and text are quoted so the parser carries the payload as params.
+    """
     cmd = f"use {item_name}"
-    if target:
+    if target and text:
+        safe_target = str(target).replace('"', "'")
+        safe_text = str(text).replace('"', "'")
+        cmd += f' on "{safe_target}" "{safe_text}"'
+    elif target:
         cmd += f" on {target}"
     return _action(cmd)
 

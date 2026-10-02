@@ -1,7 +1,7 @@
 {
   "name": "pencil",
   "description": "a chewed-up no. 2 pencil. the eraser is long gone. the wood is dented with teeth marks — jake nervous habit.",
-  "actions": "examine,take,drop",
+  "actions": "examine,take,use,drop",
   "uses": -1,
   "weight": 0.05,
   "current_state": "normal",
@@ -9,7 +9,7 @@
   "defense": 0,
   "damage": 0,
   "insulation": 0,
-  "tags": [],
+  "tags": ["writing", "pencil"],
   "triggers": [],
   "contents": []
 }

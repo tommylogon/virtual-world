@@ -252,6 +252,24 @@ class ExamineActionsMixin:
                     pass
                 desc = self._render_node_desc(item_node)
 
+                # task-433: surface structured inscriptions so `examine` (and
+                # `read`, which aliases it) shows what was written, by whom, when.
+                inscriptions = item_node.properties.get("inscriptions")
+                if isinstance(inscriptions, list) and inscriptions:
+                    lines = []
+                    for record in inscriptions:
+                        if not isinstance(record, dict):
+                            continue
+                        text = str(record.get("text", "")).strip()
+                        if not text:
+                            continue
+                        author = record.get("by") or "someone"
+                        tick = record.get("tick")
+                        stamp = f" (tick {tick})" if tick else ""
+                        lines.append(f"  {author}{stamp}: \"{text}\"")
+                    if lines:
+                        desc += "\nWritten here:\n" + "\n".join(lines)
+
                 if item_node.properties.get("current_state") == "locked":
                     locked_msg = item_node.properties.get("locked_message", "It's locked.")
                     desc += f"\n{locked_msg}"

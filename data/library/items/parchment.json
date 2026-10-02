@@ -13,7 +13,10 @@
     "communication",
     "social",
     "utility",
-    "consumable"
+    "consumable",
+    "writable",
+    "paper",
+    "parchment"
   ],
   "triggers": [],
   "contents": []

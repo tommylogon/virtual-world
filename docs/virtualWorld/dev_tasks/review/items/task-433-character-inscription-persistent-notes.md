@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: items
 priority: medium
 ---
@@ -91,3 +91,55 @@ their own, intentionally, in a world that can then read it back. Verified
 - Re-implementing task-53's params/trigger plumbing.
 - Rich text, images, forgery, signatures.
 - A world-wide message board (task-299).
+
+## Resolution (2026-10-02)
+
+The engine half (task-53's `params` → `on_use_on` context) is retained; the
+inscription path now has reachability, gating, a structured store, and read-back.
+
+**Backend (`engine/items/use_actions.py`).** The un-gated `[Inscribed: …]`
+description append is replaced by `_inscribe()`:
+- **Gated:** the tool must carry a writing tag
+  (`writing/pen/pencil/quill/charcoal/chalk/stylus/ink`) and the target a
+  writable tag (`writable/paper/parchment/book/journal/notebook/letter/sign/
+  noticeboard/wall/page/scroll`) or `writable: true`. Ordinary `use X on Y`
+  with no `params` never reaches it, so task-363 stays fixed.
+- **Structured store:** `properties.inscriptions: [{by, tick, text}]`, so the
+  authored `description` is never overwritten and authorship/timing survive.
+- **Limits:** `sanitize_inscription` strips control characters, collapses
+  trailing whitespace and caps at 2000 chars; 20 records per item.
+- **Read-back:** `examine` (and `read`, its alias) renders a `Written here:`
+  block with author, tick and text.
+
+**Agent reachability.**
+- `static/js/shared/json-schemas.js` — `text` added to the strict `agentAction`
+  schema and its `required` list.
+- `static/js/agent/action-normalizer.js` — `use_on`/`write`/`inscribe` with a
+  `text` payload emit `use <tool> on "<target>" "<text>"` (the only form the
+  parser carries as `params`); both verbs added to `VALID_VERBS`.
+- `static/js/agent/prompt-builder/system-prompt.js` and `schema-fragments.js`
+  teach the field and example.
+- `tools/game_tools.py::tool_use_item` and `mcp_server.py::use` forward `text`.
+
+**Content.** `ink_pen`/`pencil` tagged as writing implements, `parchment`
+tagged writable; pass-authored `quill_pen`, `chalk` (writing) and
+`notice_board` (paper/sign) already qualify.
+
+**Acceptance:**
+- [x] An agent can inscribe chosen text; it persists in `Node.properties` and
+      round-trips a save (property dicts serialise verbatim).
+- [x] A different character `examine`/`read`s it and sees text, author and tick.
+- [x] Non-writable target / non-writing tool reject gracefully with a clear
+      message.
+- [x] Ordinary `use X on Y` never inscribes.
+- [x] Authored pen+paper pair works end to end.
+
+Tests: `tests/test_inscription.py` (8 passed);
+`tools/unit/test_inscription_normalizer.js` (5 passed). JS lint + typecheck and
+`node tools/unit/run.cjs` (490 passed) all green.
+
+**Not done, recorded:** the pre-existing `set_description`/`append_description`
+`target: "self"` defect (the target-item node is dropped at effect dispatch) is
+left as-is — the inscription path no longer depends on those handlers. `read`
+remains an `examine` alias with the inscription block rather than a first-class
+verb.
