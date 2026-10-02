@@ -442,6 +442,80 @@ seam exists.
   `VW_PORT` to run a second copy elsewhere — parallel worktrees each need their
   own port or they fight over 4444 and the failure looks like a hang.
 
+### Diagnostic tools — installed, NOT gates
+
+These are on this machine and verified working. **None of them is wired to a
+hook, to `npm run lint`, or to CI** — nothing runs them for you, so an agent
+that skips them gets no protection. Every claim below was measured on
+2026-10-02; see `docs/design/Developer Tooling.md` for the full set and the
+reasoning. Do not describe one as enforced because it is installed.
+
+- `vulture engine/ --min-confidence 80` — dead Python. **Use 80, not 60**: at
+  60 it fills with dynamic-dispatch noise. At 80 it returns two sites, and
+  **both are already known and ticketed** — they are the parked LLM-logging
+  stubs, disabled by a bare `return` with the body left behind
+  (`engine/skills.py:206`, `engine/logging_events.py:175`). See
+  `task-88-llm_logging` in review and `Skills System.md`. One of them still has
+  a live caller (`engine/equipment.py:849`), so this is not dead code in the
+  "nothing calls it" sense. A clean vulture run means nothing, not "fix these".
+- **Do not reach for `lychee` to check vault links.** It reports 23 broken
+  wikilinks here and **all 23 are false positives**: lychee does not understand
+  Obsidian's `\|` alias escaping inside markdown tables, which is the most
+  common link form in this vault. `python tools/doc_links.py --count` is the
+  correct instrument — it implements Obsidian's real resolution rules
+  (basename, alias, `#Heading`, `^block`) and currently reports **0 broken**.
+- `gitleaks detect --source . --no-git --redact` — secret scanner. **Triage the
+  output before believing it**: 63 hits today, 59 inside gitignored
+  `.kilo/worktrees/`, and all 4 outside are synthetic example records in
+  `docs/virtualWorld/dev_tasks/todo/ui/task-405-*` where `Bearer sk-or-...` is
+  elided. Not one live credential. It needs an allowlist before it can be a
+  pre-commit hook.
+- `pip-audit -r requirements.txt` — `requirements.txt` pins 9 packages with no
+  version constraints, including `fastmcp`, `httpx` and `flask`. The MCP
+  incident below was a library major version; this is the tool that sees the
+  next one.
+- `py-spy top --pid <PID>` — sampling profiler, no code change, ~5% overhead.
+  **Attaching to another process on Windows needs an elevated shell**; the
+  install does not. Pair with `pyinstrument` when the repro works under a
+  debugger: py-spy answers which function, pyinstrument which line.
+- `oha -n 150 -c 10 --no-tui http://localhost:4444/api/state` — HTTP load.
+  Prefer to `wrk`/`hey`: real percentiles and `--latency-correction` for
+  coordinated omission, which `wrk` gets wrong by default.
+- `pyright engine/` — the repo typechecks JavaScript (`npm run typecheck`) and
+  its Python not at all, across 94k lines. Start non-blocking on `engine/`.
+- `hyperfine --warmup 3 "<cmd>"` — is this change actually faster. `time` gives
+  one sample and lies.
+- `jq -r -f filter.jq state.json` — **PowerShell 5.1 strips quotes from
+  native-command args**, so put every jq program in a file and pass `-f`.
+  Inlined `jq -r '...'` filters fail with `syntax error` on perfectly good jq.
+  The live payload is 2.48 MB; `jq` is the fastest way to read it.
+- `scc --format tabular .` — line counts with comments/blanks/complexity split
+  out. Prefer to `tokei`.
+- `just`, `lazygit`, `zoxide` — task runner, TUI git, smarter `cd`.
+
+### The PATH in an agent shell is truncated
+
+`rg`, `fd`, `bat`, `fzf`, `jq`, `git-delta`, `sqlite3`, `ruff` and `gh` are all
+installed and working, and a plain `Get-Command` in an agent shell reports them
+missing: the process PATH is a short copy of `HKCU\Environment`. Fix before
+concluding a tool is absent:
+
+```powershell
+$env:PATH = (Get-ItemProperty "HKCU:\Environment" -Name Path).Path
+```
+
+This cost a session — ripgrep was reported "not recognized" while being the
+reason a search could not be completed.
+
+### `GET /api/state` costs 2.48 MB and ~750 ms
+
+Measured with `oha` at 10 connections: p50 756 ms, p99 876 ms, 150/150 200s,
+against a 658-node / 207-area / 361-way graph. The client polls it every 1.5 s
+and, in spectator mode, again on every SSE `world_changed`. Any statement about
+front-end latency has this in it: a tick's cost reaches the DOM as a 2.48 MB
+payload before a single line of UI code runs. Do not attribute an inspector lag
+to the inspector until this has been ruled out.
+
 ### Known pre-existing failures (NOT caused by your change)
 
 `tests/test_tick_time_scaling.py` **hangs** — it does not fail, it never finishes. Always
