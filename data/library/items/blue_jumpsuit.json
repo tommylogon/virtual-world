@@ -1,0 +1,16 @@
+{
+  "name": "Blue Jumpsuit",
+  "description": "A practical, well-worn blue overall set in sky-blue, cut for farm work.",
+  "actions": "examine,equip,unequip,drop",
+  "uses": -1,
+  "weight": 1.0,
+  "equip_slots": [
+    "torso"
+  ],
+  "tags": [
+    "clothing",
+    "jumpsuit"
+  ],
+  "current_state": "normal",
+  "contents": []
+}

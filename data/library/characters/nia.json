@@ -83,7 +83,7 @@
   },
   "equipped": {
     "accessory": [
-      "police_cap"
+      "item_police_cap"
     ],
     "arms": [],
     "back": [],
@@ -99,7 +99,34 @@
   },
   "activity": null,
   "current_area": "",
-  "inventory": [],
+  "inventory": [
+    {
+      "name": "Police Cap",
+      "node_id": "item_police_cap",
+      "library_id": "police_cap",
+      "properties": {
+        "actions": [
+          "examine",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "A snide black police cap pulled just low enough to flirt with.",
+        "equip_slots": [
+          "accessory"
+        ],
+        "library_id": "police_cap",
+        "tags": [
+          "clothing",
+          "cap",
+          "police"
+        ],
+        "uses": -1,
+        "weight": 0.2
+      }
+    }
+  ],
   "emotion": {
     "current": "neutral",
     "description": "",

@@ -193,3 +193,41 @@ def test_scan_survives_an_unparseable_entry(tmp_path, monkeypatch):
 @pytest.mark.parametrize("severity", [clc.ERROR, clc.WARN])
 def test_severities_are_distinct_constants(severity):
     assert severity in ("ERROR", "WARN")
+
+
+# ─────────────────────── the declaration, and the gate ───────────────────────
+
+
+def test_rules_are_declared_in_one_module():
+    """The reasons live in tools/character_loadout_rules.py, not inline; the
+    checker and its tests must read the same table (task-666)."""
+    import character_loadout_rules as rules
+
+    assert clc.CHECKS is rules.CHECKS
+    assert clc.ERROR == rules.ERROR
+    assert clc.WARN == rules.WARN
+
+
+def test_the_shipped_library_has_no_new_loadout_findings(monkeypatch):
+    """This is the pre-commit path: pytest is what runs before a commit here, so
+    a bad entry cannot be committed without the gate being consulted. Baseline
+    entries are accepted debt; a NEW finding fails right here. Point the scanner
+    at absolute paths so the assertion cannot pass vacuously from the wrong cwd.
+    """
+    root = Path(__file__).resolve().parent.parent
+    monkeypatch.setattr(clc, "CHAR_DIR", root / "data" / "library" / "characters")
+    monkeypatch.setattr(clc, "ITEM_DIR", root / "data" / "library" / "items")
+
+    result = clc.scan()
+    assert result["scanned"] > 0, "the shipped character library was not found"
+
+    all_sigs = {
+        clc._signature(cid, fname)
+        for cid, entries in result["findings"].items()
+        for fname, _detail in entries
+    }
+    new = sorted(all_sigs - clc._read_baseline())
+    assert not new, (
+        f"new character-loadout findings not in {clc.BASELINE_PATH}: {new}. "
+        "Run --report for detail; --update-baseline only if the debt is deliberate."
+    )

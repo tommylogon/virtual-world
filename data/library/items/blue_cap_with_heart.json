@@ -1,0 +1,16 @@
+{
+  "name": "Blue Cap with Heart",
+  "description": "A favourite blue cap with a small heart on the front, sitting low across the brow.",
+  "actions": "examine,equip,unequip,drop",
+  "uses": -1,
+  "weight": 0.2,
+  "equip_slots": [
+    "accessory"
+  ],
+  "tags": [
+    "clothing",
+    "cap"
+  ],
+  "current_state": "normal",
+  "contents": []
+}
