@@ -298,6 +298,11 @@ TRAIT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "category": "social",
         "params": None,
         "effects": {"exhibitionist": True},
+        # task-487: the effect was inert until now, so an agent carrying this
+        # trait was told nothing about it. The prompt is what makes the *behaviour*
+        # the trait implies possible even when the arithmetic does not fire — being
+        # seen in an empty room thrills nobody.
+        "behavior_prompt": "Being seen thrills you. You don't mind being watched, and you show yourself more freely than most.",
         "mature": True,
         "conflicts": [],
     },
