@@ -222,10 +222,26 @@ class AreaDescription:
         so the author sees their own hidden passages. Game-facing callers
         (prompts, look, scene) must keep the default filtered view.
         """
+        # task-439: accept an area id or a display name. Resolve once, then use
+        # the canonical node's *name* for visibility/handle logic (discovered
+        # exits and known-maps are keyed by display name) and its *id* for graph
+        # edges. A caller passing an id previously got the id's way-handle and
+        # lost hidden-exit discovery; a caller passing a duplicate name got
+        # whichever area iteration order hit first.
+        area_node = resolve_area_node(self.graph, area_name)
+        if area_node is not None:
+            area_name = area_node.name
+            area_id = area_node.id
+        else:
+            area_id = None
+        if not area_id:
+            area_id = self.player_manager.area_node_id(area_name)
+
         # task-407: authoring exits (include_hidden=True) are purely
         # graph-derived, so they are safe to cache and invalidate on graph
         # revision. The game-facing view depends on per-player discovery
-        # state and is deliberately NOT cached.
+        # state and is deliberately NOT cached. Keyed by the canonical id so an
+        # id and a name for the same area share one entry.
         cache = None
         cache_key = None
         if include_hidden:
@@ -234,15 +250,10 @@ class AreaDescription:
                 self._exits_cache = {}
                 self._exits_cache_rev = rev
             cache = self._exits_cache
-            cache_key = str(area_name).lower()
+            cache_key = str(area_id).lower()
             hit = cache.get(cache_key)
             if hit is not None:
                 return dict(hit)
-
-        area_node = resolve_area_node(self.graph, area_name)
-        area_id = area_node.id if area_node is not None else None
-        if not area_id:
-            area_id = self.player_manager.area_node_id(area_name)
         exits = {}
         from engine.matching import NameMatching
         for edge in self.graph.get_edges_for_source(area_id, EDGE_CONNECTION):

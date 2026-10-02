@@ -70,18 +70,25 @@ class WorldSerializer:
         self._legacy_loader = LegacyLoader(graph, player_manager, legacy_compat)
 
     def _compute_feels_like(self, player) -> int:
-        """Compute equipment-adjusted feels_like temperature for a player."""
+        """Compute equipment-adjusted feels_like temperature for a player.
+
+        task-439: resolve ``current_area`` by id first, then unambiguously by
+        display name (``engine.room_perception.resolve_area``), instead of the
+        first name match in iteration order. Two areas sharing a display name
+        used to give a character the wrong area's temperature silently.
+        """
         from engine.equipment_bonuses import aggregate_bonuses, effective_temperature
+        from engine.room_perception import resolve_area_node
         if not player or not player.current_area:
             return 21
-        for node in self.graph.nodes.values():
-            if node.type == "area" and node.name == player.current_area:
-                env = node.properties.get("environment", {})
-                equip_bonuses = aggregate_bonuses(player, self.graph)
-                return int(effective_temperature(float(env.get("temperature", 21)), equip_bonuses,
-                                                 wind_level=env.get("wind", "none"),
-                                                 humidity=env.get("humidity", "dry")))
-        return 21
+        node = resolve_area_node(self.graph, player.current_area)
+        if node is None:
+            return 21
+        env = node.properties.get("environment", {})
+        equip_bonuses = aggregate_bonuses(player, self.graph)
+        return int(effective_temperature(float(env.get("temperature", 21)), equip_bonuses,
+                                         wind_level=env.get("wind", "none"),
+                                         humidity=env.get("humidity", "dry")))
 
     def _grappled_by(self, player_name: str) -> Optional[str]:
         """Resolve who holds *player_name* from the grappled edge (if any)."""
@@ -220,18 +227,26 @@ class WorldSerializer:
             players_serialized[pname] = self._serialize_player(pname, p)
 
         rooms_serialized = {}
+        # task-439: the canonical, id-keyed area projection. The id is the
+        # stable handle; a display name may repeat (Deep Forest has many
+        # "Hollow"s), and a name-keyed map silently collapses them. Every
+        # consumer that can address an area by id should read this map.
+        areas_by_id = {}
         for node in self.graph.nodes.values():
             if node.type == "area":
                 env = node.properties.get("environment", {})
                 ambient = self.player_manager.lighting.get_ambient_light(node.id, env)
-                rooms_serialized[node.name] = {
+                record = {
+                    "id": node.id,
                     "name": node.name,
                     "description": node.properties.get("description", ""),
                     "environment": env,
                     "ambient_light": ambient,
                     "light_description": self.player_manager.lighting.light_to_level(ambient),
-                    "exits": self.player_manager.build_exits_for_area(node.name),
-                    "exits_authoring": self.player_manager.build_exits_for_area(node.name, include_hidden=True),
+                    # Pass the id: exits are the graph's (task-439 resolves it),
+                    # and a duplicate display name cannot pick the wrong area.
+                    "exits": self.player_manager.build_exits_for_area(node.id),
+                    "exits_authoring": self.player_manager.build_exits_for_area(node.id, include_hidden=True),
                     "items": [],
                     # `floor` is the area's STOREY index (0 ground, 1 up, -1 down,
                     # unbounded); `surface` is the ground material. They are two
@@ -240,6 +255,14 @@ class WorldSerializer:
                     "surface": node.properties.get("surface", ""),
                     "properties": node.properties
                 }
+                areas_by_id[node.id] = record
+                # The name-keyed map stays because the live frontend reads
+                # worldState.areas[<area name>] / [player.current_area] (40+
+                # sites) and `player.current_area` is still a display name — the
+                # string→id refactor is task-581. It is a convenience view, not
+                # the canonical one: on a duplicate name the *last* writer wins
+                # here, while areas_by_id keeps both.
+                rooms_serialized[node.name] = record
 
         return {
             "current_area": self.legacy.current_area.name if self.legacy.current_area else None,
@@ -256,6 +279,8 @@ class WorldSerializer:
             "clock_start_minute": self.legacy.clock_start_minute,
             "areas": rooms_serialized,
             "rooms": rooms_serialized,
+            # task-439: canonical id-keyed projection (see _serialize_world).
+            "areas_by_id": areas_by_id,
             "graph": self.graph.to_dict(),
             "ways": getattr(self.legacy, 'ways', {}),
             "item_registry": getattr(self.legacy, 'item_registry', {}),
@@ -484,6 +509,7 @@ class WorldSerializer:
         # item-library/placement, graph/layout-engine).
         data.pop("areas", None)
         data.pop("rooms", None)
+        data.pop("areas_by_id", None)
         data.pop("ways", None)
         data.pop("item_registry", None)
         # Omit an empty name rather than writing "": the load path tests
@@ -526,6 +552,16 @@ class WorldSerializer:
             self._normalize_item_node_actions()
         else:
             self._legacy_loader.load(data)
+
+        # task-439: a duplicate area display name is legal (ids are the identity)
+        # but makes a name-only lookup ambiguous, so surface it at load rather
+        # than let the first iteration-order match silently win.
+        from engine.room_perception import duplicate_area_names
+        duplicate_areas = duplicate_area_names(self.graph)
+        if duplicate_areas:
+            logger.warning(
+                "[load] duplicate area display name(s) — resolve these by id: %s",
+                duplicate_areas)
 
         self.legacy.time_ticks = data.get("time_ticks", 0)
         self.legacy.time_per_tick_minutes = data.get("time_per_tick_minutes", 5)
