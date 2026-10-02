@@ -165,6 +165,12 @@ class WorldSerializer:
             },
             "region_exposed": _region_exposure_map(p, self.graph),
             "current_area": p.current_area,
+            # task-581: the canonical id of the authoritative location record
+            # (the character's `in` edge). The display name above is a
+            # resolution layer over it; a consumer that can hold an id should
+            # use this, so a duplicate display name can never re-home them.
+            "current_area_id": self.graph.area_of(
+                self.player_manager._player_node_id(pname)),
             "recent_hearing": getattr(p, 'recent_hearing', []),
             "emotion": {
                 "current": getattr(p, 'emotion', 'neutral'),
@@ -628,6 +634,14 @@ class WorldSerializer:
             pnode_id = self.player_manager.player_node_id(pname)
             if not self.graph.get_node(pnode_id):
                 self.graph.add_node(Node(id=pnode_id, type="character", name=pname))
+            # task-581: the character's `in` edge is the authoritative location
+            # record; the saved `current_area` display name is a resolution layer
+            # over it. Prefer the edge, so a hand-edit to the string that
+            # disagrees with the graph cannot re-home a character on load.
+            edge_area_id = self.graph.area_of(pnode_id)
+            edge_area = self.graph.get_node(edge_area_id) if edge_area_id else None
+            if edge_area is not None:
+                p.current_area = edge_area.name
             if p.current_area:
                 self.player_manager.set_player_area(pname, p.current_area)
             for slot_name, stack in (p.equipped or {}).items():

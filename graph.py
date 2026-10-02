@@ -687,6 +687,42 @@ class WorldGraph:
                  if e.source in included and e.target in included]
         return {"scope_id": str(scope_id), "nodes": nodes, "edges": edges}
 
+    # ── task-581: one authoritative location record per entity ──────────
+    #
+    # A character or unique item's location is the `in` edge to an area. The
+    # display-name `Player.current_area` is a resolution layer over this, not a
+    # second record; these are the id-keyed read/write sides.
+
+    def area_of(self, entity_id: str) -> Optional[str]:
+        """The id of the area *entity_id* occupies, from its `in` edge.
+
+        Returns None when the entity has no location edge, or when its target
+        is not a loaded area — an area in an evicted scope is still recorded by
+        id in the global index (task-583/584), not here.
+        """
+        node = self.get_node(entity_id)
+        if node is None:
+            return None
+        for edge in self.get_edges_for_source(node.id, EDGE_IN):
+            target = self.get_node(edge.target)
+            if target is not None and getattr(target, "type", "") == "area":
+                return target.id
+        return None
+
+    def set_area_of(self, entity_id: str, area_id: str) -> Optional[str]:
+        """Point *entity_id*'s location at *area_id*, replacing any existing
+        location edge so exactly one authoritative record remains."""
+        node = self.get_node(entity_id)
+        if node is None:
+            return None
+        target = self.get_node(area_id)
+        if target is None or getattr(target, "type", "") != "area":
+            raise ValueError(f"{area_id!r} is not a loaded area")
+        for edge in list(self.get_edges_for_source(node.id, EDGE_IN)):
+            self.remove_edge(edge.source, edge.target, edge.type)
+        self.add_edge(Edge(source=node.id, target=target.id, type=EDGE_IN))
+        return target.id
+
     def normalize_in_edge_directions(self):
         """Swap container -> contained ``in`` edges into contained -> container.
 

@@ -828,20 +828,24 @@ class NameMatching:
         if not player:
             return
         player_node_id = self.gs._player_node_id(player_name)
-        # Remove ALL existing location edges (in + legacy location) before
-        # adding the new one. Area node ids can differ from the id derived
-        # from the area name (e.g. case: "Task 2" vs "area_Task_2"), so a
-        # targeted remove would silently miss and leave a stale edge behind.
+        # task-439/581: resolve the area *id* deterministically — id first, then
+        # an unambiguous name — instead of taking whichever same-named node
+        # iteration order hit first. Area node ids can differ from the id derived
+        # from the area name (e.g. "Task 2" vs "area_Task_2").
+        from engine.room_perception import resolve_area_node
+        area_node = resolve_area_node(self.graph, area_name)
+        if area_node is not None:
+            new_area_id = area_node.id
+            player.current_area = area_node.name
+        else:
+            new_area_id = self.gs._area_node_id(area_name)
+            player.current_area = area_name
+        # One authoritative location record: replace every existing `in` edge
+        # rather than accumulate. A targeted remove would silently miss a stale
+        # edge whose id differs from the name-derived one.
         for edge in list(self.graph.get_edges_for_source(player_node_id, EDGE_IN)):
             self.graph.remove_edge(edge.source, edge.target, edge.type)
-        # Find actual area node ID from graph by name (handles non-standard IDs)
-        new_area_id = self.gs._area_node_id(area_name)
-        for node in self.graph.nodes.values():
-            if node.type == "area" and node.name == area_name:
-                new_area_id = node.id
-                break
         self.graph.add_edge(Edge(source=player_node_id, target=new_area_id, type=EDGE_IN))
-        player.current_area = area_name
         # task-583: keep the resident index's id-keyed location record in step
         # with the authoritative `in` edge it mirrors.
         index = getattr(self.gs, "world_index", None)
