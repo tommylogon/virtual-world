@@ -77,3 +77,44 @@ the canonical pattern.
 - [ ] hand_lamp-style lights still work natively.
 - [ ] Old saves containing the props load cleanly post-removal (scrub path).
 - [ ] pytest green (`not mcp and not emote`).
+
+## Reconnaissance (2026-10-02) — NOT started, measured, ready to execute
+
+Re-surveyed `data/` (the 2026-08 numbers have drifted): **21 files, 625 objects
+carry the keys** — 499 with `effect_stat: null` (strip, no behaviour lost),
+102 functional vitals, 23 "light", 1 "connection".
+
+- Functional stats: `Hunger` 27 (+14 lower-case), `Energy` 19 (+17), `Thirst`
+  15 (+2), `Hygiene` 4, `HP` 4. Lower-case values are currently dead (the read
+  block matches `player.vitals` keys exactly); migrating them normalises casing
+  and makes them fire, which is the intent.
+- Engine reads to remove: `engine/items/use_actions.py:187-205` (vitals,
+  clamp 0..100, target self/player), `:419-426` (`effect_target ==
+  "connection"` sets the used-on way's `current_state` from `effect_stat`);
+  serialization writes at `engine/serialization_legacy.py:98-100` and
+  `engine/serialization_template.py:160-162`.
+- **Two storage shapes, and they need different output:**
+  - Graph-format saves (`mansion2.json` 172, `pines.json` 97,
+    `morphocene.json` 13) keep item props in `graph.nodes[id].properties`
+    (a dict) → emit a `logic_trigger` node **and** a `triggers` edge
+    (`graph.edges`). `item_registry` is empty; `areas` carry none.
+  - Template-format saves (`corsair`, `apartment`, `testapartment`,
+    `world_template`, `The Valerious Case`, …) keep items in
+    `areas[].items[]` → append to the item's inline `triggers` array
+    (read by `serialization_legacy.py:110` / `serialization_template.py:180`).
+- **Light objects are not uniform.** Many have `tags: null` and no
+  `light`/`extinguish` action, so the migration must add `light_source` + a
+  toggle/light action; `effect_amount` is usually 20–80 (→ numeric
+  `light_level` is legal — `lighting._item_light_stats` `int()`s it). But
+  `emf_reader` has `amount: -5` (a dimming effect the native lit-item model
+  cannot express) → needs an `adjust_environment {light: -5}` trigger or an
+  explicit manual-review bucket.
+- **The one connection object** (`data/scenarios/heist.json`) sets a used-on
+  way's state from `effect_stat`. `handle_set_state` cannot target the used-on
+  node (`engine/effect_handlers/state.py` calls `_resolve_effect_target` without
+  `target_item_node`), so it needs either a target-aware `set_state` or a pinned
+  `way_id`.
+- Deliverable: `tools/migrate_legacy_item_effects.py` (idempotent, dry-run
+  default, `--apply`), covering both shapes, then the read/serialization
+  removal + scrub-on-load, then the acceptance spot-checks. All 15 minutes of
+  design are done here; only execution + verification remain.

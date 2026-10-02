@@ -82,3 +82,27 @@ suggest them all and show me the diff". That is exactly the job task-506 needs.
 - Manual: run over the 65 tag-only edible items; Apply writes one `on_eat`/`on_drink`
   per item, reviewed in the diff, and `python tools/tasks.py validate`-style lint
   still passes for the library.
+
+## Reconnaissance (2026-10-02) — NOT started; dependency resolved
+
+- **task-508 is settled (fork A, in review):** the engine auto-decrements
+  `uses` on `eat`/`drink` (`engine/items/consume_actions.py::_spend_uses`), and
+  `trigger-suggest-ai.js:122` / `consumable-triggers.js` already assume that.
+  So the batch must **not** emit hand `adjust_uses` — the existing heuristic
+  output is already correct, and the `uses_above 0` guard is meaningful. No
+  policy fork remains.
+- Existing per-item pieces to reuse: `static/js/item-library.js`
+  `suggestTriggers` (`:613-700`, heuristic + AI into
+  `TriggerSuggestDiff`), the hidden `lib-item-triggers` field,
+  `_refreshEditorWithTriggers`, `_multiSelect`/`_checkedIds` (`:59-69`,
+  `:162-196`), and `static/js/shared/trigger-suggest-diff.js`.
+- Plan: a selection action bar (independent of `openForRoom` placement) that
+  runs `ItemLibraryTriggerSuggester` per checked id, stages one set per item
+  into `TriggerSuggestDiff`, persists only on Apply via
+  `ApiClient.saveLibraryItem`, default-skips items that already have triggers
+  (opt-in "replace existing"), and reports
+  `N applied · M skipped · K failed`. Idempotent by diffing against the item's
+  current triggers.
+- This touches `static/js/item-library.js` (already modified here for task-636)
+  and `static/js/shared/trigger-suggest-diff.js`; coordinate with
+  `wt/items-library` before landing both.
