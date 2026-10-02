@@ -467,6 +467,108 @@ def cmd_plan(args) -> int:
     return 0
 
 
+BASELINE = REPO_ROOT / "tools" / "window-usage-baseline.json"
+WINDOW_PROP = re.compile(r"\bwindow\.([A-Za-z_$][\w$]*)")
+
+
+def window_usage(text: str) -> dict[str, int]:
+    """How many times each `window.NAME` appears."""
+    out: dict[str, int] = {}
+    for name in WINDOW_PROP.findall(text):
+        out[name] = out.get(name, 0) + 1
+    return out
+
+
+def load_baseline() -> dict[str, dict[str, int]]:
+    if not BASELINE.exists():
+        return {}
+    try:
+        return json.loads(BASELINE.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return {}
+
+
+def save_baseline(data: dict[str, dict[str, int]]) -> None:
+    BASELINE.write_text(json.dumps(data, indent=1, sort_keys=True) + "\n", encoding="utf-8")
+
+
+def record_baseline(js_path: Path) -> None:
+    """Remember a converted file's pre-conversion `window.NAME` usage.
+
+    Stored rather than re-derived from git, because once the conversion is
+    committed the original .js is gone from HEAD — the baseline has to be
+    captured at the moment of conversion to remain checkable.
+    """
+    data = load_baseline()
+    data[js_path.relative_to(REPO_ROOT).as_posix()] = window_usage(
+        js_path.read_text(encoding="utf-8", errors="replace")
+    )
+    save_baseline(data)
+
+
+def audit_window_guards() -> list[str]:
+    """Flag guards lost in conversion: `window.X` -> bare `X`.
+
+    `window.X` is undefined-safe; bare `X` throws ReferenceError when the
+    module is absent. A converter silences the `Property 'X' does not exist on
+    type 'Window'` error by deleting the prefix, which makes the type check pass
+    and the runtime fail — exactly how test_fear_verbs broke. A drop is not
+    automatically a bug (it is fine when X is a binding this file declares), so
+    this reports them for review rather than blanket-failing.
+
+    Fixed by completing `interface Window` (see tools/window_members.py), which
+    makes the correct spelling compile and removes the temptation.
+    """
+    data = load_baseline()
+    if not data:
+        return ["no baseline recorded - run `python tools/ts_convert.py baseline`"]
+    findings = []
+    for rel, before in sorted(data.items()):
+        js = REPO_ROOT / rel
+        if not js.exists():
+            continue
+        after = window_usage(js.read_text(encoding="utf-8", errors="replace"))
+        lost = {n: c - after.get(n, 0) for n, c in before.items() if after.get(n, 0) < c}
+        for name, count in sorted(lost.items()):
+            findings.append(f"{rel}: window.{name} used {count}x at conversion, "
+                            f"{after.get(name, 0)}x now")
+    return findings
+
+
+def cmd_audit_window(args) -> int:
+    findings = audit_window_guards()
+    if not findings:
+        print("  window guards  ok - no `window.X` usage lost in any conversion")
+        return 0
+    print(f"  window guards  {len(findings)} name(s) lost their `window.` prefix:")
+    for entry in findings:
+        print(f"    - {entry}")
+    print("\n  Each needs review: fine if the name is a binding THIS file declares,")
+    print("  a bug if it is a cross-module global that may not have loaded.")
+    return 1
+
+
+def cmd_baseline(args) -> int:
+    """Seed the window-usage baseline from git HEAD for already-converted files."""
+    data = load_baseline()
+    seeded = 0
+    for ts in source_files():
+        if ts.suffix != ".ts" or ts.name == "globals.d.ts":
+            continue
+        rel = ts.with_suffix(".js").relative_to(REPO_ROOT).as_posix()
+        if rel in data:
+            continue
+        out = subprocess.run(["git", "show", f"HEAD:{rel}"], cwd=str(REPO_ROOT),
+                             capture_output=True)
+        if out.returncode != 0:
+            continue
+        data[rel] = window_usage(out.stdout.decode("utf-8", errors="replace"))
+        seeded += 1
+    save_baseline(data)
+    print(f"seeded {seeded} file(s); baseline now holds {len(data)}")
+    return 0
+
+
 def build_one(ts_path: Path) -> tuple[bool, str]:
     """Type-check and emit ONE converted file, independent of the project.
 
@@ -639,6 +741,10 @@ def cmd_convert(args) -> int:
             body = note + "\n" + body
 
     target.write_text(body, encoding="utf-8", newline="")
+    # Capture the ORIGINAL window. usage BEFORE the .js is deleted, so the
+    # behavioural gate has something to compare against after this is committed
+    # and the original is gone from HEAD.
+    record_baseline(path)
     path.unlink()
     print(f"\nwrote {target.relative_to(REPO_ROOT).as_posix()}, removed {rel}")
 
@@ -709,6 +815,26 @@ def cmd_check(args) -> int:
         failed += 1
     else:
         print(f"  header survival  ok ({len(emitted_modules())} converted files)")
+
+    # Behavioural regression guard, not a type check: `window.X` -> bare `X`
+    # silences a type error and turns an undefined-safe guard into a
+    # ReferenceError. This is how test_fear_verbs broke, and it reached a browser
+    # before anything noticed.
+    guard_findings = audit_window_guards()
+    if args.strict_guards:
+        if guard_findings:
+            print(f"\n  window guards  FAILED - {len(guard_findings)} name(s) lost their `window.` prefix:")
+            for entry in guard_findings:
+                print(f"    - {entry}")
+            print("\n  Each needs review: fine when the name is a binding THIS file")
+            print("  declares, a bug when it is a cross-module global that may not")
+            print("  have loaded. `--lenient-guards` downgrades this to a warning.")
+            failed += 1
+        else:
+            print("  window guards  ok")
+    else:
+        print(f"  window guards  {len(guard_findings)} dropped prefix(es) - see "
+              f"`python tools/ts_convert.py audit-window`")
 
     print()
     print("gate failed" if failed else "gate green")
@@ -788,12 +914,22 @@ def main() -> int:
     p.add_argument("path")
     p.set_defaults(func=cmd_build_one)
 
+    p = sub.add_parser("baseline", help="seed the window-usage baseline from git HEAD")
+    p.set_defaults(func=cmd_baseline)
+
+    p = sub.add_parser("audit-window", help="flag `window.X` guards lost in conversion")
+    p.set_defaults(func=cmd_audit_window)
+
     p = sub.add_parser("verify-emit", help="prove per-file emit matches the project emit")
     p.add_argument("paths", nargs="*")
     p.set_defaults(func=cmd_verify_emit)
 
     p = sub.add_parser("check", help="the migration verification gate")
     p.add_argument("paths", nargs="*", help="converted files, to node --check the emitted .js")
+    p.add_argument("--strict-guards", action="store_true", default=True,
+                   help="fail when a conversion dropped a window. guard (default)")
+    p.add_argument("--lenient-guards", dest="strict_guards", action="store_false",
+                   help="report dropped window. guards without failing")
     p.set_defaults(func=cmd_check)
 
     p = sub.add_parser("sweep", help="add // @ts-check to .js files")

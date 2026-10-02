@@ -1,0 +1,620 @@
+{
+ "static/js/agent-lens.js": {
+  "CharacterArt": 3,
+  "Lit": 14,
+  "VW": 1,
+  "appEvents": 1
+ },
+ "static/js/agent/action-normalizer.js": {
+  "ActionNormalizer": 1,
+  "config": 2
+ },
+ "static/js/agent/agent-state.js": {
+  "AgentState": 1
+ },
+ "static/js/agent/emote-picker.js": {
+  "EmotePicker": 2,
+  "Lit": 4
+ },
+ "static/js/agent/human-turn-composer.js": {
+  "CharacterArt": 2,
+  "HumanTurnComposer": 1,
+  "Lit": 4,
+  "Timeskip": 3,
+  "TurnSceneView": 4,
+  "TurnYouStrip": 1
+ },
+ "static/js/agent/involuntary.js": {
+  "Involuntary": 1
+ },
+ "static/js/agent/memory-manager.js": {
+  "AgentMemory": 1,
+  "EmbeddingClient": 1,
+  "StructuredFormats": 1
+ },
+ "static/js/agent/object-responder.js": {
+  "ObjectResponder": 1
+ },
+ "static/js/agent/plan-manager.js": {
+  "PlanManager": 1,
+  "StructuredFormats": 1
+ },
+ "static/js/agent/plan-tracker.js": {
+  "PlanTracker": 1
+ },
+ "static/js/agent/prompt-builder/context-sections.js": {
+  "PromptBuilder": 3
+ },
+ "static/js/agent/prompt-builder/contextual-actions.js": {
+  "PromptBuilder": 6
+ },
+ "static/js/agent/prompt-builder/conversation-context.js": {
+  "PromptBuilder": 4
+ },
+ "static/js/agent/prompt-builder/helpers.js": {
+  "PlanTracker": 1,
+  "PromptBuilder": 4
+ },
+ "static/js/agent/prompt-builder/index.js": {
+  "PromptBuilder": 2
+ },
+ "static/js/agent/prompt-builder/memory-context.js": {
+  "EmbeddingClient": 1,
+  "EmotionMapper": 2,
+  "PromptBuilder": 4,
+  "_lastRecallStats": 1
+ },
+ "static/js/agent/prompt-builder/room-context.js": {
+  "EmbeddingClient": 1,
+  "EmotionMapper": 2,
+  "ItemContainment": 1,
+  "PromptBuilder": 4,
+  "VW": 1
+ },
+ "static/js/agent/prompt-builder/schema-fragments.js": {
+  "PromptBuilder": 3
+ },
+ "static/js/agent/prompt-builder/system-prompt.js": {
+  "PromptBuilder": 4,
+  "config": 1
+ },
+ "static/js/agent/prompt-builder/turn-prompts.js": {
+  "PromptBuilder": 4
+ },
+ "static/js/agent/rate-limiter.js": {
+  "RateLimiter": 1
+ },
+ "static/js/agent/response-parser.js": {
+  "ResponseParser": 1,
+  "__repairStats": 3
+ },
+ "static/js/agent/sim-round.js": {
+  "VWSimRound": 1
+ },
+ "static/js/agent/simultaneous.js": {
+  "VWSimultaneous": 1
+ },
+ "static/js/agent/threat-detector.js": {
+  "ThreatDetector": 1
+ },
+ "static/js/agent/turn-feed.js": {
+  "TurnFeed": 1
+ },
+ "static/js/agent/turn-scene-view.js": {
+  "CharacterArt": 5,
+  "TurnSceneView": 1,
+  "config": 2,
+  "innerHeight": 3,
+  "innerWidth": 2,
+  "worldState": 1
+ },
+ "static/js/agent/turn-you-strip.js": {
+  "PromptBuilder": 1,
+  "TurnSceneView": 8,
+  "TurnYouStrip": 1,
+  "VitalColor": 3,
+  "VitalThresholds": 1,
+  "openVitalModal": 2
+ },
+ "static/js/agent/vital-thresholds.js": {
+  "PromptBuilder": 1,
+  "VitalThresholds": 1,
+  "worldState": 1
+ },
+ "static/js/api.js": {
+  "InspectorAgentView": 1,
+  "runAction": 1
+ },
+ "static/js/character-art.js": {
+  "CharacterArt": 1,
+  "InspectorHelpers": 2,
+  "worldState": 4
+ },
+ "static/js/config.js": {
+  "GraphToolbar": 2,
+  "TurnQueue": 1,
+  "VWSimultaneous": 9,
+  "appEvents": 1
+ },
+ "static/js/context-window.js": {
+  "ContextWindowManager": 1
+ },
+ "static/js/event-bus.js": {
+  "appEvents": 1
+ },
+ "static/js/event-stream.js": {
+  "Lit": 9,
+  "worldState": 1
+ },
+ "static/js/graph/context-menu.js": {
+  "GraphContextMenu": 1,
+  "Lit": 3,
+  "VW": 1
+ },
+ "static/js/graph/edge-inspector.js": {
+  "EdgeInspector": 1,
+  "InspectorPanel": 1,
+  "Lit": 2
+ },
+ "static/js/graph/edge-types.js": {
+  "EdgeTypes": 1
+ },
+ "static/js/graph/event-handlers.js": {
+  "GraphBackground": 2,
+  "GraphEventHandlers": 1
+ },
+ "static/js/graph/focus.js": {
+  "GraphFocus": 1,
+  "GraphToolbar": 2
+ },
+ "static/js/graph/graph-background.js": {
+  "GraphBackground": 1,
+  "addEventListener": 1
+ },
+ "static/js/graph/graph-export.js": {
+  "GraphBackground": 2,
+  "GraphExport": 1,
+  "devicePixelRatio": 3
+ },
+ "static/js/graph/layout-engine.js": {
+  "GraphLayoutEngine": 2,
+  "GraphToolbar": 2
+ },
+ "static/js/graph/network-manager.js": {
+  "CharacterArt": 6,
+  "GraphBackground": 3,
+  "GraphNetwork": 1,
+  "GraphRelativeLayout": 9,
+  "GraphToolbar": 12,
+  "Lit": 8,
+  "NLEditorGhosts": 2,
+  "config": 1
+ },
+ "static/js/graph/node-badges.js": {
+  "NodeBadges": 1
+ },
+ "static/js/graph/node-operations.js": {
+  "GraphNodeOps": 1,
+  "Lit": 7
+ },
+ "static/js/graph/overlays.js": {
+  "GraphOverlays": 1
+ },
+ "static/js/graph/projector.js": {
+  "GraphProjector": 1
+ },
+ "static/js/graph/relative-layout.js": {
+  "GraphRelativeLayout": 2,
+  "GraphSeparation": 4
+ },
+ "static/js/graph/scope-tree.js": {
+  "GraphScopeTree": 1,
+  "GraphToolbar": 1,
+  "VW": 1,
+  "graphManager": 2
+ },
+ "static/js/graph/separation.js": {
+  "GraphSeparation": 2
+ },
+ "static/js/graph/tree-view.js": {
+  "GraphScopeTree": 2,
+  "GraphTreeView": 1,
+  "Lit": 9,
+  "graphManager": 3
+ },
+ "static/js/inspector.js": {
+  "DocPanel": 7,
+  "InspectorPanel": 4,
+  "Lit": 6,
+  "StructuredFormats": 1,
+  "VW": 4,
+  "appEvents": 2,
+  "events": 2
+ },
+ "static/js/inspector/agent-view.js": {
+  "AutoDressModal": 1,
+  "InspectorAgentView": 1,
+  "InspectorHelpers": 7,
+  "InspectorMemory": 1,
+  "InspectorPanel": 1,
+  "InspectorPaperdoll": 1,
+  "InspectorTemplateSync": 6,
+  "KnownBySection": 4,
+  "Lit": 14,
+  "PlanTracker": 1,
+  "StructuredFormats": 2,
+  "VW": 14,
+  "VitalColor": 2,
+  "VitalThresholds": 1,
+  "_traitLibrary": 4,
+  "_traitLibraryAt": 2,
+  "appEvents": 1
+ },
+ "static/js/inspector/area-view.js": {
+  "EnvPresets": 8,
+  "InspectorAreaView": 1,
+  "InspectorHelpers": 1,
+  "InspectorTemplateSync": 8,
+  "InspectorTriggers": 2,
+  "Lit": 12,
+  "SkyScape": 3,
+  "VW": 8,
+  "events": 4,
+  "libraryBrowser": 1,
+  "worldState": 1,
+  "worldSync": 2
+ },
+ "static/js/inspector/auto-dress-modal.js": {
+  "AutoDressModal": 1
+ },
+ "static/js/inspector/doc-panel.js": {
+  "DocPanel": 1,
+  "Lit": 1
+ },
+ "static/js/inspector/helpers.js": {
+  "CharacterArt": 2,
+  "GraphRelativeLayout": 4,
+  "InspectorHelpers": 1,
+  "Lit": 10,
+  "StructuredFormats": 1,
+  "VW": 4
+ },
+ "static/js/inspector/item-view.js": {
+  "InspectorHelpers": 1,
+  "InspectorItemView": 1,
+  "InspectorTriggers": 2,
+  "Lit": 2,
+  "VW": 6
+ },
+ "static/js/inspector/known-by.js": {
+  "KnownBySection": 1
+ },
+ "static/js/inspector/lore-view.js": {
+  "InspectorLore": 1,
+  "InspectorPanel": 1,
+  "Lit": 4,
+  "VW": 2
+ },
+ "static/js/inspector/panel.js": {
+  "DocPanel": 1,
+  "InspectorPanel": 1,
+  "Lit": 10
+ },
+ "static/js/inspector/paperdoll-view.js": {
+  "InspectorPaperdoll": 1,
+  "Lit": 8,
+  "VW": 4,
+  "innerWidth": 2,
+  "worldState": 1
+ },
+ "static/js/inspector/sprite-sheet.js": {
+  "InspectorHelpers": 4,
+  "SpriteSheet": 1,
+  "events": 1,
+  "graphManager": 2,
+  "worldState": 1
+ },
+ "static/js/inspector/trigger-helpers.js": {
+  "InspectorTriggers": 1,
+  "ItemLibraryTriggerSuggester": 1,
+  "Lit": 5,
+  "TriggerSuggestAI": 3,
+  "TriggerSuggestDiff": 5,
+  "VW": 7,
+  "ValidatorPanel": 2
+ },
+ "static/js/inspector/way-authoring.js": {
+  "WayAuthoring": 1
+ },
+ "static/js/inspector/way-view-triggers.js": {},
+ "static/js/item-library.js": {
+  "DocPanel": 2,
+  "ItemLibraryTriggerSuggester": 1,
+  "Lit": 13,
+  "TriggerSuggestDiff": 4,
+  "TriggerTypes": 3
+ },
+ "static/js/item-library/ai-generation.js": {
+  "ItemLibraryAI": 2,
+  "ItemLibraryTriggerSuggester": 1,
+  "Lit": 5,
+  "TriggerSuggestAI": 1,
+  "TriggerSuggestDiff": 1,
+  "VW": 2
+ },
+ "static/js/item-library/consumable-triggers.js": {
+  "ItemLibraryTriggerSuggester": 1
+ },
+ "static/js/item-library/contents-editor.js": {
+  "ItemLibraryContents": 1,
+  "Lit": 6
+ },
+ "static/js/item-library/placement.js": {
+  "ItemLibraryPlacement": 1,
+  "Lit": 4
+ },
+ "static/js/library-browser.js": {
+  "DiffModal": 1,
+  "InspectorAgentView": 1,
+  "Lit": 7
+ },
+ "static/js/llm-client.js": {
+  "DatasetCollector": 2
+ },
+ "static/js/main.js": {
+  "CreateModal": 4,
+  "Lit": 5,
+  "SaveLoadView": 3,
+  "VW": 3,
+  "X": 1,
+  "agent": 1,
+  "config": 3,
+  "events": 3,
+  "gridModel": 1,
+  "innerHeight": 1,
+  "js": 1,
+  "narrationUI": 2,
+  "structures": 1,
+  "worldPainter": 1
+ },
+ "static/js/narration-ui.js": {
+  "Lit": 2,
+  "narrationUI": 1
+ },
+ "static/js/nl-editor/agent-loop.js": {
+  "ContextWindowManager": 1,
+  "GraphBackground": 1,
+  "NLEditorAgent": 1
+ },
+ "static/js/nl-editor/diff.js": {
+  "NLEditorDiff": 1
+ },
+ "static/js/nl-editor/ghosts.js": {
+  "NLEditor": 2,
+  "NLEditorGhosts": 3
+ },
+ "static/js/nl-editor/index.js": {
+  "NLEditor": 3,
+  "ui": 2
+ },
+ "static/js/nl-editor/staging.js": {
+  "NLEditorStaging": 1
+ },
+ "static/js/nl-editor/ui.js": {
+  "NLEditorUI": 1
+ },
+ "static/js/prompt-docs.js": {
+  "VW": 2
+ },
+ "static/js/shared/ai-generator.js": {
+  "StructuredFormats": 2
+ },
+ "static/js/shared/dataset-collector.js": {
+  "DatasetCollector": 3,
+  "__datasetSeq": 2,
+  "__rawSeq": 3
+ },
+ "static/js/shared/diff-modal.js": {
+  "DiffModal": 1,
+  "Lit": 2
+ },
+ "static/js/shared/dom-utils.js": {},
+ "static/js/shared/embedding-client.js": {
+  "EmbeddingClient": 3
+ },
+ "static/js/shared/emotion-mapper.js": {
+  "EmbeddingClient": 1,
+  "EmotionMapper": 1
+ },
+ "static/js/shared/env-presets.js": {
+  "ApiClient": 1,
+  "EnvPresets": 1,
+  "worldState": 4
+ },
+ "static/js/shared/item-containment.js": {
+  "ItemContainment": 2
+ },
+ "static/js/shared/json-schemas.js": {
+  "StructuredFormats": 1
+ },
+ "static/js/shared/json-utils.js": {
+  "__repairStats": 5
+ },
+ "static/js/shared/scope-options.js": {
+  "ScopeOptions": 2
+ },
+ "static/js/shared/search-select.js": {
+  "Lit": 7,
+  "SearchSelect": 1
+ },
+ "static/js/shared/tag-multiselect.js": {
+  "Lit": 5,
+  "TagMultiselect": 1
+ },
+ "static/js/shared/template-sync.js": {
+  "InspectorTemplateSync": 1,
+  "VW": 4,
+  "confirm": 1
+ },
+ "static/js/shared/trigger-suggest-ai.js": {
+  "TriggerSuggestAI": 1
+ },
+ "static/js/shared/trigger-suggest-diff.js": {
+  "TriggerSuggestDiff": 1
+ },
+ "static/js/shared/trigger-types.js": {
+  "TriggerTypes": 1
+ },
+ "static/js/shared/vital-color.js": {
+  "VitalColor": 1,
+  "worldState": 2
+ },
+ "static/js/sky-scape.js": {
+  "SkyScape": 3,
+  "addEventListener": 1,
+  "appEvents": 3
+ },
+ "static/js/soak/soak-api.js": {
+  "SoakApi": 1
+ },
+ "static/js/soak/soak-app.js": {
+  "SoakState": 2,
+  "SoakUI": 3
+ },
+ "static/js/soak/soak-charts.js": {
+  "SoakCharts": 1,
+  "SoakFormat": 1
+ },
+ "static/js/soak/soak-format.js": {
+  "SoakFormat": 1
+ },
+ "static/js/soak/soak-presets.js": {
+  "SoakPresets": 1
+ },
+ "static/js/soak/soak-spacetime.js": {
+  "SoakFormat": 1,
+  "SoakSpacetime": 1
+ },
+ "static/js/soak/soak-state.js": {
+  "SoakApi": 14,
+  "SoakFormat": 1,
+  "SoakState": 1,
+  "location": 2
+ },
+ "static/js/storage.js": {},
+ "static/js/stream/stream-control-mode.js": {},
+ "static/js/stream/stream-filters.js": {
+  "Lit": 3
+ },
+ "static/js/stream/stream-persistence.js": {
+  "Lit": 4,
+  "worldState": 2
+ },
+ "static/js/stream/stream-raw-llm.js": {
+  "Lit": 11,
+  "_lastRecallStats": 3
+ },
+ "static/js/stream/stream-scrubber.js": {},
+ "static/js/stream/stream-turn-cards.js": {
+  "Lit": 2
+ },
+ "static/js/ui-controller.js": {
+  "Lit": 7,
+  "SkyScape": 3,
+  "ValidatorPanel": 1,
+  "VitalThresholds": 1,
+  "agent": 6,
+  "appEvents": 2,
+  "graphManager": 1
+ },
+ "static/js/ui-helpers.js": {
+  "GraphToolbar": 1
+ },
+ "static/js/ui/changes-panel.js": {
+  "ChangesPanel": 1,
+  "ScenarioStatus": 1,
+  "worldState": 1
+ },
+ "static/js/ui/edit-feed.js": {
+  "EditFeed": 1,
+  "appEvents": 1
+ },
+ "static/js/ui/engine-config-view.js": {
+  "EngineConfigView": 1,
+  "Lit": 4,
+  "toastError": 2,
+  "toastInfo": 2
+ },
+ "static/js/ui/llm-inspector.js": {
+  "DatasetCollector": 2
+ },
+ "static/js/ui/recent-edits.js": {
+  "worldState": 1
+ },
+ "static/js/ui/room-template-palette.js": {
+  "RoomTemplatePalette": 1
+ },
+ "static/js/ui/scenario-health.js": {
+  "ScenarioHealth": 1,
+  "ScenarioManager": 1
+ },
+ "static/js/ui/scenario-manager.js": {
+  "ScenarioManager": 1,
+  "fuzzyRatio": 2
+ },
+ "static/js/ui/scenario-status.js": {
+  "ScenarioStatus": 1
+ },
+ "static/js/ui/scenario-wizard.js": {
+  "ScenarioWizard": 1
+ },
+ "static/js/ui/settings-view.js": {
+  "SettingsView": 1,
+  "VW": 1,
+  "config": 1,
+  "events": 1,
+  "llmClient": 1
+ },
+ "static/js/ui/setup-checklist.js": {
+  "CommandPalette": 1,
+  "ScenarioWizard": 1,
+  "SetupChecklist": 1,
+  "VW": 1,
+  "worldState": 1
+ },
+ "static/js/ui/undo-history.js": {
+  "UndoHistory": 1
+ },
+ "static/js/ui/world-export.js": {
+  "ApiClient": 1,
+  "WorldExport": 1,
+  "api": 1,
+  "chrome": 1,
+  "events": 1,
+  "llmClient": 1,
+  "open": 1,
+  "showSaveFilePicker": 1
+ },
+ "static/js/validator-panel.js": {
+  "InspectorWayView": 2,
+  "Lit": 8,
+  "VW": 3,
+  "ValidatorPanel": 3,
+  "appEvents": 1
+ },
+ "static/js/world-state.js": {
+  "ItemContainment": 2,
+  "TurnQueue": 2,
+  "appEvents": 2,
+  "config": 1,
+  "events": 1,
+  "worldState": 3
+ },
+ "static/js/world-sync.js": {
+  "Lit": 4
+ },
+ "static/js/worldpainter/grid-model.js": {
+  "VW": 4,
+  "gridModel": 1
+ }
+}
