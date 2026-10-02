@@ -66,7 +66,10 @@ def _leading_block(text: str, limit: int = 60) -> str:
 
 
 def parse(path: Path):
-    text = path.read_text(encoding="utf-8", errors="replace")
+    # utf-8-sig strips a leading BOM. A BOM before ``/**`` otherwise defeats
+    # _leading_block's startswith check, so a complete header parses as empty
+    # (task-658: room-context.js was baselined for exactly this).
+    text = path.read_text(encoding="utf-8-sig", errors="replace")
     block = _leading_block(text)
     meta = {}
     for line in block.splitlines():
