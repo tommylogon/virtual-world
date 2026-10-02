@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: refactor
 priority: medium
 ---
@@ -155,3 +155,21 @@ dead-code sweep. Deleting just the constant is safe either way.
   `npm run typecheck` green.
 - [x] Record that no entries were dropped (all 39 held at removal time), and the
   flaky `test_reset_undo` note above.
+
+## Independent re-check — 2026-10-02
+
+The work was committed (`b712a46` JS, `e8862fe` Python) but the task was never
+moved out of `todo`. Re-verified on the current tree: a repo-wide word-boundary
+count for a cross-section of the removed names is now **0** —
+`COLD_MODERATE_ENERGY`, `_get_light_int`, `get_characters_by_tag`,
+`setActiveCharacter`, `explainAction`, `createDomElement`, `_wireKeys`,
+`diffModalTag`.
+
+**Open item carried forward (do not silently close):** `#why-panel`
+(`templates/index.html:1156`) was written only by `explainAction`, so it is now
+an orphan element — no writer, no superseding live path. Per the repo's
+dead-code rule that is "verify feature intent", not "dead": either wire a writer
+or delete the element and its CSS rule. Filed as follow-up rather than fixed
+here to keep this task a pure deletion.
+
+No further code change. Moving to `review`.
