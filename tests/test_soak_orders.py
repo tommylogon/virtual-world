@@ -30,6 +30,14 @@ def _hero(w):
     p.state = "idle"
     p.fear_tags = []
     p.soak_order = None
+    # The fixture (task-586) ships an inert cast with `autonomy` False, but
+    # `autonomy` False is the engine's "human-driven" marker and the timeskip
+    # route counts another such character as an attended human. These tests are
+    # about the active character as the one attended human, so declare the rest
+    # NPCs; a test that wants a second human spawns one with human=True.
+    for other in w.players.values():
+        if other is not p:
+            other.autonomy = True
     try:
         w.player_manager.set_active_player(p.name)
     except Exception:

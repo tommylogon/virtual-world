@@ -81,20 +81,21 @@ def test_build_item_legacy_normalizes_actions():
     app = create_app({'TESTING': True})
     client = app.test_client()
 
+    # A unique name: the fixture already ships an item called "Backpack", so
+    # asserting on the first node called "Backpack" used to assert on the
+    # fixture's copy rather than the one this test built (task-586 step 6).
+    name = "Testpack Action Inverse"
     resp = client.post('/api/build/item', json={
-        'name': 'Backpack',
+        'name': name,
         'area': sorted(app.world.areas)[0],
         'actions': 'examine,equip',
     })
     assert resp.status_code == 200
 
-    node_id = next(
-        (n.id for n in app.world.graph.nodes.values()
-         if n.type == 'item' and n.name == 'Backpack'),
-        None
-    )
-    assert node_id is not None
-    node = app.world.graph.get_node(node_id)
+    matches = [n for n in app.world.graph.nodes.values()
+               if n.type == 'item' and n.name == name]
+    assert len(matches) == 1, "the built item must be its own node"
+    node = matches[0]
     assert 'unequip' in node.properties['actions']
 
 

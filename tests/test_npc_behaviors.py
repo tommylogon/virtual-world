@@ -72,15 +72,22 @@ def test_random_chance_accepts_fractional_chance_field():
 
 
 def test_rat_template_behaviors_parse():
-    """world_template rat has a non-empty scripted behavior tree."""
+    """The fixture rat has a non-empty scripted behavior tree.
+
+    This reads the TESTING fixture, not the shipped world_template: task-586
+    moved the boot content tests depend on into tests/fixtures/world.json. The
+    rat keeps its behaviour tree but is not autonomous, so it parses here and
+    does not act on a tick.
+    """
     import json
 
-    template_path = Path(__file__).resolve().parent.parent / "world_template.json"
+    template_path = Path(__file__).resolve().parent / "fixtures" / "world.json"
     data = json.loads(template_path.read_text(encoding="utf-8"))
     rat = data["players"]["rat"]
     assert rat["simple_npc"] is True
     assert len(rat["behaviors"]) >= 8
     assert rat["npc_behavior"] == "stationary"
+    assert rat["autonomy"] is False, "a non-inert rat defeats isolation"
 
 
 def test_go_goto_moves_one_step_via_way(patrol_world):

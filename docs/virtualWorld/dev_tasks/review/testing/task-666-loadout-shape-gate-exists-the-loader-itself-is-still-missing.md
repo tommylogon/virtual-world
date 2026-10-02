@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: testing
 priority: medium
 related: [bug-516, task-519, task-654, task-665]
@@ -51,14 +51,14 @@ recorded debt rather than guessed at.
 
 ## Acceptance
 
-- [ ] The four remaining `equipped_id_not_in_inventory` findings are either fixed
+- [x] The four remaining `equipped_id_not_in_inventory` findings are either fixed
       by adding the items to `inventory`, or removed from `equipped` because the
       character should not be wearing them. Then `--update-baseline`.
-- [ ] **A checker run is part of the pre-commit path**, so a bad character entry
+- [x] **A checker run is part of the pre-commit path**, so a bad character entry
       cannot be committed without the gate being consulted. Right now it is
       documented in `AGENTS.md` but nothing runs it automatically, which is how
       `way_property_index.py` started out too.
-- [ ] The checker's rules are derived from a declaration rather than written
+- [x] The checker's rules are derived from a declaration rather than written
       inline, the way `tools/way_properties.py` feeds `way_property_index.py`.
       `CHECKS` is already a single table, so this is mostly a matter of moving
       the *reasons* — which are the valuable part — somewhere referenceable.
@@ -66,3 +66,29 @@ recorded debt rather than guessed at.
       `ways.json` entries have the same "declared in the library, dropped by the
       spawn path" exposure that bug-516 and task-659 describe, and nothing checks
       their shape at all.
+
+## Outcome (2026-10-02)
+
+The four dangling ids were **fixed by authoring the items**, not by dropping them:
+the characters' own descriptions say they wear a black police cap (nia) and a blue
+cap/heart, work boots and blue jumpsuit (uzume-chan), so removing them would have
+deleted intended content. Four library templates were added — `police_cap`,
+`blue_cap_with_heart`, `work_boots`, `blue_jumpsuit` — and matching `inventory`
+entries with `node_id` = the equipped id, which is what import resolves against.
+`--report` is now **0 errors / 9 warnings** and the baseline holds only the nine
+`name_does_not_match_file` entries (task-665).
+
+The gate is now real:
+- `tests/test_character_loadout_check.py::test_the_shipped_library_has_no_new_loadout_findings`
+  runs the checker against the shipped library inside `pytest`, which is the
+  pre-commit command this repo actually has, and fails on any NEW finding.
+- `npm run precommit` chains the character, scenario-tag and way-property gates
+  for anyone wiring a git hook.
+- The reasons moved to `tools/character_loadout_rules.py`, imported by the
+  checker; `test_rules_are_declared_in_one_module` pins that it is the one table.
+
+The loader the title names (refresh-to-world resolving `equipped` ids the way
+import does) is still **not** built — it is a code change in `library_ops.py`, not
+a testing-infra one, and is left for the character/library lane. The checker is
+what makes its absence visible: `equipped_dict_entry` is an ERROR precisely
+because refresh writes a dict verbatim.

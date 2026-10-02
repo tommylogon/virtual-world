@@ -31,12 +31,19 @@ def _world():
 
 
 def _place(world, name, area=AREA):
-    """Get (or create) a player and put them in ``area``."""
+    """Get (or create) a player and put them in ``area``.
+
+    A player this test creates is declared non-autonomous, so the world does not
+    puppet them into the room under test. That is the same property the fixture
+    cast already has (task-586) and is what lets the full-turn ``_run`` below be
+    deterministic without ``skip_npcs``.
+    """
     if name in world.player_manager.players:
         p = world.player_manager.players[name]
     else:
         p = Player(name)
         world.add_player(p)
+    p.autonomy = False
     p.current_area = area
     world.set_player_area(name, area)
     return p
@@ -51,17 +58,16 @@ def _clear_area(world, keep, area=AREA):
 
 
 def _run(world, n=SPAN):
-    # `skip_npcs=True` keeps NPC behaviour and the background simulation out of
-    # the turn. These tests measure the company-aware Social block, and that
-    # block's premise is *who is in the room* — but a full turn also lets the
-    # cast wander, so "alone in the clearing" silently stopped being true
-    # somewhere around tick 1: the measured character drifts into the hallway
-    # and ends up co-present with the rat or Lyrie, gets the company gain, and
-    # Social climbs back to 100. Which rooms the cast lands in is a random draw,
-    # so the same command returned 75 and 100 on different runs (bug-55 — not
-    # create_app() isolation, which a seeded probe rules out).
+    # A full turn, on purpose: NPC behaviour and the background simulation both
+    # run, so this would expose any character the world puppets into the room
+    # under test. It does not, because the fixture cast is non-autonomous
+    # (task-586) and `_place` declares the test's own companion the same way.
+    # The premise is therefore stable without `skip_npcs` — which is exactly the
+    # property task-586 requires the fixture to provide (bug-55: a full turn let
+    # the cast wander, so "alone" died around tick 1 and the run returned 75 or
+    # 100 on different draws).
     for _ in range(n):
-        world.tick_turn(skip_npcs=True)
+        world.tick_turn()
 
 
 def _social_after(world, name, alone, traits=None, company=False):

@@ -142,8 +142,12 @@ def test_hp_regen_still_happens_below_the_maximum():
     gob = _goblin(world, hp=2)
     gob.vitals.update({"Energy": 90, "Hunger": 90, "Thirst": 90,
                        "Sanity": 90, "Temperature": 37.0})
+    # skip_npcs keeps the per-character regen/decay block and drops background
+    # survival. Without it the goblin's own thirst policy decides whether the
+    # gate stays open, making this a test of the water supply rather than of the
+    # regen gate it names.
     for _ in range(40):
-        world.tick_manager.tick_turn()
+        world.tick_manager.tick_turn(skip_npcs=True)
     assert gob.vitals["HP"] > 2, "a wounded character should regenerate"
     assert gob.vitals["HP"] <= 7, "and never past the ceiling"
 

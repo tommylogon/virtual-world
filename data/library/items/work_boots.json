@@ -1,0 +1,17 @@
+{
+  "name": "Work Boots",
+  "description": "Well-worn boots of pale leather, scuffed from long mornings before anyone else is awake.",
+  "actions": "examine,equip,unequip,drop",
+  "uses": -1,
+  "weight": 1.2,
+  "equip_slots": [
+    "feet"
+  ],
+  "tags": [
+    "clothing",
+    "footwear",
+    "boots"
+  ],
+  "current_state": "normal",
+  "contents": []
+}

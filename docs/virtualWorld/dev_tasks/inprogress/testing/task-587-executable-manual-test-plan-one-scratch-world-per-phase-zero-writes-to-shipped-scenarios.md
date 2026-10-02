@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: inprogress
 area: testing
 priority: high
 supersedes: test-plan-100-items.md
@@ -86,12 +86,45 @@ There is no "new empty scenario" route. `/api/scenarios` offers list / duplicate
 
 ## Acceptance
 
-- `docs/virtualWorld/testing/manual-test-plan.md` exists, with all 215 existing steps re-expressed in the six-field form and mapped to a phase, plus the missing phases 1, 9 and the newer subsystems.
-- The old file is removed or reduced to a pointer, and no 215-step plan sits in `done/` without results.
-- Every step has a `may-write` value, and no step writes outside its scratch world.
-- The gate is scripted (`tools/test_plan_gate.cjs` or a `--phase` runner) and fails on a dirty `git status`.
-- The plan names its blind spots explicitly: what is **not** covered and why.
-- A first run is recorded with real per-step results, and `git status` is clean afterwards.
+- [x] `docs/virtualWorld/testing/manual-test-plan.md` exists, with all 215 existing steps re-expressed in the six-field form and mapped to a phase, plus the missing phases 1, 9 and the newer subsystems.
+- [x] The old file is removed or reduced to a pointer, and no 215-step plan sits in `done/` without results.
+- [x] Every step has a `may-write` value, and no step writes outside its scratch world.
+- [x] The gate is scripted (`tools/test_plan_gate.cjs`) and fails on a dirty `git status`.
+- [x] The plan names its blind spots explicitly: what is **not** covered and why.
+- [ ] A first run is recorded with real per-step results, and `git status` is clean afterwards. **Partial** — see Outcome.
+
+## Outcome (2026-10-02)
+
+**Delivered.** `docs/virtualWorld/testing/manual-test-plan.md` (325 lines, **224
+steps**): all 215 old rows migrated to the six-field table form and grouped under
+phases 0/2/3/4/5/6/7/8, plus hand-written phases 1 (the missing-route finding),
+9 (painted world) and 10 (changes panel). The old file is reduced to a pointer
+with `status: superseded`. `tools/test_plan_gate.cjs` validates that every step
+declares `nothing` / `scratch-only` / `scratch+assets` **and** that
+`git status --porcelain` is empty outside `data/saves/<run-id>/` and `evidence/`.
+
+**Gate, proven both ways:**
+- on the uncommitted tree: `plan gate: FAIL — 3 shipped file(s) changed outside
+  the scratch world` … exit 1;
+- after commit: `plan gate: OK` … exit 0.
+- plan validation: `plan gate: 224 steps, every one declares a may-write value`.
+
+**First run — partial, recorded honestly.** Boot on `VW_PORT=4470`; the
+representative browser run (`node tools/test_runner.cjs --suite full`) was
+**11/11 passed** covering representative steps from phases 0, 4, 5 and 8, and
+`git status` was clean afterwards (the temporary save slot and autosave were
+removed). Phases 1/2/3/6/7/9/10 have **not** been executed; the plan's "First
+run" section records that as the state, not as passes. The remaining execution
+is a runner keyed by step id (task-444's `test_runner.cjs` is the foundation).
+
+**Blind spots**, named in the plan: `may-write` is inferred from a step's verbs
+rather than measured; the migrated steps carry no results; there is no empty-
+scenario route (phase 1 is a decision); and `--phase` browser execution does not
+exist yet.
+
+**Why this is not `done`:** the last acceptance line needs a full per-step run,
+which is execution work on top of an intact plan and gate. The plan is complete
+and executable; the run is not.
 
 ## Follow-ups
 

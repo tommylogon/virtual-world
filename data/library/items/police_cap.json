@@ -1,0 +1,17 @@
+{
+  "name": "Police Cap",
+  "description": "A snide black police cap pulled just low enough to flirt with.",
+  "actions": "examine,equip,unequip,drop",
+  "uses": -1,
+  "weight": 0.2,
+  "equip_slots": [
+    "accessory"
+  ],
+  "tags": [
+    "clothing",
+    "cap",
+    "police"
+  ],
+  "current_state": "normal",
+  "contents": []
+}

@@ -8,6 +8,21 @@
  * @docs none
  */
 class ApiClient {
+    /**
+     * Never let a raw server error reach the UI (task-444 Phase 4).
+     *
+     * The command bar logs `data.error` straight to the event stream, and the
+     * default Flask 500 body is a traceback. Both a JSON `{error: "Traceback
+     * (most recent call last)..."}` and a non-JSON body would otherwise be shown
+     * to the player. A short status message is the readable thing to surface.
+     */
+    static _errorMessage(resp, data) {
+        const raw = (data && typeof data.error === 'string') ? data.error : '';
+        if (raw && !/\bTraceback\b|File "\S/.test(raw)) return raw;
+        const status = `${resp.status}${resp.statusText ? ' ' + resp.statusText : ''}`;
+        return `Request failed (${status})`;
+    }
+
     /** Generic POST helper */
     static async post(url, payload) {
         const resp = await fetch(url, {
@@ -15,7 +30,11 @@ class ApiClient {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
-        return resp.json();
+        const data = await resp.json().catch(() => ({}));
+        if (!resp.ok) {
+            return { ...data, error: ApiClient._errorMessage(resp, data), http_status: resp.status };
+        }
+        return data;
     }
 
     /**
@@ -30,7 +49,11 @@ class ApiClient {
     /** Generic GET helper */
     static async get(url) {
         const resp = await fetch(url);
-        return resp.json();
+        const data = await resp.json().catch(() => ({}));
+        if (!resp.ok) {
+            return { ...data, error: ApiClient._errorMessage(resp, data), http_status: resp.status };
+        }
+        return data;
     }
 
     /**

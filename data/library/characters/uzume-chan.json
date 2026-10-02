@@ -81,12 +81,12 @@
   },
   "equipped": {
     "accessory": [
-      "blue_cap_with_heart"
+      "item_blue_cap_with_heart"
     ],
     "arms": [],
     "back": [],
     "feet": [
-      "work_boots"
+      "item_work_boots"
     ],
     "hand_left": [],
     "hand_right": [],
@@ -95,13 +95,90 @@
     "legs": [],
     "neck": [],
     "torso": [
-      "blue_jumpsuit"
+      "item_blue_jumpsuit"
     ],
     "waist": []
   },
   "activity": null,
   "current_area": "",
-  "inventory": [],
+  "inventory": [
+    {
+      "name": "Blue Cap with Heart",
+      "node_id": "item_blue_cap_with_heart",
+      "library_id": "blue_cap_with_heart",
+      "properties": {
+        "actions": [
+          "examine",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "A favourite blue cap with a small heart on the front, sitting low across the brow.",
+        "equip_slots": [
+          "accessory"
+        ],
+        "library_id": "blue_cap_with_heart",
+        "tags": [
+          "clothing",
+          "cap"
+        ],
+        "uses": -1,
+        "weight": 0.2
+      }
+    },
+    {
+      "name": "Work Boots",
+      "node_id": "item_work_boots",
+      "library_id": "work_boots",
+      "properties": {
+        "actions": [
+          "examine",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "Well-worn boots of pale leather, scuffed from long mornings before anyone else is awake.",
+        "equip_slots": [
+          "feet"
+        ],
+        "library_id": "work_boots",
+        "tags": [
+          "clothing",
+          "footwear",
+          "boots"
+        ],
+        "uses": -1,
+        "weight": 1.2
+      }
+    },
+    {
+      "name": "Blue Jumpsuit",
+      "node_id": "item_blue_jumpsuit",
+      "library_id": "blue_jumpsuit",
+      "properties": {
+        "actions": [
+          "examine",
+          "equip",
+          "unequip",
+          "drop"
+        ],
+        "current_state": "normal",
+        "description": "A practical, well-worn blue overall set in sky-blue, cut for farm work.",
+        "equip_slots": [
+          "torso"
+        ],
+        "library_id": "blue_jumpsuit",
+        "tags": [
+          "clothing",
+          "jumpsuit"
+        ],
+        "uses": -1,
+        "weight": 1.0
+      }
+    }
+  ],
   "emotion": {
     "current": "cheery",
     "description": "uzume-chan is quite cheery.",
