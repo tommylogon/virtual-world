@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: done
 area: world
 priority: high
 ---
@@ -165,5 +165,30 @@ exercising the lifecycle, so nothing covers it. Fix or remove it here.
 - task-436 (review) — removed time costs from `ACTION_COSTS`; left the
  `apply_action` comment claiming the caller advances the clock.
 - task-437 — resolution order; the per-round advance must not make order dependence
- worse.
+  worse.
 - `docs/virtualWorld/Simulation Model.md` — the timeframe model.
+
+## Verified (2026-10-02)
+
+The fix was already present on this branch (`static/js/agent/sim-round.js`,
+`agent-engine.js` `_simRoundComplete`/`_closeSimRoundIfComplete`/`endSimRound`,
+the `#sim-end-round` control); this pass **verified it end-to-end** rather than
+re-deriving it.
+
+- **Live browser (proof).** Server on `VW_PORT=4468`, Playwright. Set Kaelen
+  Voss human (`autonomy=false`), killed the two autonomous characters so the
+  human is the only round participant, switched to `simultaneous` via
+  `config.setTurnMode`, then `await VW.agent.endSimRound()`. Result:
+  `TICKS 0 -> 1 advanced=true`, `PAGEERRORS []`, and the event stream shows
+  "Kaelen Voss passes — round closed." with the clock at 08:05. A world turn
+  (applyTurn -> tick_turn) ran under simultaneous mode.
+- **Mechanism pin.** `tools/unit/test_sim_round.js` gained a guard that the
+  `_closeSimRoundIfComplete` body gates on round completion and calls
+  `TurnQueue.endTurn()`. Full JS unit suite: `node tools/unit/run.cjs` ->
+  486 passed, 0 failed.
+- **Engine side already pinned:** `_clock_advanced_by_task` is consumed in
+  `tools/game_tools.py` and covered by `tests/test_health_model_fixes.py` /
+  `tests/test_action_costs.py`.
+
+Moved to `done` on the strength of the live-browser observation, not the unit
+tests alone.

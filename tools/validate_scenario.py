@@ -11,10 +11,29 @@ import json
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from engine.room_perception import duplicate_area_names  # noqa: E402
+
 
 def load_json(path: str) -> dict:
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
+
+
+def validate_area_names(nodes: dict, issues: list):
+    """Duplicate display names are legal but make a name lookup ambiguous.
+
+    Ids are the identity (task-439), so two areas may share a name; a scenario
+    that ships one must say so rather than let the engine resolve it by
+    iteration order. Reported at ERROR level because a duplicate name is the
+    precondition for silently re-homing a character or picking the wrong
+    environment.
+    """
+    for name, ids in sorted(duplicate_area_names(nodes).items()):
+        issues.append(
+            f"Duplicate area display name '{name}' shared by: {', '.join(ids)} — "
+            f"give each a unique name or address them by id")
 
 
 def validate_areas(nodes: dict, issues: list):
@@ -124,6 +143,7 @@ def validate_scenario(data: dict) -> list:
     players = data.get("players", {})
 
     validate_areas(nodes, issues)
+    validate_area_names(nodes, issues)
     validate_ways(nodes, edges, issues)
     validate_items(nodes, issues)
     validate_characters(nodes, issues)

@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: world
 priority: high
 ---
@@ -151,3 +151,42 @@ can see.
 - **Scope creep into the `current_area` refactor.** Keep the string-value change out of
   this task or it becomes unlandable; the interim constraint (unique names) is what makes
   the deferral safe.
+
+## Implementation (2026-10-02)
+
+Landed (id-first resolution, loud ambiguity, id-keyed projection):
+
+- `engine/room_perception.py`: `resolve_area()` is the one resolver — **id first**
+  (through the graph's case-insensitive `_id_index`), then a normalised display
+  name, then the canonical constructed id. An ambiguous name is logged and
+  resolved by **smallest id**, never iteration order. `resolve_area_node()` is
+  now a thin alias so every existing caller gets the fix. `duplicate_area_names()`
+  groups a graph or a serialized `{id: node}` map for the validators.
+- `engine/area_description.py::build_exits_for_area`: resolves once, then uses the
+  canonical node's **name** for way-handle/hidden-exit logic (discovered exits are
+  keyed by display name) and its **id** for graph edges, so passing an id or a
+  duplicate name both resolve the right area. Cache keyed by canonical id.
+- `engine/serialization.py`: `_compute_feels_like` resolves via `resolve_area`
+  (id then unambiguous name) instead of first name match; `_serialize_world`
+  gains a canonical **`areas_by_id`** projection and every area record now carries
+  `id`; `build_exits_for_area` is called with the id. `to_scenario_dict` drops
+  `areas_by_id` with the other graph-only projections. `load_from_dict` logs a
+  warning naming duplicate area display names.
+- `tools/validate_scenario.py`: `validate_area_names` errors on a duplicate
+  display name. `tools/lint_library.py`: `duplicate_area_names` warning check
+  (already finds one real duplicate: `goblin_nursery` / `nursery`).
+
+**Deviation, and why:** the live `areas`/`rooms` map stays **name-keyed**. 40+
+frontend sites read `worldState.areas[player.current_area]` and `player.current_area`
+is still a display name; the string→id refactor is task-581 and explicitly this
+task's non-goal. The id-keyed `areas_by_id` is the canonical projection a
+consumer that can hold an id should use; the name-keyed map is a documented
+convenience view that cannot represent duplicates. Flipping its key now would
+break the UI for a task that is not allowed to touch `current_area`.
+
+**Remaining (deferred, tracked by task-581):** make `Player.current_area` an id so
+the name-keyed map can be retired and the frontend migrated to ids.
+
+Tests: `tests/test_area_identity.py` (9) — id-exact and deterministic-ambiguous
+resolution, duplicate round-trip with distinct exits/environments, temperature by
+id, validator and lint wiring.

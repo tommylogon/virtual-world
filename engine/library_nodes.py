@@ -88,6 +88,16 @@ def library_item_properties(lib_item: dict, library_id: str,
     # dropped at placement, so the item's own triggers can never see it.
     if lib_item.get("parameters"):
         props["parameters"] = dict(lib_item["parameters"])
+    # Pooled resources (task-504). `take_drop_actions` reads `node.properties
+    # .harvest` to take from a pool and `quantity` to know how many the node
+    # stands for; without these a library pool placed by a generator arrives as
+    # a single takeable item, which is the exact bug the pool model exists to
+    # fix. Only copied when a harvest spec is present, so a plain item is
+    # unchanged and a `quantity`-with-no-harvest typo stays the lint's problem.
+    if isinstance(lib_item.get("harvest"), dict):
+        props["harvest"] = dict(lib_item["harvest"])
+        if lib_item.get("quantity") is not None:
+            props["quantity"] = lib_item["quantity"]
     if extra:
         props.update(extra)
     return props

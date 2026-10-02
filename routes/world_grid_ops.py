@@ -1079,6 +1079,10 @@ def handle_generate_scope(app, scope_id):
         return _generate_from_recipe(app, manifest, record, scope_id, data,
                                      allow_regenerate=allow_regenerate, tick=tick)
 
+    # task-569: the item library is what turns a biome's resource_distribution
+    # tags into real items placed in the compiled areas.
+    index = LibraryIndex.from_directory(
+        Path(app.config["DATA_DIR"]) / "library" / "items")
     try:
         patch = world_compile.compile_grid(
             manifest, scope_id,
@@ -1088,7 +1092,9 @@ def handle_generate_scope(app, scope_id):
             tick=int(tick),
             # Hand-placed areas are existing nodes, and their boundary ways have
             # to speak their names (task-528).
-            graph=app.world.graph)
+            graph=app.world.graph,
+            spawn_index=index,
+            resources_per_area=int(data.get("resources_per_area") or 1))
     except ValueError as exc:
         # Missing scope, no grid, no painted cells, or a baked zone.
         return _error(str(exc))

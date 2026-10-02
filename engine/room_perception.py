@@ -13,9 +13,12 @@ bug-26 empty panel). Renderers must call THESE functions instead of
 re-implementing the rules.
 """
 
+import logging
 from typing import Optional
 
 from graph import EDGE_IN
+
+logger = logging.getLogger(__name__)
 
 
 def normalize_name(value) -> str:
@@ -26,22 +29,77 @@ def normalize_name(value) -> str:
             .replace("_", " ").replace("-", " ").replace("'", "").strip())
 
 
-def resolve_area_node(graph, area_name: str) -> Optional[object]:
-    """The area node for *area_name* — by NAME first (hand-authored ids
-    strip punctuation: "Taco Bell Men's Restroom" lives at
-    ``area_tacobell_mens_room``), then the canonical constructed id,
-    validated against the graph. None when the area doesn't exist."""
-    if graph is None or not area_name:
-        return None
-    wanted = normalize_name(area_name)
+def _area_nodes_by_name(graph) -> dict:
+    """Every area node grouped by normalised display name (task-439)."""
+    groups: dict = {}
     for node in graph.nodes.values():
-        if getattr(node, "type", "") == "area" and normalize_name(node.name) == wanted:
-            return node
+        if getattr(node, "type", "") == "area":
+            groups.setdefault(normalize_name(node.name), []).append(node)
+    return groups
+
+
+def duplicate_area_names(graph_or_nodes) -> dict:
+    """Normalised name → sorted list of area ids sharing it (task-439).
+
+    Duplicate display names are legal at the graph level (ids are the identity)
+    but they make a name-only lookup ambiguous, so they must be *visible* to the
+    validator and the library lint rather than silently resolved by iteration
+    order. Accepts a ``WorldGraph`` or a plain ``{id: node}`` mapping.
+    """
+    nodes = getattr(graph_or_nodes, "nodes", graph_or_nodes) or {}
+    groups: dict = {}
+    for node_id, node in nodes.items():
+        # Accept a Node object or a plain serialized dict.
+        ntype = node.get("type") if isinstance(node, dict) else getattr(node, "type", None)
+        if ntype != "area":
+            continue
+        name = node.get("name") if isinstance(node, dict) else getattr(node, "name", None)
+        groups.setdefault(normalize_name(name or node_id), []).append(str(node_id))
+    return {name: sorted(ids) for name, ids in groups.items() if len(ids) > 1}
+
+
+def resolve_area(graph, ref) -> Optional[object]:
+    """The area node for *ref*, which may be an area **id** or a display name.
+
+    Resolution is **id first** (task-439): an id is the stable handle, so a
+    caller holding one never has to guess. A display name is resolved by
+    :func:`normalize_name`; when more than one area shares that name the result
+    is ambiguous — it is logged and resolved deterministically by smallest id,
+    never by dict iteration order, so two areas called "Hollow" cannot silently
+    swap depending on load order. Falls back to the canonical id the name would
+    construct (hand-authored ids strip punctuation: "Taco Bell Men's Restroom"
+    lives at ``area_tacobell_mens_room``).
+    """
+    if graph is None or not ref:
+        return None
+    text = str(ref)
+    node = graph.get_node(text)
+    if node is not None and getattr(node, "type", "") == "area":
+        return node
+    wanted = normalize_name(text)
+    matches = _area_nodes_by_name(graph).get(wanted, [])
+    if len(matches) == 1:
+        return matches[0]
+    if len(matches) > 1:
+        matches = sorted(matches, key=lambda n: str(n.id))
+        logger.warning(
+            "area name %r is ambiguous across %s; resolving to %s by smallest id",
+            text, [n.id for n in matches], matches[0].id)
+        return matches[0]
     from engine.node_ids import NodeIDHelper
-    candidate = graph.get_node(NodeIDHelper.area_node_id(area_name))
+    candidate = graph.get_node(NodeIDHelper.area_node_id(text))
     if candidate is not None and getattr(candidate, "type", "") == "area":
         return candidate
     return None
+
+
+def resolve_area_node(graph, area_name: str) -> Optional[object]:
+    """The area node for *area_name* — id first, then display name (task-439).
+
+    Kept under its historical name for every existing caller; the resolution
+    rule now lives in :func:`resolve_area`.
+    """
+    return resolve_area(graph, area_name)
 
 
 def normalize_requires(value) -> str:

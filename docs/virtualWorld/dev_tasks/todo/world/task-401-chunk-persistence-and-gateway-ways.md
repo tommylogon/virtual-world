@@ -81,3 +81,28 @@ task-402's to measure and is only claimed here as a dependency, not re-done.
 
 This task is not required to prove task-400. It is the first step that makes a
 million-node world technically credible.
+
+## Aggregate verification (2026-10-02)
+
+The four sub-tasks are implemented and in **review** (581, 582, 583, 584); this
+umbrella stays `todo` per its own rule ("satisfied when all four sub-tasks are in
+`done`" — that final move is the reviewers', not this lane's).
+
+What *is* demonstrated now, end-to-end, by `tests/test_chunk_lifecycle.py` (4):
+
+- **"Load two adjacent chunks, move an agent across a gateway, unload and reload
+  both, retain exactly one authoritative location."** A `town` chunk with a
+  gateway to an `inn` chunk; `move_to_area("enter the inn")` loads `inn` on
+  demand (task-583); unloading both leaves the character alive with its location
+  remembered by id (task-584); reloading restores **exactly one** `in` edge to
+  `area_inn_hall` (task-581/582).
+- **"A save/load round-trip preserves gateway links and due events."**
+  `to_dict()` → `load_from_dict()` keeps `world_index.gateway(way_gate)` with
+  its `target_area_id`/`target_scope_id` and the scheduled event at tick 42.
+- **"A gateway is not a dead UI shortcut."** Crossing it actually materialises
+  the remote area and moves the character.
+
+Still open for the umbrella to close: the benchmark/report half (task-402
+territory) and the editor-scope-request half; the global node/edge **scans** are
+not yet fully replaced by the index (noted in task-583). Those are the reasons
+the sub-tasks are in review rather than done.

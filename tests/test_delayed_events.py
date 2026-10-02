@@ -137,11 +137,24 @@ class TestScheduleTriggerEffect:
             {"delay_ticks": 5}, {}, item_node=stone, game_state=None
         ) == []
 
-    def test_dead_target_node_is_skipped(self, delayed_world):
-        """If the target node is deleted before the fire, the event is dropped."""
+    def test_dead_target_node_is_deferred_not_silently_dropped(self, delayed_world):
+        """task-584: a due event whose target is gone is deferred and surfaced.
+
+        It used to be the opposite — a missing target was silently skipped.
+        Now it is re-queued for the next tick, and after a bounded number of
+        attempts recorded as unresolved, so a lost event is always visible.
+        """
         delayed_world.item_actions.take_item(delayed_world, "Cursed Ring")
         delayed_world.graph.remove_node("item_cursed_ring")
-        delayed_world.tick_turn()
-        delayed_world.tick_turn()
-        delayed_world.tick_turn()
+
+        for _ in range(6):
+            delayed_world.tick_turn()
+            if delayed_world.deferred_delayed_events:
+                break
+        assert delayed_world.deferred_delayed_events, "must be deferred, not dropped"
+        assert len(delayed_world.delayed_events) == 1
+
+        for _ in range(12):
+            delayed_world.tick_turn()
+        assert delayed_world.unresolved_delayed_events
         assert len(delayed_world.delayed_events) == 0

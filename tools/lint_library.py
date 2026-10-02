@@ -34,7 +34,8 @@ DEFAULT_LIB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..",
 
 ERROR_CHECKS = ("dead_interests", "missing_slots", "tag_case_drift", "broken_contents",
                 "unauthored_consumables", "resource_pools")
-WARNING_CHECKS = ("singleton_tags", "area_tag_gaps", "dead_fears", "tag_id_charset")
+WARNING_CHECKS = ("singleton_tags", "area_tag_gaps", "dead_fears", "tag_id_charset",
+                  "duplicate_area_names")
 ALL_CHECKS = ERROR_CHECKS + WARNING_CHECKS
 
 #: Items that carry `food`/`drink` (or an `eat`/`drink` action) because they sit
@@ -361,6 +362,26 @@ def check_resource_pools(items, report):
                          f"items/{item_id}: harvest must be an object, got {type(harvest).__name__}")
 
 
+def check_duplicate_area_names(areas, report):
+    """Library areas sharing a display name (task-439).
+
+    A duplicate name is legal — ids are the identity — but a name-only lookup
+    then resolves by rule rather than by intent, so the author should confirm it
+    was deliberate. Seeds the duplicate-name diagnostic the library needs before
+    a decomposed world ships many "Hollow"s.
+    """
+    by_name = {}
+    for area_id, area in areas.items():
+        if not isinstance(area, dict):
+            continue
+        name = str(area.get("name") or area_id).strip().lower()
+        by_name.setdefault(name, []).append(area_id)
+    for name, ids in sorted(by_name.items()):
+        if len(ids) > 1:
+            report.warn("duplicate_area_names",
+                        f"areas share display name '{name}': {', '.join(sorted(ids))}")
+
+
 def check_area_tag_gaps(areas, report):
     """Library areas carrying no tags at all (informational)."""
     untagged = [area_id for area_id, area in sorted(areas.items())
@@ -384,6 +405,7 @@ CHECKS = {
     "singleton_tags": lambda ctx, r: check_singleton_tags(ctx["items"], r),
     "tag_id_charset": lambda ctx, r: check_tag_id_charset(ctx, r),
     "area_tag_gaps": lambda ctx, r: check_area_tag_gaps(ctx["areas"], r),
+    "duplicate_area_names": lambda ctx, r: check_duplicate_area_names(ctx["areas"], r),
 }
 
 

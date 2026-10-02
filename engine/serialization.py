@@ -71,18 +71,25 @@ class WorldSerializer:
         self._legacy_loader = LegacyLoader(graph, player_manager, legacy_compat)
 
     def _compute_feels_like(self, player) -> int:
-        """Compute equipment-adjusted feels_like temperature for a player."""
+        """Compute equipment-adjusted feels_like temperature for a player.
+
+        task-439: resolve ``current_area`` by id first, then unambiguously by
+        display name (``engine.room_perception.resolve_area``), instead of the
+        first name match in iteration order. Two areas sharing a display name
+        used to give a character the wrong area's temperature silently.
+        """
         from engine.equipment_bonuses import aggregate_bonuses, effective_temperature
+        from engine.room_perception import resolve_area_node
         if not player or not player.current_area:
             return 21
-        for node in self.graph.nodes.values():
-            if node.type == "area" and node.name == player.current_area:
-                env = node.properties.get("environment", {})
-                equip_bonuses = aggregate_bonuses(player, self.graph)
-                return int(effective_temperature(float(env.get("temperature", 21)), equip_bonuses,
-                                                 wind_level=env.get("wind", "none"),
-                                                 humidity=env.get("humidity", "dry")))
-        return 21
+        node = resolve_area_node(self.graph, player.current_area)
+        if node is None:
+            return 21
+        env = node.properties.get("environment", {})
+        equip_bonuses = aggregate_bonuses(player, self.graph)
+        return int(effective_temperature(float(env.get("temperature", 21)), equip_bonuses,
+                                         wind_level=env.get("wind", "none"),
+                                         humidity=env.get("humidity", "dry")))
 
     def _grappled_by(self, player_name: str) -> Optional[str]:
         """Resolve who holds *player_name* from the grappled edge (if any)."""
@@ -159,6 +166,12 @@ class WorldSerializer:
             },
             "region_exposed": _region_exposure_map(p, self.graph),
             "current_area": p.current_area,
+            # task-581: the canonical id of the authoritative location record
+            # (the character's `in` edge). The display name above is a
+            # resolution layer over it; a consumer that can hold an id should
+            # use this, so a duplicate display name can never re-home them.
+            "current_area_id": self.graph.area_of(
+                self.player_manager._player_node_id(pname)),
             "recent_hearing": getattr(p, 'recent_hearing', []),
             "emotion": {
                 "current": getattr(p, 'emotion', 'neutral'),
@@ -221,18 +234,26 @@ class WorldSerializer:
             players_serialized[pname] = self._serialize_player(pname, p)
 
         rooms_serialized = {}
+        # task-439: the canonical, id-keyed area projection. The id is the
+        # stable handle; a display name may repeat (Deep Forest has many
+        # "Hollow"s), and a name-keyed map silently collapses them. Every
+        # consumer that can address an area by id should read this map.
+        areas_by_id = {}
         for node in self.graph.nodes.values():
             if node.type == "area":
                 env = node.properties.get("environment", {})
                 ambient = self.player_manager.lighting.get_ambient_light(node.id, env)
-                rooms_serialized[node.name] = {
+                record = {
+                    "id": node.id,
                     "name": node.name,
                     "description": node.properties.get("description", ""),
                     "environment": env,
                     "ambient_light": ambient,
                     "light_description": self.player_manager.lighting.light_to_level(ambient),
-                    "exits": self.player_manager.build_exits_for_area(node.name),
-                    "exits_authoring": self.player_manager.build_exits_for_area(node.name, include_hidden=True),
+                    # Pass the id: exits are the graph's (task-439 resolves it),
+                    # and a duplicate display name cannot pick the wrong area.
+                    "exits": self.player_manager.build_exits_for_area(node.id),
+                    "exits_authoring": self.player_manager.build_exits_for_area(node.id, include_hidden=True),
                     "items": [],
                     # `floor` is the area's STOREY index (0 ground, 1 up, -1 down,
                     # unbounded); `surface` is the ground material. They are two
@@ -241,6 +262,14 @@ class WorldSerializer:
                     "surface": node.properties.get("surface", ""),
                     "properties": node.properties
                 }
+                areas_by_id[node.id] = record
+                # The name-keyed map stays because the live frontend reads
+                # worldState.areas[<area name>] / [player.current_area] (40+
+                # sites) and `player.current_area` is still a display name — the
+                # string→id refactor is task-581. It is a convenience view, not
+                # the canonical one: on a duplicate name the *last* writer wins
+                # here, while areas_by_id keeps both.
+                rooms_serialized[node.name] = record
 
         return {
             "current_area": self.legacy.current_area.name if self.legacy.current_area else None,
@@ -257,6 +286,8 @@ class WorldSerializer:
             "clock_start_minute": self.legacy.clock_start_minute,
             "areas": rooms_serialized,
             "rooms": rooms_serialized,
+            # task-439: canonical id-keyed projection (see _serialize_world).
+            "areas_by_id": areas_by_id,
             "graph": self.graph.to_dict(),
             "ways": getattr(self.legacy, 'ways', {}),
             "item_registry": getattr(self.legacy, 'item_registry', {}),
@@ -273,6 +304,13 @@ class WorldSerializer:
             "world_lore": self.legacy.world_lore,
             # task-397: hierarchy manifest (authored), not a projection. Optional.
             "world_scopes": getattr(self.legacy, "world_scopes", {}) or {},
+            # task-583: the resident scope index (ownership, location, gateways,
+            # due work). A derived cache of the loaded graph, but saved so an
+            # unloaded scope's ownership and gateways survive a round trip.
+            "world_index": (
+                self.legacy.world_index.to_dict()
+                if getattr(self.legacy, "world_index", None) is not None else {}
+            ),
             "calendar_config": getattr(self.legacy, "calendar_config", None),
             "forecast_schedule": getattr(self.legacy, "forecast_schedule", None),
             "forecast_override": getattr(self.legacy, "forecast_override", None),
@@ -485,6 +523,10 @@ class WorldSerializer:
         # item-library/placement, graph/layout-engine).
         data.pop("areas", None)
         data.pop("rooms", None)
+        data.pop("areas_by_id", None)
+        # The scope index is derived from the authored graph + manifest, so a
+        # scenario re-derives it on load rather than carrying a second copy.
+        data.pop("world_index", None)
         data.pop("ways", None)
         data.pop("item_registry", None)
         # Omit an empty name rather than writing "": the load path tests
@@ -530,6 +572,16 @@ class WorldSerializer:
             self._normalize_item_node_actions()
         else:
             self._legacy_loader.load(data)
+
+        # task-439: a duplicate area display name is legal (ids are the identity)
+        # but makes a name-only lookup ambiguous, so surface it at load rather
+        # than let the first iteration-order match silently win.
+        from engine.room_perception import duplicate_area_names
+        duplicate_areas = duplicate_area_names(self.graph)
+        if duplicate_areas:
+            logger.warning(
+                "[load] duplicate area display name(s) — resolve these by id: %s",
+                duplicate_areas)
 
         self.legacy.time_ticks = data.get("time_ticks", 0)
         self.legacy.time_per_tick_minutes = data.get("time_per_tick_minutes", 5)
@@ -586,6 +638,14 @@ class WorldSerializer:
             pnode_id = self.player_manager.player_node_id(pname)
             if not self.graph.get_node(pnode_id):
                 self.graph.add_node(Node(id=pnode_id, type="character", name=pname))
+            # task-581: the character's `in` edge is the authoritative location
+            # record; the saved `current_area` display name is a resolution layer
+            # over it. Prefer the edge, so a hand-edit to the string that
+            # disagrees with the graph cannot re-home a character on load.
+            edge_area_id = self.graph.area_of(pnode_id)
+            edge_area = self.graph.get_node(edge_area_id) if edge_area_id else None
+            if edge_area is not None:
+                p.current_area = edge_area.name
             if p.current_area:
                 self.player_manager.set_player_area(pname, p.current_area)
             for slot_name, stack in (p.equipped or {}).items():
@@ -609,6 +669,19 @@ class WorldSerializer:
         # task-397: optional hierarchy manifest; absent in legacy scenarios.
         raw_scopes = data.get("world_scopes")
         self.legacy.world_scopes = raw_scopes if isinstance(raw_scopes, dict) else {}
+        # task-583: restore the resident scope index. A save may carry entries
+        # for scopes it did not load (ownership, gateways, due work); when it
+        # does not, derive them from the graph so a legacy world gets an index.
+        index = getattr(self.legacy, "world_index", None)
+        if index is not None:
+            from engine.world.index import GlobalScopeIndex
+            raw_index = data.get("world_index")
+            if isinstance(raw_index, dict) and raw_index:
+                restored = GlobalScopeIndex.from_dict(raw_index)
+                self.legacy.world_index = restored
+                restored.augment_from_graph(self.graph, self.legacy.world_scopes)
+            else:
+                index.reindex(self.graph, self.legacy.world_scopes)
         # Graph background map: image path + transform (presentation only).
         background = data.get("graph_background")
         self.legacy.graph_background = background if isinstance(background, dict) else {}
