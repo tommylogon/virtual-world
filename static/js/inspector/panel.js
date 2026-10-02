@@ -14,7 +14,7 @@
  *
  * @module inspector/panel — the single owner of #inspector-panel
  * @contributes InspectorPanel.render(template): the only code allowed to write the panel element
- * @powers all inspector rendering (mixing innerHTML with lit corrupts lit's part tracking)
+ * @powers Node inspectors — all inspector rendering (mixing innerHTML with lit corrupts lit's part tracking)
  * @relates every inspector view hands it a lit-html TemplateResult
  * @docs docs/virtualWorld/UI & Settings/Inspector Panels.md
  */

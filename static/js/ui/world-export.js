@@ -12,7 +12,7 @@
  *
  * @module ui/world-export — export, print, and clipboard utilities
  * @contributes WorldExport: save-file dialog/downloads, world JSON export, prompt copying, print
- * @powers getting data out of the app (extracted from main.js)
+ * @powers Export — getting data out of the app (extracted from main.js)
  * @relates uses worldState + api + events; used by saveload-view's downloadWorld
  * @docs docs/virtualWorld/UI & Settings/Event Log Export.md
  */

@@ -12,7 +12,7 @@
  *
  * @module agent/turn-you-strip — the "You" strip
  * @contributes TurnYouStrip: vitals bars, condition chips, carrying/wearing menus, activity stop, known memories
- * @powers the at-a-glance "what state am I in" row of the turn panel
+ * @powers The human turn — the at-a-glance "what state am I in" row of the turn panel
  * @relates reads scene.you from turn-scene-view's API; fills the draft via onDraft
  * @docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
  */

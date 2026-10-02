@@ -7,7 +7,7 @@
  *
  * @module nl-editor/tools — the tool catalog + overlay graph view
  * @contributes NLEditorTools + OverlayGraphView: merge live worldState with uncommitted staged ops, list_nodes/matchNodes roster reads, update_matching_nodes bulk patches, library_upsert/library_delete template editing
- * @powers what the NL agent can actually do, previewed against the real graph
+ * @powers NL editor — what the NL agent can actually do, previewed against the real graph
  * @relates called by agent-loop.js; reads staging.js
  * @docs docs/virtualWorld/dev_tasks/done/graph/task-387-natural-language-editor-mode.md
  */

@@ -8,7 +8,7 @@
  *
  * @module agent/threat-detector — room threat scan
  * @contributes ThreatDetector: hostile-actor scan → formatted alert string (or null when safe)
- * @powers the threat warning prepended to the DECIDE prompt
+ * @powers NPC behaviour, Attack / grapple — the threat warning prepended to the DECIDE prompt
  * @relates reads worldState + agent-state; used by agent-engine
  * @docs docs/virtualWorld/Characters/NPC Behavior System.md
  */

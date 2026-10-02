@@ -3,7 +3,7 @@
  *
  * @module agent/sim-round — round-completion bookkeeping for the simultaneous modes
  * @contributes VWSimRound: participants(), isComplete(), markResolved(), pendingFor()
- * @powers whether a simultaneous round has finished and the world may advance
+ * @powers Turn queue — whether a simultaneous round has finished and the world may advance
  * @relates used by agent-engine; the cadence helper is agent/simultaneous
  * @docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
  *

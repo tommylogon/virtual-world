@@ -1,7 +1,7 @@
 /**
  * @module graph/separation — keep nearby nodes from overlapping
  * @contributes window.GraphSeparation.{enabled, spec, radiusOf, resolve}
- * @powers item/character nodes pushing apart unless an edge already joins them
+ * @powers Graph canvas — item/character nodes pushing apart unless an edge already joins them
  * @relates used by graph/relative-layout on load and while contents follow their parent
  * @docs docs/virtualWorld/World Building/Graph System.md
  *

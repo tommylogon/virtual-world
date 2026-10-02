@@ -12,7 +12,7 @@
  *
  * @module prompt-builder/turn-prompts — the per-phase prompt builders
  * @contributes buildReaction/Observation/Decision/ResultReaction/DashFollowUp/ChainFollowUp/Retry prompts
- * @powers the actual user messages for every agent phase (observe → decide → act → react → dash)
+ * @powers Narration, The human turn — the actual user messages for every agent phase (observe → decide → act → react → dash)
  * @relates stitches room-context + context-sections + schema-fragments; consumed by agent-engine
  * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  *

@@ -130,11 +130,17 @@ Features with no note. Each is real, reachable, and shipped — this is not a wi
 - A feature that is `unwired` is the dangerous one: the code and the task tree both say it exists.
   The Status column is what makes that visible.
 - `python tools/feature_index.py --check` fails when a new module's `@powers` names no feature here,
-  and `--report` prints the join in both directions. **`@powers` and this map currently speak
-  different languages**: 68 of 156 modules name a feature, 88 name none, and 32 features have no
-  module naming them. The headers are written as gerund phrases ("keeping and restoring your world")
-  and this map as noun phrases ("Save / load"), so the two only partly join. That gap is filed as
-  task-664; the 88 are baselined so the gate is green today and ratchets from here.
+  and `--report` prints the join in both directions. **The two vocabularies now join**: a module's
+  `@powers` opens with the feature name(s) it enables, taken verbatim from this map, so 155 of 157
+  modules name a feature and 11 features still name no module. The two that name none are pure
+  infrastructure (`static/js/shared/dom-utils.js`, `static/js/world-state.js`); they are baselined,
+  because a utility that powers no single feature is a real state, not a gap. The 11 features with
+  no module are reviewable at the bottom of `docs/design/feature-index.md` — a feature nothing names
+  may be a feature nobody can reach.
+- **A feature name is the controlled vocabulary.** `Match` now looks for the label *as a phrase*
+  first ("Turn queue", "Use / use on"), then falls back to the older word-prefix match. Phrase
+  matching is what lets a multi-word label join at all: the old term split never broke on spaces,
+  so "turn queue" could never prefix a single word.
 - `python tools/js_module_index.py --check` also fails when an `@docs` target is a folder or a dead
   path. That guard was added with this map: **28 module headers pointed at a directory**
   (`docs/virtualWorld/Library System/` and friends) and now point at real notes, and two pointed at

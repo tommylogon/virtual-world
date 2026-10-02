@@ -16,7 +16,7 @@
  *
  * @module prompt-builder/conversation-context — speech salience + conversation instinct
  * @contributes classifySpeechType/salienceLabel/markSpeechLine, ownRecentSpeech, talkinessHint, buildConversationInstinct
- * @powers the WITNESSED "[Heard → addressed to you / to you / to the group]" markers and soft anti-repeat
+ * @powers Talk / speak, Whisper / shout — the WITNESSED "[Heard → addressed to you / to you / to the group]" markers and soft anti-repeat
  * @relates used by room-context.js when assembling witnessed speech; reads player.recent_hearing + vitals.social
  * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */

@@ -3,7 +3,7 @@
  *
  * @module graph/graph-export — rasterise the vis graph + map background to a PNG
  * @contributes GraphExport: the export dialog, offscreen re-render, and PNG download
- * @powers "📷 PNG": capture the whole graph or the current view at 1x/2x/3x, map background included
+ * @powers Export — "📷 PNG": capture the whole graph or the current view at 1x/2x/3x, map background included
  * @relates reads graphManager.network + window.GraphBackground.getExportLayers; saves via WorldExport
  * @docs docs/virtualWorld/World Building/Graph System.md
  *

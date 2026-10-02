@@ -25,7 +25,7 @@
  *
  * @module agent/involuntary — involuntary speech/emote flavour
  * @contributes Involuntary: hiccup/burp/yelp/stutter/cough/shiver/sneeze/ramble injection from conditions + a small random baseline
- * @powers the "*a hiccup catches her off guard*" moments in agent output
+ * @powers Emotion — the "*a hiccup catches her off guard*" moments in agent output
  * @relates called by agent-engine when framing speech/emotes; never replaces the intended action
  * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */

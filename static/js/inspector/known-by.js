@@ -18,7 +18,7 @@
  *
  * @module inspector/known-by — character knowledge authoring
  * @contributes KnownBySection: the "Manage" modal (entities grouped by category, search, stale-ref cleanup)
- * @powers authoring a character's `known` list — hidden ways/items, unmasked people, revealed areas
+ * @powers Node inspectors, Relationships — authoring a character's `known` list — hidden ways/items, unmasked people, revealed areas
  * @relates writes via ApiClient.updateCharacter; consumed by room_perception + prompt-builder.anonymousName
  * @docs docs/virtualWorld/Characters/Relationships System.md
  */

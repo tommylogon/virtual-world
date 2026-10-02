@@ -9,7 +9,7 @@
  *
  * @module ui/setup-checklist — new-scenario onboarding checklist
  * @contributes SetupChecklist: the five setup stages with links to each tool, per-scenario check state
- * @powers telling a fresh scenario's author what to do next (task-382)
+ * @powers Scenario creation — telling a fresh scenario's author what to do next (task-382)
  * @relates session-local state (localStorage keyed by scenario name)
  * @docs docs/virtualWorld/ScenarioCreationGuide.md
  */

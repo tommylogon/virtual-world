@@ -39,7 +39,7 @@
  *
  * @module agent/prompt-builder — the LLM prompt assembly subsystem
  * @contributes window.PromptBuilder: room/state/memory fragments, JSON schemas, per-phase turn prompts
- * @powers what every character is told before it acts — the whole agent context
+ * @powers Narration, LLM calls — what every character is told before it acts — the whole agent context
  * @relates consumes worldState + the player + memory-manager; used by agent-engine and agent-lens
  * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */

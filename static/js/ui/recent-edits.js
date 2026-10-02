@@ -7,7 +7,7 @@
  *
  * @module ui/recent-edits — the "where was I" rail
  * @contributes RecentEdits: session-local history of GUI edits + the floating 🕘 jump button
- * @powers jumping back to something you just edited (task-372)
+ * @powers Recent edits / undo — jumping back to something you just edited (task-372)
  * @relates hooks ApiClient updateNode/duplicateNode; drives the graph camera + inspector
  * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */

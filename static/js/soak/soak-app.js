@@ -1,7 +1,7 @@
 /**
  * @module soak-app — bootstrap for the /soak page
  * @contributes page startup: bind the UI, load meta/runs, restore the shared URL config, select a run
- * @powers the Soak Lab boot path and top-level error reporting
+ * @powers Soak lab — the Soak Lab boot path and top-level error reporting
  * @relates wires soak-ui.js to soak-state.js
  * @docs none
  */

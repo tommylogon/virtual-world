@@ -7,7 +7,7 @@
  *
  * @module item-library/contents-editor — container contents editor
  * @contributes ItemLibraryContents (mixed into ItemLibrary): contents list + autocomplete of library items
- * @powers authoring what a container item starts with
+ * @powers Library, Take / drop / give — authoring what a container item starts with
  * @relates runs on an ItemLibrary instance; renders through lit-html
  * @docs docs/virtualWorld/Items & Inventory/Items Overview.md
  */

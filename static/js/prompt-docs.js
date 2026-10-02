@@ -1,7 +1,7 @@
 /**
  * @module prompt-docs — shared prompt text for generation features
  * @contributes VW.PromptDocs: the ITEM_GENERATION_SYSTEM prompt (schema-aware authoring instructions)
- * @powers the AI item generator's system prompt, kept in one place
+ * @powers Library — the AI item generator's system prompt, kept in one place
  * @relates consumed by the item library's AI generation path
  * @docs docs/virtualWorld/Library System/Library System Overview.md
  */

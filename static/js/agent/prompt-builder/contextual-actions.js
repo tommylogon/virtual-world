@@ -19,7 +19,7 @@
  *
  * @module prompt-builder/contextual-actions — the "=== AVAILABLE ACTIONS ===" block
  * @contributes computeItemActions, buildAvailableActionsBlock, carriedItemNodes, useOnTargetName, gating helpers
- * @powers per-turn verb availability — only verbs not already bracketed in the room context
+ * @powers The human turn — per-turn verb availability — only verbs not already bracketed in the room context
  * @relates uses helpers.js; complements room-context.js; gates are guidance, the backend resolves leniently
  * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */

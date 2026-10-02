@@ -4,7 +4,7 @@
  * @module shared/item-containment — the single item-containment walk
  * @contributes `window.ItemContainment`: sealed/hidden predicates, any-depth
  *   `walkContents`, and a reachability-ordered `collectReachable`
- * @powers the item listings in world-state.js and
+ * @powers Take / drop / give — the item listings in world-state.js and
  *   agent/prompt-builder/room-context.js
  * @relates mirrors `engine/item_reach.py` (`_CLOSED_STATES`, `_is_hidden`,
  *   `_is_open`, `_visible_ordered`) — the client half of that rule

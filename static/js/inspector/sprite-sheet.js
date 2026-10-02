@@ -3,7 +3,7 @@
  *
  * @module inspector/sprite-sheet — grid/box-slice a sprite sheet into expression slots
  * @contributes SpriteSheet.computeCells/parseNames/defaultNames/clampBox (pure) + openDialog
- * @powers the "✂️ Split sheet" control in the character Expression Pack panel
+ * @powers Character art — the "✂️ Split sheet" control in the character Expression Pack panel
  * @relates reads/writes via ApiClient.uploadNodeImage and InspectorHelpers expression slots
  * @docs docs/virtualWorld/Characters/Character Images & Expression Packs.md
  *

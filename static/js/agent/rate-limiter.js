@@ -15,7 +15,7 @@
  *
  * @module agent/rate-limiter — API throttle
  * @contributes RateLimiter: requests-per-minute window + waitMs()
- * @powers honouring the configured rpm limit instead of hammering the provider
+ * @powers LLM calls — honouring the configured rpm limit instead of hammering the provider
  * @relates consulted by agent-engine before each LLM call — distinct from the UI step delay
  * @docs docs/virtualWorld/UI & Settings/Settings & Configuration.md
  */

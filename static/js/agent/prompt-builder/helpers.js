@@ -11,7 +11,7 @@
  *
  * @module prompt-builder/helpers — leaf prompt utilities
  * @contributes lightToLevel, wayHandle, buildRelationMap, anonymousName, voiceLabel, hasPlan, secondPersonDesc, frameSelfSpeech
- * @powers consistent labelling of rooms/items/strangers, and self-framing, across every prompt
+ * @powers Narration — consistent labelling of rooms/items/strangers, and self-framing, across every prompt
  * @relates the leaf layer; used by room-context, contextual-actions, character-state
  * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */

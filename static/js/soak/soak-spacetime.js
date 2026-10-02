@@ -1,7 +1,7 @@
 /**
  * @module soak-spacetime — the space-time swimlane view for the Soak Lab (task-544)
  * @contributes pure lane/row/overlap geometry, the swimlane renderer, the occupancy heatmap and the why-over-time stack
- * @powers answering "did those two ever share a room?" — who was where, when, and what decided it
+ * @powers Soak lab — answering "did those two ever share a room?" — who was where, when, and what decided it
  * @relates consumes soak-telemetry payloads via soak-api.js; drawn by soak-ui.js; geometry tested by tools/unit/test_soak_spacetime.js
  * @docs none
  *

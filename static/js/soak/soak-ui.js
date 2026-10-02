@@ -1,7 +1,7 @@
 /**
  * @module soak-ui — DOM rendering + interaction for the Soak Lab
  * @contributes form binding, progress/stat readouts, tab panes, all charts and tables, the space-time view, toasts, shortcuts
- * @powers the entire /soak dashboard experience
+ * @powers Soak lab — the entire /soak dashboard experience
  * @relates consumes soak-state.js, soak-charts.js, soak-spacetime.js, soak-presets.js, soak-format.js
  * @docs none
  */

@@ -5,7 +5,7 @@
  *
  * @module graph/context-menu — right-click menus for graph nodes and edges
  * @contributes GraphContextMenu: per-type items (inspect/edit/duplicate/delete, add item/character/trigger, place on map)
- * @powers the graph's right-click actions on areas, items, ways, and characters
+ * @powers Graph canvas — the graph's right-click actions on areas, items, ways, and characters
  * @relates driven by GraphEventHandlers.onContext; delegates to GraphNodeOps + the inspector
  * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */

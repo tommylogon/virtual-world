@@ -20,7 +20,7 @@
  *
  * @module agent/emote-picker — reusable emote quick-pick
  * @contributes EmotePicker.open/close/toggle + setCatalog (searchable chip grid)
- * @powers picking an emote in the human turn composer
+ * @powers Character art — picking an emote in the human turn composer
  * @relates emits bare verb phrases per schema-fragments EMOTE_RULES; used by human-turn-composer
  * @docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
  */

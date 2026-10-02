@@ -11,7 +11,7 @@
  *
  * @module shared/vital-color — polarity-aware vital bar colours
  * @contributes VitalColor: colour + percent for a vital (drives invert, Temperature band, Mana purple)
- * @powers the vital bars in the inspector and the human turn panel's You strip
+ * @powers Vitals & needs — the vital bars in the inspector and the human turn panel's You strip
  * @relates reads vital_polarity from /api/state
  * @docs docs/virtualWorld/Characters/Vitals System.md
  */

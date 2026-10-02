@@ -11,7 +11,7 @@
  *
  * @module graph/overlays — the ambient visual overlays
  * @contributes GraphOverlays: light/heat/sound/trigger/cardinal recolouring + cached computeAmbientLight
- * @powers the graph's overlay modes and their legends
+ * @powers Light, The map — the graph's overlay modes and their legends
  * @relates driven by GraphNetwork.applyOverlay; reads worldState + area environments
  * @docs docs/virtualWorld/Environment/Light System.md
  */

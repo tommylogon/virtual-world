@@ -11,7 +11,7 @@
  *
  * @module agent/plan-manager — LLM plan generation
  * @contributes PlanManager.generate() (multi-step plan via the LLM) + hasPlan()
- * @powers the plan an agent follows across turns
+ * @powers NPC behaviour — the plan an agent follows across turns
  * @relates stores into PlanTracker; the plan text feeds the decide prompt's PLAN FOLLOW
  * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */

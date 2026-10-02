@@ -3,7 +3,7 @@
  *
  * @module agent/agent-state — turn eligibility + abort machinery
  * @contributes AgentState: can-act checks (busy/unconscious/resting/simple_npc/manual) and cancel flags
- * @powers skipping characters who cannot act, and clean cancellation mid-turn
+ * @powers Activities & states — skipping characters who cannot act, and clean cancellation mid-turn
  * @relates consulted by agent-engine on every step; loaded before it
  * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  *
