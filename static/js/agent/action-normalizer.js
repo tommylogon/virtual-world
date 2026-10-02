@@ -126,6 +126,10 @@ window.ActionNormalizer = (() => {
                 return parts.join(' ');
             }
             case 'grab': return obj ? `grab ${obj}` : verb;
+            // task-610: person-directed verbs the scene menu now drafts. Without
+            // these cases the target was silently dropped (bare "wake"/"release").
+            case 'wake': return obj ? `wake ${obj}` : verb;
+            case 'release': return obj ? `release ${obj}` : verb;
             case 'fear': case 'interest': return obj ? `${verb} ${obj}` : verb;
             case 'escape': case 'struggle': return verb;
             case 'wear': case 'equip': return item ? `wear ${item}` : verb;

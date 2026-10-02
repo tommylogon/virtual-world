@@ -47,6 +47,9 @@ window.HumanTurnComposer = (() => {
     let _phase = 'compose';      // 'compose' | 'burst' | 'react'
     let _lastResult = '';
     let _volume = 'say';
+    // task-610: set by a person-menu "Whisper to X" pick; consumed by
+    // buildPayload so the speech reaches only that target (task-248).
+    let _pendingSpeechTarget = null;
     let _confirmBeforeAct = true;
     let _advanced = false;
     let _jsonMode = false;
@@ -156,6 +159,9 @@ window.HumanTurnComposer = (() => {
         'steal', 'light', 'ignite', 'vanish', 'manifest', 'toggle', 'listen',
         'wake', 'meditate', 'bathe', 'stand', 'release', 'escape', 'struggle', 'lead',
         'fear', 'interest',
+        // task-610: intimacy verbs drafted by the person menu. When mature
+        // content is off, normalizeStructuredAction degrades them to 'look'.
+        'kiss', 'caress', 'lick', 'suck', 'bite', 'pinch', 'blow', 'tickle',
     ];
     const VOLUME_WORDS = ['scream', 'shout', 'whisper'];
 
@@ -173,7 +179,7 @@ window.HumanTurnComposer = (() => {
         if (!VERBS.includes(verb)) return { speech: t };
         const rest = t.slice(verb.length).trim();
         const out = { action: verb };
-        if (verb === 'give' || verb === 'steal') {
+        if (verb === 'give' || verb === 'steal' || verb === 'teach') {
             const m = rest.split(/\s+(?:to|from)\s+/i);
             out.item = m[0] || '';
             out.target = m[1] || '';
@@ -206,6 +212,7 @@ window.HumanTurnComposer = (() => {
         if (speech) {
             p.speech = speech;
             p.volume = parsed.volume || _volume;
+            if (p.volume === 'whisper' && _pendingSpeechTarget) p.target = _pendingSpeechTarget;
         }
         if (emote) p.emote = emote;
         if (memory) p.memory = memory;
@@ -214,12 +221,15 @@ window.HumanTurnComposer = (() => {
 
     /** Same normalization an agent reply goes through. */
     function normalizeReply(p) {
-        if (!p || typeof p !== 'object') return { action: '', speech: null, speechVolume: 'say', emote: null, memory: null };
+        if (!p || typeof p !== 'object') return { action: '', speech: null, speechVolume: 'say', emote: null, memory: null, target: null };
         const { speech, volume } = ActionNormalizer.extractSpeechVolume(p);
         return {
             action: ActionNormalizer.normalizeStructuredAction(p),
             speech,
             speechVolume: volume,
+            // task-610: a directed whisper keeps its recipient; _speakLine
+            // turns this into "whisper to <target>: <text>" (task-248).
+            target: (volume === 'whisper' && typeof p.target === 'string' && p.target.trim()) ? p.target.trim() : null,
             emote: typeof p.emote === 'string' ? p.emote : null,
             memory: ResponseParser.extractMemory(p.memory),
         };
@@ -331,6 +341,7 @@ window.HumanTurnComposer = (() => {
             btn.dataset.vol = vol;
             btn.addEventListener('click', () => {
                 _volume = vol;
+                if (vol !== 'whisper') _pendingSpeechTarget = null;
                 syncVolumeButtons();
                 updatePreview();
             });
@@ -692,6 +703,7 @@ window.HumanTurnComposer = (() => {
             _modal.querySelector('#' + id).value = '';
         }
         _modal.querySelector('#htc-relation').value = '';
+        _pendingSpeechTarget = null;
         _jsonText = '';
         updatePreview();
     }
@@ -733,7 +745,17 @@ window.HumanTurnComposer = (() => {
                 _scene = scene;
                 window.TurnSceneView.renderScene(sceneHost, scene, {
                     onDraft: applyDraft,
-                    onTalkFocus: () => m.querySelector('#htc-speech').focus(),
+                    // task-610: a person/area "talk" pick sets the speech volume
+                    // (and a whisper recipient) and focuses the speech row.
+                    onTalkFocus: (opts) => {
+                        if (opts && opts.volume) {
+                            _volume = opts.volume;
+                            syncVolumeButtons();
+                        }
+                        _pendingSpeechTarget = (opts && opts.volume === 'whisper' && opts.target) ? opts.target : null;
+                        updatePreview();
+                        m.querySelector('#htc-speech').focus();
+                    },
                 });
                 window.TurnYouStrip.render(m.querySelector('#htc-you'), scene.you, stripHandlers);
                 renderDatalist();
