@@ -1,7 +1,7 @@
 """Tag routes -- search, validate, and stats endpoints."""
 import os, json, logging
 from flask import Blueprint, request, jsonify
-from difflib import get_close_matches
+from routes.helpers import closest_tag_match
 logger = logging.getLogger(__name__)
 
 def register_tag_routes(app):
@@ -47,8 +47,7 @@ def register_tag_routes(app):
             if tag in library:
                 valid.append(tag)
             else:
-                suggestions = get_close_matches(tag, list(library.keys()), n=1, cutoff=0.6)
-                unknown.append({"tag": tag, "suggestion": suggestions[0] if suggestions else None})
+                unknown.append({"tag": tag, "suggestion": closest_tag_match(tag, library.keys())})
         return jsonify({"valid": valid, "unknown": unknown})
 
     @app.route("/api/tags/stats")
