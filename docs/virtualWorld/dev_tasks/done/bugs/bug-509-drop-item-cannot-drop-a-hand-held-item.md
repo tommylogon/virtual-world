@@ -1,5 +1,5 @@
 ---
-status: review
+status: done
 type: bug
 area: bugs
 priority: medium
@@ -96,3 +96,17 @@ was missing was the regression proof this task asked for.
 
 Evidence: `python -m pytest tests/test_item_actions.py tests/test_item_parts.py -q`
 → 102 passed. Live-browser take → drop check still pending for `done`.
+
+## Live verification — 2026-10-02 (port 4471, real commands)
+
+Through `POST /api/action` as Kaelen Voss (Blizzard Forest Clearing), on the
+item "Lumber Axe":
+
+| command | output | area items after |
+|---|---|---|
+| `take Lumber Axe` | "You take the lumber axe with your hand right." | `[]` (in hand) |
+| `drop Lumber Axe` | **"You drop the lumber axe."** | `["Lumber Axe"]` |
+
+The drop succeeds because `drop_item` now resolves the `equipped` edge the take
+created; before the fix it scanned only `carrying` and would have answered that
+the character did not have it. No page errors. Moving to `done`.
