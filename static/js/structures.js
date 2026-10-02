@@ -10,7 +10,7 @@
  *
  * @module structures — capture and materialize reusable structure templates
  * @contributes Structures: capture a region, list templates, materialize one into the world
- * @powers task-357; the world builder's reusable buildings and room groups
+ * @powers Graph canvas — task-357; the world builder's reusable buildings and room groups
  * @relates engine/structures.py and routes/structures_ops.py; opened from the Game menu
  * @docs docs/virtualWorld/World Building/Graph System.md
  */

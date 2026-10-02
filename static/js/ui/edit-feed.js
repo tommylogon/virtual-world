@@ -13,7 +13,7 @@
  *
  * @module ui/edit-feed — "World edited" feed with per-edit undo
  * @contributes EditFeed: session-local feed (cap 8) of world_changed events, each with ↩ Undo
- * @powers seeing what just changed and reverting a single edit (task-384)
+ * @powers Recent edits / undo — seeing what just changed and reverting a single edit (task-384)
  * @relates listens to the same EventSource as world-state.js; pops one undo snapshot
  * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */

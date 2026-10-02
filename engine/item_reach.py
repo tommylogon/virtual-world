@@ -13,6 +13,10 @@ and not inside a closed/locked container.
 
 Used by use / use_on / eat / drink / place / put / toggleable flips so all
 verbs agree on what "the thing right there" means.
+
+@module item_reach
+@contributes what makes an item reachable, and how reach gates actions
+@docs docs/virtualWorld/Items & Inventory/Items Overview.md
 """
 
 from typing import Optional

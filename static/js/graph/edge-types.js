@@ -5,7 +5,7 @@
  *
  * @module graph/edge-types — the edge type registry
  * @contributes EdgeTypes: type names, colors, icons, valid source/target combos, resolve()/getConfig()
- * @powers consistent styling and validation of every edge in the graph
+ * @powers Graph canvas — consistent styling and validation of every edge in the graph
  * @relates loaded before graph-manager.js; used by network-manager, node-operations, edge-inspector
  * @docs docs/virtualWorld/World Building/Graph System.md
  */

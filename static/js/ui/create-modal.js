@@ -4,7 +4,7 @@
  *
  * @module ui/create-modal — create room/item/connection modal
  * @contributes CreateModal + the item vocabularies (actions, equip slots, states, relations, damage)
- * @powers adding new rooms, items, and connections from the graph's add buttons
+ * @powers Scenario creation — adding new rooms, items, and connections from the graph's add buttons
  * @relates opened by graph-manager; writes through the graph API
  * @docs docs/virtualWorld/ScenarioCreationGuide.md
  */

@@ -6,7 +6,7 @@
  *
  * @module nl-editor/staging — the staged-ops buffer
  * @contributes NLEditorStaging: buffer graph ops until explicit Apply; approve/reject per op
- * @powers safe, reversible NL edits — nothing touches the graph until you apply
+ * @powers NL editor — safe, reversible NL edits — nothing touches the graph until you apply
  * @relates consumed by index.js + ghosts.js; applied through the graph API
  * @docs docs/virtualWorld/dev_tasks/done/graph/task-387-natural-language-editor-mode.md
  */

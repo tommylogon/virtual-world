@@ -14,7 +14,7 @@
  *
  * @module nl-editor/ghosts — live preview of staged operations
  * @contributes NLEditorGhosts: dashed ghost nodes/edges for create/update/delete/attach/detach, auto-pan
- * @powers seeing what the NL editor drafted before anything is applied
+ * @powers NL editor — seeing what the NL editor drafted before anything is applied
  * @relates hooks GraphNetwork.loadGraphData; reads staging.js
  * @docs docs/virtualWorld/dev_tasks/done/graph/task-387-natural-language-editor-mode.md
  */

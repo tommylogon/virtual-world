@@ -13,7 +13,7 @@
  *
  * @module ui/scenario-wizard — "Scenario from Text" wizard
  * @contributes ScenarioWizard: premise → LLM-drafted world in the template format, card-by-card review, apply
- * @powers creating a whole scenario from one sentence
+ * @powers Scenario creation — creating a whole scenario from one sentence
  * @relates uses shared/ai-generator; applies through POST /api/load (undo-snapshotted)
  * @docs docs/virtualWorld/ScenarioCreationGuide.md
  */

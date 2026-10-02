@@ -44,4 +44,4 @@ Items could already be targeted by aliases, but ways, areas, and characters coul
 
 ## Related
 
-- [[todo/gameplay/...|idea #7 — Subjective alias system]] in `developer ideas.md`
+- Idea #7 — Subjective alias system in `developer ideas.md`

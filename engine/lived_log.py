@@ -17,6 +17,10 @@ written here, and this is never the dashboard's data source.**
 
 Nothing here calls an LLM or mutates world state beyond the character's own
 ``lived_log``. Entries are plain dicts so they serialize with the save.
+
+@module lived_log
+@contributes the bounded per-character record of what was experienced
+@docs docs/virtualWorld/Characters/Background Simulation.md
 """
 
 from __future__ import annotations

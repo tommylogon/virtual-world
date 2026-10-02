@@ -6,7 +6,7 @@
  *
  * @module graph/network-manager — vis.js Network construction and data loading
  * @contributes GraphNetwork: options, loadGraphData, applyVisibility, legend/tags, node configs
- * @powers the graph canvas itself — layout physics, filtering, tooltips, node badges
+ * @powers Graph canvas — the graph canvas itself — layout physics, filtering, tooltips, node badges
  * @relates driven by graph-manager; collaborators in static/js/graph/*
  * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */

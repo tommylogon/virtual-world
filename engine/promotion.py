@@ -12,7 +12,7 @@ This module owns the *memory* half of that seam:
   banked, so a long span cannot become a burst when it lifts.
 * :func:`promote` hands them back and turns the trace written while they were
   background into **one bounded subjective memory** (``source="background"``).
-  The trace is the objective record (``engine/trace.py``); the memory is the
+  The trace is the objective record (``engine/lived_log.py``); the memory is the
   bounded read of it.
 
 Everything here is deterministic and templated — **no LLM call is made** (v1;
@@ -28,6 +28,10 @@ duplicate what the character remembers:
   so foreground actions between two background spans are never summarized, and
   a second promotion of the same span finds no new entries and writes nothing.
 * Both marks serialize with the save (``player.py`` / ``engine/serialization.py``).
+
+@module promotion
+@contributes the promote/demote memory bridge over the lived_log
+@docs docs/virtualWorld/Characters/Background Simulation.md
 """
 
 from __future__ import annotations

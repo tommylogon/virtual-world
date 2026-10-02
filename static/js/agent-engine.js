@@ -4,7 +4,7 @@
  *
  * @module agent-engine — the character agent loop and turn management
  * @contributes AgentEngine: per-character step pipeline, phases, planning, reflection, abort
- * @powers autonomous character turns and the Run / Step once / Cancel controls
+ * @powers Turn queue, NPC behaviour — autonomous character turns and the Run / Step once / Cancel controls
  * @relates uses llm-client + api + agent/prompt-builder; supports human-turn-composer
  * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */

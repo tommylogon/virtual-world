@@ -6,7 +6,7 @@
  *
  * @module stream/stream-filters — filtering, scoping, and search
  * @contributes StreamFilters: kind filters, actor/area scoping, stream search, persisted area filter
- * @powers narrowing the event stream to one character, one area, or a text query
+ * @powers Event stream — narrowing the event stream to one character, one area, or a text query
  * @relates loaded before event-stream.js; driven by the stream toolbar
  * @docs docs/virtualWorld/UI & Settings/Event Log Export.md
  */

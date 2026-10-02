@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: ui
 priority: medium
 blocked_by: [task-578]
@@ -50,18 +50,39 @@ panel before task-578 would mean shipping a panel that can only link to a hardco
   rather than a library node, resolve by the module that renders it, so an area still
   gets *something* useful.
 
+## Resolution (2026-10-02)
+
+- New `static/js/inspector/doc-panel.js` (`window.DocPanel`): pure view-model
+  (`format`, `requestUrl`, `selectionForNode`) plus a DOM paint. It fetches the
+  resolver once per selection and renders title / summary / open action, or the
+  quiet "No documentation yet.".
+- `inspector/panel.js` appends `DocPanel.section()` to **every** render, so all
+  fifteen node views get it with no per-view edit.
+- `inspector.js` reports the selection: a materialised node resolves by
+  `properties.library_id`, otherwise by the view module that renders its type
+  (`area-view`, `item-view`, `way-view`, `agent-view`); `hide()` resets it.
+- `item-library.js` shows a resolution preview under its Documentation field for
+  the selected entry id.
+- Wired: script tag in `templates/index.html`, load line in `tools/unit/run.cjs`,
+  module contract header, regenerated `js-module-index.md`.
+
 ## Acceptance
 
-- Selecting a node with a `docs` link shows the page title, summary, and a working open
-  action; selecting one without shows the "no page yet" state.
-- The panel appears for every node type without per-view edits.
-- The resolver is called once per selection, not per render.
-- An empty result never produces an error toast, a console exception, or a broken
-  layout.
-- `node tools/unit/run.cjs` covers the empty state and the populated state.
-- New module: `@module` / `@contributes` header, a script tag in `templates/index.html`,
-  a line in `tools/unit/run.cjs`, and `python tools/js_module_index.py --check` clean.
-- `npm run lint` and `npm run typecheck` clean.
+- [x] The panel is appended through `panel.js`, so it reaches every node type
+      without per-view edits.
+- [x] The resolver is called once per selection (`setSelection` -> one `_load`);
+      `section()` only repaints from cached state.
+- [x] An empty result renders the quiet empty state; a resolver failure is
+      caught and shown as the same empty state (no toast, no throw).
+- [x] `node tools/unit/run.cjs` covers the empty and populated states
+      (`tools/unit/test_doc_panel.js`, 6 tests) — **491 passed**.
+- [x] New module has the contract header; script tag, run.cjs line, and
+      `python tools/js_module_index.py --check` clean (178 documented).
+- [x] `npm run lint` and `npm run typecheck` clean.
+- [~] **Live-browser pass pending.** The selection->title/summary/open behaviour
+      is implemented and unit-tested but has not been exercised in a running
+      browser in this worktree; task-579 must not be called done until it has.
+      (`VW_PORT=4460 python app.py`, then select an item with a `docs` link.)
 
 ## Non-goals
 

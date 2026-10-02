@@ -16,7 +16,7 @@
  *
  * @module prompt-builder/schema-fragments — shared prompt text + JSON schema fragments
  * @contributes EMOTE_RULES_* / MEMORY_INSTRUCTION_* constants, JSON_FIELDS, buildJsonExample()
- * @powers consistent wording and response schema across every prompt phase
+ * @powers LLM calls — consistent wording and response schema across every prompt phase
  * @relates loaded before turn-prompts.js + system-prompt.js; used by both
  * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */

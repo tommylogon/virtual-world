@@ -53,4 +53,4 @@ Environment props are `temperature`, `light`, `air`, `smell`, `noise` (area.py:1
 ## Related
 
 - [[review/environment/task-5-heat_propagation|task-5: Heat propagation]]
-- [[todo/environment/task-85-time-weather-dates|task-85: Time, weather, dates]]
+- [[task-85-time_weather_dates|task-85: Time, weather, dates]]

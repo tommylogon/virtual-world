@@ -3,7 +3,7 @@
  *
  * @module agent/turn-queue — turn ordering and advancement
  * @contributes TurnQueue: sequential/random/initiative order, current character, turn number
- * @powers who acts next — the order the agent loop walks and the queue strip displays
+ * @powers Turn queue — who acts next — the order the agent loop walks and the queue strip displays
  * @relates state lives on VW.agent (AgentEngine); used by agent-engine + human-turn-composer
  * @docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
  *

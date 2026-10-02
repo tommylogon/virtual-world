@@ -1,5 +1,5 @@
 ﻿/**
- * prompt-builder/room-context.js â€” Area/room context assembler.
+ * prompt-builder/room-context.js — Area/room context assembler.
  *
  * Split from the monolithic prompt-builder.js (2026-08-09). The "assembler"
  * that pulls together lighting, items, exits, people, events into the area
@@ -8,8 +8,8 @@
  *
  * Cross-file calls use PromptBuilder.<fn>(...).
  *
- * @module prompt-builder/room-context â€” the area/room context assembler
- * @contributes buildRoomContext/Parts, buildCharacterPreamble, viewerExits, buildNarratedRoomContext
+ * @module prompt-builder/room-context — the area/room context assembler
+ * @contributes buildRoomContext, buildRoomContextParts, buildCharacterPreamble, viewerExits, buildNarratedRoomContext
  * @powers the room block that opens every user message (lighting, items, exits, people, witnessed)
  * @relates uses helpers + conversation-context; its output is assembled by turn-prompts
  * @docs docs/virtualWorld/World Building/Rooms & Areas.md

@@ -1,3 +1,10 @@
+"""movement: traversing ways and the gates on what you can pass.
+
+@module movement
+@contributes traversing ways and the gates on what you can pass
+@docs docs/virtualWorld/World Building/Doors & Connections.md
+"""
+
 # engine/movement.py — Movement, door management, and area connectivity extracted from VirtualWorld
 
 import re

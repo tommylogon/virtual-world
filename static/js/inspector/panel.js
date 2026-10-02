@@ -14,7 +14,7 @@
  *
  * @module inspector/panel — the single owner of #inspector-panel
  * @contributes InspectorPanel.render(template): the only code allowed to write the panel element
- * @powers all inspector rendering (mixing innerHTML with lit corrupts lit's part tracking)
+ * @powers Node inspectors — all inspector rendering (mixing innerHTML with lit corrupts lit's part tracking)
  * @relates every inspector view hands it a lit-html TemplateResult
  * @docs docs/virtualWorld/UI & Settings/Inspector Panels.md
  */
@@ -44,7 +44,10 @@ window.InspectorPanel = (() => {
             panel.textContent = '';
             panel.dataset.litBound = '1';
         }
-        window.Lit.render(template, panel);
+        // task-579: append the documentation section for every node type in one
+        // place, rather than editing all fifteen views. lit renders an array.
+        const value = window.DocPanel ? [template, window.DocPanel.section()] : template;
+        window.Lit.render(value, panel);
     };
 
     /**

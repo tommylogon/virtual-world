@@ -9,7 +9,7 @@
  *
  * @module inspector/helpers — shared inspector field/section builders
  * @contributes InspectorHelpers: field/row builders, tag editor, common sections (lit-html templates)
- * @powers consistent forms and validation across every inspector view
+ * @powers Node inspectors — consistent forms and validation across every inspector view
  * @relates used by all inspector/* views; reads worldState + api + events directly
  * @docs docs/virtualWorld/UI & Settings/Inspector Panels.md
  */

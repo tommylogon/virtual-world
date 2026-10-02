@@ -6,7 +6,7 @@
  *
  * @module graph/event-handlers — graph click/context/manipulation handlers
  * @contributes GraphEventHandlers: node/edge click, shift-click bulk selection, right-click context, addNode/addEdge callbacks
- * @powers selecting and right-clicking nodes, and drawing new nodes/edges
+ * @powers Graph canvas — selecting and right-clicking nodes, and drawing new nodes/edges
  * @relates wired in GraphNetwork.init; delegates to GraphContextMenu + GraphNodeOps + GraphBackground
  * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */

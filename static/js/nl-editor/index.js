@@ -6,7 +6,7 @@
  *
  * @module nl-editor/index — the NL editor controller
  * @contributes window.NLEditor: wires StagingBuffer + ToolRouter + AgentLoop + UI
- * @powers the Cmd-L natural-language graph editor (task-387)
+ * @powers NL editor — the Cmd-L natural-language graph editor (task-387)
  * @relates the entry point for the whole nl-editor cluster
  * @docs docs/virtualWorld/dev_tasks/done/graph/task-387-natural-language-editor-mode.md
  */

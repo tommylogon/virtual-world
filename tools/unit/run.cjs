@@ -124,6 +124,7 @@ load('static/js/agent/plan-tracker.js');
 load('static/js/agent/involuntary.js');
 load('static/js/character-art.js');
 load('static/js/inspector/sprite-sheet.js');
+load('static/js/inspector/doc-panel.js');
 load('static/js/inspector/helpers.js');
 // agent-view.js reads InspectorHelpers.esc at eval time, so helpers.js must
 // come first. Its generators are plain async functions over injectable globals

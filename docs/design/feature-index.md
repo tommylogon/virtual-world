@@ -6,67 +6,67 @@ this file is the generated join between those features and the front-end
 modules that claim them via `@powers`.
 
 - Features: **58**
-- Modules scanned: **156**
-- Modules naming a feature: **68**
-- Modules naming none: **88**
+- Modules scanned: **157**
+- Modules naming a feature: **155**
+- Modules naming none: **2**
 
 | # | Feature | Section | Status | Note | Modules claiming it |
 |---|---|---|---|---|---|
-| 1 | Look around | In a game | wired | [[Rooms & Areas]] | — |
-| 2 | Examine | In a game | wired | [[Items Overview]] | `static/js/character-art.js` |
-| 3 | Move | In a game | wired | [[Doors & Connections]] | `static/js/graph/graph-background.js`, `static/js/graph/tree-view.js` |
-| 4 | Open / close | In a game | wired | [[Doors & Connections]] | `static/js/agent/prompt-builder/room-context.js`, `static/js/graph/tree-view.js`, `static/js/inspector.js` |
-| 5 | Take / drop / give | In a game | wired | [[Items Overview]] | `static/js/agent/prompt-builder/system-prompt.js`, `static/js/shared/scope-options.js`, `static/js/ui-helpers.js` |
-| 6 | Use / use on | In a game | wired | [[Items Overview]] | — |
-| 7 | Talk / speak | In a game | wired | [[NPC Behavior System]] | `static/js/agent/object-responder.js`, `static/js/api.js` |
-| 8 | Whisper / shout | In a game | wired | [[NPC Behavior System]] | — |
-| 9 | Attack / grapple | In a game | wired | [[Combat System]] | — |
+| 1 | Look around | In a game | wired | [[Rooms & Areas]] | `static/js/inspector/area-view.js` |
+| 2 | Examine | In a game | wired | [[Items Overview]] | `static/js/character-art.js`, `static/js/inspector/item-view.js` |
+| 3 | Move | In a game | wired | [[Doors & Connections]] | `static/js/graph/graph-background.js`, `static/js/graph/tree-view.js`, `static/js/inspector/way-view-connections.js` |
+| 4 | Open / close | In a game | wired | [[Doors & Connections]] | `static/js/agent/prompt-builder/room-context.js`, `static/js/graph/tree-view.js`, `static/js/inspector.js`, `static/js/inspector/way-view-connections.js` |
+| 5 | Take / drop / give | In a game | wired | [[Items Overview]] | `static/js/agent/prompt-builder/system-prompt.js`, `static/js/item-library/contents-editor.js`, `static/js/shared/item-containment.js`, `static/js/shared/scope-options.js` (+1 more) |
+| 6 | Use / use on | In a game | wired | [[Items Overview]] | `static/js/agent/action-normalizer.js` |
+| 7 | Talk / speak | In a game | wired | [[NPC Behavior System]] | `static/js/agent/object-responder.js`, `static/js/agent/prompt-builder/conversation-context.js`, `static/js/api.js` |
+| 8 | Whisper / shout | In a game | wired | [[NPC Behavior System]] | `static/js/agent/prompt-builder/conversation-context.js` |
+| 9 | Attack / grapple | In a game | wired | [[Combat System]] | `static/js/agent/threat-detector.js` |
 | 10 | Eat / drink | In a game | wired | [[Items Overview]] | — |
 | 11 | Sleep / rest | In a game | wired | [[Vitals System]] | `static/js/graph/focus.js`, `static/js/ui/saveload-view.js` |
 | 12 | Search / forage | In a game | wired | **none** | `static/js/event-stream.js`, `static/js/graph-manager.js`, `static/js/graph/focus.js`, `static/js/graph/projector.js` |
 | 13 | Read / write | In a game | wired | [[Items Overview]] | `static/js/graph/node-badges.js`, `static/js/graph/tooltips.js`, `static/js/narration-ui.js`, `static/js/shared/env-presets.js` (+3 more) |
-| 14 | Wear / equip | In a game | wired | [[Equipment & Paperdoll]] | `static/js/inspector/paperdoll-view.js` |
+| 14 | Wear / equip | In a game | wired | [[Equipment & Paperdoll]] | `static/js/inspector/auto-dress-modal.js`, `static/js/inspector/paperdoll-view.js` |
 | 15 | Timeskip | In a game | wired | [[Turn Queue & Human Turns]] | `static/js/ui/timeskip.js` |
-| 16 | Vitals & needs | In a game | wired | [[Vitals System]] | `static/js/agent/prompt-builder/character-state.js`, `static/js/soak/soak-charts.js`, `static/js/ui-controller.js` |
+| 16 | Vitals & needs | In a game | wired | [[Vitals System]] | `static/js/agent/prompt-builder/character-state.js`, `static/js/shared/vital-color.js`, `static/js/soak/soak-charts.js`, `static/js/ui-controller.js` |
 | 17 | Conditions | In a game | wired | [[Conditions System]] | — |
-| 18 | Traits | In a game | wired | [[Traits System]] | — |
+| 18 | Traits | In a game | wired | [[Traits System]] | `static/js/character-art.js` |
 | 19 | Skills | In a game | wired | [[Skills System]] | — |
-| 20 | Emotion | In a game | wired | [[Emotion & Affect System]] | `static/js/shared/emotion-mapper.js` |
-| 21 | Relationships | In a game | wired | [[Relationships System]] | — |
-| 22 | Memory | In a game | wired | [[Memory System]] | `static/js/shared/embedding-client.js` |
-| 23 | Temperature | In a game | wired | [[Temperature System]] | — |
-| 24 | Light | In a game | wired | [[Light System]] | `static/js/agent/prompt-builder/room-context.js` |
-| 25 | Time & weather | In a game | wired | [[Time & Weather]] | `static/js/inspector/agent-view.js`, `static/js/soak/soak-api.js`, `static/js/soak/soak-charts.js`, `static/js/soak/soak-state.js` (+1 more) |
-| 26 | Activities & states | In a game | wired | [[Activities & States]] | `static/js/graph/toolbar.js` |
-| 27 | NPC behaviour | In a game | wired | [[NPC Behavior System]] | — |
+| 20 | Emotion | In a game | wired | [[Emotion & Affect System]] | `static/js/agent/involuntary.js`, `static/js/shared/emotion-mapper.js` |
+| 21 | Relationships | In a game | wired | [[Relationships System]] | `static/js/inspector/known-by.js` |
+| 22 | Memory | In a game | wired | [[Memory System]] | `static/js/agent/memory-manager.js`, `static/js/agent/prompt-builder/memory-context.js`, `static/js/inspector/memory-view.js`, `static/js/shared/embedding-client.js` |
+| 23 | Temperature | In a game | wired | [[Environment/Temperature System | — |
+| 24 | Light | In a game | wired | [[Light System]] | `static/js/agent/prompt-builder/room-context.js`, `static/js/graph/overlays.js` |
+| 25 | Time & weather | In a game | wired | [[Time & Weather]] | `static/js/inspector/agent-view.js`, `static/js/sky-scape.js`, `static/js/soak/soak-api.js`, `static/js/soak/soak-charts.js` (+2 more) |
+| 26 | Activities & states | In a game | wired | [[Activities & States]] | `static/js/agent/agent-state.js`, `static/js/graph/toolbar.js` |
+| 27 | NPC behaviour | In a game | wired | [[NPC Behavior System]] | `static/js/agent-engine.js`, `static/js/agent-lens.js`, `static/js/agent/plan-manager.js`, `static/js/agent/threat-detector.js` (+2 more) |
 | 28 | Background simulation | In a game | **unwired** | **none** | — |
 | 29 | Per-agent knowledge (fog of war) | In a game | **unwired** | **none** | — |
-| 30 | Turn queue | In a game | wired | [[Turn Queue & Human Turns]] | — |
-| 31 | The human turn | In a game | wired | [[Turn Queue & Human Turns]] | — |
-| 32 | Character art | In a game | wired | [[Character Images & Expression Packs]] | — |
-| 33 | The map | In a game | wired | [[Graph System]] | — |
-| 34 | Narration | In a game | wired | [[Narration System]] | `static/js/llm-client.js`, `static/js/narration-ui.js` |
-| 35 | LLM calls | In a game | wired | [[LLM Providers]] | — |
-| 36 | Graph canvas | In the editor | wired | [[Graph System]] | — |
+| 30 | Turn queue | In a game | wired | [[Turn Queue & Human Turns]] | `static/js/agent-engine.js`, `static/js/agent/human-turn-composer.js`, `static/js/agent/sim-round.js`, `static/js/agent/simultaneous.js` (+1 more) |
+| 31 | The human turn | In a game | wired | [[Turn Queue & Human Turns]] | `static/js/agent/emote-picker.js`, `static/js/agent/human-turn-composer.js`, `static/js/agent/prompt-builder/contextual-actions.js`, `static/js/agent/prompt-builder/turn-prompts.js` (+4 more) |
+| 32 | Character art | In a game | wired | [[Character Images & Expression Packs]] | `static/js/agent/emote-picker.js`, `static/js/inspector/sprite-sheet.js` |
+| 33 | The map | In a game | wired | [[Graph System]] | `static/js/graph/overlays.js` |
+| 34 | Narration | In a game | wired | [[Narration System]] | `static/js/agent/prompt-builder/context-sections.js`, `static/js/agent/prompt-builder/helpers.js`, `static/js/agent/prompt-builder/index.js`, `static/js/agent/prompt-builder/turn-prompts.js` (+2 more) |
+| 35 | LLM calls | In a game | wired | [[LLM Providers]] | `static/js/agent/prompt-builder/index.js`, `static/js/agent/prompt-builder/schema-fragments.js`, `static/js/agent/rate-limiter.js`, `static/js/agent/response-parser.js` (+4 more) |
+| 36 | Graph canvas | In the editor | wired | [[Graph System]] | `static/js/graph/context-menu.js`, `static/js/graph/edge-inspector.js`, `static/js/graph/edge-types.js`, `static/js/graph/event-handlers.js` (+4 more) |
 | 37 | Map layout | In the editor | wired | [[Graph System]] | — |
 | 38 | Levels layout | In the editor | wired | [[Graph System]] | — |
 | 39 | WorldPainter | In the editor | wired | **none** | `static/js/graph/layout-engine.js`, `static/js/worldpainter/editor.js`, `static/js/worldpainter/grid-model.js` |
 | 40 | Grid to graph | In the editor | wired | **none** | — |
 | 41 | Scopes | In the editor | wired | [[World Scopes]] | — |
-| 42 | Node inspectors | In the editor | wired | [[Inspector Panels]] | — |
-| 43 | Way authoring | In the editor | wired | [[Way Properties]] | — |
-| 44 | Trigger / effect editor | In the editor | wired | [[Triggers & Effects]] | `static/js/agent/plan-tracker.js`, `static/js/agent/vital-thresholds.js`, `static/js/graph/projector.js`, `static/js/graph/relative-layout.js` (+9 more) |
-| 45 | NL editor | In the editor | wired | **none** | — |
+| 42 | Node inspectors | In the editor | wired | [[Inspector Panels]] | `static/js/graph/edge-inspector.js`, `static/js/inspector/area-view.js`, `static/js/inspector/behaviors-view.js`, `static/js/inspector/helpers.js` (+5 more) |
+| 43 | Way authoring | In the editor | wired | [[Way Properties]] | `static/js/inspector/way-authoring.js`, `static/js/inspector/way-view-connections.js`, `static/js/inspector/way-view.js` |
+| 44 | Trigger / effect editor | In the editor | wired | [[Triggers & Effects]] | `static/js/agent/plan-tracker.js`, `static/js/agent/vital-thresholds.js`, `static/js/graph/projector.js`, `static/js/graph/relative-layout.js` (+10 more) |
+| 45 | NL editor | In the editor | wired | **none** | `static/js/nl-editor/agent-loop.js`, `static/js/nl-editor/diff.js`, `static/js/nl-editor/ghosts.js`, `static/js/nl-editor/index.js` (+3 more) |
 | 46 | Expression pack editor | In the editor | wired | [[Character Images & Expression Packs]] | — |
-| 47 | Library | In the editor | wired | [[Library System Overview]] | `static/js/item-library.js`, `static/js/item-library/ai-generation.js`, `static/js/item-library/placement.js`, `static/js/library-browser.js` (+5 more) |
+| 47 | Library | In the editor | wired | [[Library System Overview]] | `static/js/item-library.js`, `static/js/item-library/ai-generation.js`, `static/js/item-library/contents-editor.js`, `static/js/item-library/placement.js` (+8 more) |
 | 48 | Tags | In the editor | wired | [[Tags System]] | `static/js/shared/tag-multiselect.js` |
-| 49 | Scenario creation | In the editor | wired | [[ScenarioCreationGuide]] | — |
-| 50 | Save / load | In the editor | wired | [[Settings & Configuration]] | `static/js/graph/scope-tree.js`, `static/js/main.js`, `static/js/shared/lit-bootstrap.js`, `static/js/soak/soak-presets.js` (+3 more) |
+| 49 | Scenario creation | In the editor | wired | [[ScenarioCreationGuide]] | `static/js/ui/create-modal.js`, `static/js/ui/scenario-manager.js`, `static/js/ui/scenario-status.js`, `static/js/ui/scenario-wizard.js` (+1 more) |
+| 50 | Save / load | In the editor | wired | [[Settings & Configuration]] | `static/js/graph/scope-tree.js`, `static/js/main.js`, `static/js/shared/lit-bootstrap.js`, `static/js/soak/soak-presets.js` (+5 more) |
 | 51 | Settings | In the editor | wired | [[Settings & Configuration]] | `static/js/config.js`, `static/js/shared/embedding-client.js`, `static/js/storage.js`, `static/js/ui/engine-config-view.js` (+1 more) |
-| 52 | Command palette | In the editor | wired | [[Rendering & UI Modules]] | — |
-| 53 | Help centre | In the editor | wired | [[Rendering & UI Modules]] | — |
-| 54 | Recent edits / undo | In the editor | wired | **none** | `static/js/shared/env-presets.js` |
+| 52 | Command palette | In the editor | wired | [[Rendering & UI Modules]] | `static/js/ui/command-palette.js` |
+| 53 | Help centre | In the editor | wired | [[Rendering & UI Modules]] | `static/js/ui/help-center.js` |
+| 54 | Recent edits / undo | In the editor | wired | **none** | `static/js/shared/env-presets.js`, `static/js/ui/changes-panel.js`, `static/js/ui/edit-feed.js`, `static/js/ui/recent-edits.js` (+1 more) |
 | 55 | Validator & issues | In the editor | wired | **none** | `static/js/validator-panel.js` |
-| 56 | Event stream | In the editor | wired | **none** | — |
-| 57 | Export | In the editor | wired | [[Event Log Export]] | `static/js/event-stream.js`, `static/js/inspector/agent-view.js`, `static/js/shared/dataset-collector.js`, `static/js/soak/soak-state.js` |
-| 58 | Soak lab | In the editor | wired | **none** | — |
+| 56 | Event stream | In the editor | wired | **none** | `static/js/agent/turn-feed.js`, `static/js/event-bus.js`, `static/js/event-stream.js`, `static/js/stream/stream-control-mode.js` (+4 more) |
+| 57 | Export | In the editor | wired | [[Event Log Export]] | `static/js/event-stream.js`, `static/js/graph/graph-export.js`, `static/js/inspector/agent-view.js`, `static/js/shared/dataset-collector.js` (+2 more) |
+| 58 | Soak lab | In the editor | wired | **none** | `static/js/soak/soak-app.js`, `static/js/soak/soak-spacetime.js`, `static/js/soak/soak-ui.js` |

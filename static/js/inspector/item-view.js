@@ -5,7 +5,7 @@
  *
  * @module inspector/item-view — the item inspector
  * @contributes InspectorItemView: actions, parameters, tags, state, move, AI improve, contents
- * @powers inspecting and editing any item in the world
+ * @powers Node inspectors, Examine — inspecting and editing any item in the world
  * @relates renders through InspectorPanel; uses helpers + trigger-helpers
  * @docs docs/virtualWorld/Items & Inventory/Items Overview.md
  */

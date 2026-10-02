@@ -417,4 +417,4 @@ The condition library has a matching **cure item per condition** (e.g. `bitterwe
 - [[dev_tasks/review/characters/task-24-traits_conditions_emotions_editor|task-24: Traits conditions emotions editor]]
 - [[dev_tasks/review/triggers/task-50-trigger_condition_has_item_dropdown|task-50: Trigger condition has_item dropdown]]
 - [[dev_tasks/review/triggers/task-51-trigger_multi_effect_conditions|task-51: Trigger multi effect conditions]]
-- [[dev_tasks/done/characters/task-163-condition-system-redesign|task-163: Condition system redesign]]
+- task-163: Condition system redesign (no such task file)

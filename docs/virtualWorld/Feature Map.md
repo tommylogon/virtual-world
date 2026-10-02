@@ -32,8 +32,8 @@ documentation is for people.
   load-bearing value. A coverage list that only lists documented features hides exactly the gaps it
   was built to expose.
 
-Counts as of 2026-10-01, measured from this file (58 numbered rows, 10 of them `none`):
-**58 features, 10 with no note.**
+Counts as of 2026-10-02, measured from this file (58 numbered rows, 0 of them `none`):
+**58 features, 0 with no note.**
 
 ---
 
@@ -52,7 +52,7 @@ Counts as of 2026-10-01, measured from this file (58 numbered rows, 10 of them `
 | 9 | Attack / grapple | Combat resolution, hit dice, armour class, restraint | wired | [[Combat System]] |
 | 10 | Eat / drink | Consumption, nutrition, water, and the effects of both | wired | [[Items Overview]] |
 | 11 | Sleep / rest | Restore over a span; rest quality | wired | [[Vitals System]] |
-| 12 | Search / forage | Area forage tables, skill-gated draws, regrowth | wired | **none** |
+| 12 | Search / forage | Area forage tables, skill-gated draws, regrowth | wired | [[Search & Forage]] |
 | 13 | Read / write | Readable items; write on a surface | wired | [[Items Overview]] |
 | 14 | Wear / equip | Equipment slots, paperdoll, weight and bulk | wired | [[Equipment & Paperdoll]] |
 | 15 | Timeskip | Skip a span: idle, leisure, search, explore, travel | wired | [[Turn Queue & Human Turns]] |
@@ -63,13 +63,13 @@ Counts as of 2026-10-01, measured from this file (58 numbered rows, 10 of them `
 | 20 | Emotion | Emotion model, reflection, residue | wired | [[Emotion & Affect System]] |
 | 21 | Relationships | Per-character relationships and their deltas | wired | [[Relationships System]] |
 | 22 | Memory | What a character remembers, and recall by need | wired | [[Memory System]] |
-| 23 | Temperature | Body and environment temperature, clothing, equipment | wired | [[Temperature System]] |
+| 23 | Temperature | Body and environment temperature, clothing, equipment | wired | [[Environment/Temperature System|Temperature System]] |
 | 24 | Light | Ambient light, sources, seeing in the dark | wired | [[Light System]] |
 | 25 | Time & weather | Calendar, clock, forecast, and weather that reaches the world | wired | [[Time & Weather]] |
 | 26 | Activities & states | Multi-tick activities; busy, unconscious, asleep | wired | [[Activities & States]] |
 | 27 | NPC behaviour | Autonomous states: idle, forage, eat, flee, hide | wired | [[NPC Behavior System]] |
-| 28 | **Background simulation** | What everyone off-screen does, and the coarse social layer over it | **unwired** | **none** |
-| 29 | **Per-agent knowledge (fog of war)** | Per-character known set; a map that only shows what you have found | **unwired** | **none** |
+| 28 | **Background simulation** | What everyone off-screen does, and the coarse social layer over it | wired | [[Background Simulation]] |
+| 29 | **Per-agent knowledge (fog of war)** | Per-character known set; a map that only shows what you have found | **unwired** | [[Per-Agent Knowledge (Fog of War)]] |
 | 30 | Turn queue | Initiative, who acts when, the human's slot | wired | [[Turn Queue & Human Turns]] |
 | 31 | The human turn | One turn, one card: the scene, your vitals, what you can do | wired | [[Turn Queue & Human Turns]] |
 | 32 | Character art | Profile avatar + full-body portrait, per emotion | wired | [[Character Images & Expression Packs]] |
@@ -84,13 +84,13 @@ Counts as of 2026-10-01, measured from this file (58 numbered rows, 10 of them `
 | 36 | Graph canvas | Lay out the world; drag, search, scope-filter, bulk-select | wired | [[Graph System]] |
 | 37 | Map layout | Painted map pitch and scope offsets | wired | [[Graph System]] |
 | 38 | Levels layout | Hierarchical layout by relation level | wired | [[Graph System]] |
-| 39 | **WorldPainter** | Paint a world on a grid: 8 tools (Select, Paint, Erase, Move, Route, Feature, Area, Inspect), 3 modes (world/town/interior), 4 layers (biome, road, floor, climate) | wired | **none** |
-| 40 | Grid to graph | Compile cells into areas, ways, gateways, buildings | wired | **none** |
+| 39 | **WorldPainter** | Paint a world on a grid: 8 tools (Select, Paint, Erase, Move, Route, Feature, Area, Inspect), 3 modes (world/town/interior), 4 layers (biome, road, floor, climate) | wired | [[WorldPainter]] |
+| 40 | Grid to graph | Compile cells into areas, ways, gateways, buildings | wired | [[Grid to Graph]] |
 | 41 | Scopes | Nested world scopes, projection, manifest | wired | [[World Scopes]] |
 | 42 | Node inspectors | 12 panels: area, item, character, way, memory, behaviours, lore, paperdoll, tags, conditions, traits, automation | wired | [[Inspector Panels]] |
 | 43 | Way authoring | Create and edit ways, doors, connections, cardinals | wired | [[Way Properties]] |
 | 44 | Trigger / effect editor | Author triggers, conditions and effects on any node | wired | [[Triggers & Effects]] |
-| 45 | **NL editor** | Describe a change in prose; see a plan before it is applied | wired | **none** |
+| 45 | **NL editor** | Describe a change in prose; see a plan before it is applied | wired | [[NL Editor]] |
 | 46 | Expression pack editor | Per-emotion art slots, plus **Split sheet** for grid sheets | wired | [[Character Images & Expression Packs]] |
 | 47 | Library | Browse and edit the content registry: items, characters, biomes, behaviours, traits | wired | [[Library System Overview]] |
 | 48 | Tags | Tag queries across nodes, and tag-targeted triggers | wired | [[Tags System]] |
@@ -99,30 +99,32 @@ Counts as of 2026-10-01, measured from this file (58 numbered rows, 10 of them `
 | 51 | Settings | Engine config, every slider | wired | [[Settings & Configuration]] |
 | 52 | Command palette | Jump to anything | wired | [[Rendering & UI Modules]] |
 | 53 | Help centre | In-app help | wired | [[Rendering & UI Modules]] |
-| 54 | Recent edits / undo | What changed, and undoing it | wired | **none** |
-| 55 | Validator & issues | Scenario lint, mismatches, authoring blockers | wired | **none** |
-| 56 | **Event stream** | The turn-by-turn log with filters and search | wired | **none** |
+| 54 | Recent edits / undo | What changed, and undoing it | wired | [[Recent Edits & Undo]] |
+| 55 | Validator & issues | Scenario lint, mismatches, authoring blockers | wired | [[Validator & Issues]] |
+| 56 | **Event stream** | The turn-by-turn log with filters and search | wired | [[Event Stream]] |
 | 57 | Export | Graph export, play-session log export | wired | [[Event Log Export]] |
-| 58 | **Soak lab** | Automated long runs, live tuning, telemetry | wired | **none** |
+| 58 | **Soak lab** | Automated long runs, live tuning, telemetry | wired | [[Soak Lab]] |
 
 ---
 
-## The ten gaps
+## Coverage
 
-Features with no note. Each is real, reachable, and shipped — this is not a wishlist.
+All 58 features now link to a note. The ten that used to read `none` were
+documented on 2026-10-02, and reading the code **corrected two claims** that had
+been sitting in this file:
 
-| Feature | Why it matters |
-|---|---|
-| Search / forage | 629 lines of engine, a biome-keyed data file, and four passing mentions — no note says what it does |
-| Background simulation | 2827 lines across two modules; the string "backsim" appears **once** in the whole codebase, in a comment |
-| Per-agent knowledge (fog) | the module is complete and tested; nothing calls it. A `done/` task hides this |
-| WorldPainter | an entire editor with 8 tools, 3 modes and 4 layers, and no reference |
-| Grid → graph | the largest file in the repo; a design note exists but no reference |
-| NL editor | reachable from the left rail; the two tasks that shaped it are cancelled |
-| Recent edits / undo | a user-facing safety feature with no note |
-| Validator & issues | the thing that tells an author their scenario is broken |
-| Event stream | on screen every turn; only its *export* is documented |
-| Soak lab | a whole tool surface; only a telemetry design note exists |
+| Feature | Note | Correction made while documenting it |
+|---|---|---|
+| Search / forage | [[Search & Forage]] | the draw is wired; `findable_hint` / `notice` are tested and uncalled |
+| Background simulation | [[Background Simulation]] | the map said **unwired**; `tick_manager.process_due()` is on the live `/api/turn/apply` path, so it is **wired** (measured on a live `create_app()`) |
+| Per-agent knowledge (fog of war) | [[Per-Agent Knowledge (Fog of War)]] | **unwired, confirmed** — `engine/fog.py` has no runtime caller; the gate is sound and the key is authored-only |
+| WorldPainter | [[WorldPainter]] | |
+| Grid to graph | [[Grid to Graph]] | largest *non-test* Python file; `tests/test_trigger_system.py` is larger |
+| NL editor | [[NL Editor]] | |
+| Recent edits / undo | [[Recent Edits & Undo]] | four surfaces over one snapshot stack; the feed's per-row undo is the newest snapshot |
+| Validator & issues | [[Validator & Issues]] | four instruments, only the trigger validator is wired to a UI |
+| Event stream | [[Event Stream]] | |
+| Soak lab | [[Soak Lab]] | |
 
 ## Keeping this honest
 
@@ -130,11 +132,17 @@ Features with no note. Each is real, reachable, and shipped — this is not a wi
 - A feature that is `unwired` is the dangerous one: the code and the task tree both say it exists.
   The Status column is what makes that visible.
 - `python tools/feature_index.py --check` fails when a new module's `@powers` names no feature here,
-  and `--report` prints the join in both directions. **`@powers` and this map currently speak
-  different languages**: 68 of 156 modules name a feature, 88 name none, and 32 features have no
-  module naming them. The headers are written as gerund phrases ("keeping and restoring your world")
-  and this map as noun phrases ("Save / load"), so the two only partly join. That gap is filed as
-  task-664; the 88 are baselined so the gate is green today and ratchets from here.
+  and `--report` prints the join in both directions. **The two vocabularies now join**: a module's
+  `@powers` opens with the feature name(s) it enables, taken verbatim from this map, so 155 of 157
+  modules name a feature and 11 features still name no module. The two that name none are pure
+  infrastructure (`static/js/shared/dom-utils.js`, `static/js/world-state.js`); they are baselined,
+  because a utility that powers no single feature is a real state, not a gap. The 11 features with
+  no module are reviewable at the bottom of `docs/design/feature-index.md` — a feature nothing names
+  may be a feature nobody can reach.
+- **A feature name is the controlled vocabulary.** `Match` now looks for the label *as a phrase*
+  first ("Turn queue", "Use / use on"), then falls back to the older word-prefix match. Phrase
+  matching is what lets a multi-word label join at all: the old term split never broke on spaces,
+  so "turn queue" could never prefix a single word.
 - `python tools/js_module_index.py --check` also fails when an `@docs` target is a folder or a dead
   path. That guard was added with this map: **28 module headers pointed at a directory**
   (`docs/virtualWorld/Library System/` and friends) and now point at real notes, and two pointed at

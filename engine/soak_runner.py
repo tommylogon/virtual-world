@@ -25,6 +25,10 @@ condition crossing, each carrying the ``why`` tag that decided it. That is what
 answers "who did what, why, where" — the average-Energy chart cannot, and the
 per-character lived log cannot either because it is salience-filtered and capped
 at 200 entries. It lives on the run, never on the player, and never in the save.
+
+@module soak_runner
+@contributes the headless soak runner and its report
+@docs docs/virtualWorld/UI & Settings/Soak Lab.md
 """
 from __future__ import annotations
 

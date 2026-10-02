@@ -7,7 +7,7 @@
  *
  * @module ui/scenario-manager — the Scenario Manager modal
  * @contributes ScenarioManager: list / Open / Audit / Duplicate / Rename / Delete scenarios
- * @powers managing the files in data/scenarios (task-374)
+ * @powers Scenario creation, Save / load — managing the files in data/scenarios (task-374)
  * @relates opened from the Game menu; Open follows the scenario-dropdown path
  * @docs docs/virtualWorld/Scenario Workflows & UI Audit.md
  */

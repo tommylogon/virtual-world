@@ -7,7 +7,7 @@
  *
  * @module stream/stream-persistence — IndexedDB round-trip for the stream
  * @contributes save/restore of the event stream (cap 2000) + the persisted area filter
- * @powers keeping your scrollback across reloads
+ * @powers Event stream — keeping your scrollback across reloads
  * @relates uses storage; loaded before event-stream.js
  * @docs docs/virtualWorld/UI & Settings/Event Log Export.md
  */

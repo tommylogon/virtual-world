@@ -1,7 +1,7 @@
 /**
  * @module graph/edge-inspector — the edge property editor
  * @contributes EdgeInspector: render/edit an edge's type and properties (add/delete props)
- * @powers editing what an edge means — e.g. making a connection one-way, renaming a way
+ * @powers Graph canvas, Node inspectors — editing what an edge means — e.g. making a connection one-way, renaming a way
  * @relates opened from GraphContextMenu; writes through the graph API and re-renders
  * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */

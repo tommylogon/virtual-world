@@ -5,7 +5,7 @@
  *
  * @module graph/node-operations — node/edge CRUD for the graph
  * @contributes GraphNodeOps: create/delete/duplicate nodes and edges
- * @powers adding and removing areas/items/ways/characters and their connections
+ * @powers Graph canvas — adding and removing areas/items/ways/characters and their connections
  * @relates called by GraphContextMenu + GraphEventHandlers; writes through the graph API
  * @docs docs/virtualWorld/World Building/Graph System.md
  */

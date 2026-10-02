@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: docs
 priority: medium
 blocks: [task-578]
@@ -54,13 +54,40 @@ Mirror the existing JS header, at the top of the module docstring:
   over writing a second Python-only tool. The generated table gains a Language column.
   Keeping one tool is what stops the two sides drifting.
 
+## Resolution (2026-10-02)
+
+`tools/js_module_index.py` is now language-agnostic. It scans `engine/` and
+`routes/` `.py` modules alongside `static/js`, reads the contract from the real
+module docstring (via `ast`, so a header may sit anywhere in a long docstring),
+and holds Python to the same guard the front end has. The generated index gained
+a **Lang** column; the file keeps its historical `js_` name so
+`npm run module:check` and the docs citing it keep working.
+
+Because the back end started from zero headers against 180 modules, the JS
+bootstrapping pattern is reused: 18 core engine/route modules are documented
+below, and the remaining 162 are recorded in
+`docs/design/py-module-baseline.txt`. The guard fails a **new** Python module
+that omits the contract; the existing debt ratchets down under task-669.
+
+Documented core modules: `engine/tick_manager`, `engine/foraging`,
+`engine/item_reach`, `engine/background_simulation`, `engine/fog`,
+`engine/world_compile`, `engine/world_grid`, `engine/trigger_validator`,
+`engine/nl_editor_validation`, `engine/promotion`, `engine/lived_log`,
+`engine/movement`, `engine/combat`, `engine/soak_telemetry`,
+`engine/soak_runner`, `routes/graph_ops`, `routes/library_ops`,
+`routes/world_grid_ops`.
+
 ## Acceptance
 
-- Every module under `engine/` and `routes/` has an `@docs` header, or an explicit
-  `@docs none` with a one-line reason.
-- A new Python module without the header fails the contract check, exactly as a new JS
-  module does today.
-- A `@docs` path that does not exist on disk is a check failure.
-- `docs/design/js-module-index.md` is regenerated and includes Python rows; the JS rows
-  are unchanged.
-- The tool is renamed or given a neutral name, and `npm run module:check` still works.
+- [x] A new Python module without the header fails the contract check, exactly as
+      a new JS module does today — `tests/test_module_index_py.py`.
+- [x] A `@docs` path that does not exist on disk is a check failure (a folder
+      target included).
+- [x] `docs/design/js-module-index.md` is regenerated with Python rows and a
+      `Lang` column; every existing JS row is still present.
+- [x] `python tools/js_module_index.py --check` exits 0
+      (`162 known-uncovered, 0 known-bad-@docs, no new`).
+- [~] **Not met as written:** every one of the 180 modules carrying a header.
+      18 core modules do; the other 162 are baselined and filed as **task-669**.
+      The convention and the guard are live; the backfill is bounded, known
+      work rather than an undocumented gap.

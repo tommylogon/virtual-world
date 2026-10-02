@@ -1,6 +1,6 @@
 ---
 group: Items
-wiki: "[[UI & Settings/Inspector]]"
+wiki: "[[UI & Settings/Inspector Panels|Inspector]]"
 ---
 
 # Auto-create Base Trigger When Allowed Action is Enabled

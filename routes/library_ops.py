@@ -1,3 +1,10 @@
+"""library_ops: the library registry API and item materialisation.
+
+@module library_ops
+@contributes the library registry API and item materialisation
+@docs docs/virtualWorld/Library System/Library System Overview.md
+"""
+
 import os
 import re
 import json
@@ -406,6 +413,24 @@ def _strip_presentation_properties(entry):
     return entry
 
 
+def _docs_warnings(entry_data):
+    """Warnings for an entry's optional ``docs`` link (task-577).
+
+    A repo-relative path (the same form as a module ``@docs`` header). A path
+    that does not exist is a warning, never a rejection: an author may be
+    linking a page they are about to write, and task-578's resolver is what
+    turns the link into something. A non-string is invalid, and that is raised
+    by ``write_library_entry`` before this runs.
+    """
+    docs = entry_data.get('docs') if isinstance(entry_data, dict) else None
+    if not docs:
+        return []
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if not os.path.exists(os.path.join(repo_root, docs)):
+        return [f"docs path does not exist yet: {docs}"]
+    return []
+
+
 def _entry_tag_warnings(app, entry):
     raw_tags = entry.get('tags') if isinstance(entry, dict) else None
     if isinstance(raw_tags, str):
@@ -431,12 +456,20 @@ def write_library_entry(app, registry_type, entry_id, entry_data):
         raise ValueError("Missing entry id")
     if not isinstance(entry_data, dict):
         raise ValueError("Entry data must be an object")
+    # task-577: `docs` is an optional repo-relative link, keyed by the entry id.
+    # A non-string is a shape error; a missing path is only a warning.
+    if 'docs' in entry_data and entry_data['docs'] is not None \
+            and not isinstance(entry_data['docs'], str):
+        raise ValueError(
+            "docs must be a repo-relative string path "
+            "(e.g. 'docs/virtualWorld/World Building/Doors & Connections.md')")
     filename = f"{registry_type}.json"
     registry = load_registry(app.config['DATA_DIR'], filename)
     registry[str(entry_id)] = _strip_presentation_properties(entry_data)
     save_registry(app.config['DATA_DIR'], filename, registry)
     _reload_condition_catalog(app, registry_type)
-    return _entry_tag_warnings(app, registry.get(str(entry_id), {}))
+    stored = registry.get(str(entry_id), {})
+    return _entry_tag_warnings(app, stored) + _docs_warnings(stored)
 
 
 def delete_library_entry(app, registry_type, entry_id):

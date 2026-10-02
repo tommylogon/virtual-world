@@ -5,7 +5,7 @@
  *
  * @module stream/stream-turn-cards — turn card grouping
  * @contributes StreamTurnCards: group log entries into per-character turn cards
- * @powers the collapsible turn cards in the event stream
+ * @powers Event stream — the collapsible turn cards in the event stream
  * @relates loaded before event-stream.js
  * @docs docs/virtualWorld/UI & Settings/Event Log Export.md
  */

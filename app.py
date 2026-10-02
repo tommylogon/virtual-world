@@ -197,7 +197,7 @@ def register_routes(app):
     from routes.population import register_population_routes
     from routes.world_scopes import register_world_scopes_routes
     from routes.world_grid import register_world_grid_routes
-
+    from routes.docs import register_docs_routes
 
     register_health_routes(app)
     register_events_routes(app)
@@ -220,6 +220,7 @@ def register_routes(app):
     register_population_routes(app)
     register_world_scopes_routes(app)
     register_world_grid_routes(app)
+    register_docs_routes(app)
 
 # For running directly (development)
 if __name__ == '__main__':

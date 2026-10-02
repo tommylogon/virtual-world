@@ -206,6 +206,7 @@ class ItemLibrary {
         this.selectedId = id;
         this.renderList(document.getElementById('item-lib-search')?.value || '');
         this.showEditor(this.data[id] || {});
+        this._loadDocPreview(id);
     }
 
     newItem() {
@@ -215,6 +216,40 @@ class ItemLibrary {
             name: '', description: '', actions: 'examine,take,use', 
             uses: -1, weight: 0.1, current_state: 'normal', tags: [], triggers: [], contents: []
         });
+        this._loadDocPreview(null);
+    }
+
+    /**
+     * Documentation preview for the selected entry (task-579), resolved by the
+     * entry id through the doc resolver. Quiet "no page yet" is the common case.
+     */
+    _loadDocPreview(id) {
+        const el = document.getElementById('lib-item-doc-preview');
+        if (!el) return;
+        el.textContent = '';
+        if (!id || id === '__new__') return;
+        fetch('/api/docs/resolve?node=' + encodeURIComponent(id))
+            .then((r) => r.json())
+            .then((rows) => {
+                const target = document.getElementById('lib-item-doc-preview');
+                if (!target) return;
+                const f = window.DocPanel ? window.DocPanel.format(rows)
+                    : { empty: !(rows && rows.length), title: (rows && rows[0] && rows[0].title) || '', url: null };
+                const line = document.createElement('div');
+                line.textContent = f.empty ? 'No documentation yet.' : f.title;
+                line.className = 'section-hint';
+                target.appendChild(line);
+                if (!f.empty && f.url) {
+                    const a = document.createElement('a');
+                    a.className = 'btn btn-sm';
+                    a.setAttribute('href', f.url);
+                    a.setAttribute('target', '_blank');
+                    a.setAttribute('rel', 'noopener');
+                    a.textContent = 'Open documentation';
+                    target.appendChild(a);
+                }
+            })
+            .catch(() => {});
     }
 
     // --- Container Contents Editor ---
@@ -404,6 +439,7 @@ class ItemLibrary {
                 <div style="font-size:9px;color:var(--text-muted);">Use lowercase, no spaces. E.g. "rusty_key"</div></div>
                 <div class="field"><label style="font-size:10px;">Name</label><input type="text" id="lib-item-name" .value=${item.name} placeholder="Rusty Key" @input=${isNew ? (e) => VW.itemLib._autoIdFromName(e.target) : undefined}></div>
                 <div class="field"><label style="font-size:10px;">Description</label><textarea id="lib-item-desc" rows="4" placeholder="A rusty old key..." style="width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:4px 8px;font-size:11px;font-family:inherit;resize:vertical;">${item.description}</textarea></div>
+                <div class="field"><label style="font-size:10px;">Documentation</label><input type="text" id="lib-item-docs" .value=${item.docs || ''} placeholder="docs/virtualWorld/... (optional)"><div style="font-size:9px;color:var(--text-muted);">Repo-relative path to the note describing this entry. Optional.</div><div id="lib-item-doc-preview" style="margin-top:4px;font-size:10px;"></div></div>
                 <div class="field"><label style="font-size:10px;">Tags</label><div id="lib-item-tags-container"></div></div>
             </div>
             <div class="inspector-section" style="padding:10px 16px;border-bottom:1px solid var(--border);">
@@ -970,7 +1006,8 @@ class ItemLibrary {
             tags,
             triggers,
             contents,
-            image: document.getElementById('lib-item-image')?.value || undefined
+            image: document.getElementById('lib-item-image')?.value || undefined,
+            docs: document.getElementById('lib-item-docs')?.value.trim() || undefined
         };
 
         const res = await ApiClient.saveLibraryItem(payload);

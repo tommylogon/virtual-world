@@ -144,8 +144,8 @@ distinction also fixes the Create Flame case — it should be `use` alone, not
 
 ## Related
 
-- [[todo/prompting/task-150-invalid-action-auto-retry|task-150: Invalid action auto-retry]]
-- [[todo/gameplay/task-181-command-parser-multiwindow-targets|Command parser: multi-word targets]] (parser fix this builds on)
+- task-150: Invalid action auto-retry (task file no longer present)
+- Command parser: multi-word targets (task-181 file no longer present)
 - [[todo/prompting/task-186-agent-validation-and-feedback|Agent validation & feedback]] (verb whitelist sync, no silent drops)
 - [[todo/items/task-184-stove-implementation|Stove implementation]] — `use kindling on stove` needs structured target to survive
 - [[todo/environment/task-174-fire-mechanic-heat-source|Fire mechanic]] — Create Flame should be `use` alone

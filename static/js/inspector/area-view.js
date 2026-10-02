@@ -5,7 +5,7 @@
  *
  * @module inspector/area-view — the area (room) inspector
  * @contributes InspectorAreaView: description/environment/light/noise editing, scope membership, AI room improvement
- * @powers inspecting and editing a room, its scope membership and its exits
+ * @powers Node inspectors, Look around — inspecting and editing a room, its scope membership and its exits
  * @relates renders through InspectorPanel; uses inspector/helpers + way-authoring; scope list via api.getWorldScopes
  * @docs docs/virtualWorld/World Building/Rooms & Areas.md
  */

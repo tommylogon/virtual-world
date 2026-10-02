@@ -10,7 +10,7 @@
  *
  * @module ui/command-palette — Ctrl+K fuzzy command palette
  * @contributes CommandPalette: fuzzy search over graph nodes, menu actions, and left-panel tabs
- * @powers keyboard-first navigation and commands (task-370)
+ * @powers Command palette — keyboard-first navigation and commands (task-370)
  * @relates navigates the graph + opens the inspector; runs toolbar actions
  * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */

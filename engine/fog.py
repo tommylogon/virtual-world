@@ -25,6 +25,10 @@ authoritative store, no second copy to drift.
 "not known", not "does not exist" — so a prompt filter can only ever *withhold*,
 never assert. That is the honest bound: a character can be told less than the
 player knows, and never more.
+
+@module fog
+@contributes the per-character known set, reveal verbs, and map teaching
+@docs docs/virtualWorld/Gameplay/Per-Agent Knowledge (Fog of War).md
 """
 
 from __future__ import annotations

@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
-"""Generate (and guard) the front-end module index.
+"""Generate (and guard) the module index — front end and back end.
 
 Every non-vendor module under ``static/js`` is expected to open with a leading
-comment block carrying this contract:
+comment block carrying this contract, and every module under ``engine/`` and
+``routes/`` is expected to carry the same contract at the top of its module
+docstring (task-576). The file keeps its historical ``js_`` name so
+``npm run module:check`` and the docs that cite it keep working.
 
     /**
      * @module <name> — <one-line purpose>
@@ -24,20 +27,34 @@ resolve to a real note. The declared features live in
 ``docs/virtualWorld/Feature Map.md`` and are checked separately by
 ``tools/feature_index.py``.
 
-The baselines exist so the ~110 not-yet-documented files and today's bad ``@docs``
+The baselines exist so the not-yet-documented files and today's bad ``@docs``
 targets don't block the guard; new modules are held to the contract from day one.
+``docs/design/js-module-baseline.txt`` is the JS list and
+``docs/design/py-module-baseline.txt`` the Python one, so the back end's much
+larger existing debt can ratchet down without blocking the front end.
+
+Python tags are read from the real module docstring (via ``ast``), not a fixed
+line window, so a header may sit anywhere in a long docstring.
 """
 from __future__ import annotations
 
 import argparse
+import ast
 import re
 from pathlib import Path
 
 ROOT = Path("static/js")
+# task-576: the same contract covers the back end. The rules engine is where a
+# feature's behaviour actually lives, so a docs map that stops at `static/js`
+# documents less than half the codebase. This file keeps its historical name so
+# `npm run module:check` and every doc that cites it keep working; it is now
+# language-agnostic.
+PY_ROOTS = (Path("engine"), Path("routes"))
 SKIP_DIRS = {"vendor", "node_modules"}
 INDEX_PATH = Path("docs/design/js-module-index.md")
 BASELINE_PATH = Path("docs/design/js-module-baseline.txt")
 DOCS_BASELINE_PATH = Path("docs/design/js-docs-baseline.txt")
+PY_BASELINE_PATH = Path("docs/design/py-module-baseline.txt")
 VAULT = Path("docs/virtualWorld")
 
 TAGS = ("module", "contributes", "powers", "relates", "docs")
@@ -66,7 +83,10 @@ def _leading_block(text: str, limit: int = 60) -> str:
 
 
 def parse(path: Path):
-    text = path.read_text(encoding="utf-8", errors="replace")
+    # utf-8-sig strips a leading BOM. A BOM before ``/**`` otherwise defeats
+    # _leading_block's startswith check, so a complete header parses as empty
+    # (task-658: room-context.js was baselined for exactly this).
+    text = path.read_text(encoding="utf-8-sig", errors="replace")
     block = _leading_block(text)
     meta = {}
     for line in block.splitlines():
@@ -76,12 +96,56 @@ def parse(path: Path):
     return meta
 
 
+def parse_py(path: Path):
+    """The same contract, read from a Python module docstring (task-576).
+
+    Tags are plain lines at the top of the module docstring:
+
+        \"\"\"One-line purpose.
+
+        @module foraging
+        @contributes the skill-gated draw, forage tables, regrowth
+        @docs docs/virtualWorld/Gameplay/Search & Forage.md
+        \"\"\"
+
+    The whole module docstring is searched (via ``ast``), with the leading 80
+    raw lines as a fallback for a module that has no parseable docstring. A tag
+    only counts at the start of a line (indentation allowed), so a ``@docs``
+    mentioned in prose mid-sentence is not mistaken for a declaration.
+    """
+    text = path.read_text(encoding="utf-8-sig", errors="replace")
+    source = "\n".join(text.splitlines()[:80])
+    try:
+        tree = ast.parse(text)
+        first = tree.body[0] if tree.body else None
+        if (isinstance(first, ast.Expr) and isinstance(first.value, ast.Constant)
+                and isinstance(first.value.value, str)):
+            source = first.value.value
+    except SyntaxError:
+        pass
+    meta = {}
+    for line in source.splitlines():
+        m = TAG_RE.match(line)
+        if m:
+            meta.setdefault(m.group(1), m.group(2).strip())
+    return meta
+
+
+def language(path: Path) -> str:
+    return "py" if path.suffix == ".py" else "js"
+
+
 def collect():
     entries = []
     for path in sorted(ROOT.rglob("*.js")):
         if any(part in SKIP_DIRS for part in path.parts):
             continue
         entries.append((path, parse(path)))
+    for root in PY_ROOTS:
+        for path in sorted(root.rglob("*.py")):
+            if any(part in SKIP_DIRS for part in path.parts):
+                continue
+            entries.append((path, parse_py(path)))
     return entries
 
 
@@ -116,8 +180,11 @@ def docs_problems(entries):
             continue  # already handled by the uncovered baseline
         raw = (meta.get("docs") or "").strip()
         rel = str(path).replace("\\", "/")
-        if not raw or raw.lower() in ("none", "n/a", "-"):
-            continue  # a declared absence is a decision, not a broken target
+        # `@docs none` is a decision; `@docs none — <reason>` is the documented
+        # form (task-576), so test the first token, not the whole value.
+        head = raw.split(None, 1)[0].lower() if raw else ""
+        if not raw or head in ("none", "n/a", "-"):
+            continue
         if raw.endswith(("/", "\\")):
             problems.append((rel, "folder target — a directory is not a note: %s" % raw))
             continue
@@ -137,10 +204,11 @@ def write_index(entries):
     gaps = [(p, m) for p, m in entries if not (m.get("module") and m.get("contributes"))]
 
     lines = [
-        "# Front-end module index",
+        "# Module index",
         "",
         "Generated by `tools/js_module_index.py` — do not hand-edit.",
         "Each row is the module's own `@module` / `@contributes` / `@powers` contract.",
+        "Front-end (`.js`) and back-end (`.py`) modules share the contract.",
         "",
         f"- Modules scanned: **{len(entries)}**",
         f"- Documented: **{len(covered)}**",
@@ -148,8 +216,8 @@ def write_index(entries):
         "",
         "## Documented modules",
         "",
-        "| Module | Purpose | File | Contributes | Powers | Docs |",
-        "|---|---|---|---|---|---|",
+        "| Module | Lang | Purpose | File | Contributes | Powers | Docs |",
+        "|---|---|---|---|---|---|---|",
     ]
     for path, meta in covered:
         rel = str(path).replace("\\", "/")
@@ -165,8 +233,8 @@ def write_index(entries):
         else:
             name, purpose = module_value, ""
         lines.append(
-            f"| `{name.strip()}` | {purpose.strip()} | `{rel}` | {cell('contributes')} | "
-            f"{cell('powers')} | {cell('docs')} |"
+            f"| `{name.strip()}` | {language(path)} | {purpose.strip()} | `{rel}` | "
+            f"{cell('contributes')} | {cell('powers')} | {cell('docs')} |"
         )
 
     lines += ["", "## Awaiting a contract header", "",
@@ -189,12 +257,16 @@ def main() -> int:
 
     entries = collect()
     gaps = uncovered(entries)
+    js_gaps = [g for g in gaps if g.endswith(".js")]
+    py_gaps = [g for g in gaps if g.endswith(".py")]
     bad_docs = docs_problems(entries)
 
     if args.update_baseline:
         BASELINE_PATH.parent.mkdir(parents=True, exist_ok=True)
-        BASELINE_PATH.write_text("\n".join(gaps) + "\n", encoding="utf-8")
-        print(f"{BASELINE_PATH}: recorded {len(gaps)} uncovered module(s).")
+        BASELINE_PATH.write_text("\n".join(js_gaps) + "\n", encoding="utf-8")
+        print(f"{BASELINE_PATH}: recorded {len(js_gaps)} uncovered JS module(s).")
+        PY_BASELINE_PATH.write_text("\n".join(py_gaps) + "\n", encoding="utf-8")
+        print(f"{PY_BASELINE_PATH}: recorded {len(py_gaps)} uncovered Python module(s).")
         DOCS_BASELINE_PATH.write_text(
             "\n".join("%s\t%s" % (p, r) for p, r in bad_docs) + "\n", encoding="utf-8")
         print(f"{DOCS_BASELINE_PATH}: recorded {len(bad_docs)} bad @docs target(s).")
@@ -202,16 +274,19 @@ def main() -> int:
         write_index(entries)
 
     if args.check:
-        if not BASELINE_PATH.exists():
-            print(f"{BASELINE_PATH} missing — run --update-baseline once.")
-            return 2
-        known = set(BASELINE_PATH.read_text(encoding="utf-8").split())
-        new_gaps = [g for g in gaps if g not in known]
-        if new_gaps:
-            print("New modules missing the @module/@contributes contract:")
-            for g in new_gaps:
-                print("  -", g)
-            return 1
+        for label, baseline, current in (
+                ("JS", BASELINE_PATH, js_gaps),
+                ("Python", PY_BASELINE_PATH, py_gaps)):
+            if not baseline.exists():
+                print(f"{baseline} missing — run --update-baseline once.")
+                return 2
+            known = set(baseline.read_text(encoding="utf-8").split())
+            new_gaps = [g for g in current if g not in known]
+            if new_gaps:
+                print(f"New {label} modules missing the @module/@contributes contract:")
+                for g in new_gaps:
+                    print("  -", g)
+                return 1
 
         if not DOCS_BASELINE_PATH.exists():
             print(f"{DOCS_BASELINE_PATH} missing — run --update-baseline once.")

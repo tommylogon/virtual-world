@@ -237,6 +237,6 @@ Changes are saved immediately on edit via `ApiClient.updateNode()`, `ApiClient.u
 - [[dev_tasks/review/ui/task-36-inspector_game_time|task-36: Inspector game time]]
 - [[dev_tasks/review/characters/task-42-proper_memory_editor|task-42: Proper memory editor]]
 - [[dev_tasks/review/ui/task-41-prevent_double_step_click|task-41: Prevent double step click]]
-- [[bug_1-trigger-editor-effOpts-undefined 1|bug_1: Trigger editor effOpts undefined]]
+- [[bug_1-trigger-editor-effOpts-undefined|bug_1: Trigger editor effOpts undefined]]
 - [[dev_tasks/done/bugs/bug_2-choices-equip-slots-white-bg|bug_2: Choices equip slots white bg]]
-- [[bug_6-inspector-equip-slots-white-bg 1|bug_6: Inspector equip slots white bg]]
+- [[bug_6-inspector-equip-slots-white-bg|bug_6: Inspector equip slots white bg]]

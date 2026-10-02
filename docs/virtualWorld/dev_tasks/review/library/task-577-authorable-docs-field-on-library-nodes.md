@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: library
 priority: medium
 blocked_by: [task-446]
@@ -49,13 +49,30 @@ exists to remove. Do not build this on names.
 - Schema lives with the other registry validation in `routes/library_ops.py` (~:118-141).
   **This is a hub file — coordinate with the spine lane before editing.**
 
+## Resolution (2026-10-02)
+
+The registry already stores each entry verbatim as its own
+`data/library/<type>/<id>.json`, keyed by id — so `docs` was preserved by
+construction; the work was the guard rails and the editor:
+
+- `routes/library_ops.py::write_library_entry` rejects a non-string `docs`
+  (`ValueError` -> 400) and returns a warning when the path does not resolve,
+  via `_docs_warnings`.
+- `engine/library_nodes.library_item_properties` carries `docs` onto a
+  materialised world node when the entry declares it.
+- `static/js/item-library.js` gained a **Documentation** text field (after
+  Description) and includes `docs` in the save payload.
+
 ## Acceptance
 
-- `docs` is accepted and preserved on every registry type, and survives a save/load
-  round trip (covered by a test, not by inspection).
-- A `docs` value that is not a string is rejected with a clear error, not coerced.
-- A `docs` value pointing at a nonexistent path is **accepted at write time** and
-  surfaced as a warning — task-578 is what resolves it, and an author must not be blocked
-  from linking a page they are about to write.
-- Keyed by id: renaming a node's display name does not break its docs link.
-- The library editor exposes the field, and the field is not required.
+- [x] `docs` is accepted and preserved on every registry type, and survives a
+      save/load round trip — `tests/test_library_docs_field.py` loops all
+      `REGISTRY_TYPES`.
+- [x] A `docs` value that is not a string is rejected with a clear error
+      (`docs must be a repo-relative string path`), not coerced.
+- [x] A `docs` value pointing at a nonexistent path is **accepted at write time**
+      and surfaced as a warning (`docs path does not exist yet: ...`).
+- [x] Keyed by id: renaming the display `name` leaves `docs` intact (tested).
+- [x] The library editor exposes the field, and it is not required.
+- [x] JS gates clean: `node tools/unit/run.cjs` 485 passed, `npm run lint`,
+      `npm run typecheck`.

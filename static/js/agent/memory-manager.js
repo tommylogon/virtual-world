@@ -13,7 +13,7 @@
  *
  * @module agent/memory-manager — the agent memory write path
  * @contributes AgentMemory.storeMemory() + reflect() (LLM summarization into reflection memories)
- * @powers what characters remember, and when they reflect on it
+ * @powers Memory — what characters remember, and when they reflect on it
  * @relates writes the backend Player.memories[]; read back by prompt-builder/memory-context.js
  * @docs docs/virtualWorld/AI & Narration/Memory System.md
  */

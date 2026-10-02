@@ -1,3 +1,10 @@
+"""tick_manager: the per-turn loop, character ordering, and the shared barrier.
+
+@module tick_manager
+@contributes the per-turn loop, character ordering, and the shared barrier
+@docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
+"""
+
 import logging
 from graph import EDGE_IN, EDGE_CARRYING, EDGE_EQUIPPED
 from player import BLOCKING_CONDITIONS

@@ -12,7 +12,7 @@
  *
  * @module agent/simultaneous — turn-mode vocabulary + per-room grouping
  * @contributes VWSimultaneous: MODES, isSimultaneous(), isRoomMode(), normalizeMode(), cooldownFor(), groupByRoom(), roomCooldown(), firstReadyRoom()
- * @powers the "Simultaneous" and "Simultaneous per room" turn modes
+ * @powers Turn queue — the "Simultaneous" and "Simultaneous per room" turn modes
  * @relates read by config.js (the dial) and agent-engine.js (the loop)
  * @docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
  */

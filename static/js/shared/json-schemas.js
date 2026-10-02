@@ -18,7 +18,7 @@
  *
  * @module shared/json-schemas — structured-output schemas for LLM calls
  * @contributes StructuredFormats: strict json_schema shapes + a plain json_object fallback
- * @powers provider-enforced valid JSON for turn/plan/reflection/personality and generation calls
+ * @powers LLM calls — provider-enforced valid JSON for turn/plan/reflection/personality and generation calls
  * @relates loaded after shared/json-utils.js; consumed by llm-client callers
  * @docs docs/virtualWorld/AI & Narration/LLM Providers.md
  */

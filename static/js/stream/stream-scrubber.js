@@ -7,7 +7,7 @@
  *
  * @module stream/stream-scrubber — timeline minimap
  * @contributes StreamScrubber: per-entry colour segments, click-to-jump, scroll head
- * @powers navigating a long session's stream at a glance
+ * @powers Event stream — navigating a long session's stream at a glance
  * @relates loaded before event-stream.js
  * @docs docs/virtualWorld/UI & Settings/Event Log Export.md
  */

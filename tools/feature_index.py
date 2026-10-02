@@ -125,6 +125,15 @@ def match(powers: str, features: list[dict]) -> list[str]:
     words = set(re.findall(r"[a-z]+", text))
     hits = []
     for feat in features:
+        # A feature named verbatim ("Turn queue", "Use / use on") matches as a
+        # phrase. This is the join the map documents, and it is the only one
+        # that can fire for a multi-word label: the word-prefix match below
+        # splits on / & , and "and" but not on spaces, so "turn queue" could
+        # never prefix a single word.
+        label = re.sub(r"[*_`]", "", feat["label"]).lower()
+        if label and label in text:
+            hits.append(feat["label"])
+            continue
         for term in feat["terms"]:
             if len(term) < 4:
                 continue

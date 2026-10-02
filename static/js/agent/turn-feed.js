@@ -3,7 +3,7 @@
  *
  * @module agent/turn-feed — the human panel's feed and turn digest
  * @contributes a viewer-scoped ring buffer of log rows, digest rendering, and audio propagation
- * @powers the "since your turn" summary: your own rows, your room, and speech that carries
+ * @powers Event stream, The human turn — the "since your turn" summary: your own rows, your room, and speech that carries
  * @relates subscribes to event-stream's log bus; rendered by human-turn-composer
  * @docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
  * human turn panel (task-333 full redesign; digest = task-334 lane 2).

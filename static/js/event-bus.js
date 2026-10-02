@@ -1,7 +1,7 @@
 /**
  * @module event-bus — tiny synchronous pub/sub used across the UI
  * @contributes AppEventBus (`on`/`off`/`once`/`emit`) and the `appEvents` singleton
- * @powers the `log` event stream that feeds the turn feed, stream filters, and panels
+ * @powers Event stream — the `log` event stream that feeds the turn feed, stream filters, and panels
  * @relates subscribed to by event-stream.js, turn-feed.js, changes-panel, and others
  * @docs docs/design/event-stream-design-recommendation.md
  */

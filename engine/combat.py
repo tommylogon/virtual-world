@@ -1,6 +1,10 @@
 """Combat system for the virtual world engine.
 
 Handles player-vs-player attacks, weapon discovery, and combat resolution.
+
+@module combat
+@contributes attack and grapple resolution, hit dice and restraint
+@docs docs/virtualWorld/Rules Engine/Combat System.md
 """
 
 import random
