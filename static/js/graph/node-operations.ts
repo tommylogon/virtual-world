@@ -627,7 +627,6 @@ const GraphNodeOpsModule = {
 
 (window as unknown as { GraphNodeOps: typeof GraphNodeOpsModule }).GraphNodeOps = GraphNodeOpsModule;
 
-declare function hideInspectorPanel(): void;
 
 /**
  * types/globals.d.ts declares only the ApiClient surface converted modules use,

@@ -237,11 +237,6 @@ declare const GraphNetwork: {
     hideRevealedItems(): void;
     hideRevealedAreas(): void;
 };
-declare const ui: { selectAgent?(name: string): void };
-declare function hideInspectorPanel(): void;
-declare function openCreateModal(kind: string, onSubmit: (formData: Record<string, any>) => void | Promise<void>): void;
-declare const graphEditor: { setTool(tool: string): void };
-declare function connectSummary(res: unknown, refs: Record<string, unknown>): string;
 
 /** Extra ApiClient surface this file uses but the shared hub does not declare. */
 interface EventHandlersApiClient {

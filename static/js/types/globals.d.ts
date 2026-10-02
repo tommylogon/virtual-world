@@ -354,3 +354,87 @@ interface Window {
     worldPainter: any;
 }
 // <<< window members <<<
+
+// >>> hoisted from converted modules - generated, do not hand-edit >>>
+// CreateModal — owner: main.ts
+declare const CreateModal: any;       // ui/create-modal.js
+
+// DatasetCollector — owner: llm-client.ts
+declare const DatasetCollector: { capture(messages: unknown, content: unknown, label: string, extra?: unknown): void } | undefined;
+
+// EmotePicker — owner: agent/human-turn-composer.ts
+declare const EmotePicker: {
+    toggle(wrap: HTMLElement, opts: { onPick(emote: string): void }): void;
+    close(wrap: HTMLElement): void;
+};
+
+// GraphNetwork — owner: graph/event-handlers.ts
+declare const GraphNetwork: {
+    revealItemsForNode(nodeId: string): void;
+    revealAreasForWay(nodeId: string): void;
+    hideRevealedItems(): void;
+    hideRevealedAreas(): void;
+};
+
+// GraphTreeView — owner: ui-controller.ts
+declare const GraphTreeView: { renderOutlinePanel(target: Element | null): void };
+
+// ItemLibraryContents — owner: item-library.ts
+declare const ItemLibraryContents: {
+    renderContentsSection(this: ItemLibrary, contents: unknown): unknown;
+    removeContent(this: ItemLibrary, idx: unknown): unknown;
+    addContentUi(this: ItemLibrary): unknown;
+    saveContent(this: ItemLibrary, btn: unknown): unknown;
+};
+
+// NLEditorGhosts — owner: nl-editor/index.ts
+declare const NLEditorGhosts: any;
+
+// NLEditorStaging — owner: nl-editor/index.ts
+declare const NLEditorStaging: any;
+
+// NLEditorTools — owner: nl-editor/index.ts
+declare const NLEditorTools: any;
+
+// NLEditorUI — owner: nl-editor/index.ts
+declare const NLEditorUI: any;
+
+// SaveLoadView — owner: main.ts
+declare const SaveLoadView: any;       // ui/save-load-view.js
+
+// TriggerEditor — owner: item-library.ts
+declare const TriggerEditor: {
+    _renderConditionSummary(conditions: unknown): string[];
+    show(...args: unknown[]): unknown;
+};
+
+// TriggerGraph — owner: item-library.ts
+declare const TriggerGraph: {
+    triggerToGraph(triggerData: unknown): unknown;
+    show(...args: unknown[]): unknown;
+    compileToEngine(graph: unknown): Record<string, any> | null;
+    reportCompileError(compiled: unknown): boolean;
+    engineToFormData(compiled: unknown): Record<string, any>;
+    triggersFromGraphEdges(...args: unknown[]): unknown[];
+};
+
+// agent — owner: ui-controller.ts
+declare const agent: any;              // VW.agent, the turn-queue owner (agent/turn-queue.js)
+
+// durabilityChip — owner: inspector/paperdoll-view.ts
+declare const durabilityChip: (props: unknown) => string;
+
+// hideInspectorPanel — owner: graph/edge-inspector.ts
+declare function hideInspectorPanel(): void;
+
+// inspector — owner: main.ts
+declare const inspector: any;         // inspector/inspector.js
+
+// runAction — owner: inspector/agent-view.ts
+declare function runAction(command: string, charName: string): void;
+
+// selectAgent — owner: ui-controller.ts
+declare function selectAgent(name: string): void;
+
+// viewerExitMap — owner: agent/prompt-builder/room-context.ts
+declare const viewerExitMap: Record<string, ExitEntry>;

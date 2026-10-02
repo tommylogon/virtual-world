@@ -35,16 +35,8 @@ const mainJsTag = (strings: TemplateStringsArray, ...values: unknown[]) => Lit.h
 // Bare-name reads below are exactly what HEAD emitted.
 // ─────────────────────────────────────────────────────────────────────────────
 declare const SaveLoadView: any;       // ui/save-load-view.js
-declare const SettingsView: any;      // ui/settings-view.js
-declare const AIGenerator: any;       // shared/ai-generator.js
 declare const CreateModal: any;       // ui/create-modal.js
-declare const agent: any;             // agent/agent-engine.js
-declare const ui: any;                // ui/ui-controller.js
-declare const itemLib: any;           // item-library.js
 declare const inspector: any;         // inspector/inspector.js
-declare const libraryBrowser: any;    // library/library-browser.js
-declare const worldSync: any;         // shared/world-sync.js
-declare const agentLens: any;         // ui/agent-lens.js
 
 /**
  * The prompt-preview modal is a plain <div> that this file stashes the

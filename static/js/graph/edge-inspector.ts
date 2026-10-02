@@ -114,5 +114,4 @@ const EdgeInspector = (() => {
 
 (window as unknown as { EdgeInspector: typeof EdgeInspector }).EdgeInspector = EdgeInspector;
 
-declare const EdgeTypes: any;
 declare function hideInspectorPanel(): void;

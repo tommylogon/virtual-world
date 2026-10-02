@@ -403,12 +403,8 @@ if (VW?.PromptDocs?.ITEM_GENERATION_SYSTEM) {
  * a window property — it can only be reached as a bare identifier. `declare`
  * emits nothing, so runtime resolution is unchanged.
  */
-declare const AIGenerator: {
-    generate(prompt: string, system: string, options?: unknown): Promise<{ success: boolean; error?: string; data: any }>;
-};
 
 /** parseJsonSafely (shared/json-utils.js) is a top-level function declaration. */
-declare function parseJsonSafely(str: string): any;
 
 /**
  * The ItemLibrary instance these methods are mixed onto via `.call(this)`.

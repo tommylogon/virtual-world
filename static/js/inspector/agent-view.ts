@@ -19,14 +19,7 @@
  * globals.d.ts. Declared locally (or cast locally) so this file does not reach
  * into the shared ambient declaration that other lanes are editing.
  */
-declare const ui: { getAgentColor(name: string): string; [key: string]: any };
-declare const TagMultiselect: new (el: HTMLElement, opts: Record<string, any>) => unknown;
-declare function reinitChoices(el: Element): void;
 declare function runAction(command: string, charName: string): void;
-declare function toastSuccess(message: string): void;
-declare function toastWarning(message: string): void;
-declare const agent: { getDisplayHistory(agentName: string): any[]; [key: string]: any };
-declare const AIGenerator: { isConfigured(): boolean; [key: string]: any };
 type AVWin = { [key: string]: any };
 
 (window as unknown as AVWin).InspectorAgentView = (() => {

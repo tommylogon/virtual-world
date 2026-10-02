@@ -58,7 +58,6 @@ interface LLMConfigOptions {
 }
 
 /** Assigned by shared/json-utils.js as a classic-script global. */
-declare function extractAssistantText(raw: unknown): string;
 
 /** Feature-detected by _captureRawExchange; published by shared/dataset-collector.js. */
 declare const DatasetCollector: { capture(messages: unknown, content: unknown, label: string, extra?: unknown): void } | undefined;

@@ -16,13 +16,8 @@ const uiControllerHtmlTag = (strings: TemplateStringsArray, ...values: unknown[]
 // Module state lives on the instance; the declarations are `declare` so they add
 // nothing to the emitted classic script (a bare field would emit `AGENT_COLORS;`).
 declare const agent: any;              // VW.agent, the turn-queue owner (agent/turn-queue.js)
-declare const agentLens: { refresh(): void };
 declare const GraphTreeView: { renderOutlinePanel(target: Element | null): void };
 declare function selectAgent(name: string): void;
-declare const LLMClient: {
-    normalizeBase(base: string): string;
-    getFallbackModels(base: string): string[];
-};
 /** Feature-detected `window` members this module reads. */
 type UIWin = {
     appEvents?: { on(event: string, cb: (state: unknown) => void): void };

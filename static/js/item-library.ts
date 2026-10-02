@@ -32,12 +32,6 @@ const ItemLibraryApi = ApiClient as unknown as {
 // Collaborator modules that `types/globals.d.ts` does not declare. They are
 // loaded by <script> tags before this file, so a bare global read keeps the
 // original `typeof X === 'undefined'` guards meaningful.
-declare const ItemLibraryPlacement: {
-    updatePlaceButton(this: ItemLibrary): unknown;
-    pickTarget(this: ItemLibrary, title: string): Promise<PlacementTarget | null>;
-    placeInRoom(this: ItemLibrary): Promise<unknown>;
-    placeSelectedInRoom(this: ItemLibrary): Promise<unknown>;
-};
 declare const ItemLibraryContents: {
     renderContentsSection(this: ItemLibrary, contents: unknown): unknown;
     removeContent(this: ItemLibrary, idx: unknown): unknown;
@@ -84,8 +78,6 @@ interface PlacementTarget {
     name?: string;
 }
 
-declare const reinitChoices: ((root: Element) => void) | undefined;
-declare const parseJsonSafely: (text: string) => any;
 
 const TagMultiselectCtorGlobal = (window as unknown as {
     TagMultiselect?: new (el: HTMLElement, opts: Record<string, unknown>) => TagMultiselectInstance;

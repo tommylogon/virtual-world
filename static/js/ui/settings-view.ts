@@ -229,5 +229,3 @@ const SettingsView = (() => {
 
 (window as unknown as { SettingsView: typeof SettingsView }).SettingsView = SettingsView;
 
-declare const EdgeTypes: any;
-declare function hideInspectorPanel(): void;

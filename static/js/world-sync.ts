@@ -23,9 +23,6 @@ const worldSyncTag = (strings: TemplateStringsArray, ...values: unknown[]) => wi
 // lane). `declare` emits nothing, so runtime resolution is unchanged:
 // itemLib / libraryBrowser are script-level `const`s, jsonDeepEqual is a
 // script-level function declaration.
-declare const itemLib: ItemLib;
-declare const libraryBrowser: LibraryBrowser;
-declare const jsonDeepEqual: (a: unknown, b: unknown) => boolean;
 
 
 /**

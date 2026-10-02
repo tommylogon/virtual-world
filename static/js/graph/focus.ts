@@ -63,11 +63,6 @@ interface GraphFocusApi {
 }
 
 /** Modules this one drives, published on `window` by their own scripts. */
-declare const GraphNetwork: {
-    applyVisibility(): void;
-    applyModePhysics(enabled: boolean): void;
-    _computeVisibleNodeIds(): Set<string>;
-};
 
 /** `window.GraphToolbar` is feature-detected, so the Window member is optional. */
 type FocusWin = { GraphToolbar?: { syncDisabled(): void } };

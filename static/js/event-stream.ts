@@ -26,15 +26,8 @@ const eventStreamHtmlTag = (strings: TemplateStringsArray, ...values: unknown[])
  * static/js/types/globals.d.ts. Placeholder index signatures keep this file
  * compiling on its own without freezing a copy of a surface it does not own.
  */
-declare class StreamTurnCards { constructor(bus: unknown); [key: string]: any; }
-declare class StreamFilters { constructor(bus: unknown); [key: string]: any; }
-declare class StreamRawLLM { constructor(bus: unknown); [key: string]: any; }
-declare class StreamPersistence { constructor(bus: unknown); [key: string]: any; }
-declare class StreamScrubber { constructor(bus: unknown); [key: string]: any; }
-declare class StreamControlMode { constructor(bus: unknown); [key: string]: any; }
 
 /** Assigned by shared/json-utils.js as a classic-script global. */
-declare function extractAssistantText(raw: unknown): string;
 
 
 

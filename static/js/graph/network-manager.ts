@@ -42,12 +42,6 @@ type LayoutEngineExtra = typeof GraphLayoutEngine & {
 };
 
 /** Published by graph/edge-types.js (also window.EdgeTypes); not in globals.d.ts. */
-declare const EdgeTypes: {
-    getConfig(type: string): Record<string, any>;
-    resolve(type: string): string;
-    validForSource(nodeType: string): string[] | null;
-    validTargets(edgeType: string): string[] | null;
-};
 
 /** Feature-detected collaborators; published by graph/relative-layout.js and friends. */
 type RelLayoutWin = {
@@ -66,7 +60,6 @@ type RelLayoutWin = {
         emotionKeyForName(name: string): string;
     };
 };
-declare const GraphNetwork: NetworkApi;
 
 // Lazy lit-html tag: window.Lit is only available at call time (deferred module
 // bootstrap), not at parse time. Unique per file so top-level consts never collide.

@@ -188,8 +188,5 @@
 
 declare const NLEditorStaging: any;
 declare const NLEditorTools: any;
-declare const NLEditorAgent: any;
 declare const NLEditorUI: any;
 declare const NLEditorGhosts: any;
-declare const ui: any;
-declare function toastSuccess(message: string, ...rest: unknown[]): void;

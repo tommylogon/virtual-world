@@ -150,7 +150,7 @@ const AIGenerator = {
 
     /** Convenience: generate and populate result via a setter callback.
      *  Returns { success, data } or shows error toast. */
-    async generateAndPopulate(userPrompt: string, systemMessage: string, setFormData: (data: unknown) => void, options: AIGenerateOptions = {}): Promise<{ success: boolean; data: unknown; error?: string | null }> {
+    async generateAndPopulate(userPrompt: string, systemMessage: string, setFormData: (data: unknown) => void, options: AIGenerateOptions = {}): Promise<{ success: boolean; data: any; error?: string | null }> {
         const result = await this.generate(userPrompt, systemMessage, options);
         if (result.success && result.data) {
             if (typeof setFormData === 'function') setFormData(result.data);
@@ -215,7 +215,10 @@ interface AIGenerateOptions {
 
 interface AIGenerateResult {
     success: boolean;
-    data: unknown;
+    /** `any`, not `unknown`: this is arbitrary model-authored JSON and every
+     *  caller indexes straight into it. `unknown` here moved ~45 errors to the
+     *  call sites without checking anything they were not already ignoring. */
+    data: any;
     raw: string;
     error: string | null;
 }
