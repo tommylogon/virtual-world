@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: library
 priority: low
 ---
@@ -16,7 +16,25 @@ The WorldPainter reference-image picker lists 19 backgrounds including 'eldenfor
 
 ## Acceptance
 
-- TODO
+- [x] The known-bad reference is no longer offered by the picker.
+- [x] The file is moved, not deleted, so the decision is reversible.
+- [x] The endpoint was hit live to prove it.
+
+## What was done 2026-10-02
+
+`static/images/backgrounds/eldenford - wrong orientatoin.png` was moved (via
+`git mv`) to `static/images/backgrounds/_rejected/`. `_background_urls`
+(`routes/world_grid_ops.py`) now skips non-file entries, so a subfolder is never
+listed and the bad image cannot be traced over by mistake. The rejected copy is
+still in the tree if the author wants it.
+
+Evidence, live on port 4461:
+
+    GET /api/world/painter/backgrounds
+    -> 17 images, none matching "wrong orient"
+    -> /static/images/backgrounds/eldenford.png still present
+
+`python -m pytest tests/test_painter_backgrounds.py -q` — 1 passed.
 
 ## Sweep of the backgrounds directory (2026-09-30) — leaving this one to Tommy
 

@@ -975,6 +975,12 @@ def _background_urls(app):
     folder = os.path.join(app.root_path, "static", "images", "backgrounds")
     if os.path.isdir(folder):
         for name in sorted(os.listdir(folder)):
+            # Reference art the author has rejected (e.g. a wrong-orientation
+            # trace) is parked in a subfolder instead of deleted, so it stays
+            # recoverable; os.listdir returns the subfolder itself, which is not
+            # a file and is skipped here (task-649).
+            if not os.path.isfile(os.path.join(folder, name)):
+                continue
             ext = name.rsplit(".", 1)[-1].lower() if "." in name else ""
             if ext in _IMAGE_EXTS:
                 add(f"/static/images/backgrounds/{name}")

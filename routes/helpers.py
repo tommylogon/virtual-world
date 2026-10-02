@@ -260,6 +260,39 @@ def delete_registry_entry(data_dir, filename, key):
     return False
 
 
+#: A tag id is a short slug (two-to-ten characters typically), so difflib's
+#: default 0.6 is far too permissive: "wanderer" -> "underwear" (0.71) and
+#: "fear" -> "footwear" (0.67) both clear it. A confident suggestion must clear
+#: a higher ratio *and* be close in length, which is what separates a typo from
+#: an unrelated short id. bug-512.
+_TAG_SUGGEST_CUTOFF = 0.8
+
+
+def closest_tag_match(tag, candidates):
+    """Return the single confident near-miss for *tag*, or ``None``.
+
+    ``None`` is an answer -- "no idea" -- and is deliberately different from a
+    wrong suggestion: a caller that trusts ``underwear`` for ``wanderer``
+    silently writes a worse tag than the one it rejected (bug-512). The route
+    exposes the distinction as ``suggestion: null``.
+    """
+    import difflib
+    text = str(tag or '').strip().lower()
+    pool = sorted({str(c).strip().lower() for c in (candidates or []) if str(c).strip()})
+    if not text or not pool:
+        return None
+    matches = difflib.get_close_matches(text, pool, n=1, cutoff=_TAG_SUGGEST_CUTOFF)
+    if not matches:
+        return None
+    best = matches[0]
+    # Length guard: a four-character id is not a spelling of an eight-character
+    # one however the ratio lands. The margin keeps plural/singular pairs
+    # ("tools"/"tool", "mechanisms"/"mechanism") and one-or-two-char typos.
+    if abs(len(best) - len(text)) > max(2, len(text) // 3):
+        return None
+    return best
+
+
 def validate_tags_on_save(tags, data_dir=None):
     """Validate a tag list against the tag library. Never blocks — warns only.
 
@@ -267,7 +300,6 @@ def validate_tags_on_save(tags, data_dir=None):
     closest-match suggestion when available). Callers log the warnings and/or
     surface them to the client; saves proceed regardless.
     """
-    import difflib
     if not tags:
         return []
     if isinstance(tags, str):
@@ -292,8 +324,8 @@ def validate_tags_on_save(tags, data_dir=None):
         if not tag:
             continue
         if tag.lower() not in library:
-            suggestions = difflib.get_close_matches(tag.lower(), list(library.keys()), n=1, cutoff=0.6)
-            hint = f" — did you mean '{suggestions[0]}'?" if suggestions else ""
+            suggestion = closest_tag_match(tag, library.keys())
+            hint = f" — did you mean '{suggestion}'?" if suggestion else ""
             warnings.append(f"Tag '{tag}' not in library{hint}")
             logger.warning(f"Tag validation: {warnings[-1]}")
     return warnings

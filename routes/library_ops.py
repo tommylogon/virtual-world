@@ -8,6 +8,7 @@ from flask import request, jsonify
 from player import Player
 from graph import Node, Edge, EDGE_CARRYING, EDGE_TRIGGERS, EDGE_IN, EDGE_ON, EDGE_UNDER, EDGE_BEHIND, EDGE_BESIDE, EDGE_AT
 from engine.item_actions import normalize_item_actions
+from engine import behaviors as behavior_library
 from engine import sync
 from engine.library_nodes import RELATION_EDGE_TYPES, library_item_properties
 from engine.serialization import canonical_vitals
@@ -196,16 +197,21 @@ def _filter_mature_entries(app, registry_type, data):
     }
 
 
-def _reload_condition_catalog(registry_type):
-    """task-462: conditions are the engine's runtime catalog — re-read the JSON
-    library after a write so edits take effect without an app restart."""
-    if registry_type != 'conditions':
-        return
-    try:
-        from engine.player_conditions import reload_condition_library
-        reload_condition_library()
-    except Exception as e:
-        logger.warning(f"Condition catalog reload failed: {e}")
+def _reload_condition_catalog(app, registry_type):
+    """task-462/task-590: engine runtime catalogs re-read the JSON library after a
+    write so an edit takes effect without an app restart. Conditions and the
+    reusable behaviour library are both loaded at import; both are reloaded here."""
+    if registry_type == 'conditions':
+        try:
+            from engine.player_conditions import reload_condition_library
+            reload_condition_library()
+        except Exception as e:
+            logger.warning(f"Condition catalog reload failed: {e}")
+    elif registry_type == 'behaviours':
+        try:
+            behavior_library.reload(app.config.get('DATA_DIR'))
+        except Exception as e:
+            logger.warning(f"Behaviour library reload failed: {e}")
 
 
 def handle_library_list(app, registry_type):
@@ -280,7 +286,7 @@ def write_library_entry(app, registry_type, entry_id, entry_data):
     registry = load_registry(app.config['DATA_DIR'], filename)
     registry[str(entry_id)] = _strip_presentation_properties(entry_data)
     save_registry(app.config['DATA_DIR'], filename, registry)
-    _reload_condition_catalog(registry_type)
+    _reload_condition_catalog(app, registry_type)
     return _entry_tag_warnings(app, registry.get(str(entry_id), {}))
 
 
@@ -293,7 +299,7 @@ def delete_library_entry(app, registry_type, entry_id):
     if str(entry_id) not in registry:
         return False
     delete_registry_entry(app.config['DATA_DIR'], filename, str(entry_id))
-    _reload_condition_catalog(registry_type)
+    _reload_condition_catalog(app, registry_type)
     return True
 
 
@@ -320,7 +326,7 @@ def handle_library_delete(app, registry_type, entry_id):
         return jsonify({"error": "Entry not found"}), 404
     del registry[entry_id]
     delete_registry_entry(app.config['DATA_DIR'], filename, entry_id)
-    _reload_condition_catalog(registry_type)
+    _reload_condition_catalog(app, registry_type)
     return jsonify({"status": "deleted"})
 
 
@@ -342,7 +348,7 @@ def handle_library_rename(app, registry_type, entry_id):
     registry[new_id] = registry.pop(entry_id)
     save_registry(app.config['DATA_DIR'], filename, registry)
     delete_registry_entry(app.config['DATA_DIR'], filename, entry_id)
-    _reload_condition_catalog(registry_type)
+    _reload_condition_catalog(app, registry_type)
     return jsonify({"status": "renamed", "old": entry_id, "new": new_id})
 
 
@@ -479,6 +485,19 @@ def handle_library_import_character(app, char_id):
     player.emotion = cdata.get('emotion', {})
     player.memories = cdata.get('memories', [])
     player.behaviors = cdata.get('behaviors', [])
+    # task-590: reusable behaviours live in data/library/behaviours/ and are
+    # referenced by id. Resolve them into the inline list the evaluator already
+    # reads; an unresolvable ref is reported in the response, never dropped.
+    behavior_warnings = []
+    behavior_refs = cdata.get('behavior_refs') or []
+    if behavior_refs:
+        player.behaviors, unresolved = behavior_library.merge_into(
+            player.behaviors, behavior_refs, app.config.get('DATA_DIR'))
+        warning = behavior_library.report_unresolved(
+            f"Character '{player_name}' (library '{char_id}')", unresolved)
+        if warning:
+            behavior_warnings.append(warning)
+            logger.warning(warning)
     player.npc_behavior = cdata.get('npc_behavior', 'wander')
     player.npc_action_interval = cdata.get('npc_action_interval', 3)
     player.simple_npc = cdata.get('simple_npc', False)
@@ -610,7 +629,8 @@ def handle_library_import_character(app, char_id):
     if make_active:
         app.world.set_active_player(player_name)
 
-    return jsonify({"status": "imported", "player": player_name})
+    return jsonify({"status": "imported", "player": player_name,
+                    "behavior_warnings": behavior_warnings})
 
 
 def handle_library_import_area(app, area_id):
@@ -1141,6 +1161,18 @@ def _refresh_character(app, node, sections, template_id=None, entries=None):
                 continue
             assign(player_field, lib_char[section_key], kind)
         applied = sections
+
+    # task-590: resolve reusable behaviour refs into the inline list the
+    # evaluator reads. `merge_into` is idempotent, so refreshing twice does not
+    # double the tree; an unresolvable ref is logged rather than dropped.
+    refs = lib_char.get('behavior_refs') or []
+    if refs and (sections is None or 'behaviors' in sections or 'behavior_refs' in sections):
+        player.behaviors, unresolved = behavior_library.merge_into(
+            player.behaviors, refs, app.config.get('DATA_DIR'))
+        warning = behavior_library.report_unresolved(
+            f"Character '{node.name}' (library '{char_id}')", unresolved)
+        if warning:
+            logger.warning(warning)
 
     if template_id:
         props['library_id'] = template_id

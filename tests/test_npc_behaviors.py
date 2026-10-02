@@ -78,6 +78,11 @@ def test_rat_template_behaviors_parse():
     moved the boot content tests depend on into tests/fixtures/world.json. The
     rat keeps its behaviour tree but is not autonomous, so it parses here and
     does not act on a tick.
+
+    The tree is **deliberately inline** (task-590): it is one bespoke creature
+    whose behaviours are coupled to its own patrol/forage loop, not a reusable
+    entry. Reusable behaviours live in ``data/library/behaviours/`` and are
+    attached with ``behavior_refs``; see ``tests/test_library_behaviors.py``.
     """
     import json
 

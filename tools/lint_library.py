@@ -14,6 +14,11 @@ Warnings (exit 0):
   6. area_tag_gaps    — library areas with no tags
   9. dead_fears       — character fear_tags that no item, area, character or
      trait key carries, so engine/fear.py can never match them
+ 10. biome_coverage   — a biome's resource_distribution entry whose tags match
+      no library item, so a search there would turn up nothing (task-573)
+ 11. stray_library_dirs — a data/library/ subdirectory that is not a registry
+      type, so a runtime save parked there is invisible (not read, not reported)
+      rather than mistaken for authored content (task-645)
 
 Usage:
   python tools/lint_library.py                  # all checks against default data dir
@@ -32,10 +37,17 @@ import sys
 
 DEFAULT_LIB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "library")
 
+#: The registries this check reports on. Every registry is keyed by filename and
+#: so is equally subject to the hazard; this tuple is the set the check has always
+#: covered, kept explicit so widening it is a deliberate change to the output
+#: rather than an accident. `routes/library_ops.REGISTRY_TYPES` is the canonical
+#: list of registry types (see `_known_registry_types`).
+_CHARSET_REGISTRIES = ("items", "characters", "areas", "tags", "ways")
+
 ERROR_CHECKS = ("dead_interests", "missing_slots", "tag_case_drift", "broken_contents",
                 "unauthored_consumables", "resource_pools")
 WARNING_CHECKS = ("singleton_tags", "area_tag_gaps", "dead_fears", "tag_id_charset",
-                  "duplicate_area_names")
+"duplicate_area_names", "biome_coverage", "stray_library_dirs")
 ALL_CHECKS = ERROR_CHECKS + WARNING_CHECKS
 
 #: Items that carry `food`/`drink` (or an `eat`/`drink` action) because they sit
@@ -69,6 +81,73 @@ def load_registry(lib_dir, name):
         except (json.JSONDecodeError, UnicodeDecodeError) as exc:
             print(f"ERROR {name}/{file_id}: unparseable JSON ({exc})")
     return entries
+
+
+def check_stray_library_dirs(lib_dir, report):
+    """A ``data/library/`` subdirectory that is not a registry type (task-645).
+
+    ``data/library/`` is the authored tree, but it can accumulate a directory
+    that is not a registry — ``rooms/`` held 526 KB of stale *save state* for a
+    while. Nothing reads it, so nothing reports it: the only signal it ever
+    produced was a 400 on ``GET /api/library/rooms``. This makes the stray
+    directory visible (a warning, exit 0) so the set cannot grow unnoticed, and
+    leaves the decision to remove it to whoever owns the migration.
+
+    Hidden directories (``_``-prefixed) are ignored: that is the convention for
+    deliberately parked non-content.
+    """
+    known = _known_registry_types()
+    if not known or not os.path.isdir(lib_dir):
+        return
+    strays = sorted(
+        name for name in os.listdir(lib_dir)
+        if os.path.isdir(os.path.join(lib_dir, name))
+        and not name.startswith("_")
+        and name not in known
+    )
+    if strays:
+        report.warn("stray_library_dirs",
+                    f"data/library/ has {len(strays)} directory(ies) that are not registry "
+                    f"types and nothing reads (runtime saves parked in the authored tree?): "
+                    f"{', '.join(strays)}")
+
+
+def _known_registry_types():
+    """The canonical registry list, owned by the library API.
+
+    Imported lazily so a hard dependency on Flask is not created for the one
+    check that needs it; if it cannot be imported the check stays silent rather
+    than guessing at the list.
+    """
+    try:
+        root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        if root not in sys.path:
+            sys.path.insert(0, root)
+        from routes.library_ops import REGISTRY_TYPES
+        return set(REGISTRY_TYPES)
+    except Exception:
+        return set()
+
+
+def load_biomes(lib_dir):
+    """Load ``<data>/worldpainter/biomes.json`` for the biome-coverage check.
+
+    The file lives beside the library (``data/worldpainter``), not inside it, so
+    a fixture ``--data-dir`` still resolves a sibling ``worldpainter/``.
+    """
+    path = os.path.join(os.path.dirname(os.path.abspath(lib_dir)), "worldpainter", "biomes.json")
+    if not os.path.isfile(path):
+        return {}
+    try:
+        # utf-8-sig, matching engine/biomes.py: the engine reads this same file
+        # and the two must not disagree about whether it is readable. The plain
+        # codec hands json a stray U+FEFF on a BOM'd file, and the check then
+        # silently reports nothing.
+        with open(path, "r", encoding="utf-8-sig") as handle:
+            return json.load(handle)
+    except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+        print(f"ERROR worldpainter/biomes.json: unparseable JSON ({exc})")
+        return {}
 
 
 def content_ref_id(ref):
@@ -266,21 +345,18 @@ def check_tag_id_charset(registries, report):
     """Registry ids outside ``[a-z0-9_]`` -- task-601.
 
     ``load_registry`` keys every entry by its **filename verbatim**
-    (``routes/helpers.py``), so an id is whatever the file is called. 576 of the
-    591 tag files use ``snake_case``; 15 use spaces. Both resolve by their exact
-    id, but only the exact form: ``blackwood_mansion`` does NOT find
-    ``blackwood mansion.json``. An author writing the conventional form gets a
-    silent miss, and ``tag_case_drift`` cannot see it because that check only
-    compares casing, not separators.
+    (``routes/helpers.py``), so an id is whatever the file is called. Both forms
+    resolve by their exact id, but only the exact form: ``blackwood_mansion``
+    does NOT find ``blackwood mansion.json``. An author writing the conventional
+    form gets a silent miss, and ``tag_case_drift`` cannot see it because that
+    check only compares casing, not separators.
 
-    Reported as a warning rather than an error: the spaced ids are referenced in
-    20+ places across areas, characters, items, rooms and ways, so renaming them
-    is a cross-registry migration, not a lint fix. The point of the check is to
-    stop the set growing silently.
-
-    Also reports the case where normalising would collide -- ``hidden door`` and
-    ``hidden_door`` are separate files today and normalising merges them, so
-    that one needs a human decision about whether they are the same tag.
+    Reported as a warning rather than an error: renaming a spaced id is a
+    cross-registry migration (task-646), not a lint fix. The point of the check
+    is to stop the set growing silently. As of 2026-10-02 the 15 spaced **tag**
+    ids and the ``hidden door``/``hidden_door`` collision are resolved (task-646);
+    the remaining offenders are the 37 characters and one item owned by the
+    character/item library lane.
     """
     for name, entries in (registries or {}).items():
         offenders = [k for k in entries if not re.match(r"^[a-z0-9_]+$", str(k))]
@@ -382,6 +458,52 @@ def check_duplicate_area_names(areas, report):
                         f"areas share display name '{name}': {', '.join(sorted(ids))}")
 
 
+def check_biome_coverage(items, biomes_data, report):
+    """A biome's resource_distribution must resolve to a library item (task-573).
+
+    task-569's consumer picks a find by tag intersection, the way
+    ``engine/foraging.py::_pick_item`` does: an entry whose tags match no item
+    yields nothing at all. Nothing reports that today, so a biome can be painted
+    as forageable and silently produce an empty search.
+
+    The rule is the consumer's: ``engine/foraging.py::_pick_item`` scores every
+    item that shares a tag with the entry, and only then prefers the
+    ``forage``-tagged subset of *those* matches when that subset is non-empty.
+    So it narrows the candidate pool but never turns a non-empty match set into
+    nothing -- an entry matching only an untagged item is still found. The gap
+    condition is therefore a plain empty intersection, and intersecting a global
+    ``forage`` set here would report entries the engine happily spawns.
+
+    A warning, not an error -- coverage can legitimately be authored after the
+    biome, and the count is the point.
+    """
+    tag_index = {}
+    for item_id, item in items.items():
+        if not isinstance(item, dict):
+            continue
+        tags = item.get("tags") or []
+        if isinstance(tags, str):
+            tags = [t.strip() for t in tags.split(",")]
+        for tag in tags:
+            low = str(tag).strip().lower()
+            if low:
+                tag_index.setdefault(low, []).append(item_id)
+
+    for biome_id, entries in sorted((biomes_data.get("resource_distribution") or {}).items()):
+        dead = []
+        for entry in entries:
+            etags = {str(t).strip().lower() for t in (entry.get("tags") or [])}
+            hits = set()
+            for tag in etags:
+                hits.update(tag_index.get(tag, []))
+            if not hits:
+                dead.append("/".join(sorted(etags)))
+        if dead:
+            report.warn("biome_coverage",
+                        f"biomes/{biome_id}: resource_distribution entries resolve to no "
+                        f"library item, so a search turns up nothing: {', '.join(dead)}")
+
+
 def check_area_tag_gaps(areas, report):
     """Library areas carrying no tags at all (informational)."""
     untagged = [area_id for area_id, area in sorted(areas.items())
@@ -403,9 +525,15 @@ CHECKS = {
     "unauthored_consumables": lambda ctx, r: check_unauthored_consumables(ctx["items"], r),
     "resource_pools": lambda ctx, r: check_resource_pools(ctx["items"], r),
     "singleton_tags": lambda ctx, r: check_singleton_tags(ctx["items"], r),
-    "tag_id_charset": lambda ctx, r: check_tag_id_charset(ctx, r),
+    # Explicit registry keys: the context also carries `biomes` (a taxonomy dict)
+    # and `lib_dir` (a string), and passing the whole context made this check
+    # iterate a path string character by character.
+    "tag_id_charset": lambda ctx, r: check_tag_id_charset(
+        {k: ctx[k] for k in _CHARSET_REGISTRIES if isinstance(ctx.get(k), dict)}, r),
     "area_tag_gaps": lambda ctx, r: check_area_tag_gaps(ctx["areas"], r),
-    "duplicate_area_names": lambda ctx, r: check_duplicate_area_names(ctx["areas"], r),
+"duplicate_area_names": lambda ctx, r: check_duplicate_area_names(ctx["areas"], r),
+    "biome_coverage": lambda ctx, r: check_biome_coverage(ctx["items"], ctx["biomes"], r),
+    "stray_library_dirs": lambda ctx, r: check_stray_library_dirs(ctx["lib_dir"], r),
 }
 
 
@@ -442,6 +570,9 @@ def main():
         # live (15 of them), so the charset check needs it in context.
         "tags": load_registry(lib_dir, "tags"),
         "ways": load_registry(lib_dir, "ways"),
+        # task-573: the compiler vocabulary lives next to the library, not in it.
+        "biomes": load_biomes(lib_dir),
+        "lib_dir": lib_dir,
     }
     print(f"linting {lib_dir} — items={len(ctx['items'])} "
           f"characters={len(ctx['characters'])} areas={len(ctx['areas'])}")

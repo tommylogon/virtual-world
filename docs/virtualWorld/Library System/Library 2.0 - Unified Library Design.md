@@ -189,7 +189,7 @@ to raise the others *up to it*, not flatten it down.
 | **tags** | name, description, category, color, icon, applies_to, examples |
 | **traits** | the **engine** `TRAIT_DEFINITIONS` schema (`id, name, description, category, effects, grants_conditions, conflicts, behavior_prompt`, + `params` for parameterized traits) — this becomes the single source after unification; the current 52-file library format (params-only) is migrated |
 | **conditions** | the `CONDITION_DEFINITIONS` catalog fields (name, description, gates, auto_fail_checks, mods, speed_mult, periodic, ends_on, known, symptoms, stack, default_duration, excludes) once data-driven |
-| **behaviours** | — (tab removed; behaviours are per-character data on character entries) |
+| **behaviours** | reusable records `{trigger, interval, conditions, actions, priority}` in `data/library/behaviours/`; a character attaches them with `behavior_refs` (task-590) |
 | **triggers** | blueprint store for the trigger graph editor (`{name, description, graph}`) — keep, no browser tab |
 
 Backend-side, each type gets an optional **validate/coerce** hook (unknown keys warned, required keys
@@ -257,7 +257,7 @@ checked) so typos surface instead of silently persisting.
 - Save-from-World + Sync-All + Import for every tab.
 
 **Phase 3 — cleanup & docs**
-- Remove the behaviours tab/type, the `rooms` dir, the IndexedDB store, the `main.js:132` path.
+- Remove the `rooms` dir, the IndexedDB store, the `main.js:132` path. **Do not remove the behaviours tab/type** — task-590 wired it into the engine.
 - Orphan sweep action. Rewrite `Library System Overview.md` + add the sub-docs.
 
 **Phase 4 — polish (optional, fun)**
@@ -273,7 +273,7 @@ checked) so typos surface instead of silently persisting.
    Python). The plan is to move them to `data/library/conditions/` + `data/library/traits/` (loaded at
    startup) so the tabs, the pickers, and the engine all read one source. **Decided: do it.** (User:
    "I'd still like to see conditions and traits.")
-2. **Behaviours — remove** (verified: per-character data, no blueprint store). **Decided: remove tab/type.**
+2. **Behaviours — unify, not remove** (verified: the tab writes real files, the engine ignored them; task-590). **Decided: the engine loads `data/library/behaviours/*.json` and a character references entries via `behavior_refs`; keep the tab/type.**
 3. **Triggers — keep as blueprint store** (verified: `trigger-graph.js` save/load/pick). **Decided: keep
    type + files, no browser tab.**
 4. **Rename propagation** — when a library entry is renamed, should placed nodes' `library_id` be

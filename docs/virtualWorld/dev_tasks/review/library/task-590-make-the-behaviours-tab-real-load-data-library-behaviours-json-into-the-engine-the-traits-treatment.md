@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: library
 priority: high
 related: [task-291, task-586]
@@ -42,3 +42,52 @@ The doc's reasoning ("behaviours are per-character data; no blueprint registry e
 - Every file in `data/library/behaviours/` is either consumed or reported at startup. A library folder the engine silently ignores is the failure mode this task exists to remove, and the test must fail if one reappears.
 - The `rat` behaviours in `world_template.json` are either migrated to `data/library/behaviours/` or documented as deliberately inline, and `tests/test_npc_behaviors.py:74-83` is updated to match.
 - `task-291`'s Phase 3 line and the design doc's §1.3 row are corrected to point here, so nobody executes "remove the tab/type" from a six-week-old plan.
+
+## What was done 2026-10-02
+
+**Reference or inline-merge — inline-merge at character load, chosen and recorded.**
+A character carries `behavior_refs: [id]`; hydration copies each resolved record
+into `player.behaviors`, tagged with `_library_id`. The evaluator
+(`npc_behaviors.process_simple_npcs`) is untouched, no new `Player` field is
+introduced, and saves keep working because behaviours were already serialized
+inline. The `_library_id` marker keeps provenance inspectable (Q1). An
+unresolvable ref is **collected and reported**, never dropped (Q2).
+
+New module `engine/behaviors.py`:
+
+- `load()` / `reload()` — catalog of `data/library/behaviours/*.json`, cached by
+  directory, loaded at import like `traits.py::_load_trait_library`.
+- `resolve(refs)` / `merge_into(existing, refs)` — idempotent by `_library_id`.
+- `problems()` — every file that could not be consumed, reported at startup.
+
+Wiring:
+
+- `routes/library_ops.py` — character **import** and **refresh-to-world** resolve
+  `behavior_refs`; the import response carries `behavior_warnings`. Saving or
+  deleting a `behaviours` entry reloads the catalog (`_reload_condition_catalog`
+  now handles both conditions and behaviours), so a tab save is picked up without
+  a restart (Q4).
+- `engine/effects.py` — the library-character spawn path resolves refs too.
+
+Content: `data/library/behaviours/idle_hum.json` is the first authored reusable
+entry (an `on_tick` message every 15 game minutes).
+
+**The `rat` tree stays inline, deliberately** (Q3, recorded in
+`tests/test_npc_behaviors.py::test_rat_template_behaviors_parse`): it is one
+bespoke creature coupled to its own patrol/forage loop, not a reusable entry.
+Reusable behaviours are reached through `behavior_refs`.
+
+Docs corrected to point here: task-291 Phase 3 already carried the 2026-09-29
+note; the design doc's §1.3 row, the type table (line 192), Phase 3 (line 260)
+and the open-decision (line 276) now say **unify, not remove**.
+
+Evidence:
+
+- `python -m pytest tests/test_library_behaviors.py -q` — 5 passed. Proves: a
+  referenced library behaviour runs on tick (`npc_state == "foraging"`), an
+  unresolvable ref is reported in `behavior_warnings`, and a malformed file is in
+  `problems()`.
+- The shipped-file guard fails if any `data/library/behaviours/*.json` is not in
+  the catalog.
+- `tests/test_npc_behaviors.py tests/test_library_character_import.py
+  tests/test_library_refresh.py` — all green (25 passed together).
