@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: library
 priority: low
 ---
@@ -69,3 +69,34 @@ Two things worth deciding, neither of which is "add the route":
 `fighting_pit.json` is a third shape again (`name, description, environment`) and
 does not belong with the other two -- worth working out which of the three is
 still needed before touching any of them.
+
+## Resolution 2026-10-02 (decision #2 implemented, #1 deferred to task-291)
+
+**The 400 stays.** `rooms` is not a registry type and adding it would publish
+526 KB of live save state as authored content. No code change was made to the
+route.
+
+**Decision on #1 -- keep the files, as a backup.** Nothing deletes them here.
+`tools/migrate_legacy_triggers.py` still reads `rooms/mansion.json` as one of its
+inputs, and the removal is already claimed by **task-291 Phase 3**
+("delete `data/library/rooms` (first update `migrate_legacy_triggers.py:224`)"),
+which is in review. Moving or deleting them from this task would collide with
+that plan, so this task does not.
+
+**Decision on #2 -- a library sweep now reports a stray directory.** New warning
+check `stray_library_dirs` in `tools/lint_library.py` lists every
+`data/library/` subdirectory that is not one of the canonical registry types
+(imported from `routes/library_ops.REGISTRY_TYPES`, so the list has one source)
+and is not `_`-prefixed. The legacy `rooms/` directory is now visible instead of
+inert:
+
+    [WARN ] (stray_library_dirs) data/library/ has 1 directory(ies) that are not
+    registry types and nothing reads (runtime saves parked in the authored tree?): rooms
+
+It is a warning (exit 0), not an error: `data/library/rooms` is a known,
+adjudicated legacy directory, not a new violation. The check's value is that the
+set cannot grow unnoticed.
+
+Evidence: `python tools/lint_library.py --check stray_library_dirs` shows the
+warning above; `python -m pytest tests/test_library_lint_stray_dirs.py -q` — 3
+passed.

@@ -16,6 +16,9 @@ Warnings (exit 0):
      trait key carries, so engine/fear.py can never match them
  10. biome_coverage   — a biome's resource_distribution entry whose tags match
       no library item, so a search there would turn up nothing (task-573)
+ 11. stray_library_dirs — a data/library/ subdirectory that is not a registry
+      type, so a runtime save parked there is invisible (not read, not reported)
+      rather than mistaken for authored content (task-645)
 
 Usage:
   python tools/lint_library.py                  # all checks against default data dir
@@ -37,7 +40,7 @@ DEFAULT_LIB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..",
 ERROR_CHECKS = ("dead_interests", "missing_slots", "tag_case_drift", "broken_contents",
                 "unauthored_consumables", "resource_pools")
 WARNING_CHECKS = ("singleton_tags", "area_tag_gaps", "dead_fears", "tag_id_charset",
-                  "biome_coverage")
+                  "biome_coverage", "stray_library_dirs")
 ALL_CHECKS = ERROR_CHECKS + WARNING_CHECKS
 
 #: Items that carry `food`/`drink` (or an `eat`/`drink` action) because they sit
@@ -71,6 +74,52 @@ def load_registry(lib_dir, name):
         except (json.JSONDecodeError, UnicodeDecodeError) as exc:
             print(f"ERROR {name}/{file_id}: unparseable JSON ({exc})")
     return entries
+
+
+def check_stray_library_dirs(lib_dir, report):
+    """A ``data/library/`` subdirectory that is not a registry type (task-645).
+
+    ``data/library/`` is the authored tree, but it can accumulate a directory
+    that is not a registry — ``rooms/`` held 526 KB of stale *save state* for a
+    while. Nothing reads it, so nothing reports it: the only signal it ever
+    produced was a 400 on ``GET /api/library/rooms``. This makes the stray
+    directory visible (a warning, exit 0) so the set cannot grow unnoticed, and
+    leaves the decision to remove it to whoever owns the migration.
+
+    Hidden directories (``_``-prefixed) are ignored: that is the convention for
+    deliberately parked non-content.
+    """
+    known = _known_registry_types()
+    if not known or not os.path.isdir(lib_dir):
+        return
+    strays = sorted(
+        name for name in os.listdir(lib_dir)
+        if os.path.isdir(os.path.join(lib_dir, name))
+        and not name.startswith("_")
+        and name not in known
+    )
+    if strays:
+        report.warn("stray_library_dirs",
+                    f"data/library/ has {len(strays)} directory(ies) that are not registry "
+                    f"types and nothing reads (runtime saves parked in the authored tree?): "
+                    f"{', '.join(strays)}")
+
+
+def _known_registry_types():
+    """The canonical registry list, owned by the library API.
+
+    Imported lazily so a hard dependency on Flask is not created for the one
+    check that needs it; if it cannot be imported the check stays silent rather
+    than guessing at the list.
+    """
+    try:
+        root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        if root not in sys.path:
+            sys.path.insert(0, root)
+        from routes.library_ops import REGISTRY_TYPES
+        return set(REGISTRY_TYPES)
+    except Exception:
+        return set()
 
 
 def load_biomes(lib_dir):
@@ -448,6 +497,7 @@ CHECKS = {
     "tag_id_charset": lambda ctx, r: check_tag_id_charset(ctx, r),
     "area_tag_gaps": lambda ctx, r: check_area_tag_gaps(ctx["areas"], r),
     "biome_coverage": lambda ctx, r: check_biome_coverage(ctx["items"], ctx["biomes"], r),
+    "stray_library_dirs": lambda ctx, r: check_stray_library_dirs(ctx["lib_dir"], r),
 }
 
 
@@ -486,6 +536,7 @@ def main():
         "ways": load_registry(lib_dir, "ways"),
         # task-573: the compiler vocabulary lives next to the library, not in it.
         "biomes": load_biomes(lib_dir),
+        "lib_dir": lib_dir,
     }
     print(f"linting {lib_dir} — items={len(ctx['items'])} "
           f"characters={len(ctx['characters'])} areas={len(ctx['areas'])}")
