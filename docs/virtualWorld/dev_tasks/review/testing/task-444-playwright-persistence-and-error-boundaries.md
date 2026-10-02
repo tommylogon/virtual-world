@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: testing
 priority: medium
 ---
