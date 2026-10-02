@@ -63,6 +63,12 @@ class ConfigManager {
         // vis hierarchical layout, where the layout engine places every node by
         // relation level (physics off).
         this.graphLayoutMode = await storage.getConfig('graph_layout_mode') || 'free';
+        // Map layout on/off (bug-510). The Map tab used to live only on
+        // `graphManager._cardinalLayout`, which nothing persisted, so picking
+        // Map and reloading dropped straight back to Graph. Stored separately
+        // from graphLayoutMode ('levels') because the two are independent axes
+        // in `activeLayout()`, but both persist so a reload restores either.
+        this.graphCardinalLayout = (await storage.getConfig('graph_cardinal_layout')) === 'true';
         // Map-layout pitch (task-523 follow-up): px per painted cell, i.e. the
         // padding between areas in Map mode. 40px = an area every 40px with the
         // way at the midpoint; raise it to de-clutter a dense painted grid.
@@ -270,6 +276,7 @@ class ConfigManager {
         await storage.setConfig('graph_arrows', this.graphArrows ? 'true' : 'false');
         await storage.setConfig('graph_improved_layout', this.graphImprovedLayout ? 'true' : 'false');
         await storage.setConfig('graph_layout_mode', this.graphLayoutMode || 'free');
+        await storage.setConfig('graph_cardinal_layout', this.graphCardinalLayout ? 'true' : 'false');
         await storage.setConfig('graph_repel_enabled', this.graphRepelEnabled ? 'true' : 'false');
         await storage.setConfig('graph_repel_min', String(this.graphRepelMin));
         await storage.setConfig('graph_repel_max', String(this.graphRepelMax));
