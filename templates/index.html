@@ -976,6 +976,20 @@
     let _vitalModalPlayer = '';
     let _vitalModalName = '';
 
+    function escVital(s) {
+        return String(s == null ? '' : s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    // Locale-independent number: round to 1 decimal, drop a trailing .0.
+    function fmtVitalNum(n) {
+        const r = Math.round(Number(n) * 10) / 10;
+        return String(r);
+    }
+
     function openVitalModal(playerName, vitalName) {
         _vitalModalPlayer = playerName;
         _vitalModalName = vitalName;
@@ -993,11 +1007,53 @@
                     return;
                 }
                 const isTemp = _vitalModalName === 'Temperature';
-                const tte = isTemp
-                    ? ''
-                    : (data.time_to_empty != null
-                        ? `<span style="font-weight:600;">${data.time_to_empty} turns</span>`
-                        : '<span style="color:var(--text-muted);">No decay</span>');
+
+                // task-635: speak the direction the vital actually moves. The
+                // polarity comes from the engine (engine/vitals.py); drives
+                // (Hunger/Thirst/Bladder) FILL toward 100, resources DRAIN
+                // toward 0, Temperature is a comfort band handled separately.
+                const polarity = data.polarity
+                    || (['Hunger', 'Thirst', 'Bladder'].indexOf(_vitalModalName) !== -1 ? 'drive' : 'resource');
+                const rate = Number(data.decay_rate) || 0;
+                const rateWords = rate >= 1
+                    ? `about ${Math.round(rate)} points per turn`
+                    : `about 1 point every ${Math.round(1 / rate)} turns`;
+
+                let rateHtml = '';
+                if (isTemp) {
+                    rateHtml = '';
+                } else if (rate <= 0) {
+                    rateHtml = '<div style="font-size:11px;color:var(--text-muted);margin-bottom:12px;">Stable — it does not change on its own over time.</div>';
+                } else if (polarity === 'drive') {
+                    const remaining = Math.max(0, Number(data.max) - Number(data.value));
+                    const turns = fmtVitalNum(remaining / rate);
+                    const reach = remaining <= 0
+                        ? 'it is already at the top — most urgent.'
+                        : `it reaches the top (most urgent) in about ${turns} turns.`;
+                    rateHtml = `<div style="font-size:11px;color:var(--text-muted);margin-bottom:12px;">Fills toward ${escVital(data.max)} at ${rateWords} — ${reach}</div>`;
+                } else {
+                    const turns = fmtVitalNum(Number(data.value) / rate);
+                    const reach = Number(data.value) <= 0
+                        ? 'it is already empty.'
+                        : `it empties in about ${turns} turns.`;
+                    rateHtml = `<div style="font-size:11px;color:var(--text-muted);margin-bottom:12px;">Drains toward 0 at ${rateWords} — ${reach}</div>`;
+                }
+
+                // Natural-language read, from the same helper the vital hover
+                // uses (VitalThresholds.hoverText + PromptBuilder.describeVital).
+                let nlHtml = '';
+                if (!isTemp) {
+                    try {
+                        const partial = {};
+                        partial[_vitalModalName] = data.value;
+                        if (_vitalModalName === 'HP') partial.Max_HP = data.max;
+                        if (_vitalModalName === 'Mana') partial.Max_Mana = data.max;
+                        const nl = window.VitalThresholds?.hoverText?.(partial, _vitalModalName) || '';
+                        if (nl) {
+                            nlHtml = '<div style="font-size:11px;line-height:1.5;background:var(--bg-inset);border-radius:6px;padding:8px;margin-bottom:12px;white-space:pre-line;">' + escVital(nl) + '</div>';
+                        }
+                    } catch (e) { nlHtml = ''; }
+                }
 
                 // Temperature-specific info
                 let tempExtraHtml = '';
@@ -1090,21 +1146,24 @@
                         <div style="font-size:11px;color:var(--text-muted);">${data.percentage}%</div>
                     </div>
                     ${tempExtraHtml}
-                    <div class="field">
-                        <label>Value (${isTemp ? data.min + '–' + data.max : '0–' + data.max})</label>
-                        <input type="number" id="vital-edit-value" value="${data.value}" min="${isTemp ? data.min : 0}" max="${data.max}" step="${isTemp ? '0.1' : '1'}" style="width:100%;font-size:12px;">
-                    </div>
-                    <div class="field">
-                        <label>Decay Rate (per turn)</label>
-                        <input type="number" id="vital-edit-decay" value="${data.decay_rate}" step="0.1" style="width:100%;font-size:12px;">
-                        <div style="font-size:9px;color:var(--text-muted);margin-top:2px;">
-                            Base: ${data.base_decay_rate} | Override: ${data.decay_rate_override != null ? data.decay_rate_override : '—'}
+                    ${nlHtml}
+                    ${rateHtml}
+                    <details style="margin-top:12px;border-top:1px solid var(--border);padding-top:8px;">
+                        <summary style="cursor:pointer;font-size:11px;color:var(--text-muted);">Advanced — edit value${isTemp ? '' : ' &amp; rate'}</summary>
+                        <div style="margin-top:8px;">
+                            <div class="field">
+                                <label>Value (${isTemp ? data.min + '–' + data.max : '0–' + data.max})</label>
+                                <input type="number" id="vital-edit-value" value="${data.value}" min="${isTemp ? data.min : 0}" max="${data.max}" step="${isTemp ? '0.1' : '1'}" style="width:100%;font-size:12px;">
+                            </div>
+                            ${!isTemp ? `<div class="field">
+                                <label>Rate (per turn)</label>
+                                <input type="number" id="vital-edit-decay" value="${data.decay_rate}" step="0.1" style="width:100%;font-size:12px;">
+                                <div style="font-size:9px;color:var(--text-muted);margin-top:2px;">
+                                    Base: ${data.base_decay_rate} | Override: ${data.decay_rate_override != null ? data.decay_rate_override : 'none — using base'}
+                                </div>
+                            </div>` : ''}
                         </div>
-                    </div>
-                    ${!isTemp ? `<div class="field">
-                        <label>Time to Empty</label>
-                        <div style="font-size:12px;">${tte}</div>
-                    </div>` : ''}
+                    </details>
                     <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:12px;">
                         <label style="font-size:11px;font-weight:600;color:var(--pink);">Conditions Affecting</label>
                         <div style="margin-top:6px;display:flex;flex-direction:column;gap:4px;">${conds}</div>
