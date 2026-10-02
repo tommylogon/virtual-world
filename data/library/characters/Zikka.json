@@ -161,5 +161,7 @@
   "npc_action_interval": 3,
   "npc_state": "idle",
   "simple_npc": false,
-  "recent_hearing": []
+  "recent_hearing": [],
+  "size": "normal",
+  "species": "goblin"
 }

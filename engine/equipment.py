@@ -256,6 +256,171 @@ class EquipmentSystem:
             output += "\n" + "\n".join(trigger_outputs)
         return output
 
+    def prune_all_dangling_equipped(self) -> int:
+        """Prune every character's equipped dict after a node deletion.
+
+        Iterates the **world's** ``players`` dict (``PlayerManager.players`` is
+        a list of active-player objects, not the roster).
+        """
+        roster = getattr(self.world, "players", None) or {}
+        values = roster.values() if isinstance(roster, dict) else roster
+        total = 0
+        for player in list(values):
+            try:
+                total += len(self.prune_dangling_equipped(player))
+            except Exception:
+                continue
+        return total
+
+    def set_equipped_payload(self, player, payload, *, player_name: str = "") -> dict:
+        """task-654: write an ``equipped`` mapping to BOTH truths, atomically.
+
+        ``player.equipped`` and the graph's ``EDGE_EQUIPPED`` edges used to be
+        two independent stores, and every writer outside the equipment verbs —
+        ``POST /api/players/<name>``, ``/api/players/import``, the library
+        character loader — set only the first. Everything that actually *reads*
+        equipment went the other way: ``combat._best_weapon_node`` (weapon
+        selection) and ``equipment_bonuses.get_equipment_nodes`` (defense,
+        insulation, resistances) read the **edges**. So an API write returned 200,
+        showed the item in the inspector's Equipment section, and did nothing at
+        all in combat: a silent no-op in the only two places it mattered. The
+        in-world verb ``take`` writes both, which is why the same character could
+        be shown two contradictory states side by side.
+
+        This is the single writer for that mapping, so a direct write can no
+        longer produce the inert half:
+
+        * every real item node in the payload gets an ``equipped`` edge (item ->
+          character) carrying its ``slot``;
+        * ``equipped`` edges for items no longer in the payload are removed, and
+          the item goes back to ``carrying`` — the state it had before being
+          worn, so nothing is orphaned and nothing is lost;
+        * slot markers (``__multi_slot_<id>``, written by ``equip_item`` for a
+          two-handed or full-body item) are dict-side bookkeeping for the same
+          item and never become edges of their own;
+        * entries that do not resolve to an item node are kept in the dict and
+          reported, not silently dropped — a caller that names an item this
+          world does not have deserves to hear about it.
+
+        Returns ``{"slots": {...}, "unresolved": [...]}``.
+        """
+        player_id = self.player_manager.get_player_node_id(
+            player_name or getattr(player, "name", "")
+        )
+        wanted = set()
+        unresolved = []
+
+        for slot, stack in (payload or {}).items():
+            if not isinstance(stack, (list, tuple)):
+                continue
+            for item_id in stack:
+                if not item_id or self._is_marker(item_id):
+                    continue
+                node = self.graph.get_node(item_id)
+                if node is None or node.type != "item":
+                    unresolved.append(item_id)
+                    continue
+                wanted.add((item_id, str(slot)))
+
+        # Retire equipped edges this payload does not claim. An item that was
+        # worn and is now merely carried keeps its carrying edge; equip_item
+        # removes that edge on the way in, so the reverse is the symmetric
+        # statement of the same fact.
+        for edge in list(self.graph.get_edges_for_target(player_id, EDGE_EQUIPPED)):
+            if (edge.source, str(edge.properties.get("slot", ""))) in wanted:
+                continue
+            self.graph.remove_edge(edge.source, player_id, EDGE_EQUIPPED)
+            worn_elsewhere = self.graph.get_edges_for_source(edge.source, EDGE_EQUIPPED)
+            if not worn_elsewhere:
+                already_carried = any(
+                    e.source == edge.source
+                    for e in self.graph.get_edges_for_target(player_id, EDGE_CARRYING)
+                )
+                if not already_carried:
+                    self.graph.add_edge(Edge(source=edge.source, target=player_id,
+                                              type=EDGE_CARRYING))
+                node = self.graph.get_node(edge.source)
+                if node is not None:
+                    node.properties.pop("last_relation", None)
+
+        for item_id, slot in sorted(wanted):
+            if not any(e.source == item_id for e in
+                       self.graph.get_edges_for_target(player_id, EDGE_EQUIPPED)):
+                self.graph.add_edge(Edge(source=item_id, target=player_id,
+                                          type=EDGE_EQUIPPED, properties={"slot": slot}))
+            # Wearing something means not merely carrying it — the same edge swap
+            # equip_item performs, so the two paths cannot drift.
+            self.graph.remove_edge(item_id, player_id, EDGE_CARRYING)
+            self.graph.remove_edges_for_node(item_id, EDGE_CONNECTION)
+
+        if isinstance(payload, dict):
+            # Normalise against the canonical slot set. Every reader that walks
+            # `player.equipped` (get_visible_equipment, get_full_equipment,
+            # _sync_equipped_from_graph, the appearance prompts) assumes the full
+            # set is present, and a raw payload only names the slots it touches —
+            # so a partial write used to quietly remove the others. Unknown slot
+            # names are kept rather than dropped: they are still real state, and
+            # the graph edge carries them.
+            player.equipped = {slot: [] for slot in self.EQUIP_SLOTS}
+            for slot, stack in payload.items():
+                player.equipped[slot] = (
+                    list(stack) if isinstance(stack, (list, tuple)) else stack
+                )
+        # Markers mirror an item that is *already* equipped somewhere else (a
+        # two-handed axe fills both hands, a full-body suit covers every declared
+        # slot). They have no edge of their own, so a sync from the edges drops
+        # them — carry them across so the payload keeps meaning what it said.
+        markers = {
+            slot: [m for m in stack if self._is_marker(m)]
+            for slot, stack in (payload or {}).items()
+            if isinstance(stack, (list, tuple))
+        }
+        self._sync_equipped_from_graph(player, player_id)
+        for slot, slot_markers in markers.items():
+            if not slot_markers:
+                continue
+            existing = player.equipped.setdefault(slot, [])
+            for marker in slot_markers:
+                if marker not in existing:
+                    existing.append(marker)
+        if getattr(self, "world", None) is not None:
+            self._maybe_update_equipment_description(player)
+        return {"slots": dict(player.equipped), "unresolved": unresolved}
+
+    def prune_dangling_equipped(self, player, player_id=None) -> list:
+        """task-654: drop equipped ids whose item node no longer exists.
+
+        The second half of the same divergence, found while closing this task:
+        ``DELETE /api/graph/node/<id>`` removes the node and its edges, but the
+        ``player.equipped`` dict is not part of the graph, so the id survives the
+        node. It then lies to every reader that trusts the dict — the equipment
+        readout counts the item as worn, and ``body_parts.is_exposed`` degrades a
+        missing node to "this region is uncovered", which silently changes
+        coverage maths rather than failing.
+
+        Markers are left alone (they mirror an item that may still exist). Any
+        equipped edge whose item is gone is removed too. Returns the ids pruned.
+        """
+        player_id = player_id or self.player_manager.get_player_node_id(
+            getattr(player, "name", ""))
+        pruned = []
+        for slot, stack in list((getattr(player, "equipped", None) or {}).items()):
+            if not isinstance(stack, list):
+                continue
+            kept = []
+            for item_id in stack:
+                if self._is_marker(item_id):
+                    kept.append(item_id)
+                    continue
+                node = self.graph.get_node(item_id) if item_id else None
+                if node is not None and node.type == "item":
+                    kept.append(item_id)
+                else:
+                    pruned.append(item_id)
+                    self.graph.remove_edge(item_id, player_id, EDGE_EQUIPPED)
+            player.equipped[slot] = kept
+        return pruned
+
     def _sync_equipped_from_graph(self, player, player_id):
         """Rebuild player.equipped from graph EDGE_EQUIPPED edges to fix desyncs."""
         from collections import defaultdict
@@ -795,6 +960,30 @@ class EquipmentSystem:
                     lines.append(f"- {node.name}: {desc}")
         return lines
 
+    @staticmethod
+    def coverage_of(node, default: float = 0.8) -> float:
+        """A garment's coverage, defaulting to ``default`` when it says nothing.
+
+        task-489. One place answers "how much does this cover", so the description
+        and `engine/body_parts.py::COVERAGE_EXPOSED_THRESHOLD` cannot drift apart
+        — the default is deliberately *that same* 0.8, which means an item with no
+        authored coverage blocks skin contact, like clothing does.
+
+        A non-numeric or out-of-range value falls back rather than propagating: a
+        garment whose coverage is ``"sheer"`` is a garment whose coverage was
+        written wrong, and refusing to describe it helps nobody.
+        """
+        props = getattr(node, "properties", None) or {}
+        if "coverage" not in props:
+            return default
+        try:
+            value = float(props["coverage"])
+        except (TypeError, ValueError):
+            return default
+        if not 0.0 <= value <= 1.0:
+            return default
+        return value
+
     def _equipment_detail_lines(self, player, full):
         """task-210/215: per-item clothing detail for the appearance prompt.
 
@@ -814,8 +1003,21 @@ class EquipmentSystem:
                 props = node.properties or {}
                 desc = self._item_description_text(node)
                 meta = []
-                if 'coverage' in props:
-                    meta.append(f"coverage {props['coverage']}")
+                # task-489: `coverage` defaults to 0.8 when absent, which is the
+                # same threshold `engine/body_parts.py:COVERAGE_EXPOSED_THRESHOLD`
+                # uses to decide whether a layer blocks skin contact. So an item
+                # that says nothing is read as a *covering* garment — which is
+                # what clothing is — rather than as an author who forgot, and the
+                # default is the one number that keeps `is_exposed()` and the
+                # description agreeing with each other.
+                #
+                # Numeric `opacity`/`friction` are deliberately **not** added:
+                # task-215 re-scoped layer visibility onto the item's own
+                # description, and
+                # `tests/test_equipment_system.py::
+                # test_detail_lines_carry_description_not_opacity_or_friction`
+                # asserts they are not advertised even when authored.
+                meta.append(f"coverage {self.coverage_of(node)}")
                 state = props.get('current_state')
                 if state and state not in ('off', 'unlit'):
                     meta.append(f"state: {state}")
@@ -885,6 +1087,29 @@ class EquipmentSystem:
             items = full.get(hand, [])
             if items:
                 fallback_parts.append(f"{items[-1]} in their {slot_labels.get(hand, hand)}")
+        # task-489: the fallback used to list slot names only, so a garment that
+        # had just been soaked regenerated to *byte-identical* text — which is
+        # what made "wet -> description regenerates" look unwired even when it
+        # was firing. The item's own live state ("soaked") is the fact that has
+        # to survive into the prose, and it is already in `detail_lines`.
+        # Rendered as its own sentence rather than appended to the wearing list,
+        # which would read "... wearing a dress on their torso, state: soaked".
+        #
+        # The detail line packs `coverage` and `state` into one bracketed tail —
+        # `- Rain Coat (torso): Waxed cotton. [coverage 0.8, state: soaked]` — so
+        # `state` is found by locating the label rather than by looking for a
+        # bracket that only exists when coverage is absent.
+        state_clauses = []
+        for detail in detail_lines:
+            _head, marker, tail = detail.partition("state:")
+            if not marker:
+                continue
+            detail_state = tail.split(",")[0].split("]")[0].strip()
+            item_name = _head.strip()[2:].split(" (")[0].split(": ")[0]
+            if detail_state and item_name:
+                state_clauses.append(f"{item_name} is {detail_state}")
+        if state_clauses:
+            parts.append(" ".join(state_clauses).capitalize() + ".")
         if fallback_parts:
             parts.append(f"{player.name} is wearing " + ", ".join(fallback_parts) + ".")
         # task-210: fallback text also carries the visible body state.

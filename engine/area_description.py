@@ -586,6 +586,26 @@ class AreaDescription:
                     active_player_obj.register_first_meeting(pname, getattr(self.player_manager, "time_ticks", 0) or 0)
             desc += f"\n\n" + "\n".join(lines) + " is here."
 
+        # task-653: how full the room is, as a function of the SIZE of what is
+        # standing in it rather than a headcount. A throne room holding a dwarf
+        # and a hill giant reads differently from one holding four dwarves, and
+        # the names above already say who — this says whether they fit. Empty
+        # rooms say nothing, deliberately.
+        try:
+            from engine.occupancy import describe_occupancy, occupancy_report
+            _report = occupancy_report(
+                area_id,
+                players=self.player_manager.players,
+                graph=self.graph,
+            )
+            _crowd = describe_occupancy(_report)
+            if _crowd:
+                desc += "\n" + _crowd
+        except Exception:
+            # A missing occupancy line is a missing sentence, not a broken
+            # description; the rest of the room still reads.
+            pass
+
         warnings = []
         if not player_is_dead:
             warn_text = temperature_warning(feels_like)

@@ -5,12 +5,12 @@
   "base_description": "a sixteen-year-old girl with danish-spanish heritage, giving her warm tanned skin. she is tall and coltish at 171cm, built like someone who tried skateboarding once and decided to watch instead—limbs that don't quite coordinate. her body is lean and completely flat-chested, with barely any development, a fact she is deeply self-conscious about, and narrow hips with little curve. her face is soft and pretty in a way she doesn't see, with dark, overly expressive eyes and long eyelashes. her blonde hair falls in a ponytail over her shoulder. her fingernails are painted a slightly chipped pink.",
   "unknown_name": "",
   "stats": {
-    "cha": 10,
-    "con": 9,
-    "dex": 11,
-    "int": 11,
-    "str": 7,
-    "wis": 13
+    "CHA": 10,
+    "CON": 9,
+    "DEX": 11,
+    "INT": 11,
+    "STR": 7,
+    "WIS": 13
   },
   "vitals": {
     "Bladder": 0,
@@ -310,5 +310,6 @@
   "npc_action_interval": 3,
   "npc_state": "idle",
   "simple_npc": false,
-  "recent_hearing": []
+  "recent_hearing": [],
+  "size": "small"
 }

@@ -5,12 +5,12 @@
   "base_description": "a sixteen-year-old black girl with warm brown skin and a slim, athletic build. she carries herself with her shoulders back and chin up, projecting an aura much larger than her actual frame. box braids fall past her shoulders. her face is sharp, missing nothing, with dark eyes and a small, proud scar on her left eyebrow from a bike accident in third grade.",
   "unknown_name": "",
   "stats": {
-    "cha": 14,
-    "con": 10,
-    "dex": 10,
-    "int": 13,
-    "str": 8,
-    "wis": 14
+    "CHA": 14,
+    "CON": 10,
+    "DEX": 10,
+    "INT": 13,
+    "STR": 8,
+    "WIS": 14
   },
   "vitals": {
     "Bladder": 0,
@@ -272,5 +272,6 @@
   "npc_action_interval": 3,
   "npc_state": "idle",
   "simple_npc": false,
-  "recent_hearing": []
+  "recent_hearing": [],
+  "size": "small"
 }

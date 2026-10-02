@@ -55,5 +55,7 @@
   "simple_npc": false,
   "autonomy": false,
   "recent_hearing": [],
-  "carcass": null
+  "carcass": null,
+  "size": "tiny",
+  "species": "sheep"
 }

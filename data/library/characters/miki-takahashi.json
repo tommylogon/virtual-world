@@ -5,12 +5,12 @@
   "base_description": "a petite sixteen-year-old with fair skin, a heart-shaped face, and a permanent scowl: long bleached-blonde hair with dark roots, big piercing blue eyes, high cheekbones, and a small button nose. She has a slim, athletic build and wears a faded red track jacket over a black top with dark hotpads.",
   "unknown_name": "",
   "stats": {
-    "cha": 10,
-    "con": 10,
-    "dex": 10,
-    "int": 10,
-    "str": 10,
-    "wis": 10
+    "CHA": 10,
+    "CON": 10,
+    "DEX": 10,
+    "INT": 10,
+    "STR": 10,
+    "WIS": 10
   },
   "vitals": {
     "Bladder": 0,
@@ -103,5 +103,6 @@
   "npc_action_interval": 3,
   "npc_state": "idle",
   "simple_npc": false,
-  "recent_hearing": []
+  "recent_hearing": [],
+  "size": "normal"
 }

@@ -45,6 +45,8 @@ LABELS = {
     "set_description": "Set Description",
     "append_description": "Append Description",
     "adjust_vital": "Adjust Vital",
+    "set_vital": "Set Vital",
+    "modify_vital_max": "Modify Vital Max",
     "adjust_environment": "Adjust Environment",
     "set_hidden": "Set Hidden",
     "adjust_uses": "Adjust Uses",
@@ -104,6 +106,14 @@ DEMO_PARAMS = {
                            "message": "[template:append_description] New words join the description."},
     "adjust_vital": {"stat": "Energy", "amount": 5, "target": "self",
                      "message": "[template:adjust_vital] +5 Energy."},
+    # task-538. set_vital writes an absolute value; modify_vital_max moves the
+    # ceiling everything else clamps against (task-537 §M), and deliberately
+    # leaves the current value alone so the demo shows the ceiling moving on its
+    # own rather than a heal happening by accident.
+    "set_vital": {"stat": "HP", "value": 12, "target": "self",
+                  "message": "[template:set_vital] HP is now exactly 12."},
+    "modify_vital_max": {"stat": "HP", "amount": 5, "target": "self",
+                         "message": "[template:modify_vital_max] Your Max_HP rises by 5."},
     "adjust_environment": {"temperature": 2, "light": 5, "target_node": "self",
                            "message": "[template:adjust_environment] The room feels slightly warmer."},
     "set_hidden": {"node_id": "self", "hidden": True,

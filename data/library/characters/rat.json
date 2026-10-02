@@ -527,5 +527,6 @@
     "Social": 12,
     "Temperature": 35.29999999999999,
     "Thirst": 53
-  }
+  },
+  "size": "tiny"
 }

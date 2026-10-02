@@ -70,6 +70,12 @@ EFFECT_TYPES = [
     "set_description",
     "append_description",
     "adjust_vital",
+    # task-538: the two halves of "a maximum is data, not a constant" (task-537 §M).
+    # `set_vital` sets the meter to an exact value; `modify_vital_max` moves the
+    # ceiling everything else clamps against, which is what a trait or a
+    # level-up effect needs.
+    "set_vital",
+    "modify_vital_max",
     "adjust_environment",
     "set_hidden",
     "adjust_uses",
@@ -134,6 +140,11 @@ SAFE_EFFECT_TYPES = {
     "append_description",
     "set_description",
     "adjust_vital",
+    # task-538: same class as `adjust_vital` and `apply_trait`, both already
+    # here — a charm that grants vitality is an ordinary authored reward, and a
+    # maximum is just another stat once it is data.
+    "set_vital",
+    "modify_vital_max",
     "heal",
     "damage",
     "llm_respond",

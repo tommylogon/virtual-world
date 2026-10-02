@@ -5,12 +5,12 @@
   "base_description": "an anthropomorphic grey-furred rabbit woman in a ZPD patrol uniform, very short and very thick: wide hips, plush heavy breasts, soft belly, strong thighs, and a fluffy white tail. She has a round, soft face, a small pink nose, a permanent smug half-smile, vivid green heavy-lidded eyes, and little buckteeth; her fur is storm-grey-fog with cream-white patches, and she wears a black police cap pulled just low enough to flirt with.",
   "unknown_name": "",
   "stats": {
-    "cha": 10,
-    "con": 10,
-    "dex": 10,
-    "int": 10,
-    "str": 10,
-    "wis": 10
+    "CHA": 10,
+    "CON": 10,
+    "DEX": 10,
+    "INT": 10,
+    "STR": 10,
+    "WIS": 10
   },
   "vitals": {
     "Bladder": 0,
@@ -145,5 +145,7 @@
   "npc_action_interval": 3,
   "npc_state": "idle",
   "simple_npc": false,
-  "recent_hearing": []
+  "recent_hearing": [],
+  "size": "normal",
+  "species": "rabbit"
 }

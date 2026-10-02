@@ -501,6 +501,73 @@ class VirtualWorld:
     def _spawn_body_item(self, player_name: str, cause_of_death: str = "unknown causes"):
         return self.ghost_system.spawn_body_item(player_name, cause_of_death)
 
+    # ─────────────────── Death (task-538) ───────────────────
+    #
+    # **The `dead` condition is the single authoritative death state.**
+    # `Player.state` is *derived* from the condition hierarchy
+    # (`engine/player_conditions.get_state`, with `dead` at the top), so
+    # `state == "dead"` and `has_condition("dead")` are the same fact rather
+    # than two that can drift — that was the task's open question and it is
+    # already answered by the derived-state work.
+    #
+    # What was NOT answered was the *causes*. Four sites each set
+    # `state = "dead"` and then did a different subset of the aftermath:
+    #
+    #   tick HP <= 0        -> body + log + lived record, no drop
+    #   tick exhaustion >=3 -> body + log, no lived record
+    #   combat HP <= 0      -> body + log + drop, no lived record
+    #   POST /kill          -> body + log, no drop, no lived record
+    #
+    # So a corpse's inventory survived a killing blow but not a script, and the
+    # lived log — the record designed to explain *why* something happened —
+    # only saw environmental deaths. This is the one place that does all of it.
+
+    def kill_player(self, player_name: str, cause: str = "unknown causes",
+                    *, drop_items: bool = True, announce: bool = True) -> bool:
+        """Kill a character. Returns False if they were already dead.
+
+        ``cause`` is prose for the log and the body's item description, exactly
+        as the per-site calls already passed it. ``drop_items=False`` for a cause
+        that has *already* dropped them (the exhaustion path lets go of both
+        hands the moment Energy empties, one line before the third collapse).
+        """
+        player = self.players.get(player_name)
+        if player is None:
+            return False
+        if getattr(player, "state", "") == "dead":
+            return False
+
+        # HP to zero as well as the condition: a character that is dead with
+        # full health is the exact inconsistency task-538 was filed over, and
+        # nothing should be able to produce one any more.
+        if isinstance(getattr(player, "vitals", None), dict) and "HP" in player.vitals:
+            player.vitals["HP"] = 0
+        player.state = "dead"
+
+        try:
+            from engine.lived_log import record as lived_record
+            lived_record(player, self.time_ticks, "death",
+                         f"died of {cause}", why="cause:death",
+                         area=getattr(player, "current_area", ""), salient=True)
+        except Exception as e:
+            logger.warning("[death] lived_record %s: %s", player_name, e)
+
+        if drop_items:
+            try:
+                self.item_actions.drop_held_items(self, player_name)
+            except Exception as e:
+                logger.warning("[death] drop_held_items %s: %s", player_name, e)
+
+        try:
+            self._spawn_body_item(player_name, cause)
+        except Exception as e:
+            logger.warning("[death] spawn_body_item %s: %s", player_name, e)
+
+        if announce:
+            self.add_log_entry(
+                f"[{player_name}] has died of {cause}!")
+        return True
+
 
     # ─────────────────── Items & Inventory ───────────────────
 
@@ -675,6 +742,52 @@ class VirtualWorld:
 
     def get_full_equipment(self, player_name: str = None) -> dict:
         return self.equipment.get_full_equipment(player_name)
+
+    def set_equipped_payload(self, player, payload) -> dict:
+        """task-654: write an ``equipped`` mapping to the dict *and* the edges."""
+        return self.equipment.set_equipped_payload(player, payload)
+
+    def area_occupancy(self, area_name: str = None) -> dict:
+        """task-653: how full an area is, as a sum of occupant footprints.
+
+        Accepts a display name or an area node id; resolves like every other
+        area lookup in the engine. Returns ``engine.occupancy``'s report dict.
+        """
+        from engine.occupancy import occupancy_report
+
+        name = area_name
+        if not name:
+            active = self.player_manager.get_active_player_obj()
+            name = getattr(active, "current_area", "") if active else ""
+        area_id = name
+        for candidate in (str(name), f"area_{name}"):
+            try:
+                if self.graph.get_node(candidate) is not None:
+                    area_id = candidate
+                    break
+            except Exception:
+                continue
+        return occupancy_report(area_id, players=self.players, graph=self.graph)
+
+    def would_fit(self, area_name: str, entity=None) -> bool:
+        """task-653: would *entity* fit into *area_name* right now?
+
+        *entity* defaults to the active player. This reports, it does not gate:
+        nothing refuses movement on it (see the module docstring for why a
+        leviathan in a small hall is a legitimate state rather than an error).
+        """
+        from engine.occupancy import fits
+
+        entity = entity or self.player_manager.get_active_player_obj()
+        name = area_name
+        for candidate in (str(name), f"area_{name}"):
+            try:
+                if self.graph.get_node(candidate) is not None:
+                    name = candidate
+                    break
+            except Exception:
+                continue
+        return fits(name, entity, players=self.players, graph=self.graph)
 
     def get_equipment_narrative(self, player_name: str = None, viewer_name: str = None) -> str:
         return self.equipment.get_equipment_narrative(player_name, viewer_name)

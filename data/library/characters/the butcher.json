@@ -6,12 +6,12 @@
   "unknown_name": "",
   "stats": {
     "attack_bonus": 3,
-    "cha": 4,
-    "con": 20,
-    "dex": 14,
-    "int": 6,
-    "str": 18,
-    "wis": 10
+    "CHA": 4,
+    "CON": 20,
+    "DEX": 14,
+    "INT": 6,
+    "STR": 18,
+    "WIS": 10
   },
   "vitals": {
     "Bladder": 0,
@@ -329,5 +329,6 @@
   "npc_action_interval": 3,
   "npc_state": "idle",
   "simple_npc": false,
-  "recent_hearing": []
+  "recent_hearing": [],
+  "size": "huge"
 }

@@ -3,7 +3,8 @@ from flask import request, jsonify
 from player import Player, PERIODIC_CONDITIONS, CONDITION_DEFINITIONS
 from graph import Node, Edge, EDGE_CARRYING
 from engine.equipment_bonuses import effective_temperature, aggregate_bonuses
-from engine.vitals import polarity as vital_polarity
+from engine.abilities import normalize_stat_block
+from engine.vitals import ceiling, clamp_to_ceiling, polarity as vital_polarity
 
 logger = logging.getLogger(__name__)
 
@@ -47,14 +48,18 @@ def handle_spike_emotion(app, name):
         if resolved and hasattr(player, "_FELT_TO_DIM"):
             other = resolved
             valid = tuple(player._FELT_TO_DIM.keys())
+    # task-652: one normaliser for a declared feeling. This route used
+    # `map_label`, which substring-matches, so an LLM saying "hangry" became
+    # "angry" on a coincidence — the exact failure task-505 was filed to prevent,
+    # and the reason `felt_from_llm` exists. Using it here means the authored
+    # vocabulary is consulted too: "terrified", "furious" and "sadness" are
+    # declared aliases in engine/emotion.py and were being dropped here.
     if emotion not in valid:
-        # task-96/350: agents use free-form vocabulary. Unknown labels go
-        # through the same semantic resolver as recall (/emotions/map) —
-        # never a 400; a truly unknown label is a documented graceful no-op.
-        mapped = emotion_engine.map_label(emotion)
-        if not mapped:
+        resolved = emotion_engine.felt_from_llm(
+            {"label": emotion, "intensity": data.get("intensity") or 5})
+        if not resolved:
             return jsonify({"emotions": player.emotions_map(), "ignored": emotion})
-        emotion = mapped[0][0]
+        emotion = resolved[0]
     if emotion not in valid:
         return jsonify({"emotions": player.emotions_map(), "ignored": emotion})
 
@@ -380,7 +385,7 @@ def handle_create_player(app):
         return jsonify({"error": "Missing player 'name'"}), 400
 
     player = Player(name)
-    player.stats = data.get('stats', player.stats)
+    player.stats = normalize_stat_block(data.get('stats', player.stats))
     player.vitals = data.get('vitals', player.vitals)
     player.skills = data.get('skills', player.skills)
     player.traits = data.get('traits', player.traits)
@@ -440,12 +445,12 @@ def handle_kill_player(app, name):
         return jsonify({"error": "No such player"}), 404
 
     player = app.world.players[name]
-    player.vitals["HP"] = 0
-    player.state = "dead"
-    app.world._spawn_body_item(name, "killed by external force")
+    # task-538: the single death path, so a scripted kill is the same event a
+    # killing blow is — body, dropped items, lived-log record and all.
+    killed = app.world.kill_player(name, "killed by external force")
     app.world.add_log_entry(f"[System] {name} has been killed.")
 
-    return jsonify({"status": "killed", "player": name})
+    return jsonify({"status": "killed", "player": name, "newly_dead": killed})
 
 
 def handle_move_player(app, name):
@@ -547,7 +552,7 @@ def handle_update_player(app, name):
     if "base_description" in data:
         player.base_description = data["base_description"]
     if "stats" in data:
-        player.stats = data["stats"]
+        player.stats = normalize_stat_block(data["stats"]) or player.stats
     if "skills" in data:
         player.skills = data["skills"]
     if "traits" in data:
@@ -568,14 +573,27 @@ def handle_update_player(app, name):
     if "tags" in data:
         player.tags = data["tags"]
         player.sync_vitals_with_tags()
+    # task-549: species is a free-text kind ("goblin", "forest goblin"), not a
+    # closed enum — the whole point is that an author can name a species nobody
+    # registered. It is normalised and stored, never validated away, because an
+    # unknown species permits everything rather than nothing.
+    if "species" in data:
+        raw_species = data["species"]
+        if isinstance(raw_species, (list, tuple)):
+            raw_species = raw_species[0] if raw_species else None
+        player.species = str(raw_species).strip().lower() or None if raw_species else None
     if "known" in data:
         player.known = [str(k) for k in (data["known"] or []) if str(k).strip()]
     if "interest_tags" in data:
         player.interest_tags = data["interest_tags"]
     if "fear_tags" in data:
         player.fear_tags = data["fear_tags"]
+    # task-654: an `equipped` payload is written through the equipment system so
+    # the graph edges are updated with the dict. Assigning `player.equipped`
+    # directly left the item visible in the inspector and inert in combat, because
+    # weapon selection and damage reduction read the edges.
     if "equipped" in data:
-        player.equipped = data["equipped"]
+        app.world.equipment.set_equipped_payload(player, data["equipped"])
     if "behaviors" in data:
         player.behaviors = data["behaviors"]
     if "npc_state" in data:
@@ -641,7 +659,19 @@ def handle_update_player(app, name):
                         v["name"] = str(k)
                     player.relationships[key] = v
 
-    return jsonify({"status": "updated", "player": player.name})
+    response = {"status": "updated", "player": player.name}
+
+    # task-606: a stat block that contradicts its own size is **reported, not
+    # refused**. A leviathan at STR 9 is storable and always was; the point is
+    # that the author who just typed it finds out, in the response, rather than
+    # discovering it the next time something tries to move the thing.
+    if {"stats", "size"} & set(data):
+        from engine.abilities import scale_issues
+        issues = scale_issues(entity=player)
+        if issues:
+            response["scale_warnings"] = issues
+
+    return jsonify(response)
 
 
 def handle_import_player(app):
@@ -659,9 +689,11 @@ def handle_import_player(app):
     if 'base_description' in data:
         player.base_description = data.get('base_description', '')
     if 'equipped' in data:
-        player.equipped = data.get('equipped', player.equipped)
+        # task-654: edges too — see the update route above.
+        app.world.equipment.set_equipped_payload(
+            player, data.get('equipped', player.equipped))
     player.state = data.get('state', player.state) or 'awake'
-    player.stats = data.get('stats', player.stats) or player.stats
+    player.stats = normalize_stat_block(data.get('stats', player.stats)) or player.stats
     player.vitals = data.get('vitals', player.vitals) or player.vitals
     player.skills = data.get('skills', player.skills) or player.skills
     player.traits = data.get('traits', player.traits) or player.traits
@@ -850,11 +882,15 @@ def handle_get_vital(app, name, vital_name):
         return jsonify({"error": f"Vital '{vital_name}' not found"}), 404
 
     value = player.vitals[vital_name]
-    max_val = player.vitals.get("Max_HP" if vital_name == "HP" else f"Max_{vital_name}", 100)
+    # task-538: the ceiling is the character's own. The old lookup was
+    # `Max_HP if HP else Max_{vital}`, which is the resolver's first rule with
+    # the fallback spelled out — and it spelled 100 out again for anything that
+    # had not declared a maximum.
+    max_val = ceiling(player.vitals, vital_name)
     if vital_name == "Temperature":
         max_val = 45
-    elif vital_name == "HP":
-        max_val = player.vitals.get("Max_HP", 100)
+    elif max_val == float("inf"):
+        max_val = None
 
     base_rate = app.world.baseline_decay.get(vital_name, 0)
     override_rate = player.decay_rates.get(vital_name)
@@ -1030,14 +1066,32 @@ def handle_update_vital(app, name, vital_name):
     if vital_name == "Temperature":
         max_val = 45
         min_val = 25
-    elif vital_name == "HP":
-        max_val = player.vitals.get("Max_HP", 100)
     else:
-        max_val = 100
+        # task-538: read the character's own ceiling (see handle_get_vital).
+        max_val = ceiling(player.vitals, vital_name)
+
+    # task-538: writing a `Max_*` companion also re-clamps the vital it bounds.
+    # Setting Max_HP to 8 while HP sits at 100 otherwise leaves the character at
+    # 1250% of its maximum, which every later clamp would silently repair and
+    # every reader would find surprising — the same reason
+    # `modify_vital_max` brings the current value back under a lowered ceiling.
+    paired = None
+    if vital_name.startswith("Max_"):
+        paired = vital_name[len("Max_"):]
+        if paired not in player.vitals:
+            paired = None
 
     if "value" in data:
         if vital_name == "Temperature":
             player.vitals[vital_name] = max(min_val, min(max_val, float(data["value"])))
+        elif paired:
+            # A `Max_*` write is not bounded by the old ceiling (that is the
+            # point of it), but the value it bounds is re-clamped against the
+            # new one.
+            player.vitals[vital_name] = max(0, int(data["value"]))
+            player.vitals[paired] = clamp_to_ceiling(
+                player.vitals, paired, player.vitals.get(paired, 0))
+            max_val = ceiling(player.vitals, paired)
         else:
             player.vitals[vital_name] = max(0, min(max_val, int(data["value"])))
     if "decay_rate" in data:

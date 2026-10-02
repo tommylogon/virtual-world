@@ -37,6 +37,7 @@ from collections import deque
 
 from graph import Edge, EDGE_IN, EDGE_CARRYING, EDGE_TRIGGERS
 from engine import relief as _relief
+from engine import species as _species
 from engine.lived_log import record
 from engine.vitals import is_animal
 from vital_rates import tick_minutes
@@ -635,6 +636,14 @@ class BackgroundSimulation:
         onlookers = _relief.witnesses(
             self.gs.graph, area_id, getattr(self.gs, "players", None),
             exclude_name=p.name)
+        # task-549: a fixture built for a different kind of body is not a proper
+        # place. This changes the *comfort* of the act, never its permission —
+        # task-551's "permitted anywhere" stands, and an animal whose species
+        # rules out the latrine relieves where it stands with the same dignity
+        # cost anybody else would pay.
+        if proper and not _species.can_use_service(p, "relief"):
+            proper = False
+            self._note_species_mismatch(p, "relief")
         if proper:
             record(p, self.gs.time_ticks, "act",
                    f"relieved themselves in {p.current_area}",
@@ -655,6 +664,22 @@ class BackgroundSimulation:
             self.gs.add_log_entry(
                 f"[{p.name}] finds a corner of {p.current_area} and relieves themselves.")
         return True
+
+    def _note_species_mismatch(self, p, service):
+        """Record that a fixture could not serve this body (task-549).
+
+        This is deliberately a lived-log entry, not a message. An animal standing
+        in a latrine is a *fact about the world* that a reader can discover, not
+        an error to be announced at somebody every time it happens; the lived log
+        is where the engine already puts objective facts with a reason tag.
+        """
+        species = _species.species_of(p)
+        if not species:
+            return
+        record(p, self.gs.time_ticks, "act",
+               f"found a {service} fixture unusable for a {species}",
+               why=f"species:{species}", area=p.current_area,
+               tags=["need", "species"])
 
     def _travel_to_privacy(self, p):
         """One hop towards the best place to relieve within reach (task-551).

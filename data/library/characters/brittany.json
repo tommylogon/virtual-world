@@ -5,12 +5,12 @@
   "base_description": "a small, sharp, pale punk woman — metal through the ears and a blade at the hip, all sarcasm, with a real well of loyalty under everything.",
   "unknown_name": "",
   "stats": {
-    "cha": 10,
-    "con": 10,
-    "dex": 10,
-    "int": 10,
-    "str": 10,
-    "wis": 10
+    "CHA": 10,
+    "CON": 10,
+    "DEX": 10,
+    "INT": 10,
+    "STR": 10,
+    "WIS": 10
   },
   "vitals": {
     "Bladder": 0,
@@ -101,5 +101,6 @@
   "npc_action_interval": 3,
   "npc_state": "idle",
   "simple_npc": false,
-  "recent_hearing": []
+  "recent_hearing": [],
+  "size": "normal"
 }

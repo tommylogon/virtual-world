@@ -634,5 +634,6 @@
     "Social": 97,
     "Temperature": 37,
     "Thirst": 24
-  }
+  },
+  "size": "small"
 }

@@ -193,6 +193,23 @@ def apply_stimulation(actor, target, verb: str, region_id: str,
     report["overstimulated"] = overstim
     if overstim and hasattr(target, "add_condition"):
         target.add_condition("overstimulated", duration=3)
+
+    # task-545: file the gain under its path before it is forgotten. The report
+    # already carried `region` back for the caller to write a message about and
+    # nothing else, so a release threshold had no way to know how the meter got
+    # to where it was.
+    #
+    # Maturity is gated by the same proxy this function already used one screen
+    # ago — the pleasure vitals exist only while `world.mature_content` is on —
+    # so with the toggle off this line is unreachable, no path is recorded and no
+    # state is created.
+    if getattr(target, "record_stimulation_path", None) and stim_gain > 0:
+        path_key = target.stimulation_path_key(
+            region_id=region_id, verb=verb, source="interaction")
+        target.record_stimulation_path(path_key, stim_gain, region_id=region_id,
+                                       verb=verb)
+        report["path"] = path_key
+
     return report
 
 
@@ -278,4 +295,81 @@ def execute_intimacy_action(world, actor_name: str, verb: str, target_name: str,
         watchers = []
     if watchers:
         line += " " + " ".join(watchers)
+    # task-487: `exhibitionist` reads the observation record that pass just wrote.
+    line += apply_exhibitionism(world, target, target_name)
     return line
+
+
+#: How much Arousal a public sighting is worth to an exhibitionist. Small on
+#: purpose: the sensation is the point, and a big number would turn a glance into
+#: a dominant drive and make the trait feel like a malfunction rather than a
+#: preference.
+EXHIBITION_AROUSAL = 4
+EXHIBITION_PLEASURE = 2
+
+#: Sighting classes and what they are worth. A *public* sighting is the whole
+#: trait — being watched by an onlooker, in the open — so it pays most. A covert
+#: one still thrills, less. The non-exposure class covers a touch that was not
+#: seen by anyone at all, which is precisely the case the trait does nothing for:
+#: what thrills an exhibitionist is the being-seen, not the sensation.
+EXHIBITION_TIERS = {"public": 1.0, "covert": 0.5, "unseen": 0.0}
+
+
+def apply_exhibitionism(world, target, target_name) -> str:
+    """task-487: grant arousal/pleasure to an exhibitionist who has been seen.
+
+    Reads the observation-signal record (task-547) rather than re-running
+    perception, so the question "was there an audience" is answered once by the
+    pass that already rolled it.
+
+    **Mature-gated**: the caller only reaches here on an intimacy action, which
+    is itself mature-gated, and the vitals only exist while
+    ``world.mature_content`` is on — so with the toggle off this returns on the
+    first missing vital and creates nothing.
+
+    Returns a line for the caller to append, or ``""``.
+    """
+    try:
+        from engine.traits import TraitSystem
+        if not TraitSystem.has_effect(target, "exhibitionist"):
+            return ""
+    except Exception:
+        return ""
+
+    vitals = getattr(target, "vitals", None) or {}
+    if not any(v in vitals for v in ("Arousal", "Pleasure")):
+        return ""
+
+    try:
+        from engine.observation_signal import get_observation_signals
+        tick = int(getattr(world, "time_ticks", 0) or 0)
+        signals = get_observation_signals()
+        public = signals.public_observers_of(target_name, tick=tick)
+        observers = signals.observers_of(target_name, tick=tick)
+    except Exception:
+        return ""
+
+    if not observers:
+        return ""
+    scale = EXHIBITION_TIERS["public"] if public else EXHIBITION_TIERS["covert"]
+    arousal_gain = EXHIBITION_AROUSAL * scale
+    pleasure_gain = EXHIBITION_PLEASURE * scale
+
+    if "Arousal" in vitals:
+        vitals["Arousal"] = min(100, vitals.get("Arousal", 0) + arousal_gain)
+    if "Pleasure" in vitals and pleasure_gain:
+        vitals["Pleasure"] = min(100, vitals.get("Pleasure", 0) + pleasure_gain)
+
+    # task-545: a sighting is not a path — no region, no verb. Filing it under its
+    # own source is what lets a path gate (task-488) tell "you were watched" from
+    # "you were touched".
+    if hasattr(target, "record_stimulation_path"):
+        target.record_stimulation_path(
+            target.stimulation_path_key(source="observed_publicly" if public
+                                        else "observed"),
+            arousal_gain)
+
+    if public:
+        return (f"{target_name} catches someone watching and "
+                f"leans into it rather than away.")
+    return f"{target_name} realises they were being watched."

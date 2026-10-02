@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: done
 area: characters
 priority: high
 ---
@@ -175,36 +175,191 @@ should coexist.
 
 ## Acceptance criteria
 
-- [ ] One resolver answers "the ceiling for this vital on this character", and
- every site in the table above reads it. No hardcoded `100` remains in an HP
- path.
-- [ ] A character with `Max_HP: 7` survives: `heal` never exceeds it,
- `adjust_vital` never exceeds it, decay never exceeds it, and the
- deserialisers in `engine/serialization.py` / `engine/serialization_template.py`
- preserve it.
-- [ ] `heal` clamps to `Max_HP` for HP and to `Max_{stat}` where that exists.
- **Regression test for the masked bug**, with a 7-HP fixture.
-- [ ] `heal` supports `target: "self" | "target"`, matching `apply_condition`.
-- [ ] HP regeneration stops at `Max_HP` for a character whose maximum is not 100
- (regression test for `tick_manager.py`).
-- [ ] `set_vital` and `modify_vital_max` exist as effects and are declared in
- `EFFECT_TYPES`; `modify_vital_max` raises the ceiling and does not
- retroactively change current HP unless asked.
-- [ ] `hit_dice` resolves `NdM+K` at hydrate time, and an explicit `Max_HP` in
- the same file wins over the formula (or the conflict is an error — decide
- and document which).
-- [ ] Every one of the 68 library characters and 525 library items still
- hydrate to their current vitals. This is the load-bearing regression: the
- change must be backward compatible.
-- [ ] `player.py`'s `Vitals & Needs (Max 100)` comment is corrected to
- describe the real model.
-- [ ] **Decide and document which death path is authoritative** — `p.state ==
- "dead"`, the `dead` condition, `HP <= 0`, or exhaustion count — and make
- the others agree. Right now a character can be dead with full HP.
-- [ ] Per the standing rule, the health model is documented in code comments and
- the user guide / technical docs, not only here. The 100-default and the
- regen gate are exactly the kind of thing that has been misunderstood before.
-- [ ] Full suite compared against the ~60 failed / 3953 passed baseline.
+- [x] One resolver answers "the ceiling for this vital on this character", and
+      every site in the table above reads it. No hardcoded `100` remains in an HP
+      path.
+- [x] A character with `Max_HP: 7` survives: `heal` never exceeds it,
+      `adjust_vital` never exceeds it, decay never exceeds it, and the
+      deserialisers in `engine/serialization.py` / `engine/serialization_template.py`
+      preserve it.
+- [x] `heal` clamps to `Max_HP` for HP and to `Max_{stat}` where that exists.
+      **Regression test for the masked bug**, with a 7-HP fixture.
+- [x] `heal` supports `target: "self" | "target"`, matching `apply_condition`.
+- [x] HP regeneration stops at `Max_HP` for a character whose maximum is not 100
+      (regression test for `tick_manager.py`).
+- [x] `set_vital` and `modify_vital_max` exist as effects and are declared in
+      `EFFECT_TYPES`; `modify_vital_max` raises the ceiling and does not
+      retroactively change current HP unless asked.
+- [x] `hit_dice` resolves `NdM+K` at hydrate time, and an explicit `Max_HP` in
+      the same file wins over the formula — **decided and documented below**.
+- [x] Every one of the 70 library characters and the item library still
+      hydrate to their current vitals. This is the load-bearing regression.
+- [x] `player.py`'s `Vitals & Needs (Max 100)` comment is corrected to
+      describe the real model.
+- [x] **The authoritative death path is decided and documented** — the `dead`
+      condition — and the others are made to agree through one
+      `world.kill_player`.
+- [x] The health model is documented in code comments **and** in the user
+      guide (`docs/virtualWorld/Characters/Vitals System.md`), not only here.
+- [x] Full suite compared against a clean `master` worktree, by failure *name*.
+      See "Verify" — the AGENTS.md baseline table is stale.
+
+## The `Max_HP` vs `hit_dice` conflict rule — decided
+
+**An explicit `Max_HP` wins over `hit_dice`.** A stat block that declares both
+has already said what it wants, and a redundant declaration is not a
+contradiction. Failing the load over it would be worse than honouring the
+number.
+
+This is also what makes the rule free: all 70 library characters set `Max_HP`
+directly, so `hit_dice` is only ever a fallback and the whole library is
+untouched by its introduction.
+
+## Implementation — 2026-10-02 (WT-characters-engine)
+
+### Files
+
+- `engine/vitals.py` — `ceiling`, `clamp_to_ceiling`, `parse_hit_dice`,
+  `hit_dice_max`, `apply_hit_dice`, `DEFAULT_MAX_HP`, `DEFAULT_VITAL_MAX`,
+  `BAND_VITAL_FLOOR`. **The rule now lives here and only here.**
+- `engine/effect_handlers/vitals.py` — `_vital_ceiling` delegates to `ceiling`;
+  `handle_heal` and `handle_adjust_vital` clamp through `clamp_to_ceiling`;
+  new `handle_set_vital`, `handle_modify_vital_max`, shared `_effect_subject`.
+- `engine/triggers/constants.py` — `set_vital`, `modify_vital_max` in
+  `EFFECT_TYPES` and `SAFE_EFFECT_TYPES`.
+- Rewired to the resolver: `engine/effects.py` (library hydrate),
+  `engine/serialization.py`, `engine/serialization_template.py`,
+  `vital_rates.py` (`change`), `engine/combat.py`, `engine/traits.py`
+  (`scarred` threshold), `engine/tick_manager.py` (regen gate),
+  `routes/player_ops.py` (the `Max_{vital}` convention), `player.py` (comment).
+- `virtual_world_engine.py` — `kill_player`, the single death path.
+- `routes/player_ops.py`, `engine/combat.py`, `engine/tick_manager.py` — the
+  four lethal sites now route through it.
+- `tools/gen_effect_templates.py` — `DEMO_PARAMS` + `LABELS` for the two new
+  effects (the source of truth for the templates; the generator had been
+  hand-patched for other effects instead).
+- `docs/virtualWorld/Characters/Vitals System.md` — the user guide.
+- `tests/test_health_model.py` — **new**, 43 tests.
+
+### Two real bugs found on the way
+
+1. **`data/library/characters/fluffy.json` has shipped with `Max_HP: 8`** — a
+   sheep on a real stat block. So the `heal` bug was never hypothetical: healing
+   Fluffy by 5 produced **13 HP on an 8-HP character**. Pinned by
+   `test_the_library_already_ships_a_real_stat_block_on_a_non_100_scale`.
+2. **`kill_player` swallowed an `AttributeError`.** Its first draft wrapped the
+   lived-log write in `except Exception: pass`, and `player_manager.time_ticks`
+   does not exist — the clock lives on the world. The death record was silently
+   never written, which is precisely the failure the function existed to fix.
+   Every `except` in it now logs instead of passing.
+
+### A third, found only by driving the live API
+
+`PATCH /api/players/<n>/vitals/Max_HP` with `{"value": 8}` on a 100-HP character
+returned `200` and left **HP at 100 — 1250% of its own maximum**, which the
+route then reported as `percentage: 1250`. The route clamped the value it was
+writing against the *old* ceiling and never re-clamped the vital that ceiling
+bounded. That is the same inconsistency `modify_vital_max` explicitly fixes,
+reachable through a different door, so `handle_update_vital` now re-clamps the
+paired vital — and only re-clamps it when a `Max_*` is being written, so
+raising a maximum does not silently heal. Pinned by three tests, because the
+three directions are the three ways to get it wrong.
+
+
+### Three decisions worth recording
+
+1. **`ceiling` returns `inf` for Temperature**, not 100. Temperature is a body
+   temperature in degrees; clamping it to a percentage was always a fiction, and
+   its own band model (`cold_floor`/`normal`/`heat_ceiling`) is what decides
+   lethality. This also unblocked reading the per-species temperature bands the
+   task's §4 asked about.
+2. **`hit_dice` averages half-up, not with integer division.** `2d6` is 7; a
+   naive `(sides+1)//2` makes it 6, which would have made every generated stat
+   block quietly wrong. `round()` is banker's rounding, so half-up is spelled out
+   with `math.floor(x + 0.5)`.
+3. **`CombatSystem` gets a `_game_state()` accessor.** Production passes the
+   `VirtualWorld` as its `skills` parameter, but `tests/test_combat.py` hands
+   over a `SkillSystem` monkey-patched with only the handful of methods the
+   attack maths calls. Calling `kill_player` directly raised `AttributeError` on
+   ordinary tests. The accessor walks to the world when there is one and the
+   death branch keeps its inline fallback for the isolated harness — which is
+   also why the old `drop_held_items` call was already wrapped in a bare
+   `except`: it silently did nothing under the harness.
+
+### Not done here, as the task specifies
+
+- **Armour class** — split out by the task itself; it changes core resolution.
+- **Per-region HP** — `engine/body_parts.py` `body_state` remains the natural
+  home; a follow-up once the global model is settled.
+- **`damage_type` / `resist` / `immunities` / `absorb` / `lifesteal` /
+  `reflect_damage`** — stay in task-537; they need a scale to be a fraction of,
+  which now exists.
+
+### Verify
+
+```
+python -m pytest tests/test_health_model.py -q          # 46 passed
+python -m pytest tests/test_health_model.py tests/test_health_model_fixes.py \
+  tests/test_spell_effects.py tests/test_traits.py tests/test_combat.py \
+  tests/test_conditions.py -q                          # 236 passed
+```
+
+**Live — 2026-10-02, `python app.py` on `VW_PORT=4466`.** The health model's
+user-visible surface is the vitals API and the inspector bars behind it, so
+that is what was driven.
+
+**1. The `Max_*` write no longer strands the vital above its own ceiling.**
+This is the bug the read-only pass would have missed:
+
+```
+POST   /api/players                       {"name":"HealthProbe"}
+PATCH  /api/players/HealthProbe/vitals/Max_HP  {"value": 8}   -> 200
+GET    /api/players/HealthProbe/vitals/HP
+  -> {"value": 8.0, "max": 8.0, "percentage": 100.0}
+```
+
+Before the fix the same three calls returned `value: 100, max: 8.0,
+percentage: 1250.0`.
+
+**2. One death path, through the route the task named.**
+
+```
+POST /api/players/HealthProbe/kill
+  -> {"status":"killed","player":"HealthProbe","newly_dead":true}
+GET  /api/state -> HealthProbe.state == "dead", vitals.HP == 0,
+                  lived_log contains exactly 1 entry with kind "death"
+```
+
+**3. It is idempotent** — a second `POST .../kill` returned
+`newly_dead: false` and the lived log still held **one** death entry, so the
+guard actually prevents a second corpse rather than merely reporting the fact.
+
+Live world returned to its prior state afterwards (probe characters and their
+body nodes removed).
+
+**Full suite, compared by failure NAME against a clean `master` worktree** at
+`7a44135` (the AGENTS.md table of 12 is stale; master measures 15 today):
+
+```
+15 failed, 6666 passed      mine
+15 failed, ...              clean master
+Compare-Object baseline mine  ->  (empty)
+```
+
+Zero difference in the failure set, so none of the 15 are mine. The 15 are
+`test_character_identity` (2), `test_decay_rate_bake` (2),
+`test_ownership` (4), `test_pines_slice` (1), `test_promotion` (1),
+`test_scenario_data_integrity` (3), `test_scope_id_migration` (1),
+`test_templates` (1 — `template_polymorph_target.json` is missing, the
+documented baseline item).
+
+`test_templates::test_generator_covers_every_effect_type` still fails for
+exactly the reason it did before this task: five templates
+(`polymorph_target`, `bind_companion`, `broadcast_emotion`,
+`create_illusory_companion`, `reveal_hidden`) belong to other effects and were
+already missing on master. The two templates this task needs **are** present,
+with real demo params rather than the generator's empty `{}`.
+
 
 ## Split out rather than folded in
 

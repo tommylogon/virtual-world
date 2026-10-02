@@ -4,7 +4,14 @@
   "description": "",
   "base_description": "",
   "unknown_name": "",
-  "stats": {},
+  "stats": {
+    "STR": 11,
+    "DEX": 12,
+    "CON": 11,
+    "INT": 10,
+    "WIS": 10,
+    "CHA": 10
+  },
   "vitals": {
     "Bladder": 0,
     "Energy": 100,

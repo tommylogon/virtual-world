@@ -1,6 +1,6 @@
 # Vitals System
 
-Vitals are numeric meters (0-100, except Temperature) that track a character's physical and mental state. They decay over time and must be maintained through actions like eating, drinking, resting, and socializing.
+Vitals are numeric meters that track a character's physical and mental state. Most are 0-100 percentages; three are not, and that is the model rather than an oversight. They decay over time and must be maintained through actions like eating, drinking, resting, and socializing.
 
 > **All rates on this page are per in-game MINUTE, not per tick.** The engine
 > scales them by the tick's length (`world.time_per_tick_minutes`, see
@@ -9,11 +9,89 @@ Vitals are numeric meters (0-100, except Temperature) that track a character's p
 > before the 2026-09 per-minute recalibration; a scenario that bakes rates in the
 > old per-tick scale is caught by `tests/test_decay_rate_bake.py`.
 
+## HP is on its own scale (task-538)
+
+**HP is the only vital whose maximum is authorable, and 100 is its _default_,
+not its scale.** Before task-538 that `100` was written out as a literal in
+about ten places — `player.py`, `engine/effects.py`, both deserialisers, both
+vital effect handlers, `vital_rates.change`, `engine/combat.py`,
+`engine/traits.py` and the regeneration gate in `engine/tick_manager.py`. The
+literal was harmless only because `Max_HP` was itself always 100, and that is
+what hid two live bugs:
+
+- `heal` clamped to 100, so healing a character by 5 could take it *above* its
+  own maximum. `data/library/characters/fluffy.json` (a sheep) has shipped with
+  `Max_HP: 8` for months, so this was a bug in **shipped data**, not a
+  hypothetical one.
+- The regeneration gate read "HP < 100", i.e. "HP < maximum". For a
+  character whose maximum is 7 that is permanently true, so it regenerated
+  every turn and could never be finished off by attrition.
+
+There is now **one** function that answers the question:
+
+```python
+from engine.vitals import ceiling
+ceiling(player.vitals, "HP")     # -> the character's own maximum
+```
+
+`engine.vitals.ceiling` is the only place the rule lives. Every reader asks it.
+**Never write the literal 100 in an HP path** — that is the mistake the task
+existed to remove, and `tests/test_health_model.py::
+test_no_module_hardcodes_the_hp_ceiling` scans the modules the task named and
+fails if one comes back (comments and docstrings are stripped first, so prose
+about the old literal is fine).
+
+### The three scales
+
+| Scale | Vitals | Rule |
+|-------|--------|------|
+| Percentage, 0-100 | Energy, Hygiene, Social, Sanity, Entertainment, Comfort, Mana, Arousal, Stimulation, Pleasure | `ceiling` returns 100 |
+| Drive, fills toward 100 | Hunger, Thirst, Bladder | 100 is the *bad* end |
+| **Own scale** | **HP** | authored `Max_HP`, else 100 |
+| Band, anatomical | Temperature | ~37 °C; `ceiling` returns infinity and the tick manager's `cold_floor`/`normal`/`heat_ceiling` bands decide what is lethal |
+
+### Authoring a real maximum
+
+Two ways, both first-class, and they coexist:
+
+```jsonc
+{ "name": "Goblin", "vitals": { "HP": 7, "Max_HP": 7 } }
+```
+
+```jsonc
+// the scalable half: a family of creatures authored by formula
+{ "name": "Ancient Black Dragon", "hit_dice": "21d12+112" }
+```
+
+`hit_dice` resolves `NdM+K` at load time in `engine/vitals.hit_dice_max`:
+
+- **average** is the default and the right answer for a *bestiary*: `2d6` is 7,
+  `7d8+14` is 46. It is the mean rounded half-up, so `2d6` is 7 and not the 6
+  integer division gives.
+- **roll** is for a character that rolls up at creation
+  (`"hit_dice_mode": "roll"`). A bestiary must not be `roll`, or a creature's
+  health changes every time a save is loaded.
+- A bare `"d8"` means 1d8. An unreadable expression resolves to nothing at all
+  rather than to 0 HP — a typo in a stat block should be visible.
+- The result is floored at 1: a character with no maximum at all is a much
+  worse failure mode than one point of health.
+
+**An explicit `Max_HP` wins over `hit_dice`.** That is the decided conflict
+rule, and it is what keeps the whole library backward compatible: every one of
+the 70 library characters sets `Max_HP` directly, so `hit_dice` is only ever a
+fallback. A stat block listing both is redundant, not contradictory, and failing
+the load over it would be worse than honouring the number.
+
+### The `Max_` convention
+
+`Max_{Vital}` is a general convention, not an HP special case: `ceiling` looks
+for `f"Max_{stat}"` first, so `Max_Mana` works exactly the same way.
+
 ## Vitals Reference
 
 | Vital | Default | Min | Max | Decay/min | Critical at 0 |
 |-------|---------|-----|-----|------------|----------------|
-| `HP` | 100 | 0 | Max_HP | 0 (damage only) | Death |
+| `HP` | 100 | 0 | **`Max_HP`** (or `hit_dice`) | 0 (damage only) | Death |
 | `Max_HP` | 100 | — | — | — | — |
 | `Energy` | 100 | 0 | 100 | 0.104 | Unconscious → Death (after 3x) |
 | `Hunger` | 100 | 0 | 100 | 0.0034 | HP damage (starvation) |
@@ -25,12 +103,34 @@ Vitals are numeric meters (0-100, except Temperature) that track a character's p
 | `Entertainment` | 100 | 0 | 100 | 0.030 | Sanity penalty |
 | `Temperature` | 37.0 | ~25 | ~45 | — | HP/Energy damage at extremes |
 
-(`vital_rates.BASELINE_DECAY` is the authority. From a full meter: Hunger reaches
+`vital_rates.BASELINE_DECAY` is the authority. From a full meter: Hunger reaches
 the starvation edge in ~3 weeks, Thirst the dehydration edge in ~3 days, Energy
 empties over a ~16h waking day, and Social/Hygiene/Entertainment run on a ~1-2 day
-cycle.)
+cycle.
 
-(`player.py:60-67`)
+## Writing a vital from an effect
+
+Four effects touch vitals, and all four clamp through
+`engine.vitals.clamp_to_ceiling`, so they cannot disagree about where the top is:
+
+| Effect | What it does |
+|--------|--------------|
+| `adjust_vital` | `{stat, amount, target}` — moves the meter, clamped |
+| `set_vital` | `{stat, value, target}` — sets it to an exact value, clamped |
+| `modify_vital_max` | `{stat, amount, target, scale_current}` — moves the **ceiling** |
+| `heal` | `{stat, amount, target}` — adds, clamped (and reports what was *actually* restored) |
+
+All four accept `target: "self"` (default) or a character name, resolved
+case-insensitively.
+
+`modify_vital_max` is the reason a maximum wants to be data rather than a
+constant: a trait, a spell or a level-up effect can raise it at runtime and the
+whole clamp chain follows, because every reader asks `ceiling`. By default it
+**does not change the current value** — a spell that lifts your maximum should
+not silently heal you. Pass `"scale_current": true` to grant both. Lowering a
+ceiling below the current value brings the value back under it rather than
+leaving the vital above its own maximum.
+
 
 ## Baseline Decay
 
@@ -63,46 +163,51 @@ self._decay(p, stat, -rate * mult)      # minutes defaults to tick_minutes(gs)
 
 ### HP = 0 → Death
 
-When HP reaches 0, the character dies. Cause of death is determined from other vitals:
+When HP reaches 0, the character dies. The cause is read off the other vitals:
 
 ```python
 cause_parts = []
-if hunger <= 0: cause_parts.append("starvation")
-if thirst <= 0: cause_parts.append("dehydration")
-if sanity <= 0: cause_parts.append("madness")
-if temperature < 30: cause_parts.append("hypothermia")
-if temperature > 42: cause_parts.append("heat stroke")
+if hunger >= 100: cause_parts.append("starvation")     # a DRIVE: fills up
+if thirst >= 100: cause_parts.append("dehydration")     # a DRIVE: fills up
+if temperature < cold_critical: cause_parts.append("hypothermia")
+if temperature > heat_critical: cause_parts.append("heat stroke")
 ```
 
-(`tick_manager.py:166-183`)
+The temperature thresholds are **per species**, not the fixed 30/42 below —
+`TraitSystem.get_temperature_band(player)` reads the character's temperature
+band, so a creature with a different normal body temperature dies at its own
+numbers. Sanity is deliberately absent; see below.
 
-On death:
-- State is set to `"dead"`
-- A body item is spawned
-- Ghost mode can be enabled to continue playing
+On death, everything routes through `world.kill_player` — see
+[Which death path is authoritative](#which-death-path-is-authoritative-decided-task-538).
 
 ### Energy = 0 → Unconscious → Death
 
 When Energy reaches 0:
 1. Character becomes `"unconscious"` with `state_timer = 5`
-2. Exhaustion count increments
-3. On 3rd exhaustion: character dies from "exposure" (`tick_manager.py:128-137`)
+2. Held items are dropped (you let go of what you were carrying)
+3. Exhaustion count increments
+4. On 3rd exhaustion: the character dies of "exposure"
 
-### Hunger = 0, Thirst = 0
+### Hunger = 100, Thirst = 100
 
-Each causes HP damage:
-- Hunger = 0: HP damage, cause "starvation"
-- Thirst = 0: HP damage, cause "dehydration"
+Hunger and Thirst are **drives** (task-337): they FILL toward 100, so starving
+means *high* Hunger, not low. Maxed out for longer than a grace period they
+cause HP damage, with cause "starvation" / "dehydration".
 
-Starvation grace and damage are counted in **game minutes**, so the grace period
-is the same span of game time whatever the tick length.
+Grace and damage are counted in **game minutes**, so the grace period is the
+same span of game time whatever the tick length. Thirsted grace is 60 minutes
+(1 hour) and drains HP at 0.50/min; hunger's grace is 360 minutes (6 hours) and
+drains at 0.10/min.
 
 ### Sanity = 0 does **not** damage HP
 
 Being at 0 Sanity is deliberately **not** a death sentence, and this is easy to
-get wrong from the code: `sanity <= 0` appears in the *cause of death* string
-builder, so a character who happens to die while mad is recorded as having died of
-"madness" — but Sanity never drains HP itself.
+get wrong: it is tempting to assume "every vital has a lethal zero", and Sanity
+is the counter-example. It does not appear in the cause-of-death builder at
+all, and it never drains HP. (An older revision of this page claimed a mad
+character could be recorded as dying of "madness" — it cannot; the builder has
+only ever listed starvation, dehydration, hypothermia and heat stroke.)
 
 What low Sanity does instead is make the character **dangerous**. Below 25 it
 applies the `paranoid` → `hallucinating` condition line, which carries
@@ -325,9 +430,8 @@ HP regenerates 1/tick (modified by traits) when ALL conditions are met:
 - Thirst > 25
 - Sanity > 25
 - Temperature 35-39°C
-- HP < 100
-
-(`tick_manager.py:272-277`)
+- **HP is below this character's maximum** (`ceiling(vitals, "HP")`, *not*
+  the literal 100 — see [HP is on its own scale](#hp-is-on-its-own-scale-task-538))
 
 Regen amount: `max(1, int(1 × hp_regen_multiplier))`. Default is 1, doubled by `fast_healer`, halved by `slow_healer`.
 
@@ -341,24 +445,64 @@ Characters with the `is_slasher` effect (from the `slasher` trait) are exempt fr
 
 ## Death System
 
+### Which death path is authoritative (decided, task-538)
+
+**The `dead` condition is the single authoritative death state.**
+
+`Player.state` is *derived* from the condition hierarchy
+(`engine/player_conditions.get_state`, with `dead` at the top of
+`CONDITION_HIERARCHY`), so `state == "dead"` and `has_condition("dead")` are the
+same fact rather than two that can drift. Setting `player.state = "dead"` adds
+the condition; it is not a second store. This answers the task's open question
+of `p.state` vs the condition vs `HP <= 0` vs exhaustion count: they are not
+four paths.
+
+What was *not* settled was the causes. Four sites each set `state = "dead"`
+and then did a different subset of the aftermath:
+
+| Site | body | log | lived-log record | dropped held items |
+|------|------|-----|------------------|--------------------|
+| tick: `HP <= 0` | yes | yes | yes | **no** |
+| tick: exhaustion ≥ 3 | yes | yes | **no** | (already dropped) |
+| combat: `HP <= 0` | yes | yes | **no** | yes |
+| `POST /api/players/<n>/kill` | yes | yes | **no** | **no** |
+
+So a corpse's inventory survived a killing blow but not a script, and the lived
+log — the record designed to explain *why* something happened — only ever saw
+environmental deaths. They now all go through one function:
+
+```python
+world.kill_player(name, cause, *, drop_items=True, announce=True) -> bool
+```
+
+which zeroes HP, sets the condition, writes the `death` entry to the lived log
+with `why="cause:death"`, drops held items, spawns the body, and announces.
+It returns `False` for a character who was already dead, so a second lethal
+check cannot spawn a second corpse. **Nothing should set `state = "dead"`
+directly any more.**
+
 ### Causes of Death
 
 1. **Combat**: HP reduced to 0 by attack damage
-2. **Starvation**: HP depleted by hunger = 0
-3. **Dehydration**: HP depleted by thirst = 0
-4. **Madness**: HP depleted by sanity = 0
-5. **Hypothermia/Heat Stroke**: HP/Energy depleted by temperature extremes
-6. **Exhaustion**: Energy = 0 three times
-7. **Toxic air**: HP drained by toxic room air
-8. **Allergic reaction**: HP drained by allergen (trait)
+2. **Starvation**: HP depleted by maxed Hunger
+3. **Dehydration**: HP depleted by maxed Thirst
+4. **Hypothermia/Heat Stroke**: HP/Energy depleted by temperature extremes
+5. **Exhaustion**: Energy = 0 three times
+6. **Toxic air**: HP drained by toxic room air
+7. **Allergic reaction**: HP drained by allergen (trait)
+8. **`POST /api/players/<name>/kill`**: scripted
 
 ### On Death
 
+Every one of the above does exactly this, via `world.kill_player`:
+
 1. `player.vitals["HP"]` = 0
-2. `player.state` = "dead"
-3. A body item is spawned via `spawn_body_item()` with cause of death
-4. If ghost mode is enabled, the dead player can continue acting
-5. The active player sees "GAME OVER: You have died from <cause>"
+2. the `dead` condition is applied (so `player.state` reads `"dead"`)
+3. held items fall to the floor
+4. a body item is spawned via `spawn_body_item()` with the cause of death
+5. a `death` entry is appended to the character's lived log (`why="cause:death"`)
+6. if ghost mode is enabled, the dead player can continue acting
+7. the active player sees "GAME OVER: You have died from \<cause\>"
 
 Dead players are excluded from:
 - Vital decay processing (`tick_manager.py:90-91`)

@@ -61,6 +61,82 @@ class Player:
             # The id set is data (each condition's `mature` flag), not a list here.
             for cid in MATURE_CONDITIONS:
                 self.conditions.pop(cid, None)
+            # task-545: the path record is pleasure-vital bookkeeping, so the
+            # toggle that removes those vitals removes it too. Leaving it would
+            # be an invisible leftover that a re-enable would resurrect.
+            self.stimulation_paths = {}
+            self.stimulation_last_path = None
+
+    # ── Stimulation path record (task-545) ───────────────────────────────
+
+    @staticmethod
+    def stimulation_path_key(region_id=None, verb=None, source="interaction") -> str:
+        """The path key a stimulation gain is filed under.
+
+        **The region alone**, following the task's recommendation: `region_id`
+        is already a resolved id from `engine/body_parts.py` and the trait talks
+        about a *route*, not about a specific move. A `region.verb` key would be
+        finer-grained than anything currently needs and would make "any touch to
+        the same route counts" false.
+
+        `source` is the other half of the key, and it is what makes the
+        non-interactive drip distinguishable from an interaction: the mature
+        arousal conditions and the clothing-friction trickle add `Stimulation`
+        on their own, and a "designated path only" gate has to be able to say
+        "this did not come from a path at all".
+        """
+        if source != "interaction":
+            return f"{source}"
+        return str(region_id or "unspecified")
+
+    def record_stimulation_path(self, path_key, amount, *, region_id=None,
+                                verb=None):
+        """Attribute *amount* of Stimulation to *path_key*. task-545.
+
+        A non-positive amount is ignored rather than recorded as a negative
+        contribution: a decay step must not be able to cancel out the history of
+        what actually raised the meter, or a path could be erased by waiting.
+        """
+        if not path_key:
+            return None
+        try:
+            amount = float(amount)
+        except (TypeError, ValueError):
+            return None
+        if amount <= 0:
+            return None
+        if not isinstance(self.stimulation_paths, dict):
+            self.stimulation_paths = {}
+        self.stimulation_paths[path_key] = \
+            self.stimulation_paths.get(path_key, 0.0) + amount
+        self.stimulation_last_path = path_key
+        return path_key
+
+    def stimulation_from_path(self, path_key) -> float:
+        """How much of the current build came from one path. 0.0 when never."""
+        if not path_key or not isinstance(self.stimulation_paths, dict):
+            return 0.0
+        try:
+            return float(self.stimulation_paths.get(path_key, 0.0))
+        except (TypeError, ValueError):
+            return 0.0
+
+    def clear_stimulation_paths(self):
+        """A release empties the record: the next build starts a new one."""
+        self.stimulation_paths = {}
+        self.stimulation_last_path = None
+
+    def stimulation_path_total(self) -> float:
+        """Total attributed across every path."""
+        if not isinstance(self.stimulation_paths, dict):
+            return 0.0
+        total = 0.0
+        for value in self.stimulation_paths.values():
+            try:
+                total += float(value)
+            except (TypeError, ValueError):
+                continue
+        return total
 
     @staticmethod
     def node_id_for(name: str) -> str:
@@ -118,9 +194,21 @@ class Player:
             "INT": 10, "WIS": 10, "CHA": 10
         }
         
-        # Vitals & Needs (Max 100)
+        # Vitals & Needs
         # Hunger/Thirst are DRIVES (task-337 flip): 0 = fed/hydrated,
         # 100 = starving/dehydrated. Spawn satisfied, they fill over time.
+        #
+        # Most vitals are 0-100 percentages. Three are NOT, and that is the
+        # model rather than an oversight (task-538):
+        #   - HP is on whatever scale the character's stat block says. 100 is the
+        #     *default* for a person, so every pre-existing character hydrates to
+        #     exactly what it always did; `Max_HP: 7` (or `"hit_dice": "2d6"`)
+        #     makes a real creature possible. Nothing clamps HP to 100 — every
+        #     reader asks engine.vitals.ceiling(vitals, "HP").
+        #   - Temperature is anatomical (~37 °C) and is driven by its own band
+        #     model (cold_floor / normal / heat_ceiling), not by a ceiling.
+        #   - Hunger/Thirst/Bladder are drives that FILL toward 100.
+        # `Max_HP` is the companion value: an authored maximum, not a constant.
         self.vitals = {
             "HP": 100, "Max_HP": 100,
             "Hunger": 0, "Thirst": 0,
@@ -186,6 +274,14 @@ class Player:
         # (task-187), or the property's default would silently outrank every
         # hand-authored trait and the way max_size gate would stop working.
         self.size = None
+        # Species (task-549): what KIND of creature this is — "goblin", "human",
+        # "animal". This is the identity the need layer reads, and it is what
+        # makes "would an animal use a latrine?" a question about the data rather
+        # than about which tags somebody put on a room. `None` means *unspecified*
+        # and permits everything, so all 70 library characters and every scenario
+        # load unchanged. See engine/species.py — it is deliberately an
+        # opt-in exclusion list, never a guessed rule.
+        self.species = None
         # Tags: identity markers for this character, checked by items/triggers/conditions.
         # Examples: ["vampire", "faction:guard", "synthetic", "nobility"]
         self.tags = []
@@ -204,6 +300,28 @@ class Player:
         # A rabbit drops a carcass item; a character without one leaves the
         # normal `body_<name>` item.
         self.carcass_item = None
+        # ── Pleasure path record (task-545) ──
+        # Which paths have contributed to `Stimulation` since the last release,
+        # with how much each contributed. `apply_stimulation()` already receives
+        # the resolved `region_id` and `verb` and then folds both into one
+        # integer on `vitals["Stimulation"]`, so nothing downstream could tell a
+        # release threshold how the meter got there. A path-sensitive effect
+        # (task-488's `single_track`) needs something to read.
+        #
+        # Deliberately **transient**: this is runtime bookkeeping about how the
+        # meter filled, not authored state, and a save that persisted it would
+        # restore a build history the character never lived through. It is not
+        # serialized — see the `to_dict` note there.
+        #
+        # Keyed by a path string, valued by the points that path contributed, so
+        # "you have been edged on everything but X" is answerable and so the
+        # release check can ask about *this* region's share rather than
+        # re-deriving history from a log.
+        self.stimulation_paths = {}
+        # The most recent contributing path, kept separately because the common
+        # question is "what is happening *right now*" and dict order would answer
+        # it with whichever path happened to be added first.
+        self.stimulation_last_path = None
         # An active soak order (task-481): declared on this human's turn ("go
         # west for an hour"), it makes the character run on a policy each turn
         # until the span is spent or something promotes them back. None = normal
@@ -1138,6 +1256,7 @@ class Player:
             "relationships": self._relationships_to_dict(),
             "traits": dict(self.traits),
             "size": getattr(self, "size", None) or "normal",
+            "species": getattr(self, "species", None),
             "tags": list(self.tags),
             "interest_tags": list(self.interest_tags),
             "fear_tags": list(self.fear_tags),

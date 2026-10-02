@@ -28,7 +28,11 @@ from engine.effect_handlers.scry import HANDLERS as SCRY_HANDLERS
 from engine.effect_handlers.weather import HANDLERS as WEATHER_HANDLERS
 from engine.effect_handlers.tags import HANDLERS as TAG_HANDLERS
 from engine.effect_handlers.spells import HANDLERS as SPELL_HANDLERS
+from engine.abilities import normalize_stat_block
 from engine.size import SIZE_TIERS, SIZE_DEFAULT
+from engine.vitals import (
+    DEFAULT_MAX_HP, DEFAULT_VITAL_MAX, apply_hit_dice, clamp_to_ceiling,
+)
 
 HANDLERS = {}
 HANDLERS.update(VITAL_HANDLERS)
@@ -493,14 +497,22 @@ class Effects:
         p.personality = lib_data.get("personality", "")
         p.description = lib_data.get("description", "")
         p.base_description = lib_data.get("base_description", "")
-        p.stats = lib_data.get("stats", {})
+        # task-606: folded from either case. The library had two vocabularies for
+        # the same six abilities (STR/str) and a lowercase block silently left
+        # the character with no readable STR at all.
+        p.stats = normalize_stat_block(lib_data.get("stats", {}))
         p.vitals = {**p.vitals, **lib_data.get("vitals", {})}
-        if "Max_HP" not in p.vitals:
-            p.vitals["Max_HP"] = 100
+        # task-538: a stat block may declare `hit_dice` instead of `Max_HP`
+        # ("7d8+14" -> 49), so a family of creatures can be authored by formula.
+        # An explicit Max_HP wins, so the 68 existing library characters — which
+        # all set it directly — hydrate to exactly what they always did.
+        apply_hit_dice(p.vitals, {**lib_data, **lib_data.get("vitals", {})})
+        p.vitals.setdefault("Max_HP", DEFAULT_MAX_HP)
         if "HP" in p.vitals:
-            p.vitals["HP"] = max(0, min(p.vitals["Max_HP"], p.vitals["HP"]))
+            p.vitals["HP"] = clamp_to_ceiling(p.vitals, "HP", p.vitals["HP"])
         if "Energy" in p.vitals:
-            p.vitals["Energy"] = max(0, min(100, p.vitals["Energy"]))
+            p.vitals["Energy"] = max(0, min(DEFAULT_VITAL_MAX,
+                                           p.vitals["Energy"]))
         p.decay_rates = lib_data.get("decay_rates", p.decay_rates)
         # Additive: a library definition sets only the skills it cares about and
         # the rest stay on the sheet at their defaults (task-474).
@@ -513,6 +525,13 @@ class Effects:
         # typo resolves to `normal` rather than to an unknown tier.
         _size = str(lib_data.get("size", "") or "").strip().lower()
         p.size = _size if _size in SIZE_TIERS else SIZE_DEFAULT
+        # task-549: species, normalised. Absent leaves it None = "unspecified",
+        # which permits every service, so no existing library character changes.
+        _species = lib_data.get("species")
+        if isinstance(_species, (list, tuple)):
+            _species = _species[0] if _species else None
+        _species = str(_species).strip().lower() if _species else None
+        p.species = _species or None
         p.tags = list(lib_data.get("tags", []))
         p.sync_vitals_with_tags()
         p.interest_tags = list(lib_data.get("interest_tags", []))

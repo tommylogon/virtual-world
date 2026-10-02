@@ -5,12 +5,12 @@
   "base_description": "a twenty-five-year-old woman with a thin, glamorous hourglass figure, bronzed, glossy skin, and natural blonde hair often worn up in a ponytail, with blue eyes and nails filed to points — but always, above all, her plump glossed lips painted shades of pink or red, freshly applied before any new press of them.",
   "unknown_name": "",
   "stats": {
-    "cha": 10,
-    "con": 10,
-    "dex": 10,
-    "int": 10,
-    "str": 10,
-    "wis": 10
+    "CHA": 10,
+    "CON": 10,
+    "DEX": 10,
+    "INT": 10,
+    "STR": 10,
+    "WIS": 10
   },
   "vitals": {
     "Bladder": 0,
@@ -99,5 +99,6 @@
   "npc_action_interval": 3,
   "npc_state": "idle",
   "simple_npc": false,
-  "recent_hearing": []
+  "recent_hearing": [],
+  "size": "normal"
 }

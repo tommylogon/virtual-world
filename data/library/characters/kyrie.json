@@ -5,12 +5,12 @@
   "base_description": "a sixteen-year-old white girl with pale skin and a compact, muscular build. four years of gym work and wrestling have given her visible definition in her arms, shoulders, and core. she is small-chested and narrow-hipped, built entirely for power and leverage rather than curves. her face is rounder than she'd like, with a small nose, a jaw that clenches when thinking, and a faint dusting of freckles across the bridge of her nose. her hair is short and messy brown, looking self-cut. her left forearm bears a nasty, dark purple bruise from a recent archery string-slap.",
   "unknown_name": "",
   "stats": {
-    "cha": 8,
-    "con": 13,
-    "dex": 12,
-    "int": 10,
-    "str": 14,
-    "wis": 11
+    "CHA": 8,
+    "CON": 13,
+    "DEX": 12,
+    "INT": 10,
+    "STR": 14,
+    "WIS": 11
   },
   "vitals": {
     "Bladder": 0,
@@ -410,5 +410,6 @@
   "npc_action_interval": 3,
   "npc_state": "idle",
   "simple_npc": false,
-  "recent_hearing": []
+  "recent_hearing": [],
+  "size": "normal"
 }

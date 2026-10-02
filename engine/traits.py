@@ -12,6 +12,8 @@ names outside this module.
 
 from typing import Any, Dict, List, Optional, Set
 
+from engine.vitals import ceiling
+
 # ──────────────────────────────────────────────────────────────
 # Effect keys recognised by the engine
 # ──────────────────────────────────────────────────────────────
@@ -296,6 +298,11 @@ TRAIT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "category": "social",
         "params": None,
         "effects": {"exhibitionist": True},
+        # task-487: the effect was inert until now, so an agent carrying this
+        # trait was told nothing about it. The prompt is what makes the *behaviour*
+        # the trait implies possible even when the arithmetic does not fire — being
+        # seen in an empty room thrills nobody.
+        "behavior_prompt": "Being seen thrills you. You don't mind being watched, and you show yourself more freely than most.",
         "mature": True,
         "conflicts": [],
     },
@@ -1080,8 +1087,13 @@ class TraitSystem:
         traits = player.traits
         vitals = player.vitals or {}
         if "scarred" not in traits:
-            hp = vitals.get("HP", 100)
-            max_hp = vitals.get("Max_HP", 100)
+            # task-538: the threshold is a fraction of *this character's* maximum.
+            # With a literal 100 fallback a 7-HP goblin could never be scarred at
+            # all, because `hp <= max(1, 10)` was false at 7 HP and true at
+            # nothing — the trait was unreachable for exactly the stat blocks
+            # that should have it.
+            max_hp = ceiling(vitals, "HP") or 1
+            hp = vitals.get("HP", max_hp)
             if 0 < hp <= max(1, int(max_hp * 0.1)):
                 traits["scarred"] = True
                 gained.append("scarred")

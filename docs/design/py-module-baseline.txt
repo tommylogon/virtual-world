@@ -1,4 +1,5 @@
 engine/__init__.py
+engine/abilities.py
 engine/activities.py
 engine/agent_memory.py
 engine/area_description.py
@@ -80,6 +81,7 @@ engine/novelty.py
 engine/npc_behaviors.py
 engine/observation.py
 engine/observation_signal.py
+engine/occupancy.py
 engine/ownership.py
 engine/pack.py
 engine/player_conditions.py
@@ -108,6 +110,7 @@ engine/soak.py
 engine/social_text.py
 engine/sound.py
 engine/spatial_memory.py
+engine/species.py
 engine/speech.py
 engine/structures.py
 engine/sync.py

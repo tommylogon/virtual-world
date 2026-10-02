@@ -5,12 +5,12 @@
   "base_description": "a caucasian woman in her mid-20s, standing 5'8\" with an exaggerated, plush hourglass figure (b122 w56 h125) and a very large, k-cup chest that contrasts sharply with her slender waist. her skin is clean-shaven everywhere except her pubic area, which features a neat bush of dirty-blonde hair matching the darker roots of her ragged-cut twin tails. she has permanent, faded bite marks on her left upper outer thigh, above her right knee, on her upper right arm, and between her neck and left shoulder. a healed, pale scar stretches across the left side of her lower stomach. her eyes are an aggressive pinkish-red, framed by dark bags, and she has prominent protruding canines on both top and bottom.",
   "unknown_name": "",
   "stats": {
-    "cha": 12,
-    "con": 10,
-    "dex": 12,
-    "int": 14,
-    "str": 8,
-    "wis": 8
+    "CHA": 12,
+    "CON": 10,
+    "DEX": 12,
+    "INT": 14,
+    "STR": 8,
+    "WIS": 8
   },
   "vitals": {
     "Bladder": 0,
@@ -725,5 +725,6 @@
   "npc_action_interval": 3,
   "npc_state": "idle",
   "simple_npc": false,
-  "recent_hearing": []
+  "recent_hearing": [],
+  "size": "small"
 }
