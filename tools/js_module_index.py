@@ -180,8 +180,11 @@ def docs_problems(entries):
             continue  # already handled by the uncovered baseline
         raw = (meta.get("docs") or "").strip()
         rel = str(path).replace("\\", "/")
-        if not raw or raw.lower() in ("none", "n/a", "-"):
-            continue  # a declared absence is a decision, not a broken target
+        # `@docs none` is a decision; `@docs none — <reason>` is the documented
+        # form (task-576), so test the first token, not the whole value.
+        head = raw.split(None, 1)[0].lower() if raw else ""
+        if not raw or head in ("none", "n/a", "-"):
+            continue
         if raw.endswith(("/", "\\")):
             problems.append((rel, "folder target — a directory is not a note: %s" % raw))
             continue
