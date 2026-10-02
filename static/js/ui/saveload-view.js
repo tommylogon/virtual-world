@@ -312,6 +312,7 @@ window.SaveLoadView = (() => {
                     return;
                 }
                 document.body.dataset.scenarioName = scenarioName;
+                if (resp.schema_notice) toastInfo(resp.schema_notice);
                 events.log('World loaded!', 'system-msg');
                 events.clearAll();
                 agent.reset();
@@ -495,6 +496,7 @@ window.SaveLoadView = (() => {
         if (!confirm('Load game "' + filename + '"? Current progress will be replaced.')) return;
         var result = await api.loadGame(filename);
         if (result && result.status === 'success') {
+            if (result.schema_notice) toastInfo(result.schema_notice);
             events.log('📂 Game loaded: ' + filename, 'system-msg');
             events.clearAll();
             agent.reset();

@@ -4,7 +4,8 @@ import time
 import logging
 import unicodedata
 from logger import setup_logger
-from version import APP_VERSION
+from version import APP_VERSION, SCHEMA_VERSION
+from engine.schema import migrate, SchemaError
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +76,7 @@ def save_autosave(world):
             'tick': getattr(world, 'time_ticks', 0),
             'turn': getattr(world, 'turn_number', 0),
             'scenario_source': getattr(world, '_scenario_source', None),
-            'schema_version': 2,
+            'schema_version': SCHEMA_VERSION,
         }
         with open(AUTOSAVE_PATH, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
@@ -104,6 +105,7 @@ def _write_autosave_slot(data):
             'turn': slot_data.get('_autosave_meta', {}).get('turn', 0),
             'player': slot_data.get('active_player', ''),
             'version': APP_VERSION,
+            'schema_version': SCHEMA_VERSION,
             'autosave': True,
         }
         slot_data.pop('_autosave_meta', None)
@@ -120,6 +122,18 @@ def load_autosave_if_exists(world):
         try:
             with open(AUTOSAVE_PATH, 'r', encoding='utf-8-sig') as f:
                 data = json.load(f)
+
+            # task-453: one schema gate for every load path. The old inline
+            # bladder v1->v2 block lived only here; it now lives in
+            # engine/schema.py so the load routes migrate identically.
+            try:
+                data, from_version = migrate(data)
+            except SchemaError as e:
+                logger.warning(f"Refusing autosave: {e}")
+                return False
+            if from_version < SCHEMA_VERSION:
+                logger.info(f"Migrated autosave schema v{from_version} -> v{SCHEMA_VERSION}")
+
             world.load_from_dict(data)
 
             # Restore scenario source from autosave meta so restart loads the right file
@@ -127,21 +141,6 @@ def load_autosave_if_exists(world):
             saved_source = meta.get('scenario_source')
             if saved_source and os.path.exists(saved_source):
                 world.set_scenario_source(saved_source)
-
-            # Migrate bladder values from schema v1 (100=empty → 0=empty, 100=full)
-            schema_version = meta.get('schema_version', 1)
-            if schema_version < 2:
-                migrated = 0
-                for pname, pdata in data.get('players', {}).items():
-                    old_val = pdata.get('vitals', {}).get('Bladder')
-                    if old_val is not None:
-                        new_val = 100 - old_val
-                        player_obj = world.player_manager.players.get(pname)
-                        if player_obj and 'Bladder' in player_obj.vitals:
-                            player_obj.vitals['Bladder'] = new_val
-                            migrated += 1
-                if migrated:
-                    logger.info(f"Migrated {migrated} player(s) from bladder schema v1 → v2")
 
             logger.info(f"Loaded autosave ({os.path.getsize(AUTOSAVE_PATH)} bytes)")
             return True
@@ -365,6 +364,7 @@ def _save_game(world, name=None, slot=None):
             'turn': world.turn_number,
             'player': world.active_player,
             'version': APP_VERSION,
+            'schema_version': SCHEMA_VERSION,
             'autosave': bool(is_auto_slot),
         }
         with open(path, 'w', encoding='utf-8') as f:

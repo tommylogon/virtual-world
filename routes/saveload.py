@@ -11,6 +11,8 @@ from graph import Node, Edge
 from .helpers import (
     _save_game, save_autosave, sanitize_filename, unique_filename, SAVES_DIR,
 )
+from version import SCHEMA_VERSION
+from engine.schema import migrate, SchemaError
 
 logger = logging.getLogger(__name__)
 
@@ -111,6 +113,19 @@ def register_saveload_routes(app):
             num_players = len(data.get('players', {}))
             logger.info(f"Loading world with {num_areas} areas, {num_players} players")
 
+            # task-453: gate on the payload's schema version before touching the
+            # live world. A newer file is refused outright; an older one is
+            # migrated in memory and surfaced as a notice.
+            try:
+                data, from_version = migrate(data)
+            except SchemaError as exc:
+                logger.warning("Refused /api/load: %s", exc)
+                return jsonify({"error": str(exc)}), 400
+            schema_notice = (
+                f"Migrated this file from schema v{from_version} to v{SCHEMA_VERSION}."
+                if from_version < SCHEMA_VERSION else None
+            )
+
             start = time.time()
             _push_undo_snapshot(app, label=f"load{' savegame' if '_save_metadata' in data else ' scenario'} <{data.get('_scenario_name') or data.get('name') or 'unnamed'}>")
             app.world.load_from_dict(data)
@@ -143,7 +158,10 @@ def register_saveload_routes(app):
                 _adopt_loaded_world(app, data, autosave=False)
             elapsed = (time.time() - start) * 1000
             logger.info(f"World loaded in {elapsed:.0f} ms")
-            return jsonify({"status": "success"})
+            response = {"status": "success"}
+            if schema_notice:
+                response["schema_notice"] = schema_notice
+            return jsonify(response)
         except Exception as e:
             logger.exception("Error in /api/load")
             return jsonify({"error": str(e)}), 400
@@ -365,10 +383,21 @@ def register_saveload_routes(app):
         try:
             with open(path, 'r', encoding='utf-8-sig') as f:
                 data = json.load(f)
+            # task-453: same schema gate as /api/load.
+            try:
+                data, from_version = migrate(data)
+            except SchemaError as exc:
+                logger.warning("Refused savegame %s: %s", filename, exc)
+                return jsonify({"error": str(exc)}), 400
             _push_undo_snapshot(app, label=f"load savegame <{filename}>")
             app.world.load_from_dict(data)
             _adopt_loaded_world(app, data)
-            return jsonify({"status": "success"})
+            response = {"status": "success"}
+            if from_version < SCHEMA_VERSION:
+                response["schema_notice"] = (
+                    f"Migrated save from schema v{from_version} to v{SCHEMA_VERSION}."
+                )
+            return jsonify(response)
         except Exception as e:
             return jsonify({"error": f"Could not load save: {e}"}), 500
 
