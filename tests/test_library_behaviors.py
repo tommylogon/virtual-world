@@ -81,6 +81,28 @@ def test_unresolvable_ref_is_reported_not_dropped(tmp_path):
     assert player.behaviors == []
 
 
+def test_malformed_ref_is_reported_not_dropped(tmp_path):
+    """A ref that isn't a usable id is an authoring error and must surface.
+
+    `{}` and a bare `{"name": ...}` (no id) previously fell through `_ref_id` and
+    were skipped, so a behaviour that would never run looked like one that was
+    never written.
+    """
+    client, app, data = _fresh_app(tmp_path)
+    _write(os.path.join(data, "library", "characters", "odd.json"), {
+        "name": "Odd",
+        "simple_npc": True,
+        "behaviors": [],
+        "behavior_refs": [{"name": "lookout"}],
+    })
+
+    resp = client.post("/api/library/import/character/odd", json={"active": False})
+    assert resp.status_code == 200, resp.get_data(as_text=True)
+    warnings = resp.get_json()["behavior_warnings"]
+    assert warnings, "a malformed ref must be reported, not silently dropped"
+    assert "name" in warnings[0]
+
+
 def test_every_file_is_consumed_or_reported(tmp_path):
     client, app, data = _fresh_app(tmp_path)
     behaviours = os.path.join(data, "library", "behaviours")

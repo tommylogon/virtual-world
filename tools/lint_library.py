@@ -37,7 +37,11 @@ import sys
 
 DEFAULT_LIB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "library")
 
-#: The registries whose **ids are filenames** and therefore checked for charset.
+#: The registries this check reports on. Every registry is keyed by filename and
+#: so is equally subject to the hazard; this tuple is the set the check has always
+#: covered, kept explicit so widening it is a deliberate change to the output
+#: rather than an accident. `routes/library_ops.REGISTRY_TYPES` is the canonical
+#: list of registry types (see `_known_registry_types`).
 _CHARSET_REGISTRIES = ("items", "characters", "areas", "tags", "ways")
 
 ERROR_CHECKS = ("dead_interests", "missing_slots", "tag_case_drift", "broken_contents",
@@ -135,7 +139,11 @@ def load_biomes(lib_dir):
     if not os.path.isfile(path):
         return {}
     try:
-        with open(path, "r", encoding="utf-8") as handle:
+        # utf-8-sig, matching engine/biomes.py: the engine reads this same file
+        # and the two must not disagree about whether it is readable. The plain
+        # codec hands json a stray U+FEFF on a BOM'd file, and the check then
+        # silently reports nothing.
+        with open(path, "r", encoding="utf-8-sig") as handle:
             return json.load(handle)
     except (json.JSONDecodeError, UnicodeDecodeError) as exc:
         print(f"ERROR worldpainter/biomes.json: unparseable JSON ({exc})")
@@ -351,8 +359,6 @@ def check_tag_id_charset(registries, report):
     character/item library lane.
     """
     for name, entries in (registries or {}).items():
-        if not isinstance(entries, dict):
-            continue
         offenders = [k for k in entries if not re.match(r"^[a-z0-9_]+$", str(k))]
         if not offenders:
             continue
@@ -440,10 +446,16 @@ def check_biome_coverage(items, biomes_data, report):
     yields nothing at all. Nothing reports that today, so a biome can be painted
     as forageable and silently produce an empty search.
 
-    The rule mirrors the consumer, curio pool included: once any item carries
-    the ``forage`` tag, only tagged items are eligible, so an entry that matches
-    only an untagged item is still a gap. A warning, not an error -- coverage
-    can legitimately be authored after the biome, and the count is the point.
+    The rule is the consumer's: ``engine/foraging.py::_pick_item`` scores every
+    item that shares a tag with the entry, and only then prefers the
+    ``forage``-tagged subset of *those* matches when that subset is non-empty.
+    So it narrows the candidate pool but never turns a non-empty match set into
+    nothing -- an entry matching only an untagged item is still found. The gap
+    condition is therefore a plain empty intersection, and intersecting a global
+    ``forage`` set here would report entries the engine happily spawns.
+
+    A warning, not an error -- coverage can legitimately be authored after the
+    biome, and the count is the point.
     """
     tag_index = {}
     for item_id, item in items.items():
@@ -456,7 +468,6 @@ def check_biome_coverage(items, biomes_data, report):
             low = str(tag).strip().lower()
             if low:
                 tag_index.setdefault(low, []).append(item_id)
-    curated = set(tag_index.get("forage", []))
 
     for biome_id, entries in sorted((biomes_data.get("resource_distribution") or {}).items()):
         dead = []
@@ -465,8 +476,6 @@ def check_biome_coverage(items, biomes_data, report):
             hits = set()
             for tag in etags:
                 hits.update(tag_index.get(tag, []))
-            if curated:
-                hits &= curated
             if not hits:
                 dead.append("/".join(sorted(etags)))
         if dead:

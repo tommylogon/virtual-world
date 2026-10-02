@@ -517,6 +517,10 @@ class Effects:
         p.npc_state = lib_data.get("npc_state", "idle")
         p.behaviors = lib_data.get("behaviors", [])
         # task-590: resolve reusable behaviour refs from data/library/behaviours/.
+        # No data_dir is passed because this whole hydration reads the shipped
+        # <repo>/data tree (see lib_dir above) rather than an app-configured
+        # DATA_DIR, so the default root in behaviors.library_dir is the same one
+        # this function already uses for the character file.
         _behavior_refs = lib_data.get("behavior_refs") or []
         if _behavior_refs:
             from engine import behaviors as _behavior_library

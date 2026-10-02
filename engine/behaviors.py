@@ -116,6 +116,10 @@ def resolve(refs, data_dir: Optional[str] = None) -> Tuple[List[dict], List[str]
     for ref in (refs or []):
         ref_id = _ref_id(ref)
         if not ref_id:
+            # A malformed ref (blank, a number, {"name": ...} with no id) is an
+            # authoring error the author has to see -- dropping it here would make
+            # a behaviour that never runs look like one that was never written.
+            unresolved.append(repr(ref))
             continue
         entry = catalog.get(ref_id)
         if entry is None:

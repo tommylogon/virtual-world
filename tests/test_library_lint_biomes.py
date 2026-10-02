@@ -37,17 +37,19 @@ def test_entry_matching_no_item_is_reported():
     assert "reeds" in warnings[0][1]
 
 
-def test_forage_pool_narrows_when_any_item_is_tagged():
-    """Mirrors the consumer: once a forage item exists, only tagged items count.
+def test_entry_matching_an_untagged_item_is_still_covered():
+    """Mirrors the consumer exactly: `engine/foraging.py::_pick_item` scores every
+    item sharing a tag with the entry, and only prefers the `forage`-tagged subset
+    of *those* matches when that subset is non-empty. Narrowing the pool never
+    turns a non-empty match set into nothing, so an entry that matches only an
+    untagged item is still found and is NOT a gap.
 
-    An entry that matches only an untagged item is still a gap, because
-    `_pick_item` would draw from the curated pool and find nothing.
+    (The check once intersected a global `forage` set here, which reported these
+    as gaps -- false positives against the engine it claims to mirror.)
     """
     items = {"berry": {"tags": ["berry"]}, "stick": {"tags": ["stick", "forage"]}}
     biomes = {"resource_distribution": {"forest": [{"tags": ["berry"], "weight": 3}]}}
-    warnings = _warnings(items, biomes)
-    assert len(warnings) == 1
-    assert "berry" in warnings[0][1]
+    assert _warnings(items, biomes) == []
 
 
 def test_main_reads_the_sibling_worldpainter_file():
