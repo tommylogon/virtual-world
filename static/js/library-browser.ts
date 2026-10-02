@@ -42,7 +42,7 @@ const LibraryApi = ApiClient as unknown as {
 
 const DiffModalTyped = DiffModal as DiffModalStatic;
 
-const itemLib = (window as unknown as { itemLib: unknown }).itemLib;
+const itemLibRef = (window as unknown as { itemLib: unknown }).itemLib;
 
 const ItemLibraryPlacement = (window as unknown as {
     ItemLibraryPlacement?: { pickTarget(title: string, opts: { tabs: string[] }): Promise<{ type: string; name?: string; id: string } | null> };
@@ -152,7 +152,7 @@ class LibraryBrowser {
 
     async open(initialTab?: string) {
         await this.refreshAll();
-        (itemLib as unknown as { data: Record<string, LibraryEntry> }).data = this.data.items;
+        (itemLibRef as unknown as { data: Record<string, LibraryEntry> }).data = this.data.items;
         if (initialTab && initialTab !== 'items') {
             this.switchTab(initialTab as LibraryTab);
         } else {
@@ -173,7 +173,7 @@ class LibraryBrowser {
         document.querySelectorAll('.lib-tab-pane').forEach(el => el.classList.toggle('active', el.id === `lib-pane-${tab}`));
 
         if (tab === 'items') {
-            (itemLib as unknown as { open(): void }).open();
+            (itemLibRef as unknown as { open(): void }).open();
         } else {
             this.renderList(tab);
             this._showEditorEmpty(tab);

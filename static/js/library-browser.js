@@ -32,7 +32,7 @@ function wordBoundary(text, token) {
 // are reached through this one local alias rather than a cast at every call.
 const LibraryApi = ApiClient;
 const DiffModalTyped = DiffModal;
-const itemLib = window.itemLib;
+const itemLibRef = window.itemLib;
 const ItemLibraryPlacement = window.ItemLibraryPlacement;
 const EDITOR_IDS = {
     characters: 'lib-char-editor', areas: 'lib-area-editor',
@@ -91,7 +91,7 @@ class LibraryBrowser {
     // ── Open / Close / Tab Switching ─────────────────────────────────
     async open(initialTab) {
         await this.refreshAll();
-        itemLib.data = this.data.items;
+        itemLibRef.data = this.data.items;
         if (initialTab && initialTab !== 'items') {
             this.switchTab(initialTab);
         }
@@ -109,7 +109,7 @@ class LibraryBrowser {
         document.querySelectorAll('.lib-tab').forEach((el) => el.classList.toggle('selected', el.dataset.tab === tab));
         document.querySelectorAll('.lib-tab-pane').forEach(el => el.classList.toggle('active', el.id === `lib-pane-${tab}`));
         if (tab === 'items') {
-            itemLib.open();
+            itemLibRef.open();
         }
         else {
             this.renderList(tab);

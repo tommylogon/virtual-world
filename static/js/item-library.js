@@ -12,7 +12,10 @@
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 const itemLibraryHtmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
 // `shared/trigger-types.js` is not in types/globals.d.ts.
-const TriggerTypes = window.TriggerTypes;
+// NOTE: the local alias must not be called `TriggerTypes` — that name is a
+// top-level lexical binding in shared/trigger-types.ts, and a second file
+// declaring it is a parse-time SyntaxError that kills the whole file.
+const TriggerTypesNs = window.TriggerTypes;
 // The library endpoints are not in the ambient ApiClient shape. `ItemLibraryApi`
 // is the same object as `ApiClient` at runtime; only its local type is wider.
 const ItemLibraryApi = ApiClient;
@@ -49,9 +52,9 @@ class ItemLibrary {
         'equip', 'unequip', 'throw', 'break',
         'drop'
     ];
-    static get TRIGGER_TYPES() { return TriggerTypes?.TRIGGER_TYPES || []; }
-    static get CONDITION_TYPES() { return TriggerTypes?.CONDITION_TYPES || []; }
-    static get EFFECT_TYPES() { return TriggerTypes?.EFFECT_TYPES || []; }
+    static get TRIGGER_TYPES() { return TriggerTypesNs?.TRIGGER_TYPES || []; }
+    static get CONDITION_TYPES() { return TriggerTypesNs?.CONDITION_TYPES || []; }
+    static get EFFECT_TYPES() { return TriggerTypesNs?.EFFECT_TYPES || []; }
     async refresh() {
         this.data = await ItemLibraryApi.getLibraryItems();
     }

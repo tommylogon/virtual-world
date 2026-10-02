@@ -12,7 +12,10 @@
 const itemLibraryHtmlTag = (strings: TemplateStringsArray, ...values: unknown[]) => window.Lit.html(strings, ...values);
 
 // `shared/trigger-types.js` is not in types/globals.d.ts.
-const TriggerTypes = (window as unknown as {
+// NOTE: the local alias must not be called `TriggerTypes` — that name is a
+// top-level lexical binding in shared/trigger-types.ts, and a second file
+// declaring it is a parse-time SyntaxError that kills the whole file.
+const TriggerTypesNs = (window as unknown as {
     TriggerTypes?: { TRIGGER_TYPES?: string[]; CONDITION_TYPES?: string[]; EFFECT_TYPES?: string[] };
 }).TriggerTypes;
 
@@ -155,9 +158,9 @@ class ItemLibrary {
         'drop'
     ];
 
-    static get TRIGGER_TYPES(): string[] { return TriggerTypes?.TRIGGER_TYPES || []; }
-    static get CONDITION_TYPES(): string[] { return TriggerTypes?.CONDITION_TYPES || []; }
-    static get EFFECT_TYPES(): string[] { return TriggerTypes?.EFFECT_TYPES || []; }
+    static get TRIGGER_TYPES(): string[] { return TriggerTypesNs?.TRIGGER_TYPES || []; }
+    static get CONDITION_TYPES(): string[] { return TriggerTypesNs?.CONDITION_TYPES || []; }
+    static get EFFECT_TYPES(): string[] { return TriggerTypesNs?.EFFECT_TYPES || []; }
 
     async refresh() {
         this.data = await ItemLibraryApi.getLibraryItems();
