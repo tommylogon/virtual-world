@@ -44,5 +44,6 @@ module has no BOM, which is why only this file was baselined.
 
 ## Follow-up
 
-- task-668: `room-context.js` body is mojibaked (`â€”` for `—`, damaged emoji);
-  not cleanly reversible.
+- task-668: `room-context.js` body is mojibaked (its UTF-8 bytes were decoded as
+  cp1252 once, so em-dashes became a three-character sequence and emoji are
+  damaged); not cleanly reversible.

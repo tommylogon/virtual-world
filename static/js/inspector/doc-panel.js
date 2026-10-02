@@ -12,7 +12,7 @@
  *
  * @module inspector/doc-panel — which note documents the selected node or item
  * @contributes DocPanel.section() and the resolver fetch for a selection
- * @powers seeing the reference note for the thing currently selected
+ * @powers Node inspectors — seeing the reference note for the thing currently selected
  * @relates inspector/panel, routes/docs_ops (task-578), item-library
  * @docs docs/virtualWorld/UI & Settings/Inspector Panels.md
  */

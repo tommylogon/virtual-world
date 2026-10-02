@@ -55,7 +55,7 @@ What makes an item reachable is in `engine/item_reach.py` — a single module co
 
 1. **Carried or equipped** — the item is on an `EDGE_CARRYING` or `EDGE_EQUIPPED` edge to the player node (`item_reach.py:177-184`). Carried wins first via `find_reachable` (`item_reach.py:111-119`).
 2. **Inside a carried/equipped container that isn't closed** — the container is reachable and `_is_open()` passes (`item_reach.py:65-69`, `_CLOSED_STATES` at `:23`). Contents are walked to any nesting depth (`item_reach.py:147-157`, recursive `walk`).
-3. **In the current area** — directly, or placed on/under/beside/behind/at a surface. Spatial edges (`EDGE_ON`, `EDGE_UNDER`, `EDGE_BEHIND`, `EDGE_BESIDE`, `EDGE_AT`) are expanded by `get_edges_for_target(area, EDGE_IN)` in `graph.py:120-124`.
+3. **In the current area** — directly, or placed on/under/beside/behind/at a surface. Spatial edges (`EDGE_ON`, `EDGE_UNDER`, `EDGE_BEHIND`, `EDGE_BESIDE`, `EDGE_AT`) are expanded by `get_edges_for_target(area, EDGE_IN)` in `graph.py:360-369`, which unions the `_spatial_edges` list whose targets anchor within the area.
 4. **Inside an open container in the area**, at any nesting depth (open container walk, `:156-157`).
 
 Hidden items are pruned: `current_state == "hidden"` is invisible until examined (`item_reach.py:57-62`). Closed/locked/sealed containers remain visible but seal their contents (`_CLOSED_STATES` at `:23`; `_is_open` at `:65-69`).
@@ -88,7 +88,7 @@ The same teardown is reached by the consume path. `_deplete_if_spent` (`engine/i
 Two other depletion paths exist outside the generic `use` function:
 
 - **Lit item in an area burns out** — `TickManager._burn_down_area_item` (`engine/tick_manager.py:353-365`): a lit (`"lit"`/`"on"`) standing item with finite `uses` is ticked, goes `"unlit"`, fires `on_depleted`, and is removed from the graph. Permanent sources (`uses == -1`) never burn out (`tick_manager.py:356-357`).
-- **Armor breaks on hit** — `EquipmentSystem.increment_armor_uses_on_hit` (`engine/equipment.py:570-631`): the outermost armor/clothing item with `uses > 0` is decremented; at zero it is unequipped to carrying, fires `on_break`, and reports the break narratively (`equipment.py:614-622`, `_break_equipped_item` at `:633-641`).
+- **Armor breaks on hit** — `EquipmentSystem.decrement_armor_uses_on_hit` (`engine/equipment.py:570-631`): the outermost armor/clothing item with `uses > 0` is decremented; at zero it is unequipped to carrying, fires `on_break`, and reports the break narratively (`equipment.py:614-622`, `_break_equipped_item` at `:633-641`).
 
 ## 4. Container nesting
 
