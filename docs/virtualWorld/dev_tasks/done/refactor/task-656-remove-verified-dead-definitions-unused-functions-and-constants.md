@@ -1,6 +1,6 @@
 ---
 type: task
-status: review
+status: done
 area: refactor
 priority: medium
 ---
@@ -173,3 +173,11 @@ or delete the element and its CSS rule. Left as follow-up (not filed) to keep
 this task a pure deletion.
 
 No further code change. Moving to `review`.
+
+## Live confirmation — 2026-10-02 (port 4471)
+
+The removals are already on `master`, and the live app was exercised this
+session: it loads with no page errors and `VW.agent.stepOnce()` completed a real
+LLM turn (new thought + reaction bubbles in the event stream). Nothing in the
+removed set is reachable, so the behaviour is "app runs unchanged". Moving to
+`done`; the `#why-panel` orphan above is the one open item, kept recorded.
