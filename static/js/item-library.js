@@ -1247,38 +1247,12 @@ class ItemLibrary {
     }
 
     _extractTriggersFromEdges(nodeId) {
-        const triggers = [];
-        if (!worldState.graph?.edges) return triggers;
-        for (const edge of worldState.graph.edges) {
-            if (edge.source !== nodeId || edge.type !== 'triggers') continue;
-            const edgeProperties = edge.properties || {};
-            // Support both new format (effects array) and old format (effect_type + effect_params)
-            const effects = edgeProperties.effects?.length > 0
-                ? edgeProperties.effects
-                : (edgeProperties.effect_type
-                    ? [{ type: edgeProperties.effect_type, params: edgeProperties.effect_params || {} }]
-                    : []);
-            // Support both tree format and flat format conditions
-            let conditions = edgeProperties.conditions || {};
-            if (Array.isArray(conditions) || !conditions.operator) {
-                const logic = edgeProperties.conditions_logic || 'and';
-                if (Array.isArray(conditions) && conditions.length > 0) {
-                    conditions = { operator: logic, conditions };
-                } else {
-                    conditions = {};
-                }
-            }
-            triggers.push({
-                trigger_type: edgeProperties.trigger_type || 'on_examine',
-                effects: effects,
-                target_name: edgeProperties.target_name || '',
-                target_state: edgeProperties.target_state || '',
-                conditions: conditions,
-                success_message: edgeProperties.success_message || '',
-                fail_message: edgeProperties.fail_message || ''
-            });
-        }
-        return triggers;
+        // One compiler for the graph→array direction (task-636): reads both the
+        // trigger edge and its logic_trigger node (edge wins), so a trigger
+        // authored on either copy is exported. See TriggerGraph.triggerDefFromEdge.
+        if (typeof TriggerGraph === 'undefined' || !TriggerGraph.triggersFromGraphEdges) return [];
+        return TriggerGraph.triggersFromGraphEdges(
+            worldState.graph?.edges, worldState.graph?.nodes, nodeId);
     }
 
     /**

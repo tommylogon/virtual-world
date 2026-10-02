@@ -2209,6 +2209,74 @@ window.TriggerGraph = (() => {
         return result;
     };
 
+    // ─── Graph → definition compiler (task-636) ───
+    // A trigger lives in two places: the `triggers` edge properties and the
+    // target `logic_trigger` node properties. The engine reads the edge first
+    // and falls back to the node; the UI used to read one or the other, so a
+    // mechanic authored one way was invisible the other way. These two helpers
+    // are the single compiler both the item library and the inspector use.
+
+    /** Merge the edge copy and the target node copy into one definition.
+     *  Edge wins per field (matching engine precedence), node is the fallback. */
+    TG.triggerDefFromEdge = function(edge, nodes) {
+        const target = edge && edge.target;
+        let node = null;
+        if (nodes) {
+            node = Array.isArray(nodes)
+                ? nodes.find(n => n && n.id === target)
+                : (nodes[target] || null);
+        }
+        const nodeProps = (node && node.properties) || {};
+        const edgeProps = (edge && edge.properties) || {};
+        const pick = (key) => {
+            const e = edgeProps[key];
+            if (e !== undefined && e !== null && e !== '') return e;
+            const n = nodeProps[key];
+            return (n === undefined) ? undefined : n;
+        };
+        const rawEffects = pick('effects');
+        const effects = (Array.isArray(rawEffects) && rawEffects.length)
+            ? rawEffects
+            : (pick('effect_type')
+                ? [{ type: pick('effect_type'), params: pick('effect_params') || {} }]
+                : []);
+        let conditions = pick('conditions');
+        const singular = pick('condition');
+        const empty = conditions === undefined || conditions === null || conditions === ''
+            || (Array.isArray(conditions) && conditions.length === 0);
+        if (empty) conditions = singular ? [singular] : [];
+        if (Array.isArray(conditions)) {
+            const logic = pick('conditions_logic') || 'and';
+            conditions = conditions.length ? { operator: logic, conditions } : {};
+        } else if (conditions && typeof conditions === 'object' && !conditions.operator && conditions.type) {
+            conditions = { operator: 'and', conditions: [conditions] };
+        } else if (!conditions || typeof conditions !== 'object') {
+            conditions = {};
+        }
+        return {
+            trigger_type: pick('trigger_type') || 'on_examine',
+            effects,
+            conditions,
+            target_name: pick('target_name') || '',
+            target_state: pick('target_state') || '',
+            success_message: pick('success_message') || '',
+            fail_message: pick('fail_message') || '',
+        };
+    };
+
+    /** Compile every `triggers` edge on *sourceId* (or all, when omitted) into the
+     *  engine definition array. This is the one graph→array path (task-636). */
+    TG.triggersFromGraphEdges = function(edges, nodes, sourceId) {
+        const out = [];
+        const lower = sourceId == null || sourceId === '' ? null : String(sourceId).toLowerCase();
+        for (const edge of (edges || [])) {
+            if (!edge || edge.type !== 'triggers') continue;
+            if (lower != null && String(edge.source).toLowerCase() !== lower) continue;
+            out.push(TG.triggerDefFromEdge(edge, nodes));
+        }
+        return out;
+    };
+
     /** The refusal reason for a compiled trigger, or '' when it compiled clean. */
     TG.compileError = function(compiled) {
         return compiled && compiled.compile_error ? compiled.compile_error : '';

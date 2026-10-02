@@ -159,10 +159,14 @@ window.InspectorTriggers = (() => {
             <div style="max-height:300px;overflow-y:auto;">
                 ${triggers.length > 0
                     ? triggers.map((trigger) => {
-                const rawTriggerType = trigger.properties?.trigger_type || '?';
+                // task-636: show the merged definition (edge copy wins, node
+                // fallback), not just whichever copy this surface happened to read.
+                const def = TriggerGraph.triggerDefFromEdge(trigger, worldState.graph?.nodes);
+                const rawTriggerType = def.trigger_type || '?';
                 const triggerType = Array.isArray(rawTriggerType) ? rawTriggerType.join(', ') : rawTriggerType;
-                const effectsList = trigger.properties?.effects || [];
-                const conditionsList = trigger.properties?.conditions || [];
+                const effectsList = def.effects || [];
+                const conds = def.conditions;
+                const conditionsList = Array.isArray(conds) ? conds : (conds?.conditions || []);
                 const firstEff = effectsList[0] || {};
                 const effectType = effectsList.length > 0 ? (firstEff.type || 'unknown') : 'none';
                 const effectParams = firstEff.params || {};
@@ -250,25 +254,10 @@ window.InspectorTriggers = (() => {
 
     api._openGraphEditor = function(escId) {
         const nodeId = escId.replace(/\\'/g, "'");
-        const nodeIdLower = String(nodeId).toLowerCase();
-        const triggerEdges = [];
-        const triggers = [];
-        if (worldState.graph?.edges) {
-            for (const edge of worldState.graph.edges) {
-                if (String(edge.source).toLowerCase() === nodeIdLower && edge.type === 'triggers') {
-                    triggerEdges.push(edge);
-                    const props = edge.properties || {};
-                    const rawConds = props.conditions || (props.condition ? [props.condition] : []);
-                    triggers.push({
-                        trigger_type: props.trigger_type || 'on_use',
-                        effects: props.effects || (props.effect_type ? [{ type: props.effect_type, params: props.effect_params || {} }] : []),
-                        conditions: rawConds,
-                        target_name: props.target_name || '',
-                        target_state: props.target_state || ''
-                    });
-                }
-            }
-        }
+        const triggerEdges = api._getNodeTriggers(nodeId);
+        // task-636: the graph→definition compiler, so a trigger authored on the
+        // edge OR the logic_trigger node opens the same way.
+        const triggers = api._getNodeTriggerData(nodeId);
         if (triggers.length > 1 && typeof toastInfo === 'function') {
             toastInfo('Graph editor edits the first trigger only — use ✏️ for others.');
         }
@@ -504,14 +493,11 @@ window.InspectorTriggers = (() => {
      * @returns {Array} [{ trigger_type, effects, conditions, ... }]
      */
     api._getNodeTriggerData = function(nodeId) {
-        const out = [];
-        for (const edge of api._getNodeTriggers(nodeId)) {
-            const tn = worldState.getNode(edge.target);
-            if (tn && tn.type === 'logic_trigger' && tn.properties) {
-                out.push(tn.properties);
-            }
-        }
-        return out;
+        // task-636: one compiler, reading the edge copy with the logic_trigger
+        // node as fallback (the engine's own precedence).
+        if (typeof TriggerGraph === 'undefined' || !TriggerGraph.triggersFromGraphEdges) return [];
+        return TriggerGraph.triggersFromGraphEdges(
+            worldState.graph?.edges, worldState.graph?.nodes, nodeId);
     };
 
     /**
@@ -533,9 +519,8 @@ window.InspectorTriggers = (() => {
 
         // Delete existing triggers we're NOT keeping (replaced or skipped).
         for (const edge of api._getNodeTriggers(nodeId)) {
-            const tn = worldState.getNode(edge.target);
-            if (!tn || tn.type !== 'logic_trigger' || !tn.properties) continue;
-            const k = toTypeKey(tn.properties.trigger_type);
+            const def = TriggerGraph.triggerDefFromEdge(edge, worldState.graph?.nodes);
+            const k = toTypeKey(def.trigger_type);
             if (wanted.has(k)) continue;
             ops.push({ type: 'delete_node', payload: { node_id: edge.target } });
             deletes.push(edge.target);
