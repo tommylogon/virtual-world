@@ -59,12 +59,11 @@
   ],
   "interest_tags": [
     "trade",
-    "price",
-    "goblins",
     "information",
-    "credit",
-    "the_roads",
-    "orcs"
+    "coin",
+    "currency",
+    "map",
+    "road"
   ],
   "state": "awake",
   "conditions": {

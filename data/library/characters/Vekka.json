@@ -51,9 +51,10 @@
     "scout"
   ],
   "interest_tags": [
-    "maps",
-    "routes",
-    "secrets"
+    "map",
+    "secret",
+    "rope",
+    "tool"
   ],
   "state": "awake",
   "conditions": {

@@ -50,9 +50,10 @@
     "explorer"
   ],
   "interest_tags": [
-    "goblin_camp",
-    "forest",
-    "survival"
+    "survival",
+    "map",
+    "tool",
+    "rope"
   ],
   "state": "awake",
   "conditions": {

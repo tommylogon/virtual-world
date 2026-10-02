@@ -52,8 +52,9 @@
   ],
   "interest_tags": [
     "scrap",
-    "tools",
-    "mechanisms"
+    "tool",
+    "mechanism",
+    "metal"
   ],
   "state": "awake",
   "conditions": {

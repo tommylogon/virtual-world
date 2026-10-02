@@ -56,9 +56,10 @@
     "squire"
   ],
   "interest_tags": [
-    "master",
-    "squire",
-    "civilization"
+    "weapon",
+    "armor",
+    "book",
+    "knowledge"
   ],
   "state": "awake",
   "conditions": {

@@ -50,9 +50,9 @@
     "boar"
   ],
   "interest_tags": [
-    "territory",
     "hunting",
-    "roots"
+    "root",
+    "trap"
   ],
   "state": "awake",
   "conditions": {

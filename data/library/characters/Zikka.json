@@ -51,9 +51,9 @@
     "fighter"
   ],
   "interest_tags": [
-    "weapons",
-    "training",
-    "prestige"
+    "weapon",
+    "trophy",
+    "armor"
   ],
   "state": "awake",
   "conditions": {
