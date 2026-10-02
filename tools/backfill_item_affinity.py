@@ -33,7 +33,7 @@ import json
 import sys
 from pathlib import Path
 
-ITEM_DIR = Path("data/library/items")
+ITEM_DIR = Path(__file__).resolve().parent.parent / "data" / "library" / "items"
 
 #: tag -> area tags it implies. Ordered is irrelevant; affinities union.
 TAG_AFFINITY = {
@@ -79,7 +79,7 @@ PROCESSED_TAGS = {
 RAW_OVERRIDE_TAGS = {"forage", "fish", "shellfish", "seaweed", "mushroom"}
 
 #: Tags that make raw-material classification possible at all.
-RESOURCE_TAGS = set(TAG_AFFINITY) | {"medicinal", "bug", "fruit"}
+RESOURCE_TAGS = set(TAG_AFFINITY)
 
 
 def _tags(entry: dict) -> set:
@@ -152,10 +152,18 @@ def main() -> int:
     ap.add_argument("--report", action="store_true", help="show coverage by affinity")
     args = ap.parse_args()
 
+    if not ITEM_DIR.is_dir():
+        print(f"affinity backfill: item directory not found: {ITEM_DIR}")
+        return 1
+    item_paths = sorted(ITEM_DIR.glob("*.json"))
+    if not item_paths:
+        print(f"affinity backfill: no item files found under {ITEM_DIR}")
+        return 1
+
     changes = []
     coverage = {}
     total_with = 0
-    for path in sorted(ITEM_DIR.glob("*.json")):
+    for path in item_paths:
         entry = _load(path)
         if not isinstance(entry, dict):
             continue

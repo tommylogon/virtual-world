@@ -87,8 +87,11 @@ def library_item_properties(lib_item: dict, library_id: str,
         # task-519: a weapon/armor's damage type is part of what the library
         # declares, and combat reads `node.properties.get("damage_type")`. It was
         # simply absent here, so every character loadout (and every placed item)
-        # lost its damage type on materialization.
-        "damage_type": lib_item.get("damage_type", "bludgeoning"),
+        # lost its damage type on materialization. Default to "" (combat's own
+        # "no type" sentinel) rather than inventing one: combat.py:302 only runs
+        # typed resistance when damage_type is truthy, so a fabricated default
+        # would subject every previously-untyped weapon to that resistance.
+        "damage_type": lib_item.get("damage_type", ""),
         "insulation": lib_item.get("insulation", 0),
         "resistances": lib_item.get("resistances", {}),
         "image": lib_item.get("image") or None,

@@ -921,7 +921,7 @@ def _refresh_item(app, node, sections, template_id=None):
             "stun_duration": lib_item.get('stun_duration'),
             "defense": lib_item.get('defense', 0),
             "damage": lib_item.get('damage', 0),
-            "damage_type": lib_item.get('damage_type', 'bludgeoning'),
+            "damage_type": lib_item.get('damage_type', ''),
             "insulation": lib_item.get('insulation', 0),
             "resistances": lib_item.get('resistances', {}),
             "action_costs": lib_item.get('action_costs', {}),

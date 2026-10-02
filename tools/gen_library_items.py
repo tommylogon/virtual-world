@@ -24,7 +24,12 @@ import json
 import sys
 from pathlib import Path
 
-ITEM_DIR = Path("data/library/items")
+ITEM_DIR = Path(__file__).resolve().parent.parent / "data" / "library" / "items"
+
+#: Stamped into every emitted template. `--apply` refuses to overwrite a file
+#: that does not carry it (unless --force), so a spec id can never silently
+#: clobber a hand-authored entry and drop the fields the spec does not model.
+GENERATED_BY = "gen_library_items"
 
 VALID_SLOTS = {
     "head", "neck", "torso", "arms", "hands", "legs", "feet", "back", "waist",
@@ -102,6 +107,7 @@ def build_item(item_id: str, entry: dict) -> dict:
     extra = sorted(set(item) - set(FIELD_ORDER))
     if extra:
         raise ValueError(f"{item_id}: unknown field(s) {extra}")
+    out["_generated_by"] = GENERATED_BY
     return out
 
 
@@ -119,12 +125,25 @@ def _dump(item: dict) -> str:
     return json.dumps(item, indent=2, ensure_ascii=False) + "\n"
 
 
+def _load_json(path: Path):
+    try:
+        return json.loads(path.read_text(encoding="utf-8-sig"))
+    except Exception:
+        return None
+
+
+def _is_generated(entry) -> bool:
+    return isinstance(entry, dict) and entry.get("_generated_by") == GENERATED_BY
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--spec", required=True, help="path to the gear spec JSON")
     ap.add_argument("--check", action="store_true", help="fail if any emitted file differs")
     ap.add_argument("--apply", action="store_true", help="write the templates")
+    ap.add_argument("--force", action="store_true",
+                    help="overwrite a file that is not owned by this generator")
     args = ap.parse_args()
 
     spec = json.loads(Path(args.spec).read_text(encoding="utf-8-sig"))
@@ -143,12 +162,25 @@ def main() -> int:
             drift.append((path, want))
 
     if args.apply:
+        foreign = [path for path, _ in drift
+                   if path.exists() and not _is_generated(_load_json(path))]
+        if foreign and not args.force:
+            print("gen_library_items: refusing to overwrite file(s) not owned by "
+                  "this generator (pass --force to override):")
+            for path in foreign[:20]:
+                print(f"  {path.name}")
+            if len(foreign) > 20:
+                print(f"  ... and {len(foreign) - 20} more")
+            return 1
         for path, want in drift:
             path.write_text(want, encoding="utf-8")
         print(f"gen_library_items: wrote {len(drift)} of {len(items)} template(s).")
         return 0
 
     if args.check:
+        if not ITEM_DIR.is_dir():
+            print(f"gen_library_items: item directory not found: {ITEM_DIR}")
+            return 1
         if drift:
             print(f"gen_library_items: {len(drift)} template(s) out of date:")
             for path, _ in drift[:20]:
