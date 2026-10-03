@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Trigger/Behavior Graph Editor — phases 2-4 · React</title>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+:root{
+  --bg:#0d1117; --bg-card:#161b22; --bg-inset:#1c2128; --bg-input:#21262d; --bg-hover:#30363d;
+  --border:#30363d; --border-light:#21262d;
+  --text:#e6edf3; --text-dim:#8b949e; --text-muted:#6e7681;
+  --accent:#58a6ff; --green:#3fb950; --red:#f85149; --orange:#e3b341; --purple:#bc8cff; --pink:#f778ba;
+  --font:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;
+  --mono:'Cascadia Code','Fira Code','JetBrains Mono',Consolas,monospace;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.55}
+code,.mono{font-family:var(--mono);font-size:12px}
+.wrap{max-width:1640px;margin:0 auto;padding:0 20px 88px}
+h1{font-size:25px;margin:0 0 8px}
+.lede{color:var(--text-dim);max-width:98ch;margin:0 0 10px}
+.prov{font-family:var(--mono);font-size:11px;color:var(--text-muted);margin:0 0 20px}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:8px;margin:0 0 18px}
+.stat{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:10px 13px}
+.stat .v{font-family:var(--mono);font-size:19px;font-weight:600}
+.stat .l{font-size:10.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px}
+.stat.bad .v{color:var(--red)} .stat.warn .v{color:var(--orange)} .stat.ok .v{color:var(--green)}
+
+.frame{background:var(--bg-card);border:1px solid var(--green);border-radius:10px;overflow:hidden;margin:0 0 22px}
+
+/* ── toolbar ── */
+.bar{display:flex;align-items:center;gap:7px;padding:7px 10px;background:var(--bg-inset);
+  border-bottom:1px solid var(--border);flex-wrap:wrap}
+.xbtn{background:var(--bg-input);border:1px solid var(--border);color:var(--text-dim);
+  border-radius:5px;padding:3px 9px;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap}
+.xbtn:hover{border-color:var(--text-muted);color:var(--text)}
+.xbtn.on{background:rgba(88,166,255,.15);border-color:var(--accent);color:var(--accent);font-weight:600}
+.xbtn.go{background:rgba(63,185,80,.15);border-color:var(--green);color:var(--green);font-weight:600}
+.xbtn.warnb{background:rgba(228,179,65,.15);border-color:var(--orange);color:var(--orange);font-weight:600}
+.spacer{flex:1}
+.pill{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:999px;
+  border:1px solid var(--border);color:var(--text-dim);background:var(--bg-inset);white-space:nowrap}
+.pill.ok{border-color:#1e4d2b;color:var(--green)}
+.pill.bad{border-color:#5c2121;color:var(--red)}
+.pill.warn{border-color:#5c4a12;color:var(--orange)}
+select.sel{background:var(--bg-input);border:1px solid var(--border);border-radius:5px;
+  color:var(--text);padding:3px 6px;font-size:11px;font-family:inherit}
+
+/* ── canvas ── */
+.wrap2{display:flex;height:640px;min-height:0}
+.canvas{flex:1 1 auto;position:relative;overflow:hidden;background:
+  radial-gradient(circle at 1px 1px, rgba(255,255,255,.07) 1px, transparent 0) 0 0/24px 24px, #0b0e13}
+.world{position:absolute;top:0;left:0;transform-origin:0 0}
+.wires{position:absolute;top:0;left:0;overflow:visible;pointer-events:none}
+.wirehit{stroke:transparent;stroke-width:14;fill:none;pointer-events:stroke;cursor:pointer}
+.wirepath{fill:none;stroke-width:2.2}
+.wirepath.warn{stroke-dasharray:6 4}
+.hit:hover + .wirepath, .wirepath.sel{stroke-width:3.4}
+
+.node{position:absolute;width:212px;background:var(--bg-card);border:1px solid var(--border);
+  border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.45);user-select:none;overflow:visible}
+.node.sel{border-color:var(--accent);box-shadow:0 0 0 2px rgba(88,166,255,.28),0 4px 14px rgba(0,0,0,.5)}
+.node.dim{opacity:.34}
+.node-h{display:flex;align-items:center;gap:6px;padding:5px 8px;border-bottom:1px solid var(--border-light);
+  font-size:10.5px;font-weight:600;cursor:move}
+.node-h .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.node-b{padding:6px 8px;font-family:var(--mono);font-size:10px;color:var(--text-dim);line-height:1.6}
+.node-b .k{color:var(--text-muted)}
+.node-f{padding:0 8px 7px;display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+.fchip{font-family:var(--mono);font-size:9px;padding:1px 5px;border-radius:3px;
+  background:var(--bg-inset);border:1px solid var(--border);color:var(--text-dim)}
+.rk{font-family:var(--mono);font-size:9px;padding:1px 6px;border-radius:3px;
+  background:rgba(88,166,255,.16);border:1px solid #1f4b7a;color:var(--accent);font-weight:700}
+.lie{font-family:var(--mono);font-size:9px;padding:1px 6px;border-radius:3px;
+  background:rgba(248,81,73,.15);border:1px solid #5c2121;color:var(--red);font-weight:700;cursor:help}
+
+/* sockets — 20px targets with visible labels */
+.sock{position:absolute;width:20px;height:20px;border-radius:50%;border:3px solid var(--bg-card);
+  cursor:crosshair;display:flex;align-items:center;justify-content:center;
+  font-size:9px;font-weight:700;color:#06090d;z-index:6}
+.slabel{position:absolute;font-size:9px;font-weight:700;pointer-events:none;white-space:nowrap;
+  background:rgba(11,14,19,.8);border-radius:3px;padding:0 3px}
+
+/* honesty badge on a node */
+.veto{position:absolute;top:-9px;right:6px;font-family:var(--mono);font-size:9px;font-weight:700;
+  padding:1px 6px;border-radius:3px;background:rgba(248,81,73,.2);border:1px solid var(--red);
+  color:var(--red);z-index:8;cursor:help}
+
+/* zoom cluster + minimap */
+.zoom{position:absolute;left:10px;bottom:10px;display:flex;gap:4px;align-items:center;z-index:10;
+  background:rgba(22,27,34,.94);border:1px solid var(--border);border-radius:6px;padding:4px 6px}
+.zoom .z{font-family:var(--mono);font-size:10.5px;color:var(--text-dim);min-width:40px;text-align:center}
+.minimap{position:absolute;right:10px;bottom:10px;width:184px;height:124px;z-index:10;
+  background:rgba(13,17,23,.95);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.mmview{position:absolute;border:1px solid var(--accent);background:rgba(88,166,255,.09);border-radius:2px}
+.mmn{position:absolute;border-radius:1px}
+.legend{position:absolute;left:10px;top:10px;z-index:10;background:rgba(22,27,34,.94);
+  border:1px solid var(--border);border-radius:6px;padding:6px 9px;display:flex;gap:10px;flex-wrap:wrap}
+.lgi{display:flex;gap:4px;align-items:center;font-size:9.5px;color:var(--text-dim)}
+.lgi i{width:15px;height:2.5px;border-radius:2px;display:inline-block}
+
+/* ── right dock ── */
+.dock{flex:0 0 auto;width:300px;background:var(--bg-inset);border-left:1px solid var(--border);overflow:auto}
+.sec{padding:9px 11px;border-bottom:1px solid var(--border-light)}
+.sec h4{margin:0 0 7px;font-size:8.5px;letter-spacing:.6px;text-transform:uppercase;
+  color:var(--text-muted);font-weight:600}
+.kv{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;padding:2px 0}
+.kv .l{color:var(--text-muted);font-size:10.5px}
+.kv .v{font-family:var(--mono);font-size:10.5px;text-align:right;max-width:165px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kv .v.lost{color:var(--red);font-weight:700}
+.kv .v.ok{color:var(--green)}
+.issue{border-left:2px solid var(--red);background:rgba(248,81,73,.09);padding:6px 9px;
+  border-radius:0 5px 5px 0;margin:0 0 7px;font-size:11px;color:var(--text-dim)}
+.issue b{color:var(--red);display:block;font-size:10px;letter-spacing:.3px}
+.issue .fix{display:block;color:var(--green);font-size:10.5px;margin-top:3px}
+.issue.gold{border-color:var(--orange);background:rgba(228,179,65,.09)}
+.issue.gold b{color:var(--orange)}
+ol.steps{margin:0;padding-left:17px;font-size:11px;color:var(--text-dim);line-height:1.6}
+ol.steps li.done{color:var(--text-muted);text-decoration:line-through}
+ol.steps li.now{color:var(--text);font-weight:600}
+
+.notes{background:var(--bg-card);border:1px solid var(--border);border-radius:9px;padding:14px 18px;margin:0 0 16px}
+.notes h3{margin:0 0 8px;font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--text-muted)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;font-size:9px;letter-spacing:.5px;text-transform:uppercase;color:var(--text-muted);
+  padding:5px 8px;background:var(--bg-inset);border-bottom:1px solid var(--border);font-weight:600}
+td{padding:5px 8px;border-bottom:1px solid var(--border-light);color:var(--text-dim);vertical-align:top}
+td:first-child{color:var(--text);font-weight:500}
+.probe{font-family:var(--mono);font-size:11px;background:var(--bg-inset);border:1px solid var(--border);
+  border-radius:6px;padding:9px 11px;color:var(--text-dim);overflow:auto;line-height:1.6;margin:0 0 8px}
+.probe b{color:var(--green)} .probe i{color:var(--orange);font-style:normal}
+</style>
+</head>
+<body>
+<div class="wrap" id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useMemo, useRef, useCallback } = React;
+
+/* ══ Measured against the live editor, not invented ═══════════════════════
+   Probes run in a real browser against kraktooth_goblin_camp, calling the
+   exported window.TriggerGraph functions directly, 2026-10-03.
+   Node/socket colours and labels are the real NODE_DEFS values
+   (static/js/shared/trigger-graph.ts:85-240, :1436-1476). */
+
+const SOCKETS = {
+  trigger:   { label:'⚡ Trigger', color:'#e3b341', in:[],          out:[{id:'output',side:'right',label:'→',color:'#e3b341'}] },
+  condition: { label:'❓ Condition', color:'#f85149',
+               in:[{id:'input',side:'left',label:'→',color:'#f85149'}],
+               out:[{id:'output_yes',side:'right',label:'✓',color:'#3fb950'},
+                    {id:'output_no', side:'bottom',label:'✗',color:'#f85149'}] },
+  group:     { label:'🔗 Group', color:'#d29922',
+               in:[{id:'input',side:'left',label:'→',color:'#d29922'}],
+               out:[{id:'output_yes',side:'right',label:'✓',color:'#3fb950'},
+                    {id:'output_no', side:'bottom',label:'✗',color:'#f85149'},
+                    {id:'child',     side:'right',label:'⤵',color:'#d29922'}] },
+  behavior: { label:'🧠 Behavior', color:'#bc8cff',
+               in:[{id:'input',side:'left',label:'→',color:'#bc8cff'}],
+               out:[{id:'output',side:'right',label:'→',color:'#bc8cff'}] },
+  effect:    { label:'⚡ Effect', color:'#58a6ff',
+               in:[{id:'input',side:'left',label:'→',color:'#58a6ff'}],
+               out:[{id:'output',side:'right',label:'→',color:'#58a6ff'}] },
+};
+
+const NODE_W = 212, NODE_H = 96;
+
+/* The graph below is TriggerGraph.triggerToGraph()'s real output for the
+   berry-bush trigger in this scenario, verbatim node ids and props. */
+const REAL = {
+  nodes: [
+    {id:'n0',type:'trigger',x:40,y:40,props:{trigger_type:['on_tick'],target_tag:'',target_state:''}},
+    {id:'n1',type:'condition',x:40,y:180,props:{condition_type:'parameter_reached',value:'100'}},
+    {id:'n2',type:'condition',x:40,y:300,props:{condition_type:'contains_count',value:'10',target:'berries'}},
+    {id:'n3',type:'effect',x:300,y:180,props:{effect_type:'spawn_item',into:'container',item_id:'berries',message:'Ripe berries cluster on the bush.'}},
+    {id:'n4',type:'effect',x:300,y:300,props:{effect_type:'set_parameter',key:'growth',value:0}},
+  ],
+  wires: [
+    {id:'w0',from:['n0','output'],to:['n1','input']},
+    {id:'w1',from:['n1','output_yes'],to:['n2','input']},
+    {id:'w2',from:['n2','output_yes'],to:['n3','input']},
+    {id:'w3',from:['n3','output'],to:['n4','input']},
+  ],
+};
+
+/* Defect #9: one YES wired to two effects. compileToEngine returned 1 effect
+   for 2 authored — the second branch is dropped with no warning. */
+const FANOUT = {
+  nodes: [
+    {id:'t',type:'trigger',x:40,y:40,props:{trigger_type:['on_use']}},
+    {id:'c',type:'condition',x:40,y:180,props:{condition_type:'has_tag',target:'lantern',value:'lit'}},
+    {id:'e1',type:'effect',x:320,y:60,props:{effect_type:'message',message:'It glows.'}},
+    {id:'e2',type:'effect',x:320,y:300,props:{effect_type:'set_state',key:'lit',value:1}},
+  ],
+  wires: [
+    {id:'a',from:['t','output'],to:['c','input']},
+    {id:'b',from:['c','output_yes'],to:['e1','input']},
+    {id:'c2',from:['c','output_yes'],to:['e2','input']},
+  ],
+};
+
+/* Defect #11: authored priority 9 and 3 came back as 2 and 1, and both
+   behaviour nodes were laid out at y=40 — so the field is decorative. */
+const PRIORITY = {
+  nodes: [
+    {id:'b0',type:'behavior',x:40,y:40,rank:'1',props:{name:'approach',priority:3}},
+    {id:'b1',type:'behavior',x:40,y:180,rank:'2',props:{name:'watch',priority:9}},
+  ],
+  wires: [],
+};
+
+function App(){
+  const [mode, setMode] = useState('trigger');        // trigger | behavior
+  const [gset, setGset] = useState('real');            // real | fanout | priority
+const [pan, setPan] = useState({x:26, y:14});
+  const [drag, setDrag] = useState(null);
+
+  const BASE = gset === 'real' ? REAL : gset === 'fanout' ? FANOUT : PRIORITY;
+
+  // node positions are state, not a mutated constant — dragging has to re-render
+  const [pos, setPos] = useState({});
+  const [sel, setSel] = useState([]);
+  const [selWire, setSelWire] = useState(null);
+  const [zoom, setZoom] = useState(100);
+  const nodes = useMemo(()=> BASE.nodes.map(n => {
+    const d = pos[n.id] || {};
+    return {...n, x: d.x ?? n.x, y: d.y ?? n.y, height: n.height || NODE_H};
+  }), [BASE, pos]);
+
+  // an output socket with more than one downstream wire cannot compile
+  const vetoes = useMemo(()=>{
+    const out = {};
+    BASE.wires.forEach(w => { const k = w.from.join(':'); out[k] = (out[k]||0)+1; });
+    return out;
+  },[BASE]);
+
+  const vetoNodes = useMemo(()=>{
+    const s = new Set();
+    BASE.wires.forEach(w => {
+      if ((vetoes[w.from.join(':')]||0) > 1) { s.add(w.from[0]); s.add(w.to[0]); }
+    });
+    return s;
+  },[BASE, vetoes]);
+
+  const sockAt = (nodeId, sockId) => {
+    const n = nodes.find(x=>x.id===nodeId); if(!n) return null;
+    const def = SOCKETS[n.type];
+    const s = [...def.in, ...def.out].find(s=>s.id===sockId); if(!s) return null;
+    const w = n.x, hh = n.height || NODE_H;
+    if (s.side==='left')  return {x:w,      y:n.y+hh*0.5, c:s.color, l:s.label, dir:'out'};
+    if (s.side==='right') return {x:w+NODE_W,y:n.y+hh*0.5, c:s.color, l:s.label, dir:'in'};
+    return {x:w+NODE_W/2, y:n.y+hh, c:s.color, l:s.label, dir:'in'};
+  };
+
+  const path = (a,b) => {
+    const dx = Math.max(46, Math.abs(b.x-a.x)*0.42);
+    if (Math.abs(b.x-a.x) < 6) return `M${a.x},${a.y} L${b.x},${b.y}`;
+    return `M${a.x},${a.y} C${a.x+dx},${a.y} ${b.x-dx},${b.y} ${b.x},${b.y}`;
+  };
+
+  const onDown = (e,nid) => { e.stopPropagation();
+    setDrag({nid, px:e.clientX, py:e.clientY,
+             ox: (pos[nid] || nodes.find(x=>x.id===nid)).x,
+             oy: (pos[nid] || nodes.find(x=>x.id===nid)).y});
+    setSel([nid]); };
+  const onMove = (e)=>{
+    if(!drag) return;
+    const dx=(e.clientX-drag.px)/zoom, dy=(e.clientY-drag.py)/zoom;
+    setPos(p => ({...p, [drag.nid]: {x: Math.round(drag.ox+dx), y: Math.round(drag.oy+dy)}}));
+  };
+  const onUp = () => setDrag(null);
+
+  const summary = (n) => {
+    const p = n.props||{};
+    if (n.type==='trigger')   return <>type <span className="k">{(p.trigger_type||['on_use']).join(', ')}</span></>;
+    if (n.type==='condition') return <>{p.condition_type}{p.target&&<span className="k"> · {p.target}</span>} {p.value}</>;
+    if (n.type==='group')     return <>{p.operator||'and'} group</>;
+    if (n.type==='behavior')   return <>rank <span className="k">{n.rank}</span> · authored priority {String(p.priority)}</>;
+    return <>{p.effect_type}{p.message&&<span className="k"> · “{String(p.message).slice(0,22)}”</span>}</>;
+  };
+  const chips = (n) => {
+    const p = n.props||{}, out=[];
+    if (n.type==='effect' && p.effect_type==='spawn_item')
+      out.push(['item_id',p.item_id],['into',p.into]);
+    if (n.type==='effect' && p.effect_type==='set_parameter')
+      out.push(['key',p.key],['value',String(p.value)]);
+    if (n.type==='condition' && p.target) out.push(['target',p.target]);
+    if (n.type==='behavior') out.push(['authored',String(p.priority)]);
+    return out;
+  };
+
+  const wireIsVeto = w => (vetoes[w.from.join(':')]||0) > 1;
+  const mm = { scale:0.28, w:300, h:300 };
+
+  return (
+    <div>
+      <h1>Trigger / Behavior Graph Editor — phases 2 to 4</h1>
+      <p className="lede">
+        React design mockup for <code>task-388</code>, which has 432 lines of research and
+        <b>one of seven phases shipped</b>. Every remaining phase is a visual decision: left-in /
+        right-out sockets, wires you can tell apart and delete, compile-honesty badges,
+        left-in/right-out auto-layout, a minimap. This shows them at once, because they
+        conflict — you cannot judge wire colour without seeing the node layout it depends on.
+      </p>
+      <p className="prov">
+        Probes run in Chromium against kraktooth_goblin_camp by calling window.TriggerGraph
+        directly · 2026-10-03 · 33 logic_trigger nodes in the scenario, 5 of them with conditions ·
+        sockets and colours are the real NODE_DEFS values (trigger-graph.ts:85-240)
+      </p>
+
+      <div className="stats">
+        <div className="stat bad"><div className="v">2 → 1</div><div className="l">effects: fan-out drops the 2nd</div></div>
+        <div className="stat bad"><div className="v">9,3 → 2,1</div><div className="l">authored priority vs compiled</div></div>
+        <div className="stat bad"><div className="v">2 keys</div><div className="l">lost per condition on round-trip</div></div>
+        <div className="stat"><div className="v">16px</div><div className="l">socket targets, no labels</div></div>
+        <div className="stat"><div className="v">17</div><div className="l">trigger types in the registry</div></div>
+        <div className="stat ok"><div className="v">0</div><div className="l">warnings for any of it</div></div>
+      </div>
+
+      <div className="frame" onMouseMove={onMove} onMouseUp={onUp} onMouseLeave={onUp}
+           onClick={e=>{ if(e.target.classList.contains('canvas')){ setSel([]); setSelWire(null); } }}>
+        <div className="bar">
+          <button className={'xbtn'+(mode==='trigger'?' on':'')} onClick={()=>setMode('trigger')}>⚡ Trigger graph</button>
+          <button className={'xbtn'+(mode==='behavior'?' on':'')} onClick={()=>setMode('behavior')}>🧠 Behavior graph</button>
+          <span style={{width:1,height:18,background:'var(--border)'}}/>
+          <span style={{fontSize:9,letterSpacing:'.5px',textTransform:'uppercase',color:'var(--text-muted)',fontWeight:600}}>example</span>
+          <button className={'xbtn'+(gset==='real'?' on':'')} onClick={()=>setGset('real')}>real berry trigger</button>
+          <button className={'xbtn'+(gset==='fanout'?' on':'')} onClick={()=>setGset('fanout')}>fan-out (#9)</button>
+          <button className={'xbtn'+(gset==='priority'?' on':'')} onClick={()=>setGset('priority')}>priority (#11)</button>
+          <span className="spacer"/>
+          {vetoNodes.size > 0 && <span className="pill bad">⚠ {vetoNodes.size} nodes · {BASE.wires.filter(wireIsVeto).length} wires will not compile</span>}
+          <span className="pill warn">{sel.length ? sel.length+' selected' : 'none selected'}</span>
+          <button className="xbtn">📝 Form</button>
+          <button className="xbtn">✨ Tidy</button>
+          <button className="xbtn">▶ Test</button>
+          <button className={'xbtn'+(selWire?' warnb':'')} disabled={!selWire}>🗑 Delete wire</button>
+          <button className="xbtn go">💾 Save</button>
+        </div>
+
+        <div className="wrap2">
+          <div className="canvas" onMouseDown={()=>{setSel([]);setSelWire(null);}}>
+            {/* legend: the wire colour key that does not exist today */}
+            <div className="legend">
+              <span className="lgi"><i style={{background:'#e3b341'}}/>trigger</span>
+              <span className="lgi"><i style={{background:'#3fb950'}}/>✓ yes</span>
+              <span className="lgi"><i style={{background:'#f85149'}}/>✗ no</span>
+              <span className="lgi"><i style={{background:'#d29922'}}/>⤵ group child</span>
+              <span className="lgi"><i style={{background:'#58a6ff'}}/>action</span>
+              <span className="lgi"><i style={{background:'#f85149',borderTop:'2px dashed #f85149'}}/>will not compile</span>
+            </div>
+
+            <div className="world" style={{transform:`translate(${pan.x}px,${pan.y}px) scale(${zoom/100})`}}>
+              <svg className="wires" width="1" height="1">
+                <defs>
+                  {['#e3b341','#3fb950','#f85149','#58a6ff','#d29922'].map(c=>(
+                    <marker key={c} id={'ar'+c.slice(1)} viewBox="0 0 8 8" refX="7" refY="4"
+                            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                      <path d="M0,0 L8,4 L0,8 z" fill={c}/>
+                    </marker>))}
+                </defs>
+                {BASE.wires.map(w=>{
+                  const a = sockAt(w.from[0],w.from[1]), b = sockAt(w.to[0],w.to[1]);
+                  if(!a||!b) return null;
+                  const d = path(a,b);
+                  const veto = wireIsVeto(w);
+                  return (
+                    <g key={w.id}>
+                      <path className="wirehit" d={d}
+                            onClick={e=>{e.stopPropagation(); setSelWire(selWire===w.id?null:w.id); setSel([]);}}/>
+                      <path className={'wirepath'+(veto?' warn':'')+(selWire===w.id?' sel':'')}
+                            d={d} stroke={a.c}
+                            markerEnd={'url(#ar'+a.c.slice(1)+')'}
+                            strokeDasharray={veto?'6 4':undefined}/>
+                    </g>
+                  );
+                })}
+              </svg>
+
+              {nodes.map(n=>{
+                const def = SOCKETS[n.type];
+                const isSel = sel.includes(n.id);
+                const veto = vetoNodes.has(n.id);
+                return (
+                  <div key={n.id} className={'node'+(isSel?' sel':'')}
+                       style={{left:n.x, top:n.y, minHeight:NODE_H, borderColor:isSel?undefined:def.color+'55'}}
+                       onMouseDown={e=>onDown(e,n.id)}>
+                    {veto && <span className="veto"
+                      title="This branch will not be compiled. The engine follows only the first wire from an output.">⚠ dropped</span>}
+                    <div className="node-h" style={{color:def.color}}>
+                      <span className="nm">{def.label}</span>
+                      {n.rank && <span className="rk" title="Rank is the compiled order. The authored priority field is ignored.">rank {n.rank}</span>}
+                    </div>
+                    <div className="node-b">{summary(n)}</div>
+                    {chips(n).length > 0 && (
+                      <div className="node-f">{chips(n).map(([k,v])=>
+                        <span key={k} className="fchip"><span className="k">{k}</span> {String(v)}</span>)}</div>
+                    )}
+                    {[...def.in, ...def.out].map(s=>{
+                      const p = sockAt(n.id, s.id);
+                      const pos = s.side==='left'  ? {left:-10, top:'50%', transform:'translateY(-50%)'}
+                                : s.side==='right' ? {right:-10, top:'50%', transform:'translateY(-50%)'}
+                                :                   {bottom:-10, left:'50%', transform:'translateX(-50%)'};
+                      return (
+                        <React.Fragment key={s.id}>
+                          <span className="sock" style={{background:s.color, ...pos}}
+                                title={`${n.id}.${s.id}`}/>
+                          <span className="slabel" style={{
+                            color:s.color,
+                            ...(s.side==='right' ? {left:'calc(100% + 14px)', top:s.id==='output_yes'?'30%':'50%', transform:'translateY(-50%)'}
+                              : s.side==='bottom' ? {left:'50%', top:'calc(100% + 12px)', transform:'translateX(-50%)'}
+                              : {right:'calc(100% + 18px)', top:'50%', transform:'translateY(-50%)'})}}>
+                            {s.id==='output_yes' ? '✓ yes' : s.id==='output_no' ? '✗ no'
+                              : s.id==='child' ? '⤵ kids' : s.side==='left' ? 'in' : '→'}</span>
+                        </React.Fragment>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="zoom">
+              <button className="xbtn" onClick={()=>setZoom(z=>Math.max(40,z-20))}>−</button>
+              <span className="z">{zoom}%</span>
+              <button className="xbtn" onClick={()=>setZoom(z=>Math.min(160,z+20))}>＋</button>
+              <button className="xbtn" onClick={()=>setZoom(100)}>⤢ Fit</button>
+            </div>
+
+            {/* minimap — phase 4 */}
+            <div className="minimap">
+              {nodes.map(n=>(
+                <span key={n.id} className="mmn"
+                      style={{left:(n.x*mm.scale)+'px', top:(n.y*mm.scale)+'px',
+                              width:(NODE_W*mm.scale)+'px', height:((n.height||NODE_H)*mm.scale)+'px',
+                              background:SOCKETS[n.type].color+'55'}}/>
+              ))}
+              <span className="mmview" style={{left:0, top:0,
+                width:Math.round(760*mm.scale), height:Math.round(430*mm.scale)}}/>
+            </div>
+          </div>
+
+          {/* ── dock: the honesty panel, which is the point of phases 2-4 ── */}
+          <div className="dock">
+            <div className="sec">
+              <h4>Compile honesty</h4>
+              {gset === 'fanout' ? (
+                <div className="issue">
+                  <b>FAN-OUT DROPPED — measured</b>
+                  One ✓ yes socket wired to 2 effect nodes.
+                  <span className="fix">
+                    <code>compileToEngine</code> returned <b>1</b> effect for <b>2</b> authored.
+                    The tracer follows <code>wires.find(...)</code>, so the second branch is
+                    dropped with no warning. Fix: reject the second wire, or make the
+                    engine honour both.
+                  </span>
+                </div>
+              ) : gset === 'priority' ? (
+                <>
+                  <div className="issue gold">
+                    <b>PRIORITY FIELD IS IGNORED — measured</b>
+                    Authored priority 9 and 3; <code>compileToBehaviors</code> returned <b>2</b> and <b>1</b>,
+                    and both nodes were laid out at y=40.
+                    <span className="fix">
+                      Fix: an explicit drag-reorder lane or rank badges, with the rank the only
+                      source of order. Do not leave a field that reads and does nothing.
+                    </span>
+                  </div>
+                  <div className="kv"><span className="l">authored</span><span className="v lost">watch 9 · approach 3</span></div>
+                  <div className="kv"><span className="l">compiled</span><span className="v lost">watch 1 · approach 2</span></div>
+                </>
+              ) : (
+                <>
+                  <div className="issue">
+                    <b>2 CONDITION KEYS LOST ON ROUND-TRIP — measured</b>
+                    Re-compiling the real berry trigger through the graph dropped
+                    <code>key</code> from <code>parameter_reached</code> and <code>op</code> from
+                    <code>contains_count</code>. Both are 5 of the 5 conditioned triggers here.
+                    <span className="fix">Fix: refuse to open, or warn with a diff before applying.</span>
+                  </div>
+                  <div className="kv"><span className="l">parameter_reached</span>
+                    <span className="v">growth = 100</span></div>
+                  <div className="kv"><span className="l">→ after round-trip</span>
+                    <span className="v lost">no key — which parameter?</span></div>
+                  <div className="kv"><span className="l">contains_count</span>
+                    <span className="v">berries lt 10</span></div>
+                  <div className="kv"><span className="l">→ after round-trip</span>
+                    <span className="v lost">no op — lt? gte?</span></div>
+                </>
+              )}
+              <div className="acts" style={{display:'flex',gap:4,marginTop:5}}>
+                <button className="xbtn">📋 diff before apply</button>
+                <button className="xbtn">✏ edit in form</button>
+              </div>
+            </div>
+
+            <div className="sec">
+              <h4>Selected</h4>
+              {sel.length === 0 && !selWire
+                ? <div style={{fontSize:11,color:'var(--text-muted)'}}>
+                    Click a node to drag it, or a wire to select it — the hit path is 14px
+                    wide, so a wire is as easy to hit as a node.
+                  </div>
+                : selWire
+                  ? <div className="kv"><span className="l">wire</span>
+                      <span className="v">{selWire}</span></div>
+                  : sel.map(id=>{
+                      const n = nodes.find(x=>x.id===id);
+                      return <div key={id} className="kv">
+                        <span className="l">{n.type}</span><span className="v">{id}</span></div>;
+                    })}
+              <div style={{display:'flex',gap:4,marginTop:6}}>
+                <button className="xbtn">⧉ duplicate</button>
+                <button className="xbtn">⌫ delete</button>
+                <button className="xbtn">⇕ raise</button>
+              </div>
+            </div>
+
+            <div className="sec">
+              <h4>Catalog parity (defect #17)</h4>
+              <div className="kv"><span className="l">engine actions</span><span className="v">~100</span></div>
+              <div className="kv"><span className="l">graph NODE_DEFS knows</span><span className="v lost">11</span></div>
+              <div className="kv"><span className="l">→ params stripped on save</span><span className="v lost">~89%</span></div>
+              <div className="acts" style={{display:'flex',gap:4,marginTop:5}}>
+                <button className="xbtn">🔗 open the unknown action anyway</button>
+              </div>
+            </div>
+
+            <div className="sec">
+              <h4>Phases</h4>
+              <ol className="steps">
+                <li className="done">1 — viewport: pan/zoom/fit/grid + screenToWorld</li>
+                <li className="now">2 — wires &amp; flow: colours, deletion, honesty badges</li>
+                <li>3 — registry: one catalog, generate node fields from it</li>
+                <li>4 — interop: lossless-or-warned form↔graph</li>
+                <li>5 — editing power: undo, multi-select, collapse</li>
+                <li>6 — test animation along the trace</li>
+                <li>7 — scale: minimap, LOD, culling, touch</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="notes">
+        <h3>Probe results, run in the live browser against window.TriggerGraph</h3>
+        <div className="probe">
+          <b>compileToEngine(fanout)</b> — 2 effect nodes wired to one ✓ socket<br/>
+          &nbsp;&nbsp;→ <i>effects: 1</i>&nbsp; effect 2 (<i>set_state lit=1</i>) silently absent<br/><br/>
+          <b>behaviorsToGraph → compileToBehaviors</b> — authored priorities 9, 3<br/>
+          &nbsp;&nbsp;→ <i>both nodes at y=40</i>, compiled priorities <i>2 and 1</i><br/><br/>
+          <b>triggerToGraph → compileToEngine</b> on the 5 conditioned triggers<br/>
+          &nbsp;&nbsp;→ <i>key</i> dropped from parameter_reached, <i>op</i> dropped from contains_count
+        </div>
+        <table>
+          <thead><tr><th>Defect (# in task-388)</th><th>Now</th><th>Here</th><th>Why it is a design question</th></tr></thead>
+          <tbody>
+            <tr><td>5 — wires cannot be deleted</td>
+                <td>Del removes the selected <i>node</i>; the SVG layer has pointer-events:none</td>
+                <td>14px hit path, click to select, Delete in the toolbar and the dock</td>
+                <td>A mis-wire currently forces deleting whole nodes</td></tr>
+            <tr><td>6 — all wires are identical blue</td>
+                <td>YES and NO render the same</td>
+                <td>Wire takes its source socket's colour, arrowheads, and a legend up top</td>
+                <td>Left-in/right-out only reads <i>because</i> the colour distinguishes the branch</td></tr>
+            <tr><td>9 / 10 / 11 — compile dishonesty</td>
+                <td>Saves less than it shows, with no warning anywhere</td>
+                <td>A ⚠ dropped badge on the node and a dashed red wire, plus the dock's diff</td>
+                <td>Each of these is a place where the picture and the result disagree</td></tr>
+            <tr><td>11 — priority field is a lie</td>
+                <td>Field says 9; Y position decides</td>
+                <td>Rank badges, and the dock states authored vs compiled side by side</td>
+                <td>Gameplay order is not a layout detail</td></tr>
+            <tr><td>19 — form→graph is lossy</td>
+                <td>Opens and applies, destroying structure</td>
+                <td>Dock names the dropped keys per condition</td>
+                <td>Deciding <i>whether to warn or refuse</i> needs the diff visible</td></tr>
+            <tr><td>17 — ~89% of actions lose params</td>
+                <td>Dropdown shows “message” for types it does not know</td>
+                <td>Catalog parity panel, and an “open anyway” affordance</td>
+                <td>Whether the graph can hold all ~100 is an architecture call</td></tr>
+            <tr><td>Phase 4 minimap</td>
+                <td>Absent</td>
+                <td>Bottom-right, click to jump</td>
+                <td>Only meaningful once #2 lays graphs out in lanes</td></tr>
+            <tr><td>Node width</td>
+                <td>Fixed 260px, no overflow strategy</td>
+                <td>212px, name ellipsised, params as chips</td>
+                <td>Measured, not asserted: 260px held ~34 characters of the real berry message</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div className="notes">
+        <h3>What this mockup does not decide</h3>
+        <ul style={{margin:0,paddingLeft:18,color:'var(--text-dim)',lineHeight:1.7}}>
+          <li><b>Phase 3, the registry.</b> Whether the graph can express every effect
+            (~100) or refuses unknown ones is an architecture decision about
+            <code>trigger-types.js</code>, not a layout one. This mockup shows the affordance
+            for the case where the answer is “refuse”.</li>
+          <li><b>Phase 4 render strategy.</b> Minimap and LOD are drawn here at 640px to be
+            judged; real node culling and zoom-based LOD are not designed.</li>
+          <li><b>The BLUEPRINT dialog</b> (defect #20 — no mode marker, silent overwrite) and the
+            unsaved-changes guard are dialogs, not canvas.</li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

@@ -52,7 +52,11 @@ type RelLayoutWin = {
         levelEdge(source: any, target: any, nodesObj: any, edgesArr: any): any;
         connectionLevelEdge(source: any, target: any, nodesObj: any): any;
     };
-    GraphBackground?: { reconcileAllForGapChange?(): void };
+    // Present-but-possibly-absent is correct for the *modules* here (separate
+    // script tags, and graph-relative-layout is optional). The METHOD is not
+    // optional: `reconcileAllForGapChange?()` is the optional-member contract that
+    // let commit 6fd774b8 delete it and leave this call site a silent no-op.
+    GraphBackground?: { reconcileAllForGapChange(): void };
     GraphToolbar?: { syncAll(): void };
     NLEditorGhosts?: { clear(): void; [key: string]: any };
     CharacterArt?: {
@@ -416,13 +420,17 @@ function _firstSentence(text: unknown, maxLines: number): string {
         // value stays "whatever the user last chose" and the flag stays the truth
         // about whether they chose one.
         if (graphManager._syncMapSpacingButton) graphManager._syncMapSpacingButton();
-        if ((window as unknown as RelLayoutWin).GraphBackground && (window as unknown as RelLayoutWin).GraphBackground!.reconcileAllForGapChange) {
+        const background = (window as unknown as RelLayoutWin).GraphBackground;
+        if (background) {
             // The art is positioned in px from this same pitch, so it has to move
             // with it — for *every* mounted reference, because the whole-world view
             // has no single grid and the ordinary per-scope reconcile stops there.
             // Not `fitToPaintedGrid`: that persists the world, and this is a load
             // path. Not awaited — a grid fetch per scope must not stall the layout.
-            try { void (window as unknown as RelLayoutWin).GraphBackground!.reconcileAllForGapChange!(); } catch (err) { /* ignore */ }
+            // Guarded on the module only: a `typeof … === 'function'` guard here is
+            // what let commit 6fd774b8 delete `reconcileAllForGapChange` and leave
+            // this call site silently doing nothing (task-526).
+            try { void background.reconcileAllForGapChange(); } catch (err) { /* ignore */ }
         }
         return true;
     },

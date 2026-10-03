@@ -553,7 +553,14 @@ class GraphManagerImpl {
         // A painted scope's art is derived from that scope's grid, and switching
         // scope loads a subgraph without a world fetch, so the map has to be
         // re-derived here or it keeps the previous grid's cells (bug-51).
-        if (window.GraphBackground && typeof window.GraphBackground.refreshForScope === 'function') {
+        //
+        // Guarded on the MODULE, not on the method. A `typeof
+        // refreshForScope === 'function'` guard here is what turned commit
+        // 6fd774b8's deletion of that function into a silent no-op: a missing
+        // method and a module that had not loaded are indistinguishable at the
+        // call site, and only the first one is a bug. The contract is pinned in
+        // tools/unit/test_graph_background.js.
+        if (window.GraphBackground) {
             loaded.then(() => window.GraphBackground.refreshForScope()).catch(() => { });
         }
         return loaded;
@@ -640,9 +647,9 @@ class GraphManagerImpl {
         // re-derived from its own scope instead, without writing the world.
         if (this._cardinalLayout && window.GraphBackground) {
             try {
-                if (this._scopeFilter && window.GraphBackground.fitToPaintedGrid) {
+                if (this._scopeFilter) {
                     await window.GraphBackground.fitToPaintedGrid();
-                } else if (window.GraphBackground.reconcileAllForGapChange) {
+                } else {
                     await window.GraphBackground.reconcileAllForGapChange();
                 }
             } catch (e) { /* ignore */ }
@@ -663,8 +670,7 @@ class GraphManagerImpl {
         this._syncMapSpacingButton();
         this._lastSig = '';
         await this.loadGraphData();
-        if (this._cardinalLayout && window.GraphBackground
-                && window.GraphBackground.reconcileAllForGapChange) {
+        if (this._cardinalLayout && window.GraphBackground) {
             // The load path already re-derived the art when the pitch moved; this
             // is the belt to that braces, and it writes nothing.
             try { await window.GraphBackground.reconcileAllForGapChange(); } catch (e) { /* ignore */ }

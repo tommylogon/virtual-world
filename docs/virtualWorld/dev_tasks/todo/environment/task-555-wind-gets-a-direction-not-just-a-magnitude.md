@@ -12,16 +12,13 @@ priority: medium
 
 ## Goal
 
-Add a compass `wind_direction` alongside the existing `WIND_STATES` magnitude, so
-wind has spatial meaning. Purely additive; a prerequisite for any rain-shadow or
-weather-travel work later.
+Add a compass `wind_direction` alongside the existing `WIND_STATES` magnitude, so wind has spatial meaning. Purely additive; a prerequisite for any rain-shadow or weather-travel work later.
 
 Design: `docs/design/weather-world-integration.md` §2.7, §5.
 
 ## Measured (2026-09-27) — wind is a number, never a bearing
 
-`engine/weather_forecast.py:29-41` gives wind four encodings and not one of them
-is a direction:
+`engine/weather_forecast.py:29-41` gives wind four encodings and not one of them is a direction:
 
 ```python
 WIND_STATES = ["none", "breeze", "wind", "gale", "storm", "hurricane"]
@@ -30,19 +27,14 @@ WIND_HEAT_MULT = {...}   # heat exchange multiplier
 WIND_CHILL = {...}       # °C applied by effective_temperature
 ```
 
-A search for a compass or bearing anywhere in the backend returns nothing.
-"Winds from the north" is simply not expressible.
+A search for a compass or bearing anywhere in the backend returns nothing. "Winds from the north" is simply not expressible.
 
 What wind *does* do today is local:
 
-- `environment_propagation.py:88-96` — wind multiplies heat exchange between two
-  connected areas, and the **stronger** of the pair wins.
+- `environment_propagation.py:88-96` — wind multiplies heat exchange between two  connected areas, and the **stronger** of the pair wins.
 - `virtual_world_engine.py:1200-1202` — wind boosts how fast wet items dry.
 
-Both are good, and both are consistent with a single global reading of "how hard
-is it blowing right now". Neither needs a direction. But it means there is no
-spatial weather gradient at all: wind cannot blow *across* the map, and there is
-nothing for a rain-shadow effect to attach to.
+Both are good, and both are consistent with a single global reading of "how hard is it blowing right now". Neither needs a direction. But it means there is no spatial weather gradient at all: wind cannot blow *across* the map, and there is nothing for a rain-shadow effect to attach to.
 
 ## What to change
 
@@ -69,5 +61,4 @@ nothing for a rain-shadow effect to attach to.
 ## Deliberately not here
 
 Rain shadows, weather travelling across the map, and orographic precipitation.
-Those need per-area climate (task-557) before they are meaningful. This task
-only makes the fact representable.
+Those need per-area climate (task-557) before they are meaningful. This task only makes the fact representable.

@@ -12,9 +12,7 @@ priority: medium
 
 ## Goal
 
-Give snowy weather a consequence: accumulate snow on an area and let it change
-surface presentation, movement cost and forage, instead of being a label that
-only dims the light.
+Give snowy weather a consequence: accumulate snow on an area and let it change surface presentation, movement cost and forage, instead of being a label that only dims the light.
 
 Depends on task-553 (snow needs a real per-area temperature to be worth
 simulating).
@@ -31,19 +29,14 @@ Every occurrence of snow in the backend:
 | `routes/action_handlers.py:483` | a perception skill DC of `18` for `snowy` — the same value as `foggy` |
 
 That is the whole of it. Snow **does not accumulate**, does not touch
-`properties.surface`, does not gate movement, does not change forage, and does
-not shift temperature. A blizzard and a fog bank are the same event with a
-different word. The world's own surface vocabulary has no winter in it.
+`properties.surface`, does not gate movement, does not change forage, and does not shift temperature. A blizzard and a fog bank are the same event with a different word. The world's own surface vocabulary has no winter in it.
 
-The same is true of the other weather states in a weaker form: `rainy` and
-`stormy` reach the world only through humidity, which is itself only ever
-*asserted* by a forecast entry — there is no water cycle producing it.
+The same is true of the other weather states in a weaker form: `rainy` and `stormy` reach the world only through humidity, which is itself only ever *asserted* by a forecast entry — there is no water cycle producing it.
 
 ## What to change
 
 1. A per-area accumulated value (`snow_depth`, or a boolean if accumulation
-   proves too heavy — see the open question below) written when the weather is
-   `snowy`, and decayed when it is not. Exterior areas only, consistent with
+   proves too heavy — see the open question below) written when the weather is `snowy`, and decayed when it is not. Exterior areas only, consistent with
    `_apply_forecast_env`'s `apply_scope`.
 2. Read it where the world actually cares:
    - **surface** — presentation and the `properties.surface` material

@@ -4,15 +4,15 @@ wiki: "[[UI & Settings/Inspector Panels]]"
 ---
 # Code Readability Refactor — Variable Naming & Comments
 
-**Priority**: Low (ongoing)
-**Status**: Ongoing — apply boy-scout rule when touching files for other reasons
+**Priority**: HIGH
+
 **Note**: Not a blocker for merge. Deferred to post-merge cleanup passes.
 
 ---
 
 ## Summary
 
-Large parts of the codebase, especially `virtual_world_engine.py` (~4600 lines), use cryptic single-letter variable names (`tn`, `ep`, `ef`, `rn`, `dn`, `sn`, `nid`, `v`, `ct`, `cv`, `tp`, `ns`, `lw`, `ni`) with no comments explaining intent. This makes the code harder to read, debug, and maintain.
+Large parts of the codebase, , use cryptic single-letter variable names (`tn`, `ep`, `ef`, `rn`, `dn`, `sn`, `nid`, `v`, `ct`, `cv`, `tp`, `ns`, `lw`, `ni`) with no comments explaining intent. This makes the code harder to read, debug, and maintain.
 
 ## Goal
 
@@ -20,7 +20,6 @@ Improve readability without breaking anything. No functional changes.
 
 ## Approach
 
-**Boy-scout rule** — clean up code as you touch it for features/bugfixes:
 
 1. When modifying a function, rename its single-letter variables to descriptive names
 2. Add a brief comment explaining what non-obvious blocks do

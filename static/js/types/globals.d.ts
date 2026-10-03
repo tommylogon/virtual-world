@@ -139,6 +139,7 @@ declare const ApiClient: {
     uploadBackgroundImage(file: File): Promise<{ image?: string } | null>;
     batchGraph(ops: unknown[]): Promise<{ errors?: unknown[] } | null>;
     getWorldGrid(scopeId: string): Promise<unknown>;
+    getWorldScopes(flat?: boolean): Promise<unknown>;
     setScopeOffset(scopeId: string, offset?: { x?: number; y?: number; reset?: boolean }): Promise<unknown>;
     updateCharacter(name: string, changes: unknown): Promise<unknown>;
     updateNode(nodeId: string, data: unknown): Promise<unknown>;
@@ -256,7 +257,37 @@ declare const ItemLibraryAI: any;      // item-library/ai-generation.js
 declare const SkyScape: any;           // sky-scape.js
 declare const Structures: any;         // structures.js
 declare const NarrationUi: any;        // narration-ui.js
-declare const GraphBackground: any;    // graph/graph-background.ts (converted)
+/**
+ * GraphBackground (graph/graph-background.ts) — the map art behind the graph.
+ *
+ * **Not `any`, on purpose.** This one was `any`, and `any` is why commit
+ * 6fd774b8 could delete `refreshForScope`, `reconcileAllForGapChange` and
+ * `_reconcileReferenceArt` without `tsc` noticing: every cross-module call was
+ * unchecked, and the four call sites guarded each one with
+ * `typeof … === 'function'`, so a *deleted function* looked exactly like a
+ * module that had not loaded yet. Scope switches and map-pitch changes stopped
+ * re-deriving the art and nothing said so.
+ *
+ * Only the members other modules actually call are declared, and every one is
+ * **required** — the modules are separate `<script>` tags but they are always
+ * loaded together, and all four call sites run long after load, so "the method
+ * might not exist" is not a real state here. Adding a member to graph-background
+ * and calling it from elsewhere means adding it here too; removing one is now a
+ * compile error instead of a silent no-op.
+ *
+ * `tools/unit/test_graph_background.js` pins the same surface at runtime and
+ * fails if anyone reintroduces a `typeof … === 'function'` guard at a call site.
+ */
+declare const GraphBackground: {
+    init(): void;
+    showCanvasMenu(event?: unknown): void;
+    fitToPaintedGrid(): Promise<void>;
+    /** Re-derive the loaded scope's art from its grid (bug-51). */
+    refreshForScope(): Promise<void>;
+    /** Re-derive every mounted reference after the map pitch moved (task-526). */
+    reconcileAllForGapChange(): Promise<void>;
+    getExportLayers(): unknown[];
+};
 declare const InspectorPanelRef: any;  // inspector/panel.ts (converted)
 
 /** lit-html's template type. Our LitApi types template *values* as unknown. */
@@ -275,6 +306,7 @@ declare const GraphLayoutEngine: {
     GRID_SCALE: number;
     PAINT_UNITS_PER_CELL: number;
     hasPaintedGrid(nodes: unknown): boolean;
+    hasPaintedCoords(properties: unknown): boolean;
     gridPosition(properties: unknown, scale?: number): { x: number; y: number } | null;
     mapSpacing(): number;
     nodeScopeId(node: unknown): string | null;

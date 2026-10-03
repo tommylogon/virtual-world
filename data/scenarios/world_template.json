@@ -46,7 +46,7 @@
         "WIS": 15
       },
       "vitals": {
-        "HP": 99,
+        "HP": 99.0,
         "Max_HP": 100,
         "Hunger": 47,
         "Thirst": 57,
@@ -94,6 +94,7 @@
       "state_timer": 0,
       "traits": {},
       "size": null,
+      "species": null,
       "tags": [
         "male",
         "human"
@@ -101,6 +102,7 @@
       "flags": {},
       "hidden": false,
       "soak": null,
+      "simulation_mode": "active",
       "manifested": false,
       "known": [],
       "crafting_known": [],
@@ -244,6 +246,7 @@
         "balls": true
       },
       "current_area": "Blizzard Forest Clearing",
+      "current_area_id": "area_blizzard_forest_clearing",
       "emotion": {
         "current": "neutral",
         "intensity": 0.0,
@@ -330,7 +333,7 @@
       "patrol_route": [],
       "patrol_index": 0,
       "feels_like": 23,
-      "current_carry_weight": 28.0,
+      "current_carry_weight": 28.000000000000004,
       "max_carry_capacity": 100.0,
       "at_way_id": null,
       "facing": null,
@@ -376,7 +379,7 @@
         "WIS": 10
       },
       "vitals": {
-        "HP": 96,
+        "HP": 96.0,
         "Max_HP": 100,
         "Hunger": 6,
         "Thirst": 6,
@@ -426,6 +429,7 @@
         "dark_vision": true
       },
       "size": null,
+      "species": null,
       "tags": [
         "female",
         "elf"
@@ -433,6 +437,7 @@
       "flags": {},
       "hidden": false,
       "soak": null,
+      "simulation_mode": "active",
       "manifested": false,
       "known": [],
       "crafting_known": [],
@@ -575,6 +580,7 @@
         "balls": true
       },
       "current_area": "Frozen Thicket",
+      "current_area_id": "area_frozen_thicket",
       "emotion": {
         "current": "neutral",
         "intensity": 0.0,
@@ -787,7 +793,7 @@
         "WIS": 10
       },
       "vitals": {
-        "HP": 10,
+        "HP": 10.0,
         "Max_HP": 10,
         "Hunger": 45,
         "Thirst": 47,
@@ -835,12 +841,14 @@
       "state_timer": 0,
       "traits": {},
       "size": null,
+      "species": null,
       "tags": [
         "animal"
       ],
       "flags": {},
       "hidden": false,
       "soak": null,
+      "simulation_mode": "active",
       "manifested": false,
       "known": [],
       "crafting_known": [],
@@ -971,6 +979,7 @@
         "balls": true
       },
       "current_area": "Kitchen",
+      "current_area_id": "area_kitchen",
       "emotion": {
         "current": "neutral",
         "intensity": 0.0,
@@ -11058,5 +11067,6 @@
     ],
     "positions": {},
     "layoutLocked": false
-  }
+  },
+  "schema_version": 2
 }

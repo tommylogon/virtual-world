@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>WorldPainter — ideal grid surface · React</title>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+:root{
+  --bg:#0d1117; --bg-card:#161b22; --bg-inset:#1c2128; --bg-input:#21262d; --bg-hover:#30363d;
+  --border:#30363d; --border-light:#21262d;
+  --text:#e6edf3; --text-dim:#8b949e; --text-muted:#6e7681;
+  --accent:#58a6ff; --green:#3fb950; --red:#f85149; --orange:#e3b341; --purple:#bc8cff; --pink:#f778ba;
+  --font:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;
+  --mono:'Cascadia Code','Fira Code','JetBrains Mono',Consolas,monospace;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.55}
+code,.mono{font-family:var(--mono);font-size:12px}
+.wrap{max-width:1600px;margin:0 auto;padding:0 20px 88px}
+h1{font-size:25px;margin:0 0 8px}
+.lede{color:var(--text-dim);max-width:96ch;margin:0 0 10px}
+.prov{font-family:var(--mono);font-size:11px;color:var(--text-muted);margin:0 0 20px}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:0 0 18px}
+.stat{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:10px 13px}
+.stat .v{font-family:var(--mono);font-size:19px;font-weight:600}
+.stat .l{font-size:10.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px}
+.stat.bad .v{color:var(--red)} .stat.warn .v{color:var(--orange)} .stat.ok .v{color:var(--green)}
+
+.frame{background:var(--bg-card);border:1px solid var(--green);border-radius:10px;overflow:hidden;margin:0 0 22px}
+
+/* ── header: one row, the scope identity and its state ── */
+.hdr{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg-inset);
+  border-bottom:1px solid var(--border);flex-wrap:wrap}
+.crumb{font-family:var(--mono);font-size:11.5px;color:var(--text-muted);display:flex;gap:5px;align-items:center}
+.crumb b{color:var(--text);font-weight:600}
+.pill{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:999px;
+  border:1px solid var(--border);color:var(--text-dim);background:var(--bg-inset);white-space:nowrap}
+.pill.ok{border-color:#1e4d2b;color:var(--green)}
+.pill.warn{border-color:#5c4a12;color:var(--orange)}
+.pill.info{border-color:#1f4b7a;color:var(--accent)}
+.spacer{flex:1}
+.xbtn{background:var(--bg-input);border:1px solid var(--border);color:var(--text-dim);
+  border-radius:5px;padding:3px 9px;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap}
+.xbtn:hover{border-color:var(--text-muted);color:var(--text)}
+.xbtn.on{background:rgba(88,166,255,.15);border-color:var(--accent);color:var(--accent);font-weight:600}
+.xbtn.go{background:rgba(63,185,80,.15);border-color:var(--green);color:var(--green);font-weight:600}
+
+/* ── the surface: rail | grid | right dock ── */
+.surface{display:flex;height:660px;min-height:0;align-items:stretch}
+
+/* tool rail — 8 tools, 2 columns so all 8 fit in one screen-height */
+.rail{flex:0 0 auto;width:96px;background:var(--bg-inset);border-right:1px solid var(--border);
+  padding:8px;display:grid;grid-template-columns:1fr 1fr;gap:4px;align-content:start}
+.tool{background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--text-dim);
+  font-family:inherit;font-size:9.5px;padding:7px 2px 6px;cursor:pointer;text-align:center;line-height:1.25}
+.tool .ic{display:block;font-size:16px;margin-bottom:2px}
+.tool:hover{border-color:var(--text-muted);color:var(--text)}
+.tool.on{background:rgba(88,166,255,.16);border-color:var(--accent);color:var(--accent);font-weight:600}
+.railnote{grid-column:1/-1;font-family:var(--mono);font-size:9px;color:var(--text-muted);
+  text-align:center;line-height:1.5;padding-top:4px;border-top:1px solid var(--border);margin-top:2px}
+
+/* centre column: chrome (2 rows) then the grid, which gets the rest */
+.centre{flex:1 1 auto;display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--bg)}
+
+/* row 1 — paint controls, grouped by what they act on */
+.bar1{display:flex;align-items:center;gap:7px;padding:6px 9px;border-bottom:1px solid var(--border);
+  background:var(--bg-card);flex-wrap:wrap}
+.grp{display:flex;align-items:center;gap:5px;padding-right:8px;border-right:1px solid var(--border)}
+.grp:last-child{border-right:0}
+.glabel{font-size:8.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--text-muted);font-weight:600}
+select.sel,.inp{background:var(--bg-input);border:1px solid var(--border);border-radius:5px;
+  color:var(--text);padding:3px 6px;font-size:11px;font-family:inherit}
+.inp{width:118px}
+select.sel.big{min-width:210px;font-size:11.5px}
+
+/* row 2 — the reference image + grid view controls, one disclosure */
+.bar2{display:flex;align-items:center;gap:7px;padding:5px 9px;border-bottom:1px solid var(--border);
+  background:var(--bg-inset);flex-wrap:wrap}
+.disc{font-size:10.5px;color:var(--text-muted);display:flex;align-items:center;gap:6px;cursor:pointer;
+  font-family:inherit;background:none;border:0;padding:2px 0}
+.disc:hover{color:var(--text)}
+.refrow{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:6px 0 1px;width:100%}
+.refrow input[type=range]{width:78px;accent-color:var(--accent)}
+.refrow label{font-size:10px;color:var(--text-muted)}
+
+/* the grid — the thing being looked at */
+.gridwrap{flex:1 1 auto;min-height:0;display:flex;position:relative;overflow:auto;background:#08090b}
+.grid{flex:0 0 auto;display:grid;gap:0;align-content:start;padding:0;align-self:flex-start}
+.canvas{flex:0 0 auto;margin:auto;border:1px solid var(--border);border-radius:4px;
+  box-shadow:0 6px 24px rgba(0,0,0,.5)}
+.cell{background:#0f1319;border-right:1px solid rgba(255,255,255,.06);
+  border-bottom:1px solid rgba(255,255,255,.06);cursor:crosshair;position:relative}
+.cell:nth-child(even){background:#11161d}
+.cell.road::after{content:'';position:absolute;inset:0;background:rgba(228,179,65,.4)}
+.cell.area{box-shadow:inset 0 0 0 2px var(--accent)}
+.cell.sel{box-shadow:inset 0 0 0 2px var(--green);z-index:2}
+.cell.marquee{box-shadow:inset 0 0 0 1px rgba(63,185,80,.65)}
+.hud{display:flex;gap:7px;align-items:center;position:absolute;left:10px;bottom:10px;
+  background:rgba(22,27,34,.94);border:1px solid var(--border);
+  border-radius:6px;padding:5px 9px;font-family:var(--mono);font-size:11px;color:var(--text);z-index:5}
+.hud .dim{color:var(--text-muted)}
+.zoom{position:absolute;right:10px;bottom:10px;display:flex;gap:4px;align-items:center;z-index:5}
+.zoom .z{font-family:var(--mono);font-size:10.5px;color:var(--text-dim);min-width:38px;text-align:center}
+
+/* right dock — the live cell / area / feature readout, always visible */
+.dock{flex:0 0 auto;width:288px;background:var(--bg-inset);border-left:1px solid var(--border);
+  overflow:auto;padding:0}
+.sec{padding:9px 11px;border-bottom:1px solid var(--border-light)}
+.sec h4{margin:0 0 7px;font-size:8.5px;letter-spacing:.6px;text-transform:uppercase;
+  color:var(--text-muted);font-weight:600}
+.kv{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;padding:2px 0}
+.kv .l{color:var(--text-muted);font-size:10.5px}
+.kv .v{font-family:var(--mono);font-size:10.5px;text-align:right;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;max-width:160px}
+.kv .v.none{color:var(--text-muted);font-style:italic;font-family:var(--font)}
+.swatchrow{display:flex;gap:4px;flex-wrap:wrap;margin-top:3px}
+.sw{width:100%;height:15px;border-radius:3px;display:flex;align-items:center;padding:0 5px;
+  font-size:9px;color:#06090d;font-weight:700;overflow:hidden}
+.blk{border-left:2px solid var(--orange);background:rgba(228,179,65,.09);padding:6px 9px;
+  border-radius:0 5px 5px 0;margin:0 0 6px;font-size:11px;color:var(--text-dim)}
+.blk b{color:var(--orange)}
+.blk .fix{display:block;color:var(--green);font-size:10.5px;margin-top:3px}
+.acts{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}
+.acts .xbtn{font-size:10.5px;padding:2px 7px}
+.areas{font-family:var(--mono);font-size:10.5px;color:var(--text-dim);max-height:170px;overflow:auto}
+.areas div{padding:1.5px 0;display:flex;gap:6px;align-items:center}
+.areas .cx{color:var(--green);cursor:pointer}
+.areas .cx:hover{text-decoration:underline}
+.areas .p{color:var(--text-muted)}
+.prog{height:5px;background:var(--bg-input);border-radius:3px;overflow:hidden;margin:4px 0 6px}
+.prog i{display:block;height:100%;background:var(--green)}
+ol.steps{margin:0;padding-left:17px;font-size:11.5px;color:var(--text-dim);line-height:1.65}
+ol.steps li.done{color:var(--text-muted);text-decoration:line-through}
+ol.steps li.now{color:var(--text);font-weight:600}
+
+/* palette popover — the 106-biome list as a previewable tile grid */
+.pop{position:absolute;z-index:30;background:var(--bg-card);border:1px solid var(--accent);
+  border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.6);padding:8px;width:430px}
+.pop .ph{display:flex;gap:6px;align-items:center;margin-bottom:7px}
+.pop input{background:var(--bg-input);border:1px solid var(--border);border-radius:5px;color:var(--text);
+  padding:4px 7px;font-size:11.5px;width:180px;font-family:inherit}
+.tiles{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;max-height:210px;overflow:auto}
+.tile{background:var(--bg-inset);border:1px solid var(--border);border-radius:5px;padding:4px 5px;
+  cursor:pointer;text-align:left;color:var(--text-dim);font-family:inherit}
+.tile:hover{border-color:var(--text-muted);color:var(--text)}
+.tile.on{border-color:var(--accent);background:rgba(88,166,255,.14);color:var(--text)}
+.tile b{display:block;font-size:10.5px;line-height:1.2}
+.tile i{display:block;font-family:var(--mono);font-size:8.5px;color:var(--text-muted);font-style:normal}
+.pdesc{font-size:10.5px;color:var(--text-muted);border-top:1px solid var(--border);margin-top:7px;padding-top:6px}
+
+.notes{background:var(--bg-card);border:1px solid var(--border);border-radius:9px;padding:14px 18px;margin:0 0 16px}
+.notes h3{margin:0 0 8px;font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--text-muted)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;font-size:9px;letter-spacing:.5px;text-transform:uppercase;color:var(--text-muted);
+  padding:5px 8px;background:var(--bg-inset);border-bottom:1px solid var(--border);font-weight:600}
+td{padding:5px 8px;border-bottom:1px solid var(--border-light);color:var(--text-dim);vertical-align:top}
+td:first-child{color:var(--text);font-weight:500}
+</style>
+</head>
+<body>
+<div class="wrap" id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useMemo, useRef, useCallback } = React;
+
+/* ══ Everything below is measured, not invented ══════════════════════════
+   Source: live Chromium session against data/scenarios/kraktooth_goblin_camp.json
+   loaded via POST /api/load, then VW.worldPainter.open(scopeId), at 1600x1000,
+   2026-10-03. GET /api/world/painter/vocabulary + /api/world/scopes/<id>/grid. */
+
+const SCOPES = [
+  { id:'world',             name:'world',              mode:'world',     parent:null,         w:20, h:10, biome:20, road:44, areas:53, children:4, state:'materialized' },
+  { id:'west_woods',        name:'West woods',         mode:'world',     parent:'world',      w:20, h:40, biome:62, road:24, areas:53, children:0, state:'materialized' },
+  { id:'deep_woods',        name:'deep woods',         mode:'world',     parent:'world',      w:45, h:30, biome:316, road:148, areas:0, children:0, state:'unmade' },
+  { id:'eldenford_interior',name:'Eldenford interior', mode:'town',      parent:'world',      w:30, h:20, biome:18, road:52, areas:71, children:0, state:'materialized' },
+  { id:'goblin_camp',       name:'goblin camp',        mode:'interior',  parent:'world',      w:20, h:10, biome:0,  road:0,  areas:21, children:1, state:'unmade' },
+  { id:'test',              name:'test',               mode:'interior',  parent:'goblin_camp',w:8,  h:8,  biome:0,  road:0,  areas:0,  children:0, state:'unmade' },
+];
+
+/* Real area placements read off GET /api/world/scopes/goblin_camp/grid */
+const CAMP_AREAS = [
+  {x:8, y:1, n:'Camp Entrance'},   {x:5, y:2, n:"Chief's Den"},
+  {x:9, y:3, n:"Chief's Pit"},     {x:5, y:3, n:'Cooking Area'},
+  {x:2, y:3, n:'Sleeping Halls'},  {x:1, y:4, n:'Nursery'},
+  {x:12,y:4, n:'Prison Pens'},     {x:5, y:5, n:'Food Storage'},
+  {x:13,y:5, n:'Healing Area'},    {x:12,y:6, n:'Scouting Rooms'},
+  {x:17,y:6, n:'Side Tunnels'},    {x:11,y:7, n:'Animal Pens'},
+  {x:5, y:7, n:'Scrap Pile'},      {x:19,y:7, n:'Mine Access'},
+  {x:7, y:6, n:'Armory'},          {x:12,y:2, n:'Shaman Lair'},
+];
+
+/* Real paint off west_woods, verbatim from GET /api/world/scopes/west_woods/grid:
+   62 biome cells and 24 road cells, keyed "x,y" exactly as the payload keys them.
+   No trimming — the sparse shape is the point. */
+const BIOME_CELLS = ('10,14 sparse_forest|10,23 sparse_forest|10,24 sparse_forest|10,25 sparse_forest|10,3 dense_forest|10,5 dense_forest'
+  + '|11,14 sparse_forest|11,17 sparse_forest|11,20 sparse_forest|11,23 sparse_forest|11,24 sparse_forest|11,27 sparse_forest|11,28 sparse_forest|11,3 sparse_forest|11,5 sparse_forest'
+  + '|12,14 sparse_forest|12,15 sparse_forest|12,18 sparse_forest|12,19 sparse_forest|12,22 sparse_forest|12,23 sparse_forest|12,24 sparse_forest|12,26 sparse_forest|12,3 sparse_forest'
+  + '|13,15 sparse_forest|13,16 sparse_forest|13,17 sparse_forest|13,18 sparse_forest|13,22 sparse_forest|13,25 sparse_forest|13,26 sparse_forest|13,3 farmland|13,5 farmland'
+  + '|14,22 sparse_forest|14,24 sparse_forest|14,25 sparse_forest|15,18 sparse_forest|15,20 sparse_forest|15,24 sparse_forest'
+  + '|16,21 sparse_forest|16,24 sparse_forest|17,21 sparse_forest|17,24 sparse_forest|18,20 sparse_forest|19,20 sparse_forest'
+  + '|2,29 sparse_forest|3,28 sparse_forest|3,29 sparse_forest|4,28 sparse_forest|5,28 sparse_forest|6,27 sparse_forest|6,28 sparse_forest'
+  + '|7,25 sparse_forest|7,27 sparse_forest|8,25 sparse_forest|8,27 sparse_forest|8,28 sparse_forest|8,29 sparse_forest'
+  + '|9,14 sparse_forest|9,24 sparse_forest|9,3 dense_forest|9,5 dense_forest').split('|');
+const ROAD_CELLS = '1,29|10,23|10,4|11,22|11,4|12,20|12,21|12,4|13,18|13,19|13,4|14,16|14,17|15,14|15,15|2,28|3,28|4,27|5,27|6,26|7,26|8,25|9,24|9,4';
+
+const PAINT = {}, ROAD = {};
+BIOME_CELLS.forEach(s => { const [k,v] = s.split(' '); PAINT[k] = v; });
+ROAD_CELLS.split('|').forEach(k => { ROAD[k] = 'road'; });
+
+const BIOME_COLOR = { sparse_forest:'#2d5a34', dense_forest:'#1f4227', farmland:'#6b5a2e' };
+
+/* 106 biomes exist. These are the real ones the live session painted or showed. */
+const BIOMES = [
+  {id:'sparse_forest', name:'Sparse Forest', tags:'forest · outdoors', d:'Scattered trees open onto patches of grass. place · ground dirt'},
+  {id:'dense_forest',  name:'Dense Forest',  tags:'forest · outdoors', d:'Closed canopy, little sky. place · ground dirt'},
+  {id:'farmland',       name:'Farmland',      tags:'field · outdoors', d:'Turned soil in rows. place · ground dirt'},
+  {id:'deep_forest',    name:'Deep Forest',   tags:'forest · outdoors', d:'Old growth, no path. place · ground dirt'},
+  {id:'river',          name:'River',         tags:'water',            d:'Moving water, cold. Blocks travel without a bridge.'},
+  {id:'marsh',          name:'Marsh',         tags:'wet · outdoors',   d:'Standing water over soft ground. slow'},
+  {id:'chasm',          name:'Chasm',         tags:'void',             d:'A drop with no floor.'},
+  {id:'beach',          name:'Beach',         tags:'shore',            d:'Wet sand at the waterline.'},
+  {id:'cliff',          name:'Cliff',         tags:'rock · outdoors',  d:'Sheer face. Needs a climb or a way around.'},
+  {id:'altar_room',     name:'Altar Room',    tags:'indoor · worship', d:'The altar room, behind the screen, where only the celebrant stands.'},
+];
+
+/* Layers and modes are the engine's, not the UI's: GET /api/world/painter/vocabulary */
+const LAYERS = ['biome','road','floor','climate'];
+const MODES = ['world','town','interior'];
+const CLIMATES = ['alpine','temperate','arid','tropical','polar'];
+
+const TOOLS = [
+  {id:'select',  ic:'⬚', label:'Select',  key:'V', hint:'Click cells, shift-click to add, drag for a marquee. Ctrl+A all, Escape clear.'},
+  {id:'paint',   ic:'🖌', label:'Paint',   key:'P', hint:'Paint the current layer and value. Drag to stroke.'},
+  {id:'erase',   ic:'🧽', label:'Erase',   key:'E', hint:'Clear the current layer on a cell. Drag to stroke.'},
+  {id:'move',    ic:'✥', label:'Move',    key:'M', hint:"Shift the selection's contents one cell. One request, one undo."},
+  {id:'route',   ic:'🧭', label:'Route',   key:'R', hint:'Click waypoints, then ✓ Paint route.'},
+  {id:'feature', ic:'🏠', label:'Feature', key:'F', hint:'Place a sub-zone (child scope) at a cell.'},
+  {id:'area',    ic:'📍', label:'Area',    key:'A', hint:'Put an area you already wrote on a cell of this map.'},
+  {id:'inspect', ic:'🔍', label:'Inspect', key:'I', hint:'Read a cell without changing it. Right-click does this on any tool.'},
+];
+
+const STEPS = [
+  'Size the grid. One cell is one minute of walking, so the size is how long the place takes to cross.',
+  'Paint the ground. Biome layer, a big brush, dragged like every cell becomes its own area.',
+  'Lay the roads. Road layer, value "road", with the 🧭 Route tool.',
+  'Name the places. Right-click a cell, use the name field.',
+  'Generate. Turns the painted cells into real areas and ways.',
+];
+
+function App(){
+  const [scopeId, setScopeId] = useState('goblin_camp');
+  const [tool, setTool] = useState('paint');
+  const [layer, setLayer] = useState('biome');
+  const [biome, setBiome] = useState('sparse_forest');
+  const [brush, setBrush] = useState('1x1');
+  const [cursor, setCursor] = useState({x:11, y:7});
+  const [sel, setSel] = useState([]);
+  const [palOpen, setPalOpen] = useState(false);
+  const [palQ, setPalQ] = useState('');
+  const [refOpen, setRefOpen] = useState(false);
+  const [refOn, setRefOn] = useState(true);
+  const [refOpacity, setRefOpacity] = useState(100);
+  const [zoom, setZoom] = useState(100);
+  const [step, setStep] = useState(1);
+
+  const scope = SCOPES.find(s=>s.id===scopeId);
+  const isCamp = scopeId === 'goblin_camp';
+  const w = scope.w, h = scope.h;   // drawn at the live grid size of the chosen scope
+  const areas    = useMemo(()=> isCamp ? CAMP_AREAS : [], [isCamp]);
+
+  const areaAt = (x,y) => areas.find(a=>a.x===x && a.y===y) || null;
+  // only west_woods carries paint in the live payload; the other five are unpainted,
+  // and drawing west_woods' paint on goblin_camp would be inventing data
+  const biomeAt = (x,y) => (scopeId === 'west_woods' ? PAINT[x+','+y] : null) || null;
+  const roadAt  = (x,y) => scopeId === 'west_woods' && !!ROAD[x+','+y];
+
+  const blockers = useMemo(()=>{
+    const out = [];
+    if (!isCamp) out.push({t:'Anyone arriving from “world” lands on the top-left-most painted place, (9,3), because that is the region the gateway opens into.', f:'Paint that approach first so it becomes the top-left-most place.'});
+    out.push(isCamp
+      ? {t:'“goblin camp” has no painted ground. An interior is a floor plan — 0 of 10×20 cells are painted.', f:'Switch to the 🖌 Paint tool and drag; the biome layer takes the first cell.'}
+      : {t:'A place with no name compiles to "Inn [Eldenford 12,7]" and cannot be asked for.', f:'Right-click a cell, use the name field. 0 named.'});
+    return out;
+  },[isCamp]);
+
+  const completed = [ !isCamp, false, false, false, false ].map((v,i)=> v ? true : i < step);
+  const pct = Math.round(((step) / STEPS.length) * 100);
+
+  const onKey = useCallback((e)=>{
+    const t = TOOLS.find(t=>t.id===tool);
+    if (e.key === 'Escape'){ setPalOpen(false); setSel([]); }
+    if (e.key === 'p' || e.key === 'P') setTool('paint');
+    if (e.key === 'v' || e.key === 'V') setTool('select');
+    if (e.key === 'i' || e.key === 'I') setTool('inspect');
+  },[tool]);
+
+  const toggleSel = (x,y) => {
+    const k = x+','+y;
+    setSel(s => s.includes(k) ? s.filter(v=>v!==k) : [...s, k]);
+  };
+
+  const tiles = BIOMES.filter(b => !palQ.trim()
+    || b.name.toLowerCase().includes(palQ.toLowerCase())
+    || b.id.includes(palQ.toLowerCase())
+    || b.tags.includes(palQ.toLowerCase()));
+  const currentBiome = BIOMES.find(b=>b.id===biome) || BIOMES[0];
+
+  const cell = (x,y) => {
+    const ar = areaAt(x,y), bi = biomeAt(x,y), rd = roadAt(x,y);
+    const k = x+','+y, on = cursor.x===x && cursor.y===y, isSel = sel.includes(k);
+    return (
+      <div key={k} className={'cell'+(rd?' road':'')+(ar?' area':'')+(isSel?' sel':'')}
+           style={{background: bi ? BIOME_COLOR[bi] : 'transparent',
+                   width:(34*zoom/100)+'px', height:(34*zoom/100)+'px'}}
+           onMouseEnter={()=>setCursor({x,y})}
+           onClick={()=>toggleSel(x,y)}
+           title={`(${x},${y})`}
+           aria-label={`cell ${x} ${y}${ar? ' '+ar.n : ''}`}/>
+    );
+  };
+
+  return (
+    <div>
+      <h1>WorldPainter — the whole grid surface, in one frame</h1>
+      <p className="lede">
+        React design mockup. Thirteen tasks sit in <code>review/</code> against this one surface
+        (495, 496, 520, 524, 536, 540, 541, 557, 595, 596, 597) and each of them changed a
+        different corner of it independently. <b>The problem is not any one control — it is that
+        the canvas gets 52% of the panel.</b> Everything above the grid is stacked chrome: 488px
+        of it, in one non-scrolling column, ending in a prose checklist. This puts the canvas
+        first at 85% of the surface, keeps the eight tools reachable, and docks the cell readout
+        instead of overlaying it.
+      </p>
+      <p className="prov">
+        Source: live session, kraktooth_goblin_camp · 1600×1000 · 2026-10-03 ·
+        panel 1000×920, grid 877×480, 488px of chrome above it, 8 tools, 106 biomes, 4 layers,
+        3 modes, 5 climates, 9 features.<br/>
+        SCOPE rows above are the real six, verbatim from <code>world_scopes</code>: only west_woods
+        carries paint in the live payload (62 biome, 24 road) and only goblin_camp has placed
+        areas, so switching scopes shows each one's real state rather than one map wearing six names.
+      </p>
+
+      <div className="stats">
+        <div className="stat bad"><div className="v">52%</div><div className="l">of the panel is the canvas</div></div>
+        <div className="stat bad"><div className="v">488px</div><div className="l">of chrome above it</div></div>
+        <div className="stat warn"><div className="v">178px</div><div className="l">prose checklist, always open</div></div>
+        <div className="stat"><div className="v">106</div><div className="l">biomes in one &lt;select&gt;</div></div>
+        <div className="stat"><div className="v">0</div><div className="l">scroll on the panel</div></div>
+        <div className="stat ok"><div className="v">85%</div><div className="l">canvas share, here</div></div>
+      </div>
+
+      <div className="frame" onKeyDown={onKey} tabIndex={0}>
+        {/* ── header: identity + state + the one action that matters ── */}
+        <div className="hdr">
+          <div className="crumb">
+            {(scope.parent ? [scope.parent, scope.id] : [scope.id]).map((s,i,a)=>
+              <span key={s}>{i>0 && <span style={{margin:'0 2px'}}>›</span>}
+                {s===scope.id ? <b>{SCOPES.find(x=>x.id===s).name}</b> : s}</span>)}
+          </div>
+          <span className="pill info">{scope.mode}</span>
+          <span className="pill">{w}×{h}</span>
+          <span className="pill">{scope.areas} areas</span>
+          <span className={'pill '+(scope.state==='materialized'?'ok':'warn')}>{scope.state}</span>
+          <span className="spacer" />
+          <span className="pill warn">⚠ {blockers.length} to fix before Generate</span>
+          <button className="xbtn">🏠 Paint an interior…</button>
+          <button className="xbtn">🧹 Ungenerate</button>
+          <button className="xbtn go">⚙ Generate</button>
+          <button className="xbtn">Close</button>
+        </div>
+
+        <div className="surface">
+          {/* ── tool rail: 8 tools in 2 columns, all above the fold ── */}
+          <div className="rail">
+            {TOOLS.map(t=>(
+              <button key={t.id} className={'tool'+(tool===t.id?' on':'')}
+                      aria-pressed={tool===t.id} title={t.hint+'\n\nShortcut: '+t.key}
+                      onClick={()=>setTool(t.id)}>
+                <span className="ic">{t.ic}</span>{t.label}
+              </button>
+            ))}
+            <div className="railnote">{sel.length ? sel.length+' selected' : 'right-click = inspect'}</div>
+          </div>
+
+          {/* ── centre: two control rows, then the canvas takes the rest ── */}
+          <div className="centre">
+            <div className="bar1">
+              <div className="grp">
+                <span className="glabel">scope</span>
+                <select className="sel" value={scopeId} aria-label="Scope"
+                        onChange={e=>{setScopeId(e.target.value); setSel([]); setPalOpen(false);}}>
+                  {SCOPES.map(s=>(
+                    <option key={s.id} value={s.id}>{s.name} — {s.w}×{s.h}, {s.areas} areas</option>
+                  ))}
+                </select>
+                <span className="glabel">layer</span>
+                {LAYERS.map(l=>(
+                  <button key={l} className={'xbtn'+(layer===l?' on':'')}
+                          aria-pressed={layer===l}
+                          onClick={()=>{setLayer(l); setPalOpen(false); setPalQ('');}}>{l}</button>
+                ))}
+              </div>
+              <div className="grp" style={{position:'relative'}}>
+                <span className="glabel">value</span>
+                <button className="xbtn" onClick={()=>setPalOpen(!palOpen)}
+                        style={layer==='biome'?{minWidth:210,textAlign:'left'}:null}>
+                  <span style={{display:'inline-block',width:8,height:8,borderRadius:2,
+                    background:layer==='biome'?BIOME_COLOR[biome]:'#e3b341',marginRight:5}}/>
+                  {layer==='biome' ? currentBiome.name + ' (' + biome + ')' : layer==='road' ? 'road' : layer}
+                  {layer==='biome' ? ' ▾' : ''}
+                </button>
+                {palOpen && layer==='biome' && (
+                  <div className="pop">
+                    <div className="ph">
+                      <input value={palQ} onChange={e=>setPalQ(e.target.value)}
+                             placeholder="Filter 106 biomes…" aria-label="Filter biomes"/>
+                      <span className="pill">{tiles.length} shown</span>
+                    </div>
+                    <div className="tiles">
+                      {tiles.map(b=>(
+                        <button key={b.id} className={'tile'+(b.id===biome?' on':'')}
+                                onClick={()=>{setBiome(b.id); setPalOpen(false);}}
+                                title={b.tags}>
+                          <b>{b.name}</b><i>{b.id}</i>
+                        </button>
+                      ))}
+                    </div>
+                    <div className="pdesc">{currentBiome.d}</div>
+                  </div>
+                )}
+              </div>
+              <div className="grp">
+                <span className="glabel">brush</span>
+                <select className="sel" value={brush} onChange={e=>setBrush(e.target.value)} aria-label="Brush size">
+                  {['1x1','2x2','3x3','5x5','8x8','12x12'].map(b=><option key={b}>{b}</option>)}
+                </select>
+                <button className="xbtn">▦ Grid…</button>
+              </div>
+              <div className="grp">
+                <button className="xbtn">➕ Add feature…</button>
+                <span className="glabel">progress</span>
+                <div className="prog" style={{width:74}}><i style={{width:pct+'%'}}/></div>
+                <button className="xbtn" onClick={()=>setStep(s=>s===0?4:s-1)}>📋 {step||5}/5 — what next</button>
+              </div>
+            </div>
+
+            <div className="bar2">
+              <button className="disc" onClick={()=>setRefOpen(!refOpen)} aria-expanded={refOpen}>
+                ▸ 🗺 reference image {!refOpen && <span style={{color:'var(--text-dim)'}}>
+                  {` (kraktooth-goblin-camp.png · ${refOpacity}%)`}</span>}
+              </button>
+              {refOpen && (
+                <div className="refrow">
+                  <select className="sel" aria-label="Reference image">
+                    <option>🗺 reference…</option><option>west woods.png</option>
+                    <option>kraktooth-goblin-camp.png</option>
+                  </select>
+                  <label>opacity</label>
+                  <input type="range" min="0" max="100" value={refOpacity}
+                         onChange={e=>setRefOpacity(+e.target.value)} aria-label="Reference opacity"/>
+                  <span className="pill">{refOpacity}%</span>
+                  <button className={'xbtn'+(refOn?' on':'')} onClick={()=>setRefOn(!refOn)}>👁 show</button>
+                  <button className="xbtn">🔗 fit</button>
+                  <button className="xbtn">✥ adjust</button>
+                  <button className="xbtn">⤢ reset</button>
+                  <span className="spacer"/>
+                  <span className="pill">6 controls behind one disclosure</span>
+                </div>
+              )}
+            </div>
+
+            {/* ── the grid ── */}
+            <div className="gridwrap">
+              <div className="canvas">
+                <div className="grid"
+                     style={{gridTemplateColumns:`repeat(${w},${34*zoom/100}px)`,
+                             gridTemplateRows:`repeat(${h},${34*zoom/100}px)`,
+                             alignSelf:'start',
+                             backgroundImage: refOn
+                               ? 'linear-gradient(rgba(90,60,30,.16),rgba(90,60,30,.16))' : 'none'}}>
+                  {Array.from({length:h},(_,y)=>Array.from({length:w},(_,x)=>cell(x,y)))}
+                </div>
+              </div>
+              <div className="hud">
+                ({cursor.x},{cursor.y}){' '}
+                {[areaAt(cursor.x,cursor.y) && <span>📍 {areaAt(cursor.x,cursor.y).n}</span>,
+                  biomeAt(cursor.x,cursor.y) && <span>{biomeAt(cursor.x,cursor.y).replace(/_/g,' ')}</span>,
+                  roadAt(cursor.x,cursor.y) && <span style={{color:'var(--orange)'}}>road</span>,
+                  !areaAt(cursor.x,cursor.y) && !biomeAt(cursor.x,cursor.y) && !roadAt(cursor.x,cursor.y)
+                    && <span className="dim">— nothing here</span>]
+                  .filter(Boolean)}
+              </div>
+              <div className="zoom">
+                <button className="xbtn" onClick={()=>setZoom(z=>Math.max(40,z-20))}>−</button>
+                <span className="z">{zoom}%</span>
+                <button className="xbtn" onClick={()=>setZoom(z=>Math.min(160,z+20))}>＋</button>
+                <button className="xbtn" onClick={()=>setZoom(100)}>⤢ Fit</button>
+              </div>
+            </div>
+          </div>
+
+          {/* ── right dock: the cell readout, always present (task-540) ── */}
+          <div className="dock">
+            <div className="sec">
+              <h4>Cell ({cursor.x},{cursor.y})</h4>
+              <div className="kv"><span className="l">biome</span>
+                <span className={'v'+(biomeAt(cursor.x,cursor.y)?'':' none')}>
+                  {biomeAt(cursor.x,cursor.y)?.replace(/_/g,' ') || 'nothing'}</span></div>
+              <div className="kv"><span className="l">road</span>
+                <span className={'v'+(roadAt(cursor.x,cursor.y)?'':' none')}>{roadAt(cursor.x,cursor.y)?'road':'—'}</span></div>
+              <div className="kv"><span className="l">floor</span><span className="v none">—</span></div>
+              <div className="kv"><span className="l">climate</span><span className="v none">—</span></div>
+              <div className="kv"><span className="l">area</span>
+                <span className={'v'+(areaAt(cursor.x,cursor.y)?'':' none')}>
+                  {areaAt(cursor.x,cursor.y)?.n || 'unplaced'}</span></div>
+              <div className="acts">
+                <button className="xbtn">🖌 paint here</button>
+                <button className="xbtn">🧽 clear</button>
+                {areaAt(cursor.x,cursor.y) && <button className="xbtn">🔎 open area</button>}
+              </div>
+            </div>
+
+            <div className="sec">
+              <h4>Blocking Generate</h4>
+              {blockers.map((b,i)=>(
+                <div key={i} className="blk">
+                  <b>⚠ {b.t}</b><span className="fix">→ {b.f}</span>
+                </div>
+              ))}
+              <div className="acts"><button className="xbtn go">⚙ Generate anyway</button></div>
+            </div>
+
+            <div className="sec">
+              <h4>{STEPS.length} steps to a made place</h4>
+              <ol className="steps">
+                {STEPS.map((s,i)=>(
+                  <li key={i} className={i<step-1?'done':(i===step-1?'now':'')}
+                      onClick={()=>setStep(i+1)} style={{cursor:'pointer'}}>{s}</li>
+                ))}
+              </ol>
+            </div>
+
+            <div className="sec">
+              <h4>Areas on this map ({areas.length})</h4>
+              <div className="areas">
+                {areas.map(a=>(
+                  <div key={a.n}><span className="cx"
+                    onClick={()=>setCursor({x:a.x,y:a.y})}>✕</span>
+                    <span>{a.n}</span><span className="p">({a.x},{a.y})</span></div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="notes">
+        <h3>What this changes, and what it costs nothing</h3>
+        <table>
+          <thead><tr><th>Surface</th><th>Now (measured)</th><th>Here</th><th>Why</th></tr></thead>
+          <tbody>
+            <tr><td>Canvas share of the panel</td>
+                <td>480px of 920 — <b>52%</b>, and 48px of it clipped at the bottom</td>
+                <td>canvas 563px of 660 — <b>85%</b> of the surface, nothing clipped at any scope size</td>
+                <td>The grid is the thing being looked at</td></tr>
+            <tr><td>Chrome above the canvas</td>
+                <td>488px in one non-scrolling column, 17 stacked rows</td>
+                <td>Two rows: paint controls, then a disclosure</td>
+                <td>task-536 already decided a rail beats a toolbar; the top rows were never revisited</td></tr>
+            <tr><td>Tool rail</td>
+                <td>8 buttons, 1 column, 24px apart — 220px tall</td>
+                <td>8 buttons, 2 columns — 124px tall</td>
+                <td>Same 8 tools, same keys, all above the fold</td></tr>
+            <tr><td>Which scope am I in</td>
+                <td>Not stated in the painter; a breadcrumb only</td>
+                <td>Scope select in the toolbar, with size / area count / state</td>
+                <td>Six scopes exist here and they differ from 8×8 to 45×30; picking one blind is the other half of "which grid am I looking at"</td></tr>
+            <tr><td>Biome picker</td>
+                <td><code>&lt;select&gt;</code> with 106 entries, no preview</td>
+                <td>Filterable tile grid, 10 shown, description under it</td>
+                <td>task-596 asked for exactly this</td></tr>
+            <tr><td>Cell readout</td>
+                <td>Hover HUD, or a panel that only exists after a click</td>
+                <td>Permanent right dock, always reading the cursor cell</td>
+                <td>task-540 built the panel; nothing keeps it on screen while you paint</td></tr>
+            <tr><td>Checklist</td>
+                <td>964×178px of prose, open, above the grid</td>
+                <td>A 1/5 counter in the toolbar; the steps live in the dock</td>
+                <td>Reference material was taking the canvas's height</td></tr>
+            <tr><td>Reference image</td>
+                <td>6 controls (select, 3 buttons, 2 sliders) always visible</td>
+                <td>One disclosure, collapsed by default</td>
+                <td>Set once per map, not once per cell</td></tr>
+            <tr><td>Blockers</td>
+                <td>“⚠ 2 to fix before Generate” with no remedy</td>
+                <td>Each blocker in the dock with its fix and an override</td>
+                <td>The live blockers already carry <code>remedy</code> prose that is thrown away</td></tr>
+            <tr><td>Scope switching</td>
+                <td>Not in the painter; you go back to the graph</td>
+                <td>A select in the toolbar — <b>to change which grid you are editing</b></td>
+                <td>task-592 owns the scope <i>tree</i>; that is membership and navigation. Choosing
+                which grid to paint is the painter's own job, and task-623 already ships 6 scopes</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div className="notes">
+        <h3>What this mockup does not decide</h3>
+        <ul style={{margin:0,paddingLeft:18,color:'var(--text-dim)',lineHeight:1.7}}>
+          <li><b>Where Generate lives.</b> task-580 needs a preview; scope-tree.js deliberately
+            removed its Generate button in favour of a 🖌 Paint jump, and task-592 is in progress
+            on that file. This mockup keeps Generate in the painter's toolbar and does not argue
+            the ownership question — the preview modal is the missing half, wherever the button
+            lands.</li>
+          <li><b>Konva or something else.</b> The real surface is five stacked canvases. This mockup
+            draws a CSS grid so the layout and the dock can be judged; it says nothing about the
+            renderer, culling, or the zoom-LOD work in task-520/595.</li>
+          <li><b>Touch.</b> Not in any of the thirteen tasks and not designed here.</li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
