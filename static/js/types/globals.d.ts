@@ -341,6 +341,7 @@ interface Window {
     AgentState: any;
     AutoDressModal: any;
     ChangesPanel: any;
+    BugReport: any;
     CharacterArt: any;
     CommandPalette: any;
     ContextWindowManager: any;

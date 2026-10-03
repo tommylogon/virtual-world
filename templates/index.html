@@ -283,6 +283,7 @@
                          name added when they move into the menu. -->
                     <button class="toolbar-btn" id="btn-physics" aria-pressed="true" onclick="graphManager.togglePhysics()" title="Pause the simulation and freeze every node where it is">⏸ Physics</button>
                     <button class="toolbar-btn" id="btn-export-png" onclick="GraphExport.openDialog()" title="Export the graph as a high-resolution PNG (map background included)">📷 PNG</button>
+                    <button class="toolbar-btn" id="btn-report-bug" onclick="BugReport.openDialog()" title="File what you are looking at as a bug task, with a screenshot and the DOM elements you pick">🐞 Report</button>
                 </div>
                 <div class="toolbar-spacer"></div>
                 <!-- Rarely used -->
@@ -972,6 +973,49 @@
         </div>
     </div>
 
+    <!-- BUG REPORT MODAL -->
+    <div id="bug-report-modal" class="modal" style="display:none;">
+        <div class="modal-content" style="width:560px;max-height:88vh;overflow:auto;">
+            <div class="modal-header">
+                <h3>🐞 Report a bug</h3>
+                <button class="modal-close" onclick="BugReport.closeDialog()">&times;</button>
+            </div>
+            <div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px;font-size:12px;color:var(--text);">
+                <div style="display:flex;gap:10px;align-items:center;">
+                    <label for="bug-report-area" style="white-space:nowrap;">Area</label>
+                    <select id="bug-report-area" style="flex:1;"></select>
+                </div>
+                <input id="bug-report-title" type="text" placeholder="Short title (optional — taken from the first line if left blank)">
+                <textarea id="bug-report-message" rows="5" placeholder="What went wrong, and what did you expect instead? This becomes the task's Goal."></textarea>
+
+                <div style="display:flex;flex-direction:column;gap:6px;padding:8px;border:1px solid var(--border-light);border-radius:4px;">
+                    <div style="font-weight:600;">Screenshot</div>
+                    <div id="bug-report-shot-label" style="color:var(--text-dim);font-size:11px;">No screenshot attached</div>
+                    <img id="bug-report-preview" alt="screenshot preview" style="display:none;max-width:100%;max-height:160px;border:1px solid var(--border-light);border-radius:3px;object-fit:contain;">
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <button class="btn btn-secondary" id="bug-report-capture" title="Capture the graph canvas plus the map background, as the PNG export does">📷 Capture view</button>
+                        <button class="btn btn-secondary" onclick="document.getElementById('bug-report-attach').click()">📎 Attach image</button>
+                        <button class="btn btn-secondary" id="bug-report-shot-clear">Clear</button>
+                        <input id="bug-report-attach" type="file" accept="image/*" style="display:none;">
+                    </div>
+                    <div style="color:var(--text-dim);font-size:10px;">The graph and WorldPainter grid are canvas; the panels around them are DOM. “Capture view” grabs the canvas and the map art — paste (Ctrl+V) or attach for the whole window.</div>
+                </div>
+
+                <div style="display:flex;flex-direction:column;gap:6px;padding:8px;border:1px solid var(--border-light);border-radius:4px;">
+                    <div style="font-weight:600;">DOM elements</div>
+                    <div id="bug-report-elements"></div>
+                    <div><button class="btn btn-secondary" id="bug-report-pick" title="Hide this dialog, then click the element to record its selector, box, computed styles and markup">🎯 Pick an element</button></div>
+                </div>
+
+                <div id="bug-report-status" style="color:var(--text-muted);min-height:14px;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-green" id="bug-report-submit">📝 File bug</button>
+                <button class="btn btn-secondary" onclick="BugReport.closeDialog()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script>
     let _vitalModalPlayer = '';
     let _vitalModalName = '';
@@ -1311,6 +1355,7 @@
     <script src="/static/js/graph/toolbar.js"></script>
     <script src="/static/js/graph/graph-background.js"></script>
     <script src="/static/js/graph/graph-export.js"></script>
+    <script src="/static/js/bug-report.js"></script>
     <script src="/static/js/graph/edge-inspector.js"></script>
     <script src="/static/js/graph/event-handlers.js"></script>
     <script src="/static/js/graph-manager.js"></script>

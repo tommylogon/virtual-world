@@ -157,8 +157,13 @@ def create_app(config=None):
         # refetch state in real time — including edits made by external agents
         # hitting the same API. The MCP server tags calls with X-WV-Editor so the
         # editor is attributed in the live stream.
+        # `/api/soak` and `/api/bugs` are excluded: neither changes the world, and
+        # a `world_changed` here would make the client refetch the 2.48 MB
+        # /api/state for a report that touched nothing.
         if (method in ('POST', 'PATCH', 'DELETE', 'PUT')
-                and path.startswith('/api/') and not path.startswith('/api/soak')):
+                and path.startswith('/api/')
+                and not path.startswith('/api/soak')
+                and not path.startswith('/api/bugs')):
             editor = request.headers.get('X-WV-Editor', 'app')
             from engine.world_events import hub
             hub.publish({
@@ -198,6 +203,7 @@ def register_routes(app):
     from routes.world_scopes import register_world_scopes_routes
     from routes.world_grid import register_world_grid_routes
     from routes.docs import register_docs_routes
+    from routes.bug_reports import register_bug_reports_routes
 
     register_health_routes(app)
     register_events_routes(app)
@@ -221,6 +227,7 @@ def register_routes(app):
     register_world_scopes_routes(app)
     register_world_grid_routes(app)
     register_docs_routes(app)
+    register_bug_reports_routes(app)
 
 # For running directly (development)
 if __name__ == '__main__':

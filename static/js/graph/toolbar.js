@@ -569,7 +569,7 @@ window.GraphToolbar = {
      * appear there. Build ▾, the layout segment and View ▾ stay in the bar — they
      * are the controls you reach for; these are the ones you do not.
      */
-    COLLAPSE_IDS: ['btn-undo', 'btn-redo', 'undo-history-anchor', 'btn-fit', 'btn-physics', 'btn-export-png'],
+    COLLAPSE_IDS: ['btn-undo', 'btn-redo', 'undo-history-anchor', 'btn-fit', 'btn-physics', 'btn-export-png', 'btn-report-bug'],
     _collapseHomes: null,
     _overflowGroup: null,
     _collapsed: null,

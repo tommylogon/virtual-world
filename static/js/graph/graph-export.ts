@@ -276,35 +276,29 @@
     // ── entry point ──────────────────────────────────────────────────────────
 
     /**
-     * Render the current graph to a PNG and save it.
+     * Render the live network (plus the map layers under it) to a PNG blob.
      *
-     * @param {Object} [opts]
-     * @param {'graph'|'view'} [opts.scope] - whole graph (fit all) or current viewport
-     * @param {number} [opts.scale] - resolution multiplier
-     * @returns {Promise<{ok: boolean, width?: number, height?: number, reason?: string}>}
+     * Shared by `exportPNG` (which saves it) and `snapshotView` (which hands it to
+     * the bug reporter), so there is one composite path rather than two that drift.
+     *
+     * @param {VisNetwork} live
+     * @param {'graph'|'view'} scope - whole graph (fit all) or the current viewport
+     * @param {number} scale - resolution multiplier
+     * @returns {Promise<{ok: true, blob: Blob, width: number, height: number}|{ok: false, reason: string}>}
      */
-    async function exportPNG({ scope = 'graph', scale = 2 }: ExportOptions = {}): Promise<ExportResult> {
-        const live = _liveNetwork() as VisNetwork | null;
-        if (!live) {
-            _toast('Graph is not ready to export.', 'error');
-            return { ok: false, reason: 'Graph is not ready.' };
-        }
+    async function _renderComposite(live: VisNetwork, scope: 'graph' | 'view', scale: number): Promise<CompositeResult> {
+        const fail = (reason: string): CompositeResult =>
+            ({ blob: null, reason, width: 0, height: 0, clamped: false, scale });
         // vis-network ships no .d.ts, so the vendored bundle is untyped to tsc.
         const visNs = (window as unknown as {
             vis?: { Network: new (el: HTMLElement, data: unknown, options: unknown) => VisNetwork; DataSet: new (data: unknown[]) => unknown };
         }).vis;
-        if (!visNs || !visNs.Network) {
-            _toast('vis-network is not loaded.', 'error');
-            return { ok: false, reason: 'vis-network is not loaded.' };
-        }
+        if (!visNs || !visNs.Network) return fail('vis-network is not loaded.');
         const container = document.getElementById('graph-container');
-        if (!container) return { ok: false, reason: 'Graph container missing.' };
+        if (!container) return fail('Graph container missing.');
 
         const collected = _collectVisible(live);
-        if (!collected) {
-            _toast('No visible nodes to export.', 'error');
-            return { ok: false, reason: 'No visible nodes to export.' };
-        }
+        if (!collected) return fail('No visible nodes to export.');
 
         const baseW = Math.max(1, container.clientWidth);
         const baseH = Math.max(1, container.clientHeight);
@@ -358,32 +352,73 @@
             const composite = _composite(visCanvas, layers, net);
 
             const blob = await _toBlob(composite);
-            if (!blob) {
-                _toast('Could not encode the PNG.', 'error');
-                return { ok: false, reason: 'PNG encoding failed.' };
-            }
-
-            const name = _fileName(scope, size.clamped ? 'max' : scale);
-            if (typeof WorldExport !== 'undefined' && WorldExport.saveFileWithDialog) {
-                await WorldExport.saveFileWithDialog(blob, name);
-            } else {
-                _downloadFallback(blob, name);
-            }
-            _toast(`Exported ${composite.width}×${composite.height} PNG.`);
-            return { ok: true, width: composite.width, height: composite.height };
+            if (!blob) return fail('PNG encoding failed.');
+            return {
+                blob,
+                reason: '',
+                width: composite.width, height: composite.height,
+                clamped: size.clamped, scale,
+            };
         } catch (error) {
-            _toast('Export failed: ' + _errorText(error), 'error');
-            return { ok: false, reason: 'Export failed: ' + _errorText(error) };
+            return fail('Composite failed: ' + _errorText(error));
         } finally {
             try { if (net) net.destroy(); } catch (error) { /* ignore */ }
             if (host.parentNode) host.parentNode.removeChild(host);
         }
     }
 
+    /**
+     * The current viewport as a PNG blob, without saving it.
+     *
+     * Used by the bug reporter, which needs the picture as evidence rather than as
+     * a download. Returns null when there is nothing to capture — the reporter then
+     * falls back to a pasted screenshot instead of failing the whole report.
+     *
+     * @returns {Promise<Blob|null>}
+     */
+    async function snapshotView(): Promise<Blob | null> {
+        const live = _liveNetwork() as VisNetwork | null;
+        if (!live) return null;
+        const rendered = await _renderComposite(live, 'view', 1);
+        return rendered.blob;
+    }
+
+    /**
+     * Render the current graph to a PNG and save it.
+     *
+     * @param {Object} [opts]
+     * @param {'graph'|'view'} [opts.scope] - whole graph (fit all) or current viewport
+     * @param {number} [opts.scale] - resolution multiplier
+     * @returns {Promise<{ok: boolean, width?: number, height?: number, reason?: string}>}
+     */
+    async function exportPNG({ scope = 'graph', scale = 2 }: ExportOptions = {}): Promise<ExportResult> {
+        const live = _liveNetwork() as VisNetwork | null;
+        if (!live) {
+            _toast('Graph is not ready to export.', 'error');
+            return { ok: false, reason: 'Graph is not ready.' };
+        }
+
+        const rendered = await _renderComposite(live, scope, scale);
+        if (!rendered.blob) {
+            _toast(rendered.reason, 'error');
+            return { ok: false, reason: rendered.reason };
+        }
+
+        const name = _fileName(scope, rendered.clamped ? 'max' : rendered.scale);
+        if (typeof WorldExport !== 'undefined' && WorldExport.saveFileWithDialog) {
+            await WorldExport.saveFileWithDialog(rendered.blob, name);
+        } else {
+            _downloadFallback(rendered.blob, name);
+        }
+        _toast(`Exported ${rendered.width}×${rendered.height} PNG.`);
+        return { ok: true, width: rendered.width, height: rendered.height };
+    }
+
     return {
         openDialog,
         closeDialog,
         exportPNG,
+        snapshotView,
         _submit,
         // Pure logic exposed for tools/unit/run.cjs. Not a product API.
         _internals: { _cropSource, _clampExportSize, _scaledView },
@@ -395,6 +430,23 @@
 // leading `interface`/`type` makes TypeScript drop the file's leading JSDoc
 // block from the emitted .js, and tools/js_module_index.py reads the `@module`
 // tag out of that emitted .js.
+
+/**
+ * One composite render, success or failure in a single shape.
+ *
+ * A discriminated union (`{ok: true} | {ok: false}`) is the tidier type and it
+ * does not typecheck here: `tools/ts_convert.py check` runs `tsc` with
+ * `strictNullChecks` off, and narrowing on a boolean literal discriminant is one
+ * of the things that flag drops. A nullable `blob` needs no narrowing at all.
+ */
+type CompositeResult = {
+    blob: Blob | null;
+    reason: string;
+    width: number;
+    height: number;
+    clamped: boolean;
+    scale: number;
+};
 
 /** Normalised crop window over a map image (0..1). */
 interface CropRect {

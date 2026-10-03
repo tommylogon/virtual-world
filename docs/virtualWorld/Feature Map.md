@@ -124,6 +124,7 @@ rest point at a note covering the area rather than the specific feature.
 | 72 | **Library sync** | Push a node to the library and pull it back, in both directions | wired | [[Library System Overview]] |
 | 73 | **Agent behaviour settings** | Per-agent behaviour and automation settings | planned | none |
 | 74 | **Graph settings** | Physics and layout settings for the graph view | planned | none |
+| 75 | **Report a bug** | File what you are looking at as a bug task, with a screenshot and the DOM elements you picked | wired | [[Rendering & UI Modules]] |
 
 ---
 

@@ -276,8 +276,17 @@ test('autoMapSpacing fits a small zone and a big one without hand-tuning (task-5
     // A span that *does* divide evenly is hit exactly — this is the case the old
     // exactness assertion was really about, and it pins the snapping rather than
     // the constant.
-    assertEq(GraphLayoutEngine.autoMapSpacing(mid, 6300), 210, 'an evenly divisible span is hit exactly');
-    assertEq(GraphLayoutEngine.autoMapSpacing(mid, 6300) * 30, 6300, 'and spans it exactly');
+    //
+    // The span has to clear AUTO_SPACING_MIN: 6300 over 30 cells is 210, which is
+    // *below* the 240 floor, so the floor clamps it and the assertion below was
+    // measuring the clamp rather than the snapping. The exactness case needs a
+    // target the clamps cannot reach, so 9000 -> 300 is the same "divides evenly"
+    // property with the span inside the ladder.
+    assertEq(GraphLayoutEngine.autoMapSpacing(mid, 9000), 300, 'an evenly divisible span is hit exactly');
+    assertEq(GraphLayoutEngine.autoMapSpacing(mid, 9000) * 30, 9000, 'and spans it exactly');
+    // And the floor still wins below it, which is what 6300 turned out to measure.
+    assertEq(GraphLayoutEngine.autoMapSpacing(mid, 6300), GraphLayoutEngine.AUTO_SPACING_MIN,
+        'a span below the floor lands on the floor, not on the target');
     assertEq(GraphLayoutEngine.autoMapSpacing({}), null, 'nothing painted -> no opinion');
     assertEq(GraphLayoutEngine.autoMapSpacing(null), null, 'no nodes -> no opinion');
     // Tidy stepper values, not 213.333.
