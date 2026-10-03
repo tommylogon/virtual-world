@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Memory Mind mockup — character memory dynamics (MOCKUP, not wired)</title>
+<style>
+:root{
+  --bg:#0d1117; --bg-card:#161b22; --bg-inset:#1c2128; --bg-input:#21262d; --bg-hover:#30363d;
+  --border:#30363d; --border-light:#21262d;
+  --text:#e6edf3; --text-dim:#8b949e; --text-muted:#6e7681;
+  --accent:#58a6ff; --accent-dim:#1f6feb;
+  --green:#3fb950; --red:#f85149; --orange:#e3b341; --purple:#bc8cff; --pink:#f778ba; --yellow:#d29922; --teal:#39c5cf;
+  --font:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono:'Cascadia Code','Fira Code','JetBrains Mono',Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:13px}
+.dochead{padding:18px 24px;border-bottom:1px solid var(--border);background:var(--bg-card)}
+.dochead h1{margin:0 0 6px;font-size:17px}
+.dochead .sub{color:var(--text-dim);font-size:12px;max-width:1100px;line-height:1.55}
+.warn{display:inline-block;margin-top:8px;padding:3px 9px;border:1px solid var(--orange);border-radius:4px;color:var(--orange);font-size:11px;font-weight:600;letter-spacing:.04em}
+.prov{margin-top:10px;padding:9px 12px;border:1px solid var(--border);border-left:3px solid var(--accent-dim);border-radius:4px;background:var(--bg-inset);color:var(--text-dim);font-size:11.5px;line-height:1.6;max-width:1100px}
+.prov b{color:var(--text)}
+.prov code{font-family:var(--font-mono);color:var(--purple);font-size:11px}
+
+.wrap{padding:20px 24px 60px;max-width:1460px}
+.charbar{display:flex;align-items:center;gap:14px;padding:12px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px 8px 0 0}
+.avatar{width:44px;height:44px;border-radius:6px;background:linear-gradient(135deg,#3b2a1a,#1c2128);display:flex;align-items:center;justify-content:center;font-size:22px;border:1px solid var(--border)}
+.charbar .who h2{margin:0;font-size:15px}
+.charbar .who .st{font-size:11px;color:var(--text-dim);margin-top:2px}
+.charbar .sp{flex:1}
+.mindstats{display:flex;gap:10px}
+.mstat{background:var(--bg-inset);border:1px solid var(--border);border-radius:6px;padding:6px 12px;text-align:center;min-width:86px}
+.mstat .n{font-size:16px;font-weight:600}
+.mstat .l{font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em}
+.mstat .n .u{font-size:10px;color:var(--text-dim);font-weight:400}
+
+.grid{display:grid;grid-template-columns:230px 1fr 360px;gap:0;border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;overflow:hidden;background:var(--bg-card)}
+.col{padding:14px;min-width:0}
+.col.left{background:var(--bg-inset);border-right:1px solid var(--border)}
+.col.right{background:var(--bg-inset);border-left:1px solid var(--border)}
+
+.sec{margin-bottom:16px}
+.sec h3{margin:0 0 8px;font-size:10.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600}
+.navitem{display:flex;align-items:center;gap:8px;padding:6px 9px;border-radius:5px;color:var(--text-dim);font-size:12px;cursor:pointer;margin-bottom:2px}
+.navitem:hover{background:var(--bg-hover);color:var(--text)}
+.navitem.active{background:var(--bg-input);color:var(--text);border:1px solid var(--border)}
+.navitem .n{margin-left:auto;font-size:10.5px;color:var(--text-muted);font-family:var(--font-mono)}
+.navitem .dot{width:8px;height:8px;border-radius:50%}
+
+.person{background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:9px 10px;margin-bottom:8px}
+.person .ph{display:flex;align-items:center;gap:7px;margin-bottom:7px}
+.person .ph .pa{width:22px;height:22px;border-radius:50%;background:var(--bg-input);display:flex;align-items:center;justify-content:center;font-size:12px}
+.person .ph b{font-size:12px}
+.person .ph .band{margin-left:auto;font-size:9.5px;color:var(--text-muted)}
+.dimrow{display:flex;align-items:center;gap:6px;margin:3px 0;font-size:10.5px}
+.dimrow .dl{width:58px;color:var(--text-dim)}
+.dimrow .track{flex:1;height:7px;background:var(--bg-input);border-radius:3px;overflow:hidden;position:relative}
+.dimrow .fill{height:100%;border-radius:3px}
+.dimrow.center .track::after{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--border)}
+.dimrow .dv{width:26px;text-align:right;font-family:var(--font-mono);font-size:10px;color:var(--text-dim)}
+
+.filters{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+.fbtn{padding:3px 9px;border:1px solid var(--border);border-radius:11px;font-size:11px;color:var(--text-dim);background:var(--bg-inset);cursor:pointer}
+.fbtn.active{border-color:var(--accent-dim);color:var(--accent);background:var(--bg-input)}
+
+.timeline{background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:12px 14px 8px;margin-bottom:14px}
+.tl-track{position:relative;height:34px}
+.tl-line{position:absolute;left:0;right:0;top:16px;height:2px;background:var(--border)}
+.tl-ev{position:absolute;top:11px;width:12px;height:12px;border-radius:50%;border:2px solid var(--bg-card)}
+.tl-ev.big{width:16px;height:16px;top:9px}
+.tl-lab{position:absolute;top:30px;transform:translateX(-50%);font-size:9px;color:var(--text-muted);white-space:nowrap}
+.tl-tick{position:absolute;top:0;font-size:9px;color:var(--text-muted);font-family:var(--font-mono);transform:translateX(-50%)}
+
+.mem{background:var(--bg-card);border:1px solid var(--border);border-left:3px solid var(--border);border-radius:6px;padding:9px 11px;margin-bottom:8px}
+.mem.sel{border-color:var(--accent-dim);background:var(--bg-input)}
+.mem.faded{opacity:.62}
+.mem .mh{display:flex;align-items:center;gap:7px}
+.mem .mh .ic{font-size:13px}
+.mem .mh .ago{font-size:10px;color:var(--text-muted);font-family:var(--font-mono)}
+.mem .mh .sp{flex:1}
+.mem .txt{margin:4px 0 6px;font-size:12.5px;line-height:1.45}
+.mem .txt b{color:var(--text)}
+.badges{display:flex;flex-wrap:wrap;gap:4px}
+.bd{padding:1.5px 7px;border-radius:9px;font-size:9.5px;border:1px solid var(--border);color:var(--text-dim);background:var(--bg-inset)}
+.bd.cat-episodic{color:var(--accent);border-color:#1f4a6e}
+.bd.cat-semantic{color:var(--teal);border-color:#1c5a5e}
+.bd.cat-belief{color:var(--purple);border-color:#4c3a7a}
+.bd.cat-social{color:var(--pink);border-color:#6e3a5a}
+.bd.cat-procedural{color:var(--yellow);border-color:#6e5a1c}
+.bd.imp8{color:var(--red);border-color:#6e2c2c}
+.bd.imp7{color:var(--orange);border-color:#6e551c}
+.bd.reinf{color:var(--green);border-color:#2c5e2e}
+.bd.contra{color:var(--red);border-color:#6e2c2c;background:#2d1517;cursor:pointer}
+.bd.lowconf{color:var(--yellow);border-color:#6e5a1c}
+.bd.seed{color:var(--teal);border-color:#1c5a5e}
+.bd.sup{color:var(--text-muted);border-style:dashed}
+
+.detail{background:var(--bg-card);border:1px solid var(--accent-dim);border-radius:6px;padding:12px}
+.detail h4{margin:0 0 2px;font-size:14px}
+.detail .meta{font-size:11px;color:var(--text-dim);margin-bottom:8px}
+.detail .quote{border-left:3px solid var(--border);padding:5px 10px;color:var(--text-dim);font-size:12px;font-style:italic;margin-bottom:10px;background:var(--bg-inset);border-radius:0 4px 4px 0}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.dbox{background:var(--bg-inset);border:1px solid var(--border);border-radius:5px;padding:8px 10px}
+.dbox .t{font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.kv{display:flex;justify-content:space-between;font-size:11px;padding:2px 0}
+.kv .k{color:var(--text-dim)}
+.kv .v{font-family:var(--font-mono)}
+.bar{height:6px;background:var(--bg-input);border-radius:3px;overflow:hidden;margin:3px 0 6px}
+.bar .fill{height:100%}
+.emrow{display:flex;align-items:center;gap:6px;font-size:10.5px;margin:3px 0}
+.emrow .el{width:60px;color:var(--text-dim)}
+.emrow .track{flex:1;height:7px;background:var(--bg-input);border-radius:3px}
+.emrow .ev{width:26px;text-align:right;font-family:var(--font-mono);font-size:10px}
+.conn{display:flex;gap:7px;padding:5px 0;border-bottom:1px solid var(--border-light);font-size:11px;align-items:baseline}
+.conn:last-child{border-bottom:none}
+.conn .ct{font-family:var(--font-mono);font-size:9.5px;color:var(--text-muted);min-width:52px}
+.conn .rel-sup{color:var(--green)}
+.conn .rel-con{color:var(--red)}
+.conn .rel-der{color:var(--purple)}
+.conn .txt{color:var(--text-dim)}
+.bel{display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--border-light);font-size:11.5px;align-items:baseline}
+.bel:last-child{border:none}
+.bel .conf{font-family:var(--font-mono);font-size:10px;color:var(--purple);min-width:30px}
+.bel .txt{color:var(--text-dim)}
+
+.decay{background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:10px 12px}
+.decay .t{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;display:flex;justify-content:space-between}
+.legend{display:flex;gap:10px;font-size:9.5px;color:var(--text-dim)}
+.legend .sw{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:3px}
+svg{display:block}
+
+.prompt{margin-top:20px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.prompt .ph2{padding:9px 14px;border-bottom:1px solid var(--border);background:var(--bg-inset);font-size:11.5px;font-weight:600;color:var(--text-dim)}
+.prompt pre{margin:0;padding:14px 16px;font-family:var(--font-mono);font-size:11px;line-height:1.62;color:var(--text-dim);white-space:pre-wrap}
+.prompt pre .h{color:var(--accent);font-weight:600}
+.prompt pre .b{color:var(--text)}
+.prompt pre .c{color:var(--purple)}
+.prompt pre .m{color:var(--text-muted)}
+</style>
+</head>
+<body>
+
+<div class="dochead">
+  <h1>Memory Mind — character memory dynamics interface</h1>
+  <div class="sub">Design target for the inspector's Memories tab + the standalone memory dashboard. Renders the dynamic memory model from
+  <b>docs/virtualWorld/AI &amp; Narration/Memory Dynamics.md</b>: episodic/semantic/belief categories, activation · confidence · reinforcements,
+  contradiction links, derived per-person profiles (via the existing <code>derive.py</code> reducer), and the structured recall block the LLM receives.</div>
+  <div class="warn">MOCKUP — static HTML, not wired to any data</div>
+  <div class="prov"><b>Provenance:</b> fields shown are the actual planned memory fields — <code>category</code>, <code>activation</code>,
+  <code>confidence</code>, <code>reinforcements</code>, <code>last_recalled_tick</code>, <code>contradicts[]</code>, <code>source_memory_ids[]</code>,
+  <code>reflection_depth</code> — layered over the existing <code>Player.memories[]</code> schema (text/tick/importance/type/tags/entity_ids/emotions).
+  The per-person panel reads the existing <code>engine/derive.py</code> profile (trust/fear/attraction/disgust/respect, −100..100). Nothing here introduces a new store.</div>
+</div>
+
+<div class="wrap">
+
+  <div class="charbar">
+    <div class="avatar">🧑‍🌾</div>
+    <div class="who">
+      <h2>Evan MacMillan</h2>
+      <div class="st">273 memories · 41 beliefs · 3 unresolved contradictions · decay 0.01/tick (config <span style="font-family:var(--font-mono)">memory.decay_per_tick</span>)</div>
+    </div>
+    <div class="sp"></div>
+    <div class="mindstats">
+      <div class="mstat"><div class="n">232<span class="u"> eps</span></div><div class="l">Episodic</div></div>
+      <div class="mstat"><div class="n">27</div><div class="l">Beliefs</div></div>
+      <div class="mstat"><div class="n">14</div><div class="l">Social</div></div>
+      <div class="mstat"><div class="n">62<span class="u">%</span></div><div class="l">Avg conf.</div></div>
+      <div class="mstat"><div class="n">118</div><div class="l">Reinforcements</div></div>
+      <div class="mstat"><div class="n">9</div><div class="l">Faded &lt;.5 act.</div></div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <!-- ══════════ LEFT: filters + per-person derived profiles ══════════ -->
+    <div class="col left">
+      <div class="sec">
+        <h3>View</h3>
+        <div class="navitem active"><span class="dot" style="background:var(--accent)"></span> All memories <span class="n">273</span></div>
+        <div class="navitem"><span class="dot" style="background:var(--accent)"></span> Episodic <span class="n">232</span></div>
+        <div class="navitem"><span class="dot" style="background:var(--purple)"></span> Beliefs <span class="n">27</span></div>
+        <div class="navitem"><span class="dot" style="background:var(--teal)"></span> Semantic <span class="n">9</span></div>
+        <div class="navitem"><span class="dot" style="background:var(--pink)"></span> Social <span class="n">14</span></div>
+        <div class="navitem"><span class="dot" style="background:var(--yellow)"></span> Procedural <span class="n">4</span></div>
+        <div class="navitem"><span class="dot" style="background:var(--red)"></span> Contradictions <span class="n">3</span></div>
+        <div class="navitem"><span class="dot" style="background:var(--text-muted)"></span> Faded (act &lt; .5) <span class="n">9</span></div>
+      </div>
+
+      <div class="sec">
+        <h3>People — derived from memories</h3>
+        <div class="person">
+          <div class="ph"><div class="pa">👩</div><b>Anna</b><span class="band">rival · 14 mems</span></div>
+          <div class="dimrow center"><span class="dl">trust</span><div class="track"><div class="fill" style="margin-left:50%;width:16%;background:var(--red)"></div></div><span class="dv">−34</span></div>
+          <div class="dimrow center"><span class="dl">fear</span><div class="track"><div class="fill" style="margin-left:50%;width:37%;background:var(--orange)"></div></div><span class="dv">+74</span></div>
+          <div class="dimrow center"><span class="dl">respect</span><div class="track"><div class="fill" style="margin-left:50%;width:9%;background:var(--purple)"></div></div><span class="dv">−18</span></div>
+          <div class="dimrow center"><span class="dl">attraction</span><div class="track"><div class="fill" style="margin-left:50%;width:16%;background:var(--pink)"></div></div><span class="dv">−32</span></div>
+        </div>
+        <div class="person">
+          <div class="ph"><div class="pa">🧓</div><b>Father</b><span class="band">family · 22 mems</span></div>
+          <div class="dimrow center"><span class="dl">trust</span><div class="track"><div class="fill" style="margin-left:50%;width:41%;background:var(--green)"></div></div><span class="dv">+82</span></div>
+          <div class="dimrow center"><span class="dl">respect</span><div class="track"><div class="fill" style="margin-left:50%;width:45%;background:var(--purple)"></div></div><span class="dv">+90</span></div>
+          <div class="dimrow"><span class="dl" style="color:var(--text-muted)">seed ×4</span><span class="dv" style="width:auto;color:var(--text-muted)">identity-defining — decay-locked</span></div>
+        </div>
+        <div class="person">
+          <div class="ph"><div class="pa">🐈</div><b>Moss the cat</b><span class="band">acquaintance · 3 mems</span></div>
+          <div class="dimrow center"><span class="dl">trust</span><div class="track"><div class="fill" style="margin-left:50%;width:18%;background:var(--green)"></div></div><span class="dv">+36</span></div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <h3>Search</h3>
+        <input placeholder="Search memories…" style="width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:6px 9px;font-size:12px;font-family:var(--font)">
+      </div>
+    </div>
+
+    <!-- ══════════ CENTER: timeline + memory list ══════════ -->
+    <div class="col">
+      <div class="timeline">
+        <div class="tl-track">
+          <div class="tl-line"></div>
+          <span class="tl-tick" style="left:4%">120</span><span class="tl-tick" style="left:26%">482</span><span class="tl-tick" style="left:48%">982</span><span class="tl-tick" style="left:72%">1440</span><span class="tl-tick" style="left:96%">1850</span>
+          <span class="tl-ev" style="left:4%;background:var(--accent)"></span>
+          <span class="tl-ev" style="left:12%;background:var(--green)"></span>
+          <span class="tl-ev big" style="left:26%;background:var(--pink);box-shadow:0 0 0 3px #6e3a5a55"></span>
+          <span class="tl-ev" style="left:33%;background:var(--orange)"></span>
+          <span class="tl-ev" style="left:41%;background:var(--accent)"></span>
+          <span class="tl-ev big" style="left:48%;background:var(--red);box-shadow:0 0 0 3px #6e2c2c55"></span>
+          <span class="tl-ev" style="left:57%;background:var(--green)"></span>
+          <span class="tl-ev" style="left:64%;background:var(--teal)"></span>
+          <span class="tl-ev" style="left:72%;background:var(--purple)"></span>
+          <span class="tl-ev" style="left:82%;background:var(--orange)"></span>
+          <span class="tl-ev big" style="left:91%;background:var(--red);box-shadow:0 0 0 3px #6e2c2c55"></span>
+          <span class="tl-ev" style="left:96%;background:var(--purple)"></span>
+          <span class="tl-lab" style="left:26%">met Anna</span>
+          <span class="tl-lab" style="left:48%"> cellar key</span>
+          <span class="tl-lab" style="left:91%">Anna denies it</span>
+        </div>
+        <div style="font-size:9.5px;color:var(--text-muted);margin-top:2px">dot size = importance · red ring = contradicted · hover a dot to jump to the memory</div>
+      </div>
+
+      <div class="filters">
+        <span class="fbtn active">All</span><span class="fbtn">Episodic</span><span class="fbtn">Beliefs</span><span class="fbtn">Semantic</span><span class="fbtn">Social</span><span class="fbtn">Reflections</span><span class="fbtn">Contradicted</span><span class="fbtn">Faded</span>
+        <span style="flex:1"></span><span class="fbtn">sort: recent ▾</span>
+      </div>
+
+      <div class="mem sel" style="border-left-color:var(--red)">
+        <div class="mh"><span class="ic">🗣️</span><span class="ago">tick 1762 · 12 turns ago</span><span class="sp"></span><span class="bd imp8">imp 8</span></div>
+        <div class="txt">Anna said she <b>never entered the cellar</b>. She wouldn't meet my eyes.</div>
+        <div class="badges">
+          <span class="bd cat-episodic">episodic</span><span class="bd cat-social">social · rel:Anna</span>
+          <span class="bd lowconf">conf 58%</span><span class="bd contra">⚡ contradicts tick 1683</span>
+          <span class="bd">fear</span><span class="bd">lie</span><span class="bd">cellar</span>
+        </div>
+      </div>
+
+      <div class="mem">
+        <div class="mh"><span class="ic">🔑</span><span class="ago">tick 1683 · 2 days ago</span><span class="sp"></span><span class="bd imp8">imp 9</span></div>
+        <div class="txt">I found <b>Anna's key</b> on the cellar floor, next to fresh boot prints.</div>
+        <div class="badges">
+          <span class="bd cat-episodic">episodic</span><span class="bd reinf">↻ ×3 reinforced</span><span class="bd">conf 96%</span>
+          <span class="bd contra">⚡ contradicts tick 1762</span><span class="bd">discovery</span><span class="bd">cellar</span>
+        </div>
+      </div>
+
+      <div class="mem" style="border-left-color:var(--purple)">
+        <div class="mh"><span class="ic">🧠</span><span class="ago">tick 1790 · reflected</span><span class="sp"></span><span class="bd cat-belief">belief</span></div>
+        <div class="txt"><b>Anna is probably lying about the cellar.</b> Her story changed after I found the key.</div>
+        <div class="badges">
+          <span class="bd">conf 71%</span><span class="bd">↻ ×2</span><span class="bd">depth 1 · from 3 memories</span>
+          <span class="bd cat-social">rel:Anna · trust −2</span><span class="bd lowconf">⚡ unresolved conflict</span>
+        </div>
+      </div>
+
+      <div class="mem" style="border-left-color:var(--yellow)">
+        <div class="mh"><span class="ic">📐</span><span class="ago">tick 1791 · reflected</span><span class="sp"></span><span class="bd cat-procedural">procedural</span></div>
+        <div class="txt"><b>When Anna makes a claim, check it against what I've seen</b> before acting on it.</div>
+        <div class="badges"><span class="bd">depth 1</span><span class="bd">expectation</span><span class="bd cat-social">rel:Anna</span></div>
+      </div>
+
+      <div class="mem">
+        <div class="mh"><span class="ic">👣</span><span class="ago">tick 1712 · yesterday</span><span class="sp"></span><span class="bd imp7">imp 6</span></div>
+        <div class="txt">I heard footsteps upstairs again — <b>the same slow pattern</b> as two nights ago.</div>
+        <div class="badges">
+          <span class="bd cat-episodic">episodic</span><span class="bd reinf">↻ ×4 reinforced</span><span class="bd">conf 88%</span>
+          <span class="bd">sound</span><span class="bd">fear</span>
+        </div>
+      </div>
+
+      <div class="mem faded">
+        <div class="mh"><span class="ic">🍞</span><span class="ago">tick 903 · 9 days ago</span><span class="sp"></span><span class="bd">imp 3</span></div>
+        <div class="txt">Ate bread and hard cheese in the kitchen. It was quiet.</div>
+        <div class="badges">
+          <span class="bd cat-episodic">episodic</span><span class="bd">act 0.31 — fading</span><span class="bd">conf 100%</span>
+        </div>
+      </div>
+
+      <div class="mem faded" style="border-left-color:var(--border)">
+        <div class="mh"><span class="ic">🧺</span><span class="ago">tick 610 · 12 days ago</span><span class="sp"></span><span class="bd sup">consolidated</span></div>
+        <div class="txt"><i>Between ticks 540 and 610: six small chores and errands around the house.</i></div>
+        <div class="badges">
+          <span class="bd cat-semantic">semantic trace</span><span class="bd">from 6 memories</span><span class="bd">consolidation</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ RIGHT: detail + dynamics + decay chart ══════════ -->
+    <div class="col right">
+      <div class="sec">
+        <h3>Memory detail</h3>
+        <div class="detail">
+          <h4>🔑 Found Anna's key in the cellar</h4>
+          <div class="meta">episodic · tick 1683 · importance 9 · source: reaction</div>
+          <div class="quote">"I found Anna's key on the cellar floor, next to fresh boot prints."</div>
+          <div class="dgrid">
+            <div class="dbox">
+              <div class="t">Dynamics</div>
+              <div class="kv"><span class="k">activation</span><span class="v">0.94</span></div>
+              <div class="bar"><div class="fill" style="width:94%;background:var(--green)"></div></div>
+              <div class="kv"><span class="k">confidence</span><span class="v">0.96</span></div>
+              <div class="bar"><div class="fill" style="width:96%;background:var(--accent)"></div></div>
+              <div class="kv"><span class="k">reinforcements</span><span class="v">3 ↻</span></div>
+              <div class="kv"><span class="k">last recalled</span><span class="v">tick 1849</span></div>
+              <div class="kv"><span class="k">decay step</span><span class="v">×0.34 (slow)</span></div>
+            </div>
+            <div class="dbox">
+              <div class="t">Emotional encoding</div>
+              <div class="emrow"><span class="el">anxiety</span><div class="track"><div class="fill" style="width:72%;background:var(--orange)"></div></div><span class="ev">0.72</span></div>
+              <div class="emrow"><span class="el">suspicion</span><div class="track"><div class="fill" style="width:64%;background:var(--red)"></div></div><span class="ev">0.64</span></div>
+              <div class="emrow"><span class="el">unease</span><div class="track"><div class="fill" style="width:51%;background:var(--yellow)"></div></div><span class="ev">0.51</span></div>
+              <div class="emrow"><span class="el">interest</span><div class="track"><div class="fill" style="width:28%;background:var(--accent)"></div></div><span class="ev">0.28</span></div>
+              <div class="t" style="margin-top:8px">Encoding</div>
+              <div class="kv"><span class="k">type / category</span><span class="v">discovery / episodic</span></div>
+              <div class="kv"><span class="k">entities</span><span class="v">Anna, cellar_key</span></div>
+              <div class="kv"><span class="k">embedding</span><span class="v" style="color:var(--green)">768-d ✓</span></div>
+            </div>
+          </div>
+          <div class="dbox" style="margin-bottom:8px">
+            <div class="t">Connections</div>
+            <div class="conn"><span class="ct">tick 1762</span><span class="rel-con">contradicts</span><span class="txt">"Anna said she never entered the cellar." (conf 58%)</span></div>
+            <div class="conn"><span class="ct">tick 1712</span><span class="rel-sup">supports</span><span class="txt">"Footsteps upstairs — the same slow pattern…" (shared: fear)</span></div>
+            <div class="conn"><span class="ct">tick 1790</span><span class="rel-der">derived →</span><span class="txt">belief: "Anna is probably lying about the cellar." (conf 71%)</span></div>
+            <div class="conn"><span class="ct">tick 1440</span><span class="txt" style="color:var(--text-muted)">same entity: Anna — "Anna asked why I was carrying the lantern." </span></div>
+          </div>
+          <button class="fbtn" style="border-color:var(--accent-dim);color:var(--accent)">Open in editor</button>
+        </div>
+      </div>
+
+      <div class="sec">
+        <h3>Key beliefs — what Evan has concluded</h3>
+        <div class="detail" style="border-color:var(--border)">
+          <div class="bel"><span class="conf">71%</span><span class="txt">Anna is probably lying about the cellar. <span style="color:var(--red)">⚡ conflicts with her denial</span></span></div>
+          <div class="bel"><span class="conf">88%</span><span class="txt">Someone else is in the house at night.</span></div>
+          <div class="bel"><span class="conf">64%</span><span class="txt">Father's letter points at the cellar, not the attic.</span></div>
+          <div class="bel"><span class="conf">95%</span><span class="txt">Weakness is a choice. <span style="color:var(--text-muted)">(seed belief — near-permanent)</span></span></div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <h3>Decay &amp; reinforcement — accessibility over time</h3>
+        <div class="decay">
+          <div class="t"><span>activation by memory</span><span class="legend">
+            <span><span class="sw" style="background:var(--red)"></span>father's letter</span>
+            <span><span class="sw" style="background:var(--orange)"></span>Anna's key</span>
+            <span><span class="sw" style="background:var(--accent)"></span>footsteps</span>
+            <span><span class="sw" style="background:var(--green)"></span>bread &amp; cheese</span></span></div>
+          <svg width="100%" height="90" viewBox="0 0 320 90" preserveAspectRatio="none">
+            <line x1="0" y1="45" x2="320" y2="45" stroke="#30363d" stroke-dasharray="3 4"/>
+            <text x="4" y="42" fill="#6e7681" font-size="8">act 0.5 — below this, recall needs a query hit</text>
+            <polyline fill="none" stroke="#f85149" stroke-width="1.6" points="0,18 40,19 80,21 120,22 160,24 200,25 240,27 280,28 320,29"/>
+            <polyline fill="none" stroke="#e3b341" stroke-width="1.6" points="0,30 40,34 80,40 110,42 150,48 190,52 230,56 270,60 320,64"/>
+            <polyline fill="none" stroke="#58a6ff" stroke-width="1.6" points="0,44 30,50 60,58 80,40 110,52 140,62 170,48 200,58 230,66 260,58 290,66 320,70"/>
+            <polyline fill="none" stroke="#3fb950" stroke-width="1.6" points="0,52 40,62 80,72 120,80 160,85 200,88 240,89 280,90 320,90"/>
+          </svg>
+          <div style="font-size:9.5px;color:var(--text-muted);line-height:1.5">
+            Steep flat line = identity-defining seed (resistance ×0.4). Sawtooth = reinforced on recall (every bump is a ↻).
+            The green line is an ordinary event dying of natural causes — it will consolidate into a trace, not linger.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ PROMPT PREVIEW ══════════ -->
+  <div class="prompt">
+    <div class="ph2">What the LLM sees — the same data, as the structured recall block (query: "Anna · approach · hidden · cellar")</div>
+    <pre><span class="h">=== I REMEMBER ===</span>
+<span class="h">EVENTS</span>
+<span class="m">[2 turns ago]</span> 🗣️ Anna said she never entered the cellar. <span class="m">(conf 58% · ⚡conflicts with tick 1683)</span>
+<span class="m">[2 days ago]</span> 🔑 I found Anna's key on the cellar floor. <span class="m">(↻×3 · conf 96%)</span>
+<span class="m">[yesterday]</span> 👣 Footsteps upstairs — the same slow pattern as before.
+
+<span class="h">WHAT I BELIEVE</span>
+<span class="c">Anna is probably lying about the cellar.</span> <span class="m">(71% — not sure; her denial conflicts with the key)</span>
+<span class="c">Someone else is in the house at night.</span> <span class="m">(88%)</span>
+
+<span class="h">HOW I SEE PEOPLE</span>
+<span class="b">Anna:</span> trust −34, fear +74, respect −18 — rival. <span class="m">She has lied to me before; I feel on guard around her.</span>
+
+<span class="h">WHAT I EXPECT</span>
+<span class="b">When Anna makes a claim, check it against what I've seen before acting on it.</span></pre>
+  </div>
+
+</div>
+</body>
+</html>

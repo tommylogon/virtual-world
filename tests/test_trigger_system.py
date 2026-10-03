@@ -756,8 +756,14 @@ class TestAvailableActions:
         assert any(a["action"] == "use" for a in available)
 
     def test_string_trigger_type_still_works(self, graph, trigger_system, sample_item):
-        """Legacy string-valued trigger_type keeps working."""
+        """Legacy string-valued trigger_type keeps working.
+
+        The toggleable tag is required as well: `_get_available_actions`
+        only offers Toggle when ToggleableItems.toggle_item_status would
+        accept it, so a bare on_toggle_on trigger is no longer enough.
+        """
         sample_item.properties["actions"] = ["examine"]
+        sample_item.properties["tags"] = ["toggleable"]
         self._wire_trigger(graph, sample_item, "on_toggle_on")
         available = trigger_system._get_available_actions(sample_item)
         assert any(a["action"] == "toggle" for a in available)

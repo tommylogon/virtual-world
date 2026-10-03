@@ -4,7 +4,7 @@
  *
  * @module agent/human-turn-composer — the panel you play a character from
  * @contributes HumanTurnComposer: scene view, feed/digest, You strip, composer (do/say/emote/memory), phases
- * @powers The human turn, Turn queue — actually taking a turn as a character, plus guest interjection
+ * @powers The human turn, Turn queue — actually taking a turn as a character
  * @relates uses turn-feed + turn-scene-view + api (action submit) + agent-engine state
  * @docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
  *
@@ -88,7 +88,6 @@ const HumanTurnComposerModule = (() => {
             .htc-digest .dt { font-size:10.5px; text-transform:uppercase; letter-spacing:1.1px; color:#ffb37a; margin-bottom:4px; }
             .htc-digest .di { font-size:12px; color:#e8c49a; padding:1px 0; }
             .htc-digest .drow { display:flex; gap:6px; margin-top:6px; }
-            #htc-interject { flex:1; background:#141820; border:1px solid #40301c; color:#e6e8ee; border-radius:6px; padding:4px 9px; font-size:12px; outline:none; }
             .htc-linkbtn { background:none; border:0; color:#ffb37a; font-size:11.5px; cursor:pointer; }
             .htc-linkbtn.muted { color:#6b7686; }
 
@@ -282,8 +281,6 @@ const HumanTurnComposerModule = (() => {
             <div class="dt">since your turn</div>
             <div id="htc-digest-lines"></div>
             <div class="drow">
-              <input id="htc-interject" type="text" placeholder="quick reply… doesn't use your turn" autocomplete="off">
-              <button type="button" id="htc-interject-btn" class="htc-linkbtn">interject ↩</button>
               <button type="button" id="htc-digest-dismiss" class="htc-linkbtn muted" title="dismiss">✕</button>
             </div>
           </div>
@@ -432,12 +429,7 @@ const HumanTurnComposerModule = (() => {
             }
             tryResolveAct(normalizeReply(parsedRaw));
         });
-        // digest / interject (task-334 lanes 2+3, client-side)
-        q('#htc-interject-btn').addEventListener('click', interject);
-        q('#htc-interject').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter')
-                interject();
-        });
+        // digest dismissal (client-side)
         q('#htc-digest-dismiss').addEventListener('click', () => {
             TurnFeed.clearDigest();
             q('#htc-digest').style.display = 'none';
@@ -467,36 +459,6 @@ const HumanTurnComposerModule = (() => {
             q('#htc-json-text').value = _jsonText;
         if (!_jsonMode)
             updatePreview();
-    }
-    async function interject() {
-        const input = q('#htc-interject');
-        const text = (input.value || '').trim();
-        if (!text || !_charName)
-            return;
-        input.value = '';
-        // bug-33: attribute the aside to a card for this character so the
-        // interjection and its result don't float in the bare stream above the
-        // next turn card.
-        events.beginActorTurn(_charName);
-        events.log(`💬 ${_charName} interjected (turn not used): "${text}"`, 'msg-action');
-        try {
-            const data = await ApiClient.action('say ' + text, _charName);
-            if (data?.output) {
-                events.log(data.output, 'msg-result', { outcome: data?.success !== false ? 'success' : 'failure' });
-            }
-            else if (data?.error) {
-                events.log(`❌ ${data.error}`, 'error-msg');
-            }
-            if (Array.isArray(data?.choices)) {
-                for (const group of data.choices)
-                    events.logChoices(group.verb, group.options, _charName);
-            }
-        }
-        catch (err) {
-            events.log(`❌ Interjection failed: ${err.message}`, 'error-msg');
-        }
-        TurnFeed.clearDigest();
-        q('#htc-digest').style.display = 'none';
     }
     // ── phase / resolve plumbing ─────────────────────────────────────
     function setPhase(phase) {

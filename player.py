@@ -1031,7 +1031,16 @@ class Player:
             existing["location"] = location or existing.get("location", "")
             existing["visits"] = int(existing.get("visits", 1)) + 1
             if tags:
-                existing["tags"] = sorted(set(existing.get("tags", [])) | set(tags))
+                existing["tags"] = sorted(set(existing.get("tags") or []) | set(tags))
+            # kind describes the SUBJECT, not the visit, so it belongs on the
+            # update as well as the create. Leaving it to the create branch let
+            # a subject first written by an unlabelled path claim the index
+            # slot, after which every later observation of that subject was
+            # refused a kind — and `_observed_by_location` filters on
+            # kind == "area", so the room a character started in never reached
+            # the minimap.
+            if kind:
+                existing["kind"] = kind
             self.memory_index[str(subject_id)] = existing["id"]
             return existing
 

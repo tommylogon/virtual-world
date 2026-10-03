@@ -14,7 +14,8 @@
     "fire",
     "tool",
     "flammable",
-    "survival"
+    "survival",
+    "toggleable"
   ],
   "triggers": [],
   "contents": []

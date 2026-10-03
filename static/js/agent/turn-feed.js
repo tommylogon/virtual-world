@@ -38,9 +38,24 @@ const TurnFeedModule = (() => {
             const text = String((data && data.text) ?? '').trim();
             if (!text)
                 return;
+            // This ring backs the human panel's "What happened" feed and its
+            // turn digest, so it holds TURN rows only. It subscribes to the
+            // whole app log, which is also where save/load, library, graph and
+            // loadout operations report themselves — "scenario saved" is
+            // console output, not something that happened in the fiction.
+            // Filtering here rather than in isObserverVisible closes the whole
+            // class: parseEntry re-labels a system row as an action whenever
+            // _tryParsePrefixedName matches, so any saved/loaded line that
+            // happened to read "<Name> <verb>" surfaced as your turn's action.
+            // The one system row that IS a turn row — an NPC doing nothing —
+            // stays.
+            const className = (data && data.className) || '';
+            if ((className === 'system-msg' || className === 'agent-msg')
+                && !/did nothing this turn/.test(text))
+                return;
             _ring.push({
                 text,
-                className: (data && data.className) || '',
+                className,
                 actor: (data && data.actor) || null,
                 seq: ++_seq,
             });
@@ -201,6 +216,13 @@ const TurnFeedModule = (() => {
         const cls = String(entry.className || '');
         if (!text)
             return null;
+        // record_turn_event already stamps the actor on the event
+        // (engine/logging_events.py). Trust it over re-deriving one from the
+        // prose: the text heuristic (_tryParsePrefixedName) matches a closed
+        // verb list, so "kyrie johansen unwraps the protein bar" matched
+        // nothing, fell through to a null actor, and every unattributed NPC
+        // line rendered as "You". World/engine rows keep their null.
+        const structuralActor = (entry.actor && entry.actor !== 'World') ? entry.actor : null;
         const isSpeech = cls.includes('msg-speech');
         const isWhisper = cls.includes('msg-whisper');
         const isAction = cls.includes('msg-action');
@@ -211,12 +233,13 @@ const TurnFeedModule = (() => {
             cls.includes('msg-reflection') || cls.includes('msg-recall') ||
             cls.includes('msg-prune') || cls.includes('error-msg');
         if (isSpeech || isWhisper) {
-            let actor = null;
+            let actor = structuralActor;
             let content = text;
             let volume = 'say';
             const quoted = text.match(/^\[([^\]]+)\]\s*(?:whispers?:\s*|says?:\s*|shouts?:\s*|screams?:\s*)?["“](.+?)["”]/i);
             if (quoted) {
-                actor = quoted[1];
+                if (!actor)
+                    actor = quoted[1];
                 content = quoted[2];
                 if (/whisper/i.test(text))
                     volume = 'whisper';
@@ -226,25 +249,26 @@ const TurnFeedModule = (() => {
                     volume = 'scream';
             }
             else {
-                actor = _parseActor(text);
+                if (!actor)
+                    actor = _parseActor(text);
                 content = text.replace(/^\[[^\]]+\]\s*/, '').replace(/^["“]|["”]$/g, '');
             }
             return { type: isWhisper ? 'whisper' : 'speech', actor, content, volume };
         }
         if (isAction) {
-            let actor = null;
+            let actor = structuralActor;
             let content = text;
             const m = text.match(/^\[Action\]\s+(.+)/i);
             if (m) {
                 content = m[1];
-                const named = _tryParsePrefixedName(content);
+                const named = actor ? null : _tryParsePrefixedName(content);
                 if (named) {
                     actor = named.actor;
                     content = named.content;
                 }
             }
             else {
-                const a = _parseActor(text);
+                const a = actor || _parseActor(text);
                 if (a) {
                     actor = a;
                     content = text.replace(/^\[[^\]]+\]\s*/, '');
@@ -253,8 +277,12 @@ const TurnFeedModule = (() => {
             return { type: 'action', actor, content };
         }
         if (isEmote) {
-            const named = _tryParsePrefixedName(text);
-            return { type: 'emote', actor: named ? named.actor : null, content: named ? named.content : text };
+            const named = structuralActor ? null : _tryParsePrefixedName(text);
+            return {
+                type: 'emote',
+                actor: structuralActor || (named ? named.actor : null),
+                content: structuralActor ? text : (named ? named.content : text),
+            };
         }
         if (isResult) {
             return { type: 'result', actor: null, content: text };

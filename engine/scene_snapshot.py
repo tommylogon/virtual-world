@@ -274,6 +274,9 @@ def build_scene(world: Any, player_name: str) -> Dict[str, Any]:
             "state": reported_state,
             "desc": _first_sentence(way_desc),
             "see_through": bool(way_node.properties.get("see_through")),
+            # movement._open_passage_block refuses `close` outright when this
+            # is set, so the panel must not offer a Close it will reject.
+            "prevent_close": bool(way_node.properties.get("prevent_close")),
             "visible_in_direction": edge.properties.get("visible_in_direction", "") or "",
             "requires": requires,
             "auto_close": bool(way_node.properties.get("auto_close")),

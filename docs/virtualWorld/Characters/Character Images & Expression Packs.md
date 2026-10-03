@@ -110,10 +110,10 @@ The pack travels with the character between library and world:
 
 ## Editor UI
 
-The gallery renders **in the character inspector header, directly under the
-name** — not in a tab. It has a **Profile / Full-body** tab switcher and one row
-per expression key with a thumbnail, an upload control, and a clear button, plus
-an "add expression" field for custom keys, and a **"Split sheet"** button.
+The gallery renders in the character's **🖼️ Images** tab (`AV._renderImagesTab`,
+task-512), as a grid of cards — one per expression key, each with a thumbnail, its
+three actions, and its name. It has a **Profile / Full-body** tab switcher, an
+"add expression" field for custom keys, and a **"Split sheet"** button.
 
 **Re-filing art between expressions.** Each card has three actions: **⬆ replace
 the image** (clicking the card or pressing Enter/Space), **🗑 remove the image but

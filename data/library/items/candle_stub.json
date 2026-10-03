@@ -11,7 +11,8 @@
   "tags": [
     "candle",
     "light_source",
-    "fire"
+    "fire",
+    "toggleable"
   ],
   "triggers": [
     {

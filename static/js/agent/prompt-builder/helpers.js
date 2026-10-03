@@ -122,6 +122,53 @@ window.PromptBuilder = window.PromptBuilder || {};
             || knownLower.has('character_' + targetSlug);
     }
     /**
+     * One tag → label table for an unrecognised speaker, for BOTH channels.
+     *
+     * `anonymousName` (you can see them) and `voiceLabel` (you can only hear
+     * them) used to carry separate maps, and they drifted: the seen map had
+     * `animal`, the heard map did not. The same cat therefore read "an animal"
+     * in the room and, through a wall, fell through to the pronoun heuristic —
+     * and because animal descriptions are freely written with "his" (whiskers:
+     * "darker striping along his flanks"), came out as **"a man's voice"**. A
+     * seen/heard pair that contradicts itself is worse than either being vague,
+     * so the two labels now come from one row.
+     */
+    const SPEAKER_TAGS = {
+        female: { seen: 'the woman', heard: "a woman's voice" },
+        male: { seen: 'the man', heard: "a man's voice" },
+        woman: { seen: 'the woman', heard: "a woman's voice" },
+        man: { seen: 'the man', heard: "a man's voice" },
+        girl: { seen: 'a girl', heard: "a girl's voice" },
+        boy: { seen: 'a boy', heard: "a boy's voice" },
+        child: { seen: 'a child', heard: "a child's voice" },
+        animal: { seen: 'an animal', heard: "an animal's voice" },
+    };
+    /**
+     * Species labels for a heard-only speaker, checked BEFORE the generic table.
+     *
+     * A voice you cannot place is better described by what is making it than by
+     * the gender of a human it may not be: "a cat's voice" tells the model more
+     * than "an animal's voice", and neither can be a "man's voice" by accident.
+     * These are the species tags the character library already carries, so this
+     * needed no new authoring.
+     */
+    const SPECIES_VOICE_LABELS = {
+        cat: "a cat's voice", kitten: "a kitten's voice", dog: "a dog's voice",
+        puppy: "a puppy's voice", fox: "a fox's voice", wolf: "a wolf's voice",
+        bear: "a bear's voice", boar: "a boar's voice", worg: "a worg's voice",
+        rabbit: "a rabbit's voice", rat: "a rat's voice", mouse: "a mouse's voice",
+        bird: "a bird's voice", raven: "a raven's voice", crow: "a crow's voice",
+        owl: "an owl's voice", frog: "a frog's voice", toad: "a toad's voice",
+        sheep: "a sheep's voice", goat: "a goat's voice", cow: "a cow's voice",
+        horse: "a horse's voice", deer: "a deer's voice", snake: "a snake's voice",
+        insect: "an insect's voice", bat: "a bat's voice", fish: "a fish's voice",
+        beast: "a beast's voice", creature: "a creature's voice",
+    };
+    /** Species tags too broad to be worth reporting over a named one. */
+    const GENERIC_SPECIES = ['animal', 'bird', 'beast', 'creature', 'pet'];
+    /** Tags that mark a character as an anthropomorph — presented as a person. */
+    const ANTHRO_TAGS = ['anthro', 'anthropomorphic', 'humanoid'];
+    /**
      * Return how this character should refer to another.
      * Known characters are called by their real name. Strangers (no relationship
      * record yet) are labelled by their appearance so the character never
@@ -131,14 +178,10 @@ window.PromptBuilder = window.PromptBuilder || {};
         if (isKnownToViewer(charName, targetName))
             return targetName;
         const player = worldState.data?.players?.[targetName] || {};
-        const tagMap = {
-            female: 'the woman', male: 'the man', woman: 'the woman', man: 'the man',
-            girl: 'a girl', boy: 'a boy', child: 'a child', animal: 'an animal'
-        };
         for (const tag of (player.tags || [])) {
-            const mapped = tagMap[String(tag).toLowerCase()];
+            const mapped = SPEAKER_TAGS[String(tag).toLowerCase()];
             if (mapped)
-                return mapped;
+                return mapped.seen;
         }
         const firstSentence = (targetDesc || '').split(/[.!?]/)[0].trim();
         if (firstSentence)
@@ -149,34 +192,72 @@ window.PromptBuilder = window.PromptBuilder || {};
      * How a character should refer to someone they can HEAR but not see
      * (cross-room speech). If you know someone, you know their voice — a met or
      * authored-known speaker is named. Otherwise physical appearance is useless
-     * through a wall, so this falls back to voice characteristics derived from
-     * their tags (female/male/…), then pronouns in their description, then a
-     * generic voice.
+     * through a wall, so a non-human is named by its species, and only then does
+     * a human fall back to gender or the pronouns in their description.
+     *
+     * Order matters here, and getting it wrong is the bug this fixes. The animal
+     * reading is checked BEFORE the gender tags, because these characters carry
+     * both: `male|animal|worg` read as "a man's voice" when the gender tag was
+     * consulted first. A character tagged `anthro` is deliberately exempt — it is
+     * presented as a person, so "a woman's voice" agrees with the "the woman" the
+     * same character gets when seen.
      */
     function voiceLabel(charName, targetName) {
         if (isKnownToViewer(charName, targetName))
             return targetName;
         const player = worldState.data?.players?.[targetName] || {};
-        const tagMap = {
-            female: 'woman', male: 'man', woman: 'woman', man: 'man',
-            girl: 'girl', boy: 'boy', child: 'child'
-        };
-        let gender = '';
-        for (const tag of (player.tags || [])) {
-            const mapped = tagMap[String(tag).toLowerCase()];
-            if (mapped) {
-                gender = mapped;
-                break;
+        const tags = (player.tags || []).map((t) => String(t).toLowerCase());
+        const anthro = tags.some(t => ANTHRO_TAGS.indexOf(t) >= 0);
+        const nonHuman = tags.indexOf('animal') >= 0
+            || tags.some(t => Object.prototype.hasOwnProperty.call(SPECIES_VOICE_LABELS, t));
+        if (nonHuman && !anthro) {
+            // Most specific species wins, so `bird|raven` is heard as the raven
+            // rather than the bird.
+            for (const allowGeneric of [false, true]) {
+                for (const tag of tags) {
+                    const label = SPECIES_VOICE_LABELS[tag];
+                    if (!label)
+                        continue;
+                    if ((GENERIC_SPECIES.indexOf(tag) >= 0) !== allowGeneric)
+                        continue;
+                    return label;
+                }
             }
+            return "an animal's voice";
         }
-        if (!gender) {
+        for (const tag of tags) {
+            const mapped = SPEAKER_TAGS[tag];
+            if (mapped)
+                return mapped.heard;
+        }
+        // Pronouns are the last resort and only for a speaker nothing marks as an
+        // animal: "his" in a sentence about a cat's flanks is evidence about the
+        // cat, and reading it as a man is what produced "a man's voice" here.
+        if (!nonHuman) {
             const desc = player.base_description || player.description || '';
             if (/\b(she|her|hers)\b/i.test(desc))
-                gender = 'woman';
-            else if (/\b(he|him|his)\b/i.test(desc))
-                gender = 'man';
+                return "a woman's voice";
+            if (/\b(he|him|his)\b/i.test(desc))
+                return "a man's voice";
         }
-        return gender ? `a ${gender}'s voice` : 'a voice';
+        return 'a voice';
+    }
+    /**
+     * The verb a WITNESSED line uses for a spoken level.
+     *
+     * `speech_level` rides on every hearing entry (speech.py stamps it), so a
+     * shouted or whispered line used to render as "said" purely because the verb
+     * was a string literal — the model was told the wrong delivery and reacted to
+     * a whisper as small talk and to a scream as conversation. The turn-event
+     * description stays `said:` on purpose: that is a machine-parsed marker with
+     * its own tests, and it is not what the character reads.
+     */
+    const SPEECH_VERBS = {
+        whisper: 'whispered', normal: 'said', say: 'said', speak: 'said',
+        shout: 'shouted', scream: 'screamed', sing: 'sang',
+    };
+    function speechVerb(level) {
+        return SPEECH_VERBS[String(level || '').trim().toLowerCase()] || 'said';
     }
     /**
      * Check if a character has an active plan in the AgentEngine.
@@ -265,6 +346,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         isKnownToViewer,
         anonymousName,
         voiceLabel,
+        speechVerb,
         hasPlan,
         secondPersonDesc,
         describeActivity,

@@ -44,6 +44,22 @@ _BASE_VERBS = frozenset({
     "stroke", "brush", "dig", "push", "nudge", "creep", "pad", "tip",
 })
 
+#: How a heard line names its delivery. ``speech_level`` is stamped on every
+#: hearing entry by ``speech.py``, so the ``listen`` report can state how a line
+#: was delivered instead of flattening every level to "said" — which told the
+#: model a scream was small talk. Mirrors ``PromptBuilder.speechVerb`` on the
+#: client; the turn-event description keeps its literal ``said:`` marker, which
+#: is a machine-parsed format rather than prose.
+SPEECH_VERBS = {
+    "whisper": "whispered",
+    "normal": "said",
+    "say": "said",
+    "speak": "said",
+    "shout": "shouted",
+    "scream": "screamed",
+    "sing": "sang",
+}
+
 
 def normalize_emote_person(text: str, pronouns: Optional[dict] = None) -> str:
     """Coerce an emote phrase into the THIRD person the narrator stamps.
@@ -346,7 +362,11 @@ class NarrationSystem:
         heard_sounds = [h for h in hearing if h.get("type") == "sound_source"][-3:]
         for h in heard_speech:
             direction = f" from the {h['heard_from']}" if h.get("heard_from") else ""
-            lines.append(f"[Heard{direction}] {h.get('speaker')} said: \"{h.get('text')}\"")
+            # Delivery is stamped on the entry by speech.py, so report it instead of
+            # calling everything "said": a scream read as conversation is a scream the
+            # listener was told was small talk.
+            verb = SPEECH_VERBS.get(str(h.get("speech_level") or "").strip().lower(), "said")
+            lines.append(f"[Heard{direction}] {h.get('speaker')} {verb}: \"{h.get('text')}\"")
         for h in heard_sounds:
             direction = f" from the {h['heard_from']}" if h.get("heard_from") else ""
             src = f" from the {h['source_item']}" if h.get("source_item") else ""

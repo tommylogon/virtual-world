@@ -13,7 +13,8 @@
     "candle",
     "light_source",
     "metal",
-    "silver"
+    "silver",
+    "toggleable"
   ],
   "triggers": [],
   "contents": []

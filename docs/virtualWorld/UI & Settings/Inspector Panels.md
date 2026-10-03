@@ -110,11 +110,12 @@ click away. (`task-512`.)
 
 1. Choose the **Profile / Full body** tab. *Profile* is the small avatar;
    *Full body* is the portrait art.
-2. Each row is one expression. Click the file picker on a row to upload that
+2. Each **card** is one expression. Clicking the card (or its thumbnail, or
+   pressing Enter/Space) opens the file picker to **replace** that expression's
    image. Uploads save to `static/images/nodes/` and appear immediately.
 3. `neutral` is the fallback used when no matching expression exists — set it
    first so the character always has a face.
-4. The known emotion rows (`happy`, `sad`, `angry`, `afraid`, `surprised`,
+4. The known emotion cards (`happy`, `sad`, `angry`, `afraid`, `surprised`,
    `disgusted`, `aroused`, `affectionate`, `ashamed`, `envious`, `calm`) are
    always listed. The **avatar follows the character's current emotion**
    automatically.
@@ -122,15 +123,31 @@ click away. (`task-512`.)
    "add expression" field and press **Add**, then upload. Custom keys are stored
    now; runtime selection of action keys is a future hook.
 6. Have one image already? Click **✂️ Split sheet** to slice a sheet into one
-   image per slot. Two modes: **Even grid** (set **Columns/Rows** and a **Trim
-   label %** that crops the caption banner off each tile) for a regular sheet,
-   and **Draw boxes** (drag a rectangle over each panel) for art packs whose
-   panels are not a uniform grid — turnarounds, magic poses, action rows. The
-   target **Profile / Full body** tab is chosen in the dialog; the names field /
-   box names map tiles to expression keys and default to the canonical emotion
-   order (then `slotN`), so edit them when your sheet uses, say, `excited` or
-   `walking`. The preview shows the grid/cut line or your boxes before upload.
-7. Use the 🗑 button to remove a slot (this also deletes the file).
+   image per slot. The grid is a **draggable frame plus dividers**: drag the
+   yellow frame to fit the grid onto the art and off a title banner, drag any
+   white line to make rows or columns uneven (mixed panel sizes), click inside a
+   cell to add a divider and double-click a divider to remove one. **✨ Auto-fit**
+   proposes a grid from the sheet's whitespace gutters, and the strip on the right
+   shows the actual crops before you upload. **Draw boxes** remains for irregular
+   layouts, and its boxes can be moved and resized. The target **Profile / Full
+   body** tab is chosen in the dialog; the names field maps tiles to expression
+   keys and defaults to the canonical emotion order (then `slotN`), so edit them
+   when your sheet uses, say, `excited` or `walking`. Unnamed tiles are skipped.
+7. **🗑 removes the image** but keeps the expression. **✕ deletes the expression
+   key** and its image file(s) — the right choice for the `slotN` keys a big sheet
+   leaves behind.
+8. **Click an expression's name to re-file it.** Type a new name and press Enter
+   and the image moves with it, which fixes a sheet that was sliced into the
+   wrong labels without re-uploading anything. Esc cancels. The image file itself
+   does not move — only the key it is filed under changes — so renaming `slot17` to
+   `calm` keeps the very same picture. A rename onto a name that already has an
+   image is refused rather than overwriting it; remove that image first.
+
+The card is deliberately a `<div>` with an explicit click handler and **not** a
+`<label>`. A `<label>` takes its labelled control as the first *labelable*
+descendant, and a `<button>` is labelable — with 🗑 ahead of the file input,
+Chrome activated the delete button, so clicking an image deleted it instead of
+opening the picker.
 
 The pack is saved with the character: "Save Character to Library" includes it,
 and spawning/importing the character brings the images back. See

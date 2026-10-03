@@ -216,6 +216,47 @@ Room description → paths → items → People here (with inline relationship l
 - The react template keeps its minimal `[Tick N] You are still in ...` context, then
   `=== YOUR STATE ===` → `=== I REMEMBER ===` → `=== WHAT HAPPENED ===`.
 
+### Heard speech: delivery and who made the noise
+
+A `=== WITNESSED ===` speech line is `[Heard< from the X>] <speaker> <verb>: "<text>"`, and both
+the verb and the speaker label are read off the hearing entry rather than assumed.
+
+**Delivery is reported.** `speech.py` stamps `speech_level` on every hearing entry, and
+`PromptBuilder.speechVerb` maps it to the verb — `whispered`, `said`, `shouted`, `screamed`,
+`sang`. It used to be the string literal `said` in the render, so a scream reached the model as
+conversation. The turn-event description deliberately keeps its literal `said:` marker: that is a
+machine-parsed format (item sound capture and the salience regex depend on it) and is not the prose
+the character reads. `engine/narration.py` keeps a matching `SPEECH_VERBS` for the server-side
+`listen()` report.
+
+**A heard stranger is labelled by what is making the sound.** `PromptBuilder.voiceLabel` and
+`anonymousName` read from **one** `SPEAKER_TAGS` table, because they drifted and the drift was
+visible: a tabby read "an animal" in the room and, through a wall, **"a man's voice"** — the seen map
+had `animal`, the heard map did not, so it fell through to the pronoun heuristic, and animal
+descriptions are freely written with "his" (whiskers: *"darker striping along his flanks"*).
+
+Resolution order for an unrecognised speaker:
+
+1. **Known to the viewer** → their real name.
+2. **Tagged as a non-human** → a species label (`"a cat's voice"`, `"a wolfs's voice"`), most
+   specific first so `bird|raven` is the raven; `"an animal's voice"` when the species tag is
+   unmapped. This is checked **before** the gender tags, because these characters carry both —
+   `male|animal|worg` read as "a man's voice" when the gender tag was consulted first.
+3. **Tagged `anthro`** → exempt, because an anthropomorph is presented as a person: it falls
+   through to the gender label so it agrees with the "the woman" the same character gets when seen.
+4. **Gender tag** → `"a man's voice"` / `"a woman's voice"`.
+5. **Pronouns in the description** → last resort, and **never for a non-human**. "his" in a sentence
+   about a cat's flanks is evidence about the cat.
+6. Otherwise `"a voice"`.
+
+A genuine non-speaking noise (a yowl from the next room) is not speech at all and already goes
+through the `sound_source` path, rendering as `[Heard from the X from the item] <pattern>.`
+
+Species labels are keyed by the tags the character library already carries (`animal`, `rabbit`,
+`bear`, `bird`, `boar`, `frog`, `raven`, `sheep`, `wolf`, `worg`), so the list needed no new
+vocabulary — but note those species tags are **not registered** in `data/library/tags/`, unlike
+`animal` itself. `whiskers` needed an explicit `cat` tag to read as a cat rather than "an animal".
+
 | Template | Phase | Memory field | Output |
 |----------|-------|--------------|--------|
 | `buildReactionPrompt` | Think-decide / combined | ❌ (reactive), ✅ (non-reactive) | `{"inner_monologue","action","item","target","speech","volume","emote"[,"memory"]}` |

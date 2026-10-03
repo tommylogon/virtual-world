@@ -27,7 +27,31 @@ const win = {
     URL, URLSearchParams,
     // stubs used by plan-tracker.js
     worldState: { data: { time_ticks: 0 } },
-    events: { log: () => {}, trackPhase: () => {}, trackAction: () => {} },
+    // A real (tiny) bus, not a no-op: turn-feed's ring subscribes to 'log' and
+    // silently installs nothing when `on` is missing, so a log-only stub would
+    // make its filtering tests pass for the wrong reason. The real
+    // event-stream.js cannot be loaded here — its EventBus constructor pulls in
+    // the DOM-heavy StreamTurnCards.
+    events: (() => {
+        const subs = new Map();
+        return {
+            log(text, className, meta, actor) {
+                const payload = { text, className, meta, actor: actor || null };
+                for (const cb of subs.get('log') || []) cb(payload);
+            },
+            on(name, cb) {
+                if (!subs.has(name)) subs.set(name, []);
+                subs.get(name).push(cb);
+            },
+            off(name, cb) {
+                const list = subs.get(name) || [];
+                const i = list.indexOf(cb);
+                if (i >= 0) list.splice(i, 1);
+            },
+            trackPhase: () => {},
+            trackAction: () => {},
+        };
+    })(),
     // test API (populated below)
     test: null,
     assertEq: null,
@@ -125,6 +149,7 @@ load('static/js/agent/sim-round.js');
 load('static/js/agent/turn-queue.js');
 load('static/js/agent/action-normalizer.js');
 load('static/js/agent/response-parser.js');
+load('static/js/agent/turn-feed.js');
 load('static/js/agent/plan-tracker.js');
 load('static/js/agent/involuntary.js');
 load('static/js/character-art.js');

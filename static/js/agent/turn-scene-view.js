@@ -52,12 +52,20 @@ window.TurnSceneView = (() => {
             .tsv-chip.tsv-exit:hover { border-color:#3fae94; background:#152825; }
             .tsv-chip.tsv-person { color:#eec9ff; border-color:#3d2b52; }
             .tsv-chip.tsv-person:hover { border-color:#a86ee0; background:#241a33; }
-            /* Current-emotion profile thumbnail; click opens the big portrait. */
-            .tsv-avatar { width:18px; height:18px; border-radius:50%; object-fit:cover;
+            /* Current-emotion profile thumbnail; click opens the big portrait.
+               Sized to be recognisable at a glance — 18px read as an
+               indistinct smudge next to the name. */
+            .tsv-avatar { width:34px; height:34px; border-radius:50%; object-fit:cover;
                           border:1px solid #3d2b52; cursor:zoom-in; flex:none; }
+            .tsv-chip.tsv-person { padding:3px 12px 3px 3px; }
             .tsv-chip .tsv-em { font-size:11px; color:#78828e; font-style:italic; }
             .tsv-chip.tsv-shut::before { content:'●'; color:#c96a46; font-size:7px; margin-right:-1px; }
             .tsv-hint { font-size:10.5px; color:#5b6570; margin-top:3px; }
+            .tsv-light { display:inline-block; margin-left:6px; padding:4px 9px; font-size:12px;
+                         border:1px solid #333a45; border-radius:999px; color:#9aa3b2; }
+            .tsv-light-pitch_black { color:#8fa6c8; border-color:#2c3648; }
+            .tsv-light-dim { color:#b0a68c; border-color:#3d3829; }
+            .tsv-light-bright, .tsv-light-blinding { color:#e8d9a0; border-color:#4a4227; }
 
             /* darkness degradation */
             #htc-scene.tsv-dark .tsv-chips { opacity:.45; }
@@ -113,13 +121,43 @@ window.TurnSceneView = (() => {
         const req = String(way.requires || '').trim().toLowerCase();
         return (req && !['none', 'nothing', 'no'].includes(req)) ? way.requires : '';
     }
+    /** Light band, mirroring engine/lighting.py Lighting.light_to_level. */
+    const LIGHT_LABEL = {
+        pitch_black: 'pitch dark',
+        dim: 'dim',
+        normal: 'normal',
+        bright: 'bright',
+        blinding: 'blinding',
+    };
+    function lightBand(pct) {
+        if (pct <= 20)
+            return 'pitch_black';
+        if (pct <= 40)
+            return 'dim';
+        if (pct <= 70)
+            return 'normal';
+        if (pct <= 90)
+            return 'bright';
+        return 'blinding';
+    }
     // ── menu builders ────────────────────────────────────────────────
-    function buildItemMenu(entry) {
+    function buildItemMenu(entry, dark = false) {
         // Backend contract: TriggerSystem._get_available_actions entries
         // ({action,label,enabled,reason}) already encode state gates.
         const actions = Array.isArray(entry.available_actions) ? entry.available_actions : [];
         const menus = [];
-        menus.push({ label: `Examine ${entry.name}`, run: () => draftParts({ action: 'examine', item: entry.name }) });
+        // In the dark the chip reads "something", so the menu must not hand
+        // over the real name in its header — that made the masking theatre.
+        // The draft still carries the real name so the verb resolves.
+        if (dark) {
+            menus.push({
+                label: 'Feel around the shape',
+                run: () => draftParts({ action: 'examine', item: entry.name }),
+            });
+        }
+        else {
+            menus.push({ label: `Examine ${entry.name}`, run: () => draftParts({ action: 'examine', item: entry.name }) });
+        }
         for (const a of actions) {
             if (a.action === 'examine')
                 continue;
@@ -133,15 +171,19 @@ window.TurnSceneView = (() => {
         }
         return menus;
     }
-    function buildWayMenu(way, conditions, atWayId) {
+    function buildWayMenu(way, conditions, atWayId, dark = false) {
         const grappled = (conditions || []).some((c) => String(c).toLowerCase().includes('grappl'));
         const requires = requiresGate(way);
         const closed = way.state !== 'open';
-        const dirText = way.direction || '';
-        const destText = way.to ? `${dirText} → ${way.to}` : dirText;
-        const menus = [{ label: `Examine ${way.name}`, run: () => draftParts({ action: 'examine', item: way.name }) }];
+        const dirText = dark ? 'the way' : (way.direction || '');
+        const shownName = dark ? 'the way' : way.name;
+        const destText = (!dark && way.to) ? `${dirText} → ${way.to}` : dirText;
+        const menus = [{
+                label: dark ? 'Feel along the opening' : `Examine ${way.name}`,
+                run: () => draftParts({ action: 'examine', item: way.name }),
+            }];
         if (atWayId !== way.way_id) {
-            menus.push({ label: `Approach ${dirText || way.name}`, run: () => draftParts({ action: 'approach', item: dirText || way.name }) });
+            menus.push({ label: `Approach ${dirText || shownName}`, run: () => draftParts({ action: 'approach', item: dirText || way.name }) });
         }
         if (requires) {
             menus.push({ label: `Go ${destText}`, enabled: false, reason: `requires ${requires}` });
@@ -157,13 +199,16 @@ window.TurnSceneView = (() => {
             menus.push({ label: `Go ${dirText}`, enabled: false, reason: 'blocked' });
         }
         else {
-            menus.push({ label: `Go ${destText}`, run: () => draftParts({ action: 'go', item: dirText }) });
+            menus.push({ label: `Go ${destText}`, run: () => draftParts({ action: 'go', item: way.direction || way.name }) });
         }
         if (!requires && closed && !['locked', 'blocked'].includes(way.state)) {
-            menus.push({ label: `Open ${way.name}`, run: () => draftParts({ action: 'open', item: way.name }) });
+            menus.push({ label: `Open ${shownName}`, run: () => draftParts({ action: 'open', item: way.name }) });
         }
-        if (!closed && !requires) {
-            menus.push({ label: `Close ${way.name}`, run: () => draftParts({ action: 'close', item: way.name }) });
+        // An open passage (a compiled outdoor way, an authored `prevent_close`) has
+        // no door to swing: movement._open_passage_block refuses `close`, so
+        // offering Close is a verb that can only fail.
+        if (!closed && !requires && !way.prevent_close) {
+            menus.push({ label: `Close ${shownName}`, run: () => draftParts({ action: 'close', item: way.name }) });
         }
         return menus;
     }
@@ -178,6 +223,7 @@ window.TurnSceneView = (() => {
         const conditions = (you.conditions || []).map((c) => String(c).toLowerCase());
         const grappled = conditions.some((c) => c.includes('grappl'));
         const carrying = you.carrying || [];
+        const holding = you.holding || [];
         const abilities = you.known_abilities || [];
         // Prefer the world's own toggle (the engine gate); the client config
         // mirrors it and is used only as a fallback before state loads.
@@ -213,10 +259,19 @@ window.TurnSceneView = (() => {
         menus.push({ label: `Attack ${who}`, danger: true, run: () => draftParts({ action: 'attack', target: who }) });
         menus.push({ label: `Grab ${who} (grapple)`, run: () => draftParts({ action: 'grab', target: who }) });
         menus.push({ label: `Lead ${who}`, run: () => draftParts({ action: 'lead', target: who }) });
-        menus.push({ label: `Wake ${who}`, run: () => draftParts({ action: 'wake', target: who }) });
+        // Wake is only legal against someone with an activity — the engine
+        // raises "isn't sleeping or busy" otherwise (Activities.wake). Offering
+        // it on a standing, idle person is a verb that can only fail.
+        if (person.activity) {
+            menus.push({ label: `Wake ${who}`, run: () => draftParts({ action: 'wake', target: who }) });
+        }
         if (grappled)
             menus.push({ label: 'Escape the grapple', run: () => draftParts({ action: 'escape' }) });
-        menus.push({ label: `Release ${who}`, run: () => draftParts({ action: 'release', target: who }) });
+        // Release only means something for someone you actually hold, which
+        // is what `you.holding` (the authoritative `grappled` edge) reports.
+        if (holding.includes(person.name || who) || holding.includes(who)) {
+            menus.push({ label: `Release ${who}`, run: () => draftParts({ action: 'release', target: who }) });
+        }
         // Give: choose from what you are actually carrying. applyDraft joins
         // action/item/target with spaces, so the connector lives in the action
         // phrase ("give Dagger to" + "Tester"), not a separate field.
@@ -434,6 +489,13 @@ window.TurnSceneView = (() => {
         ]));
         attachHover(areaBtn, () => areaBtn, () => lookLines(scene, 'area', Object.assign({}, scene.area, { dark })));
         areaRow.appendChild(areaBtn);
+        // How much light there is, so "shapes in the gloom" reads as a
+        // measurement rather than a mood. Mirrors Lighting.light_to_level so
+        // the panel and the prose cannot disagree about what counts as dim.
+        const lightPct = scene.area.light_level;
+        if (typeof lightPct === 'number') {
+            areaRow.appendChild(el('span', 'tsv-light tsv-light-' + lightBand(lightPct), `${LIGHT_LABEL[lightBand(lightPct)]} · ${Math.round(lightPct)}%`));
+        }
         host.appendChild(areaRow);
         const desc = el('p', 'tsv-desc', dark ? 'shapes in the gloom — details are lost.' : (scene.area.desc || ''));
         if (desc.textContent)
@@ -480,7 +542,7 @@ window.TurnSceneView = (() => {
             itemChips.appendChild(el('span', 'tsv-hint', 'nothing of note.'));
         for (const item of scene.items) {
             const label = dark ? 'something' : item.name;
-            mkChip(itemChips, '', label, (e) => chipClick(e, item.name, buildItemMenu(item)), () => lookLines(scene, 'item', item));
+            mkChip(itemChips, '', label, (e) => chipClick(e, item.name, buildItemMenu(item, dark)), () => lookLines(scene, 'item', item));
         }
         // ways
         const wayChips = zone('Ways out');
@@ -491,11 +553,11 @@ window.TurnSceneView = (() => {
             const markers = (way.state === 'locked' ? ' 🔒' : '') +
                 (way.state === 'blocked' ? ' ⛔' : '') +
                 (requiresGate(way) ? ' ⛰' : '');
-            const em = el('span', 'tsv-em', `${way.direction}${markers}`);
+            const em = el('span', 'tsv-em', `${dark ? '' : way.direction}${markers}`);
             const chip = el('button', 'tsv-chip tsv-exit' + (shut ? ' tsv-shut' : ''));
             chip.appendChild(document.createTextNode((dark ? 'a way' : way.name) + ' '));
             chip.appendChild(em);
-            chip.addEventListener('click', (e) => chipClick(e, way.name, buildWayMenu(way, scene.you.conditions, scene.you.at_way_id)));
+            chip.addEventListener('click', (e) => chipClick(e, way.name, buildWayMenu(way, scene.you.conditions, scene.you.at_way_id, dark)));
             attachHover(chip, () => chip, () => lookLines(scene, 'exit', way));
             wayChips.appendChild(chip);
         }

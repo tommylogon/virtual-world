@@ -150,11 +150,18 @@ def visible_area_items(graph, area_id, include_hidden: bool = False, player=None
     items = []
     if graph is None or not area_id:
         return items
+    seen = set()
     for edge in graph.get_edges_for_target(area_id, EDGE_IN):
         node = graph.get_node(edge.source)
-        if node and node.type == "item":
-            if include_hidden or node.properties.get("current_state") != "hidden" or node.id in known:
-                items.append(node)
+        if node is None or node.type != "item":
+            continue
+        # Same per-node dedupe as characters_in_area: an item both `in` the
+        # room and `on` a table in it is one item, not two list rows.
+        if node.id in seen:
+            continue
+        if include_hidden or node.properties.get("current_state") != "hidden" or node.id in known:
+            seen.add(node.id)
+            items.append(node)
     return items
 
 
@@ -253,14 +260,25 @@ def describe_item(node, description: str = "") -> str:
 
 def characters_in_area(graph, area_id, exclude_name: Optional[str] = None) -> list:
     """Character nodes present in the area (EDGE_IN), optionally excluding
-    the viewer by name."""
+    the viewer by name.
+
+    One entry per NODE, not per edge. ``get_edges_for_target`` returns the
+    direct ``in`` edges *and* the spatial expansion (a character ``at`` a
+    surface that is itself in the room), so a character standing next to
+    the coat rack arrives twice and the panel rendered three people as six.
+    """
     people = []
     if graph is None or not area_id:
         return people
+    seen = set()
     for edge in graph.get_edges_for_target(area_id, EDGE_IN):
         node = graph.get_node(edge.source)
-        if node and node.type == "character":
-            if exclude_name is not None and node.name == exclude_name:
-                continue
-            people.append(node)
+        if node is None or node.type != "character":
+            continue
+        if exclude_name is not None and node.name == exclude_name:
+            continue
+        if node.id in seen:
+            continue
+        seen.add(node.id)
+        people.append(node)
     return people

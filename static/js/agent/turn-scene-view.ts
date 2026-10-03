@@ -64,6 +64,11 @@ interface TurnSceneViewWindowSurface { TurnSceneView: unknown }
             .tsv-chip .tsv-em { font-size:11px; color:#78828e; font-style:italic; }
             .tsv-chip.tsv-shut::before { content:'●'; color:#c96a46; font-size:7px; margin-right:-1px; }
             .tsv-hint { font-size:10.5px; color:#5b6570; margin-top:3px; }
+            .tsv-light { display:inline-block; margin-left:6px; padding:4px 9px; font-size:12px;
+                         border:1px solid #333a45; border-radius:999px; color:#9aa3b2; }
+            .tsv-light-pitch_black { color:#8fa6c8; border-color:#2c3648; }
+            .tsv-light-dim { color:#b0a68c; border-color:#3d3829; }
+            .tsv-light-bright, .tsv-light-blinding { color:#e8d9a0; border-color:#4a4227; }
 
             /* darkness degradation */
             #htc-scene.tsv-dark .tsv-chips { opacity:.45; }
@@ -121,14 +126,41 @@ interface TurnSceneViewWindowSurface { TurnSceneView: unknown }
         return (req && !['none', 'nothing', 'no'].includes(req)) ? way.requires as string : '';
     }
 
+    /** Light band, mirroring engine/lighting.py Lighting.light_to_level. */
+    const LIGHT_LABEL: Record<string, string> = {
+        pitch_black: 'pitch dark',
+        dim: 'dim',
+        normal: 'normal',
+        bright: 'bright',
+        blinding: 'blinding',
+    };
+
+    function lightBand(pct: number): string {
+        if (pct <= 20) return 'pitch_black';
+        if (pct <= 40) return 'dim';
+        if (pct <= 70) return 'normal';
+        if (pct <= 90) return 'bright';
+        return 'blinding';
+    }
+
     // ── menu builders ────────────────────────────────────────────────
 
-    function buildItemMenu(entry: SceneItem): MenuButton[] {
+    function buildItemMenu(entry: SceneItem, dark = false): MenuButton[] {
         // Backend contract: TriggerSystem._get_available_actions entries
         // ({action,label,enabled,reason}) already encode state gates.
         const actions = Array.isArray(entry.available_actions) ? entry.available_actions : [];
         const menus: MenuButton[] = [];
-        menus.push({ label: `Examine ${entry.name}`, run: () => draftParts({ action: 'examine', item: entry.name }) });
+        // In the dark the chip reads "something", so the menu must not hand
+        // over the real name in its header — that made the masking theatre.
+        // The draft still carries the real name so the verb resolves.
+        if (dark) {
+            menus.push({
+                label: 'Feel around the shape',
+                run: () => draftParts({ action: 'examine', item: entry.name }),
+            });
+        } else {
+            menus.push({ label: `Examine ${entry.name}`, run: () => draftParts({ action: 'examine', item: entry.name }) });
+        }
         for (const a of actions) {
             if (a.action === 'examine') continue;
             menus.push({
@@ -142,15 +174,19 @@ interface TurnSceneViewWindowSurface { TurnSceneView: unknown }
         return menus;
     }
 
-    function buildWayMenu(way: SceneWay, conditions: string[], atWayId: string): MenuButton[] {
+    function buildWayMenu(way: SceneWay, conditions: string[], atWayId: string, dark = false): MenuButton[] {
         const grappled = (conditions || []).some((c: string) => String(c).toLowerCase().includes('grappl'));
         const requires = requiresGate(way);
         const closed = way.state !== 'open';
-        const dirText = way.direction || '';
-        const destText = way.to ? `${dirText} → ${way.to}` : dirText;
-        const menus: MenuButton[] = [{ label: `Examine ${way.name}`, run: () => draftParts({ action: 'examine', item: way.name }) }];
+        const dirText = dark ? 'the way' : (way.direction || '');
+        const shownName = dark ? 'the way' : way.name;
+        const destText = (!dark && way.to) ? `${dirText} → ${way.to}` : dirText;
+        const menus: MenuButton[] = [{
+            label: dark ? 'Feel along the opening' : `Examine ${way.name}`,
+            run: () => draftParts({ action: 'examine', item: way.name }),
+        }];
         if (atWayId !== way.way_id) {
-            menus.push({ label: `Approach ${dirText || way.name}`, run: () => draftParts({ action: 'approach', item: dirText || way.name }) });
+            menus.push({ label: `Approach ${dirText || shownName}`, run: () => draftParts({ action: 'approach', item: dirText || way.name }) });
         }
         if (requires) {
             menus.push({ label: `Go ${destText}`, enabled: false, reason: `requires ${requires}` });
@@ -162,13 +198,16 @@ interface TurnSceneViewWindowSurface { TurnSceneView: unknown }
         } else if (way.state === 'blocked') {
             menus.push({ label: `Go ${dirText}`, enabled: false, reason: 'blocked' });
         } else {
-            menus.push({ label: `Go ${destText}`, run: () => draftParts({ action: 'go', item: dirText }) });
+            menus.push({ label: `Go ${destText}`, run: () => draftParts({ action: 'go', item: way.direction || way.name }) });
         }
         if (!requires && closed && !['locked', 'blocked'].includes(way.state)) {
-            menus.push({ label: `Open ${way.name}`, run: () => draftParts({ action: 'open', item: way.name }) });
+            menus.push({ label: `Open ${shownName}`, run: () => draftParts({ action: 'open', item: way.name }) });
         }
-        if (!closed && !requires) {
-            menus.push({ label: `Close ${way.name}`, run: () => draftParts({ action: 'close', item: way.name }) });
+        // An open passage (a compiled outdoor way, an authored `prevent_close`) has
+        // no door to swing: movement._open_passage_block refuses `close`, so
+        // offering Close is a verb that can only fail.
+        if (!closed && !requires && !way.prevent_close) {
+            menus.push({ label: `Close ${shownName}`, run: () => draftParts({ action: 'close', item: way.name }) });
         }
         return menus;
     }
@@ -443,6 +482,14 @@ interface TurnSceneViewWindowSurface { TurnSceneView: unknown }
         attachHover(areaBtn, () => areaBtn,
                     () => lookLines(scene, 'area', Object.assign({}, scene.area, { dark })));
         areaRow.appendChild(areaBtn);
+        // How much light there is, so "shapes in the gloom" reads as a
+        // measurement rather than a mood. Mirrors Lighting.light_to_level so
+        // the panel and the prose cannot disagree about what counts as dim.
+        const lightPct = scene.area.light_level;
+        if (typeof lightPct === 'number') {
+            areaRow.appendChild(el('span', 'tsv-light tsv-light-' + lightBand(lightPct),
+                                   `${LIGHT_LABEL[lightBand(lightPct)]} · ${Math.round(lightPct)}%`));
+        }
         host.appendChild(areaRow);
 
         const desc = el('p', 'tsv-desc',
@@ -496,7 +543,7 @@ interface TurnSceneViewWindowSurface { TurnSceneView: unknown }
         for (const item of scene.items) {
             const label = dark ? 'something' : item.name;
             mkChip(itemChips, '', label,
-                (e) => chipClick(e, item.name, buildItemMenu(item)),
+                (e) => chipClick(e, item.name, buildItemMenu(item, dark)),
                 () => lookLines(scene, 'item', item));
         }
 
@@ -509,12 +556,12 @@ interface TurnSceneViewWindowSurface { TurnSceneView: unknown }
                 (way.state === 'locked' ? ' 🔒' : '') +
                 (way.state === 'blocked' ? ' ⛔' : '') +
                 (requiresGate(way) ? ' ⛰' : '');
-            const em = el('span', 'tsv-em', `${way.direction}${markers}`);
+            const em = el('span', 'tsv-em', `${dark ? '' : way.direction}${markers}`);
             const chip = el('button', 'tsv-chip tsv-exit' + (shut ? ' tsv-shut' : ''));
             chip.appendChild(document.createTextNode((dark ? 'a way' : way.name) + ' '));
             chip.appendChild(em);
             chip.addEventListener('click', (e) =>
-                chipClick(e, way.name, buildWayMenu(way, scene.you.conditions, scene.you.at_way_id)));
+                chipClick(e, way.name, buildWayMenu(way, scene.you.conditions, scene.you.at_way_id, dark)));
             attachHover(chip, () => chip, () => lookLines(scene, 'exit', way));
             wayChips.appendChild(chip);
         }
@@ -653,6 +700,8 @@ interface SceneWay {
     desc?: string;
     requires?: string;
     see_through?: boolean;
+    /** Open passage — the engine refuses `close`, so no Close affordance. */
+    prevent_close?: boolean;
     visible_in_direction?: string;
     needs_force_known?: boolean;
     known_locked?: boolean;

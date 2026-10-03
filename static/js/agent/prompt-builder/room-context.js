@@ -785,7 +785,10 @@ window.PromptBuilder = window.PromptBuilder || {};
             // Voice-based label — the listener can't see the speaker's body
             const anon = PromptBuilder.voiceLabel(charName, h.speaker);
             const direction = h.heard_from ? ` from the ${h.heard_from}` : '';
-            let line = `[Heard${direction}] ${anon} said: "${h.text}"`;
+            // Delivery comes off the entry rather than being assumed: a scream read
+            // as "said" taught the model it was conversation.
+            const verb = PromptBuilder.speechVerb(h.speech_level);
+            let line = `[Heard${direction}] ${anon} ${verb}: "${h.text}"`;
             line = PromptBuilder.markSpeechLine(line, h.text, charName, player);
             witnessedLines.push(line);
             socialSeeds.push({ speaker: h.speaker, text: h.text });
