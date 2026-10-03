@@ -82,6 +82,90 @@ window.TriggerGraph = (() => {
         getLibraryType?: (type: string) => Promise<Record<string, unknown> | null>;
     }
 
+    /**
+     * The behavior action catalog (task-388 Phase 3), read at call time from
+     * window.TriggerTypes so the graph and the behavior form editor cannot
+     * drift. Read lazily, not at module scope: trigger-types.js is a separate
+     * script tag and this file is evaluated before it may be guaranteed loaded.
+     * The fallback keeps the editor usable if the catalog is absent, which is
+     * what a standalone/isolated test harness will see.
+     */
+    function _behaviorActionTypes(): Array<{ value: string; label?: string; params: string[] }> {
+        const shared = (window as unknown as {
+            TriggerTypes?: { BEHAVIOR_ACTION_TYPES?: Array<{ value: string; label?: string; params: string[] }> };
+        }).TriggerTypes;
+        if (shared && shared.BEHAVIOR_ACTION_TYPES && shared.BEHAVIOR_ACTION_TYPES.length) {
+            return shared.BEHAVIOR_ACTION_TYPES;
+        }
+        return [];
+    }
+
+    /**
+     * Which params of an unknown-to-this-editor action should get a generated
+     * field. Derived from the catalog, so a new engine action type becomes
+     * editable in the graph with no change here.
+     */
+    const ACTION_PARAM_HINTS: Record<string, { list?: string; type?: string; placeholder?: string }> = {
+        target: { list: 'tg-char-ids', placeholder: 'self, player, or a name' },
+        item: { list: 'tg-items', placeholder: 'library id' },
+        slot: { placeholder: 'hand, head, torso...' },
+        direction: { placeholder: 'north, south, up, down...' },
+        where: { placeholder: 'mouth, hands, anywhere' },
+        intensity: { placeholder: 'gentle, rough, normal, hard' },
+        area: { list: 'tg-areas', placeholder: 'blank = current area' },
+        room: { list: 'tg-areas' },
+        stat: { list: 'tg-env-stats', placeholder: 'temperature, light...' },
+        minutes: { type: 'number' },
+        amount: { type: 'number' },
+        intensity_num: { type: 'number' },
+        max_words: { type: 'number' },
+        cooldown: { type: 'number' },
+        importance: { type: 'number' },
+        text: { placeholder: 'prose' },
+        instructions: { placeholder: 'persona prompt' },
+        fallback_message: { placeholder: 'spoken when it cannot answer' },
+        tags: { placeholder: 'comma-separated' }
+    };
+
+    function _renderCatalogFields(
+        actionType: string,
+        spec: { params: string[] },
+        p: Record<string, any>
+    ): string {
+        const params = (spec && spec.params) || [];
+        if (!params.length) return '';
+        const rows = params.map((key: string) => {
+            const hint = ACTION_PARAM_HINTS[key] || {};
+            const raw = p[key];
+            const val = raw === undefined || raw === null ? '' : String(raw);
+            const listAttr = hint.list ? ` list="${hint.list}"` : '';
+            const ph = hint.placeholder ? ` placeholder="${hint.placeholder}"` : '';
+            if (hint.type === 'number') {
+                return `<div class="tg-field-row"><label>${key.replace(/_/g, ' ')}</label>` +
+                    `<input class="tg-field" data-key="${key}" type="number" step="any" value="${val.replace(/"/g, '&quot;')}"${ph} onchange="TriggerGraph._onFieldChange(this)"></div>`;
+            }
+            const long = ['text', 'instructions', 'fallback_message'].includes(key);
+            if (long) {
+                return `<div class="tg-field-row"><label>${key.replace(/_/g, ' ')}</label>` +
+                    `<textarea class="tg-field" data-key="${key}" rows="2"${ph} onchange="TriggerGraph._onFieldChange(this)">${val.replace(/</g, '&lt;')}</textarea></div>`;
+            }
+            return `<div class="tg-field-row"><label>${key.replace(/_/g, ' ')}</label>` +
+                `<input class="tg-field" data-key="${key}" value="${val.replace(/"/g, '&quot;')}"${listAttr}${ph} onchange="TriggerGraph._onFieldChange(this)"></div>`;
+        }).join('');
+        // The engine may read params the catalog does not list (it is generated
+        // from dispatch branches, and some read keys inside nested helpers).
+        // Carry any such extra prop through visibly rather than dropping it.
+        const known = new Set(params.concat(['action_type']));
+        const extras = Object.keys(p).filter((k) => !known.has(k) && p[k] !== undefined && p[k] !== '' && p[k] !== null);
+        const extraRows = extras.map((key: string) => {
+            const raw = p[key];
+            const val = raw === undefined || raw === null ? '' : String(raw);
+            return `<div class="tg-field-row" style="opacity:.75"><label title="not in the action catalog">${key.replace(/_/g, ' ')}</label>` +
+                `<input class="tg-field" data-key="${key}" value="${val.replace(/"/g, '&quot;')}" onchange="TriggerGraph._onFieldChange(this)"></div>`;
+        }).join('');
+        return `<div class="tg-cat-fields" data-action-type="${actionType}">${rows}${extraRows}</div>`;
+    }
+
     // ─── Socket layout per node type ───
     // Sockets on nodes: inputs on LEFT, outputs on RIGHT, YES/NO on BOTTOM
     const NODE_DEFS: Record<string, TriggerGraphNodeDef> = {
@@ -507,12 +591,32 @@ window.TriggerGraph = (() => {
             ],
             fields: (p) => {
                 const at = p.action_type || 'message';
+                const catalog = _behaviorActionTypes();
+                const spec = catalog.find((a: any) => a.value === at);
+                // Types with hand-tuned blocks below keep them; everything else
+                // gets generated fields for the params the ENGINE reads. Before
+                // task-388 Phase 3 the dropdown offered 11 types and
+                // _buildActionFromNode re-emitted 10, so opening a behavior with
+                // any other action and saving silently dropped all its params
+                // (defect #17). Unknown types are kept in the list and shown as
+                // such rather than silently relabelled "message".
+                const bespoke = ['message','speak','set_npc_state','damage','heal','set_environment','spawn_item','spawn_character','teleport','go','llm_respond'];
+                const generated = (spec && !bespoke.includes(at))
+                    ? _renderCatalogFields(at, spec, p)
+                    : '';
                 return `
                 <div class="tg-field-row"><label>Type</label>
-                    <select class="tg-field" data-key="action_type" onchange="TriggerGraph._onFieldChange(this);TriggerGraph._rerenderNode('${'NODEID'}')">${[
-                        'message','speak','set_npc_state','damage','heal','set_environment','spawn_item','spawn_character','teleport','go','llm_respond'
-                    ].map(t => `<option value="${t}" ${at===t?'selected':''}>${t.replace(/_/g,' ')}</option>`).join('')}</select>
+                    <select class="tg-field" data-key="action_type" onchange="TriggerGraph._onFieldChange(this);TriggerGraph._rerenderNode('${'NODEID'}')">${catalog.map((a: any) => {
+                        const sel = a.value === at ? 'selected' : '';
+                        // Only flag a type the ENGINE does not dispatch. Every
+                        // catalog entry is legitimate, so this fires only when a
+                        // node carries a type the catalog has never heard of -
+                        // which still round-trips (the carry-through is generic),
+                        // but deserves a look.
+                        return `<option value="${a.value}" ${sel}>${a.label || a.value.replace(/_/g,' ')}</option>`;
+                    }).join('')}${spec ? '' : `<option value="${at}" selected>${String(at).replace(/</g,'&lt;')} ⚠ unknown type</option>`}</select>
                 </div>
+                ${generated}
                 <div class="tg-beh-text" style="display:${['message','speak'].includes(at)?'':'none'}">
                     <div class="tg-field-row"><label>Text</label><textarea class="tg-field" data-key="text" rows="2" onchange="TriggerGraph._onFieldChange(this)">${p.text||''}</textarea></div>
                 </div>
@@ -1007,21 +1111,8 @@ window.TriggerGraph = (() => {
 
         const toolbar = document.createElement('div');
         toolbar.style.cssText = 'height:36px;background:var(--bg-card,#1e1e2e);border-bottom:1px solid var(--border,#333);display:flex;align-items:center;gap:4px;padding:0 8px;flex-shrink:0;';
-        window.Lit.render(triggerGraphTag`
-            <span style="font-weight:600;font-size:12px;margin-right:12px;color:#e3b341;">${_mode === 'behavior' ? '🧠 Behavior Graph' : '🔀 Trigger Graph'}</span>
-            <button class="btn btn-sm btn-ghost" @click=${() => TG._openFormEditor()} style="font-size:10px;display:${_editorBridge && _mode !== 'behavior' ? 'inline-block' : 'none'};" id="tg-form-btn">📝 Form</button>
-            <div style="flex:1;"></div>
-            <span style="font-size:10px;color:var(--text-muted);margin-right:8px;">Scroll = zoom · drag canvas = pan · right-click = add · Del = delete</span>
-            <button class="btn btn-sm btn-purple" @click=${() => TG._onTestClick()} style="font-size:10px;display:${_mode === 'behavior' ? 'none' : ''};">▶ Test</button>
-            <button class="btn btn-sm btn-yellow" @click=${() => TG._onValidateClick()} style="font-size:10px;display:${_mode === 'behavior' ? 'none' : ''};">⚠ Validate</button>
-            <button class="btn btn-sm btn-ghost" @click=${() => TG._fitView()} style="font-size:10px;">⊞ Fit</button>
-            <button class="btn btn-sm btn-purple" @click=${() => TG._toggleStatePanel()} style="font-size:10px;display:${_mode === 'behavior' ? '' : 'none'};">🗺 States</button>
-            <button class="btn btn-sm btn-yellow" @click=${() => TG._saveBlueprint()} style="font-size:10px;">💾 Blueprint</button>
-            <button class="btn btn-sm" @click=${() => TG._exportBlueprint()} style="font-size:10px;">⬇️ Export</button>
-            <button class="btn btn-sm" @click=${() => TG._loadBlueprint()} style="font-size:10px;">📂 Load</button>
-            <button class="btn btn-sm btn-green" @click=${() => TG._saveGraph()} style="font-size:10px;">✅ ${_mode === 'behavior' ? 'Save Behaviors' : 'Apply'}</button>
-            <button class="btn btn-sm btn-ghost" @click=${() => TG._close()} style="font-size:10px;">✕</button>
-        `, toolbar);
+        const renderToolbar = () => _renderToolbarInto(toolbar);
+        renderToolbar();
 
         const testPanel = document.createElement('div');
         testPanel.id = 'tg-test-panel';
@@ -1382,6 +1473,8 @@ window.TriggerGraph = (() => {
         _rerenderWires();
         const sp = document.getElementById('tg-state-panel');
         if (sp && sp.style.display !== 'none') _renderStatePanel();
+        // Keep the compile-honesty badge in step with the edit (task-388 #11).
+        _refreshBadge();
     }
 
     // Selection is a class toggle — rebuilding all node DOM on every click ate
@@ -1495,8 +1588,132 @@ window.TriggerGraph = (() => {
         const svg = document.getElementById('tg-svg');
         if (!svg) return;
         while (svg.firstChild) svg.removeChild(svg.firstChild);
+        _ensureArrowMarkers(svg);
         for (const w of Object.values(_state.wires)) _drawWire(svg, w);
         if (_dragWire) _drawTempWire(svg);
+    }
+
+    /**
+     * Compile-honesty badge (task-388 defect #11).
+     *
+     * The graph can express branches the engine cannot run: a behavior's NO
+     * branch (the behavior model is a flat action list with no else), or more
+     * than one NO message on a trigger. Those are compiled away. The badge says
+     * so BEFORE saving instead of after, because the round trip is where the
+     * user discovers their work is gone.
+     */
+    function _compileBadgeHtml() {
+        const problems = _currentCompileProblems();
+        if (!problems.length) return '';
+        const more = problems.length > 1 ? ` (+${problems.length - 1} more)` : '';
+        const title = problems.join('\n');
+        const esc = String(title).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+        return window.Lit.html`<span
+            id="tg-compile-badge"
+            title="${esc}"
+            style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:9px;background:rgba(210,153,34,.15);border:1px solid #d29922;color:#d29922;font-size:10px;cursor:help;"
+        >⚠ ${problems.length} branch${problems.length > 1 ? 'es' : ''} will not be saved${more}</span>`;
+    }
+
+    /** Problems the CURRENT graph would hit at compile time, for both modes. */
+    function _currentCompileProblems(): string[] {
+        try {
+            const graph = _serializeGraph();
+            if (!graph || !graph.nodes) return [];
+            if (_mode === 'behavior') {
+                const r = TG.compileToBehaviorsWithIssues(graph);
+                return r.compile_error ? String(r.compile_error).split(/\.\s+(?=[A-Z])/).filter(Boolean) : [];
+            }
+            const r = TG.compileToEngine(graph);
+            return r.compile_error ? String(r.compile_error).split(/\.\s+(?=[A-Z])/).filter(Boolean) : [];
+        } catch (e) {
+            return ['The graph does not compile yet.'];
+        }
+    }
+
+    function _refreshBadge() {
+        // The toolbar is one Lit template, so the badge can only be added or
+        // removed by re-rendering it. That is cheap (a single <div> of buttons)
+        // and _rerenderCanvas already runs on every discrete edit, not per frame.
+        const toolbar = document.querySelector('#tg-modal > div:first-child') as HTMLElement | null;
+        if (!toolbar) return;
+        _renderToolbarInto(toolbar);
+    }
+
+    /** The toolbar template, including the compile-honesty badge. Split out so
+     *  the badge can be refreshed without rebuilding the modal shell. */
+    function _renderToolbarInto(toolbar: HTMLElement) {
+        window.Lit.render(triggerGraphTag`
+            <span style="font-weight:600;font-size:12px;margin-right:12px;color:#e3b341;">${_mode === 'behavior' ? '🧠 Behavior Graph' : '🔀 Trigger Graph'}</span>
+            <button class="btn btn-sm btn-ghost" @click=${() => TG._openFormEditor()} style="font-size:10px;display:${_editorBridge && _mode !== 'behavior' ? 'inline-block' : 'none'};" id="tg-form-btn">📝 Form</button>
+            ${_compileBadgeHtml()}
+            <div style="flex:1;"></div>
+            <span style="font-size:10px;color:var(--text-muted);margin-right:8px;">Scroll = zoom · drag canvas = pan · right-click = add · click wire = select · Del = delete</span>
+            <button class="btn btn-sm btn-purple" @click=${() => TG._onTestClick()} style="font-size:10px;display:${_mode === 'behavior' ? 'none' : ''};">▶ Test</button>
+            <button class="btn btn-sm btn-yellow" @click=${() => TG._onValidateClick()} style="font-size:10px;display:${_mode === 'behavior' ? 'none' : ''};">⚠ Validate</button>
+            <button class="btn btn-sm btn-ghost" @click=${() => TG._fitView()} style="font-size:10px;">⊞ Fit</button>
+            <button class="btn btn-sm btn-purple" @click=${() => TG._toggleStatePanel()} style="font-size:10px;display:${_mode === 'behavior' ? '' : 'none'};">🗺 States</button>
+            <button class="btn btn-sm btn-yellow" @click=${() => TG._saveBlueprint()} style="font-size:10px;">💾 Blueprint</button>
+            <button class="btn btn-sm" @click=${() => TG._exportBlueprint()} style="font-size:10px;">⬇️ Export</button>
+            <button class="btn btn-sm" @click=${() => TG._loadBlueprint()} style="font-size:10px;">📂 Load</button>
+            <button class="btn btn-sm btn-green" @click=${() => TG._saveGraph()} style="font-size:10px;">✅ ${_mode === 'behavior' ? 'Save Behaviors' : 'Apply'}</button>
+            <button class="btn btn-sm btn-ghost" @click=${() => TG._close()} style="font-size:10px;">✕</button>
+        `, toolbar);
+    }
+
+    TG._compileBadgeHtml = _compileBadgeHtml;
+
+    // ─── Wire selection & deletion (task-388 defect #5: wires could not be
+    // ─── deleted at all; a mis-wire forced deleting whole nodes) ───
+
+    let _selectedWire: string | null = null;
+
+    function _selectWire(wireId: string | null) {
+        if (_selectedWire === wireId) return;
+        _selectedWire = wireId;
+        // Selecting a wire clears the node selection so the two do not fight
+        // over the Del key.
+        if (wireId) _setSelected(null);
+        _rerenderWires();
+    }
+
+    function _deleteSelectedWire(): boolean {
+        const id = _selectedWire;
+        if (!id || !_state.wires[id]) return false;
+        delete _state.wires[id];
+        _selectedWire = null;
+        _rerenderWires();
+        return true;
+    }
+
+    TG._selectWire = _selectWire;
+    TG._deleteSelectedWire = _deleteSelectedWire;
+
+    /** Would adding from->to close a loop? Used to refuse cycles at creation
+     *  (task-388 defect #7: the recursive tracers would blow the stack on save). */
+    function _wouldCycle(fromId: string, toId: string): boolean {
+        if (fromId === toId) return true;
+        const adj: Record<string, string[]> = {};
+        for (const w of Object.values(_state.wires)) {
+            const f = (w as any).from[0];
+            (adj[f] = adj[f] || []).push((w as any).to[0]);
+        }
+        // Is toId already upstream of fromId? Then from->to closes a loop.
+        const stack = [toId];
+        const seen = new Set<string>();
+        while (stack.length) {
+            const cur = stack.pop()!;
+            if (cur === fromId) return true;
+            if (seen.has(cur)) continue;
+            seen.add(cur);
+            for (const nxt of adj[cur] || []) stack.push(nxt);
+        }
+        return false;
+    }
+
+    function _hasWire(fromId: string, fromSock: string, toId: string, toSock: string): boolean {
+        return Object.values(_state.wires).some((w: any) =>
+            w.from[0] === fromId && w.from[1] === fromSock && w.to[0] === toId && w.to[1] === toSock);
     }
 
     function _getSocketEl(nodeId: string, socketId: string) {
@@ -1524,15 +1741,78 @@ window.TriggerGraph = (() => {
         const fromNode = _state.nodes[wire.from[0]];
         const sockDef = fromNode && NODE_DEFS[fromNode.type]?.sockets.find(s => s.id === wire.from[1]);
         const dx = Math.max(30, Math.abs(tp.x - fp.x) * 0.5);
+        const color = sockDef?.color || '#58a6ff';
+        const selected = _selectedWire === wire.id;
+        const d = `M${fp.x},${fp.y} C${fp.x+dx},${fp.y} ${tp.x-dx},${tp.y} ${tp.x},${tp.y}`;
+        const markerId = `tg-arrow-${color.replace('#', '')}`;
         const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        path.setAttribute('d', `M${fp.x},${fp.y} C${fp.x+dx},${fp.y} ${tp.x-dx},${tp.y} ${tp.x},${tp.y}`);
+        path.setAttribute('d', d);
         // Wire inherits the source socket's color: YES branches read green,
         // NO branches red, trigger/behavior gold, actions blue.
-        path.setAttribute('stroke', sockDef?.color || '#58a6ff');
-        path.setAttribute('stroke-width', '2.5');
+        path.setAttribute('stroke', color);
+        path.setAttribute('stroke-width', selected ? '4' : '2.5');
         path.setAttribute('fill', 'none');
-        path.setAttribute('opacity', '0.8');
+        path.setAttribute('opacity', selected ? '1' : '0.8');
+        if (selected) path.setAttribute('stroke-dasharray', '7,4');
+        path.setAttribute('marker-end', `url(#${markerId})`);
         svg.appendChild(path);
+
+        // Fat invisible hit path (task-388 defect #5): the visible 2.5px stroke
+        // is not a usable click target, and the SVG layer is pointer-events:none.
+        const hit = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        hit.setAttribute('d', d);
+        hit.setAttribute('stroke', 'transparent');
+        hit.setAttribute('stroke-width', '14');
+        hit.setAttribute('fill', 'none');
+        hit.setAttribute('pointer-events', 'stroke');
+        hit.setAttribute('class', 'tg-wire-hit');
+        hit.setAttribute('data-wire-id', wire.id);
+        hit.style.cursor = 'pointer';
+        hit.addEventListener('mousedown', (ev: MouseEvent) => {
+            ev.stopPropagation();
+            _selectWire(wire.id);
+        });
+        hit.addEventListener('contextmenu', (ev: MouseEvent) => {
+            ev.preventDefault();
+            ev.stopPropagation();
+            _selectWire(wire.id);
+            _deleteSelectedWire();
+        });
+        svg.appendChild(hit);
+    }
+
+    /** Ensure one <marker> per wire color exists in the SVG defs. */
+    function _ensureArrowMarkers(svg: HTMLElement) {
+        let defs = svg.querySelector('#tg-arrow-defs') as SVGDefsElement | null;
+        if (!defs) {
+            defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            defs.setAttribute('id', 'tg-arrow-defs');
+            svg.appendChild(defs);
+        }
+        const colors = new Set<string>();
+        for (const nd of Object.values(_state.nodes)) {
+            const type = (nd as any).type;
+            for (const s of NODE_DEFS[type]?.sockets || []) {
+                if (s.color) colors.add(s.color);
+            }
+        }
+        for (const c of colors) {
+            const id = `tg-arrow-${c.replace('#', '')}`;
+            if (defs.querySelector(`#${id}`)) continue;
+            const m = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+            m.setAttribute('id', id);
+            m.setAttribute('viewBox', '0 0 10 10');
+            m.setAttribute('refX', '9');
+            m.setAttribute('refY', '5');
+            m.setAttribute('markerWidth', '6');
+            m.setAttribute('markerHeight', '6');
+            m.setAttribute('orient', 'auto-start-reverse');
+            const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            p.setAttribute('d', 'M0,0 L10,5 L0,10 z');
+            p.setAttribute('fill', c);
+            m.appendChild(p);
+            defs.appendChild(m);
+        }
     }
 
     function _drawTempWire(svg: HTMLElement) {
@@ -1592,6 +1872,7 @@ window.TriggerGraph = (() => {
         }
         if ((e.target as HTMLElement).id === 'tg-canvas' || (e.target as HTMLElement).id === 'tg-world' || (e.target as HTMLElement).id === 'tg-svg') {
             _setSelected(null);
+            _selectWire(null);
             _startPan(e); // empty-canvas drag pans; a plain click just deselects
         }
     }
@@ -1646,9 +1927,19 @@ window.TriggerGraph = (() => {
                 const tSock = tDef?.sockets.find(s => s.id === tsid);
                 const sSock = sDef?.sockets.find(s => s.id === ssid);
                 if (tSock && sSock && tSock.side !== sSock.side && tsid !== ssid && tnid !== snid) {
-                    let wid = `w${_state.wireIdCounter++}`;
-                    while (_state.wires[wid]) wid = `w${_state.wireIdCounter++}`;
-                    _state.wires[wid] = { id: wid, from: [snid, ssid], to: [tnid, tsid] };
+                    // task-388 defects #7/#8: refuse a cycle (the tracers recurse)
+                    // and a duplicate (two identical wires compile as one and the
+                    // second is invisible on screen). Refused at creation with a
+                    // toast rather than silently ignored.
+                    if (_hasWire(snid, ssid, tnid, tsid)) {
+                        if (typeof toastInfo === 'function') toastInfo('Those sockets are already wired.');
+                    } else if (_wouldCycle(snid, tnid)) {
+                        if (typeof toastInfo === 'function') toastInfo('That wire would create a loop.');
+                    } else {
+                        let wid = `w${_state.wireIdCounter++}`;
+                        while (_state.wires[wid]) wid = `w${_state.wireIdCounter++}`;
+                        _state.wires[wid] = { id: wid, from: [snid, ssid], to: [tnid, tsid] };
+                    }
                 }
             }
             _dragWire = null; _rerenderWires();
@@ -1667,8 +1958,11 @@ window.TriggerGraph = (() => {
     function _onKeyDown(e: KeyboardEvent) {
         const tag = ((e.target as HTMLElement | null)?.tagName || '').toLowerCase();
         if (tag === 'input' || tag === 'textarea' || tag === 'select' || (e.target as HTMLElement | null)?.isContentEditable) return;
-        if ((e.key === 'Delete' || e.key === 'Backspace') && _selectedNode) {
-            _deleteNode(_selectedNode); e.preventDefault();
+        if ((e.key === 'Delete' || e.key === 'Backspace')) {
+            // A selected wire is deleted first; otherwise the node (task-388
+            // defect #5 — wires used to be undeletable without deleting nodes).
+            if (_selectedWire) { _deleteSelectedWire(); e.preventDefault(); return; }
+            if (_selectedNode) { _deleteNode(_selectedNode); e.preventDefault(); }
         }
         if (e.key === 'Escape') { _hideContextMenu(); _close(); }
         if (e.key === 'f' || e.key === 'F') { _fitView(true); e.preventDefault(); }
@@ -2000,54 +2294,119 @@ window.TriggerGraph = (() => {
         if (node.type === 'state') {
             return { type: 'set_npc_state', state: p.state || 'idle' };
         }
-        const a: any = { type: p.action_type || 'message' };
-        const at = a.type;
-        if (at === 'message' || at === 'speak') a.text = p.text || '';
-        else if (at === 'set_npc_state') a.state = p.state || 'idle';
+        const at = p.action_type || 'message';
+        const a: any = { type: at };
+        // Keys the bespoke branch below actually consumed. Only these are
+        // excluded from the carry-through — a fixed exclusion list would drop
+        // `target`/`text` for every NON-bespoke action type (kiss, open, ...),
+        // which is the very defect this pass exists to fix.
+        const bespokeKeys = new Set<string>(['action_type']);
+        const consume = (...keys: string[]) => keys.forEach((k) => bespokeKeys.add(k));
+        // Bespoke normalization for the types with hand-tuned node fields. The
+        // defaults here are the ones the behavior form editor also applies.
+        if (at === 'message' || at === 'speak') { a.text = p.text || ''; consume('text'); }
+        else if (at === 'set_npc_state') { a.state = p.state || 'idle'; consume('state'); }
         else if (at === 'damage' || at === 'heal') {
             a.amount = parseInt(p.amount) || (at === 'damage' ? 5 : 10);
-            if (at === 'heal') { a.stat = p.stat || 'HP'; a.target = p.target || 'self'; }
+            consume('amount');
+            if (at === 'heal') { a.stat = p.stat || 'HP'; a.target = p.target || 'self'; consume('stat', 'target'); }
             else a.target = p.target || 'player';
         }
-        else if (at === 'set_environment') { a.stat = p.stat || 'temperature'; a.amount = parseInt(p.amount) || 0; if (p.area) a.area = p.area; }
+        else if (at === 'set_environment') {
+            a.stat = p.stat || 'temperature'; a.amount = parseInt(p.amount) || 0;
+            consume('stat', 'amount');
+            if (p.area) a.area = p.area;
+        }
         else if (at === 'spawn_item') {
             if (p.item_id) a.item_id = p.item_id;
             if (p.name) a.name = p.name;
             if (p.description) a.description = p.description;
+            consume('item_id', 'name', 'description');
         }
         else if (at === 'spawn_character') {
             if (p.character_id) a.character_id = p.character_id;
             if (p.name) a.display_name = p.name;
             if (p.area) a.area = p.area;
             if (p.message) a.message = p.message;
+            // the node stores `name`; the engine key is `display_name`
+            consume('character_id', 'name', 'area', 'message');
         }
-        else if (at === 'teleport') { if (p.area) a.area = p.area; a.target = p.target || 'player'; }
+        else if (at === 'teleport') { if (p.area) a.area = p.area; a.target = p.target || 'player'; consume('area', 'target'); }
         else if (at === 'go') {
             a.mode = p.mode || 'goto';
             if (a.mode === 'goto') a.area = p.area || '';
             else a.areas = p.areas || '';
+            consume('mode', 'area', 'areas');
+        }
+        else if (at === 'llm_respond') {
+            a.instructions = p.instructions || '';
+            a.fallback_message = p.fallback_message || '';
+            consume('instructions', 'fallback_message');
+        }
+
+        // task-388 Phase 3 / defect #17: carry every other prop through.
+        //
+        // Previously an action type outside the hardcoded 11 fell through the
+        // if/else chain and was re-emitted as bare `{type}`, so opening a
+        // behavior in the graph and saving silently DESTROYED the params of
+        // 110 of the 121 action types the engine dispatches — e.g.
+        // `kiss {target, where, intensity}` saved as `kiss {}`.
+        //
+        // Node props are stored flat by behaviorsToGraph (`{action_type, ...rest}`)
+        // and the engine reads flat keys, so carrying them verbatim is the
+        // correct and lossless translation. `0` and `false` are values the
+        // engine reads (damage amount, flag value) and are preserved; only
+        // undefined/null/'' are skipped, so an untouched generated field does
+        // not overwrite a real value with an empty string.
+        for (const key of Object.keys(p)) {
+            if (bespokeKeys.has(key)) continue;
+            const v = p[key];
+            if (v === undefined || v === null || v === '') continue;
+            a[key] = v;
         }
         return a;
+    }
+
+    /** All wires leaving one socket, in creation order.
+     *
+     *  task-388 defect #9: the tracers used `wires.find(...)`, so only the FIRST
+     *  wire from an output was followed and every other branch vanished on save
+     *  with no warning. The engine's behavior model is a flat action list
+     *  (`for action in actions:` in engine/triggers/behaviors.py), so fan-out is
+     *  natively supported — dropping it was an editor bug, not a model limit. */
+    function _outWires(wires: any[], nid: string, ...sockets: string[]): any[] {
+        return wires.filter((w) => w.from[0] === nid && sockets.includes(w.from[1]));
     }
 
     /** Trace behavior node graph into conditions + flat actions.
      *  ``problems`` accumulates refusals (task-503): the behavior model has no
      *  else, so a NO branch carrying anything is unrepresentable and must not be
      *  dropped silently. */
-    function _traceBehavior(nid: string, wires: any[], nodes: any[], problems?: string[]): { conditions: any[]; actions: any[] } {
+    function _traceBehavior(nid: string, wires: any[], nodes: any[], problems?: string[], seen?: Set<string>): { conditions: any[]; actions: any[] } {
         if (!problems) problems = [];
+        // Cycle guard: a hand-drawn loop would otherwise recurse until the stack
+        // blows. Creation now rejects cycles, but a blueprint or an older save can
+        // still contain one.
+        if (!seen) seen = new Set<string>();
+        if (seen.has(nid)) {
+            problems.push('Cycle detected in the graph; the loop was not followed.');
+            return { conditions: [], actions: [] };
+        }
+        seen.add(nid);
         const node = nodes.find(n => n.id === nid);
         if (!node) return { conditions: [], actions: [] };
         if (node.type === 'condition') {
             const conds = [_buildConditionFromNode(node)];
             const label = conds[0]?.type || 'condition';
-            const yw = wires.find(w => w.from[0] === nid && w.from[1] === 'output_yes');
-            const yes = yw ? _traceBehavior(yw.to[0], wires, nodes, problems) : { conditions: [], actions: [] };
-            let actions = yes.actions;
-            let conditions = [...conds, ...yes.conditions];
-            const nw = wires.find(w => w.from[0] === nid && w.from[1] === 'output_no');
-            if (nw) {
-                const no = _traceBehavior(nw.to[0], wires, nodes, problems);
+            // Fan-out: every YES wire is followed, each on its own seen-set so
+            // sibling branches cannot suppress one another.
+            const yesBranches = _outWires(wires, nid, 'output_yes')
+                .map((w) => _traceBehavior(w.to[0], wires, nodes, problems, new Set(seen)));
+            const conditions = yesBranches.flatMap((b) => [conds, ...b.conditions]);
+            const actions = yesBranches.flatMap((b) => b.actions);
+            const noBranches = _outWires(wires, nid, 'output_no')
+                .map((w) => _traceBehavior(w.to[0], wires, nodes, problems, new Set(seen)));
+            for (const no of noBranches) {
                 if (no.actions.length || no.conditions.length) {
                     problems.push(`Behavior condition "${label}" NO branch carries ${no.actions.length} action(s); the behavior model has no else, so it was not compiled.`);
                 }
@@ -2056,22 +2415,28 @@ window.TriggerGraph = (() => {
         }
         if (node.type === 'group') {
             const groupCond = _traceGroupCondition(nid, wires, nodes);
-            const nw = wires.find(w => w.from[0] === nid && (w.from[1] === 'output_yes' || w.from[1] === 'output'));
-            const next = nw ? _traceBehavior(nw.to[0], wires, nodes, problems) : { conditions: [], actions: [] };
-            const noW = wires.find(w => w.from[0] === nid && w.from[1] === 'output_no');
-            if (noW) {
-                const no = _traceBehavior(noW.to[0], wires, nodes, problems);
+            const branches = _outWires(wires, nid, 'output_yes', 'output')
+                .map((w) => _traceBehavior(w.to[0], wires, nodes, problems, new Set(seen)));
+            const noBranches = _outWires(wires, nid, 'output_no')
+                .map((w) => _traceBehavior(w.to[0], wires, nodes, problems, new Set(seen)));
+            for (const no of noBranches) {
                 if (no.actions.length || no.conditions.length) {
                     problems.push(`Behavior group "${groupCond.operator}" NO branch carries ${no.actions.length} action(s); the behavior model has no else, so it was not compiled.`);
                 }
             }
-            return { conditions: [groupCond, ...next.conditions], actions: next.actions };
+            return {
+                conditions: [groupCond, ...branches.flatMap((b) => b.conditions)],
+                actions: branches.flatMap((b) => b.actions)
+            };
         }
         if (node.type === 'action' || node.type === 'state') {
             const act = _buildActionFromNode(node);
-            const nw = wires.find(w => w.from[0] === nid && (w.from[1] === 'output' || w.from[1] === 'right'));
-            const next = nw ? _traceBehavior(nw.to[0], wires, nodes, problems) : { conditions: [], actions: [] };
-            return { conditions: next.conditions, actions: [act, ...next.actions] };
+            const next = _outWires(wires, nid, 'output', 'right')
+                .map((w) => _traceBehavior(w.to[0], wires, nodes, problems, new Set(seen)));
+            return {
+                conditions: next.flatMap((b) => b.conditions),
+                actions: [act, ...next.flatMap((b) => b.actions)]
+            };
         }
         return { conditions: [], actions: [] };
     }
@@ -2087,9 +2452,18 @@ window.TriggerGraph = (() => {
         behaviorNodes = behaviorNodes.sort((a: any, b: any) => (a.y ?? 0) - (b.y ?? 0));
         const count = behaviorNodes.length;
         const behaviors = behaviorNodes.map((bnode: any, rank: number) => {
-            const bw = (graph.wires || []).find((w: any) => w.from[0] === bnode.id && (w.from[1] === 'output' || w.from[1] === 'right'));
+            // task-388 defect #9: follow EVERY wire off the behavior node, not
+            // just the first. A behavior wired to two chains is a legitimate
+            // fan-out and the engine's flat action list runs both.
+            const outs = _outWires(graph.wires || [], bnode.id, 'output', 'right');
             let traced: { conditions: any[]; actions: any[] } = { conditions: [], actions: [] };
-            if (bw) traced = _traceBehavior(bw.to[0], graph.wires, graph.nodes, problems);
+            if (outs.length) {
+                const branches = outs.map((w: any) => _traceBehavior(w.to[0], graph.wires, graph.nodes, problems, new Set([bnode.id])));
+                traced = {
+                    conditions: branches.flatMap((b: any) => b.conditions),
+                    actions: branches.flatMap((b: any) => b.actions)
+                };
+            }
             const conditions = traced.conditions.length > 0
                 ? (traced.conditions.length === 1 ? traced.conditions[0] : { operator: 'and', conditions: traced.conditions })
                 : {};
@@ -2452,30 +2826,52 @@ window.TriggerGraph = (() => {
         return { operator: op, conditions: children };
     }
 
-    function _traceGraph(nid: string, wires: any[], nodes: any[]): { effects: any[]; conditions: any[]; fail_message: string; problems: string[] } {
+    function _traceGraph(nid: string, wires: any[], nodes: any[], seen?: Set<string>): { effects: any[]; conditions: any[]; fail_message: string; problems: string[] } {
         const empty: { effects: any[]; conditions: any[]; fail_message: string; problems: string[] } = { effects: [], conditions: [], fail_message: '', problems: [] };
+        // Cycle guard: creation rejects cycles, but a hand-edited or imported
+        // blueprint can still contain one, and this tracer is recursive.
+        if (!seen) seen = new Set<string>();
+        if (seen.has(nid)) {
+            return { ...empty, problems: ['Cycle detected in the graph; the loop was not followed.'] };
+        }
+        seen.add(nid);
         const node = nodes.find((n: any) => n.id === nid);
         if (!node) return empty;
         if (node.type === 'condition') {
             const conds = [_buildConditionFromNode(node)];
             const label = conds[0]?.type || 'condition';
-            const yw = wires.find(w => w.from[0] === nid && w.from[1] === 'output_yes');
-            const nw = wires.find(w => w.from[0] === nid && w.from[1] === 'output_no');
-            const ye = yw ? _traceGraph(yw.to[0], wires, nodes) : empty;
+            // task-388 defect #9: follow every YES wire, not only the first.
+            const yesOuts = _outWires(wires, nid, 'output_yes');
+            const yesBranches = yesOuts.map((w) => _traceGraph(w.to[0], wires, nodes, new Set(seen)));
+            const ye = {
+                effects: yesBranches.flatMap((b) => b.effects),
+                conditions: yesBranches.flatMap((b) => b.conditions),
+                fail_message: yesBranches.map((b) => b.fail_message).find(Boolean) || '',
+                problems: yesBranches.flatMap((b) => b.problems)
+            };
             let failMessage = '';
             let problems = [...ye.problems];
-            if (nw) {
-                const ne = _traceGraph(nw.to[0], wires, nodes);
-                const msgs = ne.effects.filter(e => e.type === 'message');
-                if (ne.conditions.length) {
-                    problems.push(`Condition "${label}" NO branch chains another condition; the engine supports only a single NO message.`);
+            const noOuts = _outWires(wires, nid, 'output_no');
+            if (noOuts.length) {
+                // The engine models a NO branch as at most one message, so each
+                // NO wire is checked on its own and the extras are refused
+                // loudly rather than dropped silently.
+                let kept = '';
+                for (const w of noOuts) {
+                    const ne = _traceGraph(w.to[0], wires, nodes, new Set(seen));
+                    const msgs = ne.effects.filter(e => e.type === 'message');
+                    if (ne.conditions.length) {
+                        problems.push(`Condition "${label}" NO branch chains another condition; the engine supports only a single NO message.`);
+                    }
+                    if (ne.effects.length === 1 && msgs.length === 1 && msgs[0].params?.message) {
+                        if (!kept) kept = msgs[0].params.message;
+                        else problems.push(`Condition "${label}" has ${noOuts.length} NO branches; only one NO message is compiled.`);
+                    } else if (ne.effects.length > 0) {
+                        problems.push(`Condition "${label}" NO branch has ${ne.effects.length} effect(s); the engine supports only a single NO message.`);
+                    }
+                    problems = problems.concat(ne.problems);
                 }
-                if (ne.effects.length === 1 && msgs.length === 1 && msgs[0].params?.message) {
-                    failMessage = msgs[0].params.message;
-                } else if (ne.effects.length > 0) {
-                    problems.push(`Condition "${label}" NO branch has ${ne.effects.length} effect(s); the engine supports only a single NO message.`);
-                }
-                problems = problems.concat(ne.problems);
+                failMessage = kept;
             }
             return {
                 effects: ye.effects,
@@ -2489,40 +2885,45 @@ window.TriggerGraph = (() => {
             const label = groupCond.operator;
             // A group's NO branch carries at most a single message, exactly like
             // a condition's (task-501 semantics kept for groups).
-            const nw = wires.find(w => w.from[0] === nid && w.from[1] === 'output_no');
+            const noOuts = _outWires(wires, nid, 'output_no');
             let failMessage = '';
             let problems: string[] = [];
-            if (nw) {
-                const ne = _traceGraph(nw.to[0], wires, nodes);
-                const msgs = ne.effects.filter((e: any) => e.type === 'message');
-                if (ne.conditions.length) {
-                    problems.push(`Group "${label}" NO branch chains another condition; the engine supports only a single NO message.`);
+            if (noOuts.length) {
+                for (const w of noOuts) {
+                    const ne = _traceGraph(w.to[0], wires, nodes, new Set(seen));
+                    const msgs = ne.effects.filter((e: any) => e.type === 'message');
+                    if (ne.conditions.length) {
+                        problems.push(`Group "${label}" NO branch chains another condition; the engine supports only a single NO message.`);
+                    }
+                    if (ne.effects.length === 1 && msgs.length === 1 && msgs[0].params?.message) {
+                        if (!failMessage) failMessage = msgs[0].params.message;
+                        else problems.push(`Group "${label}" has ${noOuts.length} NO branches; only one NO message is compiled.`);
+                    } else if (ne.effects.length > 0) {
+                        problems.push(`Group "${label}" NO branch has ${ne.effects.length} effect(s); the engine supports only a single NO message.`);
+                    }
+                    problems = problems.concat(ne.problems);
                 }
-                if (ne.effects.length === 1 && msgs.length === 1 && msgs[0].params?.message) {
-                    failMessage = msgs[0].params.message;
-                } else if (ne.effects.length > 0) {
-                    problems.push(`Group "${label}" NO branch has ${ne.effects.length} effect(s); the engine supports only a single NO message.`);
-                }
-                problems = problems.concat(ne.problems);
             }
-            const yw = wires.find(w => w.from[0] === nid && w.from[1] === 'output_yes');
-            const ye = yw ? _traceGraph(yw.to[0], wires, nodes) : empty;
+            // task-388 defect #9: fan out over every YES/forward wire.
+            const yesOuts = _outWires(wires, nid, 'output_yes');
+            const yesBranches = yesOuts.map((w) => _traceGraph(w.to[0], wires, nodes, new Set(seen)));
             return {
-                effects: ye.effects,
-                conditions: [groupCond, ...ye.conditions],
-                fail_message: failMessage || ye.fail_message || '',
-                problems: problems.concat(ye.problems),
+                effects: yesBranches.flatMap((b) => b.effects),
+                conditions: [groupCond, ...yesBranches.flatMap((b) => b.conditions)],
+                fail_message: failMessage || yesBranches.map((b) => b.fail_message).find(Boolean) || '',
+                problems: problems.concat(yesBranches.flatMap((b) => b.problems)),
             };
         }
         if (node.type === 'effect') {
             const eff = { type: node.props.effect_type || 'message', params: _normalizeEffectParams(node.props.effect_type || 'message', node.props) };
-            const nw = wires.find(w => w.from[0] === nid && (w.from[1] === 'output' || w.from[1] === 'right'));
-            const next = nw ? _traceGraph(nw.to[0], wires, nodes) : empty;
+            // task-388 defect #9: one effect may feed several downstream effects.
+            const next = _outWires(wires, nid, 'output', 'right')
+                .map((w) => _traceGraph(w.to[0], wires, nodes, new Set(seen)));
             return {
-                effects: [eff, ...next.effects],
-                conditions: next.conditions,
-                fail_message: next.fail_message,
-                problems: next.problems,
+                effects: [eff, ...next.flatMap((b) => b.effects)],
+                conditions: next.flatMap((b) => b.conditions),
+                fail_message: next.map((b) => b.fail_message).find(Boolean) || '',
+                problems: next.flatMap((b) => b.problems),
             };
         }
         return empty;

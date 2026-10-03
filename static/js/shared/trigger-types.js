@@ -109,6 +109,154 @@ const TriggerTypes = {
         { value: 'clear_area_status', label: '🧹 Clear Area Status', group: 'area' },
         // task-231: wet/dry clothing state.
         { value: 'set_wet', label: '💧 Set Wet (soak/dry items)', group: 'item' }
-    ]
+    ],
+    /**
+     * BEHAVIOR_ACTION_TYPES — every NPC behavior action the engine dispatches,
+     * with the params it actually reads. This is the ONE action catalog;
+     * behaviors-view.js and shared/trigger-graph.js both render from it.
+     *
+     * Generated from `engine/triggers/behaviors.py::_execute_behavior_actions`
+     * (121 dispatch branches, 91 with params). `params` are the ENGINE's key
+     * names, not the form's prefixed DOM field names (`kiss_target`) — the form
+     * maps field -> key on save, the graph stores keys directly.
+     *
+     * Before this existed the graph editor hardcoded 11 of these in its action
+     * `<select>` and re-emitted only 10 in _buildActionFromNode, so opening a
+     * behavior in the graph and saving silently destroyed the params of the
+     * other 110 (task-388 defect #17). Verify with
+     * tools/test_behavior_action_roundtrip.cjs.
+     */
+    BEHAVIOR_ACTION_TYPES: [
+        { value: 'activate', label: '⚡ Activate', params: ['item'] },
+        { value: 'add_memory', label: '🧠 Add Memory', params: ['importance', 'tags', 'text'] },
+        { value: 'add_tag', label: '🏷️ Add Tag', params: ['tag', 'target', 'value'] },
+        { value: 'adorn', label: '💎 Adorn', params: ['item', 'target'] },
+        { value: 'approach', label: '🚶 Approach', params: ['target'] },
+        { value: 'attack', label: '⚔️ Attack', params: ['target', 'weapon', 'where'] },
+        { value: 'bathe', label: '🛁 Bathe', params: ['minutes', 'target'] },
+        { value: 'beg', label: '🥺 Beg', params: ['target'] },
+        { value: 'bite', label: '🫷 Bite', params: ['intensity', 'target', 'where'] },
+        { value: 'block', label: '🧱 Block', params: ['target'] },
+        { value: 'break', label: '💢 Break', params: ['item'] },
+        { value: 'bribe', label: '💰 Bribe', params: ['item', 'target'] },
+        { value: 'caress', label: '✋ Caress', params: ['intensity', 'target', 'where'] },
+        { value: 'carry', label: '🫃 Carry', params: ['item'] },
+        { value: 'carve', label: '🗿 Carve', params: ['target', 'text'] },
+        { value: 'climb', label: '🧗 Climb', params: ['direction'] },
+        { value: 'close', label: '🚪 Close', params: ['target'] },
+        { value: 'combine', label: '🔗 Combine', params: ['source', 'target'] },
+        { value: 'commands', label: '📋 Commands', params: [] },
+        { value: 'cook', label: '🍳 Cook', params: ['recipe'] },
+        { value: 'craft', label: '⚒️ Craft', params: ['recipe'] },
+        { value: 'crawl', label: '🐍 Crawl', params: ['direction'] },
+        { value: 'damage', label: '💥 Damage', params: ['amount', 'target'] },
+        { value: 'dash', label: '💨 Dash', params: ['direction'] },
+        { value: 'demand', label: '😠 Demand', params: ['target'] },
+        { value: 'drag', label: '🪢 Drag', params: ['direction', 'target'] },
+        { value: 'dress', label: '👔 Dress', params: [] },
+        { value: 'drink', label: '🍺 Drink', params: ['item'] },
+        { value: 'drop', label: '⬇️ Drop', params: ['item'] },
+        { value: 'drop_all', label: '🗑️ Drop All', params: [] },
+        { value: 'eat', label: '🍽️ Eat', params: ['item'] },
+        { value: 'embrace', label: '🫂 Embrace', params: ['intensity', 'target', 'where'] },
+        { value: 'emote', label: '🎭 Emote', params: ['text'] },
+        { value: 'equip', label: '🛡️ Equip', params: ['item', 'slot'] },
+        { value: 'escape', label: '🏃 Escape', params: [] },
+        { value: 'examine', label: '🔎 Examine', params: ['target'] },
+        { value: 'follow', label: '👣 Follow', params: ['target'] },
+        { value: 'fumble', label: '🤲 Fumble Around', params: [] },
+        { value: 'give', label: '🎁 Give', params: ['item', 'target'] },
+        { value: 'go', label: '🚶 Go / Move', params: ['area', 'room'] },
+        { value: 'grab', label: '✊ Grab', params: ['target'] },
+        { value: 'gulp_down', label: '🥤 Gulp Down', params: ['item'] },
+        { value: 'heal', label: '❤️ Heal', params: ['amount', 'stat', 'target'] },
+        { value: 'help', label: '❓ Help', params: [] },
+        { value: 'hide_behind', label: '🫣 Hide Behind', params: ['target'] },
+        { value: 'hide_in', label: '📦 Hide In', params: ['target'] },
+        { value: 'hide_under', label: '⬇️ Hide Under', params: ['target'] },
+        { value: 'hold', label: '✋ Hold', params: ['item'] },
+        { value: 'introduce', label: '🤝 Introduce', params: ['target'] },
+        { value: 'inventory', label: '🎒 Inventory', params: [] },
+        { value: 'jump', label: '🦘 Jump', params: ['direction'] },
+        { value: 'kiss', label: '💋 Kiss', params: ['intensity', 'target', 'where'] },
+        { value: 'lick', label: '👅 Lick', params: ['intensity', 'target', 'where'] },
+        { value: 'lie_down', label: '🛏️ Lie Down', params: [] },
+        { value: 'light', label: '🔥 Light', params: ['item'] },
+        { value: 'llm_respond', label: '🤖 LLM Respond', params: ['cooldown', 'fallback_message', 'heard', 'instructions', 'llm_fallback', 'llm_instructions', 'max_words', 'name'] },
+        { value: 'lock', label: '🔒 Lock', params: ['target'] },
+        { value: 'look', label: '👀 Look', params: [] },
+        { value: 'manifest', label: '👻 Manifest', params: [] },
+        { value: 'map', label: '🗺️ Map', params: [] },
+        { value: 'meditate', label: '🧘 Meditate', params: ['minutes'] },
+        { value: 'message', label: '💬 Message', params: ['text'] },
+        { value: 'open', label: '🚪 Open', params: ['target'] },
+        { value: 'pin', label: '📌 Pin', params: ['target'] },
+        { value: 'pinch', label: '🤏 Pinch', params: ['target', 'where'] },
+        { value: 'place', label: '📌 Place', params: ['item', 'relation', 'target'] },
+        { value: 'possess', label: '🎭 Possess', params: ['target'] },
+        { value: 'push', label: '✋ Push/Pull', params: ['direction', 'target'] },
+        { value: 'push_through', label: '🚶 Push Through', params: ['direction'] },
+        { value: 'put_in', label: '📥 Put In', params: ['container', 'item'] },
+        { value: 'quit', label: '🚪 Quit', params: [] },
+        { value: 'read', label: '📖 Read', params: ['item'] },
+        { value: 'release', label: '🤲 Release', params: ['target'] },
+        { value: 'relieve', label: '🚽 Relieve', params: [] },
+        { value: 'remove', label: '🗑️ Remove', params: ['item'] },
+        { value: 'remove_tag', label: '🏷️ Remove Tag', params: ['tag', 'target', 'value'] },
+        { value: 'repair', label: '🔨 Repair', params: ['item', 'kit'] },
+        { value: 'rest', label: '😴 Rest', params: ['minutes'] },
+        { value: 'save', label: '💾 Save', params: [] },
+        { value: 'score', label: '📊 Score', params: [] },
+        { value: 'search', label: '🔍 Search', params: ['target'] },
+        { value: 'set_emotion', label: '😊 Set Emotion', params: ['emotion', 'intensity'] },
+        { value: 'set_environment', label: '🌡️ Set Environment', params: ['amount', 'area', 'stat'] },
+        { value: 'set_flag', label: '🚩 Set Flag', params: ['key', 'value'] },
+        { value: 'set_npc_state', label: '🎭 Set NPC State', params: ['state'] },
+        { value: 'sit', label: '🪑 Sit', params: [] },
+        { value: 'sleep', label: '💤 Sleep', params: ['minutes'] },
+        { value: 'spawn_body_item', label: '💀 Spawn Body Item', params: [] },
+        { value: 'spawn_character', label: '🧑 Spawn Character', params: [] },
+        { value: 'spawn_item', label: '📦 Spawn Item', params: ['description', 'display_name', 'item_id', 'name'] },
+        { value: 'speak', label: '🗣️ Speak', params: ['text'] },
+        { value: 'stand', label: '🧍 Stand', params: [] },
+        { value: 'steal', label: '🤫 Steal', params: ['item', 'target'] },
+        { value: 'stop', label: '🛑 Stop', params: [] },
+        { value: 'stow', label: '📦 Stow', params: ['item'] },
+        { value: 'strip', label: '👙 Strip', params: [] },
+        { value: 'struggle', label: '💪 Struggle', params: [] },
+        { value: 'suck', label: '💦 Suck', params: ['intensity', 'target', 'where'] },
+        { value: 'swap', label: '🔁 Swap', params: ['item', 'target'] },
+        { value: 'take', label: '🤲 Take', params: ['item'] },
+        { value: 'take_all', label: '📥 Take All', params: [] },
+        { value: 'teach', label: '📚 Teach', params: ['subject', 'target'] },
+        { value: 'teleport', label: '🌀 Teleport', params: ['area', 'character_name', 'target'] },
+        { value: 'throw', label: '🎯 Throw', params: ['item', 'target'] },
+        { value: 'tickle', label: '😂 Tickle', params: ['intensity', 'target', 'where'] },
+        { value: 'time', label: '🕐 Time', params: [] },
+        { value: 'toggle', label: '🔘 Toggle', params: ['item'] },
+        { value: 'toggle_way', label: '🚧 Toggle Way', params: ['direction', 'way_action'] },
+        { value: 'traverse', label: '🌉 Traverse', params: ['direction', 'target'] },
+        { value: 'turn', label: '🔄 Turn', params: ['target'] },
+        { value: 'unequip', label: '🚫 Unequip', params: ['item', 'slot'] },
+        { value: 'unhide', label: '👋 Unhide', params: [] },
+        { value: 'unlock', label: '🔓 Unlock', params: ['target'] },
+        { value: 'use', label: '🔧 Use', params: ['item', 'target'] },
+        { value: 'vanish', label: '🌫️ Vanish', params: [] },
+        { value: 'version', label: 'ℹ️ Version', params: [] },
+        { value: 'wait', label: '⏳ Wait', params: [] },
+        { value: 'wake', label: '⏰ Wake', params: ['target'] },
+        { value: 'weigh', label: '⚖️ Weigh', params: [] },
+        { value: 'who', label: '👤 Who', params: [] },
+        { value: 'wraith_form', label: '🌑 Wraith Form', params: [] }
+    ],
+    /** Params the engine reads for one action type ([] when it takes none). */
+    ACTION_PARAMS(type) {
+        const hit = TriggerTypes.BEHAVIOR_ACTION_TYPES.find((a) => a.value === type);
+        return hit ? hit.params : [];
+    },
+    /** Every action type value, for building a <select>. */
+    ACTION_VALUES() {
+        return TriggerTypes.BEHAVIOR_ACTION_TYPES.map((a) => a.value);
+    }
 };
 window.TriggerTypes = TriggerTypes;

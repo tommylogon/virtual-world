@@ -113,6 +113,11 @@ load('static/js/shared/json-utils.js');
 load('static/js/shared/item-containment.js');
 load('static/js/shared/scope-options.js');
 load('static/js/shared/trigger-suggest-ai.js');
+// trigger-types.js must precede trigger-graph.js: the action node reads the
+// behavior action catalog from window.TriggerTypes at RENDER time (task-388
+// Phase 3), and trigger-graph.js falls back to an empty catalog when it is
+// absent, which would make the round-trip tests vacuously pass.
+load('static/js/shared/trigger-types.js');
 load('static/js/shared/trigger-graph.js');
 load('static/js/agent/vital-thresholds.js');
 load('static/js/agent/simultaneous.js');
