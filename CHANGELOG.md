@@ -4,6 +4,203 @@ All notable changes to VirtualWorld. See `docs/virtualWorld/Scenario Workflows &
 
 ---
 
+## Unreleased — "Things Stop Vanishing" (2026-10-03)
+
+**186 commits, 95 distinct tasks and bugs.** This update is dominated by one theme that
+the previous entries kept circling: **data that was authored, paid for, and then silently
+destroyed by the editor on save.** Two of the fixes below were reproduced in a live browser
+*before* any code was written, and both destroyed user content without a warning or an error.
+
+Measured against the running app, not inferred from the code:
+
+```
+kiss {target:'player', where:'mouth', intensity:'rough'}  ->  kiss {}    # every param gone
+one output wired to two actions                           ->  only the first survived
+```
+
+The first was worse than the ticket said. The behavior-graph action node offered **11** action
+types and re-emitted **10** on save; the engine dispatches **121**. So **110 of 121 action types
+(124 of 149 params) were destroyed** by opening a behavior in the graph and pressing Save.
+
+### 🧠 The behavior graph stops destroying action params (task-388)
+
+`TriggerTypes.BEHAVIOR_ACTION_TYPES` is now **the single action catalog** — 121 types with the
+params **the engine actually reads**, extracted from
+`engine/triggers/behaviors.py::_execute_behavior_actions`, whose `action_type` branches dispatch
+121 types (91 of them reading params). Both editors render from it:
+`inspector/behaviors-view.js` dropped its own 121-entry action literal, and the graph's action node
+builds its dropdown *and* its field set from the catalog. A new engine action type is now editable
+in both editors with no change to either. Params present on a node but not in the catalog are
+carried through **visibly** rather than dropped.
+
+**Two known gaps, both cost editability and not data.** The catalog omits `listen` and `trade`,
+which the engine does dispatch; and it over-declares `add_tag`'s params as `tag`/`target`/`value`
+where the engine reads a shared tail. Both were found by comparing the two lists rather than
+assuming they agreed, and neither loses data on a round trip — the carry-through is generic, and
+a type absent from the dropdown still round-trips through the "⚠ unknown type" option.
+
+`static/js/shared/trigger-graph.ts::_buildActionFromNode` keeps bespoke defaults for the 11
+hand-tuned node types and carries every other prop through verbatim. The carry-through skips
+`undefined`/`null`/`''` only, so a real `0` or `false` survives.
+
+The fan-out bug was the same class. `_traceBehavior` and `_traceGraph` used `wires.find(...)`,
+so only the first wire off an output was followed. That one is an **editor bug, not a model
+limit**: `behaviors.py:45` is `for action in actions:`, a flat action list, so the engine runs
+fan-out natively. Both tracers now follow every wire, each branch with its own `seen` set, and a
+cycle in an imported blueprint is reported instead of recursing until the stack dies.
+
+`tools/unit/test_trigger_graph.js` (11 tests) asserts **all 121 action types round-trip with
+every param intact**. It caught a bug in the first attempt — a fixed exclusion list dropped
+`target`/`text` for every non-bespoke type, leaving 50 types failing.
+
+### 🔌 Wires can be edited, and bad wires are refused (task-388)
+
+Wires previously **could not be deleted at all** (task-388 defect #5): a mis-wire meant deleting
+whole nodes. Now each wire gets a 14px transparent hit path (the visible 2.5px stroke was never
+a usable target, and the SVG layer is `pointer-events:none`); click to select, **Del** to delete,
+right-click to select-and-delete. Arrowheads are one `<marker>` per wire colour, oriented along
+the bezier tangent so they point into the target socket at any zoom. Cycles and duplicate wires
+are **refused at creation with a toast** instead of silently ignored.
+
+A compile-honesty badge in the toolbar names the branches that will not be saved and why. The
+behavior NO branch is deliberately **warn-only**: the behavior model has no `else` at all
+(`fail_message` exists only for triggers), so it cannot be compiled away and must stay visible.
+
+### ✅ The front end is TypeScript, in full
+
+**158 of 158** classic-script modules under `static/js` are `.ts` sources emitting back to `.js`.
+No bundler, no `<script>` changes — `templates/index.html` is untouched. The single gate is
+`python tools/ts_convert.py check`, which runs `build:ts`, `typecheck`, `lint`, `module:check`
+and the unit runner, verifies every emitted `.js` kept its `@module` header, and fails on an
+unreviewed `window.` prefix drop. **It is green**, and it fails when a drop is unreviewed (verified
+by injecting one).
+
+Two records back the dropped-prefix check, both with traps now documented:
+`tools/window-usage-baseline.json` (the `window.NAME` counts from before each conversion) and
+`tools/window-usage-reviewed.json` (the 8 reviewed drops with their reasons). The baseline tool
+**only adds files that are not already present** — it can add an entry but never refresh a stale
+one, which is how 57 entries came to disagree with HEAD.
+
+The recurring hazard is documented in `AGENTS.md` and `docs/design/typescript-migration.md`:
+silencing `Property 'X' does not exist on type 'Window'` by deleting the `window.` prefix makes
+the type check pass and turns an undefined-safe guard into a runtime `ReferenceError`. That is how
+`test_fear_verbs` broke in a browser before anything noticed.
+
+### 🧪 Things that now refuse to be wrong
+
+A theme rather than a feature: a series of checks that turn silent corruption into a refusal.
+
+- **Save schema gate** (task-453) — `SCHEMA_VERSION` in every save, with a registered migration
+  and a refusal on load when the payload is newer than the app understands.
+- **Biome lint from `biomes.json`** (task-573) — resource coverage is derived from the biome
+  definitions rather than a hand-kept list, so a new biome cannot ship with no coverage.
+- **Tag validation stops inventing near-misses** (bug-512) — it no longer suggests a tag you did
+  not mean.
+- **One carried-or-equipped edge per item** (task-450) — an item in two places is now impossible
+  rather than merely discouraged.
+- **Equipped ids are pruned when the item node is deleted** (task-654), and an equipped payload
+  writes the **edges** too, not just the dict.
+- **A dead-interest/fear-tag gate for scenario saves** (bug-513).
+- **The character loadout shape gate** (`tools/character_loadout_check.py`) — a dict in an
+  `equipped` slot 500s `GET /api/state`, so the check refuses that shape.
+- **The worldpainter tool-key scan was scoped to the TOOLS table** (`a608f136`): it had matched a
+  compass row and fabricated a defect the app does not have. A test asserting a non-existent
+  failure is removed, not worked around.
+
+### 🗺 The world is chunked, scoped, and knows where it is
+
+The largest body of engine work in this window, and it is mostly about **identity and ownership**.
+
+- **Global scope index with gateway targets, load-before-you-move** (task-583), **cross-chunk
+  ownership** for locations, triggers and delayed events (task-584), and **scope
+  load/unload/merge APIs with ownership checks** (task-582).
+- **An id-keyed single location record, edge-authoritative on load** (task-581) — one truth for
+  where a thing is, and the edge wins.
+- **Id-first area resolution with canonical id projection and duplicate-name diagnostics**
+  (task-439): a duplicate name is now a diagnostic instead of a coin flip.
+- **Per-area capacity as a sum of occupant footprints** (task-653).
+- **Physics defaults off in Map mode** (task-527) — a perf fix that also removed the stutter.
+
+### 🧬 A character is a species, and can be hurt in two axes
+
+- **A species identity the need layer can read**, carried through the serializer `/api/state`
+  actually serves (task-549) — the first half without the second is a field that exists and is
+  invisible at runtime.
+- **One resolver for the vital ceiling, hit dice and one death path** (task-538). The engine had
+  no health model; it had a `100`. `Max_HP` was the only vital with a maximum, and writing a
+  `Max_*` through the API re-clamped the vital it was supposed to bound (task-538).
+- **Two-axis defence and a selectable damage-reduction mode** (task-604/607) — flat or
+  percentage, chosen in config, with the log saying which.
+- **Ranged weapons and ammunition** (task-518); **a scale-correct ability curve** and the library
+  that satisfies it (task-606).
+- **Equipment has a coverage default, and wetness reaches the description** (task-489/215) — the
+  point being that a vital which does not reach the text is not a vital.
+- **Feelings steer behaviour** through one normaliser for a declared feeling (task-652).
+
+### 🎒 An item has a history, a place, and rules
+
+- **Provenance and acquisition history** (task-514) — where it came from and how it was got.
+- **Concealed carried items, search-to-reveal** (task-516).
+- **Homogeneous stacks and relational piles** (task-473).
+- **Structured inscription, reachable by the agent** (task-433).
+- **Item biome affinity** as a vocabulary, authored on the four resource templates (task-571), and
+  a **biome resource spawner wired into grid generate** (task-569).
+- **Kraktooth goblin gear spec and starting loadouts** (task-513/519) — and the spec reuses the
+  task-515 Good Knife rather than minting a near-duplicate.
+- The library is now **1,999 items** (measured via `GET /api/library/items`), up from 1,915.
+
+### ⚡ Triggers, blueprints and the condition groups they needed
+
+- **AND/OR/NOT condition groups are real graph nodes** (task-502) instead of an encoding trick.
+- **A blueprint compiles to runtime nodes, with a searchable blueprint browser** (task-442).
+- **Reusable behaviours load into the engine via `behavior_refs`** (task-590).
+- **One compiler between trigger edges and `logic_trigger` nodes** (task-636) — there were two.
+
+### 🖌 The painter, and the docs you can reach
+
+- **WorldPainter**: a legible zoom floor, space-pans, tile detail, grid handles (bug-511,
+  task-595/596/597); every paint layer always present with described palette tiles (task-651); and
+  it stops offering known-bad reference art (task-649).
+- **A documentation panel in the inspector and library editor** (task-579), **an authorable docs
+  link on library entries** (task-577), and **a resolver route for module and node documentation**
+  (task-578). The `@docs` contract now covers Python modules too (task-576).
+- **Generated node ids are read-only** in the inspector (task-622); the area-environment editor
+  matches the actual light/noise data shapes and surfaces world weather (task-640); and the
+  inspector **says why** Generate-from-Personality is unavailable instead of showing a dead button
+  (bug-514).
+- **Eldenford's town paint is finished, with a bathhouse biome** (task-650).
+
+### 📏 Known state of the suite at this commit
+
+- **JS**: `ts_convert.py check` green — build, typecheck, lint, module:check, **533 unit tests**
+  (was 522), 158/158 module headers intact.
+- **Python**: **84 failed / 7,171 passed / 2 skipped** (5m15s), against a documented floor of 12.
+  The gap is **environmental, not new**: **55** are the MCP cluster failing on
+  `fastmcp 2.14.7` — `'FunctionTool' object is not callable` — and the tests were fixed for the
+  `>= 3` API, which returns the plain function. Check the installed version before suspecting
+  `mcp_server.py`. The remaining **~29** include the known `test_ownership` /
+  `test_scenario_data_integrity` / `test_character_identity` / `test_promotion` set, plus
+  `test_goblin_loadouts` (7). Verified pre-existing by A/B: those **fail identically on a clean
+  `master` scenario**, so they are not caused by this window's work.
+
+### 📌 Two things to know
+
+**`data/scenarios/kraktooth_goblin_camp.json` is modified in the working tree and was
+deliberately not committed.** It is the app's own **Commit Scenario** output
+(`routes/helpers.py::_save_scenario` writes `world.to_scenario_dict()` over that path), so it now
+holds a played session: `players_in_area` went from the authored cast to four sim characters, and
+an `active_player` from testing is baked in. The authored scenario is intact at HEAD:
+
+```
+git checkout -- data/scenarios/kraktooth_goblin_camp.json
+```
+
+**The Python failure floor is 84, not 12, and 55 of that is your `fastmcp` pin.** The documented
+"all 69 MCP tests pass" is true for `fastmcp >= 3`. Upgrading is the fix; nothing in the server
+changed.
+
+---
+
 ## Unreleased
 
 ### 🕸 Central gravity follows the layout
