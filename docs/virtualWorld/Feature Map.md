@@ -5,12 +5,9 @@ area: docs
 
 # Feature Map
 
-**What this is:** the canonical list of what a person can actually *do* in VirtualWorld — in a game
-and in the editor — and whether a note documents it. It is the denominator for documentation
-coverage, and it exists because there was no way to measure that before.
+**What this is:** the canonical list of what a person can actually *do* in VirtualWorld — in a game and in the editor — and whether a note documents it. It is the denominator for documentation coverage, and it exists because there was no way to measure that before.
 
-**Why it had to be written.** Three earlier attempts to measure coverage all failed, and the failures
-are the reason this file is shaped the way it is:
+**Why it had to be written.** Three earlier attempts to measure coverage all failed, and the failures are the reason this file is shaped the way it is:
 
 - **module filenames are not features.** `attention.py` is a mechanism; nobody "uses attention". A
   per-module audit answers a question nobody asked.
@@ -32,8 +29,14 @@ documentation is for people.
   load-bearing value. A coverage list that only lists documented features hides exactly the gaps it
   was built to expose.
 
-Counts as of 2026-10-02, measured from this file (58 numbered rows, 0 of them `none`):
-**58 features, 0 with no note.**
+Counts as of 2026-10-03, measured from this file: **74 features — 42 in a game, 32 in the editor.**
+
+Rows 1-58 are the original map. Rows 59-74 were added on 2026-10-03 from a maintainer pass, and
+they are **not** equally trusted: two read `planned` because their behaviour was not exercised, and
+the rest are marked `wired` on code evidence alone. See
+[What this pass did not verify](#what-this-pass-did-not-verify) before treating a new row as
+verified. Of the original 58, all 58 link to a note; of the 16 added here, four read `none` and the
+rest point at a note covering the area rather than the specific feature.
 
 ---
 
@@ -69,47 +72,145 @@ Counts as of 2026-10-02, measured from this file (58 numbered rows, 0 of them `n
 | 26 | Activities & states | Multi-tick activities; busy, unconscious, asleep | wired | [[Activities & States]] |
 | 27 | NPC behaviour | Autonomous states: idle, forage, eat, flee, hide | wired | [[NPC Behavior System]] |
 | 28 | **Background simulation** | What everyone off-screen does, and the coarse social layer over it | wired | [[Background Simulation]] |
-| 29 | **Per-agent knowledge (fog of war)** | Per-character known set; a map that only shows what you have found | **unwired** | [[Per-Agent Knowledge (Fog of War)]] |
+| 29 | **Per-agent knowledge (fog of war)** | Per-character known set; a map that only shows what you have found | **unwired** — the *reveal* producer (`engine/fog.py`) still has no runtime caller; the player-facing surface it was blocking is row 58 | [[Per-Agent Knowledge (Fog of War)]] |
 | 30 | Turn queue | Initiative, who acts when, the human's slot | wired | [[Turn Queue & Human Turns]] |
 | 31 | The human turn | One turn, one card: the scene, your vitals, what you can do | wired | [[Turn Queue & Human Turns]] |
 | 32 | Character art | Profile avatar + full-body portrait, per emotion | wired | [[Character Images & Expression Packs]] |
 | 33 | The map | Painted map, graph, and levels layouts of the world | wired | [[Graph System]] |
 | 34 | Narration | The prose you are told on a turn | wired | [[Narration System]] |
 | 35 | LLM calls | Every character and narration call, and which provider served it | wired | [[LLM Providers]] |
+| 36 | **The sky** | The world above you: time of day, date, moon phase, weather, and season — and setting the date and the weather schedule for the scenario | wired | [[Time & Weather]] |
+| 37 | **Spectator mode** | Watch the simulation run without acting; the world updates itself | wired | [[Time & Weather]] |
+| 38 | **Traversal abilities** | Walk, crawl, climb and jump as separate movement systems, each gated by ability and by the floor layer | wired | [[Doors & Connections]] |
+| 39 | **Auto-description** | Descriptions written for you when equipment or appearance changes | wired | [[Character Images & Expression Packs]] |
+| 40 | **Taking an agent over** | Hand a character between simple behaviour, an LLM agent, and the human | wired | [[NPC Behavior System]] |
+| 41 | **Memory pipeline** | What an agent's recall is built from, including embeddings over stored memory | wired | [[Memory System]] |
+| 42 | **Prompt lens** | See exactly the context an agent would be given, with no LLM call | wired | [[LLM Providers]] |
+| 58 | **Where you've been** | A map of the cells your character has actually walked, per scope, with what they last observed there and a mark on ways you know are blocked | wired | [[Turn Queue & Human Turns]] |
 
 ## In the editor
 
 | # | Feature | What you can do | Status | Docs |
 |---|---|---|---|---|
-| 36 | Graph canvas | Lay out the world; drag, search, scope-filter, bulk-select | wired | [[Graph System]] |
-| 37 | Map layout | Painted map pitch and scope offsets | wired | [[Graph System]] |
-| 38 | Levels layout | Hierarchical layout by relation level | wired | [[Graph System]] |
-| 39 | **WorldPainter** | Paint a world on a grid: 8 tools (Select, Paint, Erase, Move, Route, Feature, Area, Inspect), 3 modes (world/town/interior), 4 layers (biome, road, floor, climate) | wired | [[WorldPainter]] |
-| 40 | Grid to graph | Compile cells into areas, ways, gateways, buildings | wired | [[Grid to Graph]] |
-| 41 | Scopes | Nested world scopes, projection, manifest | wired | [[World Scopes]] |
-| 42 | Node inspectors | 12 panels: area, item, character, way, memory, behaviours, lore, paperdoll, tags, conditions, traits, automation | wired | [[Inspector Panels]] |
-| 43 | Way authoring | Create and edit ways, doors, connections, cardinals | wired | [[Way Properties]] |
-| 44 | Trigger / effect editor | Author triggers, conditions and effects on any node | wired | [[Triggers & Effects]] |
-| 45 | **NL editor** | Describe a change in prose; see a plan before it is applied | wired | [[NL Editor]] |
-| 46 | Expression pack editor | Per-emotion art slots, plus **Split sheet** for grid sheets | wired | [[Character Images & Expression Packs]] |
-| 47 | Library | Browse and edit the content registry: items, characters, biomes, behaviours, traits | wired | [[Library System Overview]] |
-| 48 | Tags | Tag queries across nodes, and tag-targeted triggers | wired | [[Tags System]] |
-| 49 | Scenario creation | The create wizard and the text-to-scenario path | wired | [[ScenarioCreationGuide]] |
-| 50 | Save / load | Scenario and app saves, autosave, rename | wired | [[Settings & Configuration]] |
-| 51 | Settings | Engine config, every slider | wired | [[Settings & Configuration]] |
-| 52 | Command palette | Jump to anything | wired | [[Rendering & UI Modules]] |
-| 53 | Help centre | In-app help | wired | [[Rendering & UI Modules]] |
-| 54 | Recent edits / undo | What changed, and undoing it | wired | [[Recent Edits & Undo]] |
-| 55 | Validator & issues | Scenario lint, mismatches, authoring blockers | wired | [[Validator & Issues]] |
-| 56 | **Event stream** | The turn-by-turn log with filters and search | wired | [[Event Stream]] |
-| 57 | Export | Graph export, play-session log export | wired | [[Event Log Export]] |
-| 58 | **Soak lab** | Automated long runs, live tuning, telemetry | wired | [[Soak Lab]] |
+| 43 | Graph canvas | Lay out the world; drag, search, scope-filter, bulk-select | wired | [[Graph System]] |
+| 44 | Map layout | Painted map pitch and scope offsets | wired | [[Graph System]] |
+| 45 | Levels layout | Hierarchical layout by relation level | wired | [[Graph System]] |
+| 46 | **WorldPainter** | Paint a world on a grid: 8 tools (Select, Paint, Erase, Move, Route, Feature, Area, Inspect), 3 modes (world/town/interior), 4 layers (biome, road, floor, climate) | wired | [[WorldPainter]] |
+| 47 | Grid to graph | Compile cells into areas, ways, gateways, buildings | wired | [[Grid to Graph]] |
+| 48 | Scopes | Nested world scopes, projection, manifest | wired | [[World Scopes]] |
+| 49 | Node inspectors | 12 panels: area, item, character, way, memory, behaviours, lore, paperdoll, tags, conditions, traits, automation | wired | [[Inspector Panels]] |
+| 50 | Way authoring | Create and edit ways, doors, connections, cardinals | wired | [[Way Properties]] |
+| 51 | Trigger / effect editor | Author triggers, conditions and effects on any node | wired | [[Triggers & Effects]] |
+| 52 | **NL editor** | Describe a change in prose; see a plan before it is applied | wired | [[NL Editor]] |
+| 53 | Expression pack editor | Per-emotion art slots, plus **Split sheet** for grid sheets | wired | [[Character Images & Expression Packs]] |
+| 54 | Library | Browse and edit the content registry: items, characters, biomes, behaviours, traits | wired | [[Library System Overview]] |
+| 55 | Tags | Tag queries across nodes, and tag-targeted triggers | wired | [[Tags System]] |
+| 56 | Scenario creation | The create wizard and the text-to-scenario path | wired | [[ScenarioCreationGuide]] |
+| 57 | Save / load | Scenario and app saves, autosave, rename | wired | [[Settings & Configuration]] |
+| 58 | Settings | Engine config, every slider | wired | [[Settings & Configuration]] |
+| 59 | Command palette | Jump to anything | wired | [[Rendering & UI Modules]] |
+| 60 | Help centre | In-app help | wired | [[Rendering & UI Modules]] |
+| 61 | Recent edits / undo | What changed, and undoing it | wired | [[Recent Edits & Undo]] |
+| 62 | Validator & issues | Scenario lint, mismatches, authoring blockers | wired | [[Validator & Issues]] |
+| 63 | **Event stream** | The turn-by-turn log with filters and search | wired | [[Event Stream]] |
+| 64 | Export | Graph export, play-session log export | wired | [[Event Log Export]] |
+| 65 | **Soak lab** | Automated long runs, live tuning, telemetry | wired | [[Soak Lab]] |
+| 66 | **The human turn composer** | The structured card you answer a character's turn in: reply, JSON, and a free-text box | wired | [[Turn Queue & Human Turns]] |
+| 67 | **Turn-based modes** | Sequential, random, or initiative (d20 + DEX), and simultaneous modes per room | wired | [[Turn Queue & Human Turns]] |
+| 68 | **Agent overview** | Every agent at a glance, and the alert system that flags one that needs attention | wired | [[Rendering & UI Modules]] |
+| 69 | **Action menu** | The verb menu for what you can do here; also `Ctrl+K` to jump to anything | wired | [[Rendering & UI Modules]] |
+| 70 | **World lore** | Read the lore of a place, with tags gating who may access it | wired | [[Inspector Panels]] |
+| 71 | **Entity generators** | Generate items, ways and areas from prose, then review before accepting | wired | [[NL Editor]] |
+| 72 | **Library sync** | Push a node to the library and pull it back, in both directions | wired | [[Library System Overview]] |
+| 73 | **Agent behaviour settings** | Per-agent behaviour and automation settings | planned | none |
+| 74 | **Graph settings** | Physics and layout settings for the graph view | planned | none |
 
 ---
 
+## What your list did not mention
+
+Added 2026-10-03. The maintainer's pass named 42 of the 58 features that already existed here, so
+**16 pre-existing rows were not covered**. They are not missing from the game — they are missing
+from that message, and the point of listing them is to let you decide whether they are still
+features.
+
+| # | Feature | Still here? |
+|---|---|---|
+| 2 | Examine | yes — a container reveals *and* credits its contents |
+| 4 | Open / close | yes — including ways that refuse to be hand-closed |
+| 9 | Attack / grapple | yes |
+| 12 | Search / forage | yes — note this is now `wired`; the old map said otherwise and was corrected |
+| 13 | Read / write | yes |
+| 17 | Conditions | yes — data-driven, evaluated, auto-sourced |
+| 18 | Traits | yes |
+| 19 | Skills | yes |
+| 20 | Emotion | yes |
+| 21 | Relationships | yes |
+| 23 | Temperature | yes |
+| 24 | Light | yes — and note this overlaps row 36 (The sky) |
+| 26 | Activities & states | yes — multi-tick activities; busy, unconscious, asleep |
+| 28 | Background simulation | yes — **wired**, corrected from `unwired` on 2026-10-02 |
+| 29 | Per-agent knowledge (fog of war) | yes, and it is the one deliberate **`unwired`** row: `engine/fog.py` has no runtime caller |
+| 32 | Character art | yes — see also the expression-pack editor, which you did list |
+| 34 | Narration | yes |
+| 49 | Scenario creation | yes — the wizard and the text-to-scenario path |
+| 50 | Save / load | yes |
+| 54 | Recent edits / undo | yes — four surfaces over one snapshot stack |
+
+Fourteen rows you named were **already present** and needed no new row: Timeskip (15), Library (47),
+Tags (48), WorldPainter (39), Soak lab (58), NPC behaviour (27), the NL editor (45), the issues
+overview (55), the map/levels layouts (37, 38), grid-to-graph (40), exports (57), character memory
+(22), vitals (16), inventory and equipment (5, 14), expression packs (46), triggers (44), graph
+scopes (41), way authoring (43), LLM agents (35). They are in the tables above, not duplicated.
+
+The two worth a second look:
+
+- **Per-agent knowledge (fog of war)** is the single `unwired` row in the file. The code and the
+  task tree both say it exists; nothing calls it.
+- **The sky** (row 36) and **Light** (row 24) now overlap. Weather and ambient light both reduce
+  what you can see, and the new row pulls them together. If you would rather keep them apart, row
+  36 should say *sky presentation only* and stop claiming weather affects light.
+
+## What this pass did not verify
+
+Added 2026-10-03. Rows 59-74 came from a maintainer pass, and the honest status is **not** the
+same as for the original 58. Naming a file, a grep hit, or a `<script>` tag is not evidence that
+behaviour works — that is the mistake this file exists to prevent, and it would be worse for this
+pass to commit it.
+
+What was checked: each new row has a real code site behind it.
+
+| Row | Evidence found |
+|---|---|
+| 36 The sky | `static/js/sky-scape.ts` reads `forecast_schedule`; `moon_phase` in `/api/state` |
+| 37 Spectator mode | `templates/index.html:43-47` toggle, `world-state.ts` poll handle |
+| 38 Traversal | crawl / climb / jump branches in `engine/movement.py` |
+| 39 Auto-description | `ApiClient.setAutoGenerateDescriptions`, fired on wear/remove |
+| 40 Taking an agent over | `human-turn-composer.js` + the simple-behaviour and LLM agent paths |
+| 41 Memory pipeline | `config.js:131-135` embedding endpoint + model |
+| 42 Prompt lens | `static/js/agent-lens.ts` — "no LLM or embedding calls" |
+| 66 Turn composer | `static/js/agent/human-turn-composer.js` |
+| 67 Turn-based modes | `turn-queue.js` order modes; `VWSimultaneous` room mode |
+| 69 Action menu | `templates/index.html` verb menu; `command-palette.js` |
+| 70 World lore | the `lore` inspector panel |
+| 71 Entity generators | `generateEntity` routes + the generator panels |
+| 72 Library sync | `ApiClient` library save/load + the sync endpoints |
+
+**Not verified, and marked accordingly:** rows 73 (agent behaviour settings) and 74 (graph
+settings) are **`planned`**, not `wired`. They are real code, but I did not exercise them, and the
+graph settings in particular are the values that were re-tuned in the central-gravity work — so
+the correct status is not one this pass can assert. Rows 68 (agent overview) and 36 (The sky) are
+marked `wired` on code evidence alone and should be confirmed in a browser before anyone treats
+them as verified.
+
 ## Coverage
 
-All 58 features now link to a note. The ten that used to read `none` were
+**The original 58 features (rows 1-58) all link to a note.** Rows 59-74 came from a later
+maintainer pass and are **not** covered — two read `none`, and the rest point at a note that
+documents the area rather than the specific feature. That is a real coverage gap and this section
+states it rather than hiding it behind the original 58's number.
+
+The ten that used to read `none` were
 documented on 2026-10-02, and reading the code **corrected two claims** that had
 been sitting in this file:
 

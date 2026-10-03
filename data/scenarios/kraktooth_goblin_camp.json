@@ -17225,7 +17225,7 @@
           "y": 120
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791030782.1306243
       },
       "area_food_storage": {
         "created": 1789781679.8464887,
@@ -22364,11 +22364,11 @@
           ],
           "uses": 1,
           "weight": 0.3,
-          "x": 1577,
-          "y": 5113
+          "x": 1763,
+          "y": 8269.2
         },
         "type": "item",
-        "updated": 1790953582.771908
+        "updated": 1791030782.1306243
       },
       "black_short_shorts": {
         "created": 1790895756.5131483,
@@ -22396,11 +22396,11 @@
           ],
           "uses": 0,
           "weight": 0.3,
-          "x": 1765,
-          "y": 5163
+          "x": 1849.7,
+          "y": 8544.9
         },
         "type": "item",
-        "updated": 1790953582.771908
+        "updated": 1791030782.1306243
       },
       "blue_butterfly_earring": {
         "created": 1790895756.512147,
@@ -22427,11 +22427,11 @@
           ],
           "uses": -1,
           "weight": 0.01,
-          "x": 1686,
-          "y": 5295
+          "x": 1737.4,
+          "y": 8534.7
         },
         "type": "item",
-        "updated": 1790953582.771908
+        "updated": 1791030782.1306243
       },
       "bush_of_berries_camp_entrance_trail_1": {
         "created": 1789989625.5763988,
@@ -22469,11 +22469,11 @@
           "target_temperature": null,
           "uses": -1,
           "weight": 2,
-          "x": 1850,
-          "y": -1024
+          "x": 2215.9,
+          "y": -241.5
         },
         "type": "item",
-        "updated": 1790953582.771908
+        "updated": 1791030782.1306243
       },
       "bush_of_berries_deep_forest_1": {
         "created": 1789989624.3312042,
@@ -22511,11 +22511,11 @@
           "target_temperature": null,
           "uses": -1,
           "weight": 2,
-          "x": 2271,
-          "y": -1664
+          "x": 2727,
+          "y": -2557.6
         },
         "type": "item",
-        "updated": 1790953582.771908
+        "updated": 1791030782.1306243
       },
       "bush_of_berries_deep_forest_2": {
         "created": 1789989624.3322668,
@@ -22554,11 +22554,11 @@
           "target_temperature": null,
           "uses": -1,
           "weight": 2,
-          "x": 2514,
-          "y": -1365
+          "x": 3046,
+          "y": -2494.2
         },
         "type": "item",
-        "updated": 1790953582.771908
+        "updated": 1791030782.1306243
       },
       "bush_of_berries_deep_forest_3": {
         "created": 1789989624.3332193,
@@ -22596,11 +22596,11 @@
           "target_temperature": null,
           "uses": -1,
           "weight": 2,
-          "x": 2027,
-          "y": -1365
+          "x": 2890.7,
+          "y": -2543.3
         },
         "type": "item",
-        "updated": 1790953582.771908
+        "updated": 1791030782.1306243
       },
       "bush_of_berries_water_source_1": {
         "created": 1789989624.9787397,
@@ -22638,11 +22638,11 @@
           "target_temperature": null,
           "uses": -1,
           "weight": 2,
-          "x": 3609,
-          "y": 5546
+          "x": 4604,
+          "y": 7371.1
         },
         "type": "item",
-        "updated": 1790953582.771908
+        "updated": 1791030782.1306243
       },
       "camp_drum_chiefs_pit_1": {
         "created": 1789994199.5526686,
@@ -22677,11 +22677,11 @@
           "target_temperature": null,
           "uses": -1,
           "weight": 0.1,
-          "x": 1588,
-          "y": 5219
+          "x": 1916.6,
+          "y": 6848.8
         },
         "type": "item",
-        "updated": 1790953582.771908
+        "updated": 1791030782.1306243
       },
       "item_backpack_1790879444208_2": {
         "created": 1790879444.2082262,
@@ -22717,11 +22717,11 @@
           "target_temperature": null,
           "uses": -1,
           "weight": 5,
-          "x": 2801,
-          "y": -529
+          "x": 6365.3,
+          "y": -2037.7
         },
         "type": "item",
-        "updated": 1790953582.771908
+        "updated": 1791030782.1306243
       },
       "item_broken_shield": {
         "created": 1789781679.8466423,
@@ -22746,11 +22746,11 @@
             "scrap"
           ],
           "weight": 5,
-          "x": 1959,
-          "y": 5876
+          "x": 2416.3,
+          "y": 7528.6
         },
         "type": "item",
-        "updated": 1790953582.771908
+        "updated": 1791030782.1306243
       },
       "item_club": {
         "created": 1789781679.8466458,
@@ -22776,11 +22776,11 @@
             "blunt"
           ],
           "weight": 4,
-          "x": 2146,
-          "y": 6201
+          "x": 2382.8,
+          "y": 7589.7
         },
         "type": "item",
-        "updated": 1790953582.771908
+        "updated": 1791030782.1306243
       },
       "item_crude_map": {
         "created": 1789781679.8466496,
@@ -22799,11 +22799,11 @@
             "map"
           ],
           "weight": 1,
-          "x": 2619,
-          "y": 6206
+          "x": 3209.6,
+          "y": 8154
         },
         "type": "item",
-        "updated": 1790953582.771908
+        "updated": 1791030782.1306243
       },
       "item_dried_meat": {
         "created": 1789781679.846653,
@@ -22831,11 +22831,11 @@
           ],
           "uses": 1,
           "weight": 1,
-          "x": 3609,
-          "y": 5959
+          "x": 4709.4,
+          "y": 8872.5
         },
         "type": "item",
-        "updated": 1790953582.771908
+        "updated": 1791030782.1306243
       },
       "item_healing_herbs": {
         "created": 1789781679.8466566,
@@ -22856,11 +22856,11 @@
           ],
           "uses": 1,
           "weight": 1,
-          "x": 2949,
-          "y": 5876
+          "x": 3720.3,
+          "y": 7657.7
         },
         "type": "item",
-        "updated": 1790953582.771908
+        "updated": 1791030782.1306243
       },
       "item_healing_potion": {
         "created": 1789781679.8466601,
@@ -22881,11 +22881,11 @@
           ],
           "uses": 1,
           "weight": 1,
-          "x": 2949,
-          "y": 6309
+          "x": 3626.1,
+          "y": 7701.9
         },
         "type": "item",
-        "updated": 1790953582.771908
+        "updated": 1791030782.1306243
       },
       "item_knife": {
         "created": 1789781679.8466637,
@@ -22911,11 +22911,11 @@
             "tool"
           ],
           "weight": 1,
-          "x": 2174,
-          "y": -788
+          "x": 1774.4,
+          "y": 1291.2
         },
         "type": "item",
-        "updated": 1790953582.771908
+        "updated": 1791030782.1306243
       },
       "item_pry_bar": {
         "created": 1789781679.8466704,
@@ -22943,11 +22943,11 @@
             "metal"
           ],
           "weight": 4,
-          "x": 1156,
-          "y": 5443
+          "x": 285.7,
+          "y": 6308
         },
         "type": "item",
-        "updated": 1790953582.771908
+        "updated": 1791030782.1306243
       },
       "item_rope": {
         "created": 1789781679.846674,
@@ -22965,11 +22965,11 @@
             "climb"
           ],
           "weight": 3,
-          "x": -680,
-          "y": 6206
+          "x": -938.7,
+          "y": 7914.6
         },
         "type": "item",
-        "updated": 1790953582.771908
+        "updated": 1791030782.1306243
       },
       "item_rusty_hatchet": {
         "created": 1789781679.846677,
@@ -23002,11 +23002,11 @@
             "scrap"
           ],
           "weight": 3,
-          "x": 309,
-          "y": 5882
+          "x": -29.1,
+          "y": 7773.2
         },
         "type": "item",
-        "updated": 1790953582.771908
+        "updated": 1791030782.1306243
       },
       "item_scrap": {
         "created": 1790868007.4566703,
@@ -23022,11 +23022,11 @@
           ],
           "uses": -1,
           "weight": 1,
-          "x": 275,
-          "y": 6536
+          "x": 279.3,
+          "y": 8340.2
         },
         "type": "item",
-        "updated": 1790953582.771908
+        "updated": 1791030782.1306243
       },
       "item_shiny_coin": {
         "created": 1789781679.8466806,
@@ -23050,11 +23050,11 @@
             "coin"
           ],
           "weight": 0,
-          "x": 1571,
-          "y": 5296
+          "x": 1869.8,
+          "y": 8279.8
         },
         "type": "item",
-        "updated": 1790953582.771908
+        "updated": 1791030782.1306243
       },
       "item_spear": {
         "created": 1789781679.8466842,
@@ -23084,11 +23084,11 @@
             "weapon"
           ],
           "weight": 3,
-          "x": 309,
-          "y": 6007
+          "x": 31.1,
+          "y": 7802.5
         },
         "type": "item",
-        "updated": 1790953582.771908
+        "updated": 1791030782.1306243
       },
       "item_torch": {
         "created": 1789781679.8466876,
@@ -23111,11 +23111,11 @@
             "fire"
           ],
           "weight": 1,
-          "x": 1941,
-          "y": -546
+          "x": 1716,
+          "y": 1395.2
         },
         "type": "item",
-        "updated": 1790953582.771908
+        "updated": 1791030782.1306243
       },
       "item_trap_broken": {
         "created": 1789781679.8466904,
@@ -23133,11 +23133,11 @@
             "scrap"
           ],
           "weight": 3,
-          "x": 1771,
-          "y": 6201
+          "x": 2330.8,
+          "y": 7539.1
         },
         "type": "item",
-        "updated": 1790953582.771908
+        "updated": 1791030782.1306243
       },
       "item_water_skin": {
         "created": 1789781679.846694,
@@ -23159,11 +23159,11 @@
           ],
           "uses": 0,
           "weight": 2,
-          "x": 1724,
-          "y": -788
+          "x": 1730.4,
+          "y": 1528.4
         },
         "type": "item",
-        "updated": 1790953582.771908
+        "updated": 1791030782.1306243
       },
       "knucklebones_camp_entrance_1": {
         "created": 1789994202.537089,
@@ -23198,11 +23198,11 @@
           "target_temperature": null,
           "uses": -1,
           "weight": 0.1,
-          "x": 1256,
-          "y": 4553
+          "x": 1462.8,
+          "y": 5881.7
         },
         "type": "item",
-        "updated": 1790953582.771908
+        "updated": 1791030782.1306243
       },
       "logic_trigger_drink_water": {
         "created": 1789781679.846698,
@@ -23220,10 +23220,12 @@
             }
           ],
           "once": false,
-          "trigger_type": "on_drink"
+          "trigger_type": "on_drink",
+          "x": 1716.1,
+          "y": 1725.8
         },
         "type": "logic_trigger",
-        "updated": 1789781679.8466983
+        "updated": 1791030782.1306243
       },
       "logic_trigger_eat_bread": {
         "created": 1789781679.8467019,
@@ -23241,10 +23243,12 @@
             }
           ],
           "once": false,
-          "trigger_type": "on_eat"
+          "trigger_type": "on_eat",
+          "x": -3827.3,
+          "y": -890.9
         },
         "type": "logic_trigger",
-        "updated": 1789781679.846702
+        "updated": 1791030782.1306243
       },
       "logic_trigger_eat_mushrooms": {
         "created": 1789781679.8467057,
@@ -23262,10 +23266,12 @@
             }
           ],
           "once": false,
-          "trigger_type": "on_eat"
+          "trigger_type": "on_eat",
+          "x": -4700.9,
+          "y": 1301.8
         },
         "type": "logic_trigger",
-        "updated": 1789781679.8467062
+        "updated": 1791030782.1306243
       },
       "logic_trigger_enter_camp_entrance": {
         "created": 1789781679.846709,
@@ -23303,10 +23309,12 @@
           ],
           "fired": true,
           "once": true,
-          "trigger_type": "on_enter"
+          "trigger_type": "on_enter",
+          "x": 1576.6,
+          "y": 5843.6
         },
         "type": "logic_trigger",
-        "updated": 1789781679.8467095
+        "updated": 1791030782.1306243
       },
       "logic_trigger_examine_camp_trail": {
         "created": 1789781679.8467126,
@@ -23349,10 +23357,12 @@
             }
           ],
           "once": true,
-          "trigger_type": "on_examine"
+          "trigger_type": "on_examine",
+          "x": 2219.6,
+          "y": -991.6
         },
         "type": "logic_trigger",
-        "updated": 1789781679.846713
+        "updated": 1791030782.1306243
       },
       "logic_trigger_examine_scrap_pile": {
         "created": 1789781679.846716,
@@ -23401,10 +23411,12 @@
             }
           ],
           "once": true,
-          "trigger_type": "on_search"
+          "trigger_type": "on_search",
+          "x": 333.5,
+          "y": 8374.2
         },
         "type": "logic_trigger",
-        "updated": 1789781679.8467162
+        "updated": 1791030782.1306243
       },
       "logic_trigger_examine_shaman_lair": {
         "created": 1789781679.8467188,
@@ -23447,10 +23459,12 @@
             }
           ],
           "once": true,
-          "trigger_type": "on_examine"
+          "trigger_type": "on_examine",
+          "x": 3240.4,
+          "y": 6250.4
         },
         "type": "logic_trigger",
-        "updated": 1789781679.846719
+        "updated": 1791030782.1306243
       },
       "logic_trigger_light_torch": {
         "created": 1789781679.8467221,
@@ -23482,10 +23496,12 @@
             }
           ],
           "once": false,
-          "trigger_type": "on_light"
+          "trigger_type": "on_light",
+          "x": 1628.1,
+          "y": 1564.8
         },
         "type": "logic_trigger",
-        "updated": 1789781679.8467226
+        "updated": 1791030782.1306243
       },
       "logic_trigger_read_crude_map": {
         "created": 1789781679.8467257,
@@ -23525,10 +23541,12 @@
             }
           ],
           "once": false,
-          "trigger_type": "on_read"
+          "trigger_type": "on_read",
+          "x": 3225.5,
+          "y": 8339.7
         },
         "type": "logic_trigger",
-        "updated": 1789781679.846726
+        "updated": 1791030782.1306243
       },
       "logic_trigger_use_healing_herbs": {
         "created": 1789781679.8467293,
@@ -23561,10 +23579,12 @@
             }
           ],
           "once": false,
-          "trigger_type": "on_use"
+          "trigger_type": "on_use",
+          "x": 3791.8,
+          "y": 7808.3
         },
         "type": "logic_trigger",
-        "updated": 1789781679.8467295
+        "updated": 1791030782.1306243
       },
       "logic_trigger_use_healing_potion": {
         "created": 1789781679.8467324,
@@ -23597,10 +23617,12 @@
             }
           ],
           "once": false,
-          "trigger_type": "on_use"
+          "trigger_type": "on_use",
+          "x": 3657.7,
+          "y": 7869.9
         },
         "type": "logic_trigger",
-        "updated": 1789781679.8467326
+        "updated": 1791030782.1306243
       },
       "lyrie_gold_hoop_earrings": {
         "created": 1790895756.510148,
@@ -23633,11 +23655,11 @@
           ],
           "uses": -1,
           "weight": 0.1,
-          "x": 1629,
-          "y": 5649
+          "x": 1974.4,
+          "y": 6688.7
         },
         "type": "item",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "manor_signet_ring": {
         "created": 1790895756.5141482,
@@ -23669,11 +23691,11 @@
           ],
           "uses": 1,
           "weight": 0.05,
-          "x": 1517,
-          "y": 5185
+          "x": 1812.4,
+          "y": 8316.1
         },
         "type": "item",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "plan_mikka_scrap_run": {
         "created": 1790868007.4566703,
@@ -23687,11 +23709,11 @@
           "sink": "Workshop",
           "source": "Scrap Pile",
           "template": "haul",
-          "x": -523,
-          "y": -1139
+          "x": -4462.4,
+          "y": -486.4
         },
         "type": "plan",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "player_Arix": {
         "created": 1789781679.851608,
@@ -23716,11 +23738,11 @@
           "traits": {
             "high_metabolism": true
           },
-          "x": 1633,
-          "y": 5232
+          "x": 1831.2,
+          "y": 8120.8
         },
         "type": "character",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "player_Belne": {
         "created": 1789781679.8518295,
@@ -23740,11 +23762,11 @@
           "traits": {
             "high_metabolism": true
           },
-          "x": 2023,
-          "y": -1014
+          "x": 2226.4,
+          "y": -923.9
         },
         "type": "character",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "player_Croak-Mother": {
         "created": 1789781679.8519866,
@@ -23759,11 +23781,11 @@
             "animal",
             "frog"
           ],
-          "x": 1209,
-          "y": -366
+          "x": 1453.3,
+          "y": 57
         },
         "type": "character",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "player_Eldenford_Blacksmith": {
         "created": 1789781679.85214,
@@ -23781,11 +23803,11 @@
             "blacksmith",
             "faction:human"
           ],
-          "x": 2847,
-          "y": -881
+          "x": 5974.5,
+          "y": -1891.5
         },
         "type": "character",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "player_Eldenford_Elder": {
         "created": 1789781679.8530843,
@@ -23803,11 +23825,11 @@
             "elder",
             "faction:human"
           ],
-          "x": 2991,
-          "y": -673
+          "x": 6025.8,
+          "y": -1864
         },
         "type": "character",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "player_Eldenford_Farmer": {
         "created": 1789781679.8535173,
@@ -23825,11 +23847,11 @@
             "farmer",
             "faction:human"
           ],
-          "x": 3756,
-          "y": -537
+          "x": 4763,
+          "y": -103.6
         },
         "type": "character",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "player_Eldenford_Merchant": {
         "created": 1789781679.8537052,
@@ -23847,11 +23869,11 @@
             "merchant",
             "faction:human"
           ],
-          "x": 2795,
-          "y": -447
+          "x": 6159.1,
+          "y": -1927.2
         },
         "type": "character",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "player_Eldenford_Road_Guard_Captain": {
         "created": 1789781679.8538837,
@@ -23869,11 +23891,11 @@
             "guard",
             "faction:human"
           ],
-          "x": 2550,
-          "y": -701
+          "x": 6029.3,
+          "y": -1804.4
         },
         "type": "character",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "player_Gribba": {
         "created": 1789781679.8540554,
@@ -23893,11 +23915,11 @@
           "traits": {
             "high_metabolism": true
           },
-          "x": 3609,
-          "y": 6066
+          "x": 4588,
+          "y": 8517.6
         },
         "type": "character",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "player_Jake_Halloway": {
         "created": 1789781679.8564804,
@@ -23913,11 +23935,11 @@
             "explorer",
             "faction:human"
           ],
-          "x": 2013,
-          "y": -694
+          "x": 1241.7,
+          "y": 3361.5
         },
         "type": "character",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "player_Kiala": {
         "created": 1789781679.8542175,
@@ -23937,11 +23959,11 @@
           "traits": {
             "high_metabolism": true
           },
-          "x": 969,
-          "y": 5179
+          "x": 484.7,
+          "y": 6149.6
         },
         "type": "character",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "player_Krikka": {
         "created": 1789781679.8543804,
@@ -23961,11 +23983,11 @@
           "traits": {
             "high_metabolism": true
           },
-          "x": 2124,
-          "y": 5051
+          "x": 2240.1,
+          "y": 6663.4
         },
         "type": "character",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "player_Leslie": {
         "created": 1789781679.854549,
@@ -23982,11 +24004,11 @@
             "captive",
             "faction:human"
           ],
-          "x": 308,
-          "y": 5513
+          "x": 178.5,
+          "y": 7028.9
         },
         "type": "character",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "player_Mikka": {
         "created": 1789781679.8547127,
@@ -24006,11 +24028,11 @@
           "traits": {
             "high_metabolism": true
           },
-          "x": 1156,
-          "y": 5541
+          "x": 411.3,
+          "y": 6227.8
         },
         "type": "character",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "player_Old_Iron-Back": {
         "created": 1789781679.854883,
@@ -24025,11 +24047,11 @@
             "animal",
             "bear"
           ],
-          "x": 2601,
-          "y": -541
+          "x": 3181.3,
+          "y": -70.9
         },
         "type": "character",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "player_Rag-Tail": {
         "created": 1789781679.855052,
@@ -24044,11 +24066,11 @@
             "animal",
             "wolf"
           ],
-          "x": 2370,
-          "y": -537
+          "x": 3055.8,
+          "y": -60.5
         },
         "type": "character",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "player_Rikka": {
         "created": 1789781679.855231,
@@ -24068,11 +24090,11 @@
           "traits": {
             "high_metabolism": true
           },
-          "x": 4599,
-          "y": 6371
+          "x": 6079.1,
+          "y": 8399.7
         },
         "type": "character",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "player_Shadow-Pelt": {
         "created": 1789781679.8553996,
@@ -24087,11 +24109,11 @@
             "animal",
             "worg"
           ],
-          "x": 3225,
-          "y": -672
+          "x": 4067.7,
+          "y": -624.6
         },
         "type": "character",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "player_Silver-Talon": {
         "created": 1789781679.8556068,
@@ -24106,11 +24128,11 @@
             "bird",
             "raven"
           ],
-          "x": 781,
-          "y": 5541
+          "x": 522.7,
+          "y": 6204.2
         },
         "type": "character",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "player_Thrazz": {
         "created": 1789781679.8557782,
@@ -24130,11 +24152,11 @@
           "traits": {
             "high_metabolism": true
           },
-          "x": 4599,
-          "y": 6804
+          "x": 6050.4,
+          "y": 8449.3
         },
         "type": "character",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "player_Tusker": {
         "created": 1789781679.85595,
@@ -24149,11 +24171,11 @@
             "animal",
             "boar"
           ],
-          "x": 2436,
-          "y": -76
+          "x": 3013.7,
+          "y": -94.5
         },
         "type": "character",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "player_Vekka": {
         "created": 1789781679.856122,
@@ -24173,11 +24195,11 @@
           "traits": {
             "high_metabolism": true
           },
-          "x": 1464,
-          "y": 4886
+          "x": 1839.9,
+          "y": 6560.9
         },
         "type": "character",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "player_Zikka": {
         "created": 1789781679.856301,
@@ -24197,11 +24219,11 @@
           "traits": {
             "high_metabolism": true
           },
-          "x": 309,
-          "y": 5979
+          "x": 89.3,
+          "y": 7632
         },
         "type": "character",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "story_fire_cooking_area_1": {
         "created": 1789994205.8474848,
@@ -24236,11 +24258,11 @@
           "target_temperature": null,
           "uses": -1,
           "weight": 0.1,
-          "x": 309,
-          "y": 5216
+          "x": 136.6,
+          "y": 6760.6
         },
         "type": "item",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "swan_egg": {
         "created": 1790942617.4924634,
@@ -24268,11 +24290,11 @@
           ],
           "uses": 2,
           "weight": 0.2,
-          "x": 3296,
-          "y": -675
+          "x": 4164,
+          "y": -141
         },
         "type": "item",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "trigger_black_short_shorts_on_examine_1790895756513_131": {
         "created": 1790895756.5131483,
@@ -24291,10 +24313,12 @@
           "success_message": "",
           "target_name": "",
           "target_state": "",
-          "trigger_type": "on_examine"
+          "trigger_type": "on_examine",
+          "x": 1853.9,
+          "y": 8747.9
         },
         "type": "logic_trigger",
-        "updated": 1790895756.5131483
+        "updated": 1791030782.1306243
       },
       "trigger_blue_butterfly_earring_on_examine_1790895756512_678": {
         "created": 1790895756.512147,
@@ -24313,10 +24337,12 @@
           "success_message": "",
           "target_name": "",
           "target_state": "",
-          "trigger_type": "on_examine"
+          "trigger_type": "on_examine",
+          "x": 1697.4,
+          "y": 8734
         },
         "type": "logic_trigger",
-        "updated": 1790895756.512147
+        "updated": 1791030782.1306243
       },
       "trigger_bush_of_berries_camp_entrance_trail_1_on_tick_1789989625576_717": {
         "created": 1789989625.5764704,
@@ -24336,10 +24362,12 @@
           },
           "effect_type": "adjust_parameter",
           "target_name": "",
-          "trigger_type": "on_tick"
+          "trigger_type": "on_tick",
+          "x": 2208.9,
+          "y": -16.7
         },
         "type": "logic_trigger",
-        "updated": 1789989625.5764706
+        "updated": 1791030782.1306243
       },
       "trigger_bush_of_berries_camp_entrance_trail_1_on_tick_1789989625576_891": {
         "created": 1789989625.576498,
@@ -24377,10 +24405,12 @@
             }
           ],
           "target_name": "",
-          "trigger_type": "on_tick"
+          "trigger_type": "on_tick",
+          "x": 2145.5,
+          "y": -33.2
         },
         "type": "logic_trigger",
-        "updated": 1789989625.5764983
+        "updated": 1791030782.1306243
       },
       "trigger_bush_of_berries_deep_forest_1_on_tick_1789989624331_468": {
         "created": 1789989624.3312683,
@@ -24400,10 +24430,12 @@
           },
           "effect_type": "adjust_parameter",
           "target_name": "",
-          "trigger_type": "on_tick"
+          "trigger_type": "on_tick",
+          "x": 2685.6,
+          "y": -2792.2
         },
         "type": "logic_trigger",
-        "updated": 1789989624.3312685
+        "updated": 1791030782.1306243
       },
       "trigger_bush_of_berries_deep_forest_1_on_tick_1789989624331_631": {
         "created": 1789989624.3312967,
@@ -24441,10 +24473,12 @@
             }
           ],
           "target_name": "",
-          "trigger_type": "on_tick"
+          "trigger_type": "on_tick",
+          "x": 2746.6,
+          "y": -2806.6
         },
         "type": "logic_trigger",
-        "updated": 1789989624.331297
+        "updated": 1791030782.1306243
       },
       "trigger_bush_of_berries_deep_forest_2_on_tick_1789989624332_337": {
         "created": 1789989624.3323162,
@@ -24482,10 +24516,12 @@
             }
           ],
           "target_name": "",
-          "trigger_type": "on_tick"
+          "trigger_type": "on_tick",
+          "x": 3110.2,
+          "y": -2733.3
         },
         "type": "logic_trigger",
-        "updated": 1789989624.3323164
+        "updated": 1791030782.1306243
       },
       "trigger_bush_of_berries_deep_forest_2_on_tick_1789989624332_40": {
         "created": 1789989624.3322995,
@@ -24505,10 +24541,12 @@
           },
           "effect_type": "adjust_parameter",
           "target_name": "",
-          "trigger_type": "on_tick"
+          "trigger_type": "on_tick",
+          "x": 3163.2,
+          "y": -2700.4
         },
         "type": "logic_trigger",
-        "updated": 1789989624.3322997
+        "updated": 1791030782.1306243
       },
       "trigger_bush_of_berries_deep_forest_3_on_tick_1789989624333_775": {
         "created": 1789989624.3332627,
@@ -24546,10 +24584,12 @@
             }
           ],
           "target_name": "",
-          "trigger_type": "on_tick"
+          "trigger_type": "on_tick",
+          "x": 2902,
+          "y": -2785.8
         },
         "type": "logic_trigger",
-        "updated": 1789989624.3332627
+        "updated": 1791030782.1306243
       },
       "trigger_bush_of_berries_deep_forest_3_on_tick_1789989624333_926": {
         "created": 1789989624.333248,
@@ -24569,10 +24609,12 @@
           },
           "effect_type": "adjust_parameter",
           "target_name": "",
-          "trigger_type": "on_tick"
+          "trigger_type": "on_tick",
+          "x": 2962.4,
+          "y": -2783.4
         },
         "type": "logic_trigger",
-        "updated": 1789989624.333248
+        "updated": 1791030782.1306243
       },
       "trigger_bush_of_berries_water_source_1_on_tick_1789989624978_203": {
         "created": 1789989624.978788,
@@ -24592,10 +24634,12 @@
           },
           "effect_type": "adjust_parameter",
           "target_name": "",
-          "trigger_type": "on_tick"
+          "trigger_type": "on_tick",
+          "x": 4720.4,
+          "y": 7479.6
         },
         "type": "logic_trigger",
-        "updated": 1789989624.9787881
+        "updated": 1791030782.1306243
       },
       "trigger_bush_of_berries_water_source_1_on_tick_1789989624978_833": {
         "created": 1789989624.9788053,
@@ -24633,10 +24677,12 @@
             }
           ],
           "target_name": "",
-          "trigger_type": "on_tick"
+          "trigger_type": "on_tick",
+          "x": 4663.1,
+          "y": 7519.8
         },
         "type": "logic_trigger",
-        "updated": 1789989624.9788055
+        "updated": 1791030782.1306243
       },
       "trigger_camp_drum_chiefs_pit_1_on_use_1789994199552_407": {
         "created": 1789994199.5528343,
@@ -24650,10 +24696,12 @@
           },
           "effect_type": "adjust_vital",
           "target_name": "",
-          "trigger_type": "on_use"
+          "trigger_type": "on_use",
+          "x": 1889.9,
+          "y": 6995.1
         },
         "type": "logic_trigger",
-        "updated": 1789994199.5528347
+        "updated": 1791030782.1306243
       },
       "trigger_item_berries_on_eat": {
         "created": 1790277724.4199722,
@@ -24671,10 +24719,12 @@
             }
           ],
           "once": false,
-          "trigger_type": "on_eat"
+          "trigger_type": "on_eat",
+          "x": -4529.2,
+          "y": 639.6
         },
         "type": "logic_trigger",
-        "updated": 1790277724.4199724
+        "updated": 1791030782.1306243
       },
       "trigger_item_dried_meat_on_eat": {
         "created": 1790277724.419974,
@@ -24692,10 +24742,12 @@
             }
           ],
           "once": false,
-          "trigger_type": "on_eat"
+          "trigger_type": "on_eat",
+          "x": 4767.7,
+          "y": 9044.7
         },
         "type": "logic_trigger",
-        "updated": 1790277724.4199743
+        "updated": 1791030782.1306243
       },
       "trigger_item_water_skin_on_depleted": {
         "created": 1790277724.4199753,
@@ -24712,10 +24764,12 @@
             }
           ],
           "once": false,
-          "trigger_type": "on_depleted"
+          "trigger_type": "on_depleted",
+          "x": 1646.8,
+          "y": 1718
         },
         "type": "logic_trigger",
-        "updated": 1790277724.4199753
+        "updated": 1791030782.1306243
       },
       "trigger_knucklebones_camp_entrance_1_on_use_1789994202537_817": {
         "created": 1789994202.537234,
@@ -24729,10 +24783,12 @@
           },
           "effect_type": "adjust_vital",
           "target_name": "",
-          "trigger_type": "on_use"
+          "trigger_type": "on_use",
+          "x": 1387.3,
+          "y": 5948.1
         },
         "type": "logic_trigger",
-        "updated": 1789994202.5372345
+        "updated": 1791030782.1306243
       },
       "trigger_story_fire_cooking_area_1_on_use_1789994205847_944": {
         "created": 1789994205.8478274,
@@ -24746,10 +24802,12 @@
           },
           "effect_type": "adjust_vital",
           "target_name": "",
-          "trigger_type": "on_use"
+          "trigger_type": "on_use",
+          "x": 9.2,
+          "y": 6857.6
         },
         "type": "logic_trigger",
-        "updated": 1789994205.847828
+        "updated": 1791030782.1306243
       },
       "trigger_swan_egg_['on_eat']_1790942617492_847": {
         "created": 1790942617.4924634,
@@ -24779,10 +24837,12 @@
           "target_state": "",
           "trigger_type": [
             "on_eat"
-          ]
+          ],
+          "x": 4263.4,
+          "y": 84.9
         },
         "type": "logic_trigger",
-        "updated": 1790942617.4924634
+        "updated": 1791030782.1306243
       },
       "trigger_wash_spot_raven_river_1_on_use_1789989626740_748": {
         "created": 1789989626.7407963,
@@ -24796,10 +24856,12 @@
           },
           "effect_type": "adjust_vital",
           "target_name": "",
-          "trigger_type": "on_use"
+          "trigger_type": "on_use",
+          "x": 4189.5,
+          "y": 211.9
         },
         "type": "logic_trigger",
-        "updated": 1789989626.7407966
+        "updated": 1791030782.1306243
       },
       "trigger_wash_spot_water_source_1_on_use_1789989626159_452": {
         "created": 1789989626.1594906,
@@ -24813,10 +24875,12 @@
           },
           "effect_type": "adjust_vital",
           "target_name": "",
-          "trigger_type": "on_use"
+          "trigger_type": "on_use",
+          "x": 4622.7,
+          "y": 7190.2
         },
         "type": "logic_trigger",
-        "updated": 1789989626.1594908
+        "updated": 1791030782.1306243
       },
       "trigger_woodpigeon_meat_['on_eat']_1790942617371_90": {
         "created": 1790942617.371463,
@@ -24846,10 +24910,12 @@
           "target_state": "",
           "trigger_type": [
             "on_eat"
-          ]
+          ],
+          "x": 1184.6,
+          "y": 479.7
         },
         "type": "logic_trigger",
-        "updated": 1790942617.371463
+        "updated": 1791030782.1306243
       },
       "wash_spot_raven_river_1": {
         "created": 1789989626.740704,
@@ -24885,11 +24951,11 @@
           "target_temperature": null,
           "uses": -1,
           "weight": 0.1,
-          "x": 3261,
-          "y": -217
+          "x": 4114.4,
+          "y": -30.1
         },
         "type": "item",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "wash_spot_water_source_1": {
         "created": 1789989626.1593971,
@@ -24925,11 +24991,11 @@
           "target_temperature": null,
           "uses": -1,
           "weight": 0.1,
-          "x": 3609,
-          "y": 6004
+          "x": 4528.1,
+          "y": 7121.6
         },
         "type": "item",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_cooking_to_storage": {
         "created": 1789781679.846736,
@@ -24942,11 +25008,11 @@
           "current_state": "open",
           "description": "A cooler passage leading to food storage.",
           "pass_message": "You pass into the food storage.",
-          "x": 309,
-          "y": 5763
+          "x": 116.9,
+          "y": 7315.6
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_eldenford_interior_area_eldenford_interior_10_3_area_eldenford_interior_10_4": {
         "created": 1790765462.9088442,
@@ -28939,11 +29005,11 @@
           "current_state": "open",
           "description": "A narrow passage opening into the main cave chamber.",
           "pass_message": "You pass through the camp entrance and into the main gathering pit.",
-          "x": 1464,
-          "y": 5103
+          "x": 1763.7,
+          "y": 6394.3
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_entrance_to_water": {
         "created": 1789781679.8467433,
@@ -28956,11 +29022,11 @@
           "current_state": "open",
           "description": "A downward passage to the water source.",
           "pass_message": "You move from the camp entrance toward the water source.",
-          "x": 2454,
-          "y": 5268
+          "x": 3026.6,
+          "y": 6496.2
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_gateway_world_eldenford_interior": {
         "created": 1790870620.514353,
@@ -28990,11 +29056,11 @@
           "return_direction": "leave",
           "see_through": false,
           "world_scope_id": "world",
-          "x": 11370,
-          "y": -5213
+          "x": 13827.7,
+          "y": -6366.2
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_gateway_world_west_woods": {
         "created": 1790878794.5746849,
@@ -29024,11 +29090,11 @@
           "return_direction": "leave",
           "see_through": false,
           "world_scope_id": "world",
-          "x": -2847,
-          "y": -4594
+          "x": -3435.2,
+          "y": -5646.7
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_hide_curtained_alcove_9mhb": {
         "created": 1789916448.1205897,
@@ -29039,22 +29105,22 @@
           "area_to": "area_armory_bhg4",
           "current_state": "closed",
           "description": "A low gap in the rock behind a hanging hide, leading from the Chief's Den into the weapon stockpile.",
-          "x": 1299,
-          "y": 5928
+          "x": 1519.8,
+          "y": 7413.8
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_nursery_passage_fsz1": {
         "created": 1790764492.1990108,
         "id": "way_nursery_passage_fsz1",
         "name": "Nursery Passage",
         "properties": {
-          "x": -845,
-          "y": 5598
+          "x": -1231.9,
+          "y": 6940.6
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_passage_between_side_tunnels_and_water_source": {
         "created": 1789907388.3324041,
@@ -29064,11 +29130,11 @@
           "current_state": "open",
           "description": "A passage between Side Tunnels and Water Source.",
           "pass_message": "You pass through the tunnel.",
-          "x": 3939,
-          "y": 6093
+          "x": 4931.2,
+          "y": 7555.3
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_pit_to_cooking": {
         "created": 1789781679.8467784,
@@ -29081,11 +29147,11 @@
           "current_state": "open",
           "description": "A warm passage leading to the cooking area.",
           "pass_message": "You walk toward the cooking area.",
-          "x": 969,
-          "y": 5433
+          "x": 737,
+          "y": 5702.8
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_pit_to_den": {
         "created": 1789781679.8467817,
@@ -29098,11 +29164,11 @@
           "current_state": "open",
           "description": "A narrower passage leading to the chief's chamber.",
           "pass_message": "You climb toward the chief's den overlooking the camp.",
-          "x": 969,
-          "y": 5268
+          "x": 1095.3,
+          "y": 6525
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_pit_to_nursery": {
         "created": 1789781679.8467846,
@@ -29115,11 +29181,11 @@
           "current_state": "open",
           "description": "A passage to the nursery.",
           "pass_message": "You head into the nursery area.",
-          "x": 309,
-          "y": 5598
+          "x": 309.7,
+          "y": 6952
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_pit_to_scouting": {
         "created": 1789781679.8467877,
@@ -29132,11 +29198,11 @@
           "current_state": "open",
           "description": "A passage to the scouting rooms.",
           "pass_message": "You enter the scouting rooms.",
-          "x": 2124,
-          "y": 5928
+          "x": 2603.3,
+          "y": 7355.2
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_pit_to_shaman": {
         "created": 1789781679.846791,
@@ -29149,11 +29215,11 @@
           "current_state": "open",
           "description": "A strange-smelling passage to the shaman's chamber.",
           "pass_message": "You enter the shaman's lair.",
-          "x": 2124,
-          "y": 5268
+          "x": 2464.4,
+          "y": 6598.4
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_pit_to_sleeping": {
         "created": 1789781679.8467937,
@@ -29166,11 +29232,11 @@
           "current_state": "open",
           "description": "A passage to the sleeping halls.",
           "pass_message": "You move from the pit to the sleeping halls.",
-          "x": 474,
-          "y": 5433
+          "x": 485.7,
+          "y": 6735.6
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_pit_to_training": {
         "created": 1789781679.8467968,
@@ -29183,11 +29249,11 @@
           "current_state": "open",
           "description": "A noisy passage leading to the training pit.",
           "pass_message": "You step into the training pit.",
-          "x": 1794,
-          "y": 5763
+          "x": 2124.6,
+          "y": 7203.4
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_pit_to_workshop": {
         "created": 1789781679.8467996,
@@ -29200,11 +29266,11 @@
           "current_state": "open",
           "description": "A passage to the workshop.",
           "pass_message": "You enter the workshop.",
-          "x": 474,
-          "y": 5928
+          "x": 504.3,
+          "y": 7400.6
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_road_to_eldenford": {
         "created": 1789781679.8468065,
@@ -29217,22 +29283,22 @@
           "current_state": "open",
           "description": "The road to Eldenford village.",
           "pass_message": "You follow the road toward Eldenford village.",
-          "x": 2795,
-          "y": -169
+          "x": 3399.6,
+          "y": 163.3
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_shaman_passage_s3f3": {
         "created": 1790764531.946896,
         "id": "way_shaman_passage_s3f3",
         "name": "Shaman Passage",
         "properties": {
-          "x": 3114,
-          "y": 5433
+          "x": 3888.8,
+          "y": 6694.8
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_shaman_to_healing": {
         "created": 1789781679.8468099,
@@ -29245,11 +29311,11 @@
           "current_state": "open",
           "description": "A small passage to the healing area.",
           "pass_message": "You move into the healing area.",
-          "x": 2784,
-          "y": 5598
+          "x": 3448.5,
+          "y": 6917.9
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_side_to_animals": {
         "created": 1789781679.8468134,
@@ -29262,11 +29328,11 @@
           "current_state": "open",
           "description": "A passage to the animal pens.",
           "pass_message": "You follow the side tunnel toward the animal pens.",
-          "x": 3279,
-          "y": 6588
+          "x": 4062.1,
+          "y": 8251.7
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_side_to_mine": {
         "created": 1789781679.846817,
@@ -29279,11 +29345,11 @@
           "current_state": "open",
           "description": "A downward tunnel to the mines.",
           "pass_message": "You follow the side tunnel toward mine access.",
-          "x": 4599,
-          "y": 6588
+          "x": 5927,
+          "y": 8404.1
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_side_to_storage": {
         "created": 1789781679.8468199,
@@ -29297,11 +29363,11 @@
           "current_state": "open",
           "description": "A passage to the storage caves.",
           "pass_message": "You follow the side tunnel toward the storage caves.",
-          "x": 4434,
-          "y": 5928
+          "x": 5563.4,
+          "y": 7350.8
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_trail_to_entrance": {
         "created": 1789781679.846823,
@@ -29314,11 +29380,11 @@
           "current_state": "open",
           "description": "A worn forest trail climbing toward the concealed cave entrance.",
           "pass_message": "You step off the forest trail onto the hidden approach to the goblin camp entrance.",
-          "x": 1620,
-          "y": 1992
+          "x": 1927.5,
+          "y": 2630.1
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_training_to_prison": {
         "created": 1789781679.8468294,
@@ -29331,22 +29397,22 @@
           "current_state": "open",
           "description": "A passage to the prison pens.",
           "pass_message": "You go from the training pit to the prison pens.",
-          "x": 2289,
-          "y": 5928
+          "x": 2852,
+          "y": 7433.3
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_tunnel_opening_o4zq": {
         "created": 1790764390.102629,
         "id": "way_tunnel_opening_o4zq",
         "name": "Tunnel Opening",
         "properties": {
-          "x": 639,
-          "y": 6588
+          "x": 722.5,
+          "y": 8285.3
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_water_to_waste": {
         "created": 1789781679.8468328,
@@ -29359,11 +29425,11 @@
           "current_state": "open",
           "description": "A downstream passage to waste disposal.",
           "pass_message": "You move from the water source toward waste disposal.",
-          "x": 3609,
-          "y": 6258
+          "x": 4577.1,
+          "y": 8200.5
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_10_14_area_west_woods_11_14": {
         "created": 1790436743.5318885,
@@ -29387,11 +29453,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -5822,
-          "y": -8070
+          "x": -7275.6,
+          "y": -10126.4
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_10_14_area_west_woods_9_14": {
         "created": 1790436743.5318542,
@@ -29415,11 +29481,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -6152,
-          "y": -8070
+          "x": -7714.5,
+          "y": -10086.9
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_10_23_area_west_woods_10_24": {
         "created": 1790436743.532269,
@@ -29443,11 +29509,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -5987,
-          "y": -4935
+          "x": -7669.2,
+          "y": -6134.2
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_10_23_area_west_woods_11_23": {
         "created": 1790436743.532257,
@@ -29471,11 +29537,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -5822,
-          "y": -5100
+          "x": -7368.5,
+          "y": -6501.3
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_10_23_area_west_woods_11_24": {
         "created": 1790436743.5322826,
@@ -29499,11 +29565,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -5822,
-          "y": -4935
+          "x": -7400.8,
+          "y": -6053.8
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_10_23_area_west_woods_9_24": {
         "created": 1790436743.5322957,
@@ -29527,11 +29593,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -6152,
-          "y": -4935
+          "x": -7898.8,
+          "y": -6213.5
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_10_24_area_west_woods_10_25": {
         "created": 1790436743.532443,
@@ -29555,11 +29621,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -5987,
-          "y": -4605
+          "x": -7585.9,
+          "y": -5505.3
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_10_24_area_west_woods_11_23": {
         "created": 1790436743.5323484,
@@ -29583,11 +29649,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -5822,
-          "y": -4935
+          "x": -7334.7,
+          "y": -6212.5
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_10_24_area_west_woods_11_24": {
         "created": 1790436743.53243,
@@ -29611,11 +29677,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -5822,
-          "y": -4770
+          "x": -7271.6,
+          "y": -5679.2
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_10_24_area_west_woods_9_24": {
         "created": 1790436743.5323877,
@@ -29639,11 +29705,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -6152,
-          "y": -4770
+          "x": -7884,
+          "y": -5874.6
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_10_25_area_west_woods_11_24": {
         "created": 1790436743.532474,
@@ -29667,11 +29733,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -5822,
-          "y": -4605
+          "x": -7244.7,
+          "y": -5420.7
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_10_25_area_west_woods_9_24": {
         "created": 1790436743.5324028,
@@ -29695,11 +29761,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -6152,
-          "y": -4605
+          "x": -7823.9,
+          "y": -5462.1
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_11_14_area_west_woods_12_14": {
         "created": 1790436743.531907,
@@ -29723,11 +29789,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -5492,
-          "y": -8070
+          "x": -6802.6,
+          "y": -10194.7
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_11_14_area_west_woods_12_15": {
         "created": 1790436743.531922,
@@ -29751,11 +29817,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -5492,
-          "y": -7905
+          "x": -6835.1,
+          "y": -9861.5
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_11_17_area_west_woods_12_18": {
         "created": 1790436743.532023,
@@ -29779,11 +29845,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -5492,
-          "y": -6915
+          "x": -6892.9,
+          "y": -8626.5
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_11_20_area_west_woods_12_19": {
         "created": 1790436743.5321093,
@@ -29807,11 +29873,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -5492,
-          "y": -6255
+          "x": -6928.7,
+          "y": -7821.7
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_11_20_area_west_woods_12_22": {
         "created": 1790436743.5331738,
@@ -29835,11 +29901,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -5492,
-          "y": -5760
+          "x": -6857.7,
+          "y": -7191.1
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_11_23_area_west_woods_11_24": {
         "created": 1790436743.5323224,
@@ -29863,11 +29929,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -5657,
-          "y": -4935
+          "x": -7099.8,
+          "y": -6069.4
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_11_23_area_west_woods_12_22": {
         "created": 1790436743.5322134,
@@ -29891,11 +29957,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -5492,
-          "y": -5265
+          "x": -6909.3,
+          "y": -6697.7
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_11_23_area_west_woods_12_23": {
         "created": 1790436743.5323076,
@@ -29919,11 +29985,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -5492,
-          "y": -5100
+          "x": -6790.1,
+          "y": -6428.9
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_11_23_area_west_woods_12_24": {
         "created": 1790436743.532335,
@@ -29947,11 +30013,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -5492,
-          "y": -4935
+          "x": -6732.7,
+          "y": -5985.6
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_11_24_area_west_woods_12_23": {
         "created": 1790436743.532375,
@@ -29975,11 +30041,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -5492,
-          "y": -4935
+          "x": -6756.1,
+          "y": -6115.6
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_11_24_area_west_woods_12_24": {
         "created": 1790436743.532459,
@@ -30003,11 +30069,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -5492,
-          "y": -4770
+          "x": -6758.2,
+          "y": -5629.4
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_11_27_area_west_woods_11_28": {
         "created": 1790436743.532769,
@@ -30031,11 +30097,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -5657,
-          "y": -3615
+          "x": -7064.7,
+          "y": -4163
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_11_27_area_west_woods_12_26": {
         "created": 1790436743.5326676,
@@ -30059,11 +30125,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -5492,
-          "y": -3945
+          "x": -6777.8,
+          "y": -4575.9
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_12_14_area_west_woods_12_15": {
         "created": 1790436743.5319376,
@@ -30087,11 +30153,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -5327,
-          "y": -7905
+          "x": -6619.8,
+          "y": -9924
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_12_14_area_west_woods_13_15": {
         "created": 1790436743.5319517,
@@ -30115,11 +30181,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -5162,
-          "y": -7905
+          "x": -6227,
+          "y": -10006.1
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_12_15_area_west_woods_13_15": {
         "created": 1790436743.531964,
@@ -30143,11 +30209,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -5162,
-          "y": -7740
+          "x": -6308.5,
+          "y": -9731.4
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_12_15_area_west_woods_13_16": {
         "created": 1790436743.5319798,
@@ -30171,11 +30237,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -5162,
-          "y": -7575
+          "x": -6312.9,
+          "y": -9452.9
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_12_18_area_west_woods_12_19": {
         "created": 1790436743.5320792,
@@ -30199,11 +30265,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -5327,
-          "y": -6585
+          "x": -6731.6,
+          "y": -8188.4
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_12_18_area_west_woods_13_17": {
         "created": 1790436743.5320535,
@@ -30227,11 +30293,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -5162,
-          "y": -6915
+          "x": -6446.9,
+          "y": -8697.1
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_12_18_area_west_woods_13_18": {
         "created": 1790436743.5320666,
@@ -30255,11 +30321,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -5162,
-          "y": -6750
+          "x": -6343.5,
+          "y": -8451.4
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_12_19_area_west_woods_13_18": {
         "created": 1790436743.5320938,
@@ -30283,11 +30349,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -5162,
-          "y": -6585
+          "x": -6376.5,
+          "y": -8167.2
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_12_22_area_west_woods_12_23": {
         "created": 1790436743.5321994,
@@ -30311,11 +30377,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -5327,
-          "y": -5265
+          "x": -6588,
+          "y": -6613.7
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_12_22_area_west_woods_13_22": {
         "created": 1790436743.5321872,
@@ -30339,11 +30405,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -5162,
-          "y": -5430
+          "x": -6282.5,
+          "y": -6886.8
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_12_23_area_west_woods_12_24": {
         "created": 1790436743.5323615,
@@ -30367,11 +30433,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -5327,
-          "y": -4935
+          "x": -6393.5,
+          "y": -6029.8
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_12_23_area_west_woods_13_22": {
         "created": 1790436743.5322413,
@@ -30395,11 +30461,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -5162,
-          "y": -5265
+          "x": -6272.8,
+          "y": -6564.1
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_12_24_area_west_woods_13_25": {
         "created": 1790436743.5324893,
@@ -30423,11 +30489,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -5162,
-          "y": -4605
+          "x": -6338.2,
+          "y": -5506.3
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_12_26_area_west_woods_13_25": {
         "created": 1790436743.5326278,
@@ -30451,11 +30517,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -5162,
-          "y": -4275
+          "x": -6353.4,
+          "y": -5079.8
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_12_26_area_west_woods_13_26": {
         "created": 1790436743.5326536,
@@ -30479,11 +30545,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -5162,
-          "y": -4110
+          "x": -6333,
+          "y": -4707
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_13_15_area_west_woods_13_16": {
         "created": 1790436743.5319932,
@@ -30507,11 +30573,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -4997,
-          "y": -7575
+          "x": -5943.8,
+          "y": -9521.6
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_13_16_area_west_woods_13_17": {
         "created": 1790436743.532007,
@@ -30535,11 +30601,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -4997,
-          "y": -7245
+          "x": -6161.9,
+          "y": -9055.1
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_13_17_area_west_woods_13_18": {
         "created": 1790436743.532037,
@@ -30563,11 +30629,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -4997,
-          "y": -6915
+          "x": -5993.1,
+          "y": -8626.3
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_13_18_area_west_woods_15_18": {
         "created": 1790436743.5332232,
@@ -30591,11 +30657,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -4667,
-          "y": -6750
+          "x": -5608.6,
+          "y": -8430.8
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_13_22_area_west_woods_14_22": {
         "created": 1790436743.5322273,
@@ -30619,11 +30685,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -4832,
-          "y": -5430
+          "x": -5799.9,
+          "y": -6816.2
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_13_25_area_west_woods_13_26": {
         "created": 1790436743.5326142,
@@ -30647,11 +30713,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -4997,
-          "y": -4275
+          "x": -6105.7,
+          "y": -5019.6
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_13_25_area_west_woods_14_24": {
         "created": 1790436743.532532,
@@ -30675,11 +30741,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -4832,
-          "y": -4605
+          "x": -5863.9,
+          "y": -5622
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_13_25_area_west_woods_14_25": {
         "created": 1790436743.5325992,
@@ -30703,11 +30769,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -4832,
-          "y": -4440
+          "x": -5826.4,
+          "y": -5249.1
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.1306243
       },
       "way_west_woods_area_west_woods_13_26_area_west_woods_14_25": {
         "created": 1790436743.5326416,
@@ -30731,11 +30797,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -4832,
-          "y": -4275
+          "x": -5751.6,
+          "y": -4958.3
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.131624
       },
       "way_west_woods_area_west_woods_14_24_area_west_woods_14_25": {
         "created": 1790436743.5325189,
@@ -30759,11 +30825,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -4667,
-          "y": -4605
+          "x": -5544.8,
+          "y": -5584.6
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.131624
       },
       "way_west_woods_area_west_woods_14_24_area_west_woods_15_24": {
         "created": 1790436743.5325055,
@@ -30787,11 +30853,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -4502,
-          "y": -4770
+          "x": -5385.5,
+          "y": -5943.3
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.131624
       },
       "way_west_woods_area_west_woods_14_25_area_west_woods_15_24": {
         "created": 1790436743.532558,
@@ -30815,11 +30881,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -4502,
-          "y": -4605
+          "x": -5295.3,
+          "y": -5489
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.131624
       },
       "way_west_woods_area_west_woods_15_18_area_west_woods_15_20": {
         "created": 1790436743.5332716,
@@ -30843,11 +30909,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -4337,
-          "y": -6420
+          "x": -5181.9,
+          "y": -7970.6
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.131624
       },
       "way_west_woods_area_west_woods_15_20_area_west_woods_16_21": {
         "created": 1790436743.5321264,
@@ -30871,11 +30937,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -4172,
-          "y": -5925
+          "x": -4967.8,
+          "y": -7399.4
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.131624
       },
       "way_west_woods_area_west_woods_15_24_area_west_woods_16_24": {
         "created": 1790436743.5325434,
@@ -30899,11 +30965,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -4172,
-          "y": -4770
+          "x": -4957.3,
+          "y": -5896.3
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.131624
       },
       "way_west_woods_area_west_woods_16_21_area_west_woods_17_21": {
         "created": 1790436743.53217,
@@ -30927,11 +30993,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -3842,
-          "y": -5760
+          "x": -4585.1,
+          "y": -7177.2
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.131624
       },
       "way_west_woods_area_west_woods_16_24_area_west_woods_17_24": {
         "created": 1790436743.5325706,
@@ -30955,11 +31021,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -3842,
-          "y": -4770
+          "x": -4546.5,
+          "y": -5874.9
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.131624
       },
       "way_west_woods_area_west_woods_17_21_area_west_woods_18_20": {
         "created": 1790436743.5321565,
@@ -30983,11 +31049,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -3512,
-          "y": -5925
+          "x": -4205.5,
+          "y": -7379.2
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.131624
       },
       "way_west_woods_area_west_woods_18_20_area_west_woods_19_20": {
         "created": 1790436743.532142,
@@ -31011,11 +31077,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -3182,
-          "y": -6090
+          "x": -3754.5,
+          "y": -7628.5
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.131624
       },
       "way_west_woods_area_west_woods_2_29_area_west_woods_3_28": {
         "created": 1790436743.5328076,
@@ -31039,11 +31105,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -8462,
-          "y": -3285
+          "x": -10703.1,
+          "y": -3996.9
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.131624
       },
       "way_west_woods_area_west_woods_2_29_area_west_woods_3_29": {
         "created": 1790436743.5328834,
@@ -31067,11 +31133,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -8462,
-          "y": -3120
+          "x": -10633.7,
+          "y": -3594.3
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.131624
       },
       "way_west_woods_area_west_woods_3_28_area_west_woods_3_29": {
         "created": 1790436743.532794,
@@ -31095,11 +31161,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -8297,
-          "y": -3285
+          "x": -10443.7,
+          "y": -3910.8
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.131624
       },
       "way_west_woods_area_west_woods_3_28_area_west_woods_4_28": {
         "created": 1790436743.5327814,
@@ -31123,11 +31189,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -8132,
-          "y": -3450
+          "x": -10248.3,
+          "y": -4265.6
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.131624
       },
       "way_west_woods_area_west_woods_3_29_area_west_woods_4_28": {
         "created": 1790436743.5328333,
@@ -31151,11 +31217,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -8132,
-          "y": -3285
+          "x": -10173.6,
+          "y": -3911.8
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.131624
       },
       "way_west_woods_area_west_woods_4_28_area_west_woods_5_28": {
         "created": 1790436743.53282,
@@ -31179,11 +31245,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -7802,
-          "y": -3450
+          "x": -9769.4,
+          "y": -4033.2
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.131624
       },
       "way_west_woods_area_west_woods_5_28_area_west_woods_6_27": {
         "created": 1790436743.532705,
@@ -31207,11 +31273,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -7472,
-          "y": -3615
+          "x": -9456,
+          "y": -4430.3
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.131624
       },
       "way_west_woods_area_west_woods_5_28_area_west_woods_6_28": {
         "created": 1790436743.5328486,
@@ -31235,11 +31301,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -7472,
-          "y": -3450
+          "x": -9343.2,
+          "y": -3951.6
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.131624
       },
       "way_west_woods_area_west_woods_6_27_area_west_woods_6_28": {
         "created": 1790436743.5326922,
@@ -31263,11 +31329,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -7307,
-          "y": -3615
+          "x": -9201.7,
+          "y": -4306.9
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.131624
       },
       "way_west_woods_area_west_woods_6_27_area_west_woods_7_25": {
         "created": 1790436743.5333405,
@@ -31291,11 +31357,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -7142,
-          "y": -4110
+          "x": -9023.4,
+          "y": -5075.6
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.131624
       },
       "way_west_woods_area_west_woods_6_27_area_west_woods_7_27": {
         "created": 1790436743.5326807,
@@ -31319,11 +31385,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -7142,
-          "y": -3780
+          "x": -9009,
+          "y": -4654.5
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.131624
       },
       "way_west_woods_area_west_woods_6_28_area_west_woods_7_27": {
         "created": 1790436743.532744,
@@ -31347,11 +31413,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -7142,
-          "y": -3615
+          "x": -8919.8,
+          "y": -4296.1
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.131624
       },
       "way_west_woods_area_west_woods_7_25_area_west_woods_8_25": {
         "created": 1790436743.5325844,
@@ -31375,11 +31441,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -6812,
-          "y": -4440
+          "x": -8655.7,
+          "y": -5491.1
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.131624
       },
       "way_west_woods_area_west_woods_7_27_area_west_woods_8_27": {
         "created": 1790436743.5327168,
@@ -31403,11 +31469,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -6812,
-          "y": -3780
+          "x": -8452.7,
+          "y": -4523.3
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.131624
       },
       "way_west_woods_area_west_woods_7_27_area_west_woods_8_28": {
         "created": 1790436743.5327308,
@@ -31431,11 +31497,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -6812,
-          "y": -3615
+          "x": -8515.8,
+          "y": -4171.7
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.131624
       },
       "way_west_woods_area_west_woods_8_25_area_west_woods_9_24": {
         "created": 1790436743.5324166,
@@ -31459,11 +31525,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -6482,
-          "y": -4605
+          "x": -8270.3,
+          "y": -5685.4
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.131624
       },
       "way_west_woods_area_west_woods_8_27_area_west_woods_8_28": {
         "created": 1790436743.5327566,
@@ -31487,11 +31553,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -6647,
-          "y": -3615
+          "x": -8252.5,
+          "y": -4257.4
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.131624
       },
       "way_west_woods_area_west_woods_8_28_area_west_woods_8_29": {
         "created": 1790436743.5328698,
@@ -31515,11 +31581,11 @@
           "see_through": true,
           "surface": "dirt",
           "world_scope_id": "west_woods",
-          "x": -6647,
-          "y": -3285
+          "x": -8292,
+          "y": -3743.3
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.131624
       },
       "way_workshop_to_scrap": {
         "created": 1789781679.8468356,
@@ -31532,11 +31598,11 @@
           "current_state": "open",
           "description": "A passage to the scrap pile.",
           "pass_message": "You move from the workshop to the scrap pile.",
-          "x": -185,
-          "y": 6588
+          "x": -398.7,
+          "y": 8265.2
         },
         "type": "way",
-        "updated": 1790953582.7729108
+        "updated": 1791030782.131624
       },
       "way_world_area_abandoned_farm_area_world_15_6": {
         "created": 1790580438.5428708,
@@ -36435,11 +36501,11 @@
           ],
           "uses": 2,
           "weight": 0.2,
-          "x": 1349,
-          "y": -366
+          "x": 1301.2,
+          "y": 284.6
         },
         "type": "item",
-        "updated": 1790953582.773907
+        "updated": 1791030782.131624
       }
     }
   },
@@ -36535,7 +36601,6 @@
   },
   "mature_content": true,
   "narration_mode": "none",
-  "persist": true,
   "players": {
     "Arix": {
       "activity": null,
@@ -36644,7 +36709,7 @@
       "crafting_known": [],
       "current_area": "Chief's Pit",
       "current_area_id": "area_chiefs_pit",
-      "current_carry_weight": 0.66,
+      "current_carry_weight": 0.6599999999999999,
       "decay_rates": {
         "Arousal": 1,
         "Bladder": 0.42,
@@ -37230,9 +37295,9 @@
           ],
           "text": "You have been in the Camp Entrance Trail.",
           "tick": 14,
-          "timestamp": 1791008063.664953,
+          "timestamp": 1791031040.8628385,
           "type": "reaction",
-          "visits": 56
+          "visits": 62
         },
         {
           "entity_ids": [],
@@ -37582,9 +37647,9 @@
           ],
           "text": "You have been in the Murk Lake.",
           "tick": 14,
-          "timestamp": 1791008063.664953,
+          "timestamp": 1791031040.863836,
           "type": "reaction",
-          "visits": 56
+          "visits": 62
         }
       ],
       "name": "Croak-Mother",
@@ -37954,9 +38019,9 @@
           ],
           "text": "You have been in the Road (world 18,3).",
           "tick": 14,
-          "timestamp": 1791008063.664953,
+          "timestamp": 1791031040.863836,
           "type": "social",
-          "visits": 6
+          "visits": 12
         }
       ],
       "name": "Eldenford Blacksmith",
@@ -38381,9 +38446,9 @@
           ],
           "text": "You have been in the Road (world 18,3).",
           "tick": 14,
-          "timestamp": 1791008063.6659527,
+          "timestamp": 1791031040.863836,
           "type": "social",
-          "visits": 6
+          "visits": 12
         }
       ],
       "name": "Eldenford Elder",
@@ -39188,9 +39253,9 @@
           ],
           "text": "You have been in the Road (world 18,3).",
           "tick": 14,
-          "timestamp": 1791008063.6659527,
+          "timestamp": 1791031040.863836,
           "type": "social",
-          "visits": 6
+          "visits": 12
         }
       ],
       "name": "Eldenford Merchant",
@@ -39626,9 +39691,9 @@
           ],
           "text": "You have been in the Road (world 18,3).",
           "tick": 14,
-          "timestamp": 1791008063.6659527,
+          "timestamp": 1791031040.8648357,
           "type": "social",
-          "visits": 6
+          "visits": 12
         }
       ],
       "name": "Eldenford Road Guard Captain",
@@ -40576,6 +40641,30 @@
           "last_interaction_tick": 2,
           "name": "Kiala"
         },
+        "Leslie": {
+          "closeness": 0,
+          "first_sighting": true,
+          "interaction_count": 0,
+          "label": "",
+          "last_interaction_tick": 0,
+          "name": "Leslie"
+        },
+        "Mikka": {
+          "closeness": 0,
+          "first_sighting": true,
+          "interaction_count": 0,
+          "label": "",
+          "last_interaction_tick": 0,
+          "name": "Mikka"
+        },
+        "Silver-Talon": {
+          "closeness": 0,
+          "first_sighting": true,
+          "interaction_count": 0,
+          "label": "",
+          "last_interaction_tick": 0,
+          "name": "Silver-Talon"
+        },
         "Thrazz": {
           "closeness": 0,
           "first_sighting": true,
@@ -41119,7 +41208,7 @@
       "species": null,
       "state": "frightened",
       "state_enter_tick": null,
-      "state_timer": 0,
+      "state_timer": 24,
       "stats": {
         "CHA": 12,
         "CON": 10,
@@ -41429,9 +41518,9 @@
           ],
           "text": "You have been in the Chief's Pit.",
           "tick": 14,
-          "timestamp": 1791008063.6669521,
+          "timestamp": 1791031040.8648357,
           "type": "social",
-          "visits": 6
+          "visits": 12
         },
         {
           "entity_ids": [],
@@ -42769,7 +42858,7 @@
       "species": null,
       "state": "frightened",
       "state_enter_tick": null,
-      "state_timer": 0,
+      "state_timer": 24,
       "stats": {
         "CHA": 6,
         "CON": 16,
@@ -43818,9 +43907,9 @@
           ],
           "text": "You have been in the Raven River.",
           "tick": 14,
-          "timestamp": 1791008063.6679523,
+          "timestamp": 1791031040.866836,
           "type": "reaction",
-          "visits": 56
+          "visits": 62
         },
         {
           "entity_ids": [],
@@ -47274,5 +47363,6 @@
       },
       "state": "materialized"
     }
-  }
+  },
+  "persist": true
 }

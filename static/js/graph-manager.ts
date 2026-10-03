@@ -624,7 +624,7 @@ class GraphManagerImpl {
      */
     async setMapSpacing(delta: number) {
         const current = this._mapSpacingValue();
-        const next = Math.max(20, Math.min(400, Math.round(current + Number(delta || 0))));
+        const next = Math.max(20, Math.min(1000, Math.round(current + Number(delta || 0))));
         if (typeof config !== 'undefined' && config) {
             config.graphMapSpacing = next;
             config.graphMapSpacingAuto = false;

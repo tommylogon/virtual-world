@@ -802,6 +802,12 @@ const HumanTurnComposerModule = (() => {
                 });
                 htcGlobals.TurnYouStrip
                     .render(q('#htc-you'), scene.you, stripHandlers);
+                // task-677: the visited-cell map. Mounted *after* renderScene
+                // because that clears its host, and it appends under the same
+                // column rather than replacing anything the scene view drew.
+                if (htcGlobals.TurnMinimap) {
+                    htcGlobals.TurnMinimap.mount(sceneHost, charName).catch(() => { });
+                }
                 renderDatalist();
                 // React phase: an examine that targeted someone opens their
                 // portrait (current full body, else profile) as the big view.

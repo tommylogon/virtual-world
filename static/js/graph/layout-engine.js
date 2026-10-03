@@ -485,7 +485,7 @@ window.GraphLayoutEngine = {
      */
     AUTO_SPAN_PX: 10000,
     /** Clamp for the derived pitch — never tighter than this, never wider. */
-    AUTO_SPACING_MIN: 24,
+    AUTO_SPACING_MIN: 240,
     AUTO_SPACING_MAX: 600,
     /**
      * Painted coords → canvas position. Pure, so it is unit-tested.

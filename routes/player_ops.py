@@ -1,7 +1,7 @@
 import logging
 from flask import request, jsonify
 from player import Player, PERIODIC_CONDITIONS, CONDITION_DEFINITIONS
-from graph import Node, Edge, EDGE_CARRYING
+from graph import Node, Edge, EDGE_CARRYING, EDGE_CONNECTION
 from engine.equipment_bonuses import effective_temperature, aggregate_bonuses
 from engine.abilities import normalize_stat_block
 from engine.vitals import ceiling, clamp_to_ceiling, polarity as vital_polarity
@@ -1098,6 +1098,196 @@ def handle_update_vital(app, name, vital_name):
         player.decay_rates[vital_name] = float(data["decay_rate"])
 
     return jsonify({"status": "updated", "name": vital_name, "value": player.vitals[vital_name], "max": max_val, "decay_rate": player.decay_rates.get(vital_name, app.world.baseline_decay.get(vital_name, 0))})
+
+
+# ── player map (task-677) ────────────────────────────────────────────────────
+#
+# Read-only. The cells a character has been in are not a new registry: an
+# arrival writes an observation row for the area (``engine/movement.py`` ->
+# ``engine/observation.py``) and refreshes it in place, and the item and
+# character rows carry the area they were seen in as ``location``. So this
+# handler reads the observation store and adds no state of its own.
+#
+# Way knowledge is decided HERE, not in the client, and by the same rule the
+# turn panel uses (``engine/scene_snapshot.py``): a locked or blocked way reads
+# as ``closed`` until the character has learned that aspect, and hidden ways
+# stay out entirely. Emitting ``way_blocked`` as one server-computed boolean is
+# deliberate — a client-side copy of that rule is how a panel ends up leaking
+# what the composer withholds.
+
+
+def _observed_by_location(player):
+    """Areas this character has been in, and what was last seen in each.
+
+    Areas are keyed by node id and carry their own name in ``location``; items
+    and people are keyed by that same area *name*, because that is the field
+    the observation rows share. Superseded rows are dropped — that is how a
+    belief that stopped being true stops being reported.
+    """
+    areas, items, people = {}, {}, {}
+    for m in getattr(player, "memories", []) or []:
+        if not isinstance(m, dict) or m.get("superseded_by"):
+            continue
+        kind = m.get("kind")
+        where = str(m.get("location") or "")
+        ids = [str(e) for e in (m.get("entity_ids") or []) if e]
+        if not ids:
+            continue
+        if kind == "area":
+            areas[ids[0]] = {"id": ids[0], "name": where, "last_seen": m.get("tick")}
+        elif where and kind in ("item", "character"):
+            bucket = items if kind == "item" else people
+            bucket.setdefault(where, {})[ids[0]] = ids[0]
+    return areas, items, people
+
+
+def _map_ways(world, player, area_id, area_name):
+    """This area's ways, with the far end and whether the blockage is known."""
+    from engine.barriers import SOLID_STATES
+    from engine.room_perception import way_visible_to
+
+    graph = world.graph
+    player_manager = world.player_manager
+    out = []
+    seen = set()
+    for edge in graph.get_edges_for_source(area_id, EDGE_CONNECTION):
+        way_node = graph.get_node(edge.target)
+        if not way_node or way_node.id in seen:
+            continue
+        seen.add(way_node.id)
+
+        raw_direction = edge.properties.get("direction", "") or way_node.name
+        if not way_visible_to(player, player_manager, player.name, way_node,
+                              area_name, raw_direction):
+            continue
+
+        # The way's other end. Ways are nodes joined to both areas, so the far
+        # side is whichever connection is not the one we came in by.
+        to_area_id = None
+        for conn in graph.get_edges_for_source(way_node.id, EDGE_CONNECTION):
+            if conn.target != area_id:
+                to_area_id = conn.target
+                break
+
+        try:
+            handle = world.name_matcher.way_handle(
+                way_node, raw_direction, area_name) or raw_direction
+        except Exception:
+            handle = raw_direction
+
+        real_state = way_node.properties.get("current_state", "closed")
+        known = {
+            aspect: bool(player.knows_way_aspect(area_name, handle, aspect))
+            for aspect in ("locked", "blocked", "needs_force")
+        }
+        reported = real_state
+        if real_state in ("locked", "blocked") and not known.get(real_state):
+            reported = "closed"
+
+        out.append({
+            "way_id": way_node.id,
+            "direction": handle,
+            "to_area_id": to_area_id,
+            "name": way_node.name,
+            "state": reported,
+            "real_state": real_state,
+            "solid": real_state in SOLID_STATES,
+            # A shut door needs no discovery to be seen shut. A locked or
+            # blocked one only reads as itself once the character has hit it.
+            "way_blocked": real_state not in ("locked", "blocked") or known.get(real_state, False),
+            "known_locked": known["locked"],
+            "known_blocked": known["blocked"],
+            "visible_in_direction": edge.properties.get("visible_in_direction", "") or "",
+        })
+    return out
+
+
+def handle_get_player_map(app, name):
+    """The cells this character has been in, and what they last observed there.
+
+    Areas with no painted ``cell`` come back with ``cell: null`` on purpose:
+    the client draws those from the cardinal layout rather than dropping them,
+    so an unpainted world still produces a usable map.
+    """
+    from engine.room_perception import resolve_area_node
+    from engine import world_scopes as ws
+
+    world = app.world
+    player = (getattr(world, "players", {}) or {}).get(name)
+    if player is None:
+        return jsonify({"error": "No such player"}), 404
+
+    graph = world.graph
+    areas, items, people = _observed_by_location(player)
+    current_area = getattr(player, "current_area", "")
+
+    cells = []
+    scope_counts = {}
+    for entry in areas.values():
+        node = resolve_area_node(graph, entry["name"])
+        if node is None:
+            continue
+        props = node.properties or {}
+        cell = props.get("cell")
+        where = entry["name"]
+
+        seen_items = []
+        for sid in (items.get(where) or {}).values():
+            inode = graph.get_node(sid)
+            seen_items.append({"id": sid, "name": inode.name if inode else sid})
+
+        seen_people = []
+        for sid in (people.get(where) or {}).values():
+            pnode = graph.get_node(sid)
+            other = pnode.name if pnode else sid
+            known = bool(player.knows_name(other)) if hasattr(player, "knows_name") else True
+            seen_people.append({
+                "id": sid,
+                "name": other if known else None,
+                "display": other if known else "someone you have met",
+            })
+
+        scope_id = str(props.get("world_scope_id") or "")
+        if scope_id:
+            scope_counts[scope_id] = scope_counts.get(scope_id, 0) + 1
+
+        cells.append({
+            "id": node.id,
+            "name": where,
+            "cell": ({"x": int(cell["x"]), "y": int(cell["y"])}
+                     if isinstance(cell, dict) and "x" in cell and "y" in cell else None),
+            "floor": int(props.get("floor", 0) or 0),
+            "scope_id": scope_id,
+            "biome": str(props.get("biome") or ""),
+            "kind": str(props.get("kind") or ""),
+            "last_seen": entry["last_seen"],
+            "current": where == current_area,
+            "items": seen_items,
+            "people": seen_people,
+            "ways": _map_ways(world, player, node.id, where),
+        })
+
+    manifest = ws.normalise_manifest(getattr(world, "world_scopes", {}) or {})
+    scopes = []
+    for scope_id, count in sorted(scope_counts.items()):
+        rec = manifest.get(scope_id) or {}
+        grid = rec.get("grid") or {}
+        scopes.append({
+            "id": scope_id,
+            "name": rec.get("name") or scope_id,
+            "visited_cells": count,
+            "w": grid.get("w"),
+            "h": grid.get("h"),
+            "cell_scale": grid.get("cell_scale", 1),
+        })
+
+    return jsonify({
+        "player": name,
+        "current_area": current_area,
+        "tick": getattr(world, "time_ticks", 0),
+        "areas": cells,
+        "scopes": scopes,
+    })
 
 
 def _temperature_drift_desc(direction, rate, eff_temp):

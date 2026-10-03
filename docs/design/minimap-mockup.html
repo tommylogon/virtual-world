@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Minimap mockup — human turn composer (MOCKUP, not wired)</title>
+<style>
+:root{
+  --bg:#0d1117; --bg-card:#161b22; --bg-inset:#1c2128; --bg-input:#21262d; --bg-hover:#30363d;
+  --border:#30363d; --border-light:#21262d;
+  --text:#e6edf3; --text-dim:#8b949e; --text-muted:#6e7681;
+  --accent:#58a6ff; --accent-dim:#1f6feb;
+  --green:#3fb950; --red:#f85149; --orange:#e3b341; --purple:#bc8cff; --pink:#f778ba; --yellow:#d29922;
+  --font:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono:'Cascadia Code','Fira Code','JetBrains Mono',Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:13px}
+.dochead{padding:18px 24px;border-bottom:1px solid var(--border);background:var(--bg-card)}
+.dochead h1{margin:0 0 6px;font-size:17px}
+.dochead .sub{color:var(--text-dim);font-size:12px;max-width:1100px;line-height:1.55}
+.warn{display:inline-block;margin-top:8px;padding:3px 9px;border:1px solid var(--orange);border-radius:4px;color:var(--orange);font-size:11px;font-weight:600;letter-spacing:.04em}
+.prov{margin-top:10px;padding:9px 12px;border:1px solid var(--border);border-left:3px solid var(--accent-dim);border-radius:4px;background:var(--bg-inset);color:var(--text-dim);font-size:11.5px;line-height:1.6;max-width:1100px}
+.prov b{color:var(--text)}
+.prov code{font-family:var(--font-mono);color:var(--purple);font-size:11px}
+
+.wrap{padding:20px 24px 60px}
+.stage{display:flex;gap:16px;align-items:flex-start;max-width:1400px}
+
+/* the turn composer, approximated: 1fr scene column + 300px feed */
+.htc{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;overflow:hidden;flex:1;min-width:0}
+.htc-header{display:flex;justify-content:space-between;align-items:center;padding:9px 13px;border-bottom:1px solid var(--border);background:var(--bg-inset)}
+.htc-title{font-size:12.5px;font-weight:600}
+.htc-meta{font-size:11px;color:var(--text-muted);font-family:var(--font-mono)}
+.htc-grid{display:grid;grid-template-columns:1fr 300px}
+.htc-scene{padding:12px;min-width:0}
+.htc-feed{border-left:1px solid var(--border);padding:12px;background:var(--bg-inset);min-height:520px}
+.htc-feed h4{margin:0 0 8px;font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.fline{font-size:11.5px;color:var(--text-dim);padding:3px 0;border-bottom:1px solid var(--border-light);line-height:1.45}
+.fline b{color:var(--text);font-weight:500}
+
+.sec-label{font-size:10.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600;margin:0 0 7px}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{padding:3px 8px;border:1px solid var(--border);border-radius:11px;font-size:11px;color:var(--text-dim);background:var(--bg-inset)}
+.chip.person{display:flex;align-items:center;gap:5px;color:var(--text)}
+.divider{height:1px;background:var(--border);margin:13px 0}
+
+/* ---- the minimap panel ---- */
+.mm{border:1px solid var(--border);border-radius:7px;background:var(--bg-inset);overflow:hidden}
+.mm-head{display:flex;align-items:center;gap:8px;padding:7px 9px;border-bottom:1px solid var(--border);background:var(--bg-input)}
+.mm-head .t{font-size:11.5px;font-weight:600;white-space:nowrap}
+.mm-head .sp{flex:1}
+.mm-head select{background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;font-size:11px;padding:3px 5px;font-family:var(--font);max-width:210px}
+.mm-btn{background:var(--bg-input);color:var(--text-dim);border:1px solid var(--border);border-radius:4px;font-size:11px;padding:3px 7px;cursor:pointer}
+.mm-btn:hover{background:var(--bg-hover);color:var(--text)}
+.mm-btn[aria-pressed=true]{border-color:var(--accent-dim);color:var(--accent)}
+.mm-body{position:relative;padding:10px;overflow:auto;max-height:460px;display:flex;justify-content:center;align-items:flex-start}
+.mm-foot{display:flex;align-items:center;gap:12px;padding:5px 9px;border-top:1px solid var(--border);font-size:10.5px;color:var(--text-muted);flex-wrap:wrap}
+.lg{display:flex;align-items:center;gap:4px}
+.sw{width:11px;height:11px;border-radius:2px;border:1px solid var(--border);display:inline-block}
+.sw.vis{background:var(--bg-hover)}
+.sw.cur{background:var(--bg-hover);border-color:var(--accent)}
+.sw.fog{background:repeating-linear-gradient(45deg,var(--bg) 0 3px,var(--bg-hover) 3px 4px)}
+.sw.bld{background:#2d2416;border-color:var(--yellow)}
+.xmark{color:var(--red);font-weight:700;font-size:12px;line-height:1}
+
+.lattice{display:grid;gap:1px;background:var(--border-light);border:1px solid var(--border);width:max-content;flex:0 0 auto}
+.cell{width:var(--p,24px);height:var(--p,24px);background:#0a0e13;position:relative;cursor:default;display:flex;align-items:center;justify-content:center}
+.cell.vis{background:#3b444f}
+.cell.vis:hover{background:#4a5563}
+.cell.cur{background:#1f4a7d;box-shadow:inset 0 0 0 2px var(--accent)}
+.cell.fog{background:repeating-linear-gradient(45deg,#0a0e13 0 4px,#10151b 4px 8px)}
+.cell.bld.vis{background:#4a3a1c}
+.cell.pinned{box-shadow:inset 0 0 0 2px var(--orange)}
+.cell .dot{width:6px;height:6px;border-radius:50%;background:rgba(230,237,243,.5)}
+.cell.cur .dot{background:var(--accent)}
+.cell .lbl{font-size:9.5px;color:#d7dee6;pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:calc(var(--p,24px) - 5px);line-height:1}
+.cell .n{position:absolute;top:1px;right:2px;font-size:8px;color:var(--orange);font-weight:700;line-height:1}
+.xwrap{position:absolute;width:20px;height:20px;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;pointer-events:auto;z-index:3;cursor:help}
+
+/* ---- tooltip ---- */
+.tip{position:fixed;z-index:60;max-width:330px;background:#0b0f14;border:1px solid var(--border);border-radius:6px;padding:9px 10px;box-shadow:0 8px 26px rgba(0,0,0,.65);pointer-events:none;display:none}
+.tip h5{margin:0 0 2px;font-size:12.5px}
+.tip .kind{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.tip .row{font-size:11.5px;color:var(--text-dim);padding:2.5px 0;line-height:1.5;display:flex;gap:6px}
+.tip .row .k{color:var(--text-muted);flex:0 0 62px;font-size:10.5px;padding-top:1px}
+.tip .row .v{color:var(--text);flex:1}
+.tip .src{margin-top:6px;padding-top:5px;border-top:1px solid var(--border-light);font-size:9.5px;color:var(--text-muted);font-family:var(--font-mono)}
+.chipdot{display:inline-block;padding:1px 5px;margin:0 3px 3px 0;border:1px solid var(--border);border-radius:9px;font-size:10px;color:var(--text-dim)}
+.chipdot.x{color:var(--red);border-color:#5c2226}
+.chipdot.ok{color:var(--green);border-color:#1f4a2c}
+
+/* ---- co-located portraits ---- */
+.people{display:flex;flex-wrap:wrap;gap:7px}
+.pcard{display:flex;align-items:center;gap:7px;padding:5px 8px 5px 5px;border:1px solid var(--border);border-radius:16px;background:var(--bg-input)}
+.pcard img,.pcard .ini{width:22px;height:22px;border-radius:50%;background:#2b3138;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:9.5px;color:var(--text-dim);flex:0 0 auto}
+.pcard .nm{font-size:11.5px;color:var(--text)}
+.pcard.big img,.pcard.big .ini{width:34px;height:34px;font-size:13px}
+.pcard.big .nm{font-size:12.5px}
+.pcard.big{padding:6px 11px 6px 6px;gap:9px}
+
+/* ---- fullscreen ---- */
+.scrim{position:fixed;inset:0;background:#010409;z-index:70;display:none;padding:24px}
+.scrim.on{display:flex;flex-direction:column}
+.scrim .bar{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.scrim .bar .t{font-size:14px;font-weight:600}
+.scrim .mm-body{max-height:none;flex:1;overflow:auto}
+.note{max-width:1400px;margin-top:16px;padding:11px 14px;border:1px solid var(--border);border-left:3px solid var(--orange);border-radius:4px;background:var(--bg-inset);font-size:11.5px;color:var(--text-dim);line-height:1.65}
+.note b{color:var(--text)}
+.note code{font-family:var(--font-mono);color:var(--purple);font-size:11px}
+</style>
+</head>
+<body>
+
+<div class="dochead">
+  <h1>Minimap — human turn composer</h1>
+  <div class="sub">Cells this character has actually been in, hover for what was there when you last looked, a red X on a way you know is blocked, a scope selector, and a fullscreen map. Sits in the composer's scene column, above the <i>You</i> strip.</div>
+  <div class="warn">MOCKUP — NOT WIRED. No producer, no route, no engine change. A surface with nothing behind it is how this task can look finished and behave empty (task-677).</div>
+  <div class="prov">
+    <b>Real data in this file</b> (read from <code>data/scenarios/kraktooth_goblin_camp.json</code>): scope ids, names, grid dimensions and entry cells —
+    <code>world</code> 20×10 entry (4,1) · <code>eldenford_interior</code> 30×20 entry (13,2) · <code>goblin_camp</code> 20×10 · <code>west_woods</code> 20×40 entry (11,14) · <code>deep_oods</code> 45×30 · <code>test</code> 8×8 unmade.
+    Every drawn cell is a real area node at its real <code>properties.cell</code>. Theme colours are <code>static/css/style.css</code> tokens.
+    <br><b>Illustrative</b>: which cells this character has visited, the "last seen" contents, who was there, tooltip ages, and the cell pairing of each blocked way.
+    Real way <i>states</i> and <i>directions</i> only — kraktooth authors <code>blocked</code>, and all 15 sampled ways carry a half-integer
+    <code>y</code>, which is the midpoint rule (<code>engine/world_compile.py:2055</code>) placing the X on a cell boundary.
+    Portraits are initials; real art comes from <code>CharacterArt.artForNodeId</code>.
+  </div>
+</div>
+
+<div class="wrap">
+<div class="stage">
+
+  <div class="htc">
+    <div class="htc-header">
+      <div class="htc-title">✈ Cooking Area's turn</div>
+      <div class="htc-meta">tick 412 · next up: Goblin Scout</div>
+    </div>
+    <div class="htc-grid">
+      <div class="htc-scene">
+
+        <p class="sec-label">Where you've been</p>
+        <div class="mm" id="mm">
+          <div class="mm-head">
+            <span class="t">🗺 Map</span>
+            <select id="scopeSel" aria-label="Which scope to show"></select>
+            <span class="sp"></span>
+            <button class="mm-btn" id="fogBtn" aria-pressed="true" title="Show the unexplored extent of this scope">fog</button>
+            <button class="mm-btn" id="labBtn" aria-pressed="false" title="Write place names inside cells (only legible when cells are wide)">names</button>
+            <button class="mm-btn" id="fsBtn" title="Open the map fullscreen">⛶</button>
+          </div>
+          <div class="mm-body"><div class="lattice" id="lattice"></div></div>
+          <div class="mm-foot">
+            <span class="lg"><span class="sw vis"></span>been</span>
+            <span class="lg"><span class="sw cur"></span>you are here</span>
+            <span class="lg"><span class="sw fog"></span>not yet</span>
+            <span class="lg"><span class="sw bld"></span>building</span>
+            <span class="lg"><span class="xmark">✖</span>way you know is blocked</span>
+            <span id="mmCount"></span>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <p class="sec-label">People here</p>
+        <div class="people" id="people"></div>
+
+        <div class="divider"></div>
+
+        <p class="sec-label">Things you can see</p>
+        <div class="chips">
+          <span class="chip">iron pot</span><span class="chip">drying rack</span>
+          <span class="chip">salted fish ×2</span><span class="chip">tinderbox</span>
+        </div>
+
+        <div class="divider"></div>
+
+        <p class="sec-label">Ways out</p>
+        <div class="chips">
+          <span class="chip">north · open</span><span class="chip">east · closed</span>
+          <span class="chip">south · ✖ blocked</span><span class="chip">down · crawl</span>
+        </div>
+
+      </div>
+      <div class="htc-feed">
+        <h4>What happened</h4>
+        <div class="fline"><b>tick 411</b> — you gutted the last of the salted fish.</div>
+        <div class="fline"><b>tick 410</b> — Goblin Cook says <i>"off with you, we have mouths to fill"</i> and turns back to the pot.</div>
+        <div class="fline"><b>tick 408</b> — Arix arrives from the north trail, shaking rain from a hide.</div>
+        <div class="fline"><b>tick 405</b> — the south passage is blocked by a toppled cart; you cannot shift it alone.</div>
+        <div class="fline"><b>tick 402</b> — you stepped into the Cooking Area.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip" id="tip"></div>
+</div>
+
+<div class="note">
+  <b>Open questions this mockup is meant to settle.</b>
+  1. <b>One cell is not one area.</b> Cell <code>(10,3)</code> holds both <i>Deep Forest</i> and <i>Sparse Forest (Eldenford interior 10,3)</i>; road areas share cells with forest. The minimap's unit has to be the cell, with a stacked badge — a hover lists every area in it.
+  2. <b>Fog reads as empty, and empty reads as "there is nothing there".</b> The <code>fog</code> toggle compares omitting the extent against hatching it.
+  3. <b>Names embed their own coordinates</b> — <i>"Road (Eldenford interior 13,5)"</i>. On a grid that is redundant in a tooltip and long in a cell.
+  4. <b>Portrait size.</b> Same data at 22px and 34px, below. The 18px chip in <code>turn-scene-view.ts:459</code> already ships; this is a prominence question, not a missing feature.
+  5. <b>"You are here" is not <code>entry_cell</code>.</b> A scope's <code>entry_cell</code> is where a scoped load drops a character (<code>world</code> is (4,1), <code>eldenford_interior</code> is (13,2)); the blue ring is <i>this character's</i> position, which is <code>player.current_area</code> resolved to a cell. Conflating them puts the marker in the wrong place on every scope load.
+  6. <b>A way marker must straddle the boundary, not sit in a cell.</b> First pass drew the ✖ inside the lower of the two cells and it swallowed that cell's hover — the way tooltip came up instead of the room's. Ways carry a half-integer coordinate (<code>world_compile.py:2055</code>), so the marker belongs on the grid line and its hit box has to be small enough that neither cell loses the hover.
+</div>
+</div>
+
+<script>
+const SCOPES = {
+  world: { name:'World — camp country', w:20, h:10, entry:{x:4,y:1}, at:{x:5,y:3}, visited:true },
+  eldenford_interior: { name:'Eldenford (interior)', w:30, h:20, entry:{x:13,y:2}, at:{x:13,y:2}, visited:true },
+  goblin_camp: { name:'Goblin camp', w:20, h:10, entry:null, at:{x:9,y:4}, visited:true },
+  west_woods: { name:'West woods', w:20, h:40, entry:{x:11,y:14}, at:null, visited:false }
+};
+const AT_AREA = { '5,3':'Cooking Area', '13,2':'Gate (Eldenford interior 13,2)', '9,4':'Goblin Camp Yard' };
+
+const A = (id,name,x,y,kind,seen,extra) => Object.assign({id,name,x,y,kind,seen,items:[],people:[],ways:[]}, extra||{});
+
+const CELLS = {
+  world: [
+    A('area_camp_entrance','Camp Entrance',8,1,'place',412,{items:['boundary post','signal horn'],people:['Goblin Scout'],ways:[['north','open'],['east','open']]}),
+    A('area_chiefs_den',"Chief's Den",5,2,'place',298,{items:['trophy rack','war drum'],people:['Arix'],ways:[['south','open']]}),
+    A('area_cooking_area','Cooking Area',5,3,'place',412,{items:['iron pot','drying rack','salted fish ×2','tinderbox'],people:['Goblin Cook','Arix'],ways:[['north','open'],['east','closed'],['south','blocked']]}),
+    A('area_chiefs_pit',"Chief's Pit",9,3,'place',301,{items:['dugout log','firepit'],people:[],ways:[['west','open']]}),
+    A('area_blackmarsh','Blackmarsh',3,4,'place',244,{items:['snipe bones'],people:[],ways:[['east','open']]}),
+    A('area_camp_entrance_trail','Camp Entrance Trail',9,5,'trail',366,{items:['milestone'],people:['Arix'],ways:[['north','open'],['south','open']]}),
+    A('area_armory','Armory',7,6,'place',355,{items:['spear rack','shield wall'],people:[],ways:[['west','open'],['east','open']]}),
+    A('area_animal_pens','Animal Pens',11,7,'place',344,{items:['feed trough','hobble'],people:[],ways:[['west','open']]}),
+    A('area_abandoned_farm','Abandoned Farm',16,7,'place',287,{items:['rotting harness','collapsed fence'],people:[],ways:[['west','open']]}),
+    A('area_deep_forest','Deep Forest',10,3,'forest',410,{items:[],people:[],ways:[['west','open']]})
+  ],
+  goblin_camp: [
+    A('area_gc_yard','Goblin Camp Yard',9,4,'place',402,{items:['firepit','drying line'],people:['Goblin Cook'],ways:[['north','open'],['south','open']]}),
+    A('area_gc_sheds','Tool Sheds',7,5,'building',402,{items:['hoe','rope'],people:[],ways:[['east','open']]})
+  ],
+  eldenford_interior: [
+    A('area_ei_13_2','Gate (Eldenford interior 13,2)',13,2,'place',288,{items:['gate bar','toll post'],people:[],ways:[['south','open']]}),
+    A('area_ei_13_3','Road (13,3)',13,3,'road',288,{items:[],people:[],ways:[['south','open']]}),
+    A('area_ei_13_4','Road (13,4)',13,4,'road',288,{items:['cart ruts'],people:[],ways:[['south','open']]}),
+    A('area_ei_13_5','Road (13,5)',13,5,'road',288,{items:[],people:[],ways:[['south','open']]}),
+    A('area_ei_13_7','Road (13,7)',13,7,'road',288,{items:[],people:[],ways:[['south','open']]}),
+    A('area_ei_13_8','Road (13,8)',13,8,'road',288,{items:['milestone'],people:[],ways:[['south','open'],['east','blocked']]}),
+    A('area_ei_13_9','Road (13,9)',13,9,'road',288,{items:[],people:[],ways:[['south','open'],['west','blocked']]}),
+    A('area_ei_13_10','Road (13,10)',13,10,'road',288,{items:[],people:[],ways:[['south','open']]}),
+    A('area_ei_13_11','Road (13,11)',13,11,'road',288,{items:[],people:[],ways:[['south','open']]}),
+    A('area_ei_12_6','Road (12,6)',12,6,'road',0,{items:[],people:[],ways:[]}),
+    A('area_ei_12_7','Road (12,7)',12,7,'road',0,{items:[],people:[],ways:[]}),
+    A('area_ei_12_12','Road (12,12)',12,12,'road',0,{items:[],people:[],ways:[]}),
+    A('area_ei_12_13','Road (12,13)',12,13,'road',0,{items:[],people:[],ways:[]}),
+    A('area_ei_11_5','Road (11,5)',11,5,'road',0,{items:[],people:[],ways:[]}),
+    A('area_ei_11_14','Road (11,14)',11,14,'road',0,{items:[],people:[],ways:[]}),
+    A('area_ei_14_5','Road (14,5)',14,5,'road',0,{items:[],people:[],ways:[]}),
+    A('area_ei_14_9','Road (14,9)',14,9,'road',0,{items:[],people:[],ways:[]}),
+    A('area_ei_14_11','Road (14,11)',14,11,'road',0,{items:[],people:[],ways:[]}),
+    A('area_ei_15_6','Road (15,6)',15,6,'road',0,{items:[],people:[],ways:[]}),
+    A('area_ei_15_9','Road (15,9)',15,9,'road',0,{items:[],people:[],ways:[]}),
+    A('area_ei_15_11','Road (15,11)',15,11,'road',0,{items:[],people:[],ways:[]}),
+    A('area_ei_16_12','Road (16,12)',16,12,'road',0,{items:[],people:[],ways:[]}),
+    A('area_ei_10_4','Road (10,4)',10,4,'road',0,{items:[],people:[],ways:[]}),
+    A('area_ei_10_5','Road (10,5)',10,5,'road',0,{items:[],people:[],ways:[]}),
+    A('area_ei_10_3','Sparse Forest (10,3)',10,3,'forest',0,{items:[],people:[],ways:[]}),
+    A('area_ei_11_3','Sparse Forest (11,3)',11,3,'forest',0,{items:[],people:[],ways:[]}),
+    A('area_ei_15_4','Sparse Forest (15,4)',15,4,'forest',0,{items:[],people:[],ways:[]}),
+    A('area_ei_15_5','Sparse Forest (15,5)',15,5,'forest',0,{items:[],people:[],ways:[]}),
+    A('area_ei_11_8','Temple (11,8)',11,8,'building',0,{items:[],people:[],ways:[]}),
+    A('area_ei_12_9','Market (12,9)',12,9,'building',0,{items:[],people:[],ways:[]})
+  ]
+};
+
+const BLOCKED = [
+  { scope:'world', x:5, y:3.5, dir:'south', between:[[5,3],[5,4]], known:true, reason:'a toppled cart; you cannot shift it alone' },
+  { scope:'world', x:7.5, y:6, dir:'east', between:[[7,6],[8,6]], known:false },
+  { scope:'eldenford_interior', x:13.5, y:8, dir:'east', between:[[13,8],[14,8]], known:true, reason:'a cart axle across the road' },
+  { scope:'eldenford_interior', x:13, y:8.5, dir:'south', between:[[13,8],[13,9]], known:true, reason:'mud, washed out' },
+  { scope:'eldenford_interior', x:12.5, y:8, dir:'east', between:[[12,8],[13,8]], known:false },
+  { scope:'eldenford_interior', x:10.5, y:4.5, dir:'south', between:[[10,4],[10,5]], known:true, reason:'fallen timber' }
+];
+
+const PEOPLE = [
+  { n:'Goblin Cook', i:'GC', seen: 0, here:true },
+  { n:'Arix', i:'AX', seen: 4, here:true },
+  { n:'Goblin Scout', i:'GS', seen: 1, here:false },
+  { n:'a stranger', i:'?', seen: null, here:true }
+];
+
+const lat = document.getElementById('lattice');
+const sel = document.getElementById('scopeSel');
+const tip = document.getElementById('tip');
+const cnt = document.getElementById('mmCount');
+let current = 'world', pinned = null, showFog = true, showLabels = false;
+
+function pitchFor(sc){
+  const body = document.querySelector('#mm .mm-body');
+  const avail = (body ? body.clientWidth : 900) - 28;
+  return Math.max(18, Math.min(56, Math.floor(avail / sc.w)));
+}
+
+Object.keys(SCOPES).filter(k => SCOPES[k].visited).forEach(k => {
+  const o = document.createElement('option');
+  o.value = k; o.textContent = SCOPES[k].name;
+  sel.appendChild(o);
+});
+sel.value = current;
+
+function cellsOf(scope){
+  const map = new Map();
+  (CELLS[scope]||[]).forEach(c => {
+    const k = c.x + ',' + c.y;
+    if (!map.has(k)) map.set(k, []);
+    map.get(k).push(c);
+  });
+  return map;
+}
+
+function render(){
+  const sc = SCOPES[current];
+  const p = pitchFor(sc);
+  lat.style.setProperty('--p', p + 'px');
+  lat.style.gridTemplateColumns = 'repeat(' + sc.w + ', ' + p + 'px)';
+  lat.innerHTML = '';
+  const map = cellsOf(current);
+  const xs = BLOCKED.filter(b => b.scope === current);
+
+  for (let y = 0; y < sc.h; y++){
+    for (let x = 0; x < sc.w; x++){
+      const d = document.createElement('div');
+      const here = (sc.at && sc.at.x === x && sc.at.y === y);
+      const stack = map.get(x + ',' + y);
+      const isVis = !!stack && stack.some(c => c.seen > 0);
+      d.className = 'cell' + (isVis ? ' vis' : '') + (here ? ' cur' : '')
+        + (!isVis && showFog ? ' fog' : '')
+        + (stack && stack.some(c => c.kind === 'building') ? ' bld' : '')
+        + (pinned === x + ',' + y + ',' + current ? ' pinned' : '');
+      if (stack){
+        d.setAttribute('data-name', stack[0].name);
+        if (stack.length > 1){
+          const n = document.createElement('span');
+          n.className = 'n'; n.textContent = stack.length;
+          d.appendChild(n);
+        } else if (isVis && showLabels && p >= 34){
+          const l = document.createElement('span');
+          l.className = 'lbl';
+          l.textContent = stack[0].name.replace(/^Road \(.*\)$/, 'Road').replace(/ \(.*\)/,'');
+          d.appendChild(l);
+        } else if (isVis){
+          const dot = document.createElement('span');
+          dot.className = 'dot';
+          d.appendChild(dot);
+        }
+        d.addEventListener('mouseenter', e => showTip(stack, x, y, e));
+        d.addEventListener('mousemove', moveTip);
+        d.addEventListener('mouseleave', hideTip);
+        d.addEventListener('click', () => {
+          pinned = (pinned === x + ',' + y + ',' + current) ? null : x + ',' + y + ',' + current;
+          render();
+          if (pinned) showTip(stack, x, y, null, true);
+        });
+      }
+      lat.appendChild(d);
+    }
+  }
+
+  xs.forEach(b => {
+    const gx = Math.floor(b.x), gy = Math.floor(b.y);
+    const host = lat.children[gy * sc.w + gx];
+    if (!host) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'xwrap';
+    const m = document.createElement('span');
+    m.className = 'xmark';
+    m.textContent = '✖';
+    m.style.color = b.known ? 'var(--red)' : 'var(--text-muted)';
+    m.style.opacity = b.known ? '1' : '.5';
+    m.style.fontSize = Math.max(11, Math.round(p * 0.46)) + 'px';
+    const edgeX = b.x % 1 === 0 ? '50%' : (b.dir === 'east' ? '100%' : '0%');
+    const edgeY = b.y % 1 === 0 ? '50%' : (b.dir === 'south' ? '100%' : '0%');
+    wrap.style.left = edgeX;
+    wrap.style.top = edgeY;
+    wrap.appendChild(m);
+    host.appendChild(wrap);
+    wrap.addEventListener('mouseenter', e => showWayTip(b, e));
+    wrap.addEventListener('mousemove', moveTip);
+    wrap.addEventListener('mouseleave', hideTip);
+  });
+
+  const total = (CELLS[current]||[]).length;
+  const been = (CELLS[current]||[]).filter(c => c.seen > 0).length;
+  const at = sc.at ? ' · you are in ' + (AT_AREA[sc.at.x + ',' + sc.at.y] || '?') : ' · not here';
+  cnt.textContent = been + ' of ' + total + ' places · ' + sc.w + '×' + sc.h + ' grid · ' + p + 'px cells' + at;
+}
+
+function age(tick){
+  if (!tick) return 'not yet seen';
+  const d = 412 - tick;
+  if (d <= 0) return 'right now';
+  if (d < 20) return d + ' ticks ago';
+  return Math.round(d / 20) + ' turns ago';
+}
+
+function stateChip(st){
+  const c = st === 'blocked' ? 'chipdot x' : (st === 'open' ? 'chipdot ok' : 'chipdot');
+  return '<span class="' + c + '">' + st + '</span>';
+}
+
+function showTip(stack, x, y, e, force){
+  const one = stack[0];
+  const rows = [];
+  rows.push(['seen', age(one.seen)]);
+  if (one.items.length) rows.push(['last seen', one.items.join(', ')]);
+  if (stack.length > 1){
+    rows.push(['also here', stack.slice(1).map(c => c.name).join(', ')]);
+  }
+  rows.push(['who was there', one.people.length ? one.people.join(', ') : 'nobody']);
+  const ways = one.ways.length
+    ? one.ways.map(w => stateChip(w[1]) + ' ' + w[0]).join(' ')
+    : '<span style="color:var(--text-muted)">no known ways out</span>';
+  tip.innerHTML =
+    '<h5>' + esc(one.name) + '</h5>' +
+    '<div class="kind">' + one.kind + ' · cell ' + x + ',' + y + '</div>' +
+    rows.map(r => '<div class="row"><span class="k">' + r[0] + '</span><span class="v">' + r[1] + '</span></div>').join('') +
+    '<div class="row"><span class="k">ways</span><span class="v">' + ways + '</span></div>' +
+    '<div class="src">observation row · ' + esc(one.id) + (pinned ? ' · pinned' : '') + '</div>';
+  tip.style.display = 'block';
+  if (e) position(e);
+  if (force && pinned) {
+    const r = tip.getBoundingClientRect();
+    tip.style.left = Math.min(window.innerWidth - r.width - 12, 40) + 'px';
+    tip.style.top = '160px';
+  }
+}
+
+function showWayTip(b, e){
+  tip.innerHTML =
+    '<h5>Way ' + b.dir + '</h5>' +
+    '<div class="kind">' + b.between[0].join(',') + ' ↔ ' + b.between[1].join(',') + '</div>' +
+    '<div class="row"><span class="k">state</span><span class="v">' + stateChip('blocked') + '</span></div>' +
+    '<div class="row"><span class="k">you know</span><span class="v">' + (b.known ? 'yes — you have hit this' : 'no — you have not tried it') + '</span></div>' +
+    (b.reason ? '<div class="row"><span class="k">why</span><span class="v">' + esc(b.reason) + '</span></div>' : '') +
+    '<div class="src">known_way_aspects · ' + (b.known ? 'learned' : 'unknown, drawn dimmed') + '</div>';
+  tip.style.display = 'block';
+  position(e);
+}
+
+function position(e){
+  const r = tip.getBoundingClientRect();
+  let l = e.clientX + 16, t = e.clientY + 14;
+  if (l + r.width > window.innerWidth - 10) l = e.clientX - r.width - 14;
+  if (t + r.height > window.innerHeight - 10) t = e.clientY - r.height - 12;
+  tip.style.left = l + 'px';
+  tip.style.top = t + 'px';
+}
+const moveTip = e => position(e);
+const hideTip = () => { if (!pinned) tip.style.display = 'none'; };
+const esc = s => String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+const peopleEl = document.getElementById('people');
+PEOPLE.forEach((p, i) => {
+  const big = i < 2;
+  const d = document.createElement('div');
+  d.className = 'pcard' + (big ? ' big' : '');
+  const a = document.createElement('span');
+  a.className = 'ini';
+  a.textContent = p.i;
+  a.title = 'placeholder — real art comes from CharacterArt.artForNodeId';
+  const n = document.createElement('span');
+  n.className = 'nm'; n.textContent = p.n;
+  d.appendChild(a); d.appendChild(n);
+  peopleEl.appendChild(d);
+});
+
+sel.addEventListener('change', () => { current = sel.value; pinned = null; tip.style.display = 'none'; render(); });
+document.getElementById('fogBtn').addEventListener('click', function(){
+  showFog = !showFog;
+  this.setAttribute('aria-pressed', String(showFog));
+  render();
+});
+document.getElementById('labBtn').addEventListener('click', function(){
+  showLabels = !showLabels;
+  this.setAttribute('aria-pressed', String(showLabels));
+  render();
+});
+window.addEventListener('resize', () => render());
+const scrim = document.createElement('div');
+scrim.className = 'scrim';
+scrim.innerHTML = '<div class="bar"><span class="t">Map — fullscreen</span><span style="flex:1"></span><button class="mm-btn" id="scrimClose">close ✕</button></div><div id="fsHost"></div>';
+document.body.appendChild(scrim);
+document.getElementById('fsBtn').addEventListener('click', () => {
+  const host = document.getElementById('fsHost');
+  host.innerHTML = '';
+  const clone = document.getElementById('mm').cloneNode(true);
+  clone.querySelectorAll('script').forEach(s => s.remove());
+  host.appendChild(clone);
+  scrim.classList.add('on');
+  const sc = SCOPES[current];
+  const csel = clone.querySelector('select');
+  if (csel) csel.value = current;
+  const fp = Math.max(18, Math.min(72, Math.floor((host.clientWidth - 24) / sc.w)));
+  const flat = clone.querySelector('.lattice');
+  flat.style.setProperty('--p', fp + 'px');
+  flat.style.gridTemplateColumns = 'repeat(' + sc.w + ', ' + fp + 'px)';
+  if (showLabels || fp >= 44){
+    flat.querySelectorAll('.cell.vis').forEach(c => {
+      const dot = c.querySelector('.dot');
+      if (!dot) return;
+      const l = document.createElement('span');
+      l.className = 'lbl';
+      l.textContent = (c.getAttribute('data-name') || '').replace(/^Road \(.*\)$/, 'Road').replace(/ \(.*\)/, '');
+      c.replaceChild(l, dot);
+    });
+  }
+  document.getElementById('scrimClose').onclick = () => scrim.classList.remove('on');
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') scrim.classList.remove('on'); });
+
+render();
+</script>
+</body>
+</html>

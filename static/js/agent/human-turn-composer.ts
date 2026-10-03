@@ -777,6 +777,12 @@ finishReact({ endTurn: true });
                 });
                 (htcGlobals.TurnYouStrip as { render(host: HTMLElement, you: any, handlers: Record<string, unknown>): void })
                     .render(q('#htc-you'), scene.you, stripHandlers);
+                // task-677: the visited-cell map. Mounted *after* renderScene
+                // because that clears its host, and it appends under the same
+                // column rather than replacing anything the scene view drew.
+                if (htcGlobals.TurnMinimap) {
+                    htcGlobals.TurnMinimap.mount(sceneHost, charName).catch(() => {});
+                }
                 renderDatalist();
                 // React phase: an examine that targeted someone opens their
                 // portrait (current full body, else profile) as the big view.
@@ -839,6 +845,7 @@ const htcGlobals = window as unknown as {
         renderScene(host: HTMLElement, scene: any, opts: Record<string, unknown>): void;
     };
     TurnYouStrip?: { render(host: HTMLElement, you: any, handlers: Record<string, unknown>): void };
+    TurnMinimap?: { mount(host: HTMLElement, charName: string): Promise<void> };
     CharacterArt?: { open(charName: string): void };
 };
 

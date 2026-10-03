@@ -23,6 +23,7 @@ from .player_ops import (
     handle_character_affect,
     handle_get_vital,
     handle_update_vital,
+    handle_get_player_map,
 )
 
 logger = logging.getLogger(__name__)
@@ -116,6 +117,13 @@ def register_players_routes(app):
     @app.route('/api/players/<name>/vitals/<vital_name>', methods=['PATCH'])
     def api_update_vital(name, vital_name):
         return handle_update_vital(app, name, vital_name)
+
+    @app.route('/api/players/<name>/map', methods=['GET'])
+    def api_get_player_map(name):
+        """task-677: the cells this character has been in, with what they last
+        observed there. Separate from /api/state on purpose — that payload is
+        ~2.48 MB polled every 1.5 s and must not grow a map payload."""
+        return handle_get_player_map(app, name)
 
     @app.route('/api/abilities/curve', methods=['GET'])
     def api_ability_curve():
