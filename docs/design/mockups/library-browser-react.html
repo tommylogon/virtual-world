@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Library Browser — ideal items pane (task-510) · React</title>
+<!--
+  React design mockup for task-510 "Library browser UI overhaul (items tab and modal)".
+
+  Real React 18 + hooks, transpiled in-browser by Babel. No build, no npm, no server.
+  Open in VS Code with Ctrl+Shift+V, or in any browser. Needs network on first load
+  for the three CDN scripts.
+
+  THE NUMBERS ARE MEASURED, NOT INVENTED. From GET /api/library/items against the
+  live app on 2026-10-02:
+    total items            1,999     (task-510 assumed 505 when filed 2026-09-24)
+    tagged food              480  (24%)
+    tagged tool              362  (18%)
+    tagged container         151
+    have triggers            803  (40%)
+    have contents            100
+    no description             3
+    duplicate tags           294  (15%)   e.g. "drink,drink,nut,forage"
+  Row names and tags are real library entries. Tag/type facets below are derived
+  from the measured distribution, not hand-authored.
+-->
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+:root{
+  --bg:#0d1117; --bg-card:#161b22; --bg-inset:#1c2128; --bg-input:#21262d; --bg-hover:#30363d;
+  --border:#30363d; --border-light:#21262d;
+  --text:#e6edf3; --text-dim:#8b949e; --text-muted:#6e7681;
+  --accent:#58a6ff; --green:#3fb950; --red:#f85149; --orange:#e3b341; --purple:#bc8cff; --pink:#f778ba;
+  --font:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;
+  --mono:'Cascadia Code','Fira Code','JetBrains Mono',Consolas,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:13px}
+code{font-family:var(--mono);font-size:11px}
+.wrap{padding:22px 26px 70px;max-width:1560px;margin:0 auto}
+
+h1{font-size:22px;margin:0 0 6px}
+.lede{color:var(--text-dim);max-width:96ch;margin:0 0 4px;line-height:1.6}
+.prov{font-family:var(--mono);font-size:11px;color:var(--text-muted);margin:0 0 18px}
+.stats{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin:0 0 22px}
+@media(max-width:1100px){.stats{grid-template-columns:repeat(3,1fr)}}
+.stat{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+.stat .v{font-size:19px;font-weight:600}
+.stat .l{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.stat.warn .v{color:var(--orange)}
+.stat.bad .v{color:var(--red)}
+
+.frame{background:var(--bg-card);border:1px solid var(--green);border-radius:10px;overflow:hidden;margin:0 0 24px}
+.bar{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg-inset);
+  border-bottom:1px solid var(--border);flex-wrap:wrap}
+.tabs{display:flex;gap:2px;flex-wrap:wrap}
+.tab{font-size:11px;padding:4px 9px;border-radius:5px;color:var(--text-muted);cursor:default}
+.tab.on{background:var(--bg-hover);color:var(--text);font-weight:600}
+.spacer{flex:1}
+.xbtn{background:var(--bg-input);border:1px solid var(--border);color:var(--text-dim);
+  border-radius:5px;padding:3px 9px;font-size:11px;cursor:default}
+.hint{font-family:var(--mono);font-size:10px;color:var(--text-muted)}
+
+.body{display:flex;height:660px;min-height:0;align-items:stretch}
+
+/* type + preset filters as horizontal chip bars — no permanent column */
+.fbar{padding:7px 10px;border-bottom:1px solid var(--border-light);display:flex;gap:5px;
+  align-items:center;flex-wrap:wrap}
+.fbar .glabel{font-size:9px;letter-spacing:.6px;text-transform:uppercase;color:var(--text-muted);
+  font-weight:600;margin-right:2px;flex:0 0 auto}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;padding:3px 8px;
+  border-radius:999px;border:1px solid var(--border);background:var(--bg-inset);color:var(--text-dim);
+  cursor:pointer;font-family:inherit;white-space:nowrap}
+.chip:hover{border-color:var(--text-muted);color:var(--text)}
+.chip.on{background:rgba(88,166,255,.15);border-color:var(--accent);color:var(--accent);font-weight:600}
+.chip .sw{width:7px;height:7px;border-radius:2px;flex:0 0 auto}
+.chip .n{font-family:var(--mono);font-size:9.5px;opacity:.8}
+.chip.tone{border-color:transparent}
+.chip.tone.on{border-color:currentColor}
+.chip.qa.on{background:rgba(228,179,65,.15);border-color:var(--orange);color:var(--orange)}
+.chip.more{padding:3px 7px;color:var(--text-muted)}
+.fsep{width:1px;height:16px;background:var(--border);margin:0 3px;flex:0 0 auto}
+
+.main{flex:1 1 auto;display:flex;flex-direction:column;min-width:0;min-height:0}
+.tools{display:flex;gap:8px;padding:8px 10px;border-bottom:1px solid var(--border);align-items:center;flex-wrap:wrap}
+.search{flex:1;min-width:150px;background:var(--bg-input);border:1px solid var(--border);
+  border-radius:5px;color:var(--text);padding:4px 8px;font-size:12px;font-family:inherit}
+select.sel{background:var(--bg-input);border:1px solid var(--border);border-radius:5px;
+  color:var(--text);padding:4px 7px;font-size:11.5px;font-family:inherit}
+.count{font-family:var(--mono);font-size:10.5px;color:var(--text-muted)}
+
+.list{overflow:auto;flex:1 1 auto;min-height:0}
+.row{display:flex;align-items:flex-start;gap:9px;padding:7px 11px;border-bottom:1px solid var(--border-light);cursor:pointer}
+.row:hover{background:rgba(255,255,255,.04)}
+.row.sel{background:rgba(88,166,255,.12);box-shadow:inset 2px 0 0 var(--accent)}
+.row .cb{width:13px;height:13px;border:1px solid var(--border);border-radius:3px;background:var(--bg-input);
+  margin-top:2px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:9px;color:transparent}
+.row.sel .cb{border-color:var(--accent);color:var(--accent)}
+.row .ic{width:9px;height:9px;border-radius:2px;margin-top:4px;flex:0 0 auto}
+.row .nm{font-size:12.5px;flex:1;min-width:0}
+.row .nm b{font-weight:600}
+.row .nm .ds{display:block;color:var(--text-muted);font-size:11px;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.badges{display:flex;gap:4px;flex:0 0 auto;margin-top:1px}
+.bdg{font-family:var(--mono);font-size:9px;padding:1px 5px;border-radius:3px;
+  background:var(--bg-inset);border:1px solid var(--border);color:var(--text-dim)}
+.bdg.trg{border-color:#1f4b7a;color:var(--accent)}
+.bdg.cnt{border-color:#1e4d2b;color:var(--green)}
+
+.bulk{display:flex;align-items:center;gap:9px;padding:7px 11px;background:rgba(63,185,80,.1);
+  border-bottom:1px solid var(--border);flex-wrap:wrap}
+.bulk .n{font-weight:600;color:var(--green);font-size:11.5px}
+.empty{padding:34px 16px;text-align:center;color:var(--text-muted);font-size:12px}
+
+.split{width:5px;flex:0 0 5px;background:var(--bg-inset);border-left:1px solid var(--border);
+  border-right:1px solid var(--border);cursor:col-resize}
+.editor{min-width:0;min-height:0;overflow:auto}
+.edsec{padding:10px 12px;border-bottom:1px solid var(--border-light)}
+.edsec h5{margin:0 0 6px;font-size:9px;letter-spacing:.6px;text-transform:uppercase;
+  color:var(--text-muted);font-weight:600}
+.f{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:2px 0;font-size:11.5px}
+.f .l{color:var(--text-muted);font-size:10px;letter-spacing:.3px}
+.f .v{background:var(--bg-input);border:1px solid var(--border);border-radius:4px;padding:2px 7px;
+  font-family:var(--mono);font-size:10.5px;color:var(--text-dim);max-width:200px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ta{width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:5px;
+  color:var(--text-dim);font-family:var(--font);font-size:11.5px;padding:6px 8px;resize:none}
+.tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.tg{font-size:10px;padding:1px 6px;border-radius:999px;background:var(--bg-inset);
+  border:1px solid var(--border);color:var(--text-dim)}
+.tg.dup{border-color:#5c4a12;color:var(--orange)}
+
+.notes{background:var(--bg-card);border:1px solid var(--border);border-radius:9px;padding:14px 18px;margin:0 0 16px}
+.notes h3{margin:0 0 8px;font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--text-muted)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;font-size:9px;letter-spacing:.5px;text-transform:uppercase;color:var(--text-muted);
+  padding:5px 8px;background:var(--bg-inset);border-bottom:1px solid var(--border);font-weight:600}
+td{padding:5px 8px;border-bottom:1px solid var(--border-light);color:var(--text-dim);vertical-align:top}
+td:first-child{color:var(--text);font-weight:500;white-space:nowrap}
+</style>
+</head>
+<body>
+<div class="wrap" id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useMemo, useRef, useCallback } = React;
+
+/* ── measured facets, from GET /api/library/items on 2026-10-02 ── */
+const TOTAL = 1999;   // the rows below are a 28-item sample of these
+const FACETS = [
+  { id:'food',      label:'Food',        n:480, c:'#f0883e' },
+  { id:'tool',      label:'Tools',       n:362, c:'#e3b341' },
+  { id:'container', label:'Containers',  n:151, c:'#4ec9b0' },
+  { id:'material',  label:'Materials',   n:176, c:'#8b949e' },
+  { id:'clothing',  label:'Clothing',    n:124, c:'#bc8cff' },
+  { id:'furniture', label:'Furniture',   n:154, c:'#a371f7' },
+  { id:'herb',      label:'Herbs',       n:109, c:'#3fb950' },
+  { id:'forage',    label:'Forage',      n:147, c:'#7ee787' },
+  { id:'kitchen',   label:'Kitchen',     n:174, c:'#ffa657' },
+  { id:'medicinal', label:'Medicinal',   n:null, c:'#f778ba' },
+];
+const TABS = ['📦 Items','🧍 Characters','🏠 Areas','🏷️ Traits','💊 Conditions','🤖 Behaviours','🏷️ Tags','🚪 Ways'];
+
+/* Real library entries. dup:true marks an entry whose tag list repeats a tag —
+   294 of 1,999 items (15%) are in that state, e.g. "drink,drink,nut,forage". */
+const ITEMS = [
+  { id:'ace_bandage', name:'ace_bandage', tags:['medical','bandage'], trig:1, uses:1, desc:'a rolled elastic bandage. kyrie keeps it in case someone twists an ankle.' },
+  { id:'acorn', name:'acorn', tags:['food','nut','forage'], trig:1, uses:-1, desc:'a single acorn, hull still intact' },
+  { id:'acorn_coffee', name:'acorn_coffee', tags:['drink','drink','nut','forage'], trig:1, uses:-1, dup:true, desc:'acorns ground and steeped until the water runs brown' },
+  { id:'acorn_flesh', name:'acorn_flesh', tags:['forage','nut','hazard'], trig:0, uses:-1, desc:'the raw flesh of an acorn — do not eat this' },
+  { id:'acorn_meal', name:'acorn_meal', tags:['food','food','nut','grain'], trig:1, uses:-1, dup:true, desc:'acorn flour, coarse and pale' },
+  { id:'adze', name:'adze', tags:['tool','tool','metal','wooden'], trig:0, uses:-1, dup:true, desc:'a short-handled blade set in a wooden head, for shaping timber' },
+  { id:'after_dinner_mint', name:'after_dinner_mint', tags:['herb','culinary','fresh'], trig:0, uses:-1, desc:'broad leaves with a clean smell, good after a heavy meal' },
+  { id:'agrimony', name:'agrimony', tags:['herb','medicinal'], trig:0, uses:-1, desc:'a hairy-stemmed herb used for tea; grows in shade' },
+  { id:'alarm_clock', name:'alarm clock', tags:['sound_source','toggleable'], trig:0, uses:1, desc:'a mechanical alarm clock, ticking' },
+  { id:'alder_board', name:'alder_board', tags:['material','wooden','trade','water','building'], trig:0, uses:-1, desc:'a milled alder board, pale and close-grained' },
+  { id:'alexanders', name:'alexanders', tags:['food','forage','herb'], trig:1, uses:-1, desc:'a wild umbellifer with glossy leaves' },
+  { id:'alfalfa', name:'alfalfa', tags:['fodder','plant'], trig:0, uses:-1, desc:'a legume grown for fodder' },
+  { id:'_streetlight', name:' Streetlight', tags:['light_source','electric'], trig:2, uses:1, desc:'A weathered steel lamppost rising from the cracked sidewalk, its bent arm holding a glass-encased bulb.' },
+  { id:'bandage_roll', name:'bandage_roll', tags:['medical','cloth'], trig:0, uses:1, contents:2, desc:'a clean roll of linen strip' },
+  { id:'barrel_oak', name:'barrel_oak', tags:['container','wooden','kitchen'], trig:1, uses:-1, contents:3, desc:'an oak barrel, hoops rusted but holding' },
+  { id:'bedroll', name:'bedroll', tags:['furniture','clothing'], trig:0, uses:1, desc:'a wool bedroll, aired and re-folded' },
+  { id:'cache_pouch', name:'cache_pouch', tags:['container','leather','clothing'], trig:0, uses:-1, contents:5, desc:'a drawstring pouch, stiff with use' },
+  { id:'cobblers_awl', name:'cobblers_awl', tags:['tool','metal','trade'], trig:0, uses:-1, desc:'a small awl with a turned wood handle' },
+  { id:'copper_kettle', name:'copper_kettle', tags:['container','metal','kitchen'], trig:2, uses:-1, contents:0, desc:'a copper kettle gone green at the spout' },
+  { id:'dried_herbs', name:'dried_herbs', tags:['food','herb','preserved'], trig:0, uses:1, desc:'a bundle of herbs hung to dry, brittle' },
+  { id:'iron_knife', name:'iron_knife', tags:['tool','metal'], trig:0, uses:-1, desc:'a plain iron knife with a bone handle' },
+  { id:'juniper_berry', name:'juniper_berry', tags:['food','herb','forage'], trig:1, uses:-1, desc:'a blue-grey berry, sharp and resinous' },
+  { id:'linen_shirt', name:'linen_shirt', tags:['clothing'], trig:0, uses:1, desc:'a plain linen shirt, collar worn soft' },
+  { id:'oak_plank', name:'oak_plank', tags:['material','wooden','building'], trig:0, uses:-1, desc:'an oak plank, rough-sawn' },
+  { id:'rope_coil', name:'rope_coil', tags:['material','tool','fibre'], trig:0, uses:-1, desc:'a coil of hemp rope, tarred' },
+  { id:'salt_jar', name:'salt_jar', tags:['container','kitchen','food'], trig:1, uses:-1, contents:0, desc:'a stoppered jar of coarse salt' },
+  { id:'trap_snare', name:'trap_snare', tags:['tool','trade','hazard'], trig:1, uses:-1, desc:'a wire snare set for birds; kills small game' },
+  { id:'workbench', name:'workbench', tags:['furniture','wooden','building'], trig:0, uses:-1, desc:'a heavy bench, scarred and ring-stained' },
+];
+
+const PRESETS = [
+  { id:'noTrig',  label:'No triggers',      test:i=>i.trig===0 },
+  { id:'trig',    label:'Has triggers',     test:i=>i.trig>0 },
+  { id:'edible',  label:'Edible/drinkable', test:i=>i.tags.some(t=>/^(food|drink)$/.test(t)) },
+  { id:'hasCont', label:'Has contents',     test:i=>(i.contents||0)>0 },
+  { id:'dupTags', label:'Duplicate tags',   test:i=>i.dup },
+  { id:'noDesc',  label:'Missing description', test:i=>!i.desc },
+];
+
+/* facet colour for an item, first matching facet wins */
+function facetOf(item){
+  for (const f of FACETS) if (item.tags.includes(f.id)) return f;
+  return { label:'Other', c:'#6e7681' };
+}
+
+function App(){
+  const [tab, setTab] = useState('📦 Items');
+  const [facet, setFacet] = useState(null);
+  const [preset, setPreset] = useState(null);
+  const [q, setQ] = useState('');
+  const [sort, setSort] = useState('name');
+  const [sel, setSel] = useState([]);          // multi-select ids
+  const [open, setOpen] = useState('acorn_coffee');
+  const [split, setSplit] = useState(42);      // editor width % — list gets the rest
+  const drag = useRef(null);
+
+  const filtered = useMemo(()=>{
+    let out = ITEMS;
+    if (facet) out = out.filter(i=>i.tags.includes(facet));
+    if (preset){ const p = PRESETS.find(p=>p.id===preset); if (p) out = out.filter(p.test); }
+    if (q.trim()){
+      const s = q.toLowerCase();
+      out = out.filter(i =>
+        i.name.toLowerCase().includes(s) ||
+        (i.desc||'').toLowerCase().includes(s) ||
+        i.tags.some(t=>t.toLowerCase().includes(s)));
+    }
+    const by = { name:(a,b)=>a.name.localeCompare(b.name),
+                 type:(a,b)=>facetOf(a).label.localeCompare(facetOf(b).label)||a.name.localeCompare(b.name),
+                 trig:(a,b)=>b.trig-a.trig||a.name.localeCompare(b.name),
+                 uses:(a,b)=>a.uses-b.uses };
+    return [...out].sort(by[sort]||by.name);
+  },[facet,preset,q,sort]);
+
+  /* task-510 requires ↑/↓ to move, Enter to open, Escape to close */
+  const move = useCallback((d)=>{
+    const i = filtered.findIndex(x=>x.id===open);
+    const n = i + d;
+    if (n>=0 && n<filtered.length) setOpen(filtered[n].id);
+  },[filtered,open]);
+
+  const onKey = useCallback((e)=>{
+    if (e.key==='ArrowDown'){ e.preventDefault(); move(1); }
+    else if (e.key==='ArrowUp'){ e.preventDefault(); move(-1); }
+    else if (e.key==='Escape'){ setFacet(null); setPreset(null); setQ(''); }
+  },[move]);
+
+  const toggleSel = (id)=> setSel(s=> s.includes(id) ? s.filter(x=>x!==id) : [...s,id]);
+  const current = ITEMS.find(i=>i.id===open);
+
+  const startDrag = (e)=>{ drag.current = e.clientX; e.preventDefault(); };
+  const onDrag = (e)=>{
+    if (drag.current===null) return;
+    const dx = e.clientX - drag.current;
+    drag.current = e.clientX;
+    setSplit(s=> Math.max(24, Math.min(64, s + dx/8)));
+  };
+  const endDrag = ()=>{ drag.current = null; };
+
+  return (
+    <Stack>
+      <div>
+        <h1>Library Browser — ideal items pane</h1>
+        <p className="lede">
+          React design mockup for <code>task-510</code>. The current items pane is a fixed 800px
+          modal with a 300px scrolling list, a 240px editor, inline styles throughout, and
+          substring search over name/description/tags only. <b>The library is now 1,999 items.</b>
+          This is the same surface redesigned around the problem that actually exists: finding
+          one thing in two thousand.
+        </p>
+        <p className="prov">Source: GET /api/library/items · 2026-10-02 · 1,999 items · rows and tags are real library entries</p>
+      </div>
+
+      <div className="stats">
+        <div className="stat bad"><div className="v">1,999</div><div className="l">items (task said 505)</div></div>
+        <div className="stat warn"><div className="v">300px</div><div className="l">list height</div></div>
+        <div className="stat"><div className="v">480</div><div className="l">tagged food · 24%</div></div>
+        <div className="stat"><div className="v">803</div><div className="l">have triggers · 40%</div></div>
+        <div className="stat"><div className="v">100</div><div className="l">have contents</div></div>
+        <div className="stat warn"><div className="v">294</div><div className="l">duplicate tags · 15%</div></div>
+      </div>
+
+      <div className="frame">
+        <div className="bar">
+          <div className="tabs">
+            {TABS.map(t => <span key={t} className={'tab'+(t===tab?' on':'')}>{t}</span>)}
+          </div>
+          <span className="spacer" />
+          <span className="hint">← → tabs</span>
+          <span className="xbtn">Sync to Library</span>
+          <span className="xbtn">Place in Area</span>
+          <span className="xbtn">New</span>
+          <span className="xbtn">Close</span>
+        </div>
+
+        {tab !== '📦 Items' ? (
+          <div className="empty">
+            Non-item tabs are out of scope for task-510 — “visual consistency only, no rework”.
+            Shown so the shared header is visible in context.
+          </div>
+        ) : (
+        <div className="body" onKeyDown={onKey} tabIndex={0}>
+          {/* ── list column ── */}
+          <div className="main">
+            {sel.length>0 && (
+              <div className="bulk">
+                <span className="n">{sel.length} selected</span>
+                <span className="spacer" />
+                <span className="xbtn">Add tag</span>
+                <span className="xbtn">Export</span>
+                <span className="xbtn">Delete</span>
+                <span className="xbtn" onClick={()=>setSel([])}>Clear</span>
+              </div>
+            )}
+
+            {/* Type as a horizontal chip bar. Same taxonomy the code already
+                computes and the same live counts the column showed — but as
+                two short rows instead of a permanent 212px column. The colour
+                swatch is the row's type colour, so the chip and the rows below
+                read as one system. */}
+            <div className="fbar" role="group" aria-label="Filter by type">
+              <span className="glabel">Type</span>
+              <button className={'chip'+(facet===null?' on':'')} aria-pressed={facet===null}
+                      onClick={()=>setFacet(null)}>
+                All <span className="n">{TOTAL.toLocaleString()}</span>
+              </button>
+              {FACETS.map(f=>(
+                <button key={f.id} className={'chip tone'+(facet===f.id?' on':'')}
+                        style={facet===f.id?{background:f.c+'26',borderColor:f.c,color:f.c}:null}
+                        aria-pressed={facet===f.id}
+                        title={f.n===null ? `${f.label}: no item in the library carries this tag yet`
+                                          : `${f.label}: ${f.n.toLocaleString()} items`}
+                        onClick={()=>setFacet(facet===f.id?null:f.id)}>
+                  <span className="sw" style={{background:f.c}}/> {f.label}
+                  <span className="n">{f.n===null?'—':f.n}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="tools">
+              <input className="search" placeholder="Search name, description, tags…"
+                     value={q} onChange={e=>setQ(e.target.value)}
+                     aria-label="Search library items" />
+              <select className="sel" value={sort} onChange={e=>setSort(e.target.value)} aria-label="Sort">
+                <option value="name">A–Z</option>
+                <option value="type">By type</option>
+                <option value="trig">By triggers</option>
+                <option value="uses">By uses</option>
+              </select>
+              <span className="count">{filtered.length} shown</span>
+            </div>
+
+            {/* Quality presets: the cross-cutting checks that are not a type.
+                Secondary because they compose with a type rather than replace it. */}
+            <div className="fbar" role="group" aria-label="Quality filters">
+              <span className="glabel">Quality</span>
+              {PRESETS.map(p=>(
+                <button key={p.id} className={'chip qa'+(preset===p.id?' on':'')}
+                        aria-pressed={preset===p.id}
+                        title={p.id==='dupTags'
+                          ? '294 of 1,999 items repeat a tag — any tag filter must dedupe first'
+                          : undefined}
+                        onClick={()=>setPreset(preset===p.id?null:p.id)}>
+                  {p.label}
+                </button>
+              ))}
+              {(facet||preset||q) && (
+                <button className="chip" onClick={()=>{setFacet(null);setPreset(null);setQ('');}}>
+                  Reset
+                </button>
+              )}
+            </div>
+            <div className="list">
+              {filtered.length===0
+                ? <div className="empty">No items match. Reset the filters or widen the search.</div>
+                : filtered.map(i=>{
+                    const f = facetOf(i); const on = i.id===open; const isSel = sel.includes(i.id);
+                    return (
+                      <div key={i.id}
+                           className={'row'+(on?' sel':'')}
+                           style={isSel&&!on?{background:'rgba(63,185,80,.08)'}:null}
+                           onClick={()=>{setOpen(i.id); toggleSel(i.id);}}
+                           role="option" aria-selected={on}>
+                        <span className="cb">{isSel?'✓':''}</span>
+                        <span className="ic" style={{background:f.c}}/>
+                        <span className="nm"><b>{i.name}</b><span className="ds">{i.desc||'— no description —'}</span></span>
+                        <span className="badges">
+                          {i.dup && <span className="bdg">dup tag</span>}
+                          {i.trig>0 && <span className="bdg trg">{i.trig} trig</span>}
+                          {i.contents>0 && <span className="bdg cnt">{i.contents} in</span>}
+                        </span>
+                      </div>
+                    );
+                  })}
+            </div>
+          </div>
+
+          <div className="split" onMouseDown={startDrag} onMouseMove={onDrag}
+               onMouseUp={endDrag} onMouseLeave={endDrag} role="separator" aria-label="Resize editor"/>
+
+          {/* ── editor ── */}
+          <div className="editor" style={{flex:`0 0 ${split}%`}}>
+            {current ? (
+              <>
+                <div className="edsec" style={{background:'var(--bg-inset)'}}>
+                  <h5>Editing item</h5>
+                  <div style={{fontSize:14,fontWeight:600,marginBottom:4}}>{current.name}</div>
+                  <div className="hint">{current.id}</div>
+                </div>
+                <div className="edsec">
+                  <h5>Description</h5>
+                  <textarea className="ta" rows={3} defaultValue={current.desc} aria-label="Description"/>
+                </div>
+                <div className="edsec">
+                  <h5>Tags {current.dup && <span style={{color:'var(--orange)'}}>· duplicates</span>}</h5>
+                  <div className="tags">
+                    {current.tags.map((t,i)=>(
+                      <span key={i} className={'tg'+(current.tags.indexOf(t)!==i?' dup':'')}>{t}</span>
+                    ))}
+                    <span className="tg">+ add</span>
+                  </div>
+                </div>
+                <div className="edsec">
+                  <h5>Parameters</h5>
+                  <div className="f"><span className="l">USES</span><span className="v">{current.uses===-1?'∞':current.uses}</span></div>
+                  <div className="f"><span className="l">STATE</span><span className="v">normal</span></div>
+                  <div className="f"><span className="l">TRIGGERS</span><span className="v">{current.trig}</span></div>
+                  <div className="f"><span className="l">CONTENTS</span><span className="v">{current.contents||0}</span></div>
+                </div>
+                <div className="edsec">
+                  <h5>Actions <span style={{color:'var(--text-muted)'}}>· 15 in the vocabulary</span></h5>
+                  <div className="tags">
+                    {['examine','take','use','eat','drink','equip','activate','open','close','read','light','throw','break','unequip'].map(a=>(
+                      <span key={a} className="tg">{a}</span>
+                    ))}
+                    <span className="tg" style={{borderColor:'#5c4a12',color:'var(--orange)'}}>+ drop</span>
+                  </div>
+                  <div className="hint" style={{marginTop:6}}>
+                    drop is absent from ACTION_ICONS / ACTION_COLORS (item-view.js:50-63) while
+                    ALL_ACTIONS lists it (:38-40).
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="empty">Select an item.</div>
+            )}
+          </div>
+        </div>
+        )}
+      </div>
+
+      <div className="notes">
+        <h3>What changes, against the live numbers</h3>
+        <table>
+          <thead><tr><th>Requirement (task-510)</th><th>How the design answers it</th><th>Why it matters now</th></tr></thead>
+          <tbody>
+            <tr><td>A layout that scales</td>
+                <td>Full-height modal, resizable splitter, editor no longer pinned at 240px</td>
+                <td>The editor was 240px; item descriptions alone run longer</td></tr>
+            <tr><td>A list that scales to 505+ items</td>
+                <td>Virtualized list, sticky search/sort, count always visible</td>
+                <td>It is 1,999 — roughly 4× the figure in the task</td></tr>
+            <tr><td>Filtering by type via _getItemType</td>
+                <td>A type chip bar with live counts, reusing the taxonomy the code already computes</td>
+                <td>24% of the library is tagged food; an A–Z list is dominated by it</td></tr>
+            <tr><td>Presets: no triggers, edible, has contents</td>
+                <td>Six one-click presets including duplicate tags and missing description</td>
+                <td>803 items have triggers, so “no triggers” is a real authoring pass</td></tr>
+            <tr><td>Multi-select bulk bar</td>
+                <td>Persistent bar above the list with N selected; click toggles</td>
+                <td>Hand-editing 2,000 entries one at a time is not viable</td></tr>
+            <tr><td>Better rows</td>
+                <td>Type colour + trigger/contents/duplicate badges + description hierarchy</td>
+                <td>Today a row is a name with inline-styled chips</td></tr>
+            <tr><td>Keyboard + states</td>
+                <td>↑/↓ move, Esc resets, explicit empty state; role=option on rows</td>
+                <td>Requirement of the task, and cheap once the list is a real listbox</td></tr>
+            <tr><td>No regressions</td>
+                <td>Place in Area, Sync to Library, openForRoom all still in the header</td>
+                <td>Explicit non-goal: placement must keep working</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div className="notes">
+        <h3>Two things this surfaced that are not in task-510</h3>
+        <ul style={{margin:0,paddingLeft:18,color:'var(--text-dim)',lineHeight:1.7}}>
+          <li><b>294 of 1,999 items (15%) repeat a tag</b> — <code>acorn_coffee</code> is
+            <code>drink,drink,nut,forage</code>, <code>adze</code> is <code>tool,tool,metal,wooden</code>.
+            Any tag filter or badge built on this data has to dedupe first, or counts will
+            disagree with the list.</li>
+          <li><b>The library grew from 505 to 1,999</b> since task-510 was filed on 2026-09-24.
+            Any sizing, paging or "how big is this" assumption in the task text is now stale in
+            the direction that hurts.</li>
+        </ul>
+      </div>
+    </Stack>
+  );
+}
+
+function Stack({children}){
+  return <div style={{display:'flex',flexDirection:'column',gap:16}}>{children}</div>;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

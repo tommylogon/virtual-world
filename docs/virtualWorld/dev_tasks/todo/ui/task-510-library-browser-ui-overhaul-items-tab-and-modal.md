@@ -13,9 +13,20 @@ priority: medium
 ## Goal
 
 Modernize the Library Browser's **items pane**. It is the primary authoring surface
-for 505 library items, and it is currently a fixed 800px modal built almost
+for the library items, and it is currently a fixed 800px modal built almost
 entirely out of inline styles, with a 300px scrolling list and a 240px editor —
 it does not scale and it does not help the author find what matters.
+
+> **Counted 2026-10-02:** `GET /api/library/items` returns **1,999** items —
+> 480 tagged food, 362 tools, 151 containers, 803 with triggers. The 505 in this
+> task (and in the acceptance text below) was accurate when filed on 2026-09-24
+> and is now roughly 4× stale, in the direction that hurts every sizing and
+> virtualization requirement listed here.
+>
+> **Mockup:** `docs/design/mockups/library-browser-react.html` — a self-contained
+> React design of the items pane (type chip bar with live counts, quality
+> presets, multi-select bulk bar, resizable split, keyboard + states). Verified
+> in a browser; it is a design artifact, not application code.
 
 ## Evidence
 
@@ -44,8 +55,9 @@ it does not scale and it does not help the author find what matters.
 - **A layout that scales.** Wider and/or resizable modal, a list that fills the
   available height instead of `max-height:300px`, and a resizable split between
   list and editor so the editor is not pinned at 240px.
-- **A list that scales to 505+ items.** Virtualize or page the list; search,
-  sort and selection stay responsive. Sticky search/sort/filter header.
+- **A list that scales to 505+ items.** (Now 1,999 — see the note above.) Virtualize
+  or page the list; search, sort and selection stay responsive. Sticky
+  search/sort/filter header.
 - **Filtering that helps authoring**, not just substring search:
   - by type (reuse `_getItemType`),
   - by tag,
@@ -78,3 +90,18 @@ it does not scale and it does not help the author find what matters.
   (any new JS module needs its `@module`/`@contributes` header).
 - Manual: open the library over 505 items — scroll/search/filter stay smooth,
   a filtered "No triggers" view is one click, and the placement flow still works.
+  (Re-measure against 1,999 items, not 505.)
+
+## Also surfaced by the audit, not yet ticketed
+
+Counted from the same response while designing the mockup — each of these is a
+data-layer finding, not a UI one:
+
+- **294 of 1,999 items (15%) repeat a tag.** `acorn_coffee` is
+  `drink,drink,nut,forage`; `adze` is `tool,tool,metal,wooden`. Any tag filter,
+  tag badge or tag count built on this data must dedupe first, or the counts
+  disagree with the list they claim to describe.
+- **3 items have no description at all**, which is why an explicit
+  "missing description" filter is a real authoring pass rather than a nicety.
+- **Every filter is single-select except the presets.** Type and quality compose;
+  the mockup keeps that composition rather than adding a query language.

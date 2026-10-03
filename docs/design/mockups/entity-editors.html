@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Full-Surface Entity Editors — UI mockups</title>
+<!--
+  Mockups for task-673 … task-676 (docs/design/full-entity-editors.md).
+  NOT application code. Self-contained: no build, no dependencies, no server.
+
+  Double-click this file, or open it in any browser. If it is blank in the IDE's
+  preview, use "Open with" -> your browser.
+
+  Everything drawn here comes from a live browser session against the Kraktooth
+  Goblin Camp scenario (659 nodes / 207 areas / 361 ways / 34 items / 23
+  characters) at 1600x1000, plus the real theme variables in
+  static/css/style.css and the real ALL_ACTIONS / ACTION_ICONS / ACTION_COLORS /
+  INVERSE_ACTIONS tables in static/js/inspector/item-view.js.
+-->
+<style>
+:root{
+  --bg:#0d1117; --bg-card:#161b22; --bg-inset:#1c2128; --bg-input:#21262d; --bg-hover:#30363d;
+  --border:#30363d; --border-light:#21262d;
+  --text:#e6edf3; --text-dim:#8b949e; --text-muted:#6e7681;
+  --accent:#58a6ff; --green:#3fb950; --red:#f85149; --orange:#e3b341; --purple:#bc8cff; --pink:#f778ba;
+  --font:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono:'Cascadia Code','Fira Code','JetBrains Mono',Consolas,monospace;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.55}
+code,.mono{font-family:var(--font-mono);font-size:12px}
+.page{max-width:1460px;margin:0 auto;padding:0 24px 96px}
+.masthead{padding:40px 0 22px;border-bottom:1px solid var(--border)}
+.masthead h1{font-size:26px;margin:0 0 8px}
+.masthead p{margin:0 0 9px;color:var(--text-dim);max-width:82ch}
+.tagrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}
+.tag{font-family:var(--font-mono);font-size:11px;padding:3px 9px;border-radius:999px;
+  background:var(--bg-inset);border:1px solid var(--border);color:var(--text-dim)}
+.tag.task{color:var(--accent);border-color:#1f4b7a}
+.tag.warn{color:var(--orange);border-color:#5c4a12}
+
+nav.jump{position:sticky;top:0;z-index:50;background:rgba(13,17,23,.95);border:1px solid var(--border);
+  border-radius:8px;margin:18px 0 36px;padding:9px 11px;display:flex;gap:6px;flex-wrap:wrap}
+nav.jump a{color:var(--text-dim);text-decoration:none;font-size:12px;padding:5px 11px;
+  border-radius:6px;border:1px solid transparent}
+nav.jump a:hover{background:var(--bg-inset);color:var(--text);border-color:var(--border)}
+
+.task{margin:0 0 72px}
+.task-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:12px;margin-bottom:20px;
+  border-bottom:1px solid var(--border-light)}
+.task-id{font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--accent);
+  background:rgba(31,111,235,.12);border:1px solid #1f4b7a;padding:3px 10px;border-radius:6px}
+.task-head h2{font-size:19px;margin:0;font-weight:600}
+.task-head .area{font-family:var(--font-mono);font-size:11px;color:var(--text-muted);
+  border:1px solid var(--border);padding:2px 8px;border-radius:999px}
+h3{font-size:13px;text-transform:uppercase;letter-spacing:.7px;color:var(--text-muted);margin:28px 0 12px;font-weight:600}
+h3:first-of-type{margin-top:0}
+
+.facts{background:var(--bg-card);border:1px solid var(--border);border-left:3px solid var(--orange);
+  border-radius:8px;padding:14px 18px;margin:0 0 22px}
+.facts b{color:var(--orange)}
+.facts ul{margin:8px 0 0;padding-left:20px;color:var(--text-dim)}
+.facts li{margin:3px 0}
+.facts li code{color:var(--text);background:var(--bg-inset);padding:1px 5px;border-radius:4px}
+
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+@media(max-width:1100px){.compare{grid-template-columns:1fr}}
+.pane{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.pane-label{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 14px;
+  background:var(--bg-inset);border-bottom:1px solid var(--border);font-size:11px;
+  text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted);font-weight:600}
+.pane-label .now{color:var(--red)} .pane-label .next{color:var(--green)}
+.pane-body{padding:16px}
+
+/* app shell */
+.shell{display:grid;grid-template-columns:150px 1fr 176px;gap:8px;background:var(--bg-inset);
+  border:1px solid var(--border);border-radius:8px;padding:10px;min-height:340px;position:relative}
+@media(max-width:900px){.shell{grid-template-columns:1fr}}
+.shell .col{background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:8px;min-width:0}
+.shell .col.canvas{position:relative;padding:0;
+  background:radial-gradient(circle at 1px 1px,var(--border) 1px,transparent 0) 0 0/20px 20px,var(--bg)}
+.shell-cap{font-family:var(--font-mono);font-size:9px;color:var(--text-muted);text-transform:uppercase;
+  letter-spacing:.4px;margin-bottom:6px;display:block}
+/* fix: ghost nodes were near-invisible against the dotted canvas */
+.ghost-node{position:absolute;width:11px;height:11px;border-radius:50%;
+  background:#4a5563;border:1.5px solid var(--text-dim)}
+.ghost-node.sel{background:var(--accent);border-color:#9fcbff;box-shadow:0 0 0 4px rgba(88,166,255,.26)}
+.ghost-edge{position:absolute;height:1px;background:#4a5563;transform-origin:0 50%}
+
+.panel380{background:var(--bg-card);height:100%;display:flex;flex-direction:column}
+.phead{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 10px;
+  border-bottom:1px solid var(--border);background:var(--bg-inset)}
+.phead .t{font-size:11px;font-weight:600}
+.psec{padding:8px 10px;border-bottom:1px solid var(--border-light)}
+.psec h4{margin:0 0 5px;font-size:9px;letter-spacing:.6px;color:var(--text-muted);
+  text-transform:uppercase;font-weight:600}
+.field{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;padding:2px 0;color:var(--text-dim)}
+.field .lbl{color:var(--text-muted);font-size:9px;letter-spacing:.3px;flex:0 0 auto}
+.inp{background:var(--bg-input);border:1px solid var(--border);border-radius:4px;padding:2px 6px;
+  font-size:11px;color:var(--text);min-width:0}
+/* fix: grow inputs stretched to 500px, so a 2-char value floated in a void */
+.inp.grow{flex:0 1 150px;text-align:right}
+.inp.sel{min-width:104px}
+.overflowbar{padding:5px 8px;background:var(--bg-inset);border-top:1px solid var(--border);
+  font-family:var(--font-mono);font-size:9px;color:var(--text-muted);text-align:center;letter-spacing:.3px}
+.overflowbar .bad{color:var(--red)}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
+.chip{display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:999px;
+  border:1px solid var(--border);background:var(--bg-inset);color:var(--text-dim)}
+.chip.on{color:var(--text)}
+.dot{width:7px;height:7px;border-radius:50%;flex:0 0 auto}
+
+/* full editor */
+.editor{background:var(--bg);border:1px solid var(--green);border-radius:9px;overflow:hidden;display:flex;flex-direction:column}
+.ed-head{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg-card);
+  border-bottom:1px solid var(--border);flex-wrap:wrap}
+.kind{font-family:var(--font-mono);font-size:10px;letter-spacing:.6px;text-transform:uppercase;
+  padding:2px 7px;border-radius:5px;border:1px solid;flex:0 0 auto}
+.kind.character{color:var(--pink);border-color:#6b2a4d}
+.kind.item{color:var(--orange);border-color:#5c4a12}
+.kind.area{color:var(--green);border-color:#1e4d2b}
+.ed-name{background:transparent;border:1px solid transparent;border-radius:5px;color:var(--text);
+  font-size:13px;font-weight:600;padding:2px 6px;flex:0 0 auto}
+.ed-id{font-family:var(--font-mono);font-size:10px;color:var(--text-muted);flex:1 1 120px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ed-state{font-size:10px;color:var(--green);display:flex;align-items:center;gap:4px;flex:0 0 auto}
+.ed-state .pulse{width:6px;height:6px;border-radius:50%;background:var(--green)}
+.iconbtn{background:var(--bg-input);border:1px solid var(--border);color:var(--text-dim);
+  border-radius:5px;padding:2px 7px;font-size:10px;flex:0 0 auto}
+.seg{display:flex;gap:2px;background:var(--bg-inset);border:1px solid var(--border);
+  border-radius:7px;padding:2px;flex:0 0 auto}
+.seg span{font-size:11px;padding:3px 10px;border-radius:5px;color:var(--text-dim);white-space:nowrap}
+.seg span.on{background:var(--bg-hover);color:var(--text);font-weight:600}
+
+.ed-body{display:grid}
+.cols-3{grid-template-columns:150px repeat(3,minmax(0,1fr))}
+.split{grid-template-columns:minmax(0,5fr) minmax(0,6fr)}
+.rail{background:var(--bg-card);border-right:1px solid var(--border);padding:8px 0}
+.rail .grp{font-size:9px;letter-spacing:.7px;text-transform:uppercase;color:var(--text-muted);padding:6px 11px 3px;font-weight:600}
+.rail a{display:flex;align-items:center;gap:6px;padding:3px 11px;font-size:11px;color:var(--text-dim);text-decoration:none}
+.rail a.on{color:var(--accent);background:rgba(88,166,255,.09);box-shadow:inset 2px 0 0 var(--accent)}
+.rail a .n{margin-left:auto;font-family:var(--font-mono);font-size:9px;color:var(--text-muted)}
+.stack{padding:12px;min-width:0}
+.stack + .stack{border-left:1px solid var(--border-light)}
+.blk{margin-bottom:15px}
+.blk > h5{margin:0 0 6px;font-size:9px;letter-spacing:.6px;text-transform:uppercase;
+  color:var(--text-muted);font-weight:600;display:flex;align-items:center;gap:5px}
+.blk > h5 .cnt{margin-left:auto;font-family:var(--font-mono);font-size:9px;color:var(--text-muted)}
+textarea.ta{width:100%;min-height:48px;background:var(--bg-input);border:1px solid var(--border);
+  border-radius:5px;color:var(--text-dim);font-family:var(--font);font-size:11px;padding:6px 8px;resize:none}
+.preview{margin-top:5px;padding:6px 8px;border-radius:5px;font-size:11px;
+  background:rgba(88,166,255,.07);border:1px dashed #1f4b7a;color:var(--text-dim)}
+.preview.solid{border-style:solid;border-color:var(--border);background:var(--bg-inset)}
+.preview b{color:var(--accent)}
+.note{font-size:10px;color:var(--text-muted);margin-top:4px}
+.track{height:4px;background:var(--bg-inset);border-radius:2px;position:relative;margin-top:4px}
+.track > i{position:absolute;left:0;top:0;bottom:0;background:var(--accent);border-radius:2px}
+
+/* item matrix */
+table.matrix{width:100%;border-collapse:collapse;font-size:11px}
+table.matrix th,table.matrix td{padding:3px 6px;border-bottom:1px solid var(--border-light);text-align:center}
+table.matrix thead th{font-size:9px;letter-spacing:.5px;text-transform:uppercase;color:var(--text-muted);
+  font-weight:600;background:var(--bg-inset);border-bottom:1px solid var(--border)}
+table.matrix thead th:first-child{text-align:left}
+table.matrix tbody th{text-align:left;font-weight:400;white-space:nowrap}
+table.matrix tbody th .nm{color:var(--text)}
+table.matrix tbody th.inv::after{content:"⇄";margin-left:5px;color:var(--accent);font-size:10px}
+table.matrix td.num{font-family:var(--font-mono);color:var(--text-dim)}
+table.matrix td.zero{color:var(--text-muted);opacity:.4}
+table.matrix tbody tr:hover{background:rgba(255,255,255,.03)}
+table.matrix tbody tr.off th .nm{color:var(--text-muted)}
+table.matrix tbody tr.off td{opacity:.35}
+.cbx{width:12px;height:12px;border-radius:3px;border:1px solid var(--border);background:var(--bg-input);
+  display:inline-block;vertical-align:middle}
+.cbx.on{background:var(--accent);border-color:var(--accent)}
+.cbx.on::after{content:"✓";display:block;font-size:8px;color:#0d1117;text-align:center;line-height:10px;font-weight:700}
+.skillpill{font-family:var(--font-mono);font-size:9px;padding:1px 5px;border-radius:4px;
+  background:var(--bg-inset);border:1px solid var(--border);color:var(--text-dim)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:10px;color:var(--text-muted);margin-top:9px}
+.legend .k{display:flex;align-items:center;gap:5px}
+
+/* area map */
+.map{position:relative;height:186px;background:var(--bg-inset);border:1px solid var(--border);
+  border-radius:6px;overflow:hidden;margin-bottom:11px}
+.map .cell{position:absolute;border:1px solid var(--border);background:var(--bg-hover);border-radius:2px}
+.map .cell.here{background:rgba(63,185,80,.26);border-color:var(--green)}
+.map .cell.here::after{content:attr(data-lbl);position:absolute;inset:0;display:flex;align-items:center;
+  justify-content:center;font-size:8px;color:var(--text)}
+.map .road{position:absolute;background:var(--accent);opacity:.4;height:2px}
+.map .pin{position:absolute;width:14px;height:14px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:8px;border:1.5px solid var(--bg);z-index:3}
+.exits{display:flex;flex-direction:column;gap:4px}
+.exit{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:5px;
+  background:var(--bg-inset);border:1px solid var(--border);font-size:11px}
+.exit .dir{font-family:var(--font-mono);font-size:9px;font-weight:700;width:18px;height:18px;flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;border-radius:3px;background:var(--bg-input);color:var(--accent)}
+.exit .to{color:var(--text);flex:1 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.exit .st{font-size:9px;color:var(--text-muted);flex:0 0 auto}
+.exit .st.locked{color:var(--orange)}
+.logbox{font-family:var(--font-mono);font-size:10px;line-height:1.6;color:var(--text-dim);
+  background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:7px 9px}
+.logbox .t{color:var(--text-muted)} .logbox .sys{color:var(--purple)}
+
+.ann{margin-top:18px;background:var(--bg-card);border:1px solid var(--border);border-radius:9px;padding:14px 18px}
+.ann h4{margin:0 0 8px;font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--text-muted);font-weight:600}
+.ann ul{margin:0;padding-left:20px;color:var(--text-dim);font-size:13px}
+.ann li{margin:5px 0}
+.ann li b{color:var(--text)}
+.ann li code{color:var(--accent);background:rgba(88,166,255,.09);padding:1px 5px;border-radius:4px}
+.kbd{font-family:var(--font-mono);font-size:10px;padding:1px 5px;border-radius:4px;background:var(--bg-input);
+  border:1px solid var(--border);color:var(--text-dim)}
+</style>
+</head>
+<body>
+<div class="page">
+
+<nav class="jump">
+  <a href="#t673">task-673 frame</a>
+  <a href="#t674">task-674 item matrix</a>
+  <a href="#t675">task-675 character</a>
+  <a href="#t676">task-676 area split</a>
+  <a href="#not">what these are not</a>
+</nav>
+
+<div class="masthead">
+  <h1>Full-Surface Entity Editors — UI mockups</h1>
+  <p>Layout proposals for <code>docs/design/full-entity-editors.md</code>, one per dev task.
+     <b>Mockups, not application code</b> — nothing is wired to the engine and no control is functional.</p>
+  <p>Every number, label, colour and section name comes from a live browser session against the
+     <b>Kraktooth Goblin Camp</b> scenario (659 nodes · 207 areas · 361 ways · 34 items · 23 characters)
+     at 1600&times;1000, plus the real theme variables in <code>static/css/style.css</code> and the real
+     <code>ALL_ACTIONS</code> / <code>ACTION_ICONS</code> / <code>INVERSE_ACTIONS</code> tables in
+     <code>item-view.js</code>. Entity names are real.</p>
+  <div class="tagrow">
+    <span class="tag task">task-673</span><span class="tag task">task-674</span>
+    <span class="tag task">task-675</span><span class="tag task">task-676</span>
+    <span class="tag warn">measured, not invented</span>
+  </div>
+</div>
+
+<!-- ═════════ task-673 ═════════ -->
+<section class="task" id="t673">
+  <div class="task-head"><span class="task-id">task-673</span>
+    <h2>EntityEditor frame — mount/unmount full-surface editors</h2><span class="area">ui · phase 1</span></div>
+  <div class="facts"><b>Measured today.</b> The inspector is a fixed <code>380px</code> column
+    (<code>#right-panel</code>, <code>style.css:152</code>). Below a 1200px viewport it drops to 320px;
+    below 900px it becomes <code>max-height:300px</code>. The graph is <code>vis.js</code> — canvas, no DOM —
+    so click-a-node-see-it is the primary navigation gesture and has to survive.
+    <ul>
+      <li>Character Bio tab: <b>3346px</b> of content in a <b>960px</b> viewport — <b>3.5&times;</b> overflow</li>
+      <li>Item: <b>1665px</b> — <b>3.4&times;</b></li>
+      <li>Area: 14 sections in the same 379px column</li>
+    </ul></div>
+
+  <h3>The frame — peek stays, editor layers over it</h3>
+  <div class="compare">
+    <div class="pane"><div class="pane-label"><span>Now</span><span class="now">380px column · 3.5&times; scroll</span></div>
+      <div class="pane-body">
+        <div class="shell">
+          <div class="col"><span class="shell-cap">left panel</span>
+            <div class="chip on" style="margin:3px 0"><span class="dot" style="background:var(--pink)"></span>Jake Halloway</div>
+            <div class="chip" style="margin:2px 0"><span class="dot" style="background:var(--pink)"></span>Krikka</div>
+            <div class="chip" style="margin:2px 0"><span class="dot" style="background:var(--pink)"></span>Rikka</div></div>
+          <div class="col canvas"><span class="shell-cap" style="position:absolute;top:8px;left:9px;z-index:2">graph · vis.js canvas</span>
+            <div class="ghost-edge" style="left:38px;top:88px;width:110px;transform:rotate(12deg)"></div>
+            <div class="ghost-edge" style="left:38px;top:88px;width:96px;transform:rotate(-30deg)"></div>
+            <div class="ghost-node sel" style="left:34px;top:83px"></div>
+            <div class="ghost-node" style="left:150px;top:118px"></div>
+            <div class="ghost-node" style="left:110px;top:44px"></div>
+            <div class="ghost-node" style="left:78px;top:160px"></div></div>
+          <div class="col" style="padding:0"><div class="panel380">
+            <div class="phead"><span class="t">Jake Halloway</span><span style="font-size:9px;color:var(--text-muted)">tick 14</span></div>
+            <div><div class="psec"><h4>Stats</h4>
+              <div class="field"><span class="lbl">STR</span><span class="inp">12</span></div>
+              <div class="field"><span class="lbl">DEX</span><span class="inp">14</span></div></div>
+              <div class="psec"><h4>Personality</h4><textarea class="ta" style="min-height:34px">gruff, protective of strangers</textarea></div>
+              <div class="psec"><h4>Appearance</h4><textarea class="ta" style="min-height:34px">broad shoulders, mud-caked coat</textarea>
+                <div class="preview"><b>First impression:</b> a broad man in a mud-caked coat</div></div>
+              <div class="psec"><h4>Tags</h4><div class="chips"><span class="chip on">human</span><span class="chip on">guard</span></div></div></div>
+            <div class="overflowbar">▾ <span class="bad">11 more sections</span> · 3346px total</div>
+          </div></div>
+        </div>
+      </div></div>
+
+    <div class="pane"><div class="pane-label"><span>Proposed</span><span class="next">peek preserved · editor layers over</span></div>
+      <div class="pane-body">
+        <div class="shell">
+          <div class="col" style="opacity:.3"><span class="shell-cap">left panel</span>
+            <div class="chip on" style="margin:3px 0">Jake Halloway</div>
+            <div class="chip" style="margin:2px 0">Krikka</div></div>
+          <div class="col canvas" style="opacity:.3">
+            <div class="ghost-node sel" style="left:34px;top:83px"></div>
+            <div class="ghost-node" style="left:150px;top:118px"></div></div>
+          <div class="col" style="padding:0;opacity:.3"><div class="panel380">
+            <div class="phead"><span class="t">Jake Halloway</span></div>
+            <div class="psec"><h4>Stats</h4><div class="field"><span class="lbl">STR</span><span class="inp">12</span></div></div>
+          </div></div>
+          <div style="grid-column:1 / -1">
+            <div class="editor">
+              <div class="ed-head"><span class="kind character">character</span>
+                <span class="ed-name">Jake Halloway</span>
+                <span class="ed-id">character_jake_halloway</span>
+                <span class="ed-state"><span class="pulse"></span>saved</span>
+                <span class="iconbtn">collapse</span><span class="iconbtn">close</span></div>
+              <div class="ed-body" style="grid-template-columns:120px 1fr">
+                <div class="rail"><div class="grp">bio</div>
+                  <a class="on">Appearance</a><a>Stats <span class="n">6</span></a>
+                  <a>Memories <span class="n">14</span></a><a>Tags <span class="n">3</span></a></div>
+                <div class="stack"><div class="blk"><h5>Appearance</h5>
+                  <textarea class="ta" style="min-height:40px">broad shoulders, mud-caked coat, a farmhand's hands</textarea>
+                  <div class="preview"><b>First impression:</b> a broad man in a mud-caked coat — he works land</div>
+                  <div class="note">preview sits next to the field it derives from</div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div></div>
+  </div>
+
+  <div class="ann"><h4>What phase 1 actually delivers</h4>
+    <ul>
+      <li><b>Two mount points, one set of view modules.</b> <code>#entity-editor</code> is a <i>different element</i> from
+      <code>#inspector-panel</code> — only <code>panel.js</code> may write to the panel, because mixing <code>innerHTML</code>
+      with lit's <code>render()</code> corrupts lit part tracking. No forked view modules.</li>
+      <li><b>The peek is untouched.</b> Click still opens the panel. Additive, not a replacement — which is why the
+      graph is dimmed rather than torn down.</li>
+      <li><b>Expand affordance</b> in the inspector header; <b>double-click a canvas node</b> is the second entry point.
+      <span class="kbd">Esc</span> or the backdrop closes.</li>
+      <li><b>Focus discipline:</b> focus moves to the header name on open, returns to the opening element on close.</li>
+      <li><b>No layout change yet</b> — deliberate. Phase 1 proves the architecture and the lit constraint first.</li>
+    </ul>
+    <div class="why" style="margin-top:11px;padding-top:11px;border-top:1px solid var(--border-light);color:var(--text-dim)">
+      <b>Why not a route?</b> <code>/editor/character/&lt;id&gt;</code> would sever canvas context, which is the whole
+      navigation model of a canvas-based graph, and would give one entity two entry points — a second source of truth
+      for &ldquo;what am I editing&rdquo;.</div></div>
+</section>
+
+<!-- ═════════ task-674 ═════════ -->
+<section class="task" id="t674">
+  <div class="task-head"><span class="task-id">task-674</span>
+    <h2>Item editor — actions as a 15-row enable/cost matrix</h2><span class="area">ui · phase 2</span></div>
+  <div class="facts"><b>Measured today.</b> <code>ALL_ACTIONS</code> in <code>item-view.js:38</code> holds
+    <b>15</b> actions, not the 7 the docs claim. The container is <code>class="checkbox-grid actions-grid"</code>,
+    but only <code>.actions-grid</code> is styled and it is <code>display:flex; flex-wrap:wrap</code>
+    (<code>style.css:1515</code>) — not a grid. <code>.checkbox-grid</code> has no rule at all. Meanwhile
+    <code>action_costs</code> (Energy/Hunger/Thirst/HP) is a <i>separate</i> grid below.
+    <ul>
+      <li><b>The data is a 15&times;5 matrix</b> presented as two stacked chip piles</li>
+      <li>15 icon+label chips wrap in <b>373px</b>, roughly 3–4 per row</li>
+      <li><code>INVERSE_ACTIONS</code> couples take&harr;drop and equip&harr;unequip — invisible until you toggle one</li>
+      <li><code>drop</code> has no entry in <code>ACTION_ICONS</code> or <code>ACTION_COLORS</code>, so it renders as a bare
+      <code>&bull;</code> — a real gap in the data, reproduced below</li>
+    </ul></div>
+
+  <h3>Two chip piles &rarr; one table</h3>
+  <div class="compare">
+    <div class="pane"><div class="pane-label"><span>Now</span><span class="now">flex-wrap chips + separate cost grid</span></div>
+      <div class="pane-body">
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:7px;overflow:hidden">
+          <div class="psec"><h4>Actions <span style="color:var(--text-muted);text-transform:none">(toggle which this supports)</span></h4>
+            <div class="chips">
+              <span class="chip on" style="border-color:var(--accent)"><span class="dot" style="background:#58a6ff"></span>🔍 examine</span>
+              <span class="chip on" style="border-color:var(--green)"><span class="dot" style="background:#3fb950"></span>✋ take</span>
+              <span class="chip on" style="border-color:#e3b341"><span class="dot" style="background:#e3b341"></span>⚡ use</span>
+              <span class="chip" style="border-color:#4ec9b0"><span class="dot" style="background:#4ec9b0"></span>🚪 open</span>
+              <span class="chip" style="border-color:#f85149"><span class="dot" style="background:#f85149"></span>🚫 close</span>
+              <span class="chip" style="border-color:#f0883e"><span class="dot" style="background:#f0883e"></span>🍽️ eat</span>
+              <span class="chip" style="border-color:#58a6ff"><span class="dot" style="background:#58a6ff"></span>🥤 drink</span>
+              <span class="chip" style="border-color:#bc8cff"><span class="dot" style="background:#bc8cff"></span>📖 read</span>
+              <span class="chip" style="border-color:#e3b341"><span class="dot" style="background:#e3b341"></span>🔥 light</span>
+              <span class="chip" style="border-color:#3fb950"><span class="dot" style="background:#3fb950"></span>🔛 activate</span>
+              <span class="chip" style="border-color:#4ec9b0"><span class="dot" style="background:#4ec9b0"></span>⚔️ equip</span>
+              <span class="chip" style="border-color:#f85149"><span class="dot" style="background:#f85149"></span>📦 unequip</span>
+              <span class="chip" style="border-color:#f0883e"><span class="dot" style="background:#f0883e"></span>💨 throw</span>
+              <span class="chip" style="border-color:#f85149"><span class="dot" style="background:#f85149"></span>💥 break</span>
+              <span class="chip on" style="border-color:var(--green)">&bull; drop</span>
+            </div></div>
+          <div class="psec"><h4>Action costs</h4>
+            <div class="field"><span class="lbl">examine</span><span class="inp sel">E0 H0 T0 HP0</span></div>
+            <div class="field"><span class="lbl">take</span><span class="inp sel">E1 H0 T0 HP0</span></div>
+            <div class="field"><span class="lbl">use</span><span class="inp sel">E2 H1 T0 HP0</span></div>
+            <div class="field" style="opacity:.4"><span class="lbl">open</span><span class="inp sel">&mdash;</span></div>
+            <div class="field" style="opacity:.4"><span class="lbl">eat</span><span class="inp sel">&mdash;</span></div>
+            <div style="padding-top:5px;color:var(--text-muted);font-size:10px">&hellip; 9 more rows</div></div>
+          <div class="overflowbar">▾ <span class="bad">1665px total · 24 fields · 3.4&times;</span></div>
+        </div>
+      </div></div>
+
+    <div class="pane"><div class="pane-label"><span>Proposed</span><span class="next">one table · 15 rows &times; 6 cols</span></div>
+      <div class="pane-body">
+        <div class="editor">
+          <div class="ed-head"><span class="kind item">item</span>
+            <span class="ed-name">Black Short Shorts</span>
+            <span class="ed-id">black_short_shorts</span>
+            <span class="ed-state"><span class="pulse"></span>saved</span>
+            <span class="iconbtn">close</span></div>
+          <div class="stack" style="padding:10px">
+            <table class="matrix">
+              <thead><tr><th>action</th><th>on</th><th>E</th><th>H</th><th>T</th><th>HP</th><th>skill / DC</th></tr></thead>
+              <tbody>
+                <tr><th><span class="dot" style="background:#58a6ff;display:inline-block;margin-right:5px"></span><span class="nm">🔍 examine</span></th><td><span class="cbx on"></span></td><td class="num zero">0</td><td class="num zero">0</td><td class="num zero">0</td><td class="num zero">0</td><td><span class="skillpill">&mdash;</span></td></tr>
+                <tr><th class="inv"><span class="dot" style="background:#3fb950;display:inline-block;margin-right:5px"></span><span class="nm">✋ take</span></th><td><span class="cbx on"></span></td><td class="num">1</td><td class="num zero">0</td><td class="num zero">0</td><td class="num zero">0</td><td><span class="skillpill">&mdash;</span></td></tr>
+                <tr><th><span class="dot" style="background:#e3b341;display:inline-block;margin-right:5px"></span><span class="nm">⚡ use</span></th><td><span class="cbx on"></span></td><td class="num">2</td><td class="num">1</td><td class="num zero">0</td><td class="num zero">0</td><td><span class="skillpill">Arcana 12</span></td></tr>
+                <tr class="off"><th><span class="dot" style="background:#4ec9b0;display:inline-block;margin-right:5px"></span><span class="nm">🚪 open</span></th><td><span class="cbx"></span></td><td class="num zero">0</td><td class="num zero">0</td><td class="num zero">0</td><td class="num zero">0</td><td><span class="skillpill">&mdash;</span></td></tr>
+                <tr class="off"><th><span class="dot" style="background:#f85149;display:inline-block;margin-right:5px"></span><span class="nm">🚫 close</span></th><td><span class="cbx"></span></td><td class="num zero">0</td><td class="num zero">0</td><td class="num zero">0</td><td class="num zero">0</td><td><span class="skillpill">&mdash;</span></td></tr>
+                <tr class="off"><th><span class="dot" style="background:#f0883e;display:inline-block;margin-right:5px"></span><span class="nm">🍽️ eat</span></th><td><span class="cbx"></span></td><td class="num zero">0</td><td class="num zero">0</td><td class="num zero">0</td><td class="num zero">0</td><td><span class="skillpill">&mdash;</span></td></tr>
+                <tr class="off"><th><span class="dot" style="background:#58a6ff;display:inline-block;margin-right:5px"></span><span class="nm">🥤 drink</span></th><td><span class="cbx"></span></td><td class="num zero">0</td><td class="num zero">0</td><td class="num zero">0</td><td class="num zero">0</td><td><span class="skillpill">&mdash;</span></td></tr>
+                <tr class="off"><th><span class="dot" style="background:#bc8cff;display:inline-block;margin-right:5px"></span><span class="nm">📖 read</span></th><td><span class="cbx"></span></td><td class="num zero">0</td><td class="num zero">0</td><td class="num zero">0</td><td class="num zero">0</td><td><span class="skillpill">Lockpicking 10</span></td></tr>
+                <tr class="off"><th><span class="dot" style="background:#e3b341;display:inline-block;margin-right:5px"></span><span class="nm">🔥 light</span></th><td><span class="cbx"></span></td><td class="num zero">0</td><td class="num zero">0</td><td class="num zero">0</td><td class="num zero">0</td><td><span class="skillpill">&mdash;</span></td></tr>
+                <tr class="off"><th><span class="dot" style="background:#3fb950;display:inline-block;margin-right:5px"></span><span class="nm">🔛 activate</span></th><td><span class="cbx"></span></td><td class="num zero">0</td><td class="num zero">0</td><td class="num zero">0</td><td class="num zero">0</td><td><span class="skillpill">&mdash;</span></td></tr>
+                <tr class="off"><th class="inv"><span class="dot" style="background:#4ec9b0;display:inline-block;margin-right:5px"></span><span class="nm">⚔️ equip</span></th><td><span class="cbx"></span></td><td class="num zero">0</td><td class="num zero">0</td><td class="num zero">0</td><td class="num zero">0</td><td><span class="skillpill">&mdash;</span></td></tr>
+                <tr class="off"><th><span class="dot" style="background:#f85149;display:inline-block;margin-right:5px"></span><span class="nm">📦 unequip</span></th><td><span class="cbx"></span></td><td class="num zero">0</td><td class="num zero">0</td><td class="num zero">0</td><td class="num zero">0</td><td><span class="skillpill">&mdash;</span></td></tr>
+                <tr class="off"><th><span class="dot" style="background:#f0883e;display:inline-block;margin-right:5px"></span><span class="nm">💨 throw</span></th><td><span class="cbx"></span></td><td class="num zero">0</td><td class="num zero">0</td><td class="num zero">0</td><td class="num zero">0</td><td><span class="skillpill">Athletics 8</span></td></tr>
+                <tr class="off"><th><span class="dot" style="background:#f85149;display:inline-block;margin-right:5px"></span><span class="nm">💥 break</span></th><td><span class="cbx"></span></td><td class="num zero">0</td><td class="num zero">0</td><td class="num zero">0</td><td class="num zero">0</td><td><span class="skillpill">&mdash;</span></td></tr>
+                <tr><th class="inv"><span class="nm" style="color:var(--text-muted)">&bull; drop</span></th><td><span class="cbx on"></span></td><td class="num">1</td><td class="num zero">0</td><td class="num zero">0</td><td class="num zero">0</td><td><span class="skillpill">&mdash;</span></td></tr>
+              </tbody>
+            </table>
+            <div class="legend">
+              <span class="k"><span class="cbx on"></span> enabled</span>
+              <span class="k"><span style="opacity:.4">0</span> zero cost, dimmed</span>
+              <span class="k">⇄ inverse-coupled row</span>
+              <span class="k">rows grey when disabled</span>
+            </div>
+            <div class="note" style="margin-top:7px"><code>drop</code> has no icon or colour because it has no
+              <code>ACTION_ICONS</code>/<code>ACTION_COLORS</code> entry — reproduced faithfully. That is a data gap, not a layout one.</div>
+          </div>
+        </div>
+      </div></div>
+  </div>
+
+  <div class="ann"><h4>What changes, and what must not</h4>
+    <ul>
+      <li><b>A real <code>&lt;table&gt;</code></b> with <code>th scope="col"</code> / <code>th scope="row"</code>. This is
+      tabular data and must be navigable and announced as such — a grid of divs would fail that.</li>
+      <li><b>Colour is never the only channel.</b> Every row keeps its text label; <code>ACTION_COLORS</code> becomes a
+      row accent, not the signal.</li>
+      <li><b><code>INVERSE_ACTIONS</code> becomes visible</b> — the <code>⇄</code> marker. Today the coupling is
+      undiscoverable until you toggle one.</li>
+      <li><b>Triggers stay a disclosure.</b> A different task, not part of the matrix.</li>
+      <li><b>Save-on-change is unchanged</b> — see the open question on the save model.</li>
+    </ul></div>
+</section>
+
+<!-- ═════════ task-675 ═════════ -->
+<section class="task" id="t675">
+  <div class="task-head"><span class="task-id">task-675</span>
+    <h2>Character editor — three-column body with section rail</h2><span class="area">ui · phase 3</span></div>
+  <div class="facts"><b>Measured today.</b> The Bio tab is <b>3346px</b> tall in a <b>960px</b> viewport across
+    <b>15 sections</b>, <b>85 buttons</b> and <b>57 fields</b>. Nothing is broken — it is 3.5 screens of scroll with no
+    landmarks and no persistent identity header, so you lose your place between Memories and Recipes.
+    <ul>
+      <li>There are <b>4</b> tabs, not the 7 the docs claim: Inventory · <b>Bio</b> · Images · Advanced</li>
+      <li>The 15 Bio sections: Stats, Skills, Traits, Personality, Appearance, Relationships, Tags, Aliases,
+      Interest Tags, Fear Tags, Recipes, What I See, Latest Thoughts, Memories, Documentation</li>
+      <li>They fall into three natural groups with no editorial argument needed</li>
+    </ul></div>
+
+  <h3>One long scroll &rarr; three named columns</h3>
+  <div class="editor">
+    <div class="ed-head"><span class="kind character">character</span>
+      <span class="ed-name">Jake Halloway</span>
+      <span class="ed-id">character_jake_halloway · Abandoned Farm · tick 14</span>
+      <span class="seg"><span>Inventory</span><span class="on">Bio</span><span>Images</span><span>Advanced</span></span>
+      <span class="ed-state"><span class="pulse"></span>saved</span>
+      <span class="iconbtn">close</span></div>
+    <div class="ed-body cols-3">
+      <div class="rail">
+        <div class="grp">identity &amp; persona</div>
+        <a>Personality</a><a class="on">Appearance</a><a>Tags <span class="n">3</span></a><a>Aliases <span class="n">1</span></a>
+        <div class="grp">mechanics</div>
+        <a>Stats <span class="n">6</span></a><a>Skills <span class="n">7</span></a><a>Traits <span class="n">4</span></a><a>Recipes <span class="n">2</span></a>
+        <div class="grp">knowledge</div>
+        <a>Interest Tags</a><a>Fear Tags</a><a>What I See</a><a>Latest Thoughts <span class="n">6</span></a>
+        <a>Memories <span class="n">14</span></a><a>Relationships <span class="n">5</span></a>
+      </div>
+      <div class="stack">
+        <div class="blk"><h5>Appearance</h5>
+          <textarea class="ta" style="min-height:56px">broad shoulders, mud-caked coat, a farmhand's hands. Speaks little.</textarea>
+          <div class="preview"><b>First impression:</b> a broad man in a mud-caked coat — he works land</div>
+          <div class="note">stays adjacent to the field it derives from</div></div>
+        <div class="blk"><h5>Personality</h5><textarea class="ta">gruff, protective of strangers, slow to trust</textarea></div>
+        <div class="blk"><h5>Emotion <span class="cnt">calm · 0.62</span></h5>
+          <div class="track"><i style="width:62%"></i></div></div>
+        <div class="blk"><h5>Tags <span class="cnt">3</span></h5>
+          <div class="chips"><span class="chip on">human</span><span class="chip on">guard</span><span class="chip on">farmer</span><span class="chip">+ add</span></div></div>
+        <div class="blk"><h5>Aliases <span class="cnt">1</span></h5>
+          <div class="chips"><span class="chip on">the cook</span><span class="chip">+ add</span></div></div>
+      </div>
+      <div class="stack">
+        <div class="blk"><h5>Stats <span class="cnt">6</span></h5>
+          <div class="field"><span class="lbl">STR</span><span class="inp">12</span></div>
+          <div class="field"><span class="lbl">DEX</span><span class="inp">14</span></div>
+          <div class="field"><span class="lbl">CON</span><span class="inp">11</span></div>
+          <div class="field"><span class="lbl">INT</span><span class="inp">9</span></div>
+          <div class="field"><span class="lbl">WIL</span><span class="inp">13</span></div>
+          <div class="field"><span class="lbl">CHA</span><span class="inp">8</span></div></div>
+        <div class="blk"><h5>Skills <span class="cnt">7</span></h5>
+          <div class="field"><span class="lbl">Survival</span><span class="inp">14</span></div>
+          <div class="field"><span class="lbl">Lockpicking</span><span class="inp">6</span></div>
+          <div class="field"><span class="lbl">Arcana</span><span class="inp">2</span></div></div>
+        <div class="blk"><h5>Traits <span class="cnt">4</span></h5>
+          <div class="chips"><span class="chip on">hardy</span><span class="chip on">wary</span><span class="chip on">insomniac</span><span class="chip on">strong-arm</span></div></div>
+        <div class="blk"><h5>Recipes <span class="cnt">2</span></h5>
+          <div class="chips"><span class="chip on">cooked_rations</span><span class="chip on">preserved_meat</span></div></div>
+      </div>
+      <div class="stack">
+        <div class="blk"><h5>What I See <span class="cnt">live</span></h5>
+          <div class="preview solid">An animal pen, two upturned buckets, a cold fire pit. A cooking area west.</div></div>
+        <div class="blk"><h5>Latest Thoughts <span class="cnt">6</span></h5>
+          <div class="preview solid">the camp smells of rot again<br>elder would not listen<br>keep the fire low tonight</div></div>
+        <div class="blk"><h5>Relationships <span class="cnt">5</span></h5>
+          <div class="field"><span class="lbl">Krikka</span><span class="inp">+12</span></div>
+          <div class="field"><span class="lbl">Rikka</span><span class="inp">+7</span></div>
+          <div class="field"><span class="lbl">Eldenford Elder</span><span class="inp">-4</span></div></div>
+        <div class="blk"><h5>Memories <span class="cnt">14</span></h5>
+          <div class="preview solid">⭐ 8 — the tribe's run on the ridge<br>⭐ 5 — Rikka's shoulder wound<br><span style="color:var(--text-muted)">+12 more</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ann"><h4>Design decisions worth arguing about</h4>
+    <ul>
+      <li><b>The tabs move to the header</b> as a segmented control. That is what buys the width — the three-column
+      body only applies to the active tab.</li>
+      <li><b>Images and Inventory stay single-column.</b> Already narrow: Expression Pack is 7 buttons, Inventory is 20.</li>
+      <li><b>Appearance's first-impression preview must not move columns.</b> It is a live dependent field; separating
+      it breaks the cause-and-effect the user is there to watch.</li>
+      <li><b>Relationships gets its own row</b>, not a column cell, so it can scroll independently.</li>
+      <li><b>The rail is generated from rendered sections</b>, not hand-maintained — the same lesson as
+      <code>tools/way_property_index.py</code>: a vocabulary declared in two places drifts.</li>
+    </ul></div>
+</section>
+
+<!-- ═════════ task-676 ═════════ -->
+<section class="task" id="t676">
+  <div class="task-head"><span class="task-id">task-676</span>
+    <h2>Area editor — split properties/place with a mini-map</h2><span class="area">ui · phase 4</span></div>
+  <div class="facts"><b>Measured today.</b> The area editor has <b>14 sections</b> in a 379px column with no map, and its
+    inherently spatial sections — exits, agents present, item visibility, area event log — are stranded as text lists.
+    <ul>
+      <li>Environment: light <b>80</b>, temp <b>27.6&nbsp;&deg;C</b>, air <b>fresh</b>, smell
+      <b>"rot, straw, old food"</b>, noise <b>quiet</b> — plus weather, wind, humidity and a presets scope picker the
+      docs never mention</li>
+      <li><b>Zero <code>input[type=range]</code></b> in the whole area view — the "environment sliders" the docs describe
+      do not exist; these are text, number and select controls</li>
+      <li>The way view already offers <code>VISIBLE ITEMS IN &lt;AREA&gt;</code> with <b>207 options</b> per side —
+      strong evidence that visibility is spatial and is currently edited as a dropdown</li>
+    </ul></div>
+
+  <h3>Properties &harr; place, side by side</h3>
+  <div class="editor">
+    <div class="ed-head"><span class="kind area">area</span>
+      <span class="ed-name">Abandoned Farm</span>
+      <span class="ed-id">area_abandoned_farm · scope: world · 4 agents</span>
+      <span class="ed-state"><span class="pulse"></span>saved</span>
+      <span class="iconbtn">open in WorldPainter</span><span class="iconbtn">close</span></div>
+    <div class="ed-body split">
+      <div class="stack">
+        <div class="blk"><h5>Description</h5>
+          <textarea class="ta" style="min-height:40px">An overgrown farm, long abandoned. The pens still hold their shape.</textarea></div>
+        <div class="blk"><h5>Environment <span class="cnt">9 controls</span></h5>
+          <div class="field"><span class="lbl">LIGHT</span><span class="inp grow">80</span></div>
+          <div class="field"><span class="lbl">TEMP °C</span><span class="inp grow">27.6</span></div>
+          <div class="field"><span class="lbl">AIR</span><span class="inp sel">fresh</span></div>
+          <div class="field"><span class="lbl">SMELL</span><span class="inp grow">rot, straw, old food</span></div>
+          <div class="field"><span class="lbl">NOISE</span><span class="inp grow">quiet</span></div>
+          <div class="field"><span class="lbl">WEATHER</span><span class="inp sel">clear</span></div>
+          <div class="field"><span class="lbl">WIND</span><span class="inp sel">breeze</span></div>
+          <div class="field"><span class="lbl">HUMIDITY</span><span class="inp sel">dry</span></div>
+          <div class="field"><span class="lbl">PRESET</span><span class="inp sel">current</span></div>
+          <div class="note">all nine in one block — they are read together, and none is a range input</div></div>
+        <div class="blk"><h5>Floor / Scope</h5>
+          <div class="field"><span class="lbl">FLOOR</span><span class="inp sel">ground</span></div>
+          <div class="field"><span class="lbl">SCOPE</span><span class="inp sel">world</span></div></div>
+        <div class="blk"><h5>Tags / Aliases</h5>
+          <div class="chips"><span class="chip on">outdoor</span><span class="chip on">abandoned</span><span class="chip on">farm</span><span class="chip">+ add</span></div></div>
+      </div>
+      <div class="stack">
+        <div class="blk"><h5>Place <span class="cnt">4 ways · 1 item</span></h5>
+          <div class="map">
+            <div class="road" style="left:18px;top:96px;width:150px;transform:rotate(-8deg)"></div>
+            <div class="road" style="left:96px;top:40px;width:96px;transform:rotate(38deg)"></div>
+            <div class="cell here" data-lbl="Abandoned Farm" style="left:26px;top:62px;width:112px;height:64px"></div>
+            <div class="cell" style="left:158px;top:44px;width:58px;height:44px"></div>
+            <div class="cell" style="left:186px;top:104px;width:64px;height:48px"></div>
+            <div class="cell" style="left:76px;top:148px;width:70px;height:38px"></div>
+            <div class="pin" style="left:34px;top:84px;background:var(--pink)">1</div>
+            <div class="pin" style="left:52px;top:104px;background:var(--pink)">2</div>
+            <div class="pin" style="left:202px;top:118px;background:var(--orange)">3</div>
+          </div></div>
+        <div class="blk"><h5>Exits <span class="cnt">4</span></h5>
+          <div class="exits">
+            <div class="exit"><span class="dir">W</span><span class="to">Human Road</span><span class="st">open</span></div>
+            <div class="exit"><span class="dir">N</span><span class="to">Bridge (world 10,6)</span><span class="st">open</span></div>
+            <div class="exit"><span class="dir">E</span><span class="to">Camp Entrance Trail</span><span class="st locked">locked</span></div>
+            <div class="exit"><span class="dir">S</span><span class="to">Blackmarsh</span><span class="st">closed</span></div>
+          </div></div>
+        <div class="blk"><h5>Agents <span class="cnt">4</span> · Items visible <span class="cnt">1</span></h5>
+          <div class="chips">
+            <span class="chip on"><span class="dot" style="background:var(--pink)"></span>Jake Halloway</span>
+            <span class="chip on"><span class="dot" style="background:var(--pink)"></span>Leslie</span>
+            <span class="chip on"><span class="dot" style="background:var(--pink)"></span>Mikka</span>
+            <span class="chip on"><span class="dot" style="background:var(--pink)"></span>Kiala</span>
+            <span class="chip on"><span class="dot" style="background:var(--orange)"></span>Scrap Pile</span>
+          </div>
+          <div class="note">visibility shown as a position, not a 207-option dropdown</div></div>
+        <div class="blk"><h5>Area event log <span class="cnt">read-only</span></h5>
+          <div class="logbox">
+            <div><span class="t">tick 11</span> <span class="sys">system</span> the fire went out</div>
+            <div><span class="t">tick 12</span> Mikka arrived from Cooking Area</div>
+            <div><span class="t">tick 13</span> Jake Halloway examined the fire pit</div>
+            <div><span class="t">tick 14</span> the east gate was tested and held</div>
+          </div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ann"><h4>The payoff, and the open dependency</h4>
+    <ul>
+      <li><b>Spatial sections stop being text.</b> Exits, agents and item visibility gain a map beside them. The
+      <code>VISIBLE ITEMS IN &lt;AREA&gt;</code> selector is the tell — 207 options for a spatial relation.</li>
+      <li><b>All nine environment controls in one block</b>, because they are read together, and labelled by their real
+      control types rather than as "sliders".</li>
+      <li><b>The event log is read-only</b> and scroll-locked — context, not a field.</li>
+      <li><b>Open dependency:</b> whether below 900px is a real target is undecided, so the stacked variant is
+      deliberately not drawn. Confirm the responsive story before building one.</li>
+    </ul></div>
+</section>
+
+<!-- ═════════ closing ═════════ -->
+<section class="task" id="not">
+  <div class="task-head"><h2>What these mockups are not</h2></div>
+  <div class="ann"><h4>Boundaries</h4>
+    <ul>
+      <li><b>Not application code.</b> No engine calls, no lit-html, nothing wired. These are layout proposals.</li>
+      <li><b>Not a pixel spec.</b> Proportions are indicative. The measured numbers (380px, 3346px, 15 actions,
+      14 sections, 207 areas) are real; the drawn sizes are not contractual.</li>
+      <li><b>Not everything is designed.</b> The save model, deep links, multi-entity 2-up compare, the mobile story,
+      and whether the way editor earns a fifth layout are all still open in
+      <code>docs/design/full-entity-editors.md</code>.</li>
+      <li><b>Not verified behaviour.</b> These are proposals. Per the repo's own rule, none of this may be called
+      shipped until it has been watched working in a live browser.</li>
+    </ul></div>
+</section>
+
+</div>
+</body>
+</html>
