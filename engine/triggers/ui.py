@@ -13,11 +13,18 @@ from engine.item_actions import normalize_item_actions
 class UiMixin:
     """Available-actions and contextual-failure helpers."""
 
-    def _get_available_actions(self, item_node: Node) -> List[dict]:
+    def _get_available_actions(self, item_node: Node, carrying: bool = False) -> List[dict]:
         """Return a list of action descriptors for an item given the current context.
 
         The returned list is used by the UI to render available
         interaction buttons.
+
+        *carrying* says whether the acting character currently holds this
+        item. ``actions`` on a node is a CAPABILITY list (the same matches
+        box offers examine/take/drop), so without this the drop affordance
+        is rendered on the floor copy too and the menu offers "Drop from
+        inventory" for something in the room. Callers that only want the
+        contextual-failure wording may leave it False.
 
         *game_state* is not required here (graph info is accessed via
         ``self.graph`` and *item_node*).
@@ -56,7 +63,9 @@ class UiMixin:
         if "take" in actions:
             result.append({"action": "take", "label": "Pick up", "enabled": True})
 
-        if "drop" in actions:
+        # A capability, not a state: `drop` is on every takeable, so it is
+        # only an affordance once the actor actually holds the item.
+        if "drop" in actions and carrying:
             result.append(
                 {
                     "action": "drop",
@@ -137,12 +146,27 @@ class UiMixin:
         if "drink" in actions or "drink" in tags:
             result.append({"action": "drink", "label": "Drink", "enabled": True})
 
-        if "on_toggle_on" in trigger_types or "on_toggle_off" in trigger_types:
-            toggle_state = "on" if state == "off" else "off"
+        # `on_light` (task-396) is the semantic "this got lit" hook and
+        # fires on the same transition, so it implies toggleability too.
+        # The `toggleable` tag is the gate ToggleableItems.toggle_item_status
+        # actually enforces — offering Toggle without it renders an
+        # affordance the engine rejects ("the X can't be toggled").
+        if (
+            {"on_toggle_on", "on_toggle_off", "on_light"} & trigger_types
+        ) and "toggleable" in tags:
+            # The engine's vocabulary is lit/unlit (ToggleableItems), not
+            # on/off — "off" never matched anything, so an unlit match read
+            # "Toggle off". Anything that is not `lit` is unlit, which also
+            # covers the library's `normal` initial state.
+            is_lit = str(state).lower() == "lit"
+            if any(t in tags for t in ("electric", "synthetic")):
+                label = "Turn off" if is_lit else "Turn on"
+            else:
+                label = "Extinguish" if is_lit else "Light"
             result.append(
                 {
                     "action": "toggle",
-                    "label": f"Toggle {toggle_state}",
+                    "label": label,
                     "enabled": True,
                 }
             )

@@ -18,6 +18,13 @@ const uiControllerHtmlTag = (strings: TemplateStringsArray, ...values: unknown[]
 /** Feature-detected `window` members this module reads. */
 type UIWin = {
     appEvents?: { on(event: string, cb: (state: unknown) => void): void };
+    /** The event bus publishes `getControlMode` / `cycleControlMode`; the shared
+     *  badge vocabulary hangs off it as `controlBadge`. */
+    events?: {
+        getControlMode(charName: string): string;
+        controlBadge(mode: string): { emoji: string; label: string; title: string };
+        cycleControlMode(charName: string): void;
+    };
     VitalThresholds?: { temperatureBand(player: unknown): { cold_mild: number; heat_severe: number } };
     SkyScape?: { wire?: { _done?: boolean }; renderTopBar(el: HTMLElement, state: unknown): void };
     ValidatorPanel?: { refresh(): void };
@@ -103,7 +110,23 @@ class UIController {
             const vitalColor = lowestVital > 50 ? '#3fb950' : (lowestVital > 20 ? '#e3b341' : '#f85149');
 
             const isSimpleNpc = p.simple_npc;
-            const agentIcon = isSimpleNpc ? '🐱' : '🧍';
+            // Who is actually driving this character, in the one shared
+            // vocabulary (👾 NPC / 🤖 LLM / 👤 human — StreamControlMode
+            // .controlBadge), which is also what the graph badges, the inspector
+            // header and the event-stream filter chips read.
+            //
+            // This used to draw a SECOND glyph before the name — 🧍 for anything
+            // non-simple-NPC, 🐱 for a simple one — so every row carried two
+            // controller signals that could disagree ("🧍 elena vance" beside an
+            // LLM badge, "🐱 ghost" beside an NPC badge), and neither 🧍 nor 🐱 is
+            // a control-mode word anywhere else. There is now exactly one glyph,
+            // in the badge's place, and clicking it still cycles the mode through
+            // the backend (human → LLM → NPC), which task-340 built.
+            const es = (window as unknown as UIWin).events;
+            const mode = es ? es.getControlMode(name) : (isSimpleNpc ? 'npc' : 'llm');
+            const badge = es
+                ? es.controlBadge(mode)
+                : { emoji: mode === 'npc' ? '👾' : '🤖', label: mode.toUpperCase(), title: mode };
             const ord = orderInfo[name];
             const orderChips = ord
                 ? uiControllerHtmlTag`<span class="initiative-pos" style="font-size:9px;color:var(--text-dim);min-width:14px;">${ord.pos}.</span><span style="font-size:9px;">${ord.icon}</span>${window.Lit.unsafeHTML(ord.rollStr)}`
@@ -124,7 +147,14 @@ class UIController {
             rows.push(uiControllerHtmlTag`<div class="agent-item ${isSelected ? 'selected' : ''} ${statusClass === 'stuck' ? 'stuck' : ''}" @click=${() => selectAgent(name)} style="${isSimpleNpc ? 'opacity:0.85;cursor:pointer;' : ''}">
                 <div class="agent-dot ${statusClass}" style="background:${color}"></div>
                 ${orderChips}
-                <span class="agent-name">${agentIcon} ${name}</span>
+                <span class="agent-ctrl" title="${badge.title} — click to change controller"
+                      @click=${(e: any) => {
+                          e.stopPropagation();
+                          if ((window as unknown as UIWin).events?.cycleControlMode) {
+                              (window as unknown as UIWin).events!.cycleControlMode(name);
+                          }
+                      }}>${badge.emoji}</span>
+                <span class="agent-name">${name}</span>
                 ${p.current_area
                     ? uiControllerHtmlTag`<span class="agent-location" title="Focus area in graph" @click=${(e: any) => { e.stopPropagation(); if ((window as unknown as UIWin).graphManager) graphManager._selectRoom(p.current_area); }} style="cursor:pointer;text-decoration:underline dotted;">${p.current_area}</span>`
                     : uiControllerHtmlTag`<span class="agent-location">?</span>`}

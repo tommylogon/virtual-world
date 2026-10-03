@@ -95,7 +95,7 @@ const NodeBadgesModule = {
             <div class="legend-row"><span style="font-size:11px;">🔄👁</span><span style="font-size:9px;"> auto-close / see-through</span></div>
             <div class="legend-row"><span style="font-size:11px;">🐜🐀📏🐘</span><span style="font-size:9px;"> max passage size</span></div>
             <div class="legend-row"><span style="font-size:11px;">🧰⚡</span><span style="font-size:9px;"> container / triggers</span></div>
-            <div class="legend-row"><span style="font-size:11px;">🤖🧠👤</span><span style="font-size:9px;"> NPC / LLM / human</span></div>
+            <div class="legend-row"><span style="font-size:11px;">👾🤖👤</span><span style="font-size:9px;"> NPC / LLM / human</span></div>
             <div class="legend-row"><span style="font-size:11px;">🌑🏢</span><span style="font-size:9px;"> dark area / not on the ground storey</span></div>
             <div style="font-size:9px;color:var(--text-muted);margin-top:4px;">Way/item state (open, locked, lit…) uses node color — see legend above.</div>`;
     },
@@ -182,9 +182,12 @@ const NodeBadgesModule = {
             controlMode = 'npc';
         }
 
-        if (controlMode === 'npc') NodeBadgesModule._push(badges, seen, { emoji: '🤖', title: 'Scripted NPC' });
+        if (typeof eventStream !== 'undefined' && eventStream.controlBadge) {
+            const badge = eventStream.controlBadge(controlMode);
+            NodeBadgesModule._push(badges, seen, { emoji: badge.emoji, title: badge.title });
+        } else if (controlMode === 'npc') NodeBadgesModule._push(badges, seen, { emoji: '👾', title: 'Scripted NPC' });
         else if (controlMode === 'human') NodeBadgesModule._push(badges, seen, { emoji: '👤', title: 'Human-controlled' });
-        else NodeBadgesModule._push(badges, seen, { emoji: '🧠', title: 'LLM agent' });
+        else NodeBadgesModule._push(badges, seen, { emoji: '🤖', title: 'LLM agent' });
 
         if (player) {
             const state = (player.state || '').toLowerCase();
@@ -276,4 +279,5 @@ interface NodeState {
 
 interface EventStreamLike {
     getControlMode?: (name: string) => string;
+    controlBadge?: (mode: string) => { emoji: string; label: string; title: string };
 }

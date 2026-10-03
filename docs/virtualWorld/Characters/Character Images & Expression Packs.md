@@ -115,24 +115,97 @@ name** — not in a tab. It has a **Profile / Full-body** tab switcher and one r
 per expression key with a thumbnail, an upload control, and a clear button, plus
 an "add expression" field for custom keys, and a **"Split sheet"** button.
 
+**Re-filing art between expressions.** Each card has three actions: **⬆ replace
+the image** (clicking the card or pressing Enter/Space), **🗑 remove the image but
+keep the expression**, and **✕ delete the expression key and its image file(s)**.
+Clicking the **name** re-files the expression under a new key, and the image
+moves with it — that is the fix for a sheet that was sliced into the wrong
+labels, since it needs no re-upload. Enter commits, Esc cancels.
+
+The card is a `<div>` with an explicit click handler, deliberately **not** a
+`<label>`. A `<label>` takes its labelled control as the first *labelable*
+descendant, and a `<button>` is labelable — with the 🗑 ahead of the file input in
+document order, Chrome activated the delete button, so clicking an image deleted
+it instead of opening the picker. This was live-verified, not inferred: one click
+produced two events, the `IMG` and a generated `BUTTON.btn-danger`.
+
+Re-filing is a **property write, not a file move** — the image stays exactly
+where it is and only the key it is filed under changes — so it reuses the generic
+node `PATCH` rather than adding an endpoint, and it moves the whole slot so
+renaming a profile expression does not orphan the full-body art filed under the
+same key. The `neutral` slot is mirrored onto `profile_image` / `image` for the
+graph thumbnail and simple avatars, so the write keeps those in step. A rename
+onto a key that already holds art is **refused** with a message rather than
+silently overwriting a picture. Deleting a key delegates to the existing
+per-kind remove, once per kind, because a key holding both a profile and a
+full-body image only disappears after the second call.
+
 **Sheet splitting.** A character's art often arrives as one grid contact sheet.
 The splitter (`static/js/inspector/sprite-sheet.js`) crops it in the browser with
 a canvas and uploads each tile to its own slot through the same single-image
-endpoint, so nothing new is stored server-side. Two modes handle different
-layouts: **Even grid** (rows x cols over the whole sheet — a clean 4x3 face
-sheet) and **Draw boxes** (drag one rectangle per panel, for art packs that mix a
-large turnaround or magic pose beside smaller expressions, where no even grid
-fits); `clampBox` normalises and clamps each dragged box. `computeCells`
-partitions the sheet into rows x cols so the tiles cover it exactly (no
-gaps/overlap, rounding remainder absorbed by the last row/column), and
-`labelTrim` drops a fraction off the bottom of every cell for the caption banner
-(grid mode only — in box mode you simply box the art and leave the caption out).
+endpoint, so nothing new is stored server-side.
+
+**The grid is a frame plus interior dividers, not a rows × cols count** (task-678).
+A count describes exactly one shape — `width/cols × height/rows` over the whole
+sheet — so it cannot fit a title banner, an outer margin, or panels of different
+sizes side by side, which is what nearly every real reference sheet is. The
+geometry lives in `static/js/inspector/sprite-sheet-geometry.js` as pure
+functions (`cutsFromGrid`, `cellsFromCuts`, `clampCuts`, `recountCuts`,
+`moveDivider`, `addDivider`, `removeDivider`, `hitDivider`, `guttersFromProfile`,
+`cutsFromProfiles`, `profileRects`), and `computeCells` is now a thin wrapper
+over it so the count-based entry point and the dialog cannot disagree.
+
+**Two views, side by side.** The sheet with its overlay is on the left; on the
+right is a live strip of the **actual crops** with their slot names, so a cut
+that lands on an eyebrow is visible before anything is uploaded. Unnamed cells
+are drawn dimmed and marked `skip`. `Fit` / `100%` scale the sheet, and the
+preview pane scrolls, so a tall sheet is actually readable.
+
+**Dragging is the primary control** (the same shape as the WorldPainter grid
+adjust):
+
+- the **frame** — 4 corners and 2 grips per edge — fits the grid onto the art and
+  off a banner or footer, with no wasted cell;
+- an **interior divider** makes rows or columns uneven, which is how a wide
+  full-body panel sits beside a column of small detail panels in one grid;
+- a press **inside a cell adds** a divider on both axes there; **double-clicking a
+  divider removes** it. Rows/cols inputs still add and remove lines.
+- A press near the frame boundary is a frame grip; a press away from it is a
+  divider. That rule exists because an even grid puts a divider exactly where a
+  midpoint handle would sit, which made the north and south frame edges
+  unreachable.
+- Dragging is tracked on `document`, not the canvas, so a resize can travel past
+  the image — the same fix WorldPainter needed.
+
+Moving or resizing the frame re-spaces the interior dividers over the new frame,
+and excluding a banner drops the dividers that fall outside it.
+
+**✨ Auto-fit proposes a grid from the sheet's whitespace.** It profiles the ink
+per row and per column against the sheet's modal (not assumed-white) background,
+trims a uniform outer margin to the content bounding box, and turns blank runs
+into dividers. Two rules keep it honest on real art, both measured against a
+1200×900 four-by-three expression sheet with 18px gutters:
+
+- a gutter must have **content on both sides** within a flank, or the blank space
+  below the last row of panels becomes a divider;
+- a proposal of more than 16 dividers per axis is discarded as art whitespace,
+  and the caller falls back to the even grid.
+
+It proposes; it never asserts. Every value it sets stays draggable, and a sheet
+with no clean whitespace falls back to the current rows × cols with a status
+message saying so.
+
+**Draw boxes** remains the escape hatch for genuinely irregular layouts, but an
+existing box can now be moved and resized instead of deleted and redrawn.
+
 `parseNames` maps tile order to slugs and leaves blank entries un-uploaded;
 `defaultNames`/`defaultNameFor` prefill the canonical emotion order (then
-`slotN`), so a drawn box gets a sensible name you can edit. Because a sheet's captions may not match the canonical keys (for
-example `excited` where the UI uses `aroused`), the names are editable before
-upload rather than hardcoded. The pure geometry/naming helpers are tested in
-`tools/unit/test_sprite_sheet.js`.
+`slotN`). Names are held parallel to the cell list, so nudging a divider never
+renames a tile the author already named. Because a sheet's captions may not match
+the canonical keys (for example `excited` where the UI uses `aroused`), the names
+are editable before upload rather than hardcoded. The pure geometry is tested in
+`tools/unit/test_sprite_sheet_geometry.js`, which includes a guard that the new
+model reproduces the old `computeCells` output exactly, shape for shape.
 
 Helpers live in
 `static/js/inspector/helpers.js` (`renderExpressionSection`,
@@ -149,7 +222,7 @@ Helpers live in
 | Library import / refresh | `routes/library_ops.py` |
 | API client | `static/js/api.js` |
 | Gallery + resolver | `static/js/inspector/helpers.js` |
-| Sheet splitting | `static/js/inspector/sprite-sheet.js` (+ `tools/unit/test_sprite_sheet.js`) |
+| Sheet splitting | `static/js/inspector/sprite-sheet.js` (+ `static/js/inspector/sprite-sheet-geometry.js`, `tools/unit/test_sprite_sheet_geometry.js`) |
 | Inspector placement + save card | `static/js/inspector/agent-view.js` |
 | Avatar by emotion | `static/js/agent-lens.js` |
 | Live art resolver + portrait viewer | `static/js/character-art.js` (+ `tools/unit/test_character_art.js`) |

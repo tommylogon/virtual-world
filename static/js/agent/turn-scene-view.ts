@@ -55,9 +55,12 @@ interface TurnSceneViewWindowSurface { TurnSceneView: unknown }
             .tsv-chip.tsv-exit:hover { border-color:#3fae94; background:#152825; }
             .tsv-chip.tsv-person { color:#eec9ff; border-color:#3d2b52; }
             .tsv-chip.tsv-person:hover { border-color:#a86ee0; background:#241a33; }
-            /* Current-emotion profile thumbnail; click opens the big portrait. */
-            .tsv-avatar { width:18px; height:18px; border-radius:50%; object-fit:cover;
+            /* Current-emotion profile thumbnail; click opens the big portrait.
+               Sized to be recognisable at a glance — 18px read as an
+               indistinct smudge next to the name. */
+            .tsv-avatar { width:34px; height:34px; border-radius:50%; object-fit:cover;
                           border:1px solid #3d2b52; cursor:zoom-in; flex:none; }
+            .tsv-chip.tsv-person { padding:3px 12px 3px 3px; }
             .tsv-chip .tsv-em { font-size:11px; color:#78828e; font-style:italic; }
             .tsv-chip.tsv-shut::before { content:'●'; color:#c96a46; font-size:7px; margin-right:-1px; }
             .tsv-hint { font-size:10.5px; color:#5b6570; margin-top:3px; }
@@ -181,6 +184,7 @@ interface TurnSceneViewWindowSurface { TurnSceneView: unknown }
         const conditions = (you.conditions || []).map((c: unknown) => String(c).toLowerCase());
         const grappled = conditions.some((c) => c.includes('grappl'));
         const carrying = you.carrying || [];
+        const holding = you.holding || [];
         const abilities = you.known_abilities || [];
         // Prefer the world's own toggle (the engine gate); the client config
         // mirrors it and is used only as a fallback before state loads.
@@ -218,9 +222,18 @@ interface TurnSceneViewWindowSurface { TurnSceneView: unknown }
         menus.push({ label: `Attack ${who}`, danger: true, run: () => draftParts({ action: 'attack', target: who }) });
         menus.push({ label: `Grab ${who} (grapple)`, run: () => draftParts({ action: 'grab', target: who }) });
         menus.push({ label: `Lead ${who}`, run: () => draftParts({ action: 'lead', target: who }) });
-        menus.push({ label: `Wake ${who}`, run: () => draftParts({ action: 'wake', target: who }) });
+        // Wake is only legal against someone with an activity — the engine
+        // raises "isn't sleeping or busy" otherwise (Activities.wake). Offering
+        // it on a standing, idle person is a verb that can only fail.
+        if (person.activity) {
+            menus.push({ label: `Wake ${who}`, run: () => draftParts({ action: 'wake', target: who }) });
+        }
         if (grappled) menus.push({ label: 'Escape the grapple', run: () => draftParts({ action: 'escape' }) });
-        menus.push({ label: `Release ${who}`, run: () => draftParts({ action: 'release', target: who }) });
+        // Release only means something for someone you actually hold, which
+        // is what `you.holding` (the authoritative `grappled` edge) reports.
+        if (holding.includes(person.name || who) || holding.includes(who)) {
+            menus.push({ label: `Release ${who}`, run: () => draftParts({ action: 'release', target: who }) });
+        }
 
         // Give: choose from what you are actually carrying. applyDraft joins
         // action/item/target with spaces, so the connector lives in the action
@@ -621,6 +634,8 @@ interface ScenePerson {
     desc: string;
     tags: string[];
     met?: boolean;
+    /** Current activity type ("sleeping", …), null when idle. Gates Wake. */
+    activity?: string | null;
     [key: string]: unknown;
 }
 
@@ -659,6 +674,8 @@ interface TurnSceneViewSceneYou {
     conditions: string[];
     at_way_id: string;
     carrying: CarriedItem[];
+    /** Identity keys of characters this one has grabbed or led. Gates Release. */
+    holding?: string[];
     known_abilities: string[];
     [key: string]: unknown;
 }

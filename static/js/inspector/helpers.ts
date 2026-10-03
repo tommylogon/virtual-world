@@ -477,11 +477,16 @@ const InspectorHelpersModule = (() => {
             .expr-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
             .expr-thumb .expr-empty { font-size:18px; opacity:.35; }
             .expr-name { font-size:10px; text-align:center; max-width:100%; white-space:nowrap;
-                overflow:hidden; text-overflow:ellipsis; }
-            .expr-actions { display:flex; gap:4px; opacity:.45; transition:opacity .12s; }
+                overflow:hidden; text-overflow:ellipsis; cursor:text; border-radius:3px; }
+            .expr-name:hover { background:var(--bg-hover); text-decoration:underline dotted; }
+            .expr-rename { width:100%; font-size:10px; text-align:center; padding:1px 2px;
+                border:1px solid var(--accent); border-radius:3px; background:var(--bg-input);
+                color:var(--text); }
+            .expr-actions { display:flex; gap:3px; opacity:.45; transition:opacity .12s; }
             .expr-card:hover .expr-actions, .expr-card:focus-within .expr-actions { opacity:1; }
             .expr-upload { cursor:pointer; pointer-events:none; }
-            /* Visually hidden, still focusable — the label wraps the card. */
+            /* Visually hidden and NOT focusable: the card is the control now (it is a
+               div, not a label) so it owns focus, Enter/Space and the click. */
             .expr-file { position:absolute; width:1px; height:1px; margin:0; padding:0; border:0;
                 opacity:0; overflow:hidden; clip:rect(0 0 0 0); clip-path:inset(50%); }
             .expr-current-badge { position:absolute; top:4px; right:4px; font-size:8.5px; letter-spacing:.4px;
@@ -507,31 +512,40 @@ const InspectorHelpersModule = (() => {
             const thumb = url
                 ? `<img src="${H.esc(url)}" alt="${label}">`
                 : `<span class="expr-empty" title="No ${kind} image">🎭</span>`;
-            const remove = url
-                // Inside a <label>, so the click has to be cut off from the label's
-                // own activation or clearing an image would also open the picker.
-                ? `<button class="btn btn-sm btn-danger" title="Remove ${label}" onclick="event.preventDefault();event.stopPropagation();InspectorHelpers.clearExpressionImage('${escId}','${kind}','${safeKey}')">🗑</button>`
+            const removeImage = url
+                // stopPropagation keeps the card's own click from opening the picker.
+                ? `<button class="btn btn-sm btn-danger" title="Remove the image from ${label}, keeping the expression"
+                    onclick="event.stopPropagation();InspectorHelpers.clearExpressionImage('${escId}','${kind}','${safeKey}')">🗑</button>`
                 : '';
-            // The card IS the label, so a click anywhere on it opens the picker —
-            // the arrow is decoration, not the target. The input stays focusable
-            // (visually hidden, not display:none) so the slot is reachable by
-            // keyboard too.
-            return `<label class="expr-card${isCurrent ? ' expr-current' : ''}" data-key="${safeKey}"
-                        title="Click or drop an image here — upload / replace ${label}"
+            const removeKey = `<button class="btn btn-sm" title="Delete the '${safeKey}' expression and its image file(s)"
+                    onclick="event.stopPropagation();InspectorHelpers.removeExpressionKey('${escId}','${kind}','${safeKey}')">✕</button>`;
+            // The card is a DIV, not a <label>. A <label> picks its labelled control as
+            // the first LABELABLE descendant, and a <button> is labelable — so with the
+            // 🗑 ahead of the file input in document order, Chrome activated the delete
+            // button and clicking an image deleted it instead of opening the picker.
+            // The card therefore owns the click, Enter/Space, and the drop target, and
+            // asks the hidden input for the picker explicitly.
+            return `<div class="expr-card${isCurrent ? ' expr-current' : ''}" data-key="${safeKey}"
+                        role="button" tabindex="0"
+                        title="Click to replace ${label} · click the name to re-file it"
+                        onclick="InspectorHelpers.pickExpressionImage('${escId}','${kind}','${safeKey}')"
+                        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();InspectorHelpers.pickExpressionImage('${escId}','${kind}','${safeKey}')}"
                         ondragover="event.preventDefault();this.classList.add('expr-drop');"
                         ondragleave="this.classList.remove('expr-drop');"
                         ondrop="InspectorHelpers.dropExpressionImage('${escId}','${kind}','${safeKey}',event)">
                 <div class="expr-thumb${url ? ' has-art' : ''}">${thumb}</div>
-                <div class="expr-name" title="${label}">${icon} ${label}</div>
+                <div class="expr-name" title="Click to rename — the image moves with it"
+                     onclick="event.stopPropagation();InspectorHelpers.beginExpressionRename('${escId}','${kind}','${safeKey}',this)">${icon} ${label}</div>
                 <span class="expr-actions">
                     <span class="btn btn-sm expr-upload" aria-hidden="true">⬆</span>
-                    ${remove}
+                    ${removeImage}
+                    ${removeKey}
                 </span>
-                <input class="expr-file" type="file" accept="image/*" tabindex="0"
+                <input class="expr-file" type="file" accept="image/*" tabindex="-1"
                     aria-label="Upload ${kind} image for ${label}"
                     onchange="InspectorHelpers.setExpressionImage('${escId}','${kind}','${safeKey}',this)">
                 ${isCurrent ? '<span class="expr-current-badge">NOW</span>' : ''}
-            </label>`;
+            </div>`;
         }).join('');
     };
 
@@ -638,6 +652,149 @@ const InspectorHelpersModule = (() => {
             else delete props.image;
         }
         events.log('Expression image removed.', 'system-msg');
+        H._refreshExpressionGrid(nodeId, kind);
+        if (graphManager) graphManager._lastSig = '';
+        worldState.fetch();
+        if (graphManager) graphManager.loadGraphData();
+    };
+
+    /**
+     * Open the picker for one expression card.
+     *
+     * The card is a div, so the browser has no implicit label activation to lean on;
+     * this asks the card's hidden file input directly. Doing it this way is what
+     * makes a click on an existing image REPLACE it — as a <label> card did not,
+     * because the label activated the 🗑 button ahead of the input.
+     */
+    H.pickExpressionImage = function(nodeId: string, kind: string, key: string): void {
+        const escId = H.escId(nodeId);
+        const card = document.querySelector(`#expr-grid-${escId} .expr-card[data-key="${key}"]`);
+        const input = card ? card.querySelector('input.expr-file') as HTMLInputElement | null : null;
+        if (input) input.click();
+        else events.log(`No upload control for '${key}'.`, 'error-msg');
+    };
+
+    /**
+     * Persist a rewritten `expressions` map.
+     *
+     * Re-filing a key does not move any file: the image stays exactly where it is
+     * and only the key it is filed under moves, so this is a property write and
+     * reuses the generic node PATCH rather than adding an endpoint. (The filename
+     * keeps the old slug until that slot is replaced once, at which point the
+     * upload writes a correctly-named file and removes the old one.)
+     */
+    H._saveExpressions = async function(nodeId: string, expressions: Record<string, unknown>, kind: string): Promise<boolean> {
+        const neutral = ((expressions && expressions.neutral) || {}) as Record<string, string>;
+        // The neutral slot is mirrored onto the node itself for the graph thumbnail
+        // and the simple avatars, so it has to be kept in step or those keep
+        // showing the art under the old key.
+        const payload: Record<string, unknown> = {
+            expressions,
+            profile_image: neutral.profile || '',
+            image: neutral.full || '',
+        };
+        const ok = await api.updateNode(nodeId, { properties: payload });
+        if (!ok) {
+            events.log('Could not save the expression change.', 'error-msg');
+            return false;
+        }
+        const props = H._exprCache[nodeId] || (H._exprCache[nodeId] = {});
+        props.expressions = expressions;
+        if (payload.profile_image) props.profile_image = payload.profile_image as string;
+        else delete props.profile_image;
+        if (payload.image) props.image = payload.image as string;
+        else delete props.image;
+        H._refreshExpressionGrid(nodeId, kind);
+        if (graphManager) graphManager._lastSig = '';
+        worldState.fetch();
+        if (graphManager) graphManager.loadGraphData();
+        return true;
+    };
+
+    /** Start renaming an expression in place. Enter commits, Esc cancels, blur commits. */
+    H.beginExpressionRename = function(nodeId: string, kind: string, key: string, nameEl: HTMLElement): void {
+        const input = document.createElement('input');
+        input.className = 'expr-rename';
+        input.value = key;
+        input.title = 'New expression name — Enter to apply, Esc to cancel';
+        nameEl.style.display = 'none';
+        nameEl.parentElement!.insertBefore(input, nameEl.nextSibling);
+        input.focus();
+        input.select();
+        const finish = (commit: boolean) => {
+            if (input.dataset.done) return;
+            input.dataset.done = '1';
+            const next = commit ? H.expressionKeySafe(input.value) : '';
+            input.remove();
+            nameEl.style.display = '';
+            if (!commit) return;
+            if (!next) { events.log('An expression needs a name.', 'error-msg'); return; }
+            if (next !== key) H.renameExpressionKey(nodeId, kind, key, next);
+        };
+        input.addEventListener('keydown', (ev) => {
+            const pressed = (ev as KeyboardEvent).key;
+            if (pressed === 'Enter') { ev.preventDefault(); finish(true); }
+            else if (pressed === 'Escape') { ev.preventDefault(); finish(false); }
+        });
+        input.addEventListener('blur', () => finish(true));
+    };
+
+    /**
+     * Re-file an expression under a new key, moving its image with it.
+     *
+     * The whole slot moves, so renaming a profile expression does not orphan the
+     * full-body art filed under the same key. A rename onto a key that already
+     * holds art is refused rather than silently overwriting somebody's picture:
+     * remove that image first, or delete the other key.
+     */
+    H.renameExpressionKey = async function(nodeId: string, kind: string, fromKey: string, toKey: string): Promise<void> {
+        if (fromKey === toKey) return;
+        const props = H._exprCache[nodeId] || (H._exprCache[nodeId] = {});
+        const current = (props.expressions || {}) as Record<string, Record<string, string>>;
+        const source = current[fromKey];
+        if (!source) { events.log(`No expression named '${fromKey}'.`, 'error-msg'); return; }
+        const clash = current[toKey];
+        if (clash && (clash.profile || clash.full)) {
+            events.log(`'${toKey}' already has an image — remove it first, then rename.`, 'error-msg');
+            return;
+        }
+        const next: Record<string, unknown> = Object.assign({}, current);
+        delete next[fromKey];
+        next[toKey] = Object.assign({}, clash || {}, source);
+        if (await H._saveExpressions(nodeId, next, kind)) {
+            events.log(`Expression '${fromKey}' → '${toKey}'.`, 'system-msg');
+        }
+    };
+
+    /**
+     * Delete an expression key and every image file behind it.
+     *
+     * Delegates to the existing per-kind remove, which pops the kind and drops the
+     * key once its last image goes — so the files on disk go with it. Calling it per
+     * kind matters: a key holding both a profile and a full-body image only disappears
+     * after the second call.
+     */
+    H.removeExpressionKey = async function(nodeId: string, kind: string, key: string): Promise<void> {
+        const props = H._exprCache[nodeId] || (H._exprCache[nodeId] = {});
+        const slot = ((props.expressions || {}) as Record<string, Record<string, string>>)[key];
+        if (!slot) { events.log(`No expression named '${key}'.`, 'error-msg'); return; }
+        const kinds = ['profile', 'full'].filter(k => slot[k]);
+        if (!kinds.length) {
+            // Nothing to delete on disk; drop the empty key itself.
+            const next: Record<string, unknown> = Object.assign({}, props.expressions || {});
+            delete next[key];
+            await H._saveExpressions(nodeId, next, kind);
+            return;
+        }
+        const label = kinds.length > 1 ? `${kinds.length} image files` : 'its image file';
+        if (!confirm(`Delete expression '${key}' and ${label}? This cannot be undone.`)) return;
+        for (const k of kinds) {
+            const res = await api.removeExpressionImage(nodeId, k, key);
+            if (res.error) { events.log('Delete failed: ' + res.error, 'error-msg'); return; }
+            const p = H._exprCache[nodeId] || (H._exprCache[nodeId] = {});
+            p.expressions = res.expressions || {};
+        }
+        events.log(`Expression '${key}' deleted.`, 'system-msg');
         H._refreshExpressionGrid(nodeId, kind);
         if (graphManager) graphManager._lastSig = '';
         worldState.fetch();
@@ -916,6 +1073,11 @@ interface InspectorHelpersApi {
     dropExpressionImage(nodeId: string, kind: string, key: string, ev: DragEvent): void;
     setExpressionImage(nodeId: string, kind: string, key: string, inputEl: HTMLInputElement | null): void;
     clearExpressionImage(nodeId: string, kind: string, key: string): Promise<void>;
+    pickExpressionImage(nodeId: string, kind: string, key: string): void;
+    _saveExpressions(nodeId: string, expressions: Record<string, unknown>, kind: string): Promise<boolean>;
+    beginExpressionRename(nodeId: string, kind: string, key: string, nameEl: HTMLElement): void;
+    renameExpressionKey(nodeId: string, kind: string, fromKey: string, toKey: string): Promise<void>;
+    removeExpressionKey(nodeId: string, kind: string, key: string): Promise<void>;
     addExpressionKey(nodeId: string): void;
     renderLockToggle(field: string, lockedFields: string[] | null | undefined, nodeId: string): unknown;
     toggleFieldLock(nodeId: string, field: string): void;

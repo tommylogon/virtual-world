@@ -98,7 +98,7 @@
     "granularity": "hourly",
     "mode": "authored"
   },
-  "game_time": "08:14:00",
+  "game_time": "08:01:00",
   "ghost_mode": false,
   "graph": {
     "edges": [
@@ -14071,12 +14071,6 @@
       },
       {
         "properties": {},
-        "source": "player_Jake_Halloway",
-        "target": "area_cooking_area",
-        "type": "in"
-      },
-      {
-        "properties": {},
         "source": "player_Kiala",
         "target": "area_cooking_area",
         "type": "in"
@@ -14152,6 +14146,12 @@
         "source": "player_Zikka",
         "target": "area_food_storage",
         "type": "in"
+      },
+      {
+        "properties": {},
+        "source": "player_Jake_Halloway",
+        "target": "area_cooking_area",
+        "type": "in"
       }
     ],
     "nodes": {
@@ -14222,7 +14222,7 @@
           "y": 280
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_animal_pens": {
         "created": 1789781679.8464556,
@@ -14420,7 +14420,7 @@
           "y": 160
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_camp_entrance": {
         "created": 1789781679.8464634,
@@ -14484,7 +14484,7 @@
           "y": 40
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_camp_entrance_trail": {
         "created": 1789781679.846467,
@@ -14546,7 +14546,7 @@
           "y": 200
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_chiefs_den": {
         "created": 1789781679.84647,
@@ -14695,7 +14695,7 @@
             "light": "bright",
             "noise": "busy",
             "smell": "smoke, meat, herbs",
-            "temperature": 18.9
+            "temperature": 18.8
           },
           "features": [
             "large_fires",
@@ -14811,7 +14811,7 @@
           "y": 120
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_eldenford_interior_10_3": {
         "created": 1790765462.9048512,
@@ -15298,7 +15298,7 @@
           "description": "A gate bars the road between posts. A road across open country. It runs south from here.",
           "environment": {
             "light": 60,
-            "temperature": 23.7
+            "temperature": 23.8
           },
           "floor": 0,
           "generated": {
@@ -15332,7 +15332,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs north and south from here.",
           "environment": {
             "light": 60,
-            "temperature": 21
+            "temperature": 21.1
           },
           "floor": 0,
           "generated": {
@@ -15365,7 +15365,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs north, south and southeast from here.",
           "environment": {
             "light": 60,
-            "temperature": 20.1
+            "temperature": 20.2
           },
           "floor": 0,
           "generated": {
@@ -17225,7 +17225,7 @@
           "y": 120
         },
         "type": "area",
-        "updated": 1791030782.1306243
+        "updated": 1791039481.0734227
       },
       "area_food_storage": {
         "created": 1789781679.8464887,
@@ -17243,7 +17243,7 @@
             "light": "dim",
             "noise": "quiet",
             "smell": "dried meat, mushrooms, spices",
-            "temperature": 17.8
+            "temperature": 17.9
           },
           "features": [
             "stone_shelves",
@@ -17420,7 +17420,7 @@
           "y": 240
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_mine_access": {
         "created": 1789781679.8464987,
@@ -17438,7 +17438,7 @@
             "light": "pitch_black",
             "noise": "dripping water",
             "smell": "rock, water, minerals",
-            "temperature": 13.4
+            "temperature": 13.5
           },
           "features": [
             "narrow_tunnels",
@@ -17554,7 +17554,7 @@
           "y": 280
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_northern_hills": {
         "created": 1789781679.846505,
@@ -17619,7 +17619,7 @@
           "y": 80
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_nursery": {
         "created": 1789781679.846508,
@@ -17748,7 +17748,7 @@
           "y": 240
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_prison_pens": {
         "created": 1789781679.8465145,
@@ -17882,7 +17882,7 @@
           "y": 240
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_scouting_rooms": {
         "created": 1789781679.8465211,
@@ -17900,7 +17900,7 @@
             "light": "dim",
             "noise": "quiet",
             "smell": "ink, leather, smoke",
-            "temperature": 17.8
+            "temperature": 17.9
           },
           "features": [
             "map_walls",
@@ -18027,7 +18027,7 @@
             "light": "dim",
             "noise": "quiet",
             "smell": "herbs, smoke, something sweet and wrong; urine",
-            "temperature": 17.8
+            "temperature": 17.9
           },
           "features": [
             "symbol_walls",
@@ -18093,7 +18093,7 @@
             "light": "pitch_black",
             "noise": "dripping water",
             "smell": "rock, damp earth",
-            "temperature": 14.5
+            "temperature": 14.6
           },
           "features": [
             "collapsed_sections",
@@ -18344,7 +18344,7 @@
             "light": "dim",
             "noise": "quiet",
             "smell": "rot, dung, ash",
-            "temperature": 16.1
+            "temperature": 16.2
           },
           "features": [
             "waste_piles",
@@ -18405,7 +18405,7 @@
             "light": "dim",
             "noise": "dripping water",
             "smell": "wet stone, water; urine",
-            "temperature": 18.6
+            "temperature": 18.8
           },
           "features": [
             "underground_pool",
@@ -18462,7 +18462,7 @@
           "description": "Thin woodland, easy to walk and hard to hide in. Paths lead east and west.",
           "environment": {
             "light": 60,
-            "temperature": 21
+            "temperature": 21.1
           },
           "floor": 0,
           "generated": {
@@ -18596,7 +18596,7 @@
           "description": "Scattered trees open onto patches of grass. Paths lead east, southeast and west.",
           "environment": {
             "light": 60,
-            "temperature": 20.1
+            "temperature": 20.2
           },
           "floor": 0,
           "generated": {
@@ -20153,7 +20153,7 @@
           "description": "Scattered trees open onto patches of grass. Paths lead east.",
           "environment": {
             "light": 60,
-            "temperature": 23.7
+            "temperature": 23.8
           },
           "floor": 0,
           "generated": {
@@ -20316,7 +20316,7 @@
           "y": 160
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_10_5": {
         "created": 1790580438.5192895,
@@ -20355,7 +20355,7 @@
           "y": 200
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_10_6": {
         "created": 1790580438.5223534,
@@ -20394,7 +20394,7 @@
           "y": 240
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_11_3": {
         "created": 1790580438.5105038,
@@ -20435,7 +20435,7 @@
           "y": 120
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_11_4": {
         "created": 1790580438.5173898,
@@ -20476,7 +20476,7 @@
           "y": 160
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_11_5": {
         "created": 1790580438.5195003,
@@ -20515,7 +20515,7 @@
           "y": 200
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_11_6": {
         "created": 1790580438.5225377,
@@ -20553,7 +20553,7 @@
           "y": 240
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_11_7": {
         "created": 1790580438.5233712,
@@ -20592,7 +20592,7 @@
           "y": 280
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_12_3": {
         "created": 1790580438.5107872,
@@ -20631,7 +20631,7 @@
           "y": 120
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_12_5": {
         "created": 1790580438.5196743,
@@ -20669,7 +20669,7 @@
           "y": 200
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_12_7": {
         "created": 1790580438.5235474,
@@ -20707,7 +20707,7 @@
           "y": 280
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_13_3": {
         "created": 1790580438.5109422,
@@ -20745,7 +20745,7 @@
           "y": 120
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_13_7": {
         "created": 1790580438.5237043,
@@ -20783,7 +20783,7 @@
           "y": 280
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_14_3": {
         "created": 1790580438.5110867,
@@ -20821,7 +20821,7 @@
           "y": 120
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_14_6": {
         "created": 1790580438.522702,
@@ -20859,7 +20859,7 @@
           "y": 240
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_14_7": {
         "created": 1790580438.5238566,
@@ -20897,7 +20897,7 @@
           "y": 280
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_15_3": {
         "created": 1790580438.5112724,
@@ -20935,7 +20935,7 @@
           "y": 120
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_15_5": {
         "created": 1790580438.5198388,
@@ -20973,7 +20973,7 @@
           "y": 200
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_15_6": {
         "created": 1790580438.5228617,
@@ -21011,7 +21011,7 @@
           "y": 240
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_15_7": {
         "created": 1790580438.524207,
@@ -21049,7 +21049,7 @@
           "y": 280
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_16_3": {
         "created": 1790580438.5114222,
@@ -21087,7 +21087,7 @@
           "y": 120
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_16_4": {
         "created": 1790580438.5176294,
@@ -21125,7 +21125,7 @@
           "y": 160
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_16_6": {
         "created": 1790580438.5230138,
@@ -21163,7 +21163,7 @@
           "y": 240
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_16_8": {
         "created": 1790580438.5257351,
@@ -21201,7 +21201,7 @@
           "y": 320
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_17_3": {
         "created": 1790870620.5063517,
@@ -21242,7 +21242,7 @@
           "y": 120
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_17_6": {
         "created": 1790580438.5231645,
@@ -21280,7 +21280,7 @@
           "y": 240
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_17_8": {
         "created": 1790580438.5259328,
@@ -21318,7 +21318,7 @@
           "y": 320
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_18_3": {
         "created": 1790580438.5115702,
@@ -21356,7 +21356,7 @@
           "y": 120
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_18_7": {
         "created": 1790580438.5244558,
@@ -21394,7 +21394,7 @@
           "y": 280
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_19_4": {
         "created": 1790580438.5180044,
@@ -21432,7 +21432,7 @@
           "y": 160
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_19_5": {
         "created": 1790580438.5202413,
@@ -21470,7 +21470,7 @@
           "y": 200
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_19_7": {
         "created": 1790580438.5246894,
@@ -21508,7 +21508,7 @@
           "y": 280
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_3_6": {
         "created": 1790580438.5205476,
@@ -21546,7 +21546,7 @@
           "y": 240
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_4_1": {
         "created": 1790580438.508132,
@@ -21584,7 +21584,7 @@
           "y": 40
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_4_5": {
         "created": 1790580438.5183349,
@@ -21622,7 +21622,7 @@
           "y": 200
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_4_6": {
         "created": 1790580438.5210655,
@@ -21661,7 +21661,7 @@
           "y": 240
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_5_2": {
         "created": 1790580438.5084074,
@@ -21699,7 +21699,7 @@
           "y": 80
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_5_4": {
         "created": 1790878794.566251,
@@ -21740,7 +21740,7 @@
           "y": 160
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_5_5": {
         "created": 1790580438.5185528,
@@ -21778,7 +21778,7 @@
           "y": 200
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_5_6": {
         "created": 1790580438.5213022,
@@ -21817,7 +21817,7 @@
           "y": 240
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_6_3": {
         "created": 1790580438.5094945,
@@ -21858,7 +21858,7 @@
           "y": 120
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_6_4": {
         "created": 1790580438.5131857,
@@ -21899,7 +21899,7 @@
           "y": 160
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_6_5": {
         "created": 1790580438.5187697,
@@ -21940,7 +21940,7 @@
           "y": 200
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_6_6": {
         "created": 1790580438.5215702,
@@ -21979,7 +21979,7 @@
           "y": 240
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_7_3": {
         "created": 1790580438.5097396,
@@ -22020,7 +22020,7 @@
           "y": 120
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_7_4": {
         "created": 1790580438.5149822,
@@ -22059,7 +22059,7 @@
           "y": 160
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_7_5": {
         "created": 1790580438.5190258,
@@ -22098,7 +22098,7 @@
           "y": 200
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_7_6": {
         "created": 1790580438.5217714,
@@ -22136,7 +22136,7 @@
           "y": 240
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_8_3": {
         "created": 1790580438.509946,
@@ -22177,7 +22177,7 @@
           "y": 120
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_8_6": {
         "created": 1790580438.5219812,
@@ -22215,7 +22215,7 @@
           "y": 240
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_9_3": {
         "created": 1790580438.510316,
@@ -22256,7 +22256,7 @@
           "y": 120
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_9_4": {
         "created": 1790580438.5152998,
@@ -22297,7 +22297,7 @@
           "y": 160
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "area_world_9_6": {
         "created": 1790580438.5221598,
@@ -22335,7 +22335,7 @@
           "y": 240
         },
         "type": "area",
-        "updated": 1790953582.771908
+        "updated": 1791039481.0734227
       },
       "belt_leather": {
         "created": 1790895756.5131483,
@@ -22453,7 +22453,7 @@
           "library_id": "bush_of_berries",
           "light_level": "dim",
           "parameters": {
-            "growth": 18
+            "growth": 19
           },
           "resistances": {},
           "skill_check": {},
@@ -22473,7 +22473,7 @@
           "y": -241.5
         },
         "type": "item",
-        "updated": 1791030782.1306243
+        "updated": 1791039481.0714238
       },
       "bush_of_berries_deep_forest_1": {
         "created": 1789989624.3312042,
@@ -22495,7 +22495,7 @@
           "library_id": "bush_of_berries",
           "light_level": "dim",
           "parameters": {
-            "growth": 18
+            "growth": 19
           },
           "resistances": {},
           "skill_check": {},
@@ -22515,7 +22515,7 @@
           "y": -2557.6
         },
         "type": "item",
-        "updated": 1791030782.1306243
+        "updated": 1791039481.0714238
       },
       "bush_of_berries_deep_forest_2": {
         "created": 1789989624.3322668,
@@ -22538,7 +22538,7 @@
           "library_id": "bush_of_berries",
           "light_level": "dim",
           "parameters": {
-            "growth": 18
+            "growth": 19
           },
           "resistances": {},
           "skill_check": {},
@@ -22558,7 +22558,7 @@
           "y": -2494.2
         },
         "type": "item",
-        "updated": 1791030782.1306243
+        "updated": 1791039481.0724204
       },
       "bush_of_berries_deep_forest_3": {
         "created": 1789989624.3332193,
@@ -22580,7 +22580,7 @@
           "library_id": "bush_of_berries",
           "light_level": "dim",
           "parameters": {
-            "growth": 18
+            "growth": 19
           },
           "resistances": {},
           "skill_check": {},
@@ -22600,7 +22600,7 @@
           "y": -2543.3
         },
         "type": "item",
-        "updated": 1791030782.1306243
+        "updated": 1791039481.0724204
       },
       "bush_of_berries_water_source_1": {
         "created": 1789989624.9787397,
@@ -22622,7 +22622,7 @@
           "library_id": "bush_of_berries",
           "light_level": "dim",
           "parameters": {
-            "growth": 18
+            "growth": 19
           },
           "resistances": {},
           "skill_check": {},
@@ -22642,7 +22642,7 @@
           "y": 7371.1
         },
         "type": "item",
-        "updated": 1791030782.1306243
+        "updated": 1791039481.0734227
       },
       "camp_drum_chiefs_pit_1": {
         "created": 1789994199.5526686,
@@ -36601,6 +36601,7 @@
   },
   "mature_content": true,
   "narration_mode": "none",
+  "persist": true,
   "players": {
     "Arix": {
       "activity": null,
@@ -36709,7 +36710,7 @@
       "crafting_known": [],
       "current_area": "Chief's Pit",
       "current_area_id": "area_chiefs_pit",
-      "current_carry_weight": 0.6599999999999999,
+      "current_carry_weight": 0.66,
       "decay_rates": {
         "Arousal": 1,
         "Bladder": 0.42,
@@ -36723,14 +36724,14 @@
         "Stimulation": 2,
         "Thirst": 0.025
       },
-      "description": "Young female goblin. White hair in ponytails, green eyes, pointed ears with green earrings. Petite, pale green skin, sharp fangs. Wears leather shorts, metal adornments, and green gloves.\nBlue butterfly earring is hidden belt_leather is normal black short shorts is normal manor_signet_ring is normal.\nArix is wearing manor_signet_ring on their hands, Black Short Shorts on their legs, belt_leather on their waist, Blue Butterfly Earring on their accessory, Shiny Coin in their right hand.",
+      "description": "Young female goblin. White hair in ponytails, green eyes, pointed ears with green earrings. Petite, pale green skin, sharp fangs. Wears leather shorts, metal adornments, and green gloves.\nBlue butterfly earring is hidden manor_signet_ring is normal black short shorts is normal belt_leather is normal.\nArix is wearing manor_signet_ring on their hands, Black Short Shorts on their legs, belt_leather on their waist, Blue Butterfly Earring on their accessory, Shiny Coin in their right hand.",
       "discovered_exits": [],
       "discovered_items": [],
       "emotion": {
         "current": "calm",
         "description": "Arix is calm.",
         "expression": "calm",
-        "intensity": 0.2
+        "intensity": 0.185
       },
       "emotions": {
         "admiring": 30,
@@ -36740,7 +36741,7 @@
         "anxious": 12,
         "aroused": 12,
         "ashamed": 8,
-        "calm": 70,
+        "calm": 68.5,
         "content": 46,
         "craving": 15,
         "curious": 35,
@@ -37064,8 +37065,8 @@
     "Belne": {
       "activity": {
         "duration_minutes": 5,
-        "elapsed_minutes": 0,
-        "elapsed_ticks": 0,
+        "elapsed_minutes": 1,
+        "elapsed_ticks": 1,
         "started_at_tick": 14,
         "target_item": null,
         "type": "relieving",
@@ -37294,10 +37295,10 @@
             "endurance"
           ],
           "text": "You have been in the Camp Entrance Trail.",
-          "tick": 14,
-          "timestamp": 1791031040.8628385,
+          "tick": 1,
+          "timestamp": 1791064150.7054646,
           "type": "reaction",
-          "visits": 62
+          "visits": 90
         },
         {
           "entity_ids": [],
@@ -37418,8 +37419,8 @@
     "Croak-Mother": {
       "activity": {
         "duration_minutes": 5,
-        "elapsed_minutes": 0,
-        "elapsed_ticks": 0,
+        "elapsed_minutes": 1,
+        "elapsed_ticks": 1,
         "started_at_tick": 14,
         "target_item": null,
         "type": "relieving",
@@ -37646,10 +37647,10 @@
             "home"
           ],
           "text": "You have been in the Murk Lake.",
-          "tick": 14,
-          "timestamp": 1791031040.863836,
+          "tick": 1,
+          "timestamp": 1791064150.7064643,
           "type": "reaction",
-          "visits": 62
+          "visits": 90
         }
       ],
       "name": "Croak-Mother",
@@ -37742,7 +37743,7 @@
         "Sanity": 63,
         "Social": 10,
         "Stimulation": 0,
-        "Temperature": 21.800000000000026,
+        "Temperature": 21.900000000000027,
         "Thirst": 20
       }
     },
@@ -37849,7 +37850,13 @@
             "source": null
           }
         ],
-        "frightened": []
+        "frightened": [
+          {
+            "duration": null,
+            "level": 0,
+            "source": "trait:paranoid"
+          }
+        ]
       },
       "crafting_known": [],
       "current_area": "Road (world 18,3)",
@@ -37885,7 +37892,7 @@
         "anxious": 12,
         "aroused": 12,
         "ashamed": 8,
-        "calm": 53.5,
+        "calm": 52,
         "content": 46,
         "craving": 15,
         "curious": 35,
@@ -37915,7 +37922,7 @@
         "surprised": 15,
         "uneasy": 12
       },
-      "emotions_description": "",
+      "emotions_description": "You feel a small, persistent loneliness.",
       "entered_from_way": "way_world_area_eldenford_village_area_world_18_3",
       "equipped": {
         "accessory": [],
@@ -38018,10 +38025,10 @@
             "fun"
           ],
           "text": "You have been in the Road (world 18,3).",
-          "tick": 14,
-          "timestamp": 1791031040.863836,
+          "tick": 1,
+          "timestamp": 1791064150.7064643,
           "type": "social",
-          "visits": 12
+          "visits": 40
         }
       ],
       "name": "Eldenford Blacksmith",
@@ -38030,7 +38037,9 @@
       "npc_state": null,
       "patrol_index": null,
       "patrol_route": null,
-      "perceived_conditions": [],
+      "perceived_conditions": [
+        "Terrified of trait:paranoid."
+      ],
       "personality": "You are Harren Cobb, the Eldenford blacksmith. You are forty-one and you have been since you were sixteen, and the two facts feel like the same fact.\n\nYou are gruff because gruff is how you keep people from worrying about you, not because you enjoy it. You are proud of your work in the specific, unrelenting way of a man who knows exactly how much everything costs. You can hear a bad temper from three paces off. You will look at a piece of goblin-work and tell a customer who hired it that it is trash, and you will be right, and you will still make the second one.\n\nYou have lost good tools to goblin raids. Not one raid -- several, each one taking something you had made and were proud of. You keep a tally in your head and you do not let it show. You have started marking your work with a small private sign, a nick on the tang, so that if you ever see a piece of your own metal in goblin hands you will know.\n\nYou dislike the Road Guard Captain and you would never say so, because he comes in every month and his money is good. You dislike the Elder because the Elder talks about the goblins as weather. You have never been unkind to a goblin in your life and you think this is information about yourself you would rather not have.\n\nHabits: you file a blade by sound, not by sight. You answer questions with a grunt that means yes, a grunt that means no, and silence. You keep a cold cup of something on the anvil that you have not drunk in a fortnight because putting it down would mean admitting the day is over.",
       "region_exposed": {
         "arm_left": true,
@@ -38112,7 +38121,7 @@
         "target_type": "way"
       },
       "species": null,
-      "state": "awake",
+      "state": "frightened",
       "state_enter_tick": null,
       "state_timer": 0,
       "stats": {
@@ -38144,18 +38153,18 @@
       "vitals": {
         "Arousal": 0,
         "Bladder": 65,
-        "Energy": 43,
-        "Entertainment": 26,
+        "Energy": 42,
+        "Entertainment": 25,
         "HP": 95,
-        "Hunger": 64,
-        "Hygiene": 41,
+        "Hunger": 65,
+        "Hygiene": 40,
         "Max_HP": 100,
         "Pleasure": 0,
-        "Sanity": 71,
-        "Social": 26,
+        "Sanity": 70,
+        "Social": 25,
         "Stimulation": 0,
         "Temperature": 37,
-        "Thirst": 59
+        "Thirst": 60
       }
     },
     "Eldenford Elder": {
@@ -38296,7 +38305,7 @@
         "anxious": 12,
         "aroused": 12,
         "ashamed": 8,
-        "calm": 53.5,
+        "calm": 52,
         "content": 46,
         "craving": 15,
         "curious": 35,
@@ -38445,10 +38454,10 @@
             "fun"
           ],
           "text": "You have been in the Road (world 18,3).",
-          "tick": 14,
-          "timestamp": 1791031040.863836,
+          "tick": 1,
+          "timestamp": 1791064150.7064643,
           "type": "social",
-          "visits": 12
+          "visits": 40
         }
       ],
       "name": "Eldenford Elder",
@@ -38685,7 +38694,13 @@
             "source": null
           }
         ],
-        "frightened": []
+        "frightened": [
+          {
+            "duration": null,
+            "level": 0,
+            "source": "trait:paranoid"
+          }
+        ]
       },
       "crafting_known": [],
       "current_area": "Road (world 15,7)",
@@ -38854,7 +38869,9 @@
       "npc_state": null,
       "patrol_index": null,
       "patrol_route": null,
-      "perceived_conditions": [],
+      "perceived_conditions": [
+        "Terrified of trait:paranoid."
+      ],
       "personality": "You are an Eldenford farmer. You are stubborn, hopeful, quietly brave, and more attached to this ground than is entirely reasonable for a man your age.\n\nYou have lost livestock and tools and a barn to the goblins, and you have set another snare every week since, because the alternative to setting a snare is thinking about the last one. You know the forest and the marsh the way other men know their own kitchen. You have dogs. You have a shotgun your grandfather left you, which you keep unloaded except when you are genuinely frightened, which is a thing you have been twice.\n\nFears: total silence -- not night, not dark, but the moment the birds stop. Being forgotten. The last farm falling.\n\nMotivation: to prove that life and care can outlast ruin. You are not trying to win. You are trying to still be standing here in ten years, and you would like it very much if someone was there.\n\nQuirks: you talk to the crops, and you are not embarrassed about it, which is its own kind of problem. You keep one broken tool in the house as a reminder. You leave lanterns lit at dusk, every one, all of them, so the road home is visible -- you say for the animals, and you do not entirely believe that.\n\nYou are not suspicious of the Captain in the way the Elder is. You think he is doing a hard thing badly and you would rather he did it well. You are suspicious of the Merchant, who has never once been sourceless in a way you could prove.",
       "region_exposed": {
         "arm_left": true,
@@ -38936,7 +38953,7 @@
         "target_type": "way"
       },
       "species": null,
-      "state": "awake",
+      "state": "frightened",
       "state_enter_tick": null,
       "state_timer": 0,
       "stats": {
@@ -39109,7 +39126,7 @@
         "current": "happy",
         "description": "Eldenford Merchant is slightly happy.",
         "expression": "happy",
-        "intensity": 0.35
+        "intensity": 0.335
       },
       "emotions": {
         "admiring": 30,
@@ -39132,7 +39149,7 @@
         "excited": 30,
         "grateful": 24,
         "guilty": 8,
-        "happy": 75,
+        "happy": 73.5,
         "irritated": 12,
         "jealous": 8,
         "lonely": 10,
@@ -39252,10 +39269,10 @@
             "trade"
           ],
           "text": "You have been in the Road (world 18,3).",
-          "tick": 14,
-          "timestamp": 1791031040.863836,
+          "tick": 1,
+          "timestamp": 1791064150.7064643,
           "type": "social",
-          "visits": 12
+          "visits": 40
         }
       ],
       "name": "Eldenford Merchant",
@@ -39524,7 +39541,7 @@
         "current": "happy",
         "description": "Eldenford Road Guard Captain is slightly happy.",
         "expression": "happy",
-        "intensity": 0.35
+        "intensity": 0.335
       },
       "emotions": {
         "admiring": 30,
@@ -39547,7 +39564,7 @@
         "excited": 30,
         "grateful": 24,
         "guilty": 8,
-        "happy": 75,
+        "happy": 73.5,
         "irritated": 12,
         "jealous": 8,
         "lonely": 10,
@@ -39690,10 +39707,10 @@
             "trade"
           ],
           "text": "You have been in the Road (world 18,3).",
-          "tick": 14,
-          "timestamp": 1791031040.8648357,
+          "tick": 1,
+          "timestamp": 1791064150.707465,
           "type": "social",
-          "visits": 12
+          "visits": 40
         }
       ],
       "name": "Eldenford Road Guard Captain",
@@ -39977,7 +39994,7 @@
         "anxious": 12,
         "aroused": 12,
         "ashamed": 8,
-        "calm": 52,
+        "calm": 50.5,
         "content": 46,
         "craving": 15,
         "curious": 35,
@@ -40247,15 +40264,15 @@
     "Jake Halloway": {
       "activity": {
         "duration_minutes": 10,
-        "elapsed_minutes": 5,
-        "elapsed_ticks": 5,
+        "elapsed_minutes": 6,
+        "elapsed_ticks": 6,
         "started_at_tick": 9,
         "target_item": null,
         "type": "eating",
         "visible": true
       },
       "at_way_id": "way_pit_to_cooking",
-      "autonomy": true,
+      "autonomy": false,
       "base_description": "Human adventurer, male, 30. 185cm, lean and unexpectedly fit from fourteen years of walking. Ghost-pale skin that burns in any sun. Sea-green eyes with golden flecks. Patchy beard, stiff messy hair. Glasses enchanted once because he kept losing them; wears them rarely. Scars from accidents, curiosity, and frustration in roughly equal measure. Utilitarian gear, more patches than original leather.",
       "behaviors": [],
       "body_region_names": {
@@ -40380,7 +40397,7 @@
         "current": "happy",
         "description": "Jake Halloway is quite happy.",
         "expression": "happy",
-        "intensity": 0.52
+        "intensity": 0.505
       },
       "emotions": {
         "admiring": 30,
@@ -40403,7 +40420,7 @@
         "excited": 30,
         "grateful": 24,
         "guilty": 8,
-        "happy": 92,
+        "happy": 90.5,
         "irritated": 12,
         "jealous": 8,
         "lonely": 10,
@@ -40754,8 +40771,8 @@
     "Kiala": {
       "activity": {
         "duration_minutes": 10,
-        "elapsed_minutes": 5,
-        "elapsed_ticks": 5,
+        "elapsed_minutes": 6,
+        "elapsed_ticks": 6,
         "started_at_tick": 9,
         "target_item": null,
         "type": "eating",
@@ -40864,7 +40881,7 @@
         ],
         "frightened": [
           {
-            "duration": 24,
+            "duration": 23,
             "level": 0,
             "source": "Cooking Area",
             "source_type": "area"
@@ -40895,12 +40912,12 @@
         "current": "happy",
         "description": "Kiala is slightly happy.",
         "expression": "happy",
-        "intensity": 0.42
+        "intensity": 0.405
       },
       "emotions": {
         "admiring": 30,
         "affectionate": 25,
-        "afraid": 33.5,
+        "afraid": 32,
         "angry": 8,
         "anxious": 12,
         "aroused": 12,
@@ -40918,7 +40935,7 @@
         "excited": 30,
         "grateful": 24,
         "guilty": 8,
-        "happy": 82,
+        "happy": 80.5,
         "irritated": 12,
         "jealous": 8,
         "lonely": 10,
@@ -41208,7 +41225,7 @@
       "species": null,
       "state": "frightened",
       "state_enter_tick": null,
-      "state_timer": 24,
+      "state_timer": 0,
       "stats": {
         "CHA": 12,
         "CON": 10,
@@ -41377,12 +41394,12 @@
         "current": "happy",
         "description": "Krikka is slightly happy.",
         "expression": "happy",
-        "intensity": 0.335
+        "intensity": 0.32
       },
       "emotions": {
         "admiring": 30,
         "affectionate": 25,
-        "afraid": 36.5,
+        "afraid": 35,
         "angry": 8,
         "anxious": 12,
         "aroused": 12,
@@ -41400,7 +41417,7 @@
         "excited": 30,
         "grateful": 24,
         "guilty": 8,
-        "happy": 73.5,
+        "happy": 72,
         "irritated": 12,
         "jealous": 8,
         "lonely": 10,
@@ -41517,10 +41534,10 @@
             "trade"
           ],
           "text": "You have been in the Chief's Pit.",
-          "tick": 14,
-          "timestamp": 1791031040.8648357,
+          "tick": 1,
+          "timestamp": 1791064150.707465,
           "type": "social",
-          "visits": 12
+          "visits": 40
         },
         {
           "entity_ids": [],
@@ -41788,7 +41805,7 @@
         ],
         "frightened": [
           {
-            "duration": 30,
+            "duration": 29,
             "level": 0,
             "source": "Kiala",
             "source_type": "character"
@@ -41819,12 +41836,12 @@
         "current": "happy",
         "description": "Leslie is slightly happy.",
         "expression": "happy",
-        "intensity": 0.335
+        "intensity": 0.32
       },
       "emotions": {
         "admiring": 30,
         "affectionate": 25,
-        "afraid": 33.5,
+        "afraid": 32,
         "angry": 8,
         "anxious": 12,
         "aroused": 12,
@@ -41842,7 +41859,7 @@
         "excited": 30,
         "grateful": 24,
         "guilty": 8,
-        "happy": 73.5,
+        "happy": 72,
         "irritated": 12,
         "jealous": 8,
         "lonely": 10,
@@ -42074,7 +42091,7 @@
       "species": null,
       "state": "frightened",
       "state_enter_tick": null,
-      "state_timer": 30,
+      "state_timer": 0,
       "stats": {
         "CHA": 12,
         "CON": 9,
@@ -42112,8 +42129,8 @@
     "Mikka": {
       "activity": {
         "duration_minutes": 10,
-        "elapsed_minutes": 4,
-        "elapsed_ticks": 4,
+        "elapsed_minutes": 5,
+        "elapsed_ticks": 5,
         "started_at_tick": 10,
         "target_item": null,
         "type": "eating",
@@ -42255,7 +42272,7 @@
         "anxious": 12,
         "aroused": 12,
         "ashamed": 8,
-        "calm": 52,
+        "calm": 50.5,
         "content": 46,
         "craving": 15,
         "curious": 35,
@@ -42629,7 +42646,7 @@
         ],
         "frightened": [
           {
-            "duration": 24,
+            "duration": 23,
             "level": 0,
             "source": "Rag-Tail",
             "source_type": "character"
@@ -42660,12 +42677,12 @@
         "current": "afraid",
         "description": "Old Iron-Back is afraid.",
         "expression": "afraid",
-        "intensity": 0.15
+        "intensity": 0.135
       },
       "emotions": {
         "admiring": 30,
         "affectionate": 25,
-        "afraid": 25,
+        "afraid": 23.5,
         "angry": 8,
         "anxious": 12,
         "aroused": 12,
@@ -42858,7 +42875,7 @@
       "species": null,
       "state": "frightened",
       "state_enter_tick": null,
-      "state_timer": 24,
+      "state_timer": 0,
       "stats": {
         "CHA": 6,
         "CON": 16,
@@ -43342,7 +43359,7 @@
         ],
         "frightened": [
           {
-            "duration": 28,
+            "duration": 27,
             "level": 0,
             "source": "Thrazz",
             "source_type": "character"
@@ -43380,12 +43397,12 @@
         "current": "afraid",
         "description": "Rikka is afraid.",
         "expression": "afraid",
-        "intensity": 0.27
+        "intensity": 0.255
       },
       "emotions": {
         "admiring": 30,
         "affectionate": 25,
-        "afraid": 37,
+        "afraid": 35.5,
         "angry": 8,
         "anxious": 12,
         "aroused": 12,
@@ -43677,8 +43694,8 @@
     "Shadow-Pelt": {
       "activity": {
         "duration_minutes": 5,
-        "elapsed_minutes": 0,
-        "elapsed_ticks": 0,
+        "elapsed_minutes": 1,
+        "elapsed_ticks": 1,
         "started_at_tick": 14,
         "target_item": null,
         "type": "relieving",
@@ -43906,10 +43923,10 @@
             "restless"
           ],
           "text": "You have been in the Raven River.",
-          "tick": 14,
-          "timestamp": 1791031040.866836,
+          "tick": 1,
+          "timestamp": 1791064150.7094667,
           "type": "reaction",
-          "visits": 62
+          "visits": 90
         },
         {
           "entity_ids": [],
@@ -44026,8 +44043,8 @@
     "Silver-Talon": {
       "activity": {
         "duration_minutes": 10,
-        "elapsed_minutes": 6,
-        "elapsed_ticks": 6,
+        "elapsed_minutes": 7,
+        "elapsed_ticks": 7,
         "started_at_tick": 8,
         "target_item": null,
         "type": "eating",
@@ -44491,7 +44508,7 @@
         "current": "happy",
         "description": "Thrazz is quite happy.",
         "expression": "happy",
-        "intensity": 0.52
+        "intensity": 0.505
       },
       "emotions": {
         "admiring": 30,
@@ -44514,7 +44531,7 @@
         "excited": 30,
         "grateful": 24,
         "guilty": 8,
-        "happy": 92,
+        "happy": 90.5,
         "irritated": 12,
         "jealous": 8,
         "lonely": 10,
@@ -45218,7 +45235,7 @@
         "current": "calm",
         "description": "Vekka is calm.",
         "expression": "calm",
-        "intensity": 0.2
+        "intensity": 0.185
       },
       "emotions": {
         "admiring": 30,
@@ -45228,7 +45245,7 @@
         "anxious": 12,
         "aroused": 12,
         "ashamed": 8,
-        "calm": 70,
+        "calm": 68.5,
         "content": 46,
         "craving": 15,
         "curious": 35,
@@ -45626,12 +45643,12 @@
         "current": "happy",
         "description": "Zikka is slightly happy.",
         "expression": "happy",
-        "intensity": 0.42
+        "intensity": 0.405
       },
       "emotions": {
         "admiring": 30,
         "affectionate": 25,
-        "afraid": 40,
+        "afraid": 38.5,
         "angry": 8,
         "anxious": 12,
         "aroused": 12,
@@ -45649,7 +45666,7 @@
         "excited": 30,
         "grateful": 24,
         "guilty": 8,
-        "happy": 82,
+        "happy": 80.5,
         "irritated": 12,
         "jealous": 8,
         "lonely": 10,
@@ -45666,7 +45683,7 @@
         "surprised": 15,
         "uneasy": 12
       },
-      "emotions_description": "You feel genuinely happy. Also, you are afraid, watchful and tense.",
+      "emotions_description": "You feel genuinely happy. Also, a nervous dread you can't quite name lingers.",
       "entered_from_way": "way_cooking_to_storage",
       "equipped": {
         "hand_left": [
@@ -45982,8 +45999,8 @@
     {
       "activity": {
         "duration_minutes": 10,
-        "elapsed_minutes": 5,
-        "elapsed_ticks": 5,
+        "elapsed_minutes": 6,
+        "elapsed_ticks": 6,
         "started_at_tick": 9,
         "target_item": null,
         "type": "eating",
@@ -46016,8 +46033,8 @@
     {
       "activity": {
         "duration_minutes": 10,
-        "elapsed_minutes": 4,
-        "elapsed_ticks": 4,
+        "elapsed_minutes": 5,
+        "elapsed_ticks": 5,
         "started_at_tick": 10,
         "target_item": null,
         "type": "eating",
@@ -46037,8 +46054,8 @@
     {
       "activity": {
         "duration_minutes": 10,
-        "elapsed_minutes": 6,
-        "elapsed_ticks": 6,
+        "elapsed_minutes": 7,
+        "elapsed_ticks": 7,
         "started_at_tick": 8,
         "target_item": null,
         "type": "eating",
@@ -46058,7 +46075,7 @@
   ],
   "schema_version": 2,
   "time_per_tick_minutes": 1,
-  "time_ticks": 14,
+  "time_ticks": 1,
   "turn_number": 1,
   "world_lore": [
     {
@@ -47363,6 +47380,5 @@
       },
       "state": "materialized"
     }
-  },
-  "persist": true
+  }
 }

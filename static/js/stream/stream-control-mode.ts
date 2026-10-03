@@ -44,6 +44,31 @@ class StreamControlMode {
         return 'llm';
     }
 
+    /**
+     * One vocabulary for the three control modes, for every surface that shows
+     * one (agent list, inspector header, graph node badges).
+     *
+     * These surfaces each carried their own glyphs and had drifted apart. The
+     * graph legend read 🤖 NPC / 🧠 LLM / 👤 human while the event-stream filter
+     * chips and the inspector header read 👾 NPC / 🤖 LLM / 👤 human, so the
+     * same character wore a different face depending on which panel you looked
+     * at — and 🤖 meant "NPC" in one place and "LLM" in another.
+     *
+     * 👾 is the scripted NPC (no LLM turn at all), 🤖 the LLM agent that decides
+     * each turn, 👤 the human you drive yourself. 🧠 is deliberately NOT the LLM
+     * glyph: this app already spends 🧠 on memory, recall, knowledge and
+     * "thinking…", so reusing it here would collide with ~20 other call sites.
+     */
+    controlBadge(mode: string): { emoji: string; label: string; title: string } {
+        if (mode === 'human') {
+            return { emoji: '👤', label: 'Human', title: 'Human-controlled — the engine skips them and you act' };
+        }
+        if (mode === 'npc') {
+            return { emoji: '👾', label: 'NPC', title: 'Scripted NPC — simple_npc, no LLM turn' };
+        }
+        return { emoji: '🤖', label: 'LLM', title: 'LLM agent — the agent engine decides each turn' };
+    }
+
     /** Cycle a character through Human → LLM → NPC → Human and apply the backend changes. */
     cycleControlMode(charName: string): void {
         const order = ['human', 'llm', 'npc'];

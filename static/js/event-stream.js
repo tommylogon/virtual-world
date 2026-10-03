@@ -777,6 +777,10 @@ class EventBus {
     // --- Character Control Mode (delegates to stream-control-mode.js) ---
     isAutonomous(charName) { return this._controlMode.isAutonomous(charName); }
     getControlMode(charName) { return this._controlMode.getControlMode(charName); }
+    /** The shared NPC/LLM/human glyph for a mode — see controlBadge(). */
+    controlBadge(mode) {
+        return this._controlMode.controlBadge(mode);
+    }
     cycleControlMode(charName) { this._controlMode.cycleControlMode(charName); }
     /** Render skill check badge HTML, or null if text doesn't match */
     _renderSkillBadge(text) {

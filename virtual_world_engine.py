@@ -486,8 +486,8 @@ class VirtualWorld:
     def _evaluate_trigger_condition(self, condition, item_node=None):
         return self.triggers._evaluate_trigger_condition(condition, item_node)
 
-    def _get_available_actions(self, item_node) -> list:
-        return self.triggers._get_available_actions(item_node)
+    def _get_available_actions(self, item_node, carrying: bool = False) -> list:
+        return self.triggers._get_available_actions(item_node, carrying=carrying)
 
     def _contextual_failure(self, verb, target_name, available_actions):
         return self.triggers._contextual_failure(verb, target_name, available_actions)

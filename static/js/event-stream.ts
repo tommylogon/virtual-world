@@ -826,6 +826,11 @@ class EventBus {
 
     getControlMode(charName: string): string { return this._controlMode.getControlMode(charName); }
 
+    /** The shared NPC/LLM/human glyph for a mode — see controlBadge(). */
+    controlBadge(mode: string): { emoji: string; label: string; title: string } {
+        return this._controlMode.controlBadge(mode);
+    }
+
     cycleControlMode(charName: string): void { this._controlMode.cycleControlMode(charName); }
 
     /** Render skill check badge HTML, or null if text doesn't match */

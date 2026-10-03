@@ -421,6 +421,7 @@ interface Window {
     SoakPresets: any;
     SoakSpacetime: any;
     SpriteSheet: any;
+    SpriteSheetGeometry: any;
     StructuredFormats: any;
     TagMultiselect: any;
     ThreatDetector: any;

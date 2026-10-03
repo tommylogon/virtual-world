@@ -349,12 +349,20 @@ type AVWin = { [key: string]: any };
             return `<span style="position:relative;display:inline-block;font-size:9px;padding:1px 5px;border-radius:3px;background:${color}22;color:${color};border:1px solid ${color};cursor:pointer;" onclick="const pop=this.querySelector('.cond-pop'); pop.style.display = pop.style.display==='block'?'none':'block';">${label} ▾<div class="cond-pop" style="display:none;position:absolute;top:100%;left:0;z-index:99;background:var(--bg-card);border:1px solid var(--border);border-radius:4px;padding:4px;min-width:220px;box-shadow:0 4px 12px rgba(0,0,0,0.4);">${cards}<div style="border-top:1px solid var(--border);margin-top:4px;padding-top:3px;"><span style="cursor:pointer;color:var(--red);font-size:10px;" onclick="event.stopPropagation();InspectorAgentView._removeCondition('${escName}','${cid}')">✕ Clear ${cid}</span></div></div></span>`;
         }).join(' ');
 
-        // Control mode: npc | human | llm
+        // Control mode: npc | human | llm — one vocabulary with the graph badges and
+        // the agent list (StreamControlMode.controlBadge).
         const mode = events.getControlMode(agentName);
+        const modeBadge = (events as unknown as {
+            controlBadge(m: string): { emoji: string; label: string; title: string };
+        }).controlBadge
+            ? (events as unknown as {
+                controlBadge(m: string): { emoji: string; label: string; title: string };
+            }).controlBadge(mode)
+            : { emoji: '🤖', label: 'LLM', title: 'LLM agent' };
         const modeMeta = ({
-            human: { label: '👤 Human', bg: 'var(--accent)', fg: '#000', bd: 'var(--accent-dim)' },
-            llm:   { label: '🤖 LLM',   bg: 'var(--bg-input)', fg: 'var(--text)', bd: 'var(--border)' },
-            npc:   { label: '👾 NPC',   bg: 'var(--bg-input)', fg: 'var(--text-muted)', bd: 'var(--border)' }
+            human: { label: modeBadge.emoji + ' ' + (modeBadge.label || 'Human'), bg: 'var(--accent)', fg: '#000', bd: 'var(--accent-dim)' },
+            llm:   { label: modeBadge.emoji + ' ' + (modeBadge.label || 'LLM'),   bg: 'var(--bg-input)', fg: 'var(--text)', bd: 'var(--border)' },
+            npc:   { label: modeBadge.emoji + ' ' + (modeBadge.label || 'NPC'),   bg: 'var(--bg-input)', fg: 'var(--text-muted)', bd: 'var(--border)' }
         } as Record<string, any>)[mode];
         return `<div style="display:flex;align-items:center;gap:8px;padding:6px 16px;background:var(--bg-card);border-bottom:1px solid var(--border);font-size:11px;flex-wrap:wrap;">
             <span>📍</span>
@@ -977,7 +985,15 @@ type AVWin = { [key: string]: any };
         const showTab = (tabName: string) => _activeTab === tabName ? '' : 'display:none;';
         let html = `<div data-tab="Images" style="${showTab('Images')}">`;
         if (characterNode) {
-            html += (window as unknown as AVWin).InspectorHelpers.renderExpressionSection(characterNode[0], characterNode[1].properties || {});
+            const nodeId = characterNode[0];
+            const props = characterNode[1].properties || {};
+            html += (window as unknown as AVWin).InspectorHelpers.renderExpressionSection(nodeId, props);
+            // Add "Copy Expression Prompt" button - always available for character nodes to generate expression packs
+            html += `<div class="inspector-section" style="margin-top:8px;">
+                <h3>📋 Expression Prompt</h3>
+                <div class="section-hint" style="margin-bottom:6px;">Builds a prompt with personality, base description, current description, and expression keys for AI image generation.</div>
+                <button class="btn btn-sm btn-blue" onclick="InspectorAgentView._copyExpressionPrompt('${esc(agentName)}','${esc(nodeId)}')" title="Copy a ready-to-use prompt for generating expression images">📋 Copy Expression Prompt</button>
+            </div>`;
         } else {
             html += `<div class="inspector-section"><h3>🎭 Expression Pack</h3>
                 <div class="section-hint">No character node yet — art is available once this character is placed on the graph.</div></div>`;
@@ -1447,6 +1463,63 @@ type AVWin = { [key: string]: any };
      */
     AV._savePersonality = function(charName: string) {
         return (window as unknown as AVWin).InspectorHelpers.savePersonality(charName);
+    };
+
+    /**
+     * Copy an expression image generation prompt to clipboard.
+     * Includes personality, base description, current description, and expression keys.
+     * @param {string} charName - Character name
+     * @param {string} nodeId - Graph node ID
+     */
+    AV._copyExpressionPrompt = async function(charName: string, nodeId: string): Promise<void> {
+        const player = worldState.players?.[charName];
+        const node = worldState.getNode(nodeId);
+        const props = node?.properties || {};
+
+        const personality = player?.personality || '';
+        const baseDescription = player?.base_description || '';
+        const currentDescription = player?.description || '';
+        const expressions = props.expressions || {};
+        const expressionKeys = Object.keys(expressions).filter(k => k !== 'neutral').sort();
+
+        // If no expressions exist yet, suggest a standard set matching the canonical EXPRESSION_ORDER
+        // plus slotN placeholders so the prompt has 30 expressions (matching a 31-slot sheet: neutral + 30).
+        const helpers = (window as unknown as { InspectorHelpers?: { EXPRESSION_ORDER?: string[] } }).InspectorHelpers;
+        const canonicalOrder = helpers?.EXPRESSION_ORDER?.slice(1) || ['happy', 'sad', 'angry', 'afraid', 'surprised', 'disgusted', 'aroused', 'affectionate', 'ashamed', 'envious', 'calm'];
+        const useKeys = expressionKeys.length > 0
+            ? expressionKeys
+            : [...canonicalOrder, 'slot13', 'slot14', 'slot15', 'slot16', 'slot17', 'slot18', 'slot19', 'slot20',
+               'slot21', 'slot22', 'slot23', 'slot24', 'slot25', 'slot26', 'slot27', 'slot28', 'slot29', 'slot30',
+               'slot31', 'slot32', 'slot33', 'slot34', 'slot35', 'slot36', 'slot37', 'slot38', 'slot39', 'slot40'];
+
+        const isNewPack = expressionKeys.length === 0;
+
+        const prompt = `Character: ${charName}
+
+**Personality:**
+${personality || '(none set)'}
+
+**Base Description (naked/baseline):**
+${baseDescription || '(none set)'}
+
+**Current Description (with equipment):**
+${currentDescription || '(none set)'}
+
+**Expressions to Generate:**
+${useKeys.map((k, i) => `${i + 1}. ${k}`).join('\n')}
+
+---
+${isNewPack
+    ? `Generate ${useKeys.length} expression images for this character's expression pack. Each image should match the character's base appearance and personality, showing the specified emotional state. Use consistent art style across all expressions. The first image should be the neutral/base expression (not listed above), followed by the ${useKeys.length} expressions in order.`
+    : `Generate ${useKeys.length} expression images for this character. Each image should match the character's base appearance and personality, showing the specified emotional state or action. Use consistent art style across all expressions.`}`;
+
+        try {
+            await navigator.clipboard.writeText(prompt);
+            toastInfo(`Copied expression prompt for ${useKeys.length} expressions to clipboard.${isNewPack ? ' (suggested standard set for new pack)' : ''}`);
+        } catch (error) {
+            console.error('Clipboard write failed:', error);
+            toastError('Failed to copy to clipboard.');
+        }
     };
 
     /**

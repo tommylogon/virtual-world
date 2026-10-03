@@ -53,6 +53,19 @@ def _identity_tags(tags: List[str]) -> List[str]:
     return [t for t in tags if str(t).lower() in keep]
 
 
+def _activity_type(p_obj: Any) -> Any:
+    """The character's current activity type, or None when idle.
+
+    ``Player.activity`` is a dict (``{"type": "sleeping", ...}``); the
+    name is what the panel gates the Wake affordance on.
+    """
+    activity = getattr(p_obj, "activity", None) if p_obj is not None else None
+    if isinstance(activity, dict):
+        kind = activity.get("type")
+        return kind if isinstance(kind, str) and kind else None
+    return None
+
+
 def _known_aspects(player: Any, area_name: str, handle: str) -> Dict[str, bool]:
     return {
         aspect: player.knows_way_aspect(area_name, handle, aspect)
@@ -153,6 +166,11 @@ def build_scene(world: Any, player_name: str) -> Dict[str, Any]:
             "met": met,
             "desc": _first_sentence(desc),
             "tags": _identity_tags(list(node.properties.get("tags", []) or [])),
+            # Activities.wake is only legal when the target HAS an activity
+            # (it raises "isn't sleeping or busy" otherwise), so the panel
+            # needs this to offer Wake at all rather than offering it on
+            # everyone in the room.
+            "activity": _activity_type(p_obj),
         }
         scene["people"].append(entry)
         if hasattr(player, "register_first_meeting"):
@@ -161,6 +179,12 @@ def build_scene(world: Any, player_name: str) -> Dict[str, Any]:
             )
 
     # ── items (hidden ones stay out) ─────────────────────────────────
+    # Carried node ids, so the per-item action list knows whether `drop`
+    # is an affordance or just a capability the node declares.
+    carried_node_ids = {
+        edge.source
+        for edge in graph.get_edges_for_target(_player_node_id(world, player_name), EDGE_CARRYING)
+    }
     for node in visible_area_items(graph, area_id, player=player):
         render = getattr(world.area_description, "_render_node", None)
         desc = ""
@@ -171,6 +195,9 @@ def build_scene(world: Any, player_name: str) -> Dict[str, Any]:
             except Exception:
                 desc = ""
         try:
+            available = world._get_available_actions(node, carrying=node.id in carried_node_ids)
+        except TypeError:
+            # A caller-side shim without the keyword must not 500 the panel.
             available = world._get_available_actions(node)
         except Exception:
             available = []
@@ -324,12 +351,24 @@ def build_scene(world: Any, player_name: str) -> Dict[str, Any]:
         if node:
             known_abilities.append(node.name)
 
+    # Who this character currently has hold of (grabbed or led). Read through
+    # the grapple system so the panel's Release affordance is gated on the
+    # same authoritative `grappled` edge the release verb itself uses.
+    holding = []
+    grapple = getattr(world, "grapple", None)
+    if grapple is not None:
+        try:
+            holding = list(grapple._grappling_targets(player_name))
+        except Exception:
+            holding = []
+
     scene["you"] = {
         "name": player_name,
         "vitals": dict(getattr(player, "vitals", {}) or {}),
         "conditions": conditions,
         "carrying": carrying,
         "wearing": worn,
+        "holding": holding,
         "activity": getattr(player, "activity", None),
         "recent_memories": memories,
         "known_abilities": known_abilities,
