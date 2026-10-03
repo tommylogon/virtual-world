@@ -24,6 +24,7 @@ from .player_ops import (
     handle_get_vital,
     handle_update_vital,
     handle_get_player_map,
+    handle_mark_visited,
 )
 
 logger = logging.getLogger(__name__)
@@ -124,6 +125,12 @@ def register_players_routes(app):
         observed there. Separate from /api/state on purpose — that payload is
         ~2.48 MB polled every 1.5 s and must not grow a map payload."""
         return handle_get_player_map(app, name)
+
+    @app.route('/api/players/<name>/map/visited', methods=['POST'])
+    def api_mark_visited(name):
+        """task-677: seed the map with places a character has been, by writing
+        the same observation row an arrival writes."""
+        return handle_mark_visited(app, name)
 
     @app.route('/api/abilities/curve', methods=['GET'])
     def api_ability_curve():

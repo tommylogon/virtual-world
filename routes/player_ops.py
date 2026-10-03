@@ -1187,6 +1187,10 @@ def _map_ways(world, player, area_id, area_name):
         out.append({
             "way_id": way_node.id,
             "direction": handle,
+            # The raw edge direction ("north", "southeast", "up"). The handle is
+            # a display string ("north passage") and cannot be stepped on, so an
+            # unpainted world needs this to lay its areas out on a lattice at all.
+            "compass": raw_direction,
             "to_area_id": to_area_id,
             "name": way_node.name,
             "state": reported,
@@ -1287,6 +1291,90 @@ def handle_get_player_map(app, name):
         "tick": getattr(world, "time_ticks", 0),
         "areas": cells,
         "scopes": scopes,
+    })
+
+
+def handle_mark_visited(app, name):
+    """Seed a character's map with places they have been.
+
+    Writes the *same* row an arrival writes — ``Player.record_observation``
+    with ``kind="area"`` — rather than appending to a parallel registry, so the
+    map, the memory store, recall and anything added later all read one fact.
+    Also mirrors the name into ``visited_areas``, which is what the known-routes
+    prose and the adventurous-traveller bonus still read; when task-430 retires
+    that set in favour of these rows, this line goes with it.
+
+    Accepts ``{"areas": [...]}`` or ``{"areas": "A, B"}``. An area that does
+    not resolve is reported in ``unresolved`` rather than silently dropped: a
+    typo in an author's list should be visible, not quietly shrink the map.
+    """
+    from engine.room_perception import resolve_area_node, visible_area_items
+
+    world = app.world
+    player = (getattr(world, "players", {}) or {}).get(name)
+    if player is None:
+        return jsonify({"error": "No such player"}), 404
+
+    data = request.get_json(force=True) or {}
+    raw = data.get("areas")
+    if isinstance(raw, str):
+        raw = [part.strip() for part in raw.split(",")]
+    if not isinstance(raw, (list, tuple)):
+        raw = []
+    # Also record what was in each area, as an arrival would. Off by default:
+    # "was here" and "saw these things" are different claims, and seeding the
+    # second one for an area the character never entered asserts something the
+    # author may not mean.
+    observe = bool(data.get("observe"))
+
+    graph = world.graph
+    tick = data.get("tick")
+    tick = int(tick) if isinstance(tick, (int, float)) else int(getattr(world, "time_ticks", 0) or 0)
+
+    added, unresolved = [], []
+    for entry in raw:
+        label = str(entry or "").strip()
+        if not label:
+            continue
+        node = resolve_area_node(graph, label)
+        if node is None:
+            unresolved.append(label)
+            continue
+        player.record_observation(
+            node.id,
+            "You have been to %s." % node.name,
+            tick,
+            kind="area",
+            location=node.name,
+        )
+        visited = getattr(player, "visited_areas", None)
+        if isinstance(visited, set):
+            visited.add(node.name)
+
+        seeded_items = []
+        if observe:
+            # Items go through the same perception an arrival uses, so a seeded
+            # area's tooltip reads like a walked one. Characters deliberately do
+            # NOT: engine/observation.py:96-105 excludes them because
+            # arrival-stamping people saturated camp Entertainment at 87/100.
+            # visible_area_items yields nodes, not ids.
+            for inode in visible_area_items(graph, node.id, player=player) or []:
+                player.record_observation(
+                    inode.id,
+                    "You have seen %s in %s." % (inode.name, node.name),
+                    tick,
+                    kind="item",
+                    location=node.name,
+                )
+                seeded_items.append(inode.name)
+
+        added.append({"id": node.id, "name": node.name, "items_seeded": seeded_items})
+
+    return jsonify({
+        "player": name,
+        "tick": tick,
+        "added": added,
+        "unresolved": unresolved,
     })
 
 

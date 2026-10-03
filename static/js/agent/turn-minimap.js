@@ -36,6 +36,21 @@ window.TurnMinimap = (() => {
     const HOST_ID = 'htc-map';
     /** Cell edge in px. Recomputed per render from the scope's extent. */
     let _pitch = 26;
+    /** Which cell's card is pinned open, as "<scope>:<x>,<y>"; null when none. */
+    let _pinned = null;
+    function paintPins(grid) {
+        const cells = grid.querySelectorAll('.tmn-cell');
+        for (let i = 0; i < cells.length; i++) {
+            cells[i].classList.toggle('tmn-pinned', cells[i].dataset.pin === _pinned);
+        }
+    }
+    function legend() {
+        const foot = el('div', 'tmn-foot');
+        foot.innerHTML = '<span><span class="tmn-sw" style="background:#3b444f"></span>been</span>'
+            + '<span><span class="tmn-sw" style="background:#1f4a7d"></span>you are here</span>'
+            + '<span><span style="color:#f85149;font-weight:700">✖</span> way you know is blocked</span>';
+        return foot;
+    }
     function ensureStyles() {
         if (document.getElementById(STYLE_ID))
             return;
@@ -43,33 +58,59 @@ window.TurnMinimap = (() => {
         style.id = STYLE_ID;
         style.textContent = `
             #${HOST_ID} { margin-top:10px; border-top:1px solid #333a45; padding-top:9px; }
-            #${HOST_ID} .tmn-head { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
-            #${HOST_ID} .tmn-label { font-size:10px; text-transform:uppercase; letter-spacing:1.2px; color:#6b7686; }
-            #${HOST_ID} .tmn-sp { flex:1; }
-            #${HOST_ID} select { background:#21262d; color:#e6edf3; border:1px solid #333a45;
-                                 border-radius:5px; font-size:11px; padding:2px 5px; max-width:200px; }
-            #${HOST_ID} button { background:#21262d; color:#8b949e; border:1px solid #333a45;
-                                 border-radius:5px; font-size:11px; padding:2px 7px; cursor:pointer; }
-            #${HOST_ID} button:hover { background:#30363d; color:#e6edf3; }
-            #${HOST_ID} .tmn-grid { position:relative; overflow:auto; max-height:340px;
-                                    background:#0a0e13; border:1px solid #333a45; border-radius:5px; }
-            #${HOST_ID} .tmn-cell { position:absolute; box-sizing:border-box; background:#3b444f;
-                                     border:1px solid #0a0e13; cursor:default; }
-            #${HOST_ID} .tmn-cell:hover { background:#4a5563; }
-            #${HOST_ID} .tmn-cell.tmn-now { background:#1f4a7d; box-shadow:inset 0 0 0 2px #58a6ff; }
-            #${HOST_ID} .tmn-cell .tmn-n { position:absolute; top:0; right:1px; font-size:8px;
-                                          color:#e3b341; font-weight:700; line-height:1; }
-            #${HOST_ID} .tmn-mark { position:absolute; z-index:3; display:flex; align-items:center;
-                                   justify-content:center; cursor:help; }
-            #${HOST_ID} .tmn-mark span { color:#f85149; font-weight:700; line-height:1; }
-            #${HOST_ID} .tmn-foot { display:flex; gap:12px; margin-top:5px; font-size:10px; color:#5b6570;
+            /* The lattice styles are deliberately NOT scoped to #${HOST_ID}.
+               The fullscreen overlay reuses the same .tmn-* classes but has no
+               #${HOST_ID} ancestor, and scoping left its cells unstyled and
+               invisible while every DOM measurement still passed. */
+            .tmn-head { display:flex; align-items:center; gap:8px; margin-bottom:6px;
                                     flex-wrap:wrap; }
-            #${HOST_ID} .tmn-sw { display:inline-block; width:9px; height:9px; border-radius:2px;
+            .tmn-label { font-size:10px; text-transform:uppercase; letter-spacing:1.2px;
+                                     color:#6b7686; }
+            /* Only the panel's header forces the label onto its own row — the
+               271px feed column needs it. The fullscreen bar is full-viewport
+               wide and lays out on one line; forcing a 100% basis there
+               collapsed the select and close button to zero width. */
+            .tmn-head .tmn-label { flex:1 0 100%; }
+            .tmn-sp { flex:1; }
+            .tmn-panel select, .tmn-fullbar select {
+                                 background:#21262d; color:#e6edf3; border:1px solid #333a45;
+                                 border-radius:5px; font-size:11px; padding:2px 5px; max-width:150px; }
+            .tmn-panel button, .tmn-fullbar button {
+                                 background:#21262d; color:#8b949e; border:1px solid #333a45;
+                                 border-radius:5px; font-size:11px; padding:2px 7px; cursor:pointer; }
+            .tmn-panel button:hover, .tmn-fullbar button:hover { background:#30363d; color:#e6edf3; }
+            .tmn-grid { position:relative; overflow:hidden; background:#0a0e13;
+                                    border:1px solid #333a45; border-radius:5px; }
+            /* Scrollbars are hidden by default: a minimap scales to fit, so
+               anything scrolling is a map too large to shrink — and then the
+               bar is worth seeing rather than a decorative stripe. */
+            .tmn-grid::-webkit-scrollbar { width:0; height:0; }
+            .tmn-grid { scrollbar-width:none; }
+            .tmn-grid.tmn-scrolls { overflow:auto; }
+            .tmn-grid.tmn-scrolls::-webkit-scrollbar { width:7px; height:7px; }
+            .tmn-grid.tmn-scrolls::-webkit-scrollbar-thumb {
+                background:#3a4350; border-radius:4px; }
+            .tmn-cell { position:absolute; box-sizing:border-box; background:#3b444f;
+                                     border:1px solid #0a0e13; cursor:default; }
+            .tmn-cell:hover { background:#4a5563; }
+            .tmn-cell.tmn-now { background:#1f4a7d; box-shadow:inset 0 0 0 2px #58a6ff; }
+            .tmn-cell.tmn-pinned { box-shadow:inset 0 0 0 2px #e3b341; }
+            .tmn-cell .tmn-n { position:absolute; top:0; right:1px; font-size:8px;
+                                          color:#e3b341; font-weight:700; line-height:1; }
+            .tmn-mark { position:absolute; z-index:3; display:flex; align-items:center;
+                                   justify-content:center; cursor:help; }
+            .tmn-mark span { color:#f85149; font-weight:700; line-height:1; }
+            .tmn-foot { display:flex; gap:12px; margin-top:5px; font-size:10px; color:#5b6570;
+                                    flex-wrap:wrap; }
+            .tmn-sw { display:inline-block; width:9px; height:9px; border-radius:2px;
                                   border:1px solid #333a45; margin-right:3px; vertical-align:-1px; }
-            #${HOST_ID} .tmn-loose { margin-top:7px; font-size:10.5px; color:#6b7686; line-height:1.5; }
-            #${HOST_ID} .tmn-loose b { color:#8b949e; font-weight:500; }
-            #${HOST_ID} .tmn-empty { font-size:10.5px; color:#5b6570; }
-            .tmn-tip { position:fixed; z-index:1400; max-width:320px; background:#0b0f14;
+            .tmn-loose { margin-top:7px; font-size:10.5px; color:#6b7686; line-height:1.5; }
+            .tmn-loose b { color:#8b949e; font-weight:500; }
+            .tmn-empty { font-size:10.5px; color:#5b6570; }
+            /* Above .tmn-full (1500): the tip is a sibling of the overlay on <body>, so a
+               lower z-index put it behind the overlay's opaque background and it
+               rendered while remaining invisible. */
+            .tmn-tip { position:fixed; z-index:1600; max-width:320px; background:#0b0f14;
                        border:1px solid #3a4350; border-radius:7px; padding:8px 10px;
                        box-shadow:0 10px 28px rgba(0,0,0,.7); pointer-events:none; display:none; }
             .tmn-tip h5 { margin:0 0 1px; font-size:12.5px; color:#e6edf3; }
@@ -205,22 +246,129 @@ window.TurnMinimap = (() => {
     /**
      * Draw one scope's visited cells plus the boundary marks between them.
      *
+     * Fitted to the cells the character has actually been in, NOT to the
+     * scope's painted extent. An earlier draft used the extent and rendered a
+     * 680x340 box holding two squares — a megamap, which is the opposite of the
+     * point: a memory map should be tight around what you remember, and the
+     * fullscreen button is the big view.
+     *
+     * The default box fits the composer's 300px feed column (300 - 2x12 padding),
+     * which is where the panel is mounted.
+     *
      * Absolute positioning rather than a CSS grid: a way mark has to land on the
      * midpoint between two cell centres, and grid gutters make that arithmetic
      * wrong by a pixel per step.
      */
-    function drawScope(grid, areas, scope, tick) {
+    /**
+     * Give unpainted areas a cell, by walking the ways out of the ones we have.
+     *
+     * Only kraktooth_goblin_camp ships painted cells; every other scenario is
+     * hand-authored and has none, so without this the lattice is empty and there
+     * is nowhere to put a boundary mark. The payload is self-sufficient — each
+     * way carries its raw compass direction and its far end — so this is a BFS
+     * over the visited set from the character's own position, and it agrees with
+     * painted cells when a world has both.
+     */
+    function placeUnpainted(areas) {
+        const placed = areas.map(function (a) { return Object.assign({}, a); });
+        const byId = new Map();
+        placed.forEach(function (a) {
+            if (!a.cell)
+                byId.set(a.id, a);
+        });
+        if (!byId.size)
+            return placed;
+        const STEP = {
+            north: [0, -1], south: [0, 1], east: [1, 0], west: [-1, 0],
+            northeast: [1, -1], northwest: [-1, -1], southeast: [1, 1], southwest: [-1, 1],
+            n: [0, -1], s: [0, 1], e: [1, 0], w: [-1, 0],
+            up: [0, -1], down: [0, 1], u: [0, -1], d: [0, 1]
+        };
+        // Seed at the character's own area so the lattice is anchored on them,
+        // then walk outward. Occupied cells are respected, so a painted area
+        // already sitting there wins over a derived one.
+        const taken = new Set();
+        placed.forEach(function (a) {
+            if (a.cell)
+                taken.add(a.cell.x + ',' + a.cell.y);
+        });
+        const queue = [];
+        placed.forEach(function (a) { if (a.current && !a.cell)
+            queue.push(a); });
+        if (!queue.length)
+            placed.forEach(function (a) { if (!a.cell)
+                queue.push(a); });
+        const seen = new Set();
+        while (queue.length) {
+            const cur = queue.shift();
+            if (seen.has(cur.id))
+                continue;
+            seen.add(cur.id);
+            cur.ways.forEach(function (w) {
+                const next = w.to_area_id ? byId.get(w.to_area_id) : undefined;
+                if (!next)
+                    return;
+                if (!next.cell) {
+                    // Place it one step from here. A way appears in both areas'
+                    // lists, so the reverse pass agrees and first-wins is stable.
+                    const step = STEP[(w.compass || '').toLowerCase()];
+                    if (!step)
+                        return;
+                    const from = cur.cell || { x: 0, y: 0 };
+                    next.cell = { x: from.x + step[0], y: from.y + step[1] };
+                }
+                if (!seen.has(next.id))
+                    queue.push(next);
+            });
+        }
+        return placed;
+    }
+    function drawScope(grid, areas, tick, scopeId, maxW = 268, maxH = 190, maxP = 20) {
         const painted = areas.filter(function (a) { return a.cell && typeof a.cell.x === 'number'; });
-        const cols = (scope && scope.w) || (painted.reduce(function (m, a) {
-            return Math.max(m, (a.cell ? a.cell.x : 0) + 1);
-        }, 1));
-        const rows = (scope && scope.h) || (painted.reduce(function (m, a) {
-            return Math.max(m, (a.cell ? a.cell.y : 0) + 1);
-        }, 1));
-        const avail = Math.max(180, grid.clientWidth - 4);
-        _pitch = Math.max(14, Math.min(34, Math.floor(avail / Math.max(1, cols))));
-        grid.style.width = (cols * _pitch) + 'px';
-        grid.style.height = (rows * _pitch) + 'px';
+        if (!painted.length) {
+            // Unpainted world: derive cells from the ways out, then re-filter.
+            const derived = placeUnpainted(areas).filter(function (a) {
+                return a.cell && typeof a.cell.x === 'number';
+            });
+            if (!derived.length) {
+                grid.style.width = '0px';
+                grid.style.height = '0px';
+                return;
+            }
+            drawPlaced(grid, derived, tick, scopeId, maxW, maxH, maxP);
+            return;
+        }
+        drawPlaced(grid, painted, tick, scopeId, maxW, maxH, maxP);
+    }
+    function drawPlaced(grid, painted, tick, scopeId, maxW, maxH, maxP) {
+        // Bounds are the visited cells, so the lattice never grows to the scope.
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        painted.forEach(function (a) {
+            minX = Math.min(minX, a.cell.x);
+            maxX = Math.max(maxX, a.cell.x);
+            minY = Math.min(minY, a.cell.y);
+            maxY = Math.max(maxY, a.cell.y);
+        });
+        const cols = maxX - minX + 1;
+        const rows = maxY - minY + 1;
+        // Scale to fit, so the map shows everything the character has seen.
+        // An earlier draft fixed the pitch and scrolled whatever overflowed, and
+        // the result was a minimap wearing scrollbars — content you had to go
+        // hunting for. Fit first; only scroll once the cells hit the floor and
+        // the map genuinely cannot shrink further.
+        const MIN_P = 4;
+        const PAD = 10; // room for a boundary mark on an edge
+        const fitW = maxW - PAD * 2;
+        const fitH = maxH - PAD * 2;
+        const byW = Math.floor(fitW / cols);
+        const byH = Math.floor(fitH / rows);
+        _pitch = Math.max(MIN_P, Math.min(maxP, byW, byH));
+        const gridW = PAD * 2 + cols * _pitch;
+        const gridH = PAD * 2 + rows * _pitch;
+        grid.style.width = Math.min(maxW, gridW) + 'px';
+        grid.style.height = Math.min(maxH, gridH) + 'px';
+        // Only a map too large to shrink into the box is allowed to scroll.
+        grid.classList.toggle('tmn-scrolls', gridW > maxW || gridH > maxH);
         // One square per cell; several areas in a cell stack into a badge.
         const byCell = new Map();
         painted.forEach(function (a) {
@@ -235,17 +383,37 @@ window.TurnMinimap = (() => {
             const cy = parseInt(parts[1], 10);
             const head = stack[0];
             const cell = el('div', 'tmn-cell' + (head.current ? ' tmn-now' : ''));
-            cell.style.left = (cx * _pitch) + 'px';
-            cell.style.top = (cy * _pitch) + 'px';
+            cell.dataset.pin = scopeId + ':' + key;
+            cell.style.left = ((cx - minX) * _pitch + PAD) + 'px';
+            cell.style.top = ((cy - minY) * _pitch + PAD) + 'px';
             cell.style.width = _pitch + 'px';
             cell.style.height = _pitch + 'px';
             if (stack.length > 1)
                 cell.appendChild(el('span', 'tmn-n', String(stack.length)));
+            const pinKey = scopeId + ':' + key;
+            if (_pinned === pinKey)
+                cell.classList.add('tmn-pinned');
             cell.addEventListener('mouseenter', function (ev) {
                 showTip(cellTipHtml(head, tick), ev);
             });
             cell.addEventListener('mousemove', moveTip);
-            cell.addEventListener('mouseleave', hideTip);
+            // A pinned card stays put, so you can move toward the fullscreen
+            // button without losing what you were reading.
+            cell.addEventListener('mouseleave', function () {
+                if (_pinned !== pinKey)
+                    hideTip();
+            });
+            cell.addEventListener('click', function (ev) {
+                if (_pinned === pinKey) {
+                    _pinned = null;
+                    cell.classList.remove('tmn-pinned');
+                    hideTip();
+                    return;
+                }
+                _pinned = pinKey;
+                showTip(cellTipHtml(head, tick), ev);
+                paintPins(grid);
+            });
             grid.appendChild(cell);
         });
         // Boundary marks, only where the character knows the way is blocked.
@@ -260,8 +428,8 @@ window.TurnMinimap = (() => {
                 const to = index.get(way.to_area_id);
                 if (!to || !to.cell || !from.cell)
                     return;
-                const mx = ((from.cell.x + to.cell.x) / 2 + 0.5) * _pitch;
-                const my = ((from.cell.y + to.cell.y) / 2 + 0.5) * _pitch;
+                const mx = ((from.cell.x + to.cell.x) / 2 + 0.5 - minX) * _pitch + PAD;
+                const my = ((from.cell.y + to.cell.y) / 2 + 0.5 - minY) * _pitch + PAD;
                 const mark = el('div', 'tmn-mark');
                 mark.style.left = (mx - 9) + 'px';
                 mark.style.top = (my - 9) + 'px';
@@ -284,13 +452,13 @@ window.TurnMinimap = (() => {
         const existing = document.getElementById(HOST_ID);
         if (existing)
             existing.remove();
-        const wrap = el('div');
+        const wrap = el('div', 'tmn-panel');
         wrap.id = HOST_ID;
         const areas = Array.isArray(payload.areas) ? payload.areas : [];
         const scopes = Array.isArray(payload.scopes) ? payload.scopes : [];
         if (!areas.length) {
             wrap.appendChild(el('div', 'tmn-empty', 'No map yet — this character has not been anywhere.'));
-            host.appendChild(wrap);
+            host.insertBefore(wrap, host.firstChild);
             return;
         }
         const head = el('div', 'tmn-head');
@@ -315,10 +483,7 @@ window.TurnMinimap = (() => {
         wrap.appendChild(head);
         const grid = el('div', 'tmn-grid');
         wrap.appendChild(grid);
-        const foot = el('div', 'tmn-foot');
-        foot.innerHTML = '<span><span class="tmn-sw" style="background:#3b444f"></span>been</span>'
-            + '<span><span class="tmn-sw" style="background:#1f4a7d"></span>you are here</span>'
-            + '<span><span style="color:#f85149;font-weight:700">✖</span> way you know is blocked</span>';
+        const foot = legend();
         wrap.appendChild(foot);
         const loose = areas.filter(function (a) { return !a.cell; });
         if (loose.length) {
@@ -328,16 +493,17 @@ window.TurnMinimap = (() => {
                 + ' — these have no grid cell, so they are not on the lattice.'));
             wrap.appendChild(note);
         }
-        host.appendChild(wrap);
+        // Top of the scene column, not the bottom: it is orientation, and it
+        // belongs beside the room you are in rather than below the ways out.
+        host.insertBefore(wrap, host.firstChild);
         const tick = typeof payload.tick === 'number' ? payload.tick : 0;
         function paint() {
             const scopeId = sel.value;
             const inScope = areas.filter(function (a) {
                 return scopeId ? a.scope_id === scopeId : true;
             });
-            const scope = scopes.filter(function (s) { return s.id === scopeId; })[0] || null;
             grid.textContent = '';
-            drawScope(grid, inScope, scope, tick);
+            drawScope(grid, inScope, tick, scopeId);
         }
         sel.addEventListener('change', paint);
         fsBtn.addEventListener('click', function () { openFullscreen(areas, scopes, tick); });
@@ -365,21 +531,22 @@ window.TurnMinimap = (() => {
         });
         bar.insertBefore(sel, close);
         const grid = el('div', 'tmn-grid');
-        grid.style.maxHeight = 'none';
-        grid.style.flex = '1';
+        // No flex:1 — the overlay is a column, so growing would stretch the box
+        // far past its cells and leave dead space under the lattice.
         overlay.appendChild(grid);
+        overlay.appendChild(legend());
         document.body.appendChild(overlay);
         function paint() {
             const scopeId = sel.value;
             const inScope = areas.filter(function (a) {
                 return scopeId ? a.scope_id === scopeId : true;
             });
-            const scope = scopes.filter(function (s) { return s.id === scopeId; })[0] || null;
             grid.textContent = '';
-            drawScope(grid, inScope, scope, tick);
+            drawScope(grid, inScope, tick, scopeId, Math.max(360, window.innerWidth - 140), Math.max(280, window.innerHeight - 220), 44);
         }
         function shut() {
             overlay.remove();
+            _pinned = null;
             hideTip();
             document.removeEventListener('keydown', onKey);
         }

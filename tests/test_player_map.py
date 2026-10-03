@@ -20,7 +20,7 @@ from flask import Flask
 from player import Player
 from engine.observation import observe_area
 
-from routes.player_ops import handle_get_player_map
+from routes.player_ops import handle_get_player_map, handle_mark_visited
 
 # A bare Flask app purely so ``jsonify`` has an application context; the world
 # behind it is the real graph and the real Player, not a mock.
@@ -280,6 +280,105 @@ def test_scope_list_covers_only_scopes_with_visited_cells():
     assert entry["name"] == "Camp"
     assert entry["visited_cells"] == 1
     assert entry["w"] == 20 and entry["h"] == 10
+
+
+def mark(g, player, areas, scopes=None, tick=None, observe=False):
+    world = _Stub(g, {player.name: player}, scopes=scopes)
+    body = {"areas": areas, "observe": observe}
+    if tick is not None:
+        body["tick"] = tick
+    with _flask.test_request_context("/api/players/%s/map/visited" % player.name,
+                                      method="POST", json=body):
+        result = handle_mark_visited(_App(world), player.name)
+    if isinstance(result, tuple):
+        return result[0].get_json(), result[1]
+    return result.get_json(), 200
+
+
+def test_marking_visited_writes_the_row_the_map_already_reads():
+    """The seed path must produce what an arrival produces, not a parallel store."""
+    g = make_graph()
+    cook = make_player()
+    mark(g, cook, ["Cellar"])
+
+    body = call(g, cook)[0]
+    assert [a["name"] for a in body["areas"]] == ["Cellar"]
+    # Same row shape an arrival writes.
+    row = cook.observation_memory("area_cellar")
+    assert row["kind"] == "area"
+    assert row["location"] == "Cellar"
+    assert "Cellar" in row["text"]
+    # And the set the known-routes prose still reads.
+    assert "Cellar" in cook.visited_areas
+
+
+def test_marking_visited_accepts_a_comma_string():
+    g = make_graph()
+    cook = make_player()
+    _, status = mark(g, cook, "Cellar, Yard")
+
+    assert status == 200
+    assert set(cook.visited_areas) == {"Cellar", "Yard"}
+
+
+def test_marking_visited_is_idempotent():
+    g = make_graph()
+    cook = make_player()
+    mark(g, cook, ["Cellar"])
+    mark(g, cook, ["Cellar"])
+
+    rows = [m for m in cook.memories if m.get("kind") == "area"]
+    assert len(rows) == 1
+    assert len(call(g, cook)[0]["areas"]) == 1
+
+
+def test_an_unresolvable_area_is_reported_not_dropped():
+    g = make_graph()
+    cook = make_player()
+    body, status = mark(g, cook, ["Cellar", "Nowhere At All"])
+
+    assert status == 200
+    assert [a["name"] for a in body["added"]] == ["Cellar"]
+    # A typo in an author's list should be visible, not quietly shrink the map.
+    assert body["unresolved"] == ["Nowhere At All"]
+
+
+def test_marking_visited_for_an_unknown_player_is_a_404():
+    g = make_graph()
+    world = _Stub(g, {})
+    with _flask.test_request_context("/api/players/nobody/map/visited",
+                                     method="POST", json={"areas": ["Cellar"]}):
+        assert handle_mark_visited(_App(world), "nobody")[1] == 404
+
+
+def test_seeding_alone_does_not_invent_what_was_there():
+    """"Was here" is not "saw these things" — the two are separate claims."""
+    g = make_graph()
+    cook = make_player()
+    mark(g, cook, ["Pantry"])
+
+    pantry = next(a for a in call(g, cook)[0]["areas"] if a["name"] == "Pantry")
+    assert pantry["items"] == []
+
+
+def test_observe_seeds_the_areas_contents_through_real_perception():
+    g = make_graph()
+    cook = make_player()
+    body, _ = mark(g, cook, ["Pantry"], observe=True)
+
+    assert body["added"][0]["items_seeded"] == ["Bread"]
+    pantry = next(a for a in call(g, cook)[0]["areas"] if a["name"] == "Pantry")
+    assert [i["name"] for i in pantry["items"]] == ["Bread"]
+
+
+def test_observe_does_not_stamp_people():
+    """Arrival-stamping characters is what saturated camp Entertainment."""
+    g = make_graph()
+    cook = make_player()
+    mark(g, cook, ["Pantry"], observe=True)
+
+    pantry = next(a for a in call(g, cook)[0]["areas"] if a["name"] == "Pantry")
+    assert pantry["people"] == []
 
 
 def test_unknown_player_is_a_404():

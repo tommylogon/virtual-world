@@ -67,6 +67,21 @@ task. "Cells you have been" needs no reveal state to exist.
 - **Tooltip splits *last seen* from *last known*.** "When you were there" and
   "what you observed then" are different facts; do not collapse them into one row.
 - **Ticks, not wall clock.** A row has `tick`. Do not render a real date.
+- **Fit the lattice to the visited cells, not the scope's painted extent.** The
+  first implementation sized the grid from the manifest (`world` 20×10) and
+  rendered a 680×340 box holding two squares — a megamap, and the opposite of
+  the point. Bounds are now the minimum box around the cells the character has
+  been in, at 8–20px cells inside a 320×190 viewport that scrolls. Fullscreen
+  passes a much larger box and a 44px ceiling pitch.
+- **The panel lives in the composer's top-right corner**, mounted into the feed
+  column above "What happened", not into the scene column. Two consequences that
+  cost a round each: the feed column is ~271px, so the default box is 268 wide
+  and the label takes its own row (label + select + button cannot share 271px and
+  a ragged wrap reads as a mistake); and the mount host must be looked up with
+  `document.querySelector`, because the composer's `q()` helper is scoped to
+  `#htc-modal` and the feed column is a sibling of the modal — `q()` returned
+  null and the `.catch(() => {})` swallowed it, so the panel silently never
+  appeared.
 - **SVG, not vis-network.** vis draws to canvas, so hover targets and tooltips
   have no DOM (and a DOM query for them returns zero).
 
@@ -76,10 +91,21 @@ task. "Cells you have been" needs no reveal state to exist.
       contents, who-was-there and way states; and the list of scopes that
       character has visited. A character who has never left its start area
       returns one cell, not the whole scope.
-- [ ] A panel in the human turn composer's scene column draws only cells that
+- [x] A panel in the human turn composer's scene column draws only cells that
       character has been in, marks the current cell, and switches scope from a
       selector listing **only visited scopes** — switching does not reveal
-      another zone.
+      another zone. Verified 2026-10-03 after seeding a character into two
+      scopes: selector read `goblin camp (5)` / `world (2)`, switching to `world`
+      re-rendered only that scope's 2 cells.
+- [x] `POST /api/players/<name>/map/visited` seeds a character's map. It writes
+      the **same** observation row an arrival writes
+      (`Player.record_observation(..., kind="area")`) rather than appending to a
+      parallel registry, mirrors the name into `visited_areas` for the
+      known-routes prose, reports unresolvable names in `unresolved` instead of
+      dropping them, and is idempotent. Optional `observe: true` records what was
+      in each area through `visible_area_items` — the same perception an arrival
+      uses — so a seeded cell's tooltip reads like a walked one. It deliberately
+      does **not** stamp characters (`engine/observation.py:96-105`). 18 tests.
 - [ ] Hovering a cell shows its areas, when it was last seen, what was there,
       who was there, and its ways with state; a cell holding more than one area
       lists all of them.
@@ -89,7 +115,31 @@ task. "Cells you have been" needs no reveal state to exist.
       aspect; a negative test proves an unknown blocked way is not marked.
 - [ ] Cells are drawn from `properties.cell` where present and from the BFS
       cardinal layout where absent, in the same scope view.
-- [ ] A fullscreen toggle opens the map in an overlay and closes on Escape.
+      **UNMET, and the fallback is unexercised.** `kraktooth_goblin_camp` is the
+      only shipped scenario with painted cells (463 `cell` blocks; every other
+      file in `data/scenarios/` has zero). The fallback walks way compass
+      directions outward from the character's own cell — but
+      `edge.properties["direction"]` is a **door name** in a hand-authored world
+      (`master_bedroom_door`, `attic_ladder`, `grand_stairs_back`) and only a
+      compass point in a grid-compiled one. So on every shipped scenario the
+      fallback never fires: kraktooth has compass directions *and* painted cells,
+      and the hand-authored worlds have neither. Kept rather than deleted because
+      it is correct for a world whose author did set cardinal directions, but
+      nothing proves it yet.
+      `mansion.json` is the concrete case: 25 areas, properties are only
+      `description` + `environment`, and `GET /api/world/scopes` returns
+      `{"scope": null, "children": []}` — no coordinates, no scope, no storeys.
+      It cannot exercise this, or the ✖ (which needs both endpoints placed).
+      It needs a WorldPainter pass, or hand-authored `cell` + `world_scope_id`.
+- [x] A fullscreen toggle opens the map in an overlay and closes on Escape.
+      Verified 2026-10-03 in a browser with a screenshot: select and close render
+      top-right, lattice at the 44px ceiling pitch, Escape removes the overlay and
+      leaves the panel mounted. Two defects were invisible to DOM measurement and
+      only showed in the screenshot — the lattice styles were scoped to
+      `#htc-map`, which the overlay is not a descendant of, so its cells rendered
+      unstyled and *invisible* while every count and `clientWidth` passed; and the
+      panel's `flex:1 0 100%` label collapsed the overlay's select and close to
+      zero width in a non-wrapping bar.
 - [ ] `python tools/ts_convert.py check` clean; `tools/feature_index.py --check`
       clean, which requires a `Feature Map.md` row for the player map.
 - [ ] A micro-scenario proves it end to end in a browser on port 4444: walk a

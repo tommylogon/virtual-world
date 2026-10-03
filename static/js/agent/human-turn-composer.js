@@ -802,11 +802,15 @@ const HumanTurnComposerModule = (() => {
                 });
                 htcGlobals.TurnYouStrip
                     .render(q('#htc-you'), scene.you, stripHandlers);
-                // task-677: the visited-cell map. Mounted *after* renderScene
-                // because that clears its host, and it appends under the same
-                // column rather than replacing anything the scene view drew.
+                // task-677: the visited-cell map. It lives in the feed column, above
+                // "What happened", so it sits in the composer's top-right corner;
+                // mounted *after* renderScene because that clears the scene host.
                 if (htcGlobals.TurnMinimap) {
-                    htcGlobals.TurnMinimap.mount(sceneHost, charName).catch(() => { });
+                    // NOT q() — that is scoped to #htc-modal, and the feed column
+                    // is a sibling of the modal, so q() silently returned null.
+                    const feed = document.querySelector('.htc-feed');
+                    if (feed)
+                        htcGlobals.TurnMinimap.mount(feed, charName).catch(() => { });
                 }
                 renderDatalist();
                 // React phase: an examine that targeted someone opens their
