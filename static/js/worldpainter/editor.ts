@@ -203,6 +203,10 @@
         kind: string;
         key: string | null;
         start: WpCell;
+        /** Pointer position in screen px at mousedown, so the drag is a *delta*
+         *  from where it began rather than an absolute hit on the canvas. */
+        clientX: number;
+        clientY: number;
         w: number;
         h: number;
         offset: WpCell;
@@ -316,6 +320,8 @@
         refDrag: WpRefDrag | null;
         gridEdit: boolean;
         gridDrag: WpGridDrag | null;
+        /** Detaches the document-level grid-drag listeners, if any are attached. */
+        gridDragRelease: (() => void) | null;
         selectedChild: string | null;
         selectedArea: string | null;
         /** Keyed by scope id: a selection is *this map's* selection. */
@@ -325,6 +331,12 @@
         inspected: WpCell | null;
         cellInfoEl: HTMLElement | null;
         cellInfoKey: string | null;
+        /** Rebuilt by every render; `scrollTop` is carried across so a refresh
+         *  mid-task does not throw the author back to the top of the panel. */
+        scrollBox: HTMLElement | null;
+        scrollTop: number;
+        /** True once the pending position has actually been written to the box. */
+        scrollRestored: boolean;
         merge: boolean;
         /** `{scale}` — Konva owns the live transform. */
         view: { x?: number; y?: number; scale: number } | null;
@@ -412,6 +424,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         // of typing numbers into the dialog.
         gridEdit: false,
         gridDrag: null,       // {kind, key, start, w, h, offset} during a grid edit
+        gridDragRelease: null,
         selectedChild: null,
         selectedArea: null,   // area picked by the 📍 Area place tool (task-528)
         // Cell selection and the marquee being dragged (task-536). Keyed by scope
@@ -423,6 +436,12 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         inspected: null,      // {x, y} the cell the inspector panel is showing (task-540)
         cellInfoEl: null,     // HUD hover readout for the cell under the pointer
         cellInfoKey: null,    // last hovered cell+content, to skip pointless DOM writes
+        // The current scroll container (rebuilt by every render) and the author's
+        // position in it. Without this, each action threw the view back to the top
+        // and a long panel had to be re-scrolled every time.
+        scrollBox: null,
+        scrollTop: 0,
+        scrollRestored: false,
         merge: false,
         view: null,            // {scale} — Konva owns the live transform
         route: [],             // waypoints for the route/trail tool
@@ -836,9 +855,13 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
 
     function close(): void {
         _unbindKeys();
+        _gridDragRelease();
         if (state.overlay) state.overlay.remove();
         state.overlay = null;
         state.payload = null;
+        state.scrollBox = null;
+        state.scrollTop = 0;
+        state.scrollRestored = false;
     }
 
     /**
@@ -1066,6 +1089,18 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
 
     /** Shared header (title + close) and a fresh body container. */
     function _renderShell(title: string): HTMLElement {
+        // Read the author's position BEFORE the wipe below. Clearing the panel
+        // detaches the old scroll box, and a detached element reports scrollTop
+        // 0 — so reading it afterwards silently threw the view back to the top.
+        // Only a box whose position has actually been applied is trusted, and only if it
+        // can scroll. Two things make a capture wrong: an intermediate "Loading
+        // grid…" shell has no overflow, and a second render inside the same task
+        // sees the newest box before its scrollTop is applied — both report 0 and
+        // would overwrite the author's real position.
+        if (state.scrollBox && state.scrollRestored
+                && state.scrollBox.scrollHeight > state.scrollBox.clientHeight) {
+            state.scrollTop = state.scrollBox.scrollTop;
+        }
         // Only ever called from open(), which assigns state.body before anything
         // renders; the assertion states that rather than re-testing it.
         const panel = state.body!;
@@ -1078,6 +1113,17 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         panel.appendChild(head);
         const box = _el('div', 'overflow:auto;');
         panel.appendChild(box);
+        state.scrollBox = box;
+        // Restore AFTER the content is in. load() calls this while the box is
+        // still empty, and scrollTop on an element with nothing to scroll is
+        // clamped to 0 — so setting it here stored 0 and lost the position. One
+        // frame later the body is populated and the assignment sticks.
+        const want = state.scrollTop;
+        state.scrollRestored = false;
+        requestAnimationFrame(function () {
+            box.scrollTop = want;
+            state.scrollRestored = true;
+        });
         return box;
     }
 
@@ -1509,6 +1555,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         const gridAdjust = _btn(state.gridEdit ? '✔ grid' : '✥ grid', () => {
             state.gridEdit = !state.gridEdit;
             state.gridDrag = null;
+            _gridDragRelease();
             render();
             _status(state.gridEdit
                 ? 'Grid adjust: drag the frame to move the scope on the graph map, '
@@ -2444,11 +2491,28 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
 
     // ───────────────── grid frame adjust (task-597) ───────────────
 
+    /**
+ * The grid size to *draw*, which is the in-progress drag size while a resize is
+ * running and the saved size otherwise.
+ *
+ * The drawing reads the payload, and a resize drag only updates
+ * `state.gridDrag` — so without this the frame and its handles were redrawn at
+ * the *old* extent and the drag showed nothing but the size label ticking over.
+ */
+function _gridExtent(p: WpPayload): { w: number; h: number } {
+        const drag = state.gridDrag;
+        if (drag && drag.kind !== 'move' && drag.w && drag.h) {
+            return { w: drag.w, h: drag.h };
+        }
+        return { w: p.grid!.w, h: p.grid!.h };
+    }
+
     /** Resize handles on the grid frame; only meaningful in adjust mode. */
     function _drawGridHandles(ctx: CanvasRenderingContext2D, p: WpPayload): void {
         if (!state.gridEdit) return;
         const scale = (state.stage && state.stage.scaleX()) || 1;
-        const pts = GM().gridHandlePoints(p.grid!.w, p.grid!.h);
+        const ext = _gridExtent(p);
+        const pts = GM().gridHandlePoints(ext.w, ext.h);
         ctx.save();
         Object.keys(pts).forEach((key) => {
             ctx.beginPath();
@@ -2462,11 +2526,11 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
             const off = drag.offset;
             ctx.fillStyle = '#e3b341';
             ctx.font = `${Math.max(10, 12 / scale)}px sans-serif`;
-            ctx.fillText(`offset ${off.x.toFixed(1)}, ${off.y.toFixed(1)}`, 8 / scale, (p.grid!.h * CELL) + 14 / scale);
+            ctx.fillText(`offset ${off.x.toFixed(1)}, ${off.y.toFixed(1)}`, 8 / scale, (ext.h * CELL) + 14 / scale);
         } else if (drag && drag.w && drag.h) {
             ctx.fillStyle = '#e3b341';
             ctx.font = `${Math.max(10, 12 / scale)}px sans-serif`;
-            ctx.fillText(`${drag.w}×${drag.h}`, 8 / scale, (p.grid!.h * CELL) + 14 / scale);
+            ctx.fillText(`${drag.w}×${drag.h}`, 8 / scale, (ext.h * CELL) + 14 / scale);
         }
         ctx.restore();
     }
@@ -2490,7 +2554,10 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         return null;
     }
 
-    function _gridMouseDown(p: WpPayload): void {
+    /** Konva's `evt` is typed as a partial event, so the pointer coordinates are
+     *  read defensively rather than asserted as a MouseEvent. */
+    function _gridMouseDown(p: WpPayload, ev?: unknown): void {
+        const raw = (ev || {}) as { clientX?: number; clientY?: number };
         const pos = state.stage!.getRelativePointerPosition();
         if (!pos) return;
         const target = _gridHit(p, pos);
@@ -2499,19 +2566,73 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
             kind: target.kind,
             key: target.key,
             start: { x: pos.x / CELL, y: pos.y / CELL },
+            clientX: typeof raw.clientX === 'number' ? raw.clientX : 0,
+            clientY: typeof raw.clientY === 'number' ? raw.clientY : 0,
             w: p.grid!.w,
             h: p.grid!.h,
             offset: Object.assign({ x: 0, y: 0 }, p.map_offset || {}),
         };
+        _gridDragWatch(p);
     }
 
-    function _gridMouseMove(p: WpPayload): void {
+    /**
+     * Track the drag on the document, not the stage.
+     *
+     * Konva's stage `mousemove` only fires while the pointer is over the canvas,
+     * and its `mouseleave` *committed* the resize — so dragging a handle outward
+     * ended the drag the instant it left the frame, and growing the grid took a
+     * series of separate drags. Listening on the document also lets the pointer
+     * travel beyond the frame, which is what dragging an edge handle implies.
+     */
+    function _gridDragWatch(p: WpPayload): void {
+        _gridDragRelease();
+        const onMove = (ev: MouseEvent): void => {
+            if (!state.gridDrag) return;
+            if (ev.cancelable) ev.preventDefault();
+            const cell = _gridPointerCell(ev.clientX, ev.clientY);
+            if (cell) _gridDragTo(p, cell.x, cell.y);
+        };
+        const onUp = (): void => {
+            _gridDragRelease();
+            _gridMouseUp(p);
+        };
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
+        state.gridDragRelease = function () {
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onUp);
+        };
+    }
+
+    function _gridDragRelease(): void {
+        if (state.gridDragRelease) {
+            state.gridDragRelease();
+            state.gridDragRelease = null;
+        }
+    }
+
+    /**
+     * Where the pointer is in cell units, as a delta from where the drag began.
+     *
+     * `getRelativePointerPosition()` would go stale the moment the pointer left
+     * the canvas, which is the whole point of listening on the document. A drag
+     * is relative anyway, so start position plus scaled screen delta is both
+     * correct outside the canvas and immune to the stale reading.
+     */
+    function _gridPointerCell(clientX: number, clientY: number): { x: number; y: number } | null {
+        const drag = state.gridDrag;
+        const stage = state.stage;
+        if (!drag || !stage) return null;
+        const scale = stage.scaleX() || 1;
+        return {
+            x: drag.start.x + (clientX - drag.clientX) / (CELL * scale),
+            y: drag.start.y + (clientY - drag.clientY) / (CELL * scale),
+        };
+    }
+
+    function _gridDragTo(p: WpPayload, cx: number, cy: number): void {
         const drag = state.gridDrag;
         if (!drag) return;
-        const pos = state.stage!.getRelativePointerPosition();
-        if (!pos) return;
-        const cx = pos.x / CELL;
-        const cy = pos.y / CELL;
         if (drag.kind === 'move') {
             // Repositioning the *scope* on the graph map (task-523), not the
             // canvas: the grid stays put; map_offset moves every node of the
@@ -2525,6 +2646,11 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
             state.gridDrag!.w = next.w;
             state.gridDrag!.h = next.h;
         }
+        // Both layers: the frame and grid lines are on bg, the handles and the
+        // size readout on decor. Redrawing only decor is why the number moved and
+        // the line did not.
+        const bg = state.layers && state.layers.bg;
+        if (bg) bg.batchDraw();
         _redrawDecor();
     }
 
@@ -2568,8 +2694,9 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
     }
 
     function _drawGridLines(ctx: CanvasRenderingContext2D, p: WpPayload): void {
-        const w = p.grid!.w * CELL;
-        const h = p.grid!.h * CELL;
+        const ext = _gridExtent(p);
+        const w = ext.w * CELL;
+        const h = ext.h * CELL;
         ctx.save();
         // No opaque fill: the reference image (a layer beneath) must show through.
         const scale = state.stage ? state.stage.scaleX() : 1;
@@ -2596,7 +2723,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         ctx.arc(0, 0, 4 / scale, 0, Math.PI * 2);
         ctx.fill();
         ctx.font = `${Math.max(9, 11 / scale)}px sans-serif`;
-        ctx.fillText(`0,0 · ${p.grid!.w}×${p.grid!.h}`, 6 / scale, -5 / scale);
+        ctx.fillText(`0,0 · ${ext.w}×${ext.h}`, 6 / scale, -5 / scale);
         // Below ~4px per cell the lines become moiré — paint only.
         if (CELL * scale >= 4) {
             ctx.strokeStyle = 'rgba(255,255,255,0.07)';
@@ -2767,7 +2894,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
 
         stage.on('mousedown', (e) => {
             if (state.refEdit && !state.spaceDown) { _refMouseDown(p); return; }
-            if (state.gridEdit && !state.spaceDown) { _gridMouseDown(p); return; }
+            if (state.gridEdit && !state.spaceDown) { _gridMouseDown(p, e.evt); return; }
             if (e.evt && e.evt.button !== 0) return;
             if (state.tool === 'select' && !state.spaceDown) {
                 const cell = _cellAtPointer(p);
@@ -2791,8 +2918,10 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
             _redrawDecor();
         });
         stage.on('mousemove', () => {
+            // The active grid drag tracks itself on the document (it must outlive
+            // the pointer leaving the canvas); nothing else may claim the pointer.
+            if (state.gridEdit) return;
             if (state.refEdit) { _refMouseMove(p); return; }
-            if (state.gridEdit) { _gridMouseMove(p); return; }
             const cell = _cellAtPointer(p);
             if (state.marquee && cell) {
                 if (cell.x !== state.marquee.to.x || cell.y !== state.marquee.to.y) {
@@ -2805,8 +2934,10 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
             _updateCellInfo(p);
         });
         stage.on('mouseup mouseleave', () => {
+            // No grid branch: the drag owns its own document mouseup, so a
+            // `mouseleave` here would commit the resize the moment the pointer
+            // left the frame.
             if (state.refEdit) { _refMouseUp(); return; }
-            if (state.gridEdit) { _gridMouseUp(p); return; }
             if (state.marquee) { _commitMarquee(p); return; }
             if (state.stroking) _commitStroke(p);
         });
