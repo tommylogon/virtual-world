@@ -1,0 +1,173 @@
+{
+  "name": "zombie",
+  "personality": "Nothing behind the eyes but hunger and the dim echo of whoever it used to be. It does not plan, does not speak, does not flee. It turns toward warmth and noise, and it walks until something stops it. What routines it had in life still flicker faintly in its feet, which is somehow worse than malice.",
+  "description": "",
+  "base_description": "A shambling figure in the rotted remains of funeral clothes, one shoulder riding lower than the other as if it came unstitched from its own skeleton. The skin is the gray-green of pond ice, split at the knuckles and throat where the body kept moving anyway. Its jaw hangs loose, and the breath it does not need rattles through it anyway. One eye has clouded over entirely; the other tracks you with a patience the living cannot afford.",
+  "unknown_name": "",
+  "stats": {
+    "STR": 14,
+    "DEX": 6,
+    "CON": 14,
+    "INT": 2,
+    "WIS": 6,
+    "CHA": 2
+  },
+  "vitals": {
+    "Bladder": 0,
+    "Energy": 100,
+    "Entertainment": 0,
+    "HP": 80,
+    "Hunger": 0,
+    "Hygiene": 0,
+    "Max_HP": 80,
+    "Sanity": 0,
+    "Social": 0,
+    "Temperature": 20,
+    "Thirst": 0
+  },
+  "decay_rates": {
+    "bladder": 0,
+    "energy": 0,
+    "entertainment": 0,
+    "hunger": 0,
+    "hygiene": 0,
+    "sanity": 0,
+    "social": 0,
+    "thirst": 0
+  },
+  "skills": {},
+  "traits": {
+    "dark_vision": true
+  },
+  "tags": [
+    "humanoid",
+    "undead",
+    "zombie"
+  ],
+  "interest_tags": [
+    "meat",
+    "brains",
+    "blood",
+    "flesh",
+    "noise",
+    "warmth"
+  ],
+  "state": "awake",
+  "conditions": {
+    "awake": [
+      {
+        "duration": null,
+        "level": 0,
+        "source": null
+      }
+    ]
+  },
+  "equipped": {
+    "accessory": [],
+    "arms": [],
+    "back": [],
+    "feet": [],
+    "hand_left": [],
+    "hand_right": [],
+    "hands": [],
+    "head": [],
+    "legs": [],
+    "neck": [],
+    "torso": [],
+    "waist": []
+  },
+  "activity": null,
+  "current_area": "crypt",
+  "inventory": [],
+  "emotion": {
+    "current": "neutral",
+    "description": "",
+    "intensity": 0
+  },
+  "memories": [],
+  "relationships": {},
+  "behaviors": [
+    {
+      "trigger": "on_player_enter_room",
+      "conditions": {
+        "type": "eq",
+        "target": "npc_state",
+        "value": "idle"
+      },
+      "interval": 1,
+      "priority": 0,
+      "actions": [
+        {
+          "type": "message",
+          "text": "a wet shuffling rises out of the dark, and something that used to be a person turns its head toward you."
+        },
+        {
+          "type": "set_npc_state",
+          "state": "angry"
+        }
+      ]
+    },
+    {
+      "trigger": "on_player_enter_area",
+      "conditions": {
+        "type": "eq",
+        "target": "npc_state",
+        "value": "angry"
+      },
+      "interval": 1,
+      "priority": 0,
+      "actions": [
+        {
+          "type": "speak",
+          "text": "the zombie lunges, arms out, jaw snapping shut on the air where your arm just was."
+        },
+        {
+          "type": "damage",
+          "target": "player",
+          "amount": 6
+        }
+      ]
+    },
+    {
+      "trigger": "on_tick",
+      "conditions": {},
+      "interval": 1,
+      "priority": 0,
+      "actions": [
+        {
+          "type": "speak",
+          "text": "gggghhhhhh... braaaiiinsss..."
+        }
+      ]
+    },
+    {
+      "trigger": "on_speech_heard",
+      "conditions": {},
+      "interval": 1,
+      "priority": 0,
+      "actions": [
+        {
+          "type": "go",
+          "mode": "random"
+        }
+      ]
+    },
+    {
+      "trigger": "on_player_leave_area",
+      "conditions": {},
+      "interval": 1,
+      "priority": 0,
+      "actions": [
+        {
+          "type": "set_npc_state",
+          "state": "idle"
+        }
+      ]
+    }
+  ],
+  "npc_behavior": "wander",
+  "npc_action_interval": 3,
+  "npc_state": "idle",
+  "simple_npc": true,
+  "recent_hearing": []
+}

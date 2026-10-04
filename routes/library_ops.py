@@ -699,6 +699,15 @@ def handle_library_import_character(app, char_id):
         player.activity = activity
     app.world.add_player(player)
 
+    # task-446: a duplicate display name is registered under a uniqued key
+    # ("zombie" -> "zombie__c4d808") while player.name keeps the bare name.
+    # Every placement below must target the key the world actually assigned,
+    # or the area lands on the first holder of the name and the new spawn
+    # comes in with current_area None.
+    pm = getattr(app.world, "player_manager", None)
+    if pm is not None and getattr(player, "id", None):
+        player_name = pm._players_by_id.get(player.id, player_name)
+
     # Expression pack: carry the library character's art onto its node.
     try:
         node = app.world.graph.get_node(

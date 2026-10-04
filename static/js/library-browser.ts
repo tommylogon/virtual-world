@@ -42,7 +42,17 @@ const LibraryApi = ApiClient as unknown as {
 
 const DiffModalTyped = DiffModal as DiffModalStatic;
 
-const itemLibRef = (window as unknown as { itemLib: unknown }).itemLib;
+/**
+ * The item-library singleton, resolved lazily. `itemLib` is a top-level
+ * `const` in item-library.js — a global *lexical* binding, not a window
+ * property — and the copy to `VW.itemLib` in main.js runs after this file
+ * loads, so a load-time snapshot (`window.itemLib`) was always undefined and
+ * every open() died on it with "itemLibRef is undefined".
+ */
+function itemLibRef(): { data: Record<string, LibraryEntry>; open(): void } | undefined {
+    const w = window as unknown as { itemLib?: unknown; VW?: { itemLib?: unknown } };
+    return (w.VW?.itemLib ?? w.itemLib) as { data: Record<string, LibraryEntry>; open(): void } | undefined;
+}
 
 // ItemLibraryPlacement is declared once in globals.d.ts, generated from
 // item-library/placement.js. A local `const` alias here both redeclared it
@@ -152,7 +162,8 @@ class LibraryBrowser {
 
     async open(initialTab?: string) {
         await this.refreshAll();
-        (itemLibRef as unknown as { data: Record<string, LibraryEntry> }).data = this.data.items;
+        const lib = itemLibRef();
+        if (lib) lib.data = this.data.items;
         if (initialTab && initialTab !== 'items') {
             this.switchTab(initialTab as LibraryTab);
         } else {
@@ -173,7 +184,7 @@ class LibraryBrowser {
         document.querySelectorAll('.lib-tab-pane').forEach(el => el.classList.toggle('active', el.id === `lib-pane-${tab}`));
 
         if (tab === 'items') {
-            (itemLibRef as unknown as { open(): void }).open();
+            itemLibRef()?.open();
         } else {
             this.renderList(tab);
             this._showEditorEmpty(tab);
