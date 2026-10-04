@@ -415,19 +415,58 @@ const InspectorHelpersModule = (() => {
             graphManager.loadGraphData();
     };
     // ─────────────────── Expression Pack (SillyTavern-style) ───────────────────
-    /** Known expression keys, in display order. Custom keys append after. */
-    const EXPRESSION_ORDER = ['neutral', 'happy', 'sad', 'angry', 'afraid',
-        'surprised', 'disgusted', 'aroused', 'affectionate', 'ashamed',
-        'envious', 'calm'];
+    /**
+     * Known expression keys, in display order: `neutral` plus the 30 named
+     * expressions an authored sheet is expected to carry (31 tiles). Custom
+     * keys append after.
+     *
+     * This is the single source of truth for every surface that offers the
+     * expression vocabulary — the sprite-sheet splitter's default tile names
+     * (`SpriteSheet.defaultNames`), the card grid's ordering
+     * (`H.expressionKeys`), and the "Expressions to Generate" prompt
+     * (`AgentView._copyExpressionPrompt`, which drops `neutral` via slice(1)).
+     * None of them may keep their own copy.
+     */
+    const EXPRESSION_ORDER = ['neutral', 'happy', 'sad', 'angry', 'surprised',
+        'fearful', 'disgusted', 'confused', 'determined', 'exhausted', 'smug',
+        'worried', 'curious', 'embarrassed', 'proud', 'bored', 'suspicious',
+        'hopeful', 'frustrated', 'relieved', 'defiant', 'sleepy', 'shocked',
+        'amused', 'concerned', 'confident', 'nervous', 'playful', 'serious',
+        'tearful', 'thoughtful'];
     const EXPRESSION_ICONS = {
-        neutral: '😐', happy: '😊', sad: '😢', angry: '😠', afraid: '😨',
-        surprised: '😲', disgusted: '🤢', aroused: '😳', affectionate: '🥰',
-        ashamed: '😖', envious: '😒', calm: '😌',
+        neutral: '😐', happy: '😊', sad: '😢', angry: '😠', surprised: '😲',
+        fearful: '😨', disgusted: '🤢', confused: '😕', determined: '😤',
+        exhausted: '😩', smug: '😏', worried: '😟', curious: '🤔',
+        embarrassed: '😳', proud: '😌', bored: '🥱', suspicious: '🤨',
+        hopeful: '🌟', frustrated: '😫', relieved: '😌', defiant: '😠',
+        sleepy: '😴', shocked: '😱', amused: '😄', concerned: '🫤',
+        confident: '😎', nervous: '😬', playful: '😜', serious: '😐',
+        tearful: '😭', thoughtful: '🤔',
+    };
+    /**
+     * Engine expression key -> authored art key.
+     *
+     * `engine/emotion.py:AXIS_TO_EXPRESSION` picks a face from the 11 affect
+     * axes and emits its own vocabulary (`afraid`, `ashamed`, ...), which is not
+     * the art vocabulary above. Without this join a character the engine calls
+     * `afraid` would look for `afraid` art, find none in a pack authored against
+     * EXPRESSION_ORDER, and silently fall back to the neutral portrait.
+     *
+     * Applied only after a direct slot lookup misses, so packs that already
+     * store the engine's names (e.g. `mansion.json`) keep rendering unchanged.
+     * Engine keys with no authored counterpart (`aroused`, `affectionate`,
+     * `envious`, `calm`) are deliberately absent — they fall back to neutral
+     * rather than borrowing another expression's face.
+     */
+    const EXPRESSION_ART_ALIASES = {
+        afraid: 'fearful',
+        ashamed: 'embarrassed',
     };
     // Exposed so the sprite-sheet splitter (SpriteSheet.defaultNames) uses the
     // same canonical order instead of keeping its own copy in sync.
     H.EXPRESSION_ORDER = EXPRESSION_ORDER;
     H.EXPRESSION_ICONS = EXPRESSION_ICONS;
+    H.EXPRESSION_ART_ALIASES = EXPRESSION_ART_ALIASES;
     H._exprCache = {}; // nodeId -> props (last rendered)
     H._exprTab = {}; // nodeId -> 'profile' | 'full'
     /** Normalise an arbitrary expression name to a filename-safe key. */
@@ -444,6 +483,13 @@ const InspectorHelpersModule = (() => {
             return kind === 'profile'
                 ? (props.profile_image || props.image || '')
                 : (props.image || '');
+        }
+        // Engine vocabulary -> authored art vocabulary (see EXPRESSION_ART_ALIASES).
+        const alias = EXPRESSION_ART_ALIASES[key];
+        if (alias) {
+            const aliased = (expr[alias] || {})[kind];
+            if (aliased)
+                return aliased;
         }
         return '';
     };
@@ -509,7 +555,10 @@ const InspectorHelpersModule = (() => {
             const url = H.expressionImageFor(props, kind, key);
             const icon = EXPRESSION_ICONS[key] || '🎭';
             const label = H.esc(String(key).replace(/_/g, ' '));
-            const isCurrent = H.expressionKeySafe(currentKey) === safeKey;
+            // Alias-aware: the engine may report `afraid` while the art is filed
+            // under `fearful`, and the badge has to land on the card that renders.
+            const currentSafe = H.expressionKeySafe(EXPRESSION_ART_ALIASES[currentKey] || currentKey);
+            const isCurrent = currentSafe === safeKey;
             const thumb = url
                 ? `<img src="${H.esc(url)}" alt="${label}">`
                 : `<span class="expr-empty" title="No ${kind} image">🎭</span>`;

@@ -1454,15 +1454,17 @@ window.InspectorAgentView = (() => {
         const currentDescription = player?.description || '';
         const expressions = props.expressions || {};
         const expressionKeys = Object.keys(expressions).filter(k => k !== 'neutral').sort();
-        // If no expressions exist yet, suggest a standard set matching the canonical EXPRESSION_ORDER
-        // plus slotN placeholders so the prompt has 30 expressions (matching a 31-slot sheet: neutral + 30).
+        // If no expressions exist yet, suggest the canonical authored set:
+        // EXPRESSION_ORDER minus `neutral`, which the sheet carries as tile 1 and
+        // which the generator is told about separately below. This prompt needs
+        // nothing from the sprite-sheet splitter — it only borrows the name list,
+        // and the copy that used to sit here is how it drifted to a stale 12-name
+        // list padded out to a 40-item `slot13..slot40` suggestion.
         const helpers = window.InspectorHelpers;
-        const canonicalOrder = helpers?.EXPRESSION_ORDER?.slice(1) || ['happy', 'sad', 'angry', 'afraid', 'surprised', 'disgusted', 'aroused', 'affectionate', 'ashamed', 'envious', 'calm'];
+        const canonicalOrder = (helpers?.EXPRESSION_ORDER || []).slice(1);
         const useKeys = expressionKeys.length > 0
             ? expressionKeys
-            : [...canonicalOrder, 'slot13', 'slot14', 'slot15', 'slot16', 'slot17', 'slot18', 'slot19', 'slot20',
-                'slot21', 'slot22', 'slot23', 'slot24', 'slot25', 'slot26', 'slot27', 'slot28', 'slot29', 'slot30',
-                'slot31', 'slot32', 'slot33', 'slot34', 'slot35', 'slot36', 'slot37', 'slot38', 'slot39', 'slot40'];
+            : canonicalOrder;
         const isNewPack = expressionKeys.length === 0;
         const prompt = `Character: ${charName}
 

@@ -59,3 +59,50 @@ test('emotionKeyFor falls back to a canonical current, else neutral', () => {
     assertEq(Art.emotionKeyFor({ emotion: {} }), 'neutral', 'no key -> neutral');
     assertEq(Art.emotionKeyFor(null), 'neutral', 'no player -> neutral');
 });
+
+test("the engine's expression key resolves to authored art via the alias", () => {
+    // engine/emotion.py:AXIS_TO_EXPRESSION emits its own vocabulary (`afraid`,
+    // `ashamed`) which is not the authored art vocabulary. emotionKeyFor
+    // returns that key unconditionally, so the slot lookup has to bridge the
+    // two or a fearful character falls back to the neutral portrait.
+    window.InspectorHelpers = { EXPRESSION_ART_ALIASES: { afraid: 'fearful', ashamed: 'embarrassed' } };
+    try {
+        const authored = { expressions: {
+            neutral: { profile: '/p/neutral.png', full: '/f/neutral.png' },
+            fearful: { profile: '/p/fearful.png', full: '/f/fearful.png' },
+        } };
+        const player = { emotion: { expression: 'afraid' } };
+        assertEq(Art.avatarFor(authored, Art.emotionKeyFor(player)), '/p/fearful.png',
+            'engine `afraid` renders the `fearful` art');
+        assertEq(Art.fullArtFor(authored, Art.emotionKeyFor(player)), '/f/fearful.png',
+            'engine `afraid` renders the `fearful` full art');
+    } finally {
+        window.InspectorHelpers = undefined;
+    }
+});
+
+test('a direct engine-named slot still wins over the alias', () => {
+    // Packs that already store the engine's names (mansion.json) must not be
+    // rerouted: the alias is only a fallback for a missing direct hit.
+    window.InspectorHelpers = { EXPRESSION_ART_ALIASES: { afraid: 'fearful' } };
+    try {
+        const both = { expressions: {
+            afraid: { profile: '/p/afraid.png' },
+            fearful: { profile: '/p/fearful.png' },
+        } };
+        assertEq(Art.avatarFor(both, 'afraid'), '/p/afraid.png', 'direct slot wins');
+    } finally {
+        window.InspectorHelpers = undefined;
+    }
+});
+
+test('an engine key with no authored art falls back to neutral', () => {
+    // `aroused` has no counterpart in the authored 30; it must go neutral
+    // rather than borrow another expression's face.
+    window.InspectorHelpers = { EXPRESSION_ART_ALIASES: { afraid: 'fearful' } };
+    try {
+        assertEq(Art.avatarFor(PROPS, 'aroused'), '/p/neutral.png', 'unmapped engine key -> neutral');
+    } finally {
+        window.InspectorHelpers = undefined;
+    }
+});

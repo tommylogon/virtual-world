@@ -24,13 +24,34 @@
 window.CharacterArt = (() => {
     'use strict';
     // Canonical expression keys (fallback if InspectorHelpers isn't loaded yet).
-    const CANONICAL = ['neutral', 'happy', 'sad', 'angry', 'afraid', 'surprised',
-        'disgusted', 'aroused', 'affectionate', 'ashamed', 'envious', 'calm'];
+    const CANONICAL = ['neutral', 'happy', 'sad', 'angry', 'surprised',
+        'fearful', 'disgusted', 'confused', 'determined', 'exhausted', 'smug',
+        'worried', 'curious', 'embarrassed', 'proud', 'bored', 'suspicious',
+        'hopeful', 'frustrated', 'relieved', 'defiant', 'sleepy', 'shocked',
+        'amused', 'concerned', 'confident', 'nervous', 'playful', 'serious',
+        'tearful', 'thoughtful'];
+    /**
+     * Engine expression key -> authored art key, read from InspectorHelpers
+     * (the source of truth). The affect engine emits its own vocabulary
+     * (`afraid`, `ashamed`), which is not the authored art vocabulary, so a
+     * direct slot lookup for the engine's key misses on a pack authored
+     * against EXPRESSION_ORDER. Tried only after the direct lookup fails, so
+     * packs already storing engine names keep rendering unchanged.
+     */
+    function _artAliases() {
+        return (window.InspectorHelpers)?.EXPRESSION_ART_ALIASES || {};
+    }
     function _expr(props) {
         return (props && props.expressions) || {};
     }
+    /** The slot for `key`, falling back to its authored-art alias. */
     function _slot(props, key) {
-        return _expr(props)[key] || {};
+        const expr = _expr(props);
+        const direct = expr[key];
+        if (direct && Object.keys(direct).length)
+            return direct;
+        const alias = _artAliases()[key];
+        return (alias && expr[alias]) || direct || {};
     }
     /**
      * Profile (bust/avatar) for a character, chosen by emotion.

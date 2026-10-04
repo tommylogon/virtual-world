@@ -21,9 +21,24 @@ The pack lives on the character's graph node as `properties.expressions`:
 ```
 
 - **Keys** are normalised to lowercase slugs (`[a-z0-9_]`). The canonical
-  emotion vocabulary is `neutral, happy, sad, angry, afraid, surprised,
-  disgusted, aroused, affectionate, ashamed, envious, calm`; any other string
-  is allowed and treated as a custom **action** key (`attack`, `sleeping`, ...).
+  emotion vocabulary is `neutral` plus the 30 authored expressions, in the order
+  `happy, sad, angry, surprised, fearful, disgusted, confused, determined,
+  exhausted, smug, worried, curious, embarrassed, proud, bored, suspicious,
+  hopeful, frustrated, relieved, defiant, sleepy, shocked, amused, concerned,
+  confident, nervous, playful, serious, tearful, thoughtful` — 31 tiles, which is
+  what an authored sheet carries. `InspectorHelpers.EXPRESSION_ORDER` is the
+  single source of that order; the sprite-sheet defaults, the card grid, and the
+  "Expressions to Generate" prompt all read it rather than keeping copies. Any
+  other string is allowed and treated as a custom **action** key (`attack`,
+  `sleeping`, ...), and tiles past the 31st fall back to `slotN`.
+- **The engine's vocabulary is separate.** `engine/emotion.py:AXIS_TO_EXPRESSION`
+  picks a face from the 11 affect axes and emits keys of its own (`afraid`,
+  `ashamed`, ...). `EXPRESSION_ART_ALIASES` in `inspector/helpers.ts` joins the
+  two (`afraid` -> `fearful`, `ashamed` -> `embarrassed`), applied only after a
+  direct slot lookup misses so packs already storing the engine's names — such
+  as `mansion.json` — render unchanged. Engine keys with no authored counterpart
+  (`aroused`, `affectionate`, `envious`, `calm`) deliberately fall back to the
+  neutral portrait rather than borrowing another expression's face.
 - Each key may define `profile`, `full`, or both. A missing slot falls back.
 
 **Legacy fallbacks** (kept for backward compatibility and non-character nodes):
@@ -199,11 +214,11 @@ message saying so.
 existing box can now be moved and resized instead of deleted and redrawn.
 
 `parseNames` maps tile order to slugs and leaves blank entries un-uploaded;
-`defaultNames`/`defaultNameFor` prefill the canonical emotion order (then
+`defaultNames`/`defaultNameFor` prefill the canonical 31-name order (then
 `slotN`). Names are held parallel to the cell list, so nudging a divider never
 renames a tile the author already named. Because a sheet's captions may not match
-the canonical keys (for example `excited` where the UI uses `aroused`), the names
-are editable before upload rather than hardcoded. The pure geometry is tested in
+the canonical keys (for example `excited`), the names are editable before upload
+rather than hardcoded. The pure geometry is tested in
 `tools/unit/test_sprite_sheet_geometry.js`, which includes a guard that the new
 model reproduces the old `computeCells` output exactly, shape for shape.
 

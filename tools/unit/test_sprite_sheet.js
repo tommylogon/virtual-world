@@ -51,14 +51,29 @@ test('parseNames splits on commas/newlines, slugs, and pads blanks', () => {
     assertEq(SS.parseNames('', 2), ['', ''], 'empty -> all skip');
 });
 
-test('defaultNames follows the canonical order and overflows to slotN', () => {
-    const twelve = SS.defaultNames(12);
-    assertEq(twelve.length, 12, 'twelve names');
-    assertEq(twelve[0], 'neutral', 'starts neutral');
-    assertEq(twelve[7], 'aroused', 'canonical slot 8 is aroused (not excited)');
-    assertEq(twelve[11], 'calm', 'ends calm');
+test('defaultNames follows the canonical order and leaves overflow blank', () => {
+    // The canonical order is neutral + the 30 authored expressions = 31 tiles.
+    const all = SS.defaultNames(31);
+    assertEq(all.length, 31, 'thirty-one canonical names');
+    assertEq(all[0], 'neutral', 'starts neutral');
+    assertEq(all[1], 'happy', 'slot 2 is happy');
+    assertEq(all[4], 'surprised', 'canonical slot 5 is surprised');
+    assertEq(all[5], 'fearful', 'canonical slot 6 is fearful (not afraid)');
+    assertEq(all[30], 'thoughtful', 'ends thoughtful');
     assertEq(SS.defaultNames(3), ['neutral', 'happy', 'sad'], 'truncates');
-    assertEq(SS.defaultNames(14).slice(12), ['slot13', 'slot14'], 'overflows to slotN');
+    // Past the authored vocabulary the name is blank, which the dialog renders
+    // as "skip" and leaves unuploaded — never a `slotN` placeholder.
+    assertEq(SS.defaultNames(33).slice(31), ['', ''], 'overflow is blank, not slotN');
+    assertEq(SS.defaultNames(40).some(n => /^slot\d+$/.test(n)), false, 'no slotN at any width');
+});
+
+test('defaultNames matches the shared EXPRESSION_ORDER vocabulary', () => {
+    // The dialog must not keep its own copy: a drifted fallback here is exactly
+    // how the labels went stale while the helpers list said something else.
+    const names = SS.defaultNames(31);
+    assertEq(SS.EMOTION_ORDER, names, 'EMOTION_ORDER is the canonical order');
+    assertEq(names.filter(n => /^slot\d+$/.test(n)).length, 0, 'no slot placeholders in 31');
+    assertEq(names.every(n => n !== ''), true, 'every canonical tile is named');
 });
 
 test('slug normalises punctuation and spacing', () => {
@@ -80,8 +95,8 @@ test('clampBox clamps to the sheet and rejects stray clicks', () => {
     assertEq(SS.clampBox(10, 10, 40, 12, 100, 100), null, 'too short -> null');
 });
 
-test('defaultNameFor walks the canonical order then slotN', () => {
+test('defaultNameFor walks the canonical order then blank', () => {
     assertEq(SS.defaultNameFor(0), 'neutral', 'first box');
-    assertEq(SS.defaultNameFor(7), 'aroused', 'eighth box');
-    assertEq(SS.defaultNameFor(12), 'slot13', 'overflow');
+    assertEq(SS.defaultNameFor(5), 'fearful', 'sixth box');
+    assertEq(SS.defaultNameFor(31), '', 'past the 31 canonical names -> blank (skip)');
 });

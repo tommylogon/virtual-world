@@ -51,10 +51,15 @@ const _SpriteSheet = (() => {
     /** Null until `openDialog` runs, and null again after it closes. */
     let _state = null;
     // Fallback order, used only when InspectorHelpers is not loaded yet at call
-    // time. InspectorHelpers.EXPRESSION_ORDER is the source of truth when present.
-    const EMOTION_ORDER = ['neutral', 'happy', 'sad', 'angry', 'afraid',
-        'surprised', 'disgusted', 'aroused', 'affectionate', 'ashamed',
-        'envious', 'calm'];
+    // time. InspectorHelpers.EXPRESSION_ORDER is the source of truth when present;
+    // this must stay identical to it or the tile labels drift the moment the
+    // helpers load after this module.
+    const EMOTION_ORDER = ['neutral', 'happy', 'sad', 'angry', 'surprised',
+        'fearful', 'disgusted', 'confused', 'determined', 'exhausted', 'smug',
+        'worried', 'curious', 'embarrassed', 'proud', 'bored', 'suspicious',
+        'hopeful', 'frustrated', 'relieved', 'defiant', 'sleepy', 'shocked',
+        'amused', 'concerned', 'confident', 'nervous', 'playful', 'serious',
+        'tearful', 'thoughtful'];
     //: A drawn box smaller than this (in source pixels, on either axis) is
     //: treated as a stray click, not a panel.
     const MIN_BOX_PX = 8;
@@ -138,9 +143,14 @@ const _SpriteSheet = (() => {
         return out;
     }
     /**
-     * Default names for `count` cells: the canonical emotion order first, then
-     * `slot13`, `slot14`, … for any overflow. The canonical order is read from
+     * Default names for `count` cells: the canonical 31-tile expression order
+     * first, then blank for any overflow. The canonical order is read from
      * InspectorHelpers so the dialog and the gallery never drift apart.
+     *
+     * Overflow is deliberately left blank rather than filled with `slotN`
+     * placeholders: the textarea's own contract is "blank = skip", so a sheet
+     * wider than the authored vocabulary simply does not upload the extra
+     * tiles, instead of inventing names for art nobody specified.
      *
      * @param {number} count
      * @returns {string[]}
@@ -153,10 +163,10 @@ const _SpriteSheet = (() => {
             : EMOTION_ORDER.slice();
         const out = base.slice(0, n);
         for (let i = out.length; i < n; i++)
-            out.push('slot' + (i + 1));
+            out.push('');
         return out;
     }
-    /** Default name for the box at `index` (canonical order, then slotN). */
+    /** Default name for the box at `index` (canonical order, then blank). */
     function defaultNameFor(index) {
         return defaultNames(index + 1)[index];
     }
