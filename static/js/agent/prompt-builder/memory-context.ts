@@ -214,7 +214,9 @@ window.PromptBuilder = window.PromptBuilder || {};
 
         let scored: ScoredMemory[] = [];
 
-        // Score memories from the unified backend store
+        // Score memories from the unified backend store. `reinforce: !preview`
+        // (task-686): retrieval reinforces what it recalls, but a preview must
+        // never mutate the character.
         try {
             const resp = await fetch(`/api/players/${encodeURIComponent(charName)}/memories/retrieve`, {
                 method: 'POST',
@@ -223,6 +225,7 @@ window.PromptBuilder = window.PromptBuilder || {};
                     query,
                     max_results: 10,
                     entity_boost: true,
+                    reinforce: !preview,
                     current_area_id: currentArea ? `area_${currentArea.toLowerCase().replace(/\s+/g, '_')}` : ''
                 })
             });
@@ -235,7 +238,7 @@ window.PromptBuilder = window.PromptBuilder || {};
                     // Backend now includes score directly on the memory object.
                     const backendScore = typeof mem.score === 'number' ? mem.score : null;
                     const icon = memIcon(mem.type);
-                    scored.push({ text: `[${events.tickToRelative(mem.tick)}] ${icon} ${memText}`, score: backendScore !== null ? backendScore : 1.0, tick: mem.tick, emotion: mem.emotion || null, source: 'retrieved' });
+                    scored.push({ text: `[${events.tickToRelative(mem.tick)}] ${icon} ${memText}`, score: backendScore !== null ? backendScore : 1.0, tick: mem.tick, emotion: mem.emotion || null, source: 'retrieved', category: mem.category, type: mem.type, confidence: typeof mem.confidence === 'number' ? mem.confidence : undefined, contradicts: Array.isArray(mem.contradicts) ? mem.contradicts : [] });
                 }
             }
         } catch (e) {
@@ -285,14 +288,26 @@ window.PromptBuilder = window.PromptBuilder || {};
                     });
                     if (resp.ok) {
                         const data = await resp.json();
+                        const hitIds: string[] = [];
                         for (const hit of (data.results || [])) {
                             if (hit.score < 0.35) continue;
                             const memEntry = rawMemories.find((m: RawMemory) => (typeof m === 'object' && (m as RawMemoryObject).id === hit.memory_id));
                             const textContent = typeof memEntry === 'object' ? ((memEntry as RawMemoryObject)?.text || '') : '';
                             if (!textContent) continue;
+                            hitIds.push(String(hit.memory_id));
                             const tickValue = (memEntry as RawMemoryObject).tick || 0;
                             const icon = memIcon((memEntry as RawMemoryObject).type);
-                            scored.push({ text: `[${events.tickToRelative(tickValue)}] ${icon} ${textContent}`, score: 2.0 * hit.score, tick: tickValue, emotion: (memEntry as RawMemoryObject).emotion || null, source: 'vector', kb: hit.score });
+                            scored.push({ text: `[${events.tickToRelative(tickValue)}] ${icon} ${textContent}`, score: 2.0 * hit.score, tick: tickValue, emotion: (memEntry as RawMemoryObject).emotion || null, source: 'vector', kb: hit.score, category: (memEntry as RawMemoryObject).category, type: (memEntry as RawMemoryObject).type, confidence: typeof ((memEntry as RawMemoryObject) as { confidence?: unknown }).confidence === 'number' ? ((memEntry as RawMemoryObject) as { confidence?: number }).confidence : undefined, contradicts: Array.isArray(((memEntry as RawMemoryObject) as { contradicts?: unknown }).contradicts) ? ((memEntry as RawMemoryObject) as { contradicts?: unknown[] }).contradicts : [] });
+                        }
+                        // task-686: semantic hits were recalled, so they reinforce
+                        // — the scoring endpoint can't stamp them (it never saw
+                        // them). Fire-and-forget; previews skip entirely.
+                        if (hitIds.length > 0) {
+                            fetch(`/api/players/${encodeURIComponent(charName)}/memories/reinforce`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ ids: hitIds, tick: worldState?.data?.time_ticks || 0 })
+                            }).catch(() => {});
                         }
                     }
                 }
@@ -387,8 +402,47 @@ window.PromptBuilder = window.PromptBuilder || {};
         if (topMemories.length > 0) {
             parts.push('');
             parts.push('=== I REMEMBER ===');
+            // task-690: the recall block is a character model, not event soup.
+            // Sectioned when any conclusion-type memory is present; a character
+            // with only episodes gets the plain list it always had.
+            const categoryOf = (m: ScoredMemory): string => {
+                const cat = m.category ? String(m.category) : '';
+                if (cat) return cat;
+                if (String(m.type || '') === 'reflection') return 'belief';
+                const tags = (m.memTags || []).map((t: unknown) => String(t).toLowerCase());
+                if (tags.some((t: string) => t.startsWith('rel:'))) return 'social';
+                return 'episodic';
+            };
+            const certaintySuffix = (m: ScoredMemory): string => {
+                const flags: string[] = [];
+                if (Array.isArray(m.contradicts) && m.contradicts.length > 0) {
+                    flags.push('⚡ this conflicts with another memory');
+                }
+                if (typeof m.confidence === 'number' && m.confidence < 0.5) {
+                    flags.push('you are not sure of this');
+                }
+                return flags.length > 0 ? ` (${flags.join('; ')})` : '';
+            };
+            const sections: Array<[string, ScoredMemory[]]> = [
+                ['EVENTS — what happened', []],
+                ['WHAT I BELIEVE', []],
+                ['HOW I SEE PEOPLE', []],
+                ['WHAT I EXPECT', []]
+            ];
             for (const memoryEntry of topMemories) {
-                parts.push(memoryEntry.text);
+                const cat = categoryOf(memoryEntry);
+                if (cat === 'belief' || cat === 'semantic') sections[1][1].push(memoryEntry);
+                else if (cat === 'social') sections[2][1].push(memoryEntry);
+                else if (cat === 'procedural') sections[3][1].push(memoryEntry);
+                else sections[0][1].push(memoryEntry);
+            }
+            const hasModel = sections.slice(1).some(([, list]) => list.length > 0);
+            for (const [header, list] of sections) {
+                if (list.length === 0) continue;
+                if (hasModel) parts.push(header);
+                for (const memoryEntry of list) {
+                    parts.push(memoryEntry.text + certaintySuffix(memoryEntry));
+                }
             }
             if (!preview) _respikeFromMemories(charName, topMemories);
         } else {
@@ -549,6 +603,10 @@ interface ScoredMemory {
     matchedWords?: string[];
     memTags?: unknown[];
     memory_emotions?: EmotionTag[];
+    category?: unknown;
+    type?: unknown;
+    confidence?: number;
+    contradicts?: unknown[];
 }
 
 interface RawMemoryObject {
@@ -558,6 +616,9 @@ interface RawMemoryObject {
     emotion?: unknown;
     tags?: unknown[];
     id?: unknown;
+    category?: unknown;
+    confidence?: unknown;
+    contradicts?: unknown;
 }
 
 type RawMemory = string | RawMemoryObject;

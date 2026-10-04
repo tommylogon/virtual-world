@@ -589,9 +589,15 @@ class TickManager:
             if TraitSystem.has_effect(p, "is_slasher") or self.gs.is_undead_ghost(pname):
                 continue
 
-            # task-403: trait-driven memory decay. Inert without a
-            # memory_decay_per_tick trait, so the default is unchanged.
-            if TraitSystem.get_first_effect(p, MEMORY_DECAY_PER_TICK):
+            # task-403: trait-driven memory decay; task-687 adds the
+            # memory.decay_per_tick runtime-config default, so decay now runs
+            # when EITHER the trait or the config rate is non-zero
+            # (AgentMind.apply_decay resolves which; 0/absent stays inert).
+            from engine.traits import TraitSystem, MEMORY_DECAY_PER_TICK
+            from engine.memory_dynamics import DECAY_RATE_KEY
+            from engine.runtime_config import config as _rc
+            if TraitSystem.get_first_effect(p, MEMORY_DECAY_PER_TICK) or \
+                    float(_rc.get(DECAY_RATE_KEY, 0) or 0) > 0:
                 from engine.agent_memory import AgentMind
                 AgentMind(p, self.graph, game_state=self.gs).apply_decay()
 

@@ -277,6 +277,14 @@
                             </div>
                         </div>
                     </div>
+                    <!-- ⚙ Tune is the Settings modal's Graph tab, rebuilt live at
+                         the canvas by GraphToolbar from TUNING_GROUPS, so physics
+                         and look parameters are dragged while the graph reacts.
+                         The modal keeps its own markup over the same config keys. -->
+                    <div class="toolbar-dropdown menu-anchor">
+                        <button class="toolbar-btn" id="btn-tuning" aria-haspopup="menu" aria-expanded="false" onclick="GraphToolbar.toggleTuning(event)" title="Physics, separation and edge tuning — every slider applies live while you watch the canvas (the same settings as ⚙ Settings → Graph)">⚙ Tune ▾</button>
+                        <div id="graph-tuning-menu" class="dropdown-menu toolbar-menu toolbar-tuning-menu" role="menu" aria-label="Graph tuning"></div>
+                    </div>
                     <button class="toolbar-btn" id="btn-fit" data-overflow-label="Fit all nodes" onclick="graphManager.fitView()" title="Zoom to fit all nodes">⊞</button>
                     <!-- Physics and Export PNG keep their own text in the overflow
                          ("⏸ Physics", "📷 PNG"); only the icon-only controls need a
@@ -482,6 +490,10 @@
                         <div class="settings-field"><label for="graph-edge-width">Default Edge Width <span id="graph-edge-width-val" class="range-value">1</span></label><div class="range-row"><span style="font-size:10px;color:var(--text-muted);">Thin</span><input type="range" id="graph-edge-width" min="0.5" max="5" step="0.5" value="1" style="flex:1;" oninput="config.graphEdgeWidth=parseFloat(this.value);document.getElementById('graph-edge-width-val').textContent=parseFloat(this.value).toFixed(1);config.save();GraphNetwork.applyGraphSettings();"><span style="font-size:10px;color:var(--text-muted);">Thick</span></div></div>
                         <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="graph-arrows" onchange="config.graphArrows=this.checked;config.save();GraphNetwork.applyGraphSettings();"> ➡️ Edge Arrows</label><span class="toggle-desc">Show direction arrows on connection edges</span></div>
                         <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="graph-improved-layout" onchange="config.graphImprovedLayout=this.checked;config.save();GraphNetwork.applyGraphSettings();"> 🧩 Improved Layout</label><span class="toggle-desc">Better initial node placement (may shift positions)</span></div>
+                    </div>
+                    <div class="settings-group">
+                        <div class="settings-group-title"><span class="group-icon">🎥</span> Camera</div>
+                        <div class="settings-field"><label for="graph-focus-zoom">Focus Zoom <span id="graph-focus-zoom-val" class="range-value">1.15</span></label><div class="range-row"><span style="font-size:10px;color:var(--text-muted);">Far</span><input type="range" id="graph-focus-zoom" min="0.5" max="3" step="0.05" value="1.15" style="flex:1;" oninput="config.graphFocusZoom=parseFloat(this.value);document.getElementById('graph-focus-zoom-val').textContent=parseFloat(this.value).toFixed(2);config.save();"><span style="font-size:10px;color:var(--text-muted);">Close</span></div><div class="field-hint">How close the camera zooms when a node is focused from a list, the outline or a search hit (1 = 100%)</div></div>
                     </div>
                 </div>
                 <div id="tab-embedding" class="tab-pane">
@@ -1379,6 +1391,7 @@
     <script src="/static/js/inspector/trigger-helpers.js"></script>
     <script src="/static/js/inspector/paperdoll-view.js"></script>
     <script src="/static/js/inspector/memory-view.js"></script>
+    <script src="/static/js/inspector/mind-view.js"></script>
     <script src="/static/js/inspector/behaviors-view.js"></script>
     <script src="/static/js/inspector/lore-view.js"></script>
     <script src="/static/js/inspector/agent-view.js"></script>

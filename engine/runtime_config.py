@@ -85,6 +85,10 @@ DEFAULTS: dict = {
     "graph.show_only_inhabited": True,
     # player.py — per-character memory retention
     "memory.max_per_character": 0,
+    # engine/memory_dynamics.py (task-687) — activation lost per tick; 0 freezes
+    "memory.decay_per_tick": 0.01,
+    # engine/memory_dynamics.py (task-688) — consolidate even without cap pressure
+    "memory.consolidate": False,
     # player.py — relationship drift toward neutral when unmaintained
     "relationship.decay_per_day": 0.5,
     # engine/novelty.py — Entertainment from fresh places/things/people
@@ -301,6 +305,8 @@ config = RuntimeConfig()
 #: UI to render the editor without hardcoding the key list in the frontend.
 SCHEMA: dict[str, dict] = {
     "memory.max_per_character": {"section": "memory", "label": "Max memories per character (0 = unlimited)", "type": "number"},
+    "memory.decay_per_tick": {"section": "memory", "label": "Memory activation lost per tick (0 = no decay)", "type": "float"},
+    "memory.consolidate": {"section": "memory", "label": "Consolidate stale memories into traces (even without cap pressure)", "type": "boolean"},
     "relationship.decay_per_day": {"section": "relationship", "label": "Closeness lost per unmaintained day", "type": "float"},
     "entertainment.novelty_recovery_minutes": {"section": "entertainment", "label": "Minutes before a place/thing/person is novel again", "type": "number"},
     "sound.speech_whisper": {"section": "sound", "label": "Whisper penetration", "type": "number"},

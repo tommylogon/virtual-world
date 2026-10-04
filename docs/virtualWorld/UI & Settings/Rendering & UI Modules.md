@@ -78,6 +78,48 @@ so existing call sites keep working:
 Load order in `templates/index.html` matters: modules that only reference globals at call time
 can load before the objects they use, but keep dependencies load-order-stable or lazily global.
 
+## ⚙ Tune — graph physics at the canvas (the Tune popover)
+
+**Status: implemented, wired, tested** (`tools/unit/test_graph_toolbar.js` parity tests,
+`tools/unit/test_graph_tuning.js` apply-path pins).
+
+**What it does.** The ⚙ Settings → Graph tab, rendered as a popover in the graph toolbar's
+*Look* zone (`btn-tuning` / `#graph-tuning-menu`), so physics, separation, edge and camera
+parameters can be dragged while the graph reacts. `GraphToolbar.TUNING_GROUPS` is the field
+spec (4 groups, 14 controls); `GraphToolbar.buildTuningMenu()` renders it once on first open
+and `syncTuning()` re-reads config every time it opens — **config stays the single source of
+truth for values**; the Settings modal keeps its own static markup over the same keys. The
+parity tests read the modal's markup out of `templates/index.html` and fail if the two
+surfaces drift apart (same keys, same min/max/step, `gt-`-prefixed ids so they cannot collide).
+
+**Applying settings — two paths, one writer.** `GraphNetwork.applyGraphSettings()`:
+
+- **Default (slider ticks): in place.** `setOptions(buildOptions())` + `startSimulation()` —
+  the new forces act on the graph *as it is on screen*: nodes keep their positions and settle,
+  the camera never moves. Deliberately no refetch, no `_lastSig` blanking, no ring reseed, no
+  restabilize — the old unconditional rebuild re-fit the camera ~1s after every slider tick,
+  which read as the graph reloading under the user.
+- **`rebuild` (Levels/Free switch via `toggleLayoutMode`): full re-derivation.** Reload +
+  reseed + restabilize, because the switch changes *what* is laid out, not how it settles.
+
+**Placement.** The menu is 640px wide and `#center-viewport` clips `overflow: hidden`, so CSS
+placement alone loses its left column under the left panel whenever the trigger sits near it.
+`GraphToolbar.placeTuningMenu()` runs on every open: right-align to the trigger, then clamp
+into the center viewport's box, shrinking if the viewport itself is narrow.
+
+**Camera group.** `graphFocusZoom` (Focus Zoom, 0.5–3, default 1.15) is the zoom vis.js uses
+when a node is focused from a list, the outline, a search hit or the command palette — read at
+click time by `graphManager.focusNode()`, which used to hardcode `scale: 1.15`. It is a camera
+setting, not a physics one, so changing it only persists; the next focus uses it.
+
+**Character drift note.** A character's resting distance from their room is the equilibrium of
+their edge spring vs repulsion from the room's other contents — heavy carriers (elena vance:
+12 carried/worn items) sit farthest out. "Parent Pull" only reels back nodes displaced by the
+separation pass, and edge-joined nodes are exempt from separation, so ordinary repulsion drift
+has no counterweight knob yet (candidates: a character leash strength, or including edge-joined
+pairs in the pull). Not implemented — by design for now; tune Repulsion / Spring Stiffness /
+Item Edge Length to shrink the equilibrium.
+
 ## 🐞 Report a bug (the 🐞 Report dialog)
 
 **What it does.** Turns whatever you are looking at *right now* into a real dev-task file —

@@ -131,15 +131,27 @@ class TestPlayerMemoryHelpers:
         assert results[0]["text"] == "Boom."
 
     def test_get_relevant_memories_reinforces_on_recall(self, hero):
+        # task-686: recall reinforces activation/counters, it no longer
+        # ratchets the authored importance (the old +1-importance contract).
         hero.add_memory("Stable.", 1, importance=5)
-        hero.get_relevant_memories("stable", max_results=5)
-        assert hero.memories[0]["importance"] == 6
+        hero.get_relevant_memories("stable", max_results=5, tick=40)
+        m = hero.memories[0]
+        assert m["importance"] == 5
+        assert m["reinforcements"] == 1
+        assert m["last_recalled_tick"] == 40
+        assert m["activation"] == 1.0  # already at ceiling; bump is capped
 
     def test_get_relevant_memories_reinforce_caps_at_10(self, hero):
+        # task-686: repeated recall keeps importance authored; activation caps
+        # at 1.0 and confidence climbs only its small bounded step per recall.
         hero.add_memory("Maxed.", 1, importance=10)
         for _ in range(5):
-            hero.get_relevant_memories("maxed", max_results=5)
-        assert hero.memories[0]["importance"] == 10
+            hero.get_relevant_memories("maxed", max_results=5, tick=7)
+        m = hero.memories[0]
+        assert m["importance"] == 10
+        assert m["reinforcements"] == 5
+        assert m["activation"] == 1.0
+        assert abs(m["confidence"] - 0.8) < 1e-9  # 0.7 + 5 × 0.02
 
 
 # ─────────────────── surface_memory effect ───────────────────

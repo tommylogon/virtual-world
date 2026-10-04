@@ -21,11 +21,9 @@ from engine.traits import (
     MEMORY_DECAY_REDUCTION,
     MAX_IMPORTANCE_CAP,
 )
-
-#: Memories that must never decay: authored knowledge the character was told.
-NON_DECAYING_SOURCES = ("preconceived",)
-#: Memories that fade at half rate: earned on-screen, summarised off-screen.
-HALF_DECAY_SOURCES = ("background",)
+from engine.memory_dynamics import DECAY_RATE_KEY, CONSOLIDATE_KEY
+# decay-source rules (preconceived never / background half) live in
+# engine.memory_dynamics, the one writer of decay — not duplicated here.
 
 
 def _default_salience(memory: Dict[str, Any]) -> float:
@@ -53,8 +51,11 @@ class AgentMind:
         """Return memories relevant to *query*/*need*, best first.
 
         Matching is tag/keyword based (no embeddings unless a vector store is
-        attached). Ranked by ``importance * salience * recall_boost * urgency``,
-        and filtered by the character's ``max_importance_cap`` trait when set.
+        attached). Ranked by ``effective_importance * salience * recall_boost *
+        urgency`` (task-685: availability and confidence modulate the base
+        importance), and filtered by the character's ``max_importance_cap``
+        trait when set. Recalled memories are reinforced — thinking about
+        something keeps it available.
         """
         player = self.player
         context = context or {}
@@ -64,6 +65,9 @@ class AgentMind:
         cap = TraitSystem.get_first_effect(player, MAX_IMPORTANCE_CAP)
         urgency = float(context.get("urgency", 1.0) or 1.0)
 
+        from engine.memory_dynamics import effective_importance, reinforce
+        tick = getattr(self.gs, "time_ticks", None) if self.gs is not None else None
+
         scored = []
         for memory in getattr(player, "memories", []) or []:
             if not self._matches(memory, terms, need or ""):
@@ -71,10 +75,13 @@ class AgentMind:
             importance = float(memory.get("importance", 5) or 5)
             if cap is not None and importance > float(cap):
                 continue
-            score = importance * _default_salience(memory) * boost * urgency
+            score = effective_importance(memory) * _default_salience(memory) * boost * urgency
             scored.append((score, memory))
         scored.sort(key=lambda pair: pair[0], reverse=True)
-        return [memory for _, memory in scored[:limit]]
+        recalled = [memory for _, memory in scored[:limit]]
+        for memory in recalled:
+            reinforce(memory, tick=tick)
+        return recalled
 
     @staticmethod
     def _matches(memory: Dict[str, Any], terms: set, need: str) -> bool:
@@ -182,39 +189,36 @@ class AgentMind:
 
     # ── decay ───────────────────────────────────────────────────────────
     def apply_decay(self) -> int:
-        """Fade memories by the character's trait-driven rate; return removed count.
+        """Fade memories and consolidate when pressured; return removed count.
 
-        Inert without a trait that sets ``memory_decay_per_tick``, so the default
-        is no behaviour change. Preconceived memories never decay; background
-        memories fade at half rate.
+        Delegates to ``memory_dynamics.apply_decay`` (task-687): activation
+        decays with per-memory resistance, not a flat salience subtraction.
+        The rate is the character's ``memory_decay_per_tick`` trait value when
+        it has one (trait semantics unchanged, including the reduction trait);
+        otherwise the ``memory.decay_per_tick`` runtime-config default, so
+        ordinary characters finally forget and ``0`` freezes everyone.
+
+        Preconceived memories never decay; background memories fade at half
+        rate. Consolidation (task-688) runs after decay only under pressure —
+        a retention cap nearly full, or ``memory.consolidate`` enabled.
         """
         player = self.player
-        rate = TraitSystem.get_first_effect(player, MEMORY_DECAY_PER_TICK)
-        if not rate:
-            return 0
-        reduction = float(TraitSystem.get_first_effect(player, MEMORY_DECAY_REDUCTION) or 0.0)
-        rate = float(rate) * max(0.0, 1.0 - reduction)
-        if rate <= 0:
-            return 0
+        from engine.memory_dynamics import apply_decay, consolidate, consolidation_pressure
+        trait_rate = TraitSystem.get_first_effect(player, MEMORY_DECAY_PER_TICK)
+        if trait_rate:
+            reduction = float(TraitSystem.get_first_effect(player, MEMORY_DECAY_REDUCTION) or 0.0)
+            rate = float(trait_rate) * max(0.0, 1.0 - reduction)
+        else:
+            from engine.runtime_config import config
+            rate = float(config.get(DECAY_RATE_KEY, 0) or 0)
+        removed = apply_decay(player, rate)
 
-        removed = 0
-        for memory in list(player.memories or []):
-            source = str(memory.get("source", ""))
-            if source in NON_DECAYING_SOURCES:
-                continue
-            step = rate * (0.5 if source in HALF_DECAY_SOURCES else 1.0)
-            remaining = _default_salience(memory) - step
-            memory["salience_override"] = round(max(0.0, remaining), 3)
-            if remaining <= 0:
-                player.memories.remove(memory)
-                self._forget_index(memory.get("id"))
-                removed += 1
+        try:
+            from engine.runtime_config import config
+            consolidate_enabled = bool(config.get(CONSOLIDATE_KEY, False))
+        except Exception:
+            consolidate_enabled = False
+        if consolidate_enabled or consolidation_pressure(player):
+            tick = getattr(self.gs, "time_ticks", 0) if self.gs is not None else 0
+            consolidate(player, tick=tick)
         return removed
-
-    def _forget_index(self, memory_id) -> None:
-        index = getattr(self.player, "memory_index", None)
-        if not isinstance(index, dict) or not memory_id:
-            return
-        for subject, mid in list(index.items()):
-            if mid == memory_id:
-                index.pop(subject, None)

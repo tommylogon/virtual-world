@@ -1,9 +1,17 @@
 # Memory Dynamics — from a memory list to an evolving internal model
 
-*Status of this document: design. Everything in it is **planned** unless a
-section says otherwise. The mechanical "what exists today" companion is
-[[Memory System]] — read that first; this document changes as little of it as
-possible.*
+*Status 2026-10-04 (task-685..691): **implemented and wired** — the engine
+arithmetic (`engine/memory_dynamics.py`), the write-path reinforcement and
+contradiction detection (both the engine and the HTTP write path), the tick
+decay/consolidation hook, the structured reflect endpoint + depth guard, the
+retrieval 2.0 scorer with structured grouping, the client's sectioned recall
+block, and the interface: inspector dynamics badges/stats/filters, the
+Category/Confidence/Connections editor, the per-person profiles endpoint +
+panel, and the full **Memory Mind** dashboard (`mind-view.ts`). All exercised
+by `tests/test_memory_dynamics.py` and verified live in the browser against a
+seeded scenario. Consolidation beyond cap-pressure and the reflection flow for
+NPC-only characters remain **planned**; see the open questions in the task
+tree.*
 
 VirtualWorld's memory system already has the right skeleton: one unified
 `Player.memories[]`, LLM-written subjective takeaways, importance 1–10, tags,
@@ -164,14 +172,17 @@ effectively permanent.
 Characters must be allowed to remember wrong things. Two detection paths, both
 **marking** rather than resolving (the character, not the engine, resolves):
 
-1. **Structural, at write time** (`memory_dynamics.detect_contradiction`):
-   when a new memory shares an entity with an existing one, and the pair shows
-   **negation asymmetry** (one asserts what the other denies — negation markers
+1. **Structural, at write time** (`memory_dynamics.detect_contradiction`,
+   on both the engine and HTTP write paths): when a new memory shares an
+   entity with an existing one, and the pair shows **negation asymmetry** (one
+   asserts what the other denies — negation markers
    `never/not/didn't/denied/isn't/no longer` on one side, absent on the other,
    with ≥ 2 shared content words or Jaccard ≥ 0.4), the ids are linked
    symmetrically in `contradicts` and the older memory's confidence drops
-   ×0.9. Conservative by design: entity overlap AND shared content AND
-   negation asymmetry, or no link.
+   ×0.9. **Attitude statements are exempt** — a first-person feeling ("I do
+   not trust Anna…") is not a factual denial; conflicting feelings belong to
+   the derive.py sentiment dimensions (this false-positive class was caught
+   live and excluded). The editor's link list syncs both sides on save.
 2. **Interpretive, via reflection**: the reflection prompt (§4) receives any
    contradicting pairs among its source memories and may emit a resolution
    belief ("Anna probably entered the cellar") with its own confidence —

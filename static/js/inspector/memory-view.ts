@@ -31,15 +31,33 @@ window.InspectorMemory = (() => {
     // character, so its memory entries are read as `any` rather than modelled.
     M.renderMemoriesHtml = function (agentName: string, player: any, escName: string, esc: (value: unknown) => string): string {
         let html = `<div class="inspector-section" id="memory-section-${escName}">
-            <h3>🧠 Memories</h3>
-            <input type="text" id="mem-filter-${escName}" placeholder="Filter memories..."
+            <h3>🧠 Memories <button class="btn btn-sm" style="font-size:9px;padding:1px 6px;vertical-align:middle;" onclick="window.InspectorMindView&&window.InspectorMindView.open('${escName}')" title="Open the Memory Mind dashboard (timeline, dynamics, people, connections)">🧠 Mind</button></h3>
+            <input type="text" id="mem-filter-${escName}" placeholder="Filter memories... (or cat:belief, cat:social, cat:episodic)"
                 style="width:100%;font-size:10px;padding:3px 6px;margin-bottom:4px;box-sizing:border-box;"
                 oninput="InspectorMemory.filterMemories('${escName}', this.value)">
             <div id="memory-list-${escName}" style="max-height:300px;overflow-y:auto;margin-bottom:4px;">`;
         const memories = player.memories || [];
         const memIcon = (t: string): string => ({observation:'👁️',discovery:'💡',conversation:'💬',item:'📦',combat:'⚔️',exploration:'🗺️',failure:'⚠️',success:'✅',reflection:'🔄',action:'▶️',speech:'💬',thought:'🤔',reaction:'💭',location:'📍'} as Record<string, string>)[t]||'📝';
         const impColor = (i: number): string => i >= 8 ? '#e05555' : i >= 6 ? '#e0a33c' : i >= 4 ? '#4caf50' : '#888';
+        // task-691: memory-kind chips. Category is stored on new entries and
+        // derived for old ones — the same fallback the recall block uses.
+        const catOf = (m: any): string => {
+            if (m.category) return String(m.category);
+            if (String(m.type || '') === 'reflection') return 'belief';
+            const memTags = Array.isArray(m.tags) ? m.tags.map((t: any) => String(t).toLowerCase()) : [];
+            if (memTags.some((t: string) => t.startsWith('rel:'))) return 'social';
+            return 'episodic';
+        };
+        const catColor = (c: string): string => ({episodic:'#58a6ff',semantic:'#39c5cf',belief:'#bc8cff',social:'#f778ba',procedural:'#d29922'} as Record<string, string>)[c]||'#8b949e';
         const currentTick = VW?.state?.tick ?? 0;
+        // task-691: dynamics stats line — real fields, no decorative numbers.
+        const beliefCount = memories.filter((m: any) => ['belief','semantic'].includes(catOf(m))).length;
+        const conflictCount = memories.reduce((acc: number, m: any) => acc + (Array.isArray(m.contradicts) ? m.contradicts.length : 0), 0) / 2;
+        const confSum = memories.reduce((acc: number, m: any) => acc + (typeof m.confidence === 'number' ? m.confidence : 1), 0);
+        const avgConf = memories.length ? Math.round((confSum / memories.length) * 100) : 100;
+        if (memories.length > 0) {
+            html += `<div style="font-size:10px;color:var(--text-muted);margin-bottom:4px;" title="Live memory dynamics (task-685)">${memories.length} memories · ${beliefCount} beliefs/conclusions · ${Math.round(conflictCount)} contradictions · avg confidence ${avgConf}%</div>`;
+        }
         if (memories.length > 0) {
             const sorted = [...memories].reverse();
             sorted.forEach((m: any) => {
@@ -63,13 +81,29 @@ window.InspectorMemory = (() => {
                 const sourceLabel = source === 'manual' ? '<span style="font-size:9px;color:var(--accent);border:1px solid var(--accent);border-radius:8px;padding:0 5px;margin-left:4px;">SEED</span>' : `<span style="font-size:9px;color:var(--text-muted);border:1px solid var(--border);border-radius:8px;padding:0 5px;margin-left:4px;">src:${esc(source)}</span>`;
                 const suppressBadge = isSuppressed ? `<span style="font-size:9px;color:#e05555;border:1px solid #e05555;border-radius:8px;padding:0 5px;margin-left:4px;">🚫 SUPPRESSED</span>` : '';
                 const salienceBadge = salience > 0 ? `<span style="font-size:9px;color:#4caf50;border:1px solid #4caf50;border-radius:8px;padding:0 5px;margin-left:4px;">⚡ salience ${salience}</span>` : '';
-                const opacity = isSuppressed ? 'opacity:0.5;' : '';
-                html += `<div class="memory-entry" data-text="${esc((m.text||'').toLowerCase())}" data-tags="${esc((tags||[]).join(',').toLowerCase())}" style="background:var(--bg-card);border:1px solid var(--border);border-left:3px solid ${isSuppressed ? '#888' : impColor(imp)};border-radius:6px;padding:7px;margin-bottom:5px;font-size:11px;${opacity}">
+                // task-691: dynamics badges — category, confidence, reinforcement,
+                // contradiction links, faded availability.
+                const cat = catOf(m);
+                const activation = typeof m.activation === 'number' ? m.activation : 1;
+                const confidence = typeof m.confidence === 'number' ? m.confidence : null;
+                const reinf = Number(m.reinforcements) || 0;
+                const contraCount = Array.isArray(m.contradicts) ? m.contradicts.length : 0;
+                const catBadge = `<span style="font-size:9px;color:${catColor(cat)};border:1px solid ${catColor(cat)};border-radius:8px;padding:0 5px;margin-left:4px;" title="Memory kind">${cat}</span>`;
+                const confBadge = confidence !== null && confidence < 1 ? `<span style="font-size:9px;color:${confidence < 0.5 ? '#d29922' : '#8b949e'};border:1px solid var(--border);border-radius:8px;padding:0 5px;margin-left:4px;" title="How sure the character is">conf ${Math.round(confidence * 100)}%</span>` : '';
+                const reinfBadge = reinf > 0 ? `<span style="font-size:9px;color:#4caf50;border:1px solid #2c5e2e;border-radius:8px;padding:0 5px;margin-left:4px;" title="Reinforced by recall or re-encounter">↻ ×${reinf}</span>` : '';
+                const contraBadge = contraCount > 0 ? `<span style="font-size:9px;color:#e05555;border:1px solid #6e2c2c;border-radius:8px;padding:0 5px;margin-left:4px;" title="Conflicts with ${contraCount} other memor${contraCount === 1 ? 'y' : 'ies'} — unresolved">⚡ ${contraCount}</span>` : '';
+                const faded = !isSuppressed && activation < 0.5;
+                const opacity = isSuppressed ? 'opacity:0.5;' : (faded ? 'opacity:0.55;' : '');
+                html += `<div class="memory-entry" data-text="${esc((m.text||'').toLowerCase())}" data-tags="${esc((tags||[]).join(',').toLowerCase())}" data-cat="${esc(cat)}" style="background:var(--bg-card);border:1px solid var(--border);border-left:3px solid ${isSuppressed ? '#888' : impColor(imp)};border-radius:6px;padding:7px;margin-bottom:5px;font-size:11px;${opacity}">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;">
                         <div style="flex:1;min-width:0;">
                             <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
                                 <span style="color:var(--text-dim);font-size:10px;">[${events.tickToTime(tick)}]</span>
                                 <span style="font-size:10px;font-weight:600;">${memIcon(m.type)} ${m.type}</span>
+                                ${catBadge}
+                                ${confBadge}
+                                ${reinfBadge}
+                                ${contraBadge}
                                 ${sourceLabel}
                                 ${suppressBadge}
                                 ${salienceBadge}
@@ -115,7 +149,10 @@ window.InspectorMemory = (() => {
         entries.forEach(el => {
             const text = el.dataset.text || '';
             const tags = el.dataset.tags || '';
-            const match = !q || text.includes(q) || tags.includes(q);
+            const cat = el.dataset.cat || '';
+            // "cat:belief" filters by memory kind; anything else matches text/tags.
+            const match = !q
+                || (q.startsWith('cat:') ? cat === q.slice(4) : (text.includes(q) || tags.includes(q)));
             el.style.display = match ? '' : 'none';
         });
     };
@@ -161,6 +198,23 @@ window.InspectorMemory = (() => {
         const types = ['observation','conversation','location','event','thought','reflection','discovery','combat','speech','reaction','item','exploration','action','failure','success'];
         const typeOpts = types.map(t => htmlTag`<option value=${t} ?selected=${existing?.type === t}>${t}</option>`);
 
+        // task-691 stage 2: category + confidence controls. "auto" lets the
+        // backend derive the kind from type/tags; a stored value preselects.
+        const categories = ['episodic', 'semantic', 'procedural', 'social', 'belief'];
+        const deriveCat = (m: any): string => {
+            if (m?.category) return String(m.category);
+            if (String(m?.type || '') === 'reflection') return 'belief';
+            const memTags = Array.isArray(m?.tags) ? m.tags.map((t: any) => String(t).toLowerCase()) : [];
+            if (memTags.some((t: string) => t.startsWith('rel:'))) return 'social';
+            return 'episodic';
+        };
+        const existingCat = existing ? String(existing.category || deriveCat(existing)) : '';
+        const catOpts = htmlTag`<option value="" ?selected=${!existingCat}>auto (from type)</option>${categories.map(c => htmlTag`<option value=${c} ?selected=${existingCat === c}>${c}</option>`)}`;
+        const confPct = existing && typeof existing.confidence === 'number' ? Math.round(existing.confidence * 100) : null;
+        const dynamics = existing
+            ? `activation ${typeof existing.activation === 'number' ? existing.activation.toFixed(2) : '1.00'} · ↻ ${Number(existing.reinforcements) || 0}×${existing.last_recalled_tick != null ? ` · last recalled tick ${existing.last_recalled_tick}` : ''}${Number(existing.reflection_depth) > 0 ? ` · derived (depth ${existing.reflection_depth})` : ''}`
+            : '';
+
         const tick = existing?.tick ?? currentTick;
         const preTicks = tick < 0 ? -tick : 0;
 
@@ -191,9 +245,19 @@ window.InspectorMemory = (() => {
                             <label>Type</label>
                             <select id="mem-editor-type">${typeOpts}</select>
                         </div>
+                        <div class="memedit-field" style="flex:.9;">
+                            <label>Category (kind)</label>
+                            <select id="mem-editor-category">${catOpts}</select>
+                            <div class="memedit-hint">episodic / belief / social…</div>
+                        </div>
                         <div class="memedit-field" style="flex:.8;">
                             <label>Importance (1-10)</label>
                             <input type="number" id="mem-editor-importance" min="1" max="10" value="${existing?.importance ?? 5}">
+                        </div>
+                        <div class="memedit-field" style="flex:.8;">
+                            <label>Confidence (0-100)</label>
+                            <input type="number" id="mem-editor-confidence" min="0" max="100" value="${confPct ?? 70}" placeholder="70">
+                            <div class="memedit-hint">how sure the character is</div>
                         </div>
                         <div class="memedit-field" style="flex:.8;">
                             <label>Tick</label>
@@ -206,6 +270,7 @@ window.InspectorMemory = (() => {
                             <div class="memedit-hint">simulate pre-scenario age</div>
                         </div>
                     </div>
+                    ${dynamics ? htmlTag`<div style="font-size:10px;color:var(--text-muted);margin-top:6px;" title="Live memory dynamics (read-only here — recall and decay move them)">📊 ${dynamics}</div>` : nothing}
                 </div>
 
                 <div class="memedit-section">
@@ -229,6 +294,24 @@ window.InspectorMemory = (() => {
                         <label>Entity references (areas / items / characters)</label>
                         <div id="mem-editor-entities" class="memedit-entitybox"></div>
                     </div>
+                </div>
+
+                <div class="memedit-section">
+                    <div class="memedit-section-title">⚡ Connections</div>
+                    <div class="memedit-field">
+                        <label>Contradicts (memories this one conflicts with)</label>
+                        <div id="mem-editor-contradicts" style="display:flex;flex-wrap:wrap;gap:4px;min-height:24px;"></div>
+                    </div>
+                    ${memories.filter((m: any) => m.id && m.id !== existing?.id).length
+                        ? htmlTag`<div class="memedit-field">
+                            <label>Link a conflicting memory</label>
+                            <select id="mem-editor-contra-add">
+                                <option value="">— choose a memory —</option>
+                                ${memories.filter((m: any) => m.id && m.id !== existing?.id).slice(0, 200).map((m: any) => htmlTag`<option value=${m.id}>${String(m.id)} — ${String(m.text || '').slice(0, 60)}</option>`)}
+                            </select>
+                            <div class="memedit-hint">marking only — the engine never resolves a contradiction for the character</div>
+                          </div>`
+                        : nothing}
                 </div>
 
                 <div class="memedit-section">
@@ -288,6 +371,53 @@ window.InspectorMemory = (() => {
         M._entitySelected = new Set<string>((existing?.entity_ids || []).filter(Boolean));
         const entEl = document.getElementById('mem-editor-entities');
         if (entEl) M._attachEntitySelector(entEl);
+
+        // Contradiction links (task-691 stage 2): removable chips + an add
+        // select. Removals/additions are kept in module state until Save.
+        M._contraRemoved = new Set<string>();
+        M._contraAdded = [];
+        const contraEl = document.getElementById('mem-editor-contradicts');
+        const contraRemoved = (): Set<string> => M._contraRemoved || new Set<string>();
+        const contraAdded = (): string[] => M._contraAdded || [];
+        const renderContra = () => {
+            if (!contraEl) return;
+            const current = (existing?.contradicts || []).filter((id: string) => !contraRemoved().has(id));
+            const all = current.concat(contraAdded());
+            if (!all.length) {
+                contraEl.innerHTML = '<span style="font-size:10px;color:var(--text-muted);">no conflicts marked</span>';
+                return;
+            }
+            contraEl.innerHTML = all.map((id: string) => {
+                const target = memories.find((m: any) => m.id === id);
+                const label = target ? String(target.text || '').slice(0, 40) : String(id);
+                return `<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;color:#e05555;border:1px solid #6e2c2c;border-radius:8px;padding:1px 6px;" title="${esc(label)}">⚡ ${esc(id)} ${esc(label)}<button data-contra-id="${esc(id)}" style="background:none;border:none;color:#e05555;cursor:pointer;font-size:10px;padding:0;">×</button></span>`;
+            }).join('');
+            contraEl.querySelectorAll<HTMLButtonElement>('button[data-contra-id]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = btn.getAttribute('data-contra-id') || '';
+                    M._contraAdded = contraAdded().filter(a => a !== id);
+                    M._contraRemoved = contraRemoved();
+                    M._contraRemoved.add(id);
+                    renderContra();
+                });
+            });
+        };
+        renderContra();
+        const contraAdd = container.querySelector('#mem-editor-contra-add');
+        if (contraAdd) {
+            contraAdd.addEventListener('change', () => {
+                const id = (contraAdd as HTMLSelectElement).value;
+                if (!id) return;
+                if (!(existing?.contradicts || []).includes(id) && !contraAdded().includes(id)) {
+                    M._contraAdded = contraAdded();
+                    M._contraAdded.push(id);
+                    M._contraRemoved = contraRemoved();
+                    M._contraRemoved.delete(id);
+                }
+                (contraAdd as HTMLSelectElement).value = '';
+                renderContra();
+            });
+        }
 
         // Multi-emotion picker
         const emoEl = document.getElementById('mem-editor-emotions');
@@ -422,8 +552,28 @@ window.InspectorMemory = (() => {
             : [];
         const tags = M._tagSelect ? M._tagSelect.getValue() : (M._tagSelectTags || []);
         const entity_ids = M._entitySelected ? Array.from(M._entitySelected) : [];
+        // task-691 stage 2: category ('' = let the backend derive), confidence,
+        // and the final contradicts set (kept − removed + added).
+        const categorySel = (document.getElementById('mem-editor-category') as HTMLSelectElement | null)?.value || '';
+        const confidenceInput = parseInt((document.getElementById('mem-editor-confidence') as HTMLInputElement | null)?.value as string);
+        const hasConfidence = !isNaN(confidenceInput);
+        const existingContra = entryId
+            ? ((worldState.players?.[charName]?.memories || []).find((m: any) => m.id === entryId)?.contradicts || [])
+            : [];
+        const removedSet = M._contraRemoved || new Set<string>();
+        const addedList = M._contraAdded || [];
+        const contradicts = existingContra
+            .filter((id: string) => !removedSet.has(id))
+            .concat(addedList);
+        const contraAddSel = document.getElementById('mem-editor-contra-add') as HTMLSelectElement | null;
+        if (contraAddSel?.value && !contradicts.includes(contraAddSel.value)) {
+            contradicts.push(contraAddSel.value);
+        }
 
         const payload: MemoryViewMemoryPayload = { text: content, type, importance, tick, location, source, tags, salience_override: salience, force: true };
+        if (categorySel) payload.category = categorySel;
+        if (hasConfidence) payload.confidence = Math.max(0, Math.min(1, confidenceInput / 100));
+        if (contradicts.length || entryId) payload.contradicts = contradicts;
         if (entity_ids.length) payload.entity_ids = entity_ids;
         if (emotions.length) {
             payload.memory_emotions = emotions;
@@ -789,6 +939,9 @@ interface MemoryViewMemoryPayload {
     entity_ids?: string[];
     memory_emotions?: MemoryViewEmotion[];
     emotion?: MemoryViewEmotion;
+    category?: string;
+    confidence?: number;
+    contradicts?: string[];
 }
 
 /** The `TagMultiselect` surface this module calls back into. */
@@ -841,5 +994,7 @@ interface MemoryViewApi {
     _genTagSelectTags?: string[];
     _entitySelected?: Set<string>;
     _emoSelected?: MemoryViewEmotion[];
+    _contraRemoved?: Set<string>;
+    _contraAdded?: string[];
     _gen?: { charName: string };
 }

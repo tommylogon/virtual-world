@@ -33,6 +33,8 @@
   "graph.show_items": true,
   "graph.show_only_inhabited": false,
   "memory.max_per_character": 0,
+  "memory.decay_per_tick": 0.01,
+  "memory.consolidate": false,
   "relationship.decay_per_day": 0.5,
   "entertainment.novelty_recovery_minutes": 120,
   "combat.damage_reduction_mode": "flat"

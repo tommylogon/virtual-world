@@ -22,11 +22,15 @@
 const AgentMemory = (() => {
     'use strict';
     /**
-     * Perform memory reflection for a character.
+     * Perform memory reflection for a character (task-688).
      *
-     * Queries high-importance memories (≥6) from the unified backend store,
-     * asks the LLM to summarize them into 1-2 insight statements, and stores
-     * those insights as new 'reflection' memories via the reflect endpoint.
+     * Queries raw-experience memories (importance ≥ 6 or reinforced ≥ 2,
+     * reflection_depth 0 only — the client half of the recursion guard),
+     * asks the LLM for structured conclusions that change the character
+     * (belief + confidence + optional emotional association, behaviour
+     * expectation and relationship delta), and POSTs them to the reflect
+     * endpoint with the source memory ids so the backend can stamp
+     * provenance and enforce the depth guard server-side.
      *
      * @param {string} charName - Character name to reflect for
      */
@@ -38,12 +42,27 @@ const AgentMemory = (() => {
                 headers: { 'Accept': 'application/json' }
             }).then(resp => resp.json()).catch(() => ({ memories: [] }));
             const memories = allMemories.memories || [];
-            const importantMemories = memories.filter((m) => (m.importance || 0) >= 6).slice(0, 10);
-            if (importantMemories.length < 3)
+            const candidates = memories.filter((m) => ((Number(m.importance) || 0) >= 6 || (Number(m.reinforcements) || 0) >= 2)
+                && !(Number(m.reflection_depth) >= 1)).slice(0, 10);
+            if (candidates.length < 3)
                 return;
-            const memoryText = importantMemories.map((m) => `[${events.tickToRelative(m.tick)}] ${m.text}`).join('\n');
-            const prompt = `Summarize these memories into 1-2 insights:\n${memoryText}\n\nRespond ONLY with a JSON object: {"insights": ["insight 1"]}`;
-            const response = await llmClient.chat([{ role: 'user', content: prompt }], { temperature: 0.7, max_tokens: 200, streaming: false, label: 'reflect', responseFormat: window.StructuredFormats?.insights });
+            const memoryText = candidates.map((m) => `- [memory_id: ${m.id}] [${events.tickToRelative(m.tick)}] ${m.text}`).join('\n');
+            const prompt = [
+                `You are the memory of the character "${charName}". Below are things they experienced.`,
+                'Form 1-3 conclusions that CHANGE how the character sees the world or acts — not a summary of the events.',
+                'For each insight provide:',
+                '- belief: one first-person sentence the character now holds (e.g. "Anna is probably lying about the cellar.")',
+                '- about: names of people/places/things the belief is about (empty array if none)',
+                '- confidence: 0-1, how sure the character is (lower it when the memories conflict)',
+                '- emotional: optional {label, intensity 1-10} — the feeling attached to this conclusion',
+                '- behavior: optional one-sentence change to future behaviour (e.g. "Verify Anna\'s claims independently.")',
+                '- relationship: optional {who, dim, delta} — dim is one of trust|fear|attraction|disgust|respect|familiarity, delta -5..+5',
+                'Use null for fields that do not apply. Respond ONLY with a JSON object: {"insights": [...]}',
+                '',
+                'MEMORIES:',
+                memoryText
+            ].join('\n');
+            const response = await llmClient.chat([{ role: 'user', content: prompt }], { temperature: 0.7, max_tokens: 400, streaming: false, label: 'reflect', responseFormat: window.StructuredFormats?.insights });
             if (!response)
                 return;
             let cleaned = response.trim();
@@ -75,15 +94,22 @@ const AgentMemory = (() => {
                 : (parsed && typeof parsed === 'object' && Array.isArray(parsed.insights) ? parsed.insights : null);
             if (Array.isArray(parsedList)) {
                 const currentTick = worldState?.data?.time_ticks || 0;
-                const insights = parsedList.filter(i => typeof i === 'string' && i.length > 10);
+                // Keep the usable shapes: strings (legacy) and objects with a
+                // real belief. Nulls from the strict schema are dropped here.
+                const insights = parsedList.filter((i) => (typeof i === 'string' && i.length > 10)
+                    || (typeof i === 'object' && i !== null && String(i.belief || '').length > 10));
                 if (insights.length > 0) {
                     await fetch(`/api/players/${encodeURIComponent(charName)}/memories/reflect`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ insights, tick: currentTick })
+                        body: JSON.stringify({
+                            insights,
+                            tick: currentTick,
+                            source_memory_ids: candidates.map((m) => m.id)
+                        })
                     }).catch(() => { });
                 }
-                events.log(`🧠 ${charName} reflected on ${importantMemories.length} memories`, 'system-msg');
+                events.log(`🧠 ${charName} reflected on ${candidates.length} memories`, 'system-msg');
             }
         }
         catch (error) {

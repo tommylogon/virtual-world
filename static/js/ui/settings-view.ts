@@ -105,6 +105,9 @@ const SettingsView = (() => {
         if (gewv) gewv.textContent = (Number(config.graphEdgeWidth) || 1).toFixed(1);
         setChecked('graph-arrows', config.graphArrows !== false);
         setChecked('graph-improved-layout', config.graphImprovedLayout === true);
+        setVal('graph-focus-zoom', String(config.graphFocusZoom || 1.15));
+        var gfzv = document.getElementById('graph-focus-zoom-val');
+        if (gfzv) gfzv.textContent = (Number(config.graphFocusZoom) || 1.15).toFixed(2);
         setChecked('agent-show-logs', config.showLogs);
         setChecked('agent-streaming', config.streaming);
         setChecked('agent-thinking', config.thinking);

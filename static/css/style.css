@@ -292,6 +292,32 @@ body {
 }
 .menu-note { font-size: 9.5px; color: var(--text-muted); align-self: center; }
 .toolbar-view-menu { min-width: 300px; }
+/* ⚙ Tune popover (GraphToolbar.TUNING_GROUPS): two columns of the Settings
+ * modal's own field classes (.settings-field / .range-row / .field-hint), so
+ * the controls look exactly like the modal they mirror. Sized explicitly and
+ * anchored to the trigger's right edge: as a plain .dropdown-menu it
+ * shrink-wrapped to ~250px (the base .dropdown-menu rule out-ranks a
+ * same-specificity min-width and the abspos containing block is the narrow
+ * trigger), clipping the second column off the menu's right side. */
+.toolbar-menu.toolbar-tuning-menu {
+    left: auto; right: 0;
+    width: min(640px, calc(100vw - 24px));
+    max-height: calc(100vh - 130px); overflow-y: auto;
+    padding: 8px 12px;
+}
+.tuning-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; align-items: start; }
+.toolbar-tuning-menu .settings-field { margin-bottom: 8px; }
+.toolbar-tuning-menu .settings-field label {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+}
+.toolbar-tuning-menu .settings-field input[type="range"] { padding: 0; }
+.tuning-end { font-size: 9.5px; color: var(--text-muted); white-space: nowrap; }
+.tuning-check {
+    display: flex; align-items: center; gap: 6px; padding: 3px 2px;
+    font-size: 11px; color: var(--text-dim); cursor: pointer; user-select: none;
+}
+.tuning-check:hover { color: var(--text); }
+.tuning-check input { accent-color: var(--accent); cursor: pointer; margin: 0; }
 .stepper {
     display: inline-flex; align-items: center; gap: 2px;
     background: var(--bg-input); border: 1px solid var(--border);

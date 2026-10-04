@@ -94,6 +94,7 @@ interface ConfigManager {
     graphGravitationalConstant?: number;
     graphSpringConstant?: number;
     graphDamping?: number;
+    graphFocusZoom?: number;
 }
 
 /** ConfigManager singleton (config.js): user settings + feature flags. */

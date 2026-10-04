@@ -1185,8 +1185,12 @@ class GraphManagerImpl {
         if (this._viewMode !== 'graph') this.setViewMode('graph');
         if (this.nodes.has(nodeId)) {
             this.network.selectNodes([nodeId]);
+            // Zoom is the user's ⚙ Tune / Settings → Camera choice (was a
+            // hardcoded 1.15; config.ts defaults to the same value).
+            const zoom = (typeof config !== 'undefined' && config && Number(config.graphFocusZoom))
+                ? Number(config.graphFocusZoom) : 1.15;
             this.network.focus(nodeId, {
-                scale: 1.15,
+                scale: zoom,
                 animation: { duration: 500, easingFunction: 'easeInOutQuad' }
             });
         } else {

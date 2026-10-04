@@ -389,16 +389,48 @@ window.GraphNetwork = {
         }
         return true;
     },
-    applyGraphSettings() {
+    /**
+     * Apply the user's physics/appearance settings to the live network.
+     *
+     * Default (tuning a graph that is already on screen): hand the new force
+     * parameters to the running simulation via setOptions() and wake the
+     * solver — vis.js freezes it after its initial stabilization, so without
+     * startSimulation() setOptions alone never moves a node. Nodes keep their
+     * positions and settle under the new forces, and the camera never moves.
+     * Measured against the old behavior: it blanked the load signature,
+     * refetched the whole dataset, reseeded the rings and re-stabilized on
+     * every slider tick, and the async rebuild re-fit the camera ~1s later —
+     * tuning physics felt like the graph reloading under the user.
+     *
+     * `rebuild` (a Levels/Free switch, which changes WHAT is laid out rather
+     * than how it settles) keeps the old full re-derivation: reload the
+     * dataset, reseed the ring caches so the seed re-applies on
+     * stabilizationIterationsDone, restabilize. The camera reset is wanted
+     * there — a different layout is a different view.
+     *
+     * Children are held by their own edge springs ("a seed, not a leash" —
+     * graph/relative-layout.ts), so a changed Item Edge Length re-orbits them
+     * by simulation in the default path; no reseed needed.
+     *
+     * @param {boolean} [rebuild] - re-derive the layout from data (mode switches)
+     */
+    applyGraphSettings(rebuild = false) {
         if (!graphManager.network)
             return;
-        graphManager._lastSig = '';
         const levelsOn = ((typeof config !== 'undefined' && config && config.graphLayoutMode) || 'free') === 'levels';
         graphManager._physicsEnabled = !levelsOn;
         graphManager.network.setOptions(GraphNetwork.buildOptions());
-        // Settings changed, so let the contents re-derive their arrangement —
-        // otherwise a moved "Item Edge Length" (Hug Parent) would not re-orbit
-        // anything, because remembered offsets win.
+        if (!levelsOn && graphManager._physicsEnabled) {
+            try {
+                graphManager.network.startSimulation();
+            }
+            catch (err) { /* ignore — already running */ }
+        }
+        if (!rebuild) {
+            if (window.GraphToolbar)
+                GraphToolbar.syncAll();
+            return;
+        }
         if (window.GraphRelativeLayout && !levelsOn)
             window.GraphRelativeLayout.reseed();
         GraphNetwork.loadGraphData();
@@ -918,7 +950,9 @@ window.GraphNetwork = {
         const cfg = (typeof config !== 'undefined' && config) || {};
         cfg.graphLayoutMode = cfg.graphLayoutMode === 'levels' ? 'free' : 'levels';
         GraphNetwork._syncLayoutButton();
-        GraphNetwork.applyGraphSettings();
+        // A mode switch changes what is laid out, not just how it settles —
+        // the full re-derivation, not the in-place tuning path.
+        GraphNetwork.applyGraphSettings(true);
         if (cfg.save) {
             try {
                 cfg.save();

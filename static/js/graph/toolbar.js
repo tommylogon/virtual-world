@@ -19,13 +19,22 @@
  *     (tools/unit/test_graph_toolbar.js) instead of being scattered over five
  *     files that each rewrote a button's textContent.
  *
- * Popovers (Build / View / More) share one open-close path: a `menu-open` class
- * (so the existing `closeTopMenus()` helper keeps working from item handlers),
- * `aria-expanded` on the trigger, and close-on-outside-click / Escape.
+ * Popovers (Build / View / Tune / More) share one open-close path: a `menu-open`
+ * class (so the existing `closeTopMenus()` helper keeps working from item
+ * handlers), `aria-expanded` on the trigger, and close-on-outside-click / Escape.
+ *
+ * The Tune popover (⚙ Tune) is the ⚙ Settings → Graph tab rendered at the
+ * canvas, so physics/separation/edge parameters can be dragged while the graph
+ * reacts. Its controls are built from `TUNING_GROUPS`, and `applyTuning()` is
+ * the one writer of the apply behavior (`config.save()` +
+ * `GraphNetwork.applyGraphSettings()`) — the Settings modal keeps its own
+ * static markup over the same config keys, and both surfaces re-read config
+ * when opened, so config stays the single source of truth for values.
  *
  * @module graph/toolbar — graph workspace control bar: state, disabled rules, popovers
  * @contributes GraphToolbar: layout/overlay selection, toolbar state sync, popover plumbing
- * @powers the graph editor toolbar — layout tabs, View popover, honest disabled states
+ * @contributes GraphToolbar.TUNING_GROUPS: the Tune popover's field spec
+ * @powers the graph editor toolbar — layout tabs, View popover, Tune popover, honest disabled states
  * @relates driven by graph-manager and graph/network-manager; uses GraphFocus search state
  * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */
@@ -296,6 +305,242 @@ window.GraphToolbar = {
         GraphToolbar.closeAll();
     },
     // ──────────────────────────────────────────────
+    //  ⚙ Tune popover — the Settings → Graph tab at the canvas
+    // ──────────────────────────────────────────────
+    /** Whether the Tune popover's controls have been built into the DOM. */
+    _tuningBuilt: false,
+    /**
+     * The Tune popover's field spec: the same controls as ⚙ Settings → Graph,
+     * in the same groups, with the same bounds. `applyTuning()` below is the
+     * one writer of the apply behavior; the modal keeps its own static markup
+     * over the same config keys. test_graph_toolbar.js asserts the two stay
+     * in parity by reading the modal's own markup.
+     */
+    TUNING_GROUPS: [
+        {
+            heading: 'Physics',
+            fields: [
+                { key: 'graphSpringLength', id: 'gt-spring-length', label: 'Spring Length', type: 'range', min: 20, max: 300, step: 5, lo: 'Tight', hi: 'Loose', fallback: 120, hint: 'Rest length of edges — lower = tighter clusters' },
+                { key: 'graphGravitationalConstant', id: 'gt-repulsion', label: 'Repulsion', type: 'range', min: -500, max: -5, step: 5, lo: 'Weak', hi: 'Strong', fallback: -8, hint: 'Node repulsion force — more negative = more spread out' },
+                { key: 'graphDamping', id: 'gt-damping', label: 'Damping', type: 'range', min: 0, max: 1, step: 0.05, dp: 2, lo: 'Bouncy', hi: 'Stiff', fallback: 0.4, hint: 'Velocity damping — higher = simulation settles faster' },
+                { key: 'graphSpringConstant', id: 'gt-spring-constant', label: 'Spring Stiffness', type: 'range', min: 0.01, max: 0.15, step: 0.01, dp: 2, lo: 'Soft', hi: 'Rigid', fallback: 0.1, hint: 'How strongly edges pull nodes together' },
+                { key: 'graphItemEdgeLength', id: 'gt-item-edge-length', label: 'Item Edge Length', type: 'range', min: 20, max: 200, step: 5, lo: 'Hug Parent', hi: 'Stretched', fallback: 60, hint: 'Spring rest length for item → parent edges (on/in/carrying/equipped) — lower = children hug the node that holds them' },
+                { key: 'graphSolver', id: 'gt-solver', label: 'Physics Solver', type: 'select', options: [['forceAtlas2Based', 'Force Atlas 2'], ['barnesHut', 'Barnes-Hut'], ['repulsion', 'Repulsion']], fallback: 'forceAtlas2Based', hint: 'Force Atlas 2: smooth organic layouts · Barnes-Hut: faster for large graphs' },
+            ],
+        },
+        {
+            heading: 'Separation',
+            fields: [
+                { key: 'graphRepelEnabled', id: 'gt-repel-enabled', label: '🧲 Separate Overlapping Nodes', type: 'check', fallback: true, hint: 'Nearby items/characters push apart — unless an edge already joins them' },
+                { key: 'graphRepelMin', id: 'gt-repel-min', label: 'Repel Distance', type: 'range', min: 20, max: 180, step: 5, lo: 'Overlap', hi: 'Spaced', fallback: 55, hint: 'Nodes closer than this push apart (unless connected by an edge). Long names need more room, so this is a floor' },
+                { key: 'graphRepelMax', id: 'gt-repel-max', label: 'Ignore Beyond', type: 'range', min: 60, max: 600, step: 10, lo: 'Near', hi: 'Far', fallback: 220, hint: 'Pairs further apart than this are ignored entirely — keeps the pass cheap on a big graph' },
+                { key: 'graphRepelPull', id: 'gt-repel-pull', label: 'Parent Pull', type: 'range', min: 0, max: 0.4, step: 0.01, dp: 2, lo: 'Loose', hi: 'Hugging', fallback: 0.12, hint: 'How strongly a separated node is reeled back toward its parent — higher keeps crowded rooms tighter' },
+            ],
+        },
+        {
+            heading: 'Edges & layout',
+            fields: [
+                { key: 'graphEdgeWidth', id: 'gt-edge-width', label: 'Default Edge Width', type: 'range', min: 0.5, max: 5, step: 0.5, dp: 1, lo: 'Thin', hi: 'Thick', fallback: 1 },
+                { key: 'graphArrows', id: 'gt-arrows', label: '➡️ Edge Arrows', type: 'check', fallback: true, hint: 'Show direction arrows on connection edges' },
+                { key: 'graphImprovedLayout', id: 'gt-improved-layout', label: '🧩 Improved Layout', type: 'check', fallback: false, hint: 'Better initial node placement (may shift positions)' },
+            ],
+        },
+        {
+            heading: 'Camera',
+            fields: [
+                { key: 'graphFocusZoom', id: 'gt-focus-zoom', label: 'Focus Zoom', type: 'range', min: 0.5, max: 3, step: 0.05, dp: 2, lo: 'Far', hi: 'Close', fallback: 1.15, hint: 'How close the camera zooms when a node is focused from a list, the outline or a search hit (1 = 100%). Read at click time — no reapply needed' },
+            ],
+        },
+    ],
+    /** Open/close the Tune popover, building and syncing its controls first. */
+    toggleTuning(ev) {
+        GraphToolbar.buildTuningMenu();
+        GraphToolbar.syncTuning();
+        GraphToolbar.togglePopover(ev, 'graph-tuning-menu');
+        GraphToolbar.placeTuningMenu();
+    },
+    /**
+     * Keep the Tune menu inside the center viewport. It is 640px wide but its
+     * positioning ancestor chain (`#center-viewport`) clips `overflow: hidden`,
+     * so a plain right-aligned menu loses its left column under the left panel
+     * whenever the trigger sits near that panel. Right-align to the trigger,
+     * then clamp into the clipping ancestor's box, shrinking first if the
+     * viewport itself is too narrow. Runs on every open, so a moved or wrapped
+     * trigger re-places it.
+     */
+    placeTuningMenu() {
+        const menu = document.getElementById('graph-tuning-menu');
+        if (!menu || !menu.classList.contains('menu-open'))
+            return;
+        const viewport = menu.closest('#center-viewport');
+        const anchor = menu.parentElement;
+        if (!viewport || !anchor)
+            return;
+        const vpRect = viewport.getBoundingClientRect();
+        if (!vpRect.width)
+            return;
+        const anchorRect = anchor.getBoundingClientRect();
+        const margin = 8;
+        const width = Math.min(640, vpRect.width - margin * 2);
+        const minLeft = vpRect.left + margin;
+        let left = anchorRect.right - width;
+        if (left < minLeft)
+            left = Math.min(minLeft, vpRect.right - width - margin);
+        menu.style.right = 'auto';
+        menu.style.width = `${Math.round(width)}px`;
+        // The menu is absolutely positioned within the trigger's anchor, so
+        // `left` is measured from the anchor's left edge.
+        menu.style.left = `${Math.round(left - anchorRect.left)}px`;
+    },
+    /** Fill `#graph-tuning-menu` from `TUNING_GROUPS`, once. */
+    buildTuningMenu() {
+        if (GraphToolbar._tuningBuilt)
+            return;
+        const menu = document.getElementById('graph-tuning-menu');
+        if (!menu)
+            return;
+        for (const group of GraphToolbar.TUNING_GROUPS) {
+            const heading = document.createElement('div');
+            heading.className = 'menu-heading';
+            heading.textContent = group.heading;
+            menu.appendChild(heading);
+            const grid = document.createElement('div');
+            grid.className = 'tuning-grid';
+            for (const field of group.fields)
+                grid.appendChild(GraphToolbar._tuningField(field));
+            menu.appendChild(grid);
+        }
+        GraphToolbar._tuningBuilt = true;
+    },
+    /** One control's DOM. Ranges/selects reuse the Settings modal's own classes. */
+    _tuningField(f) {
+        if (f.type === 'check') {
+            const label = document.createElement('label');
+            label.className = 'tuning-check';
+            label.title = f.hint || '';
+            const box = document.createElement('input');
+            box.type = 'checkbox';
+            box.id = f.id;
+            box.checked = GraphToolbar.tuningValue(f) === true;
+            box.addEventListener('change', () => GraphToolbar.applyTuning(f.key, box.checked));
+            const text = document.createElement('span');
+            text.textContent = f.label;
+            label.appendChild(box);
+            label.appendChild(text);
+            return label;
+        }
+        const wrap = document.createElement('div');
+        wrap.className = 'settings-field';
+        const row = document.createElement('label');
+        row.setAttribute('for', f.id);
+        const name = document.createElement('span');
+        name.textContent = f.label;
+        row.appendChild(name);
+        wrap.appendChild(row);
+        const value = GraphToolbar.tuningValue(f);
+        if (f.type === 'range') {
+            const chip = document.createElement('span');
+            chip.className = 'range-value';
+            chip.id = f.id + '-val';
+            chip.textContent = GraphToolbar.tuningDisplay(f, Number(value));
+            row.appendChild(chip);
+            const rangeRow = document.createElement('div');
+            rangeRow.className = 'range-row';
+            const input = document.createElement('input');
+            input.type = 'range';
+            input.id = f.id;
+            input.min = String(f.min);
+            input.max = String(f.max);
+            input.step = String(f.step);
+            input.value = String(value);
+            input.addEventListener('input', () => {
+                const n = parseFloat(input.value);
+                chip.textContent = GraphToolbar.tuningDisplay(f, n);
+                GraphToolbar.applyTuning(f.key, n);
+            });
+            const lo = document.createElement('span');
+            lo.className = 'tuning-end';
+            lo.textContent = f.lo || '';
+            const hi = document.createElement('span');
+            hi.className = 'tuning-end';
+            hi.textContent = f.hi || '';
+            rangeRow.appendChild(lo);
+            rangeRow.appendChild(input);
+            rangeRow.appendChild(hi);
+            wrap.appendChild(rangeRow);
+        }
+        else {
+            const sel = document.createElement('select');
+            sel.id = f.id;
+            for (const opt of f.options || []) {
+                const o = document.createElement('option');
+                o.value = opt[0];
+                o.textContent = opt[1];
+                if (String(value) === opt[0])
+                    o.selected = true;
+                sel.appendChild(o);
+            }
+            sel.addEventListener('change', () => GraphToolbar.applyTuning(f.key, sel.value));
+            wrap.appendChild(sel);
+        }
+        if (f.hint) {
+            const hint = document.createElement('div');
+            hint.className = 'field-hint';
+            hint.textContent = f.hint;
+            wrap.appendChild(hint);
+        }
+        return wrap;
+    },
+    /**
+     * The one writer of the apply behavior for Tune controls: write config,
+     * persist, reapply to the live network. `applyGraphSettings()` ends with
+     * `syncAll()` → `syncTuning()`, which repaints every chip from config; the
+     * chip of the control being dragged is updated by its own listener first.
+     */
+    applyTuning(key, value) {
+        const cfg = ((typeof config !== 'undefined' && config) || null);
+        if (!cfg)
+            return;
+        cfg[key] = value;
+        cfg.save();
+        GraphNetwork.applyGraphSettings();
+    },
+    /** Read a field's value off config, falling back to the config.ts default. */
+    tuningValue(f) {
+        const cfg = ((typeof config !== 'undefined' && config) || {});
+        const v = cfg[f.key];
+        if (v === undefined || v === null || v === '')
+            return f.fallback !== undefined ? f.fallback : 0;
+        return v;
+    },
+    /** A value chip's text: `dp` decimals, otherwise an integer. */
+    tuningDisplay(f, n) {
+        return typeof f.dp === 'number' ? n.toFixed(f.dp) : String(Math.round(n));
+    },
+    /** Repaint every Tune control from config. Cheap; no-op until built. */
+    syncTuning() {
+        if (!GraphToolbar._tuningBuilt)
+            return;
+        for (const group of GraphToolbar.TUNING_GROUPS) {
+            for (const f of group.fields) {
+                const v = GraphToolbar.tuningValue(f);
+                if (f.type === 'check') {
+                    const box = document.getElementById(f.id);
+                    if (box)
+                        box.checked = v === true;
+                    continue;
+                }
+                const el = document.getElementById(f.id);
+                if (!el)
+                    continue;
+                el.value = String(v);
+                const chip = document.getElementById(f.id + '-val');
+                if (chip && f.type === 'range')
+                    chip.textContent = GraphToolbar.tuningDisplay(f, Number(v));
+            }
+        }
+    },
+    // ──────────────────────────────────────────────
     //  DOM sync
     // ──────────────────────────────────────────────
     /** Repaint every control from the current state. Cheap; safe to call often. */
@@ -305,6 +550,7 @@ window.GraphToolbar = {
         GraphToolbar.syncToggles();
         GraphToolbar.syncDisabled();
         GraphToolbar.syncScope();
+        GraphToolbar.syncTuning();
     },
     /** `aria-selected` on the layout segment; the Map tab greys out under Levels. */
     syncLayout() {

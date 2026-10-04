@@ -133,7 +133,39 @@ const StructuredFormats = (() => {
             required: ['steps']
         }
     };
-    /** memory reflect — same wrapper reasoning as plan. */
+    /** memory reflect (task-688) — structured insights that change the
+     *  character, not summaries. Optional fields are nullable per strict mode;
+     *  the reflect endpoint treats null like absent. */
+    const INSIGHT = {
+        type: ['object', 'null'],
+        additionalProperties: false,
+        properties: {
+            belief: NULLABLE_STR,
+            about: { type: ['array', 'null'], items: { type: 'string' } },
+            confidence: { type: ['number', 'null'] },
+            emotional: {
+                type: ['object', 'null'],
+                additionalProperties: false,
+                properties: {
+                    label: NULLABLE_STR,
+                    intensity: { type: ['integer', 'null'] }
+                },
+                required: ['label', 'intensity']
+            },
+            behavior: NULLABLE_STR,
+            relationship: {
+                type: ['object', 'null'],
+                additionalProperties: false,
+                properties: {
+                    who: NULLABLE_STR,
+                    dim: NULLABLE_STR,
+                    delta: { type: ['number', 'null'] }
+                },
+                required: ['who', 'dim', 'delta']
+            }
+        },
+        required: ['belief', 'about', 'confidence', 'emotional', 'behavior', 'relationship']
+    };
     const insights = {
         name: 'memory_insights',
         strict: true,
@@ -141,7 +173,7 @@ const StructuredFormats = (() => {
             type: 'object',
             additionalProperties: false,
             properties: {
-                insights: { type: 'array', items: { type: 'string' } }
+                insights: { type: 'array', items: INSIGHT }
             },
             required: ['insights']
         }

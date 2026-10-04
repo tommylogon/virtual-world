@@ -104,6 +104,9 @@ class ConfigManagerImpl {
         this.graphRepelPull = parseFloat(await storage.getConfig('graph_repel_pull'));
         if (!Number.isFinite(this.graphRepelPull))
             this.graphRepelPull = 0.12;
+        // Camera zoom (vis.js scale) when a node is focused from a list, the
+        // outline or a search hit — the old hardcoded 1.15 (graph-manager).
+        this.graphFocusZoom = parseFloat(await storage.getConfig('graph_focus_zoom')) || 1.15;
         // Ghost mode: when true, dead characters can still act as ghosts
         this.ghostMode = (await storage.getConfig('ghost_mode')) === 'true';
         // Mature content opt-in (task-206): gates the pleasure/arousal subsystem
@@ -270,6 +273,7 @@ class ConfigManagerImpl {
         await storage.setConfig('graph_repel_max', String(this.graphRepelMax));
         await storage.setConfig('graph_repel_strength', String(this.graphRepelStrength));
         await storage.setConfig('graph_repel_pull', String(this.graphRepelPull));
+        await storage.setConfig('graph_focus_zoom', String(this.graphFocusZoom));
         this._saveToCurrentProfile();
     }
     async _saveToCurrentProfile() {

@@ -172,6 +172,42 @@ history. AgentEngine config: `maxTokens: 9500, maxMessages: 30, recentTurnCount:
   `start()`/`reset()`. The LLM-generated `memory` field is the durable record once old
   messages get summarized away.
 
+## Memory dynamics (task-685)
+
+Memories are no longer static entries. Every memory carries optional dynamics
+fields — `category` (episodic/semantic/procedural/social/belief), `activation`,
+`confidence`, `reinforcements`, `last_recalled_tick`, `reflection_depth`,
+`source_memory_ids`, `contradicts` — owned by `engine/memory_dynamics.py`:
+
+- **Recall reinforces** — every retrieval path (the `/memories/retrieve`
+  endpoint, `Player.get_relevant_memories`, `AgentMind.recall`, and the
+  client's vector-search merge via `POST /memories/reinforce`) stamps
+  bounded reinforcement instead of the old unbounded +1-importance ratchet.
+- **Re-encounter reinforces** — a near-verbatim memory written days later
+  strengthens the original instead of appending (extends the task-346 dedup).
+- **Decay is non-uniform** — `activation` fades with per-memory resistance
+  (importance ≥ 8, strong emotions, reinforcements, and concluded/semantic
+  categories resist); unimportant faded memories are removed, important ones
+  never are. Rate: the `memory_decay_per_tick` trait, or the
+  `memory.decay_per_tick` config default (0.01; 0 freezes).
+- **Reflection changes the character** — `reflect()` asks for structured
+  insights (belief + confidence + optional emotional association, behaviour
+  expectation, relationship delta) and stores them as depth-1 `belief` /
+  `procedural` / `social` memories with `source_memory_ids` provenance;
+  `rel:`/`dim:` tags feed the derive.py per-person profiles directly.
+  Reflections of reflections are refused (depth guard, client and server).
+- **Contradictions are marked, never resolved** — an assert/deny pair sharing
+  an entity is linked in `contradicts[]` and the older side loses a little
+  confidence; the prompt says "you are not sure".
+
+Full design: [[Memory Dynamics]]. Status: implemented and wired
+(endpoint + tick + prompt paths tested in `tests/test_memory_dynamics.py`),
+including the interface: dynamics badges and a stats header in the inspector's
+Memories tab, a Category/Confidence/Connections editor, and the full
+**Memory Mind** dashboard (`static/js/inspector/mind-view.ts`, opened from the
+🧠 Mind button — timeline, filters, connections, per-person derived profiles
+via `GET /api/players/<name>/memories/people`).
+
 ## Related
 
 - [[dev_tasks/done/characters/task-178-unify-memory-systems|task-178: Unify memory systems]]

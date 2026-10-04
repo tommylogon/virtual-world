@@ -980,7 +980,7 @@ class Player:
         from engine.relationships import describe
         return describe(self, other_name)
 
-    def add_memory(self, text: str, tick: int, importance: int = 5, memory_type: str = "observation", tags=None, source: str = "auto", entity_ids=None, location: str = "", salience: int = 0):
+    def add_memory(self, text: str, tick: int, importance: int = 5, memory_type: str = "observation", tags=None, source: str = "auto", entity_ids=None, location: str = "", salience: int = 0, category=None, confidence=None, contradicts=None):
         """Add a memory entry. Importance 1-10, higher = more significant.
 
         tags: list[str] — optional keyword labels for targeting via trigger effects.
@@ -988,6 +988,11 @@ class Player:
             used by the observation index and the retrieval entity boost.
         location: str — the area the memory happened in.
         source: str — provenance label (auto/manual/trigger/...).
+        category: str — memory kind (episodic/semantic/procedural/social/belief);
+            derived from ``memory_type``/tags when omitted (task-685).
+        confidence: float — 0..1 how sure the character is; defaulted by source.
+        contradicts: list[str] — ids of existing memories this one conflicts
+            with (authored links; structural detection also runs on write).
         Returns the stored entry so callers can index it.
         """
         entry = {
@@ -1004,10 +1009,28 @@ class Player:
             "salience_override": salience,
             "suppressions": [],
         }
+        if category:
+            entry["category"] = str(category)
+        if confidence is not None:
+            entry["confidence"] = max(0.0, min(1.0, float(confidence)))
+        try:
+            from engine import memory_dynamics
+            memory_dynamics.ensure_dynamics(entry)
+            # task-689: mark assert/deny conflicts with existing memories.
+            # Guarded: a memory write must never fail because detection did.
+            try:
+                memory_dynamics.detect_contradiction(entry, self.memories)
+            except Exception:
+                pass
+            for other in list(self.memories):
+                if other.get("id") in (contradicts or []):
+                    memory_dynamics.link(entry, other)
+        except ImportError:
+            pass
         self.memories.append(entry)
         limit = _memory_limit()
         if limit and len(self.memories) > limit:
-            self._trim_memories(limit)
+            self._trim_memories(limit, protect_id=entry.get("id"))
         return entry
 
     def record_observation(self, subject_id: str, text: str, tick: int, kind: str = "",
@@ -1107,23 +1130,43 @@ class Player:
         self.memory_index.pop(str(subject_id), None)
         return True
 
-    def _trim_memories(self, limit: int):
+    def _trim_memories(self, limit: int, protect_id: str = None):
         """Drop the least worth keeping when a retention cap is configured.
 
         Authored memories (``source == "manual"``) are the character's backstory,
         so they go last — a busy week of generated social chatter must not push
-        the hand-written past out of the character.
+        the hand-written past out of the character. Among the rest, eviction
+        ranks by effective importance + reinforcements (task-685): repeated
+        experience survives the cap, one-off noise goes first. ``protect_id``
+        spares the entry being written right now — a character does not
+        instantly forget what they just saw, and its caller still holds it.
 
         An evicted subject also leaves the observation index, so the character
         genuinely no longer knows it. Forgetting therefore re-enchants the world
         (task-425): a place it can no longer remember is novel again.
         """
+        try:
+            from engine import memory_dynamics
+        except ImportError:
+            memory_dynamics = None
         while len(self.memories) > limit:
-            victim = 0
+            victim = None
+            victim_score = None
             for index, memory in enumerate(self.memories):
-                if memory.get("source") != "manual":
+                if memory.get("source") == "manual":
+                    continue
+                if protect_id and memory.get("id") == protect_id:
+                    continue
+                if memory_dynamics is not None:
+                    score = (memory_dynamics.effective_importance(memory)
+                             + int(memory.get("reinforcements", 0) or 0))
+                else:
+                    score = float(memory.get("importance", 5) or 5)
+                if victim_score is None or score < victim_score:
                     victim = index
-                    break
+                    victim_score = score
+            if victim is None:  # only protected/manual memories left; cap loses
+                break
             gone = self.memories.pop(victim)
             for subject in (gone.get("entity_ids") or []):
                 if self.memory_index.get(str(subject)) == gone.get("id"):
@@ -1186,18 +1229,24 @@ class Player:
             m["salience_override"] = 0
         self.clear_expired_suppressions(current_tick)
 
-    def get_relevant_memories(self, query: str, max_results: int = 5) -> list:
+    def get_relevant_memories(self, query: str, max_results: int = 5, tick: int = None) -> list:
         """Keyword-based memory retrieval respecting suppressions and salience.
 
         Memories with an active suppression are excluded, and so are superseded
         observations — a belief that was replaced by a later one must not still
         be recallable (task-403).
-        Recalled memories get a reinforce bump (+1 importance, cap 10).
+        Recalled memories are reinforced (task-685): bounded activation /
+        confidence / counter stamps replace the old unbounded importance bump.
+        ``tick`` stamps last_recalled_tick when the caller knows the world time.
         """
         if not self.memories:
             return []
 
         import re
+        try:
+            from engine import memory_dynamics
+        except ImportError:
+            memory_dynamics = None
         query_lower = query.lower()
         query_words = set(re.sub(r'[^\w\s]', '', query_lower).split())
 
@@ -1210,10 +1259,12 @@ class Player:
             word_overlap = len(query_words & text_words)
             recency_boost = max(0, 1.0 - (m.get("tick", 0) / 100))
             salience = m.get("salience_override", 0)
-            score = (word_overlap * 2) + (m.get("importance", 5) * 0.5) + (recency_boost * 3) + (salience * 2)
+            weight = (memory_dynamics.effective_importance(m) if memory_dynamics
+                      else float(m.get("importance", 5) or 5))
+            score = (word_overlap * 2) + (weight * 0.5) + (recency_boost * 3) + (salience * 2)
             if word_overlap > 0 or m.get("importance", 5) >= 7 or salience > 0:
-                if m.get("importance", 5) < 10:
-                    m["importance"] = m["importance"] + 1
+                if memory_dynamics is not None:
+                    memory_dynamics.reinforce(m, tick=tick)
                 scored.append((score, m))
 
         scored.sort(key=lambda x: x[0], reverse=True)
