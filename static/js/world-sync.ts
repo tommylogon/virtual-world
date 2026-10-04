@@ -10,7 +10,7 @@
  * display name.
  *
  * @module world-sync — the "Sync World → Library" list
- * @contributes WorldSync: per-entity status (new/diff/synced) + routing into the single-entity save flow
+ * @contributes WorldSync: per-entity status (new/diff/synced) + routing into the single-entity save flow + refresh() after a world edit
  * @powers promoting world edits back into the library as templates
  * @relates matches by library_id → name slug → display name; DiffModal via the save flow
  * @docs docs/virtualWorld/Library System/Library 2.0 - Unified Library Design.md
@@ -54,7 +54,16 @@ class WorldSync {
         this.filter = 'all';
     }
 
-    async open() {
+    /**
+     * Re-read the library and re-render WITHOUT opening the modal.
+     * Four call sites (inspector/area-view, graph-manager, structures,
+     * worldpainter) call `worldSync.refresh()` after a world edit — one of them
+     * unguarded, which is how a live run produced "Scope change failed:
+     * window.worldSync.refresh is not a function" after a scope change that had
+     * already succeeded. The method never existed; the three guarded callers
+     * were silently doing nothing. This is that method.
+     */
+    async refresh(): Promise<void> {
         this.cache = {};
         const data = await (ApiClient as unknown as LibraryApi).getLibraryTypes(['items', 'ways', 'areas', 'characters']);
         this.cache.items = data.items || {};
@@ -64,6 +73,10 @@ class WorldSync {
         this.entities = this._collect();
         this._renderSummary();
         this._renderList();
+    }
+
+    async open() {
+        await this.refresh();
         const modal = document.getElementById('world-sync-modal');
         if (modal) modal.style.display = 'flex';
     }
