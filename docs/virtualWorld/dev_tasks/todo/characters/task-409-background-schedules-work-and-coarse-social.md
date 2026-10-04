@@ -3,6 +3,7 @@ type: task
 status: todo
 area: characters
 priority: high
+related: [task-702, task-704, task-699]
 ---
 
 # task-409: Background schedules, daily reflection, and coarse social behaviour
@@ -287,3 +288,12 @@ behaviour auditable.
 - The plan's action-budget arithmetic is superseded by the timeframe-and-flow
   model (`docs/virtualWorld/Simulation Model.md`); options now collapse to
   "background characters use bundled tasks authored like crafting recipes".
+
+## GOSP pointer (2026-10-04)
+
+The schedule/plan vision grew into the GOSP layer: typed plans (task-700),
+plan templates (task-701), the executor (task-702) and the selector
+(task-704). `engine/schedule.py` from slice 1 is the clock-triggered binding
+inside that layer; this task's remaining scope (daily reflection, coarse
+social, the ship-the-data decision) now lands on top of task-702 rather than
+beside it.

@@ -1,6 +1,7 @@
 ---
 type: task
 status: inprogress
+related: [task-704, task-701]
 area: gameplay
 priority: medium
 ---
@@ -160,3 +161,10 @@ the failure mode that sank the 2026-09-29 co-location pass.
 content into a scenario; an explicit same-seed replay test (determinism is by
 construction here — id-sorted, no RNG in plans); and a fresh replan *within* a
 plan (the task's "replan, not a freeze") beyond the `repeat` retry.
+
+## GOSP pointer (2026-10-04)
+
+Plan archetypes (hunt, raid, gather, haul) are the seed of the GOSP selector:
+task-704 either absorbs them as the first bound plan templates or retires
+them with a pointer. Do not extend the archetype system in parallel with the
+template library (task-701) - one vocabulary.

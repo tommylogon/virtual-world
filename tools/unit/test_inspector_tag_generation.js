@@ -177,23 +177,35 @@ async function runGenerate(opts) {
     const live = new Set(opts.live || []);
     const library = new Set(opts.library || []);
     const known = new Set([...live, ...library]);
-    window.worldState.players = { Test: { personality: 'wary and desperate', description: 'a hardened traveller' } };
-    window.worldState.data = { graph: { nodes: {} } };
-    window.worldState.fetch = () => Promise.resolve();
-    window.AIGenerator = { isConfigured: () => true };
-    window.llmClient = {
-        chat: (messages) => { prompt = messages[0].content; return Promise.resolve(JSON.stringify({ tags: opts.concepts })); }
-    };
-    window.ApiClient = {
-        updateCharacter: (name, data) => { sent.push({ name, data }); return Promise.resolve(); }
-    };
-    window.toastSuccess = (m) => toasts.push(m);
-    window.toastWarning = () => {};
-    window.toastError = () => {};
-    window.VW = undefined;                       // skip the inspector re-open
+    // This helper replaces module singletons on the shared sandbox. Every test
+    // file runs in ONE vm context and load order is alphabetical, so without a
+    // restore a later file inherits the fake — which is exactly how
+    // test_llm_truncation.js ended up asserting against a stub with no methods.
+    const saved = {};
+    for (const key of ['worldState', 'AIGenerator', 'llmClient', 'ApiClient', 'toastSuccess', 'toastWarning', 'toastError', 'VW']) {
+        saved[key] = window[key];
+    }
+    try {
+        window.worldState.players = { Test: { personality: 'wary and desperate', description: 'a hardened traveller' } };
+        window.worldState.data = { graph: { nodes: {} } };
+        window.worldState.fetch = () => Promise.resolve();
+        window.AIGenerator = { isConfigured: () => true };
+        window.llmClient = {
+            chat: (messages) => { prompt = messages[0].content; return Promise.resolve(JSON.stringify({ tags: opts.concepts })); }
+        };
+        window.ApiClient = {
+            updateCharacter: (name, data) => { sent.push({ name, data }); return Promise.resolve(); }
+        };
+        window.toastSuccess = (m) => toasts.push(m);
+        window.toastWarning = () => {};
+        window.toastError = () => {};
+        window.VW = undefined;                       // skip the inspector re-open
 
-    await opts.run('Test', { live, library, known });
-    return { sent, toasts, get prompt() { return prompt; } };
+        await opts.run('Test', { live, library, known });
+        return { sent, toasts, get prompt() { return prompt; } };
+    } finally {
+        for (const key of Object.keys(saved)) window[key] = saved[key];
+    }
 }
 
 test('generate posts hand-placed tags alongside the picks', async () => {
@@ -202,7 +214,10 @@ test('generate posts hand-placed tags alongside the picks', async () => {
         library: ['book'],
         concepts: ['iron tools', 'coarse bread'],
         run: (name, vocab) => {
-            window.InspectorAgentView._generateTagsFromPersonality({
+            // RETURNED, not fired-and-forgotten: runGenerate restores the
+            // sandbox globals in a finally block, so an un-awaited generate
+            // would emit its toast after the stubs are gone.
+            return window.InspectorAgentView._generateTagsFromPersonality({
                 charName: name, field: 'interest_tags', vocab, limit: 8,
                 contextNote: 'items', ask: 'what would they seek?', toastPrefix: 'Interest tags'
             });
@@ -216,7 +231,10 @@ test('the prompt carries no tag menu at all', async () => {
     const { prompt } = await runGenerate({
         live: ['tool'], library: ['book', 'jewelry', 'mechanism'], concepts: ['tool'],
         run: (name, vocab) => {
-            window.InspectorAgentView._generateTagsFromPersonality({
+            // RETURNED, not fired-and-forgotten: runGenerate restores the
+            // sandbox globals in a finally block, so an un-awaited generate
+            // would emit its toast after the stubs are gone.
+            return window.InspectorAgentView._generateTagsFromPersonality({
                 charName: name, field: 'interest_tags', vocab, limit: 8,
                 contextNote: 'items', ask: 'what would they seek?', toastPrefix: 'Interest tags'
             });
@@ -233,7 +251,10 @@ test('the toast says which picks cannot work yet', async () => {
     const { sent, toasts } = await runGenerate({
         live: ['tool'], library: ['book'], concepts: ['tools', 'jewelry', 'wyrm scales'],
         run: (name, vocab) => {
-            window.InspectorAgentView._generateTagsFromPersonality({
+            // RETURNED, not fired-and-forgotten: runGenerate restores the
+            // sandbox globals in a finally block, so an un-awaited generate
+            // would emit its toast after the stubs are gone.
+            return window.InspectorAgentView._generateTagsFromPersonality({
                 charName: name, field: 'interest_tags', vocab, limit: 8,
                 contextNote: 'items', ask: 'what would they seek?', toastPrefix: 'Interest tags'
             });
@@ -252,7 +273,10 @@ test('fear generate keeps hand-placed fears and grounds against the world', asyn
         live: ['goblin', 'chief'], library: ['creature'],
         concepts: ['a goblin chief', 'the dark'],
         run: (name, vocab) => {
-            window.InspectorAgentView._generateTagsFromPersonality({
+            // RETURNED, not fired-and-forgotten: runGenerate restores the
+            // sandbox globals in a finally block, so an un-awaited generate
+            // would emit its toast after the stubs are gone.
+            return window.InspectorAgentView._generateTagsFromPersonality({
                 charName: name, field: 'fear_tags', vocab, limit: 8,
                 contextNote: 'characters and areas', ask: 'what frightens them?', toastPrefix: 'Fear tags'
             });
@@ -271,7 +295,10 @@ test('a word the world has no tag for is reported, not silently guessed away', a
         live: ['goblin'], library: [],
         concepts: ['the deep wyrm'],
         run: (name, vocab) => {
-            window.InspectorAgentView._generateTagsFromPersonality({
+            // RETURNED, not fired-and-forgotten: runGenerate restores the
+            // sandbox globals in a finally block, so an un-awaited generate
+            // would emit its toast after the stubs are gone.
+            return window.InspectorAgentView._generateTagsFromPersonality({
                 charName: name, field: 'fear_tags', vocab, limit: 8,
                 contextNote: 'characters and areas', ask: 'what frightens them?', toastPrefix: 'Fear tags'
             });
@@ -295,7 +322,10 @@ test('generation still works when the vocabulary cannot be read', async () => {
     const { sent } = await runGenerate({
         live: [], library: [], concepts: ['iron tools'],
         run: (name, vocab) => {
-            window.InspectorAgentView._generateTagsFromPersonality({
+            // RETURNED, not fired-and-forgotten: runGenerate restores the
+            // sandbox globals in a finally block, so an un-awaited generate
+            // would emit its toast after the stubs are gone.
+            return window.InspectorAgentView._generateTagsFromPersonality({
                 charName: name, field: 'interest_tags', vocab, limit: 8,
                 contextNote: 'items', ask: 'what would they seek?', toastPrefix: 'Interest tags'
             });

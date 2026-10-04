@@ -93,3 +93,15 @@ Recommendation: Recipe system for complex crafting, triggers for simple single-i
 ## Refactoring Impact (July 2026)
 
 Engine is modular. Create engine/crafting.py — constructor receives graph, player_manager, item_actions, game_state. Wire in virtual_world_engine.py. Recipe data in data/recipes.json. API routes in new routes/crafting.py.
+
+---
+
+## Supersession pointer (2026-10-04)
+
+The graph-node recipe format described here is planned for replacement by
+library plan templates with committed activities and duration/skill/fail
+outcomes - see task-703 (recipe-as-activity), task-701 (template schema) and
+task-699 (the GOSP design doc). The engine execution layer built for this
+task (craft_item, condition leaves, give_item outputs) is expected to survive
+under the new format; the node format itself should not ship as a second
+source of truth alongside it.
