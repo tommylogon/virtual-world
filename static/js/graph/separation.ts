@@ -128,7 +128,14 @@ const _GraphSeparation: GraphSeparationApi = {
         const type = (node && node.type) || 'item';
         const base = ({ area: 46, character: 30, item: 24, way: 20 } as Record<string, number>)[type] || 22;
         const name = String((node && node.name) || (node && node.label) || '');
-        return base + Math.min(46, name.length * 1.7);
+        // The user's Node size (⚙ Tune → Look) grows the drawn shapes; the
+        // guard's idea of how much space a node wants grows with them, or
+        // bigger nodes would overlap inside the guard's own floor. Same clamp
+        // as GraphNetwork.nodeSizeScale.
+        let scale = Number((this._config() || {}).graphNodeScale);
+        if (!Number.isFinite(scale) || scale <= 0) scale = 1;
+        scale = Math.max(0.5, Math.min(scale, 2));
+        return base * scale + Math.min(46, name.length * 1.7);
     },
 
     /** Areas and ways are the world's anchors; a frozen node keeps its place. */

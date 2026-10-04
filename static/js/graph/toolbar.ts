@@ -308,45 +308,64 @@ window.GraphToolbar = {
     _tuningBuilt: false,
 
     /**
-     * The Tune popover's field spec: the same controls as ⚙ Settings → Graph,
-     * in the same groups, with the same bounds. `applyTuning()` below is the
-     * one writer of the apply behavior; the modal keeps its own static markup
-     * over the same config keys. test_graph_toolbar.js asserts the two stay
-     * in parity by reading the modal's own markup.
+     * The Tune popover's field spec, grouped the way you think while tuning,
+     * not the way the engine names its forces:
+     *   1. Length of connections — how long an edge holds its two nodes.
+     *   2. Pushing apart — unconnected nodes: the solver's spread force, then
+     *      the overlap guard (separation pass) with its own strength and range.
+     *   3. Look — node size, edge width, arrows.
+     *   4. Engine — settling speed and the solver itself.
+     *   5. Camera — focus zoom.
+     * The ⚙ Settings → Graph tab keeps its own static markup over the same
+     * config keys; test_graph_toolbar.js asserts the two stay in parity.
      */
     TUNING_GROUPS: [
         {
-            heading: 'Physics',
+            heading: 'Length of connections',
             fields: [
-                { key: 'graphSpringLength', id: 'gt-spring-length', label: 'Spring Length', type: 'range', min: 20, max: 300, step: 5, lo: 'Tight', hi: 'Loose', fallback: 120, hint: 'Rest length of edges — lower = tighter clusters' },
-                { key: 'graphGravitationalConstant', id: 'gt-repulsion', label: 'Repulsion', type: 'range', min: -500, max: -5, step: 5, lo: 'Weak', hi: 'Strong', fallback: -8, hint: 'Node repulsion force — more negative = more spread out' },
-                { key: 'graphDamping', id: 'gt-damping', label: 'Damping', type: 'range', min: 0, max: 1, step: 0.05, dp: 2, lo: 'Bouncy', hi: 'Stiff', fallback: 0.4, hint: 'Velocity damping — higher = simulation settles faster' },
-                { key: 'graphSpringConstant', id: 'gt-spring-constant', label: 'Spring Stiffness', type: 'range', min: 0.01, max: 0.15, step: 0.01, dp: 2, lo: 'Soft', hi: 'Rigid', fallback: 0.1, hint: 'How strongly edges pull nodes together' },
-                { key: 'graphItemEdgeLength', id: 'gt-item-edge-length', label: 'Item Edge Length', type: 'range', min: 20, max: 200, step: 5, lo: 'Hug Parent', hi: 'Stretched', fallback: 60, hint: 'Spring rest length for item → parent edges (on/in/carrying/equipped) — lower = children hug the node that holds them' },
-                { key: 'graphSolver', id: 'gt-solver', label: 'Physics Solver', type: 'select', options: [['forceAtlas2Based', 'Force Atlas 2'], ['barnesHut', 'Barnes-Hut'], ['repulsion', 'Repulsion']], fallback: 'forceAtlas2Based', hint: 'Force Atlas 2: smooth organic layouts · Barnes-Hut: faster for large graphs' },
+                // NOTE: there is deliberately no global "edge length" slider here.
+                // Connections are stamped per edge in the dataset — room↔room ways
+                // size themselves to their labels (or a per-way edge_length),
+                // attachments use Contents length — so the solver's global spring
+                // length (config.graphSpringLength) only reaches rare edges with
+                // no length of their own. Measured: dragging it across its whole
+                // range moved average attachment distances ~4% (equilibrium
+                // noise). It stays a config/engine fallback, not a control.
+                { key: 'graphItemEdgeLength', id: 'gt-item-edge-length', label: 'Contents length', type: 'range', min: 20, max: 200, step: 5, lo: 'Hug Parent', hi: 'Stretched', fallback: 60, hint: 'Rest length for the edges that hold things (in/on/carrying/equipped) — lower = contents hug what holds them. Room↔room ways size themselves to their labels instead.' },
+                { key: 'graphSpringConstant', id: 'gt-spring-constant', label: 'Snappiness', type: 'range', min: 0.01, max: 0.15, step: 0.01, dp: 2, lo: 'Soft', hi: 'Rigid', fallback: 0.1, hint: 'How strongly an edge pulls its two nodes to that length — higher = rigid spacing, lower = soft and stretchy.' },
             ],
         },
         {
-            heading: 'Separation',
+            heading: 'Pushing apart',
             fields: [
-                { key: 'graphRepelEnabled', id: 'gt-repel-enabled', label: '🧲 Separate Overlapping Nodes', type: 'check', fallback: true, hint: 'Nearby items/characters push apart — unless an edge already joins them' },
-                { key: 'graphRepelMin', id: 'gt-repel-min', label: 'Repel Distance', type: 'range', min: 20, max: 180, step: 5, lo: 'Overlap', hi: 'Spaced', fallback: 55, hint: 'Nodes closer than this push apart (unless connected by an edge). Long names need more room, so this is a floor' },
-                { key: 'graphRepelMax', id: 'gt-repel-max', label: 'Ignore Beyond', type: 'range', min: 60, max: 600, step: 10, lo: 'Near', hi: 'Far', fallback: 220, hint: 'Pairs further apart than this are ignored entirely — keeps the pass cheap on a big graph' },
-                { key: 'graphRepelPull', id: 'gt-repel-pull', label: 'Parent Pull', type: 'range', min: 0, max: 0.4, step: 0.01, dp: 2, lo: 'Loose', hi: 'Hugging', fallback: 0.12, hint: 'How strongly a separated node is reeled back toward its parent — higher keeps crowded rooms tighter' },
+                { key: 'graphGravitationalConstant', id: 'gt-repulsion', label: 'Spread', type: 'range', min: -500, max: -5, step: 5, lo: 'Weak', hi: 'Strong', fallback: -8, hint: 'How hard every node pushes every other away. Connected pairs are held at their edge length; unconnected ones spread out under this.' },
+                { key: 'graphRepelEnabled', id: 'gt-repel-enabled', label: '🧲 Overlap guard', type: 'check', fallback: true, hint: 'Push overlapping nodes apart even when no edge joins them — a second pass on top of the spread force.' },
+                { key: 'graphRepelStrength', id: 'gt-repel-strength', label: 'Guard strength', type: 'range', min: 0.05, max: 1, step: 0.05, dp: 2, lo: 'Soft', hi: 'Firm', fallback: 0.6, hint: 'How hard the overlap guard pushes a pair apart.' },
+                { key: 'graphRepelMin', id: 'gt-repel-min', label: 'Push apart when closer than', type: 'range', min: 20, max: 180, step: 5, lo: 'Overlap', hi: 'Spaced', fallback: 55, hint: 'The guard only acts on pairs closer than this. A floor — long names need room, so it grows with the label.' },
+                { key: 'graphRepelMax', id: 'gt-repel-max', label: 'Stop pushing beyond', type: 'range', min: 60, max: 600, step: 10, lo: 'Near', hi: 'Far', fallback: 220, hint: 'Pairs further apart than this are ignored — keeps the pass cheap on a big graph.' },
+                { key: 'graphRepelPull', id: 'gt-repel-pull', label: 'Pull strays back', type: 'range', min: 0, max: 0.4, step: 0.01, dp: 2, lo: 'Loose', hi: 'Hugging', fallback: 0.12, hint: 'How strongly a node the guard pushed away is reeled back toward what holds it. Edge-joined pairs are never pushed in the first place.' },
             ],
         },
         {
-            heading: 'Edges & layout',
+            heading: 'Look',
             fields: [
-                { key: 'graphEdgeWidth', id: 'gt-edge-width', label: 'Default Edge Width', type: 'range', min: 0.5, max: 5, step: 0.5, dp: 1, lo: 'Thin', hi: 'Thick', fallback: 1 },
-                { key: 'graphArrows', id: 'gt-arrows', label: '➡️ Edge Arrows', type: 'check', fallback: true, hint: 'Show direction arrows on connection edges' },
-                { key: 'graphImprovedLayout', id: 'gt-improved-layout', label: '🧩 Improved Layout', type: 'check', fallback: false, hint: 'Better initial node placement (may shift positions)' },
+                { key: 'graphNodeScale', id: 'gt-node-scale', label: 'Node size', type: 'range', min: 0.5, max: 2, step: 0.05, dp: 2, lo: 'Small', hi: 'Large', fallback: 1, hint: 'Drawn size of item, way and character nodes. Areas are cards that size to their name. The overlap guard grants bigger nodes more room.' },
+                { key: 'graphEdgeWidth', id: 'gt-edge-width', label: 'Edge width', type: 'range', min: 0.5, max: 5, step: 0.5, dp: 1, lo: 'Thin', hi: 'Thick', fallback: 1 },
+                { key: 'graphArrows', id: 'gt-arrows', label: '➡️ Edge arrows', type: 'check', fallback: true, hint: 'Show direction arrows on connection edges.' },
+            ],
+        },
+        {
+            heading: 'Engine (advanced)',
+            fields: [
+                { key: 'graphDamping', id: 'gt-damping', label: 'Settle speed', type: 'range', min: 0, max: 1, step: 0.05, dp: 2, lo: 'Swings', hi: 'Calms fast', fallback: 0.4, hint: 'How fast movement dies down — higher calms the layout sooner, lower keeps it swinging.' },
+                { key: 'graphSolver', id: 'gt-solver', label: 'Physics solver', type: 'select', options: [['forceAtlas2Based', 'Force Atlas 2'], ['barnesHut', 'Barnes-Hut'], ['repulsion', 'Repulsion']], fallback: 'forceAtlas2Based', hint: 'Force Atlas 2: smooth organic layouts · Barnes-Hut: faster for large graphs.' },
+                { key: 'graphImprovedLayout', id: 'gt-improved-layout', label: '🧩 Improved layout', type: 'check', fallback: false, hint: 'Better initial node placement (may shift positions).' },
             ],
         },
         {
             heading: 'Camera',
             fields: [
-                { key: 'graphFocusZoom', id: 'gt-focus-zoom', label: 'Focus Zoom', type: 'range', min: 0.5, max: 3, step: 0.05, dp: 2, lo: 'Far', hi: 'Close', fallback: 1.15, hint: 'How close the camera zooms when a node is focused from a list, the outline or a search hit (1 = 100%). Read at click time — no reapply needed' },
+                { key: 'graphFocusZoom', id: 'gt-focus-zoom', label: 'Focus zoom', type: 'range', min: 0.5, max: 3, step: 0.05, dp: 2, lo: 'Far', hi: 'Close', fallback: 1.15, hint: 'How close the camera zooms when a node is focused from a list, the outline or a search hit (1 = 100%). Read at click time — no reapply needed.' },
             ],
         },
     ] as GraphToolbarTuningGroup[],

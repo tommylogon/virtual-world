@@ -73,10 +73,6 @@ const SettingsView = (() => {
         setChecked('agent-show-raw-llm', config.showRawLLM);
         setChecked('agent-end-of-turn-memory', config.endOfTurnMemory);
         // Graph settings (the `||` fallbacks mirror the defaults in config.js)
-        setVal('graph-spring-length', String(config.graphSpringLength || 120));
-        var gsl = document.getElementById('graph-spring-length-val');
-        if (gsl)
-            gsl.textContent = String(config.graphSpringLength || 120);
         setVal('graph-repulsion', String(config.graphGravitationalConstant || -8));
         var grv = document.getElementById('graph-repulsion-val');
         if (grv)
@@ -109,6 +105,13 @@ const SettingsView = (() => {
         var grpv = document.getElementById('graph-repel-pull-val');
         if (grpv)
             grpv.textContent = grp.toFixed(2);
+        var grs = Number(config.graphRepelStrength);
+        if (!Number.isFinite(grs) || grs <= 0)
+            grs = 0.6;
+        setVal('graph-repel-strength', String(grs));
+        var grsv = document.getElementById('graph-repel-strength-val');
+        if (grsv)
+            grsv.textContent = grs.toFixed(2);
         setVal('graph-solver', config.graphSolver || 'forceAtlas2Based');
         setVal('graph-edge-width', String(config.graphEdgeWidth || 1));
         var gewv = document.getElementById('graph-edge-width-val');
@@ -116,6 +119,11 @@ const SettingsView = (() => {
             gewv.textContent = (Number(config.graphEdgeWidth) || 1).toFixed(1);
         setChecked('graph-arrows', config.graphArrows !== false);
         setChecked('graph-improved-layout', config.graphImprovedLayout === true);
+        var gns = Number(config.graphNodeScale) || 1;
+        setVal('graph-node-scale', String(gns));
+        var gnsv = document.getElementById('graph-node-scale-val');
+        if (gnsv)
+            gnsv.textContent = gns.toFixed(2);
         setVal('graph-focus-zoom', String(config.graphFocusZoom || 1.15));
         var gfzv = document.getElementById('graph-focus-zoom-val');
         if (gfzv)

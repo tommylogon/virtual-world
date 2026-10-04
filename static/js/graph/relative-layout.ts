@@ -154,6 +154,8 @@ interface GraphRelativeLayoutApi {
     orbitPosition(parentPos: LayoutPos, index: number, count: number, node: LayoutNode,
                   depth: number, parentNode?: LayoutNode): LayoutPos;
     apply(): number;
+    /** Re-run the overlap guard in place (no ring re-seed). See implementation. */
+    resolveSeparation(): number;
     reseed(): void;
     _positions(network: LayoutNetwork): Record<string, LayoutPos>;
     frozenDropOps(ids: string[]): LayoutOp[];
@@ -640,6 +642,53 @@ const _GraphRelativeLayout: GraphRelativeLayoutApi = {
             // In the solver, and not pinned: the player can still drag it, and the
             // sim keeps it beside whatever holds it.
             updates.push({ id, x: pos.x, y: pos.y, fixed: false, physics: true });
+        }
+        if (updates.length) {
+            try { network.body.data.nodes.update(updates); } catch (err) { /* ignore */ }
+        }
+        return updates.length;
+    },
+
+    /**
+     * Re-run the overlap guard over the graph as it stands — no ring re-seed,
+     * no teleport. The guard's knobs (strength, range, pull) and Node size
+     * (which scales the guard's radii) only take effect when this pass runs;
+     * it used to be reachable solely through apply(), i.e. through a full
+     * layout re-derivation on a stabilization event, so tuning them live did
+     * nothing until the next rebuild. A displaced stray is reeled toward its
+     * holder's *current* position — what the knob's hint promises — rather
+     * than onto a fresh ring slot.
+     *
+     * @returns {number} how many nodes moved
+     */
+    resolveSeparation(): number {
+        const g = (typeof graphManager !== 'undefined' && graphManager) || {};
+        const network = g.network;
+        if (!network || !network.body?.data?.nodes) return 0;
+        if (this.levelsMode()) return 0;
+        const separation = _separation();
+        if (!separation || !separation.enabled()) return 0;
+        const nodes = this._nodes();
+        if (!Object.keys(nodes).length) return 0;
+        const edges = this._edges();
+        const positions = this._positions(network);
+        if (!Object.keys(positions).length) return 0;
+        const parents = this._parents(nodes, edges);
+        const spec = separation.spec();
+        spec.targets = {};
+        for (const id of Object.keys(positions)) {
+            const parent = parents[id];
+            const target = (parent && positions[parent]) ? positions[parent] : positions[id];
+            spec.targets[id] = { x: target.x, y: target.y };
+        }
+        const resolved = separation.resolve(nodes, edges, positions, spec);
+        const updates: { id: string; x: number; y: number }[] = [];
+        for (const [id, pos] of Object.entries(resolved)) {
+            const node = nodes[id];
+            if (!node || node.type === 'area' || node.type === 'way') continue;
+            if (this.isStatic(node)) continue;
+            if (!Number.isFinite(pos.x) || !Number.isFinite(pos.y)) continue;
+            updates.push({ id, x: pos.x, y: pos.y });
         }
         if (updates.length) {
             try { network.body.data.nodes.update(updates); } catch (err) { /* ignore */ }

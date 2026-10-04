@@ -95,6 +95,7 @@ interface ConfigManager {
     graphSpringConstant?: number;
     graphDamping?: number;
     graphFocusZoom?: number;
+    graphNodeScale?: number;
 }
 
 /** ConfigManager singleton (config.js): user settings + feature flags. */
@@ -525,6 +526,9 @@ declare const GraphNetwork: {
     loadGraphData(...args: any[]): any;
     mapCompact(...args: any[]): any;
     mapSizeScale(...args: any[]): any;
+    nodeSizeScale(...args: any[]): any;
+    refreshEdgeLengths(...args: any[]): any;
+    _lastArrangement: string;
     renderTagPanel(...args: any[]): any;
     resetOverlayStyles(...args: any[]): any;
     revealAreasForWay(...args: any[]): any;

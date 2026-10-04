@@ -168,9 +168,9 @@ test('the Tune popover has one control per modal control, with matching bounds',
     const spec = tuningSpec();
     const html = __readFile('templates/index.html');
     const tab = html.slice(html.indexOf('id="tab-graph"'), html.indexOf('id="tab-embedding"'));
-    // 14 controls like the modal: 10 ranges, 1 select, 3 checks — counted, not assumed.
-    assertEq(spec.length, 14, 'field count');
-    assertEq(spec.filter(f => f.type === 'range').length, 10, 'range count');
+    // 16 controls like the modal: 12 ranges, 1 select, 3 checks — counted, not assumed.
+    assertEq(spec.length, 15, 'field count');
+    assertEq(spec.filter(f => f.type === 'range').length, 11, 'range count');
     assertEq(spec.filter(f => f.type === 'select').length, 1, 'select count');
     assertEq(spec.filter(f => f.type === 'check').length, 3, 'check count');
     // Each spec range mirrors a modal range input with the same min/max/step.
@@ -179,7 +179,7 @@ test('the Tune popover has one control per modal control, with matching bounds',
     for (const m of tab.matchAll(/<input type="range" id="([\w-]+)" min="([-\d.]+)" max="([-\d.]+)" step="([-\d.]+)"[^>]*config\.(\w+)\s*=/g)) {
         modalRanges.set(m[5], { min: m[2], max: m[3], step: m[4] });
     }
-    assertEq(modalRanges.size, 10, 'range inputs parsed out of the modal');
+    assertEq(modalRanges.size, 11, 'range inputs parsed out of the modal');
     for (const f of spec.filter(f => f.type === 'range')) {
         const twin = modalRanges.get(f.key);
         assertTrue(!!twin, `${f.key} has a modal range twin`);

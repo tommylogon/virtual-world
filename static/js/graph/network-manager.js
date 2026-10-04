@@ -302,10 +302,10 @@ window.GraphNetwork = {
                 // Sizes scale with the map pitch so a wide painted map does not turn
                 // its rooms into specks (bug-53). Fonts only get an explicit size
                 // where they already had one, so a scaled way label is not a surprise.
-                area: { color: { background: '#2d333b', border: '#58a6ff' }, font: { color: '#c9d1d9', size: 14 * GraphNetwork.mapSizeScale() }, borderWidth: 2, margin: { top: 21 * GraphNetwork.mapSizeScale(), bottom: 21 * GraphNetwork.mapSizeScale(), left: 27 * GraphNetwork.mapSizeScale(), right: 27 * GraphNetwork.mapSizeScale() } },
-                item: { color: { background: '#3d2e1a', border: '#e3b341' }, font: { color: '#e3b341', size: 12 * GraphNetwork.mapSizeScale() }, size: 18 * GraphNetwork.mapSizeScale(), borderWidth: 1 },
-                way: { color: { background: '#1a3a2a', border: '#4ec9b0' }, font: { color: '#4ec9b0' }, size: 14 * GraphNetwork.mapSizeScale(), borderWidth: 1 },
-                character: { color: { background: '#2a1a3d', border: '#bc8cff' }, font: { color: '#bc8cff', size: 14 * GraphNetwork.mapSizeScale() }, size: 24 * GraphNetwork.mapSizeScale(), borderWidth: 2 }
+                area: { color: { background: '#2d333b', border: '#58a6ff' }, font: { color: '#c9d1d9', size: 14 * GraphNetwork.mapSizeScale() }, borderWidth: 2, margin: { top: 21 * GraphNetwork.mapSizeScale() * GraphNetwork.nodeSizeScale(), bottom: 21 * GraphNetwork.mapSizeScale() * GraphNetwork.nodeSizeScale(), left: 27 * GraphNetwork.mapSizeScale() * GraphNetwork.nodeSizeScale(), right: 27 * GraphNetwork.mapSizeScale() * GraphNetwork.nodeSizeScale() } },
+                item: { color: { background: '#3d2e1a', border: '#e3b341' }, font: { color: '#e3b341', size: 12 * GraphNetwork.mapSizeScale() }, size: 18 * GraphNetwork.mapSizeScale() * GraphNetwork.nodeSizeScale(), borderWidth: 1 },
+                way: { color: { background: '#1a3a2a', border: '#4ec9b0' }, font: { color: '#4ec9b0' }, size: 14 * GraphNetwork.mapSizeScale() * GraphNetwork.nodeSizeScale(), borderWidth: 1 },
+                character: { color: { background: '#2a1a3d', border: '#bc8cff' }, font: { color: '#bc8cff', size: 14 * GraphNetwork.mapSizeScale() }, size: 24 * GraphNetwork.mapSizeScale() * GraphNetwork.nodeSizeScale(), borderWidth: 2 }
             }
         };
     },
@@ -322,6 +322,21 @@ window.GraphNetwork = {
             return 1;
         return (typeof GraphLayoutEngine !== 'undefined' && GraphLayoutEngine.mapScale)
             ? GraphLayoutEngine.mapScale() : 1;
+    },
+    /**
+     * The user's Node size multiplier (⚙ Tune → Look): multiplies the drawn
+     * size of item/way/character nodes and area card padding. Clamped to the
+     * slider's range; 1 everywhere when unset, so nothing changes by default.
+     * The separation pass multiplies its type radii by the same value, so a
+     * bigger node is granted correspondingly more room. Font sizes deliberately
+     * stay on `mapSizeScale()` only — labels keep a readable size while shapes
+     * grow under it.
+     */
+    nodeSizeScale() {
+        const n = Number(typeof config !== 'undefined' && config ? config.graphNodeScale : NaN);
+        if (!Number.isFinite(n) || n <= 0)
+            return 1;
+        return Math.max(0.5, Math.min(n, 2));
     },
     /**
      * Draw the painted map's areas as compact dots instead of named cards
@@ -414,6 +429,42 @@ window.GraphNetwork = {
      *
      * @param {boolean} [rebuild] - re-derive the layout from data (mode switches)
      */
+    /** Snapshot of the arrangement knobs (edge lengths + guard) last applied. */
+    _lastArrangement: '',
+    /**
+     * Restamp per-edge rest lengths in place. Edge lengths live in the dataset
+     * (connections size to their labels or a per-way `edge_length`; attachments
+     * use Contents length), so a changed Contents length reaches the solver only
+     * when the dataset is rebuilt. The live edge options carry the drawn length,
+     * so update them directly; the dataset is refetched from the server on the
+     * next rebuild anyway.
+     *
+     * @returns {number} how many edges were restamped
+     */
+    refreshEdgeLengths() {
+        const gm = (typeof graphManager !== 'undefined' && graphManager) || null;
+        if (!gm || !gm.network || !gm.network.body)
+            return 0;
+        const body = gm.network.body;
+        const itemLen = (typeof config !== 'undefined' && config && Number(config.graphItemEdgeLength)) || 35;
+        let updated = 0;
+        for (const eid of body.edgeIndices) {
+            const edge = body.edges[eid];
+            if (!edge || !edge.options)
+                continue;
+            const type = String(edge.options.type || '');
+            if (!GRAPH_ATTACH_EDGE_TYPES.has(type) && type !== 'triggers' && type !== 'grappled')
+                continue;
+            if (Number(edge.options.length) === itemLen)
+                continue;
+            try {
+                edge.setOptions({ length: itemLen });
+                updated++;
+            }
+            catch (err) { /* ignore */ }
+        }
+        return updated;
+    },
     applyGraphSettings(rebuild = false) {
         if (!graphManager.network)
             return;
@@ -427,6 +478,37 @@ window.GraphNetwork = {
             catch (err) { /* ignore — already running */ }
         }
         if (!rebuild) {
+            // Edge rest lengths and the overlap guard live outside the solver's
+            // options: lengths are stamped per edge in the dataset (attachments
+            // from Contents length, connections from their labels or a per-way
+            // edge_length), and the guard runs once per layout pass. The full
+            // rebuild this path replaced refreshed them as a side effect —
+            // re-derive them here whenever a knob that feeds them moved, or
+            // dragging Contents length / the guard knobs does nothing until the
+            // next data reload (measured: attachment distances never moved).
+            const arrangement = [
+                config && config.graphItemEdgeLength,
+                config && config.graphRepelEnabled,
+                config && config.graphRepelStrength,
+                config && config.graphRepelMin,
+                config && config.graphRepelMax,
+                config && config.graphRepelPull,
+                config && config.graphNodeScale,
+            ].join('|');
+            if (arrangement !== GraphNetwork._lastArrangement) {
+                GraphNetwork._lastArrangement = arrangement;
+                try {
+                    GraphNetwork.refreshEdgeLengths();
+                }
+                catch (err) { /* ignore */ }
+                const rel = window.GraphRelativeLayout;
+                if (rel && typeof rel.resolveSeparation === 'function') {
+                    try {
+                        rel.resolveSeparation();
+                    }
+                    catch (err) { /* ignore */ }
+                }
+            }
             if (window.GraphToolbar)
                 GraphToolbar.syncAll();
             return;
@@ -1095,8 +1177,9 @@ window.GraphNetwork = {
         // from the cell instead, so it always fits its own cell.
         if (nodeData.type === 'area' && GraphNetwork.mapCompact()) {
             nodeConfig.shape = 'dot';
-            nodeConfig.size = (typeof GraphLayoutEngine !== 'undefined'
-                && GraphLayoutEngine.mapDotSize) ? GraphLayoutEngine.mapDotSize() : 8;
+            nodeConfig.size = ((typeof GraphLayoutEngine !== 'undefined'
+                && GraphLayoutEngine.mapDotSize) ? GraphLayoutEngine.mapDotSize() : 8)
+                * GraphNetwork.nodeSizeScale();
         }
         // Saved layout: a node whose x/y were persisted to the world (right-click
         // → 🗺 → 💾 Save layout) loads back in place instead of being freshly
@@ -1157,7 +1240,8 @@ window.GraphNetwork = {
         if (graphManager._showImages && nodeAvatar) {
             nodeConfig.shape = 'circularImage';
             nodeConfig.image = nodeAvatar;
-            nodeConfig.size = { area: 45, character: 28, item: 24, way: 22 }[nodeData.type] || 24;
+            nodeConfig.size = ({ area: 45, character: 28, item: 24, way: 22 }[nodeData.type] || 24)
+                * GraphNetwork.nodeSizeScale();
             nodeConfig.borderWidth = 2;
             // Clip the art to the circle and keep a visible state-colored border
             // rather than letting the image's own bounds set the node size.

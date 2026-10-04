@@ -86,11 +86,55 @@ can load before the objects they use, but keep dependencies load-order-stable or
 **What it does.** The ⚙ Settings → Graph tab, rendered as a popover in the graph toolbar's
 *Look* zone (`btn-tuning` / `#graph-tuning-menu`), so physics, separation, edge and camera
 parameters can be dragged while the graph reacts. `GraphToolbar.TUNING_GROUPS` is the field
-spec (4 groups, 14 controls); `GraphToolbar.buildTuningMenu()` renders it once on first open
-and `syncTuning()` re-reads config every time it opens — **config stays the single source of
-truth for values**; the Settings modal keeps its own static markup over the same keys. The
-parity tests read the modal's markup out of `templates/index.html` and fail if the two
-surfaces drift apart (same keys, same min/max/step, `gt-`-prefixed ids so they cannot collide).
+spec — 5 groups, 15 controls, grouped the way you think while tuning rather than the way the
+engine names its forces: **Length of connections** (contents length, snappiness), **Pushing
+apart** (the spread force, then the overlap guard with its strength and range), **Look**
+(node size, edge width, arrows), **Engine (advanced)** (settle speed, solver, improved
+layout), **Camera** (focus zoom). `buildTuningMenu()` renders it once on first open and
+`syncTuning()` re-reads config every time it opens — **config stays the single source of truth
+for values**; the Settings modal keeps its own static markup over the same keys (same groups,
+same labels, same bounds). The parity tests read the modal's markup out of
+`templates/index.html` and fail if the two surfaces drift apart (same keys, same min/max/step,
+`gt-`-prefixed ids so they cannot collide).
+
+**Live audit (2026-10-04, measured in the browser).** Every knob was exercised at both
+extremes against a graph metric. Because the automation pane stops servicing animation frames
+when idle, the solver was advanced with explicit `network.physics.physicsTick()` steps — both
+arms of every pair use the same harness. (A backgrounded pane is *paused*, not dead: nodes move
+normally in any foreground browser.)
+
+| Knob | Effect | Evidence |
+|---|---|---|
+| Spread | strong | graph extent 1852 → 6133 (−5 vs −500) |
+| Contents length | strong | mean attachment distance 138 vs 421 (was 0% until the refresh below) |
+| Node size | strong | character/item group sizes 24→38.4 / 18→28.8 at 1.6×, camera bit-identical |
+| Snappiness | strong | rest length 100: soft (0.01) settles at mean distance 144, rigid (0.15) at 114 |
+| Settle speed | strong | after an identical 250px kick, residual path 2429px at damping 0.05 vs 346px at 0.95 |
+| Solver | strong | identical parameters: extent 4766 (Force Atlas 2) vs 3662 (Barnes-Hut) |
+| Focus zoom | strong | `focusNode()` with the knob at 2.0 lands the camera at scale exactly 2.0 |
+| Edge width / arrows | delivered + visual | option payload confirmed off `buildOptions()`; rendered A/B pair (0.5 vs 5) in the audit transcript |
+| Improved layout | build-time by design | affects initial placement only — nothing to see at runtime, applies on the next data load |
+| Guard strength / range / Pull strays back | weak — one-shot nudge | min free-pair distance 117–124 across the whole range: the guard displaces overlaps, then the running solver re-collapses them. The solver has the final word by design |
+| **Edge length (global)** | **dead — removed from both surfaces** | attachment distances moved ~4% across its full 20–300 range: connection edges are stamped per edge in the dataset (label-sized or a per-way `edge_length`) and attachments use Contents length, so the solver's global spring length reaches only rare edges with no length of their own. The config key stays an engine fallback |
+
+**Not everything a knob feeds is a solver option.** Per-edge rest lengths are stamped in the
+dataset and the overlap guard runs once per layout pass, so replacing the full rebuild with an
+in-place apply silently stranded Contents length and the guard knobs ("nothing happens until
+the next reload"). `applyGraphSettings(rebuild = false)` now re-derives them whenever one of the
+arrangement knobs (contents length, guard on/strength/min/max/pull, node size) changed —
+`GraphNetwork.refreshEdgeLengths()` restamps the live edge options, and
+`GraphRelativeLayout.resolveSeparation()` re-runs the guard over the graph as it stands, with
+pull targets taken from the parents map (a displaced stray is reeled toward its holder's
+current position, no ring re-seed).
+
+**Two knobs this surfaced that the engine had but no UI exposed:** `graphRepelStrength` (the
+overlap guard's push strength, clamped 0.05–1, default 0.6 — `graph/separation.ts:spec()` had
+been reading it for years) and `graphNodeScale` (Node size, 0.5–2 — multiplies the drawn size
+of item/way/character nodes and area card padding via `GraphNetwork.nodeSizeScale()`, applied
+to the group options, image-node sizes and compact dots; fonts deliberately stay unscaled;
+`separation.radiusOf` multiplies its type radii by the same value so the guard grants bigger
+nodes more room). Group-option sizes apply live through `setOptions`; image-node sizes refresh
+on the next data load.
 
 **Applying settings — two paths, one writer.** `GraphNetwork.applyGraphSettings()`:
 
@@ -114,11 +158,11 @@ setting, not a physics one, so changing it only persists; the next focus uses it
 
 **Character drift note.** A character's resting distance from their room is the equilibrium of
 their edge spring vs repulsion from the room's other contents — heavy carriers (elena vance:
-12 carried/worn items) sit farthest out. "Parent Pull" only reels back nodes displaced by the
-separation pass, and edge-joined nodes are exempt from separation, so ordinary repulsion drift
-has no counterweight knob yet (candidates: a character leash strength, or including edge-joined
-pairs in the pull). Not implemented — by design for now; tune Repulsion / Spring Stiffness /
-Item Edge Length to shrink the equilibrium.
+12 carried/worn items) sit farthest out. "Pull strays back" only reels back nodes the overlap
+guard displaced, and edge-joined nodes are exempt from it, so ordinary spread drift has no
+counterweight knob yet (candidates: a character leash strength, or including edge-joined
+pairs in the pull). Not implemented — by design for now; tune Spread / Snappiness /
+Contents length to shrink the equilibrium.
 
 ## 🐞 Report a bug (the 🐞 Report dialog)
 
