@@ -27,6 +27,12 @@ const win = {
     URL, URLSearchParams,
     // stubs used by plan-tracker.js
     worldState: { data: { time_ticks: 0 } },
+    // llm-client.js reads these as bare globals (`VW?.events?.log`, `config?.`)
+    // inside its methods. Both are feature-detected with optional chaining, so
+    // empty objects exercise the real code path without pulling in config.js
+    // (which needs the DOM) or the event-stream singleton.
+    VW: {},
+    config: {},
     // A real (tiny) bus, not a no-op: turn-feed's ring subscribes to 'log' and
     // silently installs nothing when `on` is missing, so a log-only stub would
     // make its filtering tests pass for the wrong reason. The real
@@ -150,6 +156,8 @@ load('static/js/agent/turn-queue.js');
 load('static/js/agent/action-normalizer.js');
 load('static/js/agent/response-parser.js');
 load('static/js/agent/turn-feed.js');
+load('static/js/agent/plan-grounding.js');
+load('static/js/llm-client.js');
 load('static/js/agent/plan-tracker.js');
 load('static/js/agent/involuntary.js');
 load('static/js/character-art.js');

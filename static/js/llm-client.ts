@@ -3,12 +3,19 @@
  * Handles URL normalization, auth, retry logic, streaming, and error handling.
  *
  * @module llm-client — the provider client (Chat Completions / Responses)
- * @contributes LLMClient.chat/chatWithTools: retries, streaming, JSON repair, thinking/reasoning controls, raw-capture hook
+ * @contributes LLMClient.chat/chatWithTools: retries, streaming, JSON repair, thinking/reasoning controls, truncation escalation, raw-capture hook
  * @powers all character and narration LLM calls, plus the 🔬 LLM inspector's raw exchanges
  * @relates configured from config.toLLMConfig(); feeds dataset-collector.captureRaw
  * @docs docs/virtualWorld/AI & Narration/LLM Providers.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+
+/** How many times a length-stopped response is re-requested with a larger
+ *  budget before the caller is told the answer is genuinely incomplete. */
+const MAX_TRUNCATION_RETRIES = 3;
+/** Hard ceiling for that escalation — well past any local model's practical
+ *  output length, so this only stops a pathological loop. */
+const MAX_TOKEN_CEILING = 32768;
 
 /** One chat message as sent to either API. Providers add fields we never read. */
 interface LLMMessage {
@@ -161,8 +168,28 @@ class LLMClient {
         const maxRetries = 3;
         let lastError: Error | null = null;
         const startedAt = Date.now();
+        // Truncation escalation. `max_tokens` is a HARD cap at the provider, and
+        // until now the stop reason was discarded — every caller received a
+        // silently cut-off string with no way to tell it from a complete one.
+        // A truncated answer is worse than a slow one (a half-written JSON plan
+        // silently becomes no plan), so a length stop re-requests with a larger
+        // budget instead of returning the fragment.
+        let effectiveMaxTokens = options.max_tokens;
+        // The escalation base is the CALLER's cap, never the previously
+        // escalated one — feeding the raised budget back in compounds instead of
+        // doubling (300 -> 600 -> 2400 -> 19200), which on a local model means
+        // one very long doomed generation instead of three quick ones. Caught
+        // by a live browser run; the unit tests only checked the helper.
+        const baseMaxTokens = options.max_tokens;
+        let truncationRetries = 0;
+        // Transport retries and truncation retries are SEPARATE budgets. Sharing
+        // one counter means three length stops exhaust the network budget and
+        // the call throws "failed after retries" having never failed at
+        // transport at all — which is how the first version of this behaved.
+        let attempt = 0;
+        const maxIterations = maxRetries + MAX_TRUNCATION_RETRIES;
 
-        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        for (let iteration = 0; iteration < maxIterations; iteration++) {
             // Structured output (task: structured output): response_format is
             // requested per-call via options.responseFormat, gated by the
             // config toggle, never mixed with tool calls, and auto-disabled
@@ -174,11 +201,11 @@ class LLMClient {
             }
             try {
                 const requestBody = isResponses
-                    ? this._buildResponsesBody(messages, { model, temperature, streaming, maxTokens: options.max_tokens, tools: options.tools, tool_choice: options.tool_choice, responseFormat })
+                    ? this._buildResponsesBody(messages, { model, temperature, streaming, maxTokens: effectiveMaxTokens, tools: options.tools, tool_choice: options.tool_choice, responseFormat })
                     : (() => {
                         const body: Record<string, any> = { model, messages, temperature: parseFloat(temperature as unknown as string) || 0.7 };
                         if (streaming) body.stream = true;
-                        if (options.max_tokens) body.max_tokens = options.max_tokens;
+                        if (effectiveMaxTokens) body.max_tokens = effectiveMaxTokens;
                         if (responseFormat) body.response_format = responseFormat;
                         if (options.tools && Array.isArray(options.tools)) {
                             body.tools = options.tools;
@@ -235,8 +262,10 @@ class LLMClient {
                         && /response_format|json_schema|json object|structured|word ['"]?json['"]?/i.test(errText)) {
                         this._structuredUnsupported = true;
                         if (VW?.events) VW.events.log('⚠️ Provider rejected structured output — falling back to plain prompts for this session.', 'system-msg');
+                        attempt++;
                         continue;
                     }
+                    attempt++;
                     if ((resp.status === 429 || resp.status >= 500) && attempt < maxRetries) {
                         const delay = Math.pow(2, attempt - 1) * 1000;
                         if (VW?.events) VW.events.log(`⏱️ LLM retry ${attempt}/${maxRetries} after ${resp.status}...`, 'system-msg');
@@ -246,15 +275,36 @@ class LLMClient {
                 }
 
                 if (streaming) {
-                    const streamed = await this._handleStream(resp, format, options.onChunk, label, messages, options);
+                    const streamInfo: { truncated: boolean } = { truncated: false };
+                    // A retry must not paint a SECOND stream over the partial
+                    // text already on screen, so onChunk is suppressed once the
+                    // retry budget is in play — the complete answer replaces it.
+                    const chunkSink = truncationRetries > 0 ? undefined : options.onChunk;
+                    const streamed = await this._handleStream(resp, format, chunkSink, label, messages, options, streamInfo);
                     // A stream isn't reassembled into a provider envelope, so
                     // capture the request plus the assembled text (task-405).
                     this._captureRawExchange(label, requestBody, { streamed: true, content: streamed }, resp, startedAt, headers);
+                    if (streamInfo.truncated && truncationRetries < MAX_TRUNCATION_RETRIES) {
+                        truncationRetries++;
+                        effectiveMaxTokens = this._nextTokenBudget(baseMaxTokens, truncationRetries);
+                        VW?.events?.log(`✂️ ${label || 'LLM'} hit the token cap mid-stream — retrying with ${effectiveMaxTokens} tokens`, 'system-msg');
+                        continue;
+                    }
+                    if (streamInfo.truncated) this._warnTruncated(label, effectiveMaxTokens, streamed);
                     this._checkSchemaEnforcement(streamed, responseFormat);
                     return streamed;
                 }
                 const completion = await resp.json();
                 this._captureRawExchange(label, requestBody, completion, resp, startedAt, headers);
+                if (this._truncationReason(completion, isResponses) && truncationRetries < MAX_TRUNCATION_RETRIES) {
+                    truncationRetries++;
+                    effectiveMaxTokens = this._nextTokenBudget(baseMaxTokens, truncationRetries);
+                    VW?.events?.log(`✂️ ${label || 'LLM'} hit the token cap (${this._truncationReason(completion, isResponses)}) — retrying with ${effectiveMaxTokens} tokens`, 'system-msg');
+                    continue;
+                }
+                if (this._truncationReason(completion, isResponses)) {
+                    this._warnTruncated(label, effectiveMaxTokens, this._extractChatCompletionContent(completion));
+                }
                 if (completion?.error) throw new Error(completion.error.message || JSON.stringify(completion.error));
                 const content = isResponses
                     ? this._extractResponsesContent(completion)
@@ -273,6 +323,7 @@ class LLMClient {
             } catch (e) {
                 if ((e as Error).name === 'AbortError') return null;
                 lastError = e as Error;
+                attempt++;
                 if (attempt < maxRetries && ((e as Error).message.includes('Failed to fetch') || (e as Error).message.includes('NetworkError'))) {
                     const delay = Math.pow(2, attempt - 1) * 1000;
                     if (VW?.events) VW.events.log(`⏱️ LLM retry ${attempt}/${maxRetries} after network error...`, 'system-msg');
@@ -386,6 +437,41 @@ class LLMClient {
         const msg = completion?.choices?.[0]?.message;
         if (!msg) return '';
         return this._normalizeAssistantText(msg.content || '');
+    }
+
+    /**
+     * The provider's own signal that generation stopped AT the token cap.
+     * Chat Completions reports `finish_reason: 'length'`; the Responses API
+     * reports `incomplete_details.reason`. Returns null when the answer
+     * finished on its own ('stop' / 'tool_calls' / no signal at all), so a
+     * provider that omits the field never triggers a spurious retry.
+     */
+    _truncationReason(completion: any, isResponses: boolean): string | null {
+        if (!completion || typeof completion !== 'object') return null;
+        if (isResponses) {
+            const reason = completion?.incomplete_details?.reason;
+            if (reason === 'max_output_tokens' || reason === 'max_tokens') return reason;
+            const status = completion?.status;
+            return status === 'incomplete' ? (reason || 'incomplete') : null;
+        }
+        const finish = completion?.choices?.[0]?.finish_reason;
+        return finish === 'length' ? 'length' : null;
+    }
+
+    /** Next budget for a truncation retry: double the caller's cap, or start
+     *  from the hard default, and never climb past the model's ceiling. */
+    _nextTokenBudget(current: number | undefined, retry: number): number {
+        const base = current && current > 0 ? current : 512;
+        const doubled = base * Math.pow(2, retry);
+        return Math.min(doubled, MAX_TOKEN_CEILING);
+    }
+
+    /** Last resort when even the ceiling truncates: say so loudly rather than
+     *  handing a half-written answer to a parser as if it were complete. */
+    _warnTruncated(label: string, budget: number | undefined, content: string): void {
+        if (!VW?.events?.log) return;
+        const tail = String(content || '').slice(-60).replace(/\s+/g, ' ');
+        VW.events.log(`✂️ ${label || 'LLM'} STILL truncated at ${budget || MAX_TOKEN_CEILING} tokens — the answer is incomplete. Raise Max Tokens in Settings.${tail ? ` …"${tail}"` : ''}`, 'system-msg');
     }
 
     _logAssistantResponse(label: string, content: unknown): void {
@@ -503,7 +589,7 @@ class LLMClient {
     }
 
     /** Handle streaming response — OpenAI SSE + LM Studio formats (chat-completions and responses) */
-    async _handleStream(resp: Response, format: string, onChunk: ((chunk: string) => void) | undefined, label: string, messages: LLMMessage[], options: LLMChatOptions): Promise<string> {
+    async _handleStream(resp: Response, format: string, onChunk: ((chunk: string) => void) | undefined, label: string, messages: LLMMessage[], options: LLMChatOptions, info?: { truncated: boolean }): Promise<string> {
         const reader = resp.body!.getReader();
         const decoder = new TextDecoder();
         let buffer = '', fullContent = '', currentEvent = '';
@@ -549,6 +635,9 @@ class LLMClient {
                 }
                 try {
                     const parsed = JSON.parse(data);
+                    // A length stop arrives on the LAST chunk before [DONE], so
+                    // the stream is only known to be cut off once it has ended.
+                    if (info && this._truncationReason(parsed, isResponses)) info.truncated = true;
                     let content;
                     if (isResponses) {
                         if (parsed?.type === 'response.completed' || parsed?.type === 'response.failed') {

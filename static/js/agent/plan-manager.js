@@ -14,6 +14,9 @@
  * @contributes PlanManager.generate() (multi-step plan via the LLM) + hasPlan()
  * @powers NPC behaviour — the plan an agent follows across turns
  * @relates stores into PlanTracker; the plan text feeds the decide prompt's PLAN FOLLOW
+ * @relates task-700: steps are TYPED and grounded through PlanGrounding before
+ *       acceptance — prose steps referencing flavor text ("use hanging meat")
+ *       are rejected at plan time, not burned as failed actions in the world.
  * @docs docs/virtualWorld/AI & Narration/Agent Engine.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
@@ -31,6 +34,9 @@ const PlanManager = (() => {
     function _repairJSON(text) {
         const fn = globalThis.repairJSON;
         return fn ? fn(text) : text;
+    }
+    function _planGrounding() {
+        return window.PlanGrounding;
     }
     /**
      * Check whether the given config requires an API key.
@@ -121,6 +127,9 @@ const PlanManager = (() => {
             const maslowNote = filteredNeeds.length > 0
                 ? `\n\n=== CRITICAL NEEDS (MASLOW — address these FIRST) ===\nYou are suffering from: ${filteredNeeds.join('; ')}.\n\nThese are PHYSIOLOGICAL needs — the base of Maslow's hierarchy. They outrank every other goal: safety, exploration, investigation, and social connection can wait. Build the FIRST step of your plan around satisfying the most urgent need (eat your food, drink your water, find shelter, rest).\n\nA short detour toward another goal is fine ONLY if you return to the urgent need immediately after. Don't let curiosity or a side-task stand between you and the pressing need.`
                 : '';
+            const grounding = _planGrounding();
+            const areaName = currentArea?.name || player?.current_area || '';
+            const facts = grounding && grounding.collectFacts(charName, state, player, areaName);
             const prompt = `${roomContext}
 
 === YOUR STATE ===
@@ -132,41 +141,145 @@ ${lastResult ? `\n=== RECENTLY ===\n${_summaryLine(lastResult)}` : ''}
 ${lastThought ? `=== YOUR THOUGHTS ===\n${lastThought}\n\n` : ''}${_previousPlanIssues(charName)}
 
 Create a practical 3-5 step plan based only on the information above.
-- Only name items, people, places, exits, and facts that appear in the current world or memories.
-- Do not invent props, characters, clues, areas, or events.
-- Treat the Items list as the only objects that can be directly interacted with. If more information is needed, plan to look, examine a listed item, speak to a person present, or use a visible exit.
+- Every step is an object: {"act": "...", "item": ..., "target": ..., "text": ..., "note": ..., "area": ..., "until": ...}
+- "act" is one of: ${grounding ? [...grounding.ACTS].join(', ') : 'go, take, use, examine, speak, wait'}.
+- GROUNDING: every "item"/"target" MUST come from the Items list, the paths list, People here, or your Carrying/Wearing list — or be an area you are in or know. Room-description scenery that is not a listed Item is NOT interactable; a step referencing it will be REJECTED.
+- "speak" steps carry the line in "text". "perform" steps describe a sustained activity in "note" (cook, mine, drill) and may carry "until" (e.g. "ore x5", "dusk") and "duration" (game minutes).
 - Account for immediate survival needs, active threats in the room, and the character's current condition.
 - Plans are suggestions — if something changes (a threat appears, someone attacks, a new person arrives), the plan may no longer apply. Re-evaluate before acting.
 
-Respond ONLY with a JSON object: {"steps": ["step 1", "step 2"]}`;
-            const response = await llmClient.chat([{ role: 'user', content: prompt }], { temperature: 0.7, max_tokens: 200, streaming: false, label: 'plan', responseFormat: _structuredFormats()?.plan });
-            if (!response)
-                return [];
-            let cleaned = _repairJSON(response);
-            const codeBlockMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-            if (codeBlockMatch)
-                cleaned = codeBlockMatch[1].trim();
-            const parsed = JSON.parse(cleaned);
-            // Structured output wraps in {"steps":[...]}; the old raw-array
-            // contract (and the legacy object-array variant) stay accepted for
-            // providers that fell back to plain prompts.
-            const arr = Array.isArray(parsed) ? parsed
-                : (Array.isArray(parsed?.steps) ? parsed.steps : null);
-            if (Array.isArray(arr)) {
-                const steps = arr.filter(step => typeof step === 'string').slice(0, 5);
-                if (steps.length > 0)
-                    return steps;
+Respond ONLY with a JSON object: {"steps": [{"act": "take", "item": "dried meat"}, {"act": "go", "target": "west passage"}]}`;
+            if (!grounding || !facts) {
+                // Grounding module unavailable — legacy prose contract as fallback.
+                const response = await llmClient.chat([{ role: 'user', content: prompt }], { temperature: 0.7, max_tokens: 560, streaming: false, label: 'plan', responseFormat: _structuredFormats()?.plan });
+                return _legacySteps(response);
             }
-            if (Array.isArray(arr) && typeof arr[0] === 'object' && arr[0] !== null) {
-                const steps = arr.map(entry => entry.examine || entry.action || entry.step || '').filter(Boolean).slice(0, 5);
-                if (steps.length > 0)
-                    return steps;
+            // task-700: typed steps, grounded before acceptance. One bounded
+            // re-composition: rejected steps return their failed preconditions
+            // (with the fact list) to the LLM once; whatever still does not
+            // ground is dropped, never executed.
+            let groundingBlock = '';
+            for (let attempt = 0; attempt < 2; attempt++) {
+                // max_tokens 560: a live run truncated a typed re-composition
+                // mid-JSON at 300 and the turn ran planless.
+                const response = await llmClient.chat([{ role: 'user', content: prompt + groundingBlock }], { temperature: 0.7, max_tokens: 560, streaming: false, label: 'plan', responseFormat: _structuredFormats()?.plan });
+                if (!response)
+                    return [];
+                let cleaned = _repairJSON(response);
+                const codeBlockMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+                if (codeBlockMatch)
+                    cleaned = codeBlockMatch[1].trim();
+                let parsed = null;
+                try {
+                    parsed = JSON.parse(cleaned);
+                }
+                catch {
+                    parsed = null;
+                }
+                // Truncated response: keep the complete step objects rather
+                // than losing the whole plan (a live run died mid-object and
+                // Rikka executed her turn with no plan at all). Salvage reads
+                // the RAW response: repairJSON strips quotes from truncated
+                // JSON ({"act":,"x"}), which makes the salvaged chunks
+                // unparseable too.
+                const salvaged = parsed ? [] : _salvageTypedSteps(response || '');
+                const rawSteps = salvaged.length ? salvaged
+                    : (Array.isArray(parsed) ? parsed
+                        : (Array.isArray(parsed?.steps) ? parsed.steps : null));
+                if (!Array.isArray(rawSteps) || !rawSteps.length)
+                    return [];
+                // Legacy prose contract ({"steps": ["..."]}) — accepted as fallback.
+                const legacy = rawSteps.filter((s) => typeof s === 'string');
+                const typed = rawSteps.filter((s) => s && typeof s === 'object');
+                if (legacy.length && !typed.length)
+                    return legacy.slice(0, 5);
+                if (!typed.length)
+                    return [];
+                const { grounded, rejections } = grounding.ground(typed.slice(0, 5), facts, areaName);
+                if (!rejections.length) {
+                    return grounded.map((g) => g.text);
+                }
+                for (const r of rejections) {
+                    events.log(`🧭 ${charName} plan step ungrounded: "${grounding.render(r.step)}" — ${r.reason}`, 'system-msg');
+                }
+                if (attempt === 0) {
+                    groundingBlock = `\n\n=== GROUNDING REJECTIONS ===
+The following steps were REJECTED because they reference things that do not exist as interactables:
+${rejections.map((r) => `- "${grounding.render(r.step)}" — ${r.reason}`).join('\n')}
+
+FACTS you may reference: interactables here: ${facts.areaItems.join(', ') || '(none)'}; carrying: ${facts.carried.join(', ') || '(nothing)'}; people here: ${facts.people.join(', ') || '(nobody)'}; paths: ${facts.exits.join(', ') || '(none)'}; known areas: ${facts.knownAreas.join(', ') || '(none)'}.
+Re-compose the rejected steps from these facts (or replace them with steps that ground). Keep grounded steps unchanged.`;
+                    continue;
+                }
+                // Second attempt still ungrounded: keep what grounded, drop the rest.
+                if (grounded.length)
+                    return grounded.map((g) => g.text);
+                return [];
             }
             return [];
         }
         catch (error) {
             return [];
         }
+    }
+    /**
+     * Legacy parse (pre-task-700 prose contract): {"steps": ["..."]}, a raw
+     * array, or the old object-array variant. Kept as the fallback path when
+     * the grounding module is unavailable.
+     */
+    function _legacySteps(response) {
+        if (!response)
+            return [];
+        let cleaned = _repairJSON(response);
+        const codeBlockMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+        if (codeBlockMatch)
+            cleaned = codeBlockMatch[1].trim();
+        let parsed;
+        try {
+            parsed = JSON.parse(cleaned);
+        }
+        catch {
+            return [];
+        }
+        const arr = Array.isArray(parsed) ? parsed
+            : (Array.isArray(parsed?.steps) ? parsed.steps : null);
+        if (!Array.isArray(arr))
+            return [];
+        const steps = arr.filter((s) => typeof s === 'string').slice(0, 5);
+        if (steps.length > 0)
+            return steps;
+        if (typeof arr[0] === 'object' && arr[0] !== null) {
+            const objs = arr.map((e) => e.examine || e.action || e.step || '').filter(Boolean).slice(0, 5);
+            if (objs.length)
+                return objs;
+        }
+        return [];
+    }
+    /**
+     * Salvage typed steps from a TRUNCATED plan response: pull the complete
+     * flat objects out of a half-written {"steps":[...]} and return them. A
+     * live run (kraktooth, Rikka) hit max_tokens mid-string and the whole
+     * plan was lost, leaving the character to act with no plan at all.
+     */
+    function _salvageTypedSteps(cleaned) {
+        const out = [];
+        const objs = cleaned.match(/\{[^{}]*\}/g) || [];
+        for (const chunk of objs) {
+            try {
+                const obj = JSON.parse(chunk);
+                if (obj && typeof obj === 'object' && obj.act)
+                    out.push(obj);
+                else if (obj && Array.isArray(obj.steps)) {
+                    for (const s of obj.steps)
+                        if (s && typeof s === 'object' && s.act)
+                            out.push(s);
+                }
+            }
+            catch {
+                // incomplete trailing object — skip it
+            }
+        }
+        return out.slice(0, 5);
     }
     /**
      * Collect what the previous plan accomplished/failed at, so regeneration
