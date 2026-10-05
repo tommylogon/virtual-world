@@ -172,6 +172,35 @@ ${worldSummary}
             this._notify('session:reset', { messages: this.messages });
         }
 
+        /**
+         * Reconcile history after Apply WITHOUT discarding it.
+         *
+         * Applying staged ops changes the WORLD, not the conversation: the model
+         * still needs everything it was told about the request. Resetting the
+         * session here used to wipe `messages` and the chat transcript on every
+         * commit, so each Apply threw away the whole conversation. Instead the
+         * live world context is refreshed and the commit is recorded as a note,
+         * which is all the model actually needs to stay truthful about what is
+         * now real.
+         */
+        afterApply(appliedCount: number, remaining = 0) {
+            if (this.messages.length === 0) {
+                this.resetSession();
+                return;
+            }
+            this.messages[0] = { role: 'system', content: this.buildSystemPrompt() };
+            const pending = remaining > 0
+                ? ` ${remaining} op(s) are STILL staged and do NOT exist in the world yet.`
+                : '';
+            const note = {
+                role: 'system',
+                content: `[Applied: ${appliedCount} staged change(s) are now committed to the live world.${pending} Earlier "staged" tool results in this conversation have landed — read the world (search_graph_nodes / list_nodes) instead of re-issuing them.]`
+            };
+            this.messages.push(note);
+            this.contextManager.addMessage(note, { importance: 2 });
+            this._notify('session:applied', { appliedCount, remaining });
+        }
+
         /** Execute a turn based on user input */
         async runUserTurn(userPrompt: string, options: Record<string, unknown> = {}): Promise<Record<string, unknown>> {
             if (this.busy) {

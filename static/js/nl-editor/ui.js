@@ -167,6 +167,17 @@ window.NLEditorUI = (() => {
             this.chatList.appendChild(bubble);
             this.chatList.scrollTop = this.chatList.scrollHeight;
         }
+        /** Divider after Apply: the world changed, the conversation did not. */
+        appendAppliedNotice(appliedCount, remaining = 0) {
+            if (!this.chatList)
+                return;
+            const chip = document.createElement('div');
+            chip.style.cssText = 'align-self:center;font-size:10px;color:var(--text-muted);padding:3px 8px;background:var(--bg-input);border-radius:10px;border:1px solid var(--border);';
+            const pending = remaining > 0 ? ` · ${remaining} still staged` : '';
+            chip.textContent = `✔ Applied ${appliedCount} change${appliedCount === 1 ? '' : 's'}${pending} — chat kept`;
+            this.chatList.appendChild(chip);
+            this.chatList.scrollTop = this.chatList.scrollHeight;
+        }
         appendErrorMessage(text) {
             if (!this.chatList || !text)
                 return;

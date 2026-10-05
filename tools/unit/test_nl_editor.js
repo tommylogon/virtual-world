@@ -282,3 +282,57 @@ test('OverlayGraphView previews a staged bulk patch on every matched node', () =
     // Dict merge: the pre-existing trait survives the previewed patch.
     assertEq(overlay.getNode('character_grub').properties.traits.hardy, true);
 });
+
+// ── AgentLoop: Apply must not flush the conversation ──
+
+/** Minimal router/staging pair — buildSystemPrompt only needs listWorldSummary. */
+function _fakeLoop() {
+    const staging = new NLEditorStaging.StagingBuffer();
+    const router = { overlay: { listWorldSummary: () => '- world summary' } };
+    return { staging, loop: new NLEditorAgent.AgentLoop(staging, router) };
+}
+
+test('afterApply keeps the conversation and records the commit', () => {
+    const { loop } = _fakeLoop();
+    loop.resetSession();
+    loop.messages.push({ role: 'user', content: 'add a lamp' });
+    loop.messages.push({ role: 'assistant', content: 'staged a lamp' });
+    const before = loop.messages.length;
+
+    const events = [];
+    loop.onUpdate((e) => events.push(e));
+    loop.afterApply(3, 0);
+
+    // The whole conversation survives — this is the regression: Apply used to
+    // call resetSession(), wiping `messages` and the chat transcript.
+    assertEq(loop.messages.length, before + 1);
+    assertTrue(loop.messages.some(m => m.content === 'add a lamp'), 'user turn kept');
+    assertTrue(loop.messages.some(m => m.content === 'staged a lamp'), 'assistant turn kept');
+    assertTrue(!events.includes('session:reset'), 'session:reset must NOT fire on Apply');
+    assertTrue(events.includes('session:applied'), 'session:applied fires so the UI draws a divider');
+
+    const note = loop.messages[loop.messages.length - 1];
+    assertEq(note.role, 'system');
+    assertTrue(note.content.includes('Applied: 3'), 'note counts what landed');
+    assertTrue(!note.content.includes('STILL staged'), 'fully applied run says nothing about pending ops');
+});
+
+test('afterApply tells the model which staged ops are still pending', () => {
+    const { loop } = _fakeLoop();
+    loop.resetSession();
+    loop.afterApply(1, 2);
+    const note = loop.messages[loop.messages.length - 1];
+    assertTrue(note.content.includes('STILL staged'), 'remaining ops called out');
+    assertTrue(note.content.includes('2'), 'remaining count stated');
+});
+
+test('afterApply refreshes the system prompt against the post-Apply world', () => {
+    const { loop } = _fakeLoop();
+    loop.resetSession();
+    const router = loop.router;
+    router.overlay.listWorldSummary = () => '- world summary';
+    loop.messages[0] = { role: 'system', content: 'STALE PROMPT' };
+    loop.afterApply(1, 0);
+    assertTrue(loop.messages[0].role === 'system', 'index 0 stays the system prompt');
+    assertTrue(loop.messages[0].content !== 'STALE PROMPT', 'system prompt rebuilt after Apply');
+});

@@ -86,6 +86,10 @@
                         this.ui.hideClarification();
                         this.ui.setStatus('Ready', false);
                         break;
+                    case 'session:applied':
+                        this.ui.appendAppliedNotice(data.appliedCount, data.remaining);
+                        this.ui.hideClarification();
+                        break;
                 }
             });
 
@@ -118,6 +122,10 @@
         /** Apply staged mutations to live world */
         async apply() {
             const res = await this.staging.apply();
+            // Commit records what landed; it must not cost the user the conversation.
+            if (res.appliedCount > 0) {
+                this.agent.afterApply(res.appliedCount, this.staging.getOps().length);
+            }
             if (res.invalid) {
                 this.ui.showValidationIssues(res.validation || [], true);
                 if (typeof toastError === 'function') {
@@ -127,7 +135,6 @@
                 if (typeof toastSuccess === 'function') {
                     toastSuccess(`Applied ${res.appliedCount} changes to world.`);
                 }
-                this.agent.resetSession();
             } else if (res.errors && res.errors.length > 0) {
                 if (typeof toastError === 'function') {
                     toastError(`Apply partially failed — ${res.remaining ?? 0} op(s) still staged: ${res.errors.join(', ')}`);
@@ -140,6 +147,9 @@
         /** Apply only the checked staged ops; unchecked stay staged. */
         async applySelected(ids: unknown[]) {
             const res = await this.staging.apply(ids);
+            if (res.appliedCount > 0) {
+                this.agent.afterApply(res.appliedCount, this.staging.getOps().length);
+            }
             if (res.invalid) {
                 this.ui.showValidationIssues(res.validation || [], true);
                 if (typeof toastError === 'function') {
@@ -149,7 +159,6 @@
                 if (typeof toastSuccess === 'function') {
                     toastSuccess(`Applied ${res.appliedCount} changes. ${this.staging.getOps().length} still staged.`);
                 }
-                this.agent.resetSession();
             } else if (res.errors && res.errors.length > 0) {
                 if (typeof toastError === 'function') {
                     toastError(`Apply partially failed — ${res.remaining ?? 0} op(s) still staged: ${res.errors.join(', ')}`);

@@ -15155,7 +15155,11 @@
             "broken_wheels",
             "wire_heaps",
             "bone_piles",
-            "mechanisms"
+            "mechanisms",
+            "rusty_blade",
+            "wheel_rims",
+            "mechanism_junk",
+            "lost_jewelry"
           ],
           "floor": 0,
           "goblin_description": "Useless junk? Maybe. Useful junk? Definitely. Krikka hides shiny things here. Dig deep enough and you find treasure.",
@@ -15181,7 +15185,19 @@
             "bones",
             "copper",
             "iron",
-            "mechanisms"
+            "mechanisms",
+            "rusted_blade",
+            "wheel_rim",
+            "tangled_wire",
+            "bone_heap",
+            "copper_scrap",
+            "iron_nugget",
+            "crashed_mechanism",
+            "old_arrowhead",
+            "dwarven_metal_shard",
+            "leather_strap",
+            "flint_nodule",
+            "travellers_ring"
           ],
           "tags": [
             "interior",
@@ -15195,7 +15211,7 @@
           "y": 280
         },
         "created": 1789781679.846524,
-        "updated": 1790953582.771908
+        "updated": 1791213792.1255507
       },
       "area_shaman_lair": {
         "id": "area_shaman_lair",
@@ -35542,6 +35558,990 @@
         },
         "created": 1791213614.0390894,
         "updated": 1791213614.0390894
+      },
+      "item_broken shield_1791213724699_666": {
+        "id": "item_broken shield_1791213724699_666",
+        "type": "item",
+        "name": "Rusted Sword Blade",
+        "properties": {
+          "description": "A shattered wooden shield, barely held together by straps.",
+          "actions": [
+            "examine",
+            "take",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "uses": -1,
+          "weight": 5.0,
+          "action_costs": {},
+          "skill_check": {},
+          "equip_slots": [
+            "arms"
+          ],
+          "tags": [
+            "armor",
+            "scrap"
+          ],
+          "affinity": [
+            "ruin"
+          ],
+          "current_state": "normal",
+          "light_level": "dim",
+          "target_temperature": null,
+          "heating_rate": null,
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "library_id": "broken_shield",
+          "image": null
+        },
+        "created": 1791213724.700318,
+        "updated": 1791213724.7043166
+      },
+      "item_bridge_plank_1791213725069_32": {
+        "id": "item_bridge_plank_1791213725069_32",
+        "type": "item",
+        "name": "Broken Wheel Rim",
+        "properties": {
+          "description": "A bridge plank, creosoted, laid across the worst of it.",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
+          "uses": 1,
+          "weight": 12.0,
+          "action_costs": {},
+          "skill_check": {},
+          "equip_slots": [],
+          "tags": [
+            "road",
+            "wooden"
+          ],
+          "affinity": [],
+          "current_state": "normal",
+          "light_level": "dim",
+          "target_temperature": null,
+          "heating_rate": null,
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "library_id": "bridge_plank",
+          "image": null
+        },
+        "created": 1791213725.0693974,
+        "updated": 1791213725.0753984
+      },
+      "item_bundle_of_twigs_1791213725463_899": {
+        "id": "item_bundle_of_twigs_1791213725463_899",
+        "type": "item",
+        "name": "Wire Heap",
+        "properties": {
+          "description": "a fistful of dry twigs. good for starting a fire, not much else.",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
+          "uses": -1,
+          "weight": 0.2,
+          "action_costs": {},
+          "skill_check": {},
+          "equip_slots": [],
+          "tags": [
+            "junk",
+            "tinder",
+            "wood",
+            "forage"
+          ],
+          "affinity": [
+            "forest",
+            "woods",
+            "ruin"
+          ],
+          "current_state": "normal",
+          "light_level": "dim",
+          "target_temperature": null,
+          "heating_rate": null,
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "library_id": "bundle_of_twigs",
+          "image": null
+        },
+        "created": 1791213725.4634588,
+        "updated": 1791213725.4674578
+      },
+      "item_chipped_stone_1791213725885_441": {
+        "id": "item_chipped_stone_1791213725885_441",
+        "type": "item",
+        "name": "Bone Pile",
+        "properties": {
+          "description": "a flat stone with a chipped edge. it might once have been a tool.",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
+          "uses": -1,
+          "weight": 0.5,
+          "action_costs": {},
+          "skill_check": {},
+          "equip_slots": [],
+          "tags": [
+            "junk",
+            "stone",
+            "debris",
+            "forage"
+          ],
+          "affinity": [
+            "forest",
+            "woods",
+            "rocky",
+            "ruin"
+          ],
+          "current_state": "normal",
+          "light_level": "dim",
+          "target_temperature": null,
+          "heating_rate": null,
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "library_id": "chipped_stone",
+          "image": null
+        },
+        "created": 1791213725.8855941,
+        "updated": 1791213725.888594
+      },
+      "item_scrap_iron_1791213726260_973": {
+        "id": "item_scrap_iron_1791213726260_973",
+        "type": "item",
+        "name": "Copper Scrap",
+        "properties": {
+          "description": "a bent scrap of iron, rusted at the edges. somebody might want it.",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
+          "uses": -1,
+          "weight": 0.4,
+          "action_costs": {},
+          "skill_check": {},
+          "equip_slots": [],
+          "tags": [
+            "scrap",
+            "junk",
+            "metal",
+            "forage"
+          ],
+          "affinity": [
+            "forest",
+            "woods",
+            "ruin"
+          ],
+          "current_state": "normal",
+          "light_level": "dim",
+          "target_temperature": null,
+          "heating_rate": null,
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "library_id": "scrap_iron",
+          "image": null
+        },
+        "created": 1791213726.26019,
+        "updated": 1791213726.2701912
+      },
+      "item_scrap_iron_1791213726646_75": {
+        "id": "item_scrap_iron_1791213726646_75",
+        "type": "item",
+        "name": "Iron Nugget",
+        "properties": {
+          "description": "a bent scrap of iron, rusted at the edges. somebody might want it.",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
+          "uses": -1,
+          "weight": 0.4,
+          "action_costs": {},
+          "skill_check": {},
+          "equip_slots": [],
+          "tags": [
+            "scrap",
+            "junk",
+            "metal",
+            "forage"
+          ],
+          "affinity": [
+            "forest",
+            "woods",
+            "ruin"
+          ],
+          "current_state": "normal",
+          "light_level": "dim",
+          "target_temperature": null,
+          "heating_rate": null,
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "library_id": "scrap_iron",
+          "image": null
+        },
+        "created": 1791213726.6468759,
+        "updated": 1791213726.6528766
+      },
+      "item_broken trap_1791213727147_733": {
+        "id": "item_broken trap_1791213727147_733",
+        "type": "item",
+        "name": "Crashed Mechanism",
+        "properties": {
+          "description": "A crude snare trap that has been sprung and broken.",
+          "actions": [
+            "take",
+            "drop",
+            "examine"
+          ],
+          "uses": -1,
+          "weight": 3.0,
+          "action_costs": {},
+          "skill_check": {},
+          "equip_slots": [],
+          "tags": [
+            "trap",
+            "scrap"
+          ],
+          "affinity": [
+            "ruin"
+          ],
+          "current_state": "normal",
+          "light_level": "dim",
+          "target_temperature": null,
+          "heating_rate": null,
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "library_id": "broken_trap",
+          "image": null
+        },
+        "created": 1791213727.147019,
+        "updated": 1791213727.1530323
+      },
+      "item_arrow_1791213727521_269": {
+        "id": "item_arrow_1791213727521_269",
+        "type": "item",
+        "name": "Old Arrowhead",
+        "properties": {
+          "description": "An arrow, a goose shaft and a blunt head, made to be lost.",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
+          "uses": 1,
+          "weight": 0.1,
+          "action_costs": {},
+          "skill_check": {},
+          "equip_slots": [],
+          "tags": [
+            "tool",
+            "ammo",
+            "projectile",
+            "fletching",
+            "hunting"
+          ],
+          "affinity": [],
+          "current_state": "normal",
+          "light_level": "dim",
+          "target_temperature": null,
+          "heating_rate": null,
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "library_id": "arrow",
+          "image": null
+        },
+        "created": 1791213727.5217705,
+        "updated": 1791213727.526622
+      },
+      "item_glass bits_1791213727930_120": {
+        "id": "item_glass bits_1791213727930_120",
+        "type": "item",
+        "name": "Dwarven Metal Shard",
+        "properties": {
+          "description": "Colored shards of glass saved from broken windows and bottles, edges dulled by handling.",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
+          "uses": -1,
+          "weight": 0.2,
+          "action_costs": {},
+          "skill_check": {},
+          "equip_slots": [],
+          "tags": [
+            "material",
+            "kraktooth",
+            "glass"
+          ],
+          "affinity": [],
+          "current_state": "normal",
+          "light_level": "dim",
+          "target_temperature": null,
+          "heating_rate": null,
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "library_id": "kraktooth_glass_bits",
+          "image": null
+        },
+        "created": 1791213727.930166,
+        "updated": 1791213727.935166
+      },
+      "item_belt_leather_1791213728407_974": {
+        "id": "item_belt_leather_1791213728407_974",
+        "type": "item",
+        "name": "Leather Strap",
+        "properties": {
+          "description": "A leather belt, cut and punched, and it is the plainest thing a person owns.",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
+          "uses": 1,
+          "weight": 0.3,
+          "action_costs": {},
+          "skill_check": {},
+          "equip_slots": [
+            "waist"
+          ],
+          "tags": [
+            "clothing",
+            "leather",
+            "accessory",
+            "waist",
+            "metal"
+          ],
+          "affinity": [],
+          "current_state": "normal",
+          "light_level": "dim",
+          "target_temperature": null,
+          "heating_rate": null,
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "library_id": "belt_leather",
+          "image": null
+        },
+        "created": 1791213728.407305,
+        "updated": 1791213728.412305
+      },
+      "item_flint_1791213728858_715": {
+        "id": "item_flint_1791213728858_715",
+        "type": "item",
+        "name": "Flint Nodule",
+        "properties": {
+          "description": "A core of flint, sharp-edged grey, and a way to strike a light.",
+          "actions": [
+            "examine",
+            "take",
+            "drop"
+          ],
+          "uses": 1,
+          "weight": 0.5,
+          "action_costs": {},
+          "skill_check": {},
+          "equip_slots": [],
+          "tags": [
+            "material",
+            "stone"
+          ],
+          "affinity": [
+            "rocky"
+          ],
+          "current_state": "normal",
+          "light_level": "dim",
+          "target_temperature": null,
+          "heating_rate": null,
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "library_id": "flint",
+          "image": null
+        },
+        "created": 1791213728.8586094,
+        "updated": 1791213728.8646066
+      },
+      "item_blue butterfly earring_1791213729349_380": {
+        "id": "item_blue butterfly earring_1791213729349_380",
+        "type": "item",
+        "name": "Traveller's Ring",
+        "properties": {
+          "description": "a tiny dangling blue butterfly on a fine hook, its clasp bent from wherever it spent the last few hours. cheap metal gone dull, but kept like something priceless. it belongs to somebody's mom.",
+          "actions": [
+            "examine",
+            "take",
+            "equip",
+            "unequip",
+            "drop"
+          ],
+          "uses": -1,
+          "weight": 0.01,
+          "action_costs": {},
+          "skill_check": {},
+          "equip_slots": [
+            "accessory"
+          ],
+          "tags": [
+            "jewelry"
+          ],
+          "affinity": [],
+          "current_state": "hidden",
+          "light_level": "dim",
+          "target_temperature": null,
+          "heating_rate": null,
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "library_id": "blue_butterfly_earring",
+          "image": null
+        },
+        "created": 1791213729.3502421,
+        "updated": 1791213729.3542423
+      },
+      "trigger_item_blue butterfly earring_1791213729349_380_on_examine_1791213729350_495": {
+        "id": "trigger_item_blue butterfly earring_1791213729349_380_on_examine_1791213729350_495",
+        "type": "logic_trigger",
+        "name": "on_examine → message",
+        "properties": {
+          "trigger_type": "on_examine",
+          "target_name": "",
+          "effects": [
+            {
+              "params": {
+                "message": "the blue butterfly sways gently. it catches light beautifully — one of your favorite pieces."
+              },
+              "type": "message"
+            }
+          ]
+        },
+        "created": 1791213729.3502421,
+        "updated": 1791213729.3502421
+      },
+      "item_wooden_table_gi7n": {
+        "id": "item_wooden_table_gi7n",
+        "type": "item",
+        "name": "wooden table",
+        "properties": {
+          "tags": [
+            "container"
+          ],
+          "weight": 12
+        },
+        "created": 1791214458.9439864,
+        "updated": 1791214458.9439864
+      },
+      "item_shelf_3xri": {
+        "id": "item_shelf_3xri",
+        "type": "item",
+        "name": "shelf",
+        "properties": {
+          "tags": [
+            "container"
+          ],
+          "weight": 9
+        },
+        "created": 1791214458.9439864,
+        "updated": 1791214458.9439864
+      },
+      "item_oil_lamp_p6dk": {
+        "id": "item_oil_lamp_p6dk",
+        "type": "item",
+        "name": "oil lamp",
+        "properties": {
+          "weight": 0.6,
+          "tags": [
+            "light_source"
+          ],
+          "light_level": "dim"
+        },
+        "created": 1791214458.9439864,
+        "updated": 1791214458.9439864
+      },
+      "item_crate_f6xd": {
+        "id": "item_crate_f6xd",
+        "type": "item",
+        "name": "crate",
+        "properties": {
+          "tags": [
+            "container"
+          ],
+          "weight": 8
+        },
+        "created": 1791214458.9439864,
+        "updated": 1791214458.9439864
+      },
+      "item_basket_7h5c": {
+        "id": "item_basket_7h5c",
+        "type": "item",
+        "name": "basket",
+        "properties": {
+          "tags": [
+            "container"
+          ],
+          "weight": 2
+        },
+        "created": 1791214458.9439864,
+        "updated": 1791214458.9439864
+      },
+      "item_bottle_j4y2": {
+        "id": "item_bottle_j4y2",
+        "type": "item",
+        "name": "bottle",
+        "properties": {
+          "weight": 0.3
+        },
+        "created": 1791214458.9439864,
+        "updated": 1791214458.9439864
+      },
+      "item_goblin_serrated_sword_biaj": {
+        "id": "item_goblin_serrated_sword_biaj",
+        "type": "item",
+        "name": "Goblin Serrated Sword",
+        "properties": {
+          "description": "A crude, wide blade hammered from scrap metal and edged with jagged, uneven teeth. The handle is wrapped in cracked leather and cord. It looks brutal rather than balanced — designed to hook, tear, and cause wounds that are agony to clean.",
+          "tags": [
+            "weapon",
+            "melee",
+            "serrated",
+            "goblin_crafted",
+            "kraktooth",
+            "sword"
+          ],
+          "current_state": "normal",
+          "weight": 3.2,
+          "actions": [
+            "examine",
+            "take",
+            "equip",
+            "use"
+          ],
+          "damage": "1d6"
+        },
+        "created": 1791214621.9342334,
+        "updated": 1791214621.9342334
+      },
+      "item_goblin_barbed_spear_twmn": {
+        "id": "item_goblin_barbed_spear_twmn",
+        "type": "item",
+        "name": "Goblin Barbed Spear",
+        "properties": {
+          "description": "A spear shaft of gnarled wood tipped with a jagged, barbed metal head. The barbs are angled to make withdrawal agonizing — once it bites, it holds. The shaft is wrapped in torn cloth and grease.",
+          "tags": [
+            "weapon",
+            "melee",
+            "polearm",
+            "goblin_crafted",
+            "kraktooth",
+            "barbed"
+          ],
+          "current_state": "normal",
+          "weight": 2.8,
+          "actions": [
+            "examine",
+            "take",
+            "equip",
+            "use"
+          ],
+          "damage": "1d6"
+        },
+        "created": 1791214621.9342334,
+        "updated": 1791214621.9342334
+      },
+      "item_goblin_hooked_dagger_gyty": {
+        "id": "item_goblin_hooked_dagger_gyty",
+        "type": "item",
+        "name": "Goblin Hooked Dagger",
+        "properties": {
+          "description": "A short, thick-bladed dagger with a hooked tip and a serrated spine. The grip is wrapped in bone and rawhide. Made for close work — hooking limbs, gouging, and pulling.",
+          "tags": [
+            "weapon",
+            "melee",
+            "knife",
+            "goblin_crafted",
+            "kraktooth",
+            "hooked"
+          ],
+          "current_state": "normal",
+          "weight": 0.8,
+          "actions": [
+            "examine",
+            "take",
+            "equip",
+            "use"
+          ],
+          "damage": "1d6"
+        },
+        "created": 1791214621.9342334,
+        "updated": 1791214621.9342334
+      },
+      "item_goblin_barbed_arrow_bzbl": {
+        "id": "item_goblin_barbed_arrow_bzbl",
+        "type": "item",
+        "name": "Goblin Barbed Arrow",
+        "properties": {
+          "description": "A goose-shaft arrow with a barbed, splintered metal head. The barbs angle backward — once embedded, pulling it out tears flesh and worsens the wound. A nightmare to remove.",
+          "tags": [
+            "weapon",
+            "ranged",
+            "ammo",
+            "projectile",
+            "goblin_crafted",
+            "kraktooth",
+            "barbed"
+          ],
+          "current_state": "normal",
+          "weight": 0.2,
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ]
+        },
+        "created": 1791214621.9342334,
+        "updated": 1791214621.9342334
+      },
+      "item_goblin_snare_net_a0vq": {
+        "id": "item_goblin_snare_net_a0vq",
+        "type": "item",
+        "name": "Goblin Snare Net",
+        "properties": {
+          "description": "A crude net of twisted rope and wire, weighted with bone beads. Designed to entangle limbs and drag a victim down — part of the swarm's toolkit.",
+          "tags": [
+            "weapon",
+            "trap",
+            "goblin_crafted",
+            "kraktooth",
+            "net"
+          ],
+          "current_state": "normal",
+          "weight": 1.5,
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ]
+        },
+        "created": 1791214621.9342334,
+        "updated": 1791214621.9342334
+      },
+      "item_goblin_bone_club_8z7w": {
+        "id": "item_goblin_bone_club_8z7w",
+        "type": "item",
+        "name": "Goblin Bone Club",
+        "properties": {
+          "description": "A heavy club of carved bone and wood, studded with scavenged metal spikes. Crude but brutal — built to break bones and shatter shields.",
+          "tags": [
+            "weapon",
+            "melee",
+            "blunt",
+            "goblin_crafted",
+            "kraktooth",
+            "spiked"
+          ],
+          "current_state": "normal",
+          "weight": 2.5,
+          "actions": [
+            "examine",
+            "take",
+            "equip",
+            "use"
+          ]
+        },
+        "created": 1791214621.9342334,
+        "updated": 1791214621.9342334
+      },
+      "item_goblin_scrap_shield_ts0w": {
+        "id": "item_goblin_scrap_shield_ts0w",
+        "type": "item",
+        "name": "Goblin Scrap Shield",
+        "properties": {
+          "description": "A shield of layered scrap wood and hide, reinforced with twisted metal bands. It's ugly, heavy, and surprisingly effective at stopping blades.",
+          "tags": [
+            "armor",
+            "shield",
+            "goblin_crafted",
+            "kraktooth",
+            "scrap"
+          ],
+          "current_state": "normal",
+          "weight": 4,
+          "actions": [
+            "examine",
+            "take",
+            "equip"
+          ],
+          "defense": 1
+        },
+        "created": 1791214621.9342334,
+        "updated": 1791214621.9342334
+      },
+      "item_barbed_goblin_arrow_vkt0": {
+        "id": "item_barbed_goblin_arrow_vkt0",
+        "type": "item",
+        "name": "Barbed Goblin Arrow",
+        "properties": {
+          "description": "A crude arrow with a barbed, splintered head — designed to tear flesh on removal. The shaft is crooked, the fletching ragged.",
+          "tags": [
+            "weapon",
+            "ranged",
+            "arrow",
+            "goblin",
+            "crude",
+            "pain"
+          ],
+          "current_state": "normal",
+          "actions": [
+            "take",
+            "throw",
+            "examine"
+          ]
+        },
+        "created": 1791214738.5328994,
+        "updated": 1791214738.5328994
+      },
+      "item_serrated_goblin_dagger_fypc": {
+        "id": "item_serrated_goblin_dagger_fypc",
+        "type": "item",
+        "name": "Serrated Goblin Dagger",
+        "properties": {
+          "description": "A short dagger with a serrated, hooked edge. Ugly and brutal — made to hook and twist, not to cut cleanly.",
+          "tags": [
+            "weapon",
+            "knife",
+            "goblin",
+            "crude",
+            "serrated"
+          ],
+          "current_state": "normal",
+          "actions": [
+            "take",
+            "use",
+            "examine"
+          ],
+          "damage": "1d6"
+        },
+        "created": 1791214738.5328994,
+        "updated": 1791214738.5328994
+      },
+      "item_hooked_goblin_sword_1k7c": {
+        "id": "item_hooked_goblin_sword_1k7c",
+        "type": "item",
+        "name": "Hooked Goblin Sword",
+        "properties": {
+          "description": "A scavenged blade with hooked, serrated edges along the whole edge. Made to catch and hold — terrible for dueling, excellent for tearing.",
+          "tags": [
+            "weapon",
+            "melee",
+            "sword",
+            "goblin",
+            "crude",
+            "hooked"
+          ],
+          "current_state": "normal",
+          "actions": [
+            "take",
+            "use",
+            "examine"
+          ],
+          "damage": "1d6"
+        },
+        "created": 1791214738.5328994,
+        "updated": 1791214738.5328994
+      },
+      "item_goblin_snare_trap_9bt0": {
+        "id": "item_goblin_snare_trap_9bt0",
+        "type": "item",
+        "name": "Goblin Snare Trap",
+        "properties": {
+          "description": "A crude snare of twisted wire and cord, baited with rotting meat. Simple, deadly, and cheap to make in bulk.",
+          "tags": [
+            "trap",
+            "scrap",
+            "goblin",
+            "crude",
+            "deadly"
+          ],
+          "current_state": "normal",
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ]
+        },
+        "created": 1791214738.5328994,
+        "updated": 1791214738.5328994
+      },
+      "item_goblin_bone_club_cc0v": {
+        "id": "item_goblin_bone_club_cc0v",
+        "type": "item",
+        "name": "Goblin Bone Club",
+        "properties": {
+          "description": "A heavy club studded with sharpened animal bones and scrap metal. Crude, brutal, and designed to shatter rather than cut.",
+          "tags": [
+            "weapon",
+            "blunt",
+            "goblin",
+            "crude",
+            "bone"
+          ],
+          "current_state": "normal",
+          "actions": [
+            "take",
+            "use",
+            "examine"
+          ]
+        },
+        "created": 1791214738.5328994,
+        "updated": 1791214738.5328994
+      },
+      "item_filth_coated_pit_spike_maij": {
+        "id": "item_filth_coated_pit_spike_maij",
+        "type": "item",
+        "name": "Filth-Coated Pit Spike",
+        "properties": {
+          "description": "A long iron spike driven into a wooden frame, coated in rotting filth. Even a clean wound from this will fester.",
+          "tags": [
+            "weapon",
+            "trap",
+            "goblin",
+            "crude",
+            "filth",
+            "poison",
+            "clothing"
+          ],
+          "current_state": "normal",
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
+          "defense": 1
+        },
+        "created": 1791214738.5328994,
+        "updated": 1791214738.5328994
+      },
+      "item_goblin_net_trap_la4x": {
+        "id": "item_goblin_net_trap_la4x",
+        "type": "item",
+        "name": "Goblin Net Trap",
+        "properties": {
+          "description": "A weighted net of twisted cord, designed to drop from above and entangle prey. Once caught, hooks and barbs do the rest.",
+          "tags": [
+            "trap",
+            "scrap",
+            "goblin",
+            "crude",
+            "entangle"
+          ],
+          "current_state": "normal",
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ]
+        },
+        "created": 1791214738.5328994,
+        "updated": 1791214738.5328994
+      },
+      "item_splintering_goblin_axe_wehq": {
+        "id": "item_splintering_goblin_axe_wehq",
+        "type": "item",
+        "name": "Splintering Goblin Axe",
+        "properties": {
+          "description": "A hatchet-style axe with a cracked, splintering head. The edge is ragged — it bites deep and shatters on impact, leaving fragments behind.",
+          "tags": [
+            "weapon",
+            "axe",
+            "goblin",
+            "crude",
+            "splintering"
+          ],
+          "current_state": "normal",
+          "actions": [
+            "take",
+            "use",
+            "examine"
+          ],
+          "damage": "1d6"
+        },
+        "created": 1791214738.5328994,
+        "updated": 1791214738.5328994
+      },
+      "item_goblin_throwing_knife_6yt7": {
+        "id": "item_goblin_throwing_knife_6yt7",
+        "type": "item",
+        "name": "Goblin Throwing Knife",
+        "properties": {
+          "description": "A small, hooked throwing knife with no grip — meant to be hurled in volleys. Barbed, unbalanced, and painful to retrieve.",
+          "tags": [
+            "weapon",
+            "thrown",
+            "knife",
+            "goblin",
+            "crude",
+            "barbed"
+          ],
+          "current_state": "normal",
+          "actions": [
+            "take",
+            "throw",
+            "examine"
+          ],
+          "damage": "1d6"
+        },
+        "created": 1791214738.5328994,
+        "updated": 1791214738.5328994
+      },
+      "item_deadfall_trap_e6mf": {
+        "id": "item_deadfall_trap_e6mf",
+        "type": "item",
+        "name": "Deadfall Trap",
+        "properties": {
+          "description": "A heavy stone or log balanced on a weak trigger stick. Simple, silent, and lethal — a goblin version of the classic deadfall.",
+          "tags": [
+            "trap",
+            "goblin",
+            "crude",
+            "deadly",
+            "scrap"
+          ],
+          "current_state": "normal",
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ]
+        },
+        "created": 1791214738.5328994,
+        "updated": 1791214738.5328994
       }
     },
     "edges": [
@@ -50277,6 +51277,269 @@
       {
         "source": "item_straw_nest_ls3o",
         "target": "area_sleeping_halls",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Arix",
+        "target": "item_mossy_hammock_t9fh",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Belne",
+        "target": "item_tattered_hammock_soy7",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Gribba",
+        "target": "item_scratched_log_bed_orw6",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Kiala",
+        "target": "item_patchwork_hammock_4e0w",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Krikka",
+        "target": "item_high_rope_nest_t1yt",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Mikka",
+        "target": "item_tinkerer_s_pallet_pnu2",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Rikka",
+        "target": "item_perch_bed_p2c7",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Thrazz",
+        "target": "item_chief_s_platform_yad9",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Vekka",
+        "target": "item_low_hammock_dydr",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Zikka",
+        "target": "item_fighter_s_bunk_bo43",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Croak-Mother",
+        "target": "item_lily_pad_float_pr3c",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Old_Iron-Back",
+        "target": "item_straw_nest_ls3o",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Tusker",
+        "target": "item_communal_fur_pile_ahym",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_broken shield_1791213724699_666",
+        "target": "area_scrap_pile",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_bridge_plank_1791213725069_32",
+        "target": "area_scrap_pile",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_bundle_of_twigs_1791213725463_899",
+        "target": "area_scrap_pile",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_chipped_stone_1791213725885_441",
+        "target": "area_scrap_pile",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_scrap_iron_1791213726260_973",
+        "target": "area_scrap_pile",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_scrap_iron_1791213726646_75",
+        "target": "area_scrap_pile",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_broken trap_1791213727147_733",
+        "target": "area_scrap_pile",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_arrow_1791213727521_269",
+        "target": "area_scrap_pile",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_glass bits_1791213727930_120",
+        "target": "area_scrap_pile",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_belt_leather_1791213728407_974",
+        "target": "area_scrap_pile",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_flint_1791213728858_715",
+        "target": "area_scrap_pile",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_blue butterfly earring_1791213729349_380",
+        "target": "area_scrap_pile",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_blue butterfly earring_1791213729349_380",
+        "target": "trigger_item_blue butterfly earring_1791213729349_380_on_examine_1791213729350_495",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_examine",
+          "target_name": "",
+          "effects": [
+            {
+              "params": {
+                "message": "the blue butterfly sways gently. it catches light beautifully — one of your favorite pieces."
+              },
+              "type": "message"
+            }
+          ]
+        }
+      },
+      {
+        "source": "item_wooden_table_gi7n",
+        "target": "area_workshop",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_shelf_3xri",
+        "target": "area_workshop",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_oil_lamp_p6dk",
+        "target": "area_workshop",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_crate_f6xd",
+        "target": "area_workshop",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_basket_7h5c",
+        "target": "area_workshop",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_bottle_j4y2",
+        "target": "area_workshop",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_barbed_goblin_arrow_vkt0",
+        "target": "area_armory_bhg4",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_serrated_goblin_dagger_fypc",
+        "target": "area_armory_bhg4",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_hooked_goblin_sword_1k7c",
+        "target": "area_armory_bhg4",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_goblin_snare_trap_9bt0",
+        "target": "area_armory_bhg4",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_goblin_bone_club_cc0v",
+        "target": "area_armory_bhg4",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_filth_coated_pit_spike_maij",
+        "target": "area_armory_bhg4",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_goblin_net_trap_la4x",
+        "target": "area_armory_bhg4",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_splintering_goblin_axe_wehq",
+        "target": "area_armory_bhg4",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_goblin_throwing_knife_6yt7",
+        "target": "area_armory_bhg4",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_deadfall_trap_e6mf",
+        "target": "area_armory_bhg4",
         "type": "in",
         "properties": {}
       }

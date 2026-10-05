@@ -183,6 +183,10 @@
   },
   "active": "628a877e9730f243",
   "lastOpenFiles": [
+    "dev_tasks/todo/gameplay/task-716-fisherman-vertical-slice-reusable-water-activity-and-pursuit-loop.md",
+    "dev_tasks/todo/refactor/task-715-live-update-transport-will-not-scale-to-multiple-clients-sse-per-tab-1-5s-full-state-poll.md.tmp.11928.1d5f56277289",
+    "dev_tasks/todo/refactor/task-715-live-update-transport-will-not-scale-to-multiple-clients-sse-per-tab-1-5s-full-state-poll.md",
+    "dev_tasks/todo/ui/task-714-character-mind-panel-connect-memories-motives-and-current-pursuits.md",
     "dev_tasks/todo/refactor/task-713-engine-attention-py-is-a-dead-second-implementation-of-the-attended-set-selector.md.tmp.11928.86e6f22f4d05",
     "dev_tasks/todo/ui/task-712-a-failed-scope-fetch-silently-resets-the-filter-to-whole-world-which-will-promote-the-whole-cast.md.tmp.11928.b420702ffdb3",
     "dev_tasks/todo/world/task-711-re-evaluate-the-promoted-set-every-tick-promote-on-entry-demote-on-exit.md.tmp.11928.2f4233157cd5",
@@ -210,14 +214,10 @@
     "Items & Inventory/Inventory.md",
     "AI & Narration/Agent Engine.md",
     "dev_tasks/review/characters/task-147-threat-aware-autonomous-replanning.md",
-    "Rules Engine/Conditions System.md",
-    "Characters/Vitals System.md",
     "dev_tasks/inprogress/agent",
     "dev_tasks/inprogress",
     "dev_tasks/todo",
     "dev_tasks/review",
-    "dev_tasks/done",
-    "dev_tasks/cancelled",
-    "dev_tasks/bug"
+    "dev_tasks/done"
   ]
 }

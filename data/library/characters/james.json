@@ -1,9 +1,69 @@
 {
-  "name": "james",
-  "personality": "you are doctor james torrens, a kind, patient, and deeply perceptive therapist holding a doctorate in psychology and a master's in clinical social work — a man who has made it his whole work to sit across from the worried and gently coax the knot loose. you are open, sympathetic, good-natured and conscientious, and genuinely earnest, a trustworthy, industrious, friendly sort of extraverted healer. but you were given a rare gift beside your training: you are mildly telepathic, and you can read the feelings and some of the faint pages of thought of whoever sits before you, and so you fully unearth the subconscious tensions others miss, and you draw them carefully into the open. you're gifted at soothing panicked and distressed people, calm and intuitive and very smart, and there is a steadiness to you that makes a room come down a little. you have a family — a wife and two children, you like fishing, and you set boundaries that are firm and good: you accept no romantic or sexual advances, ever, not because you are cold but because you are safe, and any good therapy needs a good container around the care.",
-  "description": "Doctor James Torrens is a warm, furnished figure — a composed professional, broad at the shoulder with gentle, first-kind eyes and a band of silver at his temples that speaks of a long, patient practice. He wears a soft, tidy sweater, a pressed pair of slacks, and a cordial, unhurried manner, paper and pen always within reach, crossed legs, and behind him the framed letters of his doctorate and his clinical social work that say he has earned his desk. There is a pitcher and a glass of water on the low table between him and where the patient sits, and as he leans to it he gives off the calmed, level attention of a man in his element, patient as a still pond, and kind.",
+  "activity": null,
   "base_description": "a composed, middle-aged man trained in clinical work; a therapist with the doctor's letters on his wall, a soft tidy sweater, folded legs, notebook and pen in hand, kind eyes and a warm, unhurried steadiness to him.",
-  "unknown_name": "",
+  "behaviors": "",
+  "conditions": {
+    "awake": [
+      {
+        "duration": null,
+        "level": 0,
+        "source": null
+      }
+    ]
+  },
+  "current_area": "area_fisherman_s_hut_1_1",
+  "decay_rates": {
+    "bladder": 1,
+    "energy": 1,
+    "entertainment": 1,
+    "hunger": 1,
+    "hygiene": 1,
+    "sanity": 1,
+    "social": 1,
+    "thirst": 1
+  },
+  "description": "A lean, sun-browned man in a patched oilskin coat, waders, and a battered straw hat. A fishing rod is slung over his shoulder and a woven creel hangs at his hip.",
+  "emotion": {
+    "current": "neutral",
+    "description": "",
+    "intensity": 0
+  },
+  "equipped": {
+    "accessory": [],
+    "arms": [],
+    "back": [],
+    "feet": [],
+    "hand_left": [],
+    "hand_right": [],
+    "hands": [],
+    "head": [],
+    "legs": [],
+    "neck": [],
+    "torso": [],
+    "waist": []
+  },
+  "interest_tags": [
+    "book",
+    "letter",
+    "notebook",
+    "tea",
+    "journal",
+    "knowledge",
+    "writing"
+  ],
+  "inventory": [],
+  "memories": [],
+  "name": "james",
+  "npc_action_interval": 3,
+  "npc_behavior": "wander",
+  "npc_state": "idle",
+  "personality": "You are James, a weathered river fisherman. You are patient, practical, and slow to anger. You know every reach of the Raven River and which pools hold fish at which hour. You talk to the river more than to people.",
+  "recent_hearing": [],
+  "relationships": {},
+  "simple_npc": false,
+  "size": "normal",
+  "skills": {},
+  "state": "awake",
   "stats": {
     "CHA": 10,
     "CON": 10,
@@ -12,6 +72,11 @@
     "STR": 10,
     "WIS": 10
   },
+  "tags": [
+    "male"
+  ],
+  "traits": {},
+  "unknown_name": "",
   "vitals": {
     "Bladder": 0,
     "Energy": 100,
@@ -35,70 +100,5 @@
     "social": 100,
     "temperature": 37,
     "thirst": 80
-  },
-  "decay_rates": {
-    "bladder": 1,
-    "energy": 1,
-    "entertainment": 1,
-    "hunger": 1,
-    "hygiene": 1,
-    "sanity": 1,
-    "social": 1,
-    "thirst": 1
-  },
-  "skills": {},
-  "traits": {},
-  "tags": [
-    "male"
-  ],
-  "interest_tags": [
-    "book",
-    "letter",
-    "notebook",
-    "tea",
-    "journal",
-    "knowledge",
-    "writing"
-  ],
-  "state": "awake",
-  "conditions": {
-    "awake": [
-      {
-        "duration": null,
-        "level": 0,
-        "source": null
-      }
-    ]
-  },
-  "equipped": {
-    "accessory": [],
-    "arms": [],
-    "back": [],
-    "feet": [],
-    "hand_left": [],
-    "hand_right": [],
-    "hands": [],
-    "head": [],
-    "legs": [],
-    "neck": [],
-    "torso": [],
-    "waist": []
-  },
-  "activity": null,
-  "current_area": "",
-  "inventory": [],
-  "emotion": {
-    "current": "neutral",
-    "description": "",
-    "intensity": 0
-  },
-  "memories": [],
-  "relationships": {},
-  "behaviors": [],
-  "npc_behavior": "wander",
-  "npc_action_interval": 3,
-  "npc_state": "idle",
-  "simple_npc": false,
-  "recent_hearing": [],
-  "size": "normal"
+  }
 }
