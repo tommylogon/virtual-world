@@ -1,6 +1,28 @@
 {
-  "current_area": "Camp Entrance Trail",
-  "players_in_area": [],
+  "current_area": "Chief's Pit",
+  "players_in_area": [
+    {
+      "name": "Arix",
+      "state": "awake",
+      "description": "Young female goblin. White hair in ponytails, green eyes, pointed ears with green earrings. Petite, pale green skin, sharp fangs. Wears leather shorts, metal adornments, and green gloves.\nBlue butterfly earring is hidden manor_signet_ring is normal black short shorts is normal belt_leather is normal.\nArix is wearing manor_signet_ring on their hands, Black Short Shorts on their legs, belt_leather on their waist, Blue Butterfly Earring on their accessory, Shiny Coin in their right hand.",
+      "activity": null,
+      "at_way_id": null,
+      "spatial_position": null
+    },
+    {
+      "name": "Krikka",
+      "state": "awake",
+      "description": "Female goblin climber. Small, wiry, always looking up. Wears light leathers and keeps a pouch of collected shiny objects.",
+      "activity": null,
+      "at_way_id": "way_pit_to_shaman",
+      "spatial_position": {
+        "relation": "at",
+        "target_id": "way_pit_to_shaman",
+        "target_type": "way",
+        "target_name": "passage to shaman lair"
+      }
+    }
+  ],
   "area_presence": {
     "area_camp_entrance": {},
     "area_chief's_pit": {
@@ -11311,7 +11333,7 @@
       }
     }
   },
-  "active_player": "Belne",
+  "active_player": "Vekka",
   "game_time": "08:06:00",
   "time_ticks": 6,
   "time_per_tick_minutes": 1,
@@ -11841,7 +11863,7 @@
           "y": 120
         },
         "created": 1789781679.8464756,
-        "updated": 1790953582.771908
+        "updated": 1791213215.4968941
       },
       "area_cooking_area": {
         "id": "area_cooking_area",
@@ -33904,6 +33926,1622 @@
         "properties": {},
         "created": 1791137025.9329896,
         "updated": 1791137025.9329896
+      },
+      "item_barley_loaf_1791213342411_154": {
+        "id": "item_barley_loaf_1791213342411_154",
+        "type": "item",
+        "name": "barley_loaf",
+        "properties": {
+          "description": "A barley loaf, heavy and dark, and it keeps a fortnight.",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "eat",
+            "drop"
+          ],
+          "uses": 3,
+          "weight": 0.3,
+          "action_costs": {},
+          "skill_check": {},
+          "equip_slots": [],
+          "tags": [
+            "food",
+            "food",
+            "bread",
+            "baking"
+          ],
+          "affinity": [],
+          "current_state": "normal",
+          "light_level": "dim",
+          "target_temperature": null,
+          "heating_rate": null,
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "library_id": "barley_loaf",
+          "image": null
+        },
+        "created": 1791213342.4112098,
+        "updated": 1791213342.4112098
+      },
+      "trigger_item_barley_loaf_1791213342411_154_['on_eat']_1791213342412_623": {
+        "id": "trigger_item_barley_loaf_1791213342411_154_['on_eat']_1791213342412_623",
+        "type": "logic_trigger",
+        "name": "['on_eat'] → message",
+        "properties": {
+          "trigger_type": [
+            "on_eat"
+          ],
+          "target_name": "",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "",
+                "success_message": "You eat it. Better than nothing and not much more."
+              }
+            },
+            {
+              "type": "adjust_vital",
+              "params": {
+                "stat": "Hunger",
+                "amount": -38,
+                "target": "self"
+              }
+            }
+          ]
+        },
+        "created": 1791213342.4122097,
+        "updated": 1791213342.4122097
+      },
+      "item_bacon_rasher_1791213342775_651": {
+        "id": "item_bacon_rasher_1791213342775_651",
+        "type": "item",
+        "name": "bacon_rasher",
+        "properties": {
+          "description": "A rasher of bacon, thick-cut and salted.",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "eat",
+            "drop"
+          ],
+          "uses": 3,
+          "weight": 0.4,
+          "action_costs": {},
+          "skill_check": {},
+          "equip_slots": [],
+          "tags": [
+            "food",
+            "food",
+            "meat"
+          ],
+          "affinity": [],
+          "current_state": "normal",
+          "light_level": "dim",
+          "target_temperature": null,
+          "heating_rate": null,
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "library_id": "bacon_rasher",
+          "image": null
+        },
+        "created": 1791213342.7758243,
+        "updated": 1791213342.7758243
+      },
+      "trigger_item_bacon_rasher_1791213342775_651_['on_eat']_1791213342775_390": {
+        "id": "trigger_item_bacon_rasher_1791213342775_651_['on_eat']_1791213342775_390",
+        "type": "logic_trigger",
+        "name": "['on_eat'] → message",
+        "properties": {
+          "trigger_type": [
+            "on_eat"
+          ],
+          "target_name": "",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "",
+                "success_message": "You eat it. That was worth stopping for."
+              }
+            },
+            {
+              "type": "adjust_vital",
+              "params": {
+                "stat": "Hunger",
+                "amount": -28,
+                "target": "self"
+              }
+            }
+          ]
+        },
+        "created": 1791213342.7758243,
+        "updated": 1791213342.7758243
+      },
+      "item_hanging dried meats_1791213343149_490": {
+        "id": "item_hanging dried meats_1791213343149_490",
+        "type": "item",
+        "name": "Hanging Dried Meats",
+        "properties": {
+          "description": "Strips of dried, salted meat hanging from hooks. They look preserved and edible.",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
+          "uses": 3,
+          "weight": 0.2,
+          "action_costs": {},
+          "skill_check": {},
+          "equip_slots": [],
+          "tags": [
+            "food",
+            "cooking",
+            "kitchen"
+          ],
+          "affinity": [],
+          "current_state": "normal",
+          "light_level": "dim",
+          "target_temperature": null,
+          "heating_rate": null,
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "library_id": "hanging_dried_meats",
+          "image": null
+        },
+        "created": 1791213343.149465,
+        "updated": 1791213343.149465
+      },
+      "trigger_item_hanging dried meats_1791213343149_490_on_eat_1791213343149_515": {
+        "id": "trigger_item_hanging dried meats_1791213343149_490_on_eat_1791213343149_515",
+        "type": "logic_trigger",
+        "name": "on_eat → adjust_vital",
+        "properties": {
+          "trigger_type": "on_eat",
+          "target_name": "",
+          "effects": [
+            {
+              "type": "adjust_vital",
+              "params": {
+                "amount": -25,
+                "message": "You chew on the dried meat. It's tough but savory, and fills your stomach.",
+                "stat": "Hunger"
+              }
+            }
+          ]
+        },
+        "created": 1791213343.149465,
+        "updated": 1791213343.149465
+      },
+      "trigger_item_hanging dried meats_1791213343149_490_on_examine_1791213343149_592": {
+        "id": "trigger_item_hanging dried meats_1791213343149_490_on_examine_1791213343149_592",
+        "type": "logic_trigger",
+        "name": "on_examine → message",
+        "properties": {
+          "trigger_type": "on_examine",
+          "target_name": "",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "Several strips of dried meat hang from iron hooks. They've been cured with salt and smoke."
+              }
+            }
+          ]
+        },
+        "created": 1791213343.149465,
+        "updated": 1791213343.149465
+      },
+      "trigger_item_hanging dried meats_1791213343149_490_on_take_1791213343149_123": {
+        "id": "trigger_item_hanging dried meats_1791213343149_490_on_take_1791213343149_123",
+        "type": "logic_trigger",
+        "name": "on_take → message",
+        "properties": {
+          "trigger_type": "on_take",
+          "target_name": "",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You take a strip of dried meat."
+              }
+            }
+          ]
+        },
+        "created": 1791213343.149465,
+        "updated": 1791213343.149465
+      },
+      "item_cheddar_cheese_1791213343477_187": {
+        "id": "item_cheddar_cheese_1791213343477_187",
+        "type": "item",
+        "name": "cheddar_cheese",
+        "properties": {
+          "description": "A cheese, a whole wheel, waxed and scraped and the better for it.",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "eat",
+            "drop"
+          ],
+          "uses": 3,
+          "weight": 0.3,
+          "action_costs": {},
+          "skill_check": {},
+          "equip_slots": [],
+          "tags": [
+            "food",
+            "food",
+            "dairy"
+          ],
+          "affinity": [],
+          "current_state": "normal",
+          "light_level": "dim",
+          "target_temperature": null,
+          "heating_rate": null,
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "library_id": "cheddar_cheese",
+          "image": null
+        },
+        "created": 1791213343.4770558,
+        "updated": 1791213343.4770558
+      },
+      "trigger_item_cheddar_cheese_1791213343477_187_['on_eat']_1791213343477_135": {
+        "id": "trigger_item_cheddar_cheese_1791213343477_187_['on_eat']_1791213343477_135",
+        "type": "logic_trigger",
+        "name": "['on_eat'] → message",
+        "properties": {
+          "trigger_type": [
+            "on_eat"
+          ],
+          "target_name": "",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "",
+                "success_message": "You eat it. Better than nothing and not much more."
+              }
+            },
+            {
+              "type": "adjust_vital",
+              "params": {
+                "stat": "Hunger",
+                "amount": -28,
+                "target": "self"
+              }
+            }
+          ]
+        },
+        "created": 1791213343.4770558,
+        "updated": 1791213343.4770558
+      },
+      "item_heather_honey_1791213343820_107": {
+        "id": "item_heather_honey_1791213343820_107",
+        "type": "item",
+        "name": "heather_honey",
+        "properties": {
+          "description": "Heather honey, the dark one, and it tastes of the moor it came from.",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "eat",
+            "drop"
+          ],
+          "uses": 3,
+          "weight": 0.2,
+          "action_costs": {},
+          "skill_check": {},
+          "equip_slots": [],
+          "tags": [
+            "food",
+            "food",
+            "sweet",
+            "preserve"
+          ],
+          "affinity": [],
+          "current_state": "normal",
+          "light_level": "dim",
+          "target_temperature": null,
+          "heating_rate": null,
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "library_id": "heather_honey",
+          "image": null
+        },
+        "created": 1791213343.8211665,
+        "updated": 1791213343.8211665
+      },
+      "trigger_item_heather_honey_1791213343820_107_['on_eat']_1791213343821_452": {
+        "id": "trigger_item_heather_honey_1791213343820_107_['on_eat']_1791213343821_452",
+        "type": "logic_trigger",
+        "name": "['on_eat'] → message",
+        "properties": {
+          "trigger_type": [
+            "on_eat"
+          ],
+          "target_name": "",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "",
+                "success_message": "You eat it, gathered and not much cleaned."
+              }
+            },
+            {
+              "type": "adjust_vital",
+              "params": {
+                "stat": "Hunger",
+                "amount": -20,
+                "target": "self"
+              }
+            }
+          ]
+        },
+        "created": 1791213343.8211665,
+        "updated": 1791213343.8211665
+      },
+      "item_honeycomb_1791213344173_240": {
+        "id": "item_honeycomb_1791213344173_240",
+        "type": "item",
+        "name": "honeycomb",
+        "properties": {
+          "description": "A piece of honeycomb, the wax and a little honey caught in the cells.",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "eat",
+            "drop"
+          ],
+          "uses": 3,
+          "weight": 0.4,
+          "action_costs": {},
+          "skill_check": {},
+          "equip_slots": [],
+          "tags": [
+            "food",
+            "food",
+            "preserve",
+            "sweet"
+          ],
+          "affinity": [],
+          "current_state": "normal",
+          "light_level": "dim",
+          "target_temperature": null,
+          "heating_rate": null,
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "library_id": "honeycomb",
+          "image": null
+        },
+        "created": 1791213344.1732864,
+        "updated": 1791213344.1732864
+      },
+      "trigger_item_honeycomb_1791213344173_240_['on_eat']_1791213344174_293": {
+        "id": "trigger_item_honeycomb_1791213344173_240_['on_eat']_1791213344174_293",
+        "type": "logic_trigger",
+        "name": "['on_eat'] → message",
+        "properties": {
+          "trigger_type": [
+            "on_eat"
+          ],
+          "target_name": "",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "",
+                "success_message": "You eat it. That was worth stopping for."
+              }
+            },
+            {
+              "type": "adjust_vital",
+              "params": {
+                "stat": "Hunger",
+                "amount": -18,
+                "target": "self"
+              }
+            }
+          ]
+        },
+        "created": 1791213344.1742878,
+        "updated": 1791213344.1742878
+      },
+      "item_cod_1791213344573_647": {
+        "id": "item_cod_1791213344573_647",
+        "type": "item",
+        "name": "cod",
+        "properties": {
+          "description": "A cod, white and flaky, salted already.",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "eat",
+            "drop"
+          ],
+          "uses": 3,
+          "weight": 0.6,
+          "action_costs": {},
+          "skill_check": {},
+          "equip_slots": [],
+          "tags": [
+            "food",
+            "fish"
+          ],
+          "affinity": [
+            "shore"
+          ],
+          "current_state": "normal",
+          "light_level": "dim",
+          "target_temperature": null,
+          "heating_rate": null,
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "library_id": "cod",
+          "image": null
+        },
+        "created": 1791213344.573288,
+        "updated": 1791213344.573288
+      },
+      "trigger_item_cod_1791213344573_647_['on_eat']_1791213344574_976": {
+        "id": "trigger_item_cod_1791213344573_647_['on_eat']_1791213344574_976",
+        "type": "logic_trigger",
+        "name": "['on_eat'] → message",
+        "properties": {
+          "trigger_type": [
+            "on_eat"
+          ],
+          "target_name": "",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "",
+                "success_message": "You eat it, and wish there were more."
+              }
+            },
+            {
+              "type": "adjust_vital",
+              "params": {
+                "stat": "Hunger",
+                "amount": -34,
+                "target": "self"
+              }
+            }
+          ]
+        },
+        "created": 1791213344.574288,
+        "updated": 1791213344.574288
+      },
+      "item_apple_1791213344906_964": {
+        "id": "item_apple_1791213344906_964",
+        "type": "item",
+        "name": "apple",
+        "properties": {
+          "description": "A crisp red apple, still cool from the cellar. Juicy and fresh.",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "eat",
+            "drop"
+          ],
+          "uses": 4,
+          "weight": 0.2,
+          "action_costs": {},
+          "skill_check": {},
+          "equip_slots": [],
+          "tags": [
+            "food"
+          ],
+          "affinity": [],
+          "current_state": "normal",
+          "light_level": "dim",
+          "target_temperature": null,
+          "heating_rate": null,
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "library_id": "apple",
+          "image": null
+        },
+        "created": 1791213344.9064302,
+        "updated": 1791213344.9064302
+      },
+      "trigger_item_apple_1791213344906_964_['on_eat']_1791213344906_204": {
+        "id": "trigger_item_apple_1791213344906_964_['on_eat']_1791213344906_204",
+        "type": "logic_trigger",
+        "name": "['on_eat'] → message",
+        "properties": {
+          "trigger_type": [
+            "on_eat"
+          ],
+          "target_name": "",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "success_message": "Cruncy and delicious"
+              }
+            },
+            {
+              "type": "adjust_vital",
+              "params": {
+                "stat": "Hunger",
+                "amount": -45,
+                "target": "self"
+              }
+            }
+          ]
+        },
+        "created": 1791213344.9064302,
+        "updated": 1791213344.9064302
+      },
+      "trigger_item_apple_1791213344906_964_on_examine_1791213344906_504": {
+        "id": "trigger_item_apple_1791213344906_964_on_examine_1791213344906_504",
+        "type": "logic_trigger",
+        "name": "on_examine → message",
+        "properties": {
+          "trigger_type": "on_examine",
+          "target_name": "",
+          "effects": [
+            {
+              "params": {
+                "message": "",
+                "success_message": "A read apple, teh cold has kept it fresh. lucky me! i can *EAT* this."
+              },
+              "type": "message"
+            }
+          ]
+        },
+        "created": 1791213344.9064302,
+        "updated": 1791213344.9064302
+      },
+      "item_acorn_meal_1791213345268_610": {
+        "id": "item_acorn_meal_1791213345268_610",
+        "type": "item",
+        "name": "acorn_meal",
+        "properties": {
+          "description": "Acorn meal, and the bitterness is mostly gone and what is left is the point of it.",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "eat",
+            "drop"
+          ],
+          "uses": 3,
+          "weight": 0.2,
+          "action_costs": {},
+          "skill_check": {},
+          "equip_slots": [],
+          "tags": [
+            "food",
+            "food",
+            "nut",
+            "grain"
+          ],
+          "affinity": [],
+          "current_state": "normal",
+          "light_level": "dim",
+          "target_temperature": null,
+          "heating_rate": null,
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "library_id": "acorn_meal",
+          "image": null
+        },
+        "created": 1791213345.2680051,
+        "updated": 1791213345.2680051
+      },
+      "trigger_item_acorn_meal_1791213345268_610_['on_eat']_1791213345269_964": {
+        "id": "trigger_item_acorn_meal_1791213345268_610_['on_eat']_1791213345269_964",
+        "type": "logic_trigger",
+        "name": "['on_eat'] → message",
+        "properties": {
+          "trigger_type": [
+            "on_eat"
+          ],
+          "target_name": "",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "",
+                "success_message": "You eat it, gathered and not much cleaned."
+              }
+            },
+            {
+              "type": "adjust_vital",
+              "params": {
+                "stat": "Hunger",
+                "amount": -20,
+                "target": "self"
+              }
+            }
+          ]
+        },
+        "created": 1791213345.2690046,
+        "updated": 1791213345.2690046
+      },
+      "item_beef_roast_1791213345584_50": {
+        "id": "item_beef_roast_1791213345584_50",
+        "type": "item",
+        "name": "beef_roast",
+        "properties": {
+          "description": "A roast of beef, salted and tied, ready for the spit.",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "eat",
+            "drop"
+          ],
+          "uses": 3,
+          "weight": 0.6,
+          "action_costs": {},
+          "skill_check": {},
+          "equip_slots": [],
+          "tags": [
+            "food",
+            "meat"
+          ],
+          "affinity": [],
+          "current_state": "normal",
+          "light_level": "dim",
+          "target_temperature": null,
+          "heating_rate": null,
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "library_id": "beef_roast",
+          "image": null
+        },
+        "created": 1791213345.5841105,
+        "updated": 1791213345.5841105
+      },
+      "trigger_item_beef_roast_1791213345584_50_['on_eat']_1791213345585_852": {
+        "id": "trigger_item_beef_roast_1791213345584_50_['on_eat']_1791213345585_852",
+        "type": "logic_trigger",
+        "name": "['on_eat'] → message",
+        "properties": {
+          "trigger_type": [
+            "on_eat"
+          ],
+          "target_name": "",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "",
+                "success_message": "You eat it, and wish there were more."
+              }
+            },
+            {
+              "type": "adjust_vital",
+              "params": {
+                "stat": "Hunger",
+                "amount": -44,
+                "target": "self"
+              }
+            }
+          ]
+        },
+        "created": 1791213345.5851104,
+        "updated": 1791213345.5851104
+      },
+      "item_bean_stew_1791213345939_76": {
+        "id": "item_bean_stew_1791213345939_76",
+        "type": "item",
+        "name": "bean_stew",
+        "properties": {
+          "description": "Bean stew, pottage with beans in it and bread to soak it.",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "eat",
+            "drop"
+          ],
+          "uses": 3,
+          "weight": 0.4,
+          "action_costs": {},
+          "skill_check": {},
+          "equip_slots": [],
+          "tags": [
+            "food",
+            "food",
+            "stew",
+            "legume"
+          ],
+          "affinity": [],
+          "current_state": "normal",
+          "light_level": "dim",
+          "target_temperature": null,
+          "heating_rate": null,
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "library_id": "bean_stew",
+          "image": null
+        },
+        "created": 1791213345.9391394,
+        "updated": 1791213345.9391394
+      },
+      "trigger_item_bean_stew_1791213345939_76_['on_eat']_1791213345940_886": {
+        "id": "trigger_item_bean_stew_1791213345939_76_['on_eat']_1791213345940_886",
+        "type": "logic_trigger",
+        "name": "['on_eat'] → message",
+        "properties": {
+          "trigger_type": [
+            "on_eat"
+          ],
+          "target_name": "",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "",
+                "success_message": "You eat it. That was worth stopping for."
+              }
+            },
+            {
+              "type": "adjust_vital",
+              "params": {
+                "stat": "Hunger",
+                "amount": -40,
+                "target": "self"
+              }
+            }
+          ]
+        },
+        "created": 1791213345.9401412,
+        "updated": 1791213345.9401412
+      },
+      "item_porridge_1791213346288_565": {
+        "id": "item_porridge_1791213346288_565",
+        "type": "item",
+        "name": "porridge",
+        "properties": {
+          "description": "Porridge, grey and thick, with the salt barely making it edible.",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "eat",
+            "drop"
+          ],
+          "uses": 3,
+          "weight": 0.4,
+          "action_costs": {},
+          "skill_check": {},
+          "equip_slots": [],
+          "tags": [
+            "food",
+            "food",
+            "grain"
+          ],
+          "affinity": [],
+          "current_state": "normal",
+          "light_level": "dim",
+          "target_temperature": null,
+          "heating_rate": null,
+          "sound_level": null,
+          "sound_pattern": null,
+          "stun_chance": null,
+          "stun_duration": null,
+          "library_id": "porridge",
+          "image": null
+        },
+        "created": 1791213346.288175,
+        "updated": 1791213346.288175
+      },
+      "trigger_item_porridge_1791213346288_565_['on_eat']_1791213346288_485": {
+        "id": "trigger_item_porridge_1791213346288_565_['on_eat']_1791213346288_485",
+        "type": "logic_trigger",
+        "name": "['on_eat'] → message",
+        "properties": {
+          "trigger_type": [
+            "on_eat"
+          ],
+          "target_name": "",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "",
+                "success_message": "You eat it. That was worth stopping for."
+              }
+            },
+            {
+              "type": "adjust_vital",
+              "params": {
+                "stat": "Hunger",
+                "amount": -26,
+                "target": "self"
+              }
+            }
+          ]
+        },
+        "created": 1791213346.288175,
+        "updated": 1791213346.288175
+      },
+      "item_rusted_iron_tripod_awj1": {
+        "id": "item_rusted_iron_tripod_awj1",
+        "type": "item",
+        "name": "Rusted Iron Tripod",
+        "properties": {
+          "description": "A bent iron tripod with three legs — one is a broken spear shaft lashed on with wire. It holds a pot over the fire pit, wobbling but functional.",
+          "tags": [
+            "kitchen",
+            "cooking",
+            "metal",
+            "furniture",
+            "tool"
+          ],
+          "current_state": "normal",
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ]
+        },
+        "created": 1791213445.7758694,
+        "updated": 1791213445.7758694
+      },
+      "item_stone_grinding_slab_uh5f": {
+        "id": "item_stone_grinding_slab_uh5f",
+        "type": "item",
+        "name": "Stone Grinding Slab",
+        "properties": {
+          "description": "A flat river stone with a deep grooved basin worn into its surface. Used for milling acorns, grinding bones, or crushing anything hard enough to eat.",
+          "tags": [
+            "kitchen",
+            "tool",
+            "stone",
+            "grinding"
+          ],
+          "current_state": "normal",
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ]
+        },
+        "created": 1791213445.7758694,
+        "updated": 1791213445.7758694
+      },
+      "item_bone_spoon_rack_m1c6": {
+        "id": "item_bone_spoon_rack_m1c6",
+        "type": "item",
+        "name": "Bone Spoon Rack",
+        "properties": {
+          "description": "A cracked skull mounted on the wall, its eye sockets holding a row of carved bone spoons. Some are clean, some are not.",
+          "tags": [
+            "kitchen",
+            "furniture",
+            "bone",
+            "display",
+            "tool"
+          ],
+          "current_state": "normal",
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ]
+        },
+        "created": 1791213445.7758694,
+        "updated": 1791213445.7758694
+      },
+      "item_hooked_roasting_spit_t2hr": {
+        "id": "item_hooked_roasting_spit_t2hr",
+        "type": "item",
+        "name": "Hooked Roasting Spit",
+        "properties": {
+          "description": "A long iron rod jutting over the fire pit, slowly turning a haunch of something unidentifiable. The mechanism is just a bent wire hook.",
+          "tags": [
+            "kitchen",
+            "cooking",
+            "metal",
+            "furniture"
+          ],
+          "current_state": "normal",
+          "actions": "examine,take,use,eat"
+        },
+        "created": 1791213445.7758694,
+        "updated": 1791213445.7758694
+      },
+      "item_sealed_clay_pot_alxy": {
+        "id": "item_sealed_clay_pot_alxy",
+        "type": "item",
+        "name": "Sealed Clay Pot",
+        "properties": {
+          "description": "A clay pot with a tight lid, crusted with weeks of grease. Something has been simmering inside since last moon. The smell is... interesting.",
+          "tags": [
+            "kitchen",
+            "container",
+            "food",
+            "cooking",
+            "clay"
+          ],
+          "current_state": "normal",
+          "actions": "examine,take,open,use,drink"
+        },
+        "created": 1791213445.7758694,
+        "updated": 1791213445.7758694
+      },
+      "item_smoked_rat_jerky_77eb": {
+        "id": "item_smoked_rat_jerky_77eb",
+        "type": "item",
+        "name": "Smoked Rat Jerky",
+        "properties": {
+          "description": "Strands of dried rat meat on a twine, salted and smoked over low flames. It's jerky. It's rat. It's actually not terrible.",
+          "tags": [
+            "food",
+            "meat",
+            "snack",
+            "preserved"
+          ],
+          "current_state": "normal",
+          "actions": [
+            "examine",
+            "take",
+            "eat"
+          ]
+        },
+        "created": 1791213445.7758694,
+        "updated": 1791213445.7758694
+      },
+      "item_glowing_mushroom_pouch_3ccf": {
+        "id": "item_glowing_mushroom_pouch_3ccf",
+        "type": "item",
+        "name": "Glowing Mushroom Pouch",
+        "properties": {
+          "description": "A damp cloth pouch filled with weird fungi that pulse faintly in the dark. 'Don't eat the red ones' is scratched into the cloth.",
+          "tags": [
+            "food",
+            "ingredient",
+            "forage",
+            "danger",
+            "mushroom",
+            "light_source"
+          ],
+          "current_state": "normal",
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ],
+          "light_level": "dim"
+        },
+        "created": 1791213445.7758694,
+        "updated": 1791213445.7758694
+      },
+      "item_hardtack_biscuits_b806": {
+        "id": "item_hardtack_biscuits_b806",
+        "type": "item",
+        "name": "Hardtack Biscuits",
+        "properties": {
+          "description": "Three rock-hard biscuits that could double as weapons in a pinch. So dense they float... in nothing. They just sink and wait.",
+          "tags": [
+            "food",
+            "bread",
+            "kitchen",
+            "weapon"
+          ],
+          "current_state": "normal",
+          "actions": "examine,take,eat,throw"
+        },
+        "created": 1791213445.7758694,
+        "updated": 1791213445.7758694
+      },
+      "item_fermented_cabbage_slab_imrv": {
+        "id": "item_fermented_cabbage_slab_imrv",
+        "type": "item",
+        "name": "Fermented Cabbage Slab",
+        "properties": {
+          "description": "A slab of cabbage wrapped in a damp leaf, bubbling aggressively. It smells like regret and sourness. It's been fermenting for weeks.",
+          "tags": [
+            "food",
+            "vegetable",
+            "fermented",
+            "kitchen"
+          ],
+          "current_state": "normal",
+          "actions": [
+            "examine",
+            "take",
+            "eat"
+          ]
+        },
+        "created": 1791213445.7758694,
+        "updated": 1791213445.7758694
+      },
+      "item_blood_sausage_1ush": {
+        "id": "item_blood_sausage_1ush",
+        "type": "item",
+        "name": "Blood Sausage",
+        "properties": {
+          "description": "A thick sausage stuffed with... something. It's hanging from a hook, dripping dark juice. Intestine casing, blood filling. Goblin delicacy.",
+          "tags": [
+            "food",
+            "meat",
+            "sausage",
+            "kitchen"
+          ],
+          "current_state": "normal",
+          "actions": "examine,take,eat"
+        },
+        "created": 1791213445.7758694,
+        "updated": 1791213445.7758694
+      },
+      "item_salt_chunk_q723": {
+        "id": "item_salt_chunk_q723",
+        "type": "item",
+        "name": "Salt Chunk",
+        "properties": {
+          "description": "A chunk of rock salt scraped from the cave walls. Coarse and crystalline, it makes everything taste less like cave water.",
+          "tags": [
+            "food",
+            "ingredient",
+            "seasoning",
+            "mineral"
+          ],
+          "current_state": "normal",
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ]
+        },
+        "created": 1791213445.7758694,
+        "updated": 1791213445.7758694
+      },
+      "item_wild_herb_bundle_zi5e": {
+        "id": "item_wild_herb_bundle_zi5e",
+        "type": "item",
+        "name": "Wild Herb Bundle",
+        "properties": {
+          "description": "A bundle of wild herbs hanging upside down from a hook. Most are dried, but a few leaves still look suspiciously green and alive.",
+          "tags": [
+            "food",
+            "ingredient",
+            "herb",
+            "forage"
+          ],
+          "current_state": "normal",
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ]
+        },
+        "created": 1791213445.7758694,
+        "updated": 1791213445.7758694
+      },
+      "item_beeswax_block_tum3": {
+        "id": "item_beeswax_block_tum3",
+        "type": "item",
+        "name": "Beeswax Block",
+        "properties": {
+          "description": "A chunk of golden beeswax, stolen from a hive somewhere. Used for sealing jars, making candles, or just... chewing.",
+          "tags": [
+            "material",
+            "kitchen",
+            "crafting",
+            "wax"
+          ],
+          "current_state": "normal",
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ]
+        },
+        "created": 1791213445.7758694,
+        "updated": 1791213445.7758694
+      },
+      "item_ground_beetle_powder_zetk": {
+        "id": "item_ground_beetle_powder_zetk",
+        "type": "item",
+        "name": "Ground Beetle Powder",
+        "properties": {
+          "description": "A pouch of fine dark powder made from ground beetles. 'Spice,' says whoever made it. Tastes like dirt and ambition.",
+          "tags": [
+            "food",
+            "ingredient",
+            "spice",
+            "danger"
+          ],
+          "current_state": "normal",
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ]
+        },
+        "created": 1791213445.7758694,
+        "updated": 1791213445.7758694
+      },
+      "item_mushroom_beer_flask_axey": {
+        "id": "item_mushroom_beer_flask_axey",
+        "type": "item",
+        "name": "Mushroom Beer Flask",
+        "properties": {
+          "description": "A patched clay flask filled with cloudy, bubbling liquid. Mushroom beer — it tastes like earth and regret.",
+          "tags": [
+            "drink",
+            "alcohol",
+            "container",
+            "kitchen"
+          ],
+          "current_state": "normal",
+          "actions": [
+            "examine",
+            "take",
+            "drink"
+          ]
+        },
+        "created": 1791213445.7758694,
+        "updated": 1791213445.7758694
+      },
+      "item_tin_cup_0c3c": {
+        "id": "item_tin_cup_0c3c",
+        "type": "item",
+        "name": "Tin Cup",
+        "properties": {
+          "description": "A dented tin cup with a hole melted in the bottom. Somehow it still holds liquid, barely. Magic or just good welding.",
+          "tags": [
+            "container",
+            "kitchen",
+            "dining",
+            "metal"
+          ],
+          "current_state": "normal",
+          "actions": [
+            "examine",
+            "take",
+            "drink",
+            "use"
+          ]
+        },
+        "created": 1791213445.7758694,
+        "updated": 1791213445.7758694
+      },
+      "item_water_skin_t06a": {
+        "id": "item_water_skin_t06a",
+        "type": "item",
+        "name": "Water Skin",
+        "properties": {
+          "description": "A goat hide water skin that sloshes with something that isn't entirely water. It's brown. It's warm. It's goblin water.",
+          "tags": [
+            "water",
+            "drink",
+            "container",
+            "kitchen"
+          ],
+          "current_state": "normal",
+          "actions": "examine,take,drink"
+        },
+        "created": 1791213445.7758694,
+        "updated": 1791213445.7758694
+      },
+      "item_rat_skeleton_o17n": {
+        "id": "item_rat_skeleton_o17n",
+        "type": "item",
+        "name": "Rat Skeleton",
+        "properties": {
+          "description": "A rat skeleton perched on a shelf, watching the food preparation. It's been there so long it's become part of the décor.",
+          "tags": [
+            "decor",
+            "creature",
+            "rat",
+            "kitchen"
+          ],
+          "current_state": "normal",
+          "actions": [
+            "examine",
+            "take"
+          ]
+        },
+        "created": 1791213445.7758694,
+        "updated": 1791213445.7758694
+      },
+      "item_cracked_cooking_pot_taqj": {
+        "id": "item_cracked_cooking_pot_taqj",
+        "type": "item",
+        "name": "Cracked Cooking Pot",
+        "properties": {
+          "description": "A cracked clay pot repurposed as a candle holder, pencil holder, or whatever a goblin needs a cracked pot for.",
+          "tags": [
+            "kitchen",
+            "container",
+            "clay",
+            "furniture"
+          ],
+          "current_state": "normal",
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ]
+        },
+        "created": 1791213445.7758694,
+        "updated": 1791213445.7758694
+      },
+      "item_grease_rag_7wir": {
+        "id": "item_grease_rag_7wir",
+        "type": "item",
+        "name": "Grease Rag",
+        "properties": {
+          "description": "A ball of rendered fat and cloth, used to start fires. It's greasy, it's smelly, and it works.",
+          "tags": [
+            "tool",
+            "fire",
+            "kitchen",
+            "tinder"
+          ],
+          "current_state": "normal",
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "light"
+          ]
+        },
+        "created": 1791213445.7758694,
+        "updated": 1791213445.7758694
+      },
+      "item_bone_needle_6m3g": {
+        "id": "item_bone_needle_6m3g",
+        "type": "item",
+        "name": "Bone Needle",
+        "properties": {
+          "description": "A long bone needle, sharp at both ends. For sewing, picking teeth, or poking things you shouldn't.",
+          "tags": [
+            "tool",
+            "bone",
+            "kitchen",
+            "sewing"
+          ],
+          "current_state": "normal",
+          "actions": [
+            "examine",
+            "take",
+            "use"
+          ]
+        },
+        "created": 1791213445.7758694,
+        "updated": 1791213445.7758694
+      },
+      "item_mossy_hammock_t9fh": {
+        "id": "item_mossy_hammock_t9fh",
+        "type": "item",
+        "name": "Mossy Hammock",
+        "properties": {
+          "description": "A hammock strung between two stalactites, covered in green moss. Looks like Arix's spot.",
+          "tags": [
+            "bed",
+            "sleep",
+            "hammock",
+            "goblin_camp"
+          ],
+          "current_state": "normal",
+          "actions": "examine,use,eat",
+          "triggers": {
+            "examine": "This is Arix's hammock. The moss is carefully arranged for padding, and there's a small carved frog dangling from the rope — Arix's good-luck charm."
+          }
+        },
+        "created": 1791213614.0390894,
+        "updated": 1791213614.0390894
+      },
+      "item_tattered_hammock_soy7": {
+        "id": "item_tattered_hammock_soy7",
+        "type": "item",
+        "name": "Tattered Hammock",
+        "properties": {
+          "description": "A worn hammock with frayed ropes and patched fabric. Belne's nest.",
+          "tags": [
+            "bed",
+            "sleep",
+            "hammock",
+            "goblin_camp"
+          ],
+          "current_state": "normal",
+          "actions": "examine,use,eat",
+          "triggers": {
+            "examine": "This is Belne's hammock. The ropes are re-knotted every few inches — Belne's paranoid about falling. There's a wanderer's pouch tucked underneath."
+          }
+        },
+        "created": 1791213614.0390894,
+        "updated": 1791213614.0390894
+      },
+      "item_scratched_log_bed_orw6": {
+        "id": "item_scratched_log_bed_orw6",
+        "type": "item",
+        "name": "Scratched Log Bed",
+        "properties": {
+          "description": "A hollowed-out log with scratch marks all over it. Gribba's cooking station bed.",
+          "tags": [
+            "bed",
+            "sleep",
+            "log_bed",
+            "goblin_camp"
+          ],
+          "current_state": "normal",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "triggers": {
+            "examine": "This is Gribba's log bed. The scratches are recipe shorthand — Gribba sleeps while dreaming up new stews. A ladle is tucked under the log."
+          }
+        },
+        "created": 1791213614.0390894,
+        "updated": 1791213614.0390894
+      },
+      "item_patchwork_hammock_4e0w": {
+        "id": "item_patchwork_hammock_4e0w",
+        "type": "item",
+        "name": "Patchwork Hammock",
+        "properties": {
+          "description": "A hammock sewn from mismatched scraps of cloth and leather. Kiala's spot.",
+          "tags": [
+            "bed",
+            "sleep",
+            "hammock",
+            "goblin_camp"
+          ],
+          "current_state": "normal",
+          "actions": "examine,use,eat",
+          "triggers": {
+            "examine": "This is Kiala's hammock. The patches tell a story — each scrap from a different raid or trade. Kiala sleeps light, always ready to squire up."
+          }
+        },
+        "created": 1791213614.0390894,
+        "updated": 1791213614.0390894
+      },
+      "item_high_rope_nest_t1yt": {
+        "id": "item_high_rope_nest_t1yt",
+        "type": "item",
+        "name": "High Rope Nest",
+        "properties": {
+          "description": "A woven rope nest high above the floor, tied to the cave ceiling. Krikka's climbing perch.",
+          "tags": [
+            "bed",
+            "sleep",
+            "rope_nest",
+            "goblin_camp"
+          ],
+          "current_state": "normal",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "triggers": {
+            "examine": "This is Krikka's nest. It's too high for most goblins to reach — Krikka climbs up even in her sleep. A climbing pick hangs nearby."
+          }
+        },
+        "created": 1791213614.0390894,
+        "updated": 1791213614.0390894
+      },
+      "item_tinkerer_s_pallet_pnu2": {
+        "id": "item_tinkerer_s_pallet_pnu2",
+        "type": "item",
+        "name": "Tinkerer's Pallet",
+        "properties": {
+          "description": "A low pallet surrounded by scattered gears and springs. Mikka's workshop bed.",
+          "tags": [
+            "bed",
+            "sleep",
+            "pallet",
+            "goblin_camp"
+          ],
+          "current_state": "normal",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "triggers": {
+            "examine": "This is Mikka's pallet. Gears stick out of the straw — Mikka builds in her sleep. The pallet vibrates faintly sometimes."
+          }
+        },
+        "created": 1791213614.0390894,
+        "updated": 1791213614.0390894
+      },
+      "item_perch_bed_p2c7": {
+        "id": "item_perch_bed_p2c7",
+        "type": "item",
+        "name": "Perch Bed",
+        "properties": {
+          "description": "A raised flat stone shelf near the wall, lined with dried leaves. Rikka's performance perch.",
+          "tags": [
+            "bed",
+            "sleep",
+            "stone_shelf",
+            "goblin_camp"
+          ],
+          "current_state": "normal",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "triggers": {
+            "examine": "This is Rikka's perch. The stone is worn smooth from use — Rikka practices rhythms in her sleep. Small bells are wired to the edge for an alarm."
+          }
+        },
+        "created": 1791213614.0390894,
+        "updated": 1791213614.0390894
+      },
+      "item_chief_s_platform_yad9": {
+        "id": "item_chief_s_platform_yad9",
+        "type": "item",
+        "name": "Chief's Platform",
+        "properties": {
+          "description": "A raised wooden platform with a fur blanket, overlooking the rest of the hall. Thrazz's den within the den.",
+          "tags": [
+            "bed",
+            "sleep",
+            "platform",
+            "goblin_camp",
+            "restricted"
+          ],
+          "current_state": "normal",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "triggers": {
+            "examine": "This is Thrazz's platform. The fur is old but clean — Thrazz demands respect even in sleep. A small carved throne sits beside the platform."
+          }
+        },
+        "created": 1791213614.0390894,
+        "updated": 1791213614.0390894
+      },
+      "item_low_hammock_dydr": {
+        "id": "item_low_hammock_dydr",
+        "type": "item",
+        "name": "Low Hammock",
+        "properties": {
+          "description": "A hammock hung close to the floor, easy to climb into. Vekka's scout post.",
+          "tags": [
+            "bed",
+            "sleep",
+            "hammock",
+            "goblin_camp"
+          ],
+          "current_state": "normal",
+          "actions": "examine,use,eat",
+          "triggers": {
+            "examine": "This is Vekka's hammock. It's low to the ground — Vekka needs to be ready to move fast. A spyglass tube is tied to the rope."
+          }
+        },
+        "created": 1791213614.0390894,
+        "updated": 1791213614.0390894
+      },
+      "item_fighter_s_bunk_bo43": {
+        "id": "item_fighter_s_bunk_bo43",
+        "type": "item",
+        "name": "Fighter's Bunk",
+        "properties": {
+          "description": "A sturdy bunk built from stacked stone and scrap metal. Zikka's combat rest spot.",
+          "tags": [
+            "bed",
+            "sleep",
+            "bunk",
+            "goblin_camp"
+          ],
+          "current_state": "normal",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "triggers": {
+            "examine": "This is Zikka's bunk. The metal scraps are arranged like armor — Zikka never fully unarmors. A training tally is scratched into the stone frame."
+          }
+        },
+        "created": 1791213614.0390894,
+        "updated": 1791213614.0390894
+      },
+      "item_communal_fur_pile_ahym": {
+        "id": "item_communal_fur_pile_ahym",
+        "type": "item",
+        "name": "Communal Fur Pile",
+        "properties": {
+          "description": "A massive pile of furs and blankets in the corner — guest sleeping space.",
+          "tags": [
+            "bed",
+            "sleep",
+            "fur_pile",
+            "goblin_camp"
+          ],
+          "current_state": "normal",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "triggers": {
+            "examine": "This is the communal fur pile. Croak-Mother claims the damp corner, and Old Iron-Back squashes himself into the straw. Visitors sleep here if they're brave enough."
+          }
+        },
+        "created": 1791213614.0390894,
+        "updated": 1791213614.0390894
+      },
+      "item_lily_pad_float_pr3c": {
+        "id": "item_lily_pad_float_pr3c",
+        "type": "item",
+        "name": "Lily Pad Float",
+        "properties": {
+          "description": "A broad lily pad laid over a still pool of water — Croak-Mother's bed.",
+          "tags": [
+            "bed",
+            "sleep",
+            "water_bed",
+            "goblin_camp"
+          ],
+          "current_state": "normal",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "triggers": {
+            "examine": "This is Croak-Mother's lily pad. It floats on a shallow basin — she sleeps soaked and happy. The pad smells faintly of swamp moss."
+          }
+        },
+        "created": 1791213614.0390894,
+        "updated": 1791213614.0390894
+      },
+      "item_straw_nest_ls3o": {
+        "id": "item_straw_nest_ls3o",
+        "type": "item",
+        "name": "Straw Nest",
+        "properties": {
+          "description": "A bulky straw nest on the floor, flattened from use. Old Iron-Back's spot.",
+          "tags": [
+            "bed",
+            "sleep",
+            "straw_nest",
+            "goblin_camp"
+          ],
+          "current_state": "normal",
+          "actions": [
+            "examine",
+            "use"
+          ],
+          "triggers": {
+            "examine": "This is Old Iron-Back's nest. The straw is matted down to nothing — that bear eats a lot of bedding. Claw marks ring the edge."
+          }
+        },
+        "created": 1791213614.0390894,
+        "updated": 1791213614.0390894
       }
     },
     "edges": [
@@ -47987,6 +49625,660 @@
         "target": "area_camp_entrance_trail",
         "type": "in",
         "properties": {}
+      },
+      {
+        "source": "item_barley_loaf_1791213342411_154",
+        "target": "area_food_storage",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_barley_loaf_1791213342411_154",
+        "target": "trigger_item_barley_loaf_1791213342411_154_['on_eat']_1791213342412_623",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": [
+            "on_eat"
+          ],
+          "target_name": "",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "",
+                "success_message": "You eat it. Better than nothing and not much more."
+              }
+            },
+            {
+              "type": "adjust_vital",
+              "params": {
+                "stat": "Hunger",
+                "amount": -38,
+                "target": "self"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "source": "item_bacon_rasher_1791213342775_651",
+        "target": "area_food_storage",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_bacon_rasher_1791213342775_651",
+        "target": "trigger_item_bacon_rasher_1791213342775_651_['on_eat']_1791213342775_390",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": [
+            "on_eat"
+          ],
+          "target_name": "",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "",
+                "success_message": "You eat it. That was worth stopping for."
+              }
+            },
+            {
+              "type": "adjust_vital",
+              "params": {
+                "stat": "Hunger",
+                "amount": -28,
+                "target": "self"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "source": "item_hanging dried meats_1791213343149_490",
+        "target": "area_food_storage",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_hanging dried meats_1791213343149_490",
+        "target": "trigger_item_hanging dried meats_1791213343149_490_on_eat_1791213343149_515",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_eat",
+          "target_name": "",
+          "effects": [
+            {
+              "type": "adjust_vital",
+              "params": {
+                "amount": -25,
+                "message": "You chew on the dried meat. It's tough but savory, and fills your stomach.",
+                "stat": "Hunger"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "source": "item_hanging dried meats_1791213343149_490",
+        "target": "trigger_item_hanging dried meats_1791213343149_490_on_examine_1791213343149_592",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_examine",
+          "target_name": "",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "Several strips of dried meat hang from iron hooks. They've been cured with salt and smoke."
+              }
+            }
+          ]
+        }
+      },
+      {
+        "source": "item_hanging dried meats_1791213343149_490",
+        "target": "trigger_item_hanging dried meats_1791213343149_490_on_take_1791213343149_123",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_take",
+          "target_name": "",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "You take a strip of dried meat."
+              }
+            }
+          ]
+        }
+      },
+      {
+        "source": "item_cheddar_cheese_1791213343477_187",
+        "target": "area_food_storage",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_cheddar_cheese_1791213343477_187",
+        "target": "trigger_item_cheddar_cheese_1791213343477_187_['on_eat']_1791213343477_135",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": [
+            "on_eat"
+          ],
+          "target_name": "",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "",
+                "success_message": "You eat it. Better than nothing and not much more."
+              }
+            },
+            {
+              "type": "adjust_vital",
+              "params": {
+                "stat": "Hunger",
+                "amount": -28,
+                "target": "self"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "source": "item_heather_honey_1791213343820_107",
+        "target": "area_food_storage",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_heather_honey_1791213343820_107",
+        "target": "trigger_item_heather_honey_1791213343820_107_['on_eat']_1791213343821_452",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": [
+            "on_eat"
+          ],
+          "target_name": "",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "",
+                "success_message": "You eat it, gathered and not much cleaned."
+              }
+            },
+            {
+              "type": "adjust_vital",
+              "params": {
+                "stat": "Hunger",
+                "amount": -20,
+                "target": "self"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "source": "item_honeycomb_1791213344173_240",
+        "target": "area_food_storage",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_honeycomb_1791213344173_240",
+        "target": "trigger_item_honeycomb_1791213344173_240_['on_eat']_1791213344174_293",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": [
+            "on_eat"
+          ],
+          "target_name": "",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "",
+                "success_message": "You eat it. That was worth stopping for."
+              }
+            },
+            {
+              "type": "adjust_vital",
+              "params": {
+                "stat": "Hunger",
+                "amount": -18,
+                "target": "self"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "source": "item_cod_1791213344573_647",
+        "target": "area_food_storage",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_cod_1791213344573_647",
+        "target": "trigger_item_cod_1791213344573_647_['on_eat']_1791213344574_976",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": [
+            "on_eat"
+          ],
+          "target_name": "",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "",
+                "success_message": "You eat it, and wish there were more."
+              }
+            },
+            {
+              "type": "adjust_vital",
+              "params": {
+                "stat": "Hunger",
+                "amount": -34,
+                "target": "self"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "source": "item_apple_1791213344906_964",
+        "target": "area_food_storage",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_apple_1791213344906_964",
+        "target": "trigger_item_apple_1791213344906_964_['on_eat']_1791213344906_204",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": [
+            "on_eat"
+          ],
+          "target_name": "",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "success_message": "Cruncy and delicious"
+              }
+            },
+            {
+              "type": "adjust_vital",
+              "params": {
+                "stat": "Hunger",
+                "amount": -45,
+                "target": "self"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "source": "item_apple_1791213344906_964",
+        "target": "trigger_item_apple_1791213344906_964_on_examine_1791213344906_504",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_examine",
+          "target_name": "",
+          "effects": [
+            {
+              "params": {
+                "message": "",
+                "success_message": "A read apple, teh cold has kept it fresh. lucky me! i can *EAT* this."
+              },
+              "type": "message"
+            }
+          ]
+        }
+      },
+      {
+        "source": "item_acorn_meal_1791213345268_610",
+        "target": "area_food_storage",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_acorn_meal_1791213345268_610",
+        "target": "trigger_item_acorn_meal_1791213345268_610_['on_eat']_1791213345269_964",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": [
+            "on_eat"
+          ],
+          "target_name": "",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "",
+                "success_message": "You eat it, gathered and not much cleaned."
+              }
+            },
+            {
+              "type": "adjust_vital",
+              "params": {
+                "stat": "Hunger",
+                "amount": -20,
+                "target": "self"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "source": "item_beef_roast_1791213345584_50",
+        "target": "area_food_storage",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_beef_roast_1791213345584_50",
+        "target": "trigger_item_beef_roast_1791213345584_50_['on_eat']_1791213345585_852",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": [
+            "on_eat"
+          ],
+          "target_name": "",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "",
+                "success_message": "You eat it, and wish there were more."
+              }
+            },
+            {
+              "type": "adjust_vital",
+              "params": {
+                "stat": "Hunger",
+                "amount": -44,
+                "target": "self"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "source": "item_bean_stew_1791213345939_76",
+        "target": "area_food_storage",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_bean_stew_1791213345939_76",
+        "target": "trigger_item_bean_stew_1791213345939_76_['on_eat']_1791213345940_886",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": [
+            "on_eat"
+          ],
+          "target_name": "",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "",
+                "success_message": "You eat it. That was worth stopping for."
+              }
+            },
+            {
+              "type": "adjust_vital",
+              "params": {
+                "stat": "Hunger",
+                "amount": -40,
+                "target": "self"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "source": "item_porridge_1791213346288_565",
+        "target": "area_food_storage",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_porridge_1791213346288_565",
+        "target": "trigger_item_porridge_1791213346288_565_['on_eat']_1791213346288_485",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": [
+            "on_eat"
+          ],
+          "target_name": "",
+          "effects": [
+            {
+              "type": "message",
+              "params": {
+                "message": "",
+                "success_message": "You eat it. That was worth stopping for."
+              }
+            },
+            {
+              "type": "adjust_vital",
+              "params": {
+                "stat": "Hunger",
+                "amount": -26,
+                "target": "self"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "source": "item_rusted_iron_tripod_awj1",
+        "target": "area_cooking_area",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_stone_grinding_slab_uh5f",
+        "target": "area_cooking_area",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_bone_spoon_rack_m1c6",
+        "target": "area_cooking_area",
+        "type": "on",
+        "properties": {}
+      },
+      {
+        "source": "item_hooked_roasting_spit_t2hr",
+        "target": "area_cooking_area",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_sealed_clay_pot_alxy",
+        "target": "area_cooking_area",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_smoked_rat_jerky_77eb",
+        "target": "area_cooking_area",
+        "type": "on",
+        "properties": {}
+      },
+      {
+        "source": "item_glowing_mushroom_pouch_3ccf",
+        "target": "area_cooking_area",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_hardtack_biscuits_b806",
+        "target": "area_cooking_area",
+        "type": "on",
+        "properties": {}
+      },
+      {
+        "source": "item_fermented_cabbage_slab_imrv",
+        "target": "area_cooking_area",
+        "type": "on",
+        "properties": {}
+      },
+      {
+        "source": "item_blood_sausage_1ush",
+        "target": "area_cooking_area",
+        "type": "on",
+        "properties": {}
+      },
+      {
+        "source": "item_salt_chunk_q723",
+        "target": "area_cooking_area",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_wild_herb_bundle_zi5e",
+        "target": "area_cooking_area",
+        "type": "on",
+        "properties": {}
+      },
+      {
+        "source": "item_beeswax_block_tum3",
+        "target": "area_cooking_area",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_ground_beetle_powder_zetk",
+        "target": "area_cooking_area",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_mushroom_beer_flask_axey",
+        "target": "area_cooking_area",
+        "type": "on",
+        "properties": {}
+      },
+      {
+        "source": "item_tin_cup_0c3c",
+        "target": "area_cooking_area",
+        "type": "on",
+        "properties": {}
+      },
+      {
+        "source": "item_water_skin_t06a",
+        "target": "area_cooking_area",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_rat_skeleton_o17n",
+        "target": "area_cooking_area",
+        "type": "on",
+        "properties": {}
+      },
+      {
+        "source": "item_cracked_cooking_pot_taqj",
+        "target": "area_cooking_area",
+        "type": "on",
+        "properties": {}
+      },
+      {
+        "source": "item_grease_rag_7wir",
+        "target": "area_cooking_area",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_bone_needle_6m3g",
+        "target": "area_cooking_area",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_mossy_hammock_t9fh",
+        "target": "area_sleeping_halls",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_tattered_hammock_soy7",
+        "target": "area_sleeping_halls",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_scratched_log_bed_orw6",
+        "target": "area_sleeping_halls",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_patchwork_hammock_4e0w",
+        "target": "area_sleeping_halls",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_high_rope_nest_t1yt",
+        "target": "area_sleeping_halls",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_tinkerer_s_pallet_pnu2",
+        "target": "area_sleeping_halls",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_perch_bed_p2c7",
+        "target": "area_sleeping_halls",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_chief_s_platform_yad9",
+        "target": "area_sleeping_halls",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_low_hammock_dydr",
+        "target": "area_sleeping_halls",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_fighter_s_bunk_bo43",
+        "target": "area_sleeping_halls",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_communal_fur_pile_ahym",
+        "target": "area_sleeping_halls",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_lily_pad_float_pr3c",
+        "target": "area_sleeping_halls",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_straw_nest_ls3o",
+        "target": "area_sleeping_halls",
+        "type": "in",
+        "properties": {}
       }
     ]
   },
@@ -49346,92 +51638,92 @@
   "graph_background": {
     "layers": [
       {
-        "crop": {
-          "h": 1,
-          "w": 1,
-          "x": 0,
-          "y": 0
-        },
         "id": "bg-oj3gj4f",
-        "image": "/static/images/backgrounds/west woods.png",
         "label": "west woods",
-        "locked": false,
-        "opacity": 1,
+        "image": "/static/images/backgrounds/west woods.png",
         "rect": {
-          "height": 9228.865979381444,
-          "width": 7200,
           "x": -10311.966463515184,
-          "y": -11439.116326096007
+          "y": -11439.116326096007,
+          "width": 7200,
+          "height": 9228.865979381444
         },
         "rotation": 0,
+        "crop": {
+          "x": 0,
+          "y": 0,
+          "w": 1,
+          "h": 1
+        },
+        "opacity": 1,
+        "locked": false,
         "visible": true
       },
       {
-        "crop": {
-          "h": 1,
-          "w": 1,
-          "x": 0,
-          "y": 0
-        },
         "id": "bg-4pt7865",
-        "image": "/static/images/backgrounds/kraktooth-goblin-camp.png",
         "label": "goblin camp",
-        "locked": false,
-        "opacity": 1,
+        "image": "/static/images/backgrounds/kraktooth-goblin-camp.png",
         "rect": {
-          "height": 2414.0625,
-          "width": 7200,
-          "x": -1641.901245088507,
-          "y": 5260.325510030312
+          "x": -820.9506225442535,
+          "y": 2630.162755015156,
+          "width": 3600,
+          "height": 1207.03125
         },
         "rotation": 0,
+        "crop": {
+          "x": 0,
+          "y": 0,
+          "w": 1,
+          "h": 1
+        },
+        "opacity": 1,
+        "locked": false,
         "visible": true
       },
       {
-        "crop": {
-          "h": 1,
-          "w": 1,
-          "x": 0,
-          "y": 0
-        },
         "id": "bg-v6fwvcd",
-        "image": "/static/images/backgrounds/kraktooth world map.png",
         "label": "world",
-        "locked": false,
-        "opacity": 1,
+        "image": "/static/images/backgrounds/kraktooth world map.png",
         "rect": {
-          "height": 2404.6875,
-          "width": 7200,
-          "x": -1301.501961495536,
-          "y": -2242.9281905691964
+          "x": -1193.0434647042414,
+          "y": -2056.0175080217637,
+          "width": 6600,
+          "height": 2204.296875
         },
         "rotation": 0,
+        "crop": {
+          "x": 0,
+          "y": 0,
+          "w": 1,
+          "h": 1
+        },
+        "opacity": 1,
+        "locked": false,
         "visible": true
       },
       {
-        "crop": {
-          "h": 1,
-          "w": 1,
-          "x": 0,
-          "y": 0
-        },
         "id": "bg-v45y7tf",
-        "image": "/static/images/backgrounds/eldenford.png",
         "label": "eldenford interior",
-        "locked": false,
-        "opacity": 1,
+        "image": "/static/images/backgrounds/eldenford.png",
         "rect": {
-          "height": 7200,
-          "width": 10800,
           "x": 14950.147753511908,
-          "y": -10695.160600896306
+          "y": -10695.160600896306,
+          "width": 10800,
+          "height": 7200
         },
         "rotation": 0,
+        "crop": {
+          "x": 0,
+          "y": 0,
+          "w": 1,
+          "h": 1
+        },
+        "opacity": 1,
+        "locked": false,
         "visible": true
       }
     ],
-    "layoutLocked": false,
-    "positions": {}
+    "positions": {},
+    "layoutLocked": false
   },
   "schema_version": 2
 }

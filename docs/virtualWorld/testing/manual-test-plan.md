@@ -1,3 +1,8 @@
+---
+type: doc
+tags: [system/testing]
+---
+
 # Manual test plan — one scratch world per phase
 **Supersedes:** `dev_tasks/done/testing/test-plan-100-items.md` (225 presence checks, never run to a result).
 Each step declares six fields so a human and a Playwright script can run the same line:
@@ -323,3 +328,4 @@ supported journey.
   were removed.
 - **Not run:** phases 1/2/3/6/7/9/10 remain unexecuted; recorded as the honest
   state, not as passes.
+

@@ -13,7 +13,11 @@ related: [task-693, task-409, task-702]
 
 ## Goal
 
-Change the plan phase from {'steps': ['prose']} to typed steps in the primitive vocabulary ({act, item/target, area, until, duration}) and validate them against the graph before acceptance. Motivation (live evidence 2026-10-04): Vekka planned 'use hanging meat' against flavor text and resolved to the failure - poetry plans hallucinate affordances. A planner composing from facts cannot. The typed step format must be the SAME artifact the plan executor (see GOSP executor task) can run for simple NPCs - one contract, three consumers: LLM shopping list, engine executor, condition-leaf validator. Keep the freeform plan prompt as fallback when grounding rejects a step: rejection returns the failed preconditions so the LLM re-composes.
+Change the short-term plan phase from `{'steps': ['prose']}` to typed steps in the primitive vocabulary (`act`, item/target, area, `until`, duration) and validate them against the graph before acceptance. Motivation (live evidence 2026-10-04): Vekka planned “use hanging meat” against flavor text and resolved to failure; prose plans can hallucinate affordances, while plans composed from facts can be checked. The typed step format is the same artifact task-702's executor can run for simple NPCs: an LLM's immediate approach, engine execution, and condition-leaf validation share one contract. It does not represent the character's longer pursuit or an ongoing Activity. Keep the freeform plan prompt as fallback when grounding rejects a step: rejection returns failed preconditions so the LLM re-composes.
+
+## Terminology clarification (2026-10-05)
+
+The current `=== YOUR PLAN ===` list is the character's short-term approach. A separate active-pursuit block (task-704) will provide the longer objective, motive, where/when, requirements, supplies, and checked progress. A plan can change after an interruption while the pursuit remains active; starting a time-spanning Activity is a separate engine action.
 
 ## Acceptance
 - [x] The plan phase responds with typed steps (act/item/target/area/until/

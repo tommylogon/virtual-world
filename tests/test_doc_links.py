@@ -144,3 +144,70 @@ def test_vault_link_check_clean_on_repo_vault():
     # The real vault is the strongest regression: it is expected at zero.
     broken = doc_links.broken_links(Path("docs/virtualWorld"))
     assert broken == [], broken[:10]
+
+
+# ── orphans (the other direction) ─────────────────────────────────────────
+
+
+def test_inbound_count_uses_the_same_resolver(tmp_path):
+    # An alias and an escaped-pipe alias are the same link; both count.
+    v = tmp_path / "vault"
+    target = _note(v, "Items & Inventory/Items Overview", "# Items\n")
+    _note(v, "Index", "[[Items & Inventory/Items Overview|Items]]\n"
+                      "[[Items & Inventory/Items Overview\\|Overview]]\n"
+                      "[[Items Overview#Items]]\n")
+    counts = doc_links.inbound_counts(v)
+    assert counts[target] == 3
+
+
+def test_inbound_count_ignores_unresolvable_and_self_links(tmp_path):
+    v = tmp_path / "vault"
+    a = _note(v, "A", "[[Nothing Like This]]\n[[A]]\n")
+    counts = doc_links.inbound_counts(v)
+    assert a not in counts, "a broken link and a self-link are not inbound ones"
+
+
+def test_orphan_is_a_note_nothing_points_at(tmp_path):
+    # _Index → Hub → Reached, plus a Lonely that nothing reaches.
+    v = tmp_path / "vault"
+    _note(v, "_Index", "[[Hub]]\n")
+    _note(v, "Hub", "[[Reached]]\n")
+    _note(v, "Reached", "# Reached\n")
+    _note(v, "Lonely", "# Lonely\n")
+    found = dict((p.relative_to(v).as_posix(), n)
+                 for p, n in doc_links.orphans(v, 1, curated_only=False))
+    assert found == {"Lonely.md": 0, "_Index.md": 0}, found
+
+
+def test_min_inbound_two_lifts_a_once_linked_note(tmp_path):
+    v = tmp_path / "vault"
+    _note(v, "_Index", "[[Hub]]\n")
+    _note(v, "Hub", "[[Reached]]\n")
+    _note(v, "Reached", "# Reached\n")
+    once = doc_links.orphans(v, 1, curated_only=False)
+    assert [p.stem for p, _ in once] == ["_Index"], once
+    twice = doc_links.orphans(v, 2, curated_only=False)
+    # worst-first: the note nothing links to (0) precedes the two linked once.
+    assert [(p.stem, n) for p, n in twice] == [("_Index", 0), ("Hub", 1), ("Reached", 1)]
+
+
+def test_curated_scope_excludes_the_task_tree(tmp_path):
+    # Without this the report drowns in 800 task files and says nothing about
+    # the notes a reader is meant to reach.
+    v = tmp_path / "vault"
+    (v / "dev_tasks" / "todo").mkdir(parents=True)
+    _note(v, "dev_tasks/todo/task-1-x", "# task-1\n")
+    _note(v, "Lonely Note", "# Lonely\n")
+    everything = {p.stem for p, _ in doc_links.orphans(v, 1, curated_only=False)}
+    assert "task-1-x" in everything
+    # On a tmp vault doc_tags.curated_docs() resolves against the real repo, so
+    # assert the *mechanism*: curated_only=True drops notes that are not curated,
+    # and here the tmp task file is not one of them.
+    curated = {p.stem for p, _ in doc_links.orphans(v, 1, curated_only=True)}
+    assert curated <= everything
+
+
+def test_no_curated_orphan_in_the_real_vault():
+    # The measure this pass was for: 21 curated notes nothing linked to.
+    found = doc_links.orphans(Path("docs/virtualWorld"), 1, curated_only=True)
+    assert found == [], [p.as_posix() for p, _ in found[:10]]

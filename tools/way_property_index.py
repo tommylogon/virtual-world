@@ -99,6 +99,31 @@ def collect_lists() -> dict:
     return found
 
 
+_FRONTMATTER_RE = re.compile(r"\A---\r?\n.*?\r?\n---\r?\n", re.S)
+_CONNECTED_RE = re.compile(r"<!-- connected:start -->.*?<!-- connected:end -->", re.S)
+
+
+def merge_page(generated: str, existing: str = "") -> str:
+    """The generated page plus the two regions other tools own.
+
+    `doc_tags --apply` writes this page's frontmatter and `doc_connected --apply`
+    writes its `Connected` block. Both are machine-written and both are correct,
+    and neither is ours — so regenerating must carry them over instead of
+    deleting them. Before this, one `--write` silently stripped the page's tags
+    and every inbound relation it had earned, and `--check` then failed on a
+    difference nobody could see.
+    """
+    head = ""
+    m = _FRONTMATTER_RE.match(existing or "")
+    if m:
+        head = m.group(0)
+    tail = ""
+    block = _CONNECTED_RE.search(existing or "")
+    if block:
+        tail = "\n" + block.group(0).strip() + "\n"
+    return head + generated.rstrip() + "\n" + tail
+
+
 def build_page() -> str:
     lists = collect_lists()
     out = []
@@ -309,7 +334,8 @@ def main() -> int:
 
     if args.write:
         PAGE.parent.mkdir(parents=True, exist_ok=True)
-        PAGE.write_text(build_page(), encoding="utf-8")
+        existing = PAGE.read_text(encoding="utf-8") if PAGE.exists() else ""
+        PAGE.write_text(merge_page(build_page(), existing), encoding="utf-8")
         print(f"wrote {PAGE}")
         return 0
 

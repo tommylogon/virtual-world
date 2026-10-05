@@ -455,6 +455,34 @@ seam exists.
   to nothing. `--report` groups every finding with the reason; `--update-baseline` accepts
   today's debt. Run it after editing anything under `data/library/characters/`. Authoring a
   character is a data-shape problem, and this is the shape gate for it.
+- **Vault guards** (all four run in `npm run precommit`; added 2026-10-05 to stop
+  the notes rotting back):
+  - `python tools/doc_links.py --check` — every `[[wikilink]]` resolves the way
+    Obsidian resolves it (vault path, unique basename, `\|` alias, `#Heading`,
+    `^block`). `--fix` rewrites what it can; `--report` lists the rest.
+  - `python tools/feature_pages.py --check` — every Feature Map row has a page
+    under `Features/`, every page has its three required sections and a matching
+    `feature_id`, no page exists without a row, and `Features Overview.md` lists
+    them all. `--scaffold` creates missing pages and **never** overwrites prose.
+  - `python tools/doc_tags.py --check` — every tag on a curated note is in the
+    controlled vocabulary (`system/…`, `surface/…`, `status/…`, `topic/…`, owned
+    by `tools/doc_tags.py`) and every curated note has tags. `--apply` derives
+    them from the folder and from the deep doc a feature page links; `--report`
+    shows per-tag usage.
+  - `python tools/doc_connected.py --check` — every curated note that has a
+    relation carries a `## Connected` block, and no note carries an empty one.
+    `--apply` regenerates the block from four relations the repo already asserts
+    (Feature Map rows, task `wiki:` frontmatter, module `@docs` headers,
+    same-folder notes) plus a small verified `SECTION_REFS` table of heading-level
+    links; `--check` fails when one of those headings is renamed.
+  - `python tools/doc_links.py --orphans [--min-inbound N] [--all-notes]` — the
+    other direction: curated notes nothing links to. **A report, not a gate.** An
+    orphan is often a destination; the number is how you notice a note that was
+    meant to be found and never was.
+  - A new curated note must be reachable: list it in `docs/virtualWorld/_Index.md`
+    or link it from a sibling, or it is an orphan the moment you close the file.
+- JS lint: `npm run lint`. JS typecheck: `npm run typecheck` (see
+  `docs/design/typescript-migration.md`).
 - JS lint: `npm run lint`. JS typecheck: `npm run typecheck` (see
   `docs/design/typescript-migration.md`).
 - Export-log lint (regression guards over play sessions, no server needed):
@@ -642,8 +670,8 @@ Do not hand-number, hand-move, or hand-check these. Use the helper:
 - `python tools/tasks.py index [--clear]` (derived frontmatter cache; only
   needed after an external tool rewrote many files at once)
 
-Areas: `bugs`, `characters`, `conditions`, `docs`, `gameplay`, `graph`, `items`,
-`library`, `refactor`, `testing`, `triggers`, `ui`, `world`.
+Areas: `bugs`, `characters`, `conditions`, `docs`, `emotions`, `gameplay`,
+`graph`, `items`, `library`, `refactor`, `testing`, `triggers`, `ui`, `world`.
 
 Frontmatter is read as **real YAML** — a list value stays a list, and a value
 may contain a colon if it is quoted. `validate` fails on a block that does not

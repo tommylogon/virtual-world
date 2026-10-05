@@ -96,12 +96,15 @@ Engine is modular. Create engine/crafting.py — constructor receives graph, pla
 
 ---
 
-## Supersession pointer (2026-10-04)
+## Supersession pointer (amended 2026-10-05)
 
-The graph-node recipe format described here is planned for replacement by
-library plan templates with committed activities and duration/skill/fail
-outcomes - see task-703 (recipe-as-activity), task-701 (template schema) and
-task-699 (the GOSP design doc). The engine execution layer built for this
-task (craft_item, condition leaves, give_item outputs) is expected to survive
-under the new format; the node format itself should not ship as a second
-source of truth alongside it.
+The graph-node recipe format described here is planned for replacement by a
+world-recipe entry, as tracked by task-703. The recipe owns transformation
+requirements, process duration, skill/quality outcomes, and produced items.
+Pursuit templates from task-701 may refer to a recipe when they lead an actor
+to cook; the cooking Activity is the visible process, and the recipe owns the
+transformation rules. See task-699 for the pursuit/activity/schedule distinction.
+The engine execution layer built for this
+task (`craft_item`, condition leaves, `give_item` outputs) is expected to
+survive the data migration; the graph-node format should not remain a second
+source of truth alongside the world-recipe entry.

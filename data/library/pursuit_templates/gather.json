@@ -1,0 +1,54 @@
+{
+  "id": "gather",
+  "version": 1,
+  "name": "Gather and return",
+  "purpose": "Find a known source, collect a matching item, and return it home.",
+  "parameters": {
+    "source_tags": {
+      "type": "tag_list",
+      "required": true
+    },
+    "item_spec": {
+      "type": "item_spec",
+      "required": true
+    },
+    "home": {
+      "type": "area",
+      "required": true
+    }
+  },
+  "steps": [
+    {
+      "kind": "travel",
+      "tags": {
+        "$binding": "source_tags"
+      },
+      "to": "source"
+    },
+    {
+      "kind": "take",
+      "spec": {
+        "$binding": "item_spec"
+      }
+    },
+    {
+      "kind": "travel",
+      "area": {
+        "$binding": "home"
+      },
+      "to": {
+        "$binding": "home"
+      }
+    },
+    {
+      "kind": "drop",
+      "spec": {
+        "$binding": "item_spec"
+      }
+    }
+  ],
+  "tags": [
+    "gathering",
+    "travel"
+  ]
+}

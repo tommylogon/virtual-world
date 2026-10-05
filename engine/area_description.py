@@ -529,7 +529,7 @@ class AreaDescription:
                     line = target_player.unknown_display_name() if target_player else pname
                 if pstate in ("dead", "ghost"):
                     line += " (ghost)"
-                # Task-131: show ongoing activities ("sleeping in the bed")
+                # Task-131: show ongoing activities ("sleeping on the bed")
                 activity = getattr(self.player_manager.players.get(pname), 'activity', None)
                 if activity and activity.get("visible", True):
                     act_text = activity_description(activity)

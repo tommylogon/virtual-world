@@ -1,6 +1,7 @@
 ---
 group: Agent AI & Behavior
 wiki: "[[AI & Narration/Memory System]]"
+status: cancelled
 ---
 # Vector Embeddings & RAG Preparation
 
@@ -17,6 +18,41 @@ The concrete RAG architecture proposed here was NOT adopted; the shipped design 
 | `GET /api/memories/export` for bulk index build | Not built — moot, embeddings are generated incrementally per-memory browser-side |
 | `embedding_hash` cache column | Not built — vector store keys by `<char>::<memory_id>`, so identity/dedup is free |
 | EntityIndex-driven BFS for KNOWN ROUTES | EntityIndex deleted; spatial comes from `engine/spatial_memory.py` (task-136/task-178) |
+
+## Revisited by task-685 (2026-10-04)
+
+Memory dynamics (task-685..691) touched the RAG surface again, so this record gets a
+second dated entry. Nothing here is outstanding — the table above still stands, and the
+one idea in this doc that had NOT been implemented is now implemented and extended.
+
+| This doc proposed | Where it ended up |
+|-------------------|-------------------|
+| "Hybrid scoring: combine vector similarity + importance + recency" (§RAG Architecture #4) | **Shipped, and larger than proposed** — `/memories/retrieve` (task-690) scores keyword + entity-graph match + exponential recency + `effective_importance` (availability × confidence) + emotion match, and reserves seat time for beliefs. Vector similarity still merges in client-side (`memory-context.js`) |
+| An "Indexing memories…" progress UI | Not needed in that form — embeddings are incremental per write (fire-and-forget) and silent by design; the **Memory Mind** (task-691) is the surface that shows what retrieval returns |
+| `embedding_hash` column to skip re-embedding unchanged text | Solved differently, no column: the store keys by `<char>::<mem_id>` (identity is free) and `EmbeddingClient` has an in-memory dedupe cache for repeated prompt-poll embeds |
+| ~5 embedding calls per tick estimate | Actual: one per stored memory write (react phase) + one per prompt-build query, deduped; server search stays brute-force cosine over a small file |
+| `GET /api/memories/export` for bulk index build | Still not built; still unnecessary — vectors are upserted as memories are written, never bulk-rebuilt |
+
+Open questions, answered:
+
+1. **"World lore embedded globally or per character?"** — Neither. Lore stayed a
+   separate world-level prompt block; only `Player.memories[]` is embedded, per
+   character, keyed `char::mem_id`. Cross-character search is *possible* at the store
+   level (`search(character=None)`) but deliberately not exposed in the UI.
+2. **"A 'test retrieval' button in the inspector?"** — Answered by what shipped: the
+   `=== I REMEMBER ===` block is now a four-section character model (EVENTS / WHAT I
+   BELIEVE / HOW I SEE PEOPLE / WHAT I EXPECT) and the turn-feedback line reports what
+   was recalled and why ("recalled N · keyword / semantic / recent"). The Memory Mind
+   shows the same view per character.
+3. **"How large can the index grow?"** — Still open, but one fact worth recording: the
+   store is ONE file with ONE model + dims for every character (mixed vector spaces are
+   rejected by design — confirmed live on 2026-10-04 when a 768-dim nomic config was
+   refused by a store holding 1024-dim qwen3 vectors). A per-character dims story
+   would need a per-character index or a re-embed; noted here rather than filed.
+
+Still deliberately not adopted: the `character:`/`room:`/`action:`/`item:` tag
+convention (entities live in `entity_ids`), FAISS/SQLite/numpy indexes (JSON file),
+and the lore-embedding path.
 
 ---
 

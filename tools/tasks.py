@@ -603,8 +603,8 @@ Run with no command for an interactive menu (type `q` to quit).
 
 Statuses: todo / inprogress / review / done / cancelled
 Kinds:    task / bug
-Areas:    bugs characters conditions docs gameplay graph items library
-          refactor testing triggers ui world
+Areas:    bugs characters conditions docs emotions gameplay graph items
+          library refactor testing triggers ui world
 
 Typical flow:
   python tools/tasks.py next-id

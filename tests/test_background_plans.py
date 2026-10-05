@@ -1,8 +1,8 @@
-"""Authored multi-step background plans (task-426).
+"""Assigned background pursuits carried out through short-term plans (task-426).
 
-A plan is stored on the player and advanced one step per action, so it survives
-a need interruption. These tests pin the mechanism (haul end to end, resume,
-clean failure) before any scenario content is authored.
+The pursuit is stored on the player while its current plan advances one step
+per action, so it survives a need interruption. These tests pin the mechanism
+(haul end to end, resume, clean failure) with authored scenario content.
 """
 
 import sys
@@ -55,7 +55,7 @@ def _add_item(world, area, name, tags, item_id=None):
 
 def _plan_node(world, label, **props):
     props.setdefault("label", label)
-    node = Node(id=f"plan_{label}", type="plan", name=label, properties=props)
+    node = Node(id=f"pursuit_{label}", type="pursuit", name=label, properties=props)
     world.graph.add_node(node)
     return node
 
@@ -78,7 +78,7 @@ def test_haul_moves_item_source_to_sink():
     _connect(client, 'Haul Source', 'Haul Sink')
     p = _bg_player(w, 'Hauler', 'Haul Source')
     scrap = _add_item(w, 'Haul Source', 'Scrap', ['scrap'])
-    _plan_node(w, 'scrap_run', template='haul', actor='Hauler',
+    _plan_node(w, 'scrap_run', pursuit_template='haul', actor='Hauler',
                source='Haul Source', item='scrap', sink='Haul Sink')
 
     for _ in range(30):
@@ -89,9 +89,9 @@ def test_haul_moves_item_source_to_sink():
     assert _in_area(w, scrap.id, 'Haul Sink'), "scrap did not arrive at the sink"
     assert scrap.id not in _carried_ids(w, 'Hauler')
     whys = [e.get("why") for e in p.lived_log]
-    assert "plan:scrap_run:start" in whys, "plan never started"
+    assert "pursuit:scrap_run:start" in whys, "pursuit never started"
     assert "plan:scrap_run" in whys, "no plan step recorded"
-    assert "plan:scrap_run:done" in whys, "plan not marked done"
+    assert "pursuit:scrap_run:done" in whys, "pursuit not marked done"
 
 
 def test_plan_survives_a_need_interruption():
@@ -102,7 +102,7 @@ def test_plan_survives_a_need_interruption():
     p = _bg_player(w, 'Resumer', 'R Source')
     scrap = _add_item(w, 'R Source', 'Scrap', ['scrap'])
     _add_item(w, 'R Source', 'ration', ['food'])
-    _plan_node(w, 'resume_run', template='haul', actor='Resumer',
+    _plan_node(w, 'resume_run', pursuit_template='haul', actor='Resumer',
                source='R Source', item='scrap', sink='R Sink')
 
     w.tick_turn()                      # start + take
@@ -125,7 +125,7 @@ def test_haul_fails_cleanly_when_the_source_is_empty():
     client.post('/api/build/area', json={'name': 'E Sink'})
     _connect(client, 'E Source', 'E Sink')
     p = _bg_player(w, 'Empty', 'E Source')
-    _plan_node(w, 'empty_run', template='haul', actor='Empty',
+    _plan_node(w, 'empty_run', pursuit_template='haul', actor='Empty',
                source='E Source', item='scrap', sink='E Sink')
 
     for _ in range(5):
@@ -134,9 +134,9 @@ def test_haul_fails_cleanly_when_the_source_is_empty():
             break
 
     whys = [e.get("why") for e in p.lived_log]
-    assert "plan:empty_run:failed" in whys, "empty source should fail the plan"
+    assert "pursuit:empty_run:failed" in whys, "empty source should fail the pursuit"
     assert p.plan is None, "failed plan should be cleared"
-    assert p.completed_plans and p.completed_plans[0] == "plan_empty_run"
+    assert p.completed_pursuits and p.completed_pursuits[0] == "pursuit_empty_run"
 
 
 def test_plan_survives_save_load():
@@ -146,13 +146,13 @@ def test_plan_survives_save_load():
     _connect(client, 'S Source', 'S Sink')
     p = _bg_player(w, 'Saver', 'S Source')
     _add_item(w, 'S Source', 'Scrap', ['scrap'])
-    _plan_node(w, 'save_run', template='haul', actor='Saver',
+    _plan_node(w, 'save_run', pursuit_template='haul', actor='Saver',
                source='S Source', item='scrap', sink='S Sink')
 
     w.tick_turn()
     assert p.plan is not None
     plan = p.plan
-    assert plan["template"] == "haul"
+    assert plan["pursuit_template"] == "haul"
     d = p.to_dict()
     assert d["plan"] is not None
     assert d["plan"]["label"] == "save_run"
@@ -167,7 +167,7 @@ def test_gather_fetches_tagged_resource_home():
     wild.properties.setdefault('tags', []).append('wild')
     p = _bg_player(w, 'Gatherer', 'G Home')
     herb = _add_item(w, 'G Wild', 'Herb', ['herb'])
-    _plan_node(w, 'gather_run', template='gather', actor='Gatherer',
+    _plan_node(w, 'gather_run', pursuit_template='gather', actor='Gatherer',
                source_tags=['wild'], item='herb', home='G Home')
 
     for _ in range(40):
@@ -175,7 +175,7 @@ def test_gather_fetches_tagged_resource_home():
         if p.plan is None:
             break
     assert _in_area(w, herb.id, 'G Home'), "gathered resource did not come home"
-    assert 'plan:gather_run:done' in [e.get('why') for e in p.lived_log]
+    assert 'pursuit:gather_run:done' in [e.get('why') for e in p.lived_log]
 
 
 def test_group_rally_converges_participants():
@@ -188,7 +188,7 @@ def test_group_rally_converges_participants():
     names = ['Member0', 'Member1', 'Member2']
     for name, area in zip(names, ('Rally A', 'Rally B', 'Rally C')):
         _bg_player(w, name, area)
-    _plan_node(w, 'rally_test', template='rally', participants=names,
+    _plan_node(w, 'rally_test', pursuit_template='rally', participants=names,
                rally_area='Rally Hub')
 
     for _ in range(40):
@@ -208,7 +208,7 @@ def test_group_rally_degrades_when_one_cannot_reach():
     names = ['Reach0', 'Reach1', 'CutOff']
     for name, area in zip(names, ('D A', 'D B', 'D Cut')):
         _bg_player(w, name, area)
-    _plan_node(w, 'rally_deg', template='rally', participants=names,
+    _plan_node(w, 'rally_deg', pursuit_template='rally', participants=names,
                rally_area='D Hub')
 
     for _ in range(40):
@@ -227,7 +227,7 @@ def test_plan_selected_by_role_tag():
     p.tags = list(p.tags) + ['tinkerer']
     scrap = _add_item(w, 'Role Source', 'Scrap', ['scrap'])
     # No actor: any character tagged 'tinkerer' claims the plan.
-    _plan_node(w, 'role_run', template='haul', role='tinkerer',
+    _plan_node(w, 'role_run', pursuit_template='haul', role='tinkerer',
                source='Role Source', item='scrap', sink='Role Sink')
 
     for _ in range(30):

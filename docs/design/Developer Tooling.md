@@ -47,16 +47,49 @@ Installed via `uv tool install` (isolated, no venv pollution) or `winget`.
 ```
 python tools/doc_links.py --count     # 0 broken, 0 distinct
 python tools/doc_links.py --check     # exit 1 when any link is broken
+python tools/doc_links.py --orphans   # curated notes nothing links to
 ```
 Implemented on `wt/docs-contract`. Implements Obsidian's real resolution rules
 — basename, `\|`-escaped alias, `#Heading`, `^block` — because `tools/tasks.py
 move` relocates task files with `git mv` and rots inbound links.
+
+`--orphans [--min-inbound N] [--all-notes]` was added 2026-10-05 and is the
+**opposite** query: not "does this link go anywhere" but "does anything link
+here". The vault had 885 notes, 688 of them with zero inbound links, and no way
+to tell a note nobody was meant to find from one that is a destination. It is
+deliberately a report and not a gate — an orphan is often legitimate. What makes
+it useful is the number staying at 0 for curated notes: a *new* orphan is a note
+that was added without being reachable.
 
 **I installed `lychee` for this and it was the wrong tool.** It reported 23
 broken wikilinks; all 23 were false positives from lychee not understanding
 `\|` alias escaping inside markdown tables, the most common link form in this
 vault. `doc_links.py` reports **0**. Kept installed and recorded here as a
 negative result — do not reach for it.
+
+### 1b. The three vault gates that keep the graph from rotting back
+
+Added 2026-10-05, all three wired into `npm run precommit` with
+`tests/test_feature_pages.py`, `tests/test_doc_tags.py` and
+`tests/test_doc_connected.py` as their pytest mirrors.
+
+| Tool | The failure it exists for | Measured before → after |
+|---|---|---|
+| `tools/feature_pages.py --check` | a Feature Map row with no page; a page that lost a section; a page whose `feature_id` drifted from its row; 76 pages with no index | 2 rows reading `none` → **76 pages for 76 rows** |
+| `tools/doc_tags.py --check` | a tag set that is not a set — 75 tokens of which 70 appeared exactly once, which makes Obsidian's tag pane worthless | 75 loose tokens → **28 controlled tags, 0 untagged of 157** |
+| `tools/doc_connected.py --check` | notes that describe a system and record nothing about what they touch | 21 curated notes nothing linked to → **0**, and 0 stale empty blocks |
+
+`doc_connected.py --apply` is safe to re-run: it rewrites only the block between
+its own `<!-- connected:start/end -->` markers. It draws on four relations the
+repo already asserts (Feature Map rows, the 96 task files with `wiki:`
+frontmatter, module `@docs` headers, same-folder neighbours) and a hand-kept
+`SECTION_REFS` table of heading-level links — `--check` fails when one of those
+headings is renamed, because a section link that lands at the top of a page is a
+promise the note does not keep.
+
+One rule the tools cannot enforce for you: **a new curated note must be
+reachable**. Add it to `docs/virtualWorld/_Index.md` or link it from a sibling.
+
 
 ### 2. vulture — dead Python code
 `uv tool install vulture`

@@ -29,6 +29,10 @@ Usage:
     python tools/doc_links.py --count     # how many broken, distinct and total
     python tools/doc_links.py --report    # the broken links, grouped by target
     python tools/doc_links.py --fix       # rewrite what can be resolved
+    python tools/doc_links.py --orphans [--min-inbound N] [--all-notes]
+                                           # the other direction: curated notes
+                                           # nothing links to. Not a gate — an
+                                           # orphan is often a destination.
 
 The vault root is ``docs/virtualWorld``; ``.obsidian/`` is never scanned.
 """
@@ -314,6 +318,45 @@ def fix(vault: Path = VAULT) -> Tuple[int, int, List[str]]:
     return changed_files, changed_links, leftovers
 
 
+def inbound_counts(vault: Path = VAULT) -> Dict[Path, int]:
+    """How many *other* notes link to each note.
+
+    Resolution is this module's, not a fresh approximation: aliases, escaped
+    pipes, heading and block refs, and the ambiguous-basename rule all already
+    have one implementation here and a second one would drift.
+    """
+    index = build_index(iter_notes(vault), vault)
+    counts: Dict[Path, int] = {}
+    for src, _ln, raw in iter_links(vault):
+        target = resolve(raw, index, vault)
+        if target is None or target == src:
+            continue
+        counts[target] = counts.get(target, 0) + 1
+    return counts
+
+
+def orphans(vault: Path = VAULT, min_inbound: int = 1,
+            curated_only: bool = True) -> List[Tuple[Path, int]]:
+    """Notes nothing links to, ordered worst-first (fewest inbound, then name).
+
+    An orphan is not a defect — ``History.md`` and the release notes are
+    destinations, and a link nobody clicks is still how a reader arrives. This
+    is a reading list, not a gate: it is why the vault had 688 notes with zero
+    links and nobody could see which of them were supposed to be found.
+    """
+    counts = inbound_counts(vault)
+    universe = iter_notes(vault)
+    if curated_only:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        from doc_tags import curated_docs  # local import: doc_links stays standalone
+
+        curated = set(curated_docs())
+        universe = [p for p in universe if p in curated]
+    out = [(p, counts.get(p, 0)) for p in universe if counts.get(p, 0) < min_inbound]
+    out.sort(key=lambda pair: (pair[1], pair[0].as_posix()))
+    return out
+
+
 # ── cli ───────────────────────────────────────────────────────────────────
 
 
@@ -328,6 +371,12 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--count", action="store_true", help="print broken-link counts")
     parser.add_argument("--report", action="store_true", help="list the broken links")
     parser.add_argument("--fix", action="store_true", help="rewrite resolvable broken links")
+    parser.add_argument("--orphans", action="store_true",
+                        help="list curated notes fewer than --min-inbound notes link to")
+    parser.add_argument("--min-inbound", type=int, default=1,
+                        help="inbound-link threshold for --orphans (default 1)")
+    parser.add_argument("--all-notes", action="store_true",
+                        help="with --orphans, include the task tree, not just curated notes")
     parser.add_argument("--vault", type=Path, default=VAULT)
     args = parser.parse_args(argv)
 
@@ -336,6 +385,22 @@ def main(argv: Optional[List[str]] = None) -> int:
         print(f"rewrote {links} link(s) in {files} file(s)")
         for lo in leftovers:
             print("  unresolved:", lo)
+        return 0
+
+    if args.orphans:
+        found = orphans(args.vault, args.min_inbound, curated_only=not args.all_notes)
+        if args.all_notes:
+            scope, total = "note", len(iter_notes(args.vault))
+        else:
+            sys.path.insert(0, str(Path(__file__).resolve().parent))
+            from doc_tags import curated_docs
+
+            scope, total = "curated note", len(curated_docs())
+        plural = "" if total == 1 else "s"
+        print(f"{len(found)} of {total} {scope}{plural} in the vault have "
+              f"<{args.min_inbound} inbound link(s)")
+        for path, n in found:
+            print(f"  {n:>3}  {path.relative_to(args.vault).as_posix()}")
         return 0
 
     broken = broken_links(args.vault)

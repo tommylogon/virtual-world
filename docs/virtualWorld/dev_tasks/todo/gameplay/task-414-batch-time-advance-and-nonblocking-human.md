@@ -111,8 +111,8 @@ resolves/defers the human turn.
 
 ## Dependency reality (2026-09-24)
 
-- **`task-399` is satisfied**; **`task-409` is mostly shipped** (schedule pursuit
-  + coarse social), so the deterministic plan layer this task consumes exists.
+- **`task-399` is satisfied**; **`task-409` is mostly shipped** (clock-schedule
+  traversal + coarse social), so the deterministic plan layer this task consumes exists.
   **`task-411` is the real unmet dependency** — there is no attended-set
   selector / fidelity tier yet.
 - **The server-side N-minute advance already exists under other task ids**:

@@ -1,0 +1,27 @@
+{
+  "id": "rally",
+  "version": 1,
+  "name": "Go to a rally point",
+  "purpose": "Travel to the assigned gathering place.",
+  "parameters": {
+    "rally_area": {
+      "type": "area",
+      "required": true
+    }
+  },
+  "steps": [
+    {
+      "kind": "travel",
+      "area": {
+        "$binding": "rally_area"
+      },
+      "to": {
+        "$binding": "rally_area"
+      }
+    }
+  ],
+  "tags": [
+    "group",
+    "travel"
+  ]
+}

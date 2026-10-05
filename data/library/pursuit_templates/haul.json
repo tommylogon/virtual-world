@@ -1,0 +1,56 @@
+{
+  "id": "haul",
+  "version": 1,
+  "name": "Haul",
+  "purpose": "Move a matching item from a source area to a destination area.",
+  "parameters": {
+    "source": {
+      "type": "area",
+      "required": true
+    },
+    "item_spec": {
+      "type": "item_spec",
+      "required": true
+    },
+    "sink": {
+      "type": "area",
+      "required": true
+    }
+  },
+  "steps": [
+    {
+      "kind": "travel",
+      "area": {
+        "$binding": "source"
+      },
+      "to": {
+        "$binding": "source"
+      }
+    },
+    {
+      "kind": "take",
+      "spec": {
+        "$binding": "item_spec"
+      }
+    },
+    {
+      "kind": "travel",
+      "area": {
+        "$binding": "sink"
+      },
+      "to": {
+        "$binding": "sink"
+      }
+    },
+    {
+      "kind": "drop",
+      "spec": {
+        "$binding": "item_spec"
+      }
+    }
+  ],
+  "tags": [
+    "logistics",
+    "travel"
+  ]
+}

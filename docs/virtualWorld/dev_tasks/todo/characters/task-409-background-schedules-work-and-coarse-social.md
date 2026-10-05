@@ -146,11 +146,12 @@ the live character now spend the same turn the same way.
 
 So options (a)/(b)/(c) collapse. (a) "more actions per day" is already true and is
 not a knob to turn; the fix is **(b), and it is decided: background characters use
-bundled tasks, authored the same way as crafting recipes.** A chore task (walk to
-a service area, service several needs, return) is one action rather than five
-separate journeys. `engine/crafting.py` is the model — recipe nodes whose
-properties declare inputs/conditions/outputs (task-2) — and the same declarative
-shape gives a chore bundle an authored duration, target area and effect list.
+bundled tasks authored as data.** A chore task (walk to a service area, service
+several needs, return) is one activity rather than five separate journeys. The
+data-authored style can resemble crafting recipe nodes, but the game meanings
+stay separate: a chore describes an actor's intended activity, while a crafting
+recipe defines how inputs become outputs. A chore bundle can have its own
+duration, target area and steps without becoming a transformation recipe.
 
 The measured collapse in the tables above was real **under the old clock** and is
 kept as evidence; it must be re-measured under the one-action-per-turn model before
@@ -278,8 +279,8 @@ behaviour auditable.
   `engine/background_simulation.py`, `engine/promotion.py`); `task-408` is only
   partly done (consolidation + folder compiler landed; dedupe/`high_metabolism`
   open).
-- **Most of this task already shipped**: the schedule model/planner
-  (`engine/schedule.py`), schedule pursuit
+- **Most of this task already shipped**: the clock-schedule model/planner
+  (`engine/schedule.py`), schedule traversal
   (`engine/background_simulation.py:838-868 _pursue_schedule`) and the coarse
   social pass (`engine/background_social.py:717 run_social_pass`) are live.
   Section 4 ("coarse meetings") was amended and completed by task-417/task-423.
@@ -287,13 +288,25 @@ behaviour auditable.
   missing** — no reflection code exists in `engine/`.
 - The plan's action-budget arithmetic is superseded by the timeframe-and-flow
   model (`docs/virtualWorld/Simulation Model.md`); options now collapse to
-  "background characters use bundled tasks authored like crafting recipes".
+  "background characters use bundled activities authored as data". Crafting
+  recipes and actor schedules may share data-authoring conventions while keeping
+  separate meanings and responsibilities.
 
-## GOSP pointer (2026-10-04)
+## Pursuit terminology correction (2026-10-05)
 
-The schedule/plan vision grew into the GOSP layer: typed plans (task-700),
-plan templates (task-701), the executor (task-702) and the selector
-(task-704). `engine/schedule.py` from slice 1 is the clock-triggered binding
-inside that layer; this task's remaining scope (daily reflection, coarse
-social, the ship-the-data decision) now lands on top of task-702 rather than
-beside it.
+This task's `engine/schedule.py` and `Player.schedule` refer to the **calendar
+schedule**: HH:MM routine entries that can make an activity or pursuit timely.
+They are not the reusable pursuit templates and do not represent an ongoing
+Activity such as sleeping or cooking. See [[Character Pursuits]] for the shared
+design vocabulary.
+
+The pursuit work is tracked in task-699 and tasks 701–705: the template library,
+grounded short-term plans, their executor, world recipes, requirement checks,
+and character choice. The separate `Player.activity` / ActivitySystem handles
+observable actions over time. Historical references in this task to “schedule
+pursuit” mean the existing clock routine; new work should use the clarified
+terms.
+
+This task's remaining scope (daily reflection, coarse social, and the
+ship-the-data decision) can connect to pursuit execution without redefining the
+clock scheduler or creating a second time system.

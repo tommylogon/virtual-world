@@ -1,7 +1,7 @@
 ---
 type: task
 status: done
-area: characters
+area: emotions
 priority: high
 ---
 

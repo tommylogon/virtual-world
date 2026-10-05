@@ -490,11 +490,12 @@ class BackgroundSimulation:
             if self._seek_company(p):
                 return TASK_MINUTES["travel"]
 
-        # A stored plan (task-426) outranks generic preparation: it is a specific
-        # authored goal. It sits below every survival need, so a need pauses it
-        # and the next satisfied action resumes it — the plan is on the player,
-        # not recomputed. Deliberately NOT added to `served`: a plan may take
-        # several steps (and several hops) inside one coarse timeframe.
+        # An assigned pursuit (task-426) outranks generic
+        # preparation. The activity is the longer-lived intention;
+        # Player.plan is its current executable approach. Both sit below every
+        # survival need, so a need pauses the approach and it resumes afterward.
+        # Deliberately NOT added to `served`: several short steps can fit inside
+        # one coarse timeframe.
         from engine import background_plans as _plans
         if getattr(p, "plan", None) or _plans.maybe_assign(self, p):
             used = _plans.advance(self, p)

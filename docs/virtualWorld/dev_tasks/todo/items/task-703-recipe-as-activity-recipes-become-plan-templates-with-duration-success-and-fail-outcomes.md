@@ -3,33 +3,27 @@ type: task
 status: todo
 area: items
 priority: medium
-related: [task-2, task-18, task-197, task-504, task-472]
+related: [task-2, task-18, task-197, task-504, task-472, task-699, task-701, task-702]
 blocked_by: [task-701, task-702]
 ---
 
-# task-703: Recipe-as-activity: recipes become plan templates with duration, success and fail outcomes
+# task-703: World recipes resolve transformations performed by Activities
 
-**Filed:** 2026-10-04
-**Related:** task-2,task-18,task-197,task-504,task-472
+**Clarified:** 2026-10-05
 
 ## Goal
 
-Evolve task-2's crafting from instant graph-node transmutation to the plan-template model: a recipe is a library plan template (requirements incl. equipment and area state, duration in game minutes, skill check with quality tiers such as cooked/burned, success and fail outcome items). 'make X' checks requirements up front and replies with a missing-list; on success the character enters the crafting activity for the duration. The craft_item engine path, condition leaves and give_item outputs survive under the new format; graph-node recipe definitions are migrated to library entries. Author the first recipe (cooked egg) end to end in the fixture world as the reference implementation.
+Keep three meanings distinct. A **Pursuit** can bring a character to a place and give them a reason to cook. The **cooking Activity** is the visible process happening over time at a cooking area. The **world recipe** defines how the food transformation resolves: required ingredients, equipment, area conditions, duration, skill/quality tiers, and resulting items.
+
+Evolve task-2's crafting from instant graph-node transmutation to a world-recipe entry while preserving the existing `craft_item` path, condition leaves, and `give_item` outputs. A breakfast schedule may prompt a meal-preparation pursuit; it does not own the cooking rules.
 
 ## Acceptance
-- [ ] A recipe is a library plan template; the graph-node recipe format is
-      migrated (migration path documented; task-2's engine execution -
-      craft_item, condition leaves, give_item outputs - survives underneath).
-- [ ] "make X" checks requirements up front and answers with an explicit
-      missing-list ("you are missing: egg") when they fail - the fail-closed
-      behavior of today, unchanged.
-- [ ] On success the character enters the crafting activity for the recipe's
-      duration in game minutes (the egg: 10), visibly occupied at the required
-      area state (heat source lit), interruptible; interruption re-verifies
-      preconditions and routes to the fail outcome or re-composition.
-- [ ] Skill check produces quality tiers (cooked / burned; optionally perfect)
-      through task-472's central dice.
-- [ ] The egg is authored end to end in the fixture world and demonstrable in
-      the browser: human verb path AND a simple NPC cooking on a schedule.
-- [ ] task-2's review status is resolved with a pointer to this task - the
-      old node format is retired, not left as a second source of truth.
+
+- [ ] A world recipe is stored separately from pursuit templates. The graph-node recipe format is migrated with a documented path; task-2's engine execution (`craft_item`, condition leaves, `give_item` outputs) remains the normal dispatch underneath.
+- [ ] “Make X” checks recipe requirements before starting and answers with an explicit missing list, such as “you are missing: egg.” Keep today's fail-closed behavior.
+- [ ] On success, the character starts the crafting/cooking Activity at the required area or station for the recipe's game-minute duration (the egg: 10 minutes). The Activity is visible and interruptible according to its authored rules; it binds the actual station and any required spatial relationship.
+- [ ] Completion rechecks required conditions and resolves the world recipe once. Interruption cannot create an output or quality result unless the normal action path says the transformation completed.
+- [ ] Skill checks use task-472's central dice and can produce authored quality tiers such as cooked or burned (optionally perfect).
+- [ ] Author the cooked-egg recipe end to end in the fixture world. A meal-preparation pursuit can call that recipe, and a clock schedule can prompt the pursuit at breakfast time.
+- [ ] Demonstrate the Activity, recipe outcome, and pursuit progress in the browser and event stream; another character can perceive the cook at the station.
+- [ ] Resolve task-2's review status with a pointer to this task; retire the old node format rather than maintaining a second source of truth.

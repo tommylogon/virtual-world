@@ -24,7 +24,7 @@ from routes.helpers import load_registry, save_registry, delete_registry_entry, 
 
 logger = logging.getLogger(__name__)
 
-REGISTRY_TYPES = ['items', 'characters', 'areas', 'ways', 'traits', 'conditions', 'behaviours', 'tags', 'triggers', 'structures']
+REGISTRY_TYPES = ['items', 'characters', 'areas', 'ways', 'traits', 'conditions', 'behaviours', 'tags', 'triggers', 'structures', 'pursuit_templates']
 
 # task-398: RELATION_EDGE_TYPES now comes from engine/library_nodes.py, which is
 # the one definition shared with the generation recipes. routes/graph_ops.py
@@ -357,7 +357,7 @@ def _filter_mature_entries(app, registry_type, data):
 def _reload_condition_catalog(app, registry_type):
     """task-462/task-590: engine runtime catalogs re-read the JSON library after a
     write so an edit takes effect without an app restart. Conditions and the
-    reusable behaviour library are both loaded at import; both are reloaded here."""
+    reusable behaviour and pursuit-template libraries are reloaded here."""
     if registry_type == 'conditions':
         try:
             from engine.player_conditions import reload_condition_library
@@ -369,6 +369,12 @@ def _reload_condition_catalog(app, registry_type):
             behavior_library.reload(app.config.get('DATA_DIR'))
         except Exception as e:
             logger.warning(f"Behaviour library reload failed: {e}")
+    elif registry_type == 'pursuit_templates':
+        try:
+            from engine import pursuit_templates
+            pursuit_templates.reload(app.config.get('DATA_DIR'))
+        except Exception as e:
+            logger.warning(f"Pursuit-template catalog reload failed: {e}")
 
 
 def handle_library_list(app, registry_type):

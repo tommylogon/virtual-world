@@ -116,7 +116,7 @@ def test_interrupt_activity(world):
 
 def test_activity_description():
     # Open-ended activities now say so (task-339 feedback round)
-    assert activity_description({"type": "sleeping", "target_item": "bed"}) == "sleeping in the bed (until woken)"
+    assert activity_description({"type": "sleeping", "target_item": "bed"}) == "sleeping on the bed (until woken)"
     assert activity_description({"type": "sitting"}) == "sitting (until woken)"
     assert activity_description(None) == ""
 

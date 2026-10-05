@@ -1,7 +1,7 @@
 ---
 type: task
 status: review
-area: ui
+area: emotions
 priority: medium
 ---
 

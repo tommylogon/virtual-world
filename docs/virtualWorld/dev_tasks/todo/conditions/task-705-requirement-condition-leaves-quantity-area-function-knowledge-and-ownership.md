@@ -3,7 +3,7 @@ type: task
 status: todo
 area: conditions
 priority: medium
-related: [task-566, task-504, task-472]
+related: [task-566, task-504, task-472, task-699, task-701, task-702]
 ---
 
 # task-705: Requirement condition leaves: quantity, area-function, knowledge and ownership
@@ -13,7 +13,7 @@ related: [task-566, task-504, task-472]
 
 ## Goal
 
-Extend the shared condition-leaf vocabulary so plan templates and recipes can express their requirements in the house grammar: has_quantity (item + count, from pooled resources task-504), area_has_function (a heat source, a river, a bed - ties task-566's place-by-function), knows_about (a memory query as a requirement - the merchant's gemstone belief), and owns (ownership as a property). Unknown leaves fail closed, as everywhere. These leaves are consumed by the grounding validator, the template requirements and the selector alike - one vocabulary, no parallel condition system.
+Extend the shared condition-leaf vocabulary so pursuit templates and world recipes can express requirements in the house grammar: `has_quantity` (item + count, from pooled resources task-504), `area_has_function` (a heat source, a river, a bed - ties task-566's place-by-function), `knows_about` (a memory query as a requirement - the merchant's gemstone belief), and `owns` (ownership as a property). Unknown leaves fail closed, as everywhere. These leaves are consumed by the short-term plan grounding validator, pursuit-template requirements, and selector alike - one vocabulary, no parallel condition system. Activity start requirements use the same leaves; the Activity itself remains runtime state, not a template.
 
 ## Acceptance
 - [ ] has_quantity: item + count against pooled/stacked resources

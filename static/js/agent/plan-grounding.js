@@ -11,7 +11,7 @@
  * paths, and known areas. A step whose facts do not resolve is REJECTED with
  * the reason and the fact list, so the LLM re-composes from what exists.
  *
- * Design rules (task-699, the GOSP spine):
+ * Design rules (task-699, Character Pursuits):
  *   - Pure and fact-driven: this module never invents, never guesses, never
  *     resolves "whatever the LLM meant". Unknown = rejected, fail closed.
  *   - Plans are intent: a grounded step still has to survive the world when

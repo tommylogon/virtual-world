@@ -84,12 +84,31 @@ def test_check_passes_on_the_current_tree():
 
 
 def test_generated_page_is_current():
-    """The page is generated; a stale one is the exact failure this tooling prevents."""
+    """The page is generated; a stale one is the exact failure this tooling prevents.
+
+    Compared against `merge_page(build_page(), on_disk)`, because the frontmatter
+    and the `Connected` block belong to `doc_tags` and `doc_connected` — the
+    writer carries them over, and this asserts regenerating changes nothing.
+    """
     assert index.PAGE.exists(), f"{index.PAGE} was never generated"
-    expected = index.build_page()
-    assert index.PAGE.read_text(encoding="utf-8") == expected, (
+    current = index.PAGE.read_text(encoding="utf-8")
+    expected = index.merge_page(index.build_page(), current)
+    assert current == expected, (
         f"{index.PAGE} is stale — run python tools/way_property_index.py --write"
     )
+
+
+def test_regeneration_preserves_the_blocks_other_tools_own():
+    """A `--write` must not strip the page's tags or its inbound relations."""
+    existing = ("---\ntype: doc\ntags: [system/world]\n---\n\n"
+                "# Way Properties\n\nbody\n\n"
+                "<!-- connected:start -->\n## Connected\n\n**Code** — `engine/x.py`\n\n"
+                "<!-- connected:end -->\n")
+    merged = index.merge_page(index.build_page(), existing)
+    assert merged.startswith("---\ntype: doc\ntags: [system/world]\n---\n")
+    assert "<!-- connected:start -->" in merged and "## Connected" in merged
+    assert merged.index("<!-- connected:start -->") > merged.index("# Way Properties"), \
+        "the preserved blocks bracket the generated body"
 
 
 def test_baseline_only_contains_current_drift():

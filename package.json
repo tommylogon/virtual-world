@@ -22,6 +22,12 @@
     "module:check": "python tools/js_module_index.py --check",
     "chars:check": "python tools/character_loadout_check.py --check",
     "scenario-tags:check": "python tools/scenario_tag_check.py --check",
-    "precommit": "python tools/character_loadout_check.py --check && python tools/scenario_tag_check.py --check && python tools/way_property_index.py --check"
+    "precommit": "python tools/character_loadout_check.py --check && python tools/scenario_tag_check.py --check && python tools/way_property_index.py --check && python tools/doc_links.py --check && python tools/feature_pages.py --check && python tools/doc_tags.py --check && python tools/doc_connected.py --check",
+    "docs:links": "python tools/doc_links.py --check",
+    "docs:features": "python tools/feature_pages.py --check",
+    "docs:tags": "python tools/doc_tags.py --check",
+    "docs:connected": "python tools/doc_connected.py --check",
+    "feature:check": "python tools/feature_index.py --check",
+    "docs:orphans": "python tools/doc_links.py --orphans"
   }
 }

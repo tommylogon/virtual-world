@@ -1,12 +1,12 @@
-"""Author Mikka's scrap run into kraktooth (task-426).
+"""Author Mikka's scrap pursuit into kraktooth (task-426).
 
 Adds the one inert prop the run needs — a Scrap item at the Scrap Pile — and a
-``plan`` node declaring the haul: Scrap Pile -> take scrap -> Workshop -> drop.
+``pursuit`` node declaring the haul: Scrap Pile -> take scrap -> Workshop -> drop.
 
 Idempotent; dry-run by default, ``--write`` saves. The scrap item carries no
 food/water/recreation tag, so it cannot change which areas any survival need
 travels to — the failure mode that made the 2026 task-409 co-location pass
-degrade the camp. This adds a goal for a single character and nothing else.
+degrade the camp. This adds one pursuit for a single character and nothing else.
 
     python tools/add_scrap_run.py            # show what would change
     python tools/add_scrap_run.py --write    # apply it
@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SCENARIO = ROOT / "data" / "scenarios" / "kraktooth_goblin_camp.json"
 
 SCRAP_ID = "item_scrap"
-PLAN_ID = "plan_mikka_scrap_run"
+PURSUIT_ID = "pursuit_mikka_scrap_run"
 SCRAP_PILE = "area_scrap_pile"
 ACTOR = "player_Mikka"      # id, not display name (AGENTS: data keys by id)
 SOURCE = "Scrap Pile"
@@ -56,11 +56,11 @@ def main():
                       "properties": {}})
         added.append(f"edge {SCRAP_ID} -in-> {SCRAP_PILE}")
 
-    if PLAN_ID not in nodes:
-        nodes[PLAN_ID] = {
-            "id": PLAN_ID, "type": "plan", "name": LABEL,
+    if PURSUIT_ID not in nodes:
+        nodes[PURSUIT_ID] = {
+            "id": PURSUIT_ID, "type": "pursuit", "name": LABEL,
             "properties": {
-                "template": "haul",
+                "pursuit_template": "haul",
                 "actor": ACTOR,
                 "source": SOURCE,
                 "item": "scrap",
@@ -69,7 +69,7 @@ def main():
                 "repeat": False,
             },
         }
-        added.append(f"node {PLAN_ID}")
+        added.append(f"node {PURSUIT_ID}")
 
     if not added:
         print("nothing to do — the scrap run is already authored")

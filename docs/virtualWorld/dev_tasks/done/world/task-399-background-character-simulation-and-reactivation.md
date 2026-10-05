@@ -135,7 +135,7 @@ Still to build for this task (updated 2026-09-24):
    (`next_due_tick`), deterministic/seeded over schedule + needs + traits,
    writing the trace with reasons. Survival behaviors (eat/drink/sleep/work).~~
    **Done** — the module is 988 lines: due scheduling, the full survival ladder,
-   schedule pursuit (`_pursue_schedule`, task-409 slice 1), background social
+   clock-schedule traversal (`_pursue_schedule`, task-409 slice 1), background social
    (`engine/background_social.py`, task-423), traversal/foraging checks, and
    soak/timeskip hooks. See Progress below.
 2. ~~`simulation_mode: active | background`, with atomic activate/offload at a

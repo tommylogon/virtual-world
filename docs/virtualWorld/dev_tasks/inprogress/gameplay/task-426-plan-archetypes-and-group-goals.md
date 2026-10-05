@@ -6,7 +6,7 @@ area: gameplay
 priority: medium
 ---
 
-# task-426: Plan archetypes and group goals (hunt, raid, gather, haul)
+# task-426: Pursuit templates and group goals (hunt, raid, gather, haul)
 
 **Filed:** 2026-09-21  
 **Depends on:** task-409 (deterministic planner + schedule model), task-403
@@ -56,12 +56,13 @@ It does **not** cover either of the two things that make the world feel alive:
 2. **Group goals** — a leader's goal *assigned* to members with a shared rally
    point and time. A raid, a hunting party, a work gang.
 
-## Design: authored templates, algorithmic selection
+## Design: authored pursuit templates, algorithmic selection
 
-The plan is **data**, not reasoning: a small library of templates, each a short
-ordered step list with preconditions. Selection is the algorithmic part — who can
-do it, when, with whom, where — scored from needs, traits, relationships, role,
-and *known* facts.
+The **pursuit template** is data, not reasoning: a small library of reusable
+undertakings with requirements and possible steps. Selection is the algorithmic
+part — who can take it on, when, with whom, and where — scored from needs,
+traits, relationships, role, and *known* facts. The short-term plan is the
+current executable approach and may be recomposed while the pursuit remains.
 
 | archetype | shape |
 |---|---|
@@ -98,7 +99,7 @@ and peeling off.
 
 ## Acceptance
 
-- Mikka's scrap run works end to end as a `haul`: plan → travel → take → travel →
+- Mikka's scrap run works end to end as a `haul` pursuit: plan → travel → take → travel →
   drop, visible in the trace with the plan's identity.
 - A plan survives a *repeated* need interruption (eat, then resume) rather than
   being lost.
@@ -120,9 +121,11 @@ and peeling off.
 Landed `engine/background_plans.py`: a plan is **stored on `Player.plan`** and
 advanced one step per action, so it survives a need interruption (the survival
 ladder runs first, the plan is untouched, the next satisfied action resumes it).
-Templates are **data** — a `plan` graph node (the same shape as a crafting
-`recipe`) declares the template and its parameters; selection is deterministic
-(plan nodes in id order) and knowledge-gated (the source must be reachable).
+Templates are **data** — a `plan` graph node declares the template and its
+parameters; selection is deterministic (plan nodes in id order) and
+knowledge-gated (the source must be reachable). It currently uses the same
+graph-node storage shape as a crafting `recipe`, but its meaning is an actor's
+multi-step activity; the recipe's meaning is a world transformation.
 
 | template | shape |
 |---|---|
@@ -162,9 +165,20 @@ content into a scenario; an explicit same-seed replay test (determinism is by
 construction here — id-sorted, no RNG in plans); and a fresh replan *within* a
 plan (the task's "replan, not a freeze") beyond the `repeat` retry.
 
-## GOSP pointer (2026-10-04)
+## Pursuit terminology correction (2026-10-05)
 
-Plan archetypes (hunt, raid, gather, haul) are the seed of the GOSP selector:
-task-704 either absorbs them as the first bound plan templates or retires
-them with a pointer. Do not extend the archetype system in parallel with the
-template library (task-701) - one vocabulary.
+The background plan archetypes are an early slice of **pursuit execution**.
+Their reusable definitions belong in the pursuit-template library (task-701);
+their current steps remain short-term plans; an ongoing process such as
+sleeping or cooking must use the separate Activity system. Do not call those
+Activities “schedule activities.” The calendar scheduler in task-409 remains a
+timing/reminder layer.
+
+The current actor-bound assignment node is now `type: "pursuit"`, and its
+`pursuit_template` property selects `haul`, `gather`, or `rally`. Actor state is
+stored as `Player.active_pursuit`; executable steps remain `Player.plan`. The
+serializer promotes older saved plan-template nodes into the pursuit shape
+while keeping their opaque node ids. The
+Kraktooth scrap example is still the authored pursuit case. This runner does
+not yet start a persistent Activity or inject the pursuit into an LLM prompt;
+those are task-702/task-704 work.

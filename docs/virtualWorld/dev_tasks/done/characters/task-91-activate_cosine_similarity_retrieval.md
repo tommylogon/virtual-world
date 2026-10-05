@@ -20,6 +20,43 @@ tests in `tests/test_vector_store.py`, full suite 1066 passed, live curl round t
 (upsert→ranked search→conflict), settings UI renders + populates. Not yet verified with
 a real embedding provider (Ollama/LM Studio) — needs a live endpoint E2E.
 
+**Status correction (2026-10-04)**: this body line still read "In Review" while the
+folder and frontmatter both said `done` — the body was the stale part. It is done; the
+open verification item ("a real embedding provider") was closed the same day, see the
+addendum below.
+
+## Re-verified live with a real provider (2026-10-04, task-685)
+
+The last open item — *not yet verified with a real embedding provider* — is now closed
+end-to-end against LM Studio in the browser, during the memory-dynamics work:
+
+- **Embedding E2E**: `text-embedding-nomic-embed-text-v1.5@f32` → 768-dim vector
+  through the app's own `EmbeddingClient`; then switched to
+  `text-embedding-qwen3-embedding-0.6b` → 1024 dims to match the existing store
+  (`GET /api/memory/embeddings/stats`: model + dims + count all correct, count grew
+  98 → 99 as new memories were written).
+- **The 409 dim-conflict guard fired for real**: a 768-dim config against a store
+  holding 1024-dim vectors is silently refused client-side — the mixed-vector-space
+  protection in the scope above is not theoretical.
+- **Write path confirmed live**: react-phase LLM memories ("Entering a cold living
+  room", "The cold air is still coming in") embedded automatically after store.
+- **Read path confirmed live**: `buildMemoryContext` embedded the query and merged
+  cosine hits; the turn-feedback line reported "recalled N · query … (K keyword · V
+  semantic · R recent)".
+
+What task-685 changed on top of this (none of it contradicts the scope above):
+
+- Vector hits now **reinforce** the memory they recalled, via a new
+  `POST /memories/reinforce` endpoint (`memory-context.js` fires it after the merge) —
+  semantic recall became part of the reinforcement loop, not just a read.
+- The keyword/multi-signal scorer (`/memories/retrieve`, task-690) is now the primary
+  ranker; the vector merge at 2× weight is one input among several, and the recall
+  block is grouped (EVENTS / WHAT I BELIEVE / HOW I SEE PEOPLE / WHAT I EXPECT).
+
+Known gaps above that remain open: no mass re-embed job (still one-off via the
+inspector), and the redundant `embedding` field vs `data/embeddings.json` geometry —
+unchanged by task-685.
+
 **Known gaps (2026-08-29)**:
 - No backfill: only memories stored after the embed path existed get vectors.
   Pre-existing memories stay `embedding: null`. The inspector's Semantic section can

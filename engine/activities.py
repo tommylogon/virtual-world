@@ -119,7 +119,7 @@ PILE_TAGS = ["container", "clothing_pile"]
 
 
 def activity_description(activity: Optional[dict], char_name: str = "") -> str:
-    """Render an activity as a short flavor line, e.g. ``sleeping in the bed``.
+    """Render an activity as a short flavor line, e.g. ``sleeping on the bed``.
 
     Activities with a set duration show how many ticks remain; open-ended
     ones say so explicitly (task feedback: "no indication when she will
@@ -129,7 +129,8 @@ def activity_description(activity: Optional[dict], char_name: str = "") -> str:
         return ""
     label = ACTIVITY_LABELS.get(activity.get("type"), activity.get("type", ""))
     target = activity.get("target_item")
-    base = f"{label} in the {target}" if target else label
+    relation = "on" if activity.get("type") in ("sleeping", "resting") else "in"
+    base = f"{label} {relation} the {target}" if target else label
     duration = activity.get("duration_ticks")
     if duration is not None:
         remaining = max(0, int(duration) - int(activity.get("elapsed_ticks", 0) or 0))

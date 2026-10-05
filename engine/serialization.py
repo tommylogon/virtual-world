@@ -64,6 +64,39 @@ def _region_exposure_map(player, graph):
     }
 
 
+def _migrate_legacy_pursuit_nodes(graph_data):
+    """Promote task-426 plan assignments to the pursuit graph vocabulary.
+
+    Older saves stored these actor-bound template assignments as
+    ``type="plan"`` with a ``template`` property. Keep the opaque node id, but
+    load them into the canonical pursuit shape so an existing autosave is not
+    silently skipped by the pursuit runner.
+    """
+    if not isinstance(graph_data, dict):
+        return
+    nodes = graph_data.get("nodes")
+    if isinstance(nodes, dict):
+        values = nodes.values()
+    elif isinstance(nodes, list):
+        values = nodes
+    else:
+        return
+    for node in values:
+        if not isinstance(node, dict) or node.get("type") != "plan":
+            continue
+        props = node.get("properties")
+        if not isinstance(props, dict):
+            continue
+        template_id = (props.get("pursuit_template") or props.get("template")
+                       or props.get("schedule_template"))
+        if not template_id:
+            continue
+        node["type"] = "pursuit"
+        props["pursuit_template"] = template_id
+        props.pop("template", None)
+        props.pop("schedule_template", None)
+
+
 class WorldSerializer:
     """Facade that delegates serialization to format-specific loaders."""
 
@@ -217,6 +250,9 @@ class WorldSerializer:
             "memories": getattr(p, 'memories', []),
             "memory_index": dict(getattr(p, 'memory_index', {}) or {}),
             "schedule": list(getattr(p, 'schedule', []) or []),
+            "active_pursuit": getattr(p, 'active_pursuit', None),
+            "plan": getattr(p, 'plan', None),
+            "completed_pursuits": list(getattr(p, 'completed_pursuits', []) or []),
             "simple_npc": getattr(p, 'simple_npc', False),
             "autonomy": getattr(p, 'autonomy', True),
             "npc_behavior": getattr(p, 'npc_behavior', 'wander'),
@@ -456,10 +492,13 @@ class WorldSerializer:
         # hand-edited or legacy file cannot put a malformed step into the day.
         from engine.schedule import normalize as _normalize_schedule
         p.schedule = _normalize_schedule(pdata.get("schedule"))
-        # Authored multi-step plan (task-426). A stored plan is resumed as-is;
-        # completed_plans is what stops a non-repeating plan from restarting.
+        pursuit_data = pdata.get("active_pursuit")
+        p.active_pursuit = dict(pursuit_data) if isinstance(pursuit_data, dict) else None
+        # The active pursuit is the longer-lived intention; Player.plan is its
+        # current approach and is resumed as-is. Completed assignment ids stop
+        # a one-shot pursuit from restarting.
         p.plan = pdata.get("plan") or None
-        p.completed_plans = list(pdata.get("completed_plans", []) or [])
+        p.completed_pursuits = list(pdata.get("completed_pursuits", []) or [])
 
         mem_data = pdata.get("memories", [])
         if isinstance(mem_data, list):
@@ -591,6 +630,7 @@ class WorldSerializer:
         # and keep every retired id resolvable through the alias index.
         aliases = {}
         if "graph" in data:
+            _migrate_legacy_pursuit_nodes(data["graph"])
             report = collapse_character_identity(data["graph"], data.get("players") or {})
             aliases = report.get("aliases") or {}
             self.graph.load_from_dict(data["graph"])

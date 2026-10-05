@@ -166,12 +166,16 @@ class Player:
         # which is what every character did before schedules existed.
         self.schedule = []
         # Authored multi-step plan (task-426): {template, label, index, steps}
-        # or None. Stored on the player so a need interruption pauses it and the
-        # next satisfied action resumes it, rather than the plan being rebuilt.
+        # or None. This is the current executable approach for a pursuit; the
+        # longer-lived actor-bound pursuit is stored separately below.
         self.plan = None
-        # Plan node ids this character has already finished (or abandoned), so a
-        # non-repeating plan does not restart every time it becomes idle.
-        self.completed_plans = []
+        # The actor's assigned/selected pursuit stores its template, reason,
+        # bindings, and progress; Player.plan is its current short-term
+        # approach and can be rebuilt independently.
+        self.active_pursuit = None
+        # Assignment node ids this character has already finished or abandoned,
+        # so a one-shot pursuit does not restart when it becomes idle.
+        self.completed_pursuits = []
         # task-316 foundation: stable opaque identity. Display names stay the
         # addressing surface (same-named characters are allowed); the id is the
         # anchor the full id-backed re-key will use. 8 hex chars, survives
@@ -1334,8 +1338,9 @@ class Player:
             "last_offload_tick": int(getattr(self, "last_offload_tick", 0)),
             "background_consolidated_through": int(
                 getattr(self, "background_consolidated_through", 0)),
+            "active_pursuit": getattr(self, "active_pursuit", None),
             "plan": getattr(self, "plan", None),
-            "completed_plans": list(getattr(self, "completed_plans", []) or []),
+            "completed_pursuits": list(getattr(self, "completed_pursuits", []) or []),
         }
 
     def _relationships_to_dict(self):

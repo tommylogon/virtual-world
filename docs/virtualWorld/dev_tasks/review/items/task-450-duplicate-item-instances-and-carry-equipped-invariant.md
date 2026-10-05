@@ -8,7 +8,7 @@ priority: medium
 # task-450: Duplicate item instances and the carried+equipped invariant
 
 **Filed:** 2026-09-22, split out of bug-25. (Renumbered from 445 to avoid the
-id collision with `done/characters/task-445-character-expression-packs.md`.)
+id collision with `done/emotions/task-445-character-expression-packs.md`.)
 
 ## Why
 

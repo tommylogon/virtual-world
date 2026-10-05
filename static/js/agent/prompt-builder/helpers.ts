@@ -305,14 +305,15 @@ window.PromptBuilder = window.PromptBuilder || {};
     /**
      * Render a player's activity (task-131) as a short flavor string.
      * @param {object} activity - {type, target_item, ...}
-     * @returns {string} e.g. "sleeping in the bed"
+     * @returns {string} e.g. "sleeping on the bed"
      */
     function describeActivity(activity: { type?: unknown; target_item?: unknown } | null | undefined): string {
         if (!activity) return '';
         const type = String(activity.type || '');
         const target = activity.target_item;
         if (target && (type === 'sleeping' || type === 'bathing' || type === 'resting')) {
-            return `${type} in the ${target}`;
+            const relation = type === 'bathing' ? 'in' : 'on';
+            return `${type} ${relation} the ${target}`;
         }
         return type;
     }

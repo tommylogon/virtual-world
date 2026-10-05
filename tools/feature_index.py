@@ -59,6 +59,19 @@ def _terms(label: str) -> list[str]:
     return [p.strip() for p in parts if p.strip() and p.strip() not in STOPWORDS]
 
 
+def split_cells(row: str) -> list[str]:
+    """Split a markdown table row on **unescaped** pipes only.
+
+    A `[[Note|alias]]` inside a cell is legal markdown only as `[[Note\\|alias]]`,
+    but writing the bare pipe truncates the cell silently rather than loudly:
+    row 23's Docs cell parsed as ``[[Environment/Temperature System`` and the
+    note it names lost its inbound relation with no error anywhere. Splitting on
+    pipes that are not preceded by a backslash is what makes the alias survive.
+    """
+    parts = re.split(r"(?<!\\)\|", row)
+    return [p.replace("\\|", "|").strip() for p in parts]
+
+
 def parse_features() -> list[dict]:
     """Read the feature list out of the map. The map is the only declaration."""
     if not MAP_PATH.exists():
@@ -73,7 +86,7 @@ def parse_features() -> list[dict]:
         m = ROW_RE.match(line)
         if not m:
             continue
-        cells = [c.strip() for c in m.group(2).split("|")]
+        cells = split_cells(m.group(2))
         if len(cells) < 4:
             continue
         label = cells[0].replace("**", "").strip()

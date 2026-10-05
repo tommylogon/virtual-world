@@ -1,7 +1,9 @@
 ---
 type: index
 area: docs
+tags: [system/docs, topic/validation]
 ---
+
 
 # Feature Map
 
@@ -29,13 +31,22 @@ documentation is for people.
   load-bearing value. A coverage list that only lists documented features hides exactly the gaps it
   was built to expose.
 
-Counts as of 2026-10-03, measured from this file: **74 features — 42 in a game, 32 in the editor.**
+Counts as of 2026-10-05, measured from this file: **76 features — 43 in a game, 33 in the editor.**
 
-Rows 1-58 are the original map. Rows 59-74 were added on 2026-10-03 from a maintainer pass, and
+> [!info] Numbering changed 2026-10-05
+> `Where you've been` was row **58** inside the in-game table and collided with the editor's
+> row 58 (`Settings`), so "row 58" meant two different things. In-game rows now run **1–43** and
+> editor rows **44–76**; **every editor row shifted +1** (old 43 → new 44, … old 75 → new 76).
+> Citations of editor rows below were updated where they gate a status; the historical
+> parentheticals in *What your list did not mention* keep their old numbers and are covered by
+> this note.
+
+Rows 1-59 are the original map (43 in a game, 16 in the editor). Rows 60-76 were added on
+2026-10-03 from a maintainer pass, and
 they are **not** equally trusted: two read `planned` because their behaviour was not exercised, and
 the rest are marked `wired` on code evidence alone. See
 [What this pass did not verify](#what-this-pass-did-not-verify) before treating a new row as
-verified. Of the original 58, all 58 link to a note; of the 16 added here, four read `none` and the
+verified. Of the original 59 rows, all 59 link to a note; of the 17 added here, two read `none` and the
 rest point at a note covering the area rather than the specific feature.
 
 ---
@@ -66,13 +77,13 @@ rest point at a note covering the area rather than the specific feature.
 | 20 | Emotion | Emotion model, reflection, residue | wired | [[Emotion & Affect System]] |
 | 21 | Relationships | Per-character relationships and their deltas | wired | [[Relationships System]] |
 | 22 | Memory | What a character remembers, and recall by need | wired | [[Memory System]] |
-| 23 | Temperature | Body and environment temperature, clothing, equipment | wired | [[Environment/Temperature System|Temperature System]] |
+| 23 | Temperature | Body and environment temperature, clothing, equipment | wired | [[Environment/Temperature System\|Temperature System]] |
 | 24 | Light | Ambient light, sources, seeing in the dark | wired | [[Light System]] |
 | 25 | Time & weather | Calendar, clock, forecast, and weather that reaches the world | wired | [[Time & Weather]] |
 | 26 | Activities & states | Multi-tick activities; busy, unconscious, asleep | wired | [[Activities & States]] |
 | 27 | NPC behaviour | Autonomous states: idle, forage, eat, flee, hide | wired | [[NPC Behavior System]] |
-| 28 | **Background simulation** | What everyone off-screen does, and the coarse social layer over it | wired | [[Background Simulation]] |
-| 29 | **Per-agent knowledge (fog of war)** | Per-character known set; a map that only shows what you have found | **unwired** — the *reveal* producer (`engine/fog.py`) still has no runtime caller; the player-facing surface it was blocking is row 58 | [[Per-Agent Knowledge (Fog of War)]] |
+| 28 | **Background simulation** | What everyone off-screen does, and the coarse social layer over it | wired | [[Background Simulation]], [[Character Pursuits]] |
+| 29 | **Per-agent knowledge (fog of war)** | Per-character known set; a map that only shows what you have found | **unwired** — the *reveal* producer (`engine/fog.py`) still has no runtime caller; the player-facing surface it was blocking is row 43 | [[Per-Agent Knowledge (Fog of War)]] |
 | 30 | Turn queue | Initiative, who acts when, the human's slot | wired | [[Turn Queue & Human Turns]] |
 | 31 | The human turn | One turn, one card: the scene, your vitals, what you can do | wired | [[Turn Queue & Human Turns]] |
 | 32 | Character art | Profile avatar + full-body portrait, per emotion | wired | [[Character Images & Expression Packs]] |
@@ -86,45 +97,45 @@ rest point at a note covering the area rather than the specific feature.
 | 40 | **Taking an agent over** | Hand a character between simple behaviour, an LLM agent, and the human | wired | [[NPC Behavior System]] |
 | 41 | **Memory pipeline** | What an agent's recall is built from, including embeddings over stored memory | wired | [[Memory System]] |
 | 42 | **Prompt lens** | See exactly the context an agent would be given, with no LLM call | wired | [[LLM Providers]] |
-| 58 | **Where you've been** | A map of the cells your character has actually walked, per scope, with what they last observed there and a mark on ways you know are blocked | wired | [[Turn Queue & Human Turns]] |
+| 43 | **Where you've been** | A map of the cells your character has actually walked, per scope, with what they last observed there and a mark on ways you know are blocked | wired | [[Turn Queue & Human Turns]] |
 
 ## In the editor
 
 | # | Feature | What you can do | Status | Docs |
 |---|---|---|---|---|
-| 43 | Graph canvas | Lay out the world; drag, search, scope-filter, bulk-select | wired | [[Graph System]] |
-| 44 | Map layout | Painted map pitch and scope offsets | wired | [[Graph System]] |
-| 45 | Levels layout | Hierarchical layout by relation level | wired | [[Graph System]] |
-| 46 | **WorldPainter** | Paint a world on a grid: 8 tools (Select, Paint, Erase, Move, Route, Feature, Area, Inspect), 3 modes (world/town/interior), 4 layers (biome, road, floor, climate) | wired | [[WorldPainter]] |
-| 47 | Grid to graph | Compile cells into areas, ways, gateways, buildings | wired | [[Grid to Graph]] |
-| 48 | Scopes | Nested world scopes, projection, manifest | wired | [[World Scopes]] |
-| 49 | Node inspectors | 12 panels: area, item, character, way, memory, behaviours, lore, paperdoll, tags, conditions, traits, automation | wired | [[Inspector Panels]] |
-| 50 | Way authoring | Create and edit ways, doors, connections, cardinals | wired | [[Way Properties]] |
-| 51 | Trigger / effect editor | Author triggers, conditions and effects on any node | wired | [[Triggers & Effects]] |
-| 52 | **NL editor** | Describe a change in prose; see a plan before it is applied | wired | [[NL Editor]] |
-| 53 | Expression pack editor | Per-emotion art slots, plus **Split sheet** for grid sheets | wired | [[Character Images & Expression Packs]] |
-| 54 | Library | Browse and edit the content registry: items, characters, biomes, behaviours, traits | wired | [[Library System Overview]] |
-| 55 | Tags | Tag queries across nodes, and tag-targeted triggers | wired | [[Tags System]] |
-| 56 | Scenario creation | The create wizard and the text-to-scenario path | wired | [[ScenarioCreationGuide]] |
-| 57 | Save / load | Scenario and app saves, autosave, rename | wired | [[Settings & Configuration]] |
-| 58 | Settings | Engine config, every slider | wired | [[Settings & Configuration]] |
-| 59 | Command palette | Jump to anything | wired | [[Rendering & UI Modules]] |
-| 60 | Help centre | In-app help | wired | [[Rendering & UI Modules]] |
-| 61 | Recent edits / undo | What changed, and undoing it | wired | [[Recent Edits & Undo]] |
-| 62 | Validator & issues | Scenario lint, mismatches, authoring blockers | wired | [[Validator & Issues]] |
-| 63 | **Event stream** | The turn-by-turn log with filters and search | wired | [[Event Stream]] |
-| 64 | Export | Graph export, play-session log export | wired | [[Event Log Export]] |
-| 65 | **Soak lab** | Automated long runs, live tuning, telemetry | wired | [[Soak Lab]] |
-| 66 | **The human turn composer** | The structured card you answer a character's turn in: reply, JSON, and a free-text box | wired | [[Turn Queue & Human Turns]] |
-| 67 | **Turn-based modes** | Sequential, random, or initiative (d20 + DEX), and simultaneous modes per room | wired | [[Turn Queue & Human Turns]] |
-| 68 | **Agent overview** | Every agent at a glance, and the alert system that flags one that needs attention | wired | [[Rendering & UI Modules]] |
-| 69 | **Action menu** | The verb menu for what you can do here; also `Ctrl+K` to jump to anything | wired | [[Rendering & UI Modules]] |
-| 70 | **World lore** | Read the lore of a place, with tags gating who may access it | wired | [[Inspector Panels]] |
-| 71 | **Entity generators** | Generate items, ways and areas from prose, then review before accepting | wired | [[NL Editor]] |
-| 72 | **Library sync** | Push a node to the library and pull it back, in both directions | wired | [[Library System Overview]] |
-| 73 | **Agent behaviour settings** | Per-agent behaviour and automation settings | planned | none |
-| 74 | **Graph settings** | Physics and layout settings for the graph view | planned | none |
-| 75 | **Report a bug** | File what you are looking at as a bug task, with a screenshot and the DOM elements you picked | wired | [[Rendering & UI Modules]] |
+| 44 | Graph canvas | Lay out the world; drag, search, scope-filter, bulk-select | wired | [[Graph System]] |
+| 45 | Map layout | Painted map pitch and scope offsets | wired | [[Graph System]] |
+| 46 | Levels layout | Hierarchical layout by relation level | wired | [[Graph System]] |
+| 47 | **WorldPainter** | Paint a world on a grid: 8 tools (Select, Paint, Erase, Move, Route, Feature, Area, Inspect), 3 modes (world/town/interior), 4 layers (biome, road, floor, climate) | wired | [[WorldPainter]] |
+| 48 | Grid to graph | Compile cells into areas, ways, gateways, buildings | wired | [[Grid to Graph]] |
+| 49 | Scopes | Nested world scopes, projection, manifest | wired | [[World Scopes]] |
+| 50 | Node inspectors | 12 panels: area, item, character, way, memory, behaviours, lore, paperdoll, tags, conditions, traits, automation | wired | [[Inspector Panels]] |
+| 51 | Way authoring | Create and edit ways, doors, connections, cardinals | wired | [[Way Properties]] |
+| 52 | Trigger / effect editor | Author triggers, conditions and effects on any node | wired | [[Triggers & Effects]] |
+| 53 | **NL editor** | Describe a change in prose; see a plan before it is applied | wired | [[NL Editor]] |
+| 54 | Expression pack editor | Per-emotion art slots, plus **Split sheet** for grid sheets | wired | [[Character Images & Expression Packs]] |
+| 55 | Library | Browse and edit the content registry: items, characters, biomes, behaviours, traits | wired | [[Library System Overview]] |
+| 56 | Tags | Tag queries across nodes, and tag-targeted triggers | wired | [[Tags System]] |
+| 57 | Scenario creation | The create wizard and the text-to-scenario path | wired | [[ScenarioCreationGuide]] |
+| 58 | Save / load | Scenario and app saves, autosave, rename | wired | [[Settings & Configuration]] |
+| 59 | Settings | Engine config, every slider | wired | [[Settings & Configuration]] |
+| 60 | Command palette | Jump to anything | wired | [[Rendering & UI Modules]] |
+| 61 | Help centre | In-app help | wired | [[Rendering & UI Modules]] |
+| 62 | Recent edits / undo | What changed, and undoing it | wired | [[Recent Edits & Undo]] |
+| 63 | Validator & issues | Scenario lint, mismatches, authoring blockers | wired | [[Validator & Issues]] |
+| 64 | **Event stream** | The turn-by-turn log with filters and search | wired | [[Event Stream]] |
+| 65 | Export | Graph export, play-session log export | wired | [[Event Log Export]] |
+| 66 | **Soak lab** | Automated long runs, live tuning, telemetry | wired | [[Soak Lab]] |
+| 67 | **The human turn composer** | The structured card you answer a character's turn in: reply, JSON, and a free-text box | wired | [[Turn Queue & Human Turns]] |
+| 68 | **Turn-based modes** | Sequential, random, or initiative (d20 + DEX), and simultaneous modes per room | wired | [[Turn Queue & Human Turns]] |
+| 69 | **Agent overview** | Every agent at a glance, and the alert system that flags one that needs attention | wired | [[Rendering & UI Modules]] |
+| 70 | **Action menu** | The verb menu for what you can do here; also `Ctrl+K` to jump to anything | wired | [[Rendering & UI Modules]] |
+| 71 | **World lore** | Read the lore of a place, with tags gating who may access it | wired | [[Inspector Panels]] |
+| 72 | **Entity generators** | Generate items, ways and areas from prose, then review before accepting | wired | [[NL Editor]] |
+| 73 | **Library sync** | Push a node to the library and pull it back, in both directions | wired | [[Library System Overview]] |
+| 74 | **Agent behaviour settings** | Per-agent behaviour and automation settings | planned | [[agent-behaviour-settings]] |
+| 75 | **Graph settings** | Physics and layout settings for the graph view | planned | [[graph-settings]] |
+| 76 | **Report a bug** | File what you are looking at as a bug task, with a screenshot and the DOM elements you picked | wired | [[Rendering & UI Modules]] |
 
 ---
 
@@ -174,8 +185,13 @@ The two worth a second look:
 
 ## What this pass did not verify
 
-Added 2026-10-03. Rows 59-74 came from a maintainer pass, and the honest status is **not** the
-same as for the original 58. Naming a file, a grep hit, or a `<script>` tag is not evidence that
+> [!caution] Rows 60-76 are code-evidence only
+> Each of these rows has a real code site behind it; none of them was exercised
+> end to end. Read `wired` on those rows as "a caller exists", not "a player
+> reached it". Rows 1-59 are the trusted tier.
+
+Added 2026-10-03. Rows 60-76 came from a maintainer pass, and the honest status is **not** the
+same as for the original 59. Naming a file, a grep hit, or a `<script>` tag is not evidence that
 behaviour works — that is the mistake this file exists to prevent, and it would be worse for this
 pass to commit it.
 
@@ -190,26 +206,32 @@ What was checked: each new row has a real code site behind it.
 | 40 Taking an agent over | `human-turn-composer.js` + the simple-behaviour and LLM agent paths |
 | 41 Memory pipeline | `config.js:131-135` embedding endpoint + model |
 | 42 Prompt lens | `static/js/agent-lens.ts` — "no LLM or embedding calls" |
-| 66 Turn composer | `static/js/agent/human-turn-composer.js` |
-| 67 Turn-based modes | `turn-queue.js` order modes; `VWSimultaneous` room mode |
-| 69 Action menu | `templates/index.html` verb menu; `command-palette.js` |
-| 70 World lore | the `lore` inspector panel |
-| 71 Entity generators | `generateEntity` routes + the generator panels |
-| 72 Library sync | `ApiClient` library save/load + the sync endpoints |
+| 67 Turn composer | `static/js/agent/human-turn-composer.js` |
+| 68 Turn-based modes | `turn-queue.js` order modes; `VWSimultaneous` room mode |
+| 70 Action menu | `templates/index.html` verb menu; `command-palette.js` |
+| 71 World lore | the `lore` inspector panel |
+| 72 Entity generators | `generateEntity` routes + the generator panels |
+| 73 Library sync | `ApiClient` library save/load + the sync endpoints |
 
-**Not verified, and marked accordingly:** rows 73 (agent behaviour settings) and 74 (graph
+**Not verified, and marked accordingly:** rows 74 (agent behaviour settings) and 75 (graph
 settings) are **`planned`**, not `wired`. They are real code, but I did not exercise them, and the
-graph settings in particular are the values that were re-tuned in the central-gravity work — so
-the correct status is not one this pass can assert. Rows 68 (agent overview) and 36 (The sky) are
+2026 graph settings in particular are the values that were re-tuned in the central-gravity work — so
+the correct status is not one this pass can assert. Rows 69 (agent overview) and 36 (The sky) are
 marked `wired` on code evidence alone and should be confirmed in a browser before anyone treats
 them as verified.
 
 ## Coverage
 
-**The original 58 features (rows 1-58) all link to a note.** Rows 59-74 came from a later
-maintainer pass and are **not** covered — two read `none`, and the rest point at a note that
+**The original 59 rows all link to a note.** Rows 60-76 came from a later
+maintainer pass and were **not** covered — two read `none`, and the rest point at a note that
 documents the area rather than the specific feature. That is a real coverage gap and this section
-states it rather than hiding it behind the original 58's number.
+states it rather than hiding it behind the original rows' number.
+
+> [!warning] Coverage gap — in progress (2026-10-05)
+> `tools/feature_pages.py` is being built to give every row its own page under `Features/` (the
+> two `planned` rows included, rather than `none`) and to fail when a row loses that page. Until
+> that lands, the honest state is the one above: "points at a note", unevenly. Treat *page
+> exists* as the floor, not as verified depth.
 
 The ten that used to read `none` were
 documented on 2026-10-02, and reading the code **corrected two claims** that had
@@ -254,3 +276,12 @@ been sitting in this file:
   until it exists.
 - Adding a feature? Add the row. The value of this file is that it is the denominator, and a
   denominator that only counts successes measures nothing.
+
+<!-- connected:start -->
+## Connected
+
+*Generated by `python tools/doc_connected.py --apply` — relations the repo already asserts (Feature Map rows, task `wiki:` frontmatter, module `@docs` headers, same-folder notes), not invented.*
+
+**Neighbouring notes** — [[Emotion & Mood — Whole-System Analysis]], [[History]], [[Patch Notes 2026-08-22 to 2026-09-22]], [[Patch Notes 2026-09-28]], [[Patch Notes 2026-09-30]], [[Patch Notes 2026-10-03]]
+
+<!-- connected:end -->
