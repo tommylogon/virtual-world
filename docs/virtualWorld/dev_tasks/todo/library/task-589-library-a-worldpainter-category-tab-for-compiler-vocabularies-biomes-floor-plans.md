@@ -2,11 +2,12 @@
 type: task
 status: todo
 area: library
-priority: medium
+priority: high
 blocked_by: [task-588]
-related: [task-588, task-495, task-568]
+related: [task-588, task-495, task-568, task-569, task-571, task-573, task-716, task-718]
+---
 
-# task-589: Library: a WorldPainter category/tab for compiler vocabularies (biomes, floor plans)
+# task-589: Library: a WorldPainter category/tab for compiler vocabularies (biomes, floor plans, resource loot tables)
 
 **Filed:** 2026-09-29
 **Related:** task-588, task-495, task-568
@@ -46,6 +47,26 @@ Neither `data/library/behaviours.json` nor `data/library/structures.json` **exis
 
 **Correction to an earlier draft of this task: there is only one storage shape, not two.** `load_registry(data_dir, 'items.json')` maps the *filename* to a *directory* — `routes/helpers.py:201-206` strips `.json`, joins `data/library/<name>`, and `os.makedirs(..., exist_ok=True)`. Every registry is therefore already a folder of one file per entry, and `STRUCTURES_REGISTRY = "structures.json"` means `data/library/structures/`. No `behaviours.json` or `structures.json` file is ever read, and none is missing. (Side note worth filing separately: that `makedirs` runs on **read**, so a `GET /api/library/behaviours` creates an empty directory in the working tree.)
 
+## Scope addition (user restated 2026-10-05)
+
+**User constraint:** pursuits, biomes, and resource loot tables are all JSON data in the
+library, each separate — like items and areas are. No hardcoded Python for any of them;
+authoring a new one adds a JSON file and no code.
+
+- **Pursuits** already comply: `data/library/pursuit_templates/*.json` (task-701). OK.
+- **Biomes** already comply as JSON, but have no library surface — this task is that
+  surface. See task-588's verdict: keep `biomes.json` whole, but give the library a
+  **compiler-vocabulary** entry kind (browse/edit/delete, validation on save,
+  `clear_cache()` after save, **no place action**).
+- **Resource loot tables** do **not** comply. `resource_distribution` /
+  `hostile_distribution` are bundled as two keys inside `biomes.json` (line 1834),
+  not standalone library entries. Splitting them out is **task-718**, and this task
+  owns the UI half of that split.
+
+So this tab covers three vocabularies, not two: **biomes**, **floor plans**, and
+**resource loot tables**. The loot-table half is new scope here; task-718 owns the data
+migration and the engine wiring.
+
 ## What exists to reuse
 
 **Why it is not just "add a type to the registry":** `routes/library_ops.py:17` declares `REGISTRY_TYPES = ['items', 'characters', 'areas', 'ways', 'traits', 'conditions', 'behaviours', 'tags', 'triggers', 'structures']`, and each of those resolves to something placeable. Adding `biomes` to that list would hand the UI a "place this biome in the world" action with no meaning behind it, and `handle_library_list` would serve them as if they were graph entities.
@@ -59,15 +80,17 @@ Neither `data/library/behaviours.json` nor `data/library/structures.json` **exis
 ## Open questions to answer in the design
 
 1. **What is the smallest authoring loop that is honest?** Create a biome, see it in the editor's vocabulary, compile a scope that uses it, and get a validation error before the save if the record is malformed. Anything less leaves the author editing JSON.
-2. **One tab or two?** `biomes` is a taxonomy of 105; `interiors` is 30 drawn plans. Plans are visual — they may deserve thumbnails and a different presentation than a tag list.
+2. **One tab or three sub-tabs?** `biomes` is a taxonomy of 105; `interiors` is 30 drawn plans; `resource_loot` (task-718) is ~16 biome keys each with weighted tag buckets. Plans are visual — they may deserve thumbnails and a different presentation than a tag list. Loot tables are the most edit-heavy of the three (the fishing slice needs river/shallows/pool/rapids entries authored), so they may deserve their own dense editor rather than a flat JSON view.
 3. **Should `REGISTRY_TYPES` be derived from disk instead of declared, and should the two storage shapes be unified?** Fixing the drift (`rooms`, `behaviours`, `structures`) and the folder-vs-single-file split may be in scope, or may be its own task. Decide, do not leave it implicit.
 4. **Where does the tab live** — alongside the existing library types, or as a separate panel? The library's own type list is a frontend concern (`static/js/**`), so this is a UI call.
 5. **Who calls `clear_cache()`?** A save that lands on disk and leaves the running compiler on the old taxonomy is worse than no save at all.
+6. **Loot-table authoring (new, task-718):** does the table need its own validation — tags that resolve to no library item, weights that sum to zero, a biome key with no entry? task-573 already wants this as a lint; the save path should refuse the same things rather than let them persist.
 
 ## Acceptance
 
-- A WorldPainter category/tab **creates, edits and deletes** biomes and interior plans, sourced from the same `engine/biomes.py` / `interior_gen.py` derivation the WorldPainter uses — **no** new read path and no second copy of the vocabulary.
+- A WorldPainter category/tab **creates, edits and deletes** biomes, interior plans, and resource loot tables, sourced from the same `engine/biomes.py` / `interior_gen.py` derivation the WorldPainter uses — **no** new read path and no second copy of the vocabulary.
 - A save runs `biomes.validate()` first and refuses a record that would break a compiler invariant (unknown tags, a wild biome with no rules, `max_chance < base_chance`).
+- A loot-table save refuses a tag that resolves to no library item and a biome key with no entries (task-573's check, moved from lint to save).
 - A successful save invalidates the taxonomy cache, so the next compile uses it. A test proves it: save, then read back through `biomes.biomes()` without a restart.
 - No "place in world" affordance appears for a vocabulary entry; if it does, task-588's answer said the entry is materializable and the tab is wrong.
 - The `rooms` / `behaviours` / `structures` drift is fixed or explicitly filed as its own task, with the choice recorded here. `rooms` is **not** deleted on the strength of being unregistered.
