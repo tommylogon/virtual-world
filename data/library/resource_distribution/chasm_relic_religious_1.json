@@ -1,0 +1,14 @@
+{
+  "id": "chasm_relic_religious_1",
+  "name": "chasm resource 2",
+  "biome_tags": [
+    "chasm"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "relic",
+    "religious"
+  ],
+  "weight": 1,
+  "conditions": {}
+}

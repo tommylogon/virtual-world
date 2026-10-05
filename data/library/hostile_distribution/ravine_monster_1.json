@@ -1,0 +1,13 @@
+{
+  "id": "ravine_monster_1",
+  "name": "ravine monster 2",
+  "biome_tags": [
+    "ravine"
+  ],
+  "location_tags": [],
+  "kind": "monster",
+  "base_chance": 0.02,
+  "per_area_from_settlement": 0.01,
+  "max_chance": 0.25,
+  "conditions": {}
+}

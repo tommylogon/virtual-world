@@ -1,0 +1,13 @@
+{
+  "id": "ocean_junk_1",
+  "name": "ocean resource 2",
+  "biome_tags": [
+    "ocean"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "junk"
+  ],
+  "weight": 2,
+  "conditions": {}
+}

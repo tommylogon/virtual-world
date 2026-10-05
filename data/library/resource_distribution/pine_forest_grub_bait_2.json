@@ -1,0 +1,14 @@
+{
+  "id": "pine_forest_grub_bait_2",
+  "name": "pine_forest resource 3",
+  "biome_tags": [
+    "pine_forest"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "grub",
+    "bait"
+  ],
+  "weight": 2,
+  "conditions": {}
+}

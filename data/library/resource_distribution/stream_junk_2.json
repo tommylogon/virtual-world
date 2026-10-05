@@ -1,0 +1,13 @@
+{
+  "id": "stream_junk_2",
+  "name": "stream resource 3",
+  "biome_tags": [
+    "stream"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "junk"
+  ],
+  "weight": 2,
+  "conditions": {}
+}

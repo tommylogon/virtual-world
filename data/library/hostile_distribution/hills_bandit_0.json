@@ -1,0 +1,13 @@
+{
+  "id": "hills_bandit_0",
+  "name": "hills bandit 1",
+  "biome_tags": [
+    "hills"
+  ],
+  "location_tags": [],
+  "kind": "bandit",
+  "base_chance": 0.03,
+  "per_area_from_settlement": 0.01,
+  "max_chance": 0.3,
+  "conditions": {}
+}

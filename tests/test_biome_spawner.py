@@ -152,3 +152,45 @@ def test_hostile_character_node_is_tagged_and_stamped():
     assert node.type == "character"
     assert {"predator", "hostile"} <= set(node.properties["tags"])
     assert node.properties["generated"]["scope_id"] == SCOPE
+
+
+# ── library-backed loot tables (task-718) ────────────────────────────────
+
+
+def test_spawn_resources_reads_from_library_when_bundled_key_is_gone():
+    import tempfile, json, os
+    from engine import biomes as bio
+
+    with tempfile.TemporaryDirectory() as tmp:
+        lib_dir = os.path.join(tmp, "resource_distribution")
+        os.makedirs(lib_dir)
+        with open(os.path.join(lib_dir, "test_basin.json"), "w", encoding="utf-8") as f:
+            json.dump({
+                "id": "test_basin",
+                "name": "Test Basin",
+                "biome_tags": ["test_basin"],
+                "location_tags": [],
+                "item_tags": ["berry", "fruit"],
+                "weight": 2,
+                "conditions": {},
+            }, f)
+
+        old_resource_dir = bio._resource_dir
+        bio._resource_dir = lib_dir
+        try:
+            old_cache = bio._cache.copy()
+            bio._cache.clear()
+            try:
+                dist = bio.resource_distribution()
+                assert "test_basin" in dist
+                assert dist["test_basin"] == [{"tags": ["berry", "fruit"], "weight": 2}]
+                nodes, edges, unresolved = spawner.spawn_resources(
+                    [_area("area_basin", "test_basin")], _index(),
+                    scope_id=SCOPE, seed="s", per_area=1,
+                    distribution=dist, rng=random.Random(1))
+                assert len(nodes) == 1
+                assert unresolved == {}
+            finally:
+                bio._cache = old_cache
+        finally:
+            bio._resource_dir = old_resource_dir

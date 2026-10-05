@@ -1,0 +1,14 @@
+{
+  "id": "stream_herb_medicinal_0",
+  "name": "stream resource 1",
+  "biome_tags": [
+    "stream"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "herb",
+    "medicinal"
+  ],
+  "weight": 2,
+  "conditions": {}
+}

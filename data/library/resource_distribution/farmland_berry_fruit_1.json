@@ -1,0 +1,14 @@
+{
+  "id": "farmland_berry_fruit_1",
+  "name": "farmland resource 2",
+  "biome_tags": [
+    "farmland"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "berry",
+    "fruit"
+  ],
+  "weight": 2,
+  "conditions": {}
+}

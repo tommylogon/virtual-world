@@ -1,0 +1,14 @@
+{
+  "id": "dense_forest_root_food_2",
+  "name": "dense_forest resource 3",
+  "biome_tags": [
+    "dense_forest"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "root",
+    "food"
+  ],
+  "weight": 3,
+  "conditions": {}
+}

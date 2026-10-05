@@ -1,0 +1,14 @@
+{
+  "id": "ocean_coin_currency_2",
+  "name": "ocean resource 3",
+  "biome_tags": [
+    "ocean"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "coin",
+    "currency"
+  ],
+  "weight": 1,
+  "conditions": {}
+}

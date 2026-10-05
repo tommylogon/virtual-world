@@ -1,0 +1,13 @@
+{
+  "id": "ravine_antique_0",
+  "name": "ravine resource 1",
+  "biome_tags": [
+    "ravine"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "antique"
+  ],
+  "weight": 3,
+  "conditions": {}
+}

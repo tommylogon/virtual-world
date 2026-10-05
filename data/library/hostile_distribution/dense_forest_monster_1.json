@@ -1,0 +1,13 @@
+{
+  "id": "dense_forest_monster_1",
+  "name": "dense_forest monster 2",
+  "biome_tags": [
+    "dense_forest"
+  ],
+  "location_tags": [],
+  "kind": "monster",
+  "base_chance": 0.01,
+  "per_area_from_settlement": 0.005,
+  "max_chance": 0.15,
+  "conditions": {}
+}

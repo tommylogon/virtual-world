@@ -1,0 +1,13 @@
+{
+  "id": "spring_junk_1",
+  "name": "spring resource 2",
+  "biome_tags": [
+    "spring"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "junk"
+  ],
+  "weight": 1,
+  "conditions": {}
+}

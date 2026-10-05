@@ -1,0 +1,14 @@
+{
+  "id": "cliff_scrap_junk_0",
+  "name": "cliff resource 1",
+  "biome_tags": [
+    "cliff"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "scrap",
+    "junk"
+  ],
+  "weight": 3,
+  "conditions": {}
+}

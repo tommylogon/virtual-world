@@ -1,0 +1,13 @@
+{
+  "id": "lake_junk_2",
+  "name": "lake resource 3",
+  "biome_tags": [
+    "lake"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "junk"
+  ],
+  "weight": 2,
+  "conditions": {}
+}

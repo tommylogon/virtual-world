@@ -1,0 +1,14 @@
+{
+  "id": "pine_forest_root_food_0",
+  "name": "pine_forest resource 1",
+  "biome_tags": [
+    "pine_forest"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "root",
+    "food"
+  ],
+  "weight": 3,
+  "conditions": {}
+}

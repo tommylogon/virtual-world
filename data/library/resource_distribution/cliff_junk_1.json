@@ -1,0 +1,13 @@
+{
+  "id": "cliff_junk_1",
+  "name": "cliff resource 2",
+  "biome_tags": [
+    "cliff"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "junk"
+  ],
+  "weight": 2,
+  "conditions": {}
+}

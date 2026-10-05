@@ -1,0 +1,14 @@
+{
+  "id": "dense_forest_herb_medicinal_1",
+  "name": "dense_forest resource 2",
+  "biome_tags": [
+    "dense_forest"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "herb",
+    "medicinal"
+  ],
+  "weight": 3,
+  "conditions": {}
+}

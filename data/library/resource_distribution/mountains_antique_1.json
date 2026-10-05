@@ -1,0 +1,13 @@
+{
+  "id": "mountains_antique_1",
+  "name": "mountains resource 2",
+  "biome_tags": [
+    "mountains"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "antique"
+  ],
+  "weight": 2,
+  "conditions": {}
+}

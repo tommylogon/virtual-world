@@ -1,0 +1,14 @@
+{
+  "id": "hills_herb_medicinal_0",
+  "name": "hills resource 1",
+  "biome_tags": [
+    "hills"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "herb",
+    "medicinal"
+  ],
+  "weight": 3,
+  "conditions": {}
+}

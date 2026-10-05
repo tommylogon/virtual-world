@@ -1,0 +1,13 @@
+{
+  "id": "pine_forest_bandit_1",
+  "name": "pine_forest bandit 2",
+  "biome_tags": [
+    "pine_forest"
+  ],
+  "location_tags": [],
+  "kind": "bandit",
+  "base_chance": 0.01,
+  "per_area_from_settlement": 0.01,
+  "max_chance": 0.2,
+  "conditions": {}
+}

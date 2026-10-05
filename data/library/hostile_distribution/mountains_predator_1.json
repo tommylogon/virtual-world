@@ -1,0 +1,13 @@
+{
+  "id": "mountains_predator_1",
+  "name": "mountains predator 2",
+  "biome_tags": [
+    "mountains"
+  ],
+  "location_tags": [],
+  "kind": "predator",
+  "base_chance": 0.03,
+  "per_area_from_settlement": 0.01,
+  "max_chance": 0.3,
+  "conditions": {}
+}

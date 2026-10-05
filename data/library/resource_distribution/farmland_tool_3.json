@@ -1,0 +1,13 @@
+{
+  "id": "farmland_tool_3",
+  "name": "farmland resource 4",
+  "biome_tags": [
+    "farmland"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "tool"
+  ],
+  "weight": 1,
+  "conditions": {}
+}

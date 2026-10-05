@@ -1,0 +1,13 @@
+{
+  "id": "hills_tool_3",
+  "name": "hills resource 4",
+  "biome_tags": [
+    "hills"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "tool"
+  ],
+  "weight": 1,
+  "conditions": {}
+}

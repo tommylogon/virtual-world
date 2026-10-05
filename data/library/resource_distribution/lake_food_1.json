@@ -1,0 +1,13 @@
+{
+  "id": "lake_food_1",
+  "name": "lake resource 2",
+  "biome_tags": [
+    "lake"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "food"
+  ],
+  "weight": 1,
+  "conditions": {}
+}

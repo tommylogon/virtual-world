@@ -1,0 +1,14 @@
+{
+  "id": "sparse_forest_herb_medicinal_1",
+  "name": "sparse_forest resource 2",
+  "biome_tags": [
+    "sparse_forest"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "herb",
+    "medicinal"
+  ],
+  "weight": 3,
+  "conditions": {}
+}

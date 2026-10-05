@@ -140,11 +140,13 @@ def test_adding_a_biome_is_data_only():
         "forage_skills": ["survival"], "surface": "mud",
         "descriptions": ["Standing water and tufted reeds."],
     }
-    data["resource_distribution"]["marsh"] = [{"tags": ["herb"], "weight": 2}]
-    data["hostile_distribution"]["marsh"] = [
+    # Bundled keys were migrated to library dirs; add them back to the copy
+    # so this unit test can validate the in-memory record directly.
+    data["resource_distribution"] = {"marsh": [{"tags": ["herb"], "weight": 2}]}
+    data["hostile_distribution"] = {"marsh": [
         {"kind": "predator", "base_chance": 0.02,
          "per_area_from_settlement": 0.01, "max_chance": 0.2},
-    ]
+    ]}
     assert biomes.validate(data) == []
 
 
@@ -154,11 +156,11 @@ def test_a_bad_biome_is_rejected():
         "name": "Bad", "terrain": "rock", "tags": ["nowhere"],
         "forage_skills": ["alchemy"], "surface": "stone", "descriptions": [],
     }
-    data["resource_distribution"]["bad"] = [{"tags": ["unicorn"], "weight": 1}]
-    data["hostile_distribution"]["bad"] = [
+    data["resource_distribution"] = {"bad": [{"tags": ["unicorn"], "weight": 1}]}
+    data["hostile_distribution"] = {"bad": [
         {"kind": "dragon", "base_chance": 2, "per_area_from_settlement": -1,
          "max_chance": 0},
-    ]
+    ]}
     problems = biomes.validate(data)
     joined = " ".join(problems)
     assert "bad: no area tag foraging recognises" in joined
@@ -169,13 +171,37 @@ def test_a_bad_biome_is_rejected():
 
 
 def test_missing_rules_are_flagged():
+    # Bundled keys migrated to library dirs; validate() checks those dirs.
+    # To exercise the missing-rules path, add a biome with no library entries.
     data = copy.deepcopy(biomes.load())
-    del data["resource_distribution"]["lake"]
-    del data["hostile_distribution"]["ocean"]
+    data["biomes"]["barren_rock"] = {
+        "name": "Barren Rock", "terrain": "rock", "tags": ["rock"],
+        "forage_skills": [], "surface": "stone",
+        "descriptions": ["Nothing grows here."],
+    }
     problems = biomes.validate(data)
-    assert any("biome 'lake' has no rules" in p for p in problems)
-    assert any("biome 'ocean' has no rules" in p for p in problems)
+    assert any("biome 'barren_rock' has no rules" in p for p in problems)
 
 
 def test_area_tags_are_lowercased():
     assert biomes.area_tags("dense_forest") == ["forest", "woods", "dense"]
+
+
+def test_resource_library_returns_split_entries():
+    lib = biomes.resource_library()
+    assert lib, "resource_distribution library dir should not be empty after migration"
+    first = next(iter(lib.values()))
+    assert "id" in first
+    assert "biome_tags" in first
+    assert "item_tags" in first
+    assert "weight" in first
+
+
+def test_hostile_library_returns_split_entries():
+    lib = biomes.hostile_library()
+    assert lib, "hostile_distribution library dir should not be empty after migration"
+    first = next(iter(lib.values()))
+    assert "id" in first
+    assert "biome_tags" in first
+    assert "kind" in first
+    assert "base_chance" in first

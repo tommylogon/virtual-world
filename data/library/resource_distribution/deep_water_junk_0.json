@@ -1,0 +1,13 @@
+{
+  "id": "deep_water_junk_0",
+  "name": "deep_water resource 1",
+  "biome_tags": [
+    "deep_water"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "junk"
+  ],
+  "weight": 1,
+  "conditions": {}
+}

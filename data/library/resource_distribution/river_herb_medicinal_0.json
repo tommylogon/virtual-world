@@ -1,0 +1,14 @@
+{
+  "id": "river_herb_medicinal_0",
+  "name": "river resource 1",
+  "biome_tags": [
+    "river"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "herb",
+    "medicinal"
+  ],
+  "weight": 2,
+  "conditions": {}
+}

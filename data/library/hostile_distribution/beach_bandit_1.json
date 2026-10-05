@@ -1,0 +1,13 @@
+{
+  "id": "beach_bandit_1",
+  "name": "beach bandit 2",
+  "biome_tags": [
+    "beach"
+  ],
+  "location_tags": [],
+  "kind": "bandit",
+  "base_chance": 0.01,
+  "per_area_from_settlement": 0.005,
+  "max_chance": 0.15,
+  "conditions": {}
+}

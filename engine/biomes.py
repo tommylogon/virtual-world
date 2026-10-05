@@ -134,12 +134,84 @@ def features(path: Optional[str] = None) -> Dict[str, dict]:
     return load(path).get("features") or {}
 
 
+_resource_dir = os.path.join(os.path.dirname(DATA_PATH), "..", "library", "resource_distribution")
+_hostile_dir = os.path.join(os.path.dirname(DATA_PATH), "..", "library", "hostile_distribution")
+
+
+def _load_library_dir(directory: str) -> Dict[str, dict]:
+    """Load one-file-per-entry JSON files from a library subdirectory."""
+    out: Dict[str, dict] = {}
+    if not os.path.isdir(directory):
+        return out
+    for entry in os.listdir(directory):
+        if not entry.endswith(".json"):
+            continue
+        path = os.path.join(directory, entry)
+        with open(path, "r", encoding="utf-8-sig") as f:
+            out[entry[:-5]] = json.load(f)
+    return out
+
+
 def resource_distribution(path: Optional[str] = None) -> Dict[str, list]:
-    return load(path).get("resource_distribution") or {}
+    data = load(path)
+    bundled = data.get("resource_distribution") or {}
+    if bundled:
+        return bundled
+    library = _load_library_dir(_resource_dir)
+    return _library_to_per_biome(library)
 
 
 def hostile_distribution(path: Optional[str] = None) -> Dict[str, list]:
-    return load(path).get("hostile_distribution") or {}
+    data = load(path)
+    bundled = data.get("hostile_distribution") or {}
+    if bundled:
+        return bundled
+    library = _load_library_dir(_hostile_dir)
+    return _library_to_per_biome_hostile(library)
+
+
+def resource_library(path: Optional[str] = None) -> Dict[str, dict]:
+    """Return raw resource loot table entries from the library dirs.
+
+    Each entry carries ``id``, ``name``, ``biome_tags``, ``location_tags``,
+    ``item_tags``, ``weight``, and ``conditions``. The fishing Activity resolver
+    (task-716) uses this when it needs the richer schema.
+    """
+    data = load(path)
+    if data.get("resource_distribution"):
+        return {}
+    return _load_library_dir(_resource_dir)
+
+
+def hostile_library(path: Optional[str] = None) -> Dict[str, dict]:
+    """Return raw hostile loot table entries from the library dirs."""
+    data = load(path)
+    if data.get("hostile_distribution"):
+        return {}
+    return _load_library_dir(_hostile_dir)
+
+
+def _library_to_per_biome(library: Dict[str, dict]) -> Dict[str, list]:
+    out: Dict[str, list] = {}
+    for entry in library.values():
+        for tag in (entry.get("biome_tags") or []):
+            out.setdefault(str(tag), []).append({
+                "tags": [str(t) for t in (entry.get("item_tags") or [])],
+                "weight": entry.get("weight", 1),
+            })
+    return out
+
+
+def _library_to_per_biome_hostile(library: Dict[str, dict]) -> Dict[str, list]:
+    out: Dict[str, list] = {}
+    for entry in library.values():
+        out.setdefault(str(entry.get("biome_tags", [None])[0] or ""), []).append({
+            "kind": str(entry.get("kind") or ""),
+            "base_chance": entry.get("base_chance", 0.0),
+            "per_area_from_settlement": entry.get("per_area_from_settlement", 0.0),
+            "max_chance": entry.get("max_chance", 1.0),
+        })
+    return out
 
 
 def biome(biome_id, path: Optional[str] = None) -> Optional[dict]:
@@ -406,7 +478,10 @@ def validate(data: Optional[dict] = None, path: Optional[str] = None) -> List[st
         if not [d for d in (rec.get("descriptions") or []) if str(d).strip()]:
             problems.append(f"feature {fid}: no description fragments")
 
-    resources = data.get("resource_distribution") or {}
+    bundled_resources = data.get("resource_distribution") or {}
+    lib_resources = _load_library_dir(_resource_dir)
+    lib_per_biome = _library_to_per_biome(lib_resources)
+    resources = {**lib_per_biome, **bundled_resources}
     for bid, entries in resources.items():
         if bid not in bios:
             problems.append(f"resource_distribution: unknown biome '{bid}'")
@@ -427,7 +502,10 @@ def validate(data: Optional[dict] = None, path: Optional[str] = None) -> List[st
         if bid not in resources and not (is_made(bios[bid]) or is_structure(bios[bid])):
             problems.append(f"resource_distribution: biome '{bid}' has no rules")
 
-    hostiles = data.get("hostile_distribution") or {}
+    bundled_hostiles = data.get("hostile_distribution") or {}
+    lib_hostiles = _load_library_dir(_hostile_dir)
+    lib_hostile_per_biome = _library_to_per_biome_hostile(lib_hostiles)
+    hostiles = {**lib_hostile_per_biome, **bundled_hostiles}
     for bid, entries in hostiles.items():
         if bid not in bios:
             problems.append(f"hostile_distribution: unknown biome '{bid}'")

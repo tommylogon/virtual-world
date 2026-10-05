@@ -1,0 +1,13 @@
+{
+  "id": "mountains_monster_0",
+  "name": "mountains monster 1",
+  "biome_tags": [
+    "mountains"
+  ],
+  "location_tags": [],
+  "kind": "monster",
+  "base_chance": 0.04,
+  "per_area_from_settlement": 0.01,
+  "max_chance": 0.4,
+  "conditions": {}
+}

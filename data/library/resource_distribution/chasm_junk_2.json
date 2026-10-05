@@ -1,0 +1,13 @@
+{
+  "id": "chasm_junk_2",
+  "name": "chasm resource 3",
+  "biome_tags": [
+    "chasm"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "junk"
+  ],
+  "weight": 1,
+  "conditions": {}
+}

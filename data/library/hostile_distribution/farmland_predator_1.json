@@ -1,0 +1,13 @@
+{
+  "id": "farmland_predator_1",
+  "name": "farmland predator 2",
+  "biome_tags": [
+    "farmland"
+  ],
+  "location_tags": [],
+  "kind": "predator",
+  "base_chance": 0.01,
+  "per_area_from_settlement": 0.005,
+  "max_chance": 0.15,
+  "conditions": {}
+}

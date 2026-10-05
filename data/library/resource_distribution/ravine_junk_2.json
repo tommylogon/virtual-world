@@ -1,0 +1,13 @@
+{
+  "id": "ravine_junk_2",
+  "name": "ravine resource 3",
+  "biome_tags": [
+    "ravine"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "junk"
+  ],
+  "weight": 2,
+  "conditions": {}
+}

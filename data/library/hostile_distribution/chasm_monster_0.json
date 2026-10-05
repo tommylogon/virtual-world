@@ -1,0 +1,13 @@
+{
+  "id": "chasm_monster_0",
+  "name": "chasm monster 1",
+  "biome_tags": [
+    "chasm"
+  ],
+  "location_tags": [],
+  "kind": "monster",
+  "base_chance": 0.05,
+  "per_area_from_settlement": 0.02,
+  "max_chance": 0.5,
+  "conditions": {}
+}

@@ -1,0 +1,14 @@
+{
+  "id": "sparse_forest_root_food_2",
+  "name": "sparse_forest resource 3",
+  "biome_tags": [
+    "sparse_forest"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "root",
+    "food"
+  ],
+  "weight": 2,
+  "conditions": {}
+}

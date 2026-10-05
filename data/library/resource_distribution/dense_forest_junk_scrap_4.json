@@ -1,0 +1,14 @@
+{
+  "id": "dense_forest_junk_scrap_4",
+  "name": "dense_forest resource 5",
+  "biome_tags": [
+    "dense_forest"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "junk",
+    "scrap"
+  ],
+  "weight": 1,
+  "conditions": {}
+}

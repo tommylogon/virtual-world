@@ -1,0 +1,13 @@
+{
+  "id": "farmland_food_2",
+  "name": "farmland resource 3",
+  "biome_tags": [
+    "farmland"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "food"
+  ],
+  "weight": 2,
+  "conditions": {}
+}

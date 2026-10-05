@@ -1,0 +1,13 @@
+{
+  "id": "river_food_1",
+  "name": "river resource 2",
+  "biome_tags": [
+    "river"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "food"
+  ],
+  "weight": 1,
+  "conditions": {}
+}

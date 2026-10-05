@@ -1,0 +1,14 @@
+{
+  "id": "mountains_coin_currency_2",
+  "name": "mountains resource 3",
+  "biome_tags": [
+    "mountains"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "coin",
+    "currency"
+  ],
+  "weight": 2,
+  "conditions": {}
+}

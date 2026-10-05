@@ -1,0 +1,13 @@
+{
+  "id": "ravine_bandit_0",
+  "name": "ravine bandit 1",
+  "biome_tags": [
+    "ravine"
+  ],
+  "location_tags": [],
+  "kind": "bandit",
+  "base_chance": 0.03,
+  "per_area_from_settlement": 0.015,
+  "max_chance": 0.35,
+  "conditions": {}
+}

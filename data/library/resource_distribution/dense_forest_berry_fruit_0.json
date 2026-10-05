@@ -1,0 +1,14 @@
+{
+  "id": "dense_forest_berry_fruit_0",
+  "name": "dense_forest resource 1",
+  "biome_tags": [
+    "dense_forest"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "berry",
+    "fruit"
+  ],
+  "weight": 3,
+  "conditions": {}
+}

@@ -1,0 +1,14 @@
+{
+  "id": "beach_coin_currency_2",
+  "name": "beach resource 3",
+  "biome_tags": [
+    "beach"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "coin",
+    "currency"
+  ],
+  "weight": 1,
+  "conditions": {}
+}

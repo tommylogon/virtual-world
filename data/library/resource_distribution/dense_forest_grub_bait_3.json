@@ -1,0 +1,14 @@
+{
+  "id": "dense_forest_grub_bait_3",
+  "name": "dense_forest resource 4",
+  "biome_tags": [
+    "dense_forest"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "grub",
+    "bait"
+  ],
+  "weight": 2,
+  "conditions": {}
+}

@@ -1,0 +1,14 @@
+{
+  "id": "pine_forest_junk_scrap_3",
+  "name": "pine_forest resource 4",
+  "biome_tags": [
+    "pine_forest"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "junk",
+    "scrap"
+  ],
+  "weight": 1,
+  "conditions": {}
+}

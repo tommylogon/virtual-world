@@ -1,0 +1,13 @@
+{
+  "id": "chasm_antique_0",
+  "name": "chasm resource 1",
+  "biome_tags": [
+    "chasm"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "antique"
+  ],
+  "weight": 3,
+  "conditions": {}
+}

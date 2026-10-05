@@ -1,0 +1,13 @@
+{
+  "id": "mountains_junk_3",
+  "name": "mountains resource 4",
+  "biome_tags": [
+    "mountains"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "junk"
+  ],
+  "weight": 1,
+  "conditions": {}
+}

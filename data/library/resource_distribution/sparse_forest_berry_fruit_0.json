@@ -1,0 +1,14 @@
+{
+  "id": "sparse_forest_berry_fruit_0",
+  "name": "sparse_forest resource 1",
+  "biome_tags": [
+    "sparse_forest"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "berry",
+    "fruit"
+  ],
+  "weight": 4,
+  "conditions": {}
+}

@@ -1,0 +1,14 @@
+{
+  "id": "sparse_forest_junk_scrap_3",
+  "name": "sparse_forest resource 4",
+  "biome_tags": [
+    "sparse_forest"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "junk",
+    "scrap"
+  ],
+  "weight": 1,
+  "conditions": {}
+}

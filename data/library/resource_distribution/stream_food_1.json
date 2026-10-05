@@ -1,0 +1,13 @@
+{
+  "id": "stream_food_1",
+  "name": "stream resource 2",
+  "biome_tags": [
+    "stream"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "food"
+  ],
+  "weight": 1,
+  "conditions": {}
+}

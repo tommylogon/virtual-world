@@ -1,0 +1,14 @@
+{
+  "id": "pine_forest_herb_medicinal_1",
+  "name": "pine_forest resource 2",
+  "biome_tags": [
+    "pine_forest"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "herb",
+    "medicinal"
+  ],
+  "weight": 2,
+  "conditions": {}
+}

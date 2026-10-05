@@ -1,0 +1,14 @@
+{
+  "id": "lake_herb_medicinal_0",
+  "name": "lake resource 1",
+  "biome_tags": [
+    "lake"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "herb",
+    "medicinal"
+  ],
+  "weight": 2,
+  "conditions": {}
+}
