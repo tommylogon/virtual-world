@@ -68,3 +68,27 @@ test('an NPC line is attributed to its actor, not to You', () => {
     assertEq(parsed.content, 'kyrie johansen unwraps the protein bar and takes a dry bite.',
         'the text is not mangled into an action');
 });
+
+test('bug-518: an NPC result row is attributed to its actor, not to You', () => {
+    // The emitter stamps the acting character on the result row. parseEntry's
+    // result branch used to hardcode actor:null, so an NPC's row fell through
+    // to isPlayer and rendered as "You".
+    const parsed = TurnFeed.parseEntry({
+        text: 'You eat the granola_bar.',
+        className: 'msg-result',
+        actor: 'sammy lopez',
+        seq: 1,
+    });
+    assertEq(parsed.type, 'result', 'still a result row');
+    assertEq(parsed.actor, 'sammy lopez', 'the carried actor is kept');
+});
+
+test('an actor-less result row still reads as the player', () => {
+    const parsed = TurnFeed.parseEntry({
+        text: 'You use the protein_bar.',
+        className: 'msg-result',
+        actor: null,
+        seq: 2,
+    });
+    assertEq(parsed.actor, null, 'no actor means the player, rendered as You');
+});

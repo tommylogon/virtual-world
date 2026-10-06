@@ -483,7 +483,7 @@ class AgentEngine {
                     }
                     if (output && !output.includes('says:')) {
                         if (output.includes('ValueError')) events.log(output, 'error-msg');
-                        else events.log(output, 'msg-result', { outcome: data?.success !== false ? 'success' : 'failure' });
+                        else events.log(output, 'msg-result', { outcome: data?.success !== false ? 'success' : 'failure' }, charName);
                     }
                     // task-448: an ambiguous target returns a structured chooser;
                     // render it so a pick resolves to the identity key.
@@ -739,7 +739,7 @@ class AgentEngine {
                 if (actionRejected) {
                     actionResult = this._surfaceRejectedAction(charName, actionRejected);
                     actionSucceeded = false;
-                    events.log(actionResult, 'msg-result', { outcome: 'failure' });
+                    events.log(actionResult, 'msg-result', { outcome: 'failure' }, charName);
                 }
                 if (finalAction) {
                     events.logPhase(charName, 'act', finalAction);
@@ -749,7 +749,7 @@ class AgentEngine {
                     if (noopAction) {
                         actionResult = 'You stand still and wait, watching and listening.';
                         actionSucceeded = true;
-                        events.log(actionResult, 'msg-result', { outcome: 'minor' });
+                        events.log(actionResult, 'msg-result', { outcome: 'minor' }, charName);
                     } else try {
                         const data = await agentApi.action(finalAction, charName);
                         if (data?.scenario_ended) {
@@ -787,7 +787,7 @@ class AgentEngine {
                         if (!outputText.includes('says:')) {
                             if (narratedText) events.log(outputText, 'msg-narrated');
                             else if (outputText.includes('ValueError')) events.log(outputText, 'error-msg');
-                            else events.log(outputText, 'msg-result', { outcome: actionSucceeded ? 'success' : 'failure' });
+                            else events.log(outputText, 'msg-result', { outcome: actionSucceeded ? 'success' : 'failure' }, charName);
                         }
                         events.trackAction(charName, '', null, finalAction, outputText);
                         const area = worldState.players?.[charName]?.current_area;
@@ -1299,7 +1299,7 @@ class AgentEngine {
             PlanTracker.trackStep(charName, retryAction, result, succeeded);
             events.trackAction(charName, '', null, retryAction, result);
             if (result && !result.includes('says:')) {
-                events.log(result, result.includes('ValueError') ? 'error-msg' : 'msg-result', { outcome: succeeded ? 'success' : 'failure' });
+                events.log(result, result.includes('ValueError') ? 'error-msg' : 'msg-result', { outcome: succeeded ? 'success' : 'failure' }, charName);
             }
             return { finalAction: retryAction, actionResult: result, actionSucceeded: succeeded };
         } catch (err) {

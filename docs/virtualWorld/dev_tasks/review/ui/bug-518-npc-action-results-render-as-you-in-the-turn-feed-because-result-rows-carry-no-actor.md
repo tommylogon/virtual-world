@@ -1,6 +1,6 @@
 ---
 type: bug
-status: todo
+status: review
 area: ui
 priority: high
 ---
@@ -66,3 +66,30 @@ Emit result rows with the actor, the way action rows already do. This is
 the same fix surface as task-692's director pass, which is why the two
 are related — a narration row that carries its actor makes this
 unrepresentable rather than merely fixed.
+
+## Implemented (2026-10-06)
+
+Two halves, because the actor was available at the emit site and thrown away at
+the read site:
+
+- **`static/js/agent/turn-feed.ts`** — the `result` branch of `parseEntry` now
+  returns `actor: structuralActor` (the row's stamped actor) instead of a
+  hardcoded `null`. A row with no actor (a human action, or a system row) still
+  resolves to `null` and renders as `You`.
+- **`static/js/agent-engine.ts`** — the five `msg-result` emissions now pass the
+  performing character as the 4th `actor` argument of `events.log`
+  (`event-stream.ts:211` `log(text, className, meta?, actor?)`), so attribution
+  comes from a **carried actor**, not a name comparison against `activePlayer`.
+  Note: the actor had to be the 4th argument, not a key in `meta` — the bus
+  carries `actor` at the top level (`event-stream.ts:218`) and the feed reads
+  `data.actor` (`turn-feed.ts:57`); a `meta.actor` would be silently ignored.
+
+Sites updated: the human-reply result (`:486`), action rejected (`:742`), noop
+(`:752`), the main per-character result (`:790`), and the retry result (`:1302`).
+
+**Regression test** added to `tools/unit/test_turn_feed_scope.js`: an NPC result
+row carries its actor, an actor-less result row stays `null` (→ `You`). Unit
+runner green: **618 passed, 0 failed**.
+
+Not yet verified in a live LLM turn (that needs a real NPC action); the parse
+fix — the exact defect — is covered by the unit test.

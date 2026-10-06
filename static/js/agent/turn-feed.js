@@ -285,7 +285,11 @@ const TurnFeedModule = (() => {
             };
         }
         if (isResult) {
-            return { type: 'result', actor: null, content: text };
+            // bug-518: carry the actor the emitter stamped on the row, so an
+            // NPC's result is attributed to that NPC instead of falling through
+            // to the player (`!parsed.actor` => isPlayer). A row with no actor
+            // (a human action, or a system row) still renders as "You".
+            return { type: 'result', actor: structuralActor, content: text };
         }
         if (isThought) {
             const m = text.match(/^\[([^\]]+)\s+inner\]\s*(.*)/);
