@@ -305,6 +305,7 @@
         layer: string;
         value: string;
         brush: number;
+        brushHover: WpCell[] | null;
         paintAlpha: number;
         stroke: WpCell[];
         stroking: boolean;
@@ -406,6 +407,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         layer: 'biome',
         value: 'sparse_forest',
         brush: 1,
+        brushHover: null,
         paintAlpha: 0.75,
         stroke: [],
         stroking: false,
@@ -1187,13 +1189,9 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
      * Four tool buttons in a top row is a toolbar for four things; eight is a
      * toolbar for a spreadsheet. A rail keeps the active tool obvious, gives each
      * one a key, and leaves the width for the map — which is the thing being
-     * looked at. The layer/value/brush controls stay in the top row on purpose:
-     * they are not options of one tool but of the four that write paint (paint,
-     * erase, route, feature), and putting them in the rail would mean the author
-     * switches tools to change a setting that outlives the switch. What the rail
-     * *does* own is the options that belong to the active tool: the selection
-     * panel under Select, the nudge readout under Move.
-     */
+      * looked at. The layer/value controls stay in the top row; the brush moved
+      * to the rail so it travels with the active tool (task-536).
+      */
     const TOOLS: [string, string, string, string][] = [
         ['select', '⬚ Select', 'V',
             'Click cells to select, shift-click to add, drag for a marquee. '
@@ -1286,6 +1284,25 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
             grid.appendChild(_btn('↓', () => _nudge(p, 0, 1), 'padding:2px 6px;', 'Down'));
             grid.appendChild(_btn('→', () => _nudge(p, 1, 0), 'padding:2px 6px;', 'Right'));
             box.appendChild(grid);
+            return box;
+        }
+        if (state.tool === 'paint' || state.tool === 'erase' || state.tool === 'route') {
+            const box = _el('div', 'display:flex;flex-direction:column;gap:4px;align-items:flex-start;');
+            box.appendChild(_el('span', 'font-size:11px;color:var(--text-muted,#999);', 'brush'));
+            const brushSel = _el('select', 'padding:3px;border-radius:5px;');
+            brushSel.setAttribute('data-role', 'wp-brush');
+            [1, 2, 3, 5, 8, 12].forEach((n) => {
+                const opt = _el('option', null, `${n}×${n}`);
+                opt.value = String(n);
+                if (n === state.brush) opt.selected = true;
+                brushSel.appendChild(opt);
+            });
+            brushSel.addEventListener('change', () => {
+                state.brush = parseInt(brushSel.value, 10) || 1;
+                brushSel.blur();
+            });
+            box.appendChild(brushSel);
+            _help(brushSel, 'wp-brush');
             return box;
         }
         return null;
@@ -1501,9 +1518,11 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
     }
 
     function _toolbar(p: WpPayload): HTMLElement {
-        const wrap = _el('div', 'display:flex;flex-wrap:wrap;gap:8px;align-items:center;' +
-            'padding:8px;border:1px solid var(--border,#3a3a44);border-radius:8px;margin-bottom:8px;');
+        const wrap = _el('div', 'display:flex;flex-wrap:nowrap;gap:8px;align-items:center;' +
 
+            'padding:8px;border:1px solid var(--border,#3a3a44);border-radius:8px;margin-bottom:8px;' +
+
+            'overflow-x:auto;');
         const modeBadge = _el('span',
             'font-size:11px;padding:2px 8px;border-radius:10px;background:#2d4a6b;color:#cfe;',
             `mode: ${p.mode || 'unset'}`);
@@ -1531,23 +1550,6 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         });
         _help(wrap.appendChild(layerSel), 'wp-layer');
         wrap.appendChild(_help(_valueControl(), 'wp-value')!);
-
-        // Brush size: paints an N×N block per click — the difference between a
-        // forest being 8 clicks or 800. Also widens a route/trail.
-        wrap.appendChild(_el('span', 'font-size:12px;color:var(--text-muted,#999);', 'brush'));
-        const brushSel = _el('select', 'padding:3px;border-radius:5px;');
-        brushSel.setAttribute('data-role', 'wp-brush');
-        [1, 2, 3, 5, 8, 12].forEach((n) => {
-            const opt = _el('option', null, `${n}×${n}`);
-            opt.value = String(n);
-            if (n === state.brush) opt.selected = true;
-            brushSel.appendChild(opt);
-        });
-        brushSel.addEventListener('change', () => {
-            state.brush = parseInt(brushSel.value, 10) || 1;
-            brushSel.blur();   // same focus trap as the value picker (bug-511)
-        });
-        _help(wrap.appendChild(brushSel), 'wp-brush');
 
         wrap.appendChild(_btn('▦ Grid…', () => _openGridDialog(p)));
         // Direct manipulation of the grid itself (task-597). The dialog is still
@@ -2837,6 +2839,19 @@ function _gridExtent(p: WpPayload): { w: number; h: number } {
             ctx.fill();
         });
         ctx.restore();
+        // Brush hover preview: outline the cells the brush would cover.
+        const hover = state.brushHover;
+        if (hover && hover.length && state.payload) {
+            ctx.save();
+            ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+            ctx.lineWidth = Math.max(1, 1.5 / ((state.stage && state.stage.scaleX()) || 1));
+            ctx.setLineDash([4 / ((state.stage && state.stage.scaleX()) || 1), 3 / ((state.stage && state.stage.scaleX()) || 1)]);
+            hover.forEach((c) => {
+                ctx.strokeRect(c.x * CELL + 0.5, c.y * CELL + 0.5, CELL - 1, CELL - 1);
+            });
+            ctx.setLineDash([]);
+            ctx.restore();
+        }
     }
 
     function _isPaintTool(): boolean {
@@ -2931,6 +2946,13 @@ function _gridExtent(p: WpPayload): { w: number; h: number } {
                 return;
             }
             if (state.stroking && _strokeAdd(p, cell)) _redrawDecor();
+            else if (cell) {
+                state.brushHover = _brushCells(p, cell.x, cell.y);
+                _redrawDecor();
+            } else {
+                state.brushHover = null;
+                _redrawDecor();
+            }
             _updateCellInfo(p);
         });
         stage.on('mouseup mouseleave', () => {
@@ -2940,6 +2962,8 @@ function _gridExtent(p: WpPayload): { w: number; h: number } {
             if (state.refEdit) { _refMouseUp(); return; }
             if (state.marquee) { _commitMarquee(p); return; }
             if (state.stroking) _commitStroke(p);
+            state.brushHover = null;
+            _redrawDecor();
         });
 
         stage.on('click tap', () => {
