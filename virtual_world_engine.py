@@ -1118,8 +1118,8 @@ class VirtualWorld:
         """No-op: locked_with was removed from door nodes."""
 
     # ─────────────────── Serialization ───────────────────
-    def to_dict(self):
-        return self.serializer.to_dict()
+    def to_dict(self, lite=False):
+        return self.serializer.to_dict(lite=lite)
 
 
     def to_scenario_dict(self) -> dict:

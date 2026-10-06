@@ -159,7 +159,12 @@ def _build_narration_context_for_current_area(world):
 
 def handle_get_state(app):
     try:
-        state = app.world.to_dict()
+        # task-XXX: ?lite=1 returns a trimmed payload (graph + essential player
+        # state only, no area projections/legacy collections) so the browser can
+        # paint the world before the full state arrives. The initial render is
+        # built from the lite payload, then a full fetch fills in the rest.
+        lite = request.args.get("lite", "").strip().lower() in ("1", "true", "yes")
+        state = app.world.to_dict(lite=lite)
         state["scenario_ended"] = getattr(app.world, 'scenario_ended', False)
         state["_restart_requested"] = getattr(app.world, '_restart_requested', False)
         state["vital_polarity"] = VITAL_POLARITY

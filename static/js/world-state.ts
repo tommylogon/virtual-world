@@ -69,10 +69,16 @@ class WorldState {
         }
     }
 
-    /** Fetch latest state from backend */
-    async fetch() {
+    /** Fetch latest state from backend.
+     * @param lite - when true, fetch the trimmed lite payload first, then
+     *               kick off a background full fetch. The initial render
+     *               uses the lite payload; the full payload replaces it
+     *               when it arrives.
+     */
+    async fetch(lite = false) {
         try {
-            const resp = await fetch('/api/state');
+            const url = lite ? '/api/state?lite=1' : '/api/state';
+            const resp = await fetch(url);
             const state = await resp.json();
             this.data = state;
             this._syncTurnEvents(state);
@@ -83,6 +89,11 @@ class WorldState {
             this._emit('update', state);
             const bus = (window as unknown as { appEvents?: { emit(event: string, data?: unknown): void } }).appEvents;
             if (bus) bus.emit('state:updated', state);
+            // After a lite payload, fetch the full state in the background
+            // so the UI gets the complete picture without blocking the initial paint.
+            if (lite) {
+                this.fetch(false).catch(() => { /* full fetch failed; lite data is still usable */ });
+            }
             return state;
         } catch (e) {
             console.error('State fetch failed:', e);
