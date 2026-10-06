@@ -1,18 +1,36 @@
 {
-  "current_area": "Raven River",
+  "current_area": "Side Tunnels",
   "players_in_area": [
     {
-      "name": "Shadow-Pelt",
-      "state": "awake",
+      "name": "Belne",
+      "state": "wet",
+      "description": "",
+      "activity": null,
+      "at_way_id": "way_passage_between_side_tunnels_and_water_source",
+      "spatial_position": {
+        "relation": "at",
+        "target_id": "way_passage_between_side_tunnels_and_water_source",
+        "target_type": "way",
+        "target_name": "passage between Side Tunnels and Water Source"
+      }
+    },
+    {
+      "name": "Rikka",
+      "state": "frightened",
       "description": "",
       "activity": null,
       "at_way_id": null,
-      "spatial_position": null
+      "spatial_position": {
+        "relation": "beside",
+        "target_id": "player_Thrazz",
+        "target_type": "character",
+        "target_name": "Thrazz"
+      }
     }
   ],
   "area_presence": {
     "area_bridge_(world_10,6)": {
-      "zombie__c4d808": 50
+      "zombie__c4d808": 51
     },
     "area_bridge_(world_12,3)": {},
     "area_camp_entrance": {},
@@ -91,9 +109,7 @@
     "area_sleeping_halls": {
       "Tusker": 30
     },
-    "area_sparse_forest_(abandoned_farms_0,0)": {
-      "james": 32
-    },
+    "area_sparse_forest_(abandoned_farms_0,0)": {},
     "area_sparse_forest_(west_woods_10,14)": {},
     "area_sparse_forest_(west_woods_11,14)": {},
     "area_sparse_forest_(west_woods_11,17)": {},
@@ -109,7 +125,7 @@
     "area_sparse_forest_(west_woods_15,18)": {},
     "area_sparse_forest_(west_woods_15,20)": {},
     "area_sparse_forest_(west_woods_16,21)": {
-      "zombie__9dcb3e": 50
+      "zombie__9dcb3e": 51
     },
     "area_sparse_forest_(west_woods_17,21)": {},
     "area_sparse_forest_(west_woods_9,14)": {},
@@ -131,7 +147,10 @@
       "Mikka": 32,
       "Vekka": 32
     },
-    "area_workshop": {}
+    "area_workshop": {},
+    "area_road_(world_16,6)": {
+      "james": 51
+    }
   },
   "players": {
     "Arix": {
@@ -462,7 +481,7 @@
       "activity": null,
       "memories": [
         {
-          "activation": 0.657,
+          "activation": 0.65,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -488,7 +507,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.64,
+          "activation": 0.631,
           "category": "episodic",
           "confidence": 0.72,
           "contradicts": [],
@@ -520,7 +539,7 @@
           "type": "reaction"
         },
         {
-          "activation": 0.755,
+          "activation": 0.75,
           "category": "social",
           "confidence": 0.7,
           "contradicts": [],
@@ -552,7 +571,7 @@
           "type": "social"
         },
         {
-          "activation": 0.657,
+          "activation": 0.65,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -576,7 +595,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.785,
+          "activation": 0.78,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -602,7 +621,7 @@
           "type": "threat"
         },
         {
-          "activation": 0.8495,
+          "activation": 0.846,
           "category": "social",
           "confidence": 0.7,
           "contradicts": [],
@@ -629,14 +648,14 @@
             "trade"
           ],
           "text": "You have been in the Cooking Area.",
-          "tick": 50,
-          "timestamp": 1791299650.1273036,
+          "tick": 51,
+          "timestamp": 1791305672.1938884,
           "type": "social",
-          "visits": 2,
+          "visits": 3,
           "kind": "area"
         },
         {
-          "activation": 0.6,
+          "activation": 0.59,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -939,7 +958,7 @@
       "activity": null,
       "memories": [
         {
-          "activation": 0.657,
+          "activation": 0.65,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -965,7 +984,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.51,
+          "activation": 0.5,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -999,7 +1018,7 @@
           "visits": 99
         },
         {
-          "activation": 0.51,
+          "activation": 0.5,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -1024,7 +1043,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.8495,
+          "activation": 0.846,
           "category": "social",
           "confidence": 0.7,
           "contradicts": [],
@@ -1104,7 +1123,7 @@
         "Bladder": 39,
         "Sanity": 63,
         "Entertainment": 25,
-        "Temperature": 26.800000000000097,
+        "Temperature": 26.900000000000098,
         "Arousal": 0,
         "Pleasure": 0,
         "Stimulation": 0
@@ -1335,7 +1354,7 @@
       "activity": null,
       "memories": [
         {
-          "activation": 0.51,
+          "activation": 0.5,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -1365,10 +1384,10 @@
             "home"
           ],
           "text": "You have been in the Murk Lake.",
-          "tick": 50,
-          "timestamp": 1791299650.129303,
+          "tick": 51,
+          "timestamp": 1791305672.1948893,
           "type": "reaction",
-          "visits": 103
+          "visits": 104
         }
       ],
       "schedule": [],
@@ -1406,14 +1425,14 @@
       "vitals": {
         "HP": 20.0,
         "Max_HP": 100,
-        "Hunger": 54,
-        "Thirst": 68,
+        "Hunger": 55,
+        "Thirst": 69,
         "Hygiene": 0,
-        "Energy": 58,
-        "Social": 3,
+        "Energy": 57,
+        "Social": 2,
         "Bladder": 1,
-        "Sanity": 14,
-        "Entertainment": 2,
+        "Sanity": 13,
+        "Entertainment": 1,
         "Temperature": 37,
         "Arousal": 0,
         "Pleasure": 0,
@@ -1695,7 +1714,7 @@
       "activity": null,
       "memories": [
         {
-          "activation": 0.882,
+          "activation": 0.874,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -1721,7 +1740,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.9944,
+          "activation": 0.9888,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -1748,7 +1767,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.996,
+          "activation": 0.992,
           "category": "social",
           "confidence": 0.74,
           "contradicts": [],
@@ -1782,7 +1801,7 @@
           "visits": 52
         },
         {
-          "activation": 0.996,
+          "activation": 0.992,
           "category": "social",
           "confidence": 0.74,
           "contradicts": [],
@@ -2115,7 +2134,7 @@
       "activity": null,
       "memories": [
         {
-          "activation": 0.657,
+          "activation": 0.65,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -2141,7 +2160,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.613,
+          "activation": 0.604,
           "category": "episodic",
           "confidence": 0.72,
           "contradicts": [],
@@ -2172,7 +2191,7 @@
           "type": "reaction"
         },
         {
-          "activation": 0.804,
+          "activation": 0.8,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -2198,7 +2217,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.613,
+          "activation": 0.604,
           "category": "episodic",
           "confidence": 0.72,
           "contradicts": [],
@@ -2223,7 +2242,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.755,
+          "activation": 0.75,
           "category": "social",
           "confidence": 0.7,
           "contradicts": [],
@@ -2257,7 +2276,7 @@
           "visits": 65
         },
         {
-          "activation": 0.57,
+          "activation": 0.56,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -2282,7 +2301,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.79,
+          "activation": 0.785,
           "category": "social",
           "confidence": 0.7,
           "contradicts": [],
@@ -2309,10 +2328,10 @@
             "fun"
           ],
           "text": "You have been in the Road (world 18,3).",
-          "tick": 50,
-          "timestamp": 1791299650.129303,
+          "tick": 51,
+          "timestamp": 1791305672.1958888,
           "type": "social",
-          "visits": 2,
+          "visits": 3,
           "kind": "area"
         }
       ],
@@ -2644,7 +2663,7 @@
       "activity": null,
       "memories": [
         {
-          "activation": 0.51,
+          "activation": 0.5,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -2670,7 +2689,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.51,
+          "activation": 0.5,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -2705,7 +2724,7 @@
           "visits": 48
         },
         {
-          "activation": 0.657,
+          "activation": 0.65,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -3034,7 +3053,7 @@
       "activity": null,
       "memories": [
         {
-          "activation": 0.51,
+          "activation": 0.5,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -3060,7 +3079,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.51,
+          "activation": 0.5,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -3091,7 +3110,7 @@
           "type": "reaction"
         },
         {
-          "activation": 0.657,
+          "activation": 0.65,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -3118,7 +3137,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.8285,
+          "activation": 0.825,
           "category": "social",
           "confidence": 0.7,
           "contradicts": [],
@@ -3146,13 +3165,13 @@
             "trade"
           ],
           "text": "You have been in the Road (world 18,3).",
-          "tick": 50,
-          "timestamp": 1791299650.130303,
+          "tick": 51,
+          "timestamp": 1791305672.1958888,
           "type": "social",
-          "visits": 66
+          "visits": 67
         },
         {
-          "activation": 0.8495,
+          "activation": 0.846,
           "category": "social",
           "confidence": 0.7,
           "contradicts": [],
@@ -3495,7 +3514,7 @@
       "activity": null,
       "memories": [
         {
-          "activation": 0.657,
+          "activation": 0.65,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -3521,7 +3540,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.657,
+          "activation": 0.65,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -3557,7 +3576,7 @@
           "visits": 48
         },
         {
-          "activation": 0.804,
+          "activation": 0.8,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -3584,7 +3603,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.804,
+          "activation": 0.8,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -3610,7 +3629,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.8285,
+          "activation": 0.825,
           "category": "social",
           "confidence": 0.7,
           "contradicts": [],
@@ -3638,13 +3657,13 @@
             "trade"
           ],
           "text": "You have been in the Road (world 18,3).",
-          "tick": 50,
-          "timestamp": 1791299650.130303,
+          "tick": 51,
+          "timestamp": 1791305672.1958888,
           "type": "social",
-          "visits": 66
+          "visits": 67
         },
         {
-          "activation": 0.8495,
+          "activation": 0.846,
           "category": "social",
           "confidence": 0.7,
           "contradicts": [],
@@ -3984,7 +4003,7 @@
       "activity": null,
       "memories": [
         {
-          "activation": 0.657,
+          "activation": 0.65,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -4011,7 +4030,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.51,
+          "activation": 0.5,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -4047,7 +4066,7 @@
           "visits": 48
         },
         {
-          "activation": 0.755,
+          "activation": 0.75,
           "category": "social",
           "confidence": 0.7,
           "contradicts": [],
@@ -4450,8 +4469,8 @@
       },
       "activity": {
         "duration_ticks": null,
-        "elapsed_minutes": 18,
-        "elapsed_ticks": 18,
+        "elapsed_minutes": 19.0,
+        "elapsed_ticks": 19,
         "started_at_tick": 32,
         "target_item": null,
         "type": "fishing",
@@ -4459,7 +4478,7 @@
       },
       "memories": [
         {
-          "activation": 0.657,
+          "activation": 0.65,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -4486,7 +4505,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.51,
+          "activation": 0.5,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -4516,7 +4535,7 @@
           "visits": 49
         },
         {
-          "activation": 0.657,
+          "activation": 0.65,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -4542,7 +4561,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.51,
+          "activation": 0.5,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -4568,7 +4587,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.657,
+          "activation": 0.65,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -4595,7 +4614,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.657,
+          "activation": 0.65,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -4620,7 +4639,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.8285,
+          "activation": 0.825,
           "category": "social",
           "confidence": 0.7,
           "contradicts": [],
@@ -4654,7 +4673,7 @@
           "visits": 3
         },
         {
-          "activation": 0.832,
+          "activation": 0.825,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -4678,7 +4697,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.874,
+          "activation": 0.867,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -4949,7 +4968,7 @@
         "description": ""
       },
       "emotions": {
-        "happy": 45.5,
+        "happy": 44.0,
         "excited": 30.0,
         "elated": 22.0,
         "proud": 30.0,
@@ -5038,7 +5057,7 @@
       "activity": null,
       "memories": [
         {
-          "activation": 0.657,
+          "activation": 0.65,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -5065,7 +5084,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.51,
+          "activation": 0.5,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -5101,7 +5120,7 @@
           "visits": 48
         },
         {
-          "activation": 0.804,
+          "activation": 0.8,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -5128,7 +5147,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.8285,
+          "activation": 0.825,
           "category": "social",
           "confidence": 0.7,
           "contradicts": [],
@@ -5160,7 +5179,7 @@
           "type": "social"
         },
         {
-          "activation": 0.755,
+          "activation": 0.75,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -5186,7 +5205,7 @@
           "type": "threat"
         },
         {
-          "activation": 0.51,
+          "activation": 0.5,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -5211,7 +5230,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.8495,
+          "activation": 0.846,
           "category": "social",
           "confidence": 0.7,
           "contradicts": [],
@@ -5589,7 +5608,7 @@
       "activity": null,
       "memories": [
         {
-          "activation": 0.604,
+          "activation": 0.595,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -5615,7 +5634,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.604,
+          "activation": 0.595,
           "category": "episodic",
           "confidence": 0.72,
           "contradicts": [],
@@ -5651,7 +5670,7 @@
           "visits": 48
         },
         {
-          "activation": 0.8627,
+          "activation": 0.8596,
           "category": "social",
           "confidence": 0.72,
           "contradicts": [],
@@ -5685,7 +5704,7 @@
           "visits": 48
         },
         {
-          "activation": 0.802,
+          "activation": 0.7975,
           "category": "episodic",
           "confidence": 0.72,
           "contradicts": [],
@@ -5711,7 +5730,7 @@
           "type": "threat"
         },
         {
-          "activation": 0.785,
+          "activation": 0.78,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -5737,7 +5756,7 @@
           "type": "threat"
         },
         {
-          "activation": 0.8495,
+          "activation": 0.846,
           "category": "social",
           "confidence": 0.7,
           "contradicts": [],
@@ -5836,7 +5855,7 @@
         ],
         "frightened": [
           {
-            "duration": 8,
+            "duration": 7.0,
             "source": "Mikka",
             "level": 0,
             "source_type": "character"
@@ -5844,7 +5863,7 @@
         ]
       },
       "grappled_by": null,
-      "state_timer": 8,
+      "state_timer": 0,
       "traits": {},
       "size": null,
       "species": null,
@@ -6027,7 +6046,7 @@
         "lonely": 10.0,
         "melancholic": 12.0,
         "nostalgic": 18.0,
-        "afraid": 11.0,
+        "afraid": 10.0,
         "anxious": 12.0,
         "uneasy": 12.0,
         "dread": 8.0,
@@ -6090,7 +6109,7 @@
       "activity": null,
       "memories": [
         {
-          "activation": 0.657,
+          "activation": 0.65,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -6116,7 +6135,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.657,
+          "activation": 0.65,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -6152,7 +6171,7 @@
           "visits": 48
         },
         {
-          "activation": 0.755,
+          "activation": 0.75,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -6180,7 +6199,7 @@
           "type": "threat"
         },
         {
-          "activation": 0.8285,
+          "activation": 0.825,
           "category": "social",
           "confidence": 0.7,
           "contradicts": [],
@@ -6214,7 +6233,7 @@
           "visits": 2
         },
         {
-          "activation": 0.87,
+          "activation": 0.865,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -6543,7 +6562,7 @@
       "activity": null,
       "memories": [
         {
-          "activation": 0.657,
+          "activation": 0.65,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -6569,7 +6588,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.51,
+          "activation": 0.5,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -6605,7 +6624,7 @@
           "visits": 48
         },
         {
-          "activation": 0.755,
+          "activation": 0.75,
           "category": "social",
           "confidence": 0.7,
           "contradicts": [],
@@ -6639,7 +6658,7 @@
           "visits": 4
         },
         {
-          "activation": 0.51,
+          "activation": 0.5,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -6664,7 +6683,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.8495,
+          "activation": 0.846,
           "category": "social",
           "confidence": 0.7,
           "contradicts": [],
@@ -6983,7 +7002,7 @@
       "activity": null,
       "memories": [
         {
-          "activation": 0.658,
+          "activation": 0.649,
           "category": "episodic",
           "confidence": 0.72,
           "contradicts": [],
@@ -7019,7 +7038,7 @@
           "visits": 48
         },
         {
-          "activation": 0.755,
+          "activation": 0.75,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -7047,7 +7066,7 @@
           "type": "threat"
         },
         {
-          "activation": 0.785,
+          "activation": 0.78,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -7075,7 +7094,7 @@
           "type": "threat"
         },
         {
-          "activation": 0.62,
+          "activation": 0.61,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -7403,7 +7422,7 @@
       "activity": null,
       "memories": [
         {
-          "activation": 0.8556,
+          "activation": 0.8518,
           "category": "episodic",
           "confidence": 0.72,
           "contradicts": [],
@@ -7439,7 +7458,7 @@
           "visits": 48
         },
         {
-          "activation": 0.795,
+          "activation": 0.79,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -7467,7 +7486,7 @@
           "type": "threat"
         },
         {
-          "activation": 0.734,
+          "activation": 0.727,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -7538,7 +7557,7 @@
         "Energy": 73,
         "Social": 94,
         "Bladder": 45,
-        "Sanity": 78,
+        "Sanity": 77,
         "Entertainment": 100,
         "Temperature": 37,
         "Arousal": 0,
@@ -7559,7 +7578,7 @@
         ],
         "frightened": [
           {
-            "duration": 9,
+            "duration": 8.0,
             "source": "Thrazz",
             "level": 0,
             "source_type": "character"
@@ -7567,7 +7586,7 @@
         ]
       },
       "grappled_by": null,
-      "state_timer": 9,
+      "state_timer": 0,
       "traits": {
         "claustrophobic": true,
         "high_metabolism": true
@@ -7739,10 +7758,10 @@
       "current_area": "Side Tunnels",
       "current_area_id": "area_side_tunnels",
       "emotion": {
-        "current": "neutral",
-        "intensity": 0.0,
-        "expression": "neutral",
-        "description": ""
+        "current": "afraid",
+        "intensity": 0.174,
+        "expression": "afraid",
+        "description": "Rikka is afraid."
       },
       "emotions": {
         "happy": 40.0,
@@ -7753,7 +7772,7 @@
         "lonely": 10.0,
         "melancholic": 12.0,
         "nostalgic": 18.0,
-        "afraid": 10.0,
+        "afraid": 27.4,
         "anxious": 12.0,
         "uneasy": 12.0,
         "dread": 8.0,
@@ -7822,18 +7841,18 @@
       "activity": null,
       "memories": [
         {
-          "activation": 0.7424,
+          "activation": 0.9958,
           "category": "episodic",
-          "confidence": 1,
+          "confidence": 1.0,
           "contradicts": [],
           "embedding": null,
           "entity_ids": [],
           "id": "mem_kraktooth_rikka_1",
           "importance": 6,
-          "last_recalled_tick": 4,
+          "last_recalled_tick": 50,
           "location": "area_chiefs_pit",
           "reflection_depth": 0,
-          "reinforcements": 2,
+          "reinforcements": 4,
           "salience_override": 0,
           "source": "manual",
           "source_memory_ids": [],
@@ -7848,9 +7867,9 @@
           "type": "observation"
         },
         {
-          "activation": 0.699,
+          "activation": 0.994,
           "category": "episodic",
-          "confidence": 0.76,
+          "confidence": 0.8,
           "contradicts": [],
           "embedding": null,
           "emotion": null,
@@ -7860,11 +7879,11 @@
           ],
           "id": "mem_1790027127079_107",
           "importance": 4,
-          "last_recalled_tick": 7,
+          "last_recalled_tick": 50,
           "location": "",
           "memory_emotions": [],
           "reflection_depth": 0,
-          "reinforcements": 3,
+          "reinforcements": 5,
           "salience_override": 0,
           "source": "auto",
           "source_memory_ids": [],
@@ -7880,19 +7899,19 @@
           "type": "reaction"
         },
         {
-          "activation": 0.816,
+          "activation": 0.997,
           "category": "episodic",
-          "confidence": 0.74,
+          "confidence": 0.78,
           "contradicts": [],
           "entity_ids": [
             "player_Arix"
           ],
           "id": "a95ae281",
           "importance": 5,
-          "last_recalled_tick": 4,
+          "last_recalled_tick": 50,
           "location": "Chief's Pit",
           "reflection_depth": 0,
-          "reinforcements": 2,
+          "reinforcements": 4,
           "salience_override": 0,
           "source": "background",
           "source_memory_ids": [],
@@ -7908,17 +7927,17 @@
           "type": "threat"
         },
         {
-          "activation": 0.699,
+          "activation": 0.994,
           "category": "episodic",
-          "confidence": 0.76,
+          "confidence": 0.8,
           "contradicts": [],
           "entity_ids": [],
           "id": "ff106c0d",
           "importance": 4,
-          "last_recalled_tick": 7,
+          "last_recalled_tick": 50,
           "location": "Water Source",
           "reflection_depth": 0,
-          "reinforcements": 3,
+          "reinforcements": 5,
           "salience_override": 0,
           "source": "need_recall",
           "source_memory_ids": [],
@@ -7933,17 +7952,17 @@
           "type": "observation"
         },
         {
-          "activation": 0.816,
+          "activation": 0.9968,
           "category": "social",
-          "confidence": 0.7,
+          "confidence": 0.74,
           "contradicts": [],
           "entity_ids": [],
           "id": "3a324ec8",
           "importance": 8,
-          "last_recalled_tick": null,
+          "last_recalled_tick": 50,
           "location": "",
           "reflection_depth": 0,
-          "reinforcements": 0,
+          "reinforcements": 2,
           "salience_override": 0,
           "source": "felt",
           "source_memory_ids": [],
@@ -7958,9 +7977,9 @@
           "type": "emotion"
         },
         {
-          "activation": 0.8366,
+          "activation": 0.9971,
           "category": "episodic",
-          "confidence": 0.72,
+          "confidence": 0.76,
           "contradicts": [],
           "embedding": null,
           "emotion": {
@@ -7974,11 +7993,11 @@
           "id": "mem_1791152993905_644",
           "importance": 6,
           "kind": "area",
-          "last_recalled_tick": 7,
+          "last_recalled_tick": 50,
           "location": "Mine Access",
           "memory_emotions": [],
           "reflection_depth": 0,
-          "reinforcements": 1,
+          "reinforcements": 3,
           "salience_override": 0,
           "source": "auto",
           "source_memory_ids": [],
@@ -7995,17 +8014,17 @@
           "visits": 6
         },
         {
-          "activation": 0.699,
+          "activation": 0.9934,
           "category": "episodic",
-          "confidence": 0.7,
+          "confidence": 0.74,
           "contradicts": [],
           "entity_ids": [],
           "id": "fbac4543",
           "importance": 6,
-          "last_recalled_tick": null,
+          "last_recalled_tick": 50,
           "location": "Mine Access",
           "reflection_depth": 0,
-          "reinforcements": 0,
+          "reinforcements": 2,
           "salience_override": 0,
           "source": "need_recall",
           "source_memory_ids": [],
@@ -8020,19 +8039,19 @@
           "type": "observation"
         },
         {
-          "activation": 0.785,
+          "activation": 0.996,
           "category": "episodic",
-          "confidence": 0.7,
+          "confidence": 0.74,
           "contradicts": [],
           "entity_ids": [
             "player_Thrazz"
           ],
           "id": "0da081b1",
           "importance": 5,
-          "last_recalled_tick": null,
+          "last_recalled_tick": 50,
           "location": "Side Tunnels",
           "reflection_depth": 0,
-          "reinforcements": 0,
+          "reinforcements": 2,
           "salience_override": 0,
           "source": "background",
           "source_memory_ids": [],
@@ -8046,6 +8065,66 @@
           "tick": 7,
           "timestamp": 1791282892.0289912,
           "type": "threat"
+        },
+        {
+          "id": "32ad2299",
+          "text": "I felt afraid toward Thrazz.",
+          "tick": 50,
+          "timestamp": 1791304438.5291152,
+          "importance": 7,
+          "type": "emotion",
+          "tags": [
+            "rel:Thrazz",
+            "fear:1.75"
+          ],
+          "source": "felt",
+          "entity_ids": [],
+          "location": "",
+          "salience_override": 0,
+          "suppressions": [],
+          "category": "social",
+          "activation": 0.993,
+          "confidence": 0.7,
+          "reinforcements": 0,
+          "last_recalled_tick": null,
+          "source_memory_ids": [],
+          "contradicts": [],
+          "reflection_depth": 0
+        },
+        {
+          "id": "mem_1791304458931_984",
+          "text": "Approached Thrazz while starving and terrified; face-to-face but no response yet",
+          "tick": 50,
+          "timestamp": 1791304458.9314554,
+          "importance": 6,
+          "type": "reaction",
+          "location": "",
+          "entity_ids": [
+            "area_side_tunnels"
+          ],
+          "embedding": null,
+          "tags": [
+            "fear",
+            "hunger",
+            "uncertainty"
+          ],
+          "emotion": {
+            "label": "anxious",
+            "intensity": 7
+          },
+          "emotions": null,
+          "memory_emotions": [],
+          "salience_override": 0,
+          "source": "auto",
+          "category": "episodic",
+          "activation": 0.9958,
+          "confidence": 0.7,
+          "reinforcements": 0,
+          "last_recalled_tick": null,
+          "source_memory_ids": [],
+          "contradicts": [],
+          "reflection_depth": 0,
+          "suppressions": []
         }
       ],
       "schedule": [],
@@ -8064,14 +8143,14 @@
       "feels_like": 17,
       "current_carry_weight": 0.0,
       "max_carry_capacity": 100.0,
-      "at_way_id": "way_side_to_mine",
+      "at_way_id": null,
       "facing": null,
       "entered_from_way": null,
       "spatial_position": {
-        "relation": "at",
-        "target_id": "way_side_to_mine",
-        "target_type": "way",
-        "target_name": "tunnel to mines"
+        "relation": "beside",
+        "target_id": "player_Thrazz",
+        "target_type": "character",
+        "target_name": "Thrazz"
       }
     },
     "Shadow-Pelt": {
@@ -8336,7 +8415,7 @@
       "activity": null,
       "memories": [
         {
-          "activation": 0.51,
+          "activation": 0.5,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -8366,13 +8445,13 @@
             "restless"
           ],
           "text": "You have been in the Raven River.",
-          "tick": 50,
-          "timestamp": 1791299650.132304,
+          "tick": 51,
+          "timestamp": 1791305672.1978893,
           "type": "reaction",
-          "visits": 103
+          "visits": 104
         },
         {
-          "activation": 0.51,
+          "activation": 0.5,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -8397,7 +8476,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.82,
+          "activation": 0.815,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -8685,7 +8764,7 @@
       "activity": null,
       "memories": [
         {
-          "activation": 0.51,
+          "activation": 0.5,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -8721,7 +8800,7 @@
           "visits": 49
         },
         {
-          "activation": 0.51,
+          "activation": 0.5,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -9060,7 +9139,7 @@
       "activity": null,
       "memories": [
         {
-          "activation": 0.8152,
+          "activation": 0.811,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -9086,7 +9165,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.736,
+          "activation": 0.73,
           "category": "episodic",
           "confidence": 0.78,
           "contradicts": [],
@@ -9122,7 +9201,7 @@
           "visits": 48
         },
         {
-          "activation": 0.9076,
+          "activation": 0.9055,
           "category": "social",
           "confidence": 0.78,
           "contradicts": [],
@@ -9154,7 +9233,7 @@
           "type": "social"
         },
         {
-          "activation": 0.648,
+          "activation": 0.64,
           "category": "episodic",
           "confidence": 0.74,
           "contradicts": [],
@@ -9464,7 +9543,7 @@
       "activity": null,
       "memories": [
         {
-          "activation": 0.682,
+          "activation": 0.673,
           "category": "episodic",
           "confidence": 0.72,
           "contradicts": [],
@@ -9497,7 +9576,7 @@
           "visits": 48
         },
         {
-          "activation": 0.78,
+          "activation": 0.77,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -9846,7 +9925,7 @@
       "activity": null,
       "memories": [
         {
-          "activation": 0.8068,
+          "activation": 0.8026,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -9872,7 +9951,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.724,
+          "activation": 0.718,
           "category": "episodic",
           "confidence": 0.78,
           "contradicts": [],
@@ -9907,7 +9986,7 @@
           "type": "reaction"
         },
         {
-          "activation": 0.862,
+          "activation": 0.859,
           "category": "social",
           "confidence": 0.78,
           "contradicts": [],
@@ -9939,7 +10018,7 @@
           "type": "social"
         },
         {
-          "activation": 0.632,
+          "activation": 0.624,
           "category": "episodic",
           "confidence": 0.74,
           "contradicts": [],
@@ -9973,7 +10052,7 @@
           "type": "reaction"
         },
         {
-          "activation": 0.8495,
+          "activation": 0.846,
           "category": "social",
           "confidence": 0.7,
           "contradicts": [],
@@ -10323,7 +10402,7 @@
       "activity": null,
       "memories": [
         {
-          "activation": 0.7697,
+          "activation": 0.7648,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -10349,7 +10428,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.742,
+          "activation": 0.736,
           "category": "episodic",
           "confidence": 0.78,
           "contradicts": [],
@@ -10385,7 +10464,7 @@
           "visits": 48
         },
         {
-          "activation": 0.671,
+          "activation": 0.664,
           "category": "episodic",
           "confidence": 0.76,
           "contradicts": [],
@@ -10420,7 +10499,7 @@
           "type": "reaction"
         },
         {
-          "activation": 0.8863,
+          "activation": 0.8839,
           "category": "social",
           "confidence": 0.76,
           "contradicts": [],
@@ -10452,7 +10531,7 @@
           "type": "social"
         },
         {
-          "activation": 0.8355,
+          "activation": 0.832,
           "category": "episodic",
           "confidence": 0.76,
           "contradicts": [],
@@ -10478,7 +10557,7 @@
           "type": "threat"
         },
         {
-          "activation": 0.671,
+          "activation": 0.664,
           "category": "episodic",
           "confidence": 0.76,
           "contradicts": [],
@@ -10503,7 +10582,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.656,
+          "activation": 0.648,
           "category": "episodic",
           "confidence": 0.74,
           "contradicts": [],
@@ -10538,7 +10617,7 @@
           "type": "reaction"
         },
         {
-          "activation": 0.7291,
+          "activation": 0.7228,
           "category": "episodic",
           "confidence": 0.72,
           "contradicts": [],
@@ -10569,13 +10648,13 @@
             "planning"
           ],
           "text": "You have been in the Food Storage.",
-          "tick": 50,
-          "timestamp": 1791299650.134303,
+          "tick": 51,
+          "timestamp": 1791305672.1988912,
           "type": "reaction",
-          "visits": 12
+          "visits": 13
         },
         {
-          "activation": 0.699,
+          "activation": 0.692,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -10638,7 +10717,7 @@
         "Hunger": 80,
         "Thirst": 30,
         "Hygiene": 100,
-        "Energy": 73,
+        "Energy": 72,
         "Social": 99,
         "Bladder": 32,
         "Sanity": 100,
@@ -10669,10 +10748,7 @@
       ],
       "flags": {},
       "hidden": false,
-      "soak": {
-        "intent": "explore",
-        "remaining_minutes": 30.0
-      },
+      "soak": null,
       "simulation_mode": "background",
       "manifested": false,
       "known": [
@@ -10869,8 +10945,8 @@
         "genitals": true,
         "balls": true
       },
-      "current_area": "Abandoned Farm",
-      "current_area_id": "area_abandoned_farm",
+      "current_area": "Road (world 16,6)",
+      "current_area_id": "area_world_16_6",
       "emotion": {
         "current": "neutral",
         "intensity": 0.0,
@@ -10933,12 +11009,17 @@
       "patrol_route": [],
       "patrol_index": 0,
       "feels_like": 26,
-      "current_carry_weight": 3.8,
+      "current_carry_weight": 3.7999999999999994,
       "max_carry_capacity": 100.0,
-      "at_way_id": null,
-      "facing": "west",
-      "entered_from_way": "way_abandoned_farms_area_abandoned_farms_0_0_area_abandoned_farms_10_0",
-      "spatial_position": null
+      "at_way_id": "way_world_area_abandoned_farm_area_world_16_6",
+      "facing": "north",
+      "entered_from_way": "way_world_area_abandoned_farm_area_world_16_6",
+      "spatial_position": {
+        "relation": "at",
+        "target_id": "way_world_area_abandoned_farm_area_world_16_6",
+        "target_type": "way",
+        "target_name": "Abandoned Farm to Road (world 16,6)"
+      }
     },
     "james__e17658": {
       "name": "james",
@@ -11576,10 +11657,10 @@
         "Thirst": 0,
         "Hygiene": 0,
         "Energy": 0,
-        "Social": 83,
+        "Social": 84,
         "Bladder": 0,
         "Sanity": 0,
-        "Entertainment": 90,
+        "Entertainment": 100,
         "Temperature": 20
       },
       "state": "awake",
@@ -11889,14 +11970,14 @@
       "feels_like": 20,
       "current_carry_weight": 0.0,
       "max_carry_capacity": 100.0,
-      "at_way_id": "way_west_woods_area_west_woods_15_20_area_west_woods_16_21",
+      "at_way_id": "way_west_woods_area_west_woods_16_21_area_west_woods_17_21",
       "facing": "west",
       "entered_from_way": "way_west_woods_area_west_woods_16_21_area_west_woods_17_21",
       "spatial_position": {
         "relation": "at",
-        "target_id": "way_west_woods_area_west_woods_15_20_area_west_woods_16_21",
+        "target_id": "way_west_woods_area_west_woods_16_21_area_west_woods_17_21",
         "target_type": "way",
-        "target_name": "Sparse Forest (West woods 15,20) to Sparse Forest (West woods 16,21)"
+        "target_name": "Sparse Forest (West woods 16,21) to Sparse Forest (West woods 17,21)"
       }
     },
     "zombie__c4d808": {
@@ -11920,7 +12001,7 @@
         "Social": 100,
         "Bladder": 0,
         "Sanity": 0,
-        "Entertainment": 90,
+        "Entertainment": 100,
         "Temperature": 20
       },
       "state": "awake",
@@ -12230,20 +12311,20 @@
       "feels_like": 26,
       "current_carry_weight": 0.0,
       "max_carry_capacity": 100.0,
-      "at_way_id": "way_world_area_world_10_5_area_world_10_6",
-      "facing": "south",
-      "entered_from_way": "way_world_area_world_10_5_area_world_10_6",
+      "at_way_id": "way_world_area_world_10_6_area_world_9_6",
+      "facing": "east",
+      "entered_from_way": "way_world_area_world_10_6_area_world_9_6",
       "spatial_position": {
         "relation": "at",
-        "target_id": "way_world_area_world_10_5_area_world_10_6",
+        "target_id": "way_world_area_world_10_6_area_world_9_6",
         "target_type": "way",
-        "target_name": "Sparse Forest (world 10,5) to Bridge (world 10,6)"
+        "target_name": "Road (world 9,6) to Bridge (world 10,6)"
       }
     }
   },
-  "active_player": "Jake Halloway",
-  "game_time": "08:50:00",
-  "time_ticks": 50,
+  "active_player": "Thrazz",
+  "game_time": "08:51:00",
+  "time_ticks": 51,
   "time_per_tick_minutes": 1,
   "clock_start_hour": 8,
   "clock_start_minute": 0,
@@ -12316,7 +12397,7 @@
           "y": 280
         },
         "created": 1789781679.846446,
-        "updated": 1791295708.4679642
+        "updated": 1791304460.3753314
       },
       "area_animal_pens": {
         "id": "area_animal_pens",
@@ -12334,7 +12415,7 @@
             "light": "normal",
             "noise": "busy",
             "smell": "animal, straw, dung",
-            "temperature": 16.7
+            "temperature": 16.8
           },
           "features": [
             "pens",
@@ -12399,7 +12480,7 @@
             "light": "dim",
             "noise": "quiet",
             "smell": "oil, iron, old leather",
-            "temperature": 16
+            "temperature": 16.0
           },
           "features": [
             "weapon_racks",
@@ -12514,7 +12595,7 @@
           "y": 160
         },
         "created": 1789781679.84646,
-        "updated": 1791295708.4679642
+        "updated": 1791304460.3753314
       },
       "area_camp_entrance": {
         "id": "area_camp_entrance",
@@ -12578,7 +12659,7 @@
           "y": 40
         },
         "created": 1789781679.8464634,
-        "updated": 1791295708.4679642
+        "updated": 1791304460.3753314
       },
       "area_camp_entrance_trail": {
         "id": "area_camp_entrance_trail",
@@ -12640,7 +12721,7 @@
           "y": 200
         },
         "created": 1789781679.846467,
-        "updated": 1791295708.4679642
+        "updated": 1791304460.3753314
       },
       "area_chiefs_den": {
         "id": "area_chiefs_den",
@@ -12905,7 +12986,7 @@
           "y": 120
         },
         "created": 1789781679.8464823,
-        "updated": 1791295708.4679642
+        "updated": 1791304460.3753314
       },
       "area_eldenford_interior_10_3": {
         "id": "area_eldenford_interior_10_3",
@@ -12920,7 +13001,7 @@
           "description": "Thin woodland, easy to walk and hard to hide in. A track runs through it. Paths lead east, south and west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -12953,7 +13034,7 @@
           "description": "A worn track cut through the land. A road in the woods. It runs north, northeast, northwest, south, southeast and southwest from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -12986,7 +13067,7 @@
           "description": "A worn track cut through the land. A road along the forest line, the trees close on the west. It runs east, north and west from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -13019,7 +13100,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs northeast from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -13053,7 +13134,7 @@
           "description": "Scattered trees open onto patches of grass. A track runs through it. Paths lead southwest and west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -13086,7 +13167,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs northwest, southeast and west from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -13121,7 +13202,7 @@
           "description": "Columns, a high roof, and lamps burning along the aisle. A track runs through it. Paths lead northeast and southeast.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -13156,7 +13237,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs northeast and south from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -13189,7 +13270,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs north and southwest from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -13222,7 +13303,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs northeast, northwest, south and southeast from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -13255,7 +13336,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs east, north, southeast and southwest from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -13290,7 +13371,7 @@
           "description": "Trestles, awnings, and produce heaped in crates. A track runs through it. Paths lead east, northeast, northwest and southeast.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -13326,7 +13407,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs north, northeast, northwest, south and southeast from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -13359,7 +13440,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs east, north and southwest from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -13525,7 +13606,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs northwest, south and west from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -13558,7 +13639,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs north, northwest, south, southeast and southwest from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -13591,7 +13672,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs east, north, south and west from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -13624,7 +13705,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs east, northwest and west from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -13690,7 +13771,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs east, northwest, southwest and west from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -13723,7 +13804,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs southeast and west from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -13757,7 +13838,7 @@
           "description": "Thin woodland, easy to walk and hard to hide in. A track runs through it. Paths lead east, south, southeast and southwest.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -13791,7 +13872,7 @@
           "description": "Scattered trees open onto patches of grass. A track runs through it. Paths lead east, north, northeast, south and west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -13824,7 +13905,7 @@
           "description": "A worn track cut through the land. A road along the forest line, the trees close on the north. It runs north, northeast, northwest and southeast from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -13857,7 +13938,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs east, northeast and west from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -13890,7 +13971,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs east, northwest and south from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -13923,7 +14004,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs north, northeast and southeast from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -13957,7 +14038,7 @@
           "description": "Scattered trees open onto patches of grass. Paths lead east, south, southeast, southwest and west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -13991,7 +14072,7 @@
           "description": "Thin woodland, easy to walk and hard to hide in. A track runs through it. Paths lead east, north, northeast, northwest, southeast, southwest and west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -14024,7 +14105,7 @@
           "description": "A worn track cut through the land. A road along the forest line, the trees close on the northeast. It runs east, northeast, northwest and south from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -14057,7 +14138,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs north, northeast, south, southeast and southwest from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -14090,7 +14171,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs east, north and west from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -14123,7 +14204,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs east, southwest and west from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -14156,7 +14237,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs northwest and south from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -14189,7 +14270,7 @@
           "description": "A gate bars the road between posts. A road across open country. It runs north and south from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -14223,7 +14304,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs north and south from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -14256,7 +14337,7 @@
           "description": "A span carries the road over the gap. A road across open country. It runs north from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -14291,7 +14372,7 @@
           "description": "Thin woodland, easy to walk and hard to hide in. Paths lead south, southeast, southwest and west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -14325,7 +14406,7 @@
           "description": "Scattered trees open onto patches of grass. Paths lead east, north, northwest, south and west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -14359,7 +14440,7 @@
           "description": "Thin woodland, easy to walk and hard to hide in. A track runs through it. Paths lead north, northeast, northwest, south and southwest.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -14392,7 +14473,7 @@
           "description": "A worn track cut through the land. A road along the forest line, the trees close on the north. It runs north, southeast, southwest and west from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -14425,7 +14506,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs east, northeast, northwest and west from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -14458,7 +14539,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs southeast and west from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -14492,7 +14573,7 @@
           "description": "Thin woodland, easy to walk and hard to hide in. Paths lead northwest, southwest and west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -14525,7 +14606,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs east, northwest, south and southwest from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -14558,7 +14639,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs north, northeast, southeast and west from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -14591,7 +14672,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs east, northeast and northwest from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -14624,7 +14705,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs northwest and southeast from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -14657,7 +14738,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs southeast, southwest and west from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -14690,7 +14771,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs east, north, southeast and west from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -14723,7 +14804,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs northeast and northwest from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -14756,7 +14837,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs northwest, south, southeast and southwest from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -14789,7 +14870,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs northwest, south and west from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -14822,7 +14903,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs north, northwest and south from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -14855,7 +14936,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs north and south from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -14888,7 +14969,7 @@
           "description": "A worn track cut through the land. A road across open country. It runs north and southwest from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -14922,7 +15003,7 @@
           "description": "A current runs steadily between its banks. A track runs through it. Paths lead east and southeast.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -14955,7 +15036,7 @@
           "description": "A span carries the road over the gap. A road across open country. It runs east and northeast from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -14991,7 +15072,7 @@
           "description": "A cemetery of leaning markers and long grass.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -15027,7 +15108,7 @@
           "description": "A current runs steadily between its banks. A track runs through it. Paths lead south, southeast and west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -15060,7 +15141,7 @@
           "description": "A span carries the road over the gap. A road carried over the water. It runs east, north, northwest, south, southeast and southwest from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -15094,7 +15175,7 @@
           "description": "A span carries the road over the gap. A road running beside the water to the east. It runs east, north, northeast and west from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -15128,7 +15209,7 @@
           "description": "A span carries the road over the gap. A road running beside the water to the south. It runs northwest, south, southwest and west from here.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -15163,7 +15244,7 @@
           "description": "A current runs steadily between its banks. A track runs through it. Paths lead north, northwest and west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -15197,7 +15278,7 @@
           "description": "Scattered trees open onto patches of grass. A track runs through it. Paths lead east and southeast.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -15231,7 +15312,7 @@
           "description": "Scattered trees open onto patches of grass. A track runs through it. Paths lead east and northeast.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -15319,7 +15400,7 @@
           "y": 120
         },
         "created": 1789781679.8464856,
-        "updated": 1791295708.468964
+        "updated": 1791304460.3753314
       },
       "area_fisherman_s_hut_1_1": {
         "id": "area_fisherman_s_hut_1_1",
@@ -15445,7 +15526,7 @@
           "description": "A room built for sleeping in, and for the quiet after. Paths lead east, north and northeast.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -15593,7 +15674,7 @@
           "description": "A bedroom, one bed, and a window somebody keeps curtained. Paths lead east, north, northeast, northwest and west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -15739,7 +15820,7 @@
           "description": "Crates, sacks, and a room that smells of keeping things dry. Paths lead east, north, northeast, northwest and west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -15774,7 +15855,7 @@
           "description": "Pot, fire, and a table worn pale where the dough is worked. Paths lead south, southwest and west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -15811,7 +15892,7 @@
           "description": "A kitchen, hot from the range and loud from the knife on the board. Paths lead north, northwest, south, southwest and west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -15848,7 +15929,7 @@
           "description": "Crates, sacks, and a room that smells of keeping things dry. Paths lead north, northwest, south, southwest and west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -15883,7 +15964,7 @@
           "description": "A storeroom, shelves to the ceiling and a list nailed to the door. Paths lead north, northwest and west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -16098,7 +16179,7 @@
           "y": 240
         },
         "created": 1789781679.846496,
-        "updated": 1791295708.468964
+        "updated": 1791304460.3753314
       },
       "area_mine_access": {
         "id": "area_mine_access",
@@ -16116,7 +16197,7 @@
             "light": "pitch_black",
             "noise": "dripping water",
             "smell": "rock, water, minerals",
-            "temperature": 16.8
+            "temperature": 16.9
           },
           "features": [
             "narrow_tunnels",
@@ -16232,7 +16313,7 @@
           "y": 280
         },
         "created": 1789781679.846502,
-        "updated": 1791295708.468964
+        "updated": 1791304460.3753314
       },
       "area_northern_hills": {
         "id": "area_northern_hills",
@@ -16297,7 +16378,7 @@
           "y": 80
         },
         "created": 1789781679.846505,
-        "updated": 1791295708.468964
+        "updated": 1791304460.3753314
       },
       "area_nursery": {
         "id": "area_nursery",
@@ -16426,7 +16507,7 @@
           "y": 240
         },
         "created": 1789781679.8465114,
-        "updated": 1791295708.468964
+        "updated": 1791304460.3753314
       },
       "area_prison_pens": {
         "id": "area_prison_pens",
@@ -16560,7 +16641,7 @@
           "y": 240
         },
         "created": 1789781679.846518,
-        "updated": 1791295708.468964
+        "updated": 1791304460.3753314
       },
       "area_scouting_rooms": {
         "id": "area_scouting_rooms",
@@ -16911,7 +16992,7 @@
             "light": "dim",
             "noise": "quiet",
             "smell": "wood, stone, dust",
-            "temperature": 16.7
+            "temperature": 16.8
           },
           "features": [
             "stone_shelves",
@@ -17189,7 +17270,7 @@
           "description": "Scattered trees open onto patches of grass. A worn track cut through the land. The road runs east, south, southeast and southwest.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -17224,7 +17305,7 @@
           "description": "Scattered trees open onto patches of grass. Paths lead east, north, northeast, south and west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -17257,7 +17338,7 @@
           "description": "Scattered trees open onto patches of grass. Paths lead north, northeast and northwest.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -17323,7 +17404,7 @@
           "description": "Scattered trees open onto patches of grass. Paths lead southeast.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -17356,7 +17437,7 @@
           "description": "Thin woodland, easy to walk and hard to hide in. Paths lead northeast.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -17389,7 +17470,7 @@
           "description": "Thin woodland, easy to walk and hard to hide in. Paths lead east, northeast, south, southeast, southwest and west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -17422,7 +17503,7 @@
           "description": "Thin woodland, easy to walk and hard to hide in. Paths lead east, north, northeast, northwest, southwest and west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -17455,7 +17536,7 @@
           "description": "Thin woodland, easy to walk and hard to hide in. Paths lead northeast and south.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -17488,7 +17569,7 @@
           "description": "Thin woodland, easy to walk and hard to hide in. Paths lead north.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -17587,7 +17668,7 @@
           "description": "Thin woodland, easy to walk and hard to hide in. Paths lead east, northeast, northwest and south.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -17620,7 +17701,7 @@
           "description": "Thin woodland, easy to walk and hard to hide in. Paths lead north, northeast and southwest.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -17653,7 +17734,7 @@
           "description": "Scattered trees open onto patches of grass. Paths lead east, south and southwest.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -17686,7 +17767,7 @@
           "description": "Scattered trees open onto patches of grass. Paths lead north, northeast, south, southwest and west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -17719,7 +17800,7 @@
           "description": "Scattered trees open onto patches of grass. Paths lead north, northwest, southeast and west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -17752,7 +17833,7 @@
           "description": "Scattered trees open onto patches of grass. Paths lead east, northeast and southwest.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -17785,7 +17866,7 @@
           "description": "Scattered trees open onto patches of grass. Paths lead northwest, south and west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -17818,7 +17899,7 @@
           "description": "Scattered trees open onto patches of grass. Paths lead north, northwest and south.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -17851,7 +17932,7 @@
           "description": "Scattered trees open onto patches of grass. Paths lead north, south and southwest.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -17884,7 +17965,7 @@
           "description": "Scattered trees open onto patches of grass. A worn track cut through the land. The road runs north, southwest and west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -17919,7 +18000,7 @@
           "description": "Thin woodland, easy to walk and hard to hide in. Paths lead east, southwest and west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -17952,7 +18033,7 @@
           "description": "Thin woodland, easy to walk and hard to hide in. Paths lead east, northeast, northwest, south and southwest.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -17985,7 +18066,7 @@
           "description": "Thin woodland, easy to walk and hard to hide in. Paths lead north, northeast and west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -18018,7 +18099,7 @@
           "description": "Scattered trees open onto patches of grass. Paths lead west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -18051,7 +18132,7 @@
           "description": "Scattered trees open onto patches of grass. Paths lead east, south and southwest.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -18084,7 +18165,7 @@
           "description": "Scattered trees open onto patches of grass. Paths lead north, northeast, southwest and west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -18117,7 +18198,7 @@
           "description": "Scattered trees open onto patches of grass.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -18150,7 +18231,7 @@
           "description": "Thin woodland, easy to walk and hard to hide in. Paths lead southeast.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -18183,7 +18264,7 @@
           "description": "Thin woodland, easy to walk and hard to hide in. Paths lead east, southwest and west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -18216,7 +18297,7 @@
           "description": "Scattered trees open onto patches of grass. Paths lead east and northwest.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -18249,7 +18330,7 @@
           "description": "Scattered trees open onto patches of grass. Paths lead east and west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -18282,7 +18363,7 @@
           "description": "Thin woodland, easy to walk and hard to hide in. Paths lead northeast and west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -18315,7 +18396,7 @@
           "description": "Thin woodland, easy to walk and hard to hide in. Paths lead west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -18348,7 +18429,7 @@
           "description": "Scattered trees open onto patches of grass. Paths lead east and southwest.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -18381,7 +18462,7 @@
           "description": "Thin woodland, easy to walk and hard to hide in. Paths lead west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -18414,7 +18495,7 @@
           "description": "Thin woodland, easy to walk and hard to hide in. Paths lead east and northeast.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -18447,7 +18528,7 @@
           "description": "Scattered trees open onto patches of grass. A worn track cut through the land. The road runs east, south and southwest.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -18482,7 +18563,7 @@
           "description": "Thin woodland, easy to walk and hard to hide in. Paths lead north, northeast and west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -18515,7 +18596,7 @@
           "description": "Scattered trees open onto patches of grass. Paths lead east, southwest and west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -18548,7 +18629,7 @@
           "description": "Scattered trees open onto patches of grass. Paths lead east, northeast and west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -18581,7 +18662,7 @@
           "description": "Thin woodland, easy to walk and hard to hide in. Paths lead east, south and southwest.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -18614,7 +18695,7 @@
           "description": "Scattered trees open onto patches of grass. Paths lead north, northeast and west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -18647,7 +18728,7 @@
           "description": "Thin woodland, easy to walk and hard to hide in. Paths lead east.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -18680,7 +18761,7 @@
           "description": "Thin woodland, easy to walk and hard to hide in. Paths lead east, southeast, southwest and west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -18713,7 +18794,7 @@
           "description": "Thin woodland, easy to walk and hard to hide in. A worn track cut through the land. The road runs northeast and west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -18748,7 +18829,7 @@
           "description": "Thin woodland, easy to walk and hard to hide in. Paths lead south and west.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -18781,7 +18862,7 @@
           "description": "Scattered trees open onto patches of grass. Paths lead north, northwest and south.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -18814,7 +18895,7 @@
           "description": "Thin woodland, easy to walk and hard to hide in. Paths lead north.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -18880,7 +18961,7 @@
           "description": "Scattered trees open onto patches of grass. A worn track cut through the land. The road runs east, northeast, southeast and southwest.",
           "environment": {
             "light": 60,
-            "temperature": 20
+            "temperature": 20.0
           },
           "floor": 0,
           "generated": {
@@ -19010,7 +19091,7 @@
           "y": 160
         },
         "created": 1790580438.5167189,
-        "updated": 1791295708.468964
+        "updated": 1791304460.3753314
       },
       "area_world_10_5": {
         "id": "area_world_10_5",
@@ -19049,7 +19130,7 @@
           "y": 200
         },
         "created": 1790580438.5192895,
-        "updated": 1791295708.468964
+        "updated": 1791304460.3753314
       },
       "area_world_10_6": {
         "id": "area_world_10_6",
@@ -19088,7 +19169,7 @@
           "y": 240
         },
         "created": 1790580438.5223534,
-        "updated": 1791295708.468964
+        "updated": 1791304460.3753314
       },
       "area_world_11_3": {
         "id": "area_world_11_3",
@@ -19129,7 +19210,7 @@
           "y": 120
         },
         "created": 1790580438.5105038,
-        "updated": 1791295708.468964
+        "updated": 1791304460.3753314
       },
       "area_world_11_4": {
         "id": "area_world_11_4",
@@ -19170,7 +19251,7 @@
           "y": 160
         },
         "created": 1790580438.5173898,
-        "updated": 1791295708.468964
+        "updated": 1791304460.3753314
       },
       "area_world_11_5": {
         "id": "area_world_11_5",
@@ -19209,7 +19290,7 @@
           "y": 200
         },
         "created": 1790580438.5195003,
-        "updated": 1791295708.468964
+        "updated": 1791304460.3753314
       },
       "area_world_11_6": {
         "id": "area_world_11_6",
@@ -19247,7 +19328,7 @@
           "y": 240
         },
         "created": 1790580438.5225377,
-        "updated": 1791295708.468964
+        "updated": 1791304460.3753314
       },
       "area_world_11_7": {
         "id": "area_world_11_7",
@@ -19286,7 +19367,7 @@
           "y": 280
         },
         "created": 1790580438.5233712,
-        "updated": 1791295708.468964
+        "updated": 1791304460.3753314
       },
       "area_world_12_3": {
         "id": "area_world_12_3",
@@ -19325,7 +19406,7 @@
           "y": 120
         },
         "created": 1790580438.5107872,
-        "updated": 1791295708.468964
+        "updated": 1791304460.3753314
       },
       "area_world_12_5": {
         "id": "area_world_12_5",
@@ -19364,7 +19445,7 @@
           "y": 200
         },
         "created": 1790580438.5196743,
-        "updated": 1791295708.468964
+        "updated": 1791304460.3753314
       },
       "area_world_12_7": {
         "id": "area_world_12_7",
@@ -19402,7 +19483,7 @@
           "y": 280
         },
         "created": 1790580438.5235474,
-        "updated": 1791295708.468964
+        "updated": 1791304460.3753314
       },
       "area_world_13_3": {
         "id": "area_world_13_3",
@@ -19440,7 +19521,7 @@
           "y": 120
         },
         "created": 1790580438.5109422,
-        "updated": 1791295708.468964
+        "updated": 1791304460.3753314
       },
       "area_world_13_7": {
         "id": "area_world_13_7",
@@ -19480,7 +19561,7 @@
           "y": 280
         },
         "created": 1790580438.5237043,
-        "updated": 1791295708.468964
+        "updated": 1791304460.3753314
       },
       "area_world_14_3": {
         "id": "area_world_14_3",
@@ -19518,7 +19599,7 @@
           "y": 120
         },
         "created": 1790580438.5110867,
-        "updated": 1791295708.468964
+        "updated": 1791304460.3753314
       },
       "area_world_14_6": {
         "id": "area_world_14_6",
@@ -19556,7 +19637,7 @@
           "y": 240
         },
         "created": 1790580438.522702,
-        "updated": 1791295708.468964
+        "updated": 1791304460.3753314
       },
       "area_world_14_7": {
         "id": "area_world_14_7",
@@ -19594,7 +19675,7 @@
           "y": 280
         },
         "created": 1790580438.5238566,
-        "updated": 1791295708.468964
+        "updated": 1791304460.3753314
       },
       "area_world_15_3": {
         "id": "area_world_15_3",
@@ -19632,7 +19713,7 @@
           "y": 120
         },
         "created": 1790580438.5112724,
-        "updated": 1791295708.468964
+        "updated": 1791304460.3753314
       },
       "area_world_15_5": {
         "id": "area_world_15_5",
@@ -19670,7 +19751,7 @@
           "y": 200
         },
         "created": 1790580438.5198388,
-        "updated": 1791295708.468964
+        "updated": 1791304460.3753314
       },
       "area_world_15_6": {
         "id": "area_world_15_6",
@@ -19708,7 +19789,7 @@
           "y": 240
         },
         "created": 1790580438.5228617,
-        "updated": 1791295708.468964
+        "updated": 1791304460.3753314
       },
       "area_world_15_7": {
         "id": "area_world_15_7",
@@ -19746,7 +19827,7 @@
           "y": 280
         },
         "created": 1790580438.524207,
-        "updated": 1791295708.468964
+        "updated": 1791304460.3753314
       },
       "area_world_16_3": {
         "id": "area_world_16_3",
@@ -19784,7 +19865,7 @@
           "y": 120
         },
         "created": 1790580438.5114222,
-        "updated": 1791295708.468964
+        "updated": 1791304460.3753314
       },
       "area_world_16_4": {
         "id": "area_world_16_4",
@@ -19822,7 +19903,7 @@
           "y": 160
         },
         "created": 1790580438.5176294,
-        "updated": 1791295708.468964
+        "updated": 1791304460.3753314
       },
       "area_world_16_6": {
         "id": "area_world_16_6",
@@ -19861,7 +19942,7 @@
           "y": 240
         },
         "created": 1790580438.5230138,
-        "updated": 1791295708.468964
+        "updated": 1791304460.3753314
       },
       "area_world_16_8": {
         "id": "area_world_16_8",
@@ -19899,7 +19980,7 @@
           "y": 320
         },
         "created": 1790580438.5257351,
-        "updated": 1791295708.468964
+        "updated": 1791304460.376332
       },
       "area_world_17_3": {
         "id": "area_world_17_3",
@@ -19940,7 +20021,7 @@
           "y": 120
         },
         "created": 1790870620.5063517,
-        "updated": 1791295708.468964
+        "updated": 1791304460.376332
       },
       "area_world_17_6": {
         "id": "area_world_17_6",
@@ -19978,7 +20059,7 @@
           "y": 240
         },
         "created": 1790580438.5231645,
-        "updated": 1791295708.468964
+        "updated": 1791304460.376332
       },
       "area_world_17_8": {
         "id": "area_world_17_8",
@@ -20016,7 +20097,7 @@
           "y": 320
         },
         "created": 1790580438.5259328,
-        "updated": 1791295708.468964
+        "updated": 1791304460.376332
       },
       "area_world_18_3": {
         "id": "area_world_18_3",
@@ -20054,7 +20135,7 @@
           "y": 120
         },
         "created": 1790580438.5115702,
-        "updated": 1791295708.468964
+        "updated": 1791304460.376332
       },
       "area_world_18_7": {
         "id": "area_world_18_7",
@@ -20092,7 +20173,7 @@
           "y": 280
         },
         "created": 1790580438.5244558,
-        "updated": 1791295708.468964
+        "updated": 1791304460.376332
       },
       "area_world_19_4": {
         "id": "area_world_19_4",
@@ -20130,7 +20211,7 @@
           "y": 160
         },
         "created": 1790580438.5180044,
-        "updated": 1791295708.468964
+        "updated": 1791304460.376332
       },
       "area_world_19_5": {
         "id": "area_world_19_5",
@@ -20168,7 +20249,7 @@
           "y": 200
         },
         "created": 1790580438.5202413,
-        "updated": 1791295708.468964
+        "updated": 1791304460.376332
       },
       "area_world_19_7": {
         "id": "area_world_19_7",
@@ -20206,7 +20287,7 @@
           "y": 280
         },
         "created": 1790580438.5246894,
-        "updated": 1791295708.468964
+        "updated": 1791304460.376332
       },
       "area_world_3_6": {
         "id": "area_world_3_6",
@@ -20244,7 +20325,7 @@
           "y": 240
         },
         "created": 1790580438.5205476,
-        "updated": 1791295708.468964
+        "updated": 1791304460.376332
       },
       "area_world_4_1": {
         "id": "area_world_4_1",
@@ -20282,7 +20363,7 @@
           "y": 40
         },
         "created": 1790580438.508132,
-        "updated": 1791295708.468964
+        "updated": 1791304460.376332
       },
       "area_world_4_5": {
         "id": "area_world_4_5",
@@ -20320,7 +20401,7 @@
           "y": 200
         },
         "created": 1790580438.5183349,
-        "updated": 1791295708.468964
+        "updated": 1791304460.376332
       },
       "area_world_4_6": {
         "id": "area_world_4_6",
@@ -20359,7 +20440,7 @@
           "y": 240
         },
         "created": 1790580438.5210655,
-        "updated": 1791295708.468964
+        "updated": 1791304460.376332
       },
       "area_world_5_2": {
         "id": "area_world_5_2",
@@ -20397,7 +20478,7 @@
           "y": 80
         },
         "created": 1790580438.5084074,
-        "updated": 1791295708.468964
+        "updated": 1791304460.376332
       },
       "area_world_5_4": {
         "id": "area_world_5_4",
@@ -20438,7 +20519,7 @@
           "y": 160
         },
         "created": 1790878794.566251,
-        "updated": 1791295708.468964
+        "updated": 1791304460.376332
       },
       "area_world_5_5": {
         "id": "area_world_5_5",
@@ -20476,7 +20557,7 @@
           "y": 200
         },
         "created": 1790580438.5185528,
-        "updated": 1791295708.468964
+        "updated": 1791304460.376332
       },
       "area_world_5_6": {
         "id": "area_world_5_6",
@@ -20515,7 +20596,7 @@
           "y": 240
         },
         "created": 1790580438.5213022,
-        "updated": 1791295708.468964
+        "updated": 1791304460.376332
       },
       "area_world_6_3": {
         "id": "area_world_6_3",
@@ -20556,7 +20637,7 @@
           "y": 120
         },
         "created": 1790580438.5094945,
-        "updated": 1791295708.468964
+        "updated": 1791304460.376332
       },
       "area_world_6_4": {
         "id": "area_world_6_4",
@@ -20597,7 +20678,7 @@
           "y": 160
         },
         "created": 1790580438.5131857,
-        "updated": 1791295708.468964
+        "updated": 1791304460.376332
       },
       "area_world_6_5": {
         "id": "area_world_6_5",
@@ -20638,7 +20719,7 @@
           "y": 200
         },
         "created": 1790580438.5187697,
-        "updated": 1791295708.468964
+        "updated": 1791304460.376332
       },
       "area_world_6_6": {
         "id": "area_world_6_6",
@@ -20677,7 +20758,7 @@
           "y": 240
         },
         "created": 1790580438.5215702,
-        "updated": 1791295708.468964
+        "updated": 1791304460.376332
       },
       "area_world_7_3": {
         "id": "area_world_7_3",
@@ -20718,7 +20799,7 @@
           "y": 120
         },
         "created": 1790580438.5097396,
-        "updated": 1791295708.468964
+        "updated": 1791304460.376332
       },
       "area_world_7_4": {
         "id": "area_world_7_4",
@@ -20757,7 +20838,7 @@
           "y": 160
         },
         "created": 1790580438.5149822,
-        "updated": 1791295708.468964
+        "updated": 1791304460.376332
       },
       "area_world_7_5": {
         "id": "area_world_7_5",
@@ -20796,7 +20877,7 @@
           "y": 200
         },
         "created": 1790580438.5190258,
-        "updated": 1791295708.468964
+        "updated": 1791304460.376332
       },
       "area_world_7_6": {
         "id": "area_world_7_6",
@@ -20834,7 +20915,7 @@
           "y": 240
         },
         "created": 1790580438.5217714,
-        "updated": 1791295708.468964
+        "updated": 1791304460.376332
       },
       "area_world_8_3": {
         "id": "area_world_8_3",
@@ -20875,7 +20956,7 @@
           "y": 120
         },
         "created": 1790580438.509946,
-        "updated": 1791295708.468964
+        "updated": 1791304460.376332
       },
       "area_world_8_6": {
         "id": "area_world_8_6",
@@ -20913,7 +20994,7 @@
           "y": 240
         },
         "created": 1790580438.5219812,
-        "updated": 1791295708.468964
+        "updated": 1791304460.376332
       },
       "area_world_9_3": {
         "id": "area_world_9_3",
@@ -20954,7 +21035,7 @@
           "y": 120
         },
         "created": 1790580438.510316,
-        "updated": 1791295708.468964
+        "updated": 1791304460.376332
       },
       "area_world_9_4": {
         "id": "area_world_9_4",
@@ -20995,7 +21076,7 @@
           "y": 160
         },
         "created": 1790580438.5152998,
-        "updated": 1791295708.468964
+        "updated": 1791304460.376332
       },
       "area_world_9_6": {
         "id": "area_world_9_6",
@@ -21033,7 +21114,7 @@
           "y": 240
         },
         "created": 1790580438.5221598,
-        "updated": 1791295708.468964
+        "updated": 1791304460.376332
       },
       "belt_leather": {
         "id": "belt_leather",
@@ -21167,7 +21248,7 @@
           "library_id": "bush_of_berries",
           "light_level": "dim",
           "parameters": {
-            "growth": 68
+            "growth": 69
           },
           "resistances": {},
           "skill_check": {},
@@ -21187,7 +21268,7 @@
           "y": -241.5
         },
         "created": 1789989625.5763988,
-        "updated": 1791295708.4659646
+        "updated": 1791304460.3733306
       },
       "bush_of_berries_deep_forest_1": {
         "id": "bush_of_berries_deep_forest_1",
@@ -21209,7 +21290,7 @@
           "library_id": "bush_of_berries",
           "light_level": "dim",
           "parameters": {
-            "growth": 68
+            "growth": 69
           },
           "resistances": {},
           "skill_check": {},
@@ -21229,7 +21310,7 @@
           "y": -2557.6
         },
         "created": 1789989624.3312042,
-        "updated": 1791295708.4669642
+        "updated": 1791304460.374332
       },
       "bush_of_berries_deep_forest_2": {
         "id": "bush_of_berries_deep_forest_2",
@@ -21252,7 +21333,7 @@
           "library_id": "bush_of_berries",
           "light_level": "dim",
           "parameters": {
-            "growth": 68
+            "growth": 69
           },
           "resistances": {},
           "skill_check": {},
@@ -21272,7 +21353,7 @@
           "y": -2494.2
         },
         "created": 1789989624.3322668,
-        "updated": 1791295708.4669642
+        "updated": 1791304460.374332
       },
       "bush_of_berries_deep_forest_3": {
         "id": "bush_of_berries_deep_forest_3",
@@ -21294,7 +21375,7 @@
           "library_id": "bush_of_berries",
           "light_level": "dim",
           "parameters": {
-            "growth": 68
+            "growth": 69
           },
           "resistances": {},
           "skill_check": {},
@@ -21314,7 +21395,7 @@
           "y": -2543.3
         },
         "created": 1789989624.3332193,
-        "updated": 1791295708.4679642
+        "updated": 1791304460.374332
       },
       "bush_of_berries_water_source_1": {
         "id": "bush_of_berries_water_source_1",
@@ -21336,7 +21417,7 @@
           "library_id": "bush_of_berries",
           "light_level": "dim",
           "parameters": {
-            "growth": 68
+            "growth": 69
           },
           "resistances": {},
           "skill_check": {},
@@ -21356,7 +21437,7 @@
           "y": 7371.1
         },
         "created": 1789989624.9787397,
-        "updated": 1791295708.4679642
+        "updated": 1791304460.3753314
       },
       "camp_drum_chiefs_pit_1": {
         "id": "camp_drum_chiefs_pit_1",
@@ -26910,10 +26991,106 @@
             "high_metabolism": true
           },
           "x": 1839.9,
-          "y": 6560.9
+          "y": 6560.9,
+          "expressions": {
+            "neutral": {
+              "profile": "/static/images/nodes/player_Vekka-profile-neutral-1791307002984.png"
+            },
+            "happy": {
+              "profile": "/static/images/nodes/player_Vekka-profile-happy-1791307003932.png"
+            },
+            "sad": {
+              "profile": "/static/images/nodes/player_Vekka-profile-sad-1791307005190.png"
+            },
+            "angry": {
+              "profile": "/static/images/nodes/player_Vekka-profile-angry-1791307006055.png"
+            },
+            "surprised": {
+              "profile": "/static/images/nodes/player_Vekka-profile-surprised-1791307006992.png"
+            },
+            "fearful": {
+              "profile": "/static/images/nodes/player_Vekka-profile-fearful-1791307008532.png"
+            },
+            "disgusted": {
+              "profile": "/static/images/nodes/player_Vekka-profile-disgusted-1791307009380.png"
+            },
+            "confused": {
+              "profile": "/static/images/nodes/player_Vekka-profile-confused-1791307010213.png"
+            },
+            "determined": {
+              "profile": "/static/images/nodes/player_Vekka-profile-determined-1791307011062.png"
+            },
+            "exhausted": {
+              "profile": "/static/images/nodes/player_Vekka-profile-exhausted-1791307012095.png"
+            },
+            "smug": {
+              "profile": "/static/images/nodes/player_Vekka-profile-smug-1791307012930.png"
+            },
+            "worried": {
+              "profile": "/static/images/nodes/player_Vekka-profile-worried-1791307013779.png"
+            },
+            "curious": {
+              "profile": "/static/images/nodes/player_Vekka-profile-curious-1791307014647.png"
+            },
+            "embarrassed": {
+              "profile": "/static/images/nodes/player_Vekka-profile-embarrassed-1791307015436.png"
+            },
+            "proud": {
+              "profile": "/static/images/nodes/player_Vekka-profile-proud-1791307016256.png"
+            },
+            "bored": {
+              "profile": "/static/images/nodes/player_Vekka-profile-bored-1791307017352.png"
+            },
+            "suspicious": {
+              "profile": "/static/images/nodes/player_Vekka-profile-suspicious-1791307018164.png"
+            },
+            "hopeful": {
+              "profile": "/static/images/nodes/player_Vekka-profile-hopeful-1791307019040.png"
+            },
+            "frustrated": {
+              "profile": "/static/images/nodes/player_Vekka-profile-frustrated-1791307019926.png"
+            },
+            "relieved": {
+              "profile": "/static/images/nodes/player_Vekka-profile-relieved-1791307020740.png"
+            },
+            "defiant": {
+              "profile": "/static/images/nodes/player_Vekka-profile-defiant-1791307021533.png"
+            },
+            "sleepy": {
+              "profile": "/static/images/nodes/player_Vekka-profile-sleepy-1791307022457.png"
+            },
+            "shocked": {
+              "profile": "/static/images/nodes/player_Vekka-profile-shocked-1791307023299.png"
+            },
+            "amused": {
+              "profile": "/static/images/nodes/player_Vekka-profile-amused-1791307024128.png"
+            },
+            "concerned": {
+              "profile": "/static/images/nodes/player_Vekka-profile-concerned-1791307024940.png"
+            },
+            "confident": {
+              "profile": "/static/images/nodes/player_Vekka-profile-confident-1791307025909.png"
+            },
+            "nervous": {
+              "profile": "/static/images/nodes/player_Vekka-profile-nervous-1791307026801.png"
+            },
+            "playful": {
+              "profile": "/static/images/nodes/player_Vekka-profile-playful-1791307027615.png"
+            },
+            "serious": {
+              "profile": "/static/images/nodes/player_Vekka-profile-serious-1791307028674.png"
+            },
+            "tearful": {
+              "profile": "/static/images/nodes/player_Vekka-profile-tearful-1791307029548.png"
+            },
+            "thoughtful": {
+              "profile": "/static/images/nodes/player_Vekka-profile-thoughtful-1791307030383.png"
+            }
+          },
+          "profile_image": "/static/images/nodes/player_Vekka-profile-neutral-1791307002984.png"
         },
         "created": 1789781679.856122,
-        "updated": 1791030782.1306243
+        "updated": 1791307030.3844845
       },
       "player_Zikka": {
         "id": "player_Zikka",
@@ -58646,12 +58823,6 @@
         "properties": {}
       },
       {
-        "source": "player_Rikka",
-        "target": "way_side_to_mine",
-        "type": "at",
-        "properties": {}
-      },
-      {
         "source": "item_creel_1791283213709_169",
         "target": "player_Jake_Halloway",
         "type": "equipped",
@@ -58758,14 +58929,38 @@
         "properties": {}
       },
       {
-        "source": "player_zombie__c4d808",
-        "target": "way_world_area_world_10_5_area_world_10_6",
-        "type": "at",
+        "source": "item_goblin_barbed_arrow_bzbl",
+        "target": "area_armory_bhg4",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "item_goblin_serrated_sword_biaj",
+        "target": "area_armory_bhg4",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Rikka",
+        "target": "player_Thrazz",
+        "type": "beside",
         "properties": {}
       },
       {
         "source": "player_zombie__9dcb3e",
-        "target": "way_west_woods_area_west_woods_15_20_area_west_woods_16_21",
+        "target": "way_west_woods_area_west_woods_16_21_area_west_woods_17_21",
+        "type": "at",
+        "properties": {}
+      },
+      {
+        "source": "player_zombie__c4d808",
+        "target": "way_world_area_world_10_6_area_world_9_6",
+        "type": "at",
+        "properties": {}
+      },
+      {
+        "source": "player_james",
+        "target": "way_world_area_abandoned_farm_area_world_16_6",
         "type": "at",
         "properties": {}
       },
@@ -58824,6 +59019,12 @@
         "properties": {}
       },
       {
+        "source": "player_Jake_Halloway",
+        "target": "area_raven_river",
+        "type": "in",
+        "properties": {}
+      },
+      {
         "source": "player_Kiala",
         "target": "area_chiefs_den",
         "type": "in",
@@ -58860,12 +59061,6 @@
         "properties": {}
       },
       {
-        "source": "player_Rikka",
-        "target": "area_side_tunnels",
-        "type": "in",
-        "properties": {}
-      },
-      {
         "source": "player_Shadow-Pelt",
         "target": "area_raven_river",
         "type": "in",
@@ -58878,26 +59073,20 @@
         "properties": {}
       },
       {
-        "source": "player_Thrazz",
-        "target": "area_side_tunnels",
-        "type": "in",
-        "properties": {}
-      },
-      {
         "source": "player_Tusker",
         "target": "area_sleeping_halls",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "player_Vekka",
-        "target": "area_water_source",
+        "source": "player_Zikka",
+        "target": "area_food_storage",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "player_Zikka",
-        "target": "area_food_storage",
+        "source": "player_james",
+        "target": "area_world_16_6",
         "type": "in",
         "properties": {}
       },
@@ -58920,32 +59109,26 @@
         "properties": {}
       },
       {
-        "source": "item_goblin_barbed_arrow_bzbl",
-        "target": "area_armory_bhg4",
+        "source": "player_Rikka",
+        "target": "area_side_tunnels",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "item_goblin_serrated_sword_biaj",
-        "target": "area_armory_bhg4",
+        "source": "player_Vekka",
+        "target": "area_water_source",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "player_james",
-        "target": "area_abandoned_farm",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Jake_Halloway",
-        "target": "area_raven_river",
+        "source": "player_Thrazz",
+        "target": "area_side_tunnels",
         "type": "in",
         "properties": {}
       }
     ]
   },
-  "turn_number": 9,
+  "turn_number": 10,
   "narration_mode": "none",
   "ghost_mode": false,
   "mature_content": true,
@@ -61283,9 +61466,9 @@
         }
       },
       "grid": {
-        "cell_scale": 1,
+        "w": 160,
         "h": 100,
-        "w": 160
+        "cell_scale": 1.0
       },
       "id": "abandoned_farms",
       "kind": "scope",
@@ -65898,9 +66081,9 @@
       "area_ids": [],
       "children": [],
       "grid": {
-        "cell_scale": 1,
+        "w": 45,
         "h": 30,
-        "w": 45
+        "cell_scale": 1.0
       },
       "id": "deep_woods",
       "kind": "scope",
@@ -66468,9 +66651,9 @@
       },
       "entry_floor": null,
       "grid": {
-        "cell_scale": 1,
+        "w": 30,
         "h": 20,
-        "w": 30
+        "cell_scale": 1.0
       },
       "id": "eldenford_interior",
       "kind": "scope",
@@ -67564,9 +67747,9 @@
         }
       },
       "grid": {
-        "cell_scale": 1,
+        "w": 6,
         "h": 6,
-        "w": 6
+        "cell_scale": 1.0
       },
       "id": "fisherman_s_hut",
       "kind": "scope",
@@ -67735,9 +67918,9 @@
         "test"
       ],
       "grid": {
-        "cell_scale": 1,
+        "w": 20,
         "h": 10,
-        "w": 20
+        "cell_scale": 1.0
       },
       "id": "goblin_camp",
       "kind": "scope",
@@ -67761,9 +67944,9 @@
       "area_ids": [],
       "children": [],
       "grid": {
-        "cell_scale": 1,
+        "w": 168,
         "h": 112,
-        "w": 168
+        "cell_scale": 1.0
       },
       "id": "raven_river",
       "kind": "scope",
@@ -67783,9 +67966,9 @@
       "area_ids": [],
       "children": [],
       "grid": {
-        "cell_scale": 1,
+        "w": 8,
         "h": 8,
-        "w": 8
+        "cell_scale": 1.0
       },
       "id": "test",
       "kind": "scope",
@@ -67856,9 +68039,9 @@
       "entry_area_id": "area_west_woods_9_14",
       "entry_area_name": "Sparse Forest (West woods 9,14)",
       "grid": {
-        "cell_scale": 1,
+        "w": 20,
         "h": 40,
-        "w": 20
+        "cell_scale": 1.0
       },
       "id": "west_woods",
       "kind": "scope",
@@ -71997,9 +72180,9 @@
         }
       },
       "grid": {
-        "cell_scale": 1,
+        "w": 20,
         "h": 10,
-        "w": 20
+        "cell_scale": 1.0
       },
       "id": "world",
       "kind": "scope",
@@ -72025,7 +72208,8 @@
           "7,5": "sparse_forest",
           "8,3": "sparse_forest",
           "9,3": "sparse_forest",
-          "9,4": "sparse_forest"
+          "9,4": "sparse_forest",
+          "19,4": "sparse_forest"
         },
         "road": {
           "10,4": "road",
@@ -72083,32 +72267,32 @@
       "parent_id": null,
       "placements": {
         "abandoned_farms": {
-          "area_id": "area_world_13_7",
-          "area_name": "Road (world 13,7)",
           "x": 13,
-          "y": 7
+          "y": 7,
+          "area_id": "area_world_13_7",
+          "area_name": "Road (world 13,7)"
         },
         "deep_woods": {
-          "area_id": "area_world_10_4",
-          "area_name": "Road (world 10,4)",
           "x": 10,
-          "y": 4
+          "y": 4,
+          "area_id": "area_world_10_4",
+          "area_name": "Road (world 10,4)"
         },
         "eldenford_interior": {
-          "area_id": "area_world_17_3",
-          "area_name": "River (world 17,3)",
           "x": 17,
-          "y": 3
+          "y": 3,
+          "area_id": "area_world_17_3",
+          "area_name": "River (world 17,3)"
         },
         "goblin_camp": {
           "x": 8,
           "y": 5
         },
         "west_woods": {
-          "area_id": "area_world_5_4",
-          "area_name": "Sparse Forest (world 5,4)",
           "x": 5,
-          "y": 4
+          "y": 4,
+          "area_id": "area_world_5_4",
+          "area_name": "Sparse Forest (world 5,4)"
         }
       },
       "reference": {
