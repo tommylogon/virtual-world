@@ -309,6 +309,9 @@ class TestUnknownTypesAndRecursion:
         item = add_item(graph)
         graph.add_node(Node(id="area_main", type="area", name="Main Hall", properties={}))
         graph.add_node(Node(id="item_torch", type="item", name="torch", properties={"tags": ["lit"]}))
+        # Connect the referenced nodes so they are not orphans (task-721);
+        # this test is about the trigger, which must raise no issue.
+        graph.add_edge(Edge(source="item_torch", target="area_main", type="in", properties={}))
         add_trigger(graph, item.id, "trigger_item_button_18_on_use_1_2", {
             "trigger_type": "on_use",
             "conditions": [{"type": "has_tag", "value": ["lit"]}],

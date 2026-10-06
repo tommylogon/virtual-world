@@ -152,7 +152,7 @@ body {
 #right-panel {
     width: 380px; min-width: 300px;
     background: var(--bg-card); border-left: 1px solid var(--border);
-    overflow-y: auto; overflow-x: hidden;
+    display: flex; flex-direction: column; overflow: hidden;
 }
 
 /* ===== Editor Toolbar =====
@@ -1244,6 +1244,32 @@ body {
 .inspector-empty { text-align: center; padding: 40px 20px; color: var(--text-muted); }
 .inspector-empty-icon { font-size: 36px; margin-bottom: 8px; }
 .inspector-empty p { margin: 4px 0; }
+/* Inspection trail (task-722): clickable breadcrumbs above the panel,
+   so a node reached from a character's inventory can be left the way
+   it was reached. Empty (and lit-rendered to `nothing`) when nothing
+   is inspected. */
+.inspector-breadcrumb {
+    display: flex; align-items: center; gap: 4px; flex-wrap: wrap;
+    padding: 5px 10px; background: var(--bg-inset);
+    border-bottom: 1px solid var(--border-light);
+    font-size: 11px; min-height: 0; flex: 0 0 auto;
+}
+.inspector-breadcrumb:empty { display: none; }
+.inspector-crumb { display: inline-flex; align-items: center; gap: 4px; }
+.inspector-crumb-sep { color: var(--text-dim); }
+.inspector-crumb-btn {
+    background: none; border: none; padding: 1px 4px; margin: 0;
+    color: var(--accent); font-size: 11px; cursor: pointer;
+    border-radius: 3px; font-family: inherit;
+}
+.inspector-crumb-btn:hover { background: var(--bg-hover); text-decoration: underline; }
+.inspector-crumb-label { color: var(--text); font-weight: 600; padding: 1px 4px; }
+.inspector-crumb-back {
+    background: none; border: 1px solid var(--border); padding: 0 6px;
+    margin-right: 4px; color: var(--text-dim); font-size: 11px;
+    cursor: pointer; border-radius: 3px; font-family: inherit;
+}
+.inspector-crumb-back:hover { color: var(--text); background: var(--bg-hover); }
 .inspector-header {
     display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
     padding: 12px 16px; background: var(--bg-inset);
@@ -1490,7 +1516,8 @@ body {
 
 .inspector-panel {
     overflow-y: auto;
-    height: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
     background: var(--bg-card);
 }
 

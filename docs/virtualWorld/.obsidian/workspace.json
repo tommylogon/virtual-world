@@ -16,8 +16,19 @@
               "icon": "lucide-git-fork",
               "title": "Graph view"
             }
+          },
+          {
+            "id": "1ec7dd69978fc063",
+            "type": "leaf",
+            "state": {
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "Graph view"
+            }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -181,8 +192,17 @@
       "bases:Create new base": false
     }
   },
-  "active": "628a877e9730f243",
+  "active": "1ec7dd69978fc063",
   "lastOpenFiles": [
+    "dev_tasks/review/world/task-723-calculate-way-node-coordinates-between-areas-in-map-mode.md",
+    "dev_tasks/review/ui/task-722-add-breadcrumb-navigation-to-inspector.md",
+    "dev_tasks/review/ui/task-721-add-orphaned-node-detection-to-validatorpanel.md",
+    "dev_tasks/review/ui/task-720-add-node-type-filter-to-validatorpanel.md",
+    "dev_tasks/todo/refactor/task-724-player-state-is-stored-in-multiple-homes-location-3x-and-tags-traits-2x.md",
+    "dev_tasks/todo/world/task-723-calculate-way-node-coordinates-between-areas-in-map-mode.md",
+    "dev_tasks/todo/ui/task-722-add-breadcrumb-navigation-to-inspector.md",
+    "dev_tasks/todo/ui/task-721-add-orphaned-node-detection-to-validatorpanel.md",
+    "dev_tasks/todo/ui/task-720-add-node-type-filter-to-validatorpanel.md",
     "dev_tasks/todo/gameplay/task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override.md.tmp.11928.1b3cb7021f85",
     "dev_tasks/todo/gameplay/task-716-fisherman-vertical-slice-reusable-water-activity-and-pursuit-loop.md.tmp.11928.2deae31d0cf1",
     "dev_tasks/todo/gameplay/task-716-fisherman-vertical-slice-reusable-water-activity-and-pursuit-loop.md.tmp.11928.81725a043b30",
@@ -195,7 +215,6 @@
     "dev_tasks/todo/gameplay/task-716-fisherman-vertical-slice-reusable-water-activity-and-pursuit-loop.md.tmp.11928.0ca7c6a1c3ca",
     "dev_tasks/todo/gameplay/task-716-fisherman-vertical-slice-reusable-water-activity-and-pursuit-loop.md.tmp.11928.67668113d4a5",
     "dev_tasks/todo/gameplay/task-716-fisherman-vertical-slice-reusable-water-activity-and-pursuit-loop.md",
-    "dev_tasks/todo/refactor/task-715-live-update-transport-will-not-scale-to-multiple-clients-sse-per-tab-1-5s-full-state-poll.md.tmp.11928.1d5f56277289",
     "dev_tasks/todo/refactor/task-715-live-update-transport-will-not-scale-to-multiple-clients-sse-per-tab-1-5s-full-state-poll.md",
     "dev_tasks/todo/ui/task-714-character-mind-panel-connect-memories-motives-and-current-pursuits.md",
     "dev_tasks/todo/refactor/task-713-engine-attention-py-is-a-dead-second-implementation-of-the-attended-set-selector.md",
@@ -210,14 +229,6 @@
     "design/Character Pursuits.md",
     "Items & Inventory/Items Overview.md",
     "Items & Inventory/Item States & Toggleables.md",
-    "Items & Inventory/Equipment & Paperdoll.md",
-    "Characters/Activities & States.md",
-    "dev_tasks/review/gameplay/task-4-grapple_restrain_system.md",
-    "dev_tasks/review/ui/task-143-deduplicate-carrying-list.md",
-    "dev_tasks/review/prompting/task-185-plan-loop-breaking.md",
-    "dev_tasks/review/prompting/task-145-clean-up-rich-narration-output-in-prompt.md",
-    "dev_tasks/review/gameplay/task-181-command-parser-multiwindow-targets.md",
-    "dev_tasks/review/gameplay/task-159-saves-and-reactions.md",
-    "Items & Inventory/Inventory.md"
+    "Items & Inventory/Equipment & Paperdoll.md"
   ]
 }

@@ -1604,16 +1604,19 @@ class VirtualWorld:
             trigger_def, item_node=item_node, game_state=self, dry_run=dry_run, context=context
         )
 
-    def validate_triggers(self, node_id: Optional[str] = None) -> list:
+    def validate_triggers(self, node_id: Optional[str] = None,
+                          node_type: Optional[str] = None) -> list:
         """Scan every trigger in the world for broken references.
 
         Returns a list of issue dicts
         (``{severity, code, message, source_node_id, ...}``); each issue's
         ``source_node_id`` is the node whose trigger is broken so the UI can
-        offer a clickable "open node" jump.
+        offer a clickable "open node" jump. *node_type* (task-720) filters
+        the scan to issues about nodes of one type.
         """
         from engine.trigger_validator import TriggerValidator
-        return TriggerValidator(self.graph).validate(node_id=node_id)
+        return TriggerValidator(self.graph).validate(node_id=node_id,
+                                                   node_type=node_type)
 
     def validate_trigger_props(self, trigger_props: dict, source_node_id: str = "") -> list:
         """Validate a single trigger definition dict (editor Run button)."""

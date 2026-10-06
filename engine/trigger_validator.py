@@ -9,7 +9,8 @@ at and reports issues that would silently break at runtime:
   (``spawn_item``, ``unlock_way``, ``set_state``, ``teleport``, ...),
 * condition params that reference items or tags no node in the world has
   (``has_item``, ``has_tag``, ``state_equals``, ...),
-* unknown condition / effect / trigger types.
+* unknown condition / effect / trigger types,
+* nodes no edge connects to the world at all (orphaned nodes).
 
 Each issue is a dict with a ``source_node_id`` so the frontend can render a
 clickable "open node" button that jumps the inspector + graph to the owner
@@ -22,7 +23,7 @@ of the broken trigger.
 
 import json
 import os
-from typing import Any, Dict, Iterator, List, Optional
+from typing import Any, Dict, Iterator, List, Optional, Set
 
 from graph import Node, EDGE_CONNECTION, EDGE_TRIGGERS
 from .trigger_system import TRIGGER_TYPES, EFFECT_TYPES
@@ -188,25 +189,73 @@ class TriggerValidator:
 
     # ─────────────────── Public API ───────────────────
 
-    def validate(self, node_id: Optional[str] = None) -> List[dict]:
-        """Return every issue in the graph, optionally filtered to *node_id*.
+    def validate(self, node_id: Optional[str] = None,
+                 node_type: Optional[str] = None) -> List[dict]:
+        """Return every issue in the graph, optionally filtered.
 
         Covers trigger wiring plus authoring problems: empty triggers/effects,
         ways missing cardinal/view/description/pass_message, mechanical tags
-        missing the values the engine reads, and instances drifted from their
-        library entry.
+        missing the values the engine reads, instances drifted from their
+        library entry, and nodes no edge connects to the world.
+
+        *node_id* filters to the triggers owned by a single node;
+        *node_type* (task-720) filters to issues about nodes of one type
+        (``area``/``way``/``item``/``character``/``logic_trigger``/...).
+        The two combine: a type plus an id yields that node's issues only
+        when the node is of the type.
         """
         issues: List[dict] = []
         trigger_edges = self.graph.get_edges_by_type(EDGE_TRIGGERS)
         for edge in trigger_edges:
             if node_id and edge.source.lower() != node_id.lower():
                 continue
+            if node_type:
+                source_node = self.graph.get_node(edge.source)
+                if source_node is None or source_node.type != node_type:
+                    continue
             issues.extend(self._validate_trigger_edge(edge))
-        issues.extend(self._validate_way_authoring(node_id))
-        issues.extend(self._validate_mechanical_items(node_id))
-        issues.extend(self._validate_library_sync(node_id))
+        # Each authoring pass below is already type-specific, so a type
+        # filter that names a different type simply skips the pass.
+        if not node_type or node_type == "way":
+            issues.extend(self._validate_way_authoring(node_id))
+        if not node_type or node_type == "item":
+            issues.extend(self._validate_mechanical_items(node_id))
+            issues.extend(self._validate_library_sync(node_id))
+        issues.extend(self._validate_orphaned_nodes(node_id, node_type))
         issues = self._filter_ignored(issues)
         issues.sort(key=lambda i: SEVERITY_ORDER.get(i.get("severity"), 9))
+        return issues
+
+    def _validate_orphaned_nodes(self, node_id: Optional[str] = None,
+                                 node_type: Optional[str] = None) -> List[dict]:
+        """Report nodes with no edges at all (task-721).
+
+        A node nothing connects to is unreachable: a leftover from a
+        deleted neighbour, a duplicate, or a node the author forgot to
+        wire up. Every endpoint of every edge counts, so a node is only
+        orphaned when it appears nowhere — not on a connection, a
+        trigger, a carrying edge, anything.
+        """
+        issues: List[dict] = []
+        connected: Set[str] = set()
+        for edge in self.graph.edges:
+            connected.add(str(edge.source).lower())
+            connected.add(str(edge.target).lower())
+        for node in self.graph.nodes.values():
+            if str(node.id).lower() in connected:
+                continue
+            if node_id and node.id.lower() != node_id.lower():
+                continue
+            if node_type and node.type != node_type:
+                continue
+            issues.append(self._issue(
+                "warning", "orphaned_node",
+                f"{node.type} {self._label(node)} has no connections — "
+                f"nothing in the world links to or from it, so it is "
+                f"unreachable. Wire it up or delete it.",
+                source_node_id=node.id,
+                node_type=node.type,
+            ))
         return issues
 
     def _filter_ignored(self, issues: List[dict]) -> List[dict]:

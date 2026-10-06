@@ -4,7 +4,7 @@
  * Enhanced with full Actions/Effects/Triggers grid
  *
  * @module inspector — right-panel dispatcher for whatever you selected
- * @contributes the `inspector` singleton: showNode/showAgent/showRoom/showItem/showWay routing, open/close
+ * @contributes the `inspector` singleton: showNode/showAgent/showRoom/showItem/showWay routing, open/close, and the inspection-trail breadcrumbs (task-722)
  * @powers clicking a node or character to open its inspector and use its context actions
  * @relates delegates to the inspector/* views; inspector/panel.js is the only panel writer
  * @docs docs/virtualWorld/UI & Settings/Inspector Panels.md
@@ -19,6 +19,8 @@ const inspectorAreaView = () => window.InspectorAreaView;
 class Inspector {
     constructor() {
         this._currentView = null; // { type: 'node', id: string } | { type: 'agent', name: string }
+        this._history = [];
+        this._suppressPush = false;
         if (window.appEvents) {
             appEvents.on('state:updated', () => this._reRender());
         }
@@ -42,8 +44,160 @@ class Inspector {
             }
         }, 250);
     }
+    // ─── Inspection trail (task-722) ───────────────────────────
+    // A stack of the views this session has visited, rendered as
+    // clickable breadcrumbs above the panel. Each navigation pushes a
+    // stop; a breadcrumb click or the Back button walks the stack back.
+    // The state lives on the instance, so it is per-inspector-session
+    // and dies with the panel (hide() clears it).
+    /** Push a stop unless it is the same as the one already on top. */
+    _pushCrumb(crumb) {
+        if (this._suppressPush)
+            return;
+        const top = this._history[this._history.length - 1];
+        if (top && this._sameCrumb(top, crumb))
+            return;
+        this._history.push(crumb);
+        this._renderBreadcrumb();
+    }
+    _sameCrumb(a, b) {
+        if (a.kind !== b.kind)
+            return false;
+        if (a.kind === 'node' && b.kind === 'node')
+            return a.id === b.id;
+        if (a.kind === 'agent' && b.kind === 'agent')
+            return a.name === b.name;
+        if (a.kind === 'inventory' && b.kind === 'inventory') {
+            return a.agentName === b.agentName;
+        }
+        return true; // world_lore
+    }
+    /**
+     * Insert the Inventory pseudo-stop when an item is opened straight
+     * out of the character currently being inspected, so the trail reads
+     * `Character > Inventory > <item>` and the middle segment is a way
+     * back to the inventory view.
+     *
+     * The character view is reached two ways: `showNode` on a character
+     * node (which leaves `_currentView` as a `node`), and `showAgent`
+     * directly (an `agent` view). Both name the same character, so the
+     * previous view is resolved to a character name either way.
+     */
+    _maybePushInventoryCrumb(prev, nodeId) {
+        let agentName = '';
+        if (prev && prev.type === 'agent') {
+            agentName = prev.name;
+        }
+        else if (prev && prev.type === 'node') {
+            const prevNode = worldState.getNode(prev.id);
+            if (prevNode && prevNode.type === 'character')
+                agentName = prevNode.name;
+        }
+        if (!agentName)
+            return;
+        const node = worldState.getNode(nodeId);
+        if (!node || node.type !== 'item')
+            return;
+        const held = (worldState.getInventoryIds
+            ? worldState.getInventoryIds(agentName)
+            : []).some((id) => String(id).toLowerCase() === String(nodeId).toLowerCase());
+        if (!held)
+            return;
+        this._pushCrumb({ kind: 'inventory', agentName, label: 'Inventory' });
+    }
+    /** A node stop, labelled by the node's display name. */
+    _pushNodeCrumb(nodeId, graphNode) {
+        const node = graphNode;
+        this._pushCrumb({
+            kind: 'node',
+            id: nodeId,
+            label: (node && node.name) || nodeId,
+        });
+    }
+    /** Render the trail into #inspector-breadcrumb (lit-owned, like the panel). */
+    _renderBreadcrumb() {
+        const el = document.getElementById('inspector-breadcrumb');
+        if (!el || !window.Lit)
+            return;
+        const htmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
+        if (!this._history.length) {
+            window.Lit.render(window.Lit.nothing, el);
+            return;
+        }
+        const trail = this._history.map((crumb, i) => {
+            const last = i === this._history.length - 1;
+            const sep = i > 0 ? htmlTag `<span class="inspector-crumb-sep">›</span>` : '';
+            const body = last
+                ? htmlTag `<span class="inspector-crumb-label">${crumb.label}</span>`
+                : htmlTag `<button class="inspector-crumb-btn" title="Back to ${crumb.label}"
+                    @click=${() => this._goTo(i)}>${crumb.label}</button>`;
+            return htmlTag `<span class="inspector-crumb">${sep}${body}</span>`;
+        });
+        const back = this._history.length > 1
+            ? htmlTag `<button class="inspector-crumb-back" title="Back one step"
+                @click=${() => this._goBack()}>←</button>`
+            : '';
+        window.Lit.render(htmlTag `${back}${trail}`, el);
+    }
+    /** Walk the trail back to stop *index* and truncate the stack there. */
+    _goTo(index) {
+        const crumb = this._history[index];
+        if (!crumb)
+            return;
+        this._history = this._history.slice(0, index + 1);
+        this._suppressPush = true;
+        try {
+            this._navigateCrumb(crumb);
+        }
+        finally {
+            this._suppressPush = false;
+        }
+        this._renderBreadcrumb();
+    }
+    /** Pop the current stop and return to the one before it. */
+    _goBack() {
+        if (this._history.length < 2)
+            return;
+        this._history.pop();
+        const crumb = this._history[this._history.length - 1];
+        if (!crumb)
+            return;
+        this._suppressPush = true;
+        try {
+            this._navigateCrumb(crumb);
+        }
+        finally {
+            this._suppressPush = false;
+        }
+        this._renderBreadcrumb();
+    }
+    /** Show the view a trail stop names, without pushing a new stop. */
+    _navigateCrumb(crumb) {
+        switch (crumb.kind) {
+            case 'node':
+                this.showNode(crumb.id);
+                return;
+            case 'agent':
+                this.showAgent(crumb.name);
+                return;
+            case 'inventory':
+                // The Inventory tab of the character view: select the tab
+                // first so the re-render lands on it.
+                if (window.InspectorAgentView
+                    && typeof window.InspectorAgentView._switchAgentTab === 'function') {
+                    window.InspectorAgentView._switchAgentTab('Inventory');
+                }
+                this.showAgent(crumb.agentName);
+                return;
+            case 'world_lore':
+                this.showWorldLore();
+                return;
+        }
+    }
     hide() {
         this._currentView = null;
+        this._history = [];
+        this._renderBreadcrumb();
         if (window.DocPanel)
             window.DocPanel.reset();
         if (window.events)
@@ -58,6 +212,10 @@ class Inspector {
     /** Dispatch to the correct renderer based on node type */
     showRoom(nodeId) { return this.showNode(nodeId); }
     showNode(nodeId) {
+        // The view being left, for the trail: an item opened while a
+        // character is inspected is reached through that character's
+        // inventory, which the breadcrumb records as its own stop.
+        const prev = this._currentView;
         this._currentView = { type: 'node', id: nodeId };
         if (window.appEvents)
             appEvents.emit('inspector:view', this._currentView);
@@ -75,13 +233,21 @@ class Inspector {
         }
         if (graphNode) {
             switch (graphNode.type) {
-                case 'area': return this._showArea(nodeId, graphNode);
-                case 'item': return this._showItem(nodeId, graphNode);
-                case 'way': return this._showWay(nodeId, graphNode);
+                case 'area':
+                    this._pushNodeCrumb(nodeId, graphNode);
+                    return this._showArea(nodeId, graphNode);
+                case 'item':
+                    this._maybePushInventoryCrumb(prev, nodeId);
+                    this._pushNodeCrumb(nodeId, graphNode);
+                    return this._showItem(nodeId, graphNode);
+                case 'way':
+                    this._pushNodeCrumb(nodeId, graphNode);
+                    return this._showWay(nodeId, graphNode);
                 case 'character': {
                     const player = worldState.players?.[graphNode.name];
                     if (player)
                         return this.showAgent(graphNode.name);
+                    this._pushNodeCrumb(nodeId, graphNode);
                     window.InspectorPanel.render(this._emptyTemplate(`Character "${graphNode.name}" has no player state.`, 'This node exists in the graph but is not a registered player (e.g. an old bare duplicate). Delete it and duplicate the original character again.'));
                     return;
                 }
@@ -94,14 +260,18 @@ class Inspector {
                         }
                         return this.showNode(parentId);
                     }
+                    this._pushNodeCrumb(nodeId, graphNode);
                     window.InspectorPanel.render(this._emptyTemplate(`Orphaned trigger: ${nodeId}`, 'This trigger node has no parent edge. It may be a stale copy — delete it from the graph.'));
                     return;
                 }
             }
         }
         // Fallback: try direct lookup by name
-        if (worldState.areas[nodeId])
+        if (worldState.areas[nodeId]) {
+            this._pushNodeCrumb(nodeId, { name: nodeId });
             return this._showArea(nodeId, { name: nodeId, properties: worldState.areas[nodeId], type: 'area' });
+        }
+        this._pushNodeCrumb(nodeId, null);
         window.InspectorPanel.render(this._emptyTemplate(`Node not found: ${nodeId}`, ''));
     }
     /** Build a lit-html empty-state template for inspector fallbacks. */
@@ -110,6 +280,7 @@ class Inspector {
         return htmlTag `<div class="inspector-empty"><p>${title}</p>${hint ? htmlTag `<p class="section-hint">${hint}</p>` : ''}</div>`;
     }
     showAgent(agentName) {
+        this._pushCrumb({ kind: 'agent', name: agentName, label: agentName });
         if (window.DocPanel) {
             window.DocPanel.setSelection({ kind: 'module', value: 'static/js/inspector/agent-view.js' });
         }
@@ -481,6 +652,7 @@ class Inspector {
     // ─────────── World Lore Editor ───────────
     showWorldLore() {
         this._currentView = { type: 'world_lore' };
+        this._pushCrumb({ kind: 'world_lore', label: 'World Lore' });
         window.InspectorLore.renderWorldLore();
     }
     async _renderWorldLore() {

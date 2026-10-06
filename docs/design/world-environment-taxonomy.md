@@ -298,3 +298,58 @@ feature. Further growth should be **new data, not new categories by fiat**:
 an added biome must ship the record shape above and validate against
 `engine/biomes.py`. See `docs/design/worldpainter-knowledge-and-fog.md` for how
 grids, per-agent fog of war, and belief-based travel consume this vocabulary.
+
+## Gap analysis: mockups vs shipped biome palette
+
+**Mockup expectations vs shipped reality**
+
+1. **UI layout** — Mockup: A modal dialog with a detail panel (WorldPainter Biome
+   Selector UI) showing illustrated tiles, rich detail panel with resources,
+   creatures, neighbours, climate data, and a temperature/humidity matrix.
+   Shipped: A `<select>` with `<optgroup>` sections, a filter box, a detail line
+   below the dropdown, and a colour swatch (WorldPainter Biome Palette Editor).
+
+2. **Task-596 requirements** — Mockup: "Filterable tile grid, 10 shown,
+   description under it." Task-596 acceptance: "The palette is grouped by kind
+   and filterable by name or id... A per-tile detail line says what the entry
+   **is** and **does**, from the vocabulary the compiler reads... What is the
+   difference between a bridge and a road? is answered without opening anything
+   else... Where is the exit from here? is answered by the cell inspector's new
+   `exits` row."
+   Shipped: The palette is grouped by kind with `<optgroup>`s, filterable by name
+   or id (task-647), shows a colour swatch, and has a detail line answering both
+   questions. The vocabulary endpoint already serves `descriptions`, `surface`,
+   `entry_phrase`, `exit_phrase`, etc., so the palette shows what each entry
+   is/does.
+
+3. **Vocabulary completeness** — Mockup: Rich detail panel with resources,
+   creatures, neighbours, climate data, illustrated tiles, temperature/humidity
+   matrix. Shipped: The vocabulary endpoint serves `biomes` with `id`, `name`,
+   `tags`, `surface`, `descriptions`, `refusal`, and `features` with `id`,
+   `name`, `tags`, `biomes`, `entry_phrase`, `exit_phrase`, `descriptions`.
+   However, `data/worldpainter/biomes.json` has no `resources`, `common_creatures`,
+   `rare_creatures`, `hazards`, `natural_neighbors`, `climate_range` fields,
+   and the mockup's detail panel is not shipped.
+
+4. **Data model gaps** — Mockup: Resources, creatures, neighbours, climate
+   range fields in the record shape. Shipped: `data/worldpainter/biomes.json`
+   has 106 biomes, 9 features — no resources, creatures, climate_range, or
+   neighbours fields. The design doc already defines the target record shape
+   (Resources, Creatures, Neighbors, Climate) but it is not implemented.
+
+**Conclusion**
+
+The mockup shows a much richer biome palette UI than what shipped. However,
+task-596 was about answering "what is the difference between a bridge and a
+road?" and "where is the exit from here?" without opening anything else, not
+about shipping the full detail panel from the mockup. The palette answers both
+questions: the detail line names the tile's prose, ground, and — for the road
+layer — the terrain it crosses and the verb you arrive with, which is exactly the
+difference between a bridge (cross a gap) and a road (a worn track).
+
+The vocabulary endpoint already serves the data needed for the palette to show
+what each entry is/does. The missing fields (`resources`, `creatures`,
+`climate_range`, `neighbours`) are a separate design gap — the taxonomy
+already defines the target record shape, but the data model hasn't been
+extended to include them. This is a deliberate out-of-scope decision until the
+compiler and engine can use the new fields.

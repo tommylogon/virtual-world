@@ -392,6 +392,7 @@
 
         <!-- RIGHT PANEL -->
         <aside id="right-panel" aria-label="Inspector panel">
+            <div id="inspector-breadcrumb" class="inspector-breadcrumb" aria-label="Inspection trail"></div>
             <div id="inspector-panel" class="inspector-panel"></div>
         </aside>
     </div>
@@ -1035,6 +1036,7 @@
     <script>
     let _vitalModalPlayer = '';
     let _vitalModalName = '';
+    let _vitalModalOriginalMax = null;
 
     function escVital(s) {
         return String(s == null ? '' : s)
@@ -1066,6 +1068,7 @@
                     body.innerHTML = `<div style="color:var(--red);padding:12px;">${data.error}</div>`;
                     return;
                 }
+                _vitalModalOriginalMax = data.max;
                 const isTemp = _vitalModalName === 'Temperature';
 
                 // task-635: speak the direction the vital actually moves. The
@@ -1215,6 +1218,10 @@
                                 <label>Value (${isTemp ? data.min + '–' + data.max : '0–' + data.max})</label>
                                 <input type="number" id="vital-edit-value" value="${data.value}" min="${isTemp ? data.min : 0}" max="${data.max}" step="${isTemp ? '0.1' : '1'}" style="width:100%;font-size:12px;">
                             </div>
+                            ${!isTemp && data.max != null && !_vitalModalName.startsWith('Max_') ? `<div class="field">
+                                <label>Max (ceiling)</label>
+                                <input type="number" id="vital-edit-max" value="${data.max}" min="1" step="1" style="width:100%;font-size:12px;">
+                            </div>` : ''}
                             ${!isTemp ? `<div class="field">
                                 <label>Rate (per turn)</label>
                                 <input type="number" id="vital-edit-decay" value="${data.decay_rate}" step="0.1" style="width:100%;font-size:12px;">
@@ -1242,19 +1249,43 @@
     function saveVitalEdit() {
         const value = parseInt(document.getElementById('vital-edit-value')?.value);
         const decay = parseFloat(document.getElementById('vital-edit-decay')?.value);
+        const maxEl = document.getElementById('vital-edit-max');
+        const maxVal = maxEl ? parseInt(maxEl.value) : null;
         const body = {};
         if (!isNaN(value)) body.value = value;
         if (!isNaN(decay)) body.decay_rate = decay;
-        if (Object.keys(body).length === 0) { closeVitalModal(); return; }
 
-        fetch(`/api/players/${encodeURIComponent(_vitalModalPlayer)}/vitals/${encodeURIComponent(_vitalModalName)}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-        })
-            .then(r => r.json())
-            .then(data => {
-                if (data.error) { alert(data.error); return; }
+        const maxChanged = maxEl && !isNaN(maxVal) && maxVal !== _vitalModalOriginalMax;
+        const hasBody = Object.keys(body).length > 0;
+        if (!hasBody && !maxChanged) { closeVitalModal(); return; }
+
+        const requests = [];
+        if (hasBody) {
+            requests.push(
+                fetch(`/api/players/${encodeURIComponent(_vitalModalPlayer)}/vitals/${encodeURIComponent(_vitalModalName)}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                }).then(r => r.json())
+            );
+        }
+        if (maxChanged) {
+            requests.push(
+                fetch(`/api/players/${encodeURIComponent(_vitalModalPlayer)}/vitals/${encodeURIComponent(`Max_${_vitalModalName}`)}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ value: maxVal })
+                }).then(r => r.json())
+            );
+        }
+
+        Promise.all(requests)
+            .then(results => {
+                const errors = results.filter(d => d && d.error);
+                if (errors.length > 0) {
+                    alert(errors.map(e => e.error).join('\n'));
+                    return;
+                }
                 closeVitalModal();
                 if (window.VW?.inspector && _vitalModalPlayer) {
                     window.VW.inspector.showAgent(_vitalModalPlayer);

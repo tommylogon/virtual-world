@@ -570,6 +570,58 @@
     },
 
     /**
+     * Where a way with no stored position of its own belongs on the
+     * painted map (task-723): between the areas it connects, at the
+     * current pitch.
+     *
+     * A way the compiler mints carries no `cell`/`x`/`y` — only the
+     * areas it joins — so its position is derived from theirs. Two
+     * rooms: the way belongs in the *gap* between the rooms' drawn
+     * marks, not on a mark. A mark spans about half a cell (`pitch/2`)
+     * from its anchor along the connecting edge, so the gap runs from
+     * a half-cell in from each room and the way sits at the centre of
+     * that gap — for two rooms a cell apart (the painted lattice), the
+     * segment midpoint, a half-cell from each: the "20px to the way,
+     * 20px to the next area" geometry the pitch is built around. Three
+     * or more (a junction): the centroid, the balanced point between
+     * all of them. Pure, so the placement is unit-tested at any pitch.
+     * @param {Array<{x:number,y:number}>} anchors - the way's areas' map positions
+     * @param {number} pitch - px per cell (mapSpacing)
+     * @returns {{x:number,y:number}|null} null when there is nothing to place by
+     */
+    wayMapPosition(anchors: Array<{ x: number; y: number }> | null, pitch: number): { x: number; y: number } | null {
+        if (!anchors || !anchors.length) return null;
+        if (anchors.length === 1) return { x: anchors[0].x, y: anchors[0].y };
+        if (anchors.length === 2) {
+            const a = anchors[0];
+            const b = anchors[1];
+            const dx = b.x - a.x;
+            const dy = b.y - a.y;
+            const d = Math.hypot(dx, dy);
+            const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+            if (!(d > 0)) return mid;
+            // Gap endpoints along the connecting edge: a half-cell in
+            // from each room. Clamped to the segment's midpoint when
+            // the rooms are closer than a cell (no gap exists then, and
+            // the midpoint is the nearest point to both).
+            const mark = pitch * 0.5;
+            const ux = dx / d;
+            const uy = dy / d;
+            const near = Math.min(mark, d / 2);
+            const far = Math.max(d - mark, d / 2);
+            const t = (near + far) / 2;
+            return { x: a.x + ux * t, y: a.y + uy * t };
+        }
+        let cx = 0;
+        let cy = 0;
+        for (const a of anchors) {
+            cx += a.x;
+            cy += a.y;
+        }
+        return { x: cx / anchors.length, y: cy / anchors.length };
+    },
+
+    /**
      * Position updates for a painted map: every node with coords at its painted
      * cell (plus its scope's map offset, task-523), and items/characters held in
      * an area beside that area. Shared by the initial layout and the live
@@ -696,15 +748,15 @@
             });
         }
 
-        // Ways that belong to the map were skipped by the loop above; place them
-        // at the mean of their rooms' anchors, in the same scaled map frame.
+        // Ways that belong to the map were skipped by the loop above;
+        // place them between their rooms (task-723), in the same
+        // scaled map frame.
         for (const [wayId, areaIds] of Object.entries<string[]>(wayAreas)) {
             if (placed.has(wayId) || !nodesDS.get(wayId)) continue;
             const rooms = areaIds.map((areaId: string) => anchors[areaId]).filter(Boolean);
-            if (!rooms.length) continue;
-            const x = rooms.reduce((sum: number, room: any) => sum + room.x, 0) / rooms.length;
-            const y = rooms.reduce((sum: number, room: any) => sum + room.y, 0) / rooms.length;
-            updates.push({ id: wayId, x, y, physics: false, fixed: { x: true, y: true } });
+            const pos = window.GraphLayoutEngine.wayMapPosition(rooms, window.GraphLayoutEngine.mapSpacing());
+            if (!pos) continue;
+            updates.push({ id: wayId, x: pos.x, y: pos.y, physics: false, fixed: { x: true, y: true } });
             placed.add(wayId);
         }
         return updates;

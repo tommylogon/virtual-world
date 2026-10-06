@@ -2028,7 +2028,6 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         _syncZoomButtons();   // a rebuild starts at the current scale
         hud.appendChild(_el('span', 'font-size:11px;color:var(--text-muted,#999);',
             `${p.grid!.w}×${p.grid!.h} · 1 cell = 1 turn`));
-        hud.appendChild(_referenceControl(p));
         // Painted-cell transparency: lets the reference art show through.
         const alpha = _el('input', 'width:64px;');
         alpha.type = 'range';

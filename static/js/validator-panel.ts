@@ -10,6 +10,9 @@
  *     empty trigger stubs, 🚫/🔓 dismiss / restore (writes ignored_issues into
  *     the node — survives reloads, expires if the node is edited again).
  *   • "Fix all" for mechanical info nudges (one batch, one undo).
+ *   • A node-type filter (task-720) that narrows the whole scan to one
+ *     node type, and orphaned-node detection (task-721): nodes no edge
+ *     connects to the world, reported as warnings.
  *   • Scrollable list + sticky count + a derived per-node progress bar
  *     ("done" = no actionable issues on the node).
  *
@@ -42,6 +45,7 @@
         way_missing_view_direction: 'way: no view direction',
         mechanical_tag_missing_props: 'missing mechanical property',
         library_mismatch: 'drifted from library',
+        orphaned_node: 'orphaned node',
     };
     const friendly = (code: string): string => CODE_LABELS[code] || code.replace(/_/g, ' ');
 
@@ -51,11 +55,13 @@
         _lastIssues: ValidatorIssue[];
         _mode: string;
         _showIgnored: boolean;
+        _nodeType: string;
 
         constructor() {
             this._lastIssues = [];
             this._mode = localStorage.getItem('vp-group') || 'node';
             this._showIgnored = localStorage.getItem('vp-show-ignored') === '1';
+            this._nodeType = localStorage.getItem('vp-node-type') || '';
             // appEvents is attached to window by event-bus.js but is not on the declared Window surface.
             const bus = (window as unknown as { appEvents?: { on(event: string, fn: () => void): void } }).appEvents;
             if (bus) {
@@ -70,10 +76,12 @@
             _timer = setTimeout(() => this.refresh(), delay);
         }
 
-        async fetchIssues(nodeId = ''): Promise<ValidatorIssue[]> {
-            const url = nodeId
-                ? `/api/triggers/validate?node_id=${encodeURIComponent(nodeId)}`
-                : '/api/triggers/validate';
+        async fetchIssues(nodeId = '', nodeType = ''): Promise<ValidatorIssue[]> {
+            const params = new URLSearchParams();
+            if (nodeId) params.set('node_id', nodeId);
+            if (nodeType) params.set('node_type', nodeType);
+            const qs = params.toString();
+            const url = qs ? `/api/triggers/validate?${qs}` : '/api/triggers/validate';
             try {
                 const resp = await fetch(url);
                 const data = await resp.json();
@@ -85,7 +93,7 @@
         }
 
         async refresh(): Promise<void> {
-            const issues = await this.fetchIssues();
+            const issues = await this.fetchIssues('', this._nodeType);
             this._lastIssues = issues;
             this.render(issues);
         }
@@ -283,6 +291,23 @@
             this.render(this._lastIssues);
         }
 
+        /** The node types present in the live graph, for the filter. */
+        _nodeTypes(): string[] {
+            const nodes = ((worldState && worldState.graph && worldState.graph.nodes) || {}) as Record<string, { type?: string }>;
+            const types = new Set<string>();
+            for (const n of Object.values(nodes)) {
+                if (n && n.type) types.add(n.type);
+            }
+            return Array.from(types).sort();
+        }
+
+        /** Filter the whole scan to one node type (task-720). */
+        setNodeType(type: string): void {
+            this._nodeType = type || '';
+            localStorage.setItem('vp-node-type', this._nodeType);
+            this.refresh();
+        }
+
         // ── Grouping ───────────────────────────────────────────────────
 
         _groupByNode(issues: ValidatorIssue[]): NodeGroup[] {
@@ -330,8 +355,9 @@
             const errors = issues.filter(i => i.severity === 'error').length;
             const warnings = issues.filter(i => i.severity === 'warning').length;
             if (countEl && !targetEl) {
+                const scope = this._nodeType ? ` in ${this._nodeType} nodes` : '';
                 countEl.textContent = issues.length
-                    ? `${issues.length} (${errors} err · ${warnings} warn)`
+                    ? `${issues.length} (${errors} err · ${warnings} warn)${scope}`
                     : '';
                 countEl.style.color = errors ? '#f85149' : (warnings ? '#e3b341' : '#3fb950');
             }
@@ -360,12 +386,21 @@
         }
 
         _toolbarHtml(issues: ValidatorIssue[]): string {
+            const typeOptions = this._nodeTypes().map((t: string) =>
+                `<option value="${t}" ${this._nodeType === t ? 'selected' : ''}>${t}</option>`).join('');
             return `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:10px;margin:2px 0 6px;">
                 <span style="color:var(--text-muted);">Group:</span>
                 <button class="btn btn-sm ${this._mode === 'node' ? 'btn-blue' : ''}" style="font-size:9px;padding:1px 7px;" onclick="ValidatorPanel.setGroupMode('node')">By node</button>
                 <button class="btn btn-sm ${this._mode === 'code' ? 'btn-blue' : ''}" style="font-size:9px;padding:1px 7px;" onclick="ValidatorPanel.setGroupMode('code')">By code</button>
                 <label style="display:inline-flex;align-items:center;gap:3px;font-size:9px;color:var(--text-muted);cursor:pointer;margin-left:2px;">
                     <input type="checkbox" style="margin:0;" ${this._showIgnored ? 'checked' : ''} onchange="ValidatorPanel.setShowIgnored()"> show dismissed
+                </label>
+                <label style="display:inline-flex;align-items:center;gap:3px;font-size:9px;color:var(--text-muted);cursor:pointer;margin-left:auto;">
+                    <span>Type:</span>
+                    <select class="validator-type-filter" style="font-size:9px;padding:1px 3px;background:var(--bg-inset);color:var(--text);border:1px solid var(--border);" onchange="ValidatorPanel.setNodeType(this.value)" title="Show only issues about nodes of this type">
+                        <option value="" ${this._nodeType ? '' : 'selected'}>All types</option>
+                        ${typeOptions}
+                    </select>
                 </label>
             </div>`;
         }
@@ -375,6 +410,15 @@
             // so it can't drift. Audited = every item/way/area node; clean = one
             // with no undismissed issue. Fixing a node moves it from unresolved
             // to clean automatically.
+            //
+            // A node-type filter (task-720) narrows both sides to that type:
+            // counting every node against a filtered issue set would overstate
+            // how clean the world is. A filter outside the audited set (a
+            // character, a trigger) has no progress bar to show at all.
+            const typeFilter = this._nodeType;
+            if (typeFilter && typeFilter !== 'item' && typeFilter !== 'way' && typeFilter !== 'area') {
+                return '';
+            }
             let audited = 0;
             const unresolved = new Set();
             const nodes = ((worldState && worldState.graph && worldState.graph.nodes) || {}) as Record<string, { type?: string }>;
@@ -382,12 +426,16 @@
                 if (issue.source_node_id) unresolved.add(issue.source_node_id);
             }
             for (const n of Object.values(nodes)) {
-                if (n && (n.type === 'item' || n.type === 'way' || n.type === 'area')) audited++;
+                if (!n) continue;
+                if (n.type !== 'item' && n.type !== 'way' && n.type !== 'area') continue;
+                if (typeFilter && n.type !== typeFilter) continue;
+                audited++;
             }
             const clean = Math.max(0, audited - unresolved.size);
             const pct = audited ? Math.round((clean / audited) * 100) : 100;
             const tone = unresolved.size ? (pct < 50 ? '#e3b341' : '#8b949e') : '#3fb950';
-            return `<div style="display:flex;align-items:center;gap:6px;font-size:9px;color:var(--text-muted);margin:2px 0 2px;" title="Derived: of ${audited} audited item/way/area nodes, ${clean} have no undismissed issues.">
+            const scope = typeFilter ? ` ${typeFilter}` : '';
+            return `<div style="display:flex;align-items:center;gap:6px;font-size:9px;color:var(--text-muted);margin:2px 0 2px;" title="Derived: of ${audited} audited${scope} item/way/area nodes, ${clean} have no undismissed issues.">
                 <span>${issues.length} issue${issues.length === 1 ? '' : 's'} · ${unresolved.size} node${unresolved.size === 1 ? '' : 's'} touched</span>
                 <div style="flex:1;height:5px;background:var(--bg-inset);border-radius:2px;overflow:hidden;">
                     <div style="width:${pct}%;height:100%;background:${tone};"></div>

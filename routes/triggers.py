@@ -9,13 +9,17 @@ def register_triggers_routes(app):
     def validate_triggers():
         """Scan every trigger in the world for broken references.
 
-        Optional query param ``node_id`` filters to the triggers owned by a
-        single node. Returns ``{"issues": [...], "count": n}`` where each
+        Optional query params: ``node_id`` filters to the triggers owned
+        by a single node, ``node_type`` (task-720) to issues about nodes
+        of one type (``area``/``way``/``item``/``character``/...). The
+        two combine. Returns ``{"issues": [...], "count": n}`` where each
         issue is ``{severity, code, message, source_node_id, ...}``.
         """
         world = app.world
         node_id = request.args.get('node_id', '')
-        issues = world.validate_triggers(node_id=node_id)
+        node_type = request.args.get('node_type', '')
+        issues = world.validate_triggers(
+            node_id=node_id or None, node_type=node_type or None)
         return jsonify({
             "issues": issues,
             "count": len(issues),

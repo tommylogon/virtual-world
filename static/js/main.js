@@ -851,7 +851,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize graph network
     await graphManager.init();
     // Initial state fetch
-    await worldState.fetch();
+    await worldState.fetch(true); // lite=true for fast initial paint
     agentLens.init();
     // Fetch equipment slot configuration
     await worldState.fetchEquipSlots();

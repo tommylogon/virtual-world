@@ -372,6 +372,84 @@ test('a coordinate-less way on a painted map is placed between its rooms (task-6
     }
 });
 
+test('wayMapPosition places a two-room way in the gap between them (task-723)', () => {
+    // Two rooms a cell apart at the default 40px pitch: the way sits
+    // at the half-cell, a half-cell from each room — the "20px to the
+    // way, 20px to the next area" geometry the pitch is built around.
+    assertEq(GraphLayoutEngine.wayMapPosition([{ x: 0, y: 0 }, { x: 40, y: 0 }], 40),
+             { x: 20, y: 0 }, 'half-cell from each room');
+    // The same two cells at a roomier pitch: the anchors scale with the
+    // pitch, so the way stays at the gap centre.
+    assertEq(GraphLayoutEngine.wayMapPosition([{ x: 0, y: 0 }, { x: 260, y: 0 }], 260),
+             { x: 130, y: 0 }, 'gap centre at 260px pitch');
+    // Diagonal connecting edge: interpolated along it, not axis-aligned.
+    assertEq(GraphLayoutEngine.wayMapPosition([{ x: 0, y: 0 }, { x: 40, y: 40 }], 40),
+             { x: 20, y: 20 }, 'midpoint of a diagonal edge');
+    // Rooms further apart than a cell: still the segment midpoint, the
+    // centre of the (wider) gap.
+    assertEq(GraphLayoutEngine.wayMapPosition([{ x: 0, y: 0 }, { x: 160, y: 0 }], 40),
+             { x: 80, y: 0 }, 'midpoint of a two-cell gap');
+    // Rooms closer than a cell: no gap exists, so the midpoint is the
+    // nearest point to both — not pushed onto a room.
+    assertEq(GraphLayoutEngine.wayMapPosition([{ x: 0, y: 0 }, { x: 20, y: 0 }], 40),
+             { x: 10, y: 0 }, 'midpoint when the rooms overlap');
+    // Coincident rooms: the midpoint degenerates to the shared point.
+    assertEq(GraphLayoutEngine.wayMapPosition([{ x: 5, y: 5 }, { x: 5, y: 5 }], 40),
+             { x: 5, y: 5 }, 'coincident rooms');
+});
+
+test('wayMapPosition handles junctions, a single room, and none (task-723)', () => {
+    // A junction of three rooms: the centroid, the balanced point.
+    assertEq(GraphLayoutEngine.wayMapPosition(
+        [{ x: 0, y: 0 }, { x: 60, y: 0 }, { x: 0, y: 60 }], 40),
+        { x: 20, y: 20 }, 'centroid of three rooms');
+    // One room: on it (a degenerate way has nowhere else to go).
+    assertEq(GraphLayoutEngine.wayMapPosition([{ x: 120, y: 40 }], 40),
+             { x: 120, y: 40 }, 'a single room');
+    // Nothing to place by.
+    assertEq(GraphLayoutEngine.wayMapPosition([], 40), null, 'no rooms');
+    assertEq(GraphLayoutEngine.wayMapPosition(null, 40), null, 'null rooms');
+});
+
+test('_gridUpdates places a coordinate-less way via wayMapPosition (task-723)', () => {
+    // The derived placement is the gap midpoint of the way's rooms, at
+    // the current pitch — the same result the inline mean produced, now
+    // through the named, tested helper.
+    const nodes = {
+        area_a: { type: 'area', properties: { cell: { x: 0, y: 0 }, x: 0, y: 0, world_scope_id: 's' } },
+        area_b: { type: 'area', properties: { cell: { x: 2, y: 0 }, x: 80, y: 0, world_scope_id: 's' } },
+        area_c: { type: 'area', properties: { cell: { x: 1, y: 2 }, x: 40, y: 80, world_scope_id: 's' } },
+        way_two: { type: 'way', properties: { world_scope_id: 's' } },
+        way_junction: { type: 'way', properties: { world_scope_id: 's' } },
+    };
+    const ds = { get: (id) => (id in nodes ? { id } : null), update: () => {} };
+    const edges = [
+        { type: 'connection', source: 'way_two', target: 'area_a' },
+        { type: 'connection', source: 'way_two', target: 'area_b' },
+        { type: 'connection', source: 'way_junction', target: 'area_a' },
+        { type: 'connection', source: 'way_junction', target: 'area_b' },
+        { type: 'connection', source: 'way_junction', target: 'area_c' },
+    ];
+    const prevEdges = (worldState.graph || {}).edges;
+    worldState.graph = Object.assign({}, worldState.graph, { edges });
+    try {
+        config = { graphMapSpacing: 40 };
+        const out = GraphLayoutEngine._gridUpdates(nodes, ds, {});
+        const byId = {};
+        out.forEach((u) => { byId[u.id] = u; });
+        // Two rooms at (0,0) and (80,0): gap midpoint (40, 0).
+        assertEq(byId.way_two.x, 40, 'two-room way at the gap midpoint');
+        assertEq(byId.way_two.y, 0, 'two-room way y');
+        // Junction of (0,0), (80,0), (40,80): centroid (40, 26.67).
+        assertEq(byId.way_junction.x, 40, 'junction way x at the centroid');
+        assertTrue(Math.abs(byId.way_junction.y - 80 / 3) < 1e-9,
+            `junction way y at the centroid (got ${byId.way_junction.y})`);
+    } finally {
+        worldState.graph.edges = prevEdges;
+        config = undefined;
+    }
+});
+
 test('a hand-placed node keeps its canvas position: no rescale, no offset', () => {
     // `properties.x/y` is an overloaded field. The compiler writes ENGINE units
     // (`cell * 40`), which the map layout scales by the pitch and translates by
