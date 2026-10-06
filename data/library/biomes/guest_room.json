@@ -1,0 +1,16 @@
+{
+  "name": "Guest Room",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "sleeping",
+    "sleeps",
+    "hospitality"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A guest room, made up and ready for whoever turns up.",
+    "The room at the end of the hall that is kept for visitors."
+  ]
+}

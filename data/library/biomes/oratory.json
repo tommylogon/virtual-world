@@ -1,0 +1,16 @@
+{
+  "name": "Oratory",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "worship",
+    "religious",
+    "quiet"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "An oratory, a few benches and a lectern, kept plain on purpose.",
+    "A small room for prayer, where the speaking is done by one person."
+  ]
+}

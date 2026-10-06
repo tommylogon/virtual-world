@@ -1,0 +1,16 @@
+{
+  "name": "Armoury",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "storage",
+    "military",
+    "arms"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "An armoury: racks of arms, each one signed out to somebody.",
+    "Spears, blades and shields, and a ledger of who has what."
+  ]
+}

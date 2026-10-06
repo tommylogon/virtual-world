@@ -1,0 +1,15 @@
+{
+  "name": "Tenement",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "residential",
+    "sleeps"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "A block of stacked dwellings sharing stairwells and a courtyard.",
+    "Four storeys of windows, laundry on the lines below."
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "Ferry Landing",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "transport",
+    "transport"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "A ferry landing: a ramp, a rope, and a boat that comes and goes.",
+    "Planks slick with spray, and the river moving past."
+  ]
+}

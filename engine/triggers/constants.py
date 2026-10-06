@@ -117,6 +117,9 @@ EFFECT_TYPES = [
     "broadcast_emotion",
     "bind_companion",
     "reveal_hidden",
+    # task-716: persistent activity and downstream movement for fishing slice.
+    "start_activity",
+    "push_actor",
 ]
 
 # task-242: effects agents may bind via the `bind`/`enchant` action. This is
@@ -148,4 +151,6 @@ SAFE_EFFECT_TYPES = {
     "heal",
     "damage",
     "llm_respond",
+    # task-716: activity start is a safe narrative/non-mutation effect.
+    "start_activity",
 }

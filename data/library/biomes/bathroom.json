@@ -1,0 +1,16 @@
+{
+  "name": "Bathroom",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "service",
+    "private",
+    "water"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A bathroom, a tub and a stone floor that is always damp.",
+    "Water, a mirror gone spotty, and somewhere to shut the door."
+  ]
+}

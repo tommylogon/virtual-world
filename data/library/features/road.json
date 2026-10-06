@@ -1,0 +1,15 @@
+{
+  "name": "Road",
+  "tags": [
+    "road"
+  ],
+  "biomes": [
+    "sparse_forest",
+    "dense_forest",
+    "farmland",
+    "hills"
+  ],
+  "descriptions": [
+    "A worn track cut through the land."
+  ]
+}

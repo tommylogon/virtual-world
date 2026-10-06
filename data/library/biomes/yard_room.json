@@ -1,0 +1,16 @@
+{
+  "name": "Yard Room",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "work",
+    "workshop",
+    "store"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "A yard room — half roofed, open to the weather, and the busiest part of the place.",
+    "A lean-to with benches under it and a yard to work in."
+  ]
+}

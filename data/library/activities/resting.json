@@ -1,0 +1,22 @@
+﻿{
+  "id": "resting",
+  "name": "resting",
+  "description": "Resting",
+  "condition": "busy",
+  "regen": {
+    "Energy": 0.15,
+    "Sanity": 0.05
+  },
+  "blocks_turns": true,
+  "interruptible": true,
+  "preposition": "on",
+  "no_duration_label": "until woken",
+  "tick": {
+    "actions": []
+  },
+  "completion": [
+    {
+      "type": "duration_elapsed"
+    }
+  ]
+}

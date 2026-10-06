@@ -1,0 +1,16 @@
+{
+  "name": "Dining Hall",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "eating",
+    "food",
+    "drink"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A dining hall, long tables laid for more than are eating.",
+    "Benches the length of the room and a fire at the far end."
+  ]
+}

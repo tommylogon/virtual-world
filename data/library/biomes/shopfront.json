@@ -1,0 +1,16 @@
+{
+  "name": "Shop Front",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "trade",
+    "commercial",
+    "shelter"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A shop front: a counter, a door that rings, and the street coming in cold.",
+    "Goods on shelves at eye level and the good stock somewhere out the back."
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "name": "Door",
+  "terrain": "urban",
+  "tags": [
+    "structure",
+    "not_a_place",
+    "cell_kind:passable",
+    "threshold",
+    "perceivable"
+  ],
+  "descriptions": [
+    "A threshold: not a place of its own, but you go through it.",
+    "A doorway between two places, standing open or not."
+  ],
+  "surface": "stone"
+}

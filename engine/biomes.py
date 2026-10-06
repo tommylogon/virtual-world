@@ -136,9 +136,11 @@ def features(path: Optional[str] = None) -> Dict[str, dict]:
 
 _resource_dir = os.path.join(os.path.dirname(DATA_PATH), "..", "library", "resource_distribution")
 _hostile_dir = os.path.join(os.path.dirname(DATA_PATH), "..", "library", "hostile_distribution")
+_biome_dir = os.path.join(os.path.dirname(DATA_PATH), "..", "library", "biomes")
+_feature_dir = os.path.join(os.path.dirname(DATA_PATH), "..", "library", "features")
 
 
-def _load_library_dir(directory: str) -> Dict[str, dict]:
+def _load_id_dir(directory: str) -> Dict[str, dict]:
     """Load one-file-per-entry JSON files from a library subdirectory."""
     out: Dict[str, dict] = {}
     if not os.path.isdir(directory):
@@ -150,6 +152,23 @@ def _load_library_dir(directory: str) -> Dict[str, dict]:
         with open(path, "r", encoding="utf-8-sig") as f:
             out[entry[:-5]] = json.load(f)
     return out
+
+
+_load_library_dir = _load_id_dir
+
+
+def biomes(path: Optional[str] = None) -> Dict[str, dict]:
+    library = _load_id_dir(_biome_dir)
+    if library:
+        return library
+    return load(path).get("biomes") or {}
+
+
+def features(path: Optional[str] = None) -> Dict[str, dict]:
+    library = _load_id_dir(_feature_dir)
+    if library:
+        return library
+    return load(path).get("features") or {}
 
 
 def resource_distribution(path: Optional[str] = None) -> Dict[str, list]:
@@ -394,8 +413,8 @@ def _num(value, default=None):
 def validate(data: Optional[dict] = None, path: Optional[str] = None) -> List[str]:
     """Return human-readable problems with the taxonomy; ``[]`` when clean."""
     problems: List[str] = []
-    data = data if data is not None else load(path)
-
+    if data is None:
+        data = load(path)
     bios = data.get("biomes")
     feats = data.get("features")
     if not isinstance(bios, dict) or not bios:

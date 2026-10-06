@@ -1,0 +1,15 @@
+{
+  "name": "Laundry",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "service",
+    "work"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A laundry, sheets over lines and the whole room damp to the shoulder.",
+    "Boiling water, soap, and more washing than there are hands for."
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "Bunk Room",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "sleeping",
+    "sleeps"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A bunk room, beds in rows and one aisle down the middle.",
+    "Sleeping quarters for more people than the building was drawn for."
+  ]
+}

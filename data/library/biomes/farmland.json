@@ -1,0 +1,17 @@
+{
+  "name": "Farmland",
+  "terrain": "farm",
+  "tags": [
+    "farmland",
+    "field"
+  ],
+  "forage_skills": [
+    "survival",
+    "perception"
+  ],
+  "surface": "tilled_soil",
+  "descriptions": [
+    "Tilled rows run to a low boundary hedge.",
+    "Open fields, worked and fenced."
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "Dungeon",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "service",
+    "below_ground",
+    "holding",
+    "dark"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A dungeon, below the waterline, and colder than the stair that leads to it.",
+    "Vaulted and low, with rings set in the floor and nothing else down here."
+  ]
+}

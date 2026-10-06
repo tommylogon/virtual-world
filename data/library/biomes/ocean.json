@@ -1,0 +1,16 @@
+{
+  "name": "Ocean",
+  "terrain": "water",
+  "tags": [
+    "ocean",
+    "water"
+  ],
+  "forage_skills": [
+    "survival"
+  ],
+  "surface": "deep_water",
+  "descriptions": [
+    "Open water to the horizon, restless and salt-heavy.",
+    "Long swells roll in under a wide sky."
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "name": "Infirmary",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "civic",
+    "medical",
+    "sleeps"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "An infirmary of low beds and a smell of boiled linen.",
+    "Rows of cots, a lamp at each end, and someone breathing hard."
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "Workroom",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "workshop",
+    "craft"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "A workroom, benches cleared for whatever is being made this week.",
+    "Half-finished things on every surface, and shavings underfoot."
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "Warehouse",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "industrial",
+    "storage"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "A warehouse stacked to the roof with crates and sacks.",
+    "Loading doors, rat-holes, and sacks heavy as men."
+  ]
+}

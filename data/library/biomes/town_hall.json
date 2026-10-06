@@ -1,0 +1,14 @@
+{
+  "name": "Town Hall",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "civic"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A town hall, its doors open and its notices thick on the board.",
+    "A public building, and the queue that forms outside it."
+  ]
+}

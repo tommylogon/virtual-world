@@ -1,0 +1,15 @@
+{
+  "name": "Temple",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "religious",
+    "worship"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A temple of dressed stone, its doors open onto a dim hall.",
+    "Columns, a high roof, and lamps burning along the aisle."
+  ]
+}

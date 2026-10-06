@@ -1,0 +1,15 @@
+{
+  "name": "Smithy",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "craft",
+    "craft"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "A smithy open to the street, the forge fire visible from the road.",
+    "An anvil, a quench trough, and hammer-sore arms."
+  ]
+}

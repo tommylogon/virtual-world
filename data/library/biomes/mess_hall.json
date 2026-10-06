@@ -1,0 +1,15 @@
+{
+  "name": "Mess Hall",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "eating",
+    "food"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A mess hall: benches, trays, and the noise of a whole company eating.",
+    "Somewhere to sit down and eat, and nowhere to be private about it."
+  ]
+}

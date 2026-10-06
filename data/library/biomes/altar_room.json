@@ -1,0 +1,16 @@
+{
+  "name": "Altar Room",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "worship",
+    "religious",
+    "quiet"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "The altar room, behind the screen, where only the celebrant stands.",
+    "A raised step, a table with cloth over it, and a door that stays shut."
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "name": "Study",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "records",
+    "quiet",
+    "privacy"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A study, one desk, and more paper than shelf.",
+    "Somewhere to write things down that are not for everyone."
+  ]
+}

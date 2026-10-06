@@ -1,0 +1,16 @@
+{
+  "name": "Office",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "trade",
+    "records",
+    "quiet"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "An office: a desk, a window onto the yard, and a door that shuts.",
+    "Paperwork, and a clerk who has worked out which visitors waste their time."
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "name": "Storeroom",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "storage"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A storeroom, shelves to the ceiling and a list nailed to the door.",
+    "Crates, sacks, and a room that smells of keeping things dry."
+  ]
+}

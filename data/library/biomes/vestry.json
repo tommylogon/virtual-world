@@ -1,0 +1,17 @@
+{
+  "name": "Vestry",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "worship",
+    "religious",
+    "private",
+    "storage"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A vestry, where the vestments are kept and the door is shut.",
+    "Robes on pegs, a chest, and a lamp burning low."
+  ]
+}

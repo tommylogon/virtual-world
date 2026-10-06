@@ -1,0 +1,13 @@
+{
+  "name": "Town",
+  "tags": [
+    "settlement",
+    "town"
+  ],
+  "biomes": [
+    "farmland"
+  ],
+  "descriptions": [
+    "A dense knot of streets and roofs."
+  ]
+}

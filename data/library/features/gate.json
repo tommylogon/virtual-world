@@ -1,0 +1,21 @@
+{
+  "name": "Gate",
+  "tags": [
+    "road",
+    "gate"
+  ],
+  "biomes": [
+    "farmland",
+    "hills"
+  ],
+  "entry_phrase": "pass through the gate",
+  "exit_phrase": "pass back through the gate",
+  "entry_aliases": [
+    "in",
+    "out",
+    "gate"
+  ],
+  "descriptions": [
+    "A gate bars the road between posts."
+  ]
+}

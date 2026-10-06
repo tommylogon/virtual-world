@@ -1,0 +1,15 @@
+{
+  "name": "Workshop",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "craft",
+    "craft"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "A workshop, its benches buried under half-made things.",
+    "Shavings on the floor and a smell of hot metal and glue."
+  ]
+}

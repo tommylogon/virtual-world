@@ -1,0 +1,16 @@
+{
+  "name": "Assembly Hall",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "civic",
+    "social",
+    "public"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "An assembly hall, benches filling up and a platform nobody is using yet.",
+    "Enough chairs for the whole town, arranged to be argued at from both sides."
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "Deep Water",
+  "terrain": "water",
+  "tags": [
+    "deep_water",
+    "water",
+    "ocean"
+  ],
+  "forage_skills": [
+    "survival"
+  ],
+  "surface": "deep_water",
+  "descriptions": [
+    "The bottom drops away into dark, moving water.",
+    "Cold water, too deep to stand in."
+  ]
+}

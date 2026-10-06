@@ -1,0 +1,16 @@
+{
+  "name": "Archive",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "records",
+    "storage",
+    "quiet"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "An archive, shelves of ledgers going back further than anyone remembers.",
+    "Records kept dry, indexed, and consulted by people who no longer need them."
+  ]
+}

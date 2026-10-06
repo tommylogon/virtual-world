@@ -1,0 +1,16 @@
+{
+  "name": "Market",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "commercial",
+    "trade",
+    "food"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "A market square, stalls pitched and voices carrying across it.",
+    "Trestles, awnings, and produce heaped in crates."
+  ]
+}

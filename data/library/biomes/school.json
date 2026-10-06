@@ -1,0 +1,14 @@
+{
+  "name": "School",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "civic"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A schoolroom, benches in rows and a slate at the front.",
+    "Copybooks and ink, and the noise of a dozen children."
+  ]
+}

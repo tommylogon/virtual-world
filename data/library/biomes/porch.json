@@ -1,0 +1,16 @@
+{
+  "name": "Porch",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "threshold",
+    "shelter",
+    "outdoor"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A porch under the roof, dry to wait on and open to the weather.",
+    "The step inside, where the rain stops and the door is still shut."
+  ]
+}

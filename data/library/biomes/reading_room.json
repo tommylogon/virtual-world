@@ -1,0 +1,17 @@
+{
+  "name": "Reading Room",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "records",
+    "study",
+    "quiet",
+    "public"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A reading room, long tables, and the rule that nobody speaks.",
+    "Desks under lamps, a ledger of who has had which volume out."
+  ]
+}

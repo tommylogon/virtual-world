@@ -1,0 +1,41 @@
+{
+  "id": "fish-and-bring-home",
+  "version": 1,
+  "name": "Fish and bring home",
+  "purpose": "Go fishing at a known place, collect a catch quota, and return home.",
+  "parameters": {
+    "home": {
+      "type": "area",
+      "required": true
+    },
+    "fishing_place": {
+      "type": "area",
+      "required": true
+    }
+  },
+  "steps": [
+    {
+      "kind": "travel",
+      "area": {
+        "$binding": "fishing_place"
+      }
+    },
+    {
+      "kind": "activity",
+      "activity": "fishing",
+      "catch_count_target": 10,
+      "duration_ticks": 120
+    },
+    {
+      "kind": "travel",
+      "area": {
+        "$binding": "home"
+      }
+    }
+  ],
+  "tags": [
+    "gathering",
+    "fishing",
+    "travel"
+  ]
+}

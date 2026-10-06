@@ -1,0 +1,14 @@
+{
+  "name": "Wash Room",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "service"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A wash room, tubs and a stone floor that is always damp.",
+    "Where the washing happens, and where the hot water runs out first."
+  ]
+}

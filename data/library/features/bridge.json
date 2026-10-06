@@ -1,0 +1,23 @@
+{
+  "name": "Bridge",
+  "tags": [
+    "road",
+    "bridge"
+  ],
+  "biomes": [
+    "river",
+    "stream",
+    "ravine",
+    "chasm"
+  ],
+  "entry_phrase": "cross the bridge",
+  "exit_phrase": "cross back over",
+  "entry_aliases": [
+    "in",
+    "out",
+    "bridge"
+  ],
+  "descriptions": [
+    "A span carries the road over the gap."
+  ]
+}

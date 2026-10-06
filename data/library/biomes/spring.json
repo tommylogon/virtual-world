@@ -1,0 +1,16 @@
+{
+  "name": "Spring",
+  "terrain": "water",
+  "tags": [
+    "spring",
+    "water"
+  ],
+  "forage_skills": [
+    "survival"
+  ],
+  "surface": "wet_ground",
+  "descriptions": [
+    "Clear water wells up from the ground, cold and clean.",
+    "A small spring seeps out of the hillside."
+  ]
+}

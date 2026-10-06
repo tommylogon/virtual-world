@@ -1,0 +1,16 @@
+{
+  "name": "Ward",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "service",
+    "sleeps",
+    "care"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A ward, beds in rows and someone moving quietly between them.",
+    "Where the hurt are put, and where the smell of vinegar never quite goes."
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "Vault",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "storage",
+    "below_ground",
+    "locked",
+    "secure"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A vault, below ground, behind a door with more than one lock on it.",
+    "Iron doors, a wheel handle, and shelves nobody has opened in years."
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "id": "lake_fish_0",
+  "name": "lake fish",
+  "biome_tags": [
+    "lake"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "fish"
+  ],
+  "weight": 2,
+  "conditions": {}
+}

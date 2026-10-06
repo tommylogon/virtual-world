@@ -1,0 +1,13 @@
+{
+  "id": "stream_fish_0",
+  "name": "stream fish",
+  "biome_tags": [
+    "stream"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "fish"
+  ],
+  "weight": 2,
+  "conditions": {}
+}

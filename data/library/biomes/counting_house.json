@@ -1,0 +1,16 @@
+{
+  "name": "Counting House",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "trade",
+    "commercial",
+    "records"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A counting house, ledgers open and a clerk who never looks up.",
+    "Where the money is counted and the debts are written down."
+  ]
+}

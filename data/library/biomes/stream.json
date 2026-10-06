@@ -1,0 +1,16 @@
+{
+  "name": "Stream",
+  "terrain": "water",
+  "tags": [
+    "stream",
+    "water"
+  ],
+  "forage_skills": [
+    "survival"
+  ],
+  "surface": "shallow_water",
+  "descriptions": [
+    "A narrow stream chatters over pebbles.",
+    "Shallow water threads between mossy stones."
+  ]
+}

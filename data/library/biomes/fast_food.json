@@ -1,0 +1,15 @@
+{
+  "name": "Fast Food",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "commercial",
+    "food"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "A bright window, a menu board, and tables turned to the wall.",
+    "A counter, a queue, and a smell of fried everything."
+  ]
+}

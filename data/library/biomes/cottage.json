@@ -1,0 +1,15 @@
+{
+  "name": "Cottage",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "residential",
+    "sleeps"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "A small dwelling with a thatched roof and one door.",
+    "A house low to the ground, garden patch behind it."
+  ]
+}

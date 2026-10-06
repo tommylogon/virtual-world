@@ -1,0 +1,17 @@
+{
+  "name": "Sparse Forest",
+  "terrain": "forest",
+  "tags": [
+    "forest",
+    "woods"
+  ],
+  "forage_skills": [
+    "survival",
+    "perception"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "Scattered trees open onto patches of grass.",
+    "Thin woodland, easy to walk and hard to hide in."
+  ]
+}

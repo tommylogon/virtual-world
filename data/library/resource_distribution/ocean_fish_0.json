@@ -1,0 +1,13 @@
+{
+  "id": "ocean_fish_0",
+  "name": "ocean fish",
+  "biome_tags": [
+    "ocean"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "fish"
+  ],
+  "weight": 2,
+  "conditions": {}
+}

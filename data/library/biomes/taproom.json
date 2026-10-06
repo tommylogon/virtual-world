@@ -1,0 +1,16 @@
+{
+  "name": "Tap Room",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "eating",
+    "drink",
+    "social"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A tap room, wet boards and the noise of everyone in the place.",
+    "A bar down one side, benches down the other, and no quiet corner."
+  ]
+}

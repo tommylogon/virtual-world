@@ -1,0 +1,18 @@
+{
+  "name": "Mountains",
+  "terrain": "rock",
+  "tags": [
+    "mountains",
+    "mountain",
+    "rocky"
+  ],
+  "forage_skills": [
+    "survival",
+    "history"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "Bare rock climbs in broken steps toward the peaks.",
+    "Cold stone and thin air, with scree underfoot."
+  ]
+}

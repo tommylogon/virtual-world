@@ -1,0 +1,16 @@
+{
+  "name": "Crypt",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "worship",
+    "below_ground",
+    "quiet"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A crypt, niches cut into the walls and stone that holds the cold.",
+    "Under the floor, out of the weather, and not often visited."
+  ]
+}

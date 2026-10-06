@@ -1,0 +1,16 @@
+{
+  "name": "Lake",
+  "terrain": "water",
+  "tags": [
+    "lake",
+    "water"
+  ],
+  "forage_skills": [
+    "survival"
+  ],
+  "surface": "shallow_water",
+  "descriptions": [
+    "Still water stretches out, flat and grey.",
+    "Reeds crowd the shallows at the water's edge."
+  ]
+}

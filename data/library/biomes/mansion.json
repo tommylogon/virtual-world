@@ -1,0 +1,15 @@
+{
+  "name": "Mansion",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "residential",
+    "sleeps"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "A mansion of many rooms and a garden nobody can afford to keep.",
+    "A wide front, a carriage gate, and a garden gone to seed."
+  ]
+}

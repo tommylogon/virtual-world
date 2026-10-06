@@ -1,0 +1,16 @@
+{
+  "name": "Mill Room",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "workshop",
+    "craft",
+    "noise"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "A mill room, the wheels turning and the whole floor shaking with it.",
+    "Mechanism, flour to the ankle, and a noise you learn to talk over."
+  ]
+}

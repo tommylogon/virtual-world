@@ -1,0 +1,15 @@
+{
+  "name": "Corridor",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "circulation",
+    "merge:always"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A narrow corridor, one person wide, lamps set low in the wall.",
+    "A service corridor: bare, straight, and nobody's idea of a destination."
+  ]
+}

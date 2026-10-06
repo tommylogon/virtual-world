@@ -1,0 +1,16 @@
+{
+  "name": "Cell Block",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "service",
+    "holding",
+    "locked"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A cell block, a corridor of doors and the sound of somebody not asleep.",
+    "Doors down one side, a barred window at the end, and a guard's stool."
+  ]
+}

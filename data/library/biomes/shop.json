@@ -1,0 +1,15 @@
+{
+  "name": "Shop",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "commercial",
+    "trade"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "A shop with goods stacked to the ceiling and a counter at the door.",
+    "A narrow front, a bell over the frame, everything in reach."
+  ]
+}

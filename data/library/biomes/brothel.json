@@ -1,0 +1,15 @@
+{
+  "name": "Brothel",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "commercial",
+    "sleeps"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "A discreet house behind an unmarked door.",
+    "Lamplight in an upper window, and no sign at all."
+  ]
+}

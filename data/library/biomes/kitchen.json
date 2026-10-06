@@ -1,0 +1,16 @@
+{
+  "name": "Kitchen",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "cooking",
+    "food",
+    "craft"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A kitchen, hot from the range and loud from the knife on the board.",
+    "Pot, fire, and a table worn pale where the dough is worked."
+  ]
+}

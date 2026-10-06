@@ -1,0 +1,15 @@
+{
+  "name": "Mill",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "industrial",
+    "craft"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "A mill turning by the water, sacks waiting on the bank.",
+    "A wheel in the race, and the millrace's constant mutter."
+  ]
+}

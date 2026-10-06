@@ -40,6 +40,7 @@ const TriggerTypes = {
         { value: 'has_items', label: '🎒 Has all items', group: 'item' },
         { value: 'has_trait', label: '⭐ Has trait', group: 'character' },
         { value: 'has_tag', label: '🏷️ Has tag', group: 'tag' },
+        { value: 'target_has_tag', label: '🏷️ Target has tag (used-on node)', group: 'tag' },
         // task-390: sensory / faction conditions (shared condition tree).
         { value: 'player_has_tag', label: '🏷️ Holds item with tag', group: 'character' },
         { value: 'sight_holds', label: '👁 Sight: target holds tag', group: 'character' },
@@ -108,7 +109,10 @@ const TriggerTypes = {
         { value: 'apply_area_status', label: '🔥 Apply Area Status (on_fire...)', group: 'area' },
         { value: 'clear_area_status', label: '🧹 Clear Area Status', group: 'area' },
         // task-231: wet/dry clothing state.
-        { value: 'set_wet', label: '💧 Set Wet (soak/dry items)', group: 'item' }
+        { value: 'set_wet', label: '💧 Set Wet (soak/dry items)', group: 'item' },
+        // task-716: persistent activity and downstream movement for fishing slice.
+        { value: 'start_activity', label: '🎣 Start Activity (fishing, etc.)', group: 'general' },
+        { value: 'push_actor', label: '🚶 Push Actor (move character)', group: 'character' }
     ],
     /**
      * BEHAVIOR_ACTION_TYPES — every NPC behavior action the engine dispatches,

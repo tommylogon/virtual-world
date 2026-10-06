@@ -28,6 +28,8 @@ from engine.effect_handlers.scry import HANDLERS as SCRY_HANDLERS
 from engine.effect_handlers.weather import HANDLERS as WEATHER_HANDLERS
 from engine.effect_handlers.tags import HANDLERS as TAG_HANDLERS
 from engine.effect_handlers.spells import HANDLERS as SPELL_HANDLERS
+from engine.effect_handlers.activities import HANDLERS as ACTIVITY_HANDLERS
+from engine.effect_handlers.movement import HANDLERS as MOVEMENT_HANDLERS
 from engine.abilities import normalize_stat_block
 from engine.size import SIZE_TIERS, SIZE_DEFAULT
 from engine.vitals import (
@@ -50,6 +52,8 @@ HANDLERS.update(SCRY_HANDLERS)
 HANDLERS.update(WEATHER_HANDLERS)
 HANDLERS.update(TAG_HANDLERS)
 HANDLERS.update(SPELL_HANDLERS)
+HANDLERS.update(ACTIVITY_HANDLERS)
+HANDLERS.update(MOVEMENT_HANDLERS)
 
 
 class Effects:
@@ -247,6 +251,14 @@ class Effects:
     def handle_remove_trait(self, params, context, item_node=None, game_state=None):
         from engine.effect_handlers.conditions import handle_remove_trait
         return handle_remove_trait(self, params, context, item_node=item_node, game_state=game_state)
+
+    def handle_start_activity(self, params, context, item_node=None, game_state=None):
+        from engine.effect_handlers.activities import handle_start_activity
+        return handle_start_activity(self, params, context, item_node=item_node, game_state=game_state)
+
+    def handle_push_actor(self, params, context, item_node=None, game_state=None):
+        from engine.effect_handlers.movement import handle_push_actor
+        return handle_push_actor(self, params, context, item_node=item_node, game_state=game_state)
 
     # ─────────────────── Private helpers ───────────────────
 

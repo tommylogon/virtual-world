@@ -1,0 +1,16 @@
+{
+  "name": "Tack Room",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "storage",
+    "work",
+    "craft"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A tack room: bridles on pegs, saddles on racks, everything oiled and hung.",
+    "Harness and mending, all of it labelled in somebody's careful hand."
+  ]
+}

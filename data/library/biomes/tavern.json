@@ -1,0 +1,16 @@
+{
+  "name": "Tavern",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "commercial",
+    "food",
+    "drink"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "A taproom loud with talk, a back room quieter, and a door that shuts.",
+    "Benches, a bar, and the smell of a fire that never quite goes out."
+  ]
+}

@@ -1,0 +1,21 @@
+﻿{
+  "id": "sitting",
+  "name": "sitting",
+  "description": "Sitting",
+  "condition": "busy",
+  "regen": {
+    "Energy": 0.06
+  },
+  "blocks_turns": true,
+  "interruptible": true,
+  "preposition": "in",
+  "no_duration_label": "until woken",
+  "tick": {
+    "actions": []
+  },
+  "completion": [
+    {
+      "type": "duration_elapsed"
+    }
+  ]
+}

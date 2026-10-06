@@ -1,0 +1,15 @@
+{
+  "name": "Cemetery",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "religious",
+    "worship"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A cemetery of leaning markers and long grass.",
+    "Names cut in stone, and nobody left to read them."
+  ]
+}

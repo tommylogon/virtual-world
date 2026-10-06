@@ -1,0 +1,15 @@
+{
+  "name": "Castle",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "military",
+    "sleeps"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A castle: curtain wall, gatehouse, and a keep above the town.",
+    "Stone high enough to see the river, and hard to leave."
+  ]
+}

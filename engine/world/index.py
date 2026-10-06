@@ -306,10 +306,9 @@ class GlobalScopeIndex:
         if not record:
             return None
         target_scope = record.get("target_scope_id")
-        if target_scope and not self.ensure_scope_loaded(target_scope, graph):
-            # A gateway whose remote scope cannot be materialised (no loader)
-            # is not crossable: the caller must refuse rather than deref a node
-            # that is not there.
+        if not target_scope:
+            return None
+        if not self.ensure_scope_loaded(target_scope, graph):
             return None
         return record.get("target_area_id")
 

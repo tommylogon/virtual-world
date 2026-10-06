@@ -1,0 +1,21 @@
+{
+  "name": "Ford",
+  "tags": [
+    "road",
+    "river"
+  ],
+  "biomes": [
+    "river",
+    "stream"
+  ],
+  "entry_phrase": "wade across the ford",
+  "exit_phrase": "wade back across",
+  "entry_aliases": [
+    "in",
+    "out",
+    "ford"
+  ],
+  "descriptions": [
+    "The road drops through shallow water here."
+  ]
+}

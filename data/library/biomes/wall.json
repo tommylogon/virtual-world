@@ -1,0 +1,15 @@
+{
+  "name": "Wall",
+  "terrain": "urban",
+  "tags": [
+    "structure",
+    "not_a_place",
+    "cell_kind:solid",
+    "impassable"
+  ],
+  "descriptions": [
+    "Solid wall. Nothing passes it and nothing sees through it.",
+    "A blank of masonry, thick enough to be a room's own boundary."
+  ],
+  "surface": "stone"
+}

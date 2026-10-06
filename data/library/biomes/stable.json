@@ -1,0 +1,15 @@
+{
+  "name": "Stable",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "rural",
+    "sleeps"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "A stable of stalls and tethering rings, warm with animal breath.",
+    "Hay, dung, and horses shifting on their feet."
+  ]
+}

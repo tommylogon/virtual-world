@@ -1,0 +1,16 @@
+{
+  "name": "River",
+  "terrain": "water",
+  "tags": [
+    "river",
+    "water"
+  ],
+  "forage_skills": [
+    "survival"
+  ],
+  "surface": "shallow_water",
+  "descriptions": [
+    "A current runs steadily between its banks.",
+    "Water hurries over a stony bed."
+  ]
+}

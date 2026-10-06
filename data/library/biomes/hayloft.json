@@ -1,0 +1,15 @@
+{
+  "name": "Hayloft",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "storage",
+    "work"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "A hayloft, reached by a ladder, smelling of dust and dry grass.",
+    "Hay up to the eaves and one small window to throw the bales down from."
+  ]
+}

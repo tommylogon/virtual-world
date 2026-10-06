@@ -57,6 +57,7 @@ _DEFAULT_SKILL_TABLES = {
         {"tags": ["berry", "fruit", "food"], "weight": 4},
         {"tags": ["root", "food"], "weight": 3},
         {"tags": ["grub", "bait", "bug"], "weight": 2},
+        {"tags": ["fish"], "weight": 2},
     ],
     "perception": [
         {"tags": ["scrap", "junk"], "weight": 3},

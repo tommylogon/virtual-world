@@ -1,0 +1,21 @@
+{
+  "name": "Tunnel",
+  "tags": [
+    "tunnel",
+    "underground"
+  ],
+  "biomes": [
+    "mountains",
+    "hills"
+  ],
+  "entry_phrase": "go down the tunnel",
+  "exit_phrase": "come back up the tunnel",
+  "entry_aliases": [
+    "in",
+    "out",
+    "tunnel"
+  ],
+  "descriptions": [
+    "A bored passage runs through the rock."
+  ]
+}

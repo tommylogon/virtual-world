@@ -1,0 +1,15 @@
+{
+  "name": "Pantry",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "storage",
+    "food"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A pantry, jars ranked on shelves, everything used by date.",
+    "Flour, salt, and the food kept for the days nobody planned for."
+  ]
+}

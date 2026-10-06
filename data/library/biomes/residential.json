@@ -1,0 +1,15 @@
+{
+  "name": "Residential",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "residential",
+    "sleeps"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "A building put to living, with windows lit and washing out.",
+    "Dwelling places, shoulder to shoulder along the street."
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "name": "Hearth Room",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "living",
+    "fire",
+    "shelter"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A hearth room: the fire, a long settle, and the whole family in it.",
+    "The warmest room in the house and the one everybody ends up in."
+  ]
+}

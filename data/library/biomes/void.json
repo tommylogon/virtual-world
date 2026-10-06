@@ -1,0 +1,15 @@
+{
+  "name": "Void",
+  "terrain": "urban",
+  "tags": [
+    "structure",
+    "not_a_place",
+    "cell_kind:solid",
+    "impassable",
+    "empty"
+  ],
+  "descriptions": [
+    "Nothing here — a gap, a courtyard, unwalkable. Not a place.",
+    "Open air where a place was never made."
+  ]
+}

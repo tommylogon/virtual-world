@@ -1,0 +1,15 @@
+{
+  "name": "Chapel",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "religious",
+    "worship"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A small chapel, barely more than a room with a pew.",
+    "Plain benches, one window, and a bell rope nobody pulls."
+  ]
+}

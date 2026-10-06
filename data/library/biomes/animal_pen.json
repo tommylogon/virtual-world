@@ -1,0 +1,16 @@
+{
+  "name": "Animal Pen",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "storage",
+    "animals",
+    "farm"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "A pen, fenced at knee height, with the ground worn to mud in the middle.",
+    "Fodder on the ground, a gate that latches, and the noise of animals at rest."
+  ]
+}

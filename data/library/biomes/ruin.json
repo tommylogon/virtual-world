@@ -1,0 +1,14 @@
+{
+  "name": "Ruin",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "rural"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "Broken walls half-buried in growth, and no roof left.",
+    "A shell of a building, open to the weather."
+  ]
+}

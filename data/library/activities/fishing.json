@@ -1,0 +1,39 @@
+﻿{
+  "id": "fishing",
+  "name": "fishing",
+  "description": "Fishing",
+  "condition": "busy",
+  "regen": {},
+  "blocks_turns": true,
+  "interruptible": true,
+  "preposition": "in",
+  "no_duration_label": "until woken",
+  "tick": {
+    "interval_ticks": 5,
+    "actions": [
+      {
+        "type": "sample_biome_resource",
+        "container_tag": "creel",
+        "result_field": "catch_count",
+        "item_properties": {
+          "tags": [
+            "fish",
+            "creel_catch"
+          ],
+          "description": "A freshly caught fish.",
+          "plural": "fish"
+        }
+      }
+    ]
+  },
+  "completion": [
+    {
+      "type": "duration_elapsed"
+    },
+    {
+      "type": "field_threshold",
+      "field": "catch_count",
+      "param": "catch_count_target"
+    }
+  ]
+}

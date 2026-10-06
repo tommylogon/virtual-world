@@ -1,0 +1,16 @@
+{
+  "name": "Chasm",
+  "terrain": "rock",
+  "tags": [
+    "chasm",
+    "rocky"
+  ],
+  "forage_skills": [
+    "history"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A crack in the world, too wide to cross and too deep to see.",
+    "Cold air rises from a darkness with no visible bottom."
+  ]
+}

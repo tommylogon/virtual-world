@@ -1,0 +1,16 @@
+{
+  "name": "Council Chamber",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "civic",
+    "formal",
+    "quiet"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A council chamber, a horseshoe of tables and the argument going round it.",
+    "Seats ranked by who arrived first, and minutes kept of who said what."
+  ]
+}

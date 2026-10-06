@@ -1,0 +1,14 @@
+{
+  "name": "Watch House",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "military"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A watch house, small and thick-walled, with a brazier by the door.",
+    "A fire, a bench for the guard, and a view of the road."
+  ]
+}

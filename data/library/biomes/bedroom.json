@@ -1,0 +1,16 @@
+{
+  "name": "Bedroom",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "sleeping",
+    "sleeps",
+    "privacy"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A bedroom, one bed, and a window somebody keeps curtained.",
+    "A room built for sleeping in, and for the quiet after."
+  ]
+}

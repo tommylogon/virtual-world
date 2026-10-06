@@ -1,0 +1,16 @@
+{
+  "name": "Stairway",
+  "terrain": "indoor",
+  "tags": [
+    "structure",
+    "not_a_place",
+    "cell_kind:passable",
+    "stair",
+    "vertical"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "Stairs: not a place of its own, but you go up or down them.",
+    "A flight between two floors, worn hollow in the middle of each tread."
+  ]
+}

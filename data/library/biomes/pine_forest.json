@@ -1,0 +1,17 @@
+{
+  "name": "Pine Forest",
+  "terrain": "forest",
+  "tags": [
+    "forest",
+    "woods",
+    "pine"
+  ],
+  "forage_skills": [
+    "survival"
+  ],
+  "surface": "pine_needles",
+  "descriptions": [
+    "Straight pines rise from a hush of fallen needles.",
+    "The air smells of resin and cold bark."
+  ]
+}

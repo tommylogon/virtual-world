@@ -1,0 +1,17 @@
+{
+  "name": "Ravine",
+  "terrain": "rock",
+  "tags": [
+    "ravine",
+    "rocky"
+  ],
+  "forage_skills": [
+    "survival",
+    "history"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A narrow cut in the land, walls close on either side.",
+    "The path threads down through broken rock."
+  ]
+}

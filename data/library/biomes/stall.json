@@ -1,0 +1,15 @@
+{
+  "name": "Stall",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "trade",
+    "commercial"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "A market stall, the day's goods out and the day's takings counted.",
+    "A board, a cloth, and a trade that depends on where you set it up."
+  ]
+}

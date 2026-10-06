@@ -1,0 +1,23 @@
+{
+  "name": "Ruin",
+  "tags": [
+    "ruin",
+    "ruins"
+  ],
+  "biomes": [
+    "hills",
+    "mountains",
+    "dense_forest",
+    "farmland"
+  ],
+  "entry_phrase": "climb in through the broken wall",
+  "exit_phrase": "climb back out of the ruin",
+  "entry_aliases": [
+    "in",
+    "out",
+    "ruin"
+  ],
+  "descriptions": [
+    "Broken walls half-buried in growth."
+  ]
+}

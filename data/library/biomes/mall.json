@@ -1,0 +1,15 @@
+{
+  "name": "Shopping Mall",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "commercial",
+    "trade"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "A covered arcade of many shops under one roof.",
+    "Long galleries, escalators, and light that never changes."
+  ]
+}

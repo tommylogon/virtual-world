@@ -1,0 +1,16 @@
+{
+  "name": "Classroom",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "study",
+    "records",
+    "quiet"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A classroom, benches in rows facing a board nobody has cleaned.",
+    "Desks in ranks, a lectern, and the smell of chalk and old paper."
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "Beach",
+  "terrain": "water",
+  "tags": [
+    "beach",
+    "shore"
+  ],
+  "forage_skills": [
+    "survival",
+    "perception"
+  ],
+  "surface": "sand",
+  "descriptions": [
+    "Wet sand slopes down to the waterline.",
+    "Driftwood and stranded weed mark the tide line."
+  ]
+}

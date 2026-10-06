@@ -1,0 +1,19 @@
+﻿{
+  "id": "eating",
+  "name": "eating",
+  "description": "Eating",
+  "condition": null,
+  "regen": {},
+  "blocks_turns": true,
+  "interruptible": true,
+  "preposition": "in",
+  "no_duration_label": "until woken",
+  "tick": {
+    "actions": []
+  },
+  "completion": [
+    {
+      "type": "duration_elapsed"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "Dense Forest",
+  "terrain": "forest",
+  "tags": [
+    "forest",
+    "woods",
+    "dense"
+  ],
+  "forage_skills": [
+    "survival"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "Close-set trunks swallow the light a few steps in.",
+    "Underbrush claws at the legs with every stride."
+  ]
+}

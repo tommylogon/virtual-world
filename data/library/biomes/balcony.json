@@ -1,0 +1,16 @@
+{
+  "name": "Balcony",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "outdoor",
+    "height",
+    "perch"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A balcony, narrow enough that two people cannot pass on it.",
+    "Out over the drop, with a rail and a long way down past it."
+  ]
+}

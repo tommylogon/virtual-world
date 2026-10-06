@@ -16,107 +16,29 @@ Key facts:
   automatically when the character takes any other action.
 - ``strip``/``undress`` are instant but drop clothes into a ``clothing_pile``
   container node in the room; ``dress`` re-equips instantly from the pile.
+- ``fishing`` (task-716) is a persistent activity that samples the painted
+  area's biome resource distribution at runtime and puts catches in the
+  creel using pooled quantity rules.
+- Activities are **data-driven**: their metadata and tick behavior come from
+  JSON files under ``data/library/activities/``. Authoring a new activity is
+  a JSON edit; no Python change is required unless the activity needs a new
+  tick action or completion checker.
 """
 
-from typing import Optional, List, Dict, Any
+import json
+import os
+import random
+from typing import Any, Dict, List, Optional
 
 from graph import Node, Edge, EDGE_IN, EDGE_CARRYING, EDGE_EQUIPPED
 from vital_rates import change, tick_minutes
 
-
-#: player condition applied when an activity starts (None = none).
-#: ``sleep`` applies `unconscious` — sleep IS an activity that causes
-#: unconsciousness (auto-fail saves while asleep). All the occupied activities
-#: share the single `busy` condition; the activity carries the flavor + regen mix.
-ACTIVITY_CONDITIONS: Dict[str, Optional[str]] = {
-    "sleeping": "unconscious",
-    "resting": "busy",
-    "waiting": "busy",
-    "meditating": "busy",
-    "bathing": "busy",
-    "sitting": "busy",
-    "lying down": "busy",
-    # task-409 — a scheduled character working at its trade. Deliberately a
-    # SHORT block (see WORK_MINUTES): `_act` skips anyone mid-activity, so a long
-    # block is a long time not eating, drinking or relieving. A conversation
-    # taught that lesson the hard way — one that rounded to a single tick at
-    # 15 min/tick looked harmless there and cost the camp its hygiene at 1.
-    "working": "busy",
-}
-
-#: per-minute vital regeneration while an activity is active (see
-#: vital_rates — the world clock is 1 in-game minute per tick). Tuned against
-#: the per-minute baseline Energy drain (0.104/min): sleeping is the real
-#: recovery (~+0.20/min net), resting/lying down slow the drain, bathing
-#: cleans fast. Whole units land via the fractional accumulator, so
-#: short activities may show no change for a few ticks.
-ACTIVITY_REGEN: Dict[str, Dict[str, float]] = {
-    # Sleep is the primary Sanity source (task-432). The rate is sized against
-    # what Sanity actually loses in a camp: 7.2/day passive plus the dark-room
-    # penalty (the goblin camp is a cave, `ENV_DARK_SANITY` is up to 28.8/day), so
-    # roughly 20/day of inflow. A night is ~8h, and 0.025/min over 480 minutes is
-    # ~12 — enough that a character who sleeps holds steady or recovers slowly,
-    # and one kept awake slides. Nothing used to restore Sanity at all, so every
-    # character went mad on a fixed schedule; the first attempt at 0.10/min
-    # overshot and pegged the whole camp at 100 within a week.
-    "sleeping": {"Sanity": 0.025},  # Energy handled by tick_manager (SLEEP_ENERGY_REGEN)
-    "resting": {"Energy": 0.15, "Sanity": 0.05},  # net ~+0.05/min Energy vs baseline drain
-    "waiting": {},
-    "meditating": {"Sanity": 0.05},
-    "bathing": {"Hygiene": 1.5},
-    "sitting": {"Energy": 0.06},    # slows the drain, does not restore
-    "lying down": {"Energy": 0.25},  # faster than sitting/resting, slower than sleep
-    # Work restores nothing. Energy's baseline drain is the cost of a working day;
-    # adding an extra drain here would have to be re-tuned against every other
-    # Energy source, and the visible signal (being at the forge, working) does not
-    # need it.
-    "working": {},
-}
-
-#: human-readable labels
-ACTIVITY_LABELS: Dict[str, str] = {
-    "sleeping": "sleeping",
-    "resting": "resting",
-    "waiting": "waiting",
-    "meditating": "meditating",
-    "bathing": "bathing",
-    "sitting": "sitting",
-    "lying down": "lying down",
-    "working": "working",
-    # task-469: a failed forage in the soak tier occupies the timeframe
-    "foraging": "foraging",
-}
-
-#: activities that block taking most other actions (speech/look/etc. allowed)
-ACTIVITY_BLOCKING = {"sleeping", "bathing"}
-
-#: activities that consume the character's turn (agent loop / simple NPCs skip)
-ACTIVITY_SKIP_TURNS = {
-    "sleeping", "resting", "waiting", "meditating",
-    "bathing", "sitting", "lying down", "working",
-    # task-436: a background task whose duration outran its timeframe spans
-    # turns, and must occupy them like any other turn-consuming activity.
-    "eating", "drinking", "relieving", "washing", "recreating", "recuperating",
-    "foraging",
-}
-
-#: activities that end automatically when the character does anything else
-#:
-#: Also the set that auto-ends when a duration elapses. **A type missing here
-#: never expires**: `_tick` only calls `_maybe_end_by_duration` for members, so
-#: `elapsed_ticks` runs past `duration_ticks` forever and the character is stuck
-#: `busy` — which reads downstream as a mysterious refusal to eat, sleep or wash.
-#: Add every timed activity to this set.
-ACTIVITY_INTERRUPTIBLE = {"resting", "waiting", "meditating", "sitting", "lying down",
-                          "working",
-                          # task-436: the same trap applies to every one of
-                          # these; leaving one out strands the character busy.
-                          "eating", "drinking", "relieving", "washing",
-                          "recreating", "recuperating", "foraging"}
-
+from engine.activities_loader import load as load_activity_defs, get as get_activity_def
 
 PILE_TAGS = ["container", "clothing_pile"]
 
+
+# ─────────────────────────── description ────────────────────────────────────
 
 def activity_description(activity: Optional[dict], char_name: str = "") -> str:
     """Render an activity as a short flavor line, e.g. ``sleeping on the bed``.
@@ -127,16 +49,20 @@ def activity_description(activity: Optional[dict], char_name: str = "") -> str:
     """
     if not activity:
         return ""
-    label = ACTIVITY_LABELS.get(activity.get("type"), activity.get("type", ""))
+    activity_type = activity.get("type", "")
+    definition = get_activity_def(activity_type) or {}
+    name = str(definition.get("name") or activity_type)
     target = activity.get("target_item")
-    relation = "on" if activity.get("type") in ("sleeping", "resting") else "in"
-    base = f"{label} {relation} the {target}" if target else label
+    preposition = str(definition.get("preposition") or "in")
+    base = f"{name} {preposition} the {target}" if target else name
     duration = activity.get("duration_ticks")
     if duration is not None:
         remaining = max(0, int(duration) - int(activity.get("elapsed_ticks", 0) or 0))
         base += f", {remaining} tick{'s' if remaining != 1 else ''} left"
     else:
-        base += " (until woken)"
+        no_duration_label = definition.get("no_duration_label")
+        if no_duration_label:
+            base += f" ({no_duration_label})"
     return base
 
 
@@ -145,6 +71,8 @@ def pile_node_id(char_name: str) -> str:
     clean = char_name.lower().replace(" ", "_").replace("'", "")
     return f"pile_of_clothes_{clean}"
 
+
+# ─────────────────────────── ActivitySystem ──────────────────────────────────
 
 class ActivitySystem:
     """Manages starting/ending/interrupting activities and per-tick progress."""
@@ -155,7 +83,7 @@ class ActivitySystem:
         self.graph = world.graph
         self.logging = world.game_logger
 
-    # ─────────────────────────── helpers ───────────────────────────
+    # ─────────────────────────── helpers ────────────────────────────────────
 
     def _current_tick(self) -> int:
         return getattr(self.world, "time_ticks", 0) or 0
@@ -176,7 +104,10 @@ class ActivitySystem:
         player = self.player_manager.players.get(player_name)
         return getattr(player, "activity", None) if player else None
 
-    # ─────────────────────────── lifecycle ───────────────────────────
+    def _definition(self, activity_type: str) -> dict:
+        return get_activity_def(activity_type) or {}
+
+    # ─────────────────────────── lifecycle ──────────────────────────────────
 
     def start_activity(
         self,
@@ -184,8 +115,13 @@ class ActivitySystem:
         activity_type: str,
         target_item: Optional[str] = None,
         duration_ticks: Optional[int] = None,
+        **kwargs,
     ) -> str:
-        """Begin a persistent activity. Returns narration for the actor."""
+        """Begin a persistent activity. Returns narration for the actor.
+
+        Extra kwargs are stored on the activity dict so the pursuit step can
+        declare completion conditions (e.g. ``catch_count_target``).
+        """
         player = self.player_manager.players.get(player_name)
         if not player:
             raise ValueError(f"No character named '{player_name}'.")
@@ -195,6 +131,8 @@ class ActivitySystem:
             current = activity_description(player.activity, player_name)
             raise ValueError(f"You're already {current}. Stop first.")
 
+        definition = self._definition(activity_type)
+        condition = definition.get("condition")
         activity = {
             "type": activity_type,
             "started_at_tick": self._current_tick(),
@@ -203,25 +141,23 @@ class ActivitySystem:
             "elapsed_ticks": 0,
             "visible": True,
         }
+        for key, value in kwargs.items():
+            if value is not None:
+                activity[key] = value
         player.activity = activity
-        cond = ACTIVITY_CONDITIONS.get(activity_type)
-        if cond == "unconscious":
-            # sleep = an unconscious instance: held items drop, mumbling allowed,
-            # woken by the activity system (wake command / damage / loud noise /
-            # full energy), not by the condition tick.
+        if condition == "unconscious":
             player.add_condition(
                 "unconscious", duration=None, source="sleep",
                 ends_on=["wake", "damage", "loud_noise", "energy_full"],
                 overrides={"blocks_speech": False,
                            "description": "You are asleep. You can't act until you wake."},
             )
-            # drops_held_items — asleep people let go of what's in their hands
             try:
                 self.world.item_actions.drop_held_items(self.world, player_name)
             except Exception:
                 pass
-        elif cond:
-            player.add_condition(cond)
+        elif condition:
+            player.add_condition(condition)
 
         desc = activity_description(activity, player_name)
         self._turn_event(player_name, activity_type, f"is {desc}.")
@@ -234,11 +170,15 @@ class ActivitySystem:
             return None
         activity = player.activity
         desc = activity_description(activity, player_name)
+        activity_type = activity.get("type")
+        definition = self._definition(activity_type)
+        condition = definition.get("condition")
+        if reason == "finished":
+            player._last_completed_activity_type = activity_type
+        else:
+            player._last_completed_activity_type = None
         player.activity = None
-        cond = ACTIVITY_CONDITIONS.get(activity.get("type"))
-        if cond == "unconscious":
-            # remove only sleep-sourced unconscious instances (a knockout from
-            # damage stays; wake on damage handles that flow separately)
+        if condition == "unconscious":
             remaining = [
                 inst for inst in player.conditions.get("unconscious", [])
                 if inst.get("source") != "sleep"
@@ -249,8 +189,22 @@ class ActivitySystem:
                 player.conditions.pop("unconscious", None)
             if not player.conditions:
                 player.conditions["awake"] = [{"duration": None, "source": None, "level": 0}]
-        elif cond:
-            player.remove_condition(cond)
+        elif condition:
+            player.remove_condition(condition)
+
+        # Data-driven on-complete actions
+        on_complete = definition.get("on_complete") or []
+        complete_outputs = []
+        for action in on_complete:
+            action_type = action.get("type")
+            if action_type == "auto_dress":
+                try:
+                    dressed = self.dress_from_pile(player_name)
+                    if dressed:
+                        complete_outputs.append(dressed)
+                except ValueError:
+                    pass
+
         label = reason if reason != "finished" else f"finished {activity_description(activity)}"
         self._turn_event(player_name, "activity_end", f"{label}.")
         return label
@@ -265,17 +219,13 @@ class ActivitySystem:
         self.end_activity(player_name, reason="stopped")
         return f"You stop {desc}."
 
-
-    # ─────────────────────────── per-tick progress ───────────────────────────
+    # ─────────────────────────── per-tick progress ──────────────────────────
 
     def tick_activity(self, player_name: str) -> Optional[str]:
         """Advance one character's activity by one tick. Returns actor-facing log."""
         player = self.player_manager.players.get(player_name)
         if not player or not player.activity:
             return None
-        # Dead characters stop whatever they were doing. Unconscious also stops
-        # activities EXCEPT sleep (sleep IS an unconscious instance — its own
-        # regen/wake flow must keep ticking).
         knocked_out = (
             player.has_condition("unconscious")
             and not any(
@@ -288,30 +238,229 @@ class ActivitySystem:
             return None
         activity = player.activity
         activity_type = activity.get("type")
+        definition = self._definition(activity_type)
         activity["elapsed_ticks"] = activity.get("elapsed_ticks", 0) + 1
-        outputs = []
 
-        # Vital regen (per-minute, scaled to the tick length; fractional steps
-        # carry between ticks)
         minutes = tick_minutes(self.world)
-        # Elapsed *game time*, so a duration authored in minutes means the same
-        # thing at a 1-minute turn and a 30-minute one (task-436).
         activity["elapsed_minutes"] = activity.get("elapsed_minutes", 0.0) + minutes
-        for stat, amount in ACTIVITY_REGEN.get(activity_type, {}).items():
+        outputs: List[str] = []
+        for stat, amount in (definition.get("regen") or {}).items():
             if stat in player.vitals:
                 before = player.vitals[stat]
                 change(player, stat, amount, minutes=minutes)
-                if player.vitals[stat] > before and stat == "Hygiene" and activity_type == "bathing":
+                if (player.vitals[stat] > before
+                        and stat == "Hygiene" and activity_type == "bathing"):
                     outputs.append(f"You scrub yourself clean. Hygiene {player.vitals[stat]}%.")
 
-        if activity_type == "sleeping":
-            self._tick_sleeping(player, activity, outputs)
-        elif activity_type == "bathing":
-            self._tick_bathing(player, activity, outputs)
-        elif activity_type in ACTIVITY_INTERRUPTIBLE:
-            self._maybe_end_by_duration(player, activity, outputs)
+        # Generic tick-by-definition
+        tick_def = definition.get("tick") or {}
+        tick_actions = tick_def.get("actions") or []
+        interval = max(1, int(tick_def.get("interval_ticks") or 1))
+        if activity.get("elapsed_ticks", 0) % interval == 0:
+            for action in tick_actions:
+                action_type = action.get("type")
+                if action_type == "sample_biome_resource":
+                    msg = self._handle_sample_biome_resource(player, activity, action)
+                    if msg:
+                        outputs.append(msg)
+
+        # Generic completion checks
+        for condition in definition.get("completion") or []:
+            if self._check_completion(activity, condition, player):
+                self.end_activity(player_name, reason="finished")
+                outputs.append(f"You finish {activity_type}.")
+                return "\n".join(outputs) if outputs else None
 
         return "\n".join(outputs) if outputs else None
+
+    # ─────────────────────────── completion checkers ────────────────────────
+
+    def _check_completion(self, activity: dict, condition: dict, player) -> bool:
+        ctype = condition.get("type")
+        if ctype == "duration_elapsed":
+            return self._duration_elapsed(activity)
+        if ctype == "vital_full":
+            vital = str(condition.get("vital") or "").strip()
+            if not vital:
+                return False
+            return float(player.vitals.get(vital, 0) or 0) >= 100.0
+        if ctype == "field_threshold":
+            field = str(condition.get("field") or "").strip()
+            if not field:
+                return False
+            value = condition.get("value")
+            if value is None:
+                param = condition.get("param")
+                if param:
+                    value = activity.get(param)
+            if value is None:
+                return False
+            try:
+                return float(activity.get(field, 0) or 0) >= float(value)
+            except (TypeError, ValueError):
+                return False
+        return False
+
+    # ─────────────────────────── tick action handlers ───────────────────────
+
+    def _handle_sample_biome_resource(
+        self, player, activity: dict, action_def: dict
+    ) -> Optional[str]:
+        """Sample the current area's biome resource distribution and add a catch.
+
+        Generic handler parameterized by the activity JSON definition:
+        - ``container_tag`` — tag used to find the player's container item
+        - ``result_field`` — activity dict field to increment on success
+        - ``item_properties`` — tags/description/plural for the spawned item
+        """
+        entry = self._sample_biome_resource_for_player(player.name)
+        if entry is None:
+            return None
+        item_id = self._pick_item_for_resource_entry(entry)
+        if item_id is None:
+            return None
+        quantity = max(1, int(entry.get("quantity") or entry.get("weight") or 1))
+        container_tag = str(action_def.get("container_tag") or "creel").lower()
+        item_props = action_def.get("item_properties") or {}
+        return self._add_catch_to_container(
+            player.name, item_id, quantity, container_tag, item_props
+        )
+
+    # ─────────────────────────── biome resource sampling ────────────────────
+
+    _ITEM_INDEX: Optional[Dict[str, List[str]]] = None
+
+    def _build_item_index(self) -> Dict[str, List[str]]:
+        """tag -> [item_id] over data/library/items (built once per process)."""
+        if self._ITEM_INDEX is not None:
+            return self._ITEM_INDEX
+        index: Dict[str, List[str]] = {}
+        base = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "data", "library", "items",
+        )
+        try:
+            for fname in os.listdir(base):
+                if not fname.endswith(".json"):
+                    continue
+                try:
+                    with open(os.path.join(base, fname), "r", encoding="utf-8-sig") as f:
+                        data = json.load(f)
+                except Exception:
+                    continue
+                item_id = fname[:-5]
+                for tag in (data.get("tags") or []):
+                    index.setdefault(str(tag).lower(), []).append(item_id)
+        except OSError:
+            pass
+        ActivitySystem._ITEM_INDEX = index
+        return index
+
+    def _sample_biome_resource_for_player(self, player_name: str) -> Optional[dict]:
+        """Pick one weighted resource_distribution entry matching the player's area."""
+        player = self.player_manager.players.get(player_name)
+        if not player or not player.current_area:
+            return None
+        area_id = self.world.area_node_id(player.current_area)
+        area_node = self.graph.get_node(area_id) if area_id else None
+        if area_node is None:
+            return None
+        area_tags = {str(t).lower() for t in ((area_node.properties or {}).get("tags") or [])}
+        return self._sample_biome_resource(area_tags)
+
+    def _sample_biome_resource(self, area_tags) -> Optional[dict]:
+        """Pick one weighted resource_distribution entry matching the area tags."""
+        try:
+            from engine import biomes as biome_mod
+            library = biome_mod.resource_library()
+        except Exception:
+            return None
+        candidates = []
+        weights = []
+        for entry in library.values():
+            entry_biome_tags = {str(t).lower() for t in (entry.get("biome_tags") or [])}
+            if entry_biome_tags and not (entry_biome_tags & area_tags):
+                continue
+            conditions = entry.get("conditions") or {}
+            if conditions.get("requires_weather"):
+                continue
+            w = float(entry.get("weight") or 1)
+            if w <= 0:
+                continue
+            candidates.append(entry)
+            weights.append(w)
+        if not candidates:
+            return None
+        try:
+            return random.choices(candidates, weights=weights, k=1)[0]
+        except Exception:
+            return candidates[0]
+
+    def _pick_item_for_resource_entry(self, entry) -> Optional[str]:
+        """Resolve a resource_distribution entry to a library item_id."""
+        want = {str(t).lower() for t in (entry.get("item_tags") or [])}
+        if not want:
+            return None
+        index = self._build_item_index()
+        scores: Dict[str, int] = {}
+        for tag in want:
+            for item_id in index.get(tag, []):
+                scores[item_id] = scores.get(item_id, 0) + 1
+        if not scores:
+            return None
+        best = max(scores.values())
+        top = [item_id for item_id, score in scores.items() if score == best]
+        return random.choice(top)
+
+    def _add_catch_to_container(
+        self, player_name: str, item_id: str, quantity: int,
+        container_tag: str, item_properties: dict,
+    ) -> str:
+        """Spawn a catch item and place it inside the player's tagged container."""
+        player = self.player_manager.players.get(player_name)
+        if player is None:
+            return ""
+        container_id = self._find_container_id(player_name, container_tag)
+        if container_id is None:
+            return ""
+        container_node = self.graph.get_node(container_id)
+        if container_node is None:
+            return ""
+        tags = [str(t) for t in (item_properties.get("tags") or [])]
+        description = str(item_properties.get("description") or "A freshly caught item.")
+        plural = str(item_properties.get("plural") or "items")
+        catch_node = Node(
+            id=item_id,
+            type="item",
+            name=item_id.replace("_", " "),
+            properties={
+                "description": description,
+                "tags": tags,
+                "actions": "examine,take",
+                "uses": -1,
+                "weight": 0.1,
+                "current_state": "normal",
+                "quantity": max(1, quantity),
+                "plural": plural,
+            },
+        )
+        self.graph.add_node(catch_node)
+        self.graph.add_edge(Edge(source=catch_node.id, target=container_id, type=EDGE_IN))
+        return f"You reel in {quantity} {plural}."
+
+    def _find_container_id(self, player_name: str, container_tag: str) -> Optional[str]:
+        """Locate the player's container item id matching *container_tag*."""
+        player_id = self.player_manager.get_player_node_id(player_name)
+        for edge in (
+            self.graph.get_edges_for_target(player_id, EDGE_CARRYING)
+            + self.graph.get_edges_for_target(player_id, EDGE_EQUIPPED)
+        ):
+            node = self.graph.get_node(edge.source)
+            if node and container_tag in {
+                str(t).lower() for t in (node.properties.get("tags") or [])
+            }:
+                return node.id
+        return None
 
     @staticmethod
     def _duration_elapsed(activity: dict) -> bool:
@@ -330,41 +479,7 @@ class ActivitySystem:
             return activity.get("elapsed_ticks", 0) >= activity["duration_ticks"]
         return False
 
-    def _tick_sleeping(self, player, activity: dict, outputs: List[str]):
-        energy = player.vitals.get("Energy", 100)
-        if energy >= 100:
-            self.end_activity(player.name, reason="finished")
-            outputs.append("You wake fully rested.")
-            return
-        # Natural timer (sleep <minutes>): wake when elapsed time runs out
-        if self._duration_elapsed(activity):
-            self.end_activity(player.name, reason="finished")
-            outputs.append("Your sleep is over.")
-            return
-
-    def _tick_bathing(self, player, activity: dict, outputs: List[str]):
-        hygiene = player.vitals.get("Hygiene", 100)
-        if hygiene >= 100:
-            desc = activity_description(activity)
-            self.end_activity(player.name, reason="finished")
-            outputs.append(f"You finish {desc}.")
-            # Auto-dress from the pile left by the instant strip (if any)
-            try:
-                dressed = self.dress_from_pile(player.name)
-                if dressed:
-                    outputs.append(dressed)
-            except ValueError:
-                pass
-        elif self._duration_elapsed(activity):
-            self.end_activity(player.name, reason="finished")
-            outputs.append("You finish bathing.")
-
-    def _maybe_end_by_duration(self, player, activity: dict, outputs: List[str]):
-        if self._duration_elapsed(activity):
-            self.end_activity(player.name, reason="finished")
-            outputs.append("You finish.")
-
-    # ─────────────────────────── wake / interrupt ───────────────────────────
+    # ─────────────────────────── wake / interrupt ──────────────────────────
 
     def wake(self, player_name: str, waker_name: Optional[str] = None) -> str:
         """Wake a sleeping character — or stop any other activity (task-339
@@ -387,8 +502,6 @@ class ActivitySystem:
 
     def wake_on_damage(self, player_name: str, source: str = None, source_type: str = None) -> Optional[str]:
         """Interrupt activities when the character takes damage. Returns log."""
-        # Phase 3 — takes_damage save_on hook (cowardly, ...). Combat passes the
-        # attacker (source_type "character"); traps/effects stay generic.
         try:
             self.world._emit_save_on(
                 player_name, "takes_damage",
@@ -403,7 +516,8 @@ class ActivitySystem:
         if activity_type == "sleeping":
             self.end_activity(player_name, reason="woke up")
             return f"{player_name} jolts awake!"
-        if activity_type in ACTIVITY_INTERRUPTIBLE:
+        definition = self._definition(activity_type)
+        if definition.get("interruptible"):
             return self.interrupt_activity(player_name)
         return None
 
@@ -421,7 +535,7 @@ class ActivitySystem:
             return "The noise stirs you awake."
         return None
 
-    # ─────────────────────────── strip / dress / piles ───────────────────────────
+    # ─────────────────────────── strip / dress / piles ──────────────────────
 
     def _ensure_pile(self, player_name: str) -> Optional[Node]:
         """Find or create the clothing_pile container in the player's area."""
@@ -433,22 +547,23 @@ class ActivitySystem:
             return None
         pile_id = pile_node_id(player_name)
         pile = self.graph.get_node(pile_id)
-        if not pile:
-            pile = Node(
-                id=pile_id,
-                type="item",
-                name=f"pile of {player_name}'s clothes",
-                properties={
-                    "description": f"A pile of clothes {player_name} took off.",
-                    "actions": "examine,take",
-                    "tags": list(PILE_TAGS),
-                    "uses": -1,
-                    "weight": 2.0,
-                    "current_state": "normal",
-                },
-            )
-            self.graph.add_node(pile)
-            self.graph.add_edge(Edge(source=pile_id, target=area_node.id, type=EDGE_IN))
+        if pile:
+            return pile
+        pile = Node(
+            id=pile_id,
+            type="item",
+            name=f"pile of {player_name}'s clothes",
+            properties={
+                "description": f"A pile of clothes {player_name} took off.",
+                "actions": "examine,take",
+                "tags": list(PILE_TAGS),
+                "uses": -1,
+                "weight": 2.0,
+                "current_state": "normal",
+            },
+        )
+        self.graph.add_node(pile)
+        self.graph.add_edge(Edge(source=pile_id, target=area_node.id, type=EDGE_IN))
         return pile
 
     def _remove_pile_if_empty(self, pile_id: str):
@@ -457,7 +572,6 @@ class ActivitySystem:
             return
         for edge in self.graph.get_edges_for_target(pile_id, EDGE_IN):
             return  # still has contents
-        # No contents → remove pile node and its placement edge
         for edge in self.graph.edges[:]:
             if edge.source == pile_id:
                 self.graph.remove_edge(edge.source, edge.target, edge.type)
@@ -481,13 +595,11 @@ class ActivitySystem:
 
         pile = self._ensure_pile(player_name)
         removed = []
-        for item_id in dict.fromkeys(real_items):  # dedupe multi-slot items
+        for item_id in dict.fromkeys(real_items):
             item_node = self.graph.get_node(item_id)
-            # Remove equipped edges (multi-slot items may have several)
             for edge in self.graph.get_edges_for_target(player_id, EDGE_EQUIPPED):
                 if edge.source == item_id:
                     self.graph.remove_edge(edge.source, edge.target, edge.type)
-            # Clean multi-slot markers from all slots
             marker = f"__multi_slot_{item_id}"
             for slot in list(player.equipped.keys()):
                 player.equipped[slot] = [
@@ -499,7 +611,6 @@ class ActivitySystem:
                 self.triggers_execute_unequip(item_node, player_name)
                 removed.append(f"{item_node.name}")
 
-        # Clear every slot stack
         for slot in player.equipped.keys():
             player.equipped[slot] = []
 
@@ -537,7 +648,6 @@ class ActivitySystem:
             self._remove_pile_if_empty(pile_id)
             raise ValueError("The pile is empty.")
 
-        # Dress innermost first (pile order is outermost→innermost).
         dressed = []
         for item_id in reversed(contents):
             item_node = self.graph.get_node(item_id)
@@ -549,7 +659,6 @@ class ActivitySystem:
                 self.world.equip_item(item_node.name)
                 dressed.append(item_node.name)
             except Exception:
-                # Item can't be re-equipped (e.g. no slots) → leave carried
                 dressed.append(f"{item_node.name} (carried)")
             self.triggers_execute_equip(item_node, player_name)
 
@@ -558,7 +667,7 @@ class ActivitySystem:
             raise ValueError("Nothing in the pile could be worn again.")
         return "You get dressed: " + ", ".join(dressed) + "."
 
-    # ─────────────────────────── bathe chain ───────────────────────────
+    # ─────────────────────────── bathe chain ────────────────────────────────
 
     def bathe(self, player_name: str, target_item: Optional[str] = None,
               duration_ticks: Optional[int] = None) -> str:
@@ -570,6 +679,34 @@ class ActivitySystem:
         try:
             lines.append(self.strip_to_pile(player_name))
         except ValueError:
-            pass  # already wearing nothing — fine, just bathe
+            pass
         lines.append(self.start_activity(player_name, "bathing", target_item, duration_ticks))
         return " ".join(lines)
+
+
+# ─────────────────────── backward-compatible exports ────────────────────────
+
+def _rebuild_legacy_activity_sets():
+    definitions = load_activity_defs()
+    blocking = set()
+    interruptible = set()
+    skip_turns = set()
+    conditions = {}
+    labels = {}
+    regen = {}
+    for aid, defn in definitions.items():
+        if defn.get("blocks_turns"):
+            skip_turns.add(aid)
+        if defn.get("interruptible"):
+            interruptible.add(aid)
+        condition = defn.get("condition")
+        if condition:
+            conditions[aid] = condition
+        labels[aid] = defn.get("name") or aid
+        regen[aid] = defn.get("regen") or {}
+        if aid in ("sleeping", "bathing"):
+            blocking.add(aid)
+    return blocking, interruptible, skip_turns, conditions, labels, regen
+
+
+ACTIVITY_BLOCKING, ACTIVITY_INTERRUPTIBLE, ACTIVITY_SKIP_TURNS, ACTIVITY_CONDITIONS, ACTIVITY_LABELS, ACTIVITY_REGEN = _rebuild_legacy_activity_sets()

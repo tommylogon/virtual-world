@@ -1,0 +1,15 @@
+{
+  "name": "Barn",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "rural",
+    "storage"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "A barn, dim and cavernous, stacked to the ridgepole.",
+    "Sacks under the eaves and mice in the loft."
+  ]
+}

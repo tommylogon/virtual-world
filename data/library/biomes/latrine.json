@@ -1,0 +1,15 @@
+{
+  "name": "Latrine",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "service",
+    "private"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A latrine, one seat, a bucket, and a door that latches from the inside.",
+    "The smallest room in the building and the one nobody volunteers for."
+  ]
+}

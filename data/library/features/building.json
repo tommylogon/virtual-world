@@ -1,0 +1,15 @@
+{
+  "name": "Building",
+  "tags": [
+    "building",
+    "shelter"
+  ],
+  "biomes": [
+    "farmland",
+    "sparse_forest",
+    "hills"
+  ],
+  "descriptions": [
+    "A single roofed structure with walls and a door."
+  ]
+}

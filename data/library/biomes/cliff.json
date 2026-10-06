@@ -1,0 +1,16 @@
+{
+  "name": "Cliff",
+  "terrain": "rock",
+  "tags": [
+    "cliff",
+    "rocky"
+  ],
+  "forage_skills": [
+    "survival"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "The ground ends at a sheer drop.",
+    "A rock face falls away, wind pulling at the edge."
+  ]
+}

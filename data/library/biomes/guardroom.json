@@ -1,0 +1,16 @@
+{
+  "name": "Guard Room",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "service",
+    "military",
+    "watch"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A guard room, a stove, and a bench nobody is meant to sleep on.",
+    "Where the watch sits between turns, close enough to hear the door."
+  ]
+}

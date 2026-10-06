@@ -1,0 +1,14 @@
+{
+  "name": "Library",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "civic"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A library, shelves to the ceiling and long tables under the windows.",
+    "Paper, dust, and the particular silence of a reading room."
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "name": "Village",
+  "tags": [
+    "settlement",
+    "village"
+  ],
+  "biomes": [
+    "farmland",
+    "sparse_forest"
+  ],
+  "descriptions": [
+    "A handful of buildings around a common."
+  ]
+}

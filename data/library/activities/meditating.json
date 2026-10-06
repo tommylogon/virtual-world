@@ -1,0 +1,21 @@
+﻿{
+  "id": "meditating",
+  "name": "meditating",
+  "description": "Meditating",
+  "condition": "busy",
+  "regen": {
+    "Sanity": 0.05
+  },
+  "blocks_turns": true,
+  "interruptible": true,
+  "preposition": "in",
+  "no_duration_label": "until woken",
+  "tick": {
+    "actions": []
+  },
+  "completion": [
+    {
+      "type": "duration_elapsed"
+    }
+  ]
+}

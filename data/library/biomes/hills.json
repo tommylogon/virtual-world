@@ -1,0 +1,17 @@
+{
+  "name": "Hills",
+  "terrain": "rock",
+  "tags": [
+    "hills",
+    "hill"
+  ],
+  "forage_skills": [
+    "survival",
+    "perception"
+  ],
+  "surface": "grass",
+  "descriptions": [
+    "Rolling ground folds away into shallow valleys.",
+    "Windswept grass over hard, stony soil."
+  ]
+}

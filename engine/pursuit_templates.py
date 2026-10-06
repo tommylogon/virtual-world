@@ -19,7 +19,7 @@ from typing import Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
-ALLOWED_STEP_KINDS = frozenset({"travel", "take", "drop"})
+ALLOWED_STEP_KINDS = frozenset({"travel", "take", "drop", "activity"})
 ALLOWED_PARAMETER_TYPES = frozenset({"area", "tag_list", "item_spec"})
 _cache: Dict[str, Dict[str, dict]] = {}
 _problems: Dict[str, List[Tuple[str, str]]] = {}

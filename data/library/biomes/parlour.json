@@ -1,0 +1,16 @@
+{
+  "name": "Parlour",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "living",
+    "quiet",
+    "formal"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A parlour, kept for guests and rarely sat in.",
+    "Good chairs nobody leans on, and a fire laid but not lit."
+  ]
+}

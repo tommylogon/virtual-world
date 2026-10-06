@@ -1,0 +1,15 @@
+{
+  "name": "Shrine",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "religious",
+    "worship"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A wayside shrine, small, with offerings left at its foot.",
+    "A stone figure under a lean-to, incense and old flowers."
+  ]
+}

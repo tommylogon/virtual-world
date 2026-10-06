@@ -1,0 +1,16 @@
+{
+  "name": "Courtyard",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "outdoor",
+    "sky",
+    "open"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "A courtyard walled on three sides, with the sky straight overhead.",
+    "Open to the air and closed to the road, and warmer than the rooms."
+  ]
+}

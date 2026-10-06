@@ -1,0 +1,15 @@
+{
+  "name": "Hallway",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "circulation",
+    "merge:always"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A hallway running the length of the place, with doors off both sides.",
+    "The passage everyone crosses to get anywhere else, worn pale down the middle."
+  ]
+}

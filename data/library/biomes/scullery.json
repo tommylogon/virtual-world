@@ -1,0 +1,15 @@
+{
+  "name": "Scullery",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "cooking",
+    "service"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A scullery, wet stone floor and everything washed in one place.",
+    "The room behind the kitchen where the washing up happens."
+  ]
+}

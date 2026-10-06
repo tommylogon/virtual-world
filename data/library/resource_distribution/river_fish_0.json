@@ -1,0 +1,13 @@
+{
+  "id": "river_fish_0",
+  "name": "river fish",
+  "biome_tags": [
+    "river"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "fish"
+  ],
+  "weight": 2,
+  "conditions": {}
+}

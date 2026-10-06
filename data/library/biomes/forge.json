@@ -1,0 +1,16 @@
+{
+  "name": "Forge",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "workshop",
+    "craft",
+    "fire"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "A forge, the fire banked and the anvil cold until morning.",
+    "Soot on the walls, a quench trough, and the heat that never quite leaves."
+  ]
+}

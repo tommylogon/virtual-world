@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: inprogress
 area: gameplay
 priority: high
 ---

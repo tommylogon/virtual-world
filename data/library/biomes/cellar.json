@@ -1,0 +1,15 @@
+{
+  "name": "Cellar",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "storage",
+    "below_ground"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A cellar, cold and low, reached by steps that lose the light.",
+    "Barrels below the floor, and the damp that never quite leaves."
+  ]
+}

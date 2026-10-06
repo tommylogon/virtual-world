@@ -1,0 +1,25 @@
+﻿{
+  "id": "bathing",
+  "name": "bathing",
+  "description": "Bathing",
+  "condition": "busy",
+  "regen": {
+    "Hygiene": 1.5
+  },
+  "blocks_turns": true,
+  "interruptible": true,
+  "preposition": "in",
+  "no_duration_label": "until woken",
+  "tick": {
+    "actions": []
+  },
+  "completion": [
+    {
+      "type": "vital_full",
+      "vital": "Hygiene"
+    },
+    {
+      "type": "duration_elapsed"
+    }
+  ]
+}

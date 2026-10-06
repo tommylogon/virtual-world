@@ -361,6 +361,26 @@ def handle_take_action(app):
             direction = ' '.join(tokens[1:]) if len(tokens) > 1 else ""
             _move_and_describe(lambda: world.jump_to_area(direction))
 
+        elif cmd == "fish":
+            add_output(world.activities.start_activity(world.active_player, "fishing"))
+
+        elif cmd in ("rest", "sleep", "wait", "meditate", "bathe", "bath",
+                     "sit", "sit down", "lie", "lie down", "lay down"):
+            activity_type = {
+                "rest": "resting",
+                "sleep": "sleeping",
+                "wait": "waiting",
+                "meditate": "meditating",
+                "bathe": "bathing",
+                "bath": "bathing",
+                "sit": "sitting",
+                "sit down": "sitting",
+                "lie": "lying_down",
+                "lie down": "lying_down",
+                "lay down": "lying_down",
+            }[cmd]
+            add_output(world.activities.start_activity(world.active_player, activity_type))
+
         elif cmd.startswith("open "):
             target = ' '.join(tokens[1:]) if len(tokens) > 1 else ""
             if target.startswith("door:"):

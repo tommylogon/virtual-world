@@ -14,6 +14,21 @@
     "fishing",
     "wooden"
   ],
-  "triggers": [],
+  "triggers": [
+    {
+      "trigger_type": "on_use_on",
+      "target_tag": "water",
+      "effects": [
+        {
+          "type": "start_activity",
+          "params": {
+            "activity_type": "fishing",
+            "target_item": "{target_name}",
+            "duration_ticks": 120
+          }
+        }
+      ]
+    }
+  ],
   "contents": []
 }

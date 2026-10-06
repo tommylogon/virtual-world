@@ -1,0 +1,25 @@
+﻿{
+  "id": "sleeping",
+  "name": "sleeping",
+  "description": "Sleeping",
+  "condition": "unconscious",
+  "regen": {
+    "Sanity": 0.025
+  },
+  "blocks_turns": true,
+  "interruptible": false,
+  "preposition": "on",
+  "no_duration_label": "until woken",
+  "tick": {
+    "actions": []
+  },
+  "completion": [
+    {
+      "type": "vital_full",
+      "vital": "Energy"
+    },
+    {
+      "type": "duration_elapsed"
+    }
+  ]
+}

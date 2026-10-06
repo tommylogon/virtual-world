@@ -1,0 +1,16 @@
+{
+  "name": "Great Hall",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "living",
+    "civic",
+    "fire"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A great hall, tall enough that a voice carries to the far wall.",
+    "One long table, a fire at each end, and a ceiling nobody here can reach."
+  ]
+}

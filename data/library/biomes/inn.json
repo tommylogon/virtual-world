@@ -1,0 +1,17 @@
+{
+  "name": "Inn",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "residential",
+    "sleeps",
+    "food",
+    "drink"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "An inn with a common room, a kitchen and rooms let by the night.",
+    "Beds for the road, and a fire kept low in the hearth."
+  ]
+}

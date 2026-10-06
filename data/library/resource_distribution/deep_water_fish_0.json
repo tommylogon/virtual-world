@@ -1,0 +1,13 @@
+{
+  "id": "deep_water_fish_0",
+  "name": "deep water fish",
+  "biome_tags": [
+    "deep_water"
+  ],
+  "location_tags": [],
+  "item_tags": [
+    "fish"
+  ],
+  "weight": 1,
+  "conditions": {}
+}

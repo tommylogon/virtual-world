@@ -1,0 +1,15 @@
+{
+  "name": "Bank",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "commercial",
+    "trade"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "A bank of iron counters, a grille, and very little noise.",
+    "Warded windows and a clerk who looks up once."
+  ]
+}

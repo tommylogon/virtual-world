@@ -1,0 +1,21 @@
+﻿{
+  "id": "lying down",
+  "name": "lying down",
+  "description": "Lying down",
+  "condition": "busy",
+  "regen": {
+    "Energy": 0.25
+  },
+  "blocks_turns": true,
+  "interruptible": true,
+  "preposition": "in",
+  "no_duration_label": "until woken",
+  "tick": {
+    "actions": []
+  },
+  "completion": [
+    {
+      "type": "duration_elapsed"
+    }
+  ]
+}

@@ -818,14 +818,14 @@ class MovementSystem:
         # Fire on_enter triggers on the door (e.g., auto-close behind player,
         # fear saves on "fleshy orifice" doors) — game_state so save gates work
         enter_outputs = self.triggers._execute_triggers(
-            way_node, "on_enter", game_state=self.gs
+            way_node, "on_enter", target_name=self.gs.player.name, game_state=self.gs
         )
         for output in enter_outputs:
             self.gs.add_log_entry(output)
         # Fire on_enter triggers on the area itself (rooms reacting to someone
         # arriving — announcements, atmosphere shifts, encounter gates).
         area_enter_outputs = self.triggers._execute_triggers(
-            target_area_node, "on_enter", game_state=self.gs
+            target_area_node, "on_enter", target_name=self.gs.player.name, game_state=self.gs
         )
         for output in area_enter_outputs:
             self.gs.add_log_entry(output)

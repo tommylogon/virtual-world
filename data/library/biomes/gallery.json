@@ -1,0 +1,16 @@
+{
+  "name": "Gallery",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "living",
+    "formal",
+    "public"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A gallery, hung floor to ceiling, lit to flatter what is on the wall.",
+    "Rooms read as a walk, each doorway the start of the next one."
+  ]
+}

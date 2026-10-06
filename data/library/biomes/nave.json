@@ -1,0 +1,16 @@
+{
+  "name": "Nave",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "worship",
+    "religious",
+    "quiet"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "A nave, the length of the building, with the windows high up.",
+    "Pews in rows and a walk down the middle nobody needs to walk."
+  ]
+}

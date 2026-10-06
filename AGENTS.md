@@ -87,6 +87,31 @@ test to stand in for it and do not declare it undemonstrable. A test proves the
 mechanism; a fixture makes it real. Both, in that order, and the fixture is what
 survives.
 
+### 9. The user is not always right. Challenge their ideas.
+
+When the user says *"I got an idea"*, *"I want it like this"*, *"this looks good"*, or
+*"I think X"* — your job is **not** to agree and execute. Your job is to check the
+idea against the project's actual state and say what is wrong with it.
+
+- **Challenge the user's statements and their ideas. Be critical. Do not people-please.**
+  Agreement is not the goal. Correctness is.
+- If the user's idea contradicts the codebase, the tasks, the design docs, or the
+  simulation invariants, say so explicitly and name the contradiction.
+- If the user says a design "looks good", that is **not** verification. Check it
+  against the real data model and list what is made up. A design that is 60%
+  invented is still mostly invented — name the invented parts.
+- If the user proposes something that already exists, say so. Do not build a second
+  one. "That already exists in X" is a better response than "Sure, here it is
+  again."
+- If the user is wrong, say so plainly. *"That won't work because X"* is a better
+  response than *"Great, I've updated the CSS."*
+- If you find yourself about to say "great", "perfect", "that looks good", or
+  "sure" without having checked something against the codebase or the tasks —
+  **stop and check it first.**
+- When the user corrects you, go look again. Do not re-derive. Do not defend. Open
+  the thing, look at it, report what is there. (This is rule 6, restated here
+  because it only works if you were willing to be wrong in the first place.)
+
 ---
 
 ## Prime directive
@@ -282,13 +307,15 @@ trace the runtime path before changing either.
 
 ### Testing rules
 
-A passing test is only useful if it proves the intended mechanism. Prefer tests
-that establish which source of truth was read, which branch ran, which state
-changed, and that the negative case stays blocked.
+**Do not run tests unless you have a specific, reasonable need to.** Running tests
+is not a default step; it is a targeted verification action. **Only run targeted
+tests** (`python -m pytest tests/test_<name>.py`), **never the full suite**, and
+**never pass `-q`** — always show the full output so failures are readable.
 
-Do not obtain green tests by weakening assertions, bypassing the normal dispatch
-path, adding special-case fixtures, or asserting incidental text produced by some
-other subsystem.
+Live browser testing in the running app matters more than unit tests. A unit test
+proves a mechanism; only exercising the feature in the live UI proves it is wired,
+authored, and observable. Prefer browser verification for behavior and reserve
+targeted tests for mechanism-level checks that are faster to verify in code.
 
 For new mechanics, test both:
 
@@ -403,8 +430,10 @@ seam exists.
 
 ## Commands
 
-- Tests: `python -m pytest -q` (full suite, a few minutes).
-  Targeted: `python -m pytest tests/test_<name>.py -q`.
+- Targeted tests only: `python -m pytest tests/test_<name>.py`. Never the full
+  suite, and never with `-q` — show the full output so failures are readable.
+  Running tests is not a default step; only run them when you have a specific,
+  reasonable need.
 - JS unit tests, browser-global modules in a Node sandbox (no server needed):
   `node tools/unit/run.cjs` (or `npm run unit`). Drop a `tools/unit/test_<name>.js`
   next to the others and it is discovered automatically; the runner's module list
@@ -636,9 +665,9 @@ added, so a matching total proves nothing; a matching set does. Save both
 outputs and diff the `FAILED` lines:
 
 ```powershell
-python -m pytest -q --tb=no 2>&1 | Tee-Object -FilePath mine.txt
+python -m pytest --tb=no 2>&1 | Tee-Object -FilePath mine.txt
 git worktree add --detach "$env:TEMP\vw-baseline" master   # a clean checkout
-python -m pytest -q --tb=no 2>&1 | Tee-Object -FilePath baseline.txt  # in that worktree
+python -m pytest --tb=no 2>&1 | Tee-Object -FilePath baseline.txt  # in that worktree
 Compare-Object (Get-Content baseline.txt | ? { $_ -like 'FAILED*' } | Sort-Object) `
               (Get-Content mine.txt      | ? { $_ -like 'FAILED*' } | Sort-Object)
 ```

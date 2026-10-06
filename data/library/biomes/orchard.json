@@ -1,0 +1,15 @@
+{
+  "name": "Orchard",
+  "terrain": "urban",
+  "tags": [
+    "building",
+    "settlement",
+    "rural",
+    "food"
+  ],
+  "surface": "dirt",
+  "descriptions": [
+    "An orchard of old trees, grass long under them.",
+    "Rows of trees and the smell of fruit in season."
+  ]
+}

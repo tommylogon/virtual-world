@@ -135,6 +135,37 @@ def _in_area_matching(sim, p, spec):
 
 # ───────────────────────────── execution ────────────────────────────────────
 
+def _check_activity_completion(activity: Optional[dict], condition: dict, player) -> bool:
+    ctype = condition.get("type")
+    if ctype == "duration_elapsed":
+        if activity.get("duration_minutes") is not None:
+            return activity.get("elapsed_minutes", 0.0) >= activity["duration_minutes"]
+        if activity.get("duration_ticks") is not None:
+            return activity.get("elapsed_ticks", 0) >= activity["duration_ticks"]
+        return False
+    if ctype == "vital_full":
+        vital = str(condition.get("vital") or "").strip()
+        if not vital:
+            return False
+        return float(getattr(player, "vitals", {}).get(vital, 0) or 0) >= 100.0
+    if ctype == "field_threshold":
+        field = str(condition.get("field") or "").strip()
+        if not field:
+            return False
+        value = condition.get("value")
+        if value is None:
+            param = condition.get("param")
+            if param:
+                value = activity.get(param)
+        if value is None:
+            return False
+        try:
+            return float(activity.get(field, 0) or 0) >= float(value)
+        except (TypeError, ValueError):
+            return False
+    return False
+
+
 def _satisfied(sim, p, step):
     kind = step.get("kind")
     if kind == "travel":
@@ -144,9 +175,38 @@ def _satisfied(sim, p, step):
     if kind == "take":
         return _carried_matching(sim, p, step["spec"]) is not None
     if kind == "drop":
-        # Done once the item sits in this area and is no longer carried.
         carried = _carried_matching(sim, p, step["spec"])
         return carried is None and _in_area_matching(sim, p, step["spec"]) is not None
+    if kind == "activity":
+        activity = getattr(p, "activity", None)
+        want = str(step.get("activity") or "").strip().lower()
+        if not want:
+            return activity is None
+        current_type = (activity or {}).get("type", "").lower()
+        if current_type != want:
+            last_type = getattr(p, "_last_completed_activity_type", None)
+            if last_type and str(last_type).lower() == want:
+                p._last_completed_activity_type = None
+                return True
+            return False
+        catch_target = step.get("catch_count_target")
+        if catch_target is not None:
+            if activity.get("catch_count", 0) >= int(catch_target):
+                return True
+        duration = step.get("duration_ticks") or step.get("duration_minutes")
+        if duration is not None:
+            elapsed = activity.get("elapsed_ticks", 0)
+            if elapsed >= int(duration):
+                return True
+        try:
+            from engine.activities_loader import get as get_activity_def
+            definition = get_activity_def(want) or {}
+            for condition in definition.get("completion") or []:
+                if _check_activity_completion(activity, condition, p):
+                    return True
+        except Exception:
+            pass
+        return False
     return True
 
 
@@ -204,6 +264,36 @@ def _run(sim, p, plan, step):
                f"delivered {node.name} to {_where(p)}",
                why=why, area=p.current_area, tags=["plan"])
         return TAKE_MINUTES
+
+    if kind == "activity":
+        want = str(step.get("activity") or "").strip().lower()
+        if not want:
+            return "failed"
+        current = (getattr(p, "activity", None) or {}).get("type", "").lower()
+        if current == want:
+            return None
+        target_item = step.get("target_item")
+        duration = step.get("duration_ticks") or step.get("duration_minutes")
+        if duration is not None:
+            try:
+                duration = int(duration)
+            except (TypeError, ValueError):
+                duration = None
+        catch_target = step.get("catch_count_target")
+        try:
+            msg = sim.gs.activities.start_activity(
+                p.name, want, target_item, duration,
+                catch_count_target=catch_target,
+            )
+            record(p, sim.gs.time_ticks, "plan",
+                   f"started {want} for {plan['label']}: {msg}",
+                   why=why, area=p.current_area, tags=["plan"])
+            return None
+        except Exception as exc:
+            record(p, sim.gs.time_ticks, "plan",
+                   f"could not start {want} for {plan['label']}: {exc}",
+                   why=f"{why}:failed", area=p.current_area, tags=["plan"])
+            return "failed"
 
     return "failed"
 

@@ -1,0 +1,16 @@
+{
+  "name": "Stacks",
+  "terrain": "indoor",
+  "tags": [
+    "indoor",
+    "room",
+    "records",
+    "quiet",
+    "cluttered"
+  ],
+  "surface": "stone",
+  "descriptions": [
+    "Stacks, shelf after shelf, and a ladder that has to be moved to reach them.",
+    "Books in runs nobody has straightened since the last flood."
+  ]
+}

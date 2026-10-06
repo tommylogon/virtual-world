@@ -1,0 +1,16 @@
+{
+  "name": "Window",
+  "terrain": "urban",
+  "tags": [
+    "structure",
+    "not_a_place",
+    "cell_kind:see_through",
+    "closed",
+    "perceivable"
+  ],
+  "descriptions": [
+    "A window: you can see through it, you cannot walk through it.",
+    "Shut against the weather, and a way to see out of the room."
+  ],
+  "surface": "stone"
+}
