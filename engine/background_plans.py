@@ -193,10 +193,14 @@ def _satisfied(sim, p, step):
         if catch_target is not None:
             if activity.get("catch_count", 0) >= int(catch_target):
                 return True
-        duration = step.get("duration_ticks") or step.get("duration_minutes")
-        if duration is not None:
-            elapsed = activity.get("elapsed_ticks", 0)
-            if elapsed >= int(duration):
+        # task-726: compare each unit against its own elapsed counter. The old
+        # `duration_ticks or duration_minutes` compared a minutes value against
+        # elapsed_ticks, so a minutes duration never elapsed correctly.
+        if step.get("duration_minutes") is not None:
+            if float(activity.get("elapsed_minutes", 0.0) or 0.0) >= float(step["duration_minutes"]):
+                return True
+        elif step.get("duration_ticks") is not None:
+            if int(activity.get("elapsed_ticks", 0) or 0) >= int(step["duration_ticks"]):
                 return True
         try:
             from engine.activities_loader import get as get_activity_def
@@ -273,16 +277,23 @@ def _run(sim, p, plan, step):
         if current == want:
             return None
         target_item = step.get("target_item")
-        duration = step.get("duration_ticks") or step.get("duration_minutes")
-        if duration is not None:
-            try:
-                duration = int(duration)
-            except (TypeError, ValueError):
-                duration = None
+        # task-726: keep the units separate — a minutes value must never be
+        # passed as a tick count.
+        dur_ticks = step.get("duration_ticks")
+        try:
+            dur_ticks = int(dur_ticks) if dur_ticks is not None else None
+        except (TypeError, ValueError):
+            dur_ticks = None
+        dur_minutes = step.get("duration_minutes")
+        try:
+            dur_minutes = float(dur_minutes) if dur_minutes is not None else None
+        except (TypeError, ValueError):
+            dur_minutes = None
         catch_target = step.get("catch_count_target")
         try:
             msg = sim.gs.activities.start_activity(
-                p.name, want, target_item, duration,
+                p.name, want, target_item, dur_ticks,
+                duration_minutes=dur_minutes,
                 catch_count_target=catch_target,
             )
             record(p, sim.gs.time_ticks, "plan",

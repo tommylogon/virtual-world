@@ -24,7 +24,7 @@
           "params": {
             "activity_type": "fishing",
             "target_item": "{target_name}",
-            "duration_ticks": 120
+            "duration_minutes": 120
           }
         }
       ]

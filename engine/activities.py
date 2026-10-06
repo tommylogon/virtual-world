@@ -115,6 +115,7 @@ class ActivitySystem:
         activity_type: str,
         target_item: Optional[str] = None,
         duration_ticks: Optional[int] = None,
+        duration_minutes: Optional[float] = None,
         **kwargs,
     ) -> str:
         """Begin a persistent activity. Returns narration for the actor.
@@ -138,7 +139,9 @@ class ActivitySystem:
             "started_at_tick": self._current_tick(),
             "target_item": target_item,
             "duration_ticks": duration_ticks,
+            "duration_minutes": duration_minutes,
             "elapsed_ticks": 0,
+            "elapsed_minutes": 0.0,
             "visible": True,
         }
         for key, value in kwargs.items():

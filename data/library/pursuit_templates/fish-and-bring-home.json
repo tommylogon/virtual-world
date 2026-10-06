@@ -24,7 +24,7 @@
       "kind": "activity",
       "activity": "fishing",
       "catch_count_target": 10,
-      "duration_ticks": 120
+      "duration_minutes": 120
     },
     {
       "kind": "travel",
