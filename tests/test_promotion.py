@@ -105,7 +105,7 @@ def test_promoting_an_attended_character_does_nothing():
     assert _bg_memories(p) == []
 
 
-def test_promotion_writes_one_bounded_background_memory():
+def test_promotion_writes_one_background_memory_without_truncation():
     p, gs = _player(), _GS(tick=10)
     promotion.offload(gs, p)
 
@@ -119,8 +119,7 @@ def test_promotion_writes_one_bounded_background_memory():
     assert p.simulation_mode == "active"
     memories = _bg_memories(p)
     assert len(memories) == 1
-    assert memories[0]["text"] == text
-    assert len(text) <= promotion.MEMORY_CHAR_LIMIT
+    assert memories[0]["text"] == text        # stored verbatim, no truncation
     assert "routine" in text and "work" in text
 
 

@@ -718,7 +718,7 @@ def _write_memory(gs, player, result, intent, target):
         if detail:
             text = f"{text} {detail}"
     try:
-        player.add_memory(text[:300], tick=getattr(gs, "time_ticks", 0),
+        player.add_memory(text, tick=getattr(gs, "time_ticks", 0),
                           importance=6 if result.interrupted else 3,
                           memory_type="observation", tags=["timeskip"],
                           source="timeskip", location=area)

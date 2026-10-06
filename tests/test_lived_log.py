@@ -34,17 +34,19 @@ def test_record_tolerates_player_without_lived_log():
     assert len(b.lived_log) == 1
 
 
-def test_cap_prefers_salient_and_newest():
+def test_no_cap_nothing_is_trimmed():
+    """The 200-entry cap was removed (2026-10-06): the lived log is unbounded."""
     p = Player("Rag-Tail")
-    T.record(p, 1, "need", "oldest", salient=True)          # salient, kept
-    for i in range(2, T.MAX_ENTRIES + 50):
+    T.record(p, 1, "need", "oldest", salient=True)
+    n = 250
+    for i in range(2, n + 1):
         T.record(p, i, "act", f"routine {i}")
     log = T.ensure(p)
-    assert len(log) == T.MAX_ENTRIES
+    assert len(log) == n                                   # nothing trimmed
     whats = [e["what"] for e in log]
-    assert "oldest" in whats                                 # salient survived
-    assert whats[-1] == f"routine {T.MAX_ENTRIES + 49}"      # newest survived
-    assert "routine 2" not in whats                          # oldest routine trimmed
+    assert "oldest" in whats                               # oldest salient kept
+    assert whats[-1] == f"routine {n}"                     # newest kept
+    assert "routine 2" in whats                            # oldest routine kept too
 
 
 def test_rollup_collapses_runs_but_keeps_salient():

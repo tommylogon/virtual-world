@@ -208,6 +208,8 @@ class WorldSerializer:
             "relationships": getattr(p, 'relationships', {}),
             "activity": getattr(p, 'activity', None),
             "lived_log": [dict(e) for e in (getattr(p, 'lived_log', []) or [])],
+            "lived_log_memorized_through": int(
+                getattr(p, 'lived_log_memorized_through', 0) or 0),
             "memories": getattr(p, 'memories', []),
             "memory_index": dict(getattr(p, 'memory_index', {}) or {}),
             "schedule": list(getattr(p, 'schedule', []) or []),
@@ -426,6 +428,11 @@ class WorldSerializer:
                 pdata.get("background_consolidated_through", 0) or 0)
         except (TypeError, ValueError):
             p.background_consolidated_through = 0
+        try:
+            p.lived_log_memorized_through = int(
+                pdata.get("lived_log_memorized_through", 0) or 0)
+        except (TypeError, ValueError):
+            p.lived_log_memorized_through = 0
         p.body_state = pdata.get("body_state", p.body_state)
         # Merge over the defaults so a save from before the full skill list
         # (task-474) still ends up with every skill on the sheet.

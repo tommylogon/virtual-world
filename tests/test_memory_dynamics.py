@@ -80,16 +80,18 @@ class _Store:
         self.memory_index = {}
 
 
-def test_decay_spares_important_emotional_memory_and_removes_plain():
+def test_decay_lowers_activation_and_never_removes():
+    """Decay is a recall signal now: it lowers activation, it never forgets."""
     emotional = {"id": "e", "text": "Father died", "importance": 9, "source": "auto",
                  "memory_emotions": [{"label": "grief", "intensity": 9}]}
     plain = {"id": "p", "text": "Ate bread", "importance": 3, "source": "auto"}
     store = _Store([emotional, plain])
     removed = md.apply_decay(store, rate=1.0, tick=10)
-    assert removed == 1
-    assert plain not in store.memories
-    assert emotional in store.memories          # important memories never delete
-    assert emotional["activation"] > 0.5        # and fade far slower (×0.24 step)
+    assert removed == 0
+    assert plain in store.memories              # nothing is forgotten
+    assert emotional in store.memories
+    assert plain["activation"] < 1.0            # activation still decays
+    assert emotional["activation"] > plain["activation"]   # resistance differs
 
 
 def test_decay_preconceived_never_background_half():

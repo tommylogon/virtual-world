@@ -1,9 +1,9 @@
 """Character memory retention (player.py add_memory).
 
-`add_memory` used to drop the oldest memory past a hardcoded 200. That cap was
-never chosen, and FIFO meant generated chatter would push out a character's
-hand-written backstory. It is now `memory.max_per_character` (default 0 =
-unlimited) and eviction skips `source: "manual"` memories.
+`add_memory` used to drop the oldest memory past a hardcoded 200; that was later
+made configurable (`memory.max_per_character`). **2026-10-06: all caps were
+removed.** A character keeps every memory for life — nothing is evicted, at any
+configured limit.
 """
 import sys
 from pathlib import Path
@@ -29,36 +29,24 @@ def test_cap_is_exposed_in_engine_config():
     assert SCHEMA["memory.max_per_character"]["section"] == "memory"
 
 
-def test_configured_cap_trims_the_newest_first(monkeypatch):
+def test_configured_cap_is_ignored_nothing_is_evicted(monkeypatch):
+    """2026-10-06: memories are never evicted, even when a cap is configured."""
     monkeypatch.setattr(player_module, "_memory_limit", lambda: 50)
     p = Player("Capped")
     for i in range(120):
         p.add_memory("memory %d" % i, tick=i, source="auto")
-    assert len(p.memories) == 50
-    # The most recent memories are the ones worth keeping.
+    assert len(p.memories) == 120
     assert p.memories[-1]["text"] == "memory 119"
 
 
-def test_authored_backstory_survives_eviction(monkeypatch):
-    """`source: manual` memories are the character's past; they go last."""
+def test_authored_backstory_and_generated_chatter_all_survive(monkeypatch):
     monkeypatch.setattr(player_module, "_memory_limit", lambda: 50)
     p = Player("Authored")
     for i in range(10):
         p.add_memory("backstory %d" % i, tick=0, importance=7, source="manual")
     for i in range(600):
         p.add_memory("chatter %d" % i, tick=i, source="auto")
-
-    assert len(p.memories) == 50
+    assert len(p.memories) == 610
     authored = [m for m in p.memories if m["source"] == "manual"]
     assert len(authored) == 10
     assert {m["text"] for m in authored} == {"backstory %d" % i for i in range(10)}
-
-
-def test_generated_memories_are_evicted_before_authored_ones(monkeypatch):
-    monkeypatch.setattr(player_module, "_memory_limit", lambda: 3)
-    p = Player("Mixed")
-    p.add_memory("the one thing I remember", tick=0, source="manual")
-    for i in range(10):
-        p.add_memory("chatter %d" % i, tick=i, source="auto")
-    assert len(p.memories) == 3
-    assert p.memories[0]["text"] == "the one thing I remember"

@@ -79,12 +79,13 @@ def test_the_tap_fires_before_rollup_so_a_lossy_store_cannot_feed_a_lossless_one
     invisible to telemetry. If this ever regresses, telemetry quietly becomes
     as lossy as the store it was supposed to replace."""
     p = Player("Gribba")
+    n = 249
     with recording(TelemetryRecorder("run-1")) as rec:
-        for tick in range(1, lived_log.MAX_ENTRIES + 50):
+        for tick in range(1, n + 1):
             lived_log.record(p, tick, "act", f"routine {tick}", why="plan:patrol")
         lived_log.rollup(p, min_run=5)
-    assert len(p.lived_log) <= lived_log.MAX_ENTRIES
-    assert len(rec.events()) == lived_log.MAX_ENTRIES + 49
+    assert len(p.lived_log) < n              # rollup collapsed the runs
+    assert len(rec.events()) == n            # telemetry saw every write
 
 
 def test_a_broken_recorder_cannot_break_a_game_turn():

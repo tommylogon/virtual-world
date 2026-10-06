@@ -269,7 +269,7 @@ const InspectorMindView = (() => {
             <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;display:flex;justify-content:space-between;">
                 <span>Accessibility now (activation)</span><span style="text-transform:none;">${faded} below 0.5</span></div>
             ${sorted.map(row).join('')}
-            <div style="font-size:9px;color:var(--text-muted);margin-top:4px;line-height:1.5;">Recall (↻) raises activation; decay lowers it every tick at a rate each memory resists differently. Unimportant, unreinforced memories below the floor are forgotten; important ones never are.</div>
+            <div style="font-size:9px;color:var(--text-muted);margin-top:4px;line-height:1.5;">Recall (↻) raises activation; decay lowers it every tick at a rate each memory resists differently. Every memory is kept for life — decay lowers how likely it is to be recalled, it never forgets one.</div>
         </div>`;
     }
 

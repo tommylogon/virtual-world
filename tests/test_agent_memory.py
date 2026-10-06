@@ -140,10 +140,10 @@ class TestDecay:
         assert len(p.memories) == before
         assert p.memories[0].get("salience_override", 0) == 0
 
-    def test_poor_memory_decays_and_removes_faded_memories(self):
+    def test_poor_memory_decays_activation_but_never_forgets(self):
         # task-687: decay moves `activation` (per-memory resistance), never
-        # `salience_override` — the turn reset zeroes salience_override every
-        # turn, which used to erase trait-driven decay before it compounded.
+        # `salience_override`. Decay is a recall signal only (2026-10-06): it
+        # lowers activation but never removes a memory.
         world = _world()
         p = _player(world)
         p.traits = {"poor_memory": True}  # memory_decay_per_tick: 0.02
@@ -153,10 +153,11 @@ class TestDecay:
         p.memories[0]["salience_override"] = 5.0
 
         removed = AgentMind(p, world.graph).apply_decay()
-        assert removed == 1
-        assert all("Faint" not in m["text"] for m in p.memories)
+        assert removed == 0
+        # nothing is forgotten, even a nearly-faded memory
+        assert any("Faint" in m["text"] for m in p.memories)
         # the important memory fades slowly but is never deleted
-        strong = p.memories[0]
+        strong = next(m for m in p.memories if "Strong" in m["text"])
         assert strong["activation"] > 0.9
         assert strong["salience_override"] == 5.0  # untouched by decay
 

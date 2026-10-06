@@ -215,13 +215,19 @@ def _removable(memory: Dict[str, Any]) -> bool:
 
 
 def apply_decay(player, rate: float, tick: Optional[int] = None) -> int:
-    """Fade every memory's activation by ``rate`` per call; return removed count.
+    """Fade every memory's activation by ``rate`` per call; return 0.
 
     One writer for activation decay. Preconceived memories never decay;
     background memories at half rate; everything else scaled by
-    :func:`decay_resistance`. Removal happens only below the activation floor
-    AND for memories :func:`_removable` approves — important, reinforced or
-    authored memories fade toward irrelevance but are never deleted.
+    :func:`decay_resistance`.
+
+    **Activation is a recall signal, not a lifespan.** Decay lowers how likely a
+    memory is to be recalled; it never removes one. Memories are kept for life —
+    nothing is forgotten, at any floor. (The former removal-at-floor behaviour
+    was removed by request, 2026-10-06; it matches the intent of task-707.)
+
+    Returns 0; the return value is kept only so existing callers that expected a
+    "removed count" keep working.
 
     Note: this deliberately decays ``activation`` and not
     ``salience_override`` — the turn reset zeroes salience_override every
@@ -229,7 +235,6 @@ def apply_decay(player, rate: float, tick: Optional[int] = None) -> int:
     """
     if rate <= 0:
         return 0
-    removed = 0
     for memory in list(getattr(player, "memories", []) or []):
         ensure_dynamics(memory)
         source = str(memory.get("source", ""))
@@ -238,11 +243,7 @@ def apply_decay(player, rate: float, tick: Optional[int] = None) -> int:
         step = rate * (0.5 if source in HALF_DECAY_SOURCES else 1.0)
         step *= decay_resistance(memory)
         memory["activation"] = round(max(0.0, _unit(memory.get("activation")) - step), 4)
-        if memory["activation"] <= ACTIVATION_FLOOR and _removable(memory):
-            player.memories.remove(memory)
-            _forget_index(player, memory.get("id"))
-            removed += 1
-    return removed
+    return 0
 
 
 def _forget_index(player, memory_id: Optional[str]) -> None:

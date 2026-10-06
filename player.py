@@ -476,6 +476,10 @@ class Player:
         # cannot duplicate it. See engine/promotion.py.
         self.last_offload_tick = 0
         self.background_consolidated_through = 0
+        # `lived_log_memorized_through` is the newest lived_log tick already
+        # phrased into a first-person memory by engine/lived_log_memory.py, so a
+        # re-run of a turn cannot duplicate a memory (task-727).
+        self.lived_log_memorized_through = 0
 
         self.sync_vitals_with_tags()
 
@@ -1032,9 +1036,9 @@ class Player:
         except ImportError:
             pass
         self.memories.append(entry)
-        limit = _memory_limit()
-        if limit and len(self.memories) > limit:
-            self._trim_memories(limit, protect_id=entry.get("id"))
+        # No cap, no eviction, no truncation (2026-10-06): a character keeps
+        # every memory for life. `memory.max_per_character` is ignored — the
+        # configurable trim path was removed so nothing deletes a memory.
         return entry
 
     def record_observation(self, subject_id: str, text: str, tick: int, kind: str = "",
@@ -1338,6 +1342,8 @@ class Player:
             "last_offload_tick": int(getattr(self, "last_offload_tick", 0)),
             "background_consolidated_through": int(
                 getattr(self, "background_consolidated_through", 0)),
+            "lived_log_memorized_through": int(
+                getattr(self, "lived_log_memorized_through", 0)),
             "active_pursuit": getattr(self, "active_pursuit", None),
             "plan": getattr(self, "plan", None),
             "completed_pursuits": list(getattr(self, "completed_pursuits", []) or []),

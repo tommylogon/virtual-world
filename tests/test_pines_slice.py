@@ -91,7 +91,7 @@ class TestBackgroundProof:
         background = [m for m in miki.memories if m.get("source") == "background"]
         assert len(background) <= 1
         if background:
-            assert len(background[0]["text"]) <= promotion.MEMORY_CHAR_LIMIT
+            assert background[0]["text"]             # stored verbatim, not truncated
             assert promotion.BACKGROUND_TAG in background[0]["tags"]
 
     def test_repeated_activation_does_not_duplicate(self):

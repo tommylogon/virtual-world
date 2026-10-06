@@ -25,7 +25,10 @@ Nothing here calls an LLM or mutates world state beyond the character's own
 
 from __future__ import annotations
 
-MAX_ENTRIES = 200
+#: The lived log is **unbounded** (2026-10-06). It was capped at 200 entries and
+#: trimmed on append; nothing is trimmed or forgotten now. The name is kept so
+#: documentation/tests have a thing to point at, but it is no longer enforced.
+MAX_ENTRIES = None
 
 # Bounded, documented kinds (see the format doc).
 KINDS = (
@@ -64,8 +67,6 @@ def record(player, tick, kind, what, why="", area="", tags=None,
     if delta:
         entry["delta"] = dict(delta)
     log.append(entry)
-    if len(log) > MAX_ENTRIES:
-        _trim(player, MAX_ENTRIES)
     _tap(character=getattr(player, "name", ""), tick=tick, kind=kind,
          what=entry["what"], why=entry["why"], area=entry["area"])
     return entry
@@ -94,21 +95,6 @@ def _tap(character, tick, kind, what, why, area) -> None:
         recorder.action(character, tick, kind, what, why, area)
     except Exception:  # noqa: BLE001 - a measurement failure is not a game failure
         pass
-
-
-def _trim(player, max_entries):
-    """Keep salient entries; fill the rest with the newest routine entries."""
-    log = ensure(player)
-    if len(log) <= max_entries:
-        return
-    salient = [e for e in log if e.get("salient")]
-    plain = [e for e in log if not e.get("salient")]
-    if len(salient) >= max_entries:
-        kept = salient[-max_entries:]
-    else:
-        kept = plain[-(max_entries - len(salient)):] + salient
-        kept.sort(key=lambda e: _tick_of(e))
-    player.lived_log[:] = kept
 
 
 def _tick_of(entry) -> int:

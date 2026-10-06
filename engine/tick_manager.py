@@ -1166,6 +1166,16 @@ class TickManager:
         except Exception as e:
             logger.warning("[tick] on_turn_end: %s", e)
 
+        # task-727: phrase meaningful lived_log entries (death, relationship,
+        # pursuit) into first-person memories. After the turn settles so it sees
+        # everything the turn wrote; idempotent via the memorized-through mark,
+        # so a re-run cannot duplicate a memory.
+        try:
+            from engine import lived_log_memory
+            lived_log_memory.bridge_all(self.gs)
+        except Exception as e:
+            logger.warning("[tick] lived_log->memory bridge: %s", e)
+
     def _process_wind_extinguish(self):
         """task-231: gale+ wind can snuff out lit items each tick."""
         import random as _random

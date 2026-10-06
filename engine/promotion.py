@@ -44,8 +44,8 @@ from engine import lived_log as lived_log_mod
 
 logger = logging.getLogger(__name__)
 
-#: A promoted character must not wake up with an essay. The template truncates
-#: to this many characters, matching the timeskip resume memory (task-481).
+#: Deprecated (2026-10-06): promotion/timeskip memories are no longer truncated.
+#: Kept only so existing references resolve; do not reintroduce a length cap.
 MEMORY_CHAR_LIMIT = 300
 
 #: Tag put on every consolidated memory so the inspector and retrieval can tell
@@ -227,11 +227,10 @@ def activate_scope(gs, scope_id) -> List[str]:
 
 def summarize(gs, entries: List[Dict[str, Any]], *, since_tick: int = 0,
               end_tick: int = 0) -> str:
-    """A deterministic, bounded sentence over a background span's trace facts.
+    """A deterministic sentence over a background span's trace facts.
 
     No LLM. The phrasing is stable for a given span so a replayed span reads
-    identically (task-412 determinism acceptance). The result is truncated to
-    :data:`MEMORY_CHAR_LIMIT`.
+    identically (task-412 determinism acceptance). **Not truncated** (2026-10-06).
     """
     kinds = Counter(str(e.get("kind", "")) for e in entries)
     needs = _why_labels(entries, "needs:")
@@ -254,7 +253,7 @@ def summarize(gs, entries: List[Dict[str, Any]], *, since_tick: int = 0,
             + "; ".join(clauses) + ".")
     if notable:
         text += " Noted: " + "; ".join(notable[:2]) + "."
-    return text[:MEMORY_CHAR_LIMIT]
+    return text
 
 
 # ───────────────────────────── internals ──────────────────────────────────
