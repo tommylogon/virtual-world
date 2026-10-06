@@ -54,7 +54,7 @@ effect handlers. None of them is the death/resurrection path.
 `engine/lived_log.py` and `docs/design/lived-log-format.md`:
 
 - **`lived_log`** is the *objective* record — code-written, **no LLM**, salience-filtered,
-  capped at `MAX_ENTRIES = 200`, rolled up, stored on the `Player` in the save. Its stated
+  now unbounded (2026-10-06), stored on the `Player` in the save. Its stated
   question is "would a person remember this?" (`engine/lived_log.py` docstring; renamed from
   `trace` in task-542 precisely to keep it distinct from soak telemetry).
 - **`memories`** is the *subjective* first-person recall. Mind and the LLM prompts read it.
@@ -85,6 +85,26 @@ them.
   third store and do not move `lived_log` into `memories`.
 - Travel and perception attain enough of an account that Mind can answer "where have I been
   and what did I notice", without inventing values.
+
+## Status (2026-10-06)
+
+- **Death: done** by task-727. `engine/lived_log_memory.py` phrases a `death`
+  entry into a first-person memory ("I died — <cause>.") for every character,
+  every turn, without a fidelity change.
+- **Resurrection: open, and entangled with a possible bug.** `kill_player`
+  (`virtual_world_engine.py`) sets `player.state = "dead"` **and** the `dead`
+  condition. Resurrection is done by an effect composed of `set_vital` + the
+  `remove_condition` effect (`engine/effect_handlers/conditions.py`), but
+  `condition_remove_condition` (`engine/player_conditions.py:871`) only pops the
+  condition — it does **not** reset `player.state`. Confirm whether a resurrected
+  character is left with `state == "dead"`, and write the resurrection memory at
+  whichever site is the real one.
+- **Vitals: covered** by `agent_memory._surface_need_recall` (source
+  `need_recall`).
+- **Travel / perception: partially covered** by `record_observation`
+  ("You have been in X" / "You have seen Y"). Task-727 deliberately skips
+  `move`/`act` there to avoid duplicating those; revisit only if the observation
+  account proves too thin.
 
 ## Related
 

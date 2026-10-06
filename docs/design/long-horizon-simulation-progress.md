@@ -97,8 +97,8 @@ round. Remaining: a server-side batch `advance` and a non-blocking human
 ### Done: the objective trace
 
 - **`engine/lived_log.py`** — `record / recent / since / summarize_window / rollup /
-  load / to_list`. Bounded at 200 entries, salient-first retention, run
-  collapsing. No LLM.
+  load / to_list`. Unbounded (2026-10-06); every entry kept for life. `rollup`
+  (run collapsing) exists but is not called. No LLM.
 - **Integrated** — `Player.lived_log`, `Player.to_dict`, and
   `engine/serialization._deserialize_player` round-trip it.
 - **Wired** — need tier crossings (`why="needs:<vital>"`), deaths (`salient`),

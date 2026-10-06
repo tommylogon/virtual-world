@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: refactor
 priority: medium
 ---
@@ -52,6 +52,31 @@ re-checked when 716 is next updated.
 - The authored templates and the fishing activity definition are converted to minutes, or
   the tick fields are removed so only one unit is authored.
 - A regression test proves a minutes duration elapses in game minutes, not ticks.
+
+## Implemented (2026-10-06)
+
+- **Unit bug fixed** in `background_plans.py::_satisfied` — `duration_minutes` is
+  now compared against `elapsed_minutes`, `duration_ticks` against
+  `elapsed_ticks` (previously the minutes value was compared against ticks).
+- **`start_activity` accepts minutes** (`engine/activities.py`): new
+  `duration_minutes` parameter, stored on the activity with an initialised
+  `elapsed_minutes` (the tick loop already accumulates it at `:245`). Also
+  `background_plans` passes the two units separately instead of collapsing them.
+- **`start_activity` effect** (`engine/effect_handlers/activities.py`) reads and
+  forwards `duration_minutes`; module gained its `@module`/`@contributes`/`@docs`
+  headers (it was one of three flagged as missing the contract).
+- **Authored data converted to minutes**: `data/library/pursuit_templates/fish-and-bring-home.json`
+  and `data/library/items/angling_rod.json` now use `duration_minutes: 120`
+  (the numeric value was kept from the previous `duration_ticks: 120`; confirm
+  this is the intended game time — a tick is `time_per_tick_minutes`).
+  `fishing.json`'s `tick.interval_ticks` is a sampling cadence, not a duration,
+  and is left alone.
+- **Regression test** `tests/test_activity_duration.py` (4 tests): a minutes
+  duration elapses on `elapsed_minutes` and is *not* satisfied by a large tick
+  count; `start_activity` stores `duration_minutes`.
+
+Caveat: not yet verified live — the running server needs a restart to load the
+change, and the 120-minute value needs a human confirm.
 
 ## Non-goals
 

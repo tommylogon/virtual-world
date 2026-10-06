@@ -112,13 +112,14 @@ would actually remember or a reader would care about:
 
 ## Retention and rollup
 
-`player.lived_log` is capped (default 200 entries, mirroring the memory store).
-`engine.lived_log.rollup()` runs periodically and:
+`player.lived_log` is **unbounded** (2026-10-06). It was previously capped at 200
+entries and trimmed on append; nothing is trimmed or forgotten now. Every entry
+is kept for the character's life.
 
-1. Drops the oldest non-salient entries first.
-2. Compresses long runs of the same `(kind, why, area)` into one summary entry
-   ("spent the day working in the Workshop", `kind: "plan"`).
-3. Always keeps `salient` entries (bounded separately).
+`engine.lived_log.rollup()` still exists and would collapse long runs of the same
+`(kind, why, area)` into one summary entry, but it is **not called anywhere** and
+must not be wired without review — a lossy collapse contradicts the unbounded
+policy.
 
 ## Lived log → memory
 
@@ -134,6 +135,16 @@ nothing.
 
 `engine.lived_log.summarize_window(player, since_tick)` is the window reader;
 `engine/timeskip.py` uses it to seed a resume memory across a skip.
+
+**Per-entry bridge (task-727).** `engine/lived_log_memory.py` bridges
+*individual* meaningful entries whose facts have no other memory writer —
+`death`, `relationship`, `pursuit` — into first-person memories with a
+deterministic phrasing pass (no LLM). It runs once per turn from
+`tick_manager.tick_turn` and is idempotent via
+`player.lived_log_memorized_through`. The kinds `social`, `threat`, and `need`
+are **not** re-phrased there because they already write their own memories
+(`social_text`, `background_social`, `agent_memory`), and `act`/`move`/
+`traversal` are covered by `record_observation`.
 
 This is why objective history must come first: LLM memory alone drifts (a
 recorded run had a character "remember" a waxwork man who was never there).
@@ -173,16 +184,16 @@ stores.
 
 `player.lived_log` is a list of plain dicts, written by both `Player.to_dict()`
 (API responses) and `SerializationManager._serialize_player` (saves), and
-restored in `_deserialize_player`. Bounded at 200 entries, so it does not blow
-up save size.
+restored in `_deserialize_player`. **Unbounded** (2026-10-06), so save and
+payload size grow with play; the store is deliberately kept for life.
 
 > **Fixed in task-542:** the save path had a *reader* for a `trace` key and **no
 > writer at all**, so the whole store was silently discarded on every reload —
 > the module docstring's claim that entries "serialize with the save" was false.
 > Scenario payloads (`to_scenario_dict`) drop `lived_log` for the same reason
 > they drop `recent_hearing` and observation-sourced memories: a character does
-> not *author* their own history, and keeping it would add 200 entries per
-> character to every scenario file on the first save.
+> not *author* their own history, and keeping it would add the character's full
+> history to every scenario file on the first save.
 
 ## Not the same system as telemetry
 
@@ -195,7 +206,7 @@ deliberately incompatible.
 | stored | **in the save**, on the player | **out of the save**, on the run |
 | grain | salience-filtered, runs collapsed | complete, every move |
 | test applied | "a person would remember this" | "measure exactly this" |
-| lifetime | ~200 entries, rolled up | the whole run, then archived |
+| lifetime | kept for life, unbounded | the whole run, then archived |
 | consumer | LLM summarisation on promote/demote | dashboard, export, benchmark |
 | if it leaks | an LLM "remembers" a life it never lived | the benchmark becomes fiction |
 

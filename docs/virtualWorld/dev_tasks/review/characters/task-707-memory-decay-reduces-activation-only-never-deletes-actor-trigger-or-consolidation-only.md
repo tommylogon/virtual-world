@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: characters
 priority: high
 ---
@@ -28,6 +28,29 @@ Decay fades a memory's activation toward zero. Removal requires an actor, an exp
 - Recall cost is unchanged: `MAX_RECALL = 10` (memory-context.ts:341) caps what
   reaches a prompt regardless of stored count, so storing more does not grow the
   context. Measure stored-memory growth over one soak before setting any cap.
+
+## Implemented (2026-10-06)
+
+- `engine/memory_dynamics.apply_decay` no longer calls `memories.remove`; it
+  still returns a removed count, now always `0`. `_removable` /
+  `ACTIVATION_FLOOR` are no longer used by the decay path.
+- The task-687 knock-on is done, not relaxed: `test_decay_spares_important…removes_plain`
+  became `test_decay_lowers_activation_and_never_removes` (asserts the plain
+  memory is **kept** and ordering is by activation). `test_agent_memory.py`'s
+  removal test became `…decays_activation_but_never_forgets`.
+- The retention cap is also gone end-to-end: `Player.add_memory` no longer calls
+  `_trim_memories` (the `memory.max_per_character` enforcement was removed), so
+  the only remaining removal paths are deliberate consolidation
+  (`memory_dynamics.py:434`) and the now-unused `_trim_memories`. `tests/test_memory_retention.py`
+  updated to assert a configured cap is ignored.
+- **Growth measured** (kraktooth_goblin_camp, isolated in-memory run): a 30-min
+  timeskip took stored memories **185 → 348 (+163)**, still with recall capped at
+  `MAX_RECALL = 10` — so prompt context did **not** grow. The "measure before any
+  cap" criterion is therefore satisfied; no cap is being set.
+- UI text corrected (`mind-view.ts`): the panel no longer says memories "below
+  the floor are forgotten".
+
+Not verified live: the running server needs a restart to load the change.
 
 ## Why deletion is not justified
 
