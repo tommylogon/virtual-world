@@ -797,7 +797,6 @@
         const box = _renderShell('🗺️ WorldPainter');
         box.appendChild(_breadcrumb(p.breadcrumb));
         box.appendChild(_toolbar(p));
-        box.appendChild(_checklist(p));
         // The climate legend only exists while the climate layer is active, and
         // it sits directly under the layer control that switches to it (task-557).
         const legend = _climateLegend();
@@ -805,6 +804,7 @@
             box.appendChild(legend);
         if (!p.scope.has_grid) {
             box.appendChild(_noGridPanel(p));
+            box.appendChild(_checklist(p));
             _renderChildren(box, p);
             return;
         }
@@ -820,6 +820,11 @@
         const panel = _cellPanel(p);
         if (panel)
             box.appendChild(panel);
+        // The "what next" checklist sits below the map, not above it. The canvas
+        // is the thing being looked at, and a collapsed progress bar wedged
+        // between the toolbar and the art was the only thing standing between an
+        // author and their paint — so it now reports from under the image.
+        box.appendChild(_checklist(p));
         _renderChildren(box, p);
         if (state.status) {
             const color = state.statusError ? '#e66' : '#9c9';
@@ -2443,6 +2448,22 @@
             });
             ctx.restore();
         }
+        // Brush hover preview: outline the cells the brush would cover.
+        // Above the route early-return on purpose: with no route in
+        // progress this is the only thing left to draw, and the return
+        // below would skip it entirely (task-719).
+        const hover = state.brushHover;
+        if (hover && hover.length && state.payload) {
+            ctx.save();
+            ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+            ctx.lineWidth = Math.max(1, 1.5 / ((state.stage && state.stage.scaleX()) || 1));
+            ctx.setLineDash([4 / ((state.stage && state.stage.scaleX()) || 1), 3 / ((state.stage && state.stage.scaleX()) || 1)]);
+            hover.forEach((c) => {
+                ctx.strokeRect(c.x * CELL + 0.5, c.y * CELL + 0.5, CELL - 1, CELL - 1);
+            });
+            ctx.setLineDash([]);
+            ctx.restore();
+        }
         const pts = state.route || [];
         if (!pts.length)
             return;
@@ -2470,19 +2491,6 @@
             ctx.fill();
         });
         ctx.restore();
-        // Brush hover preview: outline the cells the brush would cover.
-        const hover = state.brushHover;
-        if (hover && hover.length && state.payload) {
-            ctx.save();
-            ctx.strokeStyle = 'rgba(255,255,255,0.55)';
-            ctx.lineWidth = Math.max(1, 1.5 / ((state.stage && state.stage.scaleX()) || 1));
-            ctx.setLineDash([4 / ((state.stage && state.stage.scaleX()) || 1), 3 / ((state.stage && state.stage.scaleX()) || 1)]);
-            hover.forEach((c) => {
-                ctx.strokeRect(c.x * CELL + 0.5, c.y * CELL + 0.5, CELL - 1, CELL - 1);
-            });
-            ctx.setLineDash([]);
-            ctx.restore();
-        }
     }
     function _isPaintTool() {
         return state.tool === 'paint' || state.tool === 'erase';
