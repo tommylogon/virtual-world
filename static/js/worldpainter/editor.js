@@ -1197,7 +1197,8 @@
             render();
             _status(state.gridEdit
                 ? 'Grid adjust: drag the frame to move the scope on the graph map, '
-                    + 'drag the E/S/SE handles to resize.'
+                    + 'drag the E/S/SE handles to resize; click the size (or ▦ Grid…) '
+                    + 'to type exact numbers.'
                 : 'Grid adjust off.', false);
         }, 'padding:1px 6px;font-size:11px;');
         gridAdjust.title = 'Move the grid on the graph map (drag the frame) or resize it (drag a handle)';
@@ -1644,7 +1645,10 @@
         hud.appendChild(zoomOut);
         hud.appendChild(_btn('⤢ Fit', () => _fitGrid(p), 'padding:1px 7px;'));
         _syncZoomButtons(); // a rebuild starts at the current scale
-        hud.appendChild(_el('span', 'font-size:11px;color:var(--text-muted,#999);', `${p.grid.w}×${p.grid.h} · 1 cell = 1 turn`));
+        // task-717: the dims readout is also the exact-size control — clicking it
+        // opens the ▦ Grid… dialog, so precise resize is discoverable from the
+        // canvas instead of only from the toolbar.
+        hud.appendChild(_btn(`${p.grid.w}×${p.grid.h} · 1 cell = 1 turn`, () => _openGridDialog(p), 'font-size:11px;color:var(--text-muted,#999);padding:2px 6px;', 'Set the exact grid size…'));
         // Painted-cell transparency: lets the reference art show through.
         const alpha = _el('input', 'width:64px;');
         alpha.type = 'range';
