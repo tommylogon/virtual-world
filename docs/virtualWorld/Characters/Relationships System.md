@@ -153,6 +153,7 @@ to_dict() emits **only** {closeness, interaction_count} per relationship.
 8. **Relationships are not derived from memories.** Seeded closeness:0 / interaction_count:0 can contradict authored memories of prior acquaintance (e.g. miki<->jake had prior banter memories but 0 closeness). Authoring must keep the two in sync; nothing computes one from the other.
 9. **[fixed]** **Guidance tier boundaries don't match label tier boundaries** (guidance: -50/-25 vs label: -75/-50/-25). (relationshipGuidance tiers now mirror the label tiers — task-349.)
 10. **[not-a-bug]** **First meeting may double-count.** Sight uses register_first_meeting(), which returns False if the relationship already exists and never calls update_relationship(), so interaction_count isn't bumped twice. Verified safe.
+11. **Event history is not recorded, so closeness cannot be driven by events (2026-10-06).** `grab` / `escape` (`engine/grapple.py`) write no lived-log entry and no memory; only an outright *attack* moves closeness (−30, `engine/combat.py`). The grapple DC already *reads* the relationship (`GRAPPLE_REL_PER_LEVEL`, line 130), but the reverse — an event changing the relationship — has no durable record to act on later, and the character cannot reference it ("Thrazz tried to grab me last night"). See the "Known gaps" section of `docs/design/lived-log-format.md`; task-725 owns the fix.
 
 ## Related
 - [[Characters/Characters Overview]]

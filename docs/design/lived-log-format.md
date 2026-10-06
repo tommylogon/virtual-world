@@ -61,17 +61,29 @@ not be dropped when the code around it changes.
 
 ## Kinds
 
-| kind | meaning | typical `why` |
-|---|---|---|
-| `move` | changed area / arrived | `goal:travel`, `need:shelter` |
-| `act` | performed an action verb | `goal:*`, `plan:*` |
-| `need` | a vital crossed a tier | `needs:hunger` |
-| `condition` | condition gained/lost | `react:*`, `env:*` |
-| `encounter` | another character involved | `social:*`, `threat:*` |
-| `observe` | notable percept | `sense:*` |
-| `plan` | plan/sequence started or completed | `plan:*` |
-| `death` | character died (salient) | `cause:*` |
-| `promote` / `demote` | fidelity boundary crossed | `sim:fidelity` |
+The `KINDS` tuple in `engine/lived_log.py` is the declared vocabulary. The table
+below lists **every kind a live call site actually writes**, with the writing
+module, because the declared set and the written set have drifted apart.
+
+| kind | meaning | typical `why` | written by |
+|---|---|---|---|
+| `move` | changed area / arrived | `goal:travel`, `need:shelter` | `engine/background_simulation.py` |
+| `act` | performed an action verb | `goal:*`, `plan:*` | `engine/background_simulation.py`, `engine/tick_manager.py`, `engine/foraging.py`, `engine/background_social.py` |
+| `need` | a vital crossed a tier | `needs:hunger` | `engine/tick_manager.py` |
+| `plan` | plan/sequence started, completed, or failed | `plan:*` | `engine/background_plans.py`, `engine/timeskip.py` |
+| `pursuit` | pursuit assigned or completed | `sim:*` | `engine/background_plans.py` |
+| `traversal` | a crossing check result | `traversal:*` | `engine/background_simulation.py` |
+| `death` | character died (salient) | `cause:*` | `virtual_world_engine.py` (`kill_player`) |
+| `promote` / `demote` | fidelity boundary crossed | `sim:fidelity` | `engine/promotion.py` |
+| `relationship` | closeness toward someone moved | `social:*` | `engine/relationships.py` |
+| `social` | a social action at a tier | `social:*` | `engine/background_social.py` |
+| `threat` | a threat reaction | `threat:*` | `engine/background_social.py` |
+
+**Declared but with no writer found (2026-10-06):** `condition`, `encounter`,
+`observe`. `condition` and `observe` *do* exist as method names, but on **soak
+telemetry** (`engine/soak_telemetry.py`), which is the deliberately separate
+system below — not on `lived_log`. Treat these three as aspirational until a
+call site appears, or remove them from `KINDS`.
 
 ## Reason tags
 
@@ -110,16 +122,52 @@ would actually remember or a reader would care about:
 
 ## Lived log → memory
 
-Code writes the lived log; the LLM writes memory. The bridge is a window:
+Code writes the lived log; code also writes the memory that summarizes it. The
+bridge is `engine/promotion.py` (task-399, v1): on **promotion** (background →
+attended) `promote()` reads the span since the last consolidation and writes
+**one bounded memory** (`source="background"`, tag `background`) via
+`player.add_memory(...)`. It is **deterministic and templated — no LLM call is
+made** (task-412 non-goals); a later LLM pass may only *read* the trace. The
+idempotence rule matters: the span is `tick > max(last_offload_tick,
+background_consolidated_through)`, so a second promotion of the same span writes
+nothing.
 
-```
-engine.lived_log.summarize_window(player, since_tick)  ->  text lines
-```
+`engine.lived_log.summarize_window(player, since_tick)` is the window reader;
+`engine/timeskip.py` uses it to seed a resume memory across a skip.
 
-Used at natural boundaries (plan/sequence completion, promotion, end of day),
-the LLM turns that window into 1–3 first-person memories in the existing memory
-store. This is why objective history must come first: LLM memory alone drifts (a
+This is why objective history must come first: LLM memory alone drifts (a
 recorded run had a character "remember" a waxwork man who was never there).
+
+> **This bridge only fires on a fidelity change.** It does not run for a
+> character whose tier does not change, so events that happen while a character
+> stays attended or stays background are not promoted into memory by it. See
+> [Known gaps](#known-gaps-2026-10-06).
+
+## Known gaps (2026-10-06)
+
+Measured against the live Kraktooth goblin camp. These are open; task-725 owns
+the fix.
+
+- **Interaction events are not written to the lived log at all.** `grab` /
+  `escape` (`engine/grapple.py`) and attack damage (`engine/combat.py`) write no
+  `lived_log` entry and no memory. A traversal or a fight therefore leaves no
+  account a character can reflect on, and no entry for the memory bridge to
+  promote. (Attack *does* move closeness −30 in `engine/relationships.py`; the
+  event itself is still unrecorded.)
+- **The memory bridge only fires on a fidelity change.** A character who stays
+  attended (or stays background) does not get the span promoted, so a salient
+  event — e.g. `kind: "death"` — can sit in `lived_log` and never reach
+  `memories`, which is what the character Mind panel reads. Repro: a character
+  died and their Mind showed no reason, no travel, no feelings, no vitals slide,
+  and no reaction to resurrection.
+- **Consequence for affect and relationships.** Because the events are not in
+  memory, the character cannot reflect on them, their emotion/relationship state
+  is not driven by them, and later conversation cannot reference them ("you
+  tried to grab me last night").
+
+The fix reuses the existing bridge (extend `engine/promotion.py` to salient life
+events) or has Mind read salient `lived_log` entries — it does **not** merge the
+stores.
 
 ## Serialization
 

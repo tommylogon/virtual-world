@@ -241,7 +241,7 @@ so nothing can contradict.
 
 While backgrounded, the rule layer must keep updating every field the foreground
 reads — `current_area` + position, all `vitals`, `conditions`, `inventory` /
-`equipped`, `relationships`, `memories` / trace, `activity` / `state`, `traits`,
+`equipped`, `relationships`, `memories` / `lived_log`, `activity` / `state`, `traits`,
 and `goals` / current plan. **A field frozen during background is a reversibility
 violation.** Approximation is allowed (block scheduling, ETA travel, seeded
 probability, whole-unit vital movement) provided the character ends at a real area at
@@ -253,16 +253,28 @@ over `engine/lived_log.py`, `flush` (called from `tick_manager.py:461`),
 
 ---
 
-## Trace
+## Lived log
 
 Every decision writes a `lived_log` entry with a reason tag, so a span can be
-summarized into memory on promotion. The tag vocabulary is a **schema with an
-enforcement rule**: `engine/soak_telemetry.py:75` rejects a run missing
+summarized into memory on promotion. The store itself — its kinds, schema, and
+retention — is defined in `docs/design/lived-log-format.md`; this section is about the `why`
+vocabulary.
+
+The reason-tag vocabulary is a **schema with an enforcement rule**:
+`engine/soak_telemetry.py:75` rejects a run missing
 `traversal:` / `forage:` / `schedule:` entirely, because a rejection counter that
 never sees those prefixes is a counter that cannot detect the failure it exists for
 (`tools/why_vocabulary.py` records why it was added). Tags in use include
 `needs:drink`, `needs:hunger`, `forage:found`, `forage:fail`, `search:notice`,
 `plan:<label>:start|done|failed`, `social`, `rel:<counterpart>`.
+
+**Known gap (2026-10-06).** The promotion bridge (`engine/promotion.py`) only runs
+on a fidelity change, so an event recorded while a character's tier stays the same
+never reaches memory. Worse, interaction events write no lived-log entry at all:
+`grab` / `escape` (`engine/grapple.py`) and attack damage (`engine/combat.py`)
+record nothing. See the "Known gaps" section of `docs/design/lived-log-format.md`; task-725
+owns the fix. This is why a character cannot reflect on, feel about, or later
+mention an event that happened to them.
 
 ---
 
