@@ -32,6 +32,7 @@ This is the Obsidian vault for **VirtualWorld** — a Flask + JS text-based game
 | [[Patch Notes 2026-09-28\|Patch Notes 2026-09-28]] | Fog-of-war reveal, traits v2, production surfaces, and the doc tooling pass |
 | [[Patch Notes 2026-09-30\|Patch Notes 2026-09-30]] | Scope-tree work, soak findings, UI restructure |
 | [[Patch Notes 2026-10-03\|Patch Notes 2026-10-03]] | The human-turn composer and narration alignment |
+| [[Patch Notes 2026-10-06\|Patch Notes 2026-10-06]] | The painter's scroll, hover, and live preview; library splits and a browsable item library; fog-of-war minimap; memory dynamics |
 
 ## [[Roadmap|🗺️ Roadmap]]
 
