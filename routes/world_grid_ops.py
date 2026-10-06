@@ -43,8 +43,23 @@ def _load(app) -> Dict[str, dict]:
 
 
 def _commit(app, manifest: Dict[str, dict]) -> None:
-    """Write a mutated manifest back onto the world."""
+    """Write a mutated manifest back onto the world.
+
+    Every WorldPainter mutation funnels through here — set grid, paint a cell,
+    name a cell, place or move a feature, generate, rename, delete. It is the
+    single choke point, so it is also where the compiler's taxonomy cache is
+    dropped: preflight reads the biome records once per painted cell, and it
+    held a 106-file cache that nothing invalidated, so a 160x100 grid took ~7
+    minutes on every grid read (task-716). The taxonomy file itself has no
+    write path (task-589), so the grid is what changes the classification, and
+    this is the right place to notice.
+    """
     app.world.world_scopes = manifest
+    try:
+        from engine import biomes as biomes_mod
+        biomes_mod.clear_cache()
+    except Exception:
+        pass
 
 
 def _snapshot(app, label: str) -> None:

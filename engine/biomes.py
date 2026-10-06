@@ -123,7 +123,16 @@ def load(path: Optional[str] = None, *, fresh: bool = False) -> dict:
 
 
 def clear_cache() -> None:
+    """Drop every cached taxonomy and library-dir read.
+
+    Called from the save/commit path so a hand edit to a biome JSON is visible
+    without a server restart. It clears both the bundled ``biomes.json`` cache
+    (``_cache``) and the per-file library cache (``_lib_cache``) — the two are
+    separate because one is a single file and the other is 106 files, but a
+    taxonomy edit is a taxonomy edit and both have to go together.
+    """
     _cache.clear()
+    _lib_cache.clear()
 
 
 def biomes(path: Optional[str] = None) -> Dict[str, dict]:
@@ -154,18 +163,39 @@ def _load_id_dir(directory: str) -> Dict[str, dict]:
     return out
 
 
-_load_library_dir = _load_id_dir
+_lib_cache: Dict[str, Dict[str, dict]] = {}
+
+
+def _load_id_dir_cached(directory: str) -> Dict[str, dict]:
+    """Like :func:`_load_id_dir`, but cached for the life of the process.
+
+    The library dirs are static, and preflight reads every biome record once
+    per painted cell (task-716): ``cell_kind`` / ``merge_rule`` / ``is_building``
+    are called from the per-cell identity and merge passes, and each one
+    re-scanned all 106 biome JSON files from disk. A 160x100 grid took ~7
+    minutes for a grid read that should take a second — 2.3 million file
+    opens for one ``GET /grid``. The directory contents do not change at
+    runtime, so caching the parsed result is correct, not a shortcut.
+    """
+    out = _lib_cache.get(directory)
+    if out is None:
+        out = _load_id_dir(directory)
+        _lib_cache[directory] = out
+    return out
+
+
+_load_library_dir = _load_id_dir_cached
 
 
 def biomes(path: Optional[str] = None) -> Dict[str, dict]:
-    library = _load_id_dir(_biome_dir)
+    library = _load_id_dir_cached(_biome_dir)
     if library:
         return library
     return load(path).get("biomes") or {}
 
 
 def features(path: Optional[str] = None) -> Dict[str, dict]:
-    library = _load_id_dir(_feature_dir)
+    library = _load_id_dir_cached(_feature_dir)
     if library:
         return library
     return load(path).get("features") or {}
