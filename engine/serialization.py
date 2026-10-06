@@ -147,24 +147,14 @@ class WorldSerializer:
                 continue
             node.properties["actions"] = normalize_item_actions(raw)
 
-    def _serialize_player(self, pname, p):
-        return {
+    def _serialize_player(self, pname, p, lite=False):
+        base = {
             "name": p.name,
-            "personality": getattr(p, 'personality', ""),
-            "description": getattr(p, 'description', ""),
-            "base_description": getattr(p, 'base_description', ""),
             "id": getattr(p, 'id', ''),
-            "equipped": dict(p.equipped),
             "stats": p.stats,
             "vitals": p.vitals,
-            "skills": p.skills,
             "state": p.state,
             "perceived_conditions": perceived_conditions(p),
-            "trait_behavior": [
-                TRAIT_DEFINITIONS.get(tid, {}).get("behavior_prompt")
-                for tid in (getattr(p, "traits", {}) or {})
-                if TRAIT_DEFINITIONS.get(tid, {}).get("behavior_prompt")
-            ],
             "conditions": {
                 cid: [dict(inst) for inst in instances]
                 for cid, instances in (getattr(p, 'conditions', {}) or {}).items()
@@ -172,33 +162,17 @@ class WorldSerializer:
             "grappled_by": self._grappled_by(pname),
             "state_timer": getattr(p, 'state_timer', 0),
             "traits": getattr(p, 'traits', {}),
-            # task-605: size is a property, not a trait, so it needs its own key
-            # here. The inspector's Size control reads `player.size` from this
-            # payload; without it the control can never show a saved value and
-            # would silently revert to "not set" on every render.
             "size": getattr(p, 'size', None),
-            # task-549: species needs its own key for the same reason — and
-            # because THIS serializer is the one /api/state serves, so a value
-            # written to the Player but absent here is invisible to the client
-            # that just wrote it. Two player serializers exist (`this one` and
-            # `Player.to_dict`); a field added to one is not added to the other.
             "species": getattr(p, 'species', None),
             "tags": getattr(p, 'tags', []),
             "flags": dict(getattr(p, 'flags', {})),
             "hidden": bool(getattr(p, 'hidden', False)),
-            # Transient soak order (task-481) for the initiative list; not part of
-            # the save's durable state (there is nothing to restore).
             "soak": (
                 {"intent": (getattr(p, "soak_order", None) or {}).get("intent"),
                  "remaining_minutes": round(float(
                      (getattr(p, "soak_order", None) or {}).get("remaining_minutes", 0) or 0), 1)}
                 if getattr(p, "soak_order", None) else None
             ),
-            # Which runner owns this character right now: "active" is the normal
-            # LLM/simple loop, "background" is the deterministic survival runner.
-            # It is saved (player.to_dict) and was only missing here, so the page
-            # could not say why a character was acting bluntly — the same question
-            # the `soak` badge above answers for an order (task-670).
             "simulation_mode": getattr(p, "simulation_mode", "active"),
             "manifested": bool(getattr(p, 'manifested', False)),
             "known": list(getattr(p, 'known', []) or []),
@@ -215,19 +189,12 @@ class WorldSerializer:
             },
             "region_exposed": _region_exposure_map(p, self.graph),
             "current_area": p.current_area,
-            # task-581: the canonical id of the authoritative location record
-            # (the character's `in` edge). The display name above is a
-            # resolution layer over it; a consumer that can hold an id should
-            # use this, so a duplicate display name can never re-home them.
             "current_area_id": self.graph.area_of(
                 self.player_manager._player_node_id(pname)),
             "recent_hearing": getattr(p, 'recent_hearing', []),
             "emotion": {
                 "current": getattr(p, 'emotion', 'neutral'),
                 "intensity": getattr(p, 'emotion_intensity', 0.0),
-                # Canonical expression-portrait key derived from the affect map
-                # (the state events/decisions produced), so the node/chip/examine
-                # art follows the mood rather than the legacy free-text label.
                 "expression": (
                     p.dominant_expression() if hasattr(p, 'dominant_expression') else "neutral"
                 ),
@@ -240,12 +207,6 @@ class WorldSerializer:
             ),
             "relationships": getattr(p, 'relationships', {}),
             "activity": getattr(p, 'activity', None),
-            # The bounded objective record of what this character lived
-            # (engine/lived_log.py). Serialized here as of task-542: the reader
-            # below has always accepted a "trace" key, but nothing ever *wrote*
-            # it, so the whole store was silently lost on every reload. A scenario
-            # payload drops it again in to_scenario_dict — it is runtime history,
-            # not authored content.
             "lived_log": [dict(e) for e in (getattr(p, 'lived_log', []) or [])],
             "memories": getattr(p, 'memories', []),
             "memory_index": dict(getattr(p, 'memory_index', {}) or {}),
@@ -266,10 +227,6 @@ class WorldSerializer:
             "current_carry_weight": sum_carry_weight(self.graph, self.player_manager._player_node_id(pname)),
             "max_carry_capacity": get_carry_load_ratio(self.graph, self.player_manager, player_name=pname)["capacity"],
             "at_way_id": get_character_at_way(self.graph, self.player_manager.player_node_id(pname)),
-            # task-313: the heading of the last crossing. The agent prompt reads
-            # this to tell a character which relative words will work for it, so
-            # without it here "left"/"right" would resolve in the engine and never
-            # be used by anyone — a mechanic wired to nothing.
             "facing": getattr(p, "facing", None),
             "entered_from_way": getattr(p, "entered_from_way", None),
             "spatial_position": get_spatial_position_data(
@@ -279,49 +236,92 @@ class WorldSerializer:
                 self.player_manager.active_player or "",
             ),
         }
+        if lite:
+            # Strip heavy fields that the initial render does not need.
+            # The UI can fetch full player state on demand.
+            base.pop("memories", None)
+            base.pop("memory_index", None)
+            base.pop("lived_log", None)
+            base.pop("relationships", None)
+            base.pop("behaviors", None)
+            base.pop("patrol_route", None)
+            base.pop("schedule", None)
+            base.pop("spatial_position", None)
+            base.pop("perceived_conditions", None)
+            base.pop("region_exposed", None)
+            base.pop("body_region_names", None)
+            base.pop("completed_pursuits", None)
+            base.pop("discovered_items", None)
+            base.pop("known", None)
+            base.pop("crafting_known", None)
+            base.pop("discovered_exits", None)
+            base.pop("interest_tags", None)
+            base.pop("fear_tags", None)
+            base.pop("conditions", None)
+            base.pop("traits", None)
+            base.pop("flags", None)
+            base.pop("soak", None)
+            base.pop("state_timer", None)
+            base.pop("grappled_by", None)
+            base.pop("current_carry_weight", None)
+            base.pop("max_carry_capacity", None)
+            base.pop("at_way_id", None)
+            base.pop("emotions", None)
+            base.pop("emotions_description", None)
+            base.pop("activity", None)
+            base.pop("active_pursuit", None)
+            base.pop("plan", None)
+            base.pop("npc_state", None)
+            base.pop("state_enter_tick", None)
+            base.pop("recent_hearing", None)
+            base.pop("body_state", None)
+            base.pop("decay_rates", None)
+            base.pop("carcass_item", None)
+        return base
 
-    def _serialize_world(self):
+    def _serialize_world(self, lite=False):
         players_serialized = {}
         for pname, p in self.player_manager.players.items():
-            players_serialized[pname] = self._serialize_player(pname, p)
+            players_serialized[pname] = self._serialize_player(pname, p, lite=lite)
 
         rooms_serialized = {}
-        # task-439: the canonical, id-keyed area projection. The id is the
-        # stable handle; a display name may repeat (Deep Forest has many
-        # "Hollow"s), and a name-keyed map silently collapses them. Every
-        # consumer that can address an area by id should read this map.
         areas_by_id = {}
-        for node in self.graph.nodes.values():
-            if node.type == "area":
-                env = node.properties.get("environment", {})
-                ambient = self.player_manager.lighting.get_ambient_light(node.id, env)
-                record = {
-                    "id": node.id,
-                    "name": node.name,
-                    "description": node.properties.get("description", ""),
-                    "environment": env,
-                    "ambient_light": ambient,
-                    "light_description": self.player_manager.lighting.light_to_level(ambient),
-                    # Pass the id: exits are the graph's (task-439 resolves it),
-                    # and a duplicate display name cannot pick the wrong area.
-                    "exits": self.player_manager.build_exits_for_area(node.id),
-                    "exits_authoring": self.player_manager.build_exits_for_area(node.id, include_hidden=True),
-                    "items": [],
-                    # `floor` is the area's STOREY index (0 ground, 1 up, -1 down,
-                    # unbounded); `surface` is the ground material. They are two
-                    # different facts — see engine/world_grid.PAINT_LAYERS.
-                    "floor": node.properties.get("floor", 0),
-                    "surface": node.properties.get("surface", ""),
-                    "properties": node.properties
-                }
-                areas_by_id[node.id] = record
-                # The name-keyed map stays because the live frontend reads
-                # worldState.areas[<area name>] / [player.current_area] (40+
-                # sites) and `player.current_area` is still a display name — the
-                # string→id refactor is task-581. It is a convenience view, not
-                # the canonical one: on a duplicate name the *last* writer wins
-                # here, while areas_by_id keeps both.
-                rooms_serialized[node.name] = record
+        if not lite:
+            # task-439: the canonical, id-keyed area projection. The id is the
+            # stable handle; a display name may repeat (Deep Forest has many
+            # "Hollow"s), and a name-keyed map silently collapses them. Every
+            # consumer that can address an area by id should read this map.
+            for node in self.graph.nodes.values():
+                if node.type == "area":
+                    env = node.properties.get("environment", {})
+                    ambient = self.player_manager.lighting.get_ambient_light(node.id, env)
+                    record = {
+                        "id": node.id,
+                        "name": node.name,
+                        "description": node.properties.get("description", ""),
+                        "environment": env,
+                        "ambient_light": ambient,
+                        "light_description": self.player_manager.lighting.light_to_level(ambient),
+                        # Pass the id: exits are the graph's (task-439 resolves it),
+                        # and a duplicate display name cannot pick the wrong area.
+                        "exits": self.player_manager.build_exits_for_area(node.id),
+                        "exits_authoring": self.player_manager.build_exits_for_area(node.id, include_hidden=True),
+                        "items": [],
+                        # `floor` is the area's STOREY index (0 ground, 1 up, -1 down,
+                        # unbounded); `surface` is the ground material. They are two
+                        # different facts — see engine/world_grid.PAINT_LAYERS.
+                        "floor": node.properties.get("floor", 0),
+                        "surface": node.properties.get("surface", ""),
+                        "properties": node.properties
+                    }
+                    areas_by_id[node.id] = record
+                    # The name-keyed map stays because the live frontend reads
+                    # worldState.areas[<area name>] / [player.current_area] (40+
+                    # sites) and `player.current_area` is still a display name — the
+                    # string→id refactor is task-581. It is a convenience view, not
+                    # the canonical one: on a duplicate name the *last* writer wins
+                    # here, while areas_by_id keeps both.
+                    rooms_serialized[node.name] = record
 
         return {
             "current_area": self.legacy.current_area.name if self.legacy.current_area else None,
@@ -329,21 +329,25 @@ class WorldSerializer:
             "area_presence": getattr(self.legacy, 'area_presence', {}) or {},
             "players": players_serialized,
             "active_player": self.player_manager.active_player,
-            "game_log": self.legacy.game_log,
+            "game_log": [] if lite else self.legacy.game_log,
             "log_revision": self.legacy.log_revision,
             "game_time": self.legacy.get_current_time(),
             "time_ticks": self.legacy.time_ticks,
             "time_per_tick_minutes": self.legacy.time_per_tick_minutes,
             "clock_start_hour": self.legacy.clock_start_hour,
             "clock_start_minute": self.legacy.clock_start_minute,
-            "areas": rooms_serialized,
-            "rooms": rooms_serialized,
-            # task-439: canonical id-keyed projection (see _serialize_world).
-            "areas_by_id": areas_by_id,
+            # Lite mode: derived projections are dropped. The graph itself is
+            # always present — it is the world, not a projection. Consumers that
+            # need area detail (area inspector, look, exits) fetch it on demand.
+            "areas": {} if lite else rooms_serialized,
+            "rooms": {} if lite else rooms_serialized,
+            "areas_by_id": {} if lite else areas_by_id,
             "graph": self.graph.to_dict(),
-            "ways": getattr(self.legacy, 'ways', {}),
-            "item_registry": getattr(self.legacy, 'item_registry', {}),
-            "turn_events": self.legacy.turn_events,
+            # Legacy collections, never needed for rendering and heavy to
+            # serialize: stripped in lite mode.
+            "ways": {} if lite else getattr(self.legacy, 'ways', {}),
+            "item_registry": {} if lite else getattr(self.legacy, 'item_registry', {}),
+            "turn_events": [] if lite else self.legacy.turn_events,
             "turn_number": self.legacy.turn_number,
             "narration_mode": self.legacy.narration_mode,
             "ghost_mode": self.legacy.ghost_mode,
@@ -353,15 +357,16 @@ class WorldSerializer:
             # frontend's _scenarioIdentity() — which gates the local
             # background-map cache — always sees null.
             "_scenario_name": getattr(self.legacy, "_scenario_name", None),
-            "world_lore": self.legacy.world_lore,
+            "world_lore": [] if lite else self.legacy.world_lore,
             # task-397: hierarchy manifest (authored), not a projection. Optional.
-            "world_scopes": getattr(self.legacy, "world_scopes", {}) or {},
+            "world_scopes": {} if lite else (getattr(self.legacy, "world_scopes", {}) or {}),
             # task-583: the resident scope index (ownership, location, gateways,
             # due work). A derived cache of the loaded graph, but saved so an
             # unloaded scope's ownership and gateways survive a round trip.
             "world_index": (
-                self.legacy.world_index.to_dict()
-                if getattr(self.legacy, "world_index", None) is not None else {}
+                {} if lite else
+                (self.legacy.world_index.to_dict()
+                 if getattr(self.legacy, "world_index", None) is not None else {})
             ),
             "calendar_config": getattr(self.legacy, "calendar_config", None),
             "forecast_schedule": getattr(self.legacy, "forecast_schedule", None),
@@ -542,8 +547,8 @@ class WorldSerializer:
             AgentMind(p, self.graph).load_preconceived(pdata)
         return p
 
-    def to_dict(self):
-        return self._serialize_world()
+    def to_dict(self, lite=False):
+        return self._serialize_world(lite=lite)
 
     def to_scenario_dict(self):
         data = self._serialize_world()
