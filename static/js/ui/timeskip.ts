@@ -118,13 +118,34 @@ window.Timeskip = (() => {
         }
     }
 
-    function openDialog() {
+    /**
+     * Open the dialog. An optional prefill seeds the form so another surface can
+     * start a specific order — the turn mini-map's "Walk here" opens it as
+     * `intent: "travel"` to a known area, and the engine takes the span from the
+     * route. Prefill is ignored in world mode (no active character).
+     */
+    function openDialog(prefill?: { intent?: string | null; target?: string | null;
+                                    heading?: string | null }) {
         const modal = _el('timeskip-modal');
         if (!modal) return;
         _setStatus('');
         const result = _el('timeskip-result');
         if (result) { result.textContent = ''; result.style.display = 'none'; }
-        _setWorldMode(!_activeCharacter());
+        const worldMode = !_activeCharacter();
+        _setWorldMode(worldMode);
+        if (prefill && !worldMode) {
+            if (prefill.intent) {
+                const radio = document.querySelector<HTMLInputElement>(
+                    `input[name="timeskip-intent"][value="${prefill.intent}"]`);
+                if (radio) radio.checked = true;
+            }
+            if (prefill.target != null) {
+                const t = _el('timeskip-target'); if (t) t.value = String(prefill.target);
+            }
+            if (prefill.heading != null) {
+                const h = _el('timeskip-heading'); if (h) h.value = String(prefill.heading);
+            }
+        }
         modal.style.display = 'flex';
     }
 

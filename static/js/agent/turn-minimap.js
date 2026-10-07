@@ -174,6 +174,17 @@ window.TurnMinimap = (() => {
     function showTip(html, ev) {
         const tip = tipEl();
         tip.innerHTML = html;
+        const walk = tip.querySelector('.tmn-walk');
+        if (walk) {
+            walk.addEventListener('click', function (e) {
+                e.stopPropagation();
+                const area = walk.getAttribute('data-area') || '';
+                const ts = window.Timeskip;
+                if (ts && ts.openDialog)
+                    ts.openDialog({ intent: 'travel', target: area });
+                hideTip();
+            });
+        }
         tip.style.display = 'block';
         moveTip(ev);
     }
@@ -226,6 +237,15 @@ window.TurnMinimap = (() => {
             }).join('')
             : '<span>no known ways out</span>';
         const at = cell.cell ? 'cell ' + cell.cell.x + ',' + cell.cell.y : 'no grid cell';
+        // A known area you are not standing in can be walked to: hand the name to
+        // the timeskip dialog as an intent=travel order (the engine takes the
+        // span from the route). The click is wired in showTip().
+        const walk = (cell.name && !cell.current)
+            ? '<div class="tmn-row"><span class="tmn-k"></span><span class="tmn-v">'
+                + '<button type="button" class="tmn-walk" data-area="' + esc(cell.name)
+                + '" title="Travel here — opens the timeskip dialog">⏩ Walk here</button>'
+                + '</span></div>'
+            : '';
         return '<h5>' + esc(cell.name) + '</h5>'
             + '<div class="tmn-kind">' + esc(kind) + ' · ' + at + '</div>'
             + rows.map(function (r) {
@@ -233,7 +253,8 @@ window.TurnMinimap = (() => {
                     + '</span><span class="tmn-v">' + r[1] + '</span></div>';
             }).join('')
             + '<div class="tmn-row"><span class="tmn-k">ways</span>'
-            + '<span class="tmn-v tmn-chips">' + ways + '</span></div>';
+            + '<span class="tmn-v tmn-chips">' + ways + '</span></div>'
+            + walk;
     }
     function markTipHtml(way, cell) {
         return '<h5>Way ' + esc(way.direction) + '</h5>'
