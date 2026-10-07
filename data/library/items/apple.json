@@ -1,62 +1,62 @@
 {
- "name": "apple",
- "description": "A crisp red apple, still cool from the cellar. Juicy and fresh.",
- "actions": "examine,take,use,eat,drop",
- "uses": 4,
- "weight": 0.2,
- "current_state": "normal",
- "light_level": "dim",
- "equip_slots": [],
- "defense": 0,
- "damage": "0",
- "damage_skill": "Athletics",
- "tags": [
-  "food"
- ],
- "triggers": [
-  {
-   "trigger_type": [
-    "on_eat"
-   ],
-   "effects": [
+  "name": "apple",
+  "description": "A crisp red apple, still cool from the cellar. Juicy and fresh.",
+  "actions": "examine,take,use,eat,drop",
+  "uses": 4,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": "0",
+  "damage_skill": "Athletics",
+  "tags": [
+    "food"
+  ],
+  "triggers": [
     {
-     "type": "message",
-     "params": {
-      "success_message": "Cruncy and delicious"
-     }
+      "trigger_type": [
+        "on_eat"
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "success_message": "Cruncy and delicious"
+          }
+        },
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Hunger",
+            "amount": -45,
+            "target": "self"
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "Cruncy and delicious",
+      "fail_message": ""
     },
     {
-     "type": "adjust_vital",
-     "params": {
-      "stat": "Hunger",
-      "amount": -45,
-      "target": "self"
-     }
+      "conditions": {},
+      "effects": [
+        {
+          "params": {
+            "message": "",
+            "success_message": "A read apple, teh cold has kept it fresh. lucky me! i can *EAT* this."
+          },
+          "type": "message"
+        }
+      ],
+      "fail_message": "",
+      "success_message": "",
+      "target_name": "",
+      "target_state": "",
+      "trigger_type": "on_examine"
     }
-   ],
-   "conditions": {},
-   "target_name": "",
-   "target_state": "",
-   "success_message": "Cruncy and delicious",
-   "fail_message": ""
-  },
-  {
-   "conditions": {},
-   "effects": [
-    {
-     "params": {
-      "message": "",
-      "success_message": "A read apple, teh cold has kept it fresh. lucky me! i can *EAT* this."
-     },
-     "type": "message"
-    }
-   ],
-   "fail_message": "",
-   "success_message": "",
-   "target_name": "",
-   "target_state": "",
-   "trigger_type": "on_examine"
-  }
- ],
- "contents": []
+  ],
+  "contents": []
 }

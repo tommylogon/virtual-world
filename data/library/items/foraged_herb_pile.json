@@ -9,7 +9,17 @@
   "insulation": 0,
   "uses": -1,
   "weight": 0.5,
-  "tags": ["container", "herbs", "forage", "pile"],
+  "tags": [
+    "container",
+    "herbs",
+    "forage",
+    "pile"
+  ],
   "triggers": [],
-  "contents": ["agrimony", "alfalfa", "alexanders", "anise_seed"]
+  "contents": [
+    "agrimony",
+    "alfalfa",
+    "alexanders",
+    "anise_seed"
+  ]
 }

@@ -1,48 +1,48 @@
 {
- "name": "Elixir of Insight",
- "description": "A shimmering blue liquid in a crystal vial. It glows faintly in the dark.",
- "actions": "examine,take,use,eat,drink",
- "uses": -1,
- "weight": 0.1,
- "current_state": "normal",
- "equip_slots": [],
- "tags": [],
- "triggers": [
-  {
-   "trigger_type": "on_eat",
-   "effects": [
+  "name": "Elixir of Insight",
+  "description": "A shimmering blue liquid in a crystal vial. It glows faintly in the dark.",
+  "actions": "examine,take,use,eat,drink",
+  "uses": -1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "equip_slots": [],
+  "tags": [],
+  "triggers": [
     {
-     "type": "adjust_vital",
-     "params": {
-      "stat": "Hunger",
-      "amount": -45,
-      "target": "self"
-     }
-    }
-   ],
-   "target_name": "",
-   "target_state": "",
-   "conditions": {},
-   "success_message": "",
-   "fail_message": ""
-  },
-  {
-   "trigger_type": "on_drink",
-   "effects": [
+      "trigger_type": "on_eat",
+      "effects": [
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Hunger",
+            "amount": -45,
+            "target": "self"
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    },
     {
-     "type": "adjust_vital",
-     "params": {
-      "stat": "Thirst",
-      "amount": -50,
-      "target": "self"
-     }
+      "trigger_type": "on_drink",
+      "effects": [
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Thirst",
+            "amount": -50,
+            "target": "self"
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
     }
-   ],
-   "target_name": "",
-   "target_state": "",
-   "conditions": {},
-   "success_message": "",
-   "fail_message": ""
-  }
- ]
+  ]
 }

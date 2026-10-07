@@ -1,11 +1,32 @@
 {
   "name": "Duelist's Leathers",
   "description": "Supple boiled leather cut close to the body, with nothing loose to catch a blade. It will not stop a solid hit, but it lets you move first and often -- hard to pin down, and quick enough to make the missed swing the common one.",
-  "tags": ["armor", "clothing", "leather", "light", "torso"],
+  "tags": [
+    "armor",
+    "clothing",
+    "leather",
+    "light",
+    "torso"
+  ],
   "damage_reduction": 1,
   "evasion": 3,
   "weight": 3,
-  "equip_slots": ["torso"],
-  "actions": ["examine", "equip", "unequip", "drop"],
-  "keywords": ["leathers", "leather", "armour", "armor", "jack", "duelist", "light"]
+  "equip_slots": [
+    "torso"
+  ],
+  "actions": [
+    "examine",
+    "equip",
+    "unequip",
+    "drop"
+  ],
+  "keywords": [
+    "leathers",
+    "leather",
+    "armour",
+    "armor",
+    "jack",
+    "duelist",
+    "light"
+  ]
 }

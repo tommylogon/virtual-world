@@ -12,7 +12,13 @@
   "damage": 0,
   "defense": 0,
   "insulation": 0,
-  "tags": ["meat", "raw", "supply", "stackable", "ingredient"],
+  "tags": [
+    "meat",
+    "raw",
+    "supply",
+    "stackable",
+    "ingredient"
+  ],
   "triggers": [],
   "contents": []
 }

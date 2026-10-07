@@ -1,0 +1,15 @@
+{
+  "name": "Eldenford Blacksmith's Body",
+  "description": "The lifeless body of Eldenford Blacksmith. Death came from exposure. Eldenford Blacksmith's body lies still, claimed by exposure.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 50,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [],
+  "triggers": [],
+  "contents": []
+}

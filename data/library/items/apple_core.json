@@ -1,37 +1,37 @@
 {
- "name": "apple_core",
- "description": "a dried apple core someone left here decades ago. brown and shriveled, not edible.",
- "actions": "examine",
- "uses": -1,
- "weight": 0.02,
- "current_state": "normal",
- "light_level": "dim",
- "defense": 0,
- "damage": 0,
- "insulation": 0,
- "tags": [
-  "food",
-  "organic"
- ],
- "triggers": [
-  {
-   "trigger_type": "on_eat",
-   "effects": [
+  "name": "apple_core",
+  "description": "a dried apple core someone left here decades ago. brown and shriveled, not edible.",
+  "actions": "examine",
+  "uses": -1,
+  "weight": 0.02,
+  "current_state": "normal",
+  "light_level": "dim",
+  "defense": 0,
+  "damage": 0,
+  "insulation": 0,
+  "tags": [
+    "food",
+    "organic"
+  ],
+  "triggers": [
     {
-     "type": "adjust_vital",
-     "params": {
-      "stat": "Hunger",
-      "amount": -45,
-      "target": "self"
-     }
+      "trigger_type": "on_eat",
+      "effects": [
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Hunger",
+            "amount": -45,
+            "target": "self"
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
     }
-   ],
-   "target_name": "",
-   "target_state": "",
-   "conditions": {},
-   "success_message": "",
-   "fail_message": ""
-  }
- ],
- "contents": []
+  ],
+  "contents": []
 }

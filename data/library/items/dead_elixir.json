@@ -1,55 +1,55 @@
 {
- "name": "Deathcap Elixir",
- "description": "A dark vial of thick liquid that smells of earth and rot. The label warns of nothing.",
- "actions": "examine,take,drink,drop",
- "uses": 1,
- "weight": 0.3,
- "tags": [
-  "alchemical",
-  "liquid",
-  "poison",
-  "cursed"
- ],
- "triggers": [
-  {
-   "trigger_type": [
-    "on_drink"
-   ],
-   "effects": [
+  "name": "Deathcap Elixir",
+  "description": "A dark vial of thick liquid that smells of earth and rot. The label warns of nothing.",
+  "actions": "examine,take,drink,drop",
+  "uses": 1,
+  "weight": 0.3,
+  "tags": [
+    "alchemical",
+    "liquid",
+    "poison",
+    "cursed"
+  ],
+  "triggers": [
     {
-     "type": "apply_condition",
-     "params": {
-      "condition": "dead",
-      "target": "self",
-      "source": "deathcap elixir",
-      "message": "A burning cold races through your veins. The room fades to black."
-     }
-    }
-   ],
-   "conditions": {},
-   "target_name": "",
-   "target_state": "",
-   "success_message": "",
-   "fail_message": ""
-  },
-  {
-   "trigger_type": "on_drink",
-   "effects": [
+      "trigger_type": [
+        "on_drink"
+      ],
+      "effects": [
+        {
+          "type": "apply_condition",
+          "params": {
+            "condition": "dead",
+            "target": "self",
+            "source": "deathcap elixir",
+            "message": "A burning cold races through your veins. The room fades to black."
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "",
+      "fail_message": ""
+    },
     {
-     "type": "adjust_vital",
-     "params": {
-      "stat": "Thirst",
-      "amount": -50,
-      "target": "self"
-     }
+      "trigger_type": "on_drink",
+      "effects": [
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Thirst",
+            "amount": -50,
+            "target": "self"
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
     }
-   ],
-   "target_name": "",
-   "target_state": "",
-   "conditions": {},
-   "success_message": "",
-   "fail_message": ""
-  }
- ],
- "contents": []
+  ],
+  "contents": []
 }
