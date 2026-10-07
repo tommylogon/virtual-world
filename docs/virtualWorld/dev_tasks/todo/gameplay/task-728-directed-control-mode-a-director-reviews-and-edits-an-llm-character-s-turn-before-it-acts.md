@@ -63,9 +63,10 @@ vocabulary every badge already uses.
 - **State home.** Directed is a per-character control state. Does it extend
   `autonomy` (a third value instead of a bool) or add a parallel field? It has to
   survive reload and serialize with the player.
-- **Cost.** "Reroll a field" is an LLM call. Rerolling five fields is five calls.
-  Decide whether a reroll reuses the existing prompt context (cheap) and whether
-  any budget cap applies (see task-422 LLM budget controls).
+- **Cost — not a concern (designer, 2026-10-07).** A reroll is a few hundred
+  tokens, not a scale problem; no budget cap is needed for this. Still decide
+  whether a reroll reuses the existing prompt context (cheaper and more
+  consistent) purely for quality, not for cost.
 - **What the nudge returns.** The decide phase already distinguishes plan vs
   action vs reaction; directed mode needs the decide output *without* the act
   submission. Find the exact seam in `agent-engine.ts` between "generated" and
