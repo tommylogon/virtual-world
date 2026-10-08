@@ -512,6 +512,34 @@ unrelated** Python modules without `@module`
 was red before this work. `engine/action_tiers.py` (untracked since slice 1)
 gained its `@module` contract here.
 
+### Human panel (v4, continuous) — landed 2026-10-08
+
+The attended path is now the twin of the agent loop, in ONE panel that stays open
+(`static/js/agent/human-turn-composer.ts`, `agent-engine.ts:_humanTurn`):
+
+- **Continuous loop, not a staged batch.** `Act` runs one step; the result lands in
+  the feed, pips drop, the scene refreshes; `Act` again until `End`. The panel never
+  hides between actions, so there is no per-action modal churn — the problem that
+  killed the first design.
+- **React is back, once.** After the steps run, a single react beat
+  (`HumanTurnComposer.react`) takes say/emote/memory bound to the outcomes — the human
+  analogue of the agent's per-action result-reaction, and where outcome-grounded memory
+  is written. The *next* step's memory field is also outcome-grounded, because you
+  compose it after the result is on screen.
+- **Budget pips** (`◆ major ◇ minor ●●● free`) read the live `turn_slots`; an
+  unaffordable action is refused client-side with the same `ActionTiers.tierOf` the
+  agent prompt uses. say/emote/memory are expression — never cost a pip.
+- **Burst and the `can't` regex are deleted** (`agent-engine.ts`). "Act again" is just
+  "you still have a minor".
+- **One applyTurn.** The loop is inside the turn; `TurnQueue.advance` fires once.
+
+Contract: `request(charName, opts) → {step} | {endTurn}`, `react(charName, results)`,
+`closeTurn()`. Verified live for the contract only (open → Act → next step → react →
+close); the `agent-engine` loop is compile-verified, not yet driven end-to-end.
+
+Dropped from the pre-v4 panel: the staged rack + Run, the per-action react phase, the
+raw-JSON mode, and the confirm overlay.
+
 ## Related
 
 - `docs/virtualWorld/Simulation Model.md` — the timeframe model and the

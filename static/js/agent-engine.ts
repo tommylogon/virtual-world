@@ -390,33 +390,26 @@ class AgentEngine {
             this.stop();
             return;
         }
-        const reply = await HumanTurnComposer.request(charName);
+        let reply: any = await HumanTurnComposer.request(charName, { first: true });
 
         if (config.running && config.turnBased && this.turnQueue.length === 0) {
             this.stop(); return;
         }
-        let lastResult = '';
-        if (!reply || reply.endTurn) {
-            events.log(`🔜 ${charName} passed ${_possessivePronoun(charName)} turn.`, 'system-msg');
-        } else {
-            lastResult = await this._executeHumanReply(charName, player, reply);
-            // Dash burst (task-334): dashing grants ONE more action slot
-            // before the react step — unless the dash itself failed.
-            const dashFailed = /locked|blocked|can't|could not|fail/i.test(lastResult);
-            if (reply.action && reply.action.startsWith('dash ') && !dashFailed) {
-                const burstReply = await HumanTurnComposer.request(charName, { burst: true, lastResult });
-                if (burstReply && !burstReply.endTurn) {
-                    const burstResult = await this._executeHumanReply(charName, player, burstReply);
-                    if (burstResult) lastResult = burstResult;
-                    if (burstReply.memory?.text) this._storeReactionMemory(charName, burstReply.memory);
-                }
-            }
-            // Deterministic auto-memory (task-334): one instant, LLM-free
-            // line per human turn so journaling is never the only record.
+        const results: string[] = [];
+        // task-352: the human turn is a CONTINUOUS loop in one panel — act, the
+        // world answers, act again, until the player Ends or the budget empties.
+        // Stop on the first failed action. The turn ends with ONE applyTurn
+        // (TurnQueue.advance below), never one per step.
+        while (reply && !reply.endTurn && reply.step) {
+            const step = reply.step;
+            const res = await this._executeHumanReply(charName, player, step);
+            if (res.text) results.push(res.text);
+            if (step.memory?.text) this._storeReactionMemory(charName, step.memory);
+            // Deterministic auto-memory: one instant, LLM-free line per action.
             const areaName = worldState.players?.[charName]?.current_area || '';
             const memoryBits = [
-                reply.action ? `did ${reply.action}` : '',
-                reply.speech ? `said "${reply.speech}"` : '',
+                step.action ? `did ${step.action}` : '',
+                step.speech ? `said "${step.speech}"` : '',
             ].filter(Boolean).join(' and ');
             if (memoryBits) {
                 this._storeReactionMemory(charName, {
@@ -424,21 +417,32 @@ class AgentEngine {
                     importance: 4,
                 });
             }
-            // React phase: say/emote/memory bound to the result — no second
-            // world interaction, or the turn would never end.
-            const reactReply = await HumanTurnComposer.react(charName, lastResult);
-            if (reactReply && !reactReply.endTurn) {
-                if (reactReply.speech) {
-                    await this._speakLine(charName, player, reactReply.speech, reactReply.speechVolume, reactReply.target);
+            if (res.success === false) break;
+            await worldState.fetch();
+            const slots = worldState.players?.[charName]?.turn_slots;
+            if (!slots || !Object.values(slots).some((n) => (n as number) > 0)) break;
+            reply = await HumanTurnComposer.request(charName, { lastResult: res.text });
+        }
+        const endedByPlayer = !!(reply && reply.endTurn);
+        if (!results.length) {
+            events.log(`🔜 ${charName} passed ${_possessivePronoun(charName)} turn.`, 'system-msg');
+        } else if (!endedByPlayer) {
+            // task-334 lane 1: one closing react beat — the player's answer to
+            // what actually happened, and where outcome-grounded memory lands.
+            const reaction = await HumanTurnComposer.react(charName, results);
+            if (reaction && !reaction.endTurn) {
+                if (reaction.speech) {
+                    await this._speakLine(charName, player, reaction.speech, reaction.volume, reaction.target);
                 }
-                if (reactReply.emote) {
-                    await this._performEmote(charName, reactReply.emote);
+                if (reaction.emote) {
+                    await this._performEmote(charName, reaction.emote);
                 }
-                if (reactReply.memory?.text) {
-                    this._storeReactionMemory(charName, reactReply.memory);
+                if (reaction.memory?.text) {
+                    this._storeReactionMemory(charName, reaction.memory);
                 }
             }
         }
+        HumanTurnComposer.closeTurn();
         // Turn handoff is a turn-based concept (task-333 browser-test fix):
         // outside turn-based mode the human keeps control — no roster
         // rotation, the run loop just continues from here.
@@ -452,7 +456,7 @@ class AgentEngine {
      * Execute one human reply (speech → action → emote) through the agent
      * pipeline. Returns the action's result text (for the react phase).
      */
-    async _executeHumanReply(charName: string, player: any, reply: any): Promise<string> {
+    async _executeHumanReply(charName: string, player: any, reply: any): Promise<{ text: string; success: boolean }> {
         // bug-33: a human turn has no agent phase marker to open the card, so
         // open it here before speech/emote rows are emitted — otherwise they
         // land in the bare stream above the next `act` phase marker.
@@ -466,6 +470,7 @@ class AgentEngine {
             await this._performEmote(charName, reply.emote);
         }
         let resultText = '';
+        let success = true;
         if (reply.action) {
             events.logPhase(charName, 'act', reply.action);
             if (!reply.action.startsWith('speak ')) events.log(`[Action] ${reply.action}`, "msg-action");
@@ -482,6 +487,7 @@ class AgentEngine {
                     }
                 } else {
                     const output = data?.output || '';
+                    success = data?.success !== false;
                     if (data?.system_messages) {
                         data.system_messages.forEach((systemMessage: any) => events.log(systemMessage, 'system-msg'));
                     }
@@ -508,9 +514,10 @@ class AgentEngine {
                 events.log(`Action error: ${errMsg}`, 'error-msg');
                 worldState.fetch();
                 resultText = errMsg;
+                success = false;
             }
         }
-        return resultText;
+        return { text: resultText, success };
     }
 
     async step(): Promise<void> {

@@ -1,5 +1,5 @@
 {
-  "current_area": "Waste Disposal",
+  "current_area": "Nursery",
   "players_in_area": [],
   "area_presence": {
     "area_bridge_(world_10,6)": {},
@@ -76,7 +76,7 @@
     "area_side_tunnels": {
       "Belne": 32,
       "Thrazz": 25,
-      "zombie__c4d808": 57
+      "zombie__c4d808": 58
     },
     "area_sleeping_halls": {
       "Tusker": 30
@@ -88,14 +88,14 @@
     "area_sparse_forest_(west_woods_11,20)": {},
     "area_sparse_forest_(west_woods_12,14)": {},
     "area_sparse_forest_(west_woods_12,15)": {},
-    "area_sparse_forest_(west_woods_12,18)": {
-      "zombie__9dcb3e": 57
-    },
+    "area_sparse_forest_(west_woods_12,18)": {},
     "area_sparse_forest_(west_woods_12,19)": {},
     "area_sparse_forest_(west_woods_13,15)": {},
     "area_sparse_forest_(west_woods_13,16)": {},
     "area_sparse_forest_(west_woods_13,17)": {},
-    "area_sparse_forest_(west_woods_13,18)": {},
+    "area_sparse_forest_(west_woods_13,18)": {
+      "zombie__9dcb3e": 58
+    },
     "area_sparse_forest_(west_woods_15,18)": {},
     "area_sparse_forest_(west_woods_15,20)": {},
     "area_sparse_forest_(west_woods_16,21)": {},
@@ -120,10 +120,10 @@
       "Vekka": 32
     },
     "area_workshop": {},
-    "area_road_(world_16,6)": {
-      "james": 57
+    "area_road_(world_16,6)": {},
+    "area_road_(world_15,5)": {
+      "james": 58
     },
-    "area_road_(world_15,5)": {},
     "area_animal_pens": {}
   },
   "players": {
@@ -456,7 +456,7 @@
       "lived_log_memorized_through": 51,
       "memories": [
         {
-          "activation": 0.608,
+          "activation": 0.601,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -482,7 +482,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.577,
+          "activation": 0.568,
           "category": "episodic",
           "confidence": 0.72,
           "contradicts": [],
@@ -514,7 +514,7 @@
           "type": "reaction"
         },
         {
-          "activation": 0.72,
+          "activation": 0.715,
           "category": "social",
           "confidence": 0.7,
           "contradicts": [],
@@ -546,7 +546,7 @@
           "type": "social"
         },
         {
-          "activation": 0.608,
+          "activation": 0.601,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -570,7 +570,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.976,
+          "activation": 0.972,
           "category": "episodic",
           "confidence": 0.74,
           "contradicts": [],
@@ -596,7 +596,7 @@
           "type": "threat"
         },
         {
-          "activation": 0.9832,
+          "activation": 0.9804,
           "category": "social",
           "confidence": 0.74,
           "contradicts": [],
@@ -630,7 +630,7 @@
           "kind": "area"
         },
         {
-          "activation": 0.53,
+          "activation": 0.52,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -676,7 +676,7 @@
           "salience_override": 0,
           "source": "auto",
           "category": "episodic",
-          "activation": 0.94,
+          "activation": 0.93,
           "confidence": 0.7,
           "reinforcements": 0,
           "last_recalled_tick": null,
@@ -917,7 +917,7 @@
       "current_area_id": "area_side_tunnels",
       "emotion": {
         "current": "uneasy",
-        "intensity": 0.12,
+        "intensity": 0.105,
         "expression": "afraid",
         "description": "Belne is uneasy."
       },
@@ -932,7 +932,7 @@
         "nostalgic": 18.0,
         "afraid": 10.0,
         "anxious": 12.0,
-        "uneasy": 24.0,
+        "uneasy": 22.5,
         "dread": 8.0,
         "spooked": 10.0,
         "angry": 8.0,
@@ -974,7 +974,7 @@
       "lived_log_memorized_through": 0,
       "memories": [
         {
-          "activation": 0.9951,
+          "activation": 0.9902,
           "category": "episodic",
           "confidence": 1.0,
           "contradicts": [],
@@ -1000,7 +1000,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.901,
+          "activation": 0.894,
           "category": "episodic",
           "confidence": 0.76,
           "contradicts": [],
@@ -1034,7 +1034,7 @@
           "visits": 99
         },
         {
-          "activation": 0.901,
+          "activation": 0.894,
           "category": "episodic",
           "confidence": 0.76,
           "contradicts": [],
@@ -1059,7 +1059,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.9976,
+          "activation": 0.9952,
           "category": "social",
           "confidence": 0.76,
           "contradicts": [],
@@ -1115,7 +1115,7 @@
           "salience_override": 0,
           "source": "auto",
           "category": "episodic",
-          "activation": 0.991,
+          "activation": 0.982,
           "confidence": 0.648,
           "reinforcements": 1,
           "last_recalled_tick": 56,
@@ -1158,7 +1158,7 @@
             "1d80d142"
           ],
           "contradicts": [],
-          "activation": 0.9993,
+          "activation": 0.9986,
           "reinforcements": 0,
           "last_recalled_tick": null,
           "salience_override": 0,
@@ -1189,7 +1189,7 @@
             "1d80d142"
           ],
           "contradicts": [],
-          "activation": 0.9979,
+          "activation": 0.9958,
           "reinforcements": 0,
           "last_recalled_tick": null,
           "salience_override": 0,
@@ -1229,7 +1229,7 @@
             "1d80d142"
           ],
           "contradicts": [],
-          "activation": 0.9988,
+          "activation": 0.9976,
           "reinforcements": 0,
           "last_recalled_tick": null,
           "salience_override": 0,
@@ -1262,7 +1262,7 @@
             "1d80d142"
           ],
           "contradicts": [],
-          "activation": 0.9979,
+          "activation": 0.9958,
           "reinforcements": 0,
           "last_recalled_tick": null,
           "salience_override": 0,
@@ -1297,7 +1297,7 @@
             "1d80d142"
           ],
           "contradicts": [],
-          "activation": 0.993,
+          "activation": 0.986,
           "reinforcements": 0,
           "last_recalled_tick": null,
           "salience_override": 0,
@@ -1337,7 +1337,7 @@
             "1d80d142"
           ],
           "contradicts": [],
-          "activation": 0.9988,
+          "activation": 0.9976,
           "reinforcements": 0,
           "last_recalled_tick": null,
           "salience_override": 0,
@@ -1370,7 +1370,7 @@
             "1d80d142"
           ],
           "contradicts": [],
-          "activation": 0.9979,
+          "activation": 0.9958,
           "reinforcements": 0,
           "last_recalled_tick": null,
           "salience_override": 0,
@@ -1393,7 +1393,7 @@
           "salience_override": 0,
           "suppressions": [],
           "category": "social",
-          "activation": 0.99,
+          "activation": 0.98,
           "confidence": 0.7,
           "reinforcements": 0,
           "last_recalled_tick": null,
@@ -1426,7 +1426,7 @@
           "salience_override": 0,
           "source": "auto",
           "category": "episodic",
-          "activation": 0.99,
+          "activation": 0.98,
           "confidence": 0.7,
           "reinforcements": 0,
           "last_recalled_tick": null,
@@ -1486,7 +1486,7 @@
         "Bladder": 44,
         "Sanity": 63,
         "Entertainment": 25,
-        "Temperature": 27.500000000000107,
+        "Temperature": 27.600000000000108,
         "Arousal": 0,
         "Pleasure": 0,
         "Stimulation": 0
@@ -1718,7 +1718,7 @@
       "lived_log_memorized_through": 0,
       "memories": [
         {
-          "activation": 0.44,
+          "activation": 0.43,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -1789,13 +1789,13 @@
       "vitals": {
         "HP": 20.0,
         "Max_HP": 100,
-        "Hunger": 64,
-        "Thirst": 75,
+        "Hunger": 65,
+        "Thirst": 76,
         "Hygiene": 0,
-        "Energy": 51,
+        "Energy": 50,
         "Social": 0,
         "Bladder": 3,
-        "Sanity": 7,
+        "Sanity": 6,
         "Entertainment": 0,
         "Temperature": 37,
         "Arousal": 0,
@@ -2076,10 +2076,10 @@
         }
       },
       "activity": null,
-      "lived_log_memorized_through": 56,
+      "lived_log_memorized_through": 57,
       "memories": [
         {
-          "activation": 0.826,
+          "activation": 0.818,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -2105,7 +2105,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.9552,
+          "activation": 0.9496,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -2132,7 +2132,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.968,
+          "activation": 0.964,
           "category": "social",
           "confidence": 0.74,
           "contradicts": [],
@@ -2166,7 +2166,7 @@
           "visits": 52
         },
         {
-          "activation": 0.968,
+          "activation": 0.964,
           "category": "social",
           "confidence": 0.74,
           "contradicts": [],
@@ -2500,7 +2500,7 @@
       "lived_log_memorized_through": 0,
       "memories": [
         {
-          "activation": 0.608,
+          "activation": 0.601,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -2526,7 +2526,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.55,
+          "activation": 0.541,
           "category": "episodic",
           "confidence": 0.72,
           "contradicts": [],
@@ -2557,7 +2557,7 @@
           "type": "reaction"
         },
         {
-          "activation": 0.776,
+          "activation": 0.772,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -2583,7 +2583,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.55,
+          "activation": 0.541,
           "category": "episodic",
           "confidence": 0.72,
           "contradicts": [],
@@ -2608,7 +2608,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.72,
+          "activation": 0.715,
           "category": "social",
           "confidence": 0.7,
           "contradicts": [],
@@ -2642,7 +2642,7 @@
           "visits": 65
         },
         {
-          "activation": 0.5,
+          "activation": 0.49,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -2667,7 +2667,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.755,
+          "activation": 0.75,
           "category": "social",
           "confidence": 0.7,
           "contradicts": [],
@@ -3030,7 +3030,7 @@
       "lived_log_memorized_through": 0,
       "memories": [
         {
-          "activation": 0.44,
+          "activation": 0.43,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -3056,7 +3056,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.44,
+          "activation": 0.43,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -3091,7 +3091,7 @@
           "visits": 48
         },
         {
-          "activation": 0.608,
+          "activation": 0.601,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -3421,7 +3421,7 @@
       "lived_log_memorized_through": 0,
       "memories": [
         {
-          "activation": 0.44,
+          "activation": 0.43,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -3447,7 +3447,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.44,
+          "activation": 0.43,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -3478,7 +3478,7 @@
           "type": "reaction"
         },
         {
-          "activation": 0.608,
+          "activation": 0.601,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -3505,7 +3505,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.804,
+          "activation": 0.8005,
           "category": "social",
           "confidence": 0.7,
           "contradicts": [],
@@ -3539,7 +3539,7 @@
           "visits": 71
         },
         {
-          "activation": 0.825,
+          "activation": 0.8215,
           "category": "social",
           "confidence": 0.7,
           "contradicts": [],
@@ -3883,7 +3883,7 @@
       "lived_log_memorized_through": 0,
       "memories": [
         {
-          "activation": 0.608,
+          "activation": 0.601,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -3909,7 +3909,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.608,
+          "activation": 0.601,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -3945,7 +3945,7 @@
           "visits": 48
         },
         {
-          "activation": 0.776,
+          "activation": 0.772,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -3972,7 +3972,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.776,
+          "activation": 0.772,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -3998,7 +3998,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.804,
+          "activation": 0.8005,
           "category": "social",
           "confidence": 0.7,
           "contradicts": [],
@@ -4032,7 +4032,7 @@
           "visits": 71
         },
         {
-          "activation": 0.825,
+          "activation": 0.8215,
           "category": "social",
           "confidence": 0.7,
           "contradicts": [],
@@ -4373,7 +4373,7 @@
       "lived_log_memorized_through": 0,
       "memories": [
         {
-          "activation": 0.608,
+          "activation": 0.601,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -4400,7 +4400,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.44,
+          "activation": 0.43,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -4436,7 +4436,7 @@
           "visits": 48
         },
         {
-          "activation": 0.72,
+          "activation": 0.715,
           "category": "social",
           "confidence": 0.7,
           "contradicts": [],
@@ -4839,8 +4839,8 @@
       },
       "activity": {
         "duration_ticks": null,
-        "elapsed_minutes": 25.0,
-        "elapsed_ticks": 25,
+        "elapsed_minutes": 26.0,
+        "elapsed_ticks": 26,
         "started_at_tick": 32,
         "target_item": null,
         "type": "fishing",
@@ -4849,7 +4849,7 @@
       "lived_log_memorized_through": 0,
       "memories": [
         {
-          "activation": 0.608,
+          "activation": 0.601,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -4876,7 +4876,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.44,
+          "activation": 0.43,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -4906,7 +4906,7 @@
           "visits": 49
         },
         {
-          "activation": 0.608,
+          "activation": 0.601,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -4932,7 +4932,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.44,
+          "activation": 0.43,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -4958,7 +4958,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.608,
+          "activation": 0.601,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -4985,7 +4985,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.608,
+          "activation": 0.601,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -5010,7 +5010,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.804,
+          "activation": 0.8005,
           "category": "social",
           "confidence": 0.7,
           "contradicts": [],
@@ -5044,7 +5044,7 @@
           "visits": 3
         },
         {
-          "activation": 0.783,
+          "activation": 0.776,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -5068,7 +5068,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.825,
+          "activation": 0.818,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -5429,7 +5429,7 @@
       "lived_log_memorized_through": 0,
       "memories": [
         {
-          "activation": 0.608,
+          "activation": 0.601,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -5456,7 +5456,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.44,
+          "activation": 0.43,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -5492,7 +5492,7 @@
           "visits": 48
         },
         {
-          "activation": 0.776,
+          "activation": 0.772,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -5519,7 +5519,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.804,
+          "activation": 0.8005,
           "category": "social",
           "confidence": 0.7,
           "contradicts": [],
@@ -5551,7 +5551,7 @@
           "type": "social"
         },
         {
-          "activation": 0.72,
+          "activation": 0.715,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -5577,7 +5577,7 @@
           "type": "threat"
         },
         {
-          "activation": 0.44,
+          "activation": 0.43,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -5602,7 +5602,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.825,
+          "activation": 0.8215,
           "category": "social",
           "confidence": 0.7,
           "contradicts": [],
@@ -5981,7 +5981,7 @@
       "lived_log_memorized_through": 0,
       "memories": [
         {
-          "activation": 0.541,
+          "activation": 0.532,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -6007,7 +6007,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.541,
+          "activation": 0.532,
           "category": "episodic",
           "confidence": 0.72,
           "contradicts": [],
@@ -6043,7 +6043,7 @@
           "visits": 48
         },
         {
-          "activation": 0.8407,
+          "activation": 0.8376,
           "category": "social",
           "confidence": 0.72,
           "contradicts": [],
@@ -6077,7 +6077,7 @@
           "visits": 48
         },
         {
-          "activation": 0.7705,
+          "activation": 0.766,
           "category": "episodic",
           "confidence": 0.72,
           "contradicts": [],
@@ -6103,7 +6103,7 @@
           "type": "threat"
         },
         {
-          "activation": 0.75,
+          "activation": 0.745,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -6129,7 +6129,7 @@
           "type": "threat"
         },
         {
-          "activation": 0.825,
+          "activation": 0.8215,
           "category": "social",
           "confidence": 0.7,
           "contradicts": [],
@@ -6214,24 +6214,14 @@
         "Pleasure": 0,
         "Stimulation": 0
       },
-      "state": "frightened",
-      "perceived_conditions": [
-        "Terrified of Mikka."
-      ],
+      "state": "awake",
+      "perceived_conditions": [],
       "conditions": {
         "awake": [
           {
             "duration": null,
             "source": null,
             "level": 0
-          }
-        ],
-        "frightened": [
-          {
-            "duration": 1.0,
-            "source": "Mikka",
-            "level": 0,
-            "source_type": "character"
           }
         ]
       },
@@ -6483,7 +6473,7 @@
       "lived_log_memorized_through": 0,
       "memories": [
         {
-          "activation": 0.608,
+          "activation": 0.601,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -6509,7 +6499,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.608,
+          "activation": 0.601,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -6545,7 +6535,7 @@
           "visits": 48
         },
         {
-          "activation": 0.72,
+          "activation": 0.715,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -6573,7 +6563,7 @@
           "type": "threat"
         },
         {
-          "activation": 0.804,
+          "activation": 0.8005,
           "category": "social",
           "confidence": 0.7,
           "contradicts": [],
@@ -6607,7 +6597,7 @@
           "visits": 2
         },
         {
-          "activation": 0.835,
+          "activation": 0.83,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -6937,7 +6927,7 @@
       "lived_log_memorized_through": 0,
       "memories": [
         {
-          "activation": 0.608,
+          "activation": 0.601,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -6963,7 +6953,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.44,
+          "activation": 0.43,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -6999,7 +6989,7 @@
           "visits": 48
         },
         {
-          "activation": 0.72,
+          "activation": 0.715,
           "category": "social",
           "confidence": 0.7,
           "contradicts": [],
@@ -7033,7 +7023,7 @@
           "visits": 4
         },
         {
-          "activation": 0.44,
+          "activation": 0.43,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -7058,7 +7048,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.825,
+          "activation": 0.8215,
           "category": "social",
           "confidence": 0.7,
           "contradicts": [],
@@ -7378,7 +7368,7 @@
       "lived_log_memorized_through": 0,
       "memories": [
         {
-          "activation": 0.595,
+          "activation": 0.586,
           "category": "episodic",
           "confidence": 0.72,
           "contradicts": [],
@@ -7414,7 +7404,7 @@
           "visits": 48
         },
         {
-          "activation": 0.72,
+          "activation": 0.715,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -7442,7 +7432,7 @@
           "type": "threat"
         },
         {
-          "activation": 0.75,
+          "activation": 0.745,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -7470,7 +7460,7 @@
           "type": "threat"
         },
         {
-          "activation": 0.55,
+          "activation": 0.54,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -7799,7 +7789,7 @@
       "lived_log_memorized_through": 0,
       "memories": [
         {
-          "activation": 0.829,
+          "activation": 0.8252,
           "category": "episodic",
           "confidence": 0.72,
           "contradicts": [],
@@ -7835,7 +7825,7 @@
           "visits": 48
         },
         {
-          "activation": 0.76,
+          "activation": 0.755,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -7863,7 +7853,7 @@
           "type": "threat"
         },
         {
-          "activation": 0.685,
+          "activation": 0.678,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -7955,7 +7945,7 @@
         ],
         "frightened": [
           {
-            "duration": 2.0,
+            "duration": 1.0,
             "source": "Thrazz",
             "level": 0,
             "source_type": "character"
@@ -8136,7 +8126,7 @@
       "current_area_id": "area_side_tunnels",
       "emotion": {
         "current": "afraid",
-        "intensity": 0.20299999999999996,
+        "intensity": 0.18799999999999997,
         "expression": "afraid",
         "description": "Rikka is afraid."
       },
@@ -8149,8 +8139,8 @@
         "lonely": 10.0,
         "melancholic": 12.0,
         "nostalgic": 18.0,
-        "afraid": 30.299999999999997,
-        "anxious": 17.9,
+        "afraid": 28.799999999999997,
+        "anxious": 16.4,
         "uneasy": 12.0,
         "dread": 8.0,
         "spooked": 10.0,
@@ -8227,7 +8217,7 @@
       "lived_log_memorized_through": 0,
       "memories": [
         {
-          "activation": 0.9888,
+          "activation": 0.986,
           "category": "episodic",
           "confidence": 1.0,
           "contradicts": [],
@@ -8253,7 +8243,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.984,
+          "activation": 0.98,
           "category": "episodic",
           "confidence": 0.84,
           "contradicts": [],
@@ -8285,7 +8275,7 @@
           "type": "reaction"
         },
         {
-          "activation": 0.979,
+          "activation": 0.976,
           "category": "episodic",
           "confidence": 0.78,
           "contradicts": [],
@@ -8313,7 +8303,7 @@
           "type": "threat"
         },
         {
-          "activation": 0.984,
+          "activation": 0.98,
           "category": "episodic",
           "confidence": 0.84,
           "contradicts": [],
@@ -8338,7 +8328,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.9904,
+          "activation": 0.988,
           "category": "social",
           "confidence": 0.78,
           "contradicts": [],
@@ -8363,7 +8353,7 @@
           "type": "emotion"
         },
         {
-          "activation": 0.9916,
+          "activation": 0.9895,
           "category": "episodic",
           "confidence": 0.8,
           "contradicts": [],
@@ -8400,7 +8390,7 @@
           "visits": 6
         },
         {
-          "activation": 0.9832,
+          "activation": 0.979,
           "category": "episodic",
           "confidence": 0.78,
           "contradicts": [],
@@ -8425,7 +8415,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.988,
+          "activation": 0.985,
           "category": "episodic",
           "confidence": 0.78,
           "contradicts": [],
@@ -8469,7 +8459,7 @@
           "salience_override": 0,
           "suppressions": [],
           "category": "social",
-          "activation": 0.9776,
+          "activation": 0.972,
           "confidence": 0.74,
           "reinforcements": 2,
           "last_recalled_tick": 53,
@@ -8503,7 +8493,7 @@
           "salience_override": 0,
           "source": "auto",
           "category": "episodic",
-          "activation": 0.9864,
+          "activation": 0.983,
           "confidence": 0.74,
           "reinforcements": 2,
           "last_recalled_tick": 53,
@@ -8538,7 +8528,7 @@
           "salience_override": 0,
           "source": "auto",
           "category": "episodic",
-          "activation": 0.976,
+          "activation": 0.97,
           "confidence": 0.7,
           "reinforcements": 0,
           "last_recalled_tick": null,
@@ -8566,7 +8556,7 @@
           "salience_override": 0,
           "source": "auto",
           "category": "episodic",
-          "activation": 0.98,
+          "activation": 0.97,
           "confidence": 0.7,
           "reinforcements": 0,
           "last_recalled_tick": null,
@@ -8867,7 +8857,7 @@
       "lived_log_memorized_through": 0,
       "memories": [
         {
-          "activation": 0.44,
+          "activation": 0.43,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -8903,7 +8893,7 @@
           "visits": 108
         },
         {
-          "activation": 0.44,
+          "activation": 0.43,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -8928,7 +8918,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.785,
+          "activation": 0.78,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -9217,7 +9207,7 @@
       "lived_log_memorized_through": 0,
       "memories": [
         {
-          "activation": 0.44,
+          "activation": 0.43,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -9253,7 +9243,7 @@
           "visits": 49
         },
         {
-          "activation": 0.44,
+          "activation": 0.43,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -9593,7 +9583,7 @@
       "lived_log_memorized_through": 0,
       "memories": [
         {
-          "activation": 0.7858,
+          "activation": 0.7816,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -9619,7 +9609,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.694,
+          "activation": 0.688,
           "category": "episodic",
           "confidence": 0.78,
           "contradicts": [],
@@ -9655,7 +9645,7 @@
           "visits": 48
         },
         {
-          "activation": 0.8929,
+          "activation": 0.8908,
           "category": "social",
           "confidence": 0.78,
           "contradicts": [],
@@ -9687,7 +9677,7 @@
           "type": "social"
         },
         {
-          "activation": 0.592,
+          "activation": 0.584,
           "category": "episodic",
           "confidence": 0.74,
           "contradicts": [],
@@ -9998,7 +9988,7 @@
       "lived_log_memorized_through": 0,
       "memories": [
         {
-          "activation": 0.619,
+          "activation": 0.61,
           "category": "episodic",
           "confidence": 0.72,
           "contradicts": [],
@@ -10031,7 +10021,7 @@
           "visits": 48
         },
         {
-          "activation": 0.71,
+          "activation": 0.7,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -10381,7 +10371,7 @@
       "lived_log_memorized_through": 0,
       "memories": [
         {
-          "activation": 0.7774,
+          "activation": 0.7732,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -10407,7 +10397,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.682,
+          "activation": 0.676,
           "category": "episodic",
           "confidence": 0.78,
           "contradicts": [],
@@ -10442,7 +10432,7 @@
           "type": "reaction"
         },
         {
-          "activation": 0.841,
+          "activation": 0.838,
           "category": "social",
           "confidence": 0.78,
           "contradicts": [],
@@ -10474,7 +10464,7 @@
           "type": "social"
         },
         {
-          "activation": 0.576,
+          "activation": 0.568,
           "category": "episodic",
           "confidence": 0.74,
           "contradicts": [],
@@ -10508,7 +10498,7 @@
           "type": "reaction"
         },
         {
-          "activation": 0.825,
+          "activation": 0.8215,
           "category": "social",
           "confidence": 0.7,
           "contradicts": [],
@@ -10859,7 +10849,7 @@
       "lived_log_memorized_through": 0,
       "memories": [
         {
-          "activation": 0.7354,
+          "activation": 0.7305,
           "category": "episodic",
           "confidence": 1,
           "contradicts": [],
@@ -10885,7 +10875,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.7,
+          "activation": 0.694,
           "category": "episodic",
           "confidence": 0.78,
           "contradicts": [],
@@ -10921,7 +10911,7 @@
           "visits": 48
         },
         {
-          "activation": 0.622,
+          "activation": 0.615,
           "category": "episodic",
           "confidence": 0.76,
           "contradicts": [],
@@ -10956,7 +10946,7 @@
           "type": "reaction"
         },
         {
-          "activation": 0.8694,
+          "activation": 0.8669,
           "category": "social",
           "confidence": 0.76,
           "contradicts": [],
@@ -10988,7 +10978,7 @@
           "type": "social"
         },
         {
-          "activation": 0.811,
+          "activation": 0.8075,
           "category": "episodic",
           "confidence": 0.76,
           "contradicts": [],
@@ -11014,7 +11004,7 @@
           "type": "threat"
         },
         {
-          "activation": 0.622,
+          "activation": 0.615,
           "category": "episodic",
           "confidence": 0.76,
           "contradicts": [],
@@ -11039,7 +11029,7 @@
           "type": "observation"
         },
         {
-          "activation": 0.6,
+          "activation": 0.592,
           "category": "episodic",
           "confidence": 0.74,
           "contradicts": [],
@@ -11074,7 +11064,7 @@
           "type": "reaction"
         },
         {
-          "activation": 0.685,
+          "activation": 0.6787,
           "category": "episodic",
           "confidence": 0.72,
           "contradicts": [],
@@ -11111,7 +11101,7 @@
           "visits": 17
         },
         {
-          "activation": 0.65,
+          "activation": 0.643,
           "category": "episodic",
           "confidence": 0.7,
           "contradicts": [],
@@ -11174,7 +11164,7 @@
         "Hunger": 80,
         "Thirst": 30,
         "Hygiene": 100,
-        "Energy": 66,
+        "Energy": 65,
         "Social": 99,
         "Bladder": 34,
         "Sanity": 100,
@@ -11402,8 +11392,8 @@
         "genitals": true,
         "balls": true
       },
-      "current_area": "Road (world 16,6)",
-      "current_area_id": "area_world_16_6",
+      "current_area": "Road (world 15,5)",
+      "current_area_id": "area_world_15_5",
       "emotion": {
         "current": "neutral",
         "intensity": 0.0,
@@ -11451,7 +11441,7 @@
       "emotions_description": "A dull craving tugs at the edge of your thoughts.",
       "relationships": {},
       "activity": null,
-      "lived_log_memorized_through": 57,
+      "lived_log_memorized_through": 58,
       "memories": [],
       "schedule": [],
       "active_pursuit": null,
@@ -12117,7 +12107,7 @@
         "Thirst": 0,
         "Hygiene": 0,
         "Energy": 0,
-        "Social": 90,
+        "Social": 91,
         "Bladder": 0,
         "Sanity": 0,
         "Entertainment": 100,
@@ -12286,8 +12276,8 @@
         "genitals": true,
         "balls": true
       },
-      "current_area": "Sparse Forest (West woods 12,18)",
-      "current_area_id": "area_west_woods_12_18",
+      "current_area": "Sparse Forest (West woods 13,18)",
+      "current_area_id": "area_west_woods_13_18",
       "emotion": {
         "current": "neutral",
         "intensity": 0.0,
@@ -12335,7 +12325,7 @@
       "emotions_description": "A thread of anxiety runs under everything. Also, you feel a little irritated.",
       "relationships": {},
       "activity": null,
-      "lived_log_memorized_through": 57,
+      "lived_log_memorized_through": 58,
       "memories": [],
       "schedule": [],
       "active_pursuit": null,
@@ -12431,14 +12421,14 @@
       "feels_like": 20,
       "current_carry_weight": 0.0,
       "max_carry_capacity": 100.0,
-      "at_way_id": "way_west_woods_area_west_woods_12_18_area_west_woods_13_18",
-      "facing": "west",
-      "entered_from_way": "way_west_woods_area_west_woods_12_18_area_west_woods_13_18",
+      "at_way_id": "way_west_woods_area_west_woods_13_17_area_west_woods_13_18",
+      "facing": "south",
+      "entered_from_way": "way_west_woods_area_west_woods_13_17_area_west_woods_13_18",
       "spatial_position": {
         "relation": "at",
-        "target_id": "way_west_woods_area_west_woods_12_18_area_west_woods_13_18",
+        "target_id": "way_west_woods_area_west_woods_13_17_area_west_woods_13_18",
         "target_type": "way",
-        "target_name": "Sparse Forest (West woods 12,18) to Sparse Forest (West woods 13,18)"
+        "target_name": "Sparse Forest (West woods 13,17) to Sparse Forest (West woods 13,18)"
       }
     },
     "zombie__c4d808": {
@@ -12677,7 +12667,7 @@
       "emotions_description": "A thread of anxiety runs under everything. Also, you feel a little irritated.",
       "relationships": {},
       "activity": null,
-      "lived_log_memorized_through": 57,
+      "lived_log_memorized_through": 58,
       "memories": [],
       "schedule": [],
       "active_pursuit": null,
@@ -12773,20 +12763,20 @@
       "feels_like": 18,
       "current_carry_weight": 0.0,
       "max_carry_capacity": 100.0,
-      "at_way_id": "way_side_to_animals",
+      "at_way_id": "way_side_to_mine",
       "facing": "east",
       "entered_from_way": "way_side_to_animals",
       "spatial_position": {
         "relation": "at",
-        "target_id": "way_side_to_animals",
+        "target_id": "way_side_to_mine",
         "target_type": "way",
-        "target_name": "passage to animal pens"
+        "target_name": "tunnel to mines"
       }
     }
   },
-  "active_player": "Gribba",
-  "game_time": "08:57:00",
-  "time_ticks": 57,
+  "active_player": "Silver-Talon",
+  "game_time": "08:58:00",
+  "time_ticks": 58,
   "time_per_tick_minutes": 1,
   "clock_start_hour": 8,
   "clock_start_minute": 0,
@@ -12859,7 +12849,7 @@
           "y": 280
         },
         "created": 1789781679.846446,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_animal_pens": {
         "id": "area_animal_pens",
@@ -12877,7 +12867,7 @@
             "light": "normal",
             "noise": "busy",
             "smell": "animal, straw, dung",
-            "temperature": 17.0
+            "temperature": 17.1
           },
           "features": [
             "pens",
@@ -13057,7 +13047,7 @@
           "y": 160
         },
         "created": 1789781679.84646,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_camp_entrance": {
         "id": "area_camp_entrance",
@@ -13121,7 +13111,7 @@
           "y": 40
         },
         "created": 1789781679.8464634,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_camp_entrance_trail": {
         "id": "area_camp_entrance_trail",
@@ -13183,7 +13173,7 @@
           "y": 200
         },
         "created": 1789781679.846467,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_chiefs_den": {
         "id": "area_chiefs_den",
@@ -13448,7 +13438,7 @@
           "y": 120
         },
         "created": 1789781679.8464823,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_eldenford_interior_10_3": {
         "id": "area_eldenford_interior_10_3",
@@ -15862,7 +15852,7 @@
           "y": 120
         },
         "created": 1789781679.8464856,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_fisherman_s_hut_1_1": {
         "id": "area_fisherman_s_hut_1_1",
@@ -16641,7 +16631,7 @@
           "y": 240
         },
         "created": 1789781679.846496,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_mine_access": {
         "id": "area_mine_access",
@@ -16659,7 +16649,7 @@
             "light": "pitch_black",
             "noise": "dripping water",
             "smell": "rock, water, minerals",
-            "temperature": 17.1
+            "temperature": 17.2
           },
           "features": [
             "narrow_tunnels",
@@ -16775,7 +16765,7 @@
           "y": 280
         },
         "created": 1789781679.846502,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_northern_hills": {
         "id": "area_northern_hills",
@@ -16840,7 +16830,7 @@
           "y": 80
         },
         "created": 1789781679.846505,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_nursery": {
         "id": "area_nursery",
@@ -16969,7 +16959,7 @@
           "y": 240
         },
         "created": 1789781679.8465114,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_prison_pens": {
         "id": "area_prison_pens",
@@ -17103,7 +17093,7 @@
           "y": 240
         },
         "created": 1789781679.846518,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_scouting_rooms": {
         "id": "area_scouting_rooms",
@@ -17330,7 +17320,7 @@
             "light": "pitch_black",
             "noise": "dripping water",
             "smell": "rock, damp earth; urine",
-            "temperature": 18.1
+            "temperature": 18.2
           },
           "features": [
             "collapsed_sections",
@@ -17454,7 +17444,7 @@
             "light": "dim",
             "noise": "quiet",
             "smell": "wood, stone, dust",
-            "temperature": 17.1
+            "temperature": 17.2
           },
           "features": [
             "stone_shelves",
@@ -19553,7 +19543,7 @@
           "y": 160
         },
         "created": 1790580438.5167189,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_10_5": {
         "id": "area_world_10_5",
@@ -19592,7 +19582,7 @@
           "y": 200
         },
         "created": 1790580438.5192895,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_10_6": {
         "id": "area_world_10_6",
@@ -19631,7 +19621,7 @@
           "y": 240
         },
         "created": 1790580438.5223534,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_11_3": {
         "id": "area_world_11_3",
@@ -19672,7 +19662,7 @@
           "y": 120
         },
         "created": 1790580438.5105038,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_11_4": {
         "id": "area_world_11_4",
@@ -19713,7 +19703,7 @@
           "y": 160
         },
         "created": 1790580438.5173898,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_11_5": {
         "id": "area_world_11_5",
@@ -19752,7 +19742,7 @@
           "y": 200
         },
         "created": 1790580438.5195003,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_11_6": {
         "id": "area_world_11_6",
@@ -19790,7 +19780,7 @@
           "y": 240
         },
         "created": 1790580438.5225377,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_11_7": {
         "id": "area_world_11_7",
@@ -19829,7 +19819,7 @@
           "y": 280
         },
         "created": 1790580438.5233712,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_12_3": {
         "id": "area_world_12_3",
@@ -19868,7 +19858,7 @@
           "y": 120
         },
         "created": 1790580438.5107872,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_12_5": {
         "id": "area_world_12_5",
@@ -19907,7 +19897,7 @@
           "y": 200
         },
         "created": 1790580438.5196743,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_12_7": {
         "id": "area_world_12_7",
@@ -19945,7 +19935,7 @@
           "y": 280
         },
         "created": 1790580438.5235474,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_13_3": {
         "id": "area_world_13_3",
@@ -19983,7 +19973,7 @@
           "y": 120
         },
         "created": 1790580438.5109422,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_13_7": {
         "id": "area_world_13_7",
@@ -20023,7 +20013,7 @@
           "y": 280
         },
         "created": 1790580438.5237043,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_14_3": {
         "id": "area_world_14_3",
@@ -20061,7 +20051,7 @@
           "y": 120
         },
         "created": 1790580438.5110867,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_14_6": {
         "id": "area_world_14_6",
@@ -20099,7 +20089,7 @@
           "y": 240
         },
         "created": 1790580438.522702,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_14_7": {
         "id": "area_world_14_7",
@@ -20137,7 +20127,7 @@
           "y": 280
         },
         "created": 1790580438.5238566,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_15_3": {
         "id": "area_world_15_3",
@@ -20175,7 +20165,7 @@
           "y": 120
         },
         "created": 1790580438.5112724,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_15_5": {
         "id": "area_world_15_5",
@@ -20213,7 +20203,7 @@
           "y": 200
         },
         "created": 1790580438.5198388,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_15_6": {
         "id": "area_world_15_6",
@@ -20251,7 +20241,7 @@
           "y": 240
         },
         "created": 1790580438.5228617,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_15_7": {
         "id": "area_world_15_7",
@@ -20289,7 +20279,7 @@
           "y": 280
         },
         "created": 1790580438.524207,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_16_3": {
         "id": "area_world_16_3",
@@ -20327,7 +20317,7 @@
           "y": 120
         },
         "created": 1790580438.5114222,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_16_4": {
         "id": "area_world_16_4",
@@ -20365,7 +20355,7 @@
           "y": 160
         },
         "created": 1790580438.5176294,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_16_6": {
         "id": "area_world_16_6",
@@ -20404,7 +20394,7 @@
           "y": 240
         },
         "created": 1790580438.5230138,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_16_8": {
         "id": "area_world_16_8",
@@ -20442,7 +20432,7 @@
           "y": 320
         },
         "created": 1790580438.5257351,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_17_3": {
         "id": "area_world_17_3",
@@ -20483,7 +20473,7 @@
           "y": 120
         },
         "created": 1790870620.5063517,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_17_6": {
         "id": "area_world_17_6",
@@ -20521,7 +20511,7 @@
           "y": 240
         },
         "created": 1790580438.5231645,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_17_8": {
         "id": "area_world_17_8",
@@ -20559,7 +20549,7 @@
           "y": 320
         },
         "created": 1790580438.5259328,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_18_3": {
         "id": "area_world_18_3",
@@ -20597,7 +20587,7 @@
           "y": 120
         },
         "created": 1790580438.5115702,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_18_7": {
         "id": "area_world_18_7",
@@ -20635,7 +20625,7 @@
           "y": 280
         },
         "created": 1790580438.5244558,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_19_4": {
         "id": "area_world_19_4",
@@ -20673,7 +20663,7 @@
           "y": 160
         },
         "created": 1790580438.5180044,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_19_5": {
         "id": "area_world_19_5",
@@ -20711,7 +20701,7 @@
           "y": 200
         },
         "created": 1790580438.5202413,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_19_7": {
         "id": "area_world_19_7",
@@ -20749,7 +20739,7 @@
           "y": 280
         },
         "created": 1790580438.5246894,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_3_6": {
         "id": "area_world_3_6",
@@ -20787,7 +20777,7 @@
           "y": 240
         },
         "created": 1790580438.5205476,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_4_1": {
         "id": "area_world_4_1",
@@ -20825,7 +20815,7 @@
           "y": 40
         },
         "created": 1790580438.508132,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_4_5": {
         "id": "area_world_4_5",
@@ -20863,7 +20853,7 @@
           "y": 200
         },
         "created": 1790580438.5183349,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_4_6": {
         "id": "area_world_4_6",
@@ -20902,7 +20892,7 @@
           "y": 240
         },
         "created": 1790580438.5210655,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_5_2": {
         "id": "area_world_5_2",
@@ -20940,7 +20930,7 @@
           "y": 80
         },
         "created": 1790580438.5084074,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_5_4": {
         "id": "area_world_5_4",
@@ -20981,7 +20971,7 @@
           "y": 160
         },
         "created": 1790878794.566251,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_5_5": {
         "id": "area_world_5_5",
@@ -21019,7 +21009,7 @@
           "y": 200
         },
         "created": 1790580438.5185528,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_5_6": {
         "id": "area_world_5_6",
@@ -21058,7 +21048,7 @@
           "y": 240
         },
         "created": 1790580438.5213022,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_6_3": {
         "id": "area_world_6_3",
@@ -21099,7 +21089,7 @@
           "y": 120
         },
         "created": 1790580438.5094945,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_6_4": {
         "id": "area_world_6_4",
@@ -21140,7 +21130,7 @@
           "y": 160
         },
         "created": 1790580438.5131857,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_6_5": {
         "id": "area_world_6_5",
@@ -21181,7 +21171,7 @@
           "y": 200
         },
         "created": 1790580438.5187697,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_6_6": {
         "id": "area_world_6_6",
@@ -21220,7 +21210,7 @@
           "y": 240
         },
         "created": 1790580438.5215702,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_7_3": {
         "id": "area_world_7_3",
@@ -21261,7 +21251,7 @@
           "y": 120
         },
         "created": 1790580438.5097396,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_7_4": {
         "id": "area_world_7_4",
@@ -21300,7 +21290,7 @@
           "y": 160
         },
         "created": 1790580438.5149822,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_7_5": {
         "id": "area_world_7_5",
@@ -21339,7 +21329,7 @@
           "y": 200
         },
         "created": 1790580438.5190258,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_7_6": {
         "id": "area_world_7_6",
@@ -21377,7 +21367,7 @@
           "y": 240
         },
         "created": 1790580438.5217714,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_8_3": {
         "id": "area_world_8_3",
@@ -21418,7 +21408,7 @@
           "y": 120
         },
         "created": 1790580438.509946,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_8_6": {
         "id": "area_world_8_6",
@@ -21456,7 +21446,7 @@
           "y": 240
         },
         "created": 1790580438.5219812,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_9_3": {
         "id": "area_world_9_3",
@@ -21497,7 +21487,7 @@
           "y": 120
         },
         "created": 1790580438.510316,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_9_4": {
         "id": "area_world_9_4",
@@ -21538,7 +21528,7 @@
           "y": 160
         },
         "created": 1790580438.5152998,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "area_world_9_6": {
         "id": "area_world_9_6",
@@ -21576,7 +21566,7 @@
           "y": 240
         },
         "created": 1790580438.5221598,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "belt_leather": {
         "id": "belt_leather",
@@ -21710,7 +21700,7 @@
           "library_id": "bush_of_berries",
           "light_level": "dim",
           "parameters": {
-            "growth": 75
+            "growth": 76
           },
           "resistances": {},
           "skill_check": {},
@@ -21730,7 +21720,7 @@
           "y": -241.5
         },
         "created": 1789989625.5763988,
-        "updated": 1791401661.7788274
+        "updated": 1791424498.2990508
       },
       "bush_of_berries_deep_forest_1": {
         "id": "bush_of_berries_deep_forest_1",
@@ -21752,7 +21742,7 @@
           "library_id": "bush_of_berries",
           "light_level": "dim",
           "parameters": {
-            "growth": 75
+            "growth": 76
           },
           "resistances": {},
           "skill_check": {},
@@ -21772,7 +21762,7 @@
           "y": -2557.6
         },
         "created": 1789989624.3312042,
-        "updated": 1791401661.7788274
+        "updated": 1791424498.3000507
       },
       "bush_of_berries_deep_forest_2": {
         "id": "bush_of_berries_deep_forest_2",
@@ -21795,7 +21785,7 @@
           "library_id": "bush_of_berries",
           "light_level": "dim",
           "parameters": {
-            "growth": 75
+            "growth": 76
           },
           "resistances": {},
           "skill_check": {},
@@ -21815,7 +21805,7 @@
           "y": -2494.2
         },
         "created": 1789989624.3322668,
-        "updated": 1791401661.7788274
+        "updated": 1791424498.3000507
       },
       "bush_of_berries_deep_forest_3": {
         "id": "bush_of_berries_deep_forest_3",
@@ -21837,7 +21827,7 @@
           "library_id": "bush_of_berries",
           "light_level": "dim",
           "parameters": {
-            "growth": 75
+            "growth": 76
           },
           "resistances": {},
           "skill_check": {},
@@ -21857,7 +21847,7 @@
           "y": -2543.3
         },
         "created": 1789989624.3332193,
-        "updated": 1791401661.7798269
+        "updated": 1791424498.3000507
       },
       "bush_of_berries_water_source_1": {
         "id": "bush_of_berries_water_source_1",
@@ -21879,7 +21869,7 @@
           "library_id": "bush_of_berries",
           "light_level": "dim",
           "parameters": {
-            "growth": 75
+            "growth": 76
           },
           "resistances": {},
           "skill_check": {},
@@ -21899,7 +21889,7 @@
           "y": 7371.1
         },
         "created": 1789989624.9787397,
-        "updated": 1791401661.7828293
+        "updated": 1791424498.3010519
       },
       "camp_drum_chiefs_pit_1": {
         "id": "camp_drum_chiefs_pit_1",
@@ -27393,10 +27383,106 @@
             "high_metabolism": true
           },
           "x": 484.7,
-          "y": 6149.6
+          "y": 6149.6,
+          "expressions": {
+            "neutral": {
+              "profile": "/static/images/nodes/player_Kiala-profile-neutral-1791424708680.png"
+            },
+            "happy": {
+              "profile": "/static/images/nodes/player_Kiala-profile-happy-1791424709458.png"
+            },
+            "sad": {
+              "profile": "/static/images/nodes/player_Kiala-profile-sad-1791424710506.png"
+            },
+            "angry": {
+              "profile": "/static/images/nodes/player_Kiala-profile-angry-1791424711541.png"
+            },
+            "surprised": {
+              "profile": "/static/images/nodes/player_Kiala-profile-surprised-1791424712490.png"
+            },
+            "fearful": {
+              "profile": "/static/images/nodes/player_Kiala-profile-fearful-1791424713528.png"
+            },
+            "disgusted": {
+              "profile": "/static/images/nodes/player_Kiala-profile-disgusted-1791424714531.png"
+            },
+            "confused": {
+              "profile": "/static/images/nodes/player_Kiala-profile-confused-1791424715465.png"
+            },
+            "determined": {
+              "profile": "/static/images/nodes/player_Kiala-profile-determined-1791424716407.png"
+            },
+            "exhausted": {
+              "profile": "/static/images/nodes/player_Kiala-profile-exhausted-1791424717396.png"
+            },
+            "smug": {
+              "profile": "/static/images/nodes/player_Kiala-profile-smug-1791424718364.png"
+            },
+            "worried": {
+              "profile": "/static/images/nodes/player_Kiala-profile-worried-1791424719286.png"
+            },
+            "curious": {
+              "profile": "/static/images/nodes/player_Kiala-profile-curious-1791424720204.png"
+            },
+            "embarrassed": {
+              "profile": "/static/images/nodes/player_Kiala-profile-embarrassed-1791424721137.png"
+            },
+            "proud": {
+              "profile": "/static/images/nodes/player_Kiala-profile-proud-1791424722036.png"
+            },
+            "bored": {
+              "profile": "/static/images/nodes/player_Kiala-profile-bored-1791424723020.png"
+            },
+            "suspicious": {
+              "profile": "/static/images/nodes/player_Kiala-profile-suspicious-1791424723977.png"
+            },
+            "hopeful": {
+              "profile": "/static/images/nodes/player_Kiala-profile-hopeful-1791424724952.png"
+            },
+            "frustrated": {
+              "profile": "/static/images/nodes/player_Kiala-profile-frustrated-1791424725874.png"
+            },
+            "relieved": {
+              "profile": "/static/images/nodes/player_Kiala-profile-relieved-1791424726821.png"
+            },
+            "defiant": {
+              "profile": "/static/images/nodes/player_Kiala-profile-defiant-1791424727782.png"
+            },
+            "sleepy": {
+              "profile": "/static/images/nodes/player_Kiala-profile-sleepy-1791424728838.png"
+            },
+            "shocked": {
+              "profile": "/static/images/nodes/player_Kiala-profile-shocked-1791424729818.png"
+            },
+            "amused": {
+              "profile": "/static/images/nodes/player_Kiala-profile-amused-1791424730738.png"
+            },
+            "concerned": {
+              "profile": "/static/images/nodes/player_Kiala-profile-concerned-1791424731696.png"
+            },
+            "confident": {
+              "profile": "/static/images/nodes/player_Kiala-profile-confident-1791424732711.png"
+            },
+            "nervous": {
+              "profile": "/static/images/nodes/player_Kiala-profile-nervous-1791424733684.png"
+            },
+            "playful": {
+              "profile": "/static/images/nodes/player_Kiala-profile-playful-1791424734693.png"
+            },
+            "serious": {
+              "profile": "/static/images/nodes/player_Kiala-profile-serious-1791424735668.png"
+            },
+            "tearful": {
+              "profile": "/static/images/nodes/player_Kiala-profile-tearful-1791424736648.png"
+            },
+            "thoughtful": {
+              "profile": "/static/images/nodes/player_Kiala-profile-thoughtful-1791424737542.png"
+            }
+          },
+          "profile_image": "/static/images/nodes/player_Kiala-profile-neutral-1791424708680.png"
         },
         "created": 1789781679.8542175,
-        "updated": 1791030782.1306243
+        "updated": 1791424737.5424287
       },
       "player_Krikka": {
         "id": "player_Krikka",
@@ -27417,10 +27503,106 @@
             "high_metabolism": true
           },
           "x": 2240.1,
-          "y": 6663.4
+          "y": 6663.4,
+          "expressions": {
+            "neutral": {
+              "profile": "/static/images/nodes/player_Krikka-profile-neutral-1791425346946.png"
+            },
+            "happy": {
+              "profile": "/static/images/nodes/player_Krikka-profile-happy-1791425347720.png"
+            },
+            "sad": {
+              "profile": "/static/images/nodes/player_Krikka-profile-sad-1791425348644.png"
+            },
+            "angry": {
+              "profile": "/static/images/nodes/player_Krikka-profile-angry-1791425349522.png"
+            },
+            "surprised": {
+              "profile": "/static/images/nodes/player_Krikka-profile-surprised-1791425350453.png"
+            },
+            "fearful": {
+              "profile": "/static/images/nodes/player_Krikka-profile-fearful-1791425351373.png"
+            },
+            "disgusted": {
+              "profile": "/static/images/nodes/player_Krikka-profile-disgusted-1791425352292.png"
+            },
+            "confused": {
+              "profile": "/static/images/nodes/player_Krikka-profile-confused-1791425353230.png"
+            },
+            "determined": {
+              "profile": "/static/images/nodes/player_Krikka-profile-determined-1791425354244.png"
+            },
+            "exhausted": {
+              "profile": "/static/images/nodes/player_Krikka-profile-exhausted-1791425355173.png"
+            },
+            "smug": {
+              "profile": "/static/images/nodes/player_Krikka-profile-smug-1791425356141.png"
+            },
+            "worried": {
+              "profile": "/static/images/nodes/player_Krikka-profile-worried-1791425357066.png"
+            },
+            "curious": {
+              "profile": "/static/images/nodes/player_Krikka-profile-curious-1791425358002.png"
+            },
+            "embarrassed": {
+              "profile": "/static/images/nodes/player_Krikka-profile-embarrassed-1791425358938.png"
+            },
+            "proud": {
+              "profile": "/static/images/nodes/player_Krikka-profile-proud-1791425359836.png"
+            },
+            "bored": {
+              "profile": "/static/images/nodes/player_Krikka-profile-bored-1791425360751.png"
+            },
+            "suspicious": {
+              "profile": "/static/images/nodes/player_Krikka-profile-suspicious-1791425361636.png"
+            },
+            "hopeful": {
+              "profile": "/static/images/nodes/player_Krikka-profile-hopeful-1791425362524.png"
+            },
+            "frustrated": {
+              "profile": "/static/images/nodes/player_Krikka-profile-frustrated-1791425363445.png"
+            },
+            "relieved": {
+              "profile": "/static/images/nodes/player_Krikka-profile-relieved-1791425364333.png"
+            },
+            "defiant": {
+              "profile": "/static/images/nodes/player_Krikka-profile-defiant-1791425365256.png"
+            },
+            "sleepy": {
+              "profile": "/static/images/nodes/player_Krikka-profile-sleepy-1791425366234.png"
+            },
+            "shocked": {
+              "profile": "/static/images/nodes/player_Krikka-profile-shocked-1791425367145.png"
+            },
+            "amused": {
+              "profile": "/static/images/nodes/player_Krikka-profile-amused-1791425367954.png"
+            },
+            "concerned": {
+              "profile": "/static/images/nodes/player_Krikka-profile-concerned-1791425368930.png"
+            },
+            "confident": {
+              "profile": "/static/images/nodes/player_Krikka-profile-confident-1791425369765.png"
+            },
+            "nervous": {
+              "profile": "/static/images/nodes/player_Krikka-profile-nervous-1791425370628.png"
+            },
+            "playful": {
+              "profile": "/static/images/nodes/player_Krikka-profile-playful-1791425371494.png"
+            },
+            "serious": {
+              "profile": "/static/images/nodes/player_Krikka-profile-serious-1791425372336.png"
+            },
+            "tearful": {
+              "profile": "/static/images/nodes/player_Krikka-profile-tearful-1791425373201.png"
+            },
+            "thoughtful": {
+              "profile": "/static/images/nodes/player_Krikka-profile-thoughtful-1791425374165.png"
+            }
+          },
+          "profile_image": "/static/images/nodes/player_Krikka-profile-neutral-1791425346946.png"
         },
         "created": 1789781679.8543804,
-        "updated": 1791030782.1306243
+        "updated": 1791425374.166969
       },
       "player_Leslie": {
         "id": "player_Leslie",
@@ -27673,10 +27855,106 @@
             "bear"
           ],
           "x": 3181.3,
-          "y": -70.9
+          "y": -70.9,
+          "expressions": {
+            "neutral": {
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-neutral-1791425724508.png"
+            },
+            "happy": {
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-happy-1791425725273.png"
+            },
+            "sad": {
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-sad-1791425726234.png"
+            },
+            "angry": {
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-angry-1791425727202.png"
+            },
+            "surprised": {
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-surprised-1791425728247.png"
+            },
+            "fearful": {
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-fearful-1791425729304.png"
+            },
+            "disgusted": {
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-disgusted-1791425730359.png"
+            },
+            "confused": {
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-confused-1791425731346.png"
+            },
+            "determined": {
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-determined-1791425732451.png"
+            },
+            "exhausted": {
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-exhausted-1791425733476.png"
+            },
+            "smug": {
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-smug-1791425734569.png"
+            },
+            "worried": {
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-worried-1791425735571.png"
+            },
+            "curious": {
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-curious-1791425736515.png"
+            },
+            "embarrassed": {
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-embarrassed-1791425737565.png"
+            },
+            "proud": {
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-proud-1791425738637.png"
+            },
+            "bored": {
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-bored-1791425739646.png"
+            },
+            "suspicious": {
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-suspicious-1791425740655.png"
+            },
+            "hopeful": {
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-hopeful-1791425741594.png"
+            },
+            "frustrated": {
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-frustrated-1791425742634.png"
+            },
+            "relieved": {
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-relieved-1791425743487.png"
+            },
+            "defiant": {
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-defiant-1791425744434.png"
+            },
+            "sleepy": {
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-sleepy-1791425745365.png"
+            },
+            "shocked": {
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-shocked-1791425746340.png"
+            },
+            "amused": {
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-amused-1791425747294.png"
+            },
+            "concerned": {
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-concerned-1791425748276.png"
+            },
+            "confident": {
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-confident-1791425749255.png"
+            },
+            "nervous": {
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-nervous-1791425750379.png"
+            },
+            "playful": {
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-playful-1791425751502.png"
+            },
+            "serious": {
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-serious-1791425752623.png"
+            },
+            "tearful": {
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-tearful-1791425753767.png"
+            },
+            "thoughtful": {
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-thoughtful-1791425755094.png"
+            }
+          },
+          "profile_image": "/static/images/nodes/player_Old_Iron-Back-profile-neutral-1791425724508.png"
         },
         "created": 1789781679.854883,
-        "updated": 1791030782.1306243
+        "updated": 1791425755.095438
       },
       "player_Rag-Tail": {
         "id": "player_Rag-Tail",
@@ -27692,10 +27970,106 @@
             "wolf"
           ],
           "x": 3055.8,
-          "y": -60.5
+          "y": -60.5,
+          "expressions": {
+            "neutral": {
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-neutral-1791426136577.png"
+            },
+            "happy": {
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-happy-1791426137338.png"
+            },
+            "sad": {
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-sad-1791426138305.png"
+            },
+            "angry": {
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-angry-1791426139550.png"
+            },
+            "surprised": {
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-surprised-1791426140805.png"
+            },
+            "fearful": {
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-fearful-1791426141992.png"
+            },
+            "disgusted": {
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-disgusted-1791426143184.png"
+            },
+            "confused": {
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-confused-1791426144405.png"
+            },
+            "determined": {
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-determined-1791426145671.png"
+            },
+            "exhausted": {
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-exhausted-1791426146913.png"
+            },
+            "smug": {
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-smug-1791426147989.png"
+            },
+            "worried": {
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-worried-1791426149168.png"
+            },
+            "curious": {
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-curious-1791426150474.png"
+            },
+            "embarrassed": {
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-embarrassed-1791426151739.png"
+            },
+            "proud": {
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-proud-1791426152842.png"
+            },
+            "bored": {
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-bored-1791426154025.png"
+            },
+            "suspicious": {
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-suspicious-1791426155413.png"
+            },
+            "hopeful": {
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-hopeful-1791426156587.png"
+            },
+            "frustrated": {
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-frustrated-1791426157704.png"
+            },
+            "relieved": {
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-relieved-1791426158866.png"
+            },
+            "defiant": {
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-defiant-1791426160056.png"
+            },
+            "sleepy": {
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-sleepy-1791426161200.png"
+            },
+            "shocked": {
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-shocked-1791426162365.png"
+            },
+            "amused": {
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-amused-1791426163582.png"
+            },
+            "concerned": {
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-concerned-1791426164770.png"
+            },
+            "confident": {
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-confident-1791426165886.png"
+            },
+            "nervous": {
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-nervous-1791426167028.png"
+            },
+            "playful": {
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-playful-1791426168296.png"
+            },
+            "serious": {
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-serious-1791426169602.png"
+            },
+            "tearful": {
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-tearful-1791426170845.png"
+            },
+            "thoughtful": {
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-thoughtful-1791426172038.png"
+            }
+          },
+          "profile_image": "/static/images/nodes/player_Rag-Tail-profile-neutral-1791426136577.png"
         },
         "created": 1789781679.855052,
-        "updated": 1791030782.1306243
+        "updated": 1791426172.038596
       },
       "player_Rikka": {
         "id": "player_Rikka",
@@ -27846,10 +28220,106 @@
             "worg"
           ],
           "x": 4067.7,
-          "y": -624.6
+          "y": -624.6,
+          "expressions": {
+            "neutral": {
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-neutral-1791426302132.png"
+            },
+            "happy": {
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-happy-1791426303067.png"
+            },
+            "sad": {
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-sad-1791426304309.png"
+            },
+            "angry": {
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-angry-1791426305614.png"
+            },
+            "surprised": {
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-surprised-1791426307387.png"
+            },
+            "fearful": {
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-fearful-1791426309180.png"
+            },
+            "disgusted": {
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-disgusted-1791426310445.png"
+            },
+            "confused": {
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-confused-1791426312045.png"
+            },
+            "determined": {
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-determined-1791426313787.png"
+            },
+            "exhausted": {
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-exhausted-1791426315444.png"
+            },
+            "smug": {
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-smug-1791426316652.png"
+            },
+            "worried": {
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-worried-1791426318180.png"
+            },
+            "curious": {
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-curious-1791426319870.png"
+            },
+            "embarrassed": {
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-embarrassed-1791426321383.png"
+            },
+            "proud": {
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-proud-1791426322694.png"
+            },
+            "bored": {
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-bored-1791426324097.png"
+            },
+            "suspicious": {
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-suspicious-1791426325522.png"
+            },
+            "hopeful": {
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-hopeful-1791426327019.png"
+            },
+            "frustrated": {
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-frustrated-1791426328618.png"
+            },
+            "relieved": {
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-relieved-1791426330243.png"
+            },
+            "defiant": {
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-defiant-1791426331865.png"
+            },
+            "sleepy": {
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-sleepy-1791426333534.png"
+            },
+            "shocked": {
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-shocked-1791426335138.png"
+            },
+            "amused": {
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-amused-1791426336547.png"
+            },
+            "concerned": {
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-concerned-1791426338434.png"
+            },
+            "confident": {
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-confident-1791426339934.png"
+            },
+            "nervous": {
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-nervous-1791426341866.png"
+            },
+            "playful": {
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-playful-1791426343145.png"
+            },
+            "serious": {
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-serious-1791426344633.png"
+            },
+            "tearful": {
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-tearful-1791426346143.png"
+            },
+            "thoughtful": {
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-thoughtful-1791426347562.png"
+            }
+          },
+          "profile_image": "/static/images/nodes/player_Shadow-Pelt-profile-neutral-1791426302132.png"
         },
         "created": 1789781679.8553996,
-        "updated": 1791030782.1306243
+        "updated": 1791426347.6914577
       },
       "player_Silver-Talon": {
         "id": "player_Silver-Talon",
@@ -27865,10 +28335,106 @@
             "raven"
           ],
           "x": 522.7,
-          "y": 6204.2
+          "y": 6204.2,
+          "expressions": {
+            "neutral": {
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-neutral-1791426641375.png"
+            },
+            "happy": {
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-happy-1791426642185.png"
+            },
+            "sad": {
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-sad-1791426643535.png"
+            },
+            "angry": {
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-angry-1791426645019.png"
+            },
+            "surprised": {
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-surprised-1791426646443.png"
+            },
+            "fearful": {
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-fearful-1791426648329.png"
+            },
+            "disgusted": {
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-disgusted-1791426649827.png"
+            },
+            "confused": {
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-confused-1791426651236.png"
+            },
+            "determined": {
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-determined-1791426652663.png"
+            },
+            "exhausted": {
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-exhausted-1791426654192.png"
+            },
+            "smug": {
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-smug-1791426655487.png"
+            },
+            "worried": {
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-worried-1791426656908.png"
+            },
+            "curious": {
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-curious-1791426658163.png"
+            },
+            "embarrassed": {
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-embarrassed-1791426659612.png"
+            },
+            "proud": {
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-proud-1791426661053.png"
+            },
+            "bored": {
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-bored-1791426662381.png"
+            },
+            "suspicious": {
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-suspicious-1791426663663.png"
+            },
+            "hopeful": {
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-hopeful-1791426665138.png"
+            },
+            "frustrated": {
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-frustrated-1791426666779.png"
+            },
+            "relieved": {
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-relieved-1791426668033.png"
+            },
+            "defiant": {
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-defiant-1791426669428.png"
+            },
+            "sleepy": {
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-sleepy-1791426670810.png"
+            },
+            "shocked": {
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-shocked-1791426672616.png"
+            },
+            "amused": {
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-amused-1791426674094.png"
+            },
+            "concerned": {
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-concerned-1791426675524.png"
+            },
+            "confident": {
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-confident-1791426676969.png"
+            },
+            "nervous": {
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-nervous-1791426678483.png"
+            },
+            "playful": {
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-playful-1791426680077.png"
+            },
+            "serious": {
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-serious-1791426681525.png"
+            },
+            "tearful": {
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-tearful-1791426683135.png"
+            },
+            "thoughtful": {
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-thoughtful-1791426684482.png"
+            }
+          },
+          "profile_image": "/static/images/nodes/player_Silver-Talon-profile-neutral-1791426641375.png"
         },
         "created": 1789781679.8556068,
-        "updated": 1791030782.1306243
+        "updated": 1791426684.5995336
       },
       "player_Thrazz": {
         "id": "player_Thrazz",
@@ -60250,30 +60816,6 @@
         "properties": {}
       },
       {
-        "source": "player_zombie__9dcb3e",
-        "target": "way_west_woods_area_west_woods_12_18_area_west_woods_13_18",
-        "type": "at",
-        "properties": {}
-      },
-      {
-        "source": "player_zombie__c4d808",
-        "target": "way_side_to_animals",
-        "type": "at",
-        "properties": {}
-      },
-      {
-        "source": "player_james",
-        "target": "way_world_area_world_15_5_area_world_16_6",
-        "type": "at",
-        "properties": {}
-      },
-      {
-        "source": "player_Belne",
-        "target": "area_side_tunnels",
-        "type": "in",
-        "properties": {}
-      },
-      {
         "source": "player_Eldenford_Blacksmith",
         "target": "area_eldenford_village",
         "type": "in",
@@ -60304,12 +60846,6 @@
         "properties": {}
       },
       {
-        "source": "player_Jake_Halloway",
-        "target": "area_raven_river",
-        "type": "in",
-        "properties": {}
-      },
-      {
         "source": "player_Kiala",
         "target": "area_chiefs_den",
         "type": "in",
@@ -60334,56 +60870,8 @@
         "properties": {}
       },
       {
-        "source": "player_Shadow-Pelt",
-        "target": "area_raven_river",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Silver-Talon",
-        "target": "area_nursery",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_james",
-        "target": "area_world_16_6",
-        "type": "in",
-        "properties": {}
-      },
-      {
         "source": "player_zombie",
         "target": "area_world_4_1",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_zombie__9dcb3e",
-        "target": "area_west_woods_12_18",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_zombie__c4d808",
-        "target": "area_side_tunnels",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Mikka",
-        "target": "area_water_source",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Leslie",
-        "target": "area_water_source",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_Rikka",
-        "target": "area_side_tunnels",
         "type": "in",
         "properties": {}
       },
@@ -60418,9 +60906,57 @@
         "properties": {}
       },
       {
+        "source": "player_Belne",
+        "target": "area_side_tunnels",
+        "type": "in",
+        "properties": {}
+      },
+      {
         "source": "player_Croak-Mother",
         "target": "area_murk_lake",
         "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Jake_Halloway",
+        "target": "area_raven_river",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_zombie__9dcb3e",
+        "target": "area_west_woods_13_18",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_zombie__9dcb3e",
+        "target": "way_west_woods_area_west_woods_13_17_area_west_woods_13_18",
+        "type": "at",
+        "properties": {}
+      },
+      {
+        "source": "player_zombie__c4d808",
+        "target": "area_side_tunnels",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_zombie__c4d808",
+        "target": "way_side_to_mine",
+        "type": "at",
+        "properties": {}
+      },
+      {
+        "source": "player_james",
+        "target": "area_world_15_5",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_james",
+        "target": "way_world_area_world_15_5_area_world_16_6",
+        "type": "at",
         "properties": {}
       },
       {
@@ -60428,10 +60964,40 @@
         "target": "area_waste_disposal",
         "type": "in",
         "properties": {}
+      },
+      {
+        "source": "player_Leslie",
+        "target": "area_water_source",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Mikka",
+        "target": "area_water_source",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Rikka",
+        "target": "area_side_tunnels",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Shadow-Pelt",
+        "target": "area_raven_river",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Silver-Talon",
+        "target": "area_nursery",
+        "type": "in",
+        "properties": {}
       }
     ]
   },
-  "turn_number": 16,
+  "turn_number": 17,
   "narration_mode": "none",
   "ghost_mode": false,
   "mature_content": true,

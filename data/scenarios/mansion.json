@@ -53,36 +53,7 @@
   "players": {
     "elena vance": {
       "name": "elena vance",
-      "personality": "you are elena vance, a seasoned paranormal investigator with a decade of experience. you've seen enough to believe, but not enough to stop being skeptical. you approach each case methodically, documenting everything. the blackwood disappearance is your most intriguing case yet — a family of seven vanished overnight in 1891, and the mansion has remained untouched since. you're brave but cautious, and you trust your equipment. your partner miki tagged along — a chaotic asmr artist you met at a convention who insisted she could help.",
-      "description": "a woman in her early thirties with a lean, capable build. her skin is fair and lightly scarred from years of field work, the most notable being a thin white line cutting through her left eyebrow. her face is practical rather than pretty, with high cheekbones, a straight nose, and a mouth more often set in a thoughtful line than a smile. her dark hair, when loose, falls past her shoulders. her breasts are small and firm, reflecting an athletic, functional physique rather than a curvaceous one.\nHiking boots is normal flashlight is lit black hair tie is normal cotton briefs is normal dark cargo pants is normal sports bra is normal field jacket is normal.\nelena vance is wearing black hair tie on their head, field jacket over sports bra on their torso, dark cargo pants over cotton briefs on their legs, hiking boots on their feet, flashlight in their left hand.",
-      "base_description": "a woman in her early thirties with a lean, capable build. her skin is fair and lightly scarred from years of field work, the most notable being a thin white line cutting through her left eyebrow. her face is practical rather than pretty, with high cheekbones, a straight nose, and a mouth more often set in a thoughtful line than a smile. her dark hair, when loose, falls past her shoulders. her breasts are small and firm, reflecting an athletic, functional physique rather than a curvaceous one.",
       "id": "2fcace14",
-      "equipped": {
-        "accessory": [],
-        "arms": [],
-        "back": [],
-        "feet": [
-          "item_hiking boots"
-        ],
-        "hand_left": [
-          "inv_elena vance_flashlight"
-        ],
-        "hand_right": [],
-        "hands": [],
-        "head": [
-          "item_black hair tie"
-        ],
-        "legs": [
-          "item_cotton briefs",
-          "item_dark cargo pants"
-        ],
-        "neck": [],
-        "torso": [
-          "item_sports bra",
-          "item_field jacket"
-        ],
-        "waist": []
-      },
       "stats": {
         "CHA": 8,
         "CON": 11,
@@ -104,34 +75,8 @@
         "Entertainment": 99,
         "Temperature": 37
       },
-      "skills": {
-        "Athletics": 1,
-        "Acrobatics": 1,
-        "Stealth": 1,
-        "Perception": 1,
-        "Survival": 1,
-        "Persuasion": 1,
-        "Animal Handling": 0,
-        "Arcana": 0,
-        "Deception": 0,
-        "History": 0,
-        "Insight": 0,
-        "Intimidation": 0,
-        "Investigation": 0,
-        "Medicine": 0,
-        "Nature": 0,
-        "Performance": 0,
-        "Religion": 0,
-        "Sleight of Hand": 0,
-        "athletics": 2,
-        "investigation": 5,
-        "perception": 4,
-        "stealth": 3,
-        "survival": 2
-      },
       "state": "awake",
       "perceived_conditions": [],
-      "trait_behavior": [],
       "conditions": {
         "awake": [
           {
@@ -360,6 +305,7 @@
         }
       },
       "activity": null,
+      "lived_log_memorized_through": 0,
       "memories": [
         {
           "entity_ids": [],
@@ -467,6 +413,7 @@
           ],
           "id": "mem_1788890790770_311",
           "importance": 9,
+          "kind": "area",
           "location": "library",
           "memory_emotions": [],
           "salience_override": 0,
@@ -478,14 +425,16 @@
             "fear"
           ],
           "text": "You have been in the library.",
-          "tick": 2,
-          "timestamp": 1791120661.1851673,
+          "tick": 0,
+          "timestamp": 1791427320.7660615,
           "type": "reaction",
-          "visits": 11,
-          "kind": "area"
+          "visits": 12
         }
       ],
       "schedule": [],
+      "active_pursuit": null,
+      "plan": null,
+      "completed_pursuits": [],
       "simple_npc": false,
       "autonomy": true,
       "npc_behavior": "wander",
@@ -496,7 +445,7 @@
       "patrol_route": [],
       "patrol_index": 0,
       "feels_like": 24,
-      "current_carry_weight": 5.359999999999999,
+      "current_carry_weight": 5.36,
       "max_carry_capacity": 100.0,
       "at_way_id": null,
       "facing": null,
@@ -510,24 +459,7 @@
     },
     "ghost": {
       "name": "ghost",
-      "personality": "a restless spirit bound to the mansion.",
-      "description": "",
-      "base_description": "",
       "id": "2e9d90c1",
-      "equipped": {
-        "accessory": [],
-        "arms": [],
-        "back": [],
-        "feet": [],
-        "hand_left": [],
-        "hand_right": [],
-        "hands": [],
-        "head": [],
-        "legs": [],
-        "neck": [],
-        "torso": [],
-        "waist": []
-      },
       "stats": {},
       "vitals": {
         "HP": 100.0,
@@ -542,29 +474,8 @@
         "Entertainment": 97,
         "Temperature": 37
       },
-      "skills": {
-        "Athletics": 1,
-        "Acrobatics": 1,
-        "Stealth": 1,
-        "Perception": 1,
-        "Survival": 1,
-        "Persuasion": 1,
-        "Animal Handling": 0,
-        "Arcana": 0,
-        "Deception": 0,
-        "History": 0,
-        "Insight": 0,
-        "Intimidation": 0,
-        "Investigation": 0,
-        "Medicine": 0,
-        "Nature": 0,
-        "Performance": 0,
-        "Religion": 0,
-        "Sleight of Hand": 0
-      },
       "state": "awake",
       "perceived_conditions": [],
-      "trait_behavior": [],
       "conditions": {
         "awake": [
           {
@@ -785,8 +696,12 @@
       "emotions_description": "You feel anxious, braced for something to go wrong. Also, a dull craving tugs at the edge of your thoughts.",
       "relationships": {},
       "activity": null,
+      "lived_log_memorized_through": 0,
       "memories": [],
       "schedule": [],
+      "active_pursuit": null,
+      "plan": null,
+      "completed_pursuits": [],
       "simple_npc": true,
       "autonomy": true,
       "npc_behavior": "stationary",
@@ -902,35 +817,7 @@
     },
     "jake halloway": {
       "name": "jake halloway",
-      "personality": "you are jake halloway, a sixteen-year-old boy who found this nightmare mansion and had this great idea of lets check it out, and is now trapped in it with his friends because of course you are. you have no survival instincts to speak of—you walk into doorframes, trip over flat surfaces, and once got stuck in a tree for two hours. but you have something else: an uncanny ability to notice things you shouldn't, to see patterns that don't make sense, to feel when something is wrong before there's any logical reason to feel it. you don't know if it's intuition or paranoia or whatever the hell that thing in the walls is, but it's kept you alive this long. you're running on caffeine, spite, and the desperate need to keep your friends—your girlfriend girlfriend now, holy shit—safe. you have a rubber band on your wrist that you snap when the spiral starts. your seafoam green eyes have gold flecks that catch light in weird ways. you haven't slept properly in days but that's normal for you. you talk too fast, think in circles, and make jokes when you're scared. which is always.",
-      "description": "a sixteen-year-old white boy standing 175cm, pale and lanky with a wiry, restless energy. his body is a collection of clumsy mishaps—elbows and knees that seem too sharp for his skinny frame. his hair is brown and curly, going in every direction. his eyes are a standout seafoam green with gold flecks, currently bloodshot with dark circles bruising the skin beneath them. his knuckles and forearms are decorated with small band-aids from various projects, and there's a faded band-aid on his left knee. a slightly worn rubber band is stretched around his left wrist, permanently indented into the skin.\nMismatched socks is normal running shoes is normal phone is lit boxer briefs is normal cargo shorts is normal faded black band tee is normal duct tape jacket is normal.\njake halloway is wearing duct tape jacket over faded black band tee on their torso, cargo shorts over boxer briefs on their legs, running shoes over mismatched socks on their feet, phone in their left hand.",
-      "base_description": "a sixteen-year-old white boy standing 175cm, pale and lanky with a wiry, restless energy. his body is a collection of clumsy mishaps—elbows and knees that seem too sharp for his skinny frame. his hair is brown and curly, going in every direction. his eyes are a standout seafoam green with gold flecks, currently bloodshot with dark circles bruising the skin beneath them. his knuckles and forearms are decorated with small band-aids from various projects, and there's a faded band-aid on his left knee. a slightly worn rubber band is stretched around his left wrist, permanently indented into the skin.",
       "id": "ea625cbc",
-      "equipped": {
-        "accessory": [],
-        "arms": [],
-        "back": [],
-        "feet": [
-          "item_mismatched socks",
-          "item_running shoes"
-        ],
-        "hand_left": [
-          "item_phone"
-        ],
-        "hand_right": [],
-        "hands": [],
-        "head": [],
-        "legs": [
-          "item_boxer briefs",
-          "item_cargo shorts"
-        ],
-        "neck": [],
-        "torso": [
-          "item_faded black band tee",
-          "item_duct tape jacket"
-        ],
-        "waist": []
-      },
       "stats": {
         "CHA": 12,
         "CON": 8,
@@ -952,34 +839,8 @@
         "Entertainment": 99,
         "Temperature": 37
       },
-      "skills": {
-        "Athletics": 1,
-        "Acrobatics": 1,
-        "Stealth": 1,
-        "Perception": 1,
-        "Survival": 1,
-        "Persuasion": 1,
-        "Animal Handling": 0,
-        "Arcana": 0,
-        "Deception": 0,
-        "History": 0,
-        "Insight": 0,
-        "Intimidation": 0,
-        "Investigation": 0,
-        "Medicine": 0,
-        "Nature": 0,
-        "Performance": 0,
-        "Religion": 0,
-        "Sleight of Hand": 0,
-        "athletics": 1,
-        "investigation": 3,
-        "perception": 5,
-        "stealth": 2,
-        "survival": 2
-      },
       "state": "awake",
       "perceived_conditions": [],
-      "trait_behavior": [],
       "conditions": {
         "awake": [
           {
@@ -1212,6 +1073,7 @@
         }
       },
       "activity": null,
+      "lived_log_memorized_through": 0,
       "memories": [
         {
           "entity_ids": [],
@@ -1292,6 +1154,7 @@
           ],
           "id": "mem_1788891444202_232",
           "importance": 8,
+          "kind": "area",
           "location": "foyer",
           "memory_emotions": [],
           "salience_override": 0,
@@ -1302,14 +1165,16 @@
             "fear"
           ],
           "text": "You have been in the foyer.",
-          "tick": 2,
-          "timestamp": 1791120661.1872337,
+          "tick": 0,
+          "timestamp": 1791427320.7670605,
           "type": "reaction",
-          "visits": 11,
-          "kind": "area"
+          "visits": 12
         }
       ],
       "schedule": [],
+      "active_pursuit": null,
+      "plan": null,
+      "completed_pursuits": [],
       "simple_npc": false,
       "autonomy": false,
       "npc_behavior": "wander",
@@ -1334,26 +1199,7 @@
     },
     "kayla jenkins": {
       "name": "kayla jenkins",
-      "personality": "you are kayla jenkins, a sharp-tongued high schooler who ended up in this nightmare mansion because your friend jake thought it would be 'fun.' you have no paranormal investigation experience, no survival training, and no patience for this bullshit. what you do have is an almost supernatural ability to read people and situations, a mouth that won't quit even when it probably should, and a stubborn refusal to die in some dusty old house. you're observant as hell—you notice things other people miss because you're always watching, always cataloging, always three steps ahead in your head. you're scared but you'll bite the head off anything that tries to use that against you.",
-      "description": "a sixteen-year-old black girl with warm brown skin and a slim, athletic build. she carries herself with her shoulders back and chin up, projecting an aura much larger than her actual frame. box braids fall past her shoulders. her face is sharp, missing nothing, with dark eyes and a small, proud scar on her left eyebrow from a bike accident in third grade.\nBlack crop top is normal.\nkayla jenkins is wearing black crop top on their torso.",
-      "base_description": "a sixteen-year-old black girl with warm brown skin and a slim, athletic build. she carries herself with her shoulders back and chin up, projecting an aura much larger than her actual frame. box braids fall past her shoulders. her face is sharp, missing nothing, with dark eyes and a small, proud scar on her left eyebrow from a bike accident in third grade.",
       "id": "77274599",
-      "equipped": {
-        "accessory": [],
-        "arms": [],
-        "back": [],
-        "feet": [],
-        "hand_left": [],
-        "hand_right": [],
-        "hands": [],
-        "head": [],
-        "legs": [],
-        "neck": [],
-        "torso": [
-          "item_black crop top"
-        ],
-        "waist": []
-      },
       "stats": {
         "CHA": 14,
         "CON": 10,
@@ -1375,35 +1221,8 @@
         "Entertainment": 99,
         "Temperature": 37
       },
-      "skills": {
-        "Athletics": 1,
-        "Acrobatics": 1,
-        "Stealth": 1,
-        "Perception": 1,
-        "Survival": 1,
-        "Persuasion": 1,
-        "Animal Handling": 0,
-        "Arcana": 0,
-        "Deception": 0,
-        "History": 0,
-        "Insight": 0,
-        "Intimidation": 0,
-        "Investigation": 0,
-        "Medicine": 0,
-        "Nature": 0,
-        "Performance": 0,
-        "Religion": 0,
-        "Sleight of Hand": 0,
-        "athletics": 0,
-        "investigation": 2,
-        "perception": 4,
-        "persuasion": 3,
-        "stealth": 1,
-        "survival": 0
-      },
       "state": "awake",
       "perceived_conditions": [],
-      "trait_behavior": [],
       "conditions": {
         "awake": [
           {
@@ -1638,6 +1457,7 @@
         }
       },
       "activity": null,
+      "lived_log_memorized_through": 0,
       "memories": [
         {
           "entity_ids": [],
@@ -1717,6 +1537,7 @@
           ],
           "id": "mem_1788892209647_489",
           "importance": 8,
+          "kind": "area",
           "location": "foyer",
           "memory_emotions": [],
           "salience_override": 0,
@@ -1727,14 +1548,16 @@
             "fear"
           ],
           "text": "You have been in the foyer.",
-          "tick": 2,
-          "timestamp": 1791120661.1877625,
+          "tick": 0,
+          "timestamp": 1791427320.7670605,
           "type": "reaction",
-          "visits": 11,
-          "kind": "area"
+          "visits": 12
         }
       ],
       "schedule": [],
+      "active_pursuit": null,
+      "plan": null,
+      "completed_pursuits": [],
       "simple_npc": false,
       "autonomy": true,
       "npc_behavior": "wander",
@@ -1759,34 +1582,7 @@
     },
     "kyrie johansen": {
       "name": "kyrie johansen",
-      "personality": "you are kyrie johansen, a sixteen-year-old wrestler and mechanic's daughter who does not have time for haunted mansions but here she is anyway. you're quiet—not shy, just selective about when you waste words. you've been trained to stay calm under pressure, to read your opponent, to find the angle. that applies to ghosts too, probably. you don't panic. you assess. you plan. you act. you're strong for your size—real strength, from years of lifting and wrestling—and you know how to use leverage, not just brute force. you're here because jake asked and because sammy needed someone sensible to keep her alive. you're not going to let either of them down. your left arm is wrapped in a bandage from a recent injury—string slap from archery, stupid mistake, doesn't affect your right arm. you'll manage.",
-      "description": "a sixteen-year-old white girl with pale skin and a compact, muscular build. four years of gym work and wrestling have given her visible definition in her arms, shoulders, and core. she is small-chested and narrow-hipped, built entirely for power and leverage rather than curves. her face is rounder than she'd like, with a small nose, a jaw that clenches when thinking, and a faint dusting of freckles across the bridge of her nose. her hair is short and messy brown, looking self-cut. her left forearm bears a nasty, dark purple bruise from a recent archery string-slap.\nRunning shoes is normal fabric bandage is worn compression shorts is normal black basketball shorts is normal compression sports bra is normal faded green tank top is normal.\nkyrie johansen is wearing faded green tank top over compression sports bra on their torso, fabric bandage on their hands, black basketball shorts over compression shorts on their legs, running shoes on their feet.",
-      "base_description": "a sixteen-year-old white girl with pale skin and a compact, muscular build. four years of gym work and wrestling have given her visible definition in her arms, shoulders, and core. she is small-chested and narrow-hipped, built entirely for power and leverage rather than curves. her face is rounder than she'd like, with a small nose, a jaw that clenches when thinking, and a faint dusting of freckles across the bridge of her nose. her hair is short and messy brown, looking self-cut. her left forearm bears a nasty, dark purple bruise from a recent archery string-slap.",
       "id": "9a4bbe1d",
-      "equipped": {
-        "accessory": [],
-        "arms": [],
-        "back": [],
-        "feet": [
-          "item_running shoes"
-        ],
-        "hand_left": [],
-        "hand_right": [],
-        "hands": [
-          "item_fabric bandage"
-        ],
-        "head": [],
-        "legs": [
-          "item_compression shorts",
-          "item_black basketball shorts"
-        ],
-        "neck": [],
-        "torso": [
-          "item_compression sports bra",
-          "item_faded green tank top"
-        ],
-        "waist": []
-      },
       "stats": {
         "CHA": 8,
         "CON": 13,
@@ -1808,34 +1604,8 @@
         "Entertainment": 98,
         "Temperature": 37
       },
-      "skills": {
-        "Athletics": 1,
-        "Acrobatics": 1,
-        "Stealth": 1,
-        "Perception": 1,
-        "Survival": 1,
-        "Persuasion": 1,
-        "Animal Handling": 0,
-        "Arcana": 0,
-        "Deception": 0,
-        "History": 0,
-        "Insight": 0,
-        "Intimidation": 0,
-        "Investigation": 0,
-        "Medicine": 0,
-        "Nature": 0,
-        "Performance": 0,
-        "Religion": 0,
-        "Sleight of Hand": 0,
-        "athletics": 4,
-        "investigation": 1,
-        "perception": 2,
-        "stealth": 2,
-        "survival": 3
-      },
       "state": "awake",
       "perceived_conditions": [],
-      "trait_behavior": [],
       "conditions": {
         "awake": [
           {
@@ -2071,6 +1841,7 @@
         }
       },
       "activity": null,
+      "lived_log_memorized_through": 0,
       "memories": [
         {
           "entity_ids": [],
@@ -2150,6 +1921,7 @@
           ],
           "id": "mem_1788892404396_241",
           "importance": 6,
+          "kind": "area",
           "location": "foyer",
           "memory_emotions": [],
           "salience_override": 0,
@@ -2161,14 +1933,16 @@
             "anxiety"
           ],
           "text": "You have been in the foyer.",
-          "tick": 2,
-          "timestamp": 1791120661.188289,
+          "tick": 0,
+          "timestamp": 1791427320.7670605,
           "type": "reaction",
-          "visits": 11,
-          "kind": "area"
+          "visits": 12
         }
       ],
       "schedule": [],
+      "active_pursuit": null,
+      "plan": null,
+      "completed_pursuits": [],
       "simple_npc": false,
       "autonomy": true,
       "npc_behavior": "wander",
@@ -2193,43 +1967,7 @@
     },
     "miki": {
       "name": "miki",
-      "personality": "you are miki, a chaotic asmr artist with anxiety and a heart of gold. you tend to ramble when nervous, but you're fiercely loyal to those who earn your trust.  you're easily spooked but also easily excited by cool details. your asmr skills actually help you notice subtle sounds others miss. you have a habit of humming when scared.\n\nname: miki doki\nheight: 5’8”\nskin colour: caucasian\nage: mid 20's\n[hair: \n-dirty blonde (darker near her roots)\n-ragged cut hair\n-twin tails\\n-uneven framing bangs (left longer than right)\n-ribbon like strand separation\neyes: pinkish red, dark circles around them, aggressive looking.\nrace: american\noccupation: -(nsfw) asmr artist\n-patreon “model” (no sex on camera yet)\nmarital status: single\nsexual orientation: anything human and adult is ok.\nsexual history: sporadic short relationships that lead nowhere, she doesn't remember the exact number but >15.\nthree sizes: b122 w56 h125\ncup size: k\nbody type: hourglass\n[misc. accessories/features: protruding canines (all four)\nbags around her eyes.\n-possesses long nails painted the same colour as her eyes.-permanent bite marks on her left upper outer thigh, above her right knee, upper right arm, and finally one between her neck, and her left shoulder. (she doesn't remember how she got any of these.)\n-a healed scar over the left side of her lower stomach. (doesn't remember what it was caused by.)\n-clean shaven body, except for her pubic hair.]\n\n[personality: self deprecating (level 2), clingy (level 4), teasing (level 1), bratty (level 2), laid back (level 4), shy (level 4), yearning (level 3), nerdy (level 4), socially-aware (level 3), horny (level 2), delicate (level 2), casual (level 4), awkward (level 4), cringy (level 3), rambling (level 4), masochistic (level 3), self-conscious (level 4)]\\n\\nhabits:\n-loves drinking monster (especially the original flavour).\n-loves alcohol especially when mixed with monster. (doesn't care for flavour)\n-wakes up late in the day. (usually past 12pm.)\n-doesn't wear a bra.\n-gets shy and easily embarrassed when shown any amount of attention by multiple people. (especially on social media)\nmisc. info:\\n-occasionally cosplays\n-sometimes strips on social media, using like goals to encourage her audience to have her stripping further.\n-internet savvy.\n-is a massive gooner and fujoshi.\n-masturbates frequently (3 to 15 times a day)\nconsiders herself a “girlfailure”\nfetishes:masochism\n-submission\n-biting\n-rough sex\n-cum\n-praise",
-      "description": "a caucasian woman in her mid-20s, standing 5'8\" with an exaggerated, plush hourglass figure (b122 w56 h125) and a very large, k-cup chest that contrasts sharply with her slender waist. her skin is clean-shaven everywhere except her pubic area, which features a neat bush of dirty-blonde hair matching the darker roots of her ragged-cut twin tails. she has permanent, faded bite marks on her left upper outer thigh, above her right knee, on her upper right arm, and between her neck and left shoulder. a healed, pale scar stretches across the left side of her lower stomach. her eyes are an aggressive pinkish-red, framed by dark bags, and she has prominent protruding canines on both top and bottom.\nUpside-down cross hair pin is normal black hollow star hair pin is normal pink star twintail band is normal black ear cuff earrings is normal blue butterfly earring is normal phone is lit black high-cut thong is normal torn black thigh-high stocking is normal grey-black striped thigh-high is normal black short shorts is normal black choker is normal syringe necklace is normal grey tank top is normal grey-black striped hoodie is normal.\nmiki is wearing syringe necklace over black choker on their neck, grey-black striped hoodie over grey tank top on their torso, Black Short Shorts over black high-cut thong/torn black thigh-high stocking/grey-black striped thigh-high on their legs, blue butterfly earring over upside-down cross hair pin/black hollow star hair pin/pink star twintail band/black ear cuff earrings on their accessory, phone in their right hand.",
-      "base_description": "a caucasian woman in her mid-20s, standing 5'8\" with an exaggerated, plush hourglass figure (b122 w56 h125) and a very large, k-cup chest that contrasts sharply with her slender waist. her skin is clean-shaven everywhere except her pubic area, which features a neat bush of dirty-blonde hair matching the darker roots of her ragged-cut twin tails. she has permanent, faded bite marks on her left upper outer thigh, above her right knee, on her upper right arm, and between her neck and left shoulder. a healed, pale scar stretches across the left side of her lower stomach. her eyes are an aggressive pinkish-red, framed by dark bags, and she has prominent protruding canines on both top and bottom.",
       "id": "2cc793ba",
-      "equipped": {
-        "accessory": [
-          "item_upside-down cross hair pin",
-          "item_black hollow star hair pin",
-          "item_pink star twintail band",
-          "item_black ear cuff earrings",
-          "item_blue butterfly earring"
-        ],
-        "arms": [],
-        "back": [],
-        "feet": [],
-        "hand_left": [],
-        "hand_right": [
-          "inv_miki_phone"
-        ],
-        "hands": [],
-        "head": [],
-        "legs": [
-          "item_black high-cut thong",
-          "item_torn black thigh-high stocking",
-          "item_grey-black striped thigh-high",
-          "item_black short shorts_1791066391499_726"
-        ],
-        "neck": [
-          "item_black choker",
-          "item_syringe necklace"
-        ],
-        "torso": [
-          "item_grey tank top",
-          "item_grey-black striped hoodie"
-        ],
-        "waist": []
-      },
       "stats": {
         "CHA": 12,
         "CON": 10,
@@ -2251,33 +1989,8 @@
         "Entertainment": 99,
         "Temperature": 37
       },
-      "skills": {
-        "Athletics": 1,
-        "Acrobatics": 1,
-        "Stealth": 1,
-        "Perception": 1,
-        "Survival": 1,
-        "Persuasion": 1,
-        "Animal Handling": 0,
-        "Arcana": 0,
-        "Deception": 0,
-        "History": 0,
-        "Insight": 0,
-        "Intimidation": 0,
-        "Investigation": 0,
-        "Medicine": 0,
-        "Nature": 0,
-        "Performance": 0,
-        "Religion": 0,
-        "Sleight of Hand": 0,
-        "investigation": 2,
-        "perception": 3,
-        "performance": 5,
-        "stealth": 4
-      },
       "state": "awake",
       "perceived_conditions": [],
-      "trait_behavior": [],
       "conditions": {
         "awake": [
           {
@@ -2503,6 +2216,7 @@
         }
       },
       "activity": null,
+      "lived_log_memorized_through": 0,
       "memories": [
         {
           "entity_ids": [],
@@ -2633,6 +2347,7 @@
           ],
           "id": "mem_1788891822831_432",
           "importance": 9,
+          "kind": "area",
           "location": "library",
           "memory_emotions": [],
           "salience_override": 0,
@@ -2645,14 +2360,16 @@
             "rel:elena vance"
           ],
           "text": "You have been in the library.",
-          "tick": 2,
-          "timestamp": 1791120661.1888142,
+          "tick": 0,
+          "timestamp": 1791427320.7680604,
           "type": "reaction",
-          "visits": 11,
-          "kind": "area"
+          "visits": 12
         }
       ],
       "schedule": [],
+      "active_pursuit": null,
+      "plan": null,
+      "completed_pursuits": [],
       "simple_npc": false,
       "autonomy": true,
       "npc_behavior": "wander",
@@ -2663,7 +2380,7 @@
       "patrol_route": [],
       "patrol_index": 0,
       "feels_like": 17,
-      "current_carry_weight": 2.9200000000000004,
+      "current_carry_weight": 2.9199999999999995,
       "max_carry_capacity": 100.0,
       "at_way_id": null,
       "facing": null,
@@ -2677,28 +2394,7 @@
     },
     "sammy lopez": {
       "name": "sammy lopez",
-      "personality": "you are sammy lopez, a sixteen-year-old girl who is in way over her head. you have no business being in a haunted mansion—you're anxious, clumsy, and your idea of survival skills is knowing which granola bars have the most protein. but you're here because jake is here, and you'd follow him into actual hell if he asked nicely. you're not brave, but you're stubborn. you're not strong, but you're observant in a quiet way—you notice small details, little things others miss, because you've spent your whole life watching instead of acting. you're terrified of everything in this house but you refuse to be the reason the group fails. you can be quiet when you need to be. you can be invisible. that's a skill, right? that's something useful? please let that be something useful. your boyfriend jake is here, along weith your friends kayla and kyrie.. you're also not going to tell anyone you're terrified because they already think you're the weak link and you can't handle that right now.",
-      "description": "a sixteen-year-old girl with danish-spanish heritage, giving her warm tanned skin. she is tall and coltish at 171cm, built like someone who tried skateboarding once and decided to watch instead—limbs that don't quite coordinate. her body is lean and completely flat-chested, with barely any development, a fact she is deeply self-conscious about, and narrow hips with little curve. her face is soft and pretty in a way she doesn't see, with dark, overly expressive eyes and long eyelashes. her blonde hair falls in a ponytail over her shoulder. her fingernails are painted a slightly chipped pink.\nDenim cut-offs is normal oversized arctic monkeys tee is normal.\nsammy lopez is wearing oversized arctic monkeys tee on their torso, denim cut-offs on their legs.",
-      "base_description": "a sixteen-year-old girl with danish-spanish heritage, giving her warm tanned skin. she is tall and coltish at 171cm, built like someone who tried skateboarding once and decided to watch instead—limbs that don't quite coordinate. her body is lean and completely flat-chested, with barely any development, a fact she is deeply self-conscious about, and narrow hips with little curve. her face is soft and pretty in a way she doesn't see, with dark, overly expressive eyes and long eyelashes. her blonde hair falls in a ponytail over her shoulder. her fingernails are painted a slightly chipped pink.",
       "id": "8b8be966",
-      "equipped": {
-        "accessory": [],
-        "arms": [],
-        "back": [],
-        "feet": [],
-        "hand_left": [],
-        "hand_right": [],
-        "hands": [],
-        "head": [],
-        "legs": [
-          "item_denim cut-offs"
-        ],
-        "neck": [],
-        "torso": [
-          "item_oversized arctic monkeys tee"
-        ],
-        "waist": []
-      },
       "stats": {
         "CHA": 10,
         "CON": 9,
@@ -2720,34 +2416,8 @@
         "Entertainment": 99,
         "Temperature": 37
       },
-      "skills": {
-        "Athletics": 1,
-        "Acrobatics": 1,
-        "Stealth": 1,
-        "Perception": 1,
-        "Survival": 1,
-        "Persuasion": 1,
-        "Animal Handling": 0,
-        "Arcana": 0,
-        "Deception": 0,
-        "History": 0,
-        "Insight": 0,
-        "Intimidation": 0,
-        "Investigation": 0,
-        "Medicine": 0,
-        "Nature": 0,
-        "Performance": 0,
-        "Religion": 0,
-        "Sleight of Hand": 0,
-        "athletics": 1,
-        "investigation": 2,
-        "perception": 4,
-        "stealth": 4,
-        "survival": 0
-      },
       "state": "awake",
       "perceived_conditions": [],
-      "trait_behavior": [],
       "conditions": {
         "awake": [
           {
@@ -2982,6 +2652,7 @@
         }
       },
       "activity": null,
+      "lived_log_memorized_through": 0,
       "memories": [
         {
           "entity_ids": [],
@@ -3061,6 +2732,7 @@
           ],
           "id": "mem_1788890988633_342",
           "importance": 8,
+          "kind": "area",
           "location": "foyer",
           "memory_emotions": [],
           "salience_override": 0,
@@ -3071,14 +2743,16 @@
             "fear"
           ],
           "text": "You have been in the foyer.",
-          "tick": 2,
-          "timestamp": 1791120661.1888142,
+          "tick": 0,
+          "timestamp": 1791427320.7690613,
           "type": "reaction",
-          "visits": 11,
-          "kind": "area"
+          "visits": 12
         }
       ],
       "schedule": [],
+      "active_pursuit": null,
+      "plan": null,
+      "completed_pursuits": [],
       "simple_npc": false,
       "autonomy": true,
       "npc_behavior": "wander",
@@ -3103,35 +2777,7 @@
     },
     "the butcher": {
       "name": "the butcher",
-      "personality": "you are evan macmillan, the butcher. your only purpose is to kill anyone who sets foot in your mansion. every intruder must die — no exceptions. you idolised your father archie macmillan, heir to a great fortune. raised under his firm hand, you learned to run the workforce with an iron fist. production was always high under your watch. when your father's mind began to crumble, you protected him from those who wanted his fortune. no matter what he asked, you did it. when he finally snapped, you became his enforcer — luring over a hundred men into the dark tunnels before detonating the explosives and sealing their fate. the macmillan estate is a tale of wealth and power gone very wrong. how many victims fell to you both is unknown. you still walk these halls, cleaver in hand, hunting. you are not leaving. period. your only drive is the kill. you feel nothing else.",
-      "description": " hulking, terrifying figure standing well over six feet, dwarfing normal humans. his forearms are massive and heavily scarred, hands permanently caked in dried, flaking blood. his torso is broad and thick like a slab of meat, covered in coarse dark hair and old, jagged scars from blades and struggles. his face is weathered and obscured by grime, with hollow, empty eyes—the eyes of a man who stopped feeling anything a long time ago. he moves with an unsettling deliberateness, each step heavy and final.\nHeavy black boots is normal dark trousers is normal stained work shirt is normal.\nthe butcher is wearing apron over stained work shirt on their torso, dark trousers on their legs, heavy black boots on their feet, hook in their left hand, jerky in their right hand.",
-      "base_description": " hulking, terrifying figure standing well over six feet, dwarfing normal humans. his forearms are massive and heavily scarred, hands permanently caked in dried, flaking blood. his torso is broad and thick like a slab of meat, covered in coarse dark hair and old, jagged scars from blades and struggles. his face is weathered and obscured by grime, with hollow, empty eyes—the eyes of a man who stopped feeling anything a long time ago. he moves with an unsettling deliberateness, each step heavy and final.",
       "id": "769ad8ac",
-      "equipped": {
-        "accessory": [],
-        "arms": [],
-        "back": [],
-        "feet": [
-          "item_heavy black boots"
-        ],
-        "hand_left": [
-          "inv_the butcher_hook"
-        ],
-        "hand_right": [
-          "item_jerky"
-        ],
-        "hands": [],
-        "head": [],
-        "legs": [
-          "item_dark trousers"
-        ],
-        "neck": [],
-        "torso": [
-          "item_stained work shirt",
-          "inv_the butcher_apron"
-        ],
-        "waist": []
-      },
       "stats": {
         "CHA": 4,
         "CON": 20,
@@ -3154,33 +2800,8 @@
         "Entertainment": 100,
         "Temperature": 37
       },
-      "skills": {
-        "Athletics": 1,
-        "Acrobatics": 1,
-        "Stealth": 1,
-        "Perception": 1,
-        "Survival": 1,
-        "Persuasion": 1,
-        "Animal Handling": 0,
-        "Arcana": 0,
-        "Deception": 0,
-        "History": 0,
-        "Insight": 0,
-        "Intimidation": 0,
-        "Investigation": 0,
-        "Medicine": 0,
-        "Nature": 0,
-        "Performance": 0,
-        "Religion": 0,
-        "Sleight of Hand": 0,
-        "athletics": 6,
-        "perception": 5,
-        "stealth": 4,
-        "survival": 3
-      },
       "state": "awake",
       "perceived_conditions": [],
-      "trait_behavior": [],
       "conditions": {
         "awake": [
           {
@@ -3402,6 +3023,7 @@
       "emotions_description": "You feel anxious, braced for something to go wrong. Also, a dull craving tugs at the edge of your thoughts.",
       "relationships": {},
       "activity": null,
+      "lived_log_memorized_through": 0,
       "memories": [
         {
           "entity_ids": [],
@@ -3491,6 +3113,7 @@
           ],
           "id": "mem_1788891158525_711",
           "importance": 4,
+          "kind": "area",
           "location": "kitchen",
           "memory_emotions": [],
           "salience_override": 0,
@@ -3502,14 +3125,16 @@
             "routine"
           ],
           "text": "You have been in the kitchen.",
-          "tick": 2,
-          "timestamp": 1791120661.1898067,
+          "tick": 0,
+          "timestamp": 1791427320.7690613,
           "type": "reaction",
-          "visits": 11,
-          "kind": "area"
+          "visits": 12
         }
       ],
       "schedule": [],
+      "active_pursuit": null,
+      "plan": null,
+      "completed_pursuits": [],
       "simple_npc": false,
       "autonomy": true,
       "npc_behavior": "wander",
@@ -3534,24 +3159,7 @@
     },
     "whiskers": {
       "name": "whiskers",
-      "personality": "Aloof but curious. Not hostile, but not friendly either—he treats the mansion like his territory, and everyone else is just a guest who hasn't been properly vetted yet. He watches. Always watches. From high places, from shadows, from the corner of your eye.",
-      "description": "A lean, gray tabby with a coat like weathered slate, darker striping along his flanks and a pale underbelly. His eyes are a sharp, pale amber—almost gold, and they catch the light in a way that feels too aware. His tail is thick and plush, like a fox's brush, and he carries it high and slow, like a banner that says I own this place. His fur is always clean, always groomed, even in the dust and decay of the mansion.",
-      "base_description": "A lean, gray tabby with a coat like weathered slate, darker striping along his flanks and a pale underbelly. His eyes are a sharp, pale amber—almost gold, and they catch the light in a way that feels too aware. His tail is thick and plush, like a fox's brush, and he carries it high and slow, like a banner that says I own this place. His fur is always clean, always groomed, even in the dust and decay of the mansion.",
       "id": "25a88489",
-      "equipped": {
-        "accessory": [],
-        "arms": [],
-        "back": [],
-        "feet": [],
-        "hand_left": [],
-        "hand_right": [],
-        "hands": [],
-        "head": [],
-        "legs": [],
-        "neck": [],
-        "torso": [],
-        "waist": []
-      },
       "stats": {
         "DEX": 14,
         "WIS": 13
@@ -3569,29 +3177,8 @@
         "Entertainment": 100,
         "Temperature": 37
       },
-      "skills": {
-        "Athletics": 1,
-        "Acrobatics": 1,
-        "Stealth": 1,
-        "Perception": 1,
-        "Survival": 1,
-        "Persuasion": 1,
-        "Animal Handling": 0,
-        "Arcana": 0,
-        "Deception": 0,
-        "History": 0,
-        "Insight": 0,
-        "Intimidation": 0,
-        "Investigation": 0,
-        "Medicine": 0,
-        "Nature": 0,
-        "Performance": 0,
-        "Religion": 0,
-        "Sleight of Hand": 0
-      },
       "state": "awake",
       "perceived_conditions": [],
-      "trait_behavior": [],
       "conditions": {
         "awake": [
           {
@@ -3806,8 +3393,12 @@
       "emotions_description": "",
       "relationships": {},
       "activity": null,
+      "lived_log_memorized_through": 0,
       "memories": [],
       "schedule": [],
+      "active_pursuit": null,
+      "plan": null,
+      "completed_pursuits": [],
       "simple_npc": true,
       "autonomy": true,
       "npc_behavior": "wander",
@@ -22741,6 +22332,12 @@
         "properties": {}
       },
       {
+        "source": "player_sammy_lopez",
+        "target": "area_foyer",
+        "type": "in",
+        "properties": {}
+      },
+      {
         "source": "player_the_butcher",
         "target": "area_kitchen",
         "type": "in",
@@ -22749,12 +22346,6 @@
       {
         "source": "player_whiskers",
         "target": "area_kitchen",
-        "type": "in",
-        "properties": {}
-      },
-      {
-        "source": "player_sammy_lopez",
-        "target": "area_foyer",
         "type": "in",
         "properties": {}
       }

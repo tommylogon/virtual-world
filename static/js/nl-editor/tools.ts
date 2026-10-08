@@ -451,6 +451,22 @@ window.NLEditorTools = (() => {
         {
             type: 'function',
             function: {
+                name: 'list_world_issues',
+                description: 'List authoring issues from the World Issues validator (the Issues tab): empty triggers, orphan/dangling trigger edges, ways with no cardinal or pass message, nodes drifted from their library, orphaned nodes. Use this to find what to fix, stage fixes with the normal tools, then re-run to confirm they cleared. Read-only; it never dismisses — that is the UI tab.',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        severity: { type: 'string', enum: ['error', 'warning', 'info'], description: 'Only issues of this severity' },
+                        code: { type: 'string', description: 'Only this issue code (e.g. empty_trigger, way_missing_cardinal, orphaned_node)' },
+                        node_id: { type: 'string', description: 'Only issues raised against this node' },
+                        limit: { type: 'number', description: 'Max issues to return (default 50, max 500)' }
+                    }
+                }
+            }
+        },
+        {
+            type: 'function',
+            function: {
                 name: 'search_library_items',
                 description: 'Search the curated Item Library to find reusable templates before creating from scratch.',
                 parameters: {
@@ -1196,6 +1212,27 @@ window.NLEditorTools = (() => {
                             return { count: compact.length, traits: compact };
                         } catch (e: any) {
                             return { count: 0, traits: [], error: e.message };
+                        }
+                    }
+                    case 'list_world_issues': {
+                        try {
+                            const params = new URLSearchParams();
+                            if (args.node_id) params.set('node_id', String(args.node_id));
+                            const qs = params.toString();
+                            const res = await apiGet('/api/triggers/validate' + (qs ? ('?' + qs) : ''));
+                            let issues = Array.isArray(res?.issues) ? res.issues : [];
+                            if (args.severity) issues = issues.filter((i: any) => i.severity === args.severity);
+                            if (args.code) issues = issues.filter((i: any) => i.code === args.code);
+                            const limit = Number.isFinite(args.limit) ? Math.max(1, Math.min(500, args.limit)) : 50;
+                            const by_severity: Record<string, number> = { error: 0, warning: 0, info: 0 };
+                            for (const i of issues) if (i && i.severity in by_severity) by_severity[i.severity]++;
+                            const compact = issues.slice(0, limit).map((i: any) => ({
+                                code: i.code, severity: i.severity, message: i.message,
+                                node_id: i.source_node_id || null
+                            }));
+                            return { count: issues.length, shown: compact.length, by_severity, issues: compact };
+                        } catch (e: any) {
+                            return { count: 0, issues: [], error: e.message };
                         }
                     }
                     case 'list_world_summary': {

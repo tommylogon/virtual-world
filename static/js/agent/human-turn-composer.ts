@@ -1,78 +1,70 @@
 /**
- * human-turn-composer.js — the human turn PANEL (task-333 full redesign)
+ * human-turn-composer.js — the human turn PANEL (task-333; continuous multi-action v4, task-352)
  *
  * @module agent/human-turn-composer — the panel you play a character from
- * @contributes HumanTurnComposer: scene view, feed/digest, You strip, composer (do/say/emote/memory), phases
+ * @contributes HumanTurnComposer: scene view, feed/digest, You strip, step composer, budget pips, react beat
  * @powers The human turn, Turn queue — actually taking a turn as a character
- * @relates uses turn-feed + turn-scene-view + api (action submit) + agent-engine state
+ * @relates uses turn-feed + turn-scene-view + api (action submit) + agent-engine state + action-tiers
  * @docs docs/virtualWorld/Gameplay/Turn Queue & Human Turns.md
  *
- * Scene-first three-zone layout matching
- * docs/design/human-turn-panel-v2-mockup.html (v2.7):
+ * A turn is a budget you spend in a continuous loop, in ONE panel that stays
+ * open (v4, task-352):
  *
  *   ┌ header: ✈ <char>'s turn · tick · next up ┐
  *   │ scene view (clickable chips) │ what happened (feed) │
- *   │ You strip: vitals · conditions · carrying · wearing · known │
- *   │ composer: ⚙ do · 🗨 say(+volume) · 🎭 emote · 🧠 memory      │
- *   └ phase bar · advanced (relation/where/confirm) · raw json ┘
+ *   │ You strip · budget pips ◆ major ◇ minor ●●● free     │
+ *   │ ⚙ do · 🗨 say(+volume) · 🎭 emote · 🧠 memory  [Act]  │
+ *   │ [⏭ end turn]                                          │
+ *   └ advanced (relation) · timeskip                      ┘
  *
- * One turn = do + say + emote TOGETHER in a single structured payload.
- * Menu picks and typed input only FILL the draft — nothing fires until
- * Act (compose-then-commit). After Act resolves, react() opens the react
- * phase (say/emote/memory bound to the result — task-334 lane 1); a dash
- * grants one extra action slot before react (the burst phase).
+ * act → the result lands in the feed, pips drop, the scene refreshes → act
+ * again … or End. There is no per-action react modal: your reaction to an
+ * outcome is the NEXT step's say/emote/memory (composed after you saw the
+ * result), and one optional closing beat when you End. This mirrors the agent
+ * loop (decide → act → react) without N modal round-trips.
+ *
+ * Say / emote / memory are EXPRESSION, unbudgeted (task-352): they never cost a
+ * pip. Only the action charges `turn_slots`; `wait` and the free utility verbs
+ * cost a free slot. The old `dash burst` phase and its narration regex are gone.
  *
  * Contract with agent-engine.js:
- *   request(charName, opts?) → Promise<{action, speech, speechVolume,
- *       emote, memory} | {endTurn:true}>
- *   react(charName, lastResult) → Promise<same shape (action empty)>
+ *   request(charName, opts?) → Promise<{ step: NormalizedReply } | {endTurn:true}>
+ *       Opens the panel on the first call; subsequent calls refresh it and arm
+ *       the next step. Never hides — the turn is one continuous panel.
+ *   react(charName, results) → Promise<{speech, volume, emote, memory, target} | {endTurn:true}>
+ *       The single closing beat after the turn ran (task-334 lane 1).
+ *   closeTurn()              → hides the panel (call once the turn is done).
  *
  * Load AFTER response-parser.js / turn-scene-view.js / turn-you-strip.js /
- * turn-feed.js, BEFORE agent-engine.js.
+ * turn-feed.js / action-tiers.js, BEFORE agent-engine.js.
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 
-// Lazy lit-html tag: window.Lit is only available at call time (deferred
-// module bootstrap). Unique per file so top-level consts never collide.
 const htcPanelTag = (strings: TemplateStringsArray, ...values: unknown[]) => window.Lit.html(strings, ...values);
 
-// Named `HumanTurnComposerModule` rather than assigning straight to
-// `window.HumanTurnComposer` so the module keeps a real type.
 const HumanTurnComposerModule = (() => {
     'use strict';
 
-    let _activeResolve: ((value: TurnResult) => void) | null = null;   // compose/burst phase resolver
-    let _reactResolve: ((value: TurnResult) => void) | null = null;    // react phase resolver
+    let _activeResolve: ((value: TurnResult) => void) | null = null;
+    let _reactResolve: ((value: ReactResult) => void) | null = null;
+    let _phase: 'compose' | 'react' = 'compose';
     let _built = false;
-    // Non-null by construction: every entry point (open/request/react) calls
-    // build() first, and nothing below reads these before that. Typed as
-    // HTMLElement rather than `| null` so the ~40 read sites stay readable.
     let _modal!: HTMLElement;
     let _overlay!: HTMLElement;
     let _charName: string | null = null;
-    let _phase: 'compose' | 'burst' | 'react' = 'compose';
-    let _lastResult = '';
     let _volume = 'say';
-    // task-610: set by a person-menu "Whisper to X" pick; consumed by
-    // buildPayload so the speech reaches only that target (task-248).
     let _pendingSpeechTarget: string | null = null;
-    let _confirmBeforeAct = true;
     let _advanced = false;
-    let _jsonMode = false;
-    let _jsonText = '';
     let _scene: Record<string, any> | null = null;
-    let _pendingConfirm: TurnPayload | null = null;
-    // Set when the committed action examines a person; consumed by the react
-    // phase to open that character's portrait (CharacterArt.open).
-    let _pendingPortrait: PortraitTarget | null = null;
 
-    // The panel's own markup is static, so every `#htc-*` lookup below is
-    // non-null by construction. These two helpers keep the ~70 call sites
-    // readable instead of scattering `as HTMLElement` across the file.
     const q = (sel: string) => _modal.querySelector(sel) as HTMLElement;
     const qa = (sel: string): HTMLElement[] => Array.from(_modal.querySelectorAll(sel)) as HTMLElement[];
 
     const STYLE_ID = 'htc-styles';
+
+    function actionTiers(): { tierOf?: (v: string) => string } | null {
+        return (window as unknown as { ActionTiers?: { tierOf?: (v: string) => string } }).ActionTiers || null;
+    }
 
     // ── styles ───────────────────────────────────────────────────────
 
@@ -88,6 +80,7 @@ const HumanTurnComposerModule = (() => {
             .htc-spacer { flex:1; }
             #htc-meta { color:#78828e; font-size:11.5px; }
             #htc-meta b { color:#b48ce0; }
+            #htc-close { background:none; border:0; color:#6b7686; cursor:pointer; font-size:15px; }
 
             .htc-digest { margin:10px 16px 0; background:#241a10; border:1px solid #40301c; border-radius:10px; padding:8px 12px; }
             .htc-digest .dt { font-size:10.5px; text-transform:uppercase; letter-spacing:1.1px; color:#ffb37a; margin-bottom:4px; }
@@ -107,11 +100,16 @@ const HumanTurnComposerModule = (() => {
             @media (max-width: 940px) { .htc-grid { grid-template-columns: 1fr; } .htc-feed { border-left:0; border-top:1px solid #333a45; max-height:180px; } }
 
             .htc-composer { border-top:1px solid #333a45; background:#1a1d24; padding:11px 16px 13px; border-radius:0 0 14px 14px; }
-            .htc-phasebar { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
-            #htc-phase { font-size:11.5px; padding:3px 11px; border-radius:999px; background:#14231a; color:#57c98f; border:1px solid #2c4a36; }
-            #htc-phase.burst { background:#2b1f42; color:#d9baff; border-color:#4a3668; }
-            #htc-phase.react { background:#241a10; color:#ffd28f; border-color:#40301c; }
-            #htc-phase-note { font-size:11.5px; color:#78828e; }
+            .htc-budget { display:flex; align-items:center; gap:14px; margin-bottom:9px; }
+            .htc-pips { display:flex; align-items:center; gap:6px; }
+            .htc-pip { width:15px; height:15px; display:inline-block; }
+            .htc-pip.major { border:2px solid #d9baff; transform:rotate(45deg); border-radius:3px; }
+            .htc-pip.minor { border:2px solid #4f9cf9; border-radius:3px; }
+            .htc-pip.free { border-radius:50%; border:2px solid #57c98f; width:12px; height:12px; }
+            .htc-pip.spent { opacity:.22; }
+            .htc-budgetlab { font-size:11.5px; color:#78828e; }
+            .htc-budgetlab b { color:#e6e8ee; }
+            #htc-phase-note { font-size:11.5px; color:#78828e; margin-left:auto; }
             #htc-result { margin:0 0 8px 64px; font-size:12.5px; color:#98a3ae; border-left:3px solid #2c4a36; padding-left:10px; }
             #htc-result b { color:#57c98f; }
 
@@ -119,7 +117,6 @@ const HumanTurnComposerModule = (() => {
             .htc-crow .lbl { width:56px; text-align:right; font-size:11.5px; color:#7d8894; flex:none; }
             .htc-crow input[type=text] { flex:1; background:#141820; border:1px solid #2a303b; color:#e6e8ee; border-radius:8px; padding:8px 11px; font-size:13px; outline:none; min-width:0; color-scheme:dark; }
             .htc-crow input[type=text]:focus { border-color:#4f9cf9; box-shadow:0 0 0 2px rgba(79,156,249,.22); }
-            .htc-crow textarea { flex:1; background:#141820; border:1px solid #2a303b; border-radius:8px; color:#d9c9a9; font:inherit; resize:none; outline:none; padding:6px 11px; color-scheme:dark; }
             .htc-volseg { display:flex; border:1px solid #2a303b; border-radius:8px; overflow:hidden; flex:none; }
             .htc-volseg button { background:#1d212a; color:#8b95a1; border:0; padding:7px 8px; font-size:11px; border-right:1px solid #2a303b; cursor:pointer; }
             .htc-volseg button:last-child { border-right:0; }
@@ -130,22 +127,12 @@ const HumanTurnComposerModule = (() => {
             .htc-btn-primary:disabled { opacity:.45; cursor:default; }
             #htc-clear-do { background:none; border:0; color:#6b7686; cursor:pointer; font-size:12px; }
 
-            #htc-preview { margin:4px 0 0 64px; font-family:Consolas,monospace; font-size:11px; color:#79e6a8; background:#0d1712; border:1px solid #1c3527; border-radius:8px; padding:5px 10px; white-space:pre-wrap; }
-            .htc-footer-row { margin:7px 0 0 64px; display:flex; gap:14px; align-items:center; }
-            .htc-linkbtn.endturn { color:#e08f8f; }
+            .htc-footer-row { margin:8px 0 0 64px; display:flex; gap:14px; align-items:center; }
+            .htc-linkbtn.endturn { color:#e08f8f; margin-left:auto; }
             #htc-advanced { margin:6px 0 0 64px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
             #htc-advanced select { background:#1d212a; color:#9aa3b2; border:1px solid #2a303b; border-radius:7px; padding:5px 8px; font-size:11.5px; color-scheme:dark; }
             #htc-advanced select:disabled { color:#55606c; }
-            .htc-togglelbl { display:inline-flex; align-items:center; gap:5px; font-size:11.5px; color:#8b95a1; cursor:pointer; user-select:none; }
-            #htc-json textarea { width:100%; min-height:110px; background:#141820; border:1px solid #2a303b; border-radius:8px; color:#79e6a8; font-family:Consolas,monospace; font-size:12px; padding:8px 11px; outline:none; resize:vertical; color-scheme:dark; }
-
-            .htc-confirm-scrim { position:fixed; inset:0; z-index:1500; background:rgba(0,0,0,.6); }
-            .htc-confirm-box { position:fixed; z-index:1501; left:50%; top:36%; transform:translate(-50%,-50%); width:min(480px,92vw); background:#1e2128; border:1px solid #333b47; border-radius:14px; padding:15px 17px; box-shadow:0 18px 60px rgba(0,0,0,.8); }
-            .htc-confirm-box h5 { margin:0 0 9px; color:#e6e8ee; font-size:13.5px; }
-            .htc-confirm-box pre { max-height:220px; overflow:auto; font-family:Consolas,monospace; font-size:11.5px; color:#79e6a8; background:#0d1712; border:1px solid #1c3527; border-radius:8px; padding:8px 10px; white-space:pre-wrap; margin:0 0 11px; }
-            .htc-confirm-actions { display:flex; gap:10px; justify-content:flex-end; }
-            .htc-btn-plain { background:none; border:1px solid #333a45; color:#9aa3b2; border-radius:6px; padding:6px 12px; cursor:pointer; }
-            .htc-btn-danger { color:#e05a4e !important; }
+            .htc-flash { color:#e08f8f; font-size:11.5px; }
 
             .htc-chiptoggle { background:#1d212a; border:1px solid #2a303b; color:#d9c9a9; border-radius:8px; padding:7px 10px; font-size:12px; flex:none; cursor:pointer; }
             .htc-chiptoggle:hover { border-color:#4f9cf9; color:#e6e8ee; }
@@ -169,13 +156,8 @@ const HumanTurnComposerModule = (() => {
         'rest', 'sleep', 'wait', 'nothing', 'dash', 'crawl', 'climb', 'jump', 'grab',
         'steal', 'light', 'ignite', 'vanish', 'manifest', 'toggle', 'listen',
         'wake', 'meditate', 'bathe', 'stand', 'release', 'escape', 'struggle', 'lead',
-        'fear', 'interest',
-        // task-610: 'teach' must be a listed verb or parseCmd returns it as
-        // speech before reaching the give/steal/teach split below.
-        'teach',
-        // task-610: intimacy verbs drafted by the person menu. When mature
-        // content is off, normalizeStructuredAction degrades them to 'look'.
-        'kiss', 'caress', 'lick', 'suck', 'bite', 'pinch', 'blow', 'tickle',
+        'fear', 'interest', 'eat', 'drink',
+        'teach', 'kiss', 'caress', 'lick', 'suck', 'bite', 'pinch', 'blow', 'tickle',
     ];
     const VOLUME_WORDS = ['scream', 'shout', 'whisper'];
 
@@ -207,7 +189,7 @@ const HumanTurnComposerModule = (() => {
         return out;
     }
 
-    /** Build the structured payload from the current rows. */
+    /** Build the payload from the current rows. */
     function buildPayload(): TurnPayload {
         const m = _modal as HTMLElement;
         const doRaw = (m.querySelector('#htc-do') as HTMLInputElement).value;
@@ -241,205 +223,80 @@ const HumanTurnComposerModule = (() => {
             action: ActionNormalizer.normalizeStructuredAction(p),
             speech,
             speechVolume: volume,
-            // task-610: a directed whisper keeps its recipient; _speakLine
-            // turns this into "whisper to <target>: <text>" (task-248).
             target: (volume === 'whisper' && typeof p.target === 'string' && p.target.trim()) ? p.target.trim() : null,
             emote: typeof p.emote === 'string' ? p.emote : null,
             memory: ResponseParser.extractMemory(p.memory),
         };
     }
 
-    function updatePreview() {
-        const node = q('#htc-preview') as HTMLElement;
-        if (_jsonMode || _phase === 'react') { node.style.display = 'none'; return; }
-        const p = buildPayload();
-        if (!Object.keys(p).length) { node.style.display = 'none'; return; }
-        node.style.display = 'block';
-        node.textContent = JSON.stringify(p, null, 1);
+    // ── turn budget ──────────────────────────────────────────────────
+
+    function turnSlots(): Record<string, number> | null {
+        const players = (worldState as unknown as { players?: Record<string, { turn_slots?: Record<string, number> }> }).players;
+        const slots = players && _charName ? players[_charName]?.turn_slots : null;
+        return slots && typeof slots === 'object' ? { ...slots } : null;
     }
 
-    // ── build ────────────────────────────────────────────────────────
+    function anySlotLeft(s: Record<string, number>): boolean {
+        return Object.keys(s).some((k) => (s[k] || 0) > 0);
+    }
 
-    function build() {
-        if (_built) return;
-        _built = true;
-        ensureStyles();
+    function renderPips() {
+        const s = turnSlots() || { major: 0, minor: 0, free: 0 };
+        const pips: string[] = [];
+        pips.push(`<span class="htc-pip major ${s.major ? '' : 'spent'}" title="major ${s.major || 0} left"></span>`);
+        pips.push(`<span class="htc-pip minor ${s.minor ? '' : 'spent'}" title="minor ${s.minor || 0} left"></span>`);
+        for (let i = 0; i < 3; i += 1) pips.push(`<span class="htc-pip free ${i < (s.free || 0) ? '' : 'spent'}" title="free ${s.free || 0} left"></span>`);
+        q('#htc-pips').innerHTML = pips.join('');
+        q('#htc-budgetlab').innerHTML = `<b>${s.major || 0}</b> major · <b>${s.minor || 0}</b> minor · <b>${s.free || 0}</b> free`;
+    }
 
-        _overlay = el(htcPanelTag`<div id="htc-overlay" style="display:none"></div>`) as HTMLElement;
-        _modal = el(htcPanelTag`<div id="htc-modal"></div>`) as HTMLElement;
-        _overlay.appendChild(_modal);
+    function setPhase(phase: 'compose' | 'react') {
+        _phase = phase;
+        const react = phase === 'react';
+        q('#htc-do-row').style.display = react ? 'none' : 'flex';
+        q('#htc-act').style.display = react ? 'none' : '';
+        q('#htc-react-btn').style.display = react ? '' : 'none';
+        q('#htc-end').style.display = react ? 'none' : '';
+        q('#htc-title').textContent = react ? `${_charName}'s reaction` : `${_charName}'s turn`;
+        q('#htc-phase-note').textContent = react
+            ? 'say / emote / memory — the turn already ran'
+            : 'act · say · emote · memory are all free — only actions spend pips';
+        (q('#htc-do') as HTMLInputElement).placeholder = react
+            ? 'react to what happened…'
+            : 'action — click a thing above, or type "eat berries", "open door"…';
+        (q('#htc-speech') as HTMLInputElement).placeholder = react
+            ? 'what they say back…'
+            : 'what they say — free, stacks with the action';
+    }
 
-        window.Lit.render(htcPanelTag`
-          <div class="htc-header">
-            <strong class="htc-title">✈ <span id="htc-title">Your turn</span></strong>
-            <span class="htc-spacer"></span>
-            <span id="htc-meta"></span>
-          </div>
-          <div id="htc-digest" style="display:none">
-            <div class="dt">since your turn</div>
-            <div id="htc-digest-lines"></div>
-            <div class="drow">
-              <button type="button" id="htc-digest-dismiss" class="htc-linkbtn muted" title="dismiss">✕</button>
-            </div>
-          </div>
-          <div class="htc-grid">
-            <div id="htc-scene"></div>
-            <div class="htc-feed">
-              <h4>What happened</h4>
-              <div id="htc-feed-lines"></div>
-            </div>
-          </div>
-          <div id="htc-you"></div>
-          <div class="htc-composer">
-            <div class="htc-phasebar">
-              <span id="htc-phase">① compose</span>
-              <span id="htc-phase-note">one turn = do + say + emote together · menus fill the draft</span>
-            </div>
-            <div id="htc-result" style="display:none"></div>
-            <div class="htc-crow" id="htc-do-row">
-              <span class="lbl">⚙ do</span>
-              <input id="htc-do" type="text" list="htc-names" placeholder='action — click things above or type "take burrito", "open door"…' autocomplete="off">
-              <button type="button" id="htc-clear-do" title="clear">✕</button>
-            </div>
-            <div class="htc-crow">
-              <span class="lbl">🗨 say</span>
-              <input id="htc-speech" type="text" placeholder="what they say — stacks with the action" autocomplete="off">
-              <div class="htc-volseg" id="htc-volseg"></div>
-            </div>
-            <div class="htc-crow">
-              <span class="lbl">🎭 emote</span>
-              <input id="htc-emote" type="text" placeholder='body language — "sneaks closer to the door"' autocomplete="off">
-              <button type="button" id="htc-emote-toggle" class="htc-chiptoggle" title="emote quick-pick">🎭</button>
-              <button type="button" id="htc-act" class="htc-btn-primary">Act</button>
-            </div>
-            <div id="htc-emote-palette" class="htc-emote-palette"></div>
-            <div class="htc-crow">
-              <span class="lbl">🧠 memory</span>
-              <textarea id="htc-memory" rows="1" placeholder="optional — what you'll personally remember from this"></textarea>
-              <button type="button" id="htc-skip-react" class="htc-linkbtn" style="display:none">skip react, end turn</button>
-            </div>
-            <div id="htc-preview" style="display:none"></div>
-            <div class="htc-footer-row">
-              <button type="button" id="htc-advanced-toggle" class="htc-linkbtn muted">▸ advanced</button>
-              <button type="button" id="htc-json-toggle" class="htc-linkbtn muted">▸ raw json</button>
-              <button type="button" id="htc-timeskip" class="htc-linkbtn" title="Wait, mingle, search, explore or travel for a span — your character runs on a policy while everyone else soaks">⏩ timeskip</button>
-              <button type="button" id="htc-end" class="htc-linkbtn endturn">⏭ end turn</button>
-            </div>
-            <div id="htc-advanced" style="display:none">
-              <select id="htc-relation"><option value="">relation: —</option><option value="on">on</option><option value="under">under</option><option value="beside">beside</option><option value="behind">behind</option><option value="at">at</option><option value="in">in</option></select>
-              <select id="htc-where" disabled title="reserved — region targeting lands with task-211">
-                <option>where: body region (task-211)</option>
-              </select>
-              <label class="htc-togglelbl"><input type="checkbox" id="htc-confirm-toggle" checked> confirm before Act</label>
-            </div>
-            <div id="htc-json" style="display:none">
-              <textarea id="htc-json-text" rows="5" spellcheck="false" placeholder='{"action":"take","item":"flour sack"} — full structured payload'></textarea>
-              <div class="htc-crow"><span class="lbl">{ }</span>
-                <button type="button" id="htc-json-act" class="htc-btn-primary">Act (json)</button>
-              </div>
-            </div>
-          </div>
-          <datalist id="htc-names"></datalist>
-        `, _modal);
+    function setBusy(on: boolean) {
+        (q('#htc-act') as HTMLButtonElement).disabled = on;
+    }
 
-        document.body.appendChild(_overlay);
+    function showResult(text: string) {
+        const node = q('#htc-result');
+        if (!text) { node.style.display = 'none'; return; }
+        node.textContent = '';
+        const b = document.createElement('b');
+        b.textContent = 'last: ';
+        node.appendChild(b);
+        node.appendChild(document.createTextNode(text));
+        node.style.display = 'block';
+    }
 
-        // volume segment
-        const volseg = q('#htc-volseg');
-        for (const vol of ['say', 'whisper', 'shout', 'scream']) {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.textContent = vol;
-            btn.dataset.vol = vol;
-            btn.addEventListener('click', () => {
-                _volume = vol;
-                if (vol !== 'whisper') _pendingSpeechTarget = null;
-                syncVolumeButtons();
-                updatePreview();
-            });
-            volseg.appendChild(btn);
-        }
-        syncVolumeButtons();
-
-        // composer actions
-        q('#htc-act').addEventListener('click', onActButton);
-        q('#htc-end').addEventListener('click', () => finishAct({ endTurn: true }));
-        // On the human's turn this is the natural home for a timeskip: their
-        // character runs on a policy while everyone else soaks (task-464/474).
-        q('#htc-timeskip').addEventListener('click', () => {
-            if (htcGlobals.Timeskip && typeof htcGlobals.Timeskip.openDialog === 'function') {
-                htcGlobals.Timeskip.openDialog();
-            }
+    function showResults(results: string[]) {
+        const node = q('#htc-result');
+        if (!results.length) { node.style.display = 'none'; return; }
+        node.textContent = '';
+        results.forEach((text, i) => {
+            const b = document.createElement('b');
+            b.textContent = results.length > 1 ? `${i + 1}. ` : 'result: ';
+            node.appendChild(b);
+            node.appendChild(document.createTextNode(text || ''));
+            node.appendChild(document.createElement('br'));
         });
-        q('#htc-skip-react').addEventListener('click', () => finishReact({ endTurn: true }));
-        q('#htc-clear-do').addEventListener('click', () => {
-            (q('#htc-do') as HTMLInputElement).value = '';
-            updatePreview();
-        });
-        q('#htc-do').addEventListener('input', updatePreview);
-        q('#htc-speech').addEventListener('input', updatePreview);
-        q('#htc-emote').addEventListener('input', updatePreview);
-        q('#htc-emote-toggle').addEventListener('click', () => {
-            const wrap = q('#htc-emote-palette');
-            EmotePicker.toggle(wrap, {
-                onPick: (emote: string) => {
-                    const input = q('#htc-emote');
-                    if (input) (input as HTMLInputElement).value = emote;
-                    updatePreview();
-                }
-            });
-        });
-        q('#htc-act').addEventListener('click', () => {
-            EmotePicker.close(q('#htc-emote-palette'));
-        });
-        q('#htc-memory').addEventListener('input', updatePreview);
-        for (const id of ['htc-do', 'htc-speech', 'htc-emote']) {
-            q('#' + id).addEventListener('keydown', (e: KeyboardEvent) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    onActButton();
-                }
-            });
-        }
-
-        // advanced / json
-        q('#htc-advanced-toggle').addEventListener('click', () => {
-            _advanced = !_advanced;
-            q('#htc-advanced').style.display = _advanced ? 'flex' : 'none';
-            q('#htc-advanced-toggle').textContent = _advanced ? '▾ advanced' : '▸ advanced';
-        });
-        q('#htc-confirm-toggle').addEventListener('change', (e) => {
-            _confirmBeforeAct = (e.target as HTMLInputElement).checked;
-        });
-        q('#htc-json-toggle').addEventListener('click', () => {
-            _jsonMode = !_jsonMode;
-            if (_jsonMode) _jsonText = JSON.stringify(buildPayload() || {}, null, 1);
-            syncJsonMode();
-        });
-        q('#htc-json-text').addEventListener('input', (e) => { _jsonText = (e.target as HTMLTextAreaElement).value; });
-        q('#htc-json-act').addEventListener('click', () => {
-            let parsedRaw;
-            try {
-                parsedRaw = JSON.parse(_jsonText || '{}');
-            } catch (err) {
-                events.log(`⚠️ Human turn JSON error: ${(err as Error).message}`, 'error-msg');
-                return;
-            }
-            tryResolveAct(normalizeReply(parsedRaw));
-        });
-
-        // digest dismissal (client-side)
-        q('#htc-digest-dismiss').addEventListener('click', () => {
-            TurnFeed.clearDigest();
-            q('#htc-digest').style.display = 'none';
-        });
-
-        _modal.addEventListener('click', (e) => e.stopPropagation());
-        _overlay.addEventListener('click', () => onOverlayDismiss());
-        const closeOnEsc = (e: KeyboardEvent) => {
-            if (e.key === 'Escape' && _overlay.style.display !== 'none') onOverlayDismiss();
-        };
-        document.addEventListener('keydown', closeOnEsc);
+        node.style.display = 'block';
     }
 
     function syncVolumeButtons() {
@@ -449,69 +306,9 @@ const HumanTurnComposerModule = (() => {
         }
     }
 
-    function syncJsonMode() {
-        q('#htc-json').style.display = _jsonMode ? 'block' : 'none';
-        const rows = qa('.htc-crow, #htc-preview, .htc-footer-row');
-        for (const row of rows) row.style.display = _jsonMode ? 'none' : '';
-        q('#htc-json-toggle').textContent = _jsonMode ? '▾ raw json' : '▸ raw json';
-        if (_jsonMode) (q('#htc-json-text') as HTMLTextAreaElement).value = _jsonText;
-        if (!_jsonMode) updatePreview();
-    }
-
-    // ── phase / resolve plumbing ─────────────────────────────────────
-
-    function setPhase(phase: 'compose' | 'burst' | 'react') {
-        _phase = phase;
-        const pill = q('#htc-phase');
-        pill.classList.remove('burst', 'react');
-        if (phase === 'burst') { pill.textContent = '⚡ dash burst — one more action'; pill.classList.add('burst'); }
-        else if (phase === 'react') { pill.textContent = '② react to the result'; pill.classList.add('react'); }
-        else pill.textContent = '① compose';
-        q('#htc-phase-note').textContent = phase === 'react'
-            ? 'say / emote / note only — the world already answered'
-            : 'one turn = do + say + emote together · menus fill the draft';
-        q('#htc-do-row').style.display = phase === 'react' ? 'none' : 'flex';
-        q('#htc-result').style.display = phase === 'react' ? 'block' : 'none';
-        const actBtn = q('#htc-act');
-        actBtn.textContent = phase === 'react' ? 'close turn' : (phase === 'burst' ? 'Act (last one)' : 'Act');
-        actBtn.classList.toggle('gold', phase === 'react');
-        q('#htc-skip-react').style.display = phase === 'react' ? '' : 'none';
-        q('#htc-end').style.display = phase === 'react' ? 'none' : '';
-        (q('#htc-speech') as HTMLInputElement).placeholder = phase === 'react'
-            ? 'react to what just happened…'
-            : 'what they say — stacks with the action';
-    }
-
-    function showResult(text: string) {
-        const node = q('#htc-result');
-        node.textContent = '';
-        const b = document.createElement('b');
-        b.textContent = 'result: ';
-        node.appendChild(b);
-        node.appendChild(document.createTextNode(text || ''));
-        node.style.display = 'block';
-    }
-
-    function renderDigest() {
-        const entries = TurnFeed.digest().slice(-4);
-        const box = q('#htc-digest');
-        if (_phase === 'react' || !entries.length) { box.style.display = 'none'; return; }
-        const lines = q('#htc-digest-lines');
-        lines.textContent = '';
-        for (const entry of entries) lines.appendChild(el(htcPanelTag`<div class="di"></div>`) as Node);
-        lines.textContent = '';
-        for (const entry of entries) {
-            const line = document.createElement('div');
-            line.className = 'di';
-            line.textContent = '• ' + entry.text;
-            lines.appendChild(line);
-        }
-        box.style.display = 'block';
-    }
-
     function renderMeta() {
         const meta = q('#htc-meta');
-        const bits = [];
+        const bits: string[] = [];
         if (typeof worldState !== 'undefined' && worldState.tick) bits.push(`tick ${worldState.tick}`);
         let nextUp = '';
         try {
@@ -540,142 +337,275 @@ const HumanTurnComposerModule = (() => {
         }
     }
 
-    /**
-     * If a committed action examines someone in the room, return that person's
-     * {name, nodeId} so the react phase can show their portrait. The examine
-     * target is the free-text rest of the command, matched against the scene's
-     * displayed names ("the woman" for a stranger, the real name once met).
-     */
-    function _portraitForAction(payload: TurnPayload): PortraitTarget | null {
-        if (!payload || payload.action !== 'examine' || !_scene) return null;
-        const target = String(payload.item || payload.target || '').trim().toLowerCase();
-        if (!target) return null;
-        const person = ((_scene.people || []) as Array<Record<string, any>>).find(
-            (p: Record<string, any>) => String(p.display_name || '').toLowerCase() === target);
-        return person ? { name: person.display_name, nodeId: person.id } : null;
-    }
-
-    /** Draft fill entry point for scene menus + the You strip. */
-    function applyDraft(parts: Record<string, any> | null | undefined) {
-        if (!parts) return;
-        if (_phase === 'react') return; // menus are compose-phase only
-        (q('#htc-do') as HTMLInputElement).value = [parts.action, parts.item, parts.target]
-            .filter(Boolean).join(' ');
-        updatePreview();
-        q('#htc-speech').focus();
-    }
-
-    function onActButton() {
-        if (_phase === 'react') { closeTurn(); return; }
-        const payload = buildPayload();
-        if (!payload.action && !payload.speech && !payload.emote) return;
-        _pendingPortrait = _portraitForAction(payload);
-        if (_confirmBeforeAct && !_pendingConfirm) {
-            _pendingConfirm = payload;
-            showConfirm(payload);
-            return;
+    function renderDigest() {
+        const entries = TurnFeed.digest().slice(-4);
+        const box = q('#htc-digest');
+        if (!entries.length) { box.style.display = 'none'; return; }
+        const lines = q('#htc-digest-lines');
+        lines.textContent = '';
+        for (const entry of entries) {
+            const line = document.createElement('div');
+            line.className = 'di';
+            line.textContent = '• ' + entry.text;
+            lines.appendChild(line);
         }
-        _pendingConfirm = null;
-        hideConfirm();
-        tryResolveAct(normalizeReply(payload));
+        box.style.display = 'block';
     }
 
-    function closeTurn() {
-        const payload: TurnPayload = {
-            speech: ((q('#htc-speech') as HTMLInputElement).value || '').trim(),
-            volume: _volume,
-            emote: ((q('#htc-emote') as HTMLInputElement).value || '').trim(),
-            memory: ((q('#htc-memory') as HTMLInputElement).value || '').trim(),
+    /** (Re)build the scene view + You strip + minimap for *charName*. */
+    function refreshScene(charName: string) {
+        const sceneHost = q('#htc-scene');
+        sceneHost.textContent = 'reading the room…';
+        const stripHandlers = {
+            onDraft: applyDraft,
+            menu: (x: number, y: number, title: string, buttons: unknown[]) =>
+                (htcGlobals.TurnSceneView as { menu(x: number, y: number, title: string, buttons: unknown[], onPick: (parts: any) => void): void })
+                    .menu(x, y, title, buttons, applyDraft),
         };
-        if (!payload.speech && !payload.emote && !payload.memory) {
-finishReact({ endTurn: true });
-            return;
-        }
-        finishReact(normalizeReply(payload));
+        if (!htcGlobals.TurnSceneView) return;
+        const sceneView = htcGlobals.TurnSceneView;
+        sceneView.fetch(charName).then((scene: any) => {
+            if (!scene || scene.error || _charName !== charName) return;
+            _scene = scene;
+            sceneView.renderScene(sceneHost, scene, {
+                onDraft: applyDraft,
+                onTalkFocus: (talkOpts: any) => {
+                    if (talkOpts && talkOpts.volume) {
+                        _volume = talkOpts.volume;
+                        syncVolumeButtons();
+                    }
+                    _pendingSpeechTarget = (talkOpts && talkOpts.volume === 'whisper' && talkOpts.target) ? talkOpts.target : null;
+                    (q('#htc-speech') as HTMLInputElement).focus();
+                },
+            });
+            (htcGlobals.TurnYouStrip as { render(host: HTMLElement, you: any, handlers: Record<string, unknown>): void })
+                .render(q('#htc-you'), scene.you, stripHandlers);
+            if (htcGlobals.TurnMinimap) {
+                const feed = document.querySelector('.htc-feed') as HTMLElement | null;
+                if (feed) htcGlobals.TurnMinimap.mount(feed, charName).catch(() => {});
+            }
+            renderDatalist();
+        }).catch(() => {
+            sceneHost.textContent = '';
+            sceneHost.appendChild(document.createTextNode('scene unavailable.'));
+        });
     }
 
-    function tryResolveAct(reply: TurnResult) {
-        if (typeof _activeResolve !== 'function') return;
+    // ── build ────────────────────────────────────────────────────────
+
+    function build() {
+        if (_built) return;
+        _built = true;
+        ensureStyles();
+
+        _overlay = el(htcPanelTag`<div id="htc-overlay" style="display:none"></div>`) as HTMLElement;
+        _modal = el(htcPanelTag`<div id="htc-modal"></div>`) as HTMLElement;
+        _overlay.appendChild(_modal);
+
+        window.Lit.render(htcPanelTag`
+          <div class="htc-header">
+            <strong class="htc-title">✈ <span id="htc-title">Your turn</span></strong>
+            <span class="htc-spacer"></span>
+            <span id="htc-meta"></span>
+            <button type="button" id="htc-close" title="end turn">✕</button>
+          </div>
+          <div id="htc-digest" style="display:none">
+            <div class="dt">since your turn</div>
+            <div id="htc-digest-lines"></div>
+            <div class="drow">
+              <button type="button" id="htc-digest-dismiss" class="htc-linkbtn muted" title="dismiss">✕</button>
+            </div>
+          </div>
+          <div class="htc-grid">
+            <div id="htc-scene"></div>
+            <div class="htc-feed">
+              <h4>What happened</h4>
+              <div id="htc-feed-lines"></div>
+            </div>
+          </div>
+          <div id="htc-you"></div>
+          <div class="htc-composer">
+            <div class="htc-budget">
+              <div class="htc-pips" id="htc-pips"></div>
+              <div class="htc-budgetlab" id="htc-budgetlab"></div>
+              <span id="htc-phase-note"></span>
+            </div>
+            <div id="htc-result" style="display:none"></div>
+            <div class="htc-crow" id="htc-do-row">
+              <span class="lbl">⚙ do</span>
+              <input id="htc-do" type="text" list="htc-names" placeholder='action — click a thing above, or type "eat berries", "open door"…' autocomplete="off">
+              <button type="button" id="htc-clear-do" title="clear">✕</button>
+            </div>
+            <div class="htc-crow">
+              <span class="lbl">🗨 say</span>
+              <input id="htc-speech" type="text" placeholder="what they say — free, stacks with the action" autocomplete="off">
+              <div class="htc-volseg" id="htc-volseg"></div>
+            </div>
+            <div class="htc-crow">
+              <span class="lbl">🎭 emote</span>
+              <input id="htc-emote" type="text" placeholder='body language — "sneaks closer to the door"' autocomplete="off">
+              <button type="button" id="htc-emote-toggle" class="htc-chiptoggle" title="emote quick-pick">🎭</button>
+            </div>
+            <div id="htc-emote-palette" class="htc-emote-palette"></div>
+            <div class="htc-crow">
+              <span class="lbl">🧠 memory</span>
+              <input id="htc-memory" type="text" placeholder="optional — what you'll personally remember from this" autocomplete="off">
+              <button type="button" id="htc-act" class="htc-btn-primary">Act</button>
+            </div>
+            <div class="htc-footer-row">
+              <button type="button" id="htc-react-btn" class="htc-btn-primary gold" style="display:none">close turn</button>
+              <span id="htc-flash" class="htc-flash"></span>
+              <button type="button" id="htc-advanced-toggle" class="htc-linkbtn muted">▸ advanced</button>
+              <button type="button" id="htc-timeskip" class="htc-linkbtn" title="Wait, mingle, search, explore or travel for a span — your character runs on a policy while everyone else soaks">⏩ timeskip</button>
+              <button type="button" id="htc-end" class="htc-linkbtn endturn">⏭ end turn</button>
+            </div>
+            <div id="htc-advanced" style="display:none">
+              <select id="htc-relation"><option value="">relation: —</option><option value="on">on</option><option value="under">under</option><option value="beside">beside</option><option value="behind">behind</option><option value="at">at</option><option value="in">in</option></select>
+              <select id="htc-where" disabled title="reserved — region targeting lands with task-211">
+                <option>where: body region (task-211)</option>
+              </select>
+            </div>
+          </div>
+          <datalist id="htc-names"></datalist>
+        `, _modal);
+
+        document.body.appendChild(_overlay);
+
+        const volseg = q('#htc-volseg');
+        for (const vol of ['say', 'whisper', 'shout', 'scream']) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.textContent = vol;
+            btn.dataset.vol = vol;
+            btn.addEventListener('click', () => {
+                _volume = vol;
+                if (vol !== 'whisper') _pendingSpeechTarget = null;
+                syncVolumeButtons();
+            });
+            volseg.appendChild(btn);
+        }
+        syncVolumeButtons();
+
+        q('#htc-act').addEventListener('click', commitStep);
+        q('#htc-react-btn').addEventListener('click', () => finishReact(false));
+        q('#htc-end').addEventListener('click', () => finishAct({ endTurn: true }));
+        q('#htc-close').addEventListener('click', () => onOverlayDismiss());
+        q('#htc-timeskip').addEventListener('click', () => {
+            if (htcGlobals.Timeskip && typeof htcGlobals.Timeskip.openDialog === 'function') {
+                htcGlobals.Timeskip.openDialog();
+            }
+        });
+        q('#htc-clear-do').addEventListener('click', () => {
+            (q('#htc-do') as HTMLInputElement).value = '';
+        });
+        q('#htc-emote-toggle').addEventListener('click', () => {
+            EmotePicker.toggle(q('#htc-emote-palette'), {
+                onPick: (emote: string) => {
+                    const input = q('#htc-emote');
+                    if (input) (input as HTMLInputElement).value = emote;
+                }
+            });
+        });
+        q('#htc-act').addEventListener('click', () => {
+            EmotePicker.close(q('#htc-emote-palette'));
+        });
+        for (const id of ['htc-do', 'htc-speech', 'htc-emote', 'htc-memory']) {
+            q('#' + id).addEventListener('keydown', (e: KeyboardEvent) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (_phase === 'react') finishReact(false);
+                    else commitStep();
+                }
+                if (e.key === 'Escape' && _phase === 'react') finishReact(true);
+            });
+        }
+
+        q('#htc-advanced-toggle').addEventListener('click', () => {
+            _advanced = !_advanced;
+            q('#htc-advanced').style.display = _advanced ? 'flex' : 'none';
+            q('#htc-advanced-toggle').textContent = _advanced ? '▾ advanced' : '▸ advanced';
+        });
+
+        q('#htc-digest-dismiss').addEventListener('click', () => {
+            TurnFeed.clearDigest();
+            q('#htc-digest').style.display = 'none';
+        });
+
+        _modal.addEventListener('click', (e) => e.stopPropagation());
+        _overlay.addEventListener('click', () => onOverlayDismiss());
+        const closeOnEsc = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && _overlay.style.display !== 'none') onOverlayDismiss();
+        };
+        document.addEventListener('keydown', closeOnEsc);
+    }
+
+    // ── resolve plumbing ─────────────────────────────────────────────
+
+    /** Stage one step and hand it to the engine. The panel stays OPEN. */
+    function commitStep() {
+        const norm = normalizeReply(buildPayload());
+        if (!norm.action && !norm.speech && !norm.emote) return;
+        if (norm.action) {
+            const verb = norm.action.split(/\s+/)[0].toLowerCase();
+            const at = actionTiers();
+            const tier = at && at.tierOf ? at.tierOf(verb) : 'major';
+            const s = turnSlots();
+            const order = ['free', 'minor', 'major'];
+            const affordable = (tier === 'activity')
+                ? !s || (s.activity || 0) > 0
+                : !s || order.slice(Math.max(0, order.indexOf(tier))).some((t) => (s[t] || 0) > 0);
+            if (!affordable) { setFlash(`no ${tier} action left this turn — say / emote / memory are still free`); return; }
+        }
+        const resolve = _activeResolve;
+        _activeResolve = null;
+        for (const id of ['htc-do', 'htc-speech', 'htc-emote', 'htc-memory']) {
+            (q('#' + id) as HTMLInputElement).value = '';
+        }
+        (q('#htc-relation') as HTMLSelectElement).value = '';
+        _pendingSpeechTarget = null;
+        setBusy(true);
+        if (resolve) resolve({ step: norm });
+    }
+
+    function finishAct(reply: TurnResult) {
         const resolve = _activeResolve;
         _activeResolve = null;
         TurnFeed.markTurnEnd();
         hidePanel();
-        resolve(reply);
+        if (resolve) resolve(reply);
     }
 
-    function finishAct(reply: TurnResult) { tryResolveAct(reply); }
-
-    function finishReact(reply: TurnResult) {
+    function finishReact(endTurn: boolean) {
         if (typeof _reactResolve !== 'function') return;
         const resolve = _reactResolve;
         _reactResolve = null;
+        let reply: ReactResult;
+        if (endTurn) {
+            reply = { endTurn: true };
+        } else {
+            const norm = normalizeReply(buildPayload());
+            reply = { speech: norm.speech, volume: norm.speechVolume, emote: norm.emote, memory: norm.memory, target: norm.target };
+        }
         TurnFeed.markTurnEnd();
         hidePanel();
         resolve(reply);
     }
 
     function onOverlayDismiss() {
-        if (_pendingConfirm) { _pendingConfirm = null; hideConfirm(); return; }
-        if (typeof _reactResolve === 'function') { finishReact({ endTurn: true }); return; }
+        if (_phase === 'react') { finishReact(true); return; }
         finishAct({ endTurn: true });
     }
 
-    // ── confirm overlay ──────────────────────────────────────────────
-
-    function showConfirm(payload: TurnPayload) {
-        hideConfirm();
-        const scrim = document.createElement('div');
-        scrim.className = 'htc-confirm-scrim';
-        scrim.addEventListener('click', hideConfirm);
-        const box = document.createElement('div');
-        box.className = 'htc-confirm-box';
-        const h = document.createElement('h5');
-        h.textContent = 'commit this turn?';
-        const pre = document.createElement('pre');
-        pre.textContent = JSON.stringify(payload, null, 1);
-        const actions = document.createElement('div');
-        actions.className = 'htc-confirm-actions';
-        const cancel = document.createElement('button');
-        cancel.type = 'button';
-        cancel.className = 'htc-btn-plain';
-        cancel.textContent = '✕ cancel';
-        cancel.addEventListener('click', hideConfirm);
-        const go = document.createElement('button');
-        go.type = 'button';
-        go.className = 'htc-btn-primary';
-        go.textContent = '✔ confirm & act';
-        go.addEventListener('click', () => {
-            _pendingConfirm = null;
-            hideConfirm();
-            tryResolveAct(normalizeReply(payload));
-        });
-        actions.appendChild(cancel);
-        actions.appendChild(go);
-        box.appendChild(h);
-        box.appendChild(pre);
-        box.appendChild(actions);
-        document.body.appendChild(scrim);
-        document.body.appendChild(box);
-        _confirmNodes = [scrim, box];
-    }
-
-    let _confirmNodes: HTMLElement[] | null = null;
-    function hideConfirm() {
-        if (_confirmNodes) {
-            for (const node of _confirmNodes) node.remove();
-            _confirmNodes = null;
-        }
+    function setFlash(msg: string) {
+        const node = q('#htc-flash');
+        node.textContent = msg;
+        window.setTimeout(() => { if (node.textContent === msg) node.textContent = ''; }, 2200);
     }
 
     // ── panel open/close ─────────────────────────────────────────────
 
     function hidePanel() {
         if (_overlay) _overlay.style.display = 'none';
-        hideConfirm();
-        // task-612: the scene view appends its context menu and scrim to
-        // document.body, so hiding the overlay orphans both. The scrim is
-        // position:fixed inset:0 with pointer-events:auto, so a stale one taxes
-        // the next click. Close the menu whenever the panel goes away.
         if (_scene && typeof _scene.closeMenu === 'function') _scene.closeMenu();
     }
 
@@ -685,125 +615,101 @@ finishReact({ endTurn: true });
         }
         (q('#htc-relation') as HTMLSelectElement).value = '';
         _pendingSpeechTarget = null;
-        _jsonText = '';
-        updatePreview();
     }
 
-    /**
-     * Shared panel open for both phases. phase: 'compose' | 'burst' | 'react'.
-     * compose/burst resolve via _activeResolve; react via _reactResolve.
-     */
-    function openPanel(charName: string, phase: 'compose' | 'burst' | 'react', opts: OpenPanelOptions = {}) {
+    function applyDraft(parts: Record<string, any> | null | undefined) {
+        if (!parts || _phase === 'react') return;
+        (q('#htc-do') as HTMLInputElement).value = [parts.action, parts.item, parts.target]
+            .filter(Boolean).join(' ');
+        q('#htc-speech').focus();
+    }
+
+    /** First open for a turn: full setup + show. */
+    function openPanel(charName: string, opts: OpenPanelOptions = {}) {
         build();
         _charName = charName;
-        _lastResult = opts.lastResult || '';
-        _pendingConfirm = null;
-        hideConfirm();
         resetRows();
-
-        q('#htc-title').textContent = charName + "'s turn";
-        if (phase === 'burst') {
-            (q('#htc-do') as HTMLInputElement).placeholder = 'second action — your dash bought you one more…';
-        } else {
-            (q('#htc-do') as HTMLInputElement).placeholder = 'action — click things above or type "take burrito", "open door"…';
-        }
-
-        setPhase(phase);
-        if (phase === 'react') showResult(_lastResult);
-
-        // scene + feed + you strip + meta + datalist
-        const sceneHost = q('#htc-scene');
-        sceneHost.textContent = 'reading the room…';
-        const stripHandlers = {
-            onDraft: applyDraft,
-            menu: (x: number, y: number, title: string, buttons: unknown[]) =>
-                (htcGlobals.TurnSceneView as { menu(x: number, y: number, title: string, buttons: unknown[], onPick: (parts: any) => void): void })
-                    .menu(x, y, title, buttons, applyDraft),
-        };
-        if (htcGlobals.TurnSceneView) {
-            const sceneView = htcGlobals.TurnSceneView;
-            sceneView.fetch(charName).then((scene: any) => {
-                if (!scene || scene.error || _charName !== charName) return;
-                _scene = scene;
-                sceneView.renderScene(sceneHost, scene, {
-                    onDraft: applyDraft,
-                    // task-610: a person/area "talk" pick sets the speech volume
-                    // (and a whisper recipient) and focuses the speech row.
-                    onTalkFocus: (talkOpts: any) => {
-                        if (talkOpts && talkOpts.volume) {
-                            _volume = talkOpts.volume;
-                            syncVolumeButtons();
-                        }
-                        _pendingSpeechTarget = (talkOpts && talkOpts.volume === 'whisper' && talkOpts.target) ? talkOpts.target : null;
-                        updatePreview();
-                        (q('#htc-speech') as HTMLInputElement).focus();
-                    },
-                });
-                (htcGlobals.TurnYouStrip as { render(host: HTMLElement, you: any, handlers: Record<string, unknown>): void })
-                    .render(q('#htc-you'), scene.you, stripHandlers);
-                // task-677: the visited-cell map. It lives in the feed column, above
-                // "What happened", so it sits in the composer's top-right corner;
-                // mounted *after* renderScene because that clears the scene host.
-                if (htcGlobals.TurnMinimap) {
-                    // NOT q() — that is scoped to #htc-modal, and the feed column
-                    // is a sibling of the modal, so q() silently returned null.
-                    const feed = document.querySelector('.htc-feed') as HTMLElement | null;
-                    if (feed) htcGlobals.TurnMinimap.mount(feed, charName).catch(() => {});
-                }
-                renderDatalist();
-                // React phase: an examine that targeted someone opens their
-                // portrait (current full body, else profile) as the big view.
-                if (phase === 'react' && _pendingPortrait && htcGlobals.CharacterArt) {
-                    htcGlobals.CharacterArt.open(_pendingPortrait.name);
-                }
-                _pendingPortrait = null;
-            }).catch(() => {
-                sceneHost.textContent = '';
-                sceneHost.appendChild(document.createTextNode('scene unavailable.'));
-            });
-        }
+        setPhase('compose');
+        showResult(opts.lastResult || '');
+        refreshScene(charName);
         TurnFeed.render(q('#htc-feed-lines'));
         renderMeta();
         renderDigest();
-
-        q('#htc-json').style.display = 'none';
-        _jsonMode = false;
-        syncJsonMode();
+        renderPips();
+        setBusy(false);
+        q('#htc-flash').textContent = '';
         _overlay.style.display = 'flex';
-        q(phase === 'react' ? '#htc-speech' : '#htc-do').focus();
+        q('#htc-do').focus();
+    }
+
+    /** Subsequent step: refresh the open panel with the last result + budget. */
+    function refreshStep(charName: string, lastResult: string) {
+        _charName = charName;
+        setPhase('compose');
+        showResult(lastResult || '');
+        refreshScene(charName);
+        renderMeta();
+        renderDigest();
+        renderPips();
+        setBusy(false);
+        q('#htc-do').focus();
     }
 
     /**
-     * Compose (or burst) phase. Resolves with the normalized act reply
-     * or {endTurn:true}. opts: { burst:boolean, lastResult:string }.
+     * The engine's per-step hook. First call opens the panel; later calls
+     * refresh it. Resolves when the player Commits a step (`{step}`) or ends
+     * the turn (`{endTurn:true}`). Never hides on a step.
      */
-    function request(charName: string, opts: RequestOptions = {}) {
+    function request(charName: string, opts: RequestOptions = {}): Promise<TurnResult> {
         if (_activeResolve) {
             return new Promise((resolve) => { _activeResolve = resolve; });
         }
-        openPanel(charName, opts.burst ? 'burst' : 'compose', opts);
+        if (!_overlay || _overlay.style.display === 'none') openPanel(charName, opts);
+        else refreshStep(charName, opts.lastResult || '');
         return new Promise((resolve) => { _activeResolve = resolve; });
     }
 
     /**
-     * React phase (task-334 lane 1): say/emote/memory bound to lastResult.
-     * Resolves with the normalized react reply or {endTurn:true}.
+     * The single closing react beat (task-334 lane 1): say / emote / memory
+     * bound to the turn's results. Reuses the open panel, or reopens it if the
+     * player already ended the turn.
      */
-    function react(charName: string, lastResult: string) {
+    function react(charName: string, results: string[]): Promise<ReactResult> {
         if (_reactResolve) {
             return new Promise((resolve) => { _reactResolve = resolve; });
         }
-        openPanel(charName, 'react', { lastResult });
+        if (!_built || !_overlay || _overlay.style.display === 'none') {
+            build();
+            _charName = charName;
+            resetRows();
+            setPhase('react');
+            showResults(results);
+            renderMeta();
+            renderDigest();
+            _overlay.style.display = 'flex';
+        } else {
+            _charName = charName;
+            resetRows();
+            setPhase('react');
+            showResults(results);
+            refreshScene(charName);
+            renderMeta();
+            renderDigest();
+        }
+        q('#htc-speech').focus();
         return new Promise((resolve) => { _reactResolve = resolve; });
     }
 
-    return { request, react };
+    /** The engine calls this once the turn (and react) is done. */
+    function closeTurn() {
+        hidePanel();
+    }
+
+    return { request, react, closeTurn };
 })();
 
 (window as unknown as { HumanTurnComposer: typeof HumanTurnComposerModule }).HumanTurnComposer = HumanTurnComposerModule;
 
-// Globals this panel calls that `types/globals.d.ts` does not declare. Read
-// through `window` so each stays optional, exactly as the call sites test it.
 const htcGlobals = window as unknown as {
     Timeskip?: { openDialog(): void };
     TurnSceneView?: {
@@ -820,7 +726,6 @@ const htcGlobals = window as unknown as {
 // drops a file's leading JSDoc when the first statement is type-only, which
 // would strip the `@module` header `tools/js_module_index.py` reads.
 
-/** One typed-input parse result. Unknown verbs become speech and carry no action. */
 interface ParsedCmd {
     action?: string;
     item?: string;
@@ -829,7 +734,6 @@ interface ParsedCmd {
     volume?: string;
 }
 
-/** The structured one-turn payload the composer commits (do + say + emote). */
 interface TurnPayload {
     action?: string;
     item?: string;
@@ -841,7 +745,6 @@ interface TurnPayload {
     memory?: string;
 }
 
-/** An agent reply after normalizeReply() — the shape agent-engine consumes. */
 interface NormalizedReply {
     action: string;
     speech: string | null;
@@ -851,25 +754,20 @@ interface NormalizedReply {
     target: string | null;
 }
 
-/**
- * The contract documented at the top of this file: a turn resolves with
- * either a normalized reply or a bare `{ endTurn: true }`.
- */
-type TurnResult = NormalizedReply | { endTurn: true };
+/** What `request()` resolves with. */
+type TurnResult = { step: NormalizedReply } | { endTurn: true };
 
-/** The person a committed examine targeted, for the react-phase portrait. */
-interface PortraitTarget {
-    name: string;
-    nodeId: string;
-}
+/** What `react()` resolves with. */
+type ReactResult =
+    | { speech: string | null; volume: string; emote: string | null; memory: unknown; target: string | null }
+    | { endTurn: true };
 
-/** Options accepted by `HumanTurnComposer.request()`. */
 interface RequestOptions {
-    burst?: boolean;
     lastResult?: string;
 }
 
-/** Options accepted by the internal `openPanel()`. */
-interface OpenPanelOptions extends RequestOptions {}
+interface OpenPanelOptions extends RequestOptions {
+    first?: boolean;
+}
 
-/** `EmotePicker` (shared/emote-picker.js) is not in types/globals.d.ts. */
+/** `EmotePicker` (shared/emote-picker.js) is declared in types/globals.d.ts. */
