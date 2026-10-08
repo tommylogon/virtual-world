@@ -15,6 +15,24 @@
     "sleeping",
     "bedroom"
   ],
-  "triggers": [],
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "type": "start_activity",
+          "params": {
+            "activity_type": "sleeping",
+            "target_item": "{item_name}"
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
   "contents": []
 }

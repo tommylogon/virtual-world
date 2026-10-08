@@ -290,8 +290,14 @@ Do not start by adding code because a task says a capability is missing.
 Preserve these unless a task explicitly changes the architecture:
 
 - Node identity is an opaque ID. Display names are a resolution layer.
-- Character definition/state belongs to the `Player` model; a bare character
-  graph node is not authoritative for traits, tags or behavior.
+- Character **runtime state** (vitals, memories, emotion, plan, perception,
+  behavioral `tags`/`traits`) belongs to the `Player` model; a bare character
+  graph node is not authoritative for behavior. Authored **definition**
+  (personality, `base_description`/`description` prose, authored `tags`/`traits`)
+  lives on the character node's `properties` — the single persisted home — and
+  the Player reads it for prompts and the UI (a projection, not a second
+  source). Do not persist a second copy in a saved file; `to_scenario_dict`
+  strips it from the players block.
 - The graph is the authoritative world model. Scopes, zones, fog and UI
   hierarchies augment it; they are not alternate spatial models.
 - Scope is a grouping / load boundary, not alternate geography.

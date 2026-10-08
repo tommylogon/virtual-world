@@ -542,6 +542,15 @@ class VirtualWorld:
         # nothing should be able to produce one any more.
         if isinstance(getattr(player, "vitals", None), dict) and "HP" in player.vitals:
             player.vitals["HP"] = 0
+        # bug-525: a dead character is not still "sleeping". End any blocking
+        # activity before death so a revived character is not stuck behind the
+        # activity gate (`_activity_gate`), which would otherwise demand `wake`
+        # even after HP/Energy are restored and the conditions are cleared.
+        try:
+            if getattr(player, "activity", None):
+                self.activities.end_activity(player_name, reason="died")
+        except Exception as e:
+            logger.warning("[death] end_activity %s: %s", player_name, e)
         player.state = "dead"
 
         try:

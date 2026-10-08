@@ -31,18 +31,11 @@
       "trigger_type": "on_use",
       "effects": [
         {
+          "type": "start_activity",
           "params": {
-            "message": "You climb into the bathtub and sink into the cold water. It's bracing, but you feel your fatigue wash away."
-          },
-          "type": "message"
-        },
-        {
-          "params": {
-            "amount": 10,
-            "message": "You feel refreshed.",
-            "stat": "Health"
-          },
-          "type": "adjust_vital"
+            "activity_type": "bathing",
+            "target_item": "{item_name}"
+          }
         }
       ],
       "target_name": "",

@@ -389,6 +389,13 @@ class Player:
         # Types: sleeping, resting, waiting, meditating, bathing, sitting, lying down
         self.activity = None
 
+        # === ACTION ECONOMY (task-352) ===
+        # Remaining per-turn action slots. Empty until the first action of a
+        # turn, then {"major":1,"minor":1,"free":3,"activity":1}; reset at the turn
+        # boundary (engine/tick_manager.tick_turn). Runtime only — never persisted,
+        # because a slot does not survive a turn.
+        self.turn_slots = {}
+
         # === EMOTION SYSTEM ===
         # **The affect map is the state** (task-652). `emotion` and
         # `emotion_intensity` are no longer fields: they are properties *derived*

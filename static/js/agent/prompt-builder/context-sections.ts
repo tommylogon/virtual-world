@@ -64,6 +64,13 @@ window.PromptBuilder = window.PromptBuilder || {};
         memory: (p, ctx) => ctx.memoryNL || '',
         perceived: (p) => PromptBuilder.buildPerceivedState(p),
         activity: (p) => p.activity ? `\nActivity: ${PromptBuilder.describeActivity(p.activity)}` : '',
+        slots: (p) => {
+            // task-352: show the remaining action budget so the agent plans
+            // against it instead of discovering it by refusal.
+            const s = (p as { turn_slots?: Record<string, number> }).turn_slots;
+            if (!s || !Object.keys(s).length) return '';
+            return `\n=== ACTIONS LEFT THIS TURN ===\nmajor ${s.major ?? 0} · minor ${s.minor ?? 0} · free ${s.free ?? 0}`;
+        },
         grappled: (p) => p.grappled_by
             ? `\n⚠️ You are being held by ${p.grappled_by}. You can try to break free with "escape" (STR save), or go along. You cannot move on your own while held.`
             : '',

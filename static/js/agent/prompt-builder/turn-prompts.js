@@ -112,7 +112,7 @@ window.PromptBuilder = window.PromptBuilder || {};
             ? `\n\n=== RECENTLY ===\n${_summaryLine(lastResult)}`
             : '\n\n=== START ===\nThis is your first moment in this world. What do you think, say, and do?';
         const ctx = { phase: 'reaction', vitalsNL, emotionNL, relationshipNL, memoryNL };
-        const context = PromptBuilder.buildContextBlock(player, ctx, ['perceived', 'vitals', 'encumbrance', 'emotion', 'insanity', 'trait', 'size', 'activity', 'grappled', 'ghost', 'dead']);
+        const context = PromptBuilder.buildContextBlock(player, ctx, ['perceived', 'vitals', 'encumbrance', 'emotion', 'insanity', 'trait', 'size', 'activity', 'grappled', 'slots', 'ghost', 'dead']);
         // End-of-turn memory is OPTIONAL (memories normally come at turn START).
         const wantMemory = includeMemory && config.endOfTurnMemory === true;
         const memoryInstruction = wantMemory ? PromptBuilder.MEMORY_INSTRUCTION_REACT : '';
@@ -168,7 +168,7 @@ If you have no emote, omit it:
             happenedLines.push(PromptBuilder.frameSelfSpeech(charName, actionResult));
         const whatHappened = happenedLines.length ? happenedLines.join('\n') : 'Nothing happened.';
         const ctx = { phase: 'react', vitalsNL, emotionNL, relationshipNL, memoryNL };
-        const context = PromptBuilder.buildContextBlock(player, ctx, ['perceived', 'vitals', 'encumbrance', 'emotion', 'insanity', 'trait', 'activity', 'ghost', 'dead']);
+        const context = PromptBuilder.buildContextBlock(player, ctx, ['perceived', 'vitals', 'encumbrance', 'emotion', 'insanity', 'trait', 'activity', 'slots', 'ghost', 'dead']);
         // task-XXX: the react call is a fresh 2-message conversation (no decide
         // replay), so the persona must ride in THIS message — the model has no
         // other source for voice and identity.

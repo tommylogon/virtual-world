@@ -148,6 +148,16 @@ class WorldSerializer:
             node.properties["actions"] = normalize_item_actions(raw)
 
     def _serialize_player(self, pname, p, lite=False):
+        # Character *definition* (personality, appearance prose) lives on the
+        # character node's `properties` — the single persisted home. The Player
+        # is runtime state. Publish the definition here so the live read payload
+        # (the frontend and the LLM prompt read the Player shape) carries it;
+        # `to_scenario_dict` strips it so a saved file keeps it only on the node.
+        # `description` prefers the Player value when set, so an equipment-derived
+        # or manually overridden current description still wins over the authored
+        # node copy.
+        _node = self.graph.get_node(self.player_manager._player_node_id(pname))
+        _props = _node.properties if _node is not None else {}
         base = {
             "name": p.name,
             "id": getattr(p, 'id', ''),
@@ -162,6 +172,10 @@ class WorldSerializer:
             "grappled_by": self._grappled_by(pname),
             "state_timer": getattr(p, 'state_timer', 0),
             "traits": getattr(p, 'traits', {}),
+            "personality": _props.get("personality") or getattr(p, 'personality', ''),
+            "base_description": _props.get("base_description") or getattr(p, 'base_description', ''),
+            "description": getattr(p, 'description', '') or _props.get("description", ''),
+            "turn_slots": dict(getattr(p, 'turn_slots', {}) or {}),
             "size": getattr(p, 'size', None),
             "species": getattr(p, 'species', None),
             "tags": getattr(p, 'tags', []),
@@ -583,6 +597,15 @@ class WorldSerializer:
                 if m.get("source") != "observation"
             ]
             pdata.pop("memory_index", None)
+            # Definition lives on the character node (`graph.nodes`), so a saved
+            # file must not carry a second copy in the players block. The live
+            # payload publishes it for the UI/prompt (`_serialize_player`); the
+            # node is the one persisted home.
+            pdata.pop("personality", None)
+            pdata.pop("base_description", None)
+            pdata.pop("description", None)
+            # task-352: a slot does not survive a turn, so it is never persisted.
+            pdata.pop("turn_slots", None)
         # task-222, continued: a saved world is graph-only, so nothing here is
         # a second copy of data already carried by `graph.nodes`:
         #   - `areas` / `rooms` are projections the loader never reads

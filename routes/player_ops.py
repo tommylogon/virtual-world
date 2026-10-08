@@ -551,6 +551,16 @@ def handle_update_player(app, name):
         player.description = data["description"]
     if "base_description" in data:
         player.base_description = data["base_description"]
+    # The character node owns authored definition (personality, appearance
+    # prose); the Player copy above is the running-world cache. Mirror the write
+    # to the node so the single persisted home is updated and a save round-trips.
+    _def_node = None
+    for _key in ("personality", "description", "base_description"):
+        if _key in data:
+            if _def_node is None:
+                _def_node = _character_node(app, name)
+            if _def_node is not None:
+                _def_node.properties[_key] = data[_key]
     if "stats" in data:
         player.stats = normalize_stat_block(data["stats"]) or player.stats
     if "skills" in data:

@@ -96,10 +96,12 @@ class ApiClientImpl {
             .catch(err => console.error('[apiPost] fetch error:', err));
     }
     /** Game actions */
-    static async action(command, charName) {
+    static async action(command, charName, opts) {
         const body = { command };
         if (charName)
             body.character = charName;
+        if (opts?.enforceSlots)
+            body.enforce_slots = true;
         return this.post('/api/action', body);
     }
     /** Autocomplete candidate options for verb & prefix (task-6) */
@@ -578,10 +580,12 @@ globals.ApiClient = ApiClientImpl;
 globals.api = ApiClientImpl;
 /** Run a game action and log the result to the event stream, then refresh state. */
 window.runAction =
-    async function (cmd, charName) {
+    async function (cmd, charName, opts) {
         const body = { command: cmd };
         if (charName)
             body.character = charName;
+        if (opts?.enforceSlots)
+            body.enforce_slots = true;
         const resp = await fetch('/api/action', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

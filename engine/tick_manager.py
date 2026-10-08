@@ -461,6 +461,16 @@ class TickManager:
         # a bucket lookup instead of a scan of the roster per character.
         self._presence_reset()
 
+        # task-352: a new turn restores every character's action slots.
+        try:
+            from engine import action_tiers as _at
+            for _p in self.player_manager.players.values():
+                if getattr(_p, "turn_slots", None) is None:
+                    _p.turn_slots = {}
+                _at.reset_slots(_p.turn_slots)
+        except Exception as e:
+            logger.warning("[tick] action slots reset: %s", e)
+
         # task-399: apply queued fidelity transitions at this one boundary,
         # before any character is resolved, so activate/offload is atomic and a
         # character can never act twice in a turn under two different modes.

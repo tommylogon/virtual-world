@@ -18,7 +18,11 @@ const NOOP_VERBS = ['wait', 'nothing', 'pause', 'stay'];
 const CHAIN_RULES: Record<string, string[]> = {
     dash: ['go', 'wait'],
     lead: ['go', 'approach', 'release', 'wait'],
-    grab: ['approach', 'release', 'wait'],
+    // A grab buys a same-turn *single* move, so a character can seize someone and
+    // drag them one area (out of danger, or into the dark) — `movement.py` drags
+    // grappled targets via `grapple.drag_all`. `dash` is deliberately NOT here:
+    // grab + two-area dash is overpowered. Matches `lead`, which allows `go` only.
+    grab: ['go', 'approach', 'release', 'wait'],
 };
 
 // Prefixed with the file stem on purpose: a top-level `interface` or `type` in a
@@ -42,7 +46,7 @@ const agentConfig = config as unknown as AgentEngineConfig;
 
 /** globals.d.ts narrows ApiClient to the calls converted code made; these are more. */
 const agentApi = ApiClient as unknown as {
-    action(command: string, charName: string): Promise<any>;
+    action(command: string, charName: string, opts?: { enforceSlots?: boolean }): Promise<any>;
     emote(charName: string, emote: string): Promise<any>;
     setActivePlayer(charName: string): Promise<unknown>;
     resetWorld(): Promise<unknown>;
@@ -466,7 +470,7 @@ class AgentEngine {
             events.logPhase(charName, 'act', reply.action);
             if (!reply.action.startsWith('speak ')) events.log(`[Action] ${reply.action}`, "msg-action");
             try {
-                const data = await agentApi.action(reply.action, charName);
+                const data = await agentApi.action(reply.action, charName, { enforceSlots: true });
                 if (data?.scenario_ended) {
                     events.log("🏁 Scenario ended via trigger.", "system-msg");
                     if (data?._restart_requested) {
@@ -669,7 +673,7 @@ class AgentEngine {
                 // Observe uses the SAME full room context as decide/react, so the
                 // agent always sees items, people, exits, and a WITNESSED section
                 // (with fallback).
-                const observeParts = Object.assign({}, roomParts, { extraNote: threatObservationNote || '' });
+                let observeParts = Object.assign({}, roomParts, { extraNote: threatObservationNote || '' });
 
                 // Threat-aware replan check — before deciding so the plan is fresh.
                 // task-185: shouldReplan now returns a REASON string (task-340
@@ -689,12 +693,46 @@ class AgentEngine {
                 }
                 if (this._checkCancel()) return;
 
-                // CONVERSATION-STYLE LOOP: think + decide in ONE call, and the
-                // prompt + response are pushed into the per-character history
-                // ([system, user, assistant, ...]) so the agent remembers its own
-                // earlier words across phases and turns — no more self-contradiction
-                // between decide and react (e.g. changing a favorite color).
-                const thinkDecidePrompt = PromptBuilder.buildReactionPrompt(player, observeParts, vitalsNL, emotionNL, relationshipNL, memoryNL, lastResult, false, true);
+                // ── Multi-action turn (task-352, 2026-10-08) ──
+                // A turn holds up to the tier budget (major 1 · minor 1 · free 3).
+                // This loops decide→act→react, rebuilding the prompt each pass from
+                // fresh state so spent slots hide the verbs the character can no
+                // longer afford (room-context feeds turn_slots to the brackets;
+                // `wait` is exempt, it is the turn's exit). The budget is a CEILING
+                // not a quota: the loop exits on "done" — wait, nothing worth doing,
+                // or nothing left affordable — so a character who is fine takes one
+                // action and stops, exactly as before. Hard cap = the budget total.
+                const MAX_ACTIONS_PER_TURN = 5;
+                let actionStep = 0;
+                let loopLastResult = lastResult;
+                let turnDone = false;
+                while (!turnDone && actionStep < MAX_ACTIONS_PER_TURN) {
+                    actionStep += 1;
+                    // The player object the prompt is built from must be the same
+                    // one the bracket-filter reads: otherwise the "ACTIONS LEFT"
+                    // section would show the stale budget while the brackets show
+                    // the fresh, reduced one.
+                    let promptPlayer = player;
+                    if (actionStep > 1) {
+                        // Re-read the world: the previous action moved/spent slots and
+                        // may have revealed items, so rebuild the room context. Vitals,
+                        // emotion and memory stay at their turn-start values.
+                        await worldState.fetch();
+                        const loopState = worldState.data || state;
+                        const loopPlayer = loopState?.players?.[charName] || player;
+                        promptPlayer = loopPlayer;
+                        const loopArea = loopState?.areas?.[loopState.current_area] || currentArea;
+                        const loopRoomParts = PromptBuilder.buildRoomContextParts(loopState, charName, loopPlayer, loopArea);
+                        observeParts = Object.assign({}, loopRoomParts, { plan: PromptBuilder.buildPlanContext(charName) });
+                        if (this._checkCancel()) return;
+                    }
+
+                    // CONVERSATION-STYLE LOOP: think + decide in ONE call, and the
+                    // prompt + response are pushed into the per-character history
+                    // ([system, user, assistant, ...]) so the agent remembers its own
+                    // earlier words across phases and turns — no more self-contradiction
+                    // between decide and react (e.g. changing a favorite color).
+                    const thinkDecidePrompt = PromptBuilder.buildReactionPrompt(promptPlayer, observeParts, vitalsNL, emotionNL, relationshipNL, memoryNL, loopLastResult, false, true);
                 const combinedPrompt = threatAlert ? threatAlert + '\n\n' + thinkDecidePrompt : thinkDecidePrompt;
                 history.push({ role: 'user', content: combinedPrompt });
                 const combinedResponse = await this._callLLMMessages(history, 'think-decide');
@@ -751,7 +789,7 @@ class AgentEngine {
                         actionSucceeded = true;
                         events.log(actionResult, 'msg-result', { outcome: 'minor' }, charName);
                     } else try {
-                        const data = await agentApi.action(finalAction, charName);
+                        const data = await agentApi.action(finalAction, charName, { enforceSlots: true });
                         if (data?.scenario_ended) {
                             events.log("🏁 Scenario ended via trigger.", "system-msg");
                             if (data?._restart_requested) {
@@ -901,6 +939,22 @@ class AgentEngine {
                         events.trackAction(charName, '', null, finalAction, actionResult);
                     }
                 }
+
+                    // ── Continue or end the multi-action turn (task-352) ──
+                    loopLastResult = actionResult || loopLastResult;
+                    const choseNothing = !finalAction || this._isNoopAction(finalAction);
+                    if (choseNothing) {
+                        turnDone = true;
+                    } else {
+                        // Exit when the remaining budget can pay for nothing at all.
+                        // Any positive slot still buys at least a look, so the next
+                        // prompt (which already hides what is unaffordable) is the
+                        // real gate; this is only the "budget is empty" stop.
+                        const slotsNow = (worldState.data?.players?.[charName]?.turn_slots) as Record<string, number> | undefined;
+                        const anySlotLeft = slotsNow && Object.values(slotsNow).some((n) => (n as number) > 0);
+                        if (!anySlotLeft) turnDone = true;
+                    }
+                }
             } else {
                 // ── Non-reactive (combined) mode ──
                 VW?.ui?.setStatus("Thinking...", "info");
@@ -934,7 +988,7 @@ class AgentEngine {
                     agentConfig.lastActionResult[charName] = 'You stand still and wait, watching and listening.';
                     events.trackAction(charName, inner, speech, 'wait', 'waits.');
                 } else if (finalAction) {
-                    agentApi.action(finalAction, charName).then(async (data) => {
+                    agentApi.action(finalAction, charName, { enforceSlots: true }).then(async (data) => {
                         const output = data?.output || data?.error || '';
                         if (data?.system_messages) {
                             data.system_messages.forEach((systemMessage: any) => events.log(systemMessage, 'system-msg'));
@@ -1282,7 +1336,7 @@ class AgentEngine {
         events.logPhase(charName, 'act', retryAction);
         events.log(`[Action] ${retryAction}`, 'msg-action');
         try {
-            const data = await agentApi.action(retryAction, charName);
+            const data = await agentApi.action(retryAction, charName, { enforceSlots: true });
             if (data?.scenario_ended) {
                 events.log('🏁 Scenario ended via trigger.', 'system-msg');
                 if (data?._restart_requested) {
@@ -1346,7 +1400,7 @@ class AgentEngine {
         events.logPhase(charName, 'act', followAction);
         events.log(`[Action] ${followAction}`, "msg-action");
         try {
-            const data = await agentApi.action(followAction, charName);
+                const data = await agentApi.action(followAction, charName, { enforceSlots: true });
             if (data?.scenario_ended) {
                 events.log("🏁 Scenario ended via trigger.", "system-msg");
                 if (data?._restart_requested) {

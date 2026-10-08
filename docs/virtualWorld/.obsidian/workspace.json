@@ -21,14 +21,17 @@
             "id": "1ec7dd69978fc063",
             "type": "leaf",
             "state": {
-              "type": "graph",
-              "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Graph view"
+              "type": "markdown",
+              "state": {
+                "file": "_Index.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "_Index"
             }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "vertical"
@@ -192,8 +195,17 @@
       "bases:Create new base": false
     }
   },
-  "active": "1ec7dd69978fc063",
+  "active": "628a877e9730f243",
   "lastOpenFiles": [
+    "dev_tasks/todo/ui/bug-526-sync-world-to-library-sync-all-ignores-the-active-tab-and-generated-entities-and-silently-overwrites.md",
+    "dev_tasks/todo/gameplay/bug-525-reviving-a-dead-character-leaves-it-in-a-blocking-activity-forcing-wake-before-any-interaction.md",
+    "dev_tasks/todo/gameplay/task-731-activities-are-entered-through-their-object-not-a-bare-verb-bed-chair-bath-actor-chosen-duration-dreaming.md",
+    "dev_tasks/review/characters/bug-524-character-personality-and-appearance-descriptions-are-dropped-from-api-state-so-the-inspector-shows-undefined-blank-and-edits-look-unsaved.md",
+    "dev_tasks/todo/characters/bug-524-character-personality-and-appearance-descriptions-are-dropped-from-api-state-so-the-inspector-shows-undefined-blank-and-edits-look-unsaved.md",
+    "dev_tasks/todo/ui/task-730-chat-based-interactive-memory-creation-the-character-reacts-in-voice-to-author-new-memories.md",
+    "dev_tasks/todo/ui/task-729-move-relationship-emotional-state-and-memory-add-edit-generate-controls-into-the-mind-panel.md",
+    "dev_tasks/todo/prompting/bug-523-plan-grounding-facts-use-unmasked-real-names-leaking-strangers-and-rejecting-targets-the-room-showed.md",
+    "_Index.md",
     "dev_tasks/review/world/task-723-calculate-way-node-coordinates-between-areas-in-map-mode.md",
     "dev_tasks/review/ui/task-722-add-breadcrumb-navigation-to-inspector.md",
     "dev_tasks/review/ui/task-721-add-orphaned-node-detection-to-validatorpanel.md",
@@ -220,15 +232,6 @@
     "dev_tasks/todo/refactor/task-713-engine-attention-py-is-a-dead-second-implementation-of-the-attended-set-selector.md",
     "dev_tasks/todo/ui/task-712-a-failed-scope-fetch-silently-resets-the-filter-to-whole-world-which-will-promote-the-whole-cast.md",
     "dev_tasks/todo/world/task-711-re-evaluate-the-promoted-set-every-tick-promote-on-entry-demote-on-exit.md",
-    "dev_tasks/todo/world/task-710-scope-selection-drives-the-promoted-set-level-scoped-never-recursive.md",
-    "dev_tasks/todo/characters/task-704-gosp-selector-needs-memory-and-personality-choose-and-bind-plans.md",
-    "dev_tasks/todo/items/task-703-recipe-as-activity-recipes-become-plan-templates-with-duration-success-and-fail-outcomes.md",
-    "dev_tasks/todo/gameplay/task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override.md",
-    "dev_tasks/todo/library/task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries.md",
-    "dev_tasks/review/docs/task-699-gosp-design-doc-schedules-plan-templates-and-recipe-activities-as-one-goap-layer.md",
-    "design/Character Pursuits.md",
-    "Items & Inventory/Items Overview.md",
-    "Items & Inventory/Item States & Toggleables.md",
-    "Items & Inventory/Equipment & Paperdoll.md"
+    "dev_tasks/todo/world/task-710-scope-selection-drives-the-promoted-set-level-scoped-never-recursive.md"
   ]
 }

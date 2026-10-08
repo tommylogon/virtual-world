@@ -800,7 +800,7 @@ window.InspectorAgentView = (() => {
                 <input type="text" id="inspector-ai-prompt" placeholder="AI: e.g. 'a cowardly thief'" style="flex:1;font-size:11px;">
                 <button class="btn btn-sm btn-purple" onclick="InspectorAgentView._generatePersonality('${escName}')" style="background:#4a2a8a;border-color:#6a3aaa;color:#bc8cff;">🤖</button>
             </div>
-            <div class="field"><textarea id="inspector-personality" rows="3" style="font-size:11px;" onblur="InspectorAgentView._savePersonality('${escName}')">${player.personality}</textarea></div>
+            <div class="field"><textarea id="inspector-personality" rows="3" style="font-size:11px;" onblur="InspectorAgentView._savePersonality('${escName}')">${player.personality || ''}</textarea></div>
         </div>`;
         // Appearance
         html += `<div class="inspector-section">

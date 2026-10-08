@@ -43,14 +43,19 @@ class WorldSync {
     declare cache: Record<string, Record<string, WorldSyncLibraryEntry>>;
     /** One row per syncable entity, with its library match + status. */
     declare entities: SyncEntity[];
+    /** Entities collapsed into template groups (item instances merged). */
+    declare groups: SyncGroup[];
     /** Active tab: 'all' | 'item' | 'way' | 'area' | 'character'. */
     declare filter: string;
     /** Scratch list filled by _buildItem for contained-but-real graph nodes. */
     declare _nested: Array<SyncEntity | null>;
+    /** Generated area names (nodes carrying a grid `cell`); skipped by Sync All. */
+    declare _generatedAreaNames: Set<string>;
 
     constructor() {
         this.cache = {};
         this.entities = [];
+        this.groups = [];
         this.filter = 'all';
     }
 
@@ -71,6 +76,7 @@ class WorldSync {
         this.cache.areas = data.areas || {};
         this.cache.characters = data.characters || {};
         this.entities = this._collect();
+        this.groups = this._group();
         this._renderSummary();
         this._renderList();
     }
@@ -123,6 +129,17 @@ class WorldSync {
 
     _collect(): SyncEntity[] {
         const nodes = worldState.graph?.nodes || {};
+        // bug-526: procedurally generated areas carry `cell` (the painter's grid
+        // cell), so Sync All can recognise and skip them. Generated items/ways
+        // are recognised by a `worldpainter` provenance marker once stamped at
+        // generation time (there is none today).
+        this._generatedAreaNames = new Set<string>();
+        for (const node of Object.values(nodes) as Array<any>) {
+            if (node && node.type === 'area' && node.properties
+                && node.properties.cell != null && node.name) {
+                this._generatedAreaNames.add(node.name);
+            }
+        }
         const items: Array<{ nodeId: string; node: any }> = [];
         const ways: Array<{ nodeId: string; node: any }> = [];
         for (const [nodeId, node] of Object.entries(nodes) as Array<[string, any]>) {
@@ -167,6 +184,48 @@ class WorldSync {
         });
     }
 
+    /**
+     * Collapse entities into template groups. Item *instances* of the same
+     * template (12 wild_berries, N painter-spawned bushes) become ONE row so a
+     * batch is a handful of decisions, not hundreds. Ways/areas/characters are
+     * distinct places/people and stay one row each. A group's status is the
+     * worst of its members; it is `generated` only when every member is.
+     */
+    _group(): SyncGroup[] {
+        const byKey = new Map<string, SyncEntity[]>();
+        for (const e of this.entities) {
+            const key = e.type === 'item'
+                ? 'item:' + String(e.payload.library_id || this._slug(String(e.payload.name || '')))
+                : `${e.type}:${e.nodeId || e.name || ''}`;
+            const arr = byKey.get(key);
+            if (arr) arr.push(e);
+            else byKey.set(key, [e]);
+        }
+        const out: SyncGroup[] = [];
+        for (const [key, members] of byKey) {
+            const generated = members.every((m: SyncEntity) => m.generated);
+            // Prefer an authored member as the template source for a mixed group.
+            const representative = members.find((m: SyncEntity) => !m.generated) || members[0];
+            const status = members.some((m: SyncEntity) => m.status === 'diff') ? 'diff'
+                : members.some((m: SyncEntity) => m.status === 'new') ? 'new'
+                : 'synced';
+            out.push({
+                type: representative.type,
+                key,
+                label: representative.type === 'area' || representative.type === 'character'
+                    ? (representative.name || '')
+                    : (representative.payload.name || representative.nodeId || ''),
+                count: members.length,
+                status,
+                generated,
+                syncFailed: members.some((m: SyncEntity) => m.syncFailed),
+                representative,
+                members,
+            });
+        }
+        return out;
+    }
+
     _buildItem(nodeId: string, node: any, depth = 0, seen: Set<string> | null = null): SyncEntity | null {
         const built = itemLib._buildWorldItemPayload(nodeId);
         if (!built) return null;
@@ -184,7 +243,8 @@ class WorldSync {
         }
         const match = this._findLibraryMatch('items', payload);
         const status = match ? (jsonDeepEqual(match.entry, this._clean(payload)) ? 'synced' : 'diff') : 'new';
-        return { type: 'item', nodeId, payload, match, status };
+        const generated = !!(props.generated || props.source === 'worldpainter');
+        return { type: 'item', nodeId, payload, match, status, generated };
     }
 
     _buildWay(nodeId: string, node: any): SyncEntity {
@@ -211,7 +271,8 @@ class WorldSync {
         };
         const match = this._findLibraryMatch('ways', payload);
         const status = match ? (jsonDeepEqual(match.entry, this._clean(payload)) ? 'synced' : 'diff') : 'new';
-        return { type: 'way', nodeId, payload, match, status };
+        const generated = !!(props.generated || props.source === 'worldpainter');
+        return { type: 'way', nodeId, payload, match, status, generated };
     }
 
     _buildArea(name: string): SyncEntity | null {
@@ -219,7 +280,8 @@ class WorldSync {
         if (!payload) return null;
         const match = this._findLibraryMatch('areas', payload);
         const status = match ? (jsonDeepEqual(match.entry, this._clean(payload)) ? 'synced' : 'diff') : 'new';
-        return { type: 'area', name, payload, match, status };
+        const generated = this._generatedAreaNames?.has(name) || false;
+        return { type: 'area', name, payload, match, status, generated };
     }
 
     _buildCharacter(name: string): SyncEntity | null {
@@ -248,45 +310,54 @@ class WorldSync {
     }
 
     openEntityByIndex(idx: number) {
-        const list = this.entities.filter(e => this.filter === 'all' || e.type === this.filter);
-        const e = list[idx];
-        if (e) return this.openEntity(e);
+        const list = this.groups.filter(g => this.filter === 'all' || g.type === this.filter);
+        const g = list[idx];
+        if (g) return this.openEntity(g.representative);
     }
 
     /**
-     * Batch-sync every entity that is new or differs from the library, WITHOUT
+     * Batch-sync every entity in the ACTIVE TAB that is new or differs, WITHOUT
      * showing the DiffModal. New entities are created; differing ones silently
      * overwrite their matched library entry. Already-synced entities are left
-     * untouched. After the batch, saved entities flip to "synced ✓" in the list
-     * and any failures stay marked.
+     * untouched. Generated entities are skipped (bug-526: procedurally painted
+     * areas carry a grid `cell`; generated items/ways carry a provenance marker).
+     * After the batch, saved entities flip to "synced ✓" in the list and any
+     * failures stay marked.
      */
     async syncAll() {
-        const pending = this.entities.filter(e => e.status === 'new' || e.status === 'diff');
+        const inTab = (t: string) => this.filter === 'all' || t === this.filter;
+        const groups = this.groups.filter(g => inTab(g.type));
+        const pending = groups.filter(g => (g.status === 'new' || g.status === 'diff') && !g.generated);
+        const skipped = groups.filter(g => (g.status === 'new' || g.status === 'diff') && g.generated).length;
         if (pending.length === 0) {
-            toastInfo('Everything is already in sync with the library.');
+            toastInfo(skipped
+                ? `Nothing to sync here (${skipped} generated entit${skipped === 1 ? 'y' : 'ies'} skipped).`
+                : 'Everything is already in sync with the library.');
             return;
         }
         let updated = 0, failed = 0;
-        for (const e of pending) {
+        for (const g of pending) {
             try {
-                const res = await this._silentSave(e);
+                const res = await this._silentSave(g.representative);
                 if (res && res.error) throw new Error(res.error);
-                e.status = 'synced';
-                e.syncFailed = false;
+                g.members.forEach((m: SyncEntity) => { m.status = 'synced'; m.syncFailed = false; });
+                g.status = 'synced';
                 updated++;
             } catch (err) {
-                e.status = e.status === 'diff' ? 'diff' : 'new';
-                e.syncFailed = true;
+                g.syncFailed = true;
+                g.members.forEach((m: SyncEntity) => { m.syncFailed = true; });
                 failed++;
-                console.error('syncAll failed for ' + (e.nodeId || e.name || e.type), err);
+                console.error('syncAll failed for ' + (g.representative.nodeId || g.label || g.type), err);
             }
         }
         this._renderSummary();
         this._renderList();
         if (failed === 0) {
-            toastInfo(`Synced ${updated} entit${updated === 1 ? 'y' : 'ies'} to library.`);
+            toastInfo(`Synced ${updated} entit${updated === 1 ? 'y' : 'ies'} to library.`
+                + (skipped ? ` Skipped ${skipped} generated.` : ''));
         } else {
-            toastError(`Synced ${updated}, ${failed} failed.`);
+            toastError(`Synced ${updated}, ${failed} failed.`
+                + (skipped ? ` Skipped ${skipped} generated.` : ''));
         }
     }
 
@@ -343,8 +414,8 @@ class WorldSync {
 
     // Read-only section-by-section Library → World comparison for one entity.
     viewDiffByIndex(idx: number) {
-        const list = this.entities.filter(e => this.filter === 'all' || e.type === this.filter);
-        const e = list[idx];
+        const list = this.groups.filter(g => this.filter === 'all' || g.type === this.filter);
+        const e = list[idx]?.representative;
         if (!e || !e.match) return;
         const sections = {
             item: [
@@ -416,9 +487,9 @@ class WorldSync {
 
     _renderSummary() {
         const counts: Record<string, number> = { all: 0, new: 0, diff: 0, synced: 0 };
-        for (const e of this.entities) {
+        for (const g of this.groups) {
             counts.all++;
-            if (counts[e.status] !== undefined) counts[e.status]++;
+            if (counts[g.status] !== undefined) counts[g.status]++;
         }
         const el = document.getElementById('world-sync-summary');
         if (!el) return;
@@ -432,25 +503,29 @@ class WorldSync {
     _renderList() {
         const el = document.getElementById('world-sync-list');
         if (!el) return;
-        const list = this.entities.filter(e => this.filter === 'all' || e.type === this.filter);
+        const list = this.groups.filter(g => this.filter === 'all' || g.type === this.filter);
         if (list.length === 0) {
             window.Lit.render(worldSyncTag`<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:12px;">No entities.</div>`, el);
             return;
         }
-        window.Lit.render(worldSyncTag`${list.map((e: SyncEntity, listIdx: number) => {
-            const m = this._typeMeta(e.type);
-            const label = e.type === 'area' || e.type === 'character' ? e.name : (e.payload.name || e.nodeId);
-            const sub = e.type === 'item' || e.type === 'way'
-                ? (e.payload.description || e.nodeId)
-                : (this.cache[e.type + 's']?.[e.match?.id || ''] ? `library: ${e.match?.id}` : 'not in library');
-            const badge = e.syncFailed
+        window.Lit.render(worldSyncTag`${list.map((g: SyncGroup, listIdx: number) => {
+            const m = this._typeMeta(g.type);
+            const rep = g.representative;
+            const label = g.count > 1 ? `${g.label} ×${g.count}` : g.label;
+            const sub = g.type === 'item' || g.type === 'way'
+                ? (rep.payload.description || rep.nodeId)
+                : (this.cache[g.type + 's']?.[rep.match?.id || ''] ? `library: ${rep.match?.id}` : 'not in library');
+            const badge = g.syncFailed
                 ? worldSyncTag`<span style="font-size:9px;padding:1px 6px;border-radius:3px;background:rgba(248,81,73,0.15);color:#f85149;border:1px solid rgba(248,81,73,0.3);white-space:nowrap;">sync failed</span>`
-                : e.status === 'new'
+                : g.status === 'new'
                     ? worldSyncTag`<span style="font-size:9px;padding:1px 6px;border-radius:3px;background:rgba(63,185,80,0.15);color:#3fb950;border:1px solid rgba(63,185,80,0.3);white-space:nowrap;">new</span>`
-                    : e.status === 'diff'
+                    : g.status === 'diff'
                         ? worldSyncTag`<span style="font-size:9px;padding:1px 6px;border-radius:3px;background:rgba(227,179,65,0.15);color:#e3b341;border:1px solid rgba(227,179,65,0.3);white-space:nowrap;">differs</span>`
                         : worldSyncTag`<span style="font-size:9px;padding:1px 6px;border-radius:3px;background:rgba(139,148,158,0.15);color:var(--text-muted);border:1px solid var(--border);white-space:nowrap;">synced ✓</span>`;
-            const diffBtn = e.match
+            const genBadge = g.generated
+                ? worldSyncTag`<span style="font-size:9px;padding:1px 6px;border-radius:3px;background:rgba(88,166,255,0.12);color:#58a6ff;border:1px solid rgba(88,166,255,0.3);white-space:nowrap;">generated</span>`
+                : '';
+            const diffBtn = rep.match
                 ? worldSyncTag`<button class="btn btn-sm" style="flex-shrink:0;" @click=${(ev: Event) => { ev.stopPropagation(); VW.worldSync.viewDiffByIndex(listIdx); }}>diff</button>`
                 : '';
             return worldSyncTag`<div class="agent-item" style="cursor:pointer;padding:5px 10px;border-left:3px solid var(--border);" @click=${() => VW.worldSync.openEntityByIndex(listIdx)}>
@@ -458,7 +533,7 @@ class WorldSync {
                 <div style="flex:1;min-width:0;">
                     <div style="display:flex;align-items:center;gap:6px;">
                         <span class="agent-name" style="font-size:12px;font-weight:600;">${label}</span>
-                        ${badge}
+                        ${badge}${genBadge}
                     </div>
                     <div style="font-size:10px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${sub}</div>
                 </div>
@@ -494,6 +569,21 @@ interface SyncEntity {
     match: LibraryMatch | null;
     status: string;
     syncFailed?: boolean;
+    /** Procedurally generated (painter grid / engine spawn): skipped by Sync All. */
+    generated?: boolean;
+}
+
+/** A template group: one or more entities that collapse to a single row. */
+interface SyncGroup {
+    type: string;
+    key: string;
+    label: string;
+    count: number;
+    status: string;
+    generated: boolean;
+    syncFailed: boolean;
+    representative: SyncEntity;
+    members: SyncEntity[];
 }
 
 interface ItemLib {

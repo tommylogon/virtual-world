@@ -73,6 +73,48 @@ writing (the committed payload). World: `kraktooth_goblin_camp`.
   name collision. This is the name-as-key problem owned by **task-446**; do not solve it
   here, only reference it.
 
+## Decision (2026-10-07)
+
+**One persisted home per fact, sorted by kind.** Measured on
+`kraktooth_goblin_camp.json`, Belne:
+
+| fact | homes today | verdict |
+|---|---|---|
+| `personality`, `description`, `base_description` | node only; written once | **correct home, broken read** — the players block omits them (correct), but the inspector/prompt read the Player and get nothing |
+| `tags` | node **and** Player (identical) | duplicated |
+| `traits` | node **and** Player (identical) | duplicated |
+| location | `current_area` + `current_area_id` + `in` edge | one fact, three homes |
+
+Chosen model:
+
+- **Authored definition** (personality, `base_description`/`description` prose,
+  authored `tags`/`traits`) → the **character node's `properties`**. One
+  persisted home. The Player reads it for prompts and the UI (a projection, not
+  a second source).
+- **Runtime state** (vitals, memories, emotion, plan, position, `fear_tags`) →
+  the **Player**. Not duplication.
+- **Derived** (`current_area` name / `current_area_id`; the Player's mirrored
+  `tags`/`traits`) → **not persisted**; recompute from the `in` edge / node on
+  load.
+
+Round-trip rule (extends `to_scenario_dict`'s existing strip list — it already
+drops `recent_hearing`, `lived_log`, `memory_index`, `areas`, `ways`): save
+writes each fact once; `to_scenario_dict` strips definition from the players
+block so the file keeps it only on the node; the live `_serialize_player` still
+publishes it for the read payload.
+
+This is the smaller change and matches where authors write, the node's existing
+role (`expressions`, `profile_image`, prose are already node-only), and the
+graph-authoritative invariant. It requires rewriting the AGENTS.md invariant
+sentence, which currently claims the opposite ("character definition/state
+belongs to the Player").
+
+First landing (2026-10-07): `personality`/`description`/`base_description` now
+publish on the live `/api/state` read from the node (Player first for
+`description`), are stripped by `to_scenario_dict`, and an inspector edit mirrors
+to the node in `handle_update_player`. Location and tags/traits de-duplication
+remain open.
+
 ## Acceptance
 
 - Decide the single authoritative home for a character's location, and either feed or

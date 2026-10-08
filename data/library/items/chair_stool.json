@@ -1,7 +1,7 @@
 {
   "name": "chair_stool",
   "description": "A stool, three legs, and it is a seat and a ladder and a table in turn.",
-  "actions": "examine,take,drop",
+  "actions": "examine,take,drop,use",
   "uses": 1,
   "weight": 1.5,
   "current_state": "normal",
@@ -15,6 +15,24 @@
     "wooden",
     "kitchen"
   ],
-  "triggers": [],
+  "triggers": [
+    {
+      "trigger_type": "on_use",
+      "effects": [
+        {
+          "type": "start_activity",
+          "params": {
+            "activity_type": "resting",
+            "target_item": "{item_name}"
+          }
+        }
+      ],
+      "target_name": "",
+      "target_state": "",
+      "conditions": {},
+      "success_message": "",
+      "fail_message": ""
+    }
+  ],
   "contents": []
 }

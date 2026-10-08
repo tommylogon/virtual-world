@@ -33,14 +33,11 @@
       "trigger_type": "on_use",
       "effects": [
         {
+          "type": "start_activity",
           "params": {
-            "amount": 20,
-            "message": "",
-            "stat": "Hygiene",
-            "success_message": "You wash yourself using the basin",
-            "target": "self"
-          },
-          "type": "adjust_vital"
+            "activity_type": "washing",
+            "target_item": "{item_name}"
+          }
         }
       ],
       "target_name": "",

@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Human Turn Panel v3 — mockup (task-352)</title>
+<!--
+  Static prototype of the multi-action human turn panel (task-352 slice 3).
+  No server, no build. Open the file directly. It demonstrates:
+    - the tier budget as pips (major / minor / free)
+    - a turn RACK you stage actions into, then Run live (one at a time)
+    - verb menus with tier badges, affordability-greyed against remaining pips
+    - the burst phase and the narration regex are GONE
+  The tier logic mirrors engine/action_tiers.py (generated to agent/action-tiers.ts).
+-->
+<style>
+  :root{
+    --bg:#1e2128; --bg2:#1a1d24; --line:#333a45; --line2:#2a303b;
+    --ink:#e6e8ee; --dim:#78828e; --dim2:#98a3ae; --mute:#6b7686;
+    --blue:#4f9cf9; --green:#57c98f; --gold:#b3812f; --purple:#d9baff; --warn:#e08f8f;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#12151b;color:var(--ink);font:13px/1.45 -apple-system,Segoe UI,Roboto,sans-serif;display:flex;justify-content:center;padding:24px}
+  #panel{width:min(1080px,96vw);background:var(--bg);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 60px rgba(0,0,0,.6);overflow:hidden}
+  .hdr{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--line)}
+  .hdr .title{font-weight:600;font-size:14px}
+  .hdr .sp{flex:1}
+  .hdr .meta{color:var(--dim);font-size:11.5px}
+  .grid{display:grid;grid-template-columns:1fr 320px}
+  .scene{padding:12px 16px}
+  .feed{border-top:1px solid var(--line);padding:12px 16px;max-height:230px;overflow:auto}
+  .feed h4{margin:0 0 7px;font-size:10.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--mute)}
+  .zone{font-size:10.5px;text-transform:uppercase;letter-spacing:1.1px;color:var(--mute);margin:12px 0 6px}
+  .zone:first-child{margin-top:0}
+  .place{font-size:16px;font-weight:600}
+  .place .light{font-size:11px;color:var(--green);border:1px solid #2c4a36;border-radius:999px;padding:2px 9px;margin-left:8px;vertical-align:2px}
+  .desc{color:var(--dim2);font-style:italic;margin:3px 0 2px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{background:#232936;border:1px solid var(--line2);color:#d9c9a9;border-radius:999px;padding:5px 11px;font-size:12px;cursor:pointer}
+  .chip:hover{border-color:var(--blue);color:var(--ink)}
+  .chip small{color:var(--mute);font-style:normal;margin-left:5px}
+
+  /* turn rack */
+  .side{border-left:1px solid var(--line);display:flex;flex-direction:column}
+  .rack{padding:12px 16px;background:#191c23;display:flex;flex-direction:column;gap:8px}
+  .rack h4{margin:0;font-size:10.5px;text-transform:uppercase;letter-spacing:1.2px;color:var(--mute)}
+  .rackdrop{min-height:34px;border:1px dashed var(--line2);border-radius:8px;padding:6px;display:flex;flex-direction:column;gap:5px}
+  .rackdrop .empty{color:#5b6570;font-style:italic;font-size:11.5px;padding:4px}
+  .step{display:flex;align-items:center;gap:8px;background:#141820;border:1px solid var(--line2);border-radius:7px;padding:5px 8px;font-size:12px;cursor:default}
+  .step .n{color:var(--mute);width:14px;text-align:right}
+  .step .v{color:#bcd3ec}
+  .step .t{margin-left:auto}
+  .step .x{background:none;border:0;color:var(--mute);cursor:pointer;font-size:13px}
+  .step .x:hover{color:var(--warn)}
+  .racketip{font-size:11px;color:var(--mute)}
+  .rack .actions{display:flex;gap:8px;margin-top:auto}
+
+  /* pips */
+  .you{padding:10px 16px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:18px;font-size:11.5px;color:var(--dim2);align-items:center}
+  .you b{color:var(--ink);font-weight:600}
+  .vig{display:inline-flex;align-items:center;gap:6px}
+  .bar{width:64px;height:7px;border-radius:4px;background:#2a303b;overflow:hidden;display:inline-block}
+  .bar i{display:block;height:100%;background:var(--green)}
+
+  /* composer */
+  .composer{border-top:1px solid var(--line);background:var(--bg2);padding:11px 16px 13px}
+  .budgetrow{display:flex;align-items:center;gap:14px;margin-bottom:9px}
+  .pips{display:flex;align-items:center;gap:6px}
+  .pip{width:15px;height:15px;display:inline-block;position:relative}
+  .pip.major{border:2px solid var(--purple);transform:rotate(45deg);border-radius:3px}
+  .pip.minor{border:2px solid var(--blue);border-radius:3px}
+  .pip.free{border-radius:50%;border:2px solid var(--green);width:12px;height:12px}
+  .pip.spent{opacity:.22}
+  .budgetlab{font-size:11.5px;color:var(--dim)}
+  .budgetlab b{color:var(--ink)}
+  .staged{font-size:11.5px;color:var(--purple);margin-left:auto}
+
+  .crow{display:flex;gap:8px;align-items:center;margin-bottom:7px}
+  .crow .lbl{width:56px;text-align:right;font-size:11.5px;color:#7d8894;flex:none}
+  #cmd{flex:1;background:#141820;border:1px solid var(--line2);color:var(--ink);border-radius:8px;padding:9px 11px;font-size:13px;outline:none}
+  #cmd:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(79,156,249,.22)}
+  .btn{border:0;border-radius:8px;padding:9px 18px;font-weight:600;cursor:pointer;font-size:13px}
+  .btn.run{background:var(--blue);color:#fff}
+  .btn.run:disabled{opacity:.4;cursor:default}
+  .btn.end{background:none;border:1px solid var(--line);color:var(--dim2)}
+  .focushint{font-size:11px;color:var(--mute);margin:2px 0 8px 64px}
+  .focushint kbd{background:#141820;border:1px solid var(--line2);border-radius:4px;padding:1px 5px;font-size:10.5px}
+  .volseg{display:flex;border:1px solid var(--line2);border-radius:8px;overflow:hidden;flex:none}
+  .volseg button{background:#1d212a;color:#8b95a1;border:0;padding:8px 9px;font-size:11px;border-right:1px solid var(--line2);cursor:pointer;text-transform:capitalize}
+  .volseg button:last-child{border-right:0}
+  .volseg button.on{background:#2b1f42;color:var(--purple)}
+  .chipmini{background:#1d212a;border:1px solid var(--line2);color:#d9c9a9;border-radius:8px;padding:8px 11px;cursor:pointer;flex:none}
+  .btn.stage{background:#233a2b;color:#8fe0ad;border:1px solid #2c4a36;margin-left:auto}
+  .saymini{font-size:11px;color:#b6a98f;margin-left:6px}
+
+  /* verb menu */
+  #menu{position:absolute;z-index:10;background:#20242d;border:1px solid var(--line);border-radius:10px;padding:6px;box-shadow:0 12px 40px rgba(0,0,0,.6);display:none;min-width:190px}
+  #menu .mh{font-size:10.5px;text-transform:uppercase;letter-spacing:1px;color:var(--mute);padding:4px 8px 6px}
+  #menu button{display:flex;width:100%;align-items:center;gap:8px;background:none;border:0;color:#dcd3c4;text-align:left;padding:6px 8px;border-radius:7px;font-size:12.5px;cursor:pointer}
+  #menu button:hover:not(:disabled){background:#2a303c}
+  #menu button:disabled{color:#55606c;cursor:default}
+  #menu .badge{margin-left:auto;font-size:10px;border-radius:999px;padding:1px 7px;border:1px solid var(--line2)}
+  .b-major{color:var(--purple);border-color:#4a3668}
+  .b-minor{color:var(--blue);border-color:#274a72}
+  .b-free{color:var(--green);border-color:#2c4a36}
+  .b-expression{color:#9aa3b2;border-color:#2a303b;font-style:italic}
+  .fl{color:var(--warn);font-size:10.5px;margin-left:8px}
+  .tfd{color:var(--dim2);font-size:12px;padding:2px 0 2px 10px;border-left:2px solid #232932;margin-bottom:4px}
+  .tfd.act{color:#bcd3ec;border-color:#2c4a36}
+</style>
+</head>
+<body>
+<div id="panel">
+  <div class="hdr">
+    <span class="title">✈ Jake Halloway's turn</span>
+    <span class="sp"></span>
+    <span class="meta">tick 57</span>
+  </div>
+
+  <div class="grid">
+    <div class="scene" id="scene">
+      <div class="place">Raven River <span class="light">bright · 80%</span></div>
+      <div class="desc">A river cutting through the eastern territory.</div>
+      <div class="zone">People here</div>
+      <div class="chips">
+        <button class="chip" data-kind="person" data-name="the man">the man</button>
+      </div>
+      <div class="zone">Things you can see</div>
+      <div class="chips">
+        <button class="chip" data-kind="item" data-name="Wash Spot">Wash Spot</button>
+        <button class="chip" data-kind="item" data-name="wild_berries">wild_berries</button>
+      </div>
+      <div class="zone">Ways out</div>
+      <div class="chips">
+        <button class="chip" data-kind="way" data-name="south">south <small>Raven River to Road</small></button>
+        <button class="chip" data-kind="way" data-name="northwest">northwest <small>world 12,5</small></button>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="rack">
+        <h4>This turn</h4>
+        <div class="rackdrop" id="rackdrop"><div class="empty">stage actions here — click a thing, or type below</div></div>
+        <div class="racketip" id="racketip">A turn is a budget: 1 major · 1 minor · 3 free.</div>
+        <div class="actions">
+          <button class="btn run" id="run" disabled>Run</button>
+          <button class="btn end" id="end">End turn</button>
+        </div>
+      </div>
+      <div class="feed" id="feed"></div>
+    </div>
+  </div>
+
+  <div class="you">
+    <span class="vig"><b>HP</b><span class="bar"><i style="width:100%;background:#79b8ff"></i></span>100</span>
+    <span class="vig"><b>Energy</b><span class="bar"><i style="width:58%"></i></span>58</span>
+    <span class="vig"><b>Hunger</b><span class="bar"><i style="width:10%"></i></span>10</span>
+    <span class="vig">🪝 <b>fishing</b></span>
+    <span>carrying — <b>nothing</b> · wearing — <b>creel</b></span>
+  </div>
+
+  <div class="composer">
+    <div class="budgetrow">
+      <div class="pips" id="pips"></div>
+      <div class="budgetlab" id="budgetlab"></div>
+      <div class="staged" id="staged"></div>
+    </div>
+    <div class="crow">
+      <span class="lbl">⚙ do</span>
+      <input id="cmd" placeholder='action — click a thing, or type "eat wild_berries"' autocomplete="off">
+    </div>
+    <div class="crow">
+      <span class="lbl">🗨 say</span>
+      <input id="say" placeholder="what they say — free, and stacks with any action" autocomplete="off">
+      <div class="volseg" id="volseg"></div>
+    </div>
+    <div class="crow">
+      <span class="lbl">🎭 emote</span>
+      <input id="emote" placeholder='body language — "sneaks closer to the door"' autocomplete="off">
+      <button type="button" id="emote-pick" class="chipmini" title="quick pick">🎭</button>
+    </div>
+    <div class="crow">
+      <span class="lbl">🧠 memory</span>
+      <input id="memory" placeholder="optional — what you'll personally remember" autocomplete="off">
+      <button type="button" id="stage" class="btn stage">+ Add to turn</button>
+    </div>
+    <div class="focushint">
+      say · emote · memory are <b>free</b> — they stack with the action and never cost a pip.
+      <kbd>Enter</kbd> adds the step · <kbd>Ctrl</kbd>+<kbd>Enter</kbd> runs · <kbd>Esc</kbd> drops the last.</div>
+  </div>
+</div>
+
+<div id="menu"></div>
+
+<script>
+// ── the shared tier model (mirrors engine/action_tiers.py) ────────────────
+const VERB_TIER = {
+  look:'free', listen:'free', open:'free', close:'free', drop:'free', speak:'free',
+  inventory:'free', stats:'free', wait_here:'free',
+  approach:'minor', grab:'minor', lead:'minor', put:'minor', wear:'minor', remove:'minor', stand:'minor',
+  go:'major', dash:'major', take:'major', eat:'major', drink:'major', use:'major',
+  examine:'major', search:'major', attack:'major', give:'major', steal:'major', craft:'major',
+  rest:'activity', sleep:'activity', wait:'activity', meddle:'activity'
+};
+const ORDER = ['free','minor','major'];
+let slots = { major:1, minor:1, free:3, activity:1 };
+
+function tierOf(verb){ return VERB_TIER[verb] || 'major'; }
+function canPay(s, tier){
+  if (tier === 'activity') return (s.activity||0) > 0;
+  for (let i = ORDER.indexOf(tier); i < ORDER.length; i++) if ((s[ORDER[i]]||0) > 0) return true;
+  return false;
+}
+function pay(s, tier){
+  if (tier === 'activity'){ s.activity = Math.max(0,(s.activity||0)-1); return; }
+  for (let i = ORDER.indexOf(tier); i < ORDER.length; i++){
+    if ((s[ORDER[i]]||0) > 0){ s[ORDER[i]]--; return; }
+  }
+}
+const clone = (s) => ({ major:s.major, minor:s.minor, free:s.free, activity:s.activity });
+
+// slots with the staged actions already reserved, in order
+let staged = [];
+function projected(){
+  const s = clone(slots);
+  for (const a of staged) if (a.act) pay(s, a.tier);   // expression steps are unbudgeted
+  return s;
+}
+function canStage(tier){ return canPay(projected(), tier); }
+
+// ── scene verbs, per kind ─────────────────────────────────────────────────
+const MENUS = {
+  item:   ['examine','take','eat','use','search'],
+  person: ['examine','approach','give','attack'],
+  way:    ['go','approach','examine'],
+};
+const UNIVERSAL = ['look','inventory','stats','wait','rest'];
+
+// a little colour for the feed
+const RESULTS = {
+  go: d=>`You head ${d}. The trees close behind you.`,
+  take: d=>`You pick up the ${d}.`,
+  eat: d=>`You eat the ${d}. Hunger eases a little.`,
+  examine: d=>`You look ${d} over closely.`,
+  approach: d=>`You walk up to ${d} and stop, right at it.`,
+  look: ()=>"You look around. Raven River, bright; the man watches the water.",
+  inventory: ()=>"You are carrying nothing and wearing a creel.",
+  stats: ()=>"Energy 58, Hunger 10, Thirst 0.",
+  search: d=>`You search ${d}; nothing hidden.`,
+  use: d=>`You use the ${d}.`,
+  give: d=>`You offer it to ${d}.`,
+  attack: d=>`You swing at ${d}.`,
+  wait: ()=>"You hold still and listen to the water.",
+  rest: ()=>"You sit and catch your breath.",
+};
+
+// ── render ────────────────────────────────────────────────────────────────
+const el = (id) => document.getElementById(id);
+let feed = [];
+
+function renderPips(){
+  const p = projected();
+  const html = [];
+  html.push(`<span class="pip major ${p.major?'':'spent'}" title="major ${p.major} left"></span>`);
+  html.push(`<span class="pip minor ${p.minor?'':'spent'}" title="minor ${p.minor} left"></span>`);
+  for (let i=0;i<3;i++) html.push(`<span class="pip free ${i<p.free?'':'spent'}" title="free ${p.free} left"></span>`);
+  el('pips').innerHTML = html.join('');
+  const total = p.major+p.minor+p.free;
+  el('budgetlab').innerHTML = `<b>${p.major}</b> major · <b>${p.minor}</b> minor · <b>${p.free}</b> free`;
+  el('run').disabled = staged.length === 0;
+  el('staged').textContent = staged.length ? `${staged.length} staged` : '';
+}
+
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function renderRack(){
+  const host = el('rackdrop');
+  if (!staged.length){ host.innerHTML = `<div class="empty">stage actions here — click a thing, or fill the rows and Add</div>`; return; }
+  host.innerHTML = '';
+  staged.forEach((a, i) => {
+    const row = document.createElement('div');
+    row.className = 'step';
+    const extra = (a.say ? `<span class="saymini">🗨 ${esc(a.say)}</span>` : '')
+                + (a.emote ? `<span class="saymini">🎭 ${esc(a.emote)}</span>` : '');
+    row.innerHTML = `<span class="n">${i+1}</span><span class="v">${esc(a.label)}</span>${extra}`
+      + `<span class="badge t b-${a.tier}">${a.tier}</span><button class="x" title="remove">✕</button>`;
+    row.querySelector('.x').onclick = () => { staged.splice(i,1); renderRack(); renderPips(); };
+    host.appendChild(row);
+  });
+}
+
+function renderFeed(){
+  const host = el('feed');
+  host.innerHTML = `<h4>What happened</h4>`;
+  if (!feed.length){ host.innerHTML += `<div class="tfd" style="border-color:transparent;color:#5b6570;font-style:italic">nothing yet — the world is quiet.</div>`; return; }
+  for (const line of feed) host.innerHTML += `<div class="tfd ${line.act?'act':''}">${line.text}</div>`;
+}
+
+// ── the composer builds ONE step: action + say + emote + memory ───────────
+// say / emote / memory are expression, not budgeted (task-352): they attach to
+// the step and never cost a pip. Only the action consumes one.
+const VOLUMES = ['say','whisper','shout','scream'];
+let volume = 'say';
+
+function parseCmd(raw){
+  const t = (raw || '').trim(); if (!t) return {};
+  const verb = t.split(/\s+/)[0].toLowerCase();
+  if (VERB_TIER[verb] === undefined && verb !== 'go') return { speech: t };  // prose
+  const rest = t.slice(verb.length).trim();
+  if (verb === 'give' || verb === 'steal' || verb === 'teach'){
+    const m = rest.split(/\s+(?:to|from)\s+/i); return { action: verb, item: m[0]||'', target: m[1]||'' };
+  }
+  if (verb === 'use'){ const on = rest.split(/\s+on\s+/i); return { action:'use', item: on[0]||'', target: on[1]||'' }; }
+  return { action: verb, item: rest };
+}
+
+function currentStep(){
+  const parsed = parseCmd(el('cmd').value);
+  let say = el('say').value.trim();
+  const emote = el('emote').value.trim();
+  const memory = el('memory').value.trim();
+  let act = null, target = '', label = '';
+  if (parsed.action){
+    act = parsed.action;
+    target = [parsed.item, parsed.target].filter(Boolean).join(' ');
+    label = act + (target ? ' ' + target : '');
+  } else if (parsed.speech){
+    say = say || parsed.speech;              // prose in the do box becomes speech (free)
+  }
+  if (!act && !say && !emote) return null;
+  const tier = act ? tierOf(act) : 'expression';   // expression is not a slot cost
+  return { act, target, tier, label: label || (say ? 'say' : 'emote'), say, sayVolume: volume, emote, memory };
+}
+
+function stageCurrent(){
+  const step = currentStep();
+  if (!step) return;
+  if (step.act && !canStage(step.tier)) { flash(step.tier); return; }
+  staged.push(step);
+  el('cmd').value = el('say').value = el('emote').value = el('memory').value = '';
+  renderRack(); renderPips();
+}
+
+function flash(tier){
+  el('racketip').innerHTML = `<span class="fl">no ${tier} action left — say / emote / memory are still free</span>`;
+  setTimeout(()=>{ el('racketip').textContent = 'A turn is a budget: 1 major · 1 minor · 3 free. Say, emote and memory stack for free.'; }, 1800);
+}
+
+// volume segment
+const volseg = el('volseg');
+for (const v of VOLUMES){
+  const b = document.createElement('button'); b.type = 'button'; b.textContent = v; b.dataset.vol = v;
+  b.onclick = () => { volume = v; [...volseg.children].forEach(c => c.classList.toggle('on', c.dataset.vol === v)); };
+  volseg.appendChild(b);
+}
+volseg.children[0].classList.add('on');
+el('emote-pick').onclick = () => {
+  const P = ['smiles','frowns','glances around','shifts their weight','nods slowly','shakes their head','leans in close','steps back'];
+  el('emote').value = P[Math.floor(Math.random()*P.length)];
+};
+
+// ── verb menu on chip click — fills the DRAFT, so say/emote can attach ────
+const menu = el('menu');
+document.querySelectorAll('.chip').forEach(chip => {
+  chip.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const kind = chip.dataset.kind, name = chip.dataset.name;
+    const verbs = [...(MENUS[kind] || []), ...UNIVERSAL];
+    menu.innerHTML = `<div class="mh">${name} — what you can do</div>`;
+    for (const v of verbs){
+      const tier = tierOf(v), ok = canStage(tier);
+      const b = document.createElement('button');
+      b.disabled = !ok;
+      b.innerHTML = `${v}${(v==='go'&&kind==='way') ? ' '+name : ''}<span class="badge b-${tier}">${tier}</span>`;
+      b.onclick = () => {
+        el('cmd').value = ((v==='go'&&kind==='way') ? 'go '+name : v+' '+name).trim();
+        menu.style.display = 'none'; el('say').focus();
+      };
+      menu.appendChild(b);
+    }
+    const r = chip.getBoundingClientRect();
+    menu.style.display = 'block';
+    menu.style.left = (window.scrollX + r.left) + 'px';
+    menu.style.top  = (window.scrollY + r.bottom + 6) + 'px';
+  });
+});
+document.addEventListener('click', () => { menu.style.display = 'none'; });
+
+// ── composer buttons + keys ───────────────────────────────────────────────
+el('stage').onclick = stageCurrent;
+['cmd','say','emote','memory'].forEach(id => el(id).addEventListener('keydown', (e) => {
+  if (e.key === 'Enter'){ e.preventDefault(); if (e.ctrlKey) run(); else stageCurrent(); }
+  if (e.key === 'Escape' && staged.length){ staged.pop(); renderRack(); renderPips(); }
+}));
+
+// ── run: execute one at a time, like the agent loop ───────────────────────
+function run(){
+  if (!staged.length) return;
+  const queue = staged.slice();
+  staged = [];
+  renderRack(); feed = [];
+  let i = 0;
+  const step = () => {
+    if (i >= queue.length){ renderPips(); return; }
+    const a = queue[i++];
+    let line;
+    if (a.act){
+      pay(slots, a.tier);                       // only an action costs a pip
+      const fn = RESULTS[a.act] || (d => `You ${a.act} ${d}.`);
+      line = `▶ ${a.label} — ${fn(a.target)}`;
+    } else {
+      line = `▶ ${a.emote ? 'emote' : 'speech'}`;
+    }
+    if (a.say)   line += ` — ${a.sayVolume === 'whisper' ? 'whispers' : 'says'}: "${a.say}"`;
+    if (a.emote) line += `  (${a.emote})`;
+    feed.push({ text: line, act:true });
+    feed = feed.slice(-6);
+    renderFeed(); renderPips(); renderRack();
+    setTimeout(step, 650);                      // the world answers between actions
+  };
+  step();
+}
+
+el('run').onclick = run;
+el('end').onclick = () => {
+  staged = []; slots = { major:1, minor:1, free:3, activity:1 };
+  feed = []; renderFeed(); renderRack(); renderPips();
+  el('racketip').textContent = 'New turn. Budget refreshed.';
+  setTimeout(()=>{ el('racketip').textContent = 'A turn is a budget: 1 major · 1 minor · 3 free.'; }, 1500);
+};
+
+// init
+renderFeed(); renderRack(); renderPips();
+</script>
+</body>
+</html>

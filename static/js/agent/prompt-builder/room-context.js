@@ -51,6 +51,16 @@ window.PromptBuilder = window.PromptBuilder || {};
     function embeddingClient() {
         return window.EmbeddingClient;
     }
+    /**
+     * task-352: the player's remaining per-turn budget (`turn_slots`), or
+     * undefined when none is published. Passed to the verb-bracket builders so
+     * the prompt hides verbs the turn can no longer afford (guidance only; the
+     * engine's `_slot_gate` enforces).
+     */
+    function turnSlots(player) {
+        const slots = player?.turn_slots;
+        return slots && typeof slots === 'object' ? slots : undefined;
+    }
     async function _matchMemory(memories, text, charName) {
         if (!text)
             return null;
@@ -337,7 +347,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         // area narration used to provide), names only in dim/dark conditions.
         // Each item carries a [bracket] of its allowed actions so the agent sees
         // what it can do with it at a glance.
-        const itemBracket = (roomItem) => PromptBuilder.formatActionBrackets(PromptBuilder.computeItemActions(roomItem, player));
+        const itemBracket = (roomItem) => PromptBuilder.formatActionBrackets(PromptBuilder.computeItemActions(roomItem, player, null, turnSlots(player)));
         const fmtItems = (list, withDescriptions) => {
             if (list.length === 0)
                 return '';
@@ -624,7 +634,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         const buildItemTree = (items, equipped) => {
             const lines = [];
             for (const c of items) {
-                const b = PromptBuilder.formatActionBrackets(PromptBuilder.computeItemActions({ id: c.id, name: c.name, properties: c.properties }, player, { equipped }));
+                const b = PromptBuilder.formatActionBrackets(PromptBuilder.computeItemActions({ id: c.id, name: c.name, properties: c.properties }, player, { equipped }, turnSlots(player)));
                 const d = durTag(c);
                 const f = freshTag(c);
                 const desc = (c.properties?.description || '').trim();
@@ -634,7 +644,7 @@ window.PromptBuilder = window.PromptBuilder || {};
                 // Indent by depth (task-493): a part is legible as a part of
                 // the thing above it, and a part of a part reads the same way.
                 for (const ci of getContainedItems(c.id)) {
-                    const cb = PromptBuilder.formatActionBrackets(PromptBuilder.computeItemActions({ id: ci.id, name: ci.name, properties: ci.properties }, player, { equipped: false }));
+                    const cb = PromptBuilder.formatActionBrackets(PromptBuilder.computeItemActions({ id: ci.id, name: ci.name, properties: ci.properties }, player, { equipped: false }, turnSlots(player)));
                     const cd = durTag(ci);
                     const cf = freshTag(ci);
                     const cdesc = (ci.properties?.description || '').trim();
@@ -654,7 +664,7 @@ window.PromptBuilder = window.PromptBuilder || {};
             : '';
         const knownAbilities = PromptBuilder.knownAbilityNodes(charName);
         const knownAbilityLines = knownAbilities.map((ab) => {
-            const b = PromptBuilder.formatActionBrackets(PromptBuilder.computeItemActions({ id: ab.id, name: ab.name, properties: ab.properties }, player));
+            const b = PromptBuilder.formatActionBrackets(PromptBuilder.computeItemActions({ id: ab.id, name: ab.name, properties: ab.properties }, player, null, turnSlots(player)));
             const desc = (ab.properties?.description || '').trim();
             const head = b ? `${ab.name} ${b}` : ab.name;
             return desc ? `- ${head}: ${desc}` : `- ${head}`;
@@ -858,7 +868,7 @@ ${peopleStr}${exitsStr}${facingStr}${witnessedEvents ? `${witnessedEvents}` : ''
             const envLine = `${currentArea?.name || 'Area'} — ${lightFeel}, ${tempFeel}.${smellNote}`;
             return { agentFraming: false, authoringText: `${envLine}\n\n${body.trim()}` };
         }
-        const availableActions = PromptBuilder.buildAvailableActionsBlock(state, charName, player, currentArea);
+        const availableActions = PromptBuilder.buildAvailableActionsBlock(state, charName, player, currentArea, turnSlots(player));
         const itemsBlock = items ? `${itemHeader}\n` + items : noItemsLine;
         const roomBody = `${bodyDesc}${warn ? `\n${warn}` : ''}`;
         return {

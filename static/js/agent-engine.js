@@ -17,7 +17,11 @@ const NOOP_VERBS = ['wait', 'nothing', 'pause', 'stay'];
 const CHAIN_RULES = {
     dash: ['go', 'wait'],
     lead: ['go', 'approach', 'release', 'wait'],
-    grab: ['approach', 'release', 'wait'],
+    // A grab buys a same-turn *single* move, so a character can seize someone and
+    // drag them one area (out of danger, or into the dark) — `movement.py` drags
+    // grappled targets via `grapple.drag_all`. `dash` is deliberately NOT here:
+    // grab + two-area dash is overpowered. Matches `lead`, which allows `go` only.
+    grab: ['go', 'approach', 'release', 'wait'],
 };
 const agentConfig = config;
 /** globals.d.ts narrows ApiClient to the calls converted code made; these are more. */
@@ -423,7 +427,7 @@ class AgentEngine {
             if (!reply.action.startsWith('speak '))
                 events.log(`[Action] ${reply.action}`, "msg-action");
             try {
-                const data = await agentApi.action(reply.action, charName);
+                const data = await agentApi.action(reply.action, charName, { enforceSlots: true });
                 if (data?.scenario_ended) {
                     events.log("🏁 Scenario ended via trigger.", "system-msg");
                     if (data?._restart_requested) {
@@ -664,7 +668,7 @@ class AgentEngine {
                 // Observe uses the SAME full room context as decide/react, so the
                 // agent always sees items, people, exits, and a WITNESSED section
                 // (with fallback).
-                const observeParts = Object.assign({}, roomParts, { extraNote: threatObservationNote || '' });
+                let observeParts = Object.assign({}, roomParts, { extraNote: threatObservationNote || '' });
                 // Threat-aware replan check — before deciding so the plan is fresh.
                 // task-185: shouldReplan now returns a REASON string (task-340
                 // crisis label) or null; setPlan records the turn clock.
@@ -683,242 +687,293 @@ class AgentEngine {
                 }
                 if (this._checkCancel())
                     return;
-                // CONVERSATION-STYLE LOOP: think + decide in ONE call, and the
-                // prompt + response are pushed into the per-character history
-                // ([system, user, assistant, ...]) so the agent remembers its own
-                // earlier words across phases and turns — no more self-contradiction
-                // between decide and react (e.g. changing a favorite color).
-                const thinkDecidePrompt = PromptBuilder.buildReactionPrompt(player, observeParts, vitalsNL, emotionNL, relationshipNL, memoryNL, lastResult, false, true);
-                const combinedPrompt = threatAlert ? threatAlert + '\n\n' + thinkDecidePrompt : thinkDecidePrompt;
-                history.push({ role: 'user', content: combinedPrompt });
-                const combinedResponse = await this._callLLMMessages(history, 'think-decide');
-                history.push({ role: 'assistant', content: combinedResponse || '' });
-                if (combinedResponse === null) {
-                    events.log(`❌ LLM call failed for ${charName} (think/decide phase) — stopping agent`, 'error-msg');
-                    VW?.ui?.setStatus("LLM Error - Stopped", "error");
-                    config.running = false;
-                    return;
-                }
-                events.logPhase(charName, 'decide', 'deciding');
-                VW?.ui?.setStatus("Deciding...", "info");
-                let parsedDecide = ResponseParser.parseReaction(combinedResponse) ?? { inner: '', speech: null, speechVolume: 'say', action: '', emote: null, memory: null, emotion: null, parseError: null };
-                if (parsedDecide.parseError)
-                    parsedDecide = await this._retryOnceOnParseError(charName, history, 'think-decide', ResponseParser.parseReaction, parsedDecide);
-                if (parsedDecide.parseError) {
-                    events.logParseError(charName, 'think-decide', parsedDecide.parseError, combinedResponse);
-                }
-                let { inner, speech: decisionSpeech, speechVolume, action: finalAction, emote: decisionEmote, target: decisionTarget } = parsedDecide;
-                this._applyFeltEmotion(charName, parsedDecide.emotion);
-                this._learnNames(charName, parsedDecide.learnedNames);
-                if (inner) {
-                    events.logThought(charName, inner);
-                }
-                events.trackAction(charName, inner, null, '', '');
-                if (!agentConfig.lastRoom[charName] && player.current_area)
-                    agentConfig.lastRoom[charName] = player.current_area;
-                let actionRejected = '';
-                if (finalAction && !ActionNormalizer.isValidAction(finalAction, charName)) {
-                    events.log(`⚠️ ${charName} invalid action: "${finalAction}" — skipping`, 'error-msg');
-                    actionRejected = finalAction;
-                    finalAction = '';
-                }
-                if (decisionSpeech) {
-                    await this._speakLine(charName, player, decisionSpeech, speechVolume, decisionTarget);
-                }
-                // task-xxx: the act emote lands BEFORE the action's result so the
-                // stream reads gesture → outcome instead of outcome → gesture.
-                if (decisionEmote) {
-                    await this._performEmote(charName, decisionEmote);
-                }
-                let actionResult = '';
-                let actionSucceeded = true;
-                if (actionRejected) {
-                    actionResult = this._surfaceRejectedAction(charName, actionRejected);
-                    actionSucceeded = false;
-                    events.log(actionResult, 'msg-result', { outcome: 'failure' }, charName);
-                }
-                if (finalAction) {
-                    events.logPhase(charName, 'act', finalAction);
-                    const noopAction = this._isNoopAction(finalAction);
-                    if (!finalAction.startsWith('speak ') && !noopAction)
-                        events.log(`[Action] ${finalAction}`, "msg-action");
-                    if (this._checkCancel())
-                        return;
-                    if (noopAction) {
-                        actionResult = 'You stand still and wait, watching and listening.';
-                        actionSucceeded = true;
-                        events.log(actionResult, 'msg-result', { outcome: 'minor' }, charName);
+                // ── Multi-action turn (task-352, 2026-10-08) ──
+                // A turn holds up to the tier budget (major 1 · minor 1 · free 3).
+                // This loops decide→act→react, rebuilding the prompt each pass from
+                // fresh state so spent slots hide the verbs the character can no
+                // longer afford (room-context feeds turn_slots to the brackets;
+                // `wait` is exempt, it is the turn's exit). The budget is a CEILING
+                // not a quota: the loop exits on "done" — wait, nothing worth doing,
+                // or nothing left affordable — so a character who is fine takes one
+                // action and stops, exactly as before. Hard cap = the budget total.
+                const MAX_ACTIONS_PER_TURN = 5;
+                let actionStep = 0;
+                let loopLastResult = lastResult;
+                let turnDone = false;
+                while (!turnDone && actionStep < MAX_ACTIONS_PER_TURN) {
+                    actionStep += 1;
+                    // The player object the prompt is built from must be the same
+                    // one the bracket-filter reads: otherwise the "ACTIONS LEFT"
+                    // section would show the stale budget while the brackets show
+                    // the fresh, reduced one.
+                    let promptPlayer = player;
+                    if (actionStep > 1) {
+                        // Re-read the world: the previous action moved/spent slots and
+                        // may have revealed items, so rebuild the room context. Vitals,
+                        // emotion and memory stay at their turn-start values.
+                        await worldState.fetch();
+                        const loopState = worldState.data || state;
+                        const loopPlayer = loopState?.players?.[charName] || player;
+                        promptPlayer = loopPlayer;
+                        const loopArea = loopState?.areas?.[loopState.current_area] || currentArea;
+                        const loopRoomParts = PromptBuilder.buildRoomContextParts(loopState, charName, loopPlayer, loopArea);
+                        observeParts = Object.assign({}, loopRoomParts, { plan: PromptBuilder.buildPlanContext(charName) });
+                        if (this._checkCancel())
+                            return;
                     }
-                    else
-                        try {
-                            const data = await agentApi.action(finalAction, charName);
-                            if (data?.scenario_ended) {
-                                events.log("🏁 Scenario ended via trigger.", "system-msg");
-                                if (data?._restart_requested) {
-                                    events.log("🔄 Restarting scenario...", "system-msg");
-                                    await agentApi.resetWorld();
-                                    await worldState.fetch();
-                                    delete this.characterHistories[charName];
-                                    history = this.getHistory(charName);
-                                    events.log("✅ Scenario restarted.", "system-msg");
-                                    VW?.ui?.renderAll?.(worldState.data);
+                    // CONVERSATION-STYLE LOOP: think + decide in ONE call, and the
+                    // prompt + response are pushed into the per-character history
+                    // ([system, user, assistant, ...]) so the agent remembers its own
+                    // earlier words across phases and turns — no more self-contradiction
+                    // between decide and react (e.g. changing a favorite color).
+                    const thinkDecidePrompt = PromptBuilder.buildReactionPrompt(promptPlayer, observeParts, vitalsNL, emotionNL, relationshipNL, memoryNL, loopLastResult, false, true);
+                    const combinedPrompt = threatAlert ? threatAlert + '\n\n' + thinkDecidePrompt : thinkDecidePrompt;
+                    history.push({ role: 'user', content: combinedPrompt });
+                    const combinedResponse = await this._callLLMMessages(history, 'think-decide');
+                    history.push({ role: 'assistant', content: combinedResponse || '' });
+                    if (combinedResponse === null) {
+                        events.log(`❌ LLM call failed for ${charName} (think/decide phase) — stopping agent`, 'error-msg');
+                        VW?.ui?.setStatus("LLM Error - Stopped", "error");
+                        config.running = false;
+                        return;
+                    }
+                    events.logPhase(charName, 'decide', 'deciding');
+                    VW?.ui?.setStatus("Deciding...", "info");
+                    let parsedDecide = ResponseParser.parseReaction(combinedResponse) ?? { inner: '', speech: null, speechVolume: 'say', action: '', emote: null, memory: null, emotion: null, parseError: null };
+                    if (parsedDecide.parseError)
+                        parsedDecide = await this._retryOnceOnParseError(charName, history, 'think-decide', ResponseParser.parseReaction, parsedDecide);
+                    if (parsedDecide.parseError) {
+                        events.logParseError(charName, 'think-decide', parsedDecide.parseError, combinedResponse);
+                    }
+                    let { inner, speech: decisionSpeech, speechVolume, action: finalAction, emote: decisionEmote, target: decisionTarget } = parsedDecide;
+                    this._applyFeltEmotion(charName, parsedDecide.emotion);
+                    this._learnNames(charName, parsedDecide.learnedNames);
+                    if (inner) {
+                        events.logThought(charName, inner);
+                    }
+                    events.trackAction(charName, inner, null, '', '');
+                    if (!agentConfig.lastRoom[charName] && player.current_area)
+                        agentConfig.lastRoom[charName] = player.current_area;
+                    let actionRejected = '';
+                    if (finalAction && !ActionNormalizer.isValidAction(finalAction, charName)) {
+                        events.log(`⚠️ ${charName} invalid action: "${finalAction}" — skipping`, 'error-msg');
+                        actionRejected = finalAction;
+                        finalAction = '';
+                    }
+                    if (decisionSpeech) {
+                        await this._speakLine(charName, player, decisionSpeech, speechVolume, decisionTarget);
+                    }
+                    // task-xxx: the act emote lands BEFORE the action's result so the
+                    // stream reads gesture → outcome instead of outcome → gesture.
+                    if (decisionEmote) {
+                        await this._performEmote(charName, decisionEmote);
+                    }
+                    let actionResult = '';
+                    let actionSucceeded = true;
+                    if (actionRejected) {
+                        actionResult = this._surfaceRejectedAction(charName, actionRejected);
+                        actionSucceeded = false;
+                        events.log(actionResult, 'msg-result', { outcome: 'failure' }, charName);
+                    }
+                    if (finalAction) {
+                        events.logPhase(charName, 'act', finalAction);
+                        const noopAction = this._isNoopAction(finalAction);
+                        if (!finalAction.startsWith('speak ') && !noopAction)
+                            events.log(`[Action] ${finalAction}`, "msg-action");
+                        if (this._checkCancel())
+                            return;
+                        if (noopAction) {
+                            actionResult = 'You stand still and wait, watching and listening.';
+                            actionSucceeded = true;
+                            events.log(actionResult, 'msg-result', { outcome: 'minor' }, charName);
+                        }
+                        else
+                            try {
+                                const data = await agentApi.action(finalAction, charName, { enforceSlots: true });
+                                if (data?.scenario_ended) {
+                                    events.log("🏁 Scenario ended via trigger.", "system-msg");
+                                    if (data?._restart_requested) {
+                                        events.log("🔄 Restarting scenario...", "system-msg");
+                                        await agentApi.resetWorld();
+                                        await worldState.fetch();
+                                        delete this.characterHistories[charName];
+                                        history = this.getHistory(charName);
+                                        events.log("✅ Scenario restarted.", "system-msg");
+                                        VW?.ui?.renderAll?.(worldState.data);
+                                    }
+                                    else {
+                                        this.stop();
+                                    }
+                                    return;
                                 }
-                                else {
-                                    this.stop();
+                                actionResult = data?.output || '';
+                                actionSucceeded = data?.success !== false;
+                                PlanTracker.trackStep(charName, finalAction, actionResult, actionSucceeded);
+                                let outputText = actionResult;
+                                if (data?.system_messages) {
+                                    data.system_messages.forEach((systemMessage) => events.log(systemMessage, 'system-msg'));
                                 }
+                                const narrationUi = agentNarrationUI();
+                                const narrationMode = narrationUi?.getMode();
+                                let narratedText = null;
+                                if (narrationMode === 'ai' && config.apiKey && config.model) {
+                                    // Non-null assertion matches the original bare call:
+                                    // getMode() only returns 'ai' when the module loaded.
+                                    narratedText = await narrationUi.getNarratedActionResult(outputText, charName, finalAction);
+                                    if (narratedText)
+                                        outputText = narratedText;
+                                }
+                                agentConfig.lastActionResult[charName] = outputText;
+                                // task-340: results are first-class rows — outcome-tinted,
+                                // never card-breaking; AI-narrated substitutions are marked.
+                                if (!outputText.includes('says:')) {
+                                    if (narratedText)
+                                        events.log(outputText, 'msg-narrated');
+                                    else if (outputText.includes('ValueError'))
+                                        events.log(outputText, 'error-msg');
+                                    else
+                                        events.log(outputText, 'msg-result', { outcome: actionSucceeded ? 'success' : 'failure' }, charName);
+                                }
+                                events.trackAction(charName, '', null, finalAction, outputText);
+                                const area = worldState.players?.[charName]?.current_area;
+                                if (area)
+                                    agentConfig.lastRoom[charName] = area;
+                                worldState.fetch();
+                            }
+                            catch (err) {
+                                const m = err instanceof Error ? err.message : String(err);
+                                events.log(`Action error: ${m}`, 'error-msg');
+                                actionResult = `Error: ${m}`;
+                            }
+                    }
+                    // ── Invalid-action auto-retry (task-361) ──
+                    // One same-turn retry when the agent's action failed and the
+                    // setting is on. Not a new turn: no step/plan advance, and the
+                    // retry outcome becomes the actionResult used by the react phase.
+                    if (!actionSucceeded && config.autoRetryInvalid && actionResult) {
+                        const retry = await this._autoRetryInvalidAction(charName, player, history, actionRejected || finalAction, actionResult, memoryNL);
+                        if (retry) {
+                            finalAction = retry.finalAction;
+                            actionResult = retry.actionResult;
+                            actionSucceeded = retry.actionSucceeded;
+                        }
+                    }
+                    // ── Chained follow-up (task-104) ──
+                    // Dash→go was the original; generalized to verb families:
+                    // lead → go/approach/release, grab → approach/release.
+                    if (finalAction && actionResult && actionSucceeded) {
+                        const chainVerb = finalAction.split(/\s+/)[0].toLowerCase();
+                        const allowed = CHAIN_RULES[chainVerb];
+                        if (allowed) {
+                            actionResult = await this._runChainFollowUp(charName, player, actionResult, history, chainVerb, allowed);
+                        }
+                    }
+                    if (actionResult) {
+                        const isNowResting = actionResult.toLowerCase().includes('you rest');
+                        const isUnconscious = actionResult.toLowerCase().includes('while unconscious');
+                        if (isUnconscious) {
+                            agentConfig.lastActionResult[charName] = actionResult;
+                        }
+                        else if (!isNowResting) {
+                            await worldState.fetch();
+                            const freshState = worldState.data;
+                            const freshPlayer = freshState?.players?.[charName] || player;
+                            const freshRoom = freshState?.areas?.[freshState.current_area] || currentArea;
+                            events.logPhase(charName, 'react', 'reacting');
+                            VW?.ui?.setStatus("Reacting...", "info");
+                            const movedViaDash = finalAction.split(/\s+/)[0].toLowerCase() === 'dash';
+                            const tickNum = worldState.data?.time_ticks ?? 0;
+                            const areaName = freshRoom?.name || freshState?.current_area || '';
+                            // task-185: currentArea is the turn-start (pre-action) room —
+                            // if it differs from the fresh room the character MOVED this
+                            // action, and "surroundings are unchanged" was lying while
+                            // pointing the model at a stale observation of the old room.
+                            const areaBefore = currentArea?.name || player?.current_area || '';
+                            const areaChanged = !movedViaDash && !!areaName && areaName !== areaBefore;
+                            const reactContext = movedViaDash
+                                ? `[Tick ${tickNum}] You just sprinted and are now in ${areaName} — react to arriving here.`
+                                : areaChanged
+                                    ? `[Tick ${tickNum}] You just moved — you are now in ${areaName}. The full description of your new surroundings is in === WHAT HAPPENED === below.`
+                                    : `[Tick ${tickNum}] You are still in ${areaName}. Your surroundings are unchanged.`;
+                            const reactPrompt = PromptBuilder.buildResultReactionPrompt(charName, freshPlayer, reactContext, vitalsNL, emotionNL, relationshipNL, inner, finalAction || '', actionResult, memoryNL, decisionSpeech);
+                            // task-XXX: dedicated minimal react call. The react phase cannot
+                            // act, so replaying the full decide exchange (~2-3k of persona/
+                            // room/plan/available-actions) plus the action-law system was
+                            // pure weight — and the cached system even said "Emit ONE action"
+                            // while the react user message said the opposite. Fresh 2-message
+                            // conversation instead: react-specific system + ONE user message;
+                            // WHAT HAPPENED carries the outcome. The exchange is still
+                            // mirrored into `history` below for future-turn continuity.
+                            const reactMessages = [
+                                { role: 'system', content: PromptBuilder.buildReactSystemPrompt(charName, freshPlayer) },
+                                { role: 'user', content: reactPrompt },
+                            ];
+                            let reactResponse = await this._callLLMMessages(reactMessages, 'result-reaction');
+                            if (reactResponse === null) {
+                                events.log(`❌ LLM call failed for ${charName} (reaction phase) — stopping agent`, 'error-msg');
+                                VW?.ui?.setStatus("LLM Error - Stopped", "error");
+                                config.running = false;
                                 return;
                             }
-                            actionResult = data?.output || '';
-                            actionSucceeded = data?.success !== false;
-                            PlanTracker.trackStep(charName, finalAction, actionResult, actionSucceeded);
-                            let outputText = actionResult;
-                            if (data?.system_messages) {
-                                data.system_messages.forEach((systemMessage) => events.log(systemMessage, 'system-msg'));
+                            let parsedReact = ResponseParser.parseResultReaction(reactResponse) ?? { inner: '', speech: null, speechVolume: 'say', emote: null, memory: null, emotion: null, parseError: null };
+                            if (parsedReact.parseError && reactResponse) {
+                                // one same-conversation retry (repaired/truncated JSON):
+                                // show the broken reply, ask for a complete one.
+                                events.log(`⚠️ ${charName}: result-reaction response was repaired (truncated JSON) — retrying once.`, 'error-msg');
+                                const retryMessages = [
+                                    reactMessages[0],
+                                    reactMessages[1],
+                                    { role: 'assistant', content: reactResponse || '' },
+                                    { role: 'user', content: 'Your previous reply was cut off mid-JSON. Respond again with COMPLETE raw JSON — same schema, and finish every field you start.' },
+                                ];
+                                const retried = await this._callLLMMessages(retryMessages, 'result-reaction');
+                                if (retried) {
+                                    reactResponse = retried;
+                                    parsedReact = ResponseParser.parseResultReaction(reactResponse) ?? parsedReact;
+                                }
                             }
-                            const narrationUi = agentNarrationUI();
-                            const narrationMode = narrationUi?.getMode();
-                            let narratedText = null;
-                            if (narrationMode === 'ai' && config.apiKey && config.model) {
-                                // Non-null assertion matches the original bare call:
-                                // getMode() only returns 'ai' when the module loaded.
-                                narratedText = await narrationUi.getNarratedActionResult(outputText, charName, finalAction);
-                                if (narratedText)
-                                    outputText = narratedText;
+                            if (parsedReact.parseError) {
+                                events.logParseError(charName, 'result-reaction', parsedReact.parseError, reactResponse);
                             }
-                            agentConfig.lastActionResult[charName] = outputText;
-                            // task-340: results are first-class rows — outcome-tinted,
-                            // never card-breaking; AI-narrated substitutions are marked.
-                            if (!outputText.includes('says:')) {
-                                if (narratedText)
-                                    events.log(outputText, 'msg-narrated');
-                                else if (outputText.includes('ValueError'))
-                                    events.log(outputText, 'error-msg');
-                                else
-                                    events.log(outputText, 'msg-result', { outcome: actionSucceeded ? 'success' : 'failure' }, charName);
+                            history.push({ role: 'user', content: reactPrompt });
+                            history.push({ role: 'assistant', content: reactResponse || '' });
+                            if (!reactResponse || !String(reactResponse).trim()) {
+                                events.log(`⚠️ ${charName}: result-reaction returned empty — skipping react`, 'error-msg');
                             }
-                            events.trackAction(charName, '', null, finalAction, outputText);
-                            const area = worldState.players?.[charName]?.current_area;
-                            if (area)
-                                agentConfig.lastRoom[charName] = area;
-                            worldState.fetch();
+                            const { inner: reactionInner, speech: reactionSpeech, speechVolume: reactionVolume, emote: reactionEmote, memory: reactionMemory } = parsedReact;
+                            if (reactionInner) {
+                                events.logThought(charName, reactionInner);
+                            }
+                            this._applyFeltEmotion(charName, parsedReact.emotion);
+                            this._learnNames(charName, parsedReact.learnedNames);
+                            if (reactionSpeech) {
+                                await this._speakLine(charName, player, reactionSpeech, reactionVolume);
+                            }
+                            if (reactionEmote) {
+                                await this._performEmote(charName, reactionEmote);
+                            }
+                            this._storeReactionMemory(charName, reactionMemory, parsedReact.emotion);
+                            events.trackAction(charName, reactionInner, reactionSpeech, null, '');
                         }
-                        catch (err) {
-                            const m = err instanceof Error ? err.message : String(err);
-                            events.log(`Action error: ${m}`, 'error-msg');
-                            actionResult = `Error: ${m}`;
+                        else {
+                            events.trackAction(charName, '', null, finalAction, actionResult);
                         }
-                }
-                // ── Invalid-action auto-retry (task-361) ──
-                // One same-turn retry when the agent's action failed and the
-                // setting is on. Not a new turn: no step/plan advance, and the
-                // retry outcome becomes the actionResult used by the react phase.
-                if (!actionSucceeded && config.autoRetryInvalid && actionResult) {
-                    const retry = await this._autoRetryInvalidAction(charName, player, history, actionRejected || finalAction, actionResult, memoryNL);
-                    if (retry) {
-                        finalAction = retry.finalAction;
-                        actionResult = retry.actionResult;
-                        actionSucceeded = retry.actionSucceeded;
                     }
-                }
-                // ── Chained follow-up (task-104) ──
-                // Dash→go was the original; generalized to verb families:
-                // lead → go/approach/release, grab → approach/release.
-                if (finalAction && actionResult && actionSucceeded) {
-                    const chainVerb = finalAction.split(/\s+/)[0].toLowerCase();
-                    const allowed = CHAIN_RULES[chainVerb];
-                    if (allowed) {
-                        actionResult = await this._runChainFollowUp(charName, player, actionResult, history, chainVerb, allowed);
-                    }
-                }
-                if (actionResult) {
-                    const isNowResting = actionResult.toLowerCase().includes('you rest');
-                    const isUnconscious = actionResult.toLowerCase().includes('while unconscious');
-                    if (isUnconscious) {
-                        agentConfig.lastActionResult[charName] = actionResult;
-                    }
-                    else if (!isNowResting) {
-                        await worldState.fetch();
-                        const freshState = worldState.data;
-                        const freshPlayer = freshState?.players?.[charName] || player;
-                        const freshRoom = freshState?.areas?.[freshState.current_area] || currentArea;
-                        events.logPhase(charName, 'react', 'reacting');
-                        VW?.ui?.setStatus("Reacting...", "info");
-                        const movedViaDash = finalAction.split(/\s+/)[0].toLowerCase() === 'dash';
-                        const tickNum = worldState.data?.time_ticks ?? 0;
-                        const areaName = freshRoom?.name || freshState?.current_area || '';
-                        // task-185: currentArea is the turn-start (pre-action) room —
-                        // if it differs from the fresh room the character MOVED this
-                        // action, and "surroundings are unchanged" was lying while
-                        // pointing the model at a stale observation of the old room.
-                        const areaBefore = currentArea?.name || player?.current_area || '';
-                        const areaChanged = !movedViaDash && !!areaName && areaName !== areaBefore;
-                        const reactContext = movedViaDash
-                            ? `[Tick ${tickNum}] You just sprinted and are now in ${areaName} — react to arriving here.`
-                            : areaChanged
-                                ? `[Tick ${tickNum}] You just moved — you are now in ${areaName}. The full description of your new surroundings is in === WHAT HAPPENED === below.`
-                                : `[Tick ${tickNum}] You are still in ${areaName}. Your surroundings are unchanged.`;
-                        const reactPrompt = PromptBuilder.buildResultReactionPrompt(charName, freshPlayer, reactContext, vitalsNL, emotionNL, relationshipNL, inner, finalAction || '', actionResult, memoryNL, decisionSpeech);
-                        // task-XXX: dedicated minimal react call. The react phase cannot
-                        // act, so replaying the full decide exchange (~2-3k of persona/
-                        // room/plan/available-actions) plus the action-law system was
-                        // pure weight — and the cached system even said "Emit ONE action"
-                        // while the react user message said the opposite. Fresh 2-message
-                        // conversation instead: react-specific system + ONE user message;
-                        // WHAT HAPPENED carries the outcome. The exchange is still
-                        // mirrored into `history` below for future-turn continuity.
-                        const reactMessages = [
-                            { role: 'system', content: PromptBuilder.buildReactSystemPrompt(charName, freshPlayer) },
-                            { role: 'user', content: reactPrompt },
-                        ];
-                        let reactResponse = await this._callLLMMessages(reactMessages, 'result-reaction');
-                        if (reactResponse === null) {
-                            events.log(`❌ LLM call failed for ${charName} (reaction phase) — stopping agent`, 'error-msg');
-                            VW?.ui?.setStatus("LLM Error - Stopped", "error");
-                            config.running = false;
-                            return;
-                        }
-                        let parsedReact = ResponseParser.parseResultReaction(reactResponse) ?? { inner: '', speech: null, speechVolume: 'say', emote: null, memory: null, emotion: null, parseError: null };
-                        if (parsedReact.parseError && reactResponse) {
-                            // one same-conversation retry (repaired/truncated JSON):
-                            // show the broken reply, ask for a complete one.
-                            events.log(`⚠️ ${charName}: result-reaction response was repaired (truncated JSON) — retrying once.`, 'error-msg');
-                            const retryMessages = [
-                                reactMessages[0],
-                                reactMessages[1],
-                                { role: 'assistant', content: reactResponse || '' },
-                                { role: 'user', content: 'Your previous reply was cut off mid-JSON. Respond again with COMPLETE raw JSON — same schema, and finish every field you start.' },
-                            ];
-                            const retried = await this._callLLMMessages(retryMessages, 'result-reaction');
-                            if (retried) {
-                                reactResponse = retried;
-                                parsedReact = ResponseParser.parseResultReaction(reactResponse) ?? parsedReact;
-                            }
-                        }
-                        if (parsedReact.parseError) {
-                            events.logParseError(charName, 'result-reaction', parsedReact.parseError, reactResponse);
-                        }
-                        history.push({ role: 'user', content: reactPrompt });
-                        history.push({ role: 'assistant', content: reactResponse || '' });
-                        if (!reactResponse || !String(reactResponse).trim()) {
-                            events.log(`⚠️ ${charName}: result-reaction returned empty — skipping react`, 'error-msg');
-                        }
-                        const { inner: reactionInner, speech: reactionSpeech, speechVolume: reactionVolume, emote: reactionEmote, memory: reactionMemory } = parsedReact;
-                        if (reactionInner) {
-                            events.logThought(charName, reactionInner);
-                        }
-                        this._applyFeltEmotion(charName, parsedReact.emotion);
-                        this._learnNames(charName, parsedReact.learnedNames);
-                        if (reactionSpeech) {
-                            await this._speakLine(charName, player, reactionSpeech, reactionVolume);
-                        }
-                        if (reactionEmote) {
-                            await this._performEmote(charName, reactionEmote);
-                        }
-                        this._storeReactionMemory(charName, reactionMemory, parsedReact.emotion);
-                        events.trackAction(charName, reactionInner, reactionSpeech, null, '');
+                    // ── Continue or end the multi-action turn (task-352) ──
+                    loopLastResult = actionResult || loopLastResult;
+                    const choseNothing = !finalAction || this._isNoopAction(finalAction);
+                    if (choseNothing) {
+                        turnDone = true;
                     }
                     else {
-                        events.trackAction(charName, '', null, finalAction, actionResult);
+                        // Exit when the remaining budget can pay for nothing at all.
+                        // Any positive slot still buys at least a look, so the next
+                        // prompt (which already hides what is unaffordable) is the
+                        // real gate; this is only the "budget is empty" stop.
+                        const slotsNow = (worldState.data?.players?.[charName]?.turn_slots);
+                        const anySlotLeft = slotsNow && Object.values(slotsNow).some((n) => n > 0);
+                        if (!anySlotLeft)
+                            turnDone = true;
                     }
                 }
             }
@@ -961,7 +1016,7 @@ class AgentEngine {
                     events.trackAction(charName, inner, speech, 'wait', 'waits.');
                 }
                 else if (finalAction) {
-                    agentApi.action(finalAction, charName).then(async (data) => {
+                    agentApi.action(finalAction, charName, { enforceSlots: true }).then(async (data) => {
                         const output = data?.output || data?.error || '';
                         if (data?.system_messages) {
                             data.system_messages.forEach((systemMessage) => events.log(systemMessage, 'system-msg'));
@@ -1363,7 +1418,7 @@ class AgentEngine {
         events.logPhase(charName, 'act', retryAction);
         events.log(`[Action] ${retryAction}`, 'msg-action');
         try {
-            const data = await agentApi.action(retryAction, charName);
+            const data = await agentApi.action(retryAction, charName, { enforceSlots: true });
             if (data?.scenario_ended) {
                 events.log('🏁 Scenario ended via trigger.', 'system-msg');
                 if (data?._restart_requested) {
@@ -1430,7 +1485,7 @@ class AgentEngine {
         events.logPhase(charName, 'act', followAction);
         events.log(`[Action] ${followAction}`, "msg-action");
         try {
-            const data = await agentApi.action(followAction, charName);
+            const data = await agentApi.action(followAction, charName, { enforceSlots: true });
             if (data?.scenario_ended) {
                 events.log("🏁 Scenario ended via trigger.", "system-msg");
                 if (data?._restart_requested) {

@@ -157,6 +157,7 @@ load('static/js/agent/action-normalizer.js');
 load('static/js/agent/response-parser.js');
 load('static/js/agent/turn-feed.js');
 load('static/js/agent/plan-grounding.js');
+load('static/js/agent/action-tiers.js');
 load('static/js/llm-client.js');
 load('static/js/agent/plan-tracker.js');
 load('static/js/agent/involuntary.js');

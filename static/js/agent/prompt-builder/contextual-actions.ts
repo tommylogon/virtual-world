@@ -61,6 +61,24 @@ window.PromptBuilder = window.PromptBuilder || {};
         return String(value).split(',').map(s => s.trim()).filter(Boolean);
     }
 
+    /** The generated client tier mirror (agent/action-tiers), if loaded. */
+    function actionTiers(): ActionTiersApi | null {
+        return (window as unknown as { ActionTiers?: ActionTiersApi }).ActionTiers || null;
+    }
+
+    /**
+     * task-352: can the remaining turn slots pay for *verb* on *props*?
+     * Guidance only — the engine's `_slot_gate` is the enforcement. With no
+     * budget published (older callers, no `turn_slots`) nothing is hidden, so
+     * this degrades to the pre-budget rendering.
+     */
+    function affordable(verb: string, props: ItemProps | null | undefined, slots: Record<string, number> | null | undefined): boolean {
+        if (!slots) return true;
+        const tiers = actionTiers();
+        if (!tiers || typeof tiers.canAfford !== 'function') return true;
+        return tiers.canAfford(verb, props as Record<string, unknown> | null | undefined, slots);
+    }
+
     /** Chart the char node id for a character (matches world-state.js). */
     function charNodeId(charName: string): string {
         return `player_${String(charName).replace(/\s+/g, '_')}`;
@@ -152,9 +170,10 @@ window.PromptBuilder = window.PromptBuilder || {};
      * @param item  - { id, name, properties } (as returned by getItemsInArea)
      * @param player - Player data (discovered_items)
      * @param carry - { equipped } when the item is carried/equipped
+     * @param slots - remaining turn_slots; when present, verbs the budget cannot pay for are dropped
      * @returns verbs in BRACKET_ORDER
      */
-    function computeItemActions(item: ContextualActionsItemNode, player: PlayerLike, carry?: CarryFlag | null): string[] {
+    function computeItemActions(item: ContextualActionsItemNode, player: PlayerLike, carry?: CarryFlag | null, slots?: Record<string, number> | null): string[] {
         const props = item?.properties || {};
         const actions = expandInverseActions(asArray(props.actions).map(s => s.toLowerCase()));
         const tags = asArray(props.tags).map(s => s.toLowerCase());
@@ -179,10 +198,10 @@ window.PromptBuilder = window.PromptBuilder || {};
         // non-empty equip_slots (the engine's gate — equipment.py equips anything
         // with slots). An empty equip_slots array must never imply wearability.
         const intrinsic = isIntrinsicAbility(props);
-        const slots = Array.isArray(props.equip_slots) ? props.equip_slots : [];
-        const equippable = !intrinsic && (actions.includes('equip') || actions.includes('unequip') || actions.includes('wear') || actions.includes('remove') || tags.includes('wearable') || slots.length > 0);
+        const equipSlots = Array.isArray(props.equip_slots) ? props.equip_slots : [];
+        const equippable = !intrinsic && (actions.includes('equip') || actions.includes('unequip') || actions.includes('wear') || actions.includes('remove') || tags.includes('wearable') || equipSlots.length > 0);
         if (equippable && !(carry && carry.equipped)) verbs.add('wear');
-        if (!intrinsic && carry && carry.equipped && (actions.includes('unequip') || actions.includes('remove') || slots.length > 0)) verbs.add('remove');
+        if (!intrinsic && carry && carry.equipped && (actions.includes('unequip') || actions.includes('remove') || equipSlots.length > 0)) verbs.add('remove');
 
         if (triggerTypes.includes('on_toggle_on') || triggerTypes.includes('on_toggle_off')) verbs.add('toggle');
 
@@ -195,7 +214,11 @@ window.PromptBuilder = window.PromptBuilder || {};
         // worn gear would always fail.
         if (!(carry && carry.equipped) && !isDiscovered(player, item?.name || '') && !isIntrinsicAbility(props)) verbs.add('examine');
 
-        return BRACKET_ORDER.filter(v => verbs.has(v));
+        const list = BRACKET_ORDER.filter(v => verbs.has(v));
+        // task-352: drop verbs the remaining turn_slots cannot pay for. Guidance
+        // only — the engine's `_slot_gate` still enforces. No budget → no hide.
+        if (!slots) return list;
+        return list.filter(v => affordable(v, props, slots));
     }
 
     /** "[take, use]" style bracket from a verb list; '' when empty. */
@@ -218,10 +241,12 @@ window.PromptBuilder = window.PromptBuilder || {};
      * @param charName - Character name
      * @param player - Player data
      * @param currentArea - Current area data object (exits, name)
+     * @param slots - remaining turn_slots; when present, verbs the budget cannot pay for are dropped
      * @returns The block ('' if nothing would be listed — never happens)
      */
     function buildAvailableActionsBlock(state: WorldStateData, charName: string,
-                                        player: PlayerLike, currentArea: AreaLike | null): string {
+                                        player: PlayerLike, currentArea: AreaLike | null,
+                                        slots?: Record<string, number> | null): string {
         const lines: string[] = [];
         const light = currentArea?.ambient_light ?? currentArea?.environment?.light ?? 50;
         const level = PromptBuilder.lightToLevel(light);
@@ -236,6 +261,14 @@ window.PromptBuilder = window.PromptBuilder || {};
             : (currentArea?.exits || {});
         const visibleExits = Object.entries(viewExits).filter(([, ed]) => !ed.hidden);
 
+        // task-352: `keep` drops a suggested verb the remaining turn_slots cannot
+        // pay for (guidance only — the engine's `_slot_gate` enforces). No budget
+        // published → nothing hidden. `wait` is exempt (see below): it is the
+        // turn's exit.
+        const keep = (verb: string, line: string) => {
+            if (affordable(verb, null, slots)) lines.push(line);
+        };
+
         for (const [dir, exitData] of visibleExits) {
             const doorNode = worldState.getNode(exitData.way_id);
             const handle = PromptBuilder.wayHandle({ ...exitData, label: dir }, doorNode, currentArea?.name) || dir;
@@ -243,9 +276,9 @@ window.PromptBuilder = window.PromptBuilder || {};
 
             // Requirement-gated passage verbs aren't in the door's standard
             // bracket list, so they live here to stay visible.
-            if (req === 'crawl') lines.push(`crawl — crawl through the ${handle}`);
-            else if (req === 'climb') lines.push(`climb — climb the ${handle}`);
-            else if (req === 'jump') lines.push(`jump — jump across the ${handle}`);
+            if (req === 'crawl') keep('crawl', `crawl — crawl through the ${handle}`);
+            else if (req === 'climb') keep('climb', `climb — climb the ${handle}`);
+            else if (req === 'jump') keep('jump', `jump — jump across the ${handle}`);
         }
 
         const others = (state.players_in_area || []).filter((p: PlayerLike) => p && p.name && p.name !== charName);
@@ -256,27 +289,29 @@ window.PromptBuilder = window.PromptBuilder || {};
                 PromptBuilder.anonymousName(charName, p.name || '', worldState.data?.players?.[p.name || '']?.description || p.description || '')
             ).filter(Boolean);
             const target = names.join(', ');
-            lines.push(`attack — fight ${target}`);
-            lines.push(`grab — seize ${target}`);
-            lines.push(`lead — guide ${target}`);
-            if (carried.length) lines.push(`give — hand an item to ${target}`);
-            lines.push(`steal — take from ${target}`);
+            keep('attack', `attack — fight ${target}`);
+            keep('grab', `grab — seize ${target}`);
+            keep('lead', `lead — guide ${target}`);
+            if (carried.length) keep('give', `give — hand an item to ${target}`);
+            keep('steal', `steal — take from ${target}`);
         }
 
-        if (player?.grappled_by) lines.push('escape — break free (you are being held)');
-        if ((player?.state === 'prone') || !!(player?.conditions?.prone)) lines.push('stand — get back up (you are prone)');
+        if (player?.grappled_by) keep('escape', 'escape — break free (you are being held)');
+        if ((player?.state === 'prone') || !!(player?.conditions?.prone)) keep('stand', 'stand — get back up (you are prone)');
         const energy = vitals.Energy;
-        if (energy !== undefined && energy < 50) lines.push('rest — rest to recover energy (you are tired)');
+        if (energy !== undefined && energy < 50) keep('rest', 'rest — rest to recover energy (you are tired)');
         const bladder = vitals.Bladder;
-        if (bladder !== undefined && bladder >= 65) lines.push('relieve — relieve yourself (your bladder is full)');
-        if (blind) lines.push('listen — listen hard (you are blind)');
-        if (!hasDarkVision && (blind || level === 'pitch_black' || level === 'dim')) lines.push('fumble — blind search in the darkness');
+        if (bladder !== undefined && bladder >= 65) keep('relieve', 'relieve — relieve yourself (your bladder is full)');
+        if (blind) keep('listen', 'listen — listen hard (you are blind)');
+        if (!hasDarkVision && (blind || level === 'pitch_black' || level === 'dim')) keep('fumble', 'fumble — blind search in the darkness');
 
-        if (currentArea?.name) lines.push(`examine — examine ${currentArea.name}`);
+        if (currentArea?.name) keep('examine', `examine — examine ${currentArea.name}`);
 
-        lines.push('look — look around');
-        lines.push('inventory — check your inventory');
-        lines.push('stats — check your stats');
+        keep('look', 'look — look around');
+        keep('inventory', 'inventory — check your inventory');
+        keep('stats', 'stats — check your stats');
+        // The turn's exit. Never hidden: with no slots left this is the only way
+        // to end the turn, and hiding it would strand the character.
         lines.push('wait — wait or hold still');
 
         const intro = 'Other than what you see around the room, what you are wearing or carrying, or who else is here, you can do these actions:';
@@ -325,6 +360,13 @@ interface ContextualActionsItemNode {
 /** The carry marker: only `equipped` is read. */
 interface CarryFlag {
     equipped?: boolean;
+}
+
+/** The generated client tier mirror (agent/action-tiers.js). */
+interface ActionTiersApi {
+    canAfford?(verb: string, props: Record<string, unknown> | null | undefined,
+               slots: Record<string, number> | null | undefined): boolean;
+    tierOf?(verb: string, props?: Record<string, unknown> | null): string;
 }
 
 /** The player fields this module reads when gating the universal verbs. */

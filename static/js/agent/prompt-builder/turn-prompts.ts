@@ -143,7 +143,7 @@ window.PromptBuilder = window.PromptBuilder || {};
 
         const ctx = { phase: 'reaction', vitalsNL, emotionNL, relationshipNL, memoryNL };
         const context = PromptBuilder.buildContextBlock(player, ctx,
-            ['perceived', 'vitals', 'encumbrance', 'emotion', 'insanity', 'trait', 'size', 'activity', 'grappled', 'ghost', 'dead']);
+            ['perceived', 'vitals', 'encumbrance', 'emotion', 'insanity', 'trait', 'size', 'activity', 'grappled', 'slots', 'ghost', 'dead']);
 
         // End-of-turn memory is OPTIONAL (memories normally come at turn START).
         const wantMemory = includeMemory && config.endOfTurnMemory === true;
@@ -201,7 +201,7 @@ If you have no emote, omit it:
 
         const ctx = { phase: 'react', vitalsNL, emotionNL, relationshipNL, memoryNL };
         const context = PromptBuilder.buildContextBlock(player, ctx,
-            ['perceived', 'vitals', 'encumbrance', 'emotion', 'insanity', 'trait', 'activity', 'ghost', 'dead']);
+            ['perceived', 'vitals', 'encumbrance', 'emotion', 'insanity', 'trait', 'activity', 'slots', 'ghost', 'dead']);
 
         // task-XXX: the react call is a fresh 2-message conversation (no decide
         // replay), so the persona must ride in THIS message — the model has no

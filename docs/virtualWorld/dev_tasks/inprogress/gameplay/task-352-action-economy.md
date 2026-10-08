@@ -1,6 +1,6 @@
-﻿---
+---
 type: task
-status: todo
+status: inprogress
 area: gameplay
 priority: medium
 ---
@@ -105,11 +105,54 @@ Keep the timeframe. Add composition control on top.
 
 - A **turn** is still a timeframe of N game minutes (`Simulation Model.md`).
 - Every verb gains a **tier**: `free`, `minor`, `major`, or `activity`.
-- A character has a **fixed** per-turn allowance per tier, independent of N — e.g.
- `major: 1, minor: 1, free: 3, activity: 1`.
+- A character has a **fixed** per-turn allowance per tier, independent of N — decided
+  2026-10-07 as `major: 1, minor: 1, free: 3, activity: 1`.
 - The turn ends when the timeframe is full **or** nothing the character wants to do
- fits a remaining slot. Both constraints bind: minutes cap the total, tiers cap the
- composition.
+  fits a remaining slot. Both constraints bind: minutes cap the total, tiers cap the
+  composition.
+
+**Position gates free actions (2026-10-07).** A free action is free in *slot*, not
+in *reach*: `open`/`close`/`drop` are free, but only for something the character is
+**at**. Reaching a door across the room costs `approach` (minor); crossing to another
+area costs `go` (major). So a character with **no minor and no major** cannot approach
+a new door to open it, even though `open` is free. And **a major slot may pay for a
+minor** — spend the major on `approach` when out of minors. This is the precise
+meaning of "the free tier is from where you stand": position is bought with the tiers
+below, so the free tier cannot reach beyond the character's footing. Abilities are no
+exception — a `free` `create flame` still needs the character to perceive/aim at its
+target.
+
+**Per-item cost override already exists (measured 2026-10-07).** `apply_action`
+(`engine/tick_manager.py:384`) merges `ACTION_COSTS[verb]` with an `override_cost`
+the caller passes, and `take_drop_actions.py` already passes
+`item.properties.get("action_costs", {}).get("take", {})`. Today those entries carry
+only `energy` (task-436 removed `time`). **352 adds `tier` to that same override:**
+`action_costs: {"use": {"tier": "free"}}` on an item, so an intrinsic ability prices
+its own slot as **data**. Resolver: `tier = item.action_costs.get(verb, {}).get("tier")
+or VERB_TIER[verb]`.
+
+**A trigger cannot price the slot.** The slot must be validated *before* the action
+runs to know whether it fits; triggers fire in the effect pipeline *after* selection.
+A trigger/condition may **gate whether the ability fires** (cooldown, target present)
+— never the slot cost. If a cost must vary (free first use each turn, then major),
+resolve it at validation from the item's `uses`/a condition, not from an effect.
+
+**Default from the ability tag, override from the property (2026-10-07).** Ability-ness
+is already a tag (`INTRINSIC_ABILITY_TAGS`), so the *default* tier for an intrinsic
+ability's `use` is a code rule — `if _is_intrinsic_ability(item): tier = "minor"` —
+and `action_costs.<verb>.tier` is the per-item, per-verb override. Do **not** invent a
+`free_action`/`minor_action` **cost tag**: a tag cannot express *which verb* the cost
+applies to (`use` free, `take` major), it duplicates the property, and the tag
+namespace is a query vocabulary (task-98), not a scalar store. A "show me all free-use
+abilities" list is derived from the property, never stored as a tag.
+
+**Abilities have a different verb set, so a different cost table (2026-10-07).** An
+intrinsic ability (`INTRINSIC_ABILITY_TAGS`) is non-physical, so it never gets
+`take`/`drop`/`place` (task-737) — its verbs are `use`/`toggle` (activation) and
+grant/revoke (acquisition). Its tiers therefore come from the *same* per-item
+`action_costs.<verb>.tier` override, over that different verb set. Two abilities can
+still cost differently (a free cantrip, a major meteor-swarm), which is exactly why
+the cost is per item and per verb, not a single "ability cost".
 
 The point of the tier system is that **duration cannot see triviality**. Today
 `drink` is 2 minutes and a hypothetical one-minute look is 1 minute, so a long turn
@@ -126,9 +169,9 @@ all of them move when someone drags the pace slider.
 
 | Tier | Verbs | Notes |
 |------|-------|-------|
-| **free** | `look`, `listen`, `open`, `close`, `drop`, `toggle`, `speak`/`say`/`whisper`, `do`, `fear`, `interest`, `guess time`, `inventory`, `stats` | The free tier is the **at-a-distance** layer: what you can tell from where you stand. |
-| **minor** | `grab`, `lead`, `toggle`, `release`, `stow`, `put`, `wear`, `remove`, second and subsequent `go` in a turn | `grab`/`lead` already gate the existing chain slot. A second `go` is the goal's "go second time". |
-| **major** | first `go`/`dash`/`approach`, **`examine`**, `take`, `use`, `eat`, `drink`, `attack`, `search`, `find`, `craft`, `combine`, `give`, `steal`, `fix`, `relieve`, `bind`/`enchant` | One per turn by default. |
+| **free** | `look`, `listen`, `open`, `close`, `drop`, `toggle`, `speak`/`say`/`whisper`, `do`, `fear`, `interest`, `guess time`, `inventory`, `stats`, **`recall`**, **`alias`**, **`label`** | The free tier is the **at-a-distance** layer: what you can tell from where you stand. |
+| **minor** | `grab`, `lead`, `toggle`, `release`, `stow`, `put`, **`place`**, `wear`, `remove`, **`approach`**, second and subsequent `go` in a turn | `grab`/`lead` already gate the existing chain slot. `approach` moves to a thing within the area; `go` crosses areas and is major. |
+| **major** | first `go`/`dash`, **`examine`**, `take`, `use`, `eat`, `drink`, `attack`, `search`, `find`, `craft`, `combine`, `give`, `steal`, `fix`, `relieve`, `bind`/`enchant` | One per turn by default. |
 | **activity** | `rest`, `sleep`, `wait`, `meditate`, `bathe`, and the task-436 background durations | Already modelled; consumes the whole turn. |
 
 #### `examine` is major, and the hover card is *not* examine
@@ -251,12 +294,31 @@ the docs and not only in a task file.
 
 ## Open decisions (do not start without these)
 
-1. **Slot counts**, and specifically whether `major` is 1 or 2. The goal's own example
- lists both `examine door (major)` and `dash (major)`; at `major: 1` that sequence
- needs two turns.
-2. **Whether the soak tier gets the same budget** as the attended tiers.
-3. **Whether `attack with <offhand>` and an ability verb get built here** or the
- minor tier ships without them.
+1. ~~Slot counts, and specifically whether `major` is 1 or 2.~~ **Decided
+   2026-10-07: `major: 1, minor: 1, free: 3, activity: 1`.**
+2. ~~Whether the soak tier gets the same budget as the attended tiers.~~ **Decided
+   2026-10-07: yes — the same budget per turn**, matching the parity requirement in
+   `Simulation Model.md`. `soak.py`/`timeskip.py` `_policy_step` must be able to
+   spend more than one slot.
+3. ~~Whether `attack with <offhand>` and an ability verb get built here.~~ **Resolved
+   2026-10-07: neither needs a new verb.** Abilities are intrinsic item nodes
+   (`INTRINSIC_ABILITY_TAGS = {spell, ability, innate, intrinsic, power}`,
+   `engine/equipment.py:16`) reached through `use`, priced by the per-item
+   `action_costs.use.tier` (see The model). Off-hand is a **minor-tier attack**
+   conditioned on "took the Attack action with a light melee weapon this turn" plus
+   "holds a second light weapon" — a conditioned minor, not a verb. Only sub-question
+   left: whether the off-hand *rules* (light weapon, no ability modifier unless
+   Two-Weapon Fighting) ship here or with the combat work (task-537).
+   **Recommendation: 352 declares the slot; the TWF rules ship with 537.**
+
+## Related threads (2026-10-07)
+
+- **`recall` is a free action** and is the retrieval side of **task-736** (the
+  per-character cognitive map / remembered routes) and **task-734** (knowledge as
+  memory). An agent that must spend a turn to remember its own knowledge will not
+  ask; `recall` in the free tier is what makes self-query cheap. `alias`/`label`
+  are the free-tier verbs behind **task-447** (nicknames/aliases) and the
+  relationship `label` command.
 
 (The `examine` question that used to be on this list is **resolved** — see the
 examine section above. It is major, and the free tier is the at-a-distance layer.)
@@ -302,6 +364,153 @@ examine section above. It is major, and the free tier is the at-a-distance layer
   and the reason this file now carries retractions rather than silent edits.
   (The one true remainder: 436's *folder* was stale, `review/` rather than
   `done/`. Now moved.)
+
+## Landed (2026-10-07) — slice 1: the tier table
+
+`engine/action_tiers.py`: `VERB_TIERS` (one verb, one tier — the single home the
+model calls for), `tier_of(verb, item_node)` (resolves a per-item
+`action_costs[verb].tier` override, then the intrinsic-ability default of `minor`,
+then the table), and `DEFAULT_BUDGET`.
+
+`tests/test_action_tiers.py` derives the dispatched verb set from
+`routes/action_handlers.py` (95 tokens → 85 verbs) and fails when a command is
+added without a tier — the classification's own acceptance criterion. 6 tests pass;
+0 uncovered verbs.
+
+Verbs the table above did not classify, decided here: `crawl`/`climb`/`jump` **major**
+(movement); `stand`, `wake`, `flee`/`disengage`/`withdraw`, `manifest`/`vanish`
+**minor**; `escape`/`struggle`, `teach` **major**; `dress`/`undress`/`strip`
+**activity**; `stop`, `pick`, `pickup` **free**/**major** as listed; `toggle`
+**minor** (the table above listed it in both free and minor — resolved to minor).
+
+Remaining slices: (3) composer action list, (4) agent one-call list return,
+(5) soak parity.
+
+**Grab → move (2026-10-07).** `CHAIN_RULES.grab` gained `go` (`static/js/agent-engine.ts:18`),
+matching `lead`, so a character can seize someone and drag them one area out of
+danger (or into the dark) in one turn. `dash` is deliberately excluded — grab plus
+a two-area dash is overpowered. The drag itself already exists —
+`engine/grapple.py:drag_all` is called from `movement.py:743` on every `go`/`dash`,
+carrying grappled targets — the chain simply did not offer the move after a grab.
+Under this economy it becomes `grab` (minor) + `go` (major), and the chain rule is
+retired with `CHAIN_RULES`. The prompt should still state the drag so the model
+knows the option exists.
+
+**Slice 2 — the per-turn budget (2026-10-07).** `Player.turn_slots` holds the
+remaining allowance (`major:1, minor:1, free:3, activity:1`); `reset_slots` /
+`spend_slot` in `engine/action_tiers.py` do reset and the downgrade (a higher slot
+pays for a lower action — a major pays for an `approach`). A `_slot_gate` in
+`handle_take_action` charges the slot after the activity/condition gates and
+refuses with a tier-naming message ("You have no major action left this turn").
+`tick_turn` resets every character's slots at the turn boundary. The live read
+payload publishes `turn_slots`; `to_scenario_dict` strips it (a slot never survives
+a turn). Charged on the attempt, not the outcome — you spent the action trying.
+
+**Enforcement is opt-in (`enforce_slots`).** The gate runs only when a request sets
+`enforce_slots`, so the *turn pipeline* is budgeted while out-of-band sends are not.
+That matters because the inspector/paperdoll/craft buttons, the interjection lane
+and "Speak as guest" all post through the same `runAction` global — default-on
+enforcement would silently charge (and eventually refuse) those admin actions.
+
+Landed: `ApiClient.action` and `runAction` take an `{ enforceSlots }` option
+(`static/js/api.ts`), and the five agent-engine action submits pass it
+(`agent-engine.ts` — human reply, final action ×2, retry, chain follow-up). The
+`_speakLine` call deliberately does **not**: speech and emote are expression, not
+budgeted actions.
+
+Still open (slice 3/4):
+- the human composer must show the remaining slots (`turn_slots` is in `/api/state`)
+  and let the player spend several actions before ending the turn;
+- the agent prompt must show remaining slots, and the decision must return a **list**
+  of actions executed in order (task-352: exactly one decision call, never one per
+  slot);
+- `CHAIN_RULES` and the dash-burst special case retire once the list lands;
+- until the loop changes, a character still takes one action per turn, so the budget
+  rarely binds — the enforcement plumbing is in, the *multi-step turn* is not.
+
+Prompt side landed: a `slots` section (`context-sections.ts`) renders
+`=== ACTIONS LEFT THIS TURN === major N · minor N · free N` from `turn_slots`, and is
+in the turn prompt's section lists (`turn-prompts.ts`). So the model can already
+*see* its budget; it just is not yet told it may take several actions this turn.
+The composer's budget readout is deliberately deferred with the loop, because
+displaying "3 free" before a turn can hold several actions reads as a bug.
+
+Tests: `tests/test_action_tiers.py` gains `reset_slots` / `spend_slot` /
+downgrade / activity coverage — 10 pass; `tests/test_action_costs.py` 4 pass.
+Enforcement lives only in `handle_take_action`, so the engine and soak paths are
+untouched (slice 5 adds them). No test posts commands, so the unit suite is
+unaffected.
+
+## Landed (2026-10-08) — slice 3/4: budget-aware prompt + the multi-action loop
+
+**This reverses the "one decision per turn returns a list" decision** (the
+Agents section above). On 2026-10-08 the user chose to try the loop empirically
+instead: hide the verbs the remaining slots cannot pay for, and loop the decide
+call until the character is *done*. That is the old note's **Option B**, which
+the Agents section had ruled out. It is adopted here **with an explicit
+termination contract and a stated cost caveat**, and the one-call-list stays the
+fallback if the loop proves too expensive.
+
+Reconciliation with "LLM call count must never scale with turn length": the loop
+is bounded by the **fixed** slot budget (`major:1, minor:1, free:3`), which does
+not scale with `time_per_tick_minutes`. A character takes at most a fixed handful
+of LLM-decided actions per turn regardless of the dial — N calls per *turn*, not
+N calls per *minute*. On a soak that is still real cost; "exit on done" is what
+keeps the average near one action, because a character who is fine stops.
+
+**"Done" is a decision, not an empty meter.** The turn ends when the character
+chooses `wait`/nothing, **or** the budget can pay for nothing, **or** the cap is
+hit. The budget is a **ceiling, not a quota**: a character may take one action
+and stop. Draining all five slots every turn would make everyone burn filler
+(`look`, `inventory`) — the exact noise the model exists to prevent.
+
+### Client tier mirror (the third list, made generated)
+
+The hiding needs the tier table in the browser; the only copy was
+`engine/action_tiers.py`. To avoid the "two homes" bug the module docstring warns
+about, `tools/action_tiers_index.py` reads the Python table and emits
+`static/js/agent/action-tiers.ts` (compiled to `.js` by `npm run build:ts`). The
+mirror reproduces `tier_of` (per-item `action_costs[verb].tier` override →
+intrinsic-ability default of `minor` → the table) and `spend_slot`'s downgrade
+(a higher slot pays for a lower action). `--check` fails on drift. Script tag
+added in `templates/index.html` before `contextual-actions.js`.
+
+### Hiding
+
+`computeItemActions` and `buildAvailableActionsBlock` (`contextual-actions.ts`)
+take an optional `slots` and drop any verb `canAfford` says the budget cannot pay
+for; `room-context.ts` feeds them `player.turn_slots`. `wait` is **exempt** — it
+is the turn's exit, and hiding it would strand a character with no slots. With no
+`turn_slots` published the filter is a no-op, so older callers and saves render
+exactly as before. The hide is **guidance only**; the engine's `_slot_gate`
+remains the enforcement.
+
+### The loop
+
+`agent-engine.ts` reactive mode wraps decide→act→react in a `while` (cap
+`MAX_ACTIONS_PER_TURN = 5`). Iterations after the first re-`fetch()` the world and
+rebuild the room context, so the prompt reflects the new position, revealed items
+and spent slots; `loopLastResult` carries each result into the next prompt. The
+loop exits on `choseNothing` (no action, or a NOOP verb) or an all-zero budget.
+React still runs once per action, preserving per-action memory/emotion. The
+turn's single `applyTurn`/`TurnQueue.advance` is unchanged — the loop is *inside*
+the turn, so ticks and decay still run once per cycle, never per action.
+
+### Verification status
+
+**Unverified live** — the dev server was down (the user owns it), so this is
+compile/unit-verified only: `npm run build:ts` clean, `node tools/unit/run.cjs`
+618 passed, `tools/action_tiers_index.py --check` OK. Needs a live Kraktooth turn
+to confirm: (a) after the major is spent the majors actually vanish from the
+brackets; (b) the loop takes 2+ actions when the plan wants them; (c) a satisfied
+character still ends at one. `MAX_ACTIONS_PER_TURN` is the kill switch — set it
+to `1` to reproduce the pre-loop behaviour exactly.
+
+Gate note: `tools/js_module_index.py --check` still lists two **pre-existing,
+unrelated** Python modules without `@module`
+(`engine/activities_loader.py`, `engine/effect_handlers/movement.py`); the gate
+was red before this work. `engine/action_tiers.py` (untracked since slice 1)
+gained its `@module` contract here.
 
 ## Related
 
