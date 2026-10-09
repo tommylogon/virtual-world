@@ -159,7 +159,7 @@ class TestingMixin:
             for effect in effects:
                 etype = effect.get("type", "message")
                 eparams = effect.get("params", {})
-                if isinstance(eparams, dict) and eparams.get("success_message"):
+                if isinstance(eparams, dict) and not eparams.get("message") and eparams.get("success_message"):
                     eparams = dict(eparams)
                     eparams["message"] = eparams["success_message"]
                 rendered_msg = self._render_template(
@@ -182,7 +182,7 @@ class TestingMixin:
             for effect in effects:
                 etype = effect.get("type", "message")
                 eparams = effect.get("params", {})
-                if isinstance(eparams, dict) and eparams.get("success_message"):
+                if isinstance(eparams, dict) and not eparams.get("message") and eparams.get("success_message"):
                     eparams = dict(eparams)
                     eparams["message"] = eparams["success_message"]
                 try:

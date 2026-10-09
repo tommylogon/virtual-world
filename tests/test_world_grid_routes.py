@@ -143,10 +143,10 @@ def test_create_and_resize_grid_round_trip(tmp_path):
     client = app.test_client()
 
     resp = client.post("/api/world/scopes/the_pines/grid",
-                       json={"w": 4, "h": 3, "cell_scale": 2.5, "mode": "town"})
+                       json={"w": 4, "h": 3, "mode": "town"})
     assert resp.status_code == 200
     data = resp.get_json()
-    assert data["grid"] == {"w": 4, "h": 3, "cell_scale": 2.5}
+    assert data["grid"] == {"w": 4, "h": 3}
     assert data["mode"] == "town"
 
     # The manifest and to_dict carry it, so a save/load keeps the grid.
@@ -276,7 +276,7 @@ def test_create_feature_with_grid_and_drill_down(tmp_path):
     }).get_json()
     village = made["scope"]["id"]
     assert made["scope"]["mode"] == "town"
-    assert made["grid"] == {"w": 3, "h": 3, "cell_scale": 1.0}
+    assert made["grid"] == {"w": 3, "h": 3}
 
     # It is a child of the parent, and opens in its own mode.
     parent = client.get("/api/world/scopes/the_pines/grid").get_json()

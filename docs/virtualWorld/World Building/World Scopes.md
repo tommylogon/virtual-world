@@ -63,7 +63,7 @@ rather than a field on the same record. A scope record can also carry:
 ```json
 {
   "mode": "world",                                  // world | town | interior
-  "grid": { "w": 20, "h": 40, "cell_scale": 1.0 },  // absent = this scope has no grid
+  "grid": { "w": 20, "h": 40 },  // absent = this scope has no grid
   "layers": { "biome": {"10,14": "sparse_forest"},  // painted cells, keyed "x,y"
               "road":  {"11,22": "road"},
               "floor": {} },                        // storey index: 0 ground, ±n, unbounded

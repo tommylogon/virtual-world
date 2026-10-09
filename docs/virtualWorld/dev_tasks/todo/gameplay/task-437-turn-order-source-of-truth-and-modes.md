@@ -1,3 +1,7 @@
+---
+blocked_by: [task-436]
+---
+
 # task-437 — One turn order, owned by the engine, with simultaneous as a mode
 
 **Status:** todo

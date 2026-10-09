@@ -216,26 +216,19 @@ window.InspectorBehaviors = (() => {
         const kissIntensity = action.intensity || 'normal';
         const caressTarget = action.target || '';
         const caressWhere = action.where || '';
-        const caressIntensity = action.intensity || 'normal';
         const lickTarget = action.target || '';
         const lickWhere = action.where || '';
-        const lickIntensity = action.intensity || 'normal';
         const suckTarget = action.target || '';
         const suckWhere = action.where || '';
-        const suckIntensity = action.intensity || 'normal';
         const biteTarget = action.target || '';
         const biteWhere = action.where || '';
-        const biteIntensity = action.intensity || 'normal';
         const tickleTarget = action.target || '';
         const tickleWhere = action.where || '';
-        const tickleIntensity = action.intensity || 'normal';
         const embraceTarget = action.target || '';
         const embraceWhere = action.where || '';
-        const embraceIntensity = action.intensity || 'normal';
         const possessTarget = action.target || '';
         const teachTarget = action.target || '';
         const teachSubject = action.subject || '';
-        const cookRecipe = action.recipe || '';
         const pushThroughDirection = action.direction || '';
         const blockTarget = action.target || '';
         const approachTarget = action.target || '';
@@ -743,7 +736,6 @@ window.InspectorBehaviors = (() => {
         const behavior = player.behaviors[index];
         if (!behavior) return;
 
-        const escName = charName.replace(/'/g, "\\'");
         const b = behavior;
 
         const existing = inputById('behavior-modal');

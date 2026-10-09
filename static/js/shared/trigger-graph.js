@@ -1702,7 +1702,7 @@ window.TriggerGraph = (() => {
             <button class="btn btn-sm btn-yellow" @click=${() => TG._onValidateClick()} style="font-size:10px;display:${_mode === 'behavior' ? 'none' : ''};">⚠ Validate</button>
             <button class="btn btn-sm btn-ghost" @click=${() => TG._fitView()} style="font-size:10px;">⊞ Fit</button>
             <button class="btn btn-sm btn-purple" @click=${() => TG._toggleStatePanel()} style="font-size:10px;display:${_mode === 'behavior' ? '' : 'none'};">🗺 States</button>
-            <button class="btn btn-sm btn-yellow" @click=${() => TG._saveBlueprint()} style="font-size:10px;">💾 Blueprint</button>
+            <button class="btn btn-sm btn-yellow" @click=${() => TG._saveBlueprint()} style="font-size:10px;">💾 Save to library</button>
             <button class="btn btn-sm" @click=${() => TG._exportBlueprint()} style="font-size:10px;">⬇️ Export</button>
             <button class="btn btn-sm" @click=${() => TG._loadBlueprint()} style="font-size:10px;">📂 Load</button>
             <button class="btn btn-sm btn-green" @click=${() => TG._saveGraph()} style="font-size:10px;">✅ ${_mode === 'behavior' ? 'Save Behaviors' : 'Apply'}</button>
@@ -2176,10 +2176,30 @@ window.TriggerGraph = (() => {
         _close();
     }
     TG._saveGraph = _saveGraph;
-    function _saveBlueprint() {
+    async function _saveBlueprint() {
         const g = _serializeGraph();
-        const name = prompt('Blueprint name:', 'my_trigger') || 'untitled';
-        const desc = prompt('Description:', '') || '';
+        let name = 'my_trigger';
+        let desc = '';
+        const dlg = window.Dialog;
+        if (dlg && typeof dlg.prompt === 'function') {
+            // task-751: one modal for name + description, not two native prompts.
+            const result = await dlg.prompt({
+                title: 'Save blueprint to library',
+                fields: [
+                    { key: 'name', label: 'Name', value: 'my_trigger' },
+                    { key: 'description', label: 'Description', placeholder: 'What does this trigger do?' },
+                ],
+                confirmLabel: '💾 Save',
+            });
+            if (!result)
+                return; // cancelled
+            name = String(result.name || '').trim() || 'untitled';
+            desc = String(result.description || '');
+        }
+        else {
+            name = prompt('Blueprint name:', 'my_trigger') || 'untitled';
+            desc = prompt('Description:', '') || '';
+        }
         const bp = { name, description: desc, graph: g };
         const id = name.replace(/[^a-z0-9_]+/g, '_').toLowerCase();
         fetch('/api/library/triggers', {
@@ -2187,11 +2207,23 @@ window.TriggerGraph = (() => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id, data: bp })
         }).then(r => r.json()).then(res => {
-            if (res.error)
-                alert('Save failed: ' + res.error);
-            else
-                alert('💾 Blueprint saved to library as "' + name + '".');
-        }).catch(err => alert('Save failed: ' + err.message));
+            if (res.error) {
+                if (typeof toastError === 'function')
+                    toastError('Save failed: ' + res.error);
+                else
+                    alert('Save failed: ' + res.error);
+            }
+            else {
+                const m = '💾 Blueprint saved to library as "' + name + '".';
+                if (typeof toastInfo === 'function')
+                    toastInfo(m);
+                else
+                    alert(m);
+            }
+        }).catch(err => { if (typeof toastError === 'function')
+            toastError('Save failed: ' + err.message);
+        else
+            alert('Save failed: ' + err.message); });
     }
     TG._saveBlueprint = _saveBlueprint;
     function _exportBlueprint() {

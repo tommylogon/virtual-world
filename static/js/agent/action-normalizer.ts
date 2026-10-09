@@ -54,7 +54,6 @@ const ActionNormalizerModule = (() => {
         return _matureCache;
     }
 
-    const MOVE_VERBS = new Set(['go', 'dash', 'crawl', 'climb', 'jump']);
     /** Check whether an action string uses a supported verb or matches a known exit name. */
     function isValidAction(action: unknown, charName?: string) {
         if (typeof action !== 'string' || action.trim() === '') return false;

@@ -654,7 +654,7 @@ def test_a_road_painted_over_a_wall_is_still_a_road():
 def test_a_name_is_metadata_not_paint():
     """Names survive the eraser and an unnamed scope loads byte-identically."""
     record = {"id": "s", "name": "S", "kind": "scope", "state": "unmade",
-              "grid": {"w": 2, "h": 2, "cell_scale": 1.0}, "layers": {}}
+              "grid": {"w": 2, "h": 2}, "layers": {}}
     wg.normalise_grid(record)
     assert "names" not in record, "no empty container is invented"
 
@@ -673,7 +673,7 @@ def test_a_name_is_metadata_not_paint():
 
 def test_a_bad_name_costs_one_name_not_the_map():
     record = {"id": "s", "name": "S", "kind": "scope", "state": "unmade",
-              "grid": {"w": 2, "h": 2, "cell_scale": 1.0}, "layers": {},
+              "grid": {"w": 2, "h": 2}, "layers": {},
               "names": {"1,0": "The Stag Inn", "not a cell": "nope", "2,2": ""}}
     wg.normalise_grid(record)
     assert record["names"] == {"1,0": "The Stag Inn"}

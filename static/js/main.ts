@@ -79,6 +79,7 @@ interface PreviewModalEl extends HTMLDivElement {
     VW.ui = ui;
     VW.graph = graphManager;
     VW.itemLib = itemLib;
+    VW.dialog = (window as unknown as { Dialog?: unknown }).Dialog;
     VW.inspector = inspector;
     VW.libraryBrowser = libraryBrowser;
 VW.worldSync = worldSync;

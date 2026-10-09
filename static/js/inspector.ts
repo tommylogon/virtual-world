@@ -658,12 +658,6 @@ class Inspector {
         const node = worldState.getNode(nodeId);
         if (!node) return;
         const actionCosts: Record<string, Record<string, number>> = node.properties?.action_costs || {};
-        const costActions = [
-'use', 'take', 'examine', 'eat', 'drink', 'read', 'activate'
-];
-        const costStats = [
-'Energy', 'Hunger', 'Thirst', 'HP'
-];
         const inputs = document.querySelectorAll<HTMLInputElement>(`.costs-input[data-action][data-stat]`);
         for (const input of inputs) {
             // The selector guarantees both attributes, so these are never undefined.

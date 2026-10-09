@@ -3,6 +3,7 @@ type: task
 status: review
 area: environment
 priority: high
+blocked_by: [task-553]
 ---
 
 # task-554: Season is read nowhere in the engine; winter should be cold

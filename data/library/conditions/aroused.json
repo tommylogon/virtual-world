@@ -29,7 +29,7 @@
   "stack": "refresh",
   "default_duration": 20,
   "excludes": [],
-  "mature": true,
+  "tags": ["mature"],
   "order": null,
   "perception_skip": false,
   "check_advantage": [],

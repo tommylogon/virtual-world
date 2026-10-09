@@ -6,6 +6,6 @@
   "effects": {
     "sensory_memory": true
   },
-  "mature": true,
+  "tags": ["mature"],
   "conflicts": []
 }

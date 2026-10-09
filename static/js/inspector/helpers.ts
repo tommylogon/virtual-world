@@ -317,7 +317,7 @@ const InspectorHelpersModule = (() => {
         const escId = H.escId(nodeId);
         const image = props.image || '';
         const preview = image
-            ? `<img src="${H.esc(image)}" alt="Node image" style="max-width:100px;max-height:100px;border-radius:6px;border:1px solid var(--border);display:block;margin-bottom:6px;">`
+            ? `<img src="${H.esc(image)}" alt="Node image" loading="lazy" decoding="async" style="max-width:100px;max-height:100px;border-radius:6px;border:1px solid var(--border);display:block;margin-bottom:6px;">`
             : `<div style="font-size:11px;color:var(--text-muted);padding:4px 0;">No image set.</div>`;
         const removeBtn = image
             ? `<button class="btn btn-sm btn-danger" onclick="InspectorHelpers.clearNodeImage('${escId}')">🗑 Remove</button>`
@@ -346,7 +346,7 @@ const InspectorHelpersModule = (() => {
         const previewEl = document.getElementById(`img-preview-${nodeId}`);
         if (previewEl) {
             const previewLit = image
-                ? htmlTag`<img src=${image} alt="Node image" style="max-width:100px;max-height:100px;border-radius:6px;border:1px solid var(--border);display:block;margin-bottom:6px;">`
+                ? htmlTag`<img src=${image} alt="Node image" loading="lazy" decoding="async" style="max-width:100px;max-height:100px;border-radius:6px;border:1px solid var(--border);display:block;margin-bottom:6px;">`
                 : htmlTag`<div style="font-size:11px;color:var(--text-muted);padding:4px 0;">No image set.</div>`;
             window.Lit.render(previewLit, previewEl);
         }

@@ -144,7 +144,7 @@ GATEWAY_OUT = "out"
 #: reads ``properties.x``/``y`` directly, so with physics off (or graph mode) a
 #: compiled scope lays out in the exact shape it was painted — the point of
 #: painting over a reference map. This is layout only; travel time stays one
-#: turn per cell (``cell_scale`` is not read by the compiler or movement).
+#: turn per cell.
 CELL_CANVAS_UNITS = 40
 
 

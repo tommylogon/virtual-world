@@ -49,7 +49,7 @@ class TestDerivedCatalog:
         for cid, definition in pc.CONDITION_DEFINITIONS.items():
             assert "order" in definition, cid
             assert "perception_skip" in definition, cid
-            assert "mature" in definition, cid
+            assert "tags" in definition, cid
 
     def test_blocking_is_in_place_mutable(self):
         # reload() updates it in place; a frozen set would silently go stale
@@ -68,7 +68,7 @@ class TestSeeder:
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
         data["attack_mod"] = -9
-        data.pop("mature", None)
+        data.pop("tags", None)
         with open(path, "w", encoding="utf-8") as f:
             json.dump(data, f)
 
@@ -77,7 +77,7 @@ class TestSeeder:
         with open(path, "r", encoding="utf-8") as f:
             reread = json.load(f)
         assert reread["attack_mod"] == -9, "seeder clobbered an edited value"
-        assert reread["mature"] is True, "seeder did not backfill the missing key"
+        assert reread["tags"] == ["mature"], "seeder did not backfill the missing key"
 
     def test_is_idempotent(self, temp_condition_dir):
         pc.seed_condition_library()
@@ -96,7 +96,7 @@ class TestReload:
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
         data["order"] = 0
-        data["mature"] = False
+        data["tags"] = []
         with open(path, "w", encoding="utf-8") as f:
             json.dump(data, f)
 

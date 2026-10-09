@@ -3,6 +3,7 @@ type: task
 status: todo
 area: testing
 priority: medium
+blocked_by: [task-397, task-401]
 ---
 
 # task-402: Large-world projection and indexing benchmark

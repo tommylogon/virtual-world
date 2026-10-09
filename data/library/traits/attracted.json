@@ -7,7 +7,7 @@
     "npc_reaction": "approach",
     "drawn_to_arousal": true
   },
-  "mature": true,
+  "tags": ["mature"],
   "conflicts": [
     "prudish"
   ]

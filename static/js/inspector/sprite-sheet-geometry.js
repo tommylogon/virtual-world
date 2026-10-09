@@ -200,7 +200,6 @@
          * tolerance is unusable at a different zoom.
          */
         function hitDivider(cuts, axis, at, tol, opts = {}) {
-            const minCell = Math.max(1, Math.round(clampNum(opts.minCell, MIN_CELL_PX)));
             const list = axis === 'x' ? cuts.colCuts : cuts.rowCuts;
             const t = Math.abs(tol);
             // Nearest first, so overlapping tolerance bands still resolve to the

@@ -130,9 +130,23 @@ interface ItemViewExternals {
     reinitChoices(root: HTMLElement | null): void;
 }
 
+const _warnedMissingExternals = new Set<string>();
 function _external<K extends keyof ItemViewExternals>(name: K): ItemViewExternals[K] | null {
-    const value = (globalThis as unknown as Record<string, unknown>)[name];
-    return (value === undefined ? null : value) as ItemViewExternals[K] | null;
+    // Resolve a dependency published either bare on `window` (InspectorPanel,
+    // TagMultiselect, ...) or under the `VW` namespace (itemLib — published as
+    // `VW.itemLib`, never `window.itemLib`). A bare-global-only read silently
+    // returned null for itemLib, so Save to Library was a no-op (bug-533).
+    const root = globalThis as unknown as Record<string, unknown>;
+    const vw = root.VW as Record<string, unknown> | undefined;
+    const value = root[name] ?? (vw ? vw[name] : undefined);
+    if (value === undefined) {
+        if (!_warnedMissingExternals.has(name)) {
+            _warnedMissingExternals.add(name);
+            console.warn(`[item-view] external '${name}' is not available on window or VW`);
+        }
+        return null;
+    }
+    return value as ItemViewExternals[K];
 }
 
 /** The ApiClient members this module calls that globals.d.ts does not declare. */

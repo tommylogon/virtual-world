@@ -47,7 +47,6 @@ window.CommandPalette = (() => {
         return eval(name);
     }
     const NODE_ICONS = { area: '🏠', item: '📦', way: '🚪', character: '🧍', logic_trigger: '⚡', trigger: '⚡' };
-    const TAB_NAMES = { '🧍 Agents': 'Agents', '🗺️ Outline': 'Outline', '👁 Lens': 'Lens', '🛠 Issues': 'Issues', '✨ NL Editor': 'NL Editor' };
     const mainActions = {
         saveGame: () => mainGlobal('saveGame')(),
         loadGameList: () => mainGlobal('loadGameList')(),
@@ -145,7 +144,6 @@ window.CommandPalette = (() => {
         return s;
     }
     let overlayEl = null;
-    let inputEl = null;
     let listEl = null;
     let results = [];
     let selected = 0;
@@ -260,7 +258,6 @@ window.CommandPalette = (() => {
         if (overlayEl && overlayEl.parentNode)
             overlayEl.parentNode.removeChild(overlayEl);
         overlayEl = null;
-        inputEl = null;
         listEl = null;
         results = [];
         entriesCache = null;
@@ -313,7 +310,6 @@ window.CommandPalette = (() => {
             close(); });
         document.body.appendChild(overlay);
         overlayEl = overlay;
-        inputEl = input;
         listEl = list;
         render('');
         setTimeout(() => input.focus(), 20);

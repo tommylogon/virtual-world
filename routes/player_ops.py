@@ -1292,7 +1292,6 @@ def handle_get_player_map(app, name):
             "visited_cells": count,
             "w": grid.get("w"),
             "h": grid.get("h"),
-            "cell_scale": grid.get("cell_scale", 1),
         })
 
     return jsonify({

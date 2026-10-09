@@ -529,8 +529,8 @@ _CONDITION_BASE = {
     # Catalog metadata (single source of truth: the JSON library):
     #   order            — position in CONDITION_HIERARCHY; None = not in it
     #   perception_skip  — in the hierarchy but never rendered as a perception line
-    #   mature           — hidden/gated behind the world mature_content toggle
-    "order": None, "perception_skip": False, "mature": False,
+    #   tags             — a `mature` tag gates the entry behind mature_content (task-750)
+    "order": None, "perception_skip": False, "tags": [],
     # Roll-affecting lists read by engine/checks.py: names of skills, abilities
     # or "attack"/"*" that gain advantage / disadvantage / auto-fail (task-472).
     "check_advantage": [], "check_disadvantage": [],
@@ -579,8 +579,9 @@ for _index, _cid in enumerate(_CATALOG_ORDER, 1):
 for _cid in _PERCEPTION_SKIP_IDS:
     CONDITION_DEFINITIONS.setdefault(_cid, {})["perception_skip"] = True
 for _cid in _MATURE_CONDITION_IDS:
-    CONDITION_DEFINITIONS.setdefault(_cid, {})["mature"] = True
-del _index, _cid
+    _def = CONDITION_DEFINITIONS.setdefault(_cid, {})
+    _def["tags"] = sorted(set(_def.get("tags") or []) | {"mature"})
+del _index, _cid, _def
 _normalize_catalog()
 
 # Frozen copy of the built-in catalog, used to rebuild from scratch on reload.
@@ -744,7 +745,8 @@ def _rebuild_derived_constants():
 
     MATURE_CONDITIONS.clear()
     MATURE_CONDITIONS.update(
-        cid for cid, d in CONDITION_DEFINITIONS.items() if d.get("mature")
+        cid for cid, d in CONDITION_DEFINITIONS.items()
+        if "mature" in {str(t).lower() for t in (d.get("tags") or [])}
     )
 
 

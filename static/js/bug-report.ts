@@ -210,10 +210,6 @@
         return highlight;
     }
 
-    function _hideHighlight() {
-        if (highlight) highlight.style.display = 'none';
-    }
-
     function _destroyHighlight() {
         if (highlight && highlight.parentNode) highlight.parentNode.removeChild(highlight);
         highlight = null;

@@ -1,0 +1,68 @@
+---
+type: task
+status: done
+area: library
+priority: low
+---
+
+# task-649: A known-bad reference image is still offered: eldenford - wrong orientatoin.webp
+
+**Filed:** 2026-09-30
+**Related:** 
+
+## Goal
+
+The WorldPainter reference-image picker lists 19 backgrounds including 'eldenford - wrong orientatoin.webp' -- a file whose name says it is the wrong orientation. It sits next to the correct eldenford.webp, so an author tracing over the map can pick the wrong one and get a mirrored map. Either rename it out of the directory or have the picker mark it.
+
+## Acceptance
+
+- [x] The known-bad reference is no longer offered by the picker.
+- [x] The file is moved, not deleted, so the decision is reversible.
+- [x] The endpoint was hit live to prove it.
+
+## What was done 2026-10-02
+
+`static/images/backgrounds/eldenford - wrong orientatoin.webp` was moved (via
+`git mv`) to `static/images/backgrounds/_rejected/`. `_background_urls`
+(`routes/world_grid_ops.py`) now skips non-file entries, so a subfolder is never
+listed and the bad image cannot be traced over by mistake. The rejected copy is
+still in the tree if the author wants it.
+
+Evidence, live on port 4461:
+
+    GET /api/world/painter/backgrounds
+    -> 17 images, none matching "wrong orient"
+    -> /static/images/backgrounds/eldenford.webp still present
+
+`python -m pytest tests/test_painter_backgrounds.py -q` — 1 passed.
+
+## Verified (2026-10-09)
+
+Re-confirmed: `static/images/backgrounds/_rejected/eldenford - wrong
+orientatoin.webp` exists (moved, not deleted) and
+`tests/test_painter_backgrounds.py` passes. Closed to `done`.
+
+## Sweep of the backgrounds directory (2026-09-30) — leaving this one to Tommy
+
+`/api/world/painter/backgrounds` lists 19 files in `static/images/backgrounds`,
+nearly all ~4 MB. Beyond the known-bad entry, the sweep found:
+
+| file | size | note |
+|---|---|---|
+| `eldenford - wrong orientatoin.webp` | 4,158,067 | named as wrong; sits beside the correct `eldenford.webp` |
+| `ChatGPT_Image_Sep_22_2026_10_11_21_AM-1790064744611-1790163792966.webp` | 4,063,401 | **byte-identical pair** with the row below |
+| `ChatGPT_Image_Sep_22_2026_10_11_21_AM-1790064744611.webp` | 4,063,401 | |
+| `valerious-house-interior-1790164455523.webp` | 2,951,917 | timestamped variant of `valerious-house-interior.webp` |
+| `deep_forest-1790288542838.webp` | 4,083,322 | timestamped variant |
+
+**Not actioned deliberately.** Deleting or renaming these is a judgement about
+which reference art the author wants to keep, and a wrong guess destroys work.
+Two things worth deciding separately:
+
+1. Whether the reference picker should filter. It is a *reference* list used
+   while tracing a grid by eye, so a wrong-orientation image in it does real
+   damage -- the author traces faithfully onto a mirrored map. Marking rejected
+   art (a `rejected: true` sidecar, or a `_rejected/` subdirectory the endpoint
+   skips) is safer than deletion and is reversible.
+2. Roughly 4 MB of exact duplicates is dead weight in the repo regardless of
+   which are kept.

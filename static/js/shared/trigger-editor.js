@@ -694,7 +694,6 @@ var triggerEditorApi = {
                     <span style="color:var(--text-primary);">${String(c.condition || '(none)')}</span>
                     <span style="color:var(--text-muted);">${c.detail?.phrase ? `— "${c.detail.phrase}" (${c.detail.mode || 'contains'})` : ''}</span>
                 </div>`);
-            const fireable = res.fireable !== false;
             const fireableMsg = res.fireable_reason
                 || `this trigger type (${String(triggerType)}) needs an item/way context to fire — no target node matched "${String(data.target_name || '')}".`;
             const outputs = (res.outputs || []).map((o) => triggerEditorTag `<div style="padding-left:8px;color:${o.includes('dry-run') ? 'var(--text-secondary)' : 'var(--accent-green)'};">${o}</div>`);
@@ -1145,8 +1144,6 @@ var triggerEditorApi = {
         const dispVal = isItems ? (Array.isArray(cv) ? cv.join(', ') : cv) : cv;
         const SHOWS = (types) => types.includes(ctype) ? 'block' : 'none';
         const OPTS = ['lt', 'le', 'eq', 'ge', 'gt'].map(o => triggerEditorTag `<option value=${o} ?selected=${cOp === o}>${o}</option>`);
-        const SKILL_OPTS = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA', 'Athletics', 'Acrobatics', 'Stealth', 'Perception', 'Survival', 'Persuasion', 'Investigation']
-            .map(s => triggerEditorTag `<option value=${s} ?selected=${(cSaveType === 'stat' ? cStat : cSkill) === s}>${s}</option>`);
         const row = document.createElement('div');
         row.className = 'cond-row';
         row.style.cssText = 'background:var(--bg-inset);border-radius:4px;padding:6px;margin-bottom:0;border-left:3px solid var(--pink);position:relative;';

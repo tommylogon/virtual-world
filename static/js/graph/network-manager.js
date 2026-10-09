@@ -580,9 +580,11 @@ window.GraphNetwork = {
                     edgesArr = sub.edges || [];
                 }
                 catch (err) {
-                    // Stale selection (e.g. after a scenario load): drop it and
-                    // fall back to the whole world rather than showing nothing.
+                    // Stale selection (e.g. after a scenario load, or a persisted
+                    // id whose scope was renamed/deleted — task-749): drop it, clear
+                    // the saved key, and fall back to the whole world.
                     graphManager._scopeFilter = null;
+                    graphManager._persistScopeFilter?.();
                     const sel = document.getElementById('graph-scope-filter');
                     if (sel)
                         sel.value = '';
@@ -1485,7 +1487,6 @@ window.GraphNetwork = {
     renderTagPanel() {
         if (!graphManager._tagPanelEl)
             return;
-        const lib = graphManager._tagLibrary || {};
         const counts = {};
         const metaById = {};
         graphManager.nodes.forEach((nodeData) => {

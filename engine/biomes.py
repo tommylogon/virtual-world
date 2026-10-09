@@ -440,6 +440,192 @@ def _num(value, default=None):
         return default
 
 
+#: Descriptive climate fields a biome MAY carry (task-758). These are for the
+#: palette's detail panel, not the painted `climate` layer — which is a 5-value
+#: enum (task-557) and must stay an enum, not ranges. Absent = unknown, never
+#: guessed.
+_CLIMATE_FIELDS = ("temperature", "rainfall", "elevation")
+#: Adjacency lists (task-758): a biome id or a documented soft noun.
+_NEIGHBOUR_FIELDS = ("natural_neighbors", "unlikely_neighbors", "transition_biomes")
+
+
+def _climate_problems(bid: str, rec: dict) -> List[str]:
+    """Validate a biome's optional ``climate`` block (task-758).
+
+    Absent is valid — the palette shows "unknown". Present must be an object
+    whose ``temperature``/``rainfall``/``elevation`` are ``[min, max]`` numbers
+    with ``min <= max``.
+    """
+    climate = rec.get("climate")
+    if climate is None:
+        return []
+    if not isinstance(climate, dict):
+        return [f"biome {bid}: climate must be an object"]
+    out: List[str] = []
+    for field in _CLIMATE_FIELDS:
+        rng = climate.get(field)
+        if rng is None:
+            continue
+        if (not isinstance(rng, (list, tuple)) or len(rng) != 2
+                or _num(rng[0]) is None or _num(rng[1]) is None):
+            out.append(f"biome {bid}: climate.{field} must be [min, max] numbers")
+        elif _num(rng[1]) < _num(rng[0]):
+            out.append(f"biome {bid}: climate.{field} max < min")
+    return out
+
+
+def _neighbour_problems(bid: str, rec: dict) -> List[str]:
+    """Validate a biome's optional adjacency lists (task-758).
+
+    A neighbour is a biome id *or* a documented soft noun ("meadow"), so only the
+    shape is checked here — names are not forced into a second vocabulary. The
+    compiler-side adjacency rule that consumes them is separate work.
+    """
+    out: List[str] = []
+    for key in _NEIGHBOUR_FIELDS:
+        vals = rec.get(key)
+        if vals is None:
+            continue
+        if (not isinstance(vals, list)
+                or not all(isinstance(v, str) and v.strip() for v in vals)):
+            out.append(f"biome {bid}: {key} must be a list of non-empty strings")
+    return out
+
+
+def _record_tags(rec: dict) -> set:
+    return {str(t).lower() for t in (rec.get("tags") or [])}
+
+
+def is_made_place(rec: dict) -> bool:
+    """A *made* place (task-561) — a building or an indoor room, not wild country.
+
+    A building is authored as a biome so it can be a cell with an identity and
+    prose, but the wild-country contract does not apply to it: nobody forages
+    berries off a smithy's wall, and no wildlife spawns in a bank. So the forage
+    tag and distribution checks are skipped — deliberately, not by omission. An
+    **indoor room** (task-568) is made in the same sense; it is read from the
+    `indoor` tag, so a modder adding a `cellar` is exempt without saying so.
+    """
+    tags = _record_tags(rec)
+    return "building" in tags or INDOOR_TAG in tags
+
+
+def is_structure(rec: dict) -> bool:
+    """Not a place at all (task-562) — a wall, a window, a door, a void.
+
+    A structure cell never compiles to an area, so it has no ground and nothing
+    to forage: the checks that ask those questions do not apply.
+    """
+    return NOT_A_PLACE_TAG in _record_tags(rec)
+
+
+def record_problems(bid: str, rec: dict) -> List[str]:
+    """Per-record taxonomy problems, without cluster-wide coverage checks.
+
+    Shared by :func:`validate` (whole taxonomy) and the vocabulary save route
+    (task-589), so a save refuses exactly what ``validate()`` would reject for
+    that record. Coverage checks (a wild biome needs resource/hostile rules) are
+    cluster-level and stay in :func:`validate`.
+    """
+    if not isinstance(rec, dict):
+        return [f"biome {bid}: not an object"]
+    recognized = {str(t).lower() for t in foraging.AREA_SKILL_BONUS}
+    skills = set(foraging.SKILL_TABLES)
+    out: List[str] = []
+    if not rec.get("name"):
+        out.append(f"biome {bid}: missing name")
+    if not rec.get("terrain"):
+        out.append(f"biome {bid}: missing terrain")
+    tags = [str(t).lower() for t in (rec.get("tags") or [])]
+    if not tags:
+        out.append(f"biome {bid}: no area tags")
+    elif not (set(tags) & recognized) and not is_made_place(rec) and not is_structure(rec):
+        out.append(f"biome {bid}: no area tag foraging recognises "
+                   f"({sorted(recognized)}); areas would be barren")
+    for skill in (rec.get("forage_skills") or []):
+        if str(skill).lower() not in skills:
+            out.append(f"biome {bid}: unknown forage skill '{skill}'")
+    if not rec.get("surface") and not rec.get("floor") and not is_structure(rec):
+        # `floor` on a record used to mean the ground material; it is now the
+        # storey index (engine/world_grid.PAINT_LAYERS), so a taxonomy that only
+        # has the old key is accepted but flagged by being unrenamed.
+        out.append(f"biome {bid}: missing surface (ground material)")
+    if not [d for d in (rec.get("descriptions") or []) if str(d).strip()]:
+        out.append(f"biome {bid}: no description fragments")
+    out.extend(_climate_problems(bid, rec))
+    out.extend(_neighbour_problems(bid, rec))
+    return out
+
+
+def feature_problems(fid: str, rec: dict) -> List[str]:
+    """Per-feature problems (task-589), without the biome-reference check.
+
+    Shared by :func:`validate` and the vocabulary save route, so a feature save
+    refuses exactly what ``validate()`` would for that record. Whether the
+    ``biomes`` a feature names exist is cluster-level and stays in ``validate()``.
+    """
+    if not isinstance(rec, dict):
+        return [f"feature {fid}: not an object"]
+    out: List[str] = []
+    if not rec.get("name"):
+        out.append(f"feature {fid}: missing name")
+    if not (rec.get("tags") or []):
+        out.append(f"feature {fid}: no tags")
+    if not [d for d in (rec.get("descriptions") or []) if str(d).strip()]:
+        out.append(f"feature {fid}: no description fragments")
+    return out
+
+
+def resource_table_problems(entry_id: str, rec: dict) -> List[str]:
+    """Validate one raw resource loot-table entry (task-718/589).
+
+    The raw shape (`id`, `biome_tags`, `item_tags`, `weight`, `conditions`) as the
+    file stores it — distinct from the per-biome shape `validate()` checks, which
+    `_library_to_per_biome` derives from this.
+    """
+    if not isinstance(rec, dict):
+        return [f"resource_distribution[{entry_id}]: not an object"]
+    out: List[str] = []
+    if not (rec.get("biome_tags") or []):
+        out.append(f"resource_distribution[{entry_id}]: no biome_tags")
+    item_tags = {str(t).lower() for t in (rec.get("item_tags") or [])}
+    if not item_tags:
+        out.append(f"resource_distribution[{entry_id}]: no item_tags")
+    else:
+        unknown = item_tags - _forage_vocabulary()
+        if unknown:
+            out.append(f"resource_distribution[{entry_id}]: item_tags not in the "
+                       f"foraging vocabulary {sorted(unknown)}")
+    weight = _num(rec.get("weight"), 0)
+    if weight is None or weight <= 0:
+        out.append(f"resource_distribution[{entry_id}]: non-positive weight")
+    return out
+
+
+def hostile_table_problems(entry_id: str, rec: dict) -> List[str]:
+    """Validate one raw hostile loot-table entry (task-718/589)."""
+    if not isinstance(rec, dict):
+        return [f"hostile_distribution[{entry_id}]: not an object"]
+    out: List[str] = []
+    if not (rec.get("biome_tags") or []):
+        out.append(f"hostile_distribution[{entry_id}]: no biome_tags")
+    kind = str(rec.get("kind") or "")
+    if kind not in HOSTILE_KINDS:
+        out.append(f"hostile_distribution[{entry_id}]: unknown kind '{kind}' "
+                   f"({list(HOSTILE_KINDS)})")
+    base = _num(rec.get("base_chance"))
+    per = _num(rec.get("per_area_from_settlement"))
+    cap = _num(rec.get("max_chance"))
+    if base is None or not (0 <= base <= 1):
+        out.append(f"hostile_distribution[{entry_id}]: base_chance out of [0,1]")
+    if per is None or per < 0:
+        out.append(f"hostile_distribution[{entry_id}]: per_area_from_settlement "
+                   f"must be >= 0")
+    if base is not None and cap is not None and cap < base:
+        out.append(f"hostile_distribution[{entry_id}]: max_chance < base_chance")
+    return out
+
+
 def validate(data: Optional[dict] = None, path: Optional[str] = None) -> List[str]:
     """Return human-readable problems with the taxonomy; ``[]`` when clean."""
     problems: List[str] = []
@@ -450,82 +636,17 @@ def validate(data: Optional[dict] = None, path: Optional[str] = None) -> List[st
     if not isinstance(bios, dict) or not bios:
         return ["no biomes defined"]
 
-    recognized = {str(t).lower() for t in foraging.AREA_SKILL_BONUS}
-    skills = set(foraging.SKILL_TABLES)
     vocab = _forage_vocabulary()
 
-    def _tags(rec: dict) -> set:
-        return {str(t).lower() for t in (rec.get("tags") or [])}
-
-    def is_made(rec: dict) -> bool:
-        """A *made* place (task-561) — a building, not wild country.
-
-        A building is authored as a biome so it can be a cell with an identity and
-        prose, but the wild-country contract does not apply to it: nobody forages
-        berries off a smithy's wall, and no wildlife spawns in a bank. Demanding a
-        forage tag and distribution rules for one would mean writing fiction to
-        satisfy a linter, so those checks are skipped — deliberately, not by
-        omission. A made place is still a *place*, so it owes a surface and prose.
-
-        An **indoor room** (task-568) is made in the same sense and for the same
-        reason: a bedroom is not wilderness, so a `hallway` must not be told it
-        "would be barren" nor given a resource distribution. It is read from the
-        `indoor` tag, so a modder adding a `cellar` is exempt without saying so.
-        """
-        tags = _tags(rec)
-        return "building" in tags or INDOOR_TAG in tags
-
-    def is_structure(rec: dict) -> bool:
-        """Not a place at all (task-562) — a wall, a window, a door, a void.
-
-        A structure cell never compiles to an area, so it has no ground, nothing to
-        forage and nowhere for wildlife to be: the checks that ask those questions
-        do not apply to it, and asking anyway would produce a nonsense complaint
-        about a wall needing a surface.
-        """
-        return NOT_A_PLACE_TAG in _tags(rec)
-
     for bid, rec in bios.items():
-        if not isinstance(rec, dict):
-            problems.append(f"biome {bid}: not an object")
-            continue
-        if not rec.get("name"):
-            problems.append(f"biome {bid}: missing name")
-        if not rec.get("terrain"):
-            problems.append(f"biome {bid}: missing terrain")
-        tags = [str(t).lower() for t in (rec.get("tags") or [])]
-        if not tags:
-            problems.append(f"biome {bid}: no area tags")
-        elif not (set(tags) & recognized) and not is_made(rec) and not is_structure(rec):
-            problems.append(
-                f"biome {bid}: no area tag foraging recognises "
-                f"({sorted(recognized)}); areas would be barren")
-        for skill in (rec.get("forage_skills") or []):
-            if str(skill).lower() not in skills:
-                problems.append(f"biome {bid}: unknown forage skill '{skill}'")
-        if not rec.get("surface") and not rec.get("floor") and not is_structure(rec):
-            # `floor` on a record used to mean the ground material; it is now the
-            # storey index (engine/world_grid.PAINT_LAYERS), so a taxonomy that
-            # only has the old key is accepted but flagged by being unrenamed. A
-            # structure cell is exempt for a different reason: a void has no ground
-            # at all, and a wall is never walked on.
-            problems.append(f"biome {bid}: missing surface (ground material)")
-        if not [d for d in (rec.get("descriptions") or []) if str(d).strip()]:
-            problems.append(f"biome {bid}: no description fragments")
+        problems.extend(record_problems(bid, rec))
 
     for fid, rec in (feats or {}).items():
-        if not isinstance(rec, dict):
-            problems.append(f"feature {fid}: not an object")
-            continue
-        if not rec.get("name"):
-            problems.append(f"feature {fid}: missing name")
-        if not (rec.get("tags") or []):
-            problems.append(f"feature {fid}: no tags")
-        for ref in (rec.get("biomes") or []):
-            if ref not in bios:
-                problems.append(f"feature {fid}: unknown biome '{ref}'")
-        if not [d for d in (rec.get("descriptions") or []) if str(d).strip()]:
-            problems.append(f"feature {fid}: no description fragments")
+        problems.extend(feature_problems(fid, rec))
+        if isinstance(rec, dict):
+            for ref in (rec.get("biomes") or []):
+                if ref not in bios:
+                    problems.append(f"feature {fid}: unknown biome '{ref}'")
 
     bundled_resources = data.get("resource_distribution") or {}
     lib_resources = _load_library_dir(_resource_dir)
@@ -548,7 +669,7 @@ def validate(data: Optional[dict] = None, path: Optional[str] = None) -> List[st
             if weight is None or weight <= 0:
                 problems.append(f"resource_distribution[{bid}]: non-positive weight")
     for bid in bios:
-        if bid not in resources and not (is_made(bios[bid]) or is_structure(bios[bid])):
+        if bid not in resources and not (is_made_place(bios[bid]) or is_structure(bios[bid])):
             problems.append(f"resource_distribution: biome '{bid}' has no rules")
 
     bundled_hostiles = data.get("hostile_distribution") or {}
@@ -574,7 +695,7 @@ def validate(data: Optional[dict] = None, path: Optional[str] = None) -> List[st
             if base is not None and cap is not None and cap < base:
                 problems.append(f"hostile_distribution[{bid}]: max_chance < base_chance")
     for bid in bios:
-        if bid not in hostiles and not (is_made(bios[bid]) or is_structure(bios[bid])):
+        if bid not in hostiles and not (is_made_place(bios[bid]) or is_structure(bios[bid])):
             problems.append(f"hostile_distribution: biome '{bid}' has no rules")
 
     return problems

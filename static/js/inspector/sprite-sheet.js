@@ -1294,10 +1294,20 @@ const _SpriteSheet = (() => {
                 canvas.height = t.h;
                 ctx.clearRect(0, 0, t.w, t.h);
                 ctx.drawImage(src, t.x, t.y, t.w, t.h, 0, 0, t.w, t.h);
-                const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+                // Emit WebP (task-754): the migrated tree is all WebP and the
+                // upload route accepts it. Fall back to PNG only if the browser
+                // cannot encode WebP, so nothing regresses the size win.
+                let blob = await new Promise(res => canvas.toBlob(res, 'image/webp', 0.82));
+                let ext = 'webp';
+                let mime = 'image/webp';
+                if (!blob) {
+                    blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+                    ext = 'png';
+                    mime = 'image/png';
+                }
                 if (!blob)
                     throw new Error('canvas produced no image');
-                const file = new File([blob], t.name + '.png', { type: 'image/png' });
+                const file = new File([blob], `${t.name}.${ext}`, { type: mime });
                 const res = await api.uploadNodeImage(state.nodeId, file, kind, t.name);
                 if (res && res.error)
                     throw new Error(res.error);

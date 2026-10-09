@@ -198,7 +198,7 @@ window.CharacterArt = (() => {
                     <button type="button" class="cp-tab" data-src="${_esc(full)}" style="padding:4px 12px;border-radius:999px;border:1px solid #4a3668;background:#2b1f42;color:#d9baff;cursor:pointer;font-size:11.5px;">🧍 Full body</button>
                     <button type="button" class="cp-tab" data-src="${_esc(profile)}" style="padding:4px 12px;border-radius:999px;border:1px solid #333a45;background:#1d212a;color:#9aa3b2;cursor:pointer;font-size:11.5px;">🖼 Profile</button>
                 </div>` : ''}
-                <img id="cp-img" src="${_esc(big)}" alt="${_esc(name)}"
+                <img id="cp-img" src="${_esc(big)}" alt="${_esc(name)}" loading="lazy" decoding="async"
                      style="max-width:92vw;max-height:80vh;object-fit:contain;border-radius:10px;border:1px solid #333a45;box-shadow:0 20px 70px rgba(0,0,0,.8);background:#141820;">
                 <div style="color:#78828e;font-size:11px;">${emoLabel(emotion)}${hasBoth ? ' · click a tab to switch' : ''} · click anywhere to close</div>
             </div>`;

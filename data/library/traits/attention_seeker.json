@@ -6,6 +6,6 @@
   "effects": {
     "attention_seeker": true
   },
-  "mature": true,
+  "tags": ["mature"],
   "conflicts": []
 }

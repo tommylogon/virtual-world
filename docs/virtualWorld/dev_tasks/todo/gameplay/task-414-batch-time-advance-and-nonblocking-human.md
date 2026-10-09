@@ -3,6 +3,7 @@ type: task
 status: todo
 area: gameplay
 priority: medium
+blocked_by: [task-399, task-409, task-411, task-412]
 ---
 
 # task-414: Server-side batch time advance and non-blocking human

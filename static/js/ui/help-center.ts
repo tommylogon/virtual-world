@@ -506,7 +506,6 @@ window.HelpCenter = (() => {
         _seen = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'));
     } catch (e) { /* fresh */ }
     const _sessionSeen: Set<string> = new Set();
-    let _current: HelpCenterTip | null = null;        // active tip object
     let _tourQueue: string[] = [];        // remaining tips of a running tour
     let _timer: ReturnType<typeof setTimeout> | null = null;
 
@@ -548,7 +547,7 @@ window.HelpCenter = (() => {
     }
 
     // ─────────────────────── Coach card ───────────────────────
-    let _card: HTMLDivElement | null = null, _cardHost: HTMLElement | null = null;
+    let _card: HTMLDivElement | null = null;
     function _ensureStyles() {
         if (document.getElementById('hc-styles')) return;
         const style = document.createElement('style');

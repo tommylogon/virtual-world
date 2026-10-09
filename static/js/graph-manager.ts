@@ -130,6 +130,7 @@ class GraphManagerImpl {
     declare _contextTarget: GraphManagerContextTarget;
     declare _lastSig: string;          // hash to skip redundant reloads
     declare _scopeFilter: string | null;    // task-397: load one world scope at a time
+    declare _scopeRestoreAttempted: boolean; // task-749: restore the saved scope once per load
     declare _scopeOffsets: Record<string, { x?: number; y?: number } | null>; // task-523
     declare _physicsEnabled: boolean;
     declare _legendEl: any;
@@ -181,6 +182,7 @@ class GraphManagerImpl {
         this._contextTarget = null;
         this._lastSig = '';          // hash to skip redundant reloads
         this._scopeFilter = null;    // task-397: load one world scope at a time
+        this._scopeRestoreAttempted = false; // task-749
         this._scopeOffsets = {};     // task-523: scopeId -> {x,y} map offset (cells)
         this._physicsEnabled = true;
         this._legendEl = null;
@@ -542,8 +544,52 @@ class GraphManagerImpl {
      * world). A scope loads only its own slice, so a huge painted world never
      * ships every node to the canvas (task-397 / task-400).
      */
+    /** task-749: per-scenario key for the persisted scope selection. */
+    _scopeStorageKey(): string {
+        const data = (typeof worldState !== 'undefined' && worldState
+            && (worldState as unknown as { data?: { _scenario_name?: unknown } }).data) || {};
+        const name = String(data._scenario_name
+            || (document.body && document.body.dataset && document.body.dataset.scenarioName)
+            || '').trim() || 'default';
+        return `vw_graphScope_${name}`;
+    }
+
+    /** task-749: persist the current selection (whole world clears it). */
+    _persistScopeFilter(): void {
+        try {
+            const key = this._scopeStorageKey();
+            if (this._scopeFilter) localStorage.setItem(key, this._scopeFilter);
+            else localStorage.removeItem(key);
+        } catch (e) { /* localStorage unavailable — persistence is best-effort */ }
+    }
+
+    /**
+     * task-749: restore the saved scope once per page load, before the graph
+     * loads. Validated against the loaded summaries when present; a stale id
+     * (renamed or deleted scope) is cleared so it falls back to whole world.
+     * network-manager also drops an id the server cannot resolve.
+     */
+    _restoreScopeFilterOnce(): void {
+        if (this._scopeRestoreAttempted) return;
+        this._scopeRestoreAttempted = true;
+        if (this._scopeFilter) return;
+        let saved: string | null = null;
+        try { saved = localStorage.getItem(this._scopeStorageKey()); } catch (e) { return; }
+        if (!saved) return;
+        if (this._scopeSummaries && this._scopeSummaries.length
+            && !this._scopeSummaries.some((s) => s.id === saved)) {
+            this._persistScopeFilter();   // stale id: drop it, stay on whole world
+            return;
+        }
+        this._scopeFilter = saved;
+        const sel = document.getElementById('graph-scope-filter') as HTMLSelectElement | null;
+        if (sel) sel.value = saved;
+        if (window.GraphToolbar) GraphToolbar.syncAll();
+    }
+
     setScopeFilter(scopeId: string) {
         this._scopeFilter = scopeId || null;
+        this._persistScopeFilter();
         this._lastSig = '';
         if (window.GraphToolbar) GraphToolbar.syncAll();
         const loaded = this.loadGraphData();
@@ -601,6 +647,7 @@ class GraphManagerImpl {
     }
 
     async loadGraphData() {
+        this._restoreScopeFilterOnce();
         this._clearBulkSelection();
         return GraphNetwork.loadGraphData();
     }

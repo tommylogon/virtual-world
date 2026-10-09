@@ -250,7 +250,7 @@ def _grid_payload(manifest: Dict[str, dict], scope_id: str, graph=None) -> dict:
             # used to be readable only in the save file.
             "paint_policy": rec.get("paint_policy") or world_compile.PAINT_POLICY_CANONICAL,
         },
-        "grid": ({"w": w, "h": h, "cell_scale": (rec.get("grid") or {}).get("cell_scale", 1.0)}
+        "grid": ({"w": w, "h": h}
                  if world_grid.has_grid(rec) else None),
         "mode": rec.get("mode"),
         "reference": world_grid.reference(rec),
@@ -331,6 +331,17 @@ def handle_painter_vocabulary(app):
                     # compiler reads, so the preview cannot drift from the world.
                     "surface": (rec or {}).get("surface", ""),
                     "descriptions": list((rec or {}).get("descriptions") or []),
+                    # The palette's category rail is derived from the record's own
+                    # `terrain` (task-759), so a new biome files itself under the
+                    # right heading without a hand-kept category list.
+                    "terrain": (rec or {}).get("terrain", ""),
+                    # Descriptive climate + adjacency for the palette detail
+                    # panel (task-758); absent on a record that has not been
+                    # authored yet, and the panel then shows "unknown".
+                    "climate": dict((rec or {}).get("climate") or {}),
+                    "natural_neighbors": list((rec or {}).get("natural_neighbors") or []),
+                    "unlikely_neighbors": list((rec or {}).get("unlikely_neighbors") or []),
+                    "transition_biomes": list((rec or {}).get("transition_biomes") or []),
                     # What this building's door says when it has no interior to go
                     # into (task-563). Sent from the same function the compiler
                     # uses, so the line the painter reads in the cell inspector is
@@ -408,8 +419,7 @@ def handle_create_scope(app):
     try:
         w, h = data.get("w"), data.get("h")
         if w and h:
-            world_grid.ensure_grid(record, int(w), int(h),
-                                   float(data.get("cell_scale") or 1.0), mode=mode)
+            world_grid.ensure_grid(record, int(w), int(h), mode=mode)
         elif mode:
             record["mode"] = mode
     except (TypeError, ValueError) as exc:
@@ -428,7 +438,7 @@ def handle_create_scope(app):
 def handle_set_scope_grid(app, scope_id):
     """POST /api/world/scopes/<scope_id>/grid — create/resize the grid.
 
-    Body: ``{w, h, cell_scale?, mode?}``. A shrink prunes out-of-bounds paint and
+    Body: ``{w, h, mode?}``. A shrink prunes out-of-bounds paint and
     placements (``engine/world_grid.ensure_grid``) rather than dangling them.
     """
     data = request.get_json(silent=True) or {}
@@ -447,7 +457,7 @@ def handle_set_scope_grid(app, scope_id):
 
     try:
         _snapshot(app, label=f"set grid {record.get('name', scope_id)}")
-        world_grid.ensure_grid(record, w, h, float(data.get("cell_scale") or 1.0), mode=mode)
+        world_grid.ensure_grid(record, w, h, mode=mode)
     except (TypeError, ValueError) as exc:
         return _error(str(exc))
     _commit(app, manifest)

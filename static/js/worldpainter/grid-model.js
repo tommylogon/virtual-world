@@ -14,7 +14,7 @@
  * the material lives in the biome/road record's `surface`.
  *
  * @module grid-model — WorldPainter grid view-model and cell maths
- * @contributes cell keys, drill-down mode suggestion, render rows, layer colours, storey reads, cell names, placed areas, compile estimate, cell inspector, scope-grouped area picker
+ * @contributes cell keys, drill-down mode suggestion, render rows, layer colours, storey reads, cell names, placed areas, compile estimate, cell inspector, scope-grouped area picker, palette grouping/filtering and tile descriptions
  * @powers WorldPainter editor grid rendering, placement and inspection (task-495, task-528, task-540, task-541)
  * @relates static/js/worldpainter/editor.js; engine/world_grid.py; routes/world_grid_ops.py
  * @docs docs/design/worldpainter-knowledge-and-fog.md
@@ -884,6 +884,189 @@
         }
         return { rect: r, crop: c };
     }
+    // The wild-terrain order a reader expects: the ground you walk, then the
+    // water you cross, then the stone you climb, then the worked land.
+    const TERRAIN_ORDER = ['forest', 'grass', 'water', 'rock', 'coast', 'farm'];
+    const TERRAIN_LABELS = {
+        forest: 'Forest', grass: 'Grassland', water: 'Water', rock: 'Rock & mountains',
+        coast: 'Coast', farm: 'Farmland', urban: 'Built', indoor: 'Indoor',
+    };
+    // A room's purpose, in the order a plan is drawn (task-568): arrive, move,
+    // then the rooms you pass. Mirrors the grouping the painter shipped.
+    const ROOM_PURPOSES = ['circulation', 'living', 'sleeping', 'cooking', 'eating',
+        'storage', 'workshop', 'worship', 'records', 'study', 'trade', 'civic',
+        'service', 'outdoor'];
+    const BUILDING_CATEGORIES = ['residential', 'religious', 'commercial', 'civic',
+        'craft', 'industrial', 'military', 'rural', 'transport'];
+    const titleCase = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+    function tileKind(layer, rec) {
+        if (layer === 'road')
+            return 'road';
+        if (layer === 'climate')
+            return 'climate';
+        const tags = (rec.tags || []).map((t) => String(t).toLowerCase());
+        if (tags.includes('not_a_place'))
+            return 'not-a-place';
+        if (tags.includes('building'))
+            return 'building';
+        return 'place';
+    }
+    /**
+     * One line describing a tile (task-596): what it is, and what it does, from
+     * the same record the compiler reads. `Bridge — A span… · crosses river,
+     * ravine · "cross the bridge"` versus `Road — A worn track…`.
+     */
+    function tileDetail(layer, rec) {
+        const name = rec.name || rec.id || '';
+        const desc = ((rec.descriptions || [])[0]) || '';
+        if (layer === 'road') {
+            const bits = [desc];
+            if ((rec.biomes || []).length)
+                bits.push('crosses ' + (rec.biomes || []).join(', '));
+            if (rec.entry_phrase)
+                bits.push('\u201c' + rec.entry_phrase + '\u201d');
+            return (name + ' \u2014 ' + bits.filter(Boolean).join(' \u00b7 ')).replace(/ \u2014 $/, '');
+        }
+        if (layer === 'biome') {
+            const tags = (rec.tags || []).map((t) => String(t).toLowerCase());
+            let kind = 'place';
+            if (tags.includes('not_a_place')) {
+                const ck = tags.find((t) => t.indexOf('cell_kind:') === 0) || 'cell_kind:solid';
+                kind = 'not a place (' + (ck.split(':')[1] || 'solid') + ')';
+            }
+            else if (tags.includes('building')) {
+                kind = 'building';
+            }
+            const bits = [desc, kind];
+            if (rec.surface)
+                bits.push('ground ' + rec.surface);
+            if (rec.refusal)
+                bits.push(rec.refusal);
+            return name + ' \u2014 ' + bits.filter(Boolean).join(' \u00b7 ');
+        }
+        return (name + ' \u2014 ' + desc).replace(/ \u2014 $/, '');
+    }
+    /** Labelled rows for the palette's detail panel; absent fields are omitted. */
+    function detailRows(layer, rec) {
+        const rows = [];
+        const push = (label, value) => {
+            const v = Array.isArray(value) ? value.filter(Boolean).join(', ') : (value || '');
+            if (v)
+                rows.push({ label, value: String(v) });
+        };
+        const descs = (rec.descriptions || []).filter(Boolean);
+        if (descs.length)
+            push('About', descs.join(' '));
+        if (layer === 'biome') {
+            push('Kind', tileKind(layer, rec).replace('-', ' '));
+            push('Ground', rec.surface);
+            push('Crosses', rec.biomes);
+            push('Door', rec.refusal);
+            // Descriptive climate + adjacency (task-758); present only once a
+            // record is authored, so an un-authored one shows nothing here.
+            const climate = rec.climate || {};
+            const parts = [];
+            ['temperature', 'rainfall', 'elevation'].forEach((f) => {
+                const r = climate[f];
+                if (Array.isArray(r) && r.length === 2)
+                    parts.push(f + ' ' + r[0] + '\u2013' + r[1]);
+            });
+            push('Climate', parts);
+            push('Near', rec.natural_neighbors);
+            push('Unlikely', rec.unlikely_neighbors);
+            push('Transitions', rec.transition_biomes);
+        }
+        else if (layer === 'road') {
+            push('Crosses', rec.biomes);
+            push('Arrive', rec.entry_phrase);
+        }
+        push('Tags', rec.tags);
+        return rows;
+    }
+    /**
+     * Group the layer's records into rail sections. Derived entirely from each
+     * record's `terrain` and `tags`:
+     *   - not-a-place -> Structure
+     *   - indoor -> one section per room purpose
+     *   - building -> one section per building category
+     *   - everything else -> one section per `terrain`
+     * A layer without groups (road/climate) is a single section.
+     */
+    function paletteSections(layer, entries) {
+        const tiles = (entries || []).filter((e) => e && e.id)
+            .map((e) => ({ id: String(e.id), name: e.name || String(e.id), kind: tileKind(layer, e), rec: e }));
+        if (layer !== 'biome') {
+            const only = { id: layer, label: titleCase(layer), tiles };
+            return tiles.length ? [only] : [];
+        }
+        const byId = new Map();
+        const order = [];
+        const put = (id, label, t) => {
+            if (!byId.has(id)) {
+                byId.set(id, { id, label, tiles: [] });
+                order.push(id);
+            }
+            byId.get(id).tiles.push(t);
+        };
+        for (const t of tiles) {
+            const tags = (t.rec.tags || []).map((x) => String(x).toLowerCase());
+            if (tags.includes('not_a_place')) {
+                put('structure', 'Structure', t);
+                continue;
+            }
+            if (tags.includes('indoor')) {
+                const purpose = ROOM_PURPOSES.find((p) => tags.includes(p)) || 'other';
+                put('room:' + purpose, 'Rooms \u00b7 ' + titleCase(purpose), t);
+                continue;
+            }
+            if (tags.includes('building')) {
+                const cat = BUILDING_CATEGORIES.find((c) => tags.includes(c)) || 'other';
+                put('building:' + cat, 'Buildings \u00b7 ' + titleCase(cat), t);
+                continue;
+            }
+            const terrain = String(t.rec.terrain || 'other').toLowerCase();
+            put('terrain:' + terrain, TERRAIN_LABELS[terrain] || titleCase(terrain), t);
+        }
+        // Stable rail order: wild terrain first, then rooms, then buildings, then
+        // structure — a plan is where terrain gives way to rooms and buildings.
+        const rank = (id) => {
+            if (id.indexOf('terrain:') === 0) {
+                const i = TERRAIN_ORDER.indexOf(id.slice(8));
+                return i < 0 ? TERRAIN_ORDER.length : i;
+            }
+            if (id.indexOf('room:') === 0)
+                return 100 + Math.max(0, ROOM_PURPOSES.indexOf(id.slice(5)));
+            if (id.indexOf('building:') === 0)
+                return 200 + Math.max(0, BUILDING_CATEGORIES.indexOf(id.slice(9)));
+            return 300;
+        };
+        return order.sort((a, b) => rank(a) - rank(b)).map((id) => byId.get(id));
+    }
+    /** Search sections by name or id; empty sections are dropped. */
+    function filterPalette(sections, needle) {
+        const n = String(needle || '').trim().toLowerCase();
+        if (!n)
+            return sections;
+        const hit = (t) => t.name.toLowerCase().indexOf(n) >= 0 || t.id.toLowerCase().indexOf(n) >= 0;
+        return sections
+            .map((s) => ({ id: s.id, label: s.label, tiles: s.tiles.filter(hit) }))
+            .filter((s) => s.tiles.length);
+    }
+    /** Every tile, in rail order — the default-value and keyboard path. */
+    function flattenPalette(sections) {
+        const out = [];
+        for (const s of sections)
+            for (const t of s.tiles)
+                out.push(t);
+        return out;
+    }
+    function paletteTile(sections, id) {
+        for (const s of sections)
+            for (const t of s.tiles)
+                if (t.id === id)
+                    return t;
+        return null;
+    }
     const gridModel = {
         MODES, PAINT_LAYERS, BIOME_COLORS, ROAD_COLORS,
         CLIMATES, CLIMATE_IDS, DEFAULT_CLIMATE, useClimatesFromVocab,
@@ -897,6 +1080,8 @@
         areaMap, areaAt, areaPlacementFor, placeableAreas, areaGroups, cellInfo,
         fitReferenceRect, gridForImageAspect, strandedCount,
         referenceHandlePoints, referenceHandleDrag,
+        tileKind, tileDetail, detailRows,
+        paletteSections, filterPalette, flattenPalette, paletteTile,
     };
     // main.js (loaded last) does `window.VW = {}` and re-registers singletons, so
     // the bare global is what survives; VW.gridModel is (re)attached there too.

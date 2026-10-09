@@ -11,9 +11,23 @@
  * @docs docs/virtualWorld/Items & Inventory/Items Overview.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+const _warnedMissingExternals = new Set();
 function _external(name) {
-    const value = globalThis[name];
-    return (value === undefined ? null : value);
+    // Resolve a dependency published either bare on `window` (InspectorPanel,
+    // TagMultiselect, ...) or under the `VW` namespace (itemLib — published as
+    // `VW.itemLib`, never `window.itemLib`). A bare-global-only read silently
+    // returned null for itemLib, so Save to Library was a no-op (bug-533).
+    const root = globalThis;
+    const vw = root.VW;
+    const value = root[name] ?? (vw ? vw[name] : undefined);
+    if (value === undefined) {
+        if (!_warnedMissingExternals.has(name)) {
+            _warnedMissingExternals.add(name);
+            console.warn(`[item-view] external '${name}' is not available on window or VW`);
+        }
+        return null;
+    }
+    return value;
 }
 function _api() {
     return ApiClient;

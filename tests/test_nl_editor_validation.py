@@ -136,7 +136,7 @@ def test_library_upsert_rejects_bad_registry_and_bad_id(tmp_path):
 def test_library_upsert_mature_gate(tmp_path):
     client, app = _client(tmp_path)
     entry = {'type': 'library_upsert', 'payload': {
-        'registry_type': 'traits', 'id': 'risque', 'data': {'name': 'Risque', 'mature': True}}}
+        'registry_type': 'traits', 'id': 'risque', 'data': {'name': 'Risque', 'tags': ['mature']}}}
 
     blocked = client.post('/api/graph/batch', json={'strict_validation': True, 'ops': [entry]})
     assert blocked.status_code == 422

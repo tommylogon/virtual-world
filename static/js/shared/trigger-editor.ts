@@ -668,7 +668,6 @@ window.Lit.render(triggerEditorTag`
                 </div>`
             );
 
-            const fireable = res.fireable !== false;
             const fireableMsg = res.fireable_reason
                 || `this trigger type (${String(triggerType)}) needs an item/way context to fire — no target node matched "${String(data.target_name || '')}".`;
             const outputs = (res.outputs || []).map((o: any) =>
@@ -1063,8 +1062,6 @@ window.Lit.render(triggerEditorTag`
         const SHOWS = (types: string[]): string => types.includes(ctype) ? 'block' : 'none';
         const OPTS = ['lt', 'le', 'eq', 'ge', 'gt'].map(o =>
             triggerEditorTag`<option value=${o} ?selected=${cOp === o}>${o}</option>`);
-        const SKILL_OPTS = ['STR','DEX','CON','INT','WIS','CHA','Athletics','Acrobatics','Stealth','Perception','Survival','Persuasion','Investigation']
-            .map(s => triggerEditorTag`<option value=${s} ?selected=${(cSaveType === 'stat' ? cStat : cSkill) === s}>${s}</option>`);
 
         const row = document.createElement('div');
         row.className = 'cond-row';

@@ -13,6 +13,7 @@
 | 3 — character three-column body | `task-675` |
 | 4 — area split view + mini-map | `task-676` |
 | 5 — deep links | *not filed — see Open Questions #2* |
+| Cross-cutting — AI edit proposals | `task-760` |
 
 ## Mockups
 
@@ -208,6 +209,39 @@ triggers a full `/api/state` poll of ~2.48 MB.
 
 If save-on-change is kept, the header's dirty indicator should show *in-flight* state, not
 *unsaved* state, and debounce is not appropriate (it would reintroduce the two-model problem).
+
+### AI edit proposals — the Improve button must preview
+
+All three inspectors share one AI write path: `InspectorHelpers.improveWithAI`
+(`static/js/inspector/helpers.ts`). It builds an update from the parsed LLM
+result and calls `api.updateNode` directly — no diff, no approval, no way to
+reject a change before it lands. Field locks (`locked_fields`) keep a locked
+value out of the prompt and the patch, but nothing shows the user what the model
+proposed for the fields that are not locked.
+
+The preview widget already exists. `static/js/shared/diff-modal.ts`
+(`DiffModal.show(current, incoming, sections, options)`) renders a per-field
+before/after with per-entry selection and returns only the entries the user
+keeps; `InspectorItemView._refreshFromLibrary` already routes the world↔library
+flow through it. Improve is the exception.
+
+The intended shape, filed as `task-760`:
+
+- `improveWithAI` calls `DiffModal.show` with `current` = the node's live
+  properties and `incoming` = the parsed result, reusing the section lists the
+  refresh path already defines.
+- Only the kept sections are applied, in a single `api.updateNode` call. Because
+  undo is whole-world (`routes/saveload.py` pushes one snapshot per graph
+  update), one accepted apply is one Undo — no separate change-set undo.
+- `locked_fields` continues to gate both the prompt and the patch, so locked
+  fields never appear in the proposal.
+- No second validator and no second modal. The accepted update goes through the
+  same endpoint and the same `engine/trigger_validator.py` path as any other
+  edit.
+
+The AI proposes a change to the domain model; the user approves it; the model
+applies it through the normal validated route. That is the projection rule
+applied to the one surface that currently breaks it.
 
 ### Responsive
 

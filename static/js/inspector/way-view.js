@@ -24,19 +24,6 @@ window.InspectorWayView = (() => {
     const SKILL_OPTIONS = ['Athletics', 'Acrobatics', 'Stealth', 'Perception', 'Investigation',
         'Survival', 'Persuasion', 'Performance', 'Medicine', 'Arcana', 'Intimidation', 'Lockpicking'
     ];
-    const CARDINAL_OPTIONS = [
-        { value: '', label: '— Not set —' },
-        { value: 'north', label: 'North (N)' },
-        { value: 'northeast', label: 'Northeast (NE)' },
-        { value: 'east', label: 'East (E)' },
-        { value: 'southeast', label: 'Southeast (SE)' },
-        { value: 'south', label: 'South (S)' },
-        { value: 'southwest', label: 'Southwest (SW)' },
-        { value: 'west', label: 'West (W)' },
-        { value: 'northwest', label: 'Northwest (NW)' },
-        { value: 'up', label: 'Up (U)' },
-        { value: 'down', label: 'Down (D)' },
-    ];
     const OPPOSITE_CARDINAL = {
         north: 'south', south: 'north',
         east: 'west', west: 'east',
@@ -53,11 +40,6 @@ window.InspectorWayView = (() => {
     wayView._getLockedFields = function (props) {
         return InspectorHelpers.getLockedFields(props);
     };
-    const COMPASS_LAYOUT = [
-        [{ value: 'northwest', label: '↖ NW' }, { value: 'north', label: '↑ N' }, { value: 'northeast', label: '↗ NE' }],
-        [{ value: 'west', label: '← W' }, { value: '', label: '✕ Clear' }, { value: 'east', label: '→ E' }],
-        [{ value: 'southwest', label: '↙ SW' }, { value: 'south', label: '↓ S' }, { value: 'southeast', label: '↘ SE' }],
-    ];
     // Radial compass layout (8 directions + clear)
     const RADIAL_COMPASS = [
         { value: 'north', label: 'N', angle: 0 },
@@ -407,11 +389,9 @@ window.InspectorWayView = (() => {
     wayView.showWay = function (nodeId, graphNode) {
         const name = graphNode.name;
         const props = graphNode.properties || {};
-        const state = props.current_state || 'closed';
         const tags = props.tags || [];
         const escapedId = nodeId.replace(/'/g, "\\'");
         const lockedFields = wayView._getLockedFields(props);
-        const nothing = window.Lit.nothing;
         // Find connection edges
         const edges = worldState.graph?.edges || [];
         const nodeIdLower = String(nodeId).toLowerCase();
@@ -645,7 +625,6 @@ window.InspectorWayView = (() => {
             }
         });
         // Build area dropdown options
-        const roomOptions = Object.keys(roomNameMap).sort().map(areaName => `<option value="${esc(areaName)}">${esc(areaName)}</option>`).join('');
         const roomAreaNames = Object.keys(roomNameMap).sort();
         const areaOptionsFor = (selectedName) => roomAreaNames.map(areaName => htmlTag `<option value=${areaName} ?selected=${areaName === selectedName}>${areaName}</option>`);
         if (!roomAId || !roomBId)
@@ -934,7 +913,6 @@ OUTPUT FORMAT: Respond with ONLY raw JSON. No markdown, no code fences, just JSO
         const apply = (parsed, node, lockedFields, update) => {
             if (parsed.name)
                 update.name = parsed.name;
-            const props = node.properties || {};
             const propUpdate = {};
             if (parsed.description !== undefined && !lockedFields.includes('description'))
                 propUpdate.description = parsed.description;

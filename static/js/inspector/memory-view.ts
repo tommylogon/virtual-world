@@ -49,7 +49,6 @@ window.InspectorMemory = (() => {
             return 'episodic';
         };
         const catColor = (c: string): string => ({episodic:'#58a6ff',semantic:'#39c5cf',belief:'#bc8cff',social:'#f778ba',procedural:'#d29922'} as Record<string, string>)[c]||'#8b949e';
-        const currentTick = VW?.state?.tick ?? 0;
         // task-691: dynamics stats line — real fields, no decorative numbers.
         const beliefCount = memories.filter((m: any) => ['belief','semantic'].includes(catOf(m))).length;
         const conflictCount = memories.reduce((acc: number, m: any) => acc + (Array.isArray(m.contradicts) ? m.contradicts.length : 0), 0) / 2;
@@ -217,12 +216,6 @@ window.InspectorMemory = (() => {
 
         const tick = existing?.tick ?? currentTick;
         const preTicks = tick < 0 ? -tick : 0;
-
-        const emo = (existing && existing.emotion && typeof existing.emotion === 'object') ? existing.emotion : null;
-        const emoLbl = emo?.label || 'neutral';
-        const emoInt = emo?.intensity || 0;
-        const emoOptions = ['neutral','happy','sad','afraid','angry','envious','affectionate','disgusted'];
-        const emoOpts = emoOptions.map(l => htmlTag`<option value=${l} ?selected=${emoLbl === l}>${l}</option>`);
 
         const embedEnabled = !!(window.EmbeddingClient && window.EmbeddingClient.configured());
         const salience = existing?.salience_override || 0;
@@ -616,11 +609,8 @@ window.InspectorMemory = (() => {
         const player = worldState.players?.[charName];
         if (!player) return;
         const htmlTag = (strings: TemplateStringsArray, ...values: unknown[]): unknown => window.Lit.html(strings, ...values);
-        const esc = InspectorHelpers.esc;
         const types = ['memory','observation','conversation','location','thought','dream','reflection'];
         const typeOpts = types.map(t => htmlTag`<option value=${t} ?selected=${t === 'memory'}>${t}</option>`);
-        const emoOptions = ['neutral','happy','sad','afraid','angry','envious','affectionate','disgusted'];
-        const emoOpts = emoOptions.map(l => htmlTag`<option value=${l}>${l}</option>`);
 
         const modal = htmlTag`<div class="modal-content memedit-modal">
             <div class="modal-header" style="border-bottom:none;padding:16px 20px 6px;">

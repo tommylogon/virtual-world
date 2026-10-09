@@ -4,6 +4,7 @@ status: inprogress
 related: [task-704, task-701]
 area: gameplay
 priority: medium
+blocked_by: [task-403, task-409, task-417]
 ---
 
 # task-426: Pursuit templates and group goals (hunt, raid, gather, haul)

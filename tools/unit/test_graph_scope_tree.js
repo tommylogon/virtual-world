@@ -137,3 +137,16 @@ test('an empty or missing list is an empty tree, not a crash', () => {
     assertEq(ST.buildTree(null).children.length, 0, 'null list');
     assertEq(ST.visibleRows(null, null, '').length, 0, 'no tree at all');
 });
+
+// ─── task-749: the scope selection must be persisted, not memory-only ─────────
+// The bug was a missing wire, not a wrong value: setScopeFilter set only an
+// in-memory field and a refresh lost the scope. A definition with no call site
+// is exactly how that happens (the _referenceControl class), so assert calls.
+
+test('the graph manager persists and restores the selected scope', () => {
+    const src = window.__readFile('static/js/graph-manager.js');
+    assertTrue(/_persistScopeFilter\s*\(\)\s*;/.test(src), 'setScopeFilter persists the scope');
+    assertTrue(/localStorage\.setItem\(key, this\._scopeFilter\)/.test(src), 'writes the scope to localStorage');
+    assertTrue(/localStorage\.getItem\(this\._scopeStorageKey\(\)\)/.test(src), 'reads the scope from localStorage');
+    assertTrue(/_restoreScopeFilterOnce\s*\(\)/.test(src), 'loadGraphData restores it on load');
+});

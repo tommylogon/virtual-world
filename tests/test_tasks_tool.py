@@ -219,3 +219,299 @@ def test_cache_is_invalidated_when_a_file_changes(tmp_path):
     st = p.stat()
     os.utime(p, ns=(st.st_atime_ns, st.st_mtime_ns + 10_000_000))
     assert title_of(tasks.iter_entries(root))["task-2"] == "Renamed nodes"
+
+
+# ── canonical schema ─────────────────────────────────────────────────────
+
+
+def test_body_sections_folds_synonyms():
+    text = ("# t\n\n## Files Affected\n\n- a\n\n## Verification\n\nx\n\n"
+            "## Goal\n\ng\n")
+    secs = tasks.body_sections(text)
+    assert secs["files"].strip() == "- a"
+    assert secs["verify"].strip() == "x"
+    assert secs["what"].strip() == "g"
+
+
+def test_missing_sections_lists_canonical_order():
+    text = "# t\n\n## What\n\nw\n\n## Acceptance\n\n- [ ] x\n"
+    assert tasks.missing_sections(text) == ["why", "how", "verify", "files"]
+
+
+def test_section_synonyms_reports_only_non_canonical_headings():
+    text = "## Goal\n\nx\n\n## Files\n\ny\n\n## Files Changed\n\nz\n"
+    assert tasks.section_synonyms(text) == [("Goal", "what"), ("Files Changed", "files")]
+
+
+def test_new_json_payload_writes_canonical_card(tmp_path):
+    root = tmp_path / "dev_tasks"
+    payload = json.dumps({
+        "what": "w", "why": "y", "how": "h",
+        "acceptance": ["a1", "a2"], "files": ["f.py"],
+        "horizon": "now", "wiki": "[[Feature Map]]", "priority": "high",
+    })
+    args = tasks.argparse.Namespace(
+        root=root, area="ui", title="Compass", kind="task", priority="medium",
+        status="todo", related="", goal="", json=payload, wiki="", force=False)
+    assert tasks.cmd_new(args) == 0
+    text = next(root.rglob("*.md")).read_text(encoding="utf-8")
+    fm, err = tasks.parse_frontmatter(text)
+    assert err == ""
+    assert fm["horizon"] == "now" and fm["priority"] == "high"
+    assert fm["wiki"] == "[[Feature Map]]"
+    assert tasks.body_sections(text)["what"].strip() == "w"
+    assert "- [ ] a1" in text and "- [ ] a2" in text
+    assert "`f.py`" in text
+    assert "## Steps to verify" in text
+
+
+def test_new_json_at_file_is_bom_tolerant(tmp_path):
+    root = tmp_path / "dev_tasks"
+    payload = tmp_path / "payload.json"
+    payload.write_text('{"what": "w"}', encoding="utf-8-sig")
+    args = tasks.argparse.Namespace(
+        root=root, area="ui", title="BOM", kind="task", priority="medium",
+        status="todo", related="", goal="", json="@" + str(payload),
+        wiki="", force=False)
+    assert tasks.cmd_new(args) == 0
+
+
+# ── status / roadmap / backfill ──────────────────────────────────────────
+
+
+def test_status_counts(tmp_path, capsys):
+    root = _tree(tmp_path)
+    assert tasks.cmd_status(tasks.argparse.Namespace(root=root, json=True)) == 0
+    data = json.loads(capsys.readouterr().out)
+    assert data["total"] == 2
+    assert data["by_status"] == {"todo": 1, "done": 1}
+
+
+def test_roadmap_groups_by_horizon(tmp_path, capsys):
+    root = tmp_path / "dev_tasks"
+    _write(root / "todo" / "ui" / "task-1-a.md",
+           "---\nstatus: todo\narea: ui\nhorizon: now\n---\n\n# task-1: A\n")
+    _write(root / "todo" / "ui" / "task-2-b.md",
+           "---\nstatus: todo\narea: ui\n---\n\n# task-2: B\n")
+    _write(root / "todo" / "ui" / "task-3-c.md",
+           "---\nstatus: todo\narea: ui\nblocked_by: [task-2]\n---\n\n# task-3: C\n")
+    _write(root / "todo" / "ui" / "task-4-d.md",
+           "---\nstatus: todo\narea: ui\nhorizon: later\n---\n\n# task-4: D\n")
+    assert tasks.cmd_roadmap(tasks.argparse.Namespace(root=root, out=None)) == 0
+    out = capsys.readouterr().out
+    now_i, next_i, later_i = out.index("## Now"), out.index("## Next"), out.index("## Later")
+    # horizon: now wins -> Now; a plain startable card -> Next;
+    # an open predecessor -> Later; horizon: later overrides startability.
+    assert now_i < out.index("task-1") < next_i
+    assert next_i < out.index("task-2") < later_i
+    assert out.index("task-3") > later_i
+    assert out.index("task-4") > later_i
+
+
+def test_backfill_reports_gap(tmp_path, capsys):
+    root = tmp_path / "dev_tasks"
+    _write(root / "review" / "ui" / "task-5-thing.md",
+           "---\nstatus: review\narea: ui\n---\n\n# task-5: Thing\n\n"
+           "## Goal\n\ng\n\n## Verification\n\nv\n")
+    assert tasks.cmd_backfill(
+        tasks.argparse.Namespace(root=root, status=None, json=True)) == 0
+    data = json.loads(capsys.readouterr().out)
+    card = data["cards"][0]
+    assert "Goal" in card["rename"]
+    assert "why" in card["missing"] and "files" in card["missing"]
+    assert "type" in card["frontmatter"]
+
+
+# ── merge writer ─────────────────────────────────────────────────────────
+
+
+def test_merge_card_renames_synonyms_and_preserves_unknown():
+    text = ("---\nstatus: todo\n---\n\n# t\n\n## Summary\n\ns\n\n"
+            "## Files Affected\n\n- a\n\n## Landed\n\nevidence\n")
+    out = tasks.merge_card(text, {})
+    assert "## What" in out and "## Files" in out
+    assert "## Summary" not in out and "## Files Affected" not in out
+    assert "## Landed" in out and "evidence" in out      # unknown preserved
+
+
+def test_merge_card_preserves_original_section_order_by_default():
+    # Rename in place; the sections the card lacked are appended, so `## Landed`
+    # stays where the author put it (before the appended canonical block).
+    text = ("---\nstatus: todo\n---\n\n# t\n\n## Summary\n\ns\n\n"
+            "## Landed\n\nevidence\n")
+    out = tasks.merge_card(text, {})
+    assert out.index("## What") < out.index("## Landed") < out.index("## Acceptance")
+
+
+def test_merge_card_canonical_order_option():
+    text = ("---\nstatus: todo\n---\n\n# t\n\n## Landed\n\nevidence\n\n"
+            "## Summary\n\ns\n")
+    out = tasks.merge_card(text, {}, preserve_order=False)
+    assert out.index("## What") < out.index("## Acceptance") < out.index("## Landed")
+
+
+def test_merge_card_keeps_a_duplicate_synonym_section():
+    # ## Why and ## Problem both map to `why`; the second must NOT be dropped.
+    text = ("---\nstatus: todo\n---\n\n# t\n\n## Why\n\nfirst\n\n"
+            "## Problem\n\nsecond\n")
+    out = tasks.merge_card(text, {})
+    assert "first" in out and "second" in out
+    assert "## Problem" in out
+
+
+def test_merge_card_migrates_group_to_area_and_adds_type():
+    text = "---\ngroup: Graph & Area UX\nwiki: \"[[X]]\"\n---\n\n# t\n\n## Summary\n\ns\n"
+    out = tasks.merge_card(text, {}, fm_updates={"type": "task", "area": "graph"})
+    assert "area: graph" in out and "group:" not in out
+    assert "type: task" in out and 'wiki: "[[X]]"' in out
+
+
+def test_merge_card_replaces_a_stub_but_keeps_real_content():
+    text = ("---\nstatus: todo\n---\n\n# t\n\n## What\n\nreal\n\n"
+            "## Why\n\nTODO\n")
+    out = tasks.merge_card(text, {"why": "authored"}, overwrite=False)
+    assert "authored" in out          # the stub was filled
+    assert "real" in out              # the real section was left alone
+
+
+def test_merge_card_synthesizes_a_newline_after_the_fence():
+    # A card with no frontmatter: adding keys must not glue `---` to the first
+    # key (`---type: bug`), which corrupted bug-12 in the copy proof.
+    out = tasks.merge_card("# Bug 12: \n\nbody\n", {},
+                           fm_updates={"type": "bug", "area": "bugs"})
+    assert out.startswith("---\ntype: bug\narea: bugs\n---\n")
+    fm, err = tasks.parse_frontmatter(out)
+    assert err == "" and fm["type"] == "bug"
+
+
+def test_merge_card_no_frontmatter_and_no_updates_adds_no_fence():
+    out = tasks.merge_card("# t\n\n## What\n\nw\n", {})
+    assert not out.startswith("---")
+    assert "## What" in out and "## Acceptance" in out
+
+
+# ── set ──────────────────────────────────────────────────────────────────
+
+
+def _set_args(root, **over):
+    ns = dict(root=root, kind="task", id=1, area=None, priority=None,
+              horizon=None, effort=None, goal=None, wiki=None,
+              section=None, value=None, value_file=None)
+    for key in tasks.DEPENDENCY_KEYS:
+        ns[key] = None
+    ns.update(over)
+    return tasks.argparse.Namespace(**ns)
+
+
+def test_set_frontmatter_only_leaves_body_untouched(tmp_path, capsys):
+    root = tmp_path / "dev_tasks"
+    body = "# task-1: Thing\n\n## Goal\n\ng\n\nprose that must survive\n"
+    _write(root / "todo" / "ui" / "task-1-thing.md",
+           "---\nstatus: todo\n---\n\n" + body)
+    assert tasks.cmd_set(_set_args(root, priority="high")) == 0
+    text = (root / "todo" / "ui" / "task-1-thing.md").read_text(encoding="utf-8")
+    assert "priority: high" in text
+    assert body in text, "a frontmatter-only set must not reformat the body"
+
+
+def test_set_replaces_one_section_in_place(tmp_path):
+    root = tmp_path / "dev_tasks"
+    _write(root / "todo" / "ui" / "task-1-thing.md",
+           "---\nstatus: todo\n---\n\n# task-1: Thing\n\n"
+           "## Acceptance\n\n- [ ] old\n\n## Notes\n\nkeep me\n")
+    assert tasks.cmd_set(_set_args(
+        root, section="acceptance", value="- [ ] new")) == 0
+    text = (root / "todo" / "ui" / "task-1-thing.md").read_text(encoding="utf-8")
+    assert "- [ ] new" in text and "- [ ] old" not in text
+    assert "## Notes" in text and "keep me" in text
+
+
+def test_set_writes_dependency_list(tmp_path):
+    root = tmp_path / "dev_tasks"
+    _write(root / "todo" / "ui" / "task-1-thing.md", "---\nstatus: todo\n---\n\n# t\n")
+    assert tasks.cmd_set(_set_args(root, blocked_by="task-2, task-3")) == 0
+    text = (root / "todo" / "ui" / "task-1-thing.md").read_text(encoding="utf-8")
+    assert "blocked_by: [task-2, task-3]" in text
+
+
+def test_set_creates_frontmatter_when_the_card_has_none(tmp_path):
+    # task-437 in the real tree: a legacy card with a prose **Status:** header
+    # and no `---` block. `set` must synthesize one rather than refuse.
+    root = tmp_path / "dev_tasks"
+    _write(root / "todo" / "gameplay" / "task-1-legacy.md",
+           "# task-1: Legacy\n\n**Status:** todo\n\nbody\n")
+    assert tasks.cmd_set(_set_args(root, blocked_by="task-436")) == 0
+    text = (root / "todo" / "gameplay" / "task-1-legacy.md").read_text(encoding="utf-8")
+    assert text.startswith("---\nblocked_by: [task-436]\n---\n\n# task-1: Legacy")
+    fm, err = tasks.parse_frontmatter(text)
+    assert err == "" and fm["blocked_by"] == ["task-436"]
+
+
+# ── dependency graph / next ──────────────────────────────────────────────
+
+
+def test_graph_finds_the_critical_path(tmp_path, capsys):
+    root = tmp_path / "dev_tasks"
+    _write(root / "todo" / "ui" / "task-1-a.md",
+           "---\nstatus: todo\nblocks: [task-2]\n---\n\n# task-1: A\n")
+    _write(root / "todo" / "ui" / "task-2-b.md",
+           "---\nstatus: todo\nblocks: [task-3]\n---\n\n# task-2: B\n")
+    _write(root / "todo" / "ui" / "task-3-c.md",
+           "---\nstatus: todo\n---\n\n# task-3: C\n")
+    assert tasks.cmd_graph(tasks.argparse.Namespace(root=root, json=True)) == 0
+    data = json.loads(capsys.readouterr().out)
+    assert data["critical_path"] == ["task-1", "task-2", "task-3"]
+    assert data["cycles"] == []
+
+
+def test_graph_detects_a_cycle(tmp_path, capsys):
+    root = tmp_path / "dev_tasks"
+    _write(root / "todo" / "ui" / "task-1-a.md",
+           "---\nstatus: todo\nblocks: [task-2]\n---\n\n# task-1: A\n")
+    _write(root / "todo" / "ui" / "task-2-b.md",
+           "---\nstatus: todo\nblocks: [task-1]\n---\n\n# task-2: B\n")
+    assert tasks.cmd_graph(tasks.argparse.Namespace(root=root, json=True)) == 0
+    data = json.loads(capsys.readouterr().out)
+    assert data["cycles"], "a 2-cycle must be reported"
+    assert data["critical_path"] == [], "no critical path across a cycle"
+
+
+def test_next_excludes_blocked_and_terminal_unblocks(tmp_path, capsys):
+    root = tmp_path / "dev_tasks"
+    _write(root / "done" / "ui" / "task-1-base.md",
+           "---\nstatus: done\nblocks: [task-2]\n---\n\n# task-1: Base\n")
+    _write(root / "todo" / "ui" / "task-2-next.md",
+           "---\nstatus: todo\nblocks: [task-3]\n---\n\n# task-2: Next\n")
+    _write(root / "todo" / "ui" / "task-3-last.md",
+           "---\nstatus: todo\n---\n\n# task-3: Last\n")
+    assert tasks.cmd_next(tasks.argparse.Namespace(root=root, json=True)) == 0
+    data = json.loads(capsys.readouterr().out)
+    ids = [c["id"] for c in data["cards"]]
+    assert "task-2" in ids, "task-2 is unblocked (task-1 is done)"
+    assert "task-3" not in ids, "task-3 is blocked by the open task-2"
+
+
+# ── validate --schema ────────────────────────────────────────────────────
+
+
+def test_validate_schema_warns_on_gaps_and_unchecked_done(tmp_path, capsys):
+    root = tmp_path / "dev_tasks"
+    _write(root / "done" / "ui" / "task-1-done.md",
+           "---\nstatus: done\n---\n\n# task-1: Done\n\n"
+           "## Acceptance\n\n- [ ] never checked\n")
+    assert tasks.cmd_validate(
+        tasks.argparse.Namespace(root=root, quiet=False, schema=True)) == 0
+    out = capsys.readouterr().out
+    assert "missing section" in out
+    assert "unchecked acceptance box" in out
+    assert "missing frontmatter" in out
+
+
+def test_validate_without_schema_flag_emits_no_schema_warnings(tmp_path, capsys):
+    root = tmp_path / "dev_tasks"
+    _write(root / "todo" / "ui" / "task-1-thin.md", "---\nstatus: todo\n---\n\n# t\n")
+    assert tasks.cmd_validate(
+        tasks.argparse.Namespace(root=root, quiet=False, schema=False)) == 0
+    assert "missing section" not in capsys.readouterr().out
+
+

@@ -72,6 +72,40 @@ def interiors(path: Optional[str] = None) -> dict:
     return _cache[target]
 
 
+def clear_cache() -> None:
+    """Drop the cached plans so a save is visible without a restart (task-589)."""
+    _cache.clear()
+
+
+def plan_problems(entry_id: str, rec: dict) -> List[str]:
+    """Validate a drawn interior plan record (task-567/589).
+
+    Deliberately lenient on shape that the generator already tolerates: a ragged
+    row is padded and *reported* at generate time (`_rectangle`), and a legend
+    token may map to an unknown cell. A save must not reject the ragged plans the
+    shipped file already carries, so only the presence and type of the parts are
+    checked here.
+    """
+    if not isinstance(rec, dict):
+        return [f"interior plan {entry_id}: not an object"]
+    out: List[str] = []
+    if not str(rec.get("label") or "").strip():
+        out.append(f"interior plan {entry_id}: missing label")
+    storeys = rec.get("storeys")
+    if not isinstance(storeys, int) or isinstance(storeys, bool) or storeys < 1:
+        out.append(f"interior plan {entry_id}: storeys must be a positive integer")
+    legend = rec.get("legend")
+    if not isinstance(legend, dict) or not legend:
+        out.append(f"interior plan {entry_id}: legend must be a non-empty object")
+    elif not all(isinstance(k, str) and isinstance(v, str) for k, v in legend.items()):
+        out.append(f"interior plan {entry_id}: legend keys and values must be strings")
+    rows = rec.get("plan")
+    if (not isinstance(rows, list) or not rows
+            or not all(isinstance(r, str) and r for r in rows)):
+        out.append(f"interior plan {entry_id}: plan must be a non-empty list of strings")
+    return out
+
+
 def template_for(building_id: str, path: Optional[str] = None) -> Tuple[dict, bool]:
     """``(template, is_fallback)`` for a building type.
 

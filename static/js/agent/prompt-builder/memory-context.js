@@ -554,7 +554,6 @@ window.PromptBuilder = window.PromptBuilder || {};
             const suggestions = [];
             const goTargets = actionInfo.filter((actionItem) => actionItem.verb === 'go').map((actionItem) => actionItem.target.toLowerCase().trim());
             const examineTargets = actionInfo.filter((actionItem) => actionItem.verb === 'examine').map((actionItem) => actionItem.target.toLowerCase().trim());
-            const takeTargets = actionInfo.filter(actionItem => actionItem.verb === 'take').map(actionItem => actionItem.target.toLowerCase().trim());
             for (const [dir, exitData] of Object.entries(areaExits)) {
                 if (exitData.hidden)
                     continue;

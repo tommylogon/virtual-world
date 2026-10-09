@@ -144,7 +144,6 @@ window.NLEditorGhosts = (() => {
             const ops = staging.getOps();
             const creations = staging.getStagedCreations();
             const deletions = staging.getStagedDeletions();
-            const updates = staging.getStagedUpdates();
             const ghostNodes = [];
             const ghostEdges = [];
             let index = 0;

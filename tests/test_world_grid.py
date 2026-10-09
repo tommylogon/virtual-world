@@ -22,7 +22,7 @@ def _manifest():
 
 def _gridded_manifest(w=4, h=3):
     m = _manifest()
-    wg.ensure_grid(m["forest"], w, h, cell_scale=10, mode="world")
+    wg.ensure_grid(m["forest"], w, h, mode="world")
     return m
 
 
@@ -47,12 +47,12 @@ def test_cell_id_is_stable_across_unrelated_edits():
 # ──────────────────────────── ensure_grid ────────────────────────────────
 
 
-def test_ensure_grid_sets_size_scale_and_mode():
+def test_ensure_grid_sets_size_and_mode():
     m = _gridded_manifest(5, 2)
     forest = m["forest"]
     assert wg.has_grid(forest)
     assert wg.grid_size(forest) == (5, 2)
-    assert forest["grid"]["cell_scale"] == 10
+    assert forest["grid"] == {"w": 5, "h": 2}
     assert forest["mode"] == "world"
 
 
@@ -185,12 +185,13 @@ def test_validate_flags_paint_without_a_grid():
 
 
 def test_normalise_grid_is_tolerant():
+    # A legacy ``cell_scale`` key (removed task-741) is dropped, not carried.
     rec = {"grid": {"w": "4", "h": 3, "cell_scale": "2.5"},
            "mode": "town",
            "layers": {"biome": {"1,1": "dense_forest", "bad": "x"}},
            "placements": {"a": {"x": 1, "y": 2}, "b": "nope"}}
     wg.normalise_grid(rec)
-    assert rec["grid"] == {"w": 4, "h": 3, "cell_scale": 2.5}
+    assert rec["grid"] == {"w": 4, "h": 3}
     assert rec["layers"] == {"biome": {"1,1": "dense_forest"}}
     assert rec["placements"] == {"a": {"x": 1, "y": 2}}
 
@@ -218,7 +219,7 @@ def test_grid_round_trips_through_manifest_and_json():
     # drop grid fields, and a JSON round-trip must preserve them.
     normalised = world_scopes.normalise_manifest(json.loads(json.dumps(m)))
     forest = normalised["forest"]
-    assert forest["grid"] == {"w": 4, "h": 3, "cell_scale": 10.0}
+    assert forest["grid"] == {"w": 4, "h": 3}
     assert wg.painter_at(forest, "biome", 0, 0) == "dense_forest"
     assert wg.cell_of(forest, "village") == (1, 1)
     assert wg.validate(normalised) == []

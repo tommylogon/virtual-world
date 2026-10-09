@@ -203,7 +203,7 @@ window.GraphTooltips = {
                 html += '<div style="margin:2px 0;color:var(--text-muted);">Effects:</div>';
                 effects.slice(0, 3).forEach((eff: any, i: number) => {
                     const effType = esc(eff.type || '?');
-                    const msg = (eff.params?.success_message || eff.params?.message || '');
+                    const msg = (eff.params?.message || eff.params?.success_message || '');
                     html += '<div style="margin:1px 0 1px 8px;font-size:10px;">• ' + effType + (msg ? ': ' + esc(msg.substring(0, 60)) + (msg.length > 60 ? '...' : '') : '') + '</div>';
                 });
                 if (effects.length > 3) html += '<div style="font-size:9px;color:var(--text-dim);">+' + (effects.length - 3) + ' more</div>';

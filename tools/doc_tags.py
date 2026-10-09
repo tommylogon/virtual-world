@@ -63,8 +63,6 @@ ROOT_DOMAIN = {
     "Feature Map": "docs",
     "Simulation Model": "world",
     "History": "docs",
-    "Roadmap": "docs",
-    "Roadmap-core-systems": "docs",
     "Scenario Catalogue": "data",
     "Scenario Workflows & UI Audit": "docs",
     "ScenarioCreationGuide": "ui",

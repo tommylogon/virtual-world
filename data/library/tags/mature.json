@@ -1,0 +1,12 @@
+{
+  "id": "mature",
+  "name": "Mature Content",
+  "description": "Adult content. Hidden from library pickers and gated out of the dressing pool unless the world's mature_content opt-in is on.",
+  "category": "custom",
+  "contexts": ["generic"],
+  "implies": [],
+  "applies_to": ["items", "characters", "areas", "ways", "traits", "conditions"],
+  "color": "#c0392b",
+  "icon": "🔞",
+  "examples": ["ball_gag", "exhibitionist"]
+}

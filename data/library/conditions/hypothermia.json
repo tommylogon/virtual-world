@@ -51,7 +51,7 @@
   "excludes": [],
   "order": 15,
   "perception_skip": false,
-  "mature": false,
   "check_advantage": [],
-  "check_disadvantage": []
+  "check_disadvantage": [],
+  "tags": []
 }

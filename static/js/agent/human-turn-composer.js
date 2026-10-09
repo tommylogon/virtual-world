@@ -233,9 +233,6 @@ const HumanTurnComposerModule = (() => {
         const slots = players && _charName ? players[_charName]?.turn_slots : null;
         return slots && typeof slots === 'object' ? { ...slots } : null;
     }
-    function anySlotLeft(s) {
-        return Object.keys(s).some((k) => (s[k] || 0) > 0);
-    }
     function renderPips() {
         const s = turnSlots() || { major: 0, minor: 0, free: 0 };
         const pips = [];

@@ -338,10 +338,17 @@ def handle_library_entities(app):
     return jsonify(result)
 
 
+def _is_mature_entry(entry) -> bool:
+    """task-750: mature is a tag, not a boolean property."""
+    if not isinstance(entry, dict):
+        return False
+    return 'mature' in {str(t).strip().lower() for t in (entry.get('tags') or [])}
+
+
 def _filter_mature_entries(app, registry_type, data):
     """task-213/462: hide adult traits/conditions from library listings/pickers
     unless the mature_content toggle is on. Definitions stay functional for
-    characters that already carry them."""
+    characters that already carry them. task-750: matched by the `mature` tag."""
     if registry_type not in ('traits', 'conditions'):
         return data
     if getattr(app.world, 'mature_content', False):
@@ -350,7 +357,7 @@ def _filter_mature_entries(app, registry_type, data):
         return data
     return {
         key: value for key, value in data.items()
-        if not (isinstance(value, dict) and value.get('mature'))
+        if not _is_mature_entry(value)
     }
 
 
@@ -397,6 +404,198 @@ def handle_library_all(app):
         data = load_registry(data_dir, f"{t}.json")
         result[t] = _filter_mature_entries(app, t, data)
     return jsonify(result)
+
+
+# ── compiler vocabulary (task-588/589) ───────────────────────────────────
+#
+# A **second kind of library entry**: browsable and editable, but never
+# materializable. A biome is read by the compiler to classify a painted cell, a
+# floor plan is instantiated by `interior_gen`, and a loot table feeds the
+# spawner; none is `place`d into a graph, so this surface offers no "place in
+# world" action. The data lives in the files the engine already reads, so there
+# is no second copy and no new read path (task-588's verdict).
+
+#: The vocabulary types this surface exposes.
+#: - ``backing: 'dir'`` — one file per entry under ``data/library/<dir>/``.
+#: - ``backing: 'file'`` — entries are a named collection inside one JSON file.
+VOCABULARY_TYPES = {
+    'biomes': {'backing': 'dir', 'dir': 'biomes'},
+    'features': {'backing': 'dir', 'dir': 'features'},
+    'resource_distribution': {'backing': 'dir', 'dir': 'resource_distribution'},
+    'hostile_distribution': {'backing': 'dir', 'dir': 'hostile_distribution'},
+    'floor_plans': {'backing': 'file', 'file': 'worldpainter/interiors.json',
+                    'collection': 'plans'},
+    'hazards': {'backing': 'file', 'file': 'worldpainter/hazards.json',
+                'collection': 'hazards'},
+}
+
+
+def _vocabulary_dir(data_dir, vocab_type):
+    return os.path.join(data_dir, 'library', VOCABULARY_TYPES[vocab_type]['dir'])
+
+
+def _vocabulary_file(data_dir, vocab_type):
+    return os.path.join(data_dir, VOCABULARY_TYPES[vocab_type]['file'])
+
+
+def _read_json(path):
+    with open(path, 'r', encoding='utf-8-sig') as fh:
+        return json.load(fh)
+
+
+def _write_json(path, data):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, 'w', encoding='utf-8') as fh:
+        json.dump(data, fh, indent=2, ensure_ascii=False)
+        fh.write('\n')
+
+
+def _load_vocabulary(data_dir, vocab_type):
+    spec = VOCABULARY_TYPES[vocab_type]
+    if spec['backing'] == 'file':
+        path = _vocabulary_file(data_dir, vocab_type)
+        if not os.path.isfile(path):
+            return {}
+        return dict((_read_json(path).get(spec['collection']) or {}))
+    out = {}
+    directory = _vocabulary_dir(data_dir, vocab_type)
+    if not os.path.isdir(directory):
+        return out
+    for name in os.listdir(directory):
+        if name.endswith('.json'):
+            out[name[:-5]] = _read_json(os.path.join(directory, name))
+    return out
+
+
+def _clear_vocabulary_cache():
+    """Drop the taxonomy/plan caches so a save shows without a restart."""
+    from engine import biomes as biomes_mod
+    biomes_mod.clear_cache()
+    try:
+        from engine import interior_gen
+        interior_gen.clear_cache()
+        from engine import hazards as hazards_mod
+        hazards_mod.clear_cache()
+    except Exception:  # pragma: no cover - interior_gen import is stable
+        logger.warning("interior_gen cache clear failed", exc_info=True)
+
+
+def _vocabulary_problems(vocab_type, entry_id, rec):
+    """The per-record problems, from the same validators the engine uses."""
+    from engine import biomes as biomes_mod
+    if vocab_type == 'biomes':
+        return biomes_mod.record_problems(entry_id, rec)
+    if vocab_type == 'features':
+        return biomes_mod.feature_problems(entry_id, rec)
+    if vocab_type == 'resource_distribution':
+        return biomes_mod.resource_table_problems(entry_id, rec)
+    if vocab_type == 'hostile_distribution':
+        return biomes_mod.hostile_table_problems(entry_id, rec)
+    if vocab_type == 'hazards':
+        from engine import hazards as hazards_mod
+        return hazards_mod.hazard_problems(entry_id, rec)
+    from engine import interior_gen
+    return interior_gen.plan_problems(entry_id, rec)
+
+
+def _coverage_problems(app, vocab_type, entry_id, rec):
+    """Cluster-level checks a single-record validator cannot make (task-589).
+
+    A **wild** biome must have resource and hostile rules (mirroring
+    `biomes.validate()`'s coverage rule), keyed by the loot tables'
+    ``biome_tags``. A *made* place (building/indoor room) or a *structure* is
+    exempt, exactly as in `validate()`. Read from the same DATA_DIR the save
+    writes to, so a save and its coverage see one world.
+    """
+    if vocab_type != 'biomes':
+        return []
+    from engine import biomes as biomes_mod
+    if biomes_mod.is_made_place(rec) or biomes_mod.is_structure(rec):
+        return []
+    data_dir = app.config['DATA_DIR']
+
+    def covered(bucket):
+        if not os.path.isdir(_vocabulary_dir(data_dir, bucket)):
+            return set()
+        return {str(tag) for e in _load_vocabulary(data_dir, bucket).values()
+                for tag in ((e or {}).get('biome_tags') or [])}
+
+    out = []
+    if entry_id not in covered('resource_distribution'):
+        out.append(f"biome {entry_id}: no resource rules (author a "
+                   f"resource_distribution entry with biome_tags ['{entry_id}'])")
+    if entry_id not in covered('hostile_distribution'):
+        out.append(f"biome {entry_id}: no hostile rules (author a "
+                   f"hostile_distribution entry with biome_tags ['{entry_id}'])")
+    return out
+
+
+def handle_vocabulary_list(app, vocab_type):
+    """GET /api/vocabulary/<vocab_type> — list the compiler vocabulary."""
+    if vocab_type not in VOCABULARY_TYPES:
+        return jsonify({"error": f"Unknown vocabulary type: {vocab_type}"}), 400
+    entries = _load_vocabulary(app.config['DATA_DIR'], vocab_type)
+    return jsonify({
+        "type": vocab_type,
+        "entries": [{"id": k, "name": (v or {}).get("name") or (v or {}).get("label") or k,
+                     "record": v}
+                    for k, v in sorted(entries.items())],
+    })
+
+
+def handle_vocabulary_save(app, vocab_type, entry_id):
+    """POST /api/vocabulary/<vocab_type>/<entry_id> — validate then save.
+
+    Refuses a record the engine would reject (the same per-record validator it
+    uses) and drops the caches, so the next compile/palette read sees it without
+    a restart.
+    """
+    if vocab_type not in VOCABULARY_TYPES:
+        return jsonify({"error": f"Unknown vocabulary type: {vocab_type}"}), 400
+    body = request.get_json(silent=True) or {}
+    rec = body.get("record", body)
+    if not isinstance(rec, dict):
+        return jsonify({"error": "record must be an object"}), 400
+    problems = _vocabulary_problems(vocab_type, entry_id, rec)
+    problems += _coverage_problems(app, vocab_type, entry_id, rec)
+    if problems:
+        return jsonify({"error": "invalid record", "problems": problems}), 400
+    spec = VOCABULARY_TYPES[vocab_type]
+    data_dir = app.config['DATA_DIR']
+    if spec['backing'] == 'file':
+        path = _vocabulary_file(data_dir, vocab_type)
+        data = _read_json(path) if os.path.isfile(path) else {}
+        data.setdefault(spec['collection'], {})[entry_id] = rec
+        _write_json(path, data)
+    else:
+        _write_json(os.path.join(_vocabulary_dir(data_dir, vocab_type), f"{entry_id}.json"), rec)
+    _clear_vocabulary_cache()
+    return jsonify({"status": "saved", "id": entry_id})
+
+
+def handle_vocabulary_delete(app, vocab_type, entry_id):
+    """DELETE /api/vocabulary/<vocab_type>/<entry_id>."""
+    if vocab_type not in VOCABULARY_TYPES:
+        return jsonify({"error": f"Unknown vocabulary type: {vocab_type}"}), 400
+    spec = VOCABULARY_TYPES[vocab_type]
+    data_dir = app.config['DATA_DIR']
+    if spec['backing'] == 'file':
+        path = _vocabulary_file(data_dir, vocab_type)
+        data = _read_json(path) if os.path.isfile(path) else {}
+        collection = data.get(spec['collection']) or {}
+        if entry_id not in collection:
+            return jsonify({"error": f"No {vocab_type} entry '{entry_id}'"}), 404
+        collection.pop(entry_id)
+        data[spec['collection']] = collection
+        _write_json(path, data)
+    else:
+        path = os.path.join(_vocabulary_dir(data_dir, vocab_type), f"{entry_id}.json")
+        if not os.path.isfile(path):
+            return jsonify({"error": f"No {vocab_type} entry '{entry_id}'"}), 404
+        os.remove(path)
+    _clear_vocabulary_cache()
+    return jsonify({"status": "deleted", "id": entry_id})
+
 
 
 #: Node properties that describe where a node sits on the CANVAS, not the thing

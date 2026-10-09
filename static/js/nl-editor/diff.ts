@@ -11,7 +11,7 @@
  * @contributes NLEditorDiff: opDiff(), diffPairs(), formatChanges(), summaryLines()
  * @powers NL editor — the staged-ops tray's per-op diff preview
  * @relates read by ui.js when rendering staged rows
- * @docs docs/virtualWorld/dev_tasks/inprogress/graph/task-461-nl-editor-validation-gate-and-apply-time-property-diff.md
+ * @docs docs/virtualWorld/dev_tasks/done/graph/task-387-natural-language-editor-mode.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 

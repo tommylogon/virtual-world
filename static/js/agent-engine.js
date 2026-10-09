@@ -659,7 +659,6 @@ class AgentEngine {
             const roomParts = PromptBuilder.buildRoomContextParts(state, charName, player, currentArea);
             const vitalsNL = PromptBuilder.describeVitals(player, state, charName);
             const emotionNL = PromptBuilder.buildEmotionContext(player);
-            const insanityNL = PromptBuilder.buildInsanityContext(player);
             const relationshipNL = PromptBuilder.buildRelationshipContext(player, charName);
             const memoryNL = await PromptBuilder.buildMemoryContext(charName, { report: true });
             if (config.reactiveMode) {

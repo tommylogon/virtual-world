@@ -413,7 +413,7 @@ class ItemLibrary {
             const ttRaw = t.trigger_type;
             const ttLabel = Array.isArray(ttRaw) ? ttRaw.join(', ') : (ttRaw || '');
             const firstParams = effects[0]?.params || {};
-            const successMsg = firstParams.success_message || firstParams.message || '';
+            const successMsg = firstParams.message || firstParams.success_message || '';
             const failMsg = firstParams.fail_message || '';
             return itemLibraryHtmlTag `<div style="padding:6px 8px;background:var(--bg-inset);border-radius:4px;margin-bottom:4px;border-left:3px solid var(--orange);">
                 <div style="display:flex;justify-content:space-between;align-items:flex-start;">
@@ -948,7 +948,7 @@ class ItemLibrary {
                 const condHtml = (TriggerEditor._renderConditionSummary(conditions) || []).join(' ');
                 const effectDetail = this._buildEffectDetail(effects);
                 const firstParams = effects[0]?.params || {};
-                const successMsg = firstParams.success_message || firstParams.message || '';
+                const successMsg = firstParams.message || firstParams.success_message || '';
                 const failMsg = firstParams.fail_message || '';
                 return itemLibraryHtmlTag `<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:6px;margin-bottom:4px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;">

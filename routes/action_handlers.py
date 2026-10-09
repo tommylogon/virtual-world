@@ -1,7 +1,7 @@
 import logging
 import re
 import json
-from flask import request, jsonify
+from flask import request, jsonify, Response
 from virtual_world_engine import AmbiguousItemError
 from graph import EDGE_IN, Edge
 from engine.foraging import is_loot_skill
@@ -164,6 +164,18 @@ def handle_get_state(app):
         # paint the world before the full state arrives. The initial render is
         # built from the lite payload, then a full fetch fills in the rest.
         lite = request.args.get("lite", "").strip().lower() in ("1", "true", "yes")
+        full = request.args.get("full", "").strip().lower() in ("1", "true", "yes")
+        # task-753: serve the cached payload when the world has not changed since
+        # the last build. The revision is bumped on every mutating /api/ call.
+        # Disabled under TESTING so a test that mutates the world directly cannot
+        # read a stale cache.
+        rev = getattr(app, "_state_revision", None)
+        cache = None if app.config.get("TESTING") else getattr(app, "_state_cache", None)
+        variant = ("lite" if lite else "std") + ("+full" if full else "")
+        if cache is not None and rev is not None:
+            entry = cache.get(variant)
+            if entry is not None and entry[0] == rev:
+                return Response(entry[1], mimetype="application/json")
         state = app.world.to_dict(lite=lite)
         # Perf: `rooms` is an exact duplicate of `areas` (serialization.py emits
         # the same dict under both keys) and `areas_by_id` has no HTTP consumer —
@@ -171,7 +183,7 @@ def handle_get_state(app):
         # /api/state encode cost for ~13 MB of payload. Drop them from the wire
         # unless a caller explicitly opts in with ?full=1. `to_dict` itself is
         # unchanged (tests and non-HTTP callers still see areas_by_id).
-        if request.args.get("full", "").strip().lower() not in ("1", "true", "yes"):
+        if not full:
             state.pop("rooms", None)
             state.pop("areas_by_id", None)
         state["scenario_ended"] = getattr(app.world, 'scenario_ended', False)
@@ -197,7 +209,10 @@ def handle_get_state(app):
                 if getattr(app.world, "forecast_override", None) else None
         except Exception:
             pass
-        return jsonify(state)
+        resp = jsonify(state)
+        if cache is not None and rev is not None:
+            cache[variant] = (rev, resp.get_data())
+        return resp
     except Exception as e:
         logger.exception("Error in /api/state")
         return jsonify({"error": str(e)}), 500

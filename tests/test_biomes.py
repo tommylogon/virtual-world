@@ -205,3 +205,55 @@ def test_hostile_library_returns_split_entries():
     assert "biome_tags" in first
     assert "kind" in first
     assert "base_chance" in first
+
+
+def test_climate_and_neighbours_validate_when_present():
+    # task-758: the descriptive fields are optional; well-formed ones pass.
+    data = copy.deepcopy(biomes.load())
+    data["biomes"]["marsh"] = {
+        "name": "Marsh", "terrain": "water", "tags": ["stream", "water"],
+        "forage_skills": ["survival"], "surface": "mud",
+        "descriptions": ["Standing water and tufted reeds."],
+        "climate": {"temperature": [4, 18], "rainfall": [700, 1400],
+                    "elevation": [0, 300]},
+        "natural_neighbors": ["river", "lake", "sparse_forest"],
+        "unlikely_neighbors": ["desert"],
+        "transition_biomes": ["wet meadow"],
+    }
+    data["resource_distribution"] = {"marsh": [{"tags": ["herb"], "weight": 2}]}
+    data["hostile_distribution"] = {"marsh": [
+        {"kind": "predator", "base_chance": 0.02,
+         "per_area_from_settlement": 0.01, "max_chance": 0.2}]}
+    assert biomes.validate(data) == []
+
+
+def test_a_malformed_climate_is_rejected():
+    data = copy.deepcopy(biomes.load())
+    data["biomes"]["marsh"] = {
+        "name": "Marsh", "terrain": "water", "tags": ["stream", "water"],
+        "surface": "mud", "descriptions": ["Reeds."],
+        "climate": {"temperature": [25, 5], "rainfall": "wet"},
+    }
+    data["resource_distribution"] = {"marsh": [{"tags": ["herb"], "weight": 2}]}
+    data["hostile_distribution"] = {"marsh": [
+        {"kind": "predator", "base_chance": 0.02,
+         "per_area_from_settlement": 0.01, "max_chance": 0.2}]}
+    joined = " ".join(biomes.validate(data))
+    assert "climate.temperature max < min" in joined
+    assert "climate.rainfall must be [min, max] numbers" in joined
+
+
+def test_a_bad_neighbour_list_is_rejected():
+    data = copy.deepcopy(biomes.load())
+    data["biomes"]["marsh"] = {
+        "name": "Marsh", "terrain": "water", "tags": ["stream", "water"],
+        "surface": "mud", "descriptions": ["Reeds."],
+        "natural_neighbors": "meadow",   # a string, not a list
+    }
+    data["resource_distribution"] = {"marsh": [{"tags": ["herb"], "weight": 2}]}
+    data["hostile_distribution"] = {"marsh": [
+        {"kind": "predator", "base_chance": 0.02,
+         "per_area_from_settlement": 0.01, "max_chance": 0.2}]}
+    joined = " ".join(biomes.validate(data))
+    assert "natural_neighbors must be a list of non-empty strings" in joined
+

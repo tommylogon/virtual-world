@@ -280,7 +280,6 @@ const SpriteSheetGeometry: SpriteSheetGeometryApi = (() => {
      */
     function hitDivider(cuts: SpriteCuts, axis: 'x' | 'y', at: number, tol: number,
                         opts: SpriteCutOpts = {}): number {
-        const minCell = Math.max(1, Math.round(clampNum(opts.minCell, MIN_CELL_PX)));
         const list = axis === 'x' ? cuts.colCuts : cuts.rowCuts;
         const t = Math.abs(tol);
         // Nearest first, so overlapping tolerance bands still resolve to the

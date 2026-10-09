@@ -510,7 +510,6 @@
         }).join('') || '<span class="soak-hint">No tracked vitals yet.</span>';
     }
     function renderAlerts() {
-        const box = el('soak-overview-alerts');
         const p = (data() && data().progress) || {};
         const messages = [];
         const total = p.characters || charactersCount() || 0;
@@ -1324,6 +1323,7 @@
                 renderOverview();
                 break;
             case 'vitals':
+                renderVitalMetrics();
                 renderVitals();
                 break;
             case 'survival':

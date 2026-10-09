@@ -19,20 +19,6 @@
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 (window as unknown as TriggerSuggestAIWindowSurface).TriggerSuggestAI = (() => {
-    /**
-     * The slice of the shared AIGenerator (shared/ai-generator.js) this module
-     * calls: a presence check plus the one generate() shape used below.
-     */
-    interface AIGeneratorApi {
-        isConfigured(): boolean;
-        generate(userPrompt: string, systemPrompt: string, options?: AIGenerateOptions): Promise<{
-            success: boolean;
-            data?: unknown;
-            error?: string;
-            raw?: string;
-        }>;
-    }
-
     /** Raw node fields handed to the suggester by the trigger editor. */
     interface SuggestFields {
         name?: string;

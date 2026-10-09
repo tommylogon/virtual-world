@@ -22,7 +22,6 @@
 const RATE_WINDOW_MS = 60_000;
 class RateLimiter {
     _timestamps = [];
-    _cooldownEnd = 0;
     /**
      * Calculate how many milliseconds to wait before making the next API call,
      * based on the configured `config.rpmLimit` (requests per minute).
@@ -58,7 +57,6 @@ class RateLimiter {
     /** Reset all rate-limiter state (timestamps and cooldown). */
     reset() {
         this._timestamps = [];
-        this._cooldownEnd = 0;
     }
 }
 // Classic script: publish on window as well as the top-level lexical binding.

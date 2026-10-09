@@ -1,6 +1,7 @@
 ---
 group: Agent AI & Behavior
 wiki: "[[Items & Inventory/Items Overview]]"
+blocked_by: [task-110]
 ---
 
 # Task 109: Movement Abilities and Environmental Gating

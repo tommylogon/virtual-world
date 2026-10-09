@@ -7,7 +7,7 @@
 const GM = window.VW.gridModel;
 
 const PAYLOAD = {
-    grid: { w: 3, h: 2, cell_scale: 1 },
+    grid: { w: 3, h: 2 },
     mode: 'world',
     layers: { biome: { '0,0': 'sparse_forest', '2,1': 'ocean' }, road: { '1,0': 'road' } },
     placements: [{ id: 'v1', name: 'Village', kind: 'settlement', x: 1, y: 1, placed: true }],
@@ -643,3 +643,116 @@ test('the server decides the base °C; the editor only supplies colours', () => 
     assertEq(GM.CLIMATE_IDS.length, before.length, 'restored');
 });
 
+// ─── HUD wiring (regression: 0dc60c48 orphaned the reference control) ─────────
+//
+// Commit 0dc60c48 deleted `hud.appendChild(_referenceControl(p))` but kept the
+// function, so the map-image picker silently vanished from the grid HUD while
+// the checklist still told the author to "load a reference image". A definition
+// with no call site is the failure mode; assert the call, not the symbol.
+
+test('the WorldPainter grid HUD renders the reference-image control', () => {
+    const src = window.__readFile('static/js/worldpainter/editor.js');
+    assertTrue(/function _referenceControl\s*\(/.test(src), '_referenceControl is defined');
+    assertTrue(/appendChild\(_referenceControl\(p\)\)/.test(src),
+        'and it is appended to the HUD, so the picker is actually rendered');
+});
+
+
+// ── palette view-model (task-759) ──────────────────────────────────────────
+//
+// The palette opened by the value control is a view over the vocabulary route.
+// These assert the grouping, filtering and description the editor renders.
+
+const PALETTE_VOCAB = [
+    { id: 'sparse_forest', name: 'Sparse Forest', terrain: 'forest', tags: ['forest'], descriptions: ['Open woods.'] },
+    { id: 'deep_water', name: 'Deep Water', terrain: 'water', tags: ['water'], descriptions: ['Cold and deep.'] },
+    { id: 'wall', name: 'Wall', terrain: 'urban', tags: ['not_a_place', 'cell_kind:solid'], descriptions: ['A wall.'] },
+    { id: 'hallway', name: 'Hallway', terrain: 'indoor', tags: ['indoor', 'circulation'], descriptions: ['A hall.'] },
+    { id: 'kitchen', name: 'Kitchen', terrain: 'indoor', tags: ['indoor', 'cooking'], descriptions: ['A kitchen.'] },
+    { id: 'inn', name: 'Inn', terrain: 'urban', tags: ['building', 'commercial'], descriptions: ['A warm inn.'] },
+];
+
+test('paletteSections groups the biome vocabulary by terrain and tags (task-759)', () => {
+    const secs = GM.paletteSections('biome', PALETTE_VOCAB);
+    const ids = secs.map(s => s.id);
+    assertEq(ids[0], 'terrain:forest', 'wild terrain first');
+    assertTrue(ids.indexOf('terrain:water') >= 0, 'water section');
+    assertTrue(ids.indexOf('room:circulation') >= 0, 'room purpose section');
+    assertTrue(ids.indexOf('building:commercial') >= 0, 'building category section');
+    assertEq(ids[ids.length - 1], 'structure', 'structure last');
+    assertTrue(ids.indexOf('terrain:forest') < ids.indexOf('structure'), 'stable rank');
+});
+
+test('paletteSections is one section for the road and climate layers', () => {
+    const road = GM.paletteSections('road', [{ id: 'road', name: 'Road', tags: [] }]);
+    assertEq(road.length, 1, 'one section');
+    assertEq(road[0].tiles[0].kind, 'road', 'road kind');
+    const clim = GM.paletteSections('climate', [{ id: 'arctic', name: 'Arctic', tags: [] }]);
+    assertEq(clim[0].tiles[0].kind, 'climate', 'climate kind');
+});
+
+test('tileKind reads not_a_place and building from tags (task-759)', () => {
+    assertEq(GM.tileKind('biome', { tags: ['not_a_place', 'cell_kind:solid'] }), 'not-a-place', 'wall');
+    assertEq(GM.tileKind('biome', { tags: ['building'] }), 'building', 'inn');
+    assertEq(GM.tileKind('biome', { tags: [] }), 'place', 'forest');
+    assertEq(GM.tileKind('road', {}), 'road', 'road');
+});
+
+test('filterPalette matches name or id and drops empty sections (task-759)', () => {
+    const secs = GM.paletteSections('biome', PALETTE_VOCAB);
+    const hit = GM.flattenPalette(GM.filterPalette(secs, 'kitchen'));
+    assertEq(hit.length, 1, 'one match by name');
+    assertEq(hit[0].id, 'kitchen', 'the match is the kitchen');
+    assertEq(GM.flattenPalette(GM.filterPalette(secs, 'sparse_forest'))[0].id, 'sparse_forest', 'by id');
+    assertEq(GM.filterPalette(secs, 'zzzz').length, 0, 'no matches -> no sections');
+});
+
+test('tileDetail answers bridge vs road without another panel (task-596/759)', () => {
+    const bridge = GM.tileDetail('road', { name: 'Bridge', descriptions: ['A span carries the road over the gap.'], biomes: ['river', 'ravine'], entry_phrase: 'cross the bridge' });
+    const road = GM.tileDetail('road', { name: 'Road', descriptions: ['A worn track cut through the land.'], biomes: ['sparse_forest'] });
+    assertTrue(bridge.indexOf('crosses river, ravine') >= 0, 'bridge crosses');
+    assertTrue(bridge.indexOf('cross the bridge') >= 0, 'arrival verb');
+    assertTrue(road.indexOf('A worn track') >= 0, 'road prose');
+});
+
+test('detailRows renders present fields and invents none (task-759)', () => {
+    const rows = GM.detailRows('biome', { name: 'Sparse Forest', descriptions: ['Open woods.'], surface: 'grass', tags: ['forest'] });
+    const labels = rows.map(r => r.label);
+    assertTrue(labels.indexOf('Ground') >= 0, 'ground present');
+    assertFalse(labels.indexOf('Crosses') >= 0, 'no crosses for a plain biome');
+    assertFalse(labels.indexOf('Door') >= 0, 'no door without a refusal');
+    const sparse = GM.detailRows('biome', { name: 'X' }).map(r => r.label);
+    assertFalse(sparse.indexOf('Ground') >= 0, 'no ground invented');
+    assertFalse(sparse.indexOf('About') >= 0, 'no prose invented');
+});
+
+test('paletteTile finds a tile by id across sections (task-759)', () => {
+    const secs = GM.paletteSections('biome', PALETTE_VOCAB);
+    assertEq(GM.paletteTile(secs, 'inn').name, 'Inn', 'found');
+    assertEq(GM.paletteTile(secs, 'nope'), null, 'absent');
+});
+
+test('detailRows renders authored climate and neighbours (task-758)', () => {
+    const rows = GM.detailRows('biome', {
+        name: 'Marsh',
+        climate: { temperature: [4, 18], rainfall: [700, 1400] },
+        natural_neighbors: ['river', 'lake'],
+        tags: [],
+    });
+    const by = {};
+    rows.forEach(r => { by[r.label] = r.value; });
+    assertEq(by['Climate'], 'temperature 4\u201318, rainfall 700\u20131400', 'climate ranges');
+    assertEq(by['Near'], 'river, lake', 'neighbours');
+    // An un-authored record still invents no climate row.
+    const sparse = GM.detailRows('biome', { name: 'X' }).map(r => r.label);
+    assertFalse(sparse.indexOf('Climate') >= 0, 'no climate row without data');
+    assertFalse(sparse.indexOf('Near') >= 0, 'no neighbour row without data');
+});
+
+
+test('the palette surface is wired into the editor and uses the view-model (task-759)', () => {
+    const src = window.__readFile('static/js/worldpainter/editor.js');
+    assertTrue(/function _palettePanel\s*\(/.test(src), '_palettePanel is defined');
+    assertTrue(/appendChild\(palette\)/.test(src), 'and it is appended, so the panel renders');
+    assertTrue(/_paletteSections/.test(src), 'the panel groups via the shared view-model');
+});

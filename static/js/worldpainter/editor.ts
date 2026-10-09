@@ -61,6 +61,10 @@
         separator?: boolean;
     }
 
+    /** A palette tile/section as `grid-model.paletteSections` returns them. */
+    interface WpPaletteTile { id: string; name: string; kind: string; rec: WpPaletteEntry }
+    interface WpPaletteSection { id: string; label: string; tiles: WpPaletteTile[] }
+
     /** The backend vocabulary document (`/api/world/painter/vocabulary`). */
     interface WpVocab {
         biomes?: WpPaletteEntry[];
@@ -142,7 +146,7 @@
     /** One scope's grid manifest: `GET /api/world/scopes/<id>/grid`. */
     interface WpPayload {
         scope: { id: string; name?: string; has_grid?: boolean; mode?: string; state?: string };
-        grid?: { w: number; h: number; cell_scale?: number };
+        grid?: { w: number; h: number };
         mode?: string;
         layers?: Record<string, Record<string, string>>;
         names?: Record<string, unknown>;
@@ -285,13 +289,6 @@
         select: WpKonvaNode;
     }
 
-    /** One pickable group in the place tool's dropdown (grid-model.areaGroups). */
-    interface WpAreaGroup {
-        key: string;
-        label: string;
-        areas: { id: string; name: string; placedHere?: { x: number; y: number } | null }[];
-    }
-
     /** One paint-batch edit, as `grid/paint_batch` wants it. */
     interface WpEdit { layer: string; x: number; y: number; value: string | null }
 
@@ -304,6 +301,11 @@
         tool: string;
         layer: string;
         value: string;
+        /** Whether the palette panel is open (task-759); survives a render. */
+        paletteOpen: boolean;
+        /** Active palette rail section id, and the search box text (task-759). */
+        paletteCategory: string | null;
+        paletteQuery: string;
         brush: number;
         brushHover: WpCell[] | null;
         paintAlpha: number;
@@ -407,6 +409,9 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         layer: 'biome',
         value: 'sparse_forest',
         brush: 1,
+        paletteOpen: false,
+        paletteCategory: null,
+        paletteQuery: '',
         brushHover: null,
         paintAlpha: 0.75,
         stroke: [],
@@ -722,82 +727,16 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
     }
 
     /**
-     * The biome palette, split so a town can be painted (task-561).
+     * The layer's records grouped into rail sections (task-759).
      *
-     * 47 biomes in one column is unpickable, and the author's question when
-     * painting a settlement is not "which biome" but "which *building*". So
-     * building types are gathered into one section and sorted by their category
-     * (residential, religious, commercial, civic, craft, military, industrial,
-     * rural, transport), with the wild terrain above it where it already was. The
-     * sections render as real `<optgroup>` elements -- a `<select>` nests them
-     * natively -- so the palette is 130 options under ~25 headings rather than
-     * 130 flat rows separated by un-paintable dash text.
-     *
-     * **Rooms** get the same treatment for the same reason, and it matters more
-     * here: the indoor vocabulary is *purpose* first (where does a person sleep,
-     * where do they cook) and an author drawing a floor plan is asking exactly
-     * that question, not "which of the 80 biomes". Rooms sit between the wild
-     * terrain and the buildings, because a plan is where terrain gives way to
-     * rooms and a building is the thing you arrive at.
+     * The grouping is derived from each record's own `terrain` and `tags` by the
+     * view-model (`grid-model.paletteSections`) — rooms by purpose, buildings by
+     * category, wild terrain by `terrain`, structure on its own. It is never a
+     * hand-kept category list, which would be a second taxonomy beside the
+     * vocabulary the compiler reads.
      */
-    function _biomePalette(layer: string): WpPaletteEntry[] {
-        const options = _layerOptions(layer);
-        if (layer !== 'biome') return options.map((o) => ({ ...o, group: null }));
-        const CATEGORIES = ['residential', 'religious', 'commercial', 'civic',
-            'craft', 'industrial', 'military', 'rural', 'transport'];
-        // A room's purpose, in the order a plan is drawn: arrive, move, then
-        // the rooms you pass. Circulation first because it is what everything else
-        // connects to, and the two "why people gather" purposes (living, civic)
-        // before the service ones, which is the order a reader thinks in.
-        const ROOM_PURPOSES = ['circulation', 'living', 'sleeping', 'cooking',
-            'eating', 'storage', 'workshop', 'worship', 'records', 'study',
-            'trade', 'civic', 'service', 'outdoor'];
-        const wild: WpPaletteEntry[] = [];
-        const rooms = new Map<string, WpPaletteEntry[]>(
-            ROOM_PURPOSES.map((c) => [c, [] as WpPaletteEntry[]] as [string, WpPaletteEntry[]]));
-        const buildings = new Map<string, WpPaletteEntry[]>(
-            CATEGORIES.map((c) => [c, [] as WpPaletteEntry[]] as [string, WpPaletteEntry[]]));
-        const structure: WpPaletteEntry[] = [];
-        for (const option of options) {
-            const tags = (option.tags || []).map((t) => String(t).toLowerCase());
-            // Structure — wall, void, window, door, stairway — is neither terrain
-            // nor a room nor a building, and it is what makes a floor plan mean
-            // anything (task-562/568), so it gets its own section rather than
-            // being sorted by its category.
-            if (tags.includes('not_a_place')) { structure.push({ ...option, group: null }); continue; }
-            if (tags.includes('indoor')) {
-                const purpose = ROOM_PURPOSES.find((c) => tags.includes(c)) || 'other';
-                if (!rooms.has(purpose)) rooms.set(purpose, []);
-                rooms.get(purpose)!.push({ ...option, group: purpose });
-                continue;
-            }
-            if (!tags.includes('building')) { wild.push({ ...option, group: null }); continue; }
-            const category = CATEGORIES.find((c) => tags.includes(c)) || 'other';
-            if (!buildings.has(category)) buildings.set(category, []);
-            buildings.get(category)!.push({ ...option, group: category });
-        }
-        const out: WpPaletteEntry[] = wild.slice();
-        if ([...rooms.values()].some((g) => g.length)) {
-            out.push({ section: 'Rooms' });
-            for (const purpose of [...ROOM_PURPOSES, 'other']) {
-                const group = rooms.get(purpose);
-                if (!group || !group.length) continue;
-                out.push({ section: `${purpose[0].toUpperCase()}${purpose.slice(1)}` });
-                out.push(...group);
-            }
-        }
-        if (out.length) out.push({ section: 'Buildings' });
-        for (const category of [...CATEGORIES, 'other']) {
-            const group = buildings.get(category);
-            if (!group || !group.length) continue;
-            out.push({ section: `${category[0].toUpperCase()}${category.slice(1)}` });
-            out.push(...group);
-        }
-        if (structure.length) {
-            out.push({ section: 'Structure' });
-            out.push(...structure);
-        }
-        return out;
+    function _paletteSections(layer: string): WpPaletteSection[] {
+        return GM().paletteSections(layer, _layerOptions(layer)) as WpPaletteSection[];
     }
 
     function _defaultValueForLayer(layer: string): string {
@@ -1145,6 +1084,12 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         // it sits directly under the layer control that switches to it (task-557).
         const legend = _climateLegend();
         if (legend) box.appendChild(legend);
+        // The palette panel (task-759) sits under the toolbar that opens it, so
+        // the rail, grid and detail are read next to the layer/value they set.
+        if (state.paletteOpen) {
+            const palette = _palettePanel();
+            if (palette) box.appendChild(palette);
+        }
 
         if (!p.scope.has_grid) {
             box.appendChild(_noGridPanel(p));
@@ -1632,40 +1577,16 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
     }
 
     /**
-     * One line describing a palette tile (task-596): what it is, and what it
-     * does. `rec` is the vocabulary record, which carries the same prose and
-     * tags the compiler reads, so the line cannot disagree with the world.
+     * The compact value control in the toolbar (task-759).
+     *
+     * It shows the tile you are about to paint (swatch + name) and its one-line
+     * description, and a button that opens the palette panel (`_palettePanel`).
+     * The tile itself is chosen in the panel; this is the read-out. A numeric
+     * layer (floor) has no vocabulary and stays a free-text input.
      */
-    function _tileDetail(layer: string, rec: WpPaletteEntry): string {
-        const name = rec.name || rec.id;
-        const desc = (rec.descriptions || [])[0] || '';
-        if (layer === 'road') {
-            const bits = [desc];
-            if ((rec.biomes || []).length) bits.push('crosses ' + (rec.biomes || []).join(', '));
-            if (rec.entry_phrase) bits.push(`“${rec.entry_phrase}”`);
-            return `${name} — ${bits.filter(Boolean).join(' · ')}`;
-        }
-        if (layer === 'biome') {
-            const tags = (rec.tags || []).map((t) => String(t).toLowerCase());
-            let kind = 'place';
-            if (tags.includes('not_a_place')) {
-                kind = (tags.find((t) => t.indexOf('cell_kind:') === 0) || 'cell_kind:solid')
-                    .split(':')[1] || 'solid';
-                kind = `not a place (${kind})`;
-            } else if (tags.includes('building')) {
-                kind = 'building';
-            }
-            const bits = [desc, kind];
-            if (rec.surface) bits.push(`ground ${rec.surface}`);
-            if (rec.refusal) bits.push(rec.refusal);
-            return `${name} — ${bits.filter(Boolean).join(' · ')}`;
-        }
-        return `${name} — ${desc}`.replace(/ — $/, '');
-    }
-
     function _valueControl(): HTMLElement {
-        const options = _biomePalette(state.layer);
-        if (state.layer === 'floor' || !options.filter((o) => !o.separator).length) {
+        const options = _layerOptions(state.layer);
+        if (state.layer === 'floor' || !options.length) {
             // No vocabulary (fetch failed) or a numeric layer: free text.
             const input = _el('input',
                 'width:130px;padding:3px 6px;border-radius:5px;border:1px solid ' +
@@ -1680,26 +1601,11 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
             input.addEventListener('input', () => { state.value = input.value; });
             return input;
         }
-        // A real id, not free text — a mistyped biome silently compiles a barren
-        // area, so the valid ids are the only choices.
-        //
-        // task-647: 105 tiles under 23 headings is navigable but not *findable*.
-        // An author drawing a 30-location town floor plan is looking for one
-        // tile ("Wall", "Door", "Kitchen") and the only way to reach it today is
-        // to scroll and read. A filter box narrows the list on name or id as you
-        // type, and hides any heading left with nothing under it. Same affordance
-        // as the Scenario Manager's filter, where it was the difference between
-        // usable and not on a 22-row list.
-        const wrap = _el('div', 'display:flex;gap:4px;align-items:center;flex-wrap:wrap;');
-        const filter = _el('input',
-            'width:120px;padding:3px 6px;border-radius:5px;'
-            + 'border:1px solid var(--border,#444);'
-            + 'background:var(--bg-card,#2a2a32);color:var(--text,#ddd);');
-        filter.type = 'search';
-        filter.placeholder = 'Filter tiles…';
-        filter.title = 'Narrow the palette by tile name or id. Empty shows everything.';
-        filter.setAttribute('aria-label', 'Filter tiles by name or id');
-        wrap.appendChild(filter);
+        const sections = _paletteSections(state.layer);
+        const all = GM().flattenPalette(sections) as WpPaletteTile[];
+        const ids = all.map((t) => t.id);
+        if (ids.indexOf(state.value) < 0) state.value = ids[0] || '';
+        const wrap = _el('div', 'display:flex;gap:6px;align-items:center;flex-wrap:wrap;');
         // The palette shows the tile as a colour as well as a name (task-596):
         // this is the same colour the map paints, so picking "Wall" vs "Forest"
         // is a decision about the map, not a guess from a label.
@@ -1707,116 +1613,144 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
             'border-radius:3px;border:1px solid #555;flex:0 0 auto;');
         swatch.setAttribute('data-role', 'wp-value-swatch');
         wrap.appendChild(swatch);
-        const sel = _el('select', 'padding:3px;border-radius:5px;min-width:160px;');
-        sel.setAttribute('data-role', 'wp-value');
-        wrap.appendChild(sel);
-        sel.title = `Value painted on the ${state.layer} layer.`;
-        // What the highlighted tile *is* and *does* (task-596), without a second
-        // panel: the palette used to be a wall of names, so "bridge" and "road"
-        // looked interchangeable and a wall looked like a biome. The detail line
-        // names the tile's prose, its ground, and — for the road layer — the
-        // terrain it crosses and the verb you arrive with, which is exactly the
-        // difference between a bridge (cross a gap) and a road (a worn track).
+        const pick = _btn('', () => { state.paletteOpen = !state.paletteOpen; render(); },
+            'min-width:150px;text-align:left;',
+            'Open the palette to choose what this layer paints (task-759).');
+        pick.setAttribute('data-role', 'wp-value');
+        wrap.appendChild(pick);
+        // What the tile *is* and *does* (task-596): the palette used to be a wall
+        // of names; the detail line names the prose, the kind, the ground, and —
+        // for the road layer — the terrain it crosses and the verb you arrive
+        // with, which is the difference between a bridge and a road.
         const detail = _el('div', 'font-size:11px;color:var(--text-muted,#999);' +
-            'line-height:1.4;flex-basis:100%;max-width:420px;');
+            'line-height:1.4;flex-basis:100%;max-width:460px;');
         detail.setAttribute('data-role', 'wp-value-detail');
-        detail.textContent = '';
-        const describe = (id: string): void => {
-            const rec = options.filter((o) => !o.separator).find((o) => o.id === id);
-            const text = rec ? _tileDetail(state.layer, rec) : '';
-            detail.textContent = text;
-            detail.title = text;
-            swatch.style.background = GM().layerColor(state.layer, id) || 'transparent';
-            swatch.title = rec ? (rec.name || rec.id || '') : '';
-        };
-        const paintable = options.filter((o) => !o.separator);
-        const ids = paintable.map((o) => o.id || '');
-        if (ids.indexOf(state.value) < 0) state.value = ids[0] || '';
-        // A section is a real <optgroup>, not a disabled <option>.
-        //
-        // The comment that used to sit here said "a `select` cannot nest", and
-        // that is simply not true -- <optgroup> is part of HTML and nests in a
-        // <select> natively. The consequence of believing it was a 130-entry
-        // flat list whose only structure was disabled separator options, which
-        // is exactly the palette an author scrolls looking for "Wall" or "Door"
-        // while drawing a 30-location town floor plan. The grouping data was
-        // already computed above (every option carries `group`); only the
-        // rendering threw it away.
-        // Two things that are easy to get wrong here, and were:
-        //  - an <optgroup>'s visible heading is its `label` ATTRIBUTE. Setting
-        //    textContent on it does not label it; it just puts a stray text node
-        //    where the options go.
-        //  - a section heading can be followed by nothing (the "Buildings"
-        //    marker is pushed before the category loop, which may add
-        //    nothing), so an empty group is removed rather than left as a
-        //    blank heading.
-        const openGroups: HTMLOptGroupElement[] = [];
-        const closeGroup = (): void => {
-            const g = openGroups.pop();
-            if (g && g.children.length === 0) g.remove();
-        };
-        // `needle` empty => everything. Matching is on the displayed name and on
-        // the id, because an author who knows it as "not_a_place" should be able
-        // to type that too.
-        const matches = (o: WpPaletteEntry, needle: string): boolean => {
-            if (!needle) return true;
-            const n = needle.toLowerCase();
-            return String(o.name || '').toLowerCase().includes(n)
-                || String(o.id || '').toLowerCase().includes(n);
-        };
-        const build = (needle: string): void => {
-            sel.textContent = '';
-            openGroups.length = 0;
-            // task-648: 'civic' is legitimately BOTH a room purpose (a town hall
-            // is a room) and a building category (a civic building), so the
-            // palette rendered two headings with the identical name. Filtering
-            // for "civic" showed both and the heading said nothing about which
-            // was which. Disambiguate a repeated label at render time rather than
-            // renaming either concept, because both are right.
-            const labelCount: Record<string, number> = {};
-            options.forEach((o) => { if (o.section) labelCount[o.section] = (labelCount[o.section] || 0) + 1; });
-            const seen: Record<string, number> = {};
-            const labelFor = (s: string): string => {
-                if (labelCount[s] < 2) return s;
-                seen[s] = (seen[s] || 0) + 1;
-                return seen[s] === 1 ? `${s} (room)` : `${s} (building)`;
-            };
-            options.forEach((o) => {
-                if (o.separator) { closeGroup(); return; }
-                if (o.section) {
-                    closeGroup();
-                    // Open the heading eagerly: if nothing under it matches it is
-                    // removed by closeGroup on the next section or at the end.
-                    const og = _el('optgroup');
-                    og.label = labelFor(o.section);
-                    sel.appendChild(og);
-                    openGroups.push(og);
-                    return;
-                }
-                if (!matches(o, needle)) return;
-                const opt = _el('option', null, `${o.name} (${o.id})`);
-                opt.value = o.id || '';
-                (openGroups[openGroups.length - 1] || sel).appendChild(opt);
-            });
-            while (openGroups.length) closeGroup();
-        };
-        build('');
-        filter.addEventListener('input', () => {
-            build(filter.value.trim());
-            // A filter can hide the current value; keep the select legal.
-            if (ids.indexOf(sel.value) < 0 && sel.options.length) sel.value = sel.options[0].value;
-        });
-        sel.value = state.value;
-        describe(sel.value);
-        // Drop focus after a pick so the next space press pans instead of
-        // reopening the dropdown (bug-511). The keydown guard covers a control
-        // reached by Tab; this covers the click-pick path the bug reported.
-        sel.addEventListener('change', () => {
-            state.value = sel.value;
-            describe(sel.value);
-            sel.blur();
-        });
+        const tile = GM().paletteTile(sections, state.value) as WpPaletteTile | null;
+        const text = tile ? GM().tileDetail(state.layer, tile.rec) as string : '';
+        pick.textContent = (tile ? tile.name : '(no tiles)') + '  ▾';
+        detail.textContent = text;
+        detail.title = text;
+        swatch.style.background = GM().layerColor(state.layer, state.value) || 'transparent';
+        swatch.title = tile ? tile.name : '';
         wrap.appendChild(detail);
+        return wrap;
+    }
+
+    /**
+     * The palette surface (task-759): a category rail derived from the records'
+     * own terrain/tags, a tile grid, a search box, and a detail panel. It is a
+     * view over the same vocabulary the compiler reads — no second read of
+     * `biomes.json` — and picking a tile sets `state.value` and nothing else.
+     *
+     * Open state, category and query live on `state` so a render (which the panel
+     * itself triggers on a pick) rebuilds it where the author left it.
+     */
+    function _palettePanel(): HTMLElement | null {
+        const layer = state.layer;
+        if (layer === 'floor') return null;
+        const sections = _paletteSections(layer);
+        if (!sections.length) return null;
+        const wrap = _el('div', 'border:1px solid var(--border,#3a3a44);border-radius:8px;' +
+            'padding:8px;margin-bottom:8px;background:var(--bg-card,#23232b);');
+        wrap.setAttribute('data-role', 'wp-palette');
+        const head = _el('div', 'display:flex;align-items:center;gap:8px;margin-bottom:6px;');
+        head.appendChild(_el('span', 'font-weight:600;font-size:13px;', 'Palette'));
+        head.appendChild(_el('span', 'font-size:11px;color:var(--text-muted,#999);',
+            'hover a tile to read it · click to paint'));
+        head.appendChild(_el('div', 'flex:1;'));
+        head.appendChild(_btn('✕', () => { state.paletteOpen = false; render(); },
+            'padding:2px 8px;', 'Close the palette'));
+        wrap.appendChild(head);
+
+        const search = _el('input', 'width:220px;padding:3px 6px;border-radius:5px;' +
+            'border:1px solid var(--border,#444);background:var(--bg-card,#2a2a32);color:var(--text,#ddd);');
+        search.type = 'search';
+        search.placeholder = 'Search tiles by name or id…';
+        search.value = state.paletteQuery;
+        search.setAttribute('data-role', 'wp-palette-search');
+        search.setAttribute('aria-label', 'Search palette tiles by name or id');
+        wrap.appendChild(search);
+
+        const rail = _el('div', 'display:flex;gap:4px;flex-wrap:wrap;margin:6px 0;');
+        rail.setAttribute('data-role', 'wp-palette-rail');
+        wrap.appendChild(rail);
+        const grid = _el('div', 'display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));' +
+            'gap:4px;max-height:280px;overflow:auto;padding:2px;');
+        grid.setAttribute('data-role', 'wp-palette-grid');
+        wrap.appendChild(grid);
+        const detailBox = _el('div', 'font-size:11px;color:var(--text-muted,#999);line-height:1.45;' +
+            'margin-top:6px;border-top:1px solid var(--border,#333);padding-top:6px;min-height:44px;');
+        detailBox.setAttribute('data-role', 'wp-palette-detail');
+        wrap.appendChild(detailBox);
+
+        const showDetail = (t: WpPaletteTile): void => {
+            detailBox.textContent = '';
+            detailBox.appendChild(_el('div', 'font-weight:600;color:var(--text,#ddd);', t.name));
+            (GM().detailRows(layer, t.rec) as { label: string; value: string }[]).forEach((r) => {
+                detailBox.appendChild(_el('div', null, r.label + ': ' + r.value));
+            });
+        };
+
+        const build = (): void => {
+            const filtered = GM().filterPalette(sections, state.paletteQuery) as WpPaletteSection[];
+            // The rail is hidden while searching, because a match can land in any
+            // category; the grid then shows every hit instead.
+            rail.textContent = '';
+            if (!state.paletteQuery && filtered.length) {
+                if (!filtered.some((s) => s.id === state.paletteCategory)) {
+                    state.paletteCategory = filtered[0].id;
+                }
+                filtered.forEach((s) => {
+                    const active = s.id === state.paletteCategory;
+                    const b = _btn(s.label, () => { state.paletteCategory = s.id; build(); },
+                        'padding:2px 8px;font-size:11px;' +
+                        (active ? 'background:#2d4a6b;color:#cfe;' : ''),
+                        `${s.label} (${s.tiles.length})`);
+                    b.setAttribute('data-role', 'wp-palette-cat');
+                    b.setAttribute('data-cat', s.id);
+                    rail.appendChild(b);
+                });
+            }
+            const tiles = state.paletteQuery
+                ? GM().flattenPalette(filtered) as WpPaletteTile[]
+                : ((filtered.find((s) => s.id === state.paletteCategory) || filtered[0]) || { tiles: [] }).tiles;
+            grid.textContent = '';
+            tiles.forEach((t) => {
+                const selected = t.id === state.value;
+                const b = _el('button', 'display:flex;align-items:center;gap:6px;text-align:left;' +
+                    'cursor:pointer;border:1px solid ' + (selected ? '#5a8fd0' : 'var(--border,#3a3a44)') +
+                    ';border-radius:6px;padding:4px 6px;font-size:11px;' +
+                    'background:' + (selected ? '#2d4a6b' : 'var(--bg-card,#2a2a32)') + ';color:var(--text,#ddd);');
+                b.setAttribute('data-role', 'wp-palette-tile');
+                b.setAttribute('data-id', t.id);
+                const sw = _el('span', 'display:inline-block;width:12px;height:12px;border-radius:3px;' +
+                    'border:1px solid #555;flex:0 0 auto;');
+                sw.style.background = GM().layerColor(layer, t.id) || 'transparent';
+                b.appendChild(sw);
+                b.appendChild(_el('span', null, t.name));
+                b.addEventListener('mouseenter', () => showDetail(t));
+                b.addEventListener('focus', () => showDetail(t));
+                b.addEventListener('click', (ev) => {
+                    state.value = t.id;
+                    state.paletteOpen = true;
+                    // Drop focus so the next Space reaches the pan handler (bug-511).
+                    (ev.currentTarget as HTMLElement).blur();
+                    render();
+                });
+                grid.appendChild(b);
+            });
+            if (tiles.length) {
+                showDetail(tiles.find((t) => t.id === state.value) || tiles[0]);
+            } else {
+                detailBox.textContent = 'No tile matches that search.';
+            }
+        };
+
+        search.addEventListener('input', () => { state.paletteQuery = search.value; build(); });
+        search.addEventListener('keydown', (ev) => {
+            if (ev.key === 'Escape') { state.paletteOpen = false; render(); }
+        });
+        build();
         return wrap;
     }
 
@@ -2034,6 +1968,10 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
             () => _openGridDialog(p),
             'font-size:11px;color:var(--text-muted,#999);padding:2px 6px;',
             'Set the exact grid size…'));
+        // The scope's reference (map) image — pick an uploaded background, or
+        // upload/point at one. Its `appendChild` was dropped in 0dc60c48, which
+        // left `_referenceControl` orphaned and the picker gone from the HUD.
+        hud.appendChild(_referenceControl(p));
         // Painted-cell transparency: lets the reference art show through.
         const alpha = _el('input', 'width:64px;');
         alpha.type = 'range';
@@ -2190,7 +2128,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         }
         try {
             state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid`,
-                { w: next.w, h: next.h, cell_scale: (p.grid && p.grid.cell_scale) || 1, mode: p.mode });
+                { w: next.w, h: next.h, mode: p.mode });
             state.view = null;   // refit to the new aspect
             _status(`Grid set to ${next.w}×${next.h} (image aspect ${img.naturalWidth}×${img.naturalHeight})`
                 + (stranded ? `, ${stranded} out-of-bounds cell(s) removed` : '') + '.', false);
@@ -2692,7 +2630,6 @@ function _gridExtent(p: WpPayload): { w: number; h: number } {
                 }
                 state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid`, {
                     w: drag.w, h: drag.h,
-                    cell_scale: (p.grid && p.grid.cell_scale) || 1,
                     mode: p.mode,
                 });
                 _status(`Grid resized to ${drag.w}×${drag.h}` +
@@ -3873,7 +3810,7 @@ _notify(true);
     function _openGridDialog(p: WpPayload): void {
         const wrap = _el('div', 'display:flex;gap:8px;align-items:center;flex-wrap:wrap;' +
             'padding:8px;border:1px solid var(--border,#3a3a44);border-radius:8px;margin-bottom:8px;');
-        const cur = p.grid || { w: 10, h: 10, cell_scale: 1 };
+        const cur = p.grid || { w: 10, h: 10 };
         const mk = (name: string, val: string | number, width?: number): HTMLInputElement => {
             wrap.appendChild(_el('span', 'font-size:12px;color:var(--text-muted,#999);', name));
             const inp = _el('input',
@@ -3887,8 +3824,6 @@ _notify(true);
         wIn.setAttribute('data-role', 'wp-grid-w');
         const hIn = mk('h', cur.h);
         hIn.setAttribute('data-role', 'wp-grid-h');
-        const sIn = mk('scale', cur.cell_scale ?? 1, 64);
-        sIn.setAttribute('data-role', 'wp-grid-scale');
         // Presets sized in *turns*: 1 cell = 1 turn, 60 turns/hour. A two-route
         // region (e.g. two 240-cell trails) needs roughly this much canvas.
         const PRESETS: [string, number, number][] = [
@@ -3929,7 +3864,6 @@ _notify(true);
                 state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid`, {
                     w: parseInt(wIn.value, 10),
                     h: parseInt(hIn.value, 10),
-                    cell_scale: parseFloat(sIn.value) || 1,
                     mode: modeSel.value,
                 });
                 _notify(true);

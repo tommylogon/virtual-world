@@ -6,6 +6,6 @@
   "effects": {
     "sex_addict": true
   },
-  "mature": true,
+  "tags": ["mature"],
   "conflicts": []
 }

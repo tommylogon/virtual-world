@@ -23,7 +23,6 @@ const RATE_WINDOW_MS = 60_000;
 
 class RateLimiter {
     private _timestamps: number[] = [];
-    private _cooldownEnd = 0;
 
     /**
      * Calculate how many milliseconds to wait before making the next API call,
@@ -64,7 +63,6 @@ class RateLimiter {
     /** Reset all rate-limiter state (timestamps and cooldown). */
     reset(): void {
         this._timestamps = [];
-        this._cooldownEnd = 0;
     }
 }
 

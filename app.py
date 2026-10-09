@@ -109,6 +109,14 @@ def create_app(config=None):
     # invariants.
     app._vw_write_lock = threading.Lock()
 
+    # task-753: cache the assembled /api/state payload between mutations. The
+    # server is the sole writer and every change arrives as a mutating /api/
+    # call, so a monotonic revision bumped there is a sound cache key. A poll of
+    # an unchanged world then returns the cached bytes instead of re-assembling
+    # ~8 MB of JSON (measured ~5-6 s on the 627-area camp).
+    app._state_revision = 0
+    app._state_cache = {}
+
     @app.before_request
     def _lock_mutations():
         if request.method in ('POST', 'PUT', 'PATCH', 'DELETE') and request.path.startswith('/api/'):
@@ -181,6 +189,11 @@ def create_app(config=None):
         # `/api/soak` and `/api/bugs` are excluded: neither changes the world, and
         # a `world_changed` here would make the client refetch the 2.48 MB
         # /api/state for a report that touched nothing.
+        # task-753: invalidate the /api/state cache on every mutating call —
+        # including /api/soak, which advances the world and so changes state.
+        if method in ('POST', 'PATCH', 'DELETE', 'PUT') and path.startswith('/api/'):
+            app._state_revision = getattr(app, '_state_revision', 0) + 1
+
         if (method in ('POST', 'PATCH', 'DELETE', 'PUT')
                 and path.startswith('/api/')
                 and not path.startswith('/api/soak')

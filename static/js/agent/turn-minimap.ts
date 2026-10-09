@@ -664,7 +664,6 @@ interface MapScope {
     visited_cells: number;
     w?: number | null;
     h?: number | null;
-    cell_scale?: number;
 }
 
 interface MapPayload {

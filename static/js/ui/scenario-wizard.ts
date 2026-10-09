@@ -108,7 +108,7 @@ RULES:
 
         // Mirror + validate exits.
         const areaKeys = new Set<string>(Object.keys(areas).map(slugKey));
-        for (const [name, area] of Object.entries(areas)) {
+        for (const [, area] of Object.entries(areas)) {
             const exits: Record<string, DraftExit> = {};
             for (const [dir, data] of Object.entries(area.exits || {})) {
                 const exitData = ((data && typeof data === 'object') ? data : { target: data }) as DraftExit;
@@ -127,7 +127,6 @@ RULES:
                 seen.add(key);
                 const targetArea = areas[data.target];
                 const backDir = opposite(dir);
-                const backKey = `${slugKey(name)}|${backDir}`;
                 const exists = Object.values(targetArea.exits || {}).some((d: DraftExit) => d && d.target && slugKey(d.target) === slugKey(name));
                 if (!exists) {
                     targetArea.exits = targetArea.exits || {};

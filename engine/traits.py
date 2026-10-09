@@ -244,7 +244,7 @@ TRAIT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "conflicts": ["prudish"],
     },
     # ── Mature traits (task-213) — hidden from pickers unless mature_content ──
-    # ``mature: True`` marks them for UI filtering. ``body_part_multipliers``
+    # the ``mature`` tag marks them for UI filtering. ``body_part_multipliers``
     # rides inside the standard ``effects`` dict and is consumed by the
     # pleasure pipeline (task-212).
     "wired_differently": {
@@ -253,7 +253,7 @@ TRAIT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "category": "physical",
         "params": None,
         "effects": {"body_part_multipliers": {"nipple_left": 3.0, "nipple_right": 3.0, "genitals": 0.1}},
-        "mature": True,
+        "tags": ["mature"],
         "conflicts": [],
     },
     "quick_recovery": {
@@ -262,7 +262,7 @@ TRAIT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "category": "physical",
         "params": None,
         "effects": {"quick_recovery": True},
-        "mature": True,
+        "tags": ["mature"],
         "conflicts": [],
     },
     "sensory_memory": {
@@ -271,7 +271,7 @@ TRAIT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "category": "physical",
         "params": None,
         "effects": {"sensory_memory": True},
-        "mature": True,
+        "tags": ["mature"],
         "conflicts": [],
     },
     "sex_addict": {
@@ -280,7 +280,7 @@ TRAIT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "category": "mental",
         "params": None,
         "effects": {"sex_addict": True},
-        "mature": True,
+        "tags": ["mature"],
         "conflicts": [],
     },
     "attention_seeker": {
@@ -289,7 +289,7 @@ TRAIT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "category": "social",
         "params": None,
         "effects": {"attention_seeker": True},
-        "mature": True,
+        "tags": ["mature"],
         "conflicts": [],
     },
     "exhibitionist": {
@@ -303,7 +303,7 @@ TRAIT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         # the trait implies possible even when the arithmetic does not fire — being
         # seen in an empty room thrills nobody.
         "behavior_prompt": "Being seen thrills you. You don't mind being watched, and you show yourself more freely than most.",
-        "mature": True,
+        "tags": ["mature"],
         "conflicts": [],
     },
     "single_track": {
@@ -312,7 +312,7 @@ TRAIT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "category": "physical",
         "params": None,
         "effects": {"single_track": True},
-        "mature": True,
+        "tags": ["mature"],
         "conflicts": [],
     },
     "attracted": {
@@ -321,7 +321,7 @@ TRAIT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "category": "social",
         "params": None,
         "effects": {NPC_REACTION: "approach", "drawn_to_arousal": True},
-        "mature": True,
+        "tags": ["mature"],
         "conflicts": ["prudish"],
     },
     "apathetic": {

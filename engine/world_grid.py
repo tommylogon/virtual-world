@@ -48,7 +48,7 @@ Grid state lives on the *scope record* inside the world-scope manifest
 keys, so a scope with no grid costs nothing and older saves load unchanged::
 
     record["mode"]       = "world" | "town" | "interior"   (optional)
-    record["grid"]       = {"w": int, "h": int, "cell_scale": float}
+    record["grid"]       = {"w": int, "h": int}
     record["layers"]     = {"biome": {"<x>,<y>": value},   # value is a biome id
                             "road":  {"<x>,<y>": value},   # road/surface id
                             "floor": {"<x>,<y>": int}}     # storey index
@@ -245,11 +245,7 @@ def normalise_grid(record: dict) -> dict:
     if isinstance(grid, dict):
         w, h = _as_int(grid.get("w")), _as_int(grid.get("h"))
         if w and h and w > 0 and h > 0:
-            record["grid"] = {
-                "w": w,
-                "h": h,
-                "cell_scale": _as_float(grid.get("cell_scale"), 1.0),
-            }
+            record["grid"] = {"w": w, "h": h}
         else:
             record.pop("grid", None)
     elif "grid" in record:
@@ -333,13 +329,6 @@ def _as_int(value) -> Optional[int]:
     except (TypeError, ValueError):        return None
 
 
-def _as_float(value, default: float) -> float:
-    try:
-        return float(value)
-    except (TypeError, ValueError):
-        return default
-
-
 def _finite(value) -> bool:
     try:
         number = float(value)
@@ -419,7 +408,7 @@ def has_grid(record: dict) -> bool:
     return bool(isinstance(grid, dict) and grid.get("w") and grid.get("h"))
 
 
-def ensure_grid(record: dict, w: int, h: int, cell_scale: float = 1.0,
+def ensure_grid(record: dict, w: int, h: int,
                 mode: Optional[str] = None) -> dict:
     """Create or resize a scope's grid. Resizing keeps paint that stays in bounds.
 
@@ -431,7 +420,7 @@ def ensure_grid(record: dict, w: int, h: int, cell_scale: float = 1.0,
         raise ValueError("grid must be at least 1x1")
     if mode is not None and mode not in MODES:
         raise ValueError(f"unknown mode {mode!r}; expected one of {MODES}")
-    record["grid"] = {"w": w, "h": h, "cell_scale": float(cell_scale or 1.0)}
+    record["grid"] = {"w": w, "h": h}
     if mode is not None:
         record["mode"] = mode
     record.setdefault("layers", {})

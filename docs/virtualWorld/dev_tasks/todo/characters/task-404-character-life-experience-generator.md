@@ -3,6 +3,7 @@ type: task
 status: todo
 area: characters
 priority: high
+blocked_by: [task-324, task-403]
 ---
 
 # task-404: Character life experience generator

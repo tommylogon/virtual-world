@@ -326,7 +326,7 @@ def _promote_manifest():
         "world": {
             "id": "world", "name": "World", "kind": "scope", "mode": "world",
             "state": "materialized",
-            "grid": {"w": 20, "h": 10, "cell_scale": 1.0},
+            "grid": {"w": 20, "h": 10},
             "layers": {"biome": {"9,5": "sparse_forest", "17,3": "sparse_forest"},
                        "road": {}},
             "area_ids": ["area_eldenford_village", "area_human_road"],

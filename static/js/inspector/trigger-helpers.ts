@@ -182,7 +182,7 @@ const _InspectorTriggers = (() => {
                 const firstEff = effectsList[0] || {};
                 const effectType = effectsList.length > 0 ? (firstEff.type || 'unknown') : 'none';
                 const effectParams = firstEff.params || {};
-                const message = effectParams.success_message || effectParams.message || '';
+                const message = effectParams.message || effectParams.success_message || '';
                 const condition = conditionsList[0] as TriggerCondition | null;
 
                 // Build effect summary

@@ -3,6 +3,7 @@ type: task
 status: review
 area: world
 priority: high
+blocked_by: [task-9, task-323, task-324, task-397, task-398, task-399]
 ---
 
 # task-400: Pines vertical slice for grouped generation and background life

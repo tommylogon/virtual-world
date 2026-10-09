@@ -270,7 +270,7 @@ def test_scope_list_covers_only_scopes_with_visited_cells():
     cook = make_player()
     observe_area(cook, _GS(g))
     scopes = {"camp": {"id": "camp", "kind": "scope", "name": "Camp",
-                       "grid": {"w": 20, "h": 10, "cell_scale": 1}}}
+                       "grid": {"w": 20, "h": 10}}}
 
     body = call(g, cook, scopes=scopes)[0]
 

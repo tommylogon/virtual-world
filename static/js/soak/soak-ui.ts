@@ -542,7 +542,6 @@
     }
 
     function renderAlerts() {
-        const box = el('soak-overview-alerts');
         const p = (data() && data().progress) || {};
         const messages: string[][] = [];
         const total = p.characters || charactersCount() || 0;
@@ -1322,7 +1321,7 @@ kinds.forEach((k) => { if (activeEventKinds()[k] === undefined) activeEventKinds
         if (!d || !d.run) return;
         switch (ui.activeTab) {
         case 'overview': renderOverview(); break;
-        case 'vitals': renderVitals(); break;
+        case 'vitals': renderVitalMetrics(); renderVitals(); break;
         case 'survival': renderSurvival(); break;
         case 'spacetime': renderSpacetime(); break;
         case 'growth': renderGrowthMetrics(); renderGrowth(); break;

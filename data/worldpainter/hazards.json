@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "_about": [
+    "Terrain hazard registry (task-745). Policy is data: the DC ladder is",
+    "author-tunable, not code. The compiler (task-747) attaches a hazard id to a",
+    "generated way or area; the engine reads this table for the check and its",
+    "consequences at the moment of crossing.",
+    "A `dc` ladder maps a strength threshold (1..20) to a DC: for an encounter of",
+    "strength S, the highest threshold <= S wins; a strength below the lowest",
+    "threshold uses the lowest rung. `ability` is one of the six abilities in",
+    "engine/abilities.ABILITIES. `on_fail` names condition tags the failure",
+    "applies (via the trigger/condition machinery) and an optional damage hint."
+  ],
+  "hazards": {
+    "river": {
+      "name": "River crossing",
+      "ability": "STR",
+      "dc": { "1": 8, "5": 12, "10": 15, "15": 18, "20": 22 },
+      "on_fail": { "conditions": ["wet"], "damage": "1d4", "tags": ["swept"] },
+      "message_success": "You keep your footing and reach the far bank.",
+      "message_fail": "The current drags you off your feet."
+    },
+    "rapids": {
+      "name": "Rapids",
+      "ability": "STR",
+      "dc": { "1": 12, "5": 15, "10": 18, "15": 21, "20": 25 },
+      "on_fail": { "conditions": ["wet", "suffocating"], "damage": "2d6", "tags": ["swept"] },
+      "message_success": "You ride the chute and clamber out downstream.",
+      "message_fail": "The water slams you under."
+    },
+    "cliff": {
+      "name": "Cliff descent",
+      "ability": "DEX",
+      "dc": { "1": 10, "5": 13, "10": 16, "15": 19, "20": 22 },
+      "on_fail": { "conditions": ["injured"], "damage": "3d6", "tags": ["falling"] },
+      "message_success": "You find footholds and descend.",
+      "message_fail": "A hold crumbles and you fall."
+    },
+    "fall": {
+      "name": "A fall",
+      "ability": "DEX",
+      "dc": { "1": 8, "5": 12, "10": 15, "15": 18, "20": 20 },
+      "on_fail": { "conditions": ["injured", "prone"], "damage": "1d6", "tags": ["falling"] },
+      "message_success": "You roll with the landing.",
+      "message_fail": "You hit hard."
+    },
+    "thorns": {
+      "name": "Thorn thicket",
+      "ability": "DEX",
+      "dc": { "1": 6, "5": 10, "10": 13, "15": 16, "20": 18 },
+      "on_fail": { "conditions": ["injured"], "damage": "1d4", "tags": ["scratched"] },
+      "message_success": "You push through the brambles.",
+      "message_fail": "Thorns rake your arms."
+    },
+    "pit": {
+      "name": "Hidden pit",
+      "ability": "DEX",
+      "dc": { "1": 10, "5": 13, "10": 16, "15": 19, "20": 21 },
+      "on_fail": { "conditions": ["prone"], "damage": "2d6", "tags": ["pitfall"] },
+      "message_success": "You catch the edge and pull clear.",
+      "message_fail": "The ground gives way."
+    },
+    "bridge_jump": {
+      "name": "Bridge jump",
+      "ability": "STR",
+      "dc": { "1": 8, "5": 11, "10": 14, "15": 17, "20": 19 },
+      "on_fail": { "conditions": [], "damage": "1d6", "tags": ["falling"] },
+      "message_success": "You leap the gap and land running.",
+      "message_fail": "You come up short."
+    }
+  }
+}

@@ -1,4 +1,9 @@
-"""Movement effect handlers for the virtual world trigger system."""
+"""Movement effect handlers for the virtual world trigger system.
+
+@module effect_handlers/movement
+@contributes the ``push_actor`` trigger effect
+@docs docs/virtualWorld/Rules Engine/Triggers & Effects.md
+"""
 
 
 def handle_push_actor(self, params, context, item_node=None, game_state=None):

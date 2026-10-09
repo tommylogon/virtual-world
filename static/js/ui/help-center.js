@@ -474,7 +474,6 @@ window.HelpCenter = (() => {
     }
     catch (e) { /* fresh */ }
     const _sessionSeen = new Set();
-    let _current = null; // active tip object
     let _tourQueue = []; // remaining tips of a running tour
     let _timer = null;
     // ─────────────────────── Storage ───────────────────────
@@ -524,7 +523,7 @@ window.HelpCenter = (() => {
         return true;
     }
     // ─────────────────────── Coach card ───────────────────────
-    let _card = null, _cardHost = null;
+    let _card = null;
     function _ensureStyles() {
         if (document.getElementById('hc-styles'))
             return;

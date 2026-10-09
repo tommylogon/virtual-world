@@ -340,7 +340,6 @@ interface CharacterStateState {
     function _vitalsScene(state: CharacterStateState | null | undefined, charName: string | undefined, player: CharacterStatePlayer): CharacterStateScene | null {
         if (!state) return null;
         const areaName = player?.current_area || state.current_area || '';
-        const area = (state.areas && state.areas[areaName]) || null;
         const others = (state.players_in_area || [])
             .filter(p => p && p.name && String(p.name) !== String(charName));
         const present = new Set(others.map(o => String(o.name).toLowerCase()));

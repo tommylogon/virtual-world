@@ -77,15 +77,18 @@ window.GraphToolbar = {
     },
     /**
      * Why the Map tab cannot be picked in this state, or null when it can.
-     * Levels places every node itself, so Map would silently do nothing (bug-48).
+     *
+     * Always null: Graph / Map / Levels are one exclusive selector, so picking
+     * Map *replaces* Levels rather than being blocked by it. The old rule
+     * disabled the tab under Levels (bug-48), which turned a one-click switch
+     * into a "pick Graph first, then Map" two-step. `setLayout` now normalizes
+     * to exactly one layout, so there is nothing to refuse. Kept as a hook so
+     * `syncAll` has a single place to ask.
      * @param {{layout: string}} state
      * @returns {string|null}
      */
     mapTabDisabled(state) {
-        const s = state || {};
-        if (s.layout === 'levels') {
-            return 'Map is unavailable while Levels owns the layout \u2014 pick Graph first, then Map.';
-        }
+        void state;
         return null;
     },
     /**
@@ -179,9 +182,11 @@ window.GraphToolbar = {
     //  Actions
     // ──────────────────────────────────────────────
     /**
-     * Pick a layout from the segmented control. Clicking the already-selected tab
-     * is a no-op (Graph is the off state for Map) — a tab is not a toggle, which
-     * is what made the old self-renaming button impossible to reason about.
+     * Pick a layout from the segmented control. Graph / Map / Levels are one
+     * **exclusive selector** — a tab is not a toggle. Clicking the already-selected
+     * tab is a no-op. Picking a different tab normalizes to exactly that one:
+     * whichever of Levels / Map is on is cleared first, so the two can never
+     * stack (bug-48 was the old silent no-op when Map met Levels).
      * @param {'graph'|'map'|'levels'} layout
      */
     setLayout(layout) {
@@ -194,21 +199,18 @@ window.GraphToolbar = {
             GraphToolbar.syncAll();
             return;
         }
-        const blocked = GraphToolbar.mapTabDisabled({ layout: s.layout });
-        if (layout === 'map' && blocked) {
-            if (typeof toastError === 'function')
-                toastError(blocked);
-            GraphToolbar.syncAll();
-            return;
-        }
         if (layout === 'levels') {
-            gm.toggleLayoutMode(); // flips config.graphLayoutMode
+            if (s.layout === 'map')
+                gm.toggleCardinalLayout(); // Map off first
+            gm.toggleLayoutMode(); // Levels on
         }
         else if (layout === 'map') {
-            gm.toggleCardinalLayout(); // flips _cardinalLayout
+            if (s.layout === 'levels')
+                gm.toggleLayoutMode(); // Levels off first
+            gm.toggleCardinalLayout(); // Map on
         }
         else {
-            // Leaving Levels for Graph: free physics again.
+            // Graph is the off state for both.
             if (s.layout === 'levels')
                 gm.toggleLayoutMode();
             if (s.layout === 'map')
@@ -571,7 +573,7 @@ window.GraphToolbar = {
         GraphToolbar.syncScope();
         GraphToolbar.syncTuning();
     },
-    /** `aria-selected` on the layout segment; the Map tab greys out under Levels. */
+    /** `aria-selected` on the layout segment. All three tabs are selectable. */
     syncLayout() {
         const s = GraphToolbar.state();
         document.querySelectorAll('#layout-segment [data-layout]').forEach(tab => {
@@ -583,6 +585,8 @@ window.GraphToolbar = {
             tab.disabled = !!blocked;
             if (blocked)
                 tab.title = blocked;
+            else
+                tab.removeAttribute('title');
         });
     },
     /** Which overlay chip is on. `none` is highlighted for the structural view. */

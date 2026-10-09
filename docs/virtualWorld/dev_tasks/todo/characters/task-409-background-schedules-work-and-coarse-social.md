@@ -4,6 +4,7 @@ status: todo - out of date, need to re-measure and re-author
 area: characters
 priority: high
 related: [task-702, task-704, task-699]
+blocked_by: [task-399, task-408]
 ---
 
 # task-409: Background schedules, daily reflection, and coarse social behaviour

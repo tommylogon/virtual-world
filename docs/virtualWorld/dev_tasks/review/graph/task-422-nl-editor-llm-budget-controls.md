@@ -3,6 +3,7 @@ type: task
 status: review
 area: graph
 priority: medium
+blocked_by: [task-387]
 ---
 
 # task-422: NL editor LLM budget controls and context readout

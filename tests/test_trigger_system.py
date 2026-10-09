@@ -1503,6 +1503,80 @@ class TestTriggerIntegration:
         assert not any("denied" in o for o in outputs)
         assert door.properties["current_state"] == "closed"
 
+    def test_message_effect_prefers_message_over_legacy_success_message(self, graph, skills, logging_events):
+        """bug-532: a message effect carrying both `message` and the legacy
+        `success_message` must narrate `message` — the old execution override
+        overwrote it with `success_message` and silently dropped the authored text."""
+        trigger_system = TriggerSystem(graph, skills, logging_events)
+
+        item = Node(id="item_note", type="item", name="Note",
+                    properties={"actions": ["examine"]})
+        graph.add_node(item)
+        trigger_node = Node(
+            id="trigger_read_note",
+            type="logic_trigger",
+            name="on_examine -> message",
+            properties={
+                "trigger_type": "on_examine",
+                "effects": [
+                    {"type": "message",
+                     "params": {"message": "The authored line.",
+                                "success_message": "The legacy line."}},
+                ],
+            },
+        )
+        graph.add_node(trigger_node)
+        graph.add_edge(Edge(source=item.id, target=trigger_node.id, type=EDGE_TRIGGERS,
+                            properties={"trigger_type": "on_examine",
+                                        "effects": trigger_node.properties["effects"]}))
+
+        gs = type("FakeGS", (), {})()
+        gs.get_current_time = lambda: "10:00"
+        gs.time_ticks = 1
+        gs.turn_number = 1
+        gs.active_player = "TestPlayer"
+        gs.player = None
+        gs.current_area = None
+
+        outputs = trigger_system._execute_triggers(item, "on_examine", game_state=gs)
+        assert any("The authored line." in o for o in outputs), outputs
+        assert not any("The legacy line." in o for o in outputs), outputs
+
+    def test_message_effect_legacy_success_message_still_narrates_when_message_empty(self, graph, skills, logging_events):
+        """bug-532: the legacy alias still works — `success_message` narrates when
+        no `message` is present, so migrated/adjust_vital-style effects keep wording."""
+        trigger_system = TriggerSystem(graph, skills, logging_events)
+
+        item = Node(id="item_note2", type="item", name="Note",
+                    properties={"actions": ["examine"]})
+        graph.add_node(item)
+        trigger_node = Node(
+            id="trigger_read_note2",
+            type="logic_trigger",
+            name="on_examine -> message",
+            properties={
+                "trigger_type": "on_examine",
+                "effects": [
+                    {"type": "message", "params": {"success_message": "The legacy line."}},
+                ],
+            },
+        )
+        graph.add_node(trigger_node)
+        graph.add_edge(Edge(source=item.id, target=trigger_node.id, type=EDGE_TRIGGERS,
+                            properties={"trigger_type": "on_examine",
+                                        "effects": trigger_node.properties["effects"]}))
+
+        gs = type("FakeGS", (), {})()
+        gs.get_current_time = lambda: "10:00"
+        gs.time_ticks = 1
+        gs.turn_number = 1
+        gs.active_player = "TestPlayer"
+        gs.player = None
+        gs.current_area = None
+
+        outputs = trigger_system._execute_triggers(item, "on_examine", game_state=gs)
+        assert any("The legacy line." in o for o in outputs), outputs
+
     def test_keycard_clearance_mismatch_fails_with_message(self, graph, skills, logging_events):
         """Wrong clearance tag â†’ condition fails, door stays locked, fail message shown."""
         trigger_system = TriggerSystem(graph, skills, logging_events)

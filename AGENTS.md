@@ -643,12 +643,39 @@ Do not hand-number, hand-move or hand-check these. Use the helper:
 
 ```
 python tools/tasks.py next-id [--kind task|bug]
-python tools/tasks.py new --area <area> --title "..." [--kind task|bug] [--priority medium] [--status todo] [--related "..."] [--goal "..."]
+python tools/tasks.py new --area <area> --title "..." [--kind task|bug] [--priority medium] [--status todo] [--related "..."] [--goal "..."] [--json @file]
 python tools/tasks.py move --id N [--kind task|bug] --status review
+python tools/tasks.py set --id N [--priority high] [--horizon now] [--section acceptance --value "..."]
 python tools/tasks.py list [--status ...] [--area ...] [--kind ...]
-python tools/tasks.py validate
+python tools/tasks.py validate [--schema]
+python tools/tasks.py status [--json]
+python tools/tasks.py roadmap [--out PATH]
+python tools/tasks.py graph [--json]
+python tools/tasks.py next [--limit N] [--json]
+python tools/tasks.py backfill [--status ...] [--content] [--write]   # canonical-schema gap; --content drafts with the local LLM
 python tools/tasks.py index [--clear]   # derived cache; only after an external tool rewrote many files
 ```
+
+**Computed views.** `status`, `roadmap`, `graph` and `next` are derived, so
+regenerate them freely and never hand-maintain a card list. `graph` builds the
+dependency DAG from `blocked_by` / `depends_on` / `parent` (precede) and
+`blocks` / `children` (succeed) and reports cycles and the critical path;
+`next` ranks the open cards whose predecessors are all terminal; `roadmap`
+buckets them Now / Next / Later from that graph plus the folders (a `horizon:`
+frontmatter value overrides the computed bucket) and writes to
+`docs/design/roadmap-computed.md` with `--out`. The narrative — why, in what
+order, and the cited simulation-substrate audit — is `docs/design/roadmap.md`.
+The same core is exposed over
+MCP at `tools/tasks_mcp.py` (`python tools/tasks_mcp.py`); its write tools
+`add_task` / `set_task` default to `dry_run`.
+
+**Canonical card schema.** A card body is `## What` / `## Why` / `## How` /
+`## Steps to verify` / `## Acceptance` / `## Files`, where a verify step holds
+`- expected:` and `- observed:` lines. `backfill --write` renames synonym
+headings in place, adds the derived `type`/`status`/`area`/`priority`
+(`group:` becomes `area:`) and appends any missing section; it preserves the
+author's section order unless `--canonical-order` is passed. It warns (not yet
+errors) on the remaining gap via `validate --schema`.
 
 **Areas:** `bugs`, `characters`, `conditions`, `docs`, `emotions`, `gameplay`,
 `graph`, `items`, `library`, `refactor`, `testing`, `triggers`, `ui`, `world`.

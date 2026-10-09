@@ -29,7 +29,6 @@ const TurnFeedModule = (() => {
     let _digestMark = 0;
     let _installed = false;
     let _observerMode = true;
-    let _toggleEl: HTMLElement | null = null;
 
     function install(): void {
         if (_installed) return;

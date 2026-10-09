@@ -882,7 +882,6 @@ type AVWin = { [key: string]: any };
         }
 
         // Tags
-        const tags = player.tags || [];
         html += `<div class="inspector-section"><h3>🏷️ Tags</h3>
             <div id="tag-multiselect-agent-${escName}"></div>
         </div>`;
@@ -1029,7 +1028,6 @@ type AVWin = { [key: string]: any };
         }
         const carried = inventory.filter((itemName: string) => !equippedItems.has(worldState.getNodeByIdentifier(itemName)?.id || itemName));
 
-        const allGraphItems = Object.values(worldState.graph?.nodes || {} as Record<string, any>).filter((n: any) => n.type === 'item');
         const containersInInv = carried.filter((name: string) => {
             const node = worldState.getNodeByIdentifier(name);
             const tags = node?.properties?.tags || [];
@@ -1124,7 +1122,6 @@ type AVWin = { [key: string]: any };
             html += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:4px;">`;
             for (const ab of knownAbilities) {
                 const safeId = ab.id.replace(/'/g, "\\'");
-                const safeName = (ab.name || '').replace(/'/g, "\\'");
                 html += `<div style="background:var(--bg-inset);border-radius:4px;padding:4px 6px;text-align:center;cursor:pointer;border:1px solid var(--border);position:relative;" onclick="VW.inspector.showNode('${safeId}')" data-tippy-content="${(ab.properties?.description || ab.name || '').replace(/"/g, '&quot;')}">
                     <div style="font-size:16px;">✨</div>
                     <div style="font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${ab.name || safeId}</div>
@@ -1706,7 +1703,6 @@ ${isNewPack
     AV._knownRecipeNames = function(charName: string, player: any): any[] {
         const state = worldState.data || {};
         const nodes = (state.graph?.nodes || {}) as Record<string, any>;
-        const equipped = player.equipped || {};
         const carriedNames = new Set();
         const graph = worldState.data?.graph || {};
         const pid = 'player_' + charName.replace(/\s+/g, '_');
@@ -2702,7 +2698,6 @@ Respond with ONLY a JSON object: {"tags": ["iron tools","coarse bread"]}`;
             if (libId) placedLibraryIds.add(String(libId));
         }
         const playerNodeId = `player_${charName.replace(/\s+/g, '_')}`;
-        const currentArea = worldState.players[charName]?.current_area || '';
         const INTRINSIC = new Set(['spell', 'ability', 'innate', 'intrinsic', 'power']);
 
         const graphNodes = Object.entries((worldState.graph?.nodes || {}) as Record<string, any>)

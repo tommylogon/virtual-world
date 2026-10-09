@@ -224,26 +224,22 @@ def test_explicit_selection_respects_cold_weather_gate():
     assert not uninsulated, f"cold pool leaked uninsulated items: {uninsulated}"
 
 def test_mature_wearables_are_gated_by_mature_content(monkeypatch):
-    """task-660: a mature-marked wearable must not reach the pool unless opted in."""
+    """task-660/750: a `mature`-tagged wearable must not reach the pool unless the
+    world opts in — exercised on the real library (ball_gag carries the tag), not a
+    monkeypatched _wearable_entries."""
     import engine.dressing as dressing
 
-    fake = [
-        {"lib_id": "plain_shirt", "name": "Shirt", "slots": ["torso"],
-         "tags": ["clothing"], "insulation": 0, "mature": False},
-        {"lib_id": "ball_gag", "name": "Ball Gag", "slots": ["head"],
-         "tags": ["clothing", "accessory", "restraint"], "insulation": 0, "mature": True},
-    ]
-    monkeypatch.setattr(dressing, "_wearable_entries", lambda: fake)
+    entries = dressing._wearable_entries()
+    ball_gag = next((e for e in entries if e["lib_id"] == "ball_gag"), None)
+    assert ball_gag is not None, "fixture: ball_gag must be a real wearable library item"
+    assert "mature" in {t.lower() for t in ball_gag["tags"]}, "fixture: ball_gag carries the mature tag"
 
-    world, pname = make_world()
+    world, _pname = make_world()
 
     world.mature_content = False
-    off = dressing.dress_candidates(world, pname, limit=50)
-    ids_off = {e["lib_id"] for e in off["pool"]} | {e["lib_id"] for e in off["matched"]}
-    assert "ball_gag" not in ids_off, "mature item leaked into the pool with the toggle off"
-    assert "plain_shirt" in ids_off
+    off = {e["lib_id"] for e in dressing._apply_mature_gate(world, entries)}
+    assert "ball_gag" not in off, "mature item leaked into the pool with the toggle off"
 
     world.mature_content = True
-    on = dressing.dress_candidates(world, pname, limit=50)
-    ids_on = {e["lib_id"] for e in on["pool"]}
-    assert "ball_gag" in ids_on, "opting in must restore the mature item"
+    on = {e["lib_id"] for e in dressing._apply_mature_gate(world, entries)}
+    assert "ball_gag" in on, "opting in must restore the mature item"

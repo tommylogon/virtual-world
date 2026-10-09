@@ -24,9 +24,9 @@
   "excludes": [],
   "order": 6,
   "perception_skip": false,
-  "mature": false,
   "check_disadvantage": [
     "attack"
   ],
-  "check_advantage": []
+  "check_advantage": [],
+  "tags": []
 }

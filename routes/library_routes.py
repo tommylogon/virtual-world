@@ -35,7 +35,10 @@ from .library_ops import (
     handle_library_import_way,
     handle_refresh_way_from_library,
     handle_library_refresh_to_world,
-    handle_break_template_link,)
+    handle_break_template_link,
+    handle_vocabulary_list,
+    handle_vocabulary_save,
+    handle_vocabulary_delete,)
 
 logger = logging.getLogger(__name__)
 
@@ -92,3 +95,15 @@ def register_library_routes(app):
     @app.route('/api/library/break-template-link', methods=['POST'])
     def library_break_template_link():
         return handle_break_template_link(app)
+
+    # Compiler vocabulary (task-588/589): browsable/editable, never materializable.
+    # A distinct prefix avoids the `/api/library/<registry_type>/<entry_id>` shape.
+    @app.route('/api/vocabulary/<vocab_type>', methods=['GET'])
+    def vocabulary_list(vocab_type):
+        return handle_vocabulary_list(app, vocab_type)
+
+    @app.route('/api/vocabulary/<vocab_type>/<entry_id>', methods=['POST', 'DELETE'])
+    def vocabulary_entry(vocab_type, entry_id):
+        if request.method == 'DELETE':
+            return handle_vocabulary_delete(app, vocab_type, entry_id)
+        return handle_vocabulary_save(app, vocab_type, entry_id)

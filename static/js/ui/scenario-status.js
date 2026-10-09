@@ -65,7 +65,6 @@ const ScenarioStatus = (() => {
         if (_busy)
             return;
         _busy = true;
-        const node = chip();
         try {
             const resp = await fetch('/api/scenario/commit', {
                 method: 'POST',

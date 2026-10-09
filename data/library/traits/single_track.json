@@ -6,6 +6,6 @@
   "effects": {
     "single_track": true
   },
-  "mature": true,
+  "tags": ["mature"],
   "conflicts": []
 }

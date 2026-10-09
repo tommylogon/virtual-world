@@ -430,7 +430,6 @@ window.PromptBuilder = window.PromptBuilder || {};
                 return ` (jump: jump ${handle})`;
             return '';
         };
-        const areaNode = resolveAreaNode(currentArea?.name);
         // task-313: the old transit branch renamed a way's handle to the literal
         // "back"/"forward" in this prompt, so an agent was told to walk to a door
         // that had no such name. It could never fire anyway — the `transit` tag
@@ -487,8 +486,6 @@ window.PromptBuilder = window.PromptBuilder || {};
                 const beyondSuffix = buildBeyondSuffix(state, charName, exitData, exitData.target, doorNode);
                 const moveHint = movementSuffix(doorNode, handle);
                 const preventClose = !!doorNode.properties?.prevent_close;
-                const doorTags = (doorNode.properties?.tags || []).map((t) => String(t).toLowerCase().trim());
-                const req = (doorNode.properties?.requires || '').toLowerCase();
                 // Only reveal lock/force/block state the CHARACTER actually knows
                 // (learned by examining or trying) — never the raw door state, which
                 // would leak hidden info before they've discovered it (task-333).
@@ -695,7 +692,6 @@ window.PromptBuilder = window.PromptBuilder || {};
                     // what you see at a glance — the rest comes from examining.
                     desc = desc.split('.')[0].trim() + (desc.includes('.') ? '.' : '');
                 }
-                const isMet = worldState.hasMet(charName, person.name);
                 // Anonymize strangers — hide the database name if character hasn't met them
                 const displayName = PromptBuilder.anonymousName(charName, person.name, desc);
                 // The short label (the man) is just a handle — what someone looks like

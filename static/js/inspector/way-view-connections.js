@@ -116,7 +116,6 @@ window.InspectorWayViewConnections = (() => {
                 roomNameMap[node.name || nodeIdKey] = nodeIdKey;
             }
         });
-        const roomOptions = Object.keys(roomNameMap).sort().map(areaName => `<option value="${esc(areaName)}">${esc(areaName)}</option>`).join('');
         const roomAreaNames = Object.keys(roomNameMap).sort();
         const areaOptionsFor = (selectedName) => roomAreaNames.map(areaName => htmlTag `<option value=${areaName} ?selected=${areaName === selectedName}>${areaName}</option>`);
         if (!roomAId || !roomBId)

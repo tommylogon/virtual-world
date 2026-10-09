@@ -567,7 +567,13 @@ class ExecutionMixin:
                 if not isinstance(effect_params, dict):
                     effect_params = {}
 
-                if effect_params.get("success_message"):
+                # bug-532: one precedence rule for narrating an effect. `message`
+                # is authoritative; `success_message` is a legacy alias promoted
+                # only when `message` is empty (adjust_vital and friends narrate
+                # via success_message). Same rule in
+                # effect_resolution._legacy_effects_from_properties, triggers/testing.py,
+                # and the JS readers (graph/tooltips.ts, inspector/trigger-helpers.ts).
+                if not effect_params.get("message") and effect_params.get("success_message"):
                     effect_params = dict(effect_params)
                     effect_params["message"] = effect_params["success_message"]
 

@@ -687,6 +687,7 @@ window.SaveLoadView = (() => {
         restartScenario: restartScenario,
         toggleSpectator: toggleSpectator,
         updateTimePerTick: updateTimePerTick,
-        updateClockStart: updateClockStart
+        updateClockStart: updateClockStart,
+        initScenarioNameEditor: initScenarioNameEditor
     };
 })();

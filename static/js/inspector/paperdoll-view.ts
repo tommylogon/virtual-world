@@ -18,6 +18,25 @@
     // containers (not the shared inspector panel string template).
     const paperdollTag = (strings: TemplateStringsArray, ...values: unknown[]) => window.Lit.html(strings, ...values);
 
+    // Natural-language durability chip (task-161) — humans read "battered",
+    // never "3/10". '' when the item doesn't track uses. Module scope, because
+    // the paperdoll and the slot modal both render it; while it lived inside
+    // renderPaperdollEquipmentHtml the showSlotModal call was out of scope (a
+    // ReferenceError that a globals.d.ts `declare` was papering over).
+    function durabilityChip(props: any): string {
+        const maxUses = parseInt(props?.max_uses, 10) || 0;
+        const uses = parseInt(props?.uses ?? -1, 10);
+        if (maxUses <= 0 || uses < 0) return '';
+        const ratio = uses / maxUses;
+        let label, color;
+        if (uses <= 0) { label = '🔧 broken'; color = '#ff6b6b'; }
+        else if (ratio <= 0.25) { label = '🔧 about to break'; color = '#ff6b6b'; }
+        else if (ratio <= 0.5) { label = '🔨 battered'; color = '#ffb37a'; }
+        else if (ratio <= 0.9) { label = '🧵 worn'; color = '#ffd28f'; }
+        else { label = '✨ pristine'; color = '#7cff9c'; }
+        return `<span style="color:${color};">${label}</span>`;
+    }
+
     // Grid slot definitions for the paperdoll
     const GRID_SLOTS = [
         { area:'head', slot:'head' },
@@ -215,21 +234,6 @@
             <div class="paperdoll">`;
 
         const nameForNode = (id: string) => (worldState.getNode(id)?.name || id);
-        // Natural-language durability chip (task-161) — humans read "battered",
-        // never "3/10". '' when the item doesn't track uses.
-        const durabilityChip = (props: any) => {
-            const maxUses = parseInt(props?.max_uses, 10) || 0;
-            const uses = parseInt(props?.uses ?? -1, 10);
-            if (maxUses <= 0 || uses < 0) return '';
-            const ratio = uses / maxUses;
-            let label, color;
-            if (uses <= 0) { label = '🔧 broken'; color = '#ff6b6b'; }
-            else if (ratio <= 0.25) { label = '🔧 about to break'; color = '#ff6b6b'; }
-            else if (ratio <= 0.5) { label = '🔨 battered'; color = '#ffb37a'; }
-            else if (ratio <= 0.9) { label = '🧵 worn'; color = '#ffd28f'; }
-            else { label = '✨ pristine'; color = '#7cff9c'; }
-            return `<span style="color:${color};">${label}</span>`;
-        };
         const playerConditions = player.conditions || {};
 const regionName = (regionId: string) => (player.body_region_names?.[regionId] || regionId.replace(/_/g, ' '));
         const regionStatus = (regionId: string) => {
@@ -251,8 +255,6 @@ const regionName = (regionId: string) => (player.body_region_names?.[regionId] |
             const names = realIds.map(nameForNode);
             const outerName = filled ? names[names.length - 1] : null;
             const innerNames = filled ? names.slice(0, -1) : [];
-            const outerId = filled ? realIds[realIds.length - 1] : null;
-            const outerNode = outerId ? worldState.getNodeByIdentifier(outerId) : null;
             const slotClick = filled ? `InspectorPaperdoll.showSlotModal('${escName}','${gs.slot}')` : '';
             const regions = AREA_TO_REGIONS[gs.area] || [];
             const regionData = regions.map(r => ({ id: r, ...regionStatus(r) }));
@@ -439,7 +441,6 @@ const regionName = (regionId: string) => (player.body_region_names?.[regionId] |
 
         html += `<div style="margin-bottom:12px;">`;
         layers.slice().reverse().forEach((layer: any, revIdx: number) => {
-            const layerNum = layers.length - revIdx;
             const isOuter = revIdx === 0;
             const isInner = revIdx === layers.length - 1;
             html += `<div style="padding:8px;margin-bottom:6px;background:var(--bg-inset);border-radius:6px;border:1px solid var(--border);">
@@ -506,7 +507,6 @@ const regionName = (regionId: string) => (player.body_region_names?.[regionId] |
         }
         const playerConditions = player.conditions || {};
         const esc = InspectorHelpers.esc;
-        const escName = (s: unknown) => String(s || '').replace(/'/g, "\\'");
 
         const bodyState = player.body_state || {};
         const regionName = (regionId: string) => (player.body_region_names?.[regionId] || regionId.replace(/_/g, ' '));

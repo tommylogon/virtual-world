@@ -129,7 +129,7 @@ Every write is one `POST` under `/api/world/scopes` (`routes/world_grid.py`):
 | Endpoint | Handler |
 |----------|---------|
 | `GET /api/world/scopes/<id>/grid` | `_grid_payload` (`world_grid_ops.py:220-254`) |
-| `POST …/grid` | size, `cell_scale`, `mode` |
+| `POST …/grid` | size, `mode` |
 | `POST …/grid/paint`, `…/paint_batch` | single stroke / one request for a whole selection |
 | `POST …/grid/name` | author-set name on a cell (a `names` map, not a 4th layer) |
 | `POST …/grid/place`, `…/place_area`, `…/unplace_area` | Feature / Area tools |
@@ -151,7 +151,7 @@ single POST, so each is a single undo step.
   `dict(rec.get("layers") or {})` (`world_grid_ops.py:238`), so a grid with no climate
   paint has no `climate` key at all. The view-model treats a missing layer as empty
   throughout (`grid-model.js:286`, `:316-322`) — filed as
-  [[dev_tasks/todo/world/task-651-painter-grid-payload-omits-the-floor-and-climate-layers-when-they-are-empty|task-651]].
+  [[task-651-painter-grid-payload-omits-the-floor-and-climate-layers-when-they-are-empty|task-651]].
 - **Names are not a layer.** There is no name vocabulary; a name is a value in the
   `names` map beside `layers` (`grid-model.js:258-266`), and the eraser does not clear it.
 - **Zoom is capped** —

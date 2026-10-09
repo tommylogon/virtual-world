@@ -74,15 +74,15 @@ def _wearable_entries():
             "slots": list(slots),
             "tags": sorted(tags),
             "insulation": int(data.get("insulation", 0) or 0),
-            # task-660: adult wearables (a restraint/gag) are marked `mature` in
-            # the library, the same flag `_filter_mature_entries` honours.
-            "mature": bool(data.get("mature")),
+            # task-660/750: adult wearables (a restraint/gag) carry the `mature`
+            # tag; `_apply_mature_gate` gates the pool on it (same marker
+            # `_filter_mature_entries` honours).
         })
     return out
 
 
 def _apply_mature_gate(gs, entries):
-    """Drop `mature`-flagged wearables unless the world has opted in (task-660).
+    """Drop `mature`-tagged wearables unless the world has opted in (task-660).
 
     The inspector's Auto-Dress button is general-purpose, so a mature item must
     not reach the model — or the deterministic pool — while `mature_content` is
@@ -90,7 +90,7 @@ def _apply_mature_gate(gs, entries):
     """
     if getattr(gs, "mature_content", False):
         return entries
-    return [e for e in entries if not e.get("mature")]
+    return [e for e in entries if "mature" not in {str(t).lower() for t in (e.get("tags") or [])}]
 
 
 def _library_dir():

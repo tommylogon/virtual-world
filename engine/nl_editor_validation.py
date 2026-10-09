@@ -478,7 +478,8 @@ def validate_ops(
                     if effects is not None and not isinstance(effects, dict):
                         issues.append(_issue(idx, optype, ERROR,
                                              "A trait template's 'effects' must be an object.", "effects"))
-                if entry.get("mature") and not mature_content:
+                entry_tags = {str(t).strip().lower() for t in (entry.get("tags") or [])}
+                if "mature" in entry_tags and not mature_content:
                     issues.append(_issue(idx, optype, ERROR,
                                          "Mature library entries need mature content enabled."))
 

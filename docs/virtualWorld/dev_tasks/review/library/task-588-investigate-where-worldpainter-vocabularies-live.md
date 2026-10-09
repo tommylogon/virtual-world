@@ -10,7 +10,7 @@ related: [task-569, task-570, task-573, task-568, task-497]
 
 **Filed:** 2026-09-29
 **Related:** task-569, task-570, task-573, task-568, task-497
-**Answers for:** Roadmap-core-systems.md, which recommends task-569 (resource consumer) and task-570 (hostile consumer) as the cheapest large win in the repository
+**Answers for:** `docs/design/roadmap.md` (Part 2), which recommends task-569 (resource consumer) and task-570 (hostile consumer) as the cheapest large win in the repository
 **Blocks:** task-589 (a WorldPainter tab in the library) — the tab's shape depends on where the data ends up
 
 ## Goal

@@ -52,6 +52,7 @@ const mainJsTag = (strings, ...values) => Lit.html(strings, ...values);
     VW.ui = ui;
     VW.graph = graphManager;
     VW.itemLib = itemLib;
+    VW.dialog = window.Dialog;
     VW.inspector = inspector;
     VW.libraryBrowser = libraryBrowser;
     VW.worldSync = worldSync;

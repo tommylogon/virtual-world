@@ -3,6 +3,7 @@ type: task
 status: todo
 area: environment
 priority: medium
+blocked_by: [task-553]
 ---
 
 # task-556: Weather reaches the world: snow accumulation, movement, forage

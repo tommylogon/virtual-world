@@ -29,7 +29,7 @@
   "emotion.llm_spike_max": 15.0,
   "emotion.recall_spike_scale": 0.25,
   "emotion.semantic_labels": false,
-  "graph.physics_enabled": false,
+  "graph.physics_enabled": true,
   "graph.show_items": true,
   "graph.show_only_inhabited": false,
   "memory.max_per_character": 0,

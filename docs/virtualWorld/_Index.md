@@ -34,13 +34,6 @@ This is the Obsidian vault for **VirtualWorld** — a Flask + JS text-based game
 | [[Patch Notes 2026-10-03\|Patch Notes 2026-10-03]] | The human-turn composer and narration alignment |
 | [[Patch Notes 2026-10-06\|Patch Notes 2026-10-06]] | The painter's scroll, hover, and live preview; library splits and a browsable item library; fog-of-war minimap; memory dynamics |
 
-## [[Roadmap|🗺️ Roadmap]]
-
-| Doc | What it covers |
-|-----|---------------|
-| [[Roadmap\|Roadmap]] | Where the world is going, in what order, and why: the three rules that set priority, the WorldPainter epic in flight, the simulation-contract debt, and the scale work that follows |
-| [[Roadmap-core-systems\|Roadmap-core-systems]] | The core-systems track beneath the main roadmap |
-
 ## [[Simulation Model|🧭 Core Model]]
 
 | Doc | What it covers |

@@ -3,6 +3,7 @@ type: task
 status: review
 area: ui
 priority: medium
+blocked_by: [task-651]
 ---
 
 # task-677: Human player has no map: fog of war is tested but unwired and no player-facing surface exists

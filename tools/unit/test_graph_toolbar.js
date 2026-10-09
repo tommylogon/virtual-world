@@ -20,14 +20,10 @@ test('an explicit None overlay exists, so the overlays menu is escapable', () =>
     assertEq(GraphToolbar.OVERLAYS[0], 'none', 'first overlay entry');
 });
 
-// ─── Map tab vs Levels (bug-48) ──────────────────────────────────────────────
+// ─── Map tab vs Levels: one exclusive selector ───────────────────────────────
 
-test('Map is unavailable while Levels owns the layout', () => {
-    const why = GraphToolbar.mapTabDisabled({ layout: 'levels' });
-    assertTrue(typeof why === 'string' && why.length > 0, 'levels must explain why Map is off');
-});
-
-test('Map is available in the other two layouts', () => {
+test('Map is selectable from every layout (Graph / Map / Levels are one selector)', () => {
+    assertEq(GraphToolbar.mapTabDisabled({ layout: 'levels' }), null, 'levels does not block Map');
     assertEq(GraphToolbar.mapTabDisabled({ layout: 'graph' }), null, 'graph layout');
     assertEq(GraphToolbar.mapTabDisabled({ layout: 'map' }), null, 'map layout');
     assertEq(GraphToolbar.mapTabDisabled({}), null, 'empty state');

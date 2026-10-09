@@ -442,6 +442,24 @@ class ApiClientImpl {
         const resp = await fetch(`/api/library/${encodeURIComponent(type)}/${encodeURIComponent(id)}`, { method: 'DELETE' });
         return resp.json();
     }
+    // Compiler vocabulary (task-589): biomes/features are read by the compiler,
+    // never materialized, so these are list/save/delete with no place action.
+    static async listVocabulary(type) {
+        const resp = await fetch(`/api/vocabulary/${encodeURIComponent(type)}`);
+        return resp.json();
+    }
+    static async saveVocabulary(type, id, record) {
+        const resp = await fetch(`/api/vocabulary/${encodeURIComponent(type)}/${encodeURIComponent(id)}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(record)
+        });
+        return resp.json();
+    }
+    static async deleteVocabulary(type, id) {
+        const resp = await fetch(`/api/vocabulary/${encodeURIComponent(type)}/${encodeURIComponent(id)}`, { method: 'DELETE' });
+        return resp.json();
+    }
     static async importCharacterFromLibrary(charId, options = {}) {
         return this.post(`/api/library/import/character/${encodeURIComponent(charId)}`, options);
     }

@@ -3,6 +3,10 @@
 Activities are JSON files under ``data/library/activities/``. Adding a new
 activity is a JSON edit; no Python change is required unless the activity needs
 a new tick action or completion checker.
+
+@module activities_loader
+@contributes the activity catalog: load, clear_cache, get
+@docs docs/virtualWorld/Characters/Activities & States.md
 """
 
 import json

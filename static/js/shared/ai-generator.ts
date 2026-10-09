@@ -56,7 +56,6 @@ const AIGenerator = {
         if (!userPrompt) return { success: false, data: null, raw: '', error: 'No prompt provided' };
         if (!this.isConfigured()) return { success: false, data: null, raw: '', error: 'AI not configured' };
 
-        const t0 = performance.now();
         let response: string | null = null;
 
         try {

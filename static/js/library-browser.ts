@@ -8,7 +8,7 @@
  * Other tabs use inline editors defined here.
  *
  * @module library-browser — the unified library browser
- * @contributes LibraryBrowser: tabbed Items/Characters/Rooms/Traits/Conditions/Behaviours browsing + editors
+ * @contributes LibraryBrowser: tabbed Items/Characters/Rooms/Traits/Conditions/Behaviours browsing + editors, and the Vocabulary tab for compiler vocabularies (task-589)
  * @powers the 📚 Library modal (the Items tab delegates to ItemLibrary)
  * @relates uses api + storage; inline editors for the non-item tabs
  * @docs docs/virtualWorld/Library System/Library System Overview.md
@@ -35,6 +35,9 @@ const LibraryApi = ApiClient as unknown as {
     getLibraryType(type: string): Promise<Record<string, LibraryEntry>>;
     saveLibraryType(type: string, payload: unknown): Promise<{ error?: string }>;
     deleteLibraryType(type: string, id: string): Promise<{ error?: string }>;
+    listVocabulary(type: string): Promise<{ entries?: Array<{ id: string; name?: string; record?: unknown }>; error?: string }>;
+    saveVocabulary(type: string, id: string, record: unknown): Promise<{ error?: string; problems?: string[] }>;
+    deleteVocabulary(type: string, id: string): Promise<{ error?: string }>;
     importCharacterFromLibrary(id: string, opts: { area: string; active: boolean }): Promise<{ error?: string; player?: string }>;
     importRoomFromLibrary(id: string, opts: { name: string }): Promise<{ error?: string; area?: string }>;
     importWayFromLibrary(id: string, opts: { area_from: string; area_to: string; dir_from: string; dir_to: string }): Promise<{ error?: string; way?: string }>;
@@ -58,7 +61,7 @@ function itemLibRef(): { data: Record<string, LibraryEntry>; open(): void } | un
 // item-library/placement.js. A local `const` alias here both redeclared it
 // (TS2451) and gave item-library.ts a narrower type than the real API.
 
-type LibraryTab = 'items' | 'characters' | 'areas' | 'ways' | 'traits' | 'conditions' | 'behaviours' | 'tags';
+type LibraryTab = 'items' | 'characters' | 'areas' | 'ways' | 'traits' | 'conditions' | 'behaviours' | 'tags' | 'vocabulary';
 
 interface LibraryEntry {
     id?: string;
@@ -140,6 +143,11 @@ class LibraryBrowser {
     selectedId!: Record<LibraryTab, string | null>;
     _editingNew!: Record<string, boolean>;
     _tagMS: TagMultiselectInstance | null;
+    // Compiler vocabulary (task-589): biomes/features, browsed and edited here
+    // but never materialized (no "place in world").
+    _vocabType = 'biomes';
+    _vocabEntries: Array<{ id: string; record: Record<string, unknown> }> = [];
+    _vocabSelected: string | null = null;
 
     constructor() {
         this.currentTab = 'items';
@@ -151,9 +159,10 @@ class LibraryBrowser {
             conditions: {},
             behaviours: {},
             tags: {},
-            ways: {}
+            ways: {},
+            vocabulary: {}
         };
-        this.selectedId = { items: null, characters: null, areas: null, traits: null, conditions: null, behaviours: null, tags: null, ways: null };
+        this.selectedId = { items: null, characters: null, areas: null, traits: null, conditions: null, behaviours: null, tags: null, ways: null, vocabulary: null };
         this._editingNew = { characters: false, areas: false, traits: false, conditions: false, behaviours: false, tags: false, ways: false };
         this._tagMS = null;
     }
@@ -185,10 +194,137 @@ class LibraryBrowser {
 
         if (tab === 'items') {
             itemLibRef()?.open();
+        } else if (tab === 'vocabulary') {
+            this.loadVocabulary();
         } else {
             this.renderList(tab);
             this._showEditorEmpty(tab);
         }
+    }
+
+    // ── Compiler vocabulary (task-589) ───────────────────────────────
+    // A biome/feature is read by the compiler and never materialized, so this
+    // tab lists and edits them with no "place in world" action. It reads the
+    // same `/api/vocabulary/...` the WorldPainter derives from — no second read
+    // path, no second copy.
+
+    async loadVocabulary(type?: string): Promise<void> {
+        this._vocabType = String(type || 'biomes');
+        const res = await LibraryApi.listVocabulary(this._vocabType).catch(() => ({ entries: [] as Array<{ id: string; record?: unknown }> }));
+        this._vocabEntries = (res.entries || []).map(e => ({
+            id: e.id,
+            record: (e.record || {}) as Record<string, unknown>,
+        }));
+        this._vocabSelected = this._vocabEntries.length ? this._vocabEntries[0].id : null;
+        this.renderVocabulary();
+    }
+
+    renderVocabulary(): void {
+        const root = document.getElementById('lib-vocab-root');
+        if (!root) return;
+        root.textContent = '';
+        const mk = <K extends keyof HTMLElementTagNameMap>(tag: K, text?: string, css?: string): HTMLElementTagNameMap[K] => {
+            const el = document.createElement(tag);
+            if (text != null) el.textContent = text;
+            if (css) el.setAttribute('style', css);
+            return el;
+        };
+
+        const bar = mk('div');
+        bar.setAttribute('style', 'display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap;');
+        bar.appendChild(mk('span', 'Vocabulary:', 'font-size:12px;color:var(--text-muted,#999);'));
+        const typeSel = mk('select');
+        typeSel.setAttribute('data-role', 'lib-vocab-type');
+        typeSel.setAttribute('style', 'padding:3px;border-radius:5px;');
+        ['biomes', 'features', 'resource_distribution', 'hostile_distribution', 'floor_plans', 'hazards'].forEach(v => {
+            const o = mk('option', v);
+            o.value = v;
+            if (v === this._vocabType) o.selected = true;
+            typeSel.appendChild(o);
+        });
+        typeSel.addEventListener('change', () => { void this.loadVocabulary(typeSel.value); });
+        bar.appendChild(typeSel);
+        const newBtn = mk('button', '➕ New');
+        newBtn.setAttribute('style', 'cursor:pointer;padding:3px 8px;border-radius:5px;');
+        newBtn.addEventListener('click', () => {
+            const id = window.prompt('New entry id (lowercase letters, digits, underscore):');
+            if (!id) return;
+            if (!/^[a-z0-9_]+$/.test(id)) { window.alert('id must be lowercase letters, digits or underscore'); return; }
+            const defaults: Record<string, Record<string, unknown>> = {
+                biomes: { name: id, terrain: 'forest', tags: ['forest'], surface: 'grass', descriptions: [''] },
+                features: { name: id, tags: ['road'], descriptions: [''] },
+                resource_distribution: { id, name: id, biome_tags: [], location_tags: [], item_tags: [], weight: 1, conditions: {} },
+                hostile_distribution: { id, name: id, biome_tags: [], location_tags: [], kind: 'predator', base_chance: 0.01, per_area_from_settlement: 0, max_chance: 0.1, conditions: {} },
+                floor_plans: { label: id, storeys: 1, legend: { '=': 'wall', ' ': 'door' }, plan: ['=  =', '=  =', '===='] },
+                hazards: { name: id, ability: 'STR', dc: { '1': 8, '10': 15, '20': 22 }, on_fail: { conditions: [], tags: [] }, message_success: '', message_fail: '' },
+            };
+            this._vocabEntries.push({ id, record: defaults[this._vocabType] || {} });
+            this._vocabSelected = id;
+            this.renderVocabulary();
+        });
+        bar.appendChild(newBtn);
+        bar.appendChild(mk('span', 'Compiler vocabulary — no “place in world” action.',
+            'font-size:11px;color:var(--text-muted,#999);margin-left:auto;'));
+        root.appendChild(bar);
+
+        const split = mk('div');
+        split.setAttribute('style', 'display:flex;gap:10px;align-items:flex-start;');
+        const list = mk('div');
+        list.setAttribute('style', 'min-width:180px;max-height:60vh;overflow:auto;border:1px solid var(--border,#3a3a44);border-radius:6px;padding:2px;');
+        this._vocabEntries.forEach(e => {
+            const b = mk('button', e.id);
+            b.setAttribute('data-role', 'lib-vocab-entry');
+            b.setAttribute('data-id', e.id);
+            b.setAttribute('style', 'display:block;width:100%;text-align:left;padding:4px 8px;font-size:12px;border:0;cursor:pointer;'
+                + (e.id === this._vocabSelected ? 'background:#2d4a6b;color:#cfe;' : 'background:transparent;color:var(--text,#ddd);'));
+            b.addEventListener('click', () => { this._vocabSelected = e.id; this.renderVocabulary(); });
+            list.appendChild(b);
+        });
+        split.appendChild(list);
+
+        const editor = mk('div');
+        editor.setAttribute('style', 'flex:1;display:flex;flex-direction:column;gap:6px;');
+        const cur = this._vocabEntries.find(e => e.id === this._vocabSelected);
+        if (cur) {
+            const ta = mk('textarea');
+            ta.setAttribute('data-role', 'lib-vocab-json');
+            ta.setAttribute('style', 'width:100%;min-width:360px;min-height:320px;font-family:monospace;font-size:12px;background:var(--bg-input,#1e1e24);color:var(--text,#ddd);border:1px solid var(--border,#444);border-radius:6px;padding:6px;');
+            ta.value = JSON.stringify(cur.record, null, 2);
+            editor.appendChild(ta);
+            const row = mk('div');
+            row.setAttribute('style', 'display:flex;gap:8px;');
+            const save = mk('button', '💾 Save');
+            save.setAttribute('data-role', 'lib-vocab-save');
+            save.setAttribute('style', 'cursor:pointer;padding:4px 10px;border-radius:5px;');
+            save.addEventListener('click', () => {
+                let rec: unknown;
+                try { rec = JSON.parse(ta.value); } catch (err) { window.alert('Invalid JSON: ' + (err as Error).message); return; }
+                void LibraryApi.saveVocabulary(this._vocabType, cur.id, rec).then(res => {
+                    if (res && res.error) {
+                        window.alert('Save refused: ' + res.error + '\n' + (res.problems || []).join('\n'));
+                        return;
+                    }
+                    void this.loadVocabulary(this._vocabType);
+                });
+            });
+            row.appendChild(save);
+            const del = mk('button', '🗑️ Delete');
+            del.setAttribute('data-role', 'lib-vocab-delete');
+            del.setAttribute('style', 'cursor:pointer;padding:4px 10px;border-radius:5px;color:var(--red,#e66);');
+            del.addEventListener('click', () => {
+                if (!window.confirm(`Delete ${this._vocabType} "${cur.id}"?`)) return;
+                void LibraryApi.deleteVocabulary(this._vocabType, cur.id).then(res => {
+                    if (res && res.error) { window.alert(res.error); return; }
+                    void this.loadVocabulary(this._vocabType);
+                });
+            });
+            row.appendChild(del);
+            editor.appendChild(row);
+        } else {
+            editor.appendChild(mk('div', 'No entry selected.', 'color:var(--text-muted,#999);font-size:12px;'));
+        }
+        split.appendChild(editor);
+        root.appendChild(split);
     }
 
     async refreshAll() {
@@ -1136,3 +1272,4 @@ class LibraryBrowser {
 
 // Singleton
 const libraryBrowser = new LibraryBrowser();
+

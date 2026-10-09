@@ -25,7 +25,7 @@
   "excludes": [],
   "order": 3,
   "perception_skip": false,
-  "mature": false,
   "check_advantage": [],
-  "check_disadvantage": []
+  "check_disadvantage": [],
+  "tags": []
 }

@@ -605,9 +605,11 @@ function _firstSentence(text: unknown, maxLines: number): string {
                     nodesObj = sub.nodes || {};
                     edgesArr = sub.edges || [];
                 } catch (err) {
-                    // Stale selection (e.g. after a scenario load): drop it and
-                    // fall back to the whole world rather than showing nothing.
+                    // Stale selection (e.g. after a scenario load, or a persisted
+                    // id whose scope was renamed/deleted — task-749): drop it, clear
+                    // the saved key, and fall back to the whole world.
                     graphManager._scopeFilter = null;
+                    (graphManager as unknown as { _persistScopeFilter?: () => void })._persistScopeFilter?.();
                     const sel = document.getElementById('graph-scope-filter') as HTMLSelectElement | null;
                     if (sel) sel.value = '';
                     nodesObj = await (ApiClient as unknown as { getGraphNodes(): Promise<any> }).getGraphNodes();
@@ -1498,7 +1500,6 @@ function _firstSentence(text: unknown, maxLines: number): string {
      */
     renderTagPanel() {
         if (!graphManager._tagPanelEl) return;
-        const lib = graphManager._tagLibrary || {};
         const counts: Record<string, number> = {};
         const metaById: Record<string, any> = {};
         graphManager.nodes.forEach((nodeData: any) => {

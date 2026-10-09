@@ -596,6 +596,7 @@
                     <span class="lib-tab" data-tab="behaviours" onclick="VW.libraryBrowser.switchTab('behaviours')">🤖 Behaviours</span>
                     <span class="lib-tab" data-tab="tags" onclick="VW.libraryBrowser.switchTab('tags')">🏷️ Tags</span>
                     <span class="lib-tab" data-tab="ways" onclick="VW.libraryBrowser.switchTab('ways')">🚪 Ways</span>
+                    <span class="lib-tab" data-tab="vocabulary" onclick="VW.libraryBrowser.switchTab('vocabulary')">🌿 Vocabulary</span>
                 </div>
                 <button class="modal-close" onclick="closeLibraryBrowser()">&times;</button>
             </div>
@@ -780,6 +781,9 @@
                         <button class="btn btn-sm" onclick="VW.libraryBrowser.saveEntry('ways')">💾 Save to Library</button>
                         <button class="btn btn-secondary btn-sm" onclick="closeLibraryBrowser()">Close</button>
                     </div>
+                </div>
+                <div class="lib-tab-pane" id="lib-pane-vocabulary">
+                    <div id="lib-vocab-root" style="padding:12px 20px;min-height:320px;"></div>
                 </div>
             </div>
         </div>
@@ -1343,6 +1347,7 @@
     <script src="/static/js/shared/trigger-types.js"></script>
     <script src="/static/js/shared/env-presets.js"></script>
     <script src="/static/js/shared/trigger-editor.js"></script>
+    <script src="/static/js/shared/dialog.js"></script>
     <script src="/static/js/shared/trigger-graph.js"></script>
     <script src="/static/js/shared/ai-generator.js"></script>
     <script src="/static/js/shared/trigger-suggest-ai.js"></script>

@@ -80,7 +80,6 @@ window.CommandPalette = (() => {
     }
 
     const NODE_ICONS: Record<string, string> = { area: '🏠', item: '📦', way: '🚪', character: '🧍', logic_trigger: '⚡', trigger: '⚡' };
-    const TAB_NAMES: Record<string, string> = { '🧍 Agents': 'Agents', '🗺️ Outline': 'Outline', '👁 Lens': 'Lens', '🛠 Issues': 'Issues', '✨ NL Editor': 'NL Editor' };
 
     const mainActions = {
         saveGame: () => mainGlobal<CommandPaletteMainAction>('saveGame')(),
@@ -169,7 +168,6 @@ window.CommandPalette = (() => {
     }
 
     let overlayEl: HTMLElement | null = null;
-    let inputEl: HTMLInputElement | null = null;
     let listEl: HTMLElement | null = null;
     let results: CommandPaletteEntry[] = [];
     let selected = 0;
@@ -281,7 +279,7 @@ window.CommandPalette = (() => {
 
     function close() {
         if (overlayEl && overlayEl.parentNode) overlayEl.parentNode.removeChild(overlayEl);
-        overlayEl = null; inputEl = null; listEl = null; results = []; entriesCache = null;
+        overlayEl = null; listEl = null; results = []; entriesCache = null;
     }
 
     function open() {
@@ -313,7 +311,7 @@ window.CommandPalette = (() => {
         box.appendChild(hint);
         overlay.addEventListener('mousedown', (ev) => { if (ev.target === overlay) close(); });
         document.body.appendChild(overlay);
-        overlayEl = overlay; inputEl = input; listEl = list;
+        overlayEl = overlay; listEl = list;
         render('');
         setTimeout(() => input.focus(), 20);
     }

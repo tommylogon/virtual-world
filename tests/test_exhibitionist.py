@@ -195,7 +195,7 @@ def test_the_library_copy_and_the_runtime_definition_agree():
     assert data["behavior_prompt"] == \
         TRAIT_DEFINITIONS["exhibitionist"]["behavior_prompt"], (
         "the library entry and the runtime definition have drifted")
-    assert data["mature"] is True, "the picker hides it when the toggle is off"
+    assert "mature" in (data.get("tags") or []), "the picker hides it when the toggle is off"
 
 
 def test_the_trait_still_declares_its_effect():
