@@ -8,7 +8,7 @@ priority: low
 # task-525: Storey delta gates traversal (climb required past N storeys)
 
 **Filed:** 2026-09-26
-**Related:** task-496 task-498
+**Related:** task-496 task-498 task-747
 
 ## Goal
 
@@ -70,3 +70,8 @@ storey step really is terrain (outdoors), so an interior can stack rooms freely.
   mechanic. The refusal names the reason, so the author can paint a path.
 - Storey *sign* is recorded (`climb.rising`) so prose can say climb or drop, but
   the magnitude is `abs()`, matching task-562's `floor_step`.
+- **Follow-up (task-747):** the refusal above is the deliberate *block* decision —
+  "block, not cost extra time". Where an author wants a cliff to be *climbable
+  with a consequence* (failed climb → fall/push + damage) rather than a wall,
+  task-747 replaces the refusal, for that way, with a check driven by the painted
+  layers and `data/worldpainter/hazards.json`.

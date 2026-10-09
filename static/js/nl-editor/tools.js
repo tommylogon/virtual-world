@@ -159,12 +159,12 @@ window.NLEditorTools = (() => {
         }
         listWorldSummary() {
             const lines = ['### World Summary (Overlay):'];
-            const areas = [];
             const liveNodes = typeof worldState !== 'undefined' && worldState?.graph?.nodes ? worldState.graph.nodes : {};
             const creations = this.staging.getStagedCreations();
             const deletions = this.staging.getStagedDeletions();
             const allNodes = { ...liveNodes, ...creations };
             const counts = { area: 0, character: 0, item: 0, way: 0, logic_trigger: 0 };
+            const areaEntries = [];
             for (const [id, node] of Object.entries(allNodes)) {
                 const nid = id.toLowerCase();
                 if (deletions.has(nid))
@@ -174,19 +174,41 @@ window.NLEditorTools = (() => {
                     counts[type] += 1;
                 if (type === 'area') {
                     const tagStr = (node.properties?.tags || []).join(', ');
-                    areas.push(`- Area [${node.name}] (id: ${node.id}${node.staged ? ', STAGED' : ''})${tagStr ? ` [tags: ${tagStr}]` : ''}`);
+                    areaEntries.push({ id: String(node.id), name: String(node.name), tags: tagStr, staged: !!node.staged });
                 }
             }
-            if (areas.length === 0)
+            // task-752: never dump every area. A 627-area world buried the
+            // selection under ~15k tokens of irrelevant roads. Show counts plus a
+            // bounded, selection-relevant slice; the model has search_graph_nodes
+            // and list_nodes to fetch the rest on demand.
+            const AREA_CAP = 30;
+            const selection = this._selectedAreaIds();
+            const stagedAreas = areaEntries.filter(a => a.staged);
+            const relevant = selection.size > 0 ? areaEntries.filter(a => selection.has(a.id)) : [];
+            const relevantIds = new Set(relevant.map(a => a.id));
+            const stagedIds = new Set(stagedAreas.map(a => a.id));
+            const rest = areaEntries.filter(a => !relevantIds.has(a.id) && !stagedIds.has(a.id));
+            const shownAreas = [...stagedAreas, ...relevant, ...rest].slice(0, AREA_CAP);
+            if (shownAreas.length === 0)
                 lines.push('(No areas found in world)');
             else
-                lines.push(...areas);
+                for (const a of shownAreas) {
+                    lines.push(`- Area [${a.name}] (id: ${a.id}${a.staged ? ', STAGED' : ''})${a.tags ? ` [tags: ${a.tags}]` : ''}`);
+                }
+            if (areaEntries.length > shownAreas.length) {
+                lines.push(`…and ${areaEntries.length - shownAreas.length} more areas — call search_graph_nodes or list_nodes to find others.`);
+            }
             lines.push(`Counts: ${counts.area} areas, ${counts.character} characters, ${counts.item} items, ${counts.way} ways${counts.logic_trigger ? `, ${counts.logic_trigger} triggers` : ''}.`);
             const roster = this.roster();
             if (roster.length) {
+                const ROSTER_CAP = 40;
+                const shown = roster.length <= ROSTER_CAP ? roster : roster.slice(0, ROSTER_CAP);
                 lines.push(`Characters (${roster.length}):`);
-                for (const entry of roster) {
+                for (const entry of shown) {
                     lines.push(`- ${entry.name}${entry.area ? ` @ ${entry.area}` : ''} (id: ${entry.id})`);
+                }
+                if (roster.length > shown.length) {
+                    lines.push(`…and ${roster.length - shown.length} more characters — call list_nodes {kind:'character'}.`);
                 }
             }
             const stagedOps = this.staging.getOps();
@@ -195,6 +217,53 @@ window.NLEditorTools = (() => {
                 stagedOps.forEach((op, idx) => lines.push(`  ${idx + 1}. [${op.type}] ${op.summary}`));
             }
             return lines.join('\n');
+        }
+        /**
+         * task-752: the selected node's area plus its immediate neighbour areas.
+         * Areas connect area -> way -> area via EDGE_CONNECTION, so a neighbour is
+         * the other area reachable through a way node that touches the selection's
+         * area. Best-effort: any failure falls back to an empty set (counts only).
+         */
+        _selectedAreaIds() {
+            const ids = new Set();
+            try {
+                const VWref = globalThis.VW;
+                const view = VWref?.inspector?._currentView;
+                const selId = view && view.type === 'node' && view.id ? String(view.id) : '';
+                if (!selId || typeof worldState === 'undefined' || !worldState?.graph)
+                    return ids;
+                const selNode = worldState.getNode(selId);
+                if (!selNode)
+                    return ids;
+                if (selNode.type === 'area')
+                    ids.add(selId);
+                const edges = worldState.graph.edges || [];
+                if (selNode.type !== 'area') {
+                    for (const e of edges) {
+                        if (String(e.source) === selId && (e.type === 'in' || e.type === 'at'))
+                            ids.add(String(e.target));
+                    }
+                }
+                const ways = new Set();
+                for (const e of edges) {
+                    if (e.type !== 'connection')
+                        continue;
+                    if (ids.has(String(e.source)))
+                        ways.add(String(e.target));
+                    if (ids.has(String(e.target)))
+                        ways.add(String(e.source));
+                }
+                for (const e of edges) {
+                    if (e.type !== 'connection')
+                        continue;
+                    if (ways.has(String(e.source)) && !ways.has(String(e.target)))
+                        ids.add(String(e.target));
+                    if (ways.has(String(e.target)) && !ways.has(String(e.source)))
+                        ids.add(String(e.source));
+                }
+            }
+            catch (e) { /* selection is best-effort */ }
+            return ids;
         }
         /** Characters (id, name, current area), resolved from the live roster. */
         roster() {
@@ -411,6 +480,71 @@ window.NLEditorTools = (() => {
         {
             type: 'function',
             function: {
+                name: 'get_trigger_schema',
+                description: 'Return the canonical trigger vocabulary: event types (trigger_type), condition types and effect types. Call this BEFORE authoring a logic_trigger node so its logic uses real values (task-739). Read-only.',
+                parameters: { type: 'object', properties: {} }
+            }
+        },
+        {
+            type: 'function',
+            function: {
+                name: 'create_trigger',
+                description: 'Create a trigger on an owner node: writes the logic_trigger node AND the `triggers` edge (via the engine materialiser) so the engine actually fires it. Call get_trigger_schema first and pass a `trigger` definition. Prefer this over create_node for triggers (task-739).',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        owner_id: { type: 'string', description: 'Node that fires the trigger (item/area/character id, or an id created earlier in this batch)' },
+                        trigger: { type: 'object', description: 'Trigger definition: trigger_type (from get_trigger_schema), effects ([{type, params}]), optional conditions (a tree {operator, conditions} or a leaf {type,...}), optional once / target_name / success_message / fail_message.' }
+                    },
+                    required: ['owner_id', 'trigger']
+                }
+            }
+        },
+        {
+            type: 'function',
+            function: {
+                name: 'rename_character',
+                description: "Rename a character everywhere the name is used: the players registry key, the Player name, the node display name, and other characters' relationship keys. Use this for 'rename X to Y' — do NOT use update_node {name}, which only changes the node and leaves the roster/inspector/relationships on the old name (task-447/619).",
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        character: { type: 'string', description: 'Character name or id' },
+                        new_name: { type: 'string', description: 'The new display name' }
+                    },
+                    required: ['character', 'new_name']
+                }
+            }
+        },
+        {
+            type: 'function',
+            function: {
+                name: 'get_behaviours',
+                description: "Read a character's current behaviours (the compiled array the engine runs: {trigger, interval, conditions, actions, priority}). Use before editing them with update_player.behaviors (task-739). Read-only.",
+                parameters: {
+                    type: 'object',
+                    properties: { character: { type: 'string', description: 'Character name or key' } },
+                    required: ['character']
+                }
+            }
+        },
+        {
+            type: 'function',
+            function: {
+                name: 'compile_behaviours',
+                description: 'Compile a behaviour-mode graph ({nodes, wires}) into the engine behaviour array via TriggerGraph.compileToBehaviorsWithIssues, returning behaviors + compile_error. Use to VALIDATE behaviour logic before staging it (task-739). Read-only.',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        nodes: { type: 'array', items: { type: 'object' }, description: 'Behavior-graph nodes: {id, type: behavior|condition|action, props, x, y}' },
+                        wires: { type: 'array', items: { type: 'object' }, description: 'Connections: {from:[id,port], to:[id,port]}' }
+                    },
+                    required: ['nodes']
+                }
+            }
+        },
+        {
+            type: 'function',
+            function: {
                 name: 'search_library_items',
                 description: 'Search the curated Item Library to find reusable templates before creating from scratch.',
                 parameters: {
@@ -615,7 +749,7 @@ window.NLEditorTools = (() => {
                         library_id: { type: 'string', description: 'Library item ID to spawn' },
                         parent_id: { type: 'string', description: 'Target area or container node ID where item will be placed' },
                         rename: { type: 'string', description: 'Optional custom name' },
-                        relation: { type: 'string', enum: ['in', 'on', 'under', 'behind', 'beside', 'at'], description: 'Spatial relationship (default: "in")' },
+                        relation: { type: 'string', enum: ['in', 'on', 'under', 'behind', 'beside', 'at', 'carrying', 'equipped'], description: 'Placement edge (default: "in"). Use "carrying" to put it in a character\'s inventory, or "equipped" to wear/wield it; the spatial ones (on/under/behind/beside/at) are for surfaces and containers.' },
                         overrides: { type: 'object', description: 'Optional property overrides' }
                     },
                     required: ['library_id', 'parent_id']
@@ -652,6 +786,55 @@ window.NLEditorTools = (() => {
                         patch: { type: 'object', description: 'Key-value map of properties to update (e.g. description, triggers, tags)' }
                     },
                     required: ['node_id', 'patch']
+                }
+            }
+        },
+        {
+            type: 'function',
+            function: {
+                name: 'update_player',
+                description: "Stage a change to a character's PLAYER STATE (not graph edges): add memories, adjust relationship closeness toward someone, remove a relationship, or spike an emotion. Use this instead of attach for things that are not items/locations (task-738).",
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        character: { type: 'string', description: 'Character name or id' },
+                        patch: {
+                            type: 'object',
+                            description: 'Player-state patch. Keys: memories (array of {text, importance?, tags?}), relationship ({target, closeness}), remove_relationship (name), emotion ({name, delta}).',
+                            properties: {
+                                memories: {
+                                    type: 'array',
+                                    items: {
+                                        type: 'object',
+                                        properties: {
+                                            text: { type: 'string' },
+                                            importance: { type: 'number' },
+                                            tags: { type: 'array', items: { type: 'string' } }
+                                        },
+                                        required: ['text']
+                                    }
+                                },
+                                relationship: {
+                                    type: 'object',
+                                    properties: {
+                                        target: { type: 'string' },
+                                        closeness: { type: 'number' }
+                                    },
+                                    required: ['target']
+                                },
+                                remove_relationship: { type: 'string' },
+                                emotion: {
+                                    type: 'object',
+                                    properties: {
+                                        name: { type: 'string' },
+                                        delta: { type: 'number' }
+                                    },
+                                    required: ['name']
+                                }
+                            }
+                        }
+                    },
+                    required: ['character', 'patch']
                 }
             }
         },
@@ -700,13 +883,13 @@ window.NLEditorTools = (() => {
             type: 'function',
             function: {
                 name: 'attach',
-                description: 'Stage a spatial connection placing an item/entity into/onto another node.',
+                description: 'Stage a relation edge between two nodes — placement (into/onto), giving an item to a character (their inventory), or equipping it.',
                 parameters: {
                     type: 'object',
                     properties: {
                         from_id: { type: 'string', description: 'The entity being placed (e.g. item)' },
-                        to_id: { type: 'string', description: 'The parent target container/surface/area' },
-                        relation: { type: 'string', enum: ['in', 'on', 'under', 'behind', 'beside', 'at'], description: 'Spatial relation' }
+                        to_id: { type: 'string', description: 'The parent target container/surface/area/character' },
+                        relation: { type: 'string', enum: ['in', 'on', 'under', 'behind', 'beside', 'at', 'carrying', 'equipped'], description: 'Use "carrying" to give an item to a character (their inventory), "equipped" to have them wear/wield it, or the spatial relations for placement.' }
                     },
                     required: ['from_id', 'to_id', 'relation']
                 }
@@ -1140,6 +1323,42 @@ window.NLEditorTools = (() => {
                             return { count: 0, tags: [], error: e.message };
                         }
                     }
+                    case 'get_trigger_schema': {
+                        const TT = window
+                            .TriggerTypes;
+                        if (!TT)
+                            return { error: 'TriggerTypes catalog not loaded.' };
+                        const unwrap = (list) => (list || []).map((e) => {
+                            const o = e;
+                            return typeof o === 'string' ? o : { value: o.value, label: o.label, group: o.group };
+                        });
+                        return {
+                            trigger_types: TT.TRIGGER_TYPES || [],
+                            condition_types: unwrap(TT.CONDITION_TYPES),
+                            effect_types: unwrap(TT.EFFECT_TYPES),
+                            note: 'Build a logic_trigger: set trigger_type (from trigger_types), effects=[{type, params}] (from effect_types), and optionally conditions (a tree {operator: and|or|not, conditions:[...]} or a leaf {type, ...}).'
+                        };
+                    }
+                    case 'get_behaviours': {
+                        const players = (typeof worldState !== 'undefined' && worldState?.data?.players) || {};
+                        const key = String(args.character || '');
+                        let entry = players[key]
+                            || Object.keys(players).map(k => players[k])
+                                .find((p) => String(p?.name || '') === key);
+                        if (!entry)
+                            return { error: `No character '${args.character}'.` };
+                        const beh = Array.isArray(entry.behaviors) ? entry.behaviors : [];
+                        return { character: entry.name || key, count: beh.length, behaviors: beh.slice(0, 50) };
+                    }
+                    case 'compile_behaviours': {
+                        const TG = window.TriggerGraph;
+                        if (!TG || typeof TG.compileToBehaviorsWithIssues !== 'function') {
+                            return { error: 'TriggerGraph not loaded.' };
+                        }
+                        const graph = { nodes: args.nodes || [], wires: args.wires || [] };
+                        const res = TG.compileToBehaviorsWithIssues(graph);
+                        return { behaviors: res.behaviors, compile_error: res.compile_error || '' };
+                    }
                     case 'list_library_traits': {
                         const q = (args.query || '').toLowerCase().trim();
                         try {
@@ -1351,6 +1570,16 @@ window.NLEditorTools = (() => {
                     case 'create_node': {
                         const kind = args.kind || 'item';
                         const name = args.name || 'Unnamed';
+                        if (kind === 'character') {
+                            // bug-527: a character is Player-backed. Stage a
+                            // create_character op — the apply registers a Player and
+                            // mints the canonical `player_<name>` node. A bare
+                            // `character_*` node is rejected as an unregistered player.
+                            const pid = ('player_' + name).replace(/ /g, '_');
+                            const charData = { id: pid, type: 'character', name, properties: args.properties || {} };
+                            const charOp = this.staging.addOp('create_character', { node: charData }, `Create character "${name}" [id: ${pid}]`);
+                            return { staged: true, op_id: charOp.id, node_id: pid, summary: charOp.summary };
+                        }
                         const nodeId = this.staging.mintId(kind, name);
                         const nodeData = {
                             id: nodeId,
@@ -1464,6 +1693,45 @@ window.NLEditorTools = (() => {
                         const op = this.staging.addOp('delete_node', {
                             node_id: node.id
                         }, `Delete ${node.type || 'node'} "${node.name || nodeId}"`);
+                        return { staged: true, op_id: op.id, summary: op.summary };
+                    }
+                    case 'update_player': {
+                        // The server re-resolves the character; resolve a node id
+                        // here only so the staged row names something stable.
+                        const pnode = this.overlay.getNode(args.character);
+                        const character = (pnode && pnode.type === 'character') ? pnode.id : args.character;
+                        if (!character)
+                            return { error: 'update_player needs a character.' };
+                        const patch = (args.patch && typeof args.patch === 'object') ? args.patch : {};
+                        if (Object.keys(patch).length === 0)
+                            return { error: 'update_player needs a non-empty patch.' };
+                        const op = this.staging.addOp('update_player', {
+                            character,
+                            patch
+                        }, `Update player state for "${pnode?.name || args.character}"`);
+                        return { staged: true, op_id: op.id, summary: op.summary };
+                    }
+                    case 'create_trigger': {
+                        const ownerNode = this.overlay.getNode(args.owner_id);
+                        const ownerId = ownerNode ? ownerNode.id : args.owner_id;
+                        if (!ownerId)
+                            return { error: 'create_trigger needs an owner_id.' };
+                        const trigger = (args.trigger && typeof args.trigger === 'object') ? args.trigger : null;
+                        if (!trigger || Object.keys(trigger).length === 0) {
+                            return { error: 'create_trigger needs a non-empty trigger definition.' };
+                        }
+                        const tt = trigger.trigger_type || '?';
+                        const op = this.staging.addOp('create_trigger', { owner_id: ownerId, trigger }, `Create trigger on "${ownerNode?.name || args.owner_id}": ${tt}`);
+                        return { staged: true, op_id: op.id, summary: op.summary };
+                    }
+                    case 'rename_character': {
+                        const rnNode = this.overlay.getNode(args.character);
+                        const character = (rnNode && rnNode.type === 'character') ? rnNode.id : args.character;
+                        const newName = String(args.new_name || '').trim();
+                        if (!character || !newName) {
+                            return { error: 'rename_character needs a character and new_name.' };
+                        }
+                        const op = this.staging.addOp('rename_character', { character, new_name: newName }, `Rename "${rnNode?.name || args.character}" to "${newName}"`);
                         return { staged: true, op_id: op.id, summary: op.summary };
                     }
                     case 'attach': {

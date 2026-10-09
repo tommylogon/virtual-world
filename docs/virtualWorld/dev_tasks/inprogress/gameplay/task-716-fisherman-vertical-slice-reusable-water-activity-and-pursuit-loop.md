@@ -8,7 +8,7 @@ priority: high
 # task-716: Fisherman — step-by-step authoring and implementation checklist
 
 **Filed:** 2026-10-05
-**Related:** task-90, task-321, task-409, task-504, task-569, task-591, task-650, task-701, task-702, task-703, task-704, task-705, task-714
+**Related:** task-90, task-321, task-409, task-504, task-569, task-591, task-650, task-701, task-702, task-703, task-704, task-705, task-714, task-746
 
 ## Missing code features and required data additions
 

@@ -172,6 +172,38 @@ def create_app(config=None):
                 'path': path,
                 'editor': editor,
             })
+
+        # Static images have timestamped, never-edited filenames but were served
+        # with Flask's default `no-cache`, so the browser revalidated all ~780
+        # node images on every refresh. Cache them hard. JS/CSS keep their default
+        # (`no-cache`) so edits are still picked up during development.
+        if request.path.startswith('/static/images/') and response.status_code == 200:
+            response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+
+        # Gzip JSON API responses. /api/state is multi-megabyte and was served
+        # raw; compressing it is the single biggest wire win for refresh. Guarded
+        # to API JSON, only when the client asked for gzip and the body is worth
+        # it, and never for an already-encoded response.
+        try:
+            if ('gzip' in (request.headers.get('Accept-Encoding') or '').lower()
+                    and response.status_code < 400
+                    and response.mimetype == 'application/json'
+                    and not response.headers.get('Content-Encoding')
+                    and not getattr(response, 'direct_passthrough', False)):
+                raw = response.get_data()
+                if len(raw) >= 1024:
+                    import gzip as _gzip
+                    import io as _io
+                    buf = _io.BytesIO()
+                    with _gzip.GzipFile(fileobj=buf, mode='wb', compresslevel=6) as _gz:
+                        _gz.write(raw)
+                    response.set_data(buf.getvalue())
+                    response.headers['Content-Encoding'] = 'gzip'
+                    response.headers['Content-Length'] = str(len(response.get_data()))
+                    response.headers.add('Vary', 'Accept-Encoding')
+        except Exception:
+            pass  # never let compression break a response
+
         return response
 
     # Register all route modules

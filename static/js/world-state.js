@@ -99,6 +99,11 @@ class WorldState {
     /** Start polling for spectator mode */
     startPolling(intervalMs = 1500) {
         this.stopPolling();
+        // A full /api/state build can take seconds on a large world. Without a
+        // guard the 1.5s interval stacks requests faster than they finish, so the
+        // server is always mid-serialization and every refresh feels hung. Skip a
+        // tick while the previous fetch is still in flight instead.
+        let inFlight = false;
         this._pollTimer = setInterval(() => {
             // The agent loop already pushes UI updates via renderAll while running.
             // Polling /api/state on top of that doubles the stream and re-triggers
@@ -107,7 +112,10 @@ class WorldState {
             // always undefined (would make this guard dead code).
             if (typeof config !== 'undefined' && config.running)
                 return;
-            this.fetch();
+            if (inFlight)
+                return;
+            inFlight = true;
+            Promise.resolve(this.fetch()).finally(() => { inFlight = false; });
         }, intervalMs);
     }
     stopPolling() {

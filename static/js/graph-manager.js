@@ -543,8 +543,8 @@ class GraphManagerImpl {
         catch (e) { /* keep the session value */ }
         this._syncMapSpacingButton();
         this._lastSig = '';
-        // Node boxes and item rings scale with the pitch, so the group options
-        // have to be rebuilt before the data is re-laid out (bug-53).
+        // Mark sizes are fixed now (task-748), but the layout still has to be
+        // re-laid out at the new pitch, so the group options are rebuilt first.
         if (window.GraphNetwork && typeof GraphNetwork.applyGraphSettings === 'function') {
             try {
                 GraphNetwork.applyGraphSettings();
@@ -571,9 +571,9 @@ class GraphManagerImpl {
     }
     /**
      * Hand the map pitch back to auto-pitching (task-526), or take it back with
-     * `false`. Re-derives from the painted extent on the next load, so it reloads
-     * the graph by the same path a manual nudge does: the pitch feeds node sizes,
-     * the lattice and the background art at once.
+     * `false`. Re-derives the mark envelope on the next load, so it reloads the
+     * graph by the same path a manual nudge does: the pitch feeds the lattice and
+     * the background art at once.
      */
     async setAutoMapSpacing(enabled) {
         const on = enabled !== false;
@@ -622,18 +622,8 @@ class GraphManagerImpl {
         if (autoBtn) {
             autoBtn.setAttribute('aria-pressed', this._mapSpacingAuto ? 'true' : 'false');
             autoBtn.title = this._mapSpacingAuto
-                ? 'Pitch is derived from the painted extent. Click to fix it and use − / +.'
-                : 'Pitch is yours. Click to derive it from the painted extent again.';
-        }
-        // A compact map has no names on it, so say why rather than leaving the
-        // user to wonder why their rooms turned into dots.
-        const note = document.getElementById('map-compact-note');
-        if (note) {
-            const _gmLayout = GraphLayoutEngine;
-            const compact = this._cardinalLayout === true
-                && typeof GraphLayoutEngine !== 'undefined'
-                && _gmLayout.mapCompact && _gmLayout.mapCompact();
-            note.hidden = !compact;
+                ? 'Pitch is derived from the canvas size. Click to fix it and use − / +.'
+                : 'Pitch is yours. Click to derive it from the canvas size again.';
         }
     }
     _buildTooltip(nodeData) { return GraphNetwork.buildTooltip(nodeData); }

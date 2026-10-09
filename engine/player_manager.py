@@ -179,6 +179,42 @@ class PlayerManager:
             n += 1
         return key
 
+    def rename_player(self, old_ref, new_name: str) -> Player:
+        """Rename a registered player's DISPLAY NAME and registry key (task-447/619).
+
+        The graph node id stays put — it is the opaque anchor every edge already
+        references — so only the name-resolution layer moves: the ``players`` key,
+        ``Player.name``, the id/node reverse maps, ``active_player`` and (by the
+        caller) the node's display ``name``. Relationship keys are keyed by
+        display name today, so callers must re-key them separately.
+
+        Raises ``ValueError`` when *new_name* is blank/taken or *old_ref* is unknown.
+        """
+        new_name = (new_name or "").strip()
+        if not new_name:
+            raise ValueError("new_name is required")
+        player = self.get_player(old_ref)
+        if player is None:
+            raise ValueError(f"No such player: {old_ref}")
+        old_key = next((k for k, v in self.players.items() if v is player), None)
+        if old_key is None:
+            raise ValueError(f"No such player: {old_ref}")
+        if player.name == new_name and old_key == new_name:
+            return player
+        if new_name in self.players and self.players[new_name] is not player:
+            raise ValueError(f"A character named '{new_name}' already exists")
+        node_id = getattr(player, "node_id", None) or self.get_player_node_id(old_key)
+        player.name = new_name
+        player.node_id = node_id
+        self.players.pop(old_key, None)
+        self.players[new_name] = player
+        if getattr(player, "id", None):
+            self._players_by_id[player.id] = new_name
+        self._players_by_node_id[node_id] = new_name
+        if self.active_player == old_key:
+            self.active_player = new_name
+        return player
+
     def add_player(self, player_obj: Player):
         """Register a player and create their graph node."""
         if not player_obj or not getattr(player_obj, 'name', None):

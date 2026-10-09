@@ -78,7 +78,7 @@ interface NlEditorDiffWindowSurface { NLEditorDiff: unknown }
         const type = isObj(op) ? op.type : undefined;
         const payload = (isObj(op) && isObj(op.payload) ? op.payload : {}) as Record<string, unknown>;
 
-        if (type === 'create_node') {
+        if (type === 'create_node' || type === 'create_character') {
             const node = (isObj(payload.node) ? payload.node : payload) as Record<string, unknown>;
             return { kind: 'create', id: node.id, label: node.name, changes: [] };
         }

@@ -222,7 +222,8 @@ test('the exported reconcile functions re-derive for the loaded scope, once per 
         assertEq(fetches, 1, 'the world-refetch path fetched that scope\'s grid once');
         assertTrue(typeof state._reconciledFor === 'string' && state._reconciledFor.startsWith('zone|'),
             'the derived signature names the scope and its pitch');
-        assertEq(layer.rect.width, 800, 'the stale px rect was re-derived from the cells');
+        assertEq(layer.rect.width, 20 * window.GraphLayoutEngine.mapSpacing(),
+            'the stale px rect was re-derived from the cells at the current pitch');
 
         // `state:updated` fires on every world fetch — after every paint stroke and
         // every node edit — so the signature has to short-circuit a fetch when the
@@ -234,7 +235,8 @@ test('the exported reconcile functions re-derive for the loaded scope, once per 
         window.graphManager._scopeOffsets = { zone: { x: 5, y: 0 } };
         await GB._internals._reconcileReferenceArt();
         assertEq(fetches, 2, 'a zone move re-derives');
-        assertEq(layer.rect.x, -20 + 5 * 40, 'the art followed the new zone offset');
+        const pit = window.GraphLayoutEngine.mapSpacing();
+        assertEq(layer.rect.x, -pit / 2 + 5 * pit, 'the art followed the new zone offset');
 
         // A scope switch cannot trust the previous signature, so refreshForScope
         // clears it and refetches — deliberately, and unlike the refetch path.
@@ -301,9 +303,11 @@ test('paintedGridRect maps a painted scope grid to graph space', () => {
     assertEq(rect({}), null, 'empty grid');
     assertEq(rect({ w: 0, h: 4 }), null, 'zero width');
     assertEq(rect({ w: 4, h: 0 }), null, 'zero height');
-    // Default spacing: the Map layout's scale (GRID_SCALE 1) = 40px per cell,
-    // half a cell offset so cell 0's area is at the origin.
-    assertEq(rect({ w: 8, h: 4 }), { x: -20, y: -20, width: 320, height: 160 }, 'map spacing');
+    // Default spacing is the mark envelope (task-748), half a cell offset so
+    // cell 0's area is at the origin.
+    const d = window.GraphLayoutEngine.mapSpacing();
+    assertEq(rect({ w: 8, h: 4 }), { x: -d / 2, y: -d / 2, width: 8 * d, height: 4 * d },
+        'map spacing (the mark envelope)');
     assertEq(rect({ w: 8, h: 4 }, 1), { x: -20, y: -20, width: 320, height: 160 }, 'engine units');
     // An explicit override scales with the spacing (3.5 → 140px/cell).
     assertEq(rect({ w: 8, h: 4 }, 3.5), { x: -70, y: -70, width: 1120, height: 560 }, 'override');
@@ -377,17 +381,17 @@ test('the art rect is derived from the scope\'s cells, so it tracks the map pitc
     const payload = gridPayload('zone', 20, 10);
     const src = payload.reference.image;
     const layer = imageLayer('zone', src);
-    // 20x10 cells at 40px = 800x400; the 4:1 picture is letterboxed to an 800x200
-    // band centred in it, exactly as the painter shows it.
+    // 20x10 cells at 40px = 800x400; the 4:1 picture is stretched to FILL the
+    // grid (task-748), not letterboxed to an 800x200 band.
     withPitch(40, () => GB._internals._applyReferenceLayout(layer, payload, placedRectOf(payload, { x: 0, y: 0 }, 40), 'zone'));
-    assertEq(layer.rect, { x: -20, y: 80, width: 800, height: 200 }, 'pitch 40');
+    assertEq(layer.rect, { x: -20, y: -20, width: 800, height: 400 }, 'pitch 40: the art fills the grid');
 
     // Same cells, pitch 160: every dimension scales by exactly 4. This is the
     // property `reconcileAllForGapChange` exists to maintain, and the reason a
     // px rect goes stale the moment the pitch moves.
     const wide = imageLayer('zone', src);
     withPitch(160, () => GB._internals._applyReferenceLayout(wide, payload, placedRectOf(payload, { x: 0, y: 0 }, 160), 'zone'));
-    assertEq(wide.rect, { x: -80, y: 320, width: 3200, height: 800 }, 'pitch 160');
+    assertEq(wide.rect, { x: -80, y: -80, width: 3200, height: 1600 }, 'pitch 160');
 });
 
 test('the derived art rect is the same frame the Map layout puts the areas in', () => {
@@ -396,30 +400,31 @@ test('the derived art rect is the same frame the Map layout puts the areas in', 
     const layer = imageLayer('zone', src);
     // A zone moved by the painter's zone drag (task-523).
     const offsets = { zone: { x: -4, y: 13 } };
-    withPitch(40, () => withManager({ _scopeOffsets: offsets }, () => {
-        GB._internals._applyReferenceLayout(layer, payload, placedRectOf(payload, offsets.zone, 40), 'zone');
+    const PITCH = 40;
+    withPitch(PITCH, () => withManager({ _scopeOffsets: offsets }, () => {
+        GB._internals._applyReferenceLayout(layer, payload, placedRectOf(payload, offsets.zone, PITCH), 'zone');
     }));
 
-    // Every area of that scope, laid out by the real engine helper.
-    const u = window.GraphLayoutEngine.mapSpacing();
+    // Every area of that scope, laid out by the real engine helper at that pitch.
+    const u = PITCH;
     const inside = (cx, cy) => {
-        const node = { type: 'area', properties: { world_scope_id: 'zone', x: cx * 40, y: cy * 40 } };
-        const placed = window.GraphLayoutEngine.scopedGridPosition(node.properties, node, offsets);
+        const node = { type: 'area', properties: { world_scope_id: 'zone', cell: { x: cx, y: cy } } };
+        const placed = window.GraphLayoutEngine.scopedGridPosition(node.properties, node, offsets, u);
         assertEq(placed.x, cx * u + offsets.zone.x * u, `cell ${cx} x is cell*pitch + offset`);
         assertEq(placed.y, cy * u + offsets.zone.y * u, `cell ${cy} y is cell*pitch + offset`);
         return placed.x >= layer.rect.x && placed.x <= layer.rect.x + layer.rect.width
             && placed.y >= layer.rect.y && placed.y <= layer.rect.y + layer.rect.height;
     };
-    // The picture has to cover the cells it was drawn over — this is the whole
+    // The picture has to cover the cells it was drawn over - this is the whole
     // complaint ("the bg images do not follow the scope zones"). Measured on the
     // real world before the fix: 0 of 463 painted areas inside the derived rect.
     assertTrue(inside(1, 4), 'a mid-grid cell is under the art');
     assertTrue(inside(10, 5), 'a centre cell is under the art');
     assertTrue(inside(18, 7), 'the last column is under the art');
-    // The letterbox is honest, not a full-grid cover: rows outside the picture's
-    // band sit above and below it, which is what the painter shows too.
-    assertFalse(inside(0, 0), 'a cell above the letterbox band is not under the art');
-    assertFalse(inside(19, 9), 'a cell below the letterbox band is not under the art');
+    // The art now FILLS the grid (task-748), so the corner cells are under it too
+    // - there is no letterbox band to fall outside of.
+    assertTrue(inside(0, 0), 'the first cell is under the art');
+    assertTrue(inside(19, 9), 'the last cell is under the art');
 });
 
 test('a reference with its own stored cell rect wins over the whole-grid fit', () => {

@@ -702,8 +702,13 @@ class AreaDescription:
                         seen_ways.add(way_id)
                         continue
                     vid = edge.properties.get("visible_in_direction", "") or ""
-                    way_tags = {str(t).lower().strip() for t in way_node.properties.get("tags", []) or []}
-                    open_word = "is clear" if ("exterior" in way_tags or "natural" in way_tags) else "is open"
+                    # "is clear" for a way under the open sky, "is open" otherwise.
+                    # The single predicate accepts both spellings — `outdoor`, the
+                    # canonical tag the compiler writes, and `exterior`, the one
+                    # hand-authored library areas carry. This used to test the
+                    # literal set {"exterior", "natural"}, so a compiled open-air
+                    # path never matched and always read "is open" (bug-529).
+                    open_word = "is clear" if _is_open_sky(way_node.properties.get("tags", [])) else "is open"
                     if vid:
                         exits_desc.append(f"[{handle}] {open_word} — on the other side you can see {vid}{beyond_suffix}")
                     else:

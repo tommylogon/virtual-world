@@ -74,8 +74,23 @@ def _wearable_entries():
             "slots": list(slots),
             "tags": sorted(tags),
             "insulation": int(data.get("insulation", 0) or 0),
+            # task-660: adult wearables (a restraint/gag) are marked `mature` in
+            # the library, the same flag `_filter_mature_entries` honours.
+            "mature": bool(data.get("mature")),
         })
     return out
+
+
+def _apply_mature_gate(gs, entries):
+    """Drop `mature`-flagged wearables unless the world has opted in (task-660).
+
+    The inspector's Auto-Dress button is general-purpose, so a mature item must
+    not reach the model — or the deterministic pool — while `mature_content` is
+    off. Definitions stay functional for a character already wearing one.
+    """
+    if getattr(gs, "mature_content", False):
+        return entries
+    return [e for e in entries if not e.get("mature")]
 
 
 def _library_dir():
@@ -140,6 +155,7 @@ def dress_candidates(gs, player_name=None, limit=30):
     hot, cold = temp >= 30, temp <= 5
 
     entries = [e for e in _wearable_entries() if _weather_ok(e, hot, cold)]
+    entries = _apply_mature_gate(gs, entries)
     matched = _tag_matched(entries, interest)
 
     matched_ids = {e["lib_id"] for e in matched}
@@ -194,6 +210,7 @@ def auto_dress(gs, player_name=None, seed=None, library_ids=None):
     hot, cold = temp >= 30, temp <= 5
 
     entries = [e for e in _wearable_entries() if _weather_ok(e, hot, cold)]
+    entries = _apply_mature_gate(gs, entries)
     by_id = {e["lib_id"]: e for e in entries}
 
     if library_ids is None:

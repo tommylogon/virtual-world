@@ -466,3 +466,35 @@ def test_the_jump_climb_crawl_refusal_is_unchanged():
     for requires in ("jump", "climb", "crawl"):
         reason = _block_for(_Way(current_state="open", requires=requires), "close")
         assert f"open {requires} passage" in reason
+
+
+# ── the compiler must actually set the flag (bug-530) ──────────────────────
+
+
+def test_a_compiled_open_outdoor_way_carries_prevent_close():
+    """The rule above is only real if the compiler emits the flag.
+
+    ``_apply_way_blocking`` set ``prevent_close`` on the ways it *blocked*; every
+    other open outdoor way compiled without it, so a character could close a road
+    into a forest by hand — exactly what ``movement.py`` documents as impossible.
+    """
+    patch = wc.compile_grid(_painted_manifest(4, 4), "wild", seed="painter")
+    ways = [n for n in patch.nodes if n.type == "way"]
+    assert ways, "a 4x4 grid compiles ways"
+    for node in ways:
+        kind = node.properties.get("kind")
+        if kind in ("open", "stairs"):
+            assert node.properties.get("prevent_close") is True, node.id
+        else:
+            assert node.properties.get("prevent_close") is not True, node.id
+
+
+def test_a_compiled_open_outdoor_way_refuses_a_hand_close():
+    """End to end: the flag the compiler writes is the one movement reads."""
+    patch = wc.compile_grid(_painted_manifest(3, 3), "wild", seed="painter")
+    way = next(n for n in patch.nodes
+               if n.type == "way"
+               and n.properties.get("kind") == "open"
+               and n.properties.get("current_state") == "open")
+    reason = MovementSystem._open_passage_block(None, way, "close", "the path")
+    assert reason and "can't close" in reason, reason

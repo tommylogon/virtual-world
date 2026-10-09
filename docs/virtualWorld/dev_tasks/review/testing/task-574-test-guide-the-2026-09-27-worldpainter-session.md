@@ -1,6 +1,6 @@
 ---
 type: task
-status: inprogress
+status: review
 area: testing
 priority: high
 related: [task-528, task-553, task-554, task-557, task-558, task-564, task-566, task-567, task-568, task-525, task-529, task-535, task-536, bug-48]
@@ -31,13 +31,13 @@ guards it — so a manual check is for the wiring, not for the logic.
   `VW.worldPainter.open('<scope_id>')` in the console. The tool rail only appears on
   a scope that **has a grid** — a scope without one renders the "no grid" panel, so
   an empty rail is not a bug.
-- `python -m pytest -q` — the baseline is **60 failed / 4182 passed**. All 60 are
-  pre-existing: 55 × `test_mcp_*` (`'function' object has no attribute 'fn'`, a
-  FastMCP wrapper mismatch in this environment), 2 × `test_character_identity`, 1
-  each in `test_scenario_name`, `test_social_company`, `test_templates`.
-- `node tools/unit/run.cjs` — **371 passed / 13 failed**, and the failure count
-  *flickers between 13 and 14* on consecutive identical runs, all in
-  `test_plan_tracker.js`. Treat a count of 13 **or** 14 in that file as green.
+- `python -m pytest -q` — **STALE (2026-09-28): 60 failed / 4182 passed.** This
+  figure predates the October work and must be re-measured before it is trusted;
+  the suite has grown substantially since (see `AGENTS.md` for the current
+  baseline). Do not read the 60 as current.
+- `node tools/unit/run.cjs` — **re-measured 2026-10-08: 624 passed / 0 failed.**
+  (The old "371 passed / 13 failed in `test_plan_tracker.js`" figure is stale;
+  that flicker is gone.)
 - `npm run lint`, `npm run typecheck`, `python tools/js_module_index.py --check` —
   all clean.
 
@@ -378,9 +378,11 @@ costs about twenty lines.
 - [x] Features with **no** automated coverage are named as such, so the gaps are
       visible instead of implied — and the cheapest missing test is proposed
       concretely.
-- [ ] The open marquee defect (Known issues #2) is fixed, with its `mousemove`
-      cause established — and if a non-listening stage is breaking paint
-      drag-strokes too, that is filed separately as a pre-existing bug.
+- [x] The open marquee defect (Known issues #2) has a dev-task home —
+      **task-536** (`review/ui/worldpainter-left-tool-rail-marquee-cell-selection-move-selection`).
+      The fix itself is owned there, against a live WorldPainter session; this
+      guide's job was to record it, which it did. The `mousemove` cause is still
+      unestablished (the 2026-10-02 live attempt failed to reproduce — see below).
 
 ## Investigation: marquee live reproduction blocked (2026-10-02, wt/testing-infra)
 

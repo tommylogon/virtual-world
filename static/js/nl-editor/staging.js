@@ -100,7 +100,7 @@ window.NLEditorStaging = (() => {
         getStagedCreations() {
             const creations = {};
             for (const op of this.ops) {
-                if (op.type === 'create_node' || op.type === 'spawn_library_item') {
+                if (op.type === 'create_node' || op.type === 'create_character' || op.type === 'spawn_library_item') {
                     const node = op.payload.node || op.payload;
                     if (node?.id) {
                         creations[node.id.toLowerCase()] = {
@@ -245,7 +245,7 @@ window.NLEditorStaging = (() => {
             // ── Fallback: per-op replay (stale server, no atomic undo) ──
             const errors = [];
             const appliedIds = new Set();
-            const creates = targets.filter((o) => o.type === 'create_node' || o.type === 'spawn_library_item' || o.type === 'connect_areas');
+            const creates = targets.filter((o) => o.type === 'create_node' || o.type === 'create_character' || o.type === 'spawn_library_item' || o.type === 'connect_areas');
             const updates = targets.filter((o) => o.type === 'update_node' || o.type === 'link_to_library');
             const edges = targets.filter((o) => o.type === 'attach' || o.type === 'detach');
             const deletes = targets.filter((o) => o.type === 'delete_node');
@@ -260,6 +260,20 @@ window.NLEditorStaging = (() => {
                                 type: nodeData.type || nodeData.kind || 'item',
                                 name: nodeData.name,
                                 properties: nodeData.properties || {}
+                            });
+                            if (res?.error)
+                                errors.push(`${op.summary}: ${res.error}`);
+                            else
+                                appliedIds.add(op.id);
+                            break;
+                        }
+                        case 'create_character': {
+                            // bug-527: register a Player (mints the canonical
+                            // player_<name> node) rather than a bare graph node.
+                            const nodeData = op.payload.node || op.payload;
+                            const res = await api().post('/api/players', {
+                                name: nodeData.name,
+                                ...(nodeData.properties || {})
                             });
                             if (res?.error)
                                 errors.push(`${op.summary}: ${res.error}`);

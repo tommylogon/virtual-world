@@ -11,10 +11,17 @@
             "id": "628a877e9730f243",
             "type": "leaf",
             "state": {
-              "type": "graph",
-              "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Graph view"
+              "type": "canvas",
+              "state": {
+                "file": "Untitled.canvas",
+                "viewState": {
+                  "x": 0,
+                  "y": -186,
+                  "zoom": 0
+                }
+              },
+              "icon": "lucide-layout-dashboard",
+              "title": "Untitled"
             }
           },
           {
@@ -197,6 +204,7 @@
   },
   "active": "628a877e9730f243",
   "lastOpenFiles": [
+    "Untitled.canvas",
     "dev_tasks/todo/ui/bug-526-sync-world-to-library-sync-all-ignores-the-active-tab-and-generated-entities-and-silently-overwrites.md",
     "dev_tasks/todo/gameplay/bug-525-reviving-a-dead-character-leaves-it-in-a-blocking-activity-forcing-wake-before-any-interaction.md",
     "dev_tasks/todo/gameplay/task-731-activities-are-entered-through-their-object-not-a-bare-verb-bed-chair-bath-actor-chosen-duration-dreaming.md",
@@ -231,7 +239,6 @@
     "dev_tasks/todo/ui/task-714-character-mind-panel-connect-memories-motives-and-current-pursuits.md",
     "dev_tasks/todo/refactor/task-713-engine-attention-py-is-a-dead-second-implementation-of-the-attended-set-selector.md",
     "dev_tasks/todo/ui/task-712-a-failed-scope-fetch-silently-resets-the-filter-to-whole-world-which-will-promote-the-whole-cast.md",
-    "dev_tasks/todo/world/task-711-re-evaluate-the-promoted-set-every-tick-promote-on-entry-demote-on-exit.md",
-    "dev_tasks/todo/world/task-710-scope-selection-drives-the-promoted-set-level-scoped-never-recursive.md"
+    "dev_tasks/todo/world/task-711-re-evaluate-the-promoted-set-every-tick-promote-on-entry-demote-on-exit.md"
   ]
 }

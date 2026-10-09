@@ -165,6 +165,15 @@ def handle_get_state(app):
         # built from the lite payload, then a full fetch fills in the rest.
         lite = request.args.get("lite", "").strip().lower() in ("1", "true", "yes")
         state = app.world.to_dict(lite=lite)
+        # Perf: `rooms` is an exact duplicate of `areas` (serialization.py emits
+        # the same dict under both keys) and `areas_by_id` has no HTTP consumer —
+        # the browser reads `worldState.areas`. Together they roughly triple the
+        # /api/state encode cost for ~13 MB of payload. Drop them from the wire
+        # unless a caller explicitly opts in with ?full=1. `to_dict` itself is
+        # unchanged (tests and non-HTTP callers still see areas_by_id).
+        if request.args.get("full", "").strip().lower() not in ("1", "true", "yes"):
+            state.pop("rooms", None)
+            state.pop("areas_by_id", None)
         state["scenario_ended"] = getattr(app.world, 'scenario_ended', False)
         state["_restart_requested"] = getattr(app.world, '_restart_requested', False)
         state["vital_polarity"] = VITAL_POLARITY

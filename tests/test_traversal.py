@@ -66,6 +66,15 @@ def _boom():
     raise AssertionError("routine ground must not roll")
 
 
+def _tag_way(w, a, direction, tags):
+    """Set the tags on the way *direction* out of area *a*, and return its id."""
+    for edge in w.graph.get_edges_for_source(w.area_node_id(a), EDGE_CONNECTION):
+        if edge.properties.get("direction") == direction:
+            w.graph.get_node(edge.target).properties["tags"] = list(tags)
+            return edge.target
+    raise AssertionError(f"no way {direction!r} from {a!r}")
+
+
 # ───────────────────────────── the mapping ────────────────────────────────
 
 def test_way_kind_reads_the_requirement():
@@ -135,6 +144,68 @@ def test_a_cliff_failure_injures_rather_than_merely_wets():
     _area(w, "Ledge", tags=("cliff",))
     failed = traversal.attempt(w, hero, dest="Ledge", roll_fn=lambda: 1)
     assert not failed.ok and failed.condition == "injured"
+
+
+# ─────────────────── the way is where the crossing happens ────────────────
+
+
+def test_a_river_crossing_is_checked_at_the_way_not_the_destination():
+    w = _world()
+    _area(w, "Near")
+    _area(w, "Far")                     # ordinary ground; the danger is the crossing
+    _connect(w, "Near", "Far", "north")
+    wid = _tag_way(w, "Near", "north", ("river",))
+    hero = _hero(w, area="Near")
+
+    assert traversal.way_hazard(w, wid) == ("river", "Athletics", traversal.HAZARD_DC)
+    failed = traversal.attempt(w, hero, dest="Far", way_id=wid, roll_fn=lambda: 1)
+    assert not failed.ok and failed.skill == "Athletics" and failed.condition == "wet"
+
+
+def test_a_bridge_cancels_the_crossing_hazard():
+    w = _world()
+    _area(w, "Near")
+    _area(w, "Far")
+    _connect(w, "Near", "Far", "north")
+    wid = _tag_way(w, "Near", "north", ("river", "bridge"))
+    hero = _hero(w, area="Near")
+    # A built crossing is answered, not rolled.
+    assert traversal.way_hazard(w, wid) is None
+    result = traversal.attempt(w, hero, dest="Far", way_id=wid, roll_fn=_boom)
+    assert result.ok and result.tier == "routine"
+
+
+def test_a_forest_path_is_not_a_crossing_hazard():
+    # Ambient ground tags are the destination area's business: a path through
+    # woods must not turn every step into a Survival roll.
+    w = _world()
+    _area(w, "Near")
+    _area(w, "Far")
+    _connect(w, "Near", "Far", "north")
+    wid = _tag_way(w, "Near", "north", ("forest", "woods", "outdoor"))
+    assert traversal.way_hazard(w, wid) is None
+
+
+def test_a_trigger_written_condition_tag_becomes_a_crossing_check():
+    # `flooded` is not compiler output; a trigger writes it. It reads here.
+    w = _world()
+    _area(w, "Near")
+    _area(w, "Far")
+    _connect(w, "Near", "Far", "north")
+    wid = _tag_way(w, "Near", "north", ("road", "flooded"))
+    assert traversal.way_hazard(w, wid)[0] == "flooded"
+
+
+def test_hop_checks_the_way_it_crosses():
+    w = _world()
+    _area(w, "Near")
+    _area(w, "Far")
+    _connect(w, "Near", "Far", "north")
+    _tag_way(w, "Near", "north", ("cliff",))
+    hero = _hero(w, area="Near")
+    result = traversal.hop(w, hero, "north", roll_fn=lambda: 1)
+    assert not result.ok and result.skill == "Athletics"
+    assert result.condition == "injured" and hero.current_area == "Near"
 
 
 # ───────────────────────────── hopping ────────────────────────────────────

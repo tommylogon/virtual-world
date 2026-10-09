@@ -1,6 +1,6 @@
 ---
 type: task
-status: review
+status: inprogress
 area: graph
 priority: medium
 ---
@@ -55,3 +55,29 @@ edges are the 7 real cross-scope gateways. Regression tests:
 (new) and the painted-way-pinned test (updated from task-530, which left painted
 ways to the solver; task-618 requires them pinned to their cell). 486 JS unit
 tests pass.
+
+## Reopened 2026-10-08 — back to inprogress (the "7 real gateways" line does not hold on the whole world)
+
+The 2026-10-02 measurement was four scopes. The whole world is now **627 areas /
+1380 ways**, and the long edges are many more than 7 gateways. Measured on
+`data/scenarios/kraktooth_goblin_camp.json` at pitch 240:
+
+- **469** edges draw >2000px — 418 `connection`, 34 `in`, 11 `at`, 3 `triggers`,
+  2 `carrying`, 1 `beside`.
+- Longest **11,763px**: `way_gateway_world_eldenford_interior` (a genuine
+  cross-scope gateway); then 10,088px `beside` `player_Belne → player_Rikka`.
+- **755 nodes carry no `world_scope_id`** (468 items, 235 `logic_trigger`, 27
+  characters, 25 ways), so they get no scope offset and their edges cross empty
+  space; 94 cross-scope connection edges touch a `None`-scope node
+  (`goblin_camp ↔ None`, 47 each way), e.g. `area_side_tunnels → way_side_to_mine`
+  at 6,801px.
+
+So "the remaining long edges are the real cross-scope gateways" is not what the
+whole-world view shows. The fix has to account for the unscoped nodes and the
+stale canvas coordinates as well as the gateways.
+
+**Landed 2026-10-08 (partial):** items/characters held in a painted area no longer
+use their stale canvas coords, and painted nodes are placed from `cell × pitch`,
+which removes the worst of the fan; the background art reads the same pitch
+(`graph-background`). Still open: the 25 scope-less ways, the 235 `logic_trigger`
+nodes with no `world_scope_id`, and the genuine cross-scope gateway edges.

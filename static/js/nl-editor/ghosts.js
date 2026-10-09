@@ -248,7 +248,8 @@ window.NLEditorGhosts = (() => {
     function _ghostIdFor(op) {
         const p = op.payload || {};
         switch (op.type) {
-            case 'create_node': return p.node?.id ? `${NODE_PREFIX}${p.node.id}` : null;
+            case 'create_node':
+            case 'create_character': return p.node?.id ? `${NODE_PREFIX}${p.node.id}` : null;
             case 'connect_areas': return p.way_id ? `${NODE_PREFIX}${p.way_id}` : null;
             case 'spawn_library_item': return `${NODE_PREFIX}spawn_${op.id}`;
             default: return null;
@@ -258,7 +259,8 @@ window.NLEditorGhosts = (() => {
     function _liveTargetId(op) {
         const p = op.payload || {};
         switch (op.type) {
-            case 'create_node': return p.node?.id || null;
+            case 'create_node':
+            case 'create_character': return p.node?.id || null;
             case 'spawn_library_item': return p.parent_id || null;
             case 'connect_areas': return p.area_a_id || null;
             case 'update_node':

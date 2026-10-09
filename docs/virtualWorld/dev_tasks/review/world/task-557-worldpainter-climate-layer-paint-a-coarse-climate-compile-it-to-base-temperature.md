@@ -8,7 +8,7 @@ priority: medium
 # task-557: WorldPainter climate layer: paint a coarse climate, compile it to base_temperature
 
 **Filed:** 2026-09-27
-**Related:** task-553, task-497, task-496
+**Related:** task-553, task-497, task-496, task-745
 
 ## Goal
 

@@ -217,6 +217,64 @@ test('AgentLoop._extractXmlToolCalls parses XML-ish tool prose into real tool_ca
     assertTrue(calls[0].id.startsWith('xml_'), 'call id prefixed for history tracking');
 });
 
+test('AgentLoop._extractXmlToolCalls parses the <tool_call>/<parameter> shape (live bug)', () => {
+    const staging = new NLEditorStaging.StagingBuffer();
+    const router = new NLEditorTools.ToolRouter(staging);
+    const agent = new NLEditorAgent.AgentLoop(staging, router);
+
+    // This is the Anthropic/AntML shape a model actually emitted live; the old
+    // parser dropped it silently and printed the raw text as the reply.
+    const content = '<tool_call>search_graph_nodes<parameter name="query">Jake Halloway</parameter>'
+        + '<parameter name="kind">character</parameter></tool_call>';
+    const calls = agent._extractXmlToolCalls(content);
+    assertEq(calls.length, 1, 'the AntML tool_call shape must parse');
+    assertEq(calls[0].function.name, 'search_graph_nodes');
+    const a = JSON.parse(calls[0].function.arguments);
+    assertEq(a.query, 'Jake Halloway');
+    assertEq(a.kind, 'character');
+});
+
+test('AgentLoop._extractXmlToolCalls parses <invoke name> and skips unknown tool_call names', () => {
+    const staging = new NLEditorStaging.StagingBuffer();
+    const router = new NLEditorTools.ToolRouter(staging);
+    const agent = new NLEditorAgent.AgentLoop(staging, router);
+
+    const inv = '<invoke name="get_node"><parameter name="node_id">player_Arix</parameter></invoke>';
+    const calls = agent._extractXmlToolCalls(inv);
+    assertEq(calls.length, 1, 'invoke shape parsed');
+    assertEq(calls[0].function.name, 'get_node');
+    assertEq(JSON.parse(calls[0].function.arguments).node_id, 'player_Arix');
+
+    const unknown = '<tool_call>not_a_real_tool<parameter name="x">1</parameter></tool_call>';
+    assertEq(agent._extractXmlToolCalls(unknown).length, 0, 'unknown tool name ignored, not executed');
+});
+
+test('AgentLoop._extractXmlToolCalls handles <name> child, <function=> and JSON shapes', () => {
+    const staging = new NLEditorStaging.StagingBuffer();
+    const router = new NLEditorTools.ToolRouter(staging);
+    const agent = new NLEditorAgent.AgentLoop(staging, router);
+
+    const nameChild = '<tool_call><name>update_node</name>'
+        + '<parameter name="node_id">player_Jake</parameter>'
+        + '<parameter name="patch">{"name":"Cullen Rutherford"}</parameter></tool_call>';
+    const c1 = agent._extractXmlToolCalls(nameChild);
+    assertEq(c1.length, 1, '<name> child parsed');
+    assertEq(c1[0].function.name, 'update_node');
+    const a1 = JSON.parse(c1[0].function.arguments);
+    assertEq(a1.node_id, 'player_Jake');
+    assertEq(a1.patch.name, 'Cullen Rutherford', 'nested patch JSON preserved');
+
+    const fnEq = '<function=update_node><parameter name="node_id">player_Y</parameter></function>';
+    const c2 = agent._extractXmlToolCalls(fnEq);
+    assertEq(c2.length, 1, '<function=> parsed');
+    assertEq(c2[0].function.name, 'update_node');
+
+    const json = 'I will rename. {"name":"update_node","arguments":{"node_id":"player_Z","patch":{"name":"C"}}}';
+    const c3 = agent._extractXmlToolCalls(json);
+    assertEq(c3.length, 1, 'JSON tool-call object parsed');
+    assertEq(JSON.parse(c3[0].function.arguments).node_id, 'player_Z');
+});
+
 test('AgentLoop._extractXmlToolCalls ignores unknown tags and returns empty without XML', () => {
     const staging = new NLEditorStaging.StagingBuffer();
     const router = new NLEditorTools.ToolRouter(staging);

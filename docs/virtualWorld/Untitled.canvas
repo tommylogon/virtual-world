@@ -1,0 +1,12 @@
+{
+	"nodes":[
+		{"id":"ff9de7293da4f1ae","x":-274,"y":-296,"width":250,"height":60,"type":"text","text":"Character"},
+		{"id":"5c35f83465a1aa38","x":-332,"y":-45,"width":250,"height":60,"type":"text","text":"shirt"},
+		{"id":"36c403ee35be0357","x":0,"y":-75,"width":250,"height":60,"type":"text","text":"bra"}
+	],
+	"edges":[
+		{"id":"91fc570a0ac268ae","fromNode":"5c35f83465a1aa38","fromSide":"top","toNode":"ff9de7293da4f1ae","toSide":"bottom","label":"Equiped"},
+		{"id":"f350d4c73ff7605a","fromNode":"36c403ee35be0357","fromSide":"top","toNode":"ff9de7293da4f1ae","toSide":"bottom","label":"equiped"},
+		{"id":"19f29a1a88fa53df","fromNode":"36c403ee35be0357","fromSide":"left","toNode":"5c35f83465a1aa38","toSide":"right","label":"Under"}
+	]
+}

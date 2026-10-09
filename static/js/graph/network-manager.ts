@@ -35,10 +35,7 @@ type NetworkApi = { [key: string]: any };
  */
 type LayoutEngineExtra = typeof GraphLayoutEngine & {
     applyCardinalLayout(...args: any[]): any;
-    mapScale?: () => number;
-    mapCompact?: () => boolean;
-    autoMapSpacing(nodes: any): number;
-    mapDotSize?: () => number;
+    autoMapSpacing(nodes: any, viewSize?: { w: number; h: number }): number | null;
 };
 
 /** Published by graph/edge-types.js (also window.EdgeTypes); not in globals.d.ts. */
@@ -297,6 +294,9 @@ function _firstSentence(text: unknown, maxLines: number): string {
         const mapK = GraphNetwork.mapSizeScale();
         const spring = (fallback: number) => (cfg.graphSpringLength != null
             ? cfg.graphSpringLength : Math.round(fallback * mapK));
+        // Cell-relative mark sizes for a painted map (the map view and Levels keep
+        // their original pixel sizes).
+        const marks = (GraphNetwork as any)._markSizes();
         // centralGravity follows the layout (see centralGravityFor): ON in the free
         // graph layout, 0 for Map and Levels. The map-mode numbers below are the
         // balance measured with it off — with no central pull, repulsion is the
@@ -354,29 +354,59 @@ function _firstSentence(text: unknown, maxLines: number): string {
             // the image never appeared. Shapes are assigned per node in
             // buildNodeConfig instead; groups keep color/font/size only.
             //
-            // Sizes scale with the map pitch so a wide painted map does not turn
-            // its rooms into specks (bug-53). Fonts only get an explicit size
-            // where they already had one, so a scaled way label is not a surprise.
-            area: { color: { background: '#2d333b', border: '#58a6ff' }, font: { color: '#c9d1d9', size: 14 * GraphNetwork.mapSizeScale() }, borderWidth: 2, margin: { top: 21 * GraphNetwork.mapSizeScale() * GraphNetwork.nodeSizeScale(), bottom: 21 * GraphNetwork.mapSizeScale() * GraphNetwork.nodeSizeScale(), left: 27 * GraphNetwork.mapSizeScale() * GraphNetwork.nodeSizeScale(), right: 27 * GraphNetwork.mapSizeScale() * GraphNetwork.nodeSizeScale() } },
-            item: { color: { background: '#3d2e1a', border: '#e3b341' }, font: { color: '#e3b341', size: 12 * GraphNetwork.mapSizeScale() }, size: 18 * GraphNetwork.mapSizeScale() * GraphNetwork.nodeSizeScale(), borderWidth: 1 },
-            way: { color: { background: '#1a3a2a', border: '#4ec9b0' }, font: { color: '#4ec9b0' }, size: 14 * GraphNetwork.mapSizeScale() * GraphNetwork.nodeSizeScale(), borderWidth: 1 },
-            character: { color: { background: '#2a1a3d', border: '#bc8cff' }, font: { color: '#bc8cff', size: 14 * GraphNetwork.mapSizeScale() }, size: 24 * GraphNetwork.mapSizeScale() * GraphNetwork.nodeSizeScale(), borderWidth: 2 }
+            // On a painted map the sizes are fixed px (`marks`, task-748); the
+            // graph view and Levels keep their original fixed pixel sizes. Fonts
+            // take the fixed map size in Map, their original size elsewhere.
+            area: { color: { background: '#2d333b', border: '#58a6ff' }, font: { color: '#c9d1d9', size: marks.areaFont }, borderWidth: 2, margin: { top: marks.areaPadY, bottom: marks.areaPadY, left: marks.areaPad, right: marks.areaPad } },
+            item: { color: { background: '#3d2e1a', border: '#e3b341' }, font: { color: '#e3b341', size: marks.itemFont }, size: marks.itemSize, borderWidth: 1 },
+            way: { color: { background: '#1a3a2a', border: '#4ec9b0' }, font: { color: '#4ec9b0', size: marks.wayFont }, size: marks.waySize, borderWidth: 1 },
+            character: { color: { background: '#2a1a3d', border: '#bc8cff' }, font: { color: '#bc8cff', size: marks.charFont }, size: marks.charSize, borderWidth: 2 }
             }
         };
     },
 
     /**
-     * The size factor for nodes drawn on a painted map (bug-53): the map pitch
-     * relative to the default 40px cell, and **only** in the Map layout.
-     *
-     * Node boxes are fixed pixel sizes, so a wide pitch spread the rooms out and
-     * left their labels as specks between them. 1 everywhere else, so the graph
-     * view and Levels look exactly as they always have.
+     * The map pitch relative to the default 40px cell, and **only** in the Map
+     * layout (1 in the graph view and Levels). Used where a distance must follow
+     * the cell - the solver's spring length - not for mark sizes, which are fixed
+     * px (`_markSizes()`, task-748).
      */
     mapSizeScale() {
         if (!graphManager || graphManager._cardinalLayout !== true) return 1;
-        return (typeof GraphLayoutEngine !== 'undefined' && (GraphLayoutEngine as unknown as { mapScale?: () => number }).mapScale)
-            ? (GraphLayoutEngine as unknown as { mapScale: () => number }).mapScale() : 1;
+        const pitch = (typeof GraphLayoutEngine !== 'undefined'
+            && (GraphLayoutEngine as unknown as { mapSpacing?: () => number }).mapSpacing)
+            ? (GraphLayoutEngine as unknown as { mapSpacing: () => number }).mapSpacing() : 40;
+        return pitch / 40;
+    },
+
+    /**
+     * Drawn size of each mark on a painted map, in fixed px
+     * (`GraphLayoutEngine.MAP_MARK_PX`). Returns the original fixed pixel sizes
+     * outside the Map layout, so the graph view and Levels are untouched. The
+     * Node-size slider multiplies the shapes and card padding, never the font, so
+     * labels keep a readable size while marks grow under them. Fixed, not
+     * pitch-scaled: the pitch is derived *from* these now (task-748).
+     */
+    _markSizes() {
+        const ns = GraphNetwork.nodeSizeScale();
+        const inMap = !!graphManager && graphManager._cardinalLayout === true;
+        const LE: any = typeof GraphLayoutEngine !== 'undefined' ? GraphLayoutEngine : null;
+        if (inMap && LE && LE.markSize && LE.markFontPx && LE.markCardPad) {
+            const font = LE.markFontPx();
+            const pad = LE.markCardPad() * ns;
+            return {
+                areaFont: font, areaPad: pad, areaPadY: pad,
+                itemFont: font * 0.8, itemSize: LE.markSize('item') * ns,
+                wayFont: font * 0.8, waySize: LE.markSize('way') * ns,
+                charFont: font, charSize: LE.markSize('character') * ns,
+            };
+        }
+        return {
+            areaFont: 14, areaPad: 27 * ns, areaPadY: 21 * ns,
+            itemFont: 12, itemSize: 18 * ns,
+            wayFont: 14, waySize: 14 * ns,
+            charFont: 14, charSize: 24 * ns,
+        };
     },
 
     /**
@@ -395,24 +425,13 @@ function _firstSentence(text: unknown, maxLines: number): string {
     },
 
     /**
-     * Draw the painted map's areas as compact dots instead of named cards
-     * (task-526). False outside the Map layout, so the graph view and Levels are
-     * untouched at every pitch.
-     */
-    mapCompact() {
-        if (!graphManager || graphManager._cardinalLayout !== true) return false;
-        return !!(typeof GraphLayoutEngine !== 'undefined'
-            && (GraphLayoutEngine as unknown as { mapCompact?: () => boolean }).mapCompact && (GraphLayoutEngine as unknown as { mapCompact: () => boolean }).mapCompact());
-    },
-
-    /**
-     * Adopt a pitch derived from the painted extent, unless the user has taken the
+     * Adopt the mark-envelope pitch (task-748), unless the user has taken the
      * pitch into their own hands (task-526).
      *
-     * Runs at the top of every graph load, *before* anything reads the pitch: node
-     * sizes, the lattice and the background art are all derived from it, so a pitch
-     * decided afterwards would leave them disagreeing. Returns true when the pitch
-     * moved, so the caller can re-fit the art (which is positioned in px).
+     * Runs at the top of every graph load, *before* anything reads the pitch: the
+     * lattice and the background art are both derived from it, so a pitch settled
+     * afterwards would leave them disagreeing. Returns true when the pitch moved,
+     * so the caller can re-fit the art (which is positioned in px).
      *
      * The override is a stored flag, not a comparison against the last value: a
      * user who deliberately sits at 40px/cell must keep 40px/cell on every load,
@@ -950,25 +969,28 @@ function _firstSentence(text: unknown, maxLines: number): string {
     },
 
     /**
-     * Should node names be drawn right now? The manual toggle plus a zoom LOD:
-     * a dense painted map (more than `graphLabelMaxNodes`, default 400) hides
-     * names until the view is zoomed past `graphLabelMinScale` (default 0.6), so
-     * the overview is topology, not a wall of text. A small graph always shows.
+     * Should node names be drawn right now?
+     *
+     * One rule: a name is worth drawing when a **cell** is big enough on screen
+     * to hold it — `pitch × zoom >= graphLabelMinCellPx` (default 14px) — plus the
+     * manual toggle. The old count gate (hide every name over
+     * `graphLabelMaxNodes` until the raw network scale passed `graphLabelMinScale`
+     * 0.6) measured the wrong thing: on a high-pitch map the raw scale sits near
+     * zero however large the cells are, so the names never came back while
+     * zooming (bug-528).
      */
     _nodeLabelPolicy() {
         if (!graphManager._showNodeLabels) return false;
-        // A compact map draws areas as bare dots, so a name under every dot is
-        // the wall of text the dot switch exists to avoid (task-526). The
-        // decision is cached and restored with every other label change, so
-        // raising the pitch brings the names back verbatim.
-        if (GraphNetwork.mapCompact()) return false;
+        // A tiny non-map graph always shows its names.
         const total = Object.keys(graphManager._graphNodesObj || {}).length;
-        const max = Number((typeof config !== 'undefined' && config && config.graphLabelMaxNodes)) || 400;
-        if (total <= max) return true;
-        let scale = 1;
-        try { scale = graphManager.network.getScale(); } catch (err) { /* ignore */ }
-        const minScale = Number((typeof config !== 'undefined' && config && config.graphLabelMinScale)) || 0.6;
-        return scale >= minScale;
+        if (!graphManager._cardinalLayout && total <= 400) return true;
+        const LE: any = typeof GraphLayoutEngine !== 'undefined' ? GraphLayoutEngine : null;
+        const pitch = LE && LE.mapSpacing ? LE.mapSpacing() : 40;
+        let zoom = 1;
+        try { zoom = graphManager.network.getScale(); } catch (err) { /* ignore */ }
+        const cellPx = pitch * (Number.isFinite(zoom) && zoom > 0 ? zoom : 1);
+        const minCellPx = Number((typeof config !== 'undefined' && config && config.graphLabelMinCellPx)) || 14;
+        return cellPx >= minCellPx;
     },
 
     /**
@@ -1194,21 +1216,29 @@ function _firstSentence(text: unknown, maxLines: number): string {
             shape: ({ area: 'box', item: 'diamond', way: 'triangle', character: 'ellipse' } as Record<string, string>)[nodeData.type] || 'ellipse'
         };
 
-        // A compact map draws a painted area as a bare dot (task-526). A card's
-        // width is driven by its *name*, which does not shrink with the pitch, so
-        // below the card threshold the boxes are what overlap. The dot is sized
-        // from the cell instead, so it always fits its own cell.
-        if (nodeData.type === 'area' && GraphNetwork.mapCompact()) {
-            nodeConfig.shape = 'dot';
-            nodeConfig.size = ((typeof GraphLayoutEngine !== 'undefined'
-                && (GraphLayoutEngine as LayoutEngineExtra).mapDotSize) ? (GraphLayoutEngine as LayoutEngineExtra).mapDotSize!() : 8)
-                * GraphNetwork.nodeSizeScale();
+        // On a painted map a card is capped at a fixed width so a wide name wraps
+        // instead of overlapping its neighbour (task-748; the old pitch threshold
+        // that swapped cards for dots, `mapCompact`/`mapDotSize`, is gone). Only
+        // the Map layout caps; the graph view keeps natural card width.
+        const inMap = !!graphManager && graphManager._cardinalLayout === true;
+        const LE: any = typeof GraphLayoutEngine !== 'undefined' ? GraphLayoutEngine : null;
+        if (inMap && LE && LE.markCardMax && nodeData.type === 'area') {
+            nodeConfig.widthConstraint = { maximum: LE.markCardMax() * GraphNetwork.nodeSizeScale() };
         }
 
-        // Saved layout: a node whose x/y were persisted to the world (right-click
-        // → 🗺 → 💾 Save layout) loads back in place instead of being freshly
-        // simulated. Whether it then HOLDS is the job of the physics lock.
-        if (typeof nodeData.properties?.x === 'number' && typeof nodeData.properties?.y === 'number') {
+        // Seed the position: a painted node from its cell × pitch (the map frame),
+        // a hand-placed node from its saved canvas x/y. `_gridUpdates` re-places
+        // painted nodes on load anyway; seeding from the cell avoids a one-frame
+        // jump from the compiler's `cell × 40` copy.
+        const seedCell = nodeData.properties?.cell;
+        if (inMap && LE && LE.gridPosition
+                && seedCell && Number.isFinite(Number(seedCell.x)) && Number.isFinite(Number(seedCell.y))) {
+            const seeded = LE.gridPosition(seedCell);
+            if (seeded) { nodeConfig.x = seeded.x; nodeConfig.y = seeded.y; }
+        } else if (typeof nodeData.properties?.x === 'number' && typeof nodeData.properties?.y === 'number') {
+            // Saved layout: a node whose x/y were persisted to the world
+            // (right-click → 🗺 → 💾 Save layout) loads back in place instead of
+            // being freshly simulated. Whether it then HOLDS is the physics lock.
             nodeConfig.x = nodeData.properties.x;
             nodeConfig.y = nodeData.properties.y;
         }

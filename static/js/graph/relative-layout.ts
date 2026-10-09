@@ -98,12 +98,12 @@ interface LevelEdge {
  * stays untouched.
  */
 function _layoutEngine(): (typeof GraphLayoutEngine & {
-    mapScale?: () => number;
+    mapSpacing?: () => number;
     hasPaintedCoords?: (properties: Record<string, unknown>) => boolean;
 }) | null {
     return (typeof GraphLayoutEngine !== 'undefined' && GraphLayoutEngine)
         ? GraphLayoutEngine as typeof GraphLayoutEngine & {
-              mapScale?: () => number;
+              mapSpacing?: () => number;
               hasPaintedCoords?: (properties: Record<string, unknown>) => boolean;
           }
         : null;
@@ -216,8 +216,8 @@ const _GraphRelativeLayout: GraphRelativeLayoutApi = {
         try {
             const engine = _layoutEngine();
             if (typeof graphManager !== 'undefined' && graphManager && graphManager._cardinalLayout === true
-                    && engine && engine.mapScale) {
-                mapScale = engine.mapScale();
+                    && engine && engine.mapSpacing) {
+                mapScale = engine.mapSpacing() / 40;
             }
         } catch (err) { /* keep the default */ }
         const scale = Math.max(0.25, Math.min(length / this.ORBIT.baseEdgeLength, 3.5)) * mapScale;

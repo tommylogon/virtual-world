@@ -1,6 +1,6 @@
 ---
 type: task
-status: inprogress
+status: review
 area: characters
 priority: low
 ---
@@ -89,10 +89,11 @@ siblings today.
       `docs/virtualWorld/AI & Narration/Agent Engine.md` (new "Involuntary
       Reactions" section covering the full body-reaction set and the
       no-roll-on-conditioned-emotes rule).
-- [ ] Tests run — **the user asked to hold test runs**, so the four new
-      `test_involuntary.js` cases are written but unrun. `node tools/unit/run.cjs`
-      must be run before this closes.
-- [ ] Full suite compared against the baseline.
+- [x] Tests run — `node tools/unit/run.cjs` **624 passed / 0 failed** (2026-10-08),
+      including the four new `test_involuntary.js` sneeze cases.
+- [x] Condition catalog regression checked — `tests/test_conditions.py`,
+      `tests/test_more_conditions.py`, `tests/test_condition_catalog.py`:
+      **92 passed** (2026-10-08).
 
 ## Non-goals
 

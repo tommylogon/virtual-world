@@ -1,6 +1,6 @@
 ---
 type: task
-status: review
+status: inprogress
 area: graph
 priority: medium
 ---
@@ -54,3 +54,29 @@ The loose (non-painted) nodes are still solved rather than placed, so on a very
 wide map they can spread further than the rooms. Their spring length now follows
 the pitch, which is the fix for the worst of it; pinning ways to their cell
 midpoints (as the compiler does) is the structural answer and is left for later.
+
+## Reopened 2026-10-08 — back to inprogress (the drawing still does not fit the cell)
+
+The clamped scale does not solve the case it was written for. At the auto pitch
+(240) `mapScale()` clamps at 2.5, so the area group margin is `27 × 2.5 = 67.5px`
+per side and the card is the label text + 135px — **wider than the 240px cell it
+sits in**. The way midpoint in the gap (task-723) is therefore drawn *under* the
+card, and the map reads as cards packed on a lattice, which is the "spacing is
+too low" the author reported. Measured in the whole-world map at pitch 240: 469
+edges draw >2000px (418 `connection`, 34 `in`, 11 `at`, 3 `triggers`, 2
+`carrying`, 1 `beside`), longest 11,763px. Reopen to make the area mark fit its
+cell at any pitch, and to place the loose (non-painted) nodes instead of solving
+them — the note above is now the reason this is not done.
+
+**Landed 2026-10-08:** marks are cell fractions (`MARK_FRACTION`, `markSize`/
+`markFontPx`/`markCardPad`/`markCardMax`); the area card is capped at `0.92` cell
+with a per-node `widthConstraint`, verified in isolation to **wrap** a long name
+inside the cap; `mapScale`'s clamp is gone. The orbit and background art read
+`mapSpacing()` (`relative-layout`, `graph-background`). Unit suite green (622).
+
+**Superseded in part by task-748 (2026-10-09).** Marks are no longer cell
+fractions: `MARK_FRACTION` is gone, replaced by fixed-px `MAP_MARK_PX` (card 130,
+way 26, item 30, character 42, font 14). The card is still capped and wraps a long
+name, and `relative-layout` / `graph-background` still read `mapSpacing()`; only
+the "marks scale with the pitch" half is undone, because one slider should not
+both space the rooms and inflate the markers.

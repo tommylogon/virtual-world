@@ -950,33 +950,33 @@
         const centreY = (minY + maxY) / 2;
         _fitLayerToRect(layer, centreX - width / 2, centreY - height / 2, width, height);
     }
-    /** Contain-fit a layer inside a graph-space rect (aspect kept, centred). */
+    /**
+     * Fit a layer to a graph-space rect. The image is **stretched to fill** the
+     * rect (task-748): the painted grid is authoritative and the reference art is
+     * a texture over `cells × pitch`, so the picture bends to the cells rather
+     * than the cells bending to the picture's aspect.
+     *
+     * This used to contain-fit (aspect preserved, centred), which letterboxed the
+     * art inside any grid whose aspect differed from the image's — a 3:1 world map
+     * in a 2:1 grid covered only ~2/3 of the grid height, leaving the top and
+     * bottom rows of cells bare (measured on `world`, `goblin_camp`,
+     * `abandoned_farms`, `west_woods`).
+     */
     function _fitLayerToRect(layer, x, y, width, height) {
         if (!layer || !layer.image || !(width > 0) || !(height > 0))
             return;
-        const aspect = (layer.image.width || 1) / (layer.image.height || 1);
-        let fitWidth = width;
-        let fitHeight = width / aspect;
-        if (fitHeight > height) {
-            fitHeight = height;
-            fitWidth = height * aspect;
-        }
-        layer.rect = {
-            x: x + (width - fitWidth) / 2,
-            y: y + (height - fitHeight) / 2,
-            width: fitWidth,
-            height: fitHeight,
-        };
+        layer.rect = { x, y, width, height };
     }
     /**
      * Painter cell pitch in engine units — mirrors ``CELL_CANVAS_UNITS`` in
-     * ``engine/world_compile.py``. Compiled areas sit at ``cell * pitch`` in
-     * *engine* space; the Map layout then scales that by
-     * ``GraphLayoutEngine.GRID_SCALE`` for readability, so the background must
-     * use the same scaled pitch or the art and the nodes land on different grids.
+     * ``engine/world_compile.py``. Only used for an explicit caller scale; the
+     * default comes from the layout pitch, because compiled areas sit at
+     * ``cell * pitch`` in map space (``GraphLayoutEngine.gridPosition``). The
+     * background must use the same pitch or the art and the nodes land on
+     * different grids.
      */
     const PAINT_CELL_UNITS = 40;
-    /** Fallback canvas scale, mirroring `GraphLayoutEngine.GRID_SCALE`. */
+    /** Fallback canvas scale when the layout engine is not loaded. */
     const DEFAULT_MAP_SCALE = 3.5;
     /** Canvas units per painted cell, matching what the Map layout uses. */
     function _mapUnitsPerCell(scale) {
@@ -985,9 +985,8 @@
         const griddy = (typeof GraphLayoutEngine !== 'undefined' && GraphLayoutEngine)
             ? GraphLayoutEngine
             : undefined;
-        const fallback = (griddy && typeof griddy.GRID_SCALE === 'number')
-            ? griddy.GRID_SCALE
-            : DEFAULT_MAP_SCALE;
+        const pitch = (griddy && typeof griddy.mapSpacing === 'function') ? griddy.mapSpacing() : null;
+        const fallback = (typeof pitch === 'number' && pitch > 0) ? pitch / PAINT_CELL_UNITS : DEFAULT_MAP_SCALE;
         return PAINT_CELL_UNITS * fallback;
     }
     /** The graph-space rect a painted scope grid occupies (null without a grid). */

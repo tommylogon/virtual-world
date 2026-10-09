@@ -17,7 +17,7 @@ Settings are managed by `ConfigManager` in `static/js/config.js` and persisted t
 |----------|-------------|---------|-------------|
 | `apiKey` | `api_key` | `''` | API key for the provider |
 | `apiBase` | `api_base` | `https://api.openai.com/v1` | Base URL for API |
-| `model` | `model` | `gpt-4.1-mini` | Model identifier |
+| `model` | `model` | `glm-4-9b-0414` | Model identifier |
 | `provider` | `provider` | `openai` | Provider name |
 | `temperature` | `temperature` | `0.7` | LLM temperature |
 | `maxTokens` | `max_tokens` | `512` | Max tokens per response |
@@ -29,15 +29,29 @@ Settings are managed by `ConfigManager` in `static/js/config.js` and persisted t
 
 ### Provider Types
 
-The `_getDefaultProfiles()` method in `config.js:275` defines built-in profiles:
+The `_getDefaultProfiles()` method in `config.js` defines built-in profiles.
+**LM Studio (Local) is first on purpose**: it is the local default this app runs
+against (model `glm-4-9b-0414`), and the list's first entry is the fallback when
+nothing has been chosen.
 
 ```javascript
+'LM Studio (Local)':     { apiBase: 'http://localhost:1234/v1', model: 'glm-4-9b-0414' },
 'OpenAI (GPT-4.1-mini)': { apiBase: 'https://api.openai.com/v1', model: 'gpt-4.1-mini' },
 'OpenAI (GPT-4o)':       { apiBase: 'https://api.openai.com/v1', model: 'gpt-4o' },
-'LM Studio (Local)':     { apiBase: 'http://localhost:1234/v1', model: '' },
 'DeepSeek':              { apiBase: 'https://api.deepseek.com/v1', model: 'deepseek-flash' },
+'DeepSeek (V4 Pro)':     { apiBase: 'https://api.deepseek.com/v1', model: 'deepseek-v4-pro' },
 'Groq':                  { apiBase: 'https://api.groq.com/openai/v1', model: 'llama3-70b-8192' },
 ```
+
+The first-run defaults (`config.js` `_loadFromStorage`) match: endpoint
+`http://localhost:1234/v1`, model `glm-4-9b-0414`, key `not-needed`. The
+`provider` field stays `'openai'` because that is the wire format LM Studio
+speaks (`llm-client` keys its structured-output quirks off it). `getProfiles()`
+brings an older install up to date: it adds any built-in profile the seed is
+missing (so `LM Studio (Local)` exists on a browser seeded before it did) and
+refreshes the LM Studio model only while it still holds the previous default
+(`qwen/qwen3.5-9b`); a `last_profile` left on a built-in OpenAI profile is
+flipped to `LM Studio (Local)`.
 
 ### API Key and Base URL
 

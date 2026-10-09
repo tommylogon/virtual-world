@@ -312,7 +312,14 @@ class LLMClient {
                 this._checkSchemaEnforcement(content, responseFormat);
                 const tool_calls = isResponses
                     ? this._extractResponsesToolCalls(completion)
-                    : (completion?.choices?.[0]?.message?.tool_calls || null);
+                    // An empty array is truthy; normalise it to null so callers
+                    // treat "no native tool calls" as absent. Some providers send
+                    // `tool_calls: []` rather than omitting the field, which used
+                    // to suppress the XML-in-content fallback in the agent loop.
+                    : ((Array.isArray(completion?.choices?.[0]?.message?.tool_calls)
+                        && completion.choices[0].message.tool_calls.length)
+                        ? completion.choices[0].message.tool_calls
+                        : null);
                 this._logAssistantResponse(label, content || (tool_calls && tool_calls.length ? `[tool_calls: ${tool_calls.length}]` : ''));
                 this._captureDataset(messages, content, label, options);
                 if (options.withTools || options.tools) {

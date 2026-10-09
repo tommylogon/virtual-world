@@ -839,8 +839,9 @@ def _apply_character_node_props(app, node, props):
 # ─────────────────────────── NL-Editor batch (task-387) ───────────────────────────
 
 _BATCH_PHASE = {
-    'create_node': 0, 'spawn_library_item': 0, 'connect_areas': 0,
+    'create_node': 0, 'create_character': 0, 'spawn_library_item': 0, 'connect_areas': 0,
     'update_node': 1, 'update_matching_nodes': 1, 'link_to_library': 1,
+    'update_player': 1, 'create_trigger': 1, 'rename_character': 1,
     'attach': 2, 'detach': 2,
     'delete_node': 3,
     'library_upsert': 4, 'library_delete': 4,
@@ -956,6 +957,29 @@ def _select_nodes(graph, selector):
     return out
 
 
+def _resolve_player(app, key):
+    """Resolve a character to a Player by registry key, node id or display name."""
+    pm = getattr(app.world, "player_manager", None)
+    if pm is None or not key:
+        return None
+    players = getattr(pm, "players", {}) or {}
+    if key in players:
+        return players[key]
+    try:
+        node_id = key if str(key).startswith("player_") else pm.get_player_node_id(key)
+    except Exception:
+        node_id = None
+    by_node = getattr(pm, "_players_by_node_id", {}) or {}
+    k2 = by_node.get(node_id)
+    if k2 and k2 in players:
+        return players[k2]
+    want = str(key).strip().lower()
+    for pl in players.values():
+        if str(getattr(pl, "name", "")).strip().lower() == want:
+            return pl
+    return None
+
+
 def _apply_batch_op(app, optype, p):
     """Replay ONE staged NL-editor op directly against the live graph.
 
@@ -976,6 +1000,140 @@ def _apply_batch_op(app, optype, p):
         graph.add_node(Node(id=nid, type=node_type, name=name,
                             properties=node.get('properties') or {}))
         return {"id": nid}
+
+    if optype == 'create_character':
+        # bug-527: a character is Player-backed. Register a Player (which mints
+        # the canonical `player_<name>` node the rest of the engine reads) instead
+        # of a bare `character_*` graph node the inspector rejects. Authored prose
+        # lands on the node; runtime fields stay on the Player.
+        from player import Player
+        from engine.abilities import normalize_stat_block
+        node = p.get('node') or p
+        name = node.get('name')
+        if not name:
+            return {"error": "create_character needs 'name'"}
+        props = dict(node.get('properties') or {})
+        player = Player(name)
+        player.stats = normalize_stat_block(props.get('stats', player.stats))
+        player.vitals = props.get('vitals', player.vitals)
+        player.skills = props.get('skills', player.skills)
+        player.traits = props.get('traits', player.traits)
+        player.tags = props.get('tags', player.tags)
+        player.interest_tags = props.get('interest_tags', player.interest_tags)
+        player.sync_vitals_with_tags()
+        # add_player() flips active_player to the new character — restore afterwards
+        # (same guard the duplicate path uses).
+        prev_active = app.world.active_player
+        app.world.player_manager.add_player(player)
+        key = app.world.player_manager.active_player
+        app.world.active_player = prev_active
+        pid = app.world.player_manager.get_player_node_id(key)
+        node_obj = graph.get_node(pid)
+        if node_obj is not None:
+            for field in ('personality', 'description', 'base_description'):
+                if field in props:
+                    node_obj.properties[field] = props[field]
+        return {"id": pid, "player": player.name}
+
+    if optype == 'create_trigger':
+        # task-739: author a real trigger — the `logic_trigger` node AND the
+        # `triggers` edge (props on both), via the one materialiser. A bare
+        # create_node gives a node with no edge, which the engine never fires.
+        owner_id = p.get('owner_id')
+        if graph.get_node(owner_id) is None:
+            return {"error": f"create_trigger owner '{owner_id}' not found"}
+        from engine.triggers.materialize import materialize_trigger
+        trigger_id = materialize_trigger(graph, owner_id, p.get('trigger') or {})
+        return {"id": trigger_id, "owner": owner_id}
+
+    if optype == 'update_player':
+        # task-738: Player-state fields that are NOT graph edges. memories live
+        # in a list, relationships in a dict, emotion as pulses on the Player.
+        key = p.get('character') or p.get('character_id')
+        player = _resolve_player(app, key)
+        if player is None:
+            return {"error": f"No character '{key}'."}
+        patch = p.get('patch') if isinstance(p.get('patch'), dict) else {}
+        tick = getattr(app.world, 'time_ticks', 0)
+        applied = {}
+        mems = patch.get('memories')
+        if isinstance(mems, list) and mems:
+            for m in mems:
+                if not isinstance(m, dict):
+                    continue
+                player.add_memory(
+                    str(m.get('text') or ''), tick,
+                    importance=int(m.get('importance', 5) or 5),
+                    memory_type=str(m.get('memory_type') or 'observation'),
+                    tags=m.get('tags'), source=str(m.get('source') or 'nl_editor'),
+                    entity_ids=m.get('entity_ids'), location=str(m.get('location') or ''),
+                )
+            applied['memories'] = len(mems)
+        rel = patch.get('relationship')
+        if isinstance(rel, dict) and rel.get('target'):
+            from engine import relationships as relmod
+            rec = relmod.apply_relationship_delta(
+                player, str(rel.get('target')), int(rel.get('closeness', 0) or 0),
+                cause='nl_editor', tick=tick)
+            applied['relationship'] = rec.get('name') or str(rel.get('target'))
+        rem = patch.get('remove_relationship')
+        if rem:
+            from engine import relationships as relmod
+            k = relmod.resolve_key(player, str(rem))
+            if k:
+                player.relationships.pop(k, None)
+                applied['removed_relationship'] = str(rem)
+        emo = patch.get('emotion')
+        if isinstance(emo, dict) and emo.get('name'):
+            player.spike_emotion(str(emo.get('name')), float(emo.get('delta', 0) or 0))
+            applied['emotion'] = str(emo.get('name'))
+        beh = patch.get('behaviors')
+        if isinstance(beh, list):
+            # task-739: behaviours are the compiled array the engine runs
+            # ({trigger, interval, conditions, actions, priority}); the editor
+            # can author them directly, validated structurally above. The
+            # browser-side TriggerGraph.compileToBehaviorsWithIssues is the
+            # graph->array compile for the visual editor.
+            player.behaviors = list(beh)
+            applied['behaviors'] = len(beh)
+        return {"player": player.name, "applied": applied}
+
+    if optype == 'rename_character':
+        # task-447/619: a character is referenced three ways — the players-map
+        # key, Player.name, and the node display name — plus relationship keys
+        # (keyed by display name). update_node{name} only touches the node, which
+        # is why a "rename" looked like it did nothing in the roster/inspector.
+        key = p.get('character') or p.get('character_id')
+        new_name = (p.get('new_name') or p.get('name') or '').strip()
+        if not new_name:
+            return {"error": "rename_character needs 'new_name'"}
+        pm = getattr(app.world, 'player_manager', None)
+        player = _resolve_player(app, key)
+        if player is None or pm is None:
+            return {"error": f"No character '{key}'."}
+        old_name = player.name
+        if old_name == new_name:
+            return {"player": new_name, "renamed": False}
+        try:
+            pm.rename_player(key, new_name)
+        except ValueError as e:
+            return {"error": str(e)}
+        node_id = getattr(player, 'node_id', None) or pm.get_player_node_id(new_name)
+        node = graph.get_node(node_id)
+        if node is not None:
+            node.name = new_name
+            node.updated = time.time()
+        moved = 0
+        for q in pm.players.values():
+            rels = getattr(q, 'relationships', None)
+            if isinstance(rels, dict) and old_name in rels:
+                record = rels.pop(old_name)
+                if isinstance(record, dict):
+                    record['name'] = new_name
+                rels[new_name] = record
+                moved += 1
+        return {"player": new_name, "renamed": True, "old_name": old_name,
+                "node_id": node_id, "relationship_keys_moved": moved}
 
     if optype == 'spawn_library_item':
         from routes.library_ops import place_library_item
@@ -1195,6 +1353,7 @@ def _validate_batch_ops(app, ops):
             ops,
             nodes=app.world.graph,
             mature_content=bool(getattr(app.world, 'mature_content', False)),
+            player_keys=list(getattr(app.world.player_manager, 'players', {}).keys()),
         )
     except Exception as exc:  # validation must never break Apply
         logger.warning("Batch validation failed: %s", exc)

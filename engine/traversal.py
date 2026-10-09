@@ -90,6 +90,24 @@ HAZARD_CONDITION = {
     "rubble": "injured", "debris": "injured", "unsteady": "injured",
 }
 
+#: Way tags that describe the **crossing itself** — water, height, footing — as
+#: opposed to the ground it runs through. Read off the *way*, so the danger is
+#: where the danger is: a ford is checked as you wade it, not only when you
+#: arrive. The ambient ground tags (`forest`, `swamp`, `snow`) are deliberately
+#: **not** here — the destination area already answers for those, and a path
+#: through woods must not turn every step into a Survival roll.
+CROSSING_HAZARD_SKILLS = {
+    "river": "Athletics", "rapids": "Athletics", "ford": "Athletics",
+    "flooded": "Athletics", "chasm": "Athletics", "ravine": "Athletics",
+    "cliff": "Athletics", "crag": "Athletics", "steep": "Athletics",
+    "ledge": "Athletics",
+    "rubble": "Acrobatics", "debris": "Acrobatics", "unsteady": "Acrobatics",
+}
+
+#: A way carrying one of these is a *built* crossing: the hazard is answered,
+#: not rolled. A bridge over a river is not a ford.
+CROSSING_SAFE_TAGS = frozenset({"bridge"})
+
 #: Ways that need a movement verb rather than a plain walk.
 WAY_VERBS = ("crawl", "climb", "jump")
 
@@ -166,10 +184,45 @@ def hazard(gs, area_name):
     return None
 
 
+def _way_tags(gs, way_id) -> set:
+    if not way_id:
+        return set()
+    try:
+        node = gs.graph.get_node(way_id)
+    except Exception:
+        node = None
+    if node is None:
+        return set()
+    return {str(t).lower() for t in ((node.properties or {}).get("tags") or [])}
+
+
+def way_hazard(gs, way_id):
+    """``(tag, skill, dc)`` when the *crossing itself* is risky, else None.
+
+    The way is where a crossing happens, so a `river`/`cliff`/`flooded` tag on
+    it is checked at the hop, not only on arrival. A `bridge` on the same way
+    cancels it — a built crossing is answered, not rolled. Deterministic: the
+    first matching tag in sorted order.
+    """
+    tags = _way_tags(gs, way_id)
+    if tags & CROSSING_SAFE_TAGS:
+        return None
+    for tag in sorted(tags):
+        skill = CROSSING_HAZARD_SKILLS.get(tag)
+        if skill:
+            return (tag, skill, HAZARD_DC)
+    return None
+
+
 def attempt(gs, player, *, kind: str = "go", dest: str = "",
-            roll_fn=None) -> HopResult:
-    """Roll for a risky crossing. A routine hop takes 10 and never rolls."""
-    spec = hazard(gs, dest)
+            way_id: str = "", roll_fn=None) -> HopResult:
+    """Roll for a risky crossing. A routine hop takes 10 and never rolls.
+
+    The **way's** own crossing tags are checked before the destination area's
+    ground: a ford or a flooded path is dangerous where you cross it, not only
+    where you land.
+    """
+    spec = way_hazard(gs, way_id) or hazard(gs, dest)
     if not spec:
         return HopResult(ok=True, kind=kind, dest=dest, tier="routine",
                          detail="takes 10")
@@ -196,6 +249,7 @@ def hop(gs, player, direction, *, dest: str = "", kind=None,
     character. Returns a :class:`HopResult` whose ``ok`` says whether the
     character actually ended up on the other side.
     """
+    way_id = ""
     if kind is None:
         kind = "go"
         try:
@@ -204,11 +258,13 @@ def hop(gs, player, direction, *, dest: str = "", kind=None,
             data = exits.get(direction) or {}
             if not dest:
                 dest = data.get("target") or ""
-            kind = way_kind(gs, data.get("way_id"))
+            way_id = data.get("way_id") or ""
+            kind = way_kind(gs, way_id)
         except Exception:
             pass
 
-    result = attempt(gs, player, kind=kind, dest=dest, roll_fn=roll_fn)
+    result = attempt(gs, player, kind=kind, dest=dest, way_id=way_id,
+                     roll_fn=roll_fn)
     if not result.ok:
         return result
 

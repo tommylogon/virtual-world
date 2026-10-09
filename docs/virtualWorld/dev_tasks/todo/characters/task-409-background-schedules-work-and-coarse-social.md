@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: todo - out of date, need to re-measure and re-author
 area: characters
 priority: high
 related: [task-702, task-704, task-699]

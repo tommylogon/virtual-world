@@ -36,7 +36,8 @@ A circular door whose description reads `... under the number is a {param:light}
 - **Rendering wiring** so `{param:key}` resolves for a described/examined node regardless of its type:
   - wherever a way/area/character description is rendered into template context, seed `item_params` (or a `node_params`) from that node's `properties.parameters`.
 - **Register** the new effect types in the trigger editor's effect list (inspector.js + item-library.js, grouped appropriately).
-- **Tests** in `tests/test_effects.py` / `tests/test_trigger_system.py`.
+- **Tests** in `tests/test_effects_save.py` / `tests/test_trigger_system.py`.
+  (Corrected 2026-10-08: the file was renamed; `tests/test_effects.py` does not exist.)
 
 ## Files
 
@@ -45,4 +46,4 @@ A circular door whose description reads `... under the number is a {param:light}
 - `engine/area_description.py` — pass node parameters into description template context
 - `static/js/inspector.js` — add new effect types to the editor list
 - `static/js/item-library.js` — add new effect types to `EFFECT_TYPES`
-- `tests/test_effects.py`, `tests/test_trigger_system.py` — tests
+- `tests/test_effects_save.py`, `tests/test_trigger_system.py` — tests

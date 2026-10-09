@@ -3,6 +3,7 @@ type: task
 status: inprogress
 area: characters
 priority: medium
+blocked_by: [task-457]
 ---
 
 # task-447: Character nicknames / aliases (authoring + resolution)
@@ -97,3 +98,14 @@ The two problems stated at filing are stale. Verified:
 
 The original acceptance (author / resolve / persist / ambiguous) is already met;
 the two gaps above are the remaining work. Moved to `inprogress` (2026-10-07).
+
+## Related, landed 2026-10-09 — `rename_character`
+
+Live use surfaced that a rename was only touching the node display name.
+A coordinated `rename_character` op now moves **all** places a name is used:
+the players-map key, `Player.name`, the node display name, and every character's
+relationship key (the key is the display name, task-619). The graph node id stays
+stable (opaque anchor). `PlayerManager.rename_player` enforces key uniqueness.
+NL tool `rename_character` + batch op + validator. Live-verified on a second
+server copy: `Jake Halloway -> Cullen Rutherford` moved 4 relationship keys and
+re-keyed the roster. Tests: `tests/test_nl_editor_rename_character.py` (4).

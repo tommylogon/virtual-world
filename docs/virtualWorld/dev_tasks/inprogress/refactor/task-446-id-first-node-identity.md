@@ -3,6 +3,7 @@ type: task
 status: inprogress
 area: refactor
 priority: high
+blocked_by: [task-457]
 ---
 
 # task-446: id-first node identity — data by id, names resolve at the boundary

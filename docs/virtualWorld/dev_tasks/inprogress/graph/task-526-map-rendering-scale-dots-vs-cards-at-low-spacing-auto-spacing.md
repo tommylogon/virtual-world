@@ -1,6 +1,6 @@
 ---
 type: task
-status: review
+status: inprogress
 area: graph
 priority: medium
 ---
@@ -109,3 +109,33 @@ The art check is the interesting one: before the whole-world reconcile, the
 pictures stayed at the 260px scale — one image covering everything — while the
 areas moved to 55. After it, each zone's picture is re-derived from its own grid
 at 55 and its dots sit on its own cells.
+
+## Reopened 2026-10-08 — back to inprogress (auto spacing is not working)
+
+Auto pitch does not land where this file says it does. This file records
+`AUTO_SPAN_PX = 1600` with a `24–300px` clamp; the shipped constants are
+`AUTO_SPAN_PX = 10000`, `AUTO_SPACING_MIN = 240`, `AUTO_SPACING_MAX = 600`
+(`static/js/graph/layout-engine.ts:484-488`). Measured on the live world, whose
+grids are 160 cells wide (`abandoned_farms 160×100`, `deep woods 45×30`):
+`10000 / 160 ≈ 62px/cell` is below the 240 floor, so the derived pitch clamps
+**up** to 240 and auto cannot reach its own span target. The Tune panel reads
+`240 auto` while the painted extent is 160 × 240 ≈ 38,400px wide, the name cards
+still overlap, and the label LOD hides the names (see bug-528). Auto spacing has
+to produce the pitch the map needs, or the span/floor pair has to be re-derived
+from the real extents. Also re-check that the manual stepper and the `A` override
+still round-trip.
+
+**Landed 2026-10-08:** the pitch/px split is collapsed. `autoMapSpacing` now
+derives a viewport pitch (~`AUTO_CELLS_ACROSS` 10 across the short side, clamp
+40–200) instead of `AUTO_SPAN_PX / longest`; the dot mode
+(`MAP_CARD_MIN_PITCH`/`mapCompact`/`mapDotSize`) and `mapScale`/`MAP_SCALE_MIN`
+are deleted; marks are cell fractions (`MARK_FRACTION`). Live: the Tune stepper
+reads `140 auto` on the 2737-node world; unit suite green (622). Dots are gone,
+so a *manually* tight pitch wraps long names rather than switching to dots.
+
+**Superseded in part by task-748 (2026-10-09).** The viewport pitch
+(`AUTO_CELLS_ACROSS`, clamp 40-200) and the cell-fraction marks landed here are
+replaced: the pitch is now the mark envelope (`markEnvelopePitch`, 176px at
+node-size 1) and marks are fixed px (`MAP_MARK_PX`). What this file established
+and still holds: the stepper / `A` override, and deciding the pitch before
+anything reads it. See `docs/design/worldpainter-knowledge-and-fog.md`.

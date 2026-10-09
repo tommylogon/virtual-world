@@ -119,7 +119,7 @@
         getStagedCreations(): Record<string, Record<string, unknown>> {
             const creations: Record<string, Record<string, unknown>> = {};
             for (const op of this.ops) {
-                if (op.type === 'create_node' || op.type === 'spawn_library_item') {
+                if (op.type === 'create_node' || op.type === 'create_character' || op.type === 'spawn_library_item') {
                     const node = op.payload.node || op.payload;
                     if (node?.id) {
                         creations[node.id.toLowerCase()] = {
@@ -265,7 +265,7 @@
             const errors: string[] = [];
             const appliedIds = new Set<string>();
 
-            const creates = targets.filter((o: StagedOp) => o.type === 'create_node' || o.type === 'spawn_library_item' || o.type === 'connect_areas');
+            const creates = targets.filter((o: StagedOp) => o.type === 'create_node' || o.type === 'create_character' || o.type === 'spawn_library_item' || o.type === 'connect_areas');
             const updates = targets.filter((o: StagedOp) => o.type === 'update_node' || o.type === 'link_to_library');
             const edges = targets.filter((o: StagedOp) => o.type === 'attach' || o.type === 'detach');
             const deletes = targets.filter((o: StagedOp) => o.type === 'delete_node');
@@ -281,6 +281,18 @@
                                 type: nodeData.type || nodeData.kind || 'item',
                                 name: nodeData.name,
                                 properties: nodeData.properties || {}
+                            });
+                            if (res?.error) errors.push(`${op.summary}: ${res.error}`);
+                            else appliedIds.add(op.id);
+                            break;
+                        }
+                        case 'create_character': {
+                            // bug-527: register a Player (mints the canonical
+                            // player_<name> node) rather than a bare graph node.
+                            const nodeData = op.payload.node || op.payload;
+                            const res = await api().post('/api/players', {
+                                name: nodeData.name,
+                                ...(nodeData.properties || {})
                             });
                             if (res?.error) errors.push(`${op.summary}: ${res.error}`);
                             else appliedIds.add(op.id);

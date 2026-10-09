@@ -1,4 +1,4 @@
-﻿---
+---
 type: bug
 status: review
 area: gameplay

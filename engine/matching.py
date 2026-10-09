@@ -102,6 +102,14 @@ CHARACTER_GENERIC_WORDS = frozenset({
 })
 
 
+#: Physical route words a way can answer to, so "go over the bridge" or "take
+#: the tunnel" resolves against the *way* even when its handle is a place name.
+#: Only a unique match resolves, so a road network does not swallow a plain
+#: "go road". Kept to the feature route words — `door`/`stairs` are handles
+#: already and are not aliased here.
+ROUTE_WORDS = frozenset({"road", "bridge", "ford", "gate", "tunnel"})
+
+
 def node_aliases(node) -> List[str]:
     """Normalize a node's ``aliases`` property into a lowercase list.
 
@@ -293,6 +301,23 @@ class NameMatching:
         if len(alias_matches) > 1:
             self._fuzzy_match_note = f"matched '{input_str}' as exit '{alias_matches[0][2]}' (alias match, ambiguous)"
             return alias_matches[0][0], alias_matches[0][1], alias_matches[0][2]
+
+        # 3c. Route tag tier — a way's physical route tag (`bridge`, `ford`,
+        # `gate`, `tunnel`, `road`) is an addressable name, so "go over the
+        # bridge" resolves even when the handle is a place name. A unique match
+        # only, so a road network does not swallow a plain "go road".
+        if input_lower in ROUTE_WORDS:
+            route_matches = []
+            for info in exits_info:
+                _, way_node, _, _ = info
+                tags = {str(t).lower()
+                        for t in ((way_node.properties or {}).get("tags") or [])}
+                if input_lower in tags:
+                    route_matches.append(info)
+            if len(route_matches) == 1:
+                self._fuzzy_match_note = (f"matched '{input_str}' as exit "
+                                          f"'{route_matches[0][2]}' (route match)")
+                return route_matches[0][0], route_matches[0][1], route_matches[0][2]
 
         # 4. Way node name / target area name — word-boundary both ways
         name_matches = []

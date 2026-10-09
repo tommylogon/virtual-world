@@ -5,7 +5,7 @@ tags: [system/ui, topic/authoring]
 
 # NL Editor
 
-**Task:** [[dev_tasks/done/graph/task-387-natural-language-editor-mode|task-387]] · validation/diff: [[dev_tasks/inprogress/graph/task-461-nl-editor-validation-gate-and-apply-time-property-diff|task-461]]
+**Task:** [[dev_tasks/done/graph/task-387-natural-language-editor-mode|task-387]] · validation/diff: [[task-461-nl-editor-validation-gate-and-apply-time-property-diff|task-461]]
 
 Describe a change to the world in prose; see the plan before it is applied. The NL
 editor is a left-hand tab (✨ NL Editor, `templates/index.html:106`) holding a

@@ -32,10 +32,11 @@ class ConfigManagerImpl {
         // api.openai.com with an empty key produced a dead "Generate" on a
         // fresh profile. LM Studio speaks the OpenAI wire format, so the
         // `provider` field stays 'openai' (llm-client keys its structured-
-        // output quirks off that); only the endpoint/key/model differ.
+        // output quirks off that); only the endpoint/key/model differ. The
+        // default model is glm-4-9b-0414, the GLM-4 9B build this repo targets.
         this.apiKey = await storage.getConfig('api_key') || 'not-needed';
         this.apiBase = await storage.getConfig('api_base') || 'http://localhost:1234/v1';
-        this.model = await storage.getConfig('model') || 'qwen/qwen3.5-9b';
+        this.model = await storage.getConfig('model') || 'glm-4-9b-0414';
         this.provider = await storage.getConfig('provider') || 'openai';
         this.temperature = await storage.getConfig('temperature') || '0.7';
         this.maxTokens = parseInt(await storage.getConfig('max_tokens')) || 512;
@@ -46,6 +47,12 @@ class ConfigManagerImpl {
         this.turnOrder = await storage.getConfig('turn_order') || 'sequential';
         this.frontendTemplate = await storage.getConfig('frontend_template') || 'index';
         this.lastProfile = await storage.getConfig('last_profile') || 'LM Studio (Local)';
+        // The app runs against local LM Studio; a lingering built-in OpenAI
+        // selection is a trap, not a choice, so land on LM Studio (Local)
+        // instead. A saved DeepSeek/Groq/custom profile is left as chosen.
+        if (this.lastProfile === 'OpenAI (GPT-4.1-mini)' || this.lastProfile === 'OpenAI (GPT-4o)') {
+            this.lastProfile = 'LM Studio (Local)';
+        }
         // Reactive mode: true = thought→act→react, false = combined single-step
         this.reactiveMode = (await storage.getConfig('reactive_mode')) !== 'false';
         // Graph visualization settings. The spring/repulsion numbers are the
@@ -307,7 +314,7 @@ class ConfigManagerImpl {
     async saveFromForm() {
         this.apiKey = document.getElementById('api-key-input')?.value.trim() || 'not-needed';
         this.apiBase = (document.getElementById('api-base-input')?.value.trim() || document.getElementById('agent-api-base')?.value.trim() || 'http://localhost:1234/v1');
-        this.model = document.getElementById('agent-model')?.value.trim() || 'qwen/qwen3.5-9b';
+        this.model = document.getElementById('agent-model')?.value.trim() || 'glm-4-9b-0414';
         this.temperature = document.getElementById('agent-temperature')?.value || this.temperature;
         this.maxTokens = parseInt(document.getElementById('max-tokens-input')?.value) || this.maxTokens;
         this.softMaxTokens = parseInt(document.getElementById('soft-max-tokens-input')?.value) || this.softMaxTokens;
@@ -396,6 +403,23 @@ class ConfigManagerImpl {
             }
             return defaults;
         }
+        // Bring an older install up to the current built-ins: add any default
+        // profile the seed no longer carries (so 'LM Studio (Local)' exists on a
+        // browser seeded before it did), and refresh the LM Studio model only
+        // while it still holds the previous default. A user's own profile and
+        // model edits are left untouched.
+        const defaults = this._getDefaultProfiles();
+        for (const [name, data] of Object.entries(defaults)) {
+            if (!profiles[name]) {
+                profiles[name] = data;
+                await storage.setProfile(name, data);
+            }
+        }
+        const lm = profiles['LM Studio (Local)'];
+        if (lm && lm.model === 'qwen/qwen3.5-9b') {
+            lm.model = 'glm-4-9b-0414';
+            await storage.setProfile('LM Studio (Local)', lm);
+        }
         return profiles;
     }
     async getProfile(name) {
@@ -413,7 +437,7 @@ class ConfigManagerImpl {
             return;
         this.apiKey = profile.apiKey || 'not-needed';
         this.apiBase = profile.apiBase || 'http://localhost:1234/v1';
-        this.model = profile.model || 'qwen/qwen3.5-9b';
+        this.model = profile.model || 'glm-4-9b-0414';
         this.streaming = !!profile.streaming;
         this.showLogs = !!profile.showLogs;
         this.turnBased = !!profile.turnBased;
@@ -505,6 +529,13 @@ class ConfigManagerImpl {
     _getDefaultProfiles() {
         const liveKey = this.apiKey || '';
         return {
+            // LM Studio is first on purpose: it is the local default this app
+            // runs against (glm-4-9b-0414), and the profile list's first entry is
+            // the fallback when nothing has been chosen.
+            'LM Studio (Local)': {
+                apiKey: 'not-needed', apiBase: 'http://localhost:1234/v1', model: 'glm-4-9b-0414',
+                streaming: true, showLogs: false, turnBased: false, turnOrder: 'sequential'
+            },
             'OpenAI (GPT-4.1-mini)': {
                 apiKey: liveKey, apiBase: 'https://api.openai.com/v1', model: 'gpt-4.1-mini',
                 streaming: false, showLogs: false, turnBased: false, turnOrder: 'sequential'
@@ -512,10 +543,6 @@ class ConfigManagerImpl {
             'OpenAI (GPT-4o)': {
                 apiKey: liveKey, apiBase: 'https://api.openai.com/v1', model: 'gpt-4o',
                 streaming: false, showLogs: false, turnBased: false, turnOrder: 'sequential'
-            },
-            'LM Studio (Local)': {
-                apiKey: 'not-needed', apiBase: 'http://localhost:1234/v1', model: 'qwen/qwen3.5-9b',
-                streaming: true, showLogs: false, turnBased: false, turnOrder: 'sequential'
             },
             // DeepSeek is OpenAI-format compatible; base_url https://api.deepseek.com
             // also works (the /v1 suffix is what the OpenAI SDK-style calls here

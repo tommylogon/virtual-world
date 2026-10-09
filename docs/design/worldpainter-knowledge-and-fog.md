@@ -147,12 +147,15 @@ cell.
 **Aligning the reference art.** The graph background has its own transform, so
 right-click empty canvas → **▦ Fit to painted grid** pulls in the selected
 scope's painter reference (if the graph has no map yet) and fits it to the whole
-painted grid rect, then fits the view. The rect uses the Map layout's spacing —
-`GraphLayoutEngine.mapSpacing()` px per cell (default 40), offset half a cell so
-cell (0,0) is the origin — because that is where the Map layout puts the nodes.
-It fits the *full* grid, not the bounds of the painted cells: the painter fits
-the reference into the full grid, so fitting a partial paint would rescale the
-art and break the cell alignment.
+painted grid rect, then fits the view. The rect uses the Map layout's spacing:
+`GraphLayoutEngine.mapSpacing()` px per cell (the mark envelope, see "How a big
+painted map reads"), offset half a cell so cell (0,0) is the origin, because
+that is where the Map layout puts the nodes. The art is **stretched to fill**
+that rect (task-748), not contain-fitted: the grid is authoritative, so a
+reference whose aspect differs from the grid bends to the cells instead of
+letterboxing inside them. It fits the *full* grid, not the bounds of the painted
+cells: the painter fits the reference into the full grid, so fitting a partial
+paint would rescale the art and break the cell alignment.
 
 **Reference move/resize/crop (task-524).** The painter reference stores an
 optional `rect` in **cell** units plus a normalized `crop` window; `null` means
@@ -166,13 +169,15 @@ unit-tested.
 
 **Map layout is relative, not absolute.** Stored coords are engine units
 (`cell * 40`), but Map mode never uses them raw: it reads the cell *lattice* and
-applies a **spacing margin** (`mapSpacing()`, default 40px, override with
-`config.graphMapSpacing`). 40px/cell means an area every 40px with the way at the
-20px midpoint. The old 3.5× scale (140px/cell) made a 200×133 world ~28,000px
-wide and unreadable; spacing keeps the painted topology at a usable density. The
-toolbar's **spacing − / +** control (next to `🗺️ Map`) edits
-`config.graphMapSpacing` live and re-lays the grid + re-fits the art at the new
-pitch — the padding knob for a dense painted map.
+applies a **spacing margin** (`mapSpacing()` px per cell, override with
+`config.graphMapSpacing`). The default pitch is the **mark envelope** (task-748),
+not a fixed 40: enough room that a way node fits between two adjacent area cards,
+which is 176px/cell at node-size 1 (see "How a big painted map reads"). The old
+3.5x scale (140px/cell) made a 200x133 world ~28,000px wide and unreadable;
+spacing keeps the painted topology at a usable density. The toolbar's **spacing
+- / +** control (next to `Map`) edits `config.graphMapSpacing` live and re-lays
+the grid and re-fits the art at the new pitch, the padding knob for a dense
+painted map.
 
 **Ungenerate keeps the grid (task-496 follow-up).** `⚙ Generate` writes the
 zone's areas/ways; **🧹 Ungenerate** deletes exactly those nodes (provenance
@@ -182,11 +187,14 @@ and placements — a clean slate without repainting. A plain re-run
 (`allow_regenerate`) now re-stamps existing nodes in place, but it never removes
 orphans the new recipe no longer emits; ungenerate is the way to drop those.
 
-**Dense maps hide labels at overview zoom.** Node names are drawn by a zoom-level
-policy (`graphManager._showNodeLabels` + `graphLabelMaxNodes`/`graphLabelMinScale`
-in `GraphNetwork._nodeLabelPolicy`): above ~400 nodes the names hide until the
-view is zoomed past ~0.6 scale, so a 1k-cell map shows topology, not a wall of
-text. The toolbar **🔤 Names** button forces them on/off.
+**Dense maps hide labels until a cell is big enough.** Node names are drawn by a
+zoom-level policy (`graphManager._showNodeLabels` in
+`GraphNetwork._nodeLabelPolicy`): a name is drawn when a **cell** is large enough
+on screen to hold it — `mapSpacing × zoom ≥ graphLabelMinCellPx` (default 14px).
+The old rule keyed on the raw network scale, which on a high-pitch map sat near
+zero however large the cells were, so names never came back while zooming
+(bug-528); `graphLabelMaxNodes` / `graphLabelMinScale` are no longer read. The
+toolbar **🔤 Names** button forces them on/off.
 
 **Moving a whole zone (task-523).** Each scope stores an optional `map_offset`
 in **cell** units (absent = `(0,0)`, i.e. the painted position). The Map layout
@@ -319,55 +327,64 @@ Noted gap: `world_scopes.project()` (the scope *summary card*) lists
 The graph view is fine — `project_subgraph` includes ways with both endpoints
 inside. Whether the summary should list internal ways is still open.
 
-## How a big painted map reads (task-526, 2026-09-27)
+## How a big painted map reads (task-526; reworked 2026-10-08, task-748)
 
-A compiled area draws as a card whose width is its **name** plus padding, and the
-name does not shrink with the map pitch the way the padding does. So a single
-global pitch could not serve both a 6×8 camp and a 200×133 world: at the old 40px
-default the cards overlapped into a blob, and the only fix was dialling the
-spacing control to ~200 by hand. Two halves:
+The **pitch** (px per painted cell) is the map's spacing knob; the **marks** are
+a separate, fixed size. That split is task-748. Before it, every mark was a
+fraction of the pitch (`MARK_FRACTION`), so the one slider both spread the rooms
+*and* inflated every way/item/character: raising the spacing from 40 to 660 grew
+a way node from 10px to 172px, while the area *name* alone was capped at 30px.
 
-- **Compact dots below `MAP_CARD_MIN_PITCH` (140px/cell).** An area becomes a
-  `dot` sized from the *cell* (55% of the pitch, clamped 6–28px), so it always
-  fits its own cell and stays visible when a whole world is zoomed out. Names are
-  hidden while compact — through the **existing** label LOD, not a second
-  mechanism — because a name is what does not fit. The tooltip, inspector, search
-  and badges still name every place. 140 is where the clamped card box still fits
-  its cell, so the switch happens exactly where the boxes stop colliding.
-  Map layout only: the graph view and Levels have no lattice and no overlap.
-- **Auto pitch from the painted extent.** `paintedExtent()` measures the drawn
-  cells (areas only — ways sit on the lattice between them, and a hand-authored
-  area has no cell), then `autoMapSpacing()` aims for `AUTO_SPAN_PX` (1600px)
-  across the longest side, clamped to 24–300px, rounded to a tidy multiple.
-  Nothing painted → no opinion, and the current pitch stands.
+Now the marks are absolute px (`GraphLayoutEngine.MAP_MARK_PX`): area card max
+130, card padding 8, name font 14, way 26, item 30, character 42. The node-size
+slider still multiplies the shapes and padding, never the font. The area card is
+capped with a per-node `widthConstraint`, so a wide name **wraps** inside its
+cell instead of pushing the card over its neighbour.
+
+- **The pitch is derived from the marks.** `markEnvelopePitch()` =
+  `(card + way + gap) * nodeSizeScale`. A way node sits at the midpoint between
+  two areas a cell apart, so the binding constraint is `card + way + gap`
+  (`MARK_ENVELOPE_GAP`, 20) = **176px/cell** at node-size 1. `mapSpacing()` falls
+  back to it; `config.graphMapSpacing` overrides.
+- **Auto is the envelope, not a viewport fit.** `autoMapSpacing()` returns
+  `markEnvelopePitch()` and ignores the canvas entirely: the same pitch serves a
+  6x8 camp and a 200x133 world, and fitting the whole world is the camera's
+  (zoom) job. Nothing painted gives no opinion, and the current pitch stands.
+  (This replaces task-526's `AUTO_SPAN_PX / longest` ratio *and* its short-lived
+  `AUTO_CELLS_ACROSS` viewport heuristic, which clamped into a band that fought
+  the intent: a 240 floor on a wide world, a 40 floor on a small pane.)
+- **No overlap is a pitch guarantee; no crowding is a zoom/LOD guarantee.** The
+  envelope keeps marks apart in *cell* space at any world size. On a big world
+  you still zoom out to see it, and at low zoom fixed marks crowd each other.
+  That is a zoom/LOD problem, deliberately deferred (bug-528, task-527), not a
+  pitch problem.
+- **A node's position is its `cell * pitch`.** The renderer no longer reads the
+  compiler's `cell * 40` `x`/`y` copy; `hasPaintedCoords` is `cell`-only.
+  `PAINT_UNITS_PER_CELL` / `GRID_SCALE` are gone.
+- **A loose item/character held in a painted area sits beside it**, ignoring a
+  stale canvas `x`/`y` saved in the graph view (the long-edge fan).
+- **The reference image is stretched to fill its grid rect**, not contain-fitted.
+  The painted cells are authoritative, so a 3:1 world-map image in a 2:1 grid
+  fills (and distorts) rather than letterboxing and leaving the edge rows bare.
 
 Two rules that are easy to get wrong here:
 
-- **The pitch is decided before anything reads it.** Node sizes, the lattice and
-  the background art are all derived from it, so `applyAutoMapSpacing()` runs at
-  the top of `loadGraphData` and re-derives the art when the pitch moves. Deciding
-  it after the layout is the bug-52 shape: two sources of truth for one position.
-- **A layer's rect is in px, so a pitch change makes every picture stale** — and
+- **The pitch is decided before anything reads it.** The lattice and the
+  background art are both derived from it, so `applyAutoMapSpacing()` runs at the
+  top of `loadGraphData` and re-derives the art when the pitch moves. Deciding it
+  after the layout is the bug-52 shape: two sources of truth for one position.
+- **A layer's rect is in px, so a pitch change makes every picture stale**, and
   the ordinary per-scope reconcile cannot fix that in the whole-world view, which
   has no single grid. `reconcileAllForGapChange()` re-derives *every* mounted
   reference from **its own** scope's grid and offset, then reframes the camera
   (the old framing was computed for the old pitch). It writes nothing: it runs on
-  a load path, so `fitToPaintedGrid` — which persists the fitted rect — is the
+  a load path, so `fitToPaintedGrid` (which persists the fitted rect) is the
   wrong call there and stays reserved for a deliberate manual nudge.
 - **Auto is the default; the stepper is the override, and it is visible.**
-  Nudging the stepper persists `graphMapSpacingAuto=false`, so a person who wants
-  40px/cell on a 200-cell world keeps it through reloads and scope switches. The
-  stepper shows `80 auto` while derived, an `A` button hands the pitch back, and
-  the menu says why the places are dots. Without the `auto` mark, a first nudge
-  would silently look like adjusting a number the user had already chosen. And a
-  *stored* pitch that differs from the built-in 40 default counts as a choice
-  already made — someone who dialled the map to 260 by hand is not re-derived
-  over on their next load.
-
-On the goblin camp's real scopes this lands on dots everywhere (20×9 → 80px,
-20×8 → 80px, 20×30 → 55px), which is the honest answer: a 20-cell-wide map at a
-card pitch is 2800px of canvas, so no pitch shows the whole map *and* keeps the
-cards from overlapping. Cards come back by raising the pitch a notch.
+  Nudging the stepper persists `graphMapSpacingAuto=false`, so a hand-picked
+  pitch survives reloads and scope switches. The stepper shows `176 auto` while
+  derived, an `A` button hands the pitch back, and a *stored* pitch that differs
+  from the built-in default counts as a choice already made.
 
 ## Naming a cell, and what a town is made of (task-560, task-561, 2026-09-27)
 

@@ -54,19 +54,27 @@ test('the Levels/Free switch opts into the rebuild', () => {
 
 // ─── Node size (graphNodeScale) ──────────────────────────────────────────────
 
-test('node size scales the drawn shapes, the guard radii, and nothing else', () => {
+test('node size scales the drawn shapes and the guard radii, never the fonts', () => {
     const nm = __readFile('static/js/graph/network-manager.ts');
     assertTrue(nm.includes('nodeSizeScale()'), 'network-manager declares nodeSizeScale');
-    // The four group definitions are one line each; slice across all of them.
-    const groupsBlock = nm.slice(nm.indexOf('area: { color:'), nm.indexOf('mapCompact()'));
-    // area card margins (4) + item, way, character sizes (3) = 7 scaled sites.
-    const sizeHits = groupsBlock.match(/GraphNetwork\.nodeSizeScale\(\)/g) || [];
-    assertEq(sizeHits.length, 7, 'scaled size/margin sites in the groups block');
-    // Fonts are NOT scaled: the exact font-size expressions are untouched, so
-    // labels keep a readable size while shapes grow under the knob.
-    assertTrue(groupsBlock.includes('size: 14 * GraphNetwork.mapSizeScale() }'), 'area/character font stays unscaled');
-    assertTrue(groupsBlock.includes('size: 12 * GraphNetwork.mapSizeScale() }'), 'item font stays unscaled');
-    // The image-node branch and the compact dot scale too.
+    // The four group definitions take their sizes from `marks`, which is derived
+    // in one place (_markSizes): shapes and card padding × nodeSizeScale(), fonts
+    // not, so labels keep a readable size while shapes grow under the knob.
+    const groupsBlock = nm.slice(nm.indexOf('area: { color:'), nm.indexOf('The map pitch relative'));
+    assertTrue(groupsBlock.includes('size: marks.areaFont'), 'area font from the cell size, unscaled');
+    assertTrue(groupsBlock.includes('margin: { top: marks.areaPadY'), 'area padding from the cell size');
+    assertTrue(groupsBlock.includes('size: marks.itemSize'), 'item size from the cell size');
+    assertTrue(groupsBlock.includes('size: marks.waySize'), 'way size from the cell size');
+    assertTrue(groupsBlock.includes('size: marks.charSize'), 'character size from the cell size');
+    const marksAt = nm.indexOf('_markSizes() {');
+    assertTrue(marksAt !== -1, '_markSizes is implemented');
+    const marksBlock = nm.slice(marksAt, marksAt + 1600);
+    assertTrue(marksBlock.includes('GraphNetwork.nodeSizeScale()'), '_markSizes applies the slider');
+    assertTrue(marksBlock.includes('LE.markSize('), 'shapes are cell fractions');
+    assertTrue(marksBlock.includes('LE.markCardPad() * ns'), 'card padding is a cell fraction × slider');
+    assertTrue(marksBlock.includes('const font = LE.markFontPx();') && !marksBlock.includes('markFontPx() *'),
+        'the font is NOT multiplied by the slider');
+    // The image-node branch scales too.
     assertTrue(nm.includes('|| 24)\n                * GraphNetwork.nodeSizeScale()'), 'image node size scaled');
     // The overlap guard grants bigger nodes more room. The needle starts at the
     // IMPLEMENTATION — the interface declares radiusOf before the body.

@@ -185,6 +185,7 @@ load('static/js/context-window.js');
 load('static/js/nl-editor/staging.js');
 load('static/js/nl-editor/diff.js');
 load('static/js/nl-editor/tools.js');
+load('static/js/nl-editor/budget.js');
 load('static/js/nl-editor/agent-loop.js');
 load('static/js/graph/graph-background.js');
 load('static/js/graph/graph-export.js');

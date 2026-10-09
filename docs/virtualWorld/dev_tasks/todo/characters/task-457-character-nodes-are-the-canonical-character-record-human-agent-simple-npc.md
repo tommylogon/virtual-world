@@ -1,6 +1,6 @@
 ---
 type: task
-status: done
+status: todo
 area: characters
 priority: high
 ---
@@ -107,3 +107,25 @@ determines whether this is a sync layer or a refactor of all of them.
 the pre-existing `test_mcp_*` FastMCP wrapper mismatches plus the two
 `test_character_identity.py` failures described above, all confirmed on a clean
 master worktree.
+
+## Status correction — 2026-10-08 (done/review audit)
+
+Moved **out of `done/`**: this task's headline ("character nodes are the
+canonical record") was never true in code, and the file said so in its own
+"Handed to WT-0" section while sitting in `done/`. Re-measured:
+
+- `engine/player_manager.py:201-206` still mints a **bare** node —
+  `Node(id=..., type="character", name=...)` — with no definition props.
+- `to_node_properties` / `apply_node_properties` / `hydrate_player_from_node`
+  exist **nowhere** in the repo, so the "project the definition onto the node"
+  seam was never written.
+- `engine/serialization.py` loads into the `Player` and never projects onto the
+  node; `engine/character_record.py` remains a read-only audit.
+- The two acceptance tests are still red on baseline:
+  `tests/test_character_identity.py::test_collapse_is_idempotent` and
+  `::test_kraktooth_loads_as_one_node_per_character`.
+
+Consequence: **task-446 (id-first identity) and task-447 (aliases) rest on this
+foundation and cannot be honestly finished before it.** The write-path decision
+(the Player as a pure view vs a writable record kept in sync) is still open — see
+above.

@@ -1,6 +1,6 @@
 ---
 type: task
-status: inprogress
+status: review
 area: graph
 priority: medium
 ---
@@ -39,6 +39,13 @@ Validate staged ops before Apply (known fields and registered trait ids, edge en
 
 ## Remaining
 
-- [ ] Per-op undo for an applied batch (the batch still undoes as ONE snapshot;
-      undoing a single applied op is not yet offered).
+- Per-op undo for an applied batch is **split out to task-743**. It is not a
+  bounded add-on: the batch deliberately records ONE snapshot (task-387) so a
+  single Undo reverts the whole Apply, and there is no per-op undo concept
+  anywhere (no route, no UI). Changing that is a contract decision, not a
+  side-effect of the validation gate.
+
+**Verified 2026-10-08:** validation gate + property diff are complete; tests
+exist per the acceptance above (`tests/test_nl_editor_validation.py`,
+`tools/unit/test_nl_editor_diff.js`).
 

@@ -14,6 +14,12 @@
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 window.NLEditorUI = (() => {
     'use strict';
+    /** Compact token count: 4200 -> "4.2k". */
+    function _k(n) {
+        if (!isFinite(n))
+            return '0';
+        return n >= 1000 ? (n / 1000).toFixed(1) + 'k' : String(n);
+    }
     class UI {
         controller;
         container;
@@ -21,6 +27,8 @@ window.NLEditorUI = (() => {
         inputField;
         stagedTray;
         statusBadge;
+        budgetRow;
+        budgetReadout;
         _checked; // op.id -> bool (selective apply)
         constructor(controller) {
             this.controller = controller;
@@ -29,6 +37,8 @@ window.NLEditorUI = (() => {
             this.inputField = null;
             this.stagedTray = null;
             this.statusBadge = null;
+            this.budgetRow = null;
+            this.budgetReadout = null;
             this._checked = new Map();
         }
         init(containerId = 'left-tab-nl-editor') {
@@ -37,14 +47,31 @@ window.NLEditorUI = (() => {
                 return;
             this.container.innerHTML = `
                 <div class="nl-editor-root" style="display:flex;flex-direction:column;height:100%;font-size:12px;">
+                    <style>@keyframes nl-activity-pulse{0%,100%{opacity:1}50%{opacity:.3}}</style>
                     <div class="nl-header" style="padding:8px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg-card);">
                         <div style="font-weight:600;display:flex;align-items:center;gap:6px;">
                             <span>✨ NL Editor</span>
+                            <span id="nl-activity" title="Agent activity" style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:var(--text-muted);"><span id="nl-activity-dot" style="font-size:11px;line-height:1;">●</span><span id="nl-activity-label">idle</span></span>
                             <span id="nl-status" class="badge" style="font-size:10px;padding:2px 6px;background:var(--bg-input);border:1px solid var(--border);">Ready</span>
+                            <span id="nl-budget-readout" style="font-size:10px;color:var(--text-muted);"></span>
                         </div>
-                        <div style="display:flex;gap:4px;">
+                        <div style="display:flex;gap:4px;align-items:center;">
+                            <button class="btn btn-sm btn-ghost" id="nl-font-dec" title="Smaller chat text">A−</button>
+                            <button class="btn btn-sm btn-ghost" id="nl-font-inc" title="Larger chat text">A+</button>
+                            <button class="btn btn-sm btn-ghost" id="nl-budget-btn" title="LLM budget">⚙ Budget</button>
                             <button class="btn btn-sm btn-ghost" id="nl-reset-btn" title="Reset Chat">🔄 Reset</button>
                         </div>
+                    </div>
+
+                    <!-- Budget knobs (task-422) -->
+                    <div id="nl-budget-row" style="display:none;padding:8px 10px;border-bottom:1px solid var(--border);background:var(--bg-card);font-size:11px;">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                            <label>Max rounds<input id="nl-budget-rounds" type="number" min="1" style="width:100%;"></label>
+                            <label>Max context tokens<input id="nl-budget-tokens" type="number" min="256" style="width:100%;"></label>
+                            <label>Max messages<input id="nl-budget-messages" type="number" min="1" style="width:100%;"></label>
+                            <label>Recent turns kept<input id="nl-budget-recent" type="number" min="1" style="width:100%;"></label>
+                        </div>
+                        <div style="font-size:10px;color:var(--text-muted);margin-top:4px;">Defaults follow the active model&apos;s window; unknown models use a conservative cap.</div>
                     </div>
 
                     <!-- Chat stream -->
@@ -83,7 +110,92 @@ window.NLEditorUI = (() => {
             this.inputField = document.getElementById('nl-input');
             this.stagedTray = document.getElementById('nl-staged-tray');
             this.statusBadge = document.getElementById('nl-status');
+            this.budgetRow = document.getElementById('nl-budget-row');
+            this.budgetReadout = document.getElementById('nl-budget-readout');
             this._bindEvents();
+            void this._initBudget();
+            this._initChatFont();
+        }
+        /**
+         * Adjustable chat text size, persisted per browser as `vw_nl_fontSize`.
+         * Scales the message bubbles via the `--nl-fs` custom property so the
+         * panel does not depend on the (fixed) surrounding chrome.
+         */
+        _initChatFont() {
+            const MIN = 9, MAX = 20, DEFAULT = 12;
+            const read = () => {
+                const raw = parseInt(localStorage.getItem('vw_nl_fontSize') || '', 10);
+                return Number.isFinite(raw) ? Math.min(MAX, Math.max(MIN, raw)) : DEFAULT;
+            };
+            const apply = (px) => {
+                this.chatList?.style.setProperty('--nl-fs', `${px}px`);
+            };
+            apply(read());
+            const bump = (delta) => {
+                const next = Math.min(MAX, Math.max(MIN, read() + delta));
+                localStorage.setItem('vw_nl_fontSize', String(next));
+                apply(next);
+            };
+            document.getElementById('nl-font-dec')?.addEventListener('click', () => bump(-1));
+            document.getElementById('nl-font-inc')?.addEventListener('click', () => bump(1));
+        }
+        /** Wire the budget row (task-422): persist each knob on change. */
+        async _initBudget() {
+            const toggle = document.getElementById('nl-budget-btn');
+            toggle?.addEventListener('click', () => {
+                if (!this.budgetRow)
+                    return;
+                this.budgetRow.style.display = this.budgetRow.style.display === 'none' ? 'block' : 'none';
+            });
+            const B = window.NlEditorBudget;
+            const s = window.storage;
+            const model = window.config?.model || null;
+            const read = async (key) => {
+                if (!s)
+                    return undefined;
+                const v = await s.getConfig(key);
+                if (v === undefined || v === null || v === '')
+                    return undefined;
+                return isFinite(Number(v)) ? Number(v) : undefined;
+            };
+            const raw = s ? {
+                maxIterations: await read('nl_max_iterations'),
+                maxTokens: await read('nl_max_tokens'),
+                maxMessages: await read('nl_max_messages'),
+                recentTurnCount: await read('nl_recent_turns')
+            } : {};
+            const b = B ? B.clampBudget(raw, model) : null;
+            this._setBudgetInputs('nl-budget-rounds', b?.maxIterations);
+            this._setBudgetInputs('nl-budget-tokens', b?.maxTokens);
+            this._setBudgetInputs('nl-budget-messages', b?.maxMessages);
+            this._setBudgetInputs('nl-budget-recent', b?.recentTurnCount);
+            const persist = (id, key) => {
+                const el = document.getElementById(id);
+                el?.addEventListener('change', () => {
+                    if (s && el.value !== '')
+                        void s.setConfig?.(key, el.value);
+                });
+            };
+            persist('nl-budget-rounds', 'nl_max_iterations');
+            persist('nl-budget-tokens', 'nl_max_tokens');
+            persist('nl-budget-messages', 'nl_max_messages');
+            persist('nl-budget-recent', 'nl_recent_turns');
+        }
+        _setBudgetInputs(id, value) {
+            const el = document.getElementById(id);
+            if (el && value !== undefined)
+                el.value = String(value);
+        }
+        /** Live window/round readout; called on each llm:calling event. */
+        setBudgetReadout(stats, iteration, maxIterations) {
+            if (!this.budgetReadout)
+                return;
+            const parts = [];
+            if (stats)
+                parts.push(`context ${_k(stats.totalTokens)}/${_k(stats.maxTokens)}`);
+            if (iteration && maxIterations)
+                parts.push(`round ${iteration}/${maxIterations}`);
+            this.budgetReadout.textContent = parts.join(' · ');
         }
         _bindEvents() {
             const sendBtn = document.getElementById('nl-send-btn');
@@ -142,7 +254,7 @@ window.NLEditorUI = (() => {
             if (!this.chatList)
                 return;
             const bubble = document.createElement('div');
-            bubble.style.cssText = 'align-self:flex-end;max-width:85%;background:var(--primary);color:#fff;padding:6px 10px;border-radius:8px 8px 0 8px;font-size:11px;line-height:1.4;';
+            bubble.style.cssText = 'align-self:flex-end;max-width:85%;background:var(--primary);color:#fff;padding:6px 10px;border-radius:8px 8px 0 8px;font-size:var(--nl-fs,11px);line-height:1.4;';
             bubble.textContent = text;
             this.chatList.appendChild(bubble);
             this.chatList.scrollTop = this.chatList.scrollHeight;
@@ -151,12 +263,12 @@ window.NLEditorUI = (() => {
             if (!this.chatList)
                 return;
             const bubble = document.createElement('div');
-            bubble.style.cssText = 'align-self:flex-start;max-width:88%;background:var(--bg-card);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:8px 8px 8px 0;font-size:11px;line-height:1.4;';
+            bubble.style.cssText = 'align-self:flex-start;max-width:88%;background:var(--bg-card);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:8px 8px 8px 0;font-size:var(--nl-fs,11px);line-height:1.4;';
             let html = '';
             if (toolCalls && toolCalls.length > 0) {
                 html += `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;">`;
                 for (const call of toolCalls) {
-                    html += `<span class="badge" style="font-size:9px;background:var(--border);padding:1px 5px;border-radius:3px;">🔧 ${call.function?.name || 'tool'}</span>`;
+                    html += `<span class="badge" style="font-size:calc(var(--nl-fs,11px) - 2px);background:var(--border);padding:1px 5px;border-radius:3px;">🔧 ${call.function?.name || 'tool'}</span>`;
                 }
                 html += `</div>`;
             }
@@ -172,9 +284,19 @@ window.NLEditorUI = (() => {
             if (!this.chatList)
                 return;
             const chip = document.createElement('div');
-            chip.style.cssText = 'align-self:center;font-size:10px;color:var(--text-muted);padding:3px 8px;background:var(--bg-input);border-radius:10px;border:1px solid var(--border);';
+            chip.style.cssText = 'align-self:center;font-size:calc(var(--nl-fs,11px) - 1px);color:var(--text-muted);padding:3px 8px;background:var(--bg-input);border-radius:10px;border:1px solid var(--border);';
             const pending = remaining > 0 ? ` · ${remaining} still staged` : '';
             chip.textContent = `✔ Applied ${appliedCount} change${appliedCount === 1 ? '' : 's'}${pending} — chat kept`;
+            this.chatList.appendChild(chip);
+            this.chatList.scrollTop = this.chatList.scrollHeight;
+        }
+        /** A muted, centered notice chip (e.g. the round-cap stop, task-422). */
+        appendSystemNotice(text) {
+            if (!this.chatList)
+                return;
+            const chip = document.createElement('div');
+            chip.style.cssText = 'align-self:center;font-size:calc(var(--nl-fs,11px) - 1px);color:var(--text-muted);padding:3px 8px;background:var(--bg-input);border-radius:10px;border:1px solid var(--border);';
+            chip.textContent = text;
             this.chatList.appendChild(chip);
             this.chatList.scrollTop = this.chatList.scrollHeight;
         }
@@ -182,7 +304,7 @@ window.NLEditorUI = (() => {
             if (!this.chatList || !text)
                 return;
             const bubble = document.createElement('div');
-            bubble.style.cssText = 'align-self:flex-start;max-width:88%;background:rgba(248,81,73,0.12);border:1px solid var(--red,#f85149);color:var(--red,#f85149);padding:6px 10px;border-radius:8px;font-size:11px;line-height:1.4;';
+            bubble.style.cssText = 'align-self:flex-start;max-width:88%;background:rgba(248,81,73,0.12);border:1px solid var(--red,#f85149);color:var(--red,#f85149);padding:6px 10px;border-radius:8px;font-size:var(--nl-fs,11px);line-height:1.4;';
             bubble.textContent = `⚠ ${text}`;
             this.chatList.appendChild(bubble);
             this.chatList.scrollTop = this.chatList.scrollHeight;
@@ -192,7 +314,7 @@ window.NLEditorUI = (() => {
             if (!this.chatList || !issues || !issues.length)
                 return;
             const bubble = document.createElement('div');
-            bubble.style.cssText = 'align-self:flex-start;max-width:88%;background:rgba(210,153,34,0.12);border:1px solid #d29922;color:#d29922;padding:6px 10px;border-radius:8px;font-size:11px;line-height:1.5;white-space:pre-wrap;';
+            bubble.style.cssText = 'align-self:flex-start;max-width:88%;background:rgba(210,153,34,0.12);border:1px solid #d29922;color:#d29922;padding:6px 10px;border-radius:8px;font-size:var(--nl-fs,11px);line-height:1.5;white-space:pre-wrap;';
             const shown = issues.slice(0, 8);
             const lines = shown.map(i => `• op #${(i.index ?? 0) + 1}${i.type ? ` [${i.type}]` : ''}: ${i.message}`);
             if (issues.length > shown.length)
@@ -205,7 +327,7 @@ window.NLEditorUI = (() => {
             if (!this.chatList)
                 return;
             const chip = document.createElement('div');
-            chip.style.cssText = 'align-self:flex-start;font-size:10px;color:var(--text-muted);padding:2px 6px;background:var(--bg-input);border-radius:4px;border:1px dashed var(--border);';
+            chip.style.cssText = 'align-self:flex-start;font-size:calc(var(--nl-fs,11px) - 1px);color:var(--text-muted);padding:2px 6px;background:var(--bg-input);border-radius:4px;border:1px dashed var(--border);';
             const res = result;
             const resSummary = typeof result === 'object' ? (res.summary || (res.matches ? `${res.matches.length} matches` : JSON.stringify(result).slice(0, 40))) : String(result);
             chip.textContent = `↳ [${name}] ${resSummary}`;
@@ -217,7 +339,7 @@ window.NLEditorUI = (() => {
             if (!this.chatList)
                 return;
             const chip = document.createElement('div');
-            chip.style.cssText = 'align-self:flex-start;font-size:10px;color:var(--primary);padding:2px 6px;background:var(--bg-input);border-radius:4px;border:1px dashed var(--primary);';
+            chip.style.cssText = 'align-self:flex-start;font-size:calc(var(--nl-fs,11px) - 1px);color:var(--primary);padding:2px 6px;background:var(--bg-input);border-radius:4px;border:1px dashed var(--primary);';
             chip.textContent = `⏳ ${name}…`;
             chip.dataset.nlrunning = '1';
             this.chatList.appendChild(chip);
@@ -410,6 +532,29 @@ window.NLEditorUI = (() => {
                 return;
             const n = ops.filter((o) => this._checked.get(o.id) !== false).length;
             btn.textContent = `Apply Selected (${n})`;
+        }
+        /**
+         * Persistent agent-activity indicator (task-739 follow-up): the status
+         * badge is transient text, so after the model narrates and stops the
+         * user cannot tell "still working" from "gave up". `stopped` = the turn
+         * ended without running a single tool (it talked, it did not act).
+         */
+        setActivity(state) {
+            const dot = document.getElementById('nl-activity-dot');
+            const label = document.getElementById('nl-activity-label');
+            if (!dot || !label)
+                return;
+            const colors = {
+                working: 'var(--primary)', idle: 'var(--text-muted)',
+                waiting: '#d29922', stopped: '#d29922', error: '#d13438'
+            };
+            const labels = {
+                working: 'working', idle: 'idle', waiting: 'your turn',
+                stopped: 'stopped — no action', error: 'error'
+            };
+            dot.style.color = colors[state] || 'var(--text-muted)';
+            dot.style.animation = state === 'working' ? 'nl-activity-pulse 1s ease-in-out infinite' : 'none';
+            label.textContent = labels[state] || state;
         }
         setStatus(status, isBusy = false) {
             if (!this.statusBadge)

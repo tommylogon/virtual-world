@@ -222,3 +222,28 @@ def test_explicit_selection_respects_cold_weather_gate():
     assert cand['pool'], 'expected insulated candidates in the cold'
     uninsulated = [e['lib_id'] for e in cand['pool'] if e['insulation'] <= 0]
     assert not uninsulated, f"cold pool leaked uninsulated items: {uninsulated}"
+
+def test_mature_wearables_are_gated_by_mature_content(monkeypatch):
+    """task-660: a mature-marked wearable must not reach the pool unless opted in."""
+    import engine.dressing as dressing
+
+    fake = [
+        {"lib_id": "plain_shirt", "name": "Shirt", "slots": ["torso"],
+         "tags": ["clothing"], "insulation": 0, "mature": False},
+        {"lib_id": "ball_gag", "name": "Ball Gag", "slots": ["head"],
+         "tags": ["clothing", "accessory", "restraint"], "insulation": 0, "mature": True},
+    ]
+    monkeypatch.setattr(dressing, "_wearable_entries", lambda: fake)
+
+    world, pname = make_world()
+
+    world.mature_content = False
+    off = dressing.dress_candidates(world, pname, limit=50)
+    ids_off = {e["lib_id"] for e in off["pool"]} | {e["lib_id"] for e in off["matched"]}
+    assert "ball_gag" not in ids_off, "mature item leaked into the pool with the toggle off"
+    assert "plain_shirt" in ids_off
+
+    world.mature_content = True
+    on = dressing.dress_candidates(world, pname, limit=50)
+    ids_on = {e["lib_id"] for e in on["pool"]}
+    assert "ball_gag" in ids_on, "opting in must restore the mature item"

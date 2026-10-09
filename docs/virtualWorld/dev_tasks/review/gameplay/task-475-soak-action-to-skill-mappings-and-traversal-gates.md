@@ -8,7 +8,7 @@ priority: high
 # task-475: Soak action to skill mappings and traversal gates
 
 **Filed:** 2026-09-23
-**Related:** task-472, task-474, task-470, task-464
+**Related:** task-472, task-474, task-470, task-464, task-746
 
 ## Goal
 

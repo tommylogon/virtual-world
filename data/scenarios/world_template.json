@@ -5,38 +5,7 @@
   "players": {
     "Kaelen Voss": {
       "name": "Kaelen Voss",
-      "personality": "you are Kaelen Voss, A Human who is a Disgraced Investigator for the Galser Office of Justice\nCurrent Status: Independent Truth-Seeker / Weary Traveler\nYear of Birth: 1548 (36 years old)\n\nYou are a man whose sharp eyes have seen too much of the \"Witch's Spit\" and the \"Elemental Conjunction\" to believe in simple explanations\n. Formerly a rising star in the Ulus of Galser’s bureaucratic machine, you were exiled after you refused to hand over a \"magical item of interest\" to the Department of Education and Research\n.\nYou carry the weight of the world’s 120-year curse in your bones, literally—your left leg clicks with a clockwork prosthetic, a relic of a skirmish near the Galtian border\n. While your humor remains dry as the Sarekyan Desert, it has taken on a bleaker edge as the frost of 1584 refuses to break. Your soft spot for stray animals has manifested as \"Runt,\" a shivering mouseling you found near a Galtian military camp, who now lives in the pocket of your heavy, fur-lined coat. ",
-      "description": "He cuts a lean, weather-worn figure in a heavy fur-lined coat that hangs open over a waxed canvas vest and rumpled linen shirt, a worn leather backpack slung across his shoulders. Dark hair streaked with grey is pulled back from a face sharp with high cheekbones and a stubbled jaw, his hazel eyes narrowed in a perpetual squint that deepens the crow’s feet and worry lines. A thin white scar slices through his left brow into the hairline, and the faint, rhythmic click of a segmented brass-and-steel prosthetic leg punctuates his stance beneath the reinforced wool trousers. At his collar, a small brooch catches the light, while a web of scarred knuckles rests against the coat’s edge.",
-      "base_description": "A gaunt man in his late thirties with sharp, weathered features — high cheekbones, a strong jaw under several days of dark stubble. His hazel eyes are quick and unnervingly observant, set in a permanent squint from years of reading fine print and scanning distant horizons. Dark hair, streaked with grey at the temples, is pulled back loosely.\n\nHis build is lean and wiry — the kind of frame built by long roads and skipped meals, not the gymnasium. The left leg from the knee down has been replaced with a clockwork prosthetic of brass and steel: segmented plates, exposed rivets, and a faint mechanical click with every shift of weight. The skin above the fitting is scarred, a clean amputation scar long healed.\n\nHis hands are scarred across the knuckles — old work, not recent. A thin white line runs from his left brow into the hairline. Crow's feet and worry lines are etched deeper than 36 years should allow.",
       "id": "33e94855",
-      "equipped": {
-        "accessory": [],
-        "arms": [],
-        "back": [
-          "item_Backpack"
-        ],
-        "feet": [
-          "item_Stovepipe Leather Boots (Pair)"
-        ],
-        "hand_left": [],
-        "hand_right": [],
-        "hands": [],
-        "head": [],
-        "legs": [
-          "item_Reinforced Wool Trousers",
-          "item_Wool Blend Undershirt & Drawers",
-          "item_Clockwork Prosthetic (Left Leg)"
-        ],
-        "neck": [
-          "item_Galser Office of Justice Brooch"
-        ],
-        "torso": [
-          "item_Lightweight Linen Shirt",
-          "item_Waxed Canvas Vest",
-          "item_Heavy Fur-Lined Coat"
-        ],
-        "waist": []
-      },
       "stats": {
         "CHA": 12,
         "CON": 14,
@@ -58,29 +27,8 @@
         "Entertainment": 92,
         "Temperature": 34.90000000000001
       },
-      "skills": {
-        "Athletics": 0,
-        "Acrobatics": 1,
-        "Stealth": 1,
-        "Perception": 2,
-        "Survival": 2,
-        "Persuasion": 1,
-        "Animal Handling": 0,
-        "Arcana": 0,
-        "Deception": 0,
-        "History": 0,
-        "Insight": 0,
-        "Intimidation": 0,
-        "Investigation": 0,
-        "Medicine": 0,
-        "Nature": 0,
-        "Performance": 0,
-        "Religion": 0,
-        "Sleight of Hand": 0
-      },
       "state": "awake",
       "perceived_conditions": [],
-      "trait_behavior": [],
       "conditions": {
         "awake": [
           {
@@ -294,6 +242,7 @@
       "emotions_description": "A faint unease prickles at you.",
       "relationships": {},
       "activity": null,
+      "lived_log_memorized_through": 0,
       "memories": [
         {
           "embedding": null,
@@ -336,7 +285,7 @@
       "patrol_route": [],
       "patrol_index": 0,
       "feels_like": 23,
-      "current_carry_weight": 28.0,
+      "current_carry_weight": 28.000000000000004,
       "max_carry_capacity": 100.0,
       "at_way_id": null,
       "facing": null,
@@ -345,34 +294,7 @@
     },
     "Lyrie": {
       "name": "Lyrie",
-      "personality": "Lyrie is a 79-year-old elven maiden, and widely known in her hometown as the village idiot.  Sweet, honest and sincere to a fault, but prone to causing disastrous trouble even when trying her best.\n\nPersonality: Put politely, Lyrie is an airhead. Dense, forgetful and clumsy, with a habit of breaking and losing things. Her grasp of basic tasks is shockingly poor, and she has issues following complex topics. While usually very polite, curious and cheerful, she is an infamous crybaby and her feelings are hurt easily. Lyrie cannot understand idioms, sarcasm or wordplay of any kind, and tends to jump to bizarre conclusions that make no sense. Lyrie never uses foul language or profanity, worried she'll be yelled at.\n\nMind: Lyrie is perpetually confused, and often daydreaming or spacing out even in dangerous situations. Her self-preservation instincts are poor, and she often gets herself into trouble and needs rescuing. Lyrie is a gifted magician, but rarely uses her powers after a certain incident almost got her exiled from her village. She wants to be helpful, but her clumsiness and poor luck often cause more harm than good.",
-      "description": "A small, slight elf with a mess of strawberry-blonde hair escapes a crushed dried flower crown, a few wisps tangling with a stray leaf. Her large, earnest pale blue eyes are framed by a soft round face peppered with freckles, while a faint silvery scar curls behind one unusually long, twitching ear. She wears a green tunic beneath a short forest cape, stirrup socks peeking above her boots, and a frayed friendship bracelet circles her wrist—her fidgeting hands marked with nicks and scratches, her cheeks flushed and still bearing faint tracks of dried tears.",
-      "base_description": "Appearance: Lyrie is short for an elf, with a mop of messy red hair and big, bright blue eyes. Skinny and petite, with freckles peppered across her nose and cheeks. There are little nicks and scratches all over her hands where she's spaced out and hurt herself. Her elf ears are unusually long and pointy, and she has no control over when they twitch. Lyrie cannot hide her feelings at all, and her face can be comically over-expressive depending on how she feels. she is a A young woman with a soft, round face that betrays every thought before she speaks. Her eyes are large and earnest — pale blue, maybe grey — always slightly wide, as if the world keeps surprising her. Freckles scattered across her nose and cheeks. Strawberry-blonde hair that never seems to stay put: wisps escaping a messy braid, a leaf or twig often tangled in it.\n\nShe is small-boned and slight, with the kind of delicate frame that makes people instinctively want to protect her. Her hands are never still — fidgeting with her sleeves, tracing invisible patterns in the air, then suddenly dropping whatever they were holding. There's a clumsiness to the way she holds herself, as if she's not quite sure where her limbs end and the world begins.\n\nHer face is often flushed — from embarrassment, from crying, from the sheer effort of trying so hard. The faint tracks of dried tears are common. She smiles easily, a crooked, hopeful smile that crinkles her nose, even when her eyes are still wet.\n\nA faint silvery scar — maybe a half-inch — curls behind her left ear like a tiny crescent moon. A reminder of the thing she almost did, the magic she almost used. she has red pubes, a bouncy butt, and pink nipples on her soft small breasts",
       "id": "210ef457",
-      "equipped": {
-        "accessory": [
-          "item_Frayed Friendship Bracelet"
-        ],
-        "arms": [],
-        "back": [],
-        "feet": [],
-        "hand_left": [],
-        "hand_right": [],
-        "hands": [],
-        "head": [
-          "item_Dried Flower Crown (Crushed)"
-        ],
-        "legs": [
-          "item_Stirrup Socks"
-        ],
-        "neck": [],
-        "torso": [
-          "item_Green Tunic",
-          "item_Short Forest Cape",
-          "item_Soft Linen Shift"
-        ],
-        "waist": []
-      },
       "stats": {
         "CHA": 10,
         "CON": 10,
@@ -394,29 +316,8 @@
         "Entertainment": 95,
         "Temperature": 34.35999999999999
       },
-      "skills": {
-        "Athletics": 1,
-        "Acrobatics": 1,
-        "Stealth": 1,
-        "Perception": 1,
-        "Survival": 1,
-        "Persuasion": 1,
-        "Animal Handling": 0,
-        "Arcana": 0,
-        "Deception": 0,
-        "History": 0,
-        "Insight": 0,
-        "Intimidation": 0,
-        "Investigation": 0,
-        "Medicine": 0,
-        "Nature": 0,
-        "Performance": 0,
-        "Religion": 0,
-        "Sleight of Hand": 0
-      },
       "state": "awake",
       "perceived_conditions": [],
-      "trait_behavior": [],
       "conditions": {
         "awake": [
           {
@@ -631,6 +532,7 @@
       "emotions_description": "A faint unease prickles at you.",
       "relationships": {},
       "activity": null,
+      "lived_log_memorized_through": 0,
       "memories": [
         {
           "entity_ids": [],
@@ -772,24 +674,7 @@
     },
     "rat": {
       "name": "rat",
-      "personality": "A scruffy brown rat with bright, clever eyes and twitching whiskers. It seems more curious than afraid, sniffing at the gap beneath the kitchen door.",
-      "description": "",
-      "base_description": "A scruffy brown rat with bright, clever eyes and twitching whiskers.",
       "id": "a4155dc6",
-      "equipped": {
-        "accessory": [],
-        "arms": [],
-        "back": [],
-        "feet": [],
-        "hand_left": [],
-        "hand_right": [],
-        "hands": [],
-        "head": [],
-        "legs": [],
-        "neck": [],
-        "torso": [],
-        "waist": []
-      },
       "stats": {
         "CHA": 4,
         "CON": 8,
@@ -811,29 +696,8 @@
         "Entertainment": 92,
         "Temperature": 35.29999999999999
       },
-      "skills": {
-        "Athletics": 1,
-        "Acrobatics": 3,
-        "Stealth": 4,
-        "Perception": 3,
-        "Survival": 2,
-        "Persuasion": 1,
-        "Animal Handling": 0,
-        "Arcana": 0,
-        "Deception": 0,
-        "History": 0,
-        "Insight": 0,
-        "Intimidation": 0,
-        "Investigation": 0,
-        "Medicine": 0,
-        "Nature": 0,
-        "Performance": 0,
-        "Religion": 0,
-        "Sleight of Hand": 0
-      },
       "state": "awake",
       "perceived_conditions": [],
-      "trait_behavior": [],
       "conditions": {
         "awake": [
           {
@@ -1033,6 +897,7 @@
       "emotions_description": "You feel a small, persistent loneliness. Also, a nervous dread you can't quite name lingers.",
       "relationships": {},
       "activity": null,
+      "lived_log_memorized_through": 0,
       "memories": [],
       "schedule": [],
       "active_pursuit": null,

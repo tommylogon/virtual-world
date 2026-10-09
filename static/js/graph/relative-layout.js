@@ -94,8 +94,8 @@ const _GraphRelativeLayout = {
         try {
             const engine = _layoutEngine();
             if (typeof graphManager !== 'undefined' && graphManager && graphManager._cardinalLayout === true
-                && engine && engine.mapScale) {
-                mapScale = engine.mapScale();
+                && engine && engine.mapSpacing) {
+                mapScale = engine.mapSpacing() / 40;
             }
         }
         catch (err) { /* keep the default */ }

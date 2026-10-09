@@ -785,3 +785,38 @@ class TestInventoryScopedItemMatching:
         assert result == "Dried Flower Crown"
         assert "alias" in matcher._fuzzy_match_note
 
+
+class TestRouteTagExits:
+    """A way's physical route tag is an addressable exit name
+    (docs/design/way-tags.md)."""
+
+    def test_a_route_tag_resolves_the_exit(self, matcher_with_exits, graph_with_exits):
+        # The name deliberately avoids "bridge", so only the route tier can match.
+        way = Node(id="way_bridge_test", type="way", name="Test Area-crossing",
+                   properties={"current_state": "open", "tags": ["bridge"]})
+        graph_with_exits.add_node(way)
+        graph_with_exits.add_edge(Edge(
+            source="area_Test_Room", target=way.id, type=EDGE_CONNECTION,
+            properties={"direction": "", "target": "area_South_Room"}))
+
+        _, way_node, _handle = matcher_with_exits.resolve_exit("area_Test_Room", "bridge")
+
+        assert way_node is not None and way_node.id == "way_bridge_test"
+        assert "route match" in matcher_with_exits._fuzzy_match_note
+
+    def test_an_ambiguous_route_word_declines_rather_than_guessing(
+            self, matcher_with_exits, graph_with_exits):
+        # Two roads, neither named "road": the route tier must not pick one.
+        for i in range(2):
+            way = Node(id=f"way_crossing_{i}", type="way",
+                       name=f"Test Area-crossing {i}",
+                       properties={"current_state": "open", "tags": ["road"]})
+            graph_with_exits.add_node(way)
+            graph_with_exits.add_edge(Edge(
+                source="area_Test_Room", target=way.id, type=EDGE_CONNECTION,
+                properties={"direction": "", "target": f"area_R{i}"}))
+
+        matcher_with_exits.resolve_exit("area_Test_Room", "road")
+
+        assert "route match" not in (matcher_with_exits._fuzzy_match_note or "")
+

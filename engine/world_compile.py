@@ -2111,6 +2111,36 @@ def compile_grid(manifest: Dict[str, dict], scope_id: str, *,
             way_props["aliases"] = (["door", "through", "in", "out"] if kind == "door"
                                     else ["stairs", "stairway", "up", "down",
                                           "in", "out"])
+        # You cannot close a road into a forest by hand (task-522, bug-530): an
+        # outdoor way — `open` or `stairs` — carries `prevent_close`, so
+        # `engine/movement.py` refuses a `close` on it. Before this only the
+        # *blocked* subset got the flag, so every other open outdoor way could be
+        # shut. A **door** is the exception: a threshold is meant to be closed,
+        # and the blocked pass (below) still sets the flag on the ways it blocks.
+        if kind in ("open", "stairs"):
+            way_props["prevent_close"] = True
+        # A way's tags, from the same writer the areas use: the union of both
+        # cells' feature tags and biome tags — what the way crosses — plus the
+        # facts a way has that a cell does not (`outdoor` from the scope mode,
+        # `door` / `stairs` from its kind). bug-529: ways carried no tags at all,
+        # so the open-air exit line read "[path] is open" instead of "is clear",
+        # and a way was invisible to tag search, matching aliases and observation
+        # recall. See docs/design/way-tags.md.
+        way_tags: List[str] = []
+        for side in (cell, nb):
+            side_road = cell_road(side)
+            side_road_rec = (biomes_mod.features() or {}).get(str(side_road)) or {} if side_road else {}
+            for tag in (side_road_rec.get("tags") or []):
+                if str(tag) not in way_tags:
+                    way_tags.append(str(tag))
+            for tag in biomes_mod.area_tags(cell_biome(side)):
+                if str(tag) not in way_tags:
+                    way_tags.append(str(tag))
+        if outdoor and "outdoor" not in way_tags:
+            way_tags.append("outdoor")
+        if kind in ("door", "stairs") and kind not in way_tags:
+            way_tags.append(kind)
+        way_props["tags"] = way_tags
         nodes.append(Node(id=way_id, type="way",
                           name=f"{from_name} - door" if kind == "door"
                                else f"{from_name} to {to_name}",

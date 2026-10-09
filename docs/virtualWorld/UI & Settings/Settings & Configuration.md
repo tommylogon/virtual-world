@@ -139,11 +139,12 @@ The Settings panel (`static/js/ui/settings-view.js`) provides tabbed configurati
 - Each filter controls which event types appear in the event log display
 
 ### Profiles
-The settings system supports **named profiles** for storing different LLM provider configurations. Default profiles include:
+The settings system supports **named profiles** for storing different LLM provider configurations. The default profile is **LM Studio (Local)** (`http://localhost:1234/v1`, model `glm-4-9b-0414`); built-in profiles include:
+- LM Studio (Local) — the default (local, model `glm-4-9b-0414`)
 - OpenAI (GPT-4.1-mini)
 - OpenAI (GPT-4o)
-- LM Studio (Local)
 - DeepSeek
+- DeepSeek (V4 Pro)
 - Groq
 
 ### Embedding Tab

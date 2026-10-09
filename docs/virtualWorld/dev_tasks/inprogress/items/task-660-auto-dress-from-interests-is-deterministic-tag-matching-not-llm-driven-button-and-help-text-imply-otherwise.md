@@ -174,12 +174,17 @@ is now bound to `None` first and the cleanup is guarded.
 - [ ] Confirm the `selection: 'llm'` line reaches the event log so it is visible
       that the model ran rather than the fallback — **done, confirmed in the
       browser log above**.
-- [ ] Decide whether a general inspector button should filter the pool on
-      `world.mature_content`. `ball_gag` is tagged `clothing, accessory,
-      restraint, wearable`, so it was already reachable through the no-interests
-      branch before this change — the wider pool does not introduce it, but it
-      does put it in front of the model. It was in the pool the model actually
-      saw at Tick 16 and was correctly not chosen.
+- [x] **Decided 2026-10-08 (user): yes — filter the pool on
+      `world.mature_content`.** A general inspector button should not offer
+      mature-tagged wearables (`ball_gag` is `clothing, accessory, restraint,
+      wearable`) when mature content is off, even though the no-interests branch
+      already reached them before. The wider pool does not introduce the class,
+      but it puts it in front of the model; filter it at the candidate source.
+      **Implemented:** `_wearable_entries` now carries the item's `mature` flag
+      (the same field `routes/library_ops._filter_mature_entries` honours), and
+      `engine/dressing._apply_mature_gate` drops mature wearables from both
+      `dress_candidates` and `auto_dress` when the toggle is off. Test:
+      `tests/test_auto_dress.py::test_mature_wearables_are_gated_by_mature_content`.
 
 ### Live verification (server restarted, 2026-10-01)
 

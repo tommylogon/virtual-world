@@ -42,9 +42,12 @@ window.NLEditor = (() => {
                     case 'turn:start':
                         this.ui.hideClarification();
                         this.ui.setStatus('Thinking...', true);
+                        this.ui.setActivity('working');
                         break;
                     case 'llm:calling':
                         this.ui.setStatus(`Thinking (round ${data.iteration}/${this.agent.maxIterations})…`, true);
+                        this.ui.setBudgetReadout(data.context ?? null, data.iteration, data.maxIterations);
+                        this.ui.setActivity('working');
                         break;
                     case 'message:added':
                         if (data.role === 'user') {
@@ -57,17 +60,28 @@ window.NLEditor = (() => {
                     case 'tool:start':
                         this.ui.appendToolRunning(data.name);
                         this.ui.setStatus(`running ${data.name}…`, true);
+                        this.ui.setActivity('working');
                         break;
                     case 'tool:finished':
                         this.ui.appendToolEvent(data.name, data.result);
                         this.ui.setStatus('Thinking...', true);
+                        this.ui.setActivity('working');
                         break;
                     case 'clarification:requested':
                         this.ui.showClarification(data.question, data.choices);
                         this.ui.setStatus('Waiting for choice', false);
+                        this.ui.setActivity('waiting');
+                        break;
+                    case 'turn:capped':
+                        this.ui.appendSystemNotice(`Stopped at the ${data.maxIterations}-round limit; the edit may be incomplete.`);
+                        this.ui.setActivity('stopped');
                         break;
                     case 'turn:end':
                         this.ui.setStatus(data?.error ? 'Error' : 'Ready', false);
+                        // "stopped — no action" when the model ended the turn
+                        // without calling a single tool (it narrated, it did not act).
+                        this.ui.setActivity(data?.error ? 'error'
+                            : (data?.capped || !data?.ranTool) ? 'stopped' : 'idle');
                         // Refresh ghost previews; auto-pan when this turn staged
                         // something new ("here's what I just drafted").
                         if (typeof NLEditorGhosts !== 'undefined' && NLEditorGhosts?.refresh) {
@@ -77,12 +91,14 @@ window.NLEditor = (() => {
                     case 'error':
                         this.ui.setStatus('Error', false);
                         this.ui.appendErrorMessage(data?.error);
+                        this.ui.setActivity('error');
                         break;
                     case 'session:reset':
                         if (this.ui.chatList)
                             this.ui.chatList.innerHTML = '';
                         this.ui.hideClarification();
                         this.ui.setStatus('Ready', false);
+                        this.ui.setActivity('idle');
                         break;
                     case 'session:applied':
                         this.ui.appendAppliedNotice(data.appliedCount, data.remaining);
