@@ -5,14 +5,14 @@ area: library
 priority: low
 ---
 
-# task-649: A known-bad reference image is still offered: eldenford - wrong orientatoin.png
+# task-649: A known-bad reference image is still offered: eldenford - wrong orientatoin.webp
 
 **Filed:** 2026-09-30
 **Related:** 
 
 ## Goal
 
-The WorldPainter reference-image picker lists 19 backgrounds including 'eldenford - wrong orientatoin.png' -- a file whose name says it is the wrong orientation. It sits next to the correct eldenford.png, so an author tracing over the map can pick the wrong one and get a mirrored map. Either rename it out of the directory or have the picker mark it.
+The WorldPainter reference-image picker lists 19 backgrounds including 'eldenford - wrong orientatoin.webp' -- a file whose name says it is the wrong orientation. It sits next to the correct eldenford.webp, so an author tracing over the map can pick the wrong one and get a mirrored map. Either rename it out of the directory or have the picker mark it.
 
 ## Acceptance
 
@@ -22,7 +22,7 @@ The WorldPainter reference-image picker lists 19 backgrounds including 'eldenfor
 
 ## What was done 2026-10-02
 
-`static/images/backgrounds/eldenford - wrong orientatoin.png` was moved (via
+`static/images/backgrounds/eldenford - wrong orientatoin.webp` was moved (via
 `git mv`) to `static/images/backgrounds/_rejected/`. `_background_urls`
 (`routes/world_grid_ops.py`) now skips non-file entries, so a subfolder is never
 listed and the bad image cannot be traced over by mistake. The rejected copy is
@@ -32,7 +32,7 @@ Evidence, live on port 4461:
 
     GET /api/world/painter/backgrounds
     -> 17 images, none matching "wrong orient"
-    -> /static/images/backgrounds/eldenford.png still present
+    -> /static/images/backgrounds/eldenford.webp still present
 
 `python -m pytest tests/test_painter_backgrounds.py -q` — 1 passed.
 
@@ -43,11 +43,11 @@ nearly all ~4 MB. Beyond the known-bad entry, the sweep found:
 
 | file | size | note |
 |---|---|---|
-| `eldenford - wrong orientatoin.png` | 4,158,067 | named as wrong; sits beside the correct `eldenford.png` |
-| `ChatGPT_Image_Sep_22_2026_10_11_21_AM-1790064744611-1790163792966.png` | 4,063,401 | **byte-identical pair** with the row below |
-| `ChatGPT_Image_Sep_22_2026_10_11_21_AM-1790064744611.png` | 4,063,401 | |
-| `valerious-house-interior-1790164455523.png` | 2,951,917 | timestamped variant of `valerious-house-interior.png` |
-| `deep_forest-1790288542838.png` | 4,083,322 | timestamped variant |
+| `eldenford - wrong orientatoin.webp` | 4,158,067 | named as wrong; sits beside the correct `eldenford.webp` |
+| `ChatGPT_Image_Sep_22_2026_10_11_21_AM-1790064744611-1790163792966.webp` | 4,063,401 | **byte-identical pair** with the row below |
+| `ChatGPT_Image_Sep_22_2026_10_11_21_AM-1790064744611.webp` | 4,063,401 | |
+| `valerious-house-interior-1790164455523.webp` | 2,951,917 | timestamped variant of `valerious-house-interior.webp` |
+| `deep_forest-1790288542838.webp` | 4,083,322 | timestamped variant |
 
 **Not actioned deliberately.** Deleting or renaming these is a judgement about
 which reference art the author wants to keep, and a wrong guess destroys work.

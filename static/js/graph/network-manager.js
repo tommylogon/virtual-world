@@ -853,12 +853,12 @@ window.GraphNetwork = {
             }
             // Physics follows the user's choice, in Map mode too. The grid layout
             // turns the solver off only to place the lattice; the preference is
-            // restored below, so a painted scope with physics on simulates after
-            // every reload instead of being silently frozen. Consequence, by
-            // design: nodes drift off the painted cells, and the map art (which is
-            // positioned to that lattice) stops lining up with them. Locking the
-            // node layout (🔒 in the background menu) still wins over both.
-            // To go back to the old behaviour, restore `layoutKind !== 'grid'`.
+            // restored below, so a map scope with physics on simulates after every
+            // reload instead of being silently frozen. Areas and ways are pinned
+            // to their map coordinates (layout-engine), so restoring physics only
+            // simulates items and characters — the rooms stay on their cells and
+            // the background art keeps lining up. Locking the node layout (🔒 in
+            // the background menu) still wins over both.
             if (wasPhysics) {
                 graphManager._physicsEnabled = true;
                 GraphNetwork.applyModePhysics(true);

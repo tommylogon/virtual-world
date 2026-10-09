@@ -149,9 +149,9 @@ const _InspectorTriggers = (() => {
         const htmlTag = (strings, ...values) => window.Lit.html(strings, ...values);
         const nothing = window.Lit.nothing;
         return htmlTag `<div class="inspector-section">
-            <h3 style="display:flex;justify-content:space-between;align-items:center;">
+            <h3 style="display:flex;flex-wrap:wrap;gap:4px;justify-content:space-between;align-items:center;">
                 <span>${lockToggle} ⚡ Triggers</span>
-                <div style="display:flex;gap:3px;">
+                <div style="display:flex;flex-wrap:wrap;gap:3px;justify-content:flex-end;">
                     <button class="btn btn-sm" @click=${() => api._openGraphEditor(nodeId)} style="font-size:10px;">🧩 Graph</button>
                     <button class="btn btn-sm" @click=${() => api.validateNode(nodeId)} style="font-size:10px;" title="Scan this node's triggers for broken references">⚠ Validate</button>
                     <button class="btn btn-sm" @click=${(e) => api.suggestForNode(nodeId, false, e.currentTarget)} style="font-size:10px;background:var(--bg-inset);border-color:var(--orange);color:var(--orange);" title="Suggest a full set of useful triggers from this node (no AI)">⚡ Suggest</button>

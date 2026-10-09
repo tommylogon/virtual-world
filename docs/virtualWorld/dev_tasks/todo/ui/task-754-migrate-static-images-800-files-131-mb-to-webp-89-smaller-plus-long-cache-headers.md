@@ -25,7 +25,7 @@ Measured with `tools/optimize_images.py` (dry run, quality 82):
 ```
 
 - Portrait `player_Lyrie-profile-happy-*.png`: 304 KB → 25 KB.
-- Background `raven river.png` (1536×1024): 4359 KB → 617 KB; at half-size, 194 KB.
+- Background `raven river.webp` (1536×1024): 4359 KB → 617 KB; at half-size, 194 KB.
 - PNG-only re-encoding barely helps (223 KB) — the format is the problem, not the
   settings.
 

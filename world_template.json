@@ -4577,46 +4577,46 @@
         "properties": {
           "x": -954,
           "y": -47,
-          "image": "/static/images/nodes/player_Kaelen_Voss-1790256977027.png",
+          "image": "/static/images/nodes/player_Kaelen_Voss-1790256977027.webp",
           "expressions": {
             "neutral": {
-              "profile": "/static/images/nodes/player_Kaelen_Voss-profile-neutral-1790257193421.png"
+              "profile": "/static/images/nodes/player_Kaelen_Voss-profile-neutral-1790257193421.webp"
             },
             "happy": {
-              "profile": "/static/images/nodes/player_Kaelen_Voss-profile-happy-1790257193814.png"
+              "profile": "/static/images/nodes/player_Kaelen_Voss-profile-happy-1790257193814.webp"
             },
             "sad": {
-              "profile": "/static/images/nodes/player_Kaelen_Voss-profile-sad-1790257194232.png"
+              "profile": "/static/images/nodes/player_Kaelen_Voss-profile-sad-1790257194232.webp"
             },
             "angry": {
-              "profile": "/static/images/nodes/player_Kaelen_Voss-profile-angry-1790257194711.png"
+              "profile": "/static/images/nodes/player_Kaelen_Voss-profile-angry-1790257194711.webp"
             },
             "afraid": {
-              "profile": "/static/images/nodes/player_Kaelen_Voss-profile-afraid-1790257195365.png"
+              "profile": "/static/images/nodes/player_Kaelen_Voss-profile-afraid-1790257195365.webp"
             },
             "surprised": {
-              "profile": "/static/images/nodes/player_Kaelen_Voss-profile-surprised-1790257196164.png"
+              "profile": "/static/images/nodes/player_Kaelen_Voss-profile-surprised-1790257196164.webp"
             },
             "disgusted": {
-              "profile": "/static/images/nodes/player_Kaelen_Voss-profile-disgusted-1790257196758.png"
+              "profile": "/static/images/nodes/player_Kaelen_Voss-profile-disgusted-1790257196758.webp"
             },
             "aroused": {
-              "profile": "/static/images/nodes/player_Kaelen_Voss-profile-aroused-1790257197324.png"
+              "profile": "/static/images/nodes/player_Kaelen_Voss-profile-aroused-1790257197324.webp"
             },
             "affectionate": {
-              "profile": "/static/images/nodes/player_Kaelen_Voss-profile-affectionate-1790257197922.png"
+              "profile": "/static/images/nodes/player_Kaelen_Voss-profile-affectionate-1790257197922.webp"
             },
             "ashamed": {
-              "profile": "/static/images/nodes/player_Kaelen_Voss-profile-ashamed-1790257198801.png"
+              "profile": "/static/images/nodes/player_Kaelen_Voss-profile-ashamed-1790257198801.webp"
             },
             "envious": {
-              "profile": "/static/images/nodes/player_Kaelen_Voss-profile-envious-1790257199389.png"
+              "profile": "/static/images/nodes/player_Kaelen_Voss-profile-envious-1790257199389.webp"
             },
             "calm": {
-              "profile": "/static/images/nodes/player_Kaelen_Voss-profile-calm-1790257200031.png"
+              "profile": "/static/images/nodes/player_Kaelen_Voss-profile-calm-1790257200031.webp"
             }
           },
-          "profile_image": "/static/images/nodes/player_Kaelen_Voss-profile-neutral-1790257193421.png"
+          "profile_image": "/static/images/nodes/player_Kaelen_Voss-profile-neutral-1790257193421.webp"
         },
         "created": 1784015354.4561856,
         "updated": 1790257200.0437033
@@ -4628,46 +4628,46 @@
         "properties": {
           "x": -69,
           "y": 608,
-          "image": "/static/images/nodes/player_Lyrie-1790256849285.png",
+          "image": "/static/images/nodes/player_Lyrie-1790256849285.webp",
           "expressions": {
             "neutral": {
-              "profile": "/static/images/nodes/player_Lyrie-profile-neutral-1790257215628.png"
+              "profile": "/static/images/nodes/player_Lyrie-profile-neutral-1790257215628.webp"
             },
             "happy": {
-              "profile": "/static/images/nodes/player_Lyrie-profile-happy-1790257216015.png"
+              "profile": "/static/images/nodes/player_Lyrie-profile-happy-1790257216015.webp"
             },
             "sad": {
-              "profile": "/static/images/nodes/player_Lyrie-profile-sad-1790257216397.png"
+              "profile": "/static/images/nodes/player_Lyrie-profile-sad-1790257216397.webp"
             },
             "angry": {
-              "profile": "/static/images/nodes/player_Lyrie-profile-angry-1790257216827.png"
+              "profile": "/static/images/nodes/player_Lyrie-profile-angry-1790257216827.webp"
             },
             "afraid": {
-              "profile": "/static/images/nodes/player_Lyrie-profile-afraid-1790257217623.png"
+              "profile": "/static/images/nodes/player_Lyrie-profile-afraid-1790257217623.webp"
             },
             "surprised": {
-              "profile": "/static/images/nodes/player_Lyrie-profile-surprised-1790257218431.png"
+              "profile": "/static/images/nodes/player_Lyrie-profile-surprised-1790257218431.webp"
             },
             "disgusted": {
-              "profile": "/static/images/nodes/player_Lyrie-profile-disgusted-1790257218920.png"
+              "profile": "/static/images/nodes/player_Lyrie-profile-disgusted-1790257218920.webp"
             },
             "aroused": {
-              "profile": "/static/images/nodes/player_Lyrie-profile-aroused-1790257219633.png"
+              "profile": "/static/images/nodes/player_Lyrie-profile-aroused-1790257219633.webp"
             },
             "affectionate": {
-              "profile": "/static/images/nodes/player_Lyrie-profile-affectionate-1790257229794.png"
+              "profile": "/static/images/nodes/player_Lyrie-profile-affectionate-1790257229794.webp"
             },
             "ashamed": {
-              "profile": "/static/images/nodes/player_Lyrie-profile-ashamed-1790257232247.png"
+              "profile": "/static/images/nodes/player_Lyrie-profile-ashamed-1790257232247.webp"
             },
             "envious": {
-              "profile": "/static/images/nodes/player_Lyrie-profile-envious-1790257238234.png"
+              "profile": "/static/images/nodes/player_Lyrie-profile-envious-1790257238234.webp"
             },
             "calm": {
-              "profile": "/static/images/nodes/player_Lyrie-profile-calm-1790257246480.png"
+              "profile": "/static/images/nodes/player_Lyrie-profile-calm-1790257246480.webp"
             }
           },
-          "profile_image": "/static/images/nodes/player_Lyrie-profile-neutral-1790257215628.png"
+          "profile_image": "/static/images/nodes/player_Lyrie-profile-neutral-1790257215628.webp"
         },
         "created": 1784461990.64985,
         "updated": 1790257246.4838052
@@ -11004,7 +11004,7 @@
       {
         "id": "bg-g2os0hs",
         "label": "frosen wilds",
-        "image": "/static/images/backgrounds/ChatGPT_Image_Sep_22_2026_10_11_21_AM-1790064744611-1790163792966.png",
+        "image": "/static/images/backgrounds/ChatGPT_Image_Sep_22_2026_10_11_21_AM-1790064744611-1790163792966.webp",
         "rect": {
           "x": -1808.9108318264093,
           "y": -1215.8333333333333,
@@ -11025,7 +11025,7 @@
       {
         "id": "bg-l29nb70",
         "label": "valerious-house-interior",
-        "image": "/static/images/backgrounds/valerious-house-interior-1790164455523.png",
+        "image": "/static/images/backgrounds/valerious-house-interior-1790164455523.webp",
         "rect": {
           "x": 1764.1302954182497,
           "y": -1215.8333333333333,

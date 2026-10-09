@@ -10,10 +10,12 @@
  * Two modes:
  *  - GRID (preferred) — nodes carry `properties.x`/`y` from the WorldPainter
  *    compiler (areas `cell * CELL_CANVAS_UNITS`, ways at cell midpoints). The map
- *    is *read* exactly, physics stays off, nothing is force-settled. This is the
- *    "same XY grid we painted" the author expects.
+ *    is *read* exactly; areas and ways are pinned, and physics never moves them.
  *  - CARDINAL (fallback) — hand-authored worlds with no painted coords: BFS the
- *    exits onto an integer grid and let hybrid physics settle it, as before.
+ *    exits onto an integer grid to derive each room's anchor, then pin the rooms
+ *    and ways to those anchors. Only items and characters are simulated. (This
+ *    fallback used to leave the rooms to the solver; that drifted them off their
+ *    anchors and ran the solver over every area node.)
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 window.GraphLayoutEngine = {
@@ -131,16 +133,20 @@ window.GraphLayoutEngine = {
                 id: nodeId,
                 x: anchor.x,
                 y: anchor.y,
-                // Start at anchor position, physics will settle them
-                physics: true,
-                fixed: { x: false, y: false }
+                // The cardinal-derived anchor IS the area's map coordinate, so pin
+                // it. Letting the solver "settle" areas drifted every room off its
+                // anchor (and off the background art) and ran the solver over
+                // hundreds of area nodes every frame. Areas and ways are the map;
+                // only items and characters are simulated (see the grid path).
+                physics: false,
+                fixed: { x: true, y: true }
             });
         });
         roomNames.forEach((areaName) => {
             if (!placed[areaName]) {
                 const nodeId = nameToId[areaName];
                 if (nodeId && nodesDS.get(nodeId)) {
-                    areaUpdates.push({ id: nodeId, physics: true, fixed: { x: false, y: false } });
+                    areaUpdates.push({ id: nodeId, physics: false, fixed: { x: true, y: true } });
                 }
             }
         });
@@ -172,8 +178,11 @@ window.GraphLayoutEngine = {
                 id: wayId,
                 x: (anchorA.x + anchorB.x) / 2,
                 y: (anchorA.y + anchorB.y) / 2,
-                physics: true,
-                fixed: { x: false, y: false }
+                // Pinned, like the rooms it joins: the midpoint is its map
+                // coordinate, and a simulated way drifts and strung its edges
+                // across the map (see the grid path, task-618).
+                physics: false,
+                fixed: { x: true, y: true }
             });
         }
         // Item/character positions near parent room (with physics)

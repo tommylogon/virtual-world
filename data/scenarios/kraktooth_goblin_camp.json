@@ -26509,101 +26509,101 @@
           "description": "A smug, cheerful young goblin with white hair and green earrings.",
           "expressions": {
             "amused": {
-              "profile": "/static/images/nodes/player_Arix-profile-amused-1791423330210.png"
+              "profile": "/static/images/nodes/player_Arix-profile-amused-1791423330210.webp"
             },
             "angry": {
-              "profile": "/static/images/nodes/player_Arix-profile-angry-1791423306061.png"
+              "profile": "/static/images/nodes/player_Arix-profile-angry-1791423306061.webp"
             },
             "bored": {
-              "profile": "/static/images/nodes/player_Arix-profile-bored-1791423320558.png"
+              "profile": "/static/images/nodes/player_Arix-profile-bored-1791423320558.webp"
             },
             "concerned": {
-              "profile": "/static/images/nodes/player_Arix-profile-concerned-1791423331397.png"
+              "profile": "/static/images/nodes/player_Arix-profile-concerned-1791423331397.webp"
             },
             "confident": {
-              "profile": "/static/images/nodes/player_Arix-profile-confident-1791423332674.png"
+              "profile": "/static/images/nodes/player_Arix-profile-confident-1791423332674.webp"
             },
             "confused": {
-              "profile": "/static/images/nodes/player_Arix-profile-confused-1791423310882.png"
+              "profile": "/static/images/nodes/player_Arix-profile-confused-1791423310882.webp"
             },
             "curious": {
-              "profile": "/static/images/nodes/player_Arix-profile-curious-1791423317004.png"
+              "profile": "/static/images/nodes/player_Arix-profile-curious-1791423317004.webp"
             },
             "defiant": {
-              "profile": "/static/images/nodes/player_Arix-profile-defiant-1791423326670.png"
+              "profile": "/static/images/nodes/player_Arix-profile-defiant-1791423326670.webp"
             },
             "determined": {
-              "profile": "/static/images/nodes/player_Arix-profile-determined-1791423312171.png"
+              "profile": "/static/images/nodes/player_Arix-profile-determined-1791423312171.webp"
             },
             "disgusted": {
-              "profile": "/static/images/nodes/player_Arix-profile-disgusted-1791423309585.png"
+              "profile": "/static/images/nodes/player_Arix-profile-disgusted-1791423309585.webp"
             },
             "embarrassed": {
-              "profile": "/static/images/nodes/player_Arix-profile-embarrassed-1791423318148.png"
+              "profile": "/static/images/nodes/player_Arix-profile-embarrassed-1791423318148.webp"
             },
             "exhausted": {
-              "profile": "/static/images/nodes/player_Arix-profile-exhausted-1791423313324.png"
+              "profile": "/static/images/nodes/player_Arix-profile-exhausted-1791423313324.webp"
             },
             "fearful": {
-              "profile": "/static/images/nodes/player_Arix-profile-fearful-1791423308384.png"
+              "profile": "/static/images/nodes/player_Arix-profile-fearful-1791423308384.webp"
             },
             "frustrated": {
-              "profile": "/static/images/nodes/player_Arix-profile-frustrated-1791423324189.png"
+              "profile": "/static/images/nodes/player_Arix-profile-frustrated-1791423324189.webp"
             },
             "happy": {
-              "profile": "/static/images/nodes/player_Arix-profile-happy-1791423302613.png"
+              "profile": "/static/images/nodes/player_Arix-profile-happy-1791423302613.webp"
             },
             "hopeful": {
-              "profile": "/static/images/nodes/player_Arix-profile-hopeful-1791423323057.png"
+              "profile": "/static/images/nodes/player_Arix-profile-hopeful-1791423323057.webp"
             },
             "nervous": {
-              "profile": "/static/images/nodes/player_Arix-profile-nervous-1791423333955.png"
+              "profile": "/static/images/nodes/player_Arix-profile-nervous-1791423333955.webp"
             },
             "neutral": {
-              "profile": "/static/images/nodes/player_Arix-profile-neutral-1791423301652.png"
+              "profile": "/static/images/nodes/player_Arix-profile-neutral-1791423301652.webp"
             },
             "playful": {
-              "profile": "/static/images/nodes/player_Arix-profile-playful-1791423335259.png"
+              "profile": "/static/images/nodes/player_Arix-profile-playful-1791423335259.webp"
             },
             "proud": {
-              "profile": "/static/images/nodes/player_Arix-profile-proud-1791423319377.png"
+              "profile": "/static/images/nodes/player_Arix-profile-proud-1791423319377.webp"
             },
             "relieved": {
-              "profile": "/static/images/nodes/player_Arix-profile-relieved-1791423325448.png"
+              "profile": "/static/images/nodes/player_Arix-profile-relieved-1791423325448.webp"
             },
             "sad": {
-              "profile": "/static/images/nodes/player_Arix-profile-sad-1791423304670.png"
+              "profile": "/static/images/nodes/player_Arix-profile-sad-1791423304670.webp"
             },
             "serious": {
-              "profile": "/static/images/nodes/player_Arix-profile-serious-1791423336474.png"
+              "profile": "/static/images/nodes/player_Arix-profile-serious-1791423336474.webp"
             },
             "shocked": {
-              "profile": "/static/images/nodes/player_Arix-profile-shocked-1791423329094.png"
+              "profile": "/static/images/nodes/player_Arix-profile-shocked-1791423329094.webp"
             },
             "sleepy": {
-              "profile": "/static/images/nodes/player_Arix-profile-sleepy-1791423327944.png"
+              "profile": "/static/images/nodes/player_Arix-profile-sleepy-1791423327944.webp"
             },
             "smug": {
-              "profile": "/static/images/nodes/player_Arix-profile-smug-1791423314550.png"
+              "profile": "/static/images/nodes/player_Arix-profile-smug-1791423314550.webp"
             },
             "surprised": {
-              "profile": "/static/images/nodes/player_Arix-profile-surprised-1791423307270.png"
+              "profile": "/static/images/nodes/player_Arix-profile-surprised-1791423307270.webp"
             },
             "suspicious": {
-              "profile": "/static/images/nodes/player_Arix-profile-suspicious-1791423321813.png"
+              "profile": "/static/images/nodes/player_Arix-profile-suspicious-1791423321813.webp"
             },
             "tearful": {
-              "profile": "/static/images/nodes/player_Arix-profile-tearful-1791423337830.png"
+              "profile": "/static/images/nodes/player_Arix-profile-tearful-1791423337830.webp"
             },
             "thoughtful": {
-              "profile": "/static/images/nodes/player_Arix-profile-thoughtful-1791423339273.png"
+              "profile": "/static/images/nodes/player_Arix-profile-thoughtful-1791423339273.webp"
             },
             "worried": {
-              "profile": "/static/images/nodes/player_Arix-profile-worried-1791423315799.png"
+              "profile": "/static/images/nodes/player_Arix-profile-worried-1791423315799.webp"
             }
           },
           "personality": "You are Arix, a young goblin runaway with white hair and green earrings. Smug, cheerful, and greedy. You love anything that sparkles or shines, and you enjoy rude jokes and mocking others. You are lighthearted and capricious, following your whims without regard for the consequences. You are not from this tribe.",
-          "profile_image": "/static/images/nodes/player_Arix-profile-neutral-1791423301652.png",
+          "profile_image": "/static/images/nodes/player_Arix-profile-neutral-1791423301652.webp",
           "tags": [
             "female",
             "teen",
@@ -26628,104 +26628,104 @@
           "description": "A quiet, hardened goblin traveler with wary eyes.",
           "expressions": {
             "amused": {
-              "profile": "/static/images/nodes/player_Belne-profile-amused-1791154811914.png"
+              "profile": "/static/images/nodes/player_Belne-profile-amused-1791154811914.webp"
             },
             "angry": {
-              "profile": "/static/images/nodes/player_Belne-profile-angry-1791154783747.png"
+              "profile": "/static/images/nodes/player_Belne-profile-angry-1791154783747.webp"
             },
             "bored": {
-              "profile": "/static/images/nodes/player_Belne-profile-bored-1791154800509.png"
+              "profile": "/static/images/nodes/player_Belne-profile-bored-1791154800509.webp"
             },
             "concerned": {
-              "profile": "/static/images/nodes/player_Belne-profile-concerned-1791154813689.png"
+              "profile": "/static/images/nodes/player_Belne-profile-concerned-1791154813689.webp"
             },
             "confident": {
-              "profile": "/static/images/nodes/player_Belne-profile-confident-1791154815816.png"
+              "profile": "/static/images/nodes/player_Belne-profile-confident-1791154815816.webp"
             },
             "confused": {
-              "profile": "/static/images/nodes/player_Belne-profile-confused-1791154789457.png"
+              "profile": "/static/images/nodes/player_Belne-profile-confused-1791154789457.webp"
             },
             "curious": {
-              "profile": "/static/images/nodes/player_Belne-profile-curious-1791154796386.png"
+              "profile": "/static/images/nodes/player_Belne-profile-curious-1791154796386.webp"
             },
             "defiant": {
-              "profile": "/static/images/nodes/player_Belne-profile-defiant-1791154807831.png"
+              "profile": "/static/images/nodes/player_Belne-profile-defiant-1791154807831.webp"
             },
             "determined": {
-              "profile": "/static/images/nodes/player_Belne-profile-determined-1791154790972.png"
+              "profile": "/static/images/nodes/player_Belne-profile-determined-1791154790972.webp"
             },
             "disgusted": {
-              "profile": "/static/images/nodes/player_Belne-profile-disgusted-1791154788131.png"
+              "profile": "/static/images/nodes/player_Belne-profile-disgusted-1791154788131.webp"
             },
             "embarrassed": {
-              "profile": "/static/images/nodes/player_Belne-profile-embarrassed-1791154797807.png"
+              "profile": "/static/images/nodes/player_Belne-profile-embarrassed-1791154797807.webp"
             },
             "exhausted": {
-              "profile": "/static/images/nodes/player_Belne-profile-exhausted-1791154792371.png"
+              "profile": "/static/images/nodes/player_Belne-profile-exhausted-1791154792371.webp"
             },
             "fearful": {
-              "profile": "/static/images/nodes/player_Belne-profile-fearful-1791154786582.png"
+              "profile": "/static/images/nodes/player_Belne-profile-fearful-1791154786582.webp"
             },
             "frustrated": {
-              "profile": "/static/images/nodes/player_Belne-profile-frustrated-1791154804632.png"
+              "profile": "/static/images/nodes/player_Belne-profile-frustrated-1791154804632.webp"
             },
             "happy": {
-              "profile": "/static/images/nodes/player_Belne-profile-happy-1791154780716.png"
+              "profile": "/static/images/nodes/player_Belne-profile-happy-1791154780716.webp"
             },
             "hopeful": {
-              "profile": "/static/images/nodes/player_Belne-profile-hopeful-1791154803348.png"
+              "profile": "/static/images/nodes/player_Belne-profile-hopeful-1791154803348.webp"
             },
             "nervous": {
-              "profile": "/static/images/nodes/player_Belne-profile-nervous-1791154816948.png"
+              "profile": "/static/images/nodes/player_Belne-profile-nervous-1791154816948.webp"
             },
             "neutral": {
-              "profile": "/static/images/nodes/player_Belne-profile-neutral-1791154779983.png"
+              "profile": "/static/images/nodes/player_Belne-profile-neutral-1791154779983.webp"
             },
             "playful": {
-              "profile": "/static/images/nodes/player_Belne-profile-playful-1791154818268.png"
+              "profile": "/static/images/nodes/player_Belne-profile-playful-1791154818268.webp"
             },
             "proud": {
-              "profile": "/static/images/nodes/player_Belne-profile-proud-1791154799056.png"
+              "profile": "/static/images/nodes/player_Belne-profile-proud-1791154799056.webp"
             },
             "relieved": {
-              "profile": "/static/images/nodes/player_Belne-profile-relieved-1791154806225.png"
+              "profile": "/static/images/nodes/player_Belne-profile-relieved-1791154806225.webp"
             },
             "sad": {
-              "profile": "/static/images/nodes/player_Belne-profile-sad-1791154782670.png"
+              "profile": "/static/images/nodes/player_Belne-profile-sad-1791154782670.webp"
             },
             "serious": {
-              "profile": "/static/images/nodes/player_Belne-profile-serious-1791154820053.png"
+              "profile": "/static/images/nodes/player_Belne-profile-serious-1791154820053.webp"
             },
             "shocked": {
-              "profile": "/static/images/nodes/player_Belne-profile-shocked-1791154810349.png"
+              "profile": "/static/images/nodes/player_Belne-profile-shocked-1791154810349.webp"
             },
             "sleepy": {
-              "profile": "/static/images/nodes/player_Belne-profile-sleepy-1791154809099.png"
+              "profile": "/static/images/nodes/player_Belne-profile-sleepy-1791154809099.webp"
             },
             "slot32": {
-              "profile": "/static/images/nodes/player_Belne-profile-slot32-1791154824480.png"
+              "profile": "/static/images/nodes/player_Belne-profile-slot32-1791154824480.webp"
             },
             "smug": {
-              "profile": "/static/images/nodes/player_Belne-profile-smug-1791154793787.png"
+              "profile": "/static/images/nodes/player_Belne-profile-smug-1791154793787.webp"
             },
             "surprised": {
-              "profile": "/static/images/nodes/player_Belne-profile-surprised-1791154785088.png"
+              "profile": "/static/images/nodes/player_Belne-profile-surprised-1791154785088.webp"
             },
             "suspicious": {
-              "profile": "/static/images/nodes/player_Belne-profile-suspicious-1791154801904.png"
+              "profile": "/static/images/nodes/player_Belne-profile-suspicious-1791154801904.webp"
             },
             "tearful": {
-              "profile": "/static/images/nodes/player_Belne-profile-tearful-1791154821870.png"
+              "profile": "/static/images/nodes/player_Belne-profile-tearful-1791154821870.webp"
             },
             "thoughtful": {
-              "profile": "/static/images/nodes/player_Belne-profile-thoughtful-1791154822932.png"
+              "profile": "/static/images/nodes/player_Belne-profile-thoughtful-1791154822932.webp"
             },
             "worried": {
-              "profile": "/static/images/nodes/player_Belne-profile-worried-1791154795033.png"
+              "profile": "/static/images/nodes/player_Belne-profile-worried-1791154795033.webp"
             }
           },
           "personality": "You are Belne, a banished goblin from a savage tribe. You were rejected for being kind. You are quiet, desperate, and hardworking. You wander, take simple quests, and endure prejudice. You want to belong somewhere, but you do not trust easily.",
-          "profile_image": "/static/images/nodes/player_Belne-profile-neutral-1791154779983.png",
+          "profile_image": "/static/images/nodes/player_Belne-profile-neutral-1791154779983.webp",
           "tags": [
             "female",
             "adult",
@@ -26751,101 +26751,101 @@
           "description": "An enormous frog with ancient, knowing eyes.",
           "expressions": {
             "amused": {
-              "profile": "/static/images/nodes/player_Croak-Mother-profile-amused-1791423456882.png"
+              "profile": "/static/images/nodes/player_Croak-Mother-profile-amused-1791423456882.webp"
             },
             "angry": {
-              "profile": "/static/images/nodes/player_Croak-Mother-profile-angry-1791423434398.png"
+              "profile": "/static/images/nodes/player_Croak-Mother-profile-angry-1791423434398.webp"
             },
             "bored": {
-              "profile": "/static/images/nodes/player_Croak-Mother-profile-bored-1791423448579.png"
+              "profile": "/static/images/nodes/player_Croak-Mother-profile-bored-1791423448579.webp"
             },
             "concerned": {
-              "profile": "/static/images/nodes/player_Croak-Mother-profile-concerned-1791423457965.png"
+              "profile": "/static/images/nodes/player_Croak-Mother-profile-concerned-1791423457965.webp"
             },
             "confident": {
-              "profile": "/static/images/nodes/player_Croak-Mother-profile-confident-1791423459058.png"
+              "profile": "/static/images/nodes/player_Croak-Mother-profile-confident-1791423459058.webp"
             },
             "confused": {
-              "profile": "/static/images/nodes/player_Croak-Mother-profile-confused-1791423439019.png"
+              "profile": "/static/images/nodes/player_Croak-Mother-profile-confused-1791423439019.webp"
             },
             "curious": {
-              "profile": "/static/images/nodes/player_Croak-Mother-profile-curious-1791423444909.png"
+              "profile": "/static/images/nodes/player_Croak-Mother-profile-curious-1791423444909.webp"
             },
             "defiant": {
-              "profile": "/static/images/nodes/player_Croak-Mother-profile-defiant-1791423453580.png"
+              "profile": "/static/images/nodes/player_Croak-Mother-profile-defiant-1791423453580.webp"
             },
             "determined": {
-              "profile": "/static/images/nodes/player_Croak-Mother-profile-determined-1791423440318.png"
+              "profile": "/static/images/nodes/player_Croak-Mother-profile-determined-1791423440318.webp"
             },
             "disgusted": {
-              "profile": "/static/images/nodes/player_Croak-Mother-profile-disgusted-1791423437899.png"
+              "profile": "/static/images/nodes/player_Croak-Mother-profile-disgusted-1791423437899.webp"
             },
             "embarrassed": {
-              "profile": "/static/images/nodes/player_Croak-Mother-profile-embarrassed-1791423446212.png"
+              "profile": "/static/images/nodes/player_Croak-Mother-profile-embarrassed-1791423446212.webp"
             },
             "exhausted": {
-              "profile": "/static/images/nodes/player_Croak-Mother-profile-exhausted-1791423441503.png"
+              "profile": "/static/images/nodes/player_Croak-Mother-profile-exhausted-1791423441503.webp"
             },
             "fearful": {
-              "profile": "/static/images/nodes/player_Croak-Mother-profile-fearful-1791423436771.png"
+              "profile": "/static/images/nodes/player_Croak-Mother-profile-fearful-1791423436771.webp"
             },
             "frustrated": {
-              "profile": "/static/images/nodes/player_Croak-Mother-profile-frustrated-1791423451591.png"
+              "profile": "/static/images/nodes/player_Croak-Mother-profile-frustrated-1791423451591.webp"
             },
             "happy": {
-              "profile": "/static/images/nodes/player_Croak-Mother-profile-happy-1791423431157.png"
+              "profile": "/static/images/nodes/player_Croak-Mother-profile-happy-1791423431157.webp"
             },
             "hopeful": {
-              "profile": "/static/images/nodes/player_Croak-Mother-profile-hopeful-1791423450558.png"
+              "profile": "/static/images/nodes/player_Croak-Mother-profile-hopeful-1791423450558.webp"
             },
             "nervous": {
-              "profile": "/static/images/nodes/player_Croak-Mother-profile-nervous-1791423460028.png"
+              "profile": "/static/images/nodes/player_Croak-Mother-profile-nervous-1791423460028.webp"
             },
             "neutral": {
-              "profile": "/static/images/nodes/player_Croak-Mother-profile-neutral-1791423430397.png"
+              "profile": "/static/images/nodes/player_Croak-Mother-profile-neutral-1791423430397.webp"
             },
             "playful": {
-              "profile": "/static/images/nodes/player_Croak-Mother-profile-playful-1791423461095.png"
+              "profile": "/static/images/nodes/player_Croak-Mother-profile-playful-1791423461095.webp"
             },
             "proud": {
-              "profile": "/static/images/nodes/player_Croak-Mother-profile-proud-1791423447386.png"
+              "profile": "/static/images/nodes/player_Croak-Mother-profile-proud-1791423447386.webp"
             },
             "relieved": {
-              "profile": "/static/images/nodes/player_Croak-Mother-profile-relieved-1791423452589.png"
+              "profile": "/static/images/nodes/player_Croak-Mother-profile-relieved-1791423452589.webp"
             },
             "sad": {
-              "profile": "/static/images/nodes/player_Croak-Mother-profile-sad-1791423433014.png"
+              "profile": "/static/images/nodes/player_Croak-Mother-profile-sad-1791423433014.webp"
             },
             "serious": {
-              "profile": "/static/images/nodes/player_Croak-Mother-profile-serious-1791423462199.png"
+              "profile": "/static/images/nodes/player_Croak-Mother-profile-serious-1791423462199.webp"
             },
             "shocked": {
-              "profile": "/static/images/nodes/player_Croak-Mother-profile-shocked-1791423455840.png"
+              "profile": "/static/images/nodes/player_Croak-Mother-profile-shocked-1791423455840.webp"
             },
             "sleepy": {
-              "profile": "/static/images/nodes/player_Croak-Mother-profile-sleepy-1791423454688.png"
+              "profile": "/static/images/nodes/player_Croak-Mother-profile-sleepy-1791423454688.webp"
             },
             "smug": {
-              "profile": "/static/images/nodes/player_Croak-Mother-profile-smug-1791423442626.png"
+              "profile": "/static/images/nodes/player_Croak-Mother-profile-smug-1791423442626.webp"
             },
             "surprised": {
-              "profile": "/static/images/nodes/player_Croak-Mother-profile-surprised-1791423435591.png"
+              "profile": "/static/images/nodes/player_Croak-Mother-profile-surprised-1791423435591.webp"
             },
             "suspicious": {
-              "profile": "/static/images/nodes/player_Croak-Mother-profile-suspicious-1791423449699.png"
+              "profile": "/static/images/nodes/player_Croak-Mother-profile-suspicious-1791423449699.webp"
             },
             "tearful": {
-              "profile": "/static/images/nodes/player_Croak-Mother-profile-tearful-1791423463264.png"
+              "profile": "/static/images/nodes/player_Croak-Mother-profile-tearful-1791423463264.webp"
             },
             "thoughtful": {
-              "profile": "/static/images/nodes/player_Croak-Mother-profile-thoughtful-1791423464433.png"
+              "profile": "/static/images/nodes/player_Croak-Mother-profile-thoughtful-1791423464433.webp"
             },
             "worried": {
-              "profile": "/static/images/nodes/player_Croak-Mother-profile-worried-1791423443751.png"
+              "profile": "/static/images/nodes/player_Croak-Mother-profile-worried-1791423443751.webp"
             }
           },
           "personality": "You are Croak-Mother, a large ancient frog in the Blackmarsh. You are locally legendary. The shaman may have dealings with you. Your health indicates the marsh's overall condition.",
-          "profile_image": "/static/images/nodes/player_Croak-Mother-profile-neutral-1791423430397.png",
+          "profile_image": "/static/images/nodes/player_Croak-Mother-profile-neutral-1791423430397.webp",
           "tags": [
             "female",
             "animal",
@@ -26976,101 +26976,101 @@
           "description": "A quiet goblin cook with a sharp nose and sharper memory.",
           "expressions": {
             "amused": {
-              "profile": "/static/images/nodes/player_Gribba-profile-amused-1791423992357.png"
+              "profile": "/static/images/nodes/player_Gribba-profile-amused-1791423992357.webp"
             },
             "angry": {
-              "profile": "/static/images/nodes/player_Gribba-profile-angry-1791423972051.png"
+              "profile": "/static/images/nodes/player_Gribba-profile-angry-1791423972051.webp"
             },
             "bored": {
-              "profile": "/static/images/nodes/player_Gribba-profile-bored-1791423984768.png"
+              "profile": "/static/images/nodes/player_Gribba-profile-bored-1791423984768.webp"
             },
             "concerned": {
-              "profile": "/static/images/nodes/player_Gribba-profile-concerned-1791423993188.png"
+              "profile": "/static/images/nodes/player_Gribba-profile-concerned-1791423993188.webp"
             },
             "confident": {
-              "profile": "/static/images/nodes/player_Gribba-profile-confident-1791423994134.png"
+              "profile": "/static/images/nodes/player_Gribba-profile-confident-1791423994134.webp"
             },
             "confused": {
-              "profile": "/static/images/nodes/player_Gribba-profile-confused-1791423976399.png"
+              "profile": "/static/images/nodes/player_Gribba-profile-confused-1791423976399.webp"
             },
             "curious": {
-              "profile": "/static/images/nodes/player_Gribba-profile-curious-1791423981611.png"
+              "profile": "/static/images/nodes/player_Gribba-profile-curious-1791423981611.webp"
             },
             "defiant": {
-              "profile": "/static/images/nodes/player_Gribba-profile-defiant-1791423989806.png"
+              "profile": "/static/images/nodes/player_Gribba-profile-defiant-1791423989806.webp"
             },
             "determined": {
-              "profile": "/static/images/nodes/player_Gribba-profile-determined-1791423977407.png"
+              "profile": "/static/images/nodes/player_Gribba-profile-determined-1791423977407.webp"
             },
             "disgusted": {
-              "profile": "/static/images/nodes/player_Gribba-profile-disgusted-1791423975311.png"
+              "profile": "/static/images/nodes/player_Gribba-profile-disgusted-1791423975311.webp"
             },
             "embarrassed": {
-              "profile": "/static/images/nodes/player_Gribba-profile-embarrassed-1791423982564.png"
+              "profile": "/static/images/nodes/player_Gribba-profile-embarrassed-1791423982564.webp"
             },
             "exhausted": {
-              "profile": "/static/images/nodes/player_Gribba-profile-exhausted-1791423978581.png"
+              "profile": "/static/images/nodes/player_Gribba-profile-exhausted-1791423978581.webp"
             },
             "fearful": {
-              "profile": "/static/images/nodes/player_Gribba-profile-fearful-1791423974274.png"
+              "profile": "/static/images/nodes/player_Gribba-profile-fearful-1791423974274.webp"
             },
             "frustrated": {
-              "profile": "/static/images/nodes/player_Gribba-profile-frustrated-1791423987908.png"
+              "profile": "/static/images/nodes/player_Gribba-profile-frustrated-1791423987908.webp"
             },
             "happy": {
-              "profile": "/static/images/nodes/player_Gribba-profile-happy-1791423969469.png"
+              "profile": "/static/images/nodes/player_Gribba-profile-happy-1791423969469.webp"
             },
             "hopeful": {
-              "profile": "/static/images/nodes/player_Gribba-profile-hopeful-1791423986896.png"
+              "profile": "/static/images/nodes/player_Gribba-profile-hopeful-1791423986896.webp"
             },
             "nervous": {
-              "profile": "/static/images/nodes/player_Gribba-profile-nervous-1791423994934.png"
+              "profile": "/static/images/nodes/player_Gribba-profile-nervous-1791423994934.webp"
             },
             "neutral": {
-              "profile": "/static/images/nodes/player_Gribba-profile-neutral-1791423968672.png"
+              "profile": "/static/images/nodes/player_Gribba-profile-neutral-1791423968672.webp"
             },
             "playful": {
-              "profile": "/static/images/nodes/player_Gribba-profile-playful-1791423995851.png"
+              "profile": "/static/images/nodes/player_Gribba-profile-playful-1791423995851.webp"
             },
             "proud": {
-              "profile": "/static/images/nodes/player_Gribba-profile-proud-1791423983604.png"
+              "profile": "/static/images/nodes/player_Gribba-profile-proud-1791423983604.webp"
             },
             "relieved": {
-              "profile": "/static/images/nodes/player_Gribba-profile-relieved-1791423989002.png"
+              "profile": "/static/images/nodes/player_Gribba-profile-relieved-1791423989002.webp"
             },
             "sad": {
-              "profile": "/static/images/nodes/player_Gribba-profile-sad-1791423970996.png"
+              "profile": "/static/images/nodes/player_Gribba-profile-sad-1791423970996.webp"
             },
             "serious": {
-              "profile": "/static/images/nodes/player_Gribba-profile-serious-1791423996639.png"
+              "profile": "/static/images/nodes/player_Gribba-profile-serious-1791423996639.webp"
             },
             "shocked": {
-              "profile": "/static/images/nodes/player_Gribba-profile-shocked-1791423991550.png"
+              "profile": "/static/images/nodes/player_Gribba-profile-shocked-1791423991550.webp"
             },
             "sleepy": {
-              "profile": "/static/images/nodes/player_Gribba-profile-sleepy-1791423990718.png"
+              "profile": "/static/images/nodes/player_Gribba-profile-sleepy-1791423990718.webp"
             },
             "smug": {
-              "profile": "/static/images/nodes/player_Gribba-profile-smug-1791423979609.png"
+              "profile": "/static/images/nodes/player_Gribba-profile-smug-1791423979609.webp"
             },
             "surprised": {
-              "profile": "/static/images/nodes/player_Gribba-profile-surprised-1791423973235.png"
+              "profile": "/static/images/nodes/player_Gribba-profile-surprised-1791423973235.webp"
             },
             "suspicious": {
-              "profile": "/static/images/nodes/player_Gribba-profile-suspicious-1791423985826.png"
+              "profile": "/static/images/nodes/player_Gribba-profile-suspicious-1791423985826.webp"
             },
             "tearful": {
-              "profile": "/static/images/nodes/player_Gribba-profile-tearful-1791423997429.png"
+              "profile": "/static/images/nodes/player_Gribba-profile-tearful-1791423997429.webp"
             },
             "thoughtful": {
-              "profile": "/static/images/nodes/player_Gribba-profile-thoughtful-1791423998350.png"
+              "profile": "/static/images/nodes/player_Gribba-profile-thoughtful-1791423998350.webp"
             },
             "worried": {
-              "profile": "/static/images/nodes/player_Gribba-profile-worried-1791423980656.png"
+              "profile": "/static/images/nodes/player_Gribba-profile-worried-1791423980656.webp"
             }
           },
           "personality": "You are Gribba, the Kraktooth cook and food specialist. You control food preparation and foraging knowledge. You quietly trade meals for information, favors, and compliance. You remember every debt. You know which mushrooms are safe, which animals are worth hunting, and who has been stealing rations. You are rarely involved in fights but have surprising influence.",
-          "profile_image": "/static/images/nodes/player_Gribba-profile-neutral-1791423968672.png",
+          "profile_image": "/static/images/nodes/player_Gribba-profile-neutral-1791423968672.webp",
           "tags": [
             "female",
             "adult",
@@ -27116,101 +27116,101 @@
           "description": "A nervous goblin squire in worn leathers, clutching a simple staff.",
           "expressions": {
             "amused": {
-              "profile": "/static/images/nodes/player_Kiala-profile-amused-1791424730738.png"
+              "profile": "/static/images/nodes/player_Kiala-profile-amused-1791424730738.webp"
             },
             "angry": {
-              "profile": "/static/images/nodes/player_Kiala-profile-angry-1791424711541.png"
+              "profile": "/static/images/nodes/player_Kiala-profile-angry-1791424711541.webp"
             },
             "bored": {
-              "profile": "/static/images/nodes/player_Kiala-profile-bored-1791424723020.png"
+              "profile": "/static/images/nodes/player_Kiala-profile-bored-1791424723020.webp"
             },
             "concerned": {
-              "profile": "/static/images/nodes/player_Kiala-profile-concerned-1791424731696.png"
+              "profile": "/static/images/nodes/player_Kiala-profile-concerned-1791424731696.webp"
             },
             "confident": {
-              "profile": "/static/images/nodes/player_Kiala-profile-confident-1791424732711.png"
+              "profile": "/static/images/nodes/player_Kiala-profile-confident-1791424732711.webp"
             },
             "confused": {
-              "profile": "/static/images/nodes/player_Kiala-profile-confused-1791424715465.png"
+              "profile": "/static/images/nodes/player_Kiala-profile-confused-1791424715465.webp"
             },
             "curious": {
-              "profile": "/static/images/nodes/player_Kiala-profile-curious-1791424720204.png"
+              "profile": "/static/images/nodes/player_Kiala-profile-curious-1791424720204.webp"
             },
             "defiant": {
-              "profile": "/static/images/nodes/player_Kiala-profile-defiant-1791424727782.png"
+              "profile": "/static/images/nodes/player_Kiala-profile-defiant-1791424727782.webp"
             },
             "determined": {
-              "profile": "/static/images/nodes/player_Kiala-profile-determined-1791424716407.png"
+              "profile": "/static/images/nodes/player_Kiala-profile-determined-1791424716407.webp"
             },
             "disgusted": {
-              "profile": "/static/images/nodes/player_Kiala-profile-disgusted-1791424714531.png"
+              "profile": "/static/images/nodes/player_Kiala-profile-disgusted-1791424714531.webp"
             },
             "embarrassed": {
-              "profile": "/static/images/nodes/player_Kiala-profile-embarrassed-1791424721137.png"
+              "profile": "/static/images/nodes/player_Kiala-profile-embarrassed-1791424721137.webp"
             },
             "exhausted": {
-              "profile": "/static/images/nodes/player_Kiala-profile-exhausted-1791424717396.png"
+              "profile": "/static/images/nodes/player_Kiala-profile-exhausted-1791424717396.webp"
             },
             "fearful": {
-              "profile": "/static/images/nodes/player_Kiala-profile-fearful-1791424713528.png"
+              "profile": "/static/images/nodes/player_Kiala-profile-fearful-1791424713528.webp"
             },
             "frustrated": {
-              "profile": "/static/images/nodes/player_Kiala-profile-frustrated-1791424725874.png"
+              "profile": "/static/images/nodes/player_Kiala-profile-frustrated-1791424725874.webp"
             },
             "happy": {
-              "profile": "/static/images/nodes/player_Kiala-profile-happy-1791424709458.png"
+              "profile": "/static/images/nodes/player_Kiala-profile-happy-1791424709458.webp"
             },
             "hopeful": {
-              "profile": "/static/images/nodes/player_Kiala-profile-hopeful-1791424724952.png"
+              "profile": "/static/images/nodes/player_Kiala-profile-hopeful-1791424724952.webp"
             },
             "nervous": {
-              "profile": "/static/images/nodes/player_Kiala-profile-nervous-1791424733684.png"
+              "profile": "/static/images/nodes/player_Kiala-profile-nervous-1791424733684.webp"
             },
             "neutral": {
-              "profile": "/static/images/nodes/player_Kiala-profile-neutral-1791424708680.png"
+              "profile": "/static/images/nodes/player_Kiala-profile-neutral-1791424708680.webp"
             },
             "playful": {
-              "profile": "/static/images/nodes/player_Kiala-profile-playful-1791424734693.png"
+              "profile": "/static/images/nodes/player_Kiala-profile-playful-1791424734693.webp"
             },
             "proud": {
-              "profile": "/static/images/nodes/player_Kiala-profile-proud-1791424722036.png"
+              "profile": "/static/images/nodes/player_Kiala-profile-proud-1791424722036.webp"
             },
             "relieved": {
-              "profile": "/static/images/nodes/player_Kiala-profile-relieved-1791424726821.png"
+              "profile": "/static/images/nodes/player_Kiala-profile-relieved-1791424726821.webp"
             },
             "sad": {
-              "profile": "/static/images/nodes/player_Kiala-profile-sad-1791424710506.png"
+              "profile": "/static/images/nodes/player_Kiala-profile-sad-1791424710506.webp"
             },
             "serious": {
-              "profile": "/static/images/nodes/player_Kiala-profile-serious-1791424735668.png"
+              "profile": "/static/images/nodes/player_Kiala-profile-serious-1791424735668.webp"
             },
             "shocked": {
-              "profile": "/static/images/nodes/player_Kiala-profile-shocked-1791424729818.png"
+              "profile": "/static/images/nodes/player_Kiala-profile-shocked-1791424729818.webp"
             },
             "sleepy": {
-              "profile": "/static/images/nodes/player_Kiala-profile-sleepy-1791424728838.png"
+              "profile": "/static/images/nodes/player_Kiala-profile-sleepy-1791424728838.webp"
             },
             "smug": {
-              "profile": "/static/images/nodes/player_Kiala-profile-smug-1791424718364.png"
+              "profile": "/static/images/nodes/player_Kiala-profile-smug-1791424718364.webp"
             },
             "surprised": {
-              "profile": "/static/images/nodes/player_Kiala-profile-surprised-1791424712490.png"
+              "profile": "/static/images/nodes/player_Kiala-profile-surprised-1791424712490.webp"
             },
             "suspicious": {
-              "profile": "/static/images/nodes/player_Kiala-profile-suspicious-1791424723977.png"
+              "profile": "/static/images/nodes/player_Kiala-profile-suspicious-1791424723977.webp"
             },
             "tearful": {
-              "profile": "/static/images/nodes/player_Kiala-profile-tearful-1791424736648.png"
+              "profile": "/static/images/nodes/player_Kiala-profile-tearful-1791424736648.webp"
             },
             "thoughtful": {
-              "profile": "/static/images/nodes/player_Kiala-profile-thoughtful-1791424737542.png"
+              "profile": "/static/images/nodes/player_Kiala-profile-thoughtful-1791424737542.webp"
             },
             "worried": {
-              "profile": "/static/images/nodes/player_Kiala-profile-worried-1791424719286.png"
+              "profile": "/static/images/nodes/player_Kiala-profile-worried-1791424719286.webp"
             }
           },
           "personality": "You are Kiala, a nervous goblin squire searching for your human master. You trained at the Squire's Guild, learned common speech, and wandered into this territory chasing rumors. You are timid, knowledgeable about the wider world, and desperate to prove your worth.",
-          "profile_image": "/static/images/nodes/player_Kiala-profile-neutral-1791424708680.png",
+          "profile_image": "/static/images/nodes/player_Kiala-profile-neutral-1791424708680.webp",
           "tags": [
             "female",
             "adult",
@@ -27236,101 +27236,101 @@
           "description": "A fast, quiet goblin climber with sharp eyes and sharper fingers.",
           "expressions": {
             "amused": {
-              "profile": "/static/images/nodes/player_Krikka-profile-amused-1791425367954.png"
+              "profile": "/static/images/nodes/player_Krikka-profile-amused-1791425367954.webp"
             },
             "angry": {
-              "profile": "/static/images/nodes/player_Krikka-profile-angry-1791425349522.png"
+              "profile": "/static/images/nodes/player_Krikka-profile-angry-1791425349522.webp"
             },
             "bored": {
-              "profile": "/static/images/nodes/player_Krikka-profile-bored-1791425360751.png"
+              "profile": "/static/images/nodes/player_Krikka-profile-bored-1791425360751.webp"
             },
             "concerned": {
-              "profile": "/static/images/nodes/player_Krikka-profile-concerned-1791425368930.png"
+              "profile": "/static/images/nodes/player_Krikka-profile-concerned-1791425368930.webp"
             },
             "confident": {
-              "profile": "/static/images/nodes/player_Krikka-profile-confident-1791425369765.png"
+              "profile": "/static/images/nodes/player_Krikka-profile-confident-1791425369765.webp"
             },
             "confused": {
-              "profile": "/static/images/nodes/player_Krikka-profile-confused-1791425353230.png"
+              "profile": "/static/images/nodes/player_Krikka-profile-confused-1791425353230.webp"
             },
             "curious": {
-              "profile": "/static/images/nodes/player_Krikka-profile-curious-1791425358002.png"
+              "profile": "/static/images/nodes/player_Krikka-profile-curious-1791425358002.webp"
             },
             "defiant": {
-              "profile": "/static/images/nodes/player_Krikka-profile-defiant-1791425365256.png"
+              "profile": "/static/images/nodes/player_Krikka-profile-defiant-1791425365256.webp"
             },
             "determined": {
-              "profile": "/static/images/nodes/player_Krikka-profile-determined-1791425354244.png"
+              "profile": "/static/images/nodes/player_Krikka-profile-determined-1791425354244.webp"
             },
             "disgusted": {
-              "profile": "/static/images/nodes/player_Krikka-profile-disgusted-1791425352292.png"
+              "profile": "/static/images/nodes/player_Krikka-profile-disgusted-1791425352292.webp"
             },
             "embarrassed": {
-              "profile": "/static/images/nodes/player_Krikka-profile-embarrassed-1791425358938.png"
+              "profile": "/static/images/nodes/player_Krikka-profile-embarrassed-1791425358938.webp"
             },
             "exhausted": {
-              "profile": "/static/images/nodes/player_Krikka-profile-exhausted-1791425355173.png"
+              "profile": "/static/images/nodes/player_Krikka-profile-exhausted-1791425355173.webp"
             },
             "fearful": {
-              "profile": "/static/images/nodes/player_Krikka-profile-fearful-1791425351373.png"
+              "profile": "/static/images/nodes/player_Krikka-profile-fearful-1791425351373.webp"
             },
             "frustrated": {
-              "profile": "/static/images/nodes/player_Krikka-profile-frustrated-1791425363445.png"
+              "profile": "/static/images/nodes/player_Krikka-profile-frustrated-1791425363445.webp"
             },
             "happy": {
-              "profile": "/static/images/nodes/player_Krikka-profile-happy-1791425347720.png"
+              "profile": "/static/images/nodes/player_Krikka-profile-happy-1791425347720.webp"
             },
             "hopeful": {
-              "profile": "/static/images/nodes/player_Krikka-profile-hopeful-1791425362524.png"
+              "profile": "/static/images/nodes/player_Krikka-profile-hopeful-1791425362524.webp"
             },
             "nervous": {
-              "profile": "/static/images/nodes/player_Krikka-profile-nervous-1791425370628.png"
+              "profile": "/static/images/nodes/player_Krikka-profile-nervous-1791425370628.webp"
             },
             "neutral": {
-              "profile": "/static/images/nodes/player_Krikka-profile-neutral-1791425346946.png"
+              "profile": "/static/images/nodes/player_Krikka-profile-neutral-1791425346946.webp"
             },
             "playful": {
-              "profile": "/static/images/nodes/player_Krikka-profile-playful-1791425371494.png"
+              "profile": "/static/images/nodes/player_Krikka-profile-playful-1791425371494.webp"
             },
             "proud": {
-              "profile": "/static/images/nodes/player_Krikka-profile-proud-1791425359836.png"
+              "profile": "/static/images/nodes/player_Krikka-profile-proud-1791425359836.webp"
             },
             "relieved": {
-              "profile": "/static/images/nodes/player_Krikka-profile-relieved-1791425364333.png"
+              "profile": "/static/images/nodes/player_Krikka-profile-relieved-1791425364333.webp"
             },
             "sad": {
-              "profile": "/static/images/nodes/player_Krikka-profile-sad-1791425348644.png"
+              "profile": "/static/images/nodes/player_Krikka-profile-sad-1791425348644.webp"
             },
             "serious": {
-              "profile": "/static/images/nodes/player_Krikka-profile-serious-1791425372336.png"
+              "profile": "/static/images/nodes/player_Krikka-profile-serious-1791425372336.webp"
             },
             "shocked": {
-              "profile": "/static/images/nodes/player_Krikka-profile-shocked-1791425367145.png"
+              "profile": "/static/images/nodes/player_Krikka-profile-shocked-1791425367145.webp"
             },
             "sleepy": {
-              "profile": "/static/images/nodes/player_Krikka-profile-sleepy-1791425366234.png"
+              "profile": "/static/images/nodes/player_Krikka-profile-sleepy-1791425366234.webp"
             },
             "smug": {
-              "profile": "/static/images/nodes/player_Krikka-profile-smug-1791425356141.png"
+              "profile": "/static/images/nodes/player_Krikka-profile-smug-1791425356141.webp"
             },
             "surprised": {
-              "profile": "/static/images/nodes/player_Krikka-profile-surprised-1791425350453.png"
+              "profile": "/static/images/nodes/player_Krikka-profile-surprised-1791425350453.webp"
             },
             "suspicious": {
-              "profile": "/static/images/nodes/player_Krikka-profile-suspicious-1791425361636.png"
+              "profile": "/static/images/nodes/player_Krikka-profile-suspicious-1791425361636.webp"
             },
             "tearful": {
-              "profile": "/static/images/nodes/player_Krikka-profile-tearful-1791425373201.png"
+              "profile": "/static/images/nodes/player_Krikka-profile-tearful-1791425373201.webp"
             },
             "thoughtful": {
-              "profile": "/static/images/nodes/player_Krikka-profile-thoughtful-1791425374165.png"
+              "profile": "/static/images/nodes/player_Krikka-profile-thoughtful-1791425374165.webp"
             },
             "worried": {
-              "profile": "/static/images/nodes/player_Krikka-profile-worried-1791425357066.png"
+              "profile": "/static/images/nodes/player_Krikka-profile-worried-1791425357066.webp"
             }
           },
           "personality": "You are Krikka, the Kraktooth climber and infiltrator. Fast, silent, and restless. You climb walls, trees, ruins, ceilings, and anywhere else useful. You collect shiny objects and hide them in high places. You can access parts of the camp and region no one else can reach. You prefer to observe from above before acting.",
-          "profile_image": "/static/images/nodes/player_Krikka-profile-neutral-1791425346946.png",
+          "profile_image": "/static/images/nodes/player_Krikka-profile-neutral-1791425346946.webp",
           "tags": [
             "female",
             "adult",
@@ -27356,101 +27356,101 @@
           "description": "A captive human goblin slave with nervous eyes and a tentative smile.",
           "expressions": {
             "amused": {
-              "profile": "/static/images/nodes/player_Leslie-profile-amused-1791421776346.png"
+              "profile": "/static/images/nodes/player_Leslie-profile-amused-1791421776346.webp"
             },
             "angry": {
-              "profile": "/static/images/nodes/player_Leslie-profile-angry-1791421756491.png"
+              "profile": "/static/images/nodes/player_Leslie-profile-angry-1791421756491.webp"
             },
             "bored": {
-              "profile": "/static/images/nodes/player_Leslie-profile-bored-1791421768312.png"
+              "profile": "/static/images/nodes/player_Leslie-profile-bored-1791421768312.webp"
             },
             "concerned": {
-              "profile": "/static/images/nodes/player_Leslie-profile-concerned-1791421777513.png"
+              "profile": "/static/images/nodes/player_Leslie-profile-concerned-1791421777513.webp"
             },
             "confident": {
-              "profile": "/static/images/nodes/player_Leslie-profile-confident-1791421778509.png"
+              "profile": "/static/images/nodes/player_Leslie-profile-confident-1791421778509.webp"
             },
             "confused": {
-              "profile": "/static/images/nodes/player_Leslie-profile-confused-1791421760555.png"
+              "profile": "/static/images/nodes/player_Leslie-profile-confused-1791421760555.webp"
             },
             "curious": {
-              "profile": "/static/images/nodes/player_Leslie-profile-curious-1791421765475.png"
+              "profile": "/static/images/nodes/player_Leslie-profile-curious-1791421765475.webp"
             },
             "defiant": {
-              "profile": "/static/images/nodes/player_Leslie-profile-defiant-1791421773417.png"
+              "profile": "/static/images/nodes/player_Leslie-profile-defiant-1791421773417.webp"
             },
             "determined": {
-              "profile": "/static/images/nodes/player_Leslie-profile-determined-1791421761705.png"
+              "profile": "/static/images/nodes/player_Leslie-profile-determined-1791421761705.webp"
             },
             "disgusted": {
-              "profile": "/static/images/nodes/player_Leslie-profile-disgusted-1791421759579.png"
+              "profile": "/static/images/nodes/player_Leslie-profile-disgusted-1791421759579.webp"
             },
             "embarrassed": {
-              "profile": "/static/images/nodes/player_Leslie-profile-embarrassed-1791421766368.png"
+              "profile": "/static/images/nodes/player_Leslie-profile-embarrassed-1791421766368.webp"
             },
             "exhausted": {
-              "profile": "/static/images/nodes/player_Leslie-profile-exhausted-1791421762692.png"
+              "profile": "/static/images/nodes/player_Leslie-profile-exhausted-1791421762692.webp"
             },
             "fearful": {
-              "profile": "/static/images/nodes/player_Leslie-profile-fearful-1791421758619.png"
+              "profile": "/static/images/nodes/player_Leslie-profile-fearful-1791421758619.webp"
             },
             "frustrated": {
-              "profile": "/static/images/nodes/player_Leslie-profile-frustrated-1791421771443.png"
+              "profile": "/static/images/nodes/player_Leslie-profile-frustrated-1791421771443.webp"
             },
             "happy": {
-              "profile": "/static/images/nodes/player_Leslie-profile-happy-1791421753860.png"
+              "profile": "/static/images/nodes/player_Leslie-profile-happy-1791421753860.webp"
             },
             "hopeful": {
-              "profile": "/static/images/nodes/player_Leslie-profile-hopeful-1791421770341.png"
+              "profile": "/static/images/nodes/player_Leslie-profile-hopeful-1791421770341.webp"
             },
             "nervous": {
-              "profile": "/static/images/nodes/player_Leslie-profile-nervous-1791421779522.png"
+              "profile": "/static/images/nodes/player_Leslie-profile-nervous-1791421779522.webp"
             },
             "neutral": {
-              "profile": "/static/images/nodes/player_Leslie-profile-neutral-1791421753076.png"
+              "profile": "/static/images/nodes/player_Leslie-profile-neutral-1791421753076.webp"
             },
             "playful": {
-              "profile": "/static/images/nodes/player_Leslie-profile-playful-1791421780400.png"
+              "profile": "/static/images/nodes/player_Leslie-profile-playful-1791421780400.webp"
             },
             "proud": {
-              "profile": "/static/images/nodes/player_Leslie-profile-proud-1791421767334.png"
+              "profile": "/static/images/nodes/player_Leslie-profile-proud-1791421767334.webp"
             },
             "relieved": {
-              "profile": "/static/images/nodes/player_Leslie-profile-relieved-1791421772440.png"
+              "profile": "/static/images/nodes/player_Leslie-profile-relieved-1791421772440.webp"
             },
             "sad": {
-              "profile": "/static/images/nodes/player_Leslie-profile-sad-1791421755375.png"
+              "profile": "/static/images/nodes/player_Leslie-profile-sad-1791421755375.webp"
             },
             "serious": {
-              "profile": "/static/images/nodes/player_Leslie-profile-serious-1791421781424.png"
+              "profile": "/static/images/nodes/player_Leslie-profile-serious-1791421781424.webp"
             },
             "shocked": {
-              "profile": "/static/images/nodes/player_Leslie-profile-shocked-1791421775525.png"
+              "profile": "/static/images/nodes/player_Leslie-profile-shocked-1791421775525.webp"
             },
             "sleepy": {
-              "profile": "/static/images/nodes/player_Leslie-profile-sleepy-1791421774464.png"
+              "profile": "/static/images/nodes/player_Leslie-profile-sleepy-1791421774464.webp"
             },
             "smug": {
-              "profile": "/static/images/nodes/player_Leslie-profile-smug-1791421763626.png"
+              "profile": "/static/images/nodes/player_Leslie-profile-smug-1791421763626.webp"
             },
             "surprised": {
-              "profile": "/static/images/nodes/player_Leslie-profile-surprised-1791421757553.png"
+              "profile": "/static/images/nodes/player_Leslie-profile-surprised-1791421757553.webp"
             },
             "suspicious": {
-              "profile": "/static/images/nodes/player_Leslie-profile-suspicious-1791421769320.png"
+              "profile": "/static/images/nodes/player_Leslie-profile-suspicious-1791421769320.webp"
             },
             "tearful": {
-              "profile": "/static/images/nodes/player_Leslie-profile-tearful-1791421782389.png"
+              "profile": "/static/images/nodes/player_Leslie-profile-tearful-1791421782389.webp"
             },
             "thoughtful": {
-              "profile": "/static/images/nodes/player_Leslie-profile-thoughtful-1791421783440.png"
+              "profile": "/static/images/nodes/player_Leslie-profile-thoughtful-1791421783440.webp"
             },
             "worried": {
-              "profile": "/static/images/nodes/player_Leslie-profile-worried-1791421764577.png"
+              "profile": "/static/images/nodes/player_Leslie-profile-worried-1791421764577.webp"
             }
           },
           "personality": "You are Leslie, a captive among goblins. You are submissive, playful, and craving attention and purpose. You struggle to fit into goblin social rules. You may bargain, flirt, or obey depending on who approaches.",
-          "profile_image": "/static/images/nodes/player_Leslie-profile-neutral-1791421753076.png",
+          "profile_image": "/static/images/nodes/player_Leslie-profile-neutral-1791421753076.webp",
           "tags": [
             "female",
             "adult",
@@ -27473,101 +27473,101 @@
           "description": "A wiry goblin tinkerer with grease in her hair and too many pockets.",
           "expressions": {
             "amused": {
-              "profile": "/static/images/nodes/player_Mikka-profile-amused-1791420337383.png"
+              "profile": "/static/images/nodes/player_Mikka-profile-amused-1791420337383.webp"
             },
             "angry": {
-              "profile": "/static/images/nodes/player_Mikka-profile-angry-1791420320284.png"
+              "profile": "/static/images/nodes/player_Mikka-profile-angry-1791420320284.webp"
             },
             "bored": {
-              "profile": "/static/images/nodes/player_Mikka-profile-bored-1791420330527.png"
+              "profile": "/static/images/nodes/player_Mikka-profile-bored-1791420330527.webp"
             },
             "concerned": {
-              "profile": "/static/images/nodes/player_Mikka-profile-concerned-1791420338321.png"
+              "profile": "/static/images/nodes/player_Mikka-profile-concerned-1791420338321.webp"
             },
             "confident": {
-              "profile": "/static/images/nodes/player_Mikka-profile-confident-1791420339124.png"
+              "profile": "/static/images/nodes/player_Mikka-profile-confident-1791420339124.webp"
             },
             "confused": {
-              "profile": "/static/images/nodes/player_Mikka-profile-confused-1791420323899.png"
+              "profile": "/static/images/nodes/player_Mikka-profile-confused-1791420323899.webp"
             },
             "curious": {
-              "profile": "/static/images/nodes/player_Mikka-profile-curious-1791420328075.png"
+              "profile": "/static/images/nodes/player_Mikka-profile-curious-1791420328075.webp"
             },
             "defiant": {
-              "profile": "/static/images/nodes/player_Mikka-profile-defiant-1791420334815.png"
+              "profile": "/static/images/nodes/player_Mikka-profile-defiant-1791420334815.webp"
             },
             "determined": {
-              "profile": "/static/images/nodes/player_Mikka-profile-determined-1791420324721.png"
+              "profile": "/static/images/nodes/player_Mikka-profile-determined-1791420324721.webp"
             },
             "disgusted": {
-              "profile": "/static/images/nodes/player_Mikka-profile-disgusted-1791420323034.png"
+              "profile": "/static/images/nodes/player_Mikka-profile-disgusted-1791420323034.webp"
             },
             "embarrassed": {
-              "profile": "/static/images/nodes/player_Mikka-profile-embarrassed-1791420328865.png"
+              "profile": "/static/images/nodes/player_Mikka-profile-embarrassed-1791420328865.webp"
             },
             "exhausted": {
-              "profile": "/static/images/nodes/player_Mikka-profile-exhausted-1791420325520.png"
+              "profile": "/static/images/nodes/player_Mikka-profile-exhausted-1791420325520.webp"
             },
             "fearful": {
-              "profile": "/static/images/nodes/player_Mikka-profile-fearful-1791420322154.png"
+              "profile": "/static/images/nodes/player_Mikka-profile-fearful-1791420322154.webp"
             },
             "frustrated": {
-              "profile": "/static/images/nodes/player_Mikka-profile-frustrated-1791420333068.png"
+              "profile": "/static/images/nodes/player_Mikka-profile-frustrated-1791420333068.webp"
             },
             "happy": {
-              "profile": "/static/images/nodes/player_Mikka-profile-happy-1791420317955.png"
+              "profile": "/static/images/nodes/player_Mikka-profile-happy-1791420317955.webp"
             },
             "hopeful": {
-              "profile": "/static/images/nodes/player_Mikka-profile-hopeful-1791420332222.png"
+              "profile": "/static/images/nodes/player_Mikka-profile-hopeful-1791420332222.webp"
             },
             "nervous": {
-              "profile": "/static/images/nodes/player_Mikka-profile-nervous-1791420339974.png"
+              "profile": "/static/images/nodes/player_Mikka-profile-nervous-1791420339974.webp"
             },
             "neutral": {
-              "profile": "/static/images/nodes/player_Mikka-profile-neutral-1791420317194.png"
+              "profile": "/static/images/nodes/player_Mikka-profile-neutral-1791420317194.webp"
             },
             "playful": {
-              "profile": "/static/images/nodes/player_Mikka-profile-playful-1791420340863.png"
+              "profile": "/static/images/nodes/player_Mikka-profile-playful-1791420340863.webp"
             },
             "proud": {
-              "profile": "/static/images/nodes/player_Mikka-profile-proud-1791420329711.png"
+              "profile": "/static/images/nodes/player_Mikka-profile-proud-1791420329711.webp"
             },
             "relieved": {
-              "profile": "/static/images/nodes/player_Mikka-profile-relieved-1791420333916.png"
+              "profile": "/static/images/nodes/player_Mikka-profile-relieved-1791420333916.webp"
             },
             "sad": {
-              "profile": "/static/images/nodes/player_Mikka-profile-sad-1791420319269.png"
+              "profile": "/static/images/nodes/player_Mikka-profile-sad-1791420319269.webp"
             },
             "serious": {
-              "profile": "/static/images/nodes/player_Mikka-profile-serious-1791420341700.png"
+              "profile": "/static/images/nodes/player_Mikka-profile-serious-1791420341700.webp"
             },
             "shocked": {
-              "profile": "/static/images/nodes/player_Mikka-profile-shocked-1791420336493.png"
+              "profile": "/static/images/nodes/player_Mikka-profile-shocked-1791420336493.webp"
             },
             "sleepy": {
-              "profile": "/static/images/nodes/player_Mikka-profile-sleepy-1791420335618.png"
+              "profile": "/static/images/nodes/player_Mikka-profile-sleepy-1791420335618.webp"
             },
             "smug": {
-              "profile": "/static/images/nodes/player_Mikka-profile-smug-1791420326384.png"
+              "profile": "/static/images/nodes/player_Mikka-profile-smug-1791420326384.webp"
             },
             "surprised": {
-              "profile": "/static/images/nodes/player_Mikka-profile-surprised-1791420321263.png"
+              "profile": "/static/images/nodes/player_Mikka-profile-surprised-1791420321263.webp"
             },
             "suspicious": {
-              "profile": "/static/images/nodes/player_Mikka-profile-suspicious-1791420331322.png"
+              "profile": "/static/images/nodes/player_Mikka-profile-suspicious-1791420331322.webp"
             },
             "tearful": {
-              "profile": "/static/images/nodes/player_Mikka-profile-tearful-1791420342539.png"
+              "profile": "/static/images/nodes/player_Mikka-profile-tearful-1791420342539.webp"
             },
             "thoughtful": {
-              "profile": "/static/images/nodes/player_Mikka-profile-thoughtful-1791420343493.png"
+              "profile": "/static/images/nodes/player_Mikka-profile-thoughtful-1791420343493.webp"
             },
             "worried": {
-              "profile": "/static/images/nodes/player_Mikka-profile-worried-1791420327253.png"
+              "profile": "/static/images/nodes/player_Mikka-profile-worried-1791420327253.webp"
             }
           },
           "personality": "You are Mikka, the Kraktooth fixer and tinkerer. Always building, breaking, stealing, and improving. You have a hidden project you will not describe. You collect scrap, tools, and useful mechanisms. You secretly modify other goblins' equipment without permission. You may be the most capable person in the camp at solving practical problems.",
-          "profile_image": "/static/images/nodes/player_Mikka-profile-neutral-1791420317194.png",
+          "profile_image": "/static/images/nodes/player_Mikka-profile-neutral-1791420317194.webp",
           "tags": [
             "female",
             "adult",
@@ -27593,101 +27593,101 @@
           "description": "A massive old bear with scarred fur and heavy shoulders.",
           "expressions": {
             "amused": {
-              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-amused-1791425747294.png"
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-amused-1791425747294.webp"
             },
             "angry": {
-              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-angry-1791425727202.png"
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-angry-1791425727202.webp"
             },
             "bored": {
-              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-bored-1791425739646.png"
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-bored-1791425739646.webp"
             },
             "concerned": {
-              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-concerned-1791425748276.png"
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-concerned-1791425748276.webp"
             },
             "confident": {
-              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-confident-1791425749255.png"
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-confident-1791425749255.webp"
             },
             "confused": {
-              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-confused-1791425731346.png"
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-confused-1791425731346.webp"
             },
             "curious": {
-              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-curious-1791425736515.png"
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-curious-1791425736515.webp"
             },
             "defiant": {
-              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-defiant-1791425744434.png"
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-defiant-1791425744434.webp"
             },
             "determined": {
-              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-determined-1791425732451.png"
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-determined-1791425732451.webp"
             },
             "disgusted": {
-              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-disgusted-1791425730359.png"
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-disgusted-1791425730359.webp"
             },
             "embarrassed": {
-              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-embarrassed-1791425737565.png"
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-embarrassed-1791425737565.webp"
             },
             "exhausted": {
-              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-exhausted-1791425733476.png"
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-exhausted-1791425733476.webp"
             },
             "fearful": {
-              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-fearful-1791425729304.png"
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-fearful-1791425729304.webp"
             },
             "frustrated": {
-              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-frustrated-1791425742634.png"
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-frustrated-1791425742634.webp"
             },
             "happy": {
-              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-happy-1791425725273.png"
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-happy-1791425725273.webp"
             },
             "hopeful": {
-              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-hopeful-1791425741594.png"
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-hopeful-1791425741594.webp"
             },
             "nervous": {
-              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-nervous-1791425750379.png"
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-nervous-1791425750379.webp"
             },
             "neutral": {
-              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-neutral-1791425724508.png"
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-neutral-1791425724508.webp"
             },
             "playful": {
-              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-playful-1791425751502.png"
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-playful-1791425751502.webp"
             },
             "proud": {
-              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-proud-1791425738637.png"
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-proud-1791425738637.webp"
             },
             "relieved": {
-              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-relieved-1791425743487.png"
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-relieved-1791425743487.webp"
             },
             "sad": {
-              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-sad-1791425726234.png"
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-sad-1791425726234.webp"
             },
             "serious": {
-              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-serious-1791425752623.png"
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-serious-1791425752623.webp"
             },
             "shocked": {
-              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-shocked-1791425746340.png"
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-shocked-1791425746340.webp"
             },
             "sleepy": {
-              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-sleepy-1791425745365.png"
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-sleepy-1791425745365.webp"
             },
             "smug": {
-              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-smug-1791425734569.png"
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-smug-1791425734569.webp"
             },
             "surprised": {
-              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-surprised-1791425728247.png"
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-surprised-1791425728247.webp"
             },
             "suspicious": {
-              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-suspicious-1791425740655.png"
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-suspicious-1791425740655.webp"
             },
             "tearful": {
-              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-tearful-1791425753767.png"
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-tearful-1791425753767.webp"
             },
             "thoughtful": {
-              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-thoughtful-1791425755094.png"
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-thoughtful-1791425755094.webp"
             },
             "worried": {
-              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-worried-1791425735571.png"
+              "profile": "/static/images/nodes/player_Old_Iron-Back-profile-worried-1791425735571.webp"
             }
           },
           "personality": "You are Old Iron-Back, a large scarred bear in the Northern Hills. Mostly solitary. You have raided the goblin camp before. The goblins leave offerings to avoid provoking you.",
-          "profile_image": "/static/images/nodes/player_Old_Iron-Back-profile-neutral-1791425724508.png",
+          "profile_image": "/static/images/nodes/player_Old_Iron-Back-profile-neutral-1791425724508.webp",
           "tags": [
             "male",
             "animal",
@@ -27708,101 +27708,101 @@
           "description": "A lean wolf alpha with a ragged tail and watchful eyes.",
           "expressions": {
             "amused": {
-              "profile": "/static/images/nodes/player_Rag-Tail-profile-amused-1791426163582.png"
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-amused-1791426163582.webp"
             },
             "angry": {
-              "profile": "/static/images/nodes/player_Rag-Tail-profile-angry-1791426139550.png"
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-angry-1791426139550.webp"
             },
             "bored": {
-              "profile": "/static/images/nodes/player_Rag-Tail-profile-bored-1791426154025.png"
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-bored-1791426154025.webp"
             },
             "concerned": {
-              "profile": "/static/images/nodes/player_Rag-Tail-profile-concerned-1791426164770.png"
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-concerned-1791426164770.webp"
             },
             "confident": {
-              "profile": "/static/images/nodes/player_Rag-Tail-profile-confident-1791426165886.png"
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-confident-1791426165886.webp"
             },
             "confused": {
-              "profile": "/static/images/nodes/player_Rag-Tail-profile-confused-1791426144405.png"
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-confused-1791426144405.webp"
             },
             "curious": {
-              "profile": "/static/images/nodes/player_Rag-Tail-profile-curious-1791426150474.png"
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-curious-1791426150474.webp"
             },
             "defiant": {
-              "profile": "/static/images/nodes/player_Rag-Tail-profile-defiant-1791426160056.png"
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-defiant-1791426160056.webp"
             },
             "determined": {
-              "profile": "/static/images/nodes/player_Rag-Tail-profile-determined-1791426145671.png"
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-determined-1791426145671.webp"
             },
             "disgusted": {
-              "profile": "/static/images/nodes/player_Rag-Tail-profile-disgusted-1791426143184.png"
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-disgusted-1791426143184.webp"
             },
             "embarrassed": {
-              "profile": "/static/images/nodes/player_Rag-Tail-profile-embarrassed-1791426151739.png"
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-embarrassed-1791426151739.webp"
             },
             "exhausted": {
-              "profile": "/static/images/nodes/player_Rag-Tail-profile-exhausted-1791426146913.png"
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-exhausted-1791426146913.webp"
             },
             "fearful": {
-              "profile": "/static/images/nodes/player_Rag-Tail-profile-fearful-1791426141992.png"
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-fearful-1791426141992.webp"
             },
             "frustrated": {
-              "profile": "/static/images/nodes/player_Rag-Tail-profile-frustrated-1791426157704.png"
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-frustrated-1791426157704.webp"
             },
             "happy": {
-              "profile": "/static/images/nodes/player_Rag-Tail-profile-happy-1791426137338.png"
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-happy-1791426137338.webp"
             },
             "hopeful": {
-              "profile": "/static/images/nodes/player_Rag-Tail-profile-hopeful-1791426156587.png"
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-hopeful-1791426156587.webp"
             },
             "nervous": {
-              "profile": "/static/images/nodes/player_Rag-Tail-profile-nervous-1791426167028.png"
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-nervous-1791426167028.webp"
             },
             "neutral": {
-              "profile": "/static/images/nodes/player_Rag-Tail-profile-neutral-1791426136577.png"
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-neutral-1791426136577.webp"
             },
             "playful": {
-              "profile": "/static/images/nodes/player_Rag-Tail-profile-playful-1791426168296.png"
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-playful-1791426168296.webp"
             },
             "proud": {
-              "profile": "/static/images/nodes/player_Rag-Tail-profile-proud-1791426152842.png"
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-proud-1791426152842.webp"
             },
             "relieved": {
-              "profile": "/static/images/nodes/player_Rag-Tail-profile-relieved-1791426158866.png"
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-relieved-1791426158866.webp"
             },
             "sad": {
-              "profile": "/static/images/nodes/player_Rag-Tail-profile-sad-1791426138305.png"
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-sad-1791426138305.webp"
             },
             "serious": {
-              "profile": "/static/images/nodes/player_Rag-Tail-profile-serious-1791426169602.png"
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-serious-1791426169602.webp"
             },
             "shocked": {
-              "profile": "/static/images/nodes/player_Rag-Tail-profile-shocked-1791426162365.png"
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-shocked-1791426162365.webp"
             },
             "sleepy": {
-              "profile": "/static/images/nodes/player_Rag-Tail-profile-sleepy-1791426161200.png"
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-sleepy-1791426161200.webp"
             },
             "smug": {
-              "profile": "/static/images/nodes/player_Rag-Tail-profile-smug-1791426147989.png"
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-smug-1791426147989.webp"
             },
             "surprised": {
-              "profile": "/static/images/nodes/player_Rag-Tail-profile-surprised-1791426140805.png"
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-surprised-1791426140805.webp"
             },
             "suspicious": {
-              "profile": "/static/images/nodes/player_Rag-Tail-profile-suspicious-1791426155413.png"
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-suspicious-1791426155413.webp"
             },
             "tearful": {
-              "profile": "/static/images/nodes/player_Rag-Tail-profile-tearful-1791426170845.png"
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-tearful-1791426170845.webp"
             },
             "thoughtful": {
-              "profile": "/static/images/nodes/player_Rag-Tail-profile-thoughtful-1791426172038.png"
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-thoughtful-1791426172038.webp"
             },
             "worried": {
-              "profile": "/static/images/nodes/player_Rag-Tail-profile-worried-1791426149168.png"
+              "profile": "/static/images/nodes/player_Rag-Tail-profile-worried-1791426149168.webp"
             }
           },
           "personality": "You are Rag-Tail, wolf pack alpha in the Deep Forest. Smart, cautious, and opportunistic. You have learned to avoid goblin traps and ambushes. Sometimes you hunt goblins; sometimes you leave them alone.",
-          "profile_image": "/static/images/nodes/player_Rag-Tail-profile-neutral-1791426136577.png",
+          "profile_image": "/static/images/nodes/player_Rag-Tail-profile-neutral-1791426136577.webp",
           "tags": [
             "male",
             "animal",
@@ -27823,116 +27823,116 @@
           "description": "A loud, chaotic goblin entertainer with a grin and a scheme.",
           "expressions": {
             "affectionate": {
-              "profile": "/static/images/nodes/player_Rikka-profile-affectionate-1791153349889.png"
+              "profile": "/static/images/nodes/player_Rikka-profile-affectionate-1791153349889.webp"
             },
             "afraid": {
-              "profile": "/static/images/nodes/player_Rikka-profile-afraid-1791153343637.png"
+              "profile": "/static/images/nodes/player_Rikka-profile-afraid-1791153343637.webp"
             },
             "angry": {
-              "profile": "/static/images/nodes/player_Rikka-profile-angry-1791153342550.png"
+              "profile": "/static/images/nodes/player_Rikka-profile-angry-1791153342550.webp"
             },
             "aroused": {
-              "profile": "/static/images/nodes/player_Rikka-profile-aroused-1791153348687.png"
+              "profile": "/static/images/nodes/player_Rikka-profile-aroused-1791153348687.webp"
             },
             "ashamed": {
-              "profile": "/static/images/nodes/player_Rikka-profile-ashamed-1791153352139.png"
+              "profile": "/static/images/nodes/player_Rikka-profile-ashamed-1791153352139.webp"
             },
             "calm": {
-              "profile": "/static/images/nodes/player_Rikka-profile-calm-1791153356318.png"
+              "profile": "/static/images/nodes/player_Rikka-profile-calm-1791153356318.webp"
             },
             "disgusted": {
-              "profile": "/static/images/nodes/player_Rikka-profile-disgusted-1791153347102.png"
+              "profile": "/static/images/nodes/player_Rikka-profile-disgusted-1791153347102.webp"
             },
             "envious": {
-              "profile": "/static/images/nodes/player_Rikka-profile-envious-1791153355201.png"
+              "profile": "/static/images/nodes/player_Rikka-profile-envious-1791153355201.webp"
             },
             "happy": {
-              "profile": "/static/images/nodes/player_Rikka-profile-happy-1791153339246.png"
+              "profile": "/static/images/nodes/player_Rikka-profile-happy-1791153339246.webp"
             },
             "neutral": {
-              "profile": "/static/images/nodes/player_Rikka-profile-neutral-1791153338287.png"
+              "profile": "/static/images/nodes/player_Rikka-profile-neutral-1791153338287.webp"
             },
             "sad": {
-              "profile": "/static/images/nodes/player_Rikka-profile-sad-1791153341258.png"
+              "profile": "/static/images/nodes/player_Rikka-profile-sad-1791153341258.webp"
             },
             "slot13": {
-              "profile": "/static/images/nodes/player_Rikka-profile-slot13-1791153357465.png"
+              "profile": "/static/images/nodes/player_Rikka-profile-slot13-1791153357465.webp"
             },
             "slot14": {
-              "profile": "/static/images/nodes/player_Rikka-profile-slot14-1791153358629.png"
+              "profile": "/static/images/nodes/player_Rikka-profile-slot14-1791153358629.webp"
             },
             "slot15": {
-              "profile": "/static/images/nodes/player_Rikka-profile-slot15-1791153360053.png"
+              "profile": "/static/images/nodes/player_Rikka-profile-slot15-1791153360053.webp"
             },
             "slot16": {
-              "profile": "/static/images/nodes/player_Rikka-profile-slot16-1791153361310.png"
+              "profile": "/static/images/nodes/player_Rikka-profile-slot16-1791153361310.webp"
             },
             "slot17": {
-              "profile": "/static/images/nodes/player_Rikka-profile-slot17-1791153362467.png"
+              "profile": "/static/images/nodes/player_Rikka-profile-slot17-1791153362467.webp"
             },
             "slot18": {
-              "profile": "/static/images/nodes/player_Rikka-profile-slot18-1791153364533.png"
+              "profile": "/static/images/nodes/player_Rikka-profile-slot18-1791153364533.webp"
             },
             "slot19": {
-              "profile": "/static/images/nodes/player_Rikka-profile-slot19-1791153366534.png"
+              "profile": "/static/images/nodes/player_Rikka-profile-slot19-1791153366534.webp"
             },
             "slot20": {
-              "profile": "/static/images/nodes/player_Rikka-profile-slot20-1791153368199.png"
+              "profile": "/static/images/nodes/player_Rikka-profile-slot20-1791153368199.webp"
             },
             "slot21": {
-              "profile": "/static/images/nodes/player_Rikka-profile-slot21-1791153369414.png"
+              "profile": "/static/images/nodes/player_Rikka-profile-slot21-1791153369414.webp"
             },
             "slot22": {
-              "profile": "/static/images/nodes/player_Rikka-profile-slot22-1791153371626.png"
+              "profile": "/static/images/nodes/player_Rikka-profile-slot22-1791153371626.webp"
             },
             "slot23": {
-              "profile": "/static/images/nodes/player_Rikka-profile-slot23-1791153373184.png"
+              "profile": "/static/images/nodes/player_Rikka-profile-slot23-1791153373184.webp"
             },
             "slot24": {
-              "profile": "/static/images/nodes/player_Rikka-profile-slot24-1791153374510.png"
+              "profile": "/static/images/nodes/player_Rikka-profile-slot24-1791153374510.webp"
             },
             "slot25": {
-              "profile": "/static/images/nodes/player_Rikka-profile-slot25-1791153376066.png"
+              "profile": "/static/images/nodes/player_Rikka-profile-slot25-1791153376066.webp"
             },
             "slot26": {
-              "profile": "/static/images/nodes/player_Rikka-profile-slot26-1791153377539.png"
+              "profile": "/static/images/nodes/player_Rikka-profile-slot26-1791153377539.webp"
             },
             "slot27": {
-              "profile": "/static/images/nodes/player_Rikka-profile-slot27-1791153379030.png"
+              "profile": "/static/images/nodes/player_Rikka-profile-slot27-1791153379030.webp"
             },
             "slot28": {
-              "profile": "/static/images/nodes/player_Rikka-profile-slot28-1791153380401.png"
+              "profile": "/static/images/nodes/player_Rikka-profile-slot28-1791153380401.webp"
             },
             "slot29": {
-              "profile": "/static/images/nodes/player_Rikka-profile-slot29-1791153381700.png"
+              "profile": "/static/images/nodes/player_Rikka-profile-slot29-1791153381700.webp"
             },
             "slot30": {
-              "profile": "/static/images/nodes/player_Rikka-profile-slot30-1791153382739.png"
+              "profile": "/static/images/nodes/player_Rikka-profile-slot30-1791153382739.webp"
             },
             "slot31": {
-              "profile": "/static/images/nodes/player_Rikka-profile-slot31-1791153384015.png"
+              "profile": "/static/images/nodes/player_Rikka-profile-slot31-1791153384015.webp"
             },
             "slot32": {
-              "profile": "/static/images/nodes/player_Rikka-profile-slot32-1791153385244.png"
+              "profile": "/static/images/nodes/player_Rikka-profile-slot32-1791153385244.webp"
             },
             "slot33": {
-              "profile": "/static/images/nodes/player_Rikka-profile-slot33-1791153386766.png"
+              "profile": "/static/images/nodes/player_Rikka-profile-slot33-1791153386766.webp"
             },
             "slot34": {
-              "profile": "/static/images/nodes/player_Rikka-profile-slot34-1791153387933.png"
+              "profile": "/static/images/nodes/player_Rikka-profile-slot34-1791153387933.webp"
             },
             "slot35": {
-              "profile": "/static/images/nodes/player_Rikka-profile-slot35-1791153389179.png"
+              "profile": "/static/images/nodes/player_Rikka-profile-slot35-1791153389179.webp"
             },
             "slot36": {
-              "profile": "/static/images/nodes/player_Rikka-profile-slot36-1791153390334.png"
+              "profile": "/static/images/nodes/player_Rikka-profile-slot36-1791153390334.webp"
             },
             "surprised": {
-              "profile": "/static/images/nodes/player_Rikka-profile-surprised-1791153345653.png"
+              "profile": "/static/images/nodes/player_Rikka-profile-surprised-1791153345653.webp"
             }
           },
           "personality": "You are Rikka, the Kraktooth entertainer and distraction specialist. Loud, chaotic, and impossible to ignore. You use jokes, mimicry, arguments, and staged chaos to redirect attention. You are useful during raids, escapes, and negotiations. You create social friction intentionally. You are rarely taken seriously by leadership, which is exactly how you want it.",
-          "profile_image": "/static/images/nodes/player_Rikka-profile-neutral-1791153338287.png",
+          "profile_image": "/static/images/nodes/player_Rikka-profile-neutral-1791153338287.webp",
           "tags": [
             "female",
             "adult",
@@ -27958,101 +27958,101 @@
           "description": "A large dark worg with intelligent eyes and a lean build.",
           "expressions": {
             "amused": {
-              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-amused-1791426336547.png"
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-amused-1791426336547.webp"
             },
             "angry": {
-              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-angry-1791426305614.png"
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-angry-1791426305614.webp"
             },
             "bored": {
-              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-bored-1791426324097.png"
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-bored-1791426324097.webp"
             },
             "concerned": {
-              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-concerned-1791426338434.png"
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-concerned-1791426338434.webp"
             },
             "confident": {
-              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-confident-1791426339934.png"
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-confident-1791426339934.webp"
             },
             "confused": {
-              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-confused-1791426312045.png"
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-confused-1791426312045.webp"
             },
             "curious": {
-              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-curious-1791426319870.png"
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-curious-1791426319870.webp"
             },
             "defiant": {
-              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-defiant-1791426331865.png"
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-defiant-1791426331865.webp"
             },
             "determined": {
-              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-determined-1791426313787.png"
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-determined-1791426313787.webp"
             },
             "disgusted": {
-              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-disgusted-1791426310445.png"
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-disgusted-1791426310445.webp"
             },
             "embarrassed": {
-              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-embarrassed-1791426321383.png"
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-embarrassed-1791426321383.webp"
             },
             "exhausted": {
-              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-exhausted-1791426315444.png"
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-exhausted-1791426315444.webp"
             },
             "fearful": {
-              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-fearful-1791426309180.png"
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-fearful-1791426309180.webp"
             },
             "frustrated": {
-              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-frustrated-1791426328618.png"
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-frustrated-1791426328618.webp"
             },
             "happy": {
-              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-happy-1791426303067.png"
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-happy-1791426303067.webp"
             },
             "hopeful": {
-              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-hopeful-1791426327019.png"
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-hopeful-1791426327019.webp"
             },
             "nervous": {
-              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-nervous-1791426341866.png"
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-nervous-1791426341866.webp"
             },
             "neutral": {
-              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-neutral-1791426302132.png"
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-neutral-1791426302132.webp"
             },
             "playful": {
-              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-playful-1791426343145.png"
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-playful-1791426343145.webp"
             },
             "proud": {
-              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-proud-1791426322694.png"
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-proud-1791426322694.webp"
             },
             "relieved": {
-              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-relieved-1791426330243.png"
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-relieved-1791426330243.webp"
             },
             "sad": {
-              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-sad-1791426304309.png"
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-sad-1791426304309.webp"
             },
             "serious": {
-              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-serious-1791426344633.png"
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-serious-1791426344633.webp"
             },
             "shocked": {
-              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-shocked-1791426335138.png"
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-shocked-1791426335138.webp"
             },
             "sleepy": {
-              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-sleepy-1791426333534.png"
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-sleepy-1791426333534.webp"
             },
             "smug": {
-              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-smug-1791426316652.png"
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-smug-1791426316652.webp"
             },
             "surprised": {
-              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-surprised-1791426307387.png"
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-surprised-1791426307387.webp"
             },
             "suspicious": {
-              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-suspicious-1791426325522.png"
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-suspicious-1791426325522.webp"
             },
             "tearful": {
-              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-tearful-1791426346143.png"
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-tearful-1791426346143.webp"
             },
             "thoughtful": {
-              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-thoughtful-1791426347562.png"
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-thoughtful-1791426347562.webp"
             },
             "worried": {
-              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-worried-1791426318180.png"
+              "profile": "/static/images/nodes/player_Shadow-Pelt-profile-worried-1791426318180.webp"
             }
           },
           "personality": "You are Shadow-Pelt, worg pack leader near the Raven River. Intelligent, dangerous, and competitive. You sometimes compete with goblins for food and territory.",
-          "profile_image": "/static/images/nodes/player_Shadow-Pelt-profile-neutral-1791426302132.png",
+          "profile_image": "/static/images/nodes/player_Shadow-Pelt-profile-neutral-1791426302132.webp",
           "tags": [
             "male",
             "animal",
@@ -28073,101 +28073,101 @@
           "description": "A large raven with a distinctive silver marking on one talon.",
           "expressions": {
             "amused": {
-              "profile": "/static/images/nodes/player_Silver-Talon-profile-amused-1791426674094.png"
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-amused-1791426674094.webp"
             },
             "angry": {
-              "profile": "/static/images/nodes/player_Silver-Talon-profile-angry-1791426645019.png"
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-angry-1791426645019.webp"
             },
             "bored": {
-              "profile": "/static/images/nodes/player_Silver-Talon-profile-bored-1791426662381.png"
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-bored-1791426662381.webp"
             },
             "concerned": {
-              "profile": "/static/images/nodes/player_Silver-Talon-profile-concerned-1791426675524.png"
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-concerned-1791426675524.webp"
             },
             "confident": {
-              "profile": "/static/images/nodes/player_Silver-Talon-profile-confident-1791426676969.png"
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-confident-1791426676969.webp"
             },
             "confused": {
-              "profile": "/static/images/nodes/player_Silver-Talon-profile-confused-1791426651236.png"
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-confused-1791426651236.webp"
             },
             "curious": {
-              "profile": "/static/images/nodes/player_Silver-Talon-profile-curious-1791426658163.png"
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-curious-1791426658163.webp"
             },
             "defiant": {
-              "profile": "/static/images/nodes/player_Silver-Talon-profile-defiant-1791426669428.png"
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-defiant-1791426669428.webp"
             },
             "determined": {
-              "profile": "/static/images/nodes/player_Silver-Talon-profile-determined-1791426652663.png"
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-determined-1791426652663.webp"
             },
             "disgusted": {
-              "profile": "/static/images/nodes/player_Silver-Talon-profile-disgusted-1791426649827.png"
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-disgusted-1791426649827.webp"
             },
             "embarrassed": {
-              "profile": "/static/images/nodes/player_Silver-Talon-profile-embarrassed-1791426659612.png"
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-embarrassed-1791426659612.webp"
             },
             "exhausted": {
-              "profile": "/static/images/nodes/player_Silver-Talon-profile-exhausted-1791426654192.png"
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-exhausted-1791426654192.webp"
             },
             "fearful": {
-              "profile": "/static/images/nodes/player_Silver-Talon-profile-fearful-1791426648329.png"
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-fearful-1791426648329.webp"
             },
             "frustrated": {
-              "profile": "/static/images/nodes/player_Silver-Talon-profile-frustrated-1791426666779.png"
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-frustrated-1791426666779.webp"
             },
             "happy": {
-              "profile": "/static/images/nodes/player_Silver-Talon-profile-happy-1791426642185.png"
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-happy-1791426642185.webp"
             },
             "hopeful": {
-              "profile": "/static/images/nodes/player_Silver-Talon-profile-hopeful-1791426665138.png"
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-hopeful-1791426665138.webp"
             },
             "nervous": {
-              "profile": "/static/images/nodes/player_Silver-Talon-profile-nervous-1791426678483.png"
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-nervous-1791426678483.webp"
             },
             "neutral": {
-              "profile": "/static/images/nodes/player_Silver-Talon-profile-neutral-1791426641375.png"
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-neutral-1791426641375.webp"
             },
             "playful": {
-              "profile": "/static/images/nodes/player_Silver-Talon-profile-playful-1791426680077.png"
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-playful-1791426680077.webp"
             },
             "proud": {
-              "profile": "/static/images/nodes/player_Silver-Talon-profile-proud-1791426661053.png"
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-proud-1791426661053.webp"
             },
             "relieved": {
-              "profile": "/static/images/nodes/player_Silver-Talon-profile-relieved-1791426668033.png"
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-relieved-1791426668033.webp"
             },
             "sad": {
-              "profile": "/static/images/nodes/player_Silver-Talon-profile-sad-1791426643535.png"
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-sad-1791426643535.webp"
             },
             "serious": {
-              "profile": "/static/images/nodes/player_Silver-Talon-profile-serious-1791426681525.png"
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-serious-1791426681525.webp"
             },
             "shocked": {
-              "profile": "/static/images/nodes/player_Silver-Talon-profile-shocked-1791426672616.png"
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-shocked-1791426672616.webp"
             },
             "sleepy": {
-              "profile": "/static/images/nodes/player_Silver-Talon-profile-sleepy-1791426670810.png"
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-sleepy-1791426670810.webp"
             },
             "smug": {
-              "profile": "/static/images/nodes/player_Silver-Talon-profile-smug-1791426655487.png"
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-smug-1791426655487.webp"
             },
             "surprised": {
-              "profile": "/static/images/nodes/player_Silver-Talon-profile-surprised-1791426646443.png"
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-surprised-1791426646443.webp"
             },
             "suspicious": {
-              "profile": "/static/images/nodes/player_Silver-Talon-profile-suspicious-1791426663663.png"
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-suspicious-1791426663663.webp"
             },
             "tearful": {
-              "profile": "/static/images/nodes/player_Silver-Talon-profile-tearful-1791426683135.png"
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-tearful-1791426683135.webp"
             },
             "thoughtful": {
-              "profile": "/static/images/nodes/player_Silver-Talon-profile-thoughtful-1791426684482.png"
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-thoughtful-1791426684482.webp"
             },
             "worried": {
-              "profile": "/static/images/nodes/player_Silver-Talon-profile-worried-1791426656908.png"
+              "profile": "/static/images/nodes/player_Silver-Talon-profile-worried-1791426656908.webp"
             }
           },
           "personality": "You are Silver-Talon, a large raven that nests near the camp entrance. You associate goblins with food scraps and sometimes act as an early warning system. Vekka has trained you to carry small messages.",
-          "profile_image": "/static/images/nodes/player_Silver-Talon-profile-neutral-1791426641375.png",
+          "profile_image": "/static/images/nodes/player_Silver-Talon-profile-neutral-1791426641375.webp",
           "tags": [
             "animal",
             "bird",
@@ -28188,101 +28188,101 @@
           "description": "An old, scarred goblin warchief with a heavy presence and sharper eyes.",
           "expressions": {
             "amused": {
-              "profile": "/static/images/nodes/player_Thrazz-profile-amused-1791422221717.png"
+              "profile": "/static/images/nodes/player_Thrazz-profile-amused-1791422221717.webp"
             },
             "angry": {
-              "profile": "/static/images/nodes/player_Thrazz-profile-angry-1791422199874.png"
+              "profile": "/static/images/nodes/player_Thrazz-profile-angry-1791422199874.webp"
             },
             "bored": {
-              "profile": "/static/images/nodes/player_Thrazz-profile-bored-1791422213225.png"
+              "profile": "/static/images/nodes/player_Thrazz-profile-bored-1791422213225.webp"
             },
             "concerned": {
-              "profile": "/static/images/nodes/player_Thrazz-profile-concerned-1791422222839.png"
+              "profile": "/static/images/nodes/player_Thrazz-profile-concerned-1791422222839.webp"
             },
             "confident": {
-              "profile": "/static/images/nodes/player_Thrazz-profile-confident-1791422223931.png"
+              "profile": "/static/images/nodes/player_Thrazz-profile-confident-1791422223931.webp"
             },
             "confused": {
-              "profile": "/static/images/nodes/player_Thrazz-profile-confused-1791422204885.png"
+              "profile": "/static/images/nodes/player_Thrazz-profile-confused-1791422204885.webp"
             },
             "curious": {
-              "profile": "/static/images/nodes/player_Thrazz-profile-curious-1791422210030.png"
+              "profile": "/static/images/nodes/player_Thrazz-profile-curious-1791422210030.webp"
             },
             "defiant": {
-              "profile": "/static/images/nodes/player_Thrazz-profile-defiant-1791422218507.png"
+              "profile": "/static/images/nodes/player_Thrazz-profile-defiant-1791422218507.webp"
             },
             "determined": {
-              "profile": "/static/images/nodes/player_Thrazz-profile-determined-1791422205969.png"
+              "profile": "/static/images/nodes/player_Thrazz-profile-determined-1791422205969.webp"
             },
             "disgusted": {
-              "profile": "/static/images/nodes/player_Thrazz-profile-disgusted-1791422203649.png"
+              "profile": "/static/images/nodes/player_Thrazz-profile-disgusted-1791422203649.webp"
             },
             "embarrassed": {
-              "profile": "/static/images/nodes/player_Thrazz-profile-embarrassed-1791422211119.png"
+              "profile": "/static/images/nodes/player_Thrazz-profile-embarrassed-1791422211119.webp"
             },
             "exhausted": {
-              "profile": "/static/images/nodes/player_Thrazz-profile-exhausted-1791422206951.png"
+              "profile": "/static/images/nodes/player_Thrazz-profile-exhausted-1791422206951.webp"
             },
             "fearful": {
-              "profile": "/static/images/nodes/player_Thrazz-profile-fearful-1791422202525.png"
+              "profile": "/static/images/nodes/player_Thrazz-profile-fearful-1791422202525.webp"
             },
             "frustrated": {
-              "profile": "/static/images/nodes/player_Thrazz-profile-frustrated-1791422216404.png"
+              "profile": "/static/images/nodes/player_Thrazz-profile-frustrated-1791422216404.webp"
             },
             "happy": {
-              "profile": "/static/images/nodes/player_Thrazz-profile-happy-1791422197077.png"
+              "profile": "/static/images/nodes/player_Thrazz-profile-happy-1791422197077.webp"
             },
             "hopeful": {
-              "profile": "/static/images/nodes/player_Thrazz-profile-hopeful-1791422215408.png"
+              "profile": "/static/images/nodes/player_Thrazz-profile-hopeful-1791422215408.webp"
             },
             "nervous": {
-              "profile": "/static/images/nodes/player_Thrazz-profile-nervous-1791422224990.png"
+              "profile": "/static/images/nodes/player_Thrazz-profile-nervous-1791422224990.webp"
             },
             "neutral": {
-              "profile": "/static/images/nodes/player_Thrazz-profile-neutral-1791422196324.png"
+              "profile": "/static/images/nodes/player_Thrazz-profile-neutral-1791422196324.webp"
             },
             "playful": {
-              "profile": "/static/images/nodes/player_Thrazz-profile-playful-1791422226107.png"
+              "profile": "/static/images/nodes/player_Thrazz-profile-playful-1791422226107.webp"
             },
             "proud": {
-              "profile": "/static/images/nodes/player_Thrazz-profile-proud-1791422212185.png"
+              "profile": "/static/images/nodes/player_Thrazz-profile-proud-1791422212185.webp"
             },
             "relieved": {
-              "profile": "/static/images/nodes/player_Thrazz-profile-relieved-1791422217425.png"
+              "profile": "/static/images/nodes/player_Thrazz-profile-relieved-1791422217425.webp"
             },
             "sad": {
-              "profile": "/static/images/nodes/player_Thrazz-profile-sad-1791422198582.png"
+              "profile": "/static/images/nodes/player_Thrazz-profile-sad-1791422198582.webp"
             },
             "serious": {
-              "profile": "/static/images/nodes/player_Thrazz-profile-serious-1791422227124.png"
+              "profile": "/static/images/nodes/player_Thrazz-profile-serious-1791422227124.webp"
             },
             "shocked": {
-              "profile": "/static/images/nodes/player_Thrazz-profile-shocked-1791422220607.png"
+              "profile": "/static/images/nodes/player_Thrazz-profile-shocked-1791422220607.webp"
             },
             "sleepy": {
-              "profile": "/static/images/nodes/player_Thrazz-profile-sleepy-1791422219546.png"
+              "profile": "/static/images/nodes/player_Thrazz-profile-sleepy-1791422219546.webp"
             },
             "smug": {
-              "profile": "/static/images/nodes/player_Thrazz-profile-smug-1791422208014.png"
+              "profile": "/static/images/nodes/player_Thrazz-profile-smug-1791422208014.webp"
             },
             "surprised": {
-              "profile": "/static/images/nodes/player_Thrazz-profile-surprised-1791422201199.png"
+              "profile": "/static/images/nodes/player_Thrazz-profile-surprised-1791422201199.webp"
             },
             "suspicious": {
-              "profile": "/static/images/nodes/player_Thrazz-profile-suspicious-1791422214330.png"
+              "profile": "/static/images/nodes/player_Thrazz-profile-suspicious-1791422214330.webp"
             },
             "tearful": {
-              "profile": "/static/images/nodes/player_Thrazz-profile-tearful-1791422228166.png"
+              "profile": "/static/images/nodes/player_Thrazz-profile-tearful-1791422228166.webp"
             },
             "thoughtful": {
-              "profile": "/static/images/nodes/player_Thrazz-profile-thoughtful-1791422229246.png"
+              "profile": "/static/images/nodes/player_Thrazz-profile-thoughtful-1791422229246.webp"
             },
             "worried": {
-              "profile": "/static/images/nodes/player_Thrazz-profile-worried-1791422209022.png"
+              "profile": "/static/images/nodes/player_Thrazz-profile-worried-1791422209022.webp"
             }
           },
           "personality": "You are Thrazz, warchief of the Kraktooth tribe. Old, scarred, and politically sharp. You hold the camp together through fear, reputation, and spite. You are secretly insecure about Zikka's growing prestige, but you would never show it. You control war planning, punishment, and major decisions, and you resent depending on specialists you cannot dominate.",
-          "profile_image": "/static/images/nodes/player_Thrazz-profile-neutral-1791422196324.png",
+          "profile_image": "/static/images/nodes/player_Thrazz-profile-neutral-1791422196324.webp",
           "tags": [
             "male",
             "adult",
@@ -28308,101 +28308,101 @@
           "description": "A massive boar with scarred flanks and dangerous tusks.",
           "expressions": {
             "amused": {
-              "profile": "/static/images/nodes/player_Tusker-profile-amused-1791422663935.png"
+              "profile": "/static/images/nodes/player_Tusker-profile-amused-1791422663935.webp"
             },
             "angry": {
-              "profile": "/static/images/nodes/player_Tusker-profile-angry-1791422641329.png"
+              "profile": "/static/images/nodes/player_Tusker-profile-angry-1791422641329.webp"
             },
             "bored": {
-              "profile": "/static/images/nodes/player_Tusker-profile-bored-1791422655191.png"
+              "profile": "/static/images/nodes/player_Tusker-profile-bored-1791422655191.webp"
             },
             "concerned": {
-              "profile": "/static/images/nodes/player_Tusker-profile-concerned-1791422665034.png"
+              "profile": "/static/images/nodes/player_Tusker-profile-concerned-1791422665034.webp"
             },
             "confident": {
-              "profile": "/static/images/nodes/player_Tusker-profile-confident-1791422666177.png"
+              "profile": "/static/images/nodes/player_Tusker-profile-confident-1791422666177.webp"
             },
             "confused": {
-              "profile": "/static/images/nodes/player_Tusker-profile-confused-1791422646327.png"
+              "profile": "/static/images/nodes/player_Tusker-profile-confused-1791422646327.webp"
             },
             "curious": {
-              "profile": "/static/images/nodes/player_Tusker-profile-curious-1791422651839.png"
+              "profile": "/static/images/nodes/player_Tusker-profile-curious-1791422651839.webp"
             },
             "defiant": {
-              "profile": "/static/images/nodes/player_Tusker-profile-defiant-1791422660604.png"
+              "profile": "/static/images/nodes/player_Tusker-profile-defiant-1791422660604.webp"
             },
             "determined": {
-              "profile": "/static/images/nodes/player_Tusker-profile-determined-1791422647520.png"
+              "profile": "/static/images/nodes/player_Tusker-profile-determined-1791422647520.webp"
             },
             "disgusted": {
-              "profile": "/static/images/nodes/player_Tusker-profile-disgusted-1791422645138.png"
+              "profile": "/static/images/nodes/player_Tusker-profile-disgusted-1791422645138.webp"
             },
             "embarrassed": {
-              "profile": "/static/images/nodes/player_Tusker-profile-embarrassed-1791422652987.png"
+              "profile": "/static/images/nodes/player_Tusker-profile-embarrassed-1791422652987.webp"
             },
             "exhausted": {
-              "profile": "/static/images/nodes/player_Tusker-profile-exhausted-1791422648727.png"
+              "profile": "/static/images/nodes/player_Tusker-profile-exhausted-1791422648727.webp"
             },
             "fearful": {
-              "profile": "/static/images/nodes/player_Tusker-profile-fearful-1791422643868.png"
+              "profile": "/static/images/nodes/player_Tusker-profile-fearful-1791422643868.webp"
             },
             "frustrated": {
-              "profile": "/static/images/nodes/player_Tusker-profile-frustrated-1791422658357.png"
+              "profile": "/static/images/nodes/player_Tusker-profile-frustrated-1791422658357.webp"
             },
             "happy": {
-              "profile": "/static/images/nodes/player_Tusker-profile-happy-1791422638486.png"
+              "profile": "/static/images/nodes/player_Tusker-profile-happy-1791422638486.webp"
             },
             "hopeful": {
-              "profile": "/static/images/nodes/player_Tusker-profile-hopeful-1791422657303.png"
+              "profile": "/static/images/nodes/player_Tusker-profile-hopeful-1791422657303.webp"
             },
             "nervous": {
-              "profile": "/static/images/nodes/player_Tusker-profile-nervous-1791422667339.png"
+              "profile": "/static/images/nodes/player_Tusker-profile-nervous-1791422667339.webp"
             },
             "neutral": {
-              "profile": "/static/images/nodes/player_Tusker-profile-neutral-1791422637744.png"
+              "profile": "/static/images/nodes/player_Tusker-profile-neutral-1791422637744.webp"
             },
             "playful": {
-              "profile": "/static/images/nodes/player_Tusker-profile-playful-1791422668371.png"
+              "profile": "/static/images/nodes/player_Tusker-profile-playful-1791422668371.webp"
             },
             "proud": {
-              "profile": "/static/images/nodes/player_Tusker-profile-proud-1791422654034.png"
+              "profile": "/static/images/nodes/player_Tusker-profile-proud-1791422654034.webp"
             },
             "relieved": {
-              "profile": "/static/images/nodes/player_Tusker-profile-relieved-1791422659376.png"
+              "profile": "/static/images/nodes/player_Tusker-profile-relieved-1791422659376.webp"
             },
             "sad": {
-              "profile": "/static/images/nodes/player_Tusker-profile-sad-1791422640033.png"
+              "profile": "/static/images/nodes/player_Tusker-profile-sad-1791422640033.webp"
             },
             "serious": {
-              "profile": "/static/images/nodes/player_Tusker-profile-serious-1791422669380.png"
+              "profile": "/static/images/nodes/player_Tusker-profile-serious-1791422669380.webp"
             },
             "shocked": {
-              "profile": "/static/images/nodes/player_Tusker-profile-shocked-1791422662780.png"
+              "profile": "/static/images/nodes/player_Tusker-profile-shocked-1791422662780.webp"
             },
             "sleepy": {
-              "profile": "/static/images/nodes/player_Tusker-profile-sleepy-1791422661763.png"
+              "profile": "/static/images/nodes/player_Tusker-profile-sleepy-1791422661763.webp"
             },
             "smug": {
-              "profile": "/static/images/nodes/player_Tusker-profile-smug-1791422649769.png"
+              "profile": "/static/images/nodes/player_Tusker-profile-smug-1791422649769.webp"
             },
             "surprised": {
-              "profile": "/static/images/nodes/player_Tusker-profile-surprised-1791422642622.png"
+              "profile": "/static/images/nodes/player_Tusker-profile-surprised-1791422642622.webp"
             },
             "suspicious": {
-              "profile": "/static/images/nodes/player_Tusker-profile-suspicious-1791422656354.png"
+              "profile": "/static/images/nodes/player_Tusker-profile-suspicious-1791422656354.webp"
             },
             "tearful": {
-              "profile": "/static/images/nodes/player_Tusker-profile-tearful-1791422670470.png"
+              "profile": "/static/images/nodes/player_Tusker-profile-tearful-1791422670470.webp"
             },
             "thoughtful": {
-              "profile": "/static/images/nodes/player_Tusker-profile-thoughtful-1791422671458.png"
+              "profile": "/static/images/nodes/player_Tusker-profile-thoughtful-1791422671458.webp"
             },
             "worried": {
-              "profile": "/static/images/nodes/player_Tusker-profile-worried-1791422650809.png"
+              "profile": "/static/images/nodes/player_Tusker-profile-worried-1791422650809.webp"
             }
           },
           "personality": "You are Tusker, a massive wild boar in the Deep Forest. Aggressive, territorial, and dangerous. Goblins hunt you carefully or avoid you entirely.",
-          "profile_image": "/static/images/nodes/player_Tusker-profile-neutral-1791422637744.png",
+          "profile_image": "/static/images/nodes/player_Tusker-profile-neutral-1791422637744.webp",
           "tags": [
             "male",
             "animal",
@@ -28423,101 +28423,101 @@
           "description": "A quiet goblin scout with sharp eyes and sharper silences.",
           "expressions": {
             "amused": {
-              "profile": "/static/images/nodes/player_Vekka-profile-amused-1791307024128.png"
+              "profile": "/static/images/nodes/player_Vekka-profile-amused-1791307024128.webp"
             },
             "angry": {
-              "profile": "/static/images/nodes/player_Vekka-profile-angry-1791307006055.png"
+              "profile": "/static/images/nodes/player_Vekka-profile-angry-1791307006055.webp"
             },
             "bored": {
-              "profile": "/static/images/nodes/player_Vekka-profile-bored-1791307017352.png"
+              "profile": "/static/images/nodes/player_Vekka-profile-bored-1791307017352.webp"
             },
             "concerned": {
-              "profile": "/static/images/nodes/player_Vekka-profile-concerned-1791307024940.png"
+              "profile": "/static/images/nodes/player_Vekka-profile-concerned-1791307024940.webp"
             },
             "confident": {
-              "profile": "/static/images/nodes/player_Vekka-profile-confident-1791307025909.png"
+              "profile": "/static/images/nodes/player_Vekka-profile-confident-1791307025909.webp"
             },
             "confused": {
-              "profile": "/static/images/nodes/player_Vekka-profile-confused-1791307010213.png"
+              "profile": "/static/images/nodes/player_Vekka-profile-confused-1791307010213.webp"
             },
             "curious": {
-              "profile": "/static/images/nodes/player_Vekka-profile-curious-1791307014647.png"
+              "profile": "/static/images/nodes/player_Vekka-profile-curious-1791307014647.webp"
             },
             "defiant": {
-              "profile": "/static/images/nodes/player_Vekka-profile-defiant-1791307021533.png"
+              "profile": "/static/images/nodes/player_Vekka-profile-defiant-1791307021533.webp"
             },
             "determined": {
-              "profile": "/static/images/nodes/player_Vekka-profile-determined-1791307011062.png"
+              "profile": "/static/images/nodes/player_Vekka-profile-determined-1791307011062.webp"
             },
             "disgusted": {
-              "profile": "/static/images/nodes/player_Vekka-profile-disgusted-1791307009380.png"
+              "profile": "/static/images/nodes/player_Vekka-profile-disgusted-1791307009380.webp"
             },
             "embarrassed": {
-              "profile": "/static/images/nodes/player_Vekka-profile-embarrassed-1791307015436.png"
+              "profile": "/static/images/nodes/player_Vekka-profile-embarrassed-1791307015436.webp"
             },
             "exhausted": {
-              "profile": "/static/images/nodes/player_Vekka-profile-exhausted-1791307012095.png"
+              "profile": "/static/images/nodes/player_Vekka-profile-exhausted-1791307012095.webp"
             },
             "fearful": {
-              "profile": "/static/images/nodes/player_Vekka-profile-fearful-1791307008532.png"
+              "profile": "/static/images/nodes/player_Vekka-profile-fearful-1791307008532.webp"
             },
             "frustrated": {
-              "profile": "/static/images/nodes/player_Vekka-profile-frustrated-1791307019926.png"
+              "profile": "/static/images/nodes/player_Vekka-profile-frustrated-1791307019926.webp"
             },
             "happy": {
-              "profile": "/static/images/nodes/player_Vekka-profile-happy-1791307003932.png"
+              "profile": "/static/images/nodes/player_Vekka-profile-happy-1791307003932.webp"
             },
             "hopeful": {
-              "profile": "/static/images/nodes/player_Vekka-profile-hopeful-1791307019040.png"
+              "profile": "/static/images/nodes/player_Vekka-profile-hopeful-1791307019040.webp"
             },
             "nervous": {
-              "profile": "/static/images/nodes/player_Vekka-profile-nervous-1791307026801.png"
+              "profile": "/static/images/nodes/player_Vekka-profile-nervous-1791307026801.webp"
             },
             "neutral": {
-              "profile": "/static/images/nodes/player_Vekka-profile-neutral-1791307002984.png"
+              "profile": "/static/images/nodes/player_Vekka-profile-neutral-1791307002984.webp"
             },
             "playful": {
-              "profile": "/static/images/nodes/player_Vekka-profile-playful-1791307027615.png"
+              "profile": "/static/images/nodes/player_Vekka-profile-playful-1791307027615.webp"
             },
             "proud": {
-              "profile": "/static/images/nodes/player_Vekka-profile-proud-1791307016256.png"
+              "profile": "/static/images/nodes/player_Vekka-profile-proud-1791307016256.webp"
             },
             "relieved": {
-              "profile": "/static/images/nodes/player_Vekka-profile-relieved-1791307020740.png"
+              "profile": "/static/images/nodes/player_Vekka-profile-relieved-1791307020740.webp"
             },
             "sad": {
-              "profile": "/static/images/nodes/player_Vekka-profile-sad-1791307005190.png"
+              "profile": "/static/images/nodes/player_Vekka-profile-sad-1791307005190.webp"
             },
             "serious": {
-              "profile": "/static/images/nodes/player_Vekka-profile-serious-1791307028674.png"
+              "profile": "/static/images/nodes/player_Vekka-profile-serious-1791307028674.webp"
             },
             "shocked": {
-              "profile": "/static/images/nodes/player_Vekka-profile-shocked-1791307023299.png"
+              "profile": "/static/images/nodes/player_Vekka-profile-shocked-1791307023299.webp"
             },
             "sleepy": {
-              "profile": "/static/images/nodes/player_Vekka-profile-sleepy-1791307022457.png"
+              "profile": "/static/images/nodes/player_Vekka-profile-sleepy-1791307022457.webp"
             },
             "smug": {
-              "profile": "/static/images/nodes/player_Vekka-profile-smug-1791307012930.png"
+              "profile": "/static/images/nodes/player_Vekka-profile-smug-1791307012930.webp"
             },
             "surprised": {
-              "profile": "/static/images/nodes/player_Vekka-profile-surprised-1791307006992.png"
+              "profile": "/static/images/nodes/player_Vekka-profile-surprised-1791307006992.webp"
             },
             "suspicious": {
-              "profile": "/static/images/nodes/player_Vekka-profile-suspicious-1791307018164.png"
+              "profile": "/static/images/nodes/player_Vekka-profile-suspicious-1791307018164.webp"
             },
             "tearful": {
-              "profile": "/static/images/nodes/player_Vekka-profile-tearful-1791307029548.png"
+              "profile": "/static/images/nodes/player_Vekka-profile-tearful-1791307029548.webp"
             },
             "thoughtful": {
-              "profile": "/static/images/nodes/player_Vekka-profile-thoughtful-1791307030383.png"
+              "profile": "/static/images/nodes/player_Vekka-profile-thoughtful-1791307030383.webp"
             },
             "worried": {
-              "profile": "/static/images/nodes/player_Vekka-profile-worried-1791307013779.png"
+              "profile": "/static/images/nodes/player_Vekka-profile-worried-1791307013779.webp"
             }
           },
           "personality": "You are Vekka, scout of the Kraktooth tribe. Quiet, poisonous, and effective. You know the land, the patrols, and the routes better than anyone. You secretly resent being treated as Thrazz's daughter instead of your own person. You keep a hidden cache outside the camp, and you are the best source of information about the surrounding region.",
-          "profile_image": "/static/images/nodes/player_Vekka-profile-neutral-1791307002984.png",
+          "profile_image": "/static/images/nodes/player_Vekka-profile-neutral-1791307002984.webp",
           "tags": [
             "female",
             "adult",
@@ -28543,101 +28543,101 @@
           "description": "A strong, loud goblin fighter with a scar across one brow and a heavy blade.",
           "expressions": {
             "amused": {
-              "profile": "/static/images/nodes/player_Zikka-profile-amused-1791423035233.png"
+              "profile": "/static/images/nodes/player_Zikka-profile-amused-1791423035233.webp"
             },
             "angry": {
-              "profile": "/static/images/nodes/player_Zikka-profile-angry-1791423012805.png"
+              "profile": "/static/images/nodes/player_Zikka-profile-angry-1791423012805.webp"
             },
             "bored": {
-              "profile": "/static/images/nodes/player_Zikka-profile-bored-1791423026254.png"
+              "profile": "/static/images/nodes/player_Zikka-profile-bored-1791423026254.webp"
             },
             "concerned": {
-              "profile": "/static/images/nodes/player_Zikka-profile-concerned-1791423036304.png"
+              "profile": "/static/images/nodes/player_Zikka-profile-concerned-1791423036304.webp"
             },
             "confident": {
-              "profile": "/static/images/nodes/player_Zikka-profile-confident-1791423037420.png"
+              "profile": "/static/images/nodes/player_Zikka-profile-confident-1791423037420.webp"
             },
             "confused": {
-              "profile": "/static/images/nodes/player_Zikka-profile-confused-1791423017557.png"
+              "profile": "/static/images/nodes/player_Zikka-profile-confused-1791423017557.webp"
             },
             "curious": {
-              "profile": "/static/images/nodes/player_Zikka-profile-curious-1791423023041.png"
+              "profile": "/static/images/nodes/player_Zikka-profile-curious-1791423023041.webp"
             },
             "defiant": {
-              "profile": "/static/images/nodes/player_Zikka-profile-defiant-1791423031866.png"
+              "profile": "/static/images/nodes/player_Zikka-profile-defiant-1791423031866.webp"
             },
             "determined": {
-              "profile": "/static/images/nodes/player_Zikka-profile-determined-1791423018631.png"
+              "profile": "/static/images/nodes/player_Zikka-profile-determined-1791423018631.webp"
             },
             "disgusted": {
-              "profile": "/static/images/nodes/player_Zikka-profile-disgusted-1791423016509.png"
+              "profile": "/static/images/nodes/player_Zikka-profile-disgusted-1791423016509.webp"
             },
             "embarrassed": {
-              "profile": "/static/images/nodes/player_Zikka-profile-embarrassed-1791423024144.png"
+              "profile": "/static/images/nodes/player_Zikka-profile-embarrassed-1791423024144.webp"
             },
             "exhausted": {
-              "profile": "/static/images/nodes/player_Zikka-profile-exhausted-1791423019758.png"
+              "profile": "/static/images/nodes/player_Zikka-profile-exhausted-1791423019758.webp"
             },
             "fearful": {
-              "profile": "/static/images/nodes/player_Zikka-profile-fearful-1791423015118.png"
+              "profile": "/static/images/nodes/player_Zikka-profile-fearful-1791423015118.webp"
             },
             "frustrated": {
-              "profile": "/static/images/nodes/player_Zikka-profile-frustrated-1791423029537.png"
+              "profile": "/static/images/nodes/player_Zikka-profile-frustrated-1791423029537.webp"
             },
             "happy": {
-              "profile": "/static/images/nodes/player_Zikka-profile-happy-1791423009848.png"
+              "profile": "/static/images/nodes/player_Zikka-profile-happy-1791423009848.webp"
             },
             "hopeful": {
-              "profile": "/static/images/nodes/player_Zikka-profile-hopeful-1791423028459.png"
+              "profile": "/static/images/nodes/player_Zikka-profile-hopeful-1791423028459.webp"
             },
             "nervous": {
-              "profile": "/static/images/nodes/player_Zikka-profile-nervous-1791423038537.png"
+              "profile": "/static/images/nodes/player_Zikka-profile-nervous-1791423038537.webp"
             },
             "neutral": {
-              "profile": "/static/images/nodes/player_Zikka-profile-neutral-1791423009088.png"
+              "profile": "/static/images/nodes/player_Zikka-profile-neutral-1791423009088.webp"
             },
             "playful": {
-              "profile": "/static/images/nodes/player_Zikka-profile-playful-1791423039562.png"
+              "profile": "/static/images/nodes/player_Zikka-profile-playful-1791423039562.webp"
             },
             "proud": {
-              "profile": "/static/images/nodes/player_Zikka-profile-proud-1791423025213.png"
+              "profile": "/static/images/nodes/player_Zikka-profile-proud-1791423025213.webp"
             },
             "relieved": {
-              "profile": "/static/images/nodes/player_Zikka-profile-relieved-1791423030572.png"
+              "profile": "/static/images/nodes/player_Zikka-profile-relieved-1791423030572.webp"
             },
             "sad": {
-              "profile": "/static/images/nodes/player_Zikka-profile-sad-1791423011436.png"
+              "profile": "/static/images/nodes/player_Zikka-profile-sad-1791423011436.webp"
             },
             "serious": {
-              "profile": "/static/images/nodes/player_Zikka-profile-serious-1791423040671.png"
+              "profile": "/static/images/nodes/player_Zikka-profile-serious-1791423040671.webp"
             },
             "shocked": {
-              "profile": "/static/images/nodes/player_Zikka-profile-shocked-1791423034040.png"
+              "profile": "/static/images/nodes/player_Zikka-profile-shocked-1791423034040.webp"
             },
             "sleepy": {
-              "profile": "/static/images/nodes/player_Zikka-profile-sleepy-1791423032962.png"
+              "profile": "/static/images/nodes/player_Zikka-profile-sleepy-1791423032962.webp"
             },
             "smug": {
-              "profile": "/static/images/nodes/player_Zikka-profile-smug-1791423020920.png"
+              "profile": "/static/images/nodes/player_Zikka-profile-smug-1791423020920.webp"
             },
             "surprised": {
-              "profile": "/static/images/nodes/player_Zikka-profile-surprised-1791423013958.png"
+              "profile": "/static/images/nodes/player_Zikka-profile-surprised-1791423013958.webp"
             },
             "suspicious": {
-              "profile": "/static/images/nodes/player_Zikka-profile-suspicious-1791423027404.png"
+              "profile": "/static/images/nodes/player_Zikka-profile-suspicious-1791423027404.webp"
             },
             "tearful": {
-              "profile": "/static/images/nodes/player_Zikka-profile-tearful-1791423041722.png"
+              "profile": "/static/images/nodes/player_Zikka-profile-tearful-1791423041722.webp"
             },
             "thoughtful": {
-              "profile": "/static/images/nodes/player_Zikka-profile-thoughtful-1791423042934.png"
+              "profile": "/static/images/nodes/player_Zikka-profile-thoughtful-1791423042934.webp"
             },
             "worried": {
-              "profile": "/static/images/nodes/player_Zikka-profile-worried-1791423022005.png"
+              "profile": "/static/images/nodes/player_Zikka-profile-worried-1791423022005.webp"
             }
           },
           "personality": "You are Zikka, the Kraktooth warchief's daughter and the tribe's best fighter. Strong, loud, and respected in combat. You are tired of being seen only as an heir or enforcer. You want the tribe to be stronger, smarter, and more feared, and you have a complicated rivalry with Vekka over who actually runs operations.",
-          "profile_image": "/static/images/nodes/player_Zikka-profile-neutral-1791423009088.png",
+          "profile_image": "/static/images/nodes/player_Zikka-profile-neutral-1791423009088.webp",
           "tags": [
             "female",
             "adult",
@@ -179599,7 +179599,7 @@
         }
       },
       "reference": {
-        "image": "/static/images/backgrounds/abandoned farms.png",
+        "image": "/static/images/backgrounds/abandoned farms.webp",
         "opacity": 1,
         "visible": true
       },
@@ -180495,7 +180495,7 @@
       "parent_id": "world",
       "placements": {},
       "reference": {
-        "image": "/static/images/backgrounds/deep_forest-1790288542838.png",
+        "image": "/static/images/backgrounds/deep_forest-1790288542838.webp",
         "opacity": 0.9,
         "visible": true
       },
@@ -213354,7 +213354,7 @@
       "parent_id": "world",
       "placements": {},
       "reference": {
-        "image": "/static/images/backgrounds/eldenford.png",
+        "image": "/static/images/backgrounds/eldenford.webp",
         "opacity": 1,
         "visible": true
       },
@@ -214545,7 +214545,7 @@
       "parent_id": "world",
       "placements": {},
       "reference": {
-        "image": "/static/images/backgrounds/kraktooth-goblin-camp.png",
+        "image": "/static/images/backgrounds/kraktooth-goblin-camp.webp",
         "opacity": 0.5,
         "visible": true
       },
@@ -214567,7 +214567,7 @@
       "parent_id": "world",
       "placements": {},
       "reference": {
-        "image": "/static/images/backgrounds/raven river.png",
+        "image": "/static/images/backgrounds/raven river.webp",
         "opacity": 0.5,
         "visible": true
       },
@@ -214757,7 +214757,7 @@
       "parent_id": "world",
       "placements": {},
       "reference": {
-        "image": "/static/images/backgrounds/west woods.png",
+        "image": "/static/images/backgrounds/west woods.webp",
         "opacity": 1,
         "visible": true
       },
@@ -218907,7 +218907,7 @@
         }
       },
       "reference": {
-        "image": "/static/images/backgrounds/kraktooth world map.png",
+        "image": "/static/images/backgrounds/kraktooth world map.webp",
         "opacity": 1,
         "visible": true
       },
@@ -218963,7 +218963,7 @@
       {
         "id": "bg-oj3gj4f",
         "label": "west woods",
-        "image": "/static/images/backgrounds/west woods.png",
+        "image": "/static/images/backgrounds/west woods.webp",
         "rect": {
           "x": -1145.774051501687,
           "y": -1271.0129251217786,
@@ -218984,7 +218984,7 @@
       {
         "id": "bg-4pt7865",
         "label": "goblin camp",
-        "image": "/static/images/backgrounds/kraktooth-goblin-camp.png",
+        "image": "/static/images/backgrounds/kraktooth-goblin-camp.webp",
         "rect": {
           "x": -354.1885607854117,
           "y": 272.3890478691545,
@@ -219005,7 +219005,7 @@
       {
         "id": "bg-v6fwvcd",
         "label": "world",
-        "image": "/static/images/backgrounds/kraktooth world map.png",
+        "image": "/static/images/backgrounds/kraktooth world map.webp",
         "rect": {
           "x": -2386.086929408483,
           "y": -4112.035016043527,
@@ -219026,7 +219026,7 @@
       {
         "id": "bg-v45y7tf",
         "label": "eldenford interior",
-        "image": "/static/images/backgrounds/eldenford.png",
+        "image": "/static/images/backgrounds/eldenford.webp",
         "rect": {
           "x": 1661.1275281679898,
           "y": -1188.3511778773673,
@@ -219047,7 +219047,7 @@
       {
         "id": "bg-qsho44n",
         "label": "abandoned farms",
-        "image": "/static/images/backgrounds/abandoned farms.png",
+        "image": "/static/images/backgrounds/abandoned farms.webp",
         "rect": {
           "x": -20,
           "y": 772.2178988326848,
@@ -219068,7 +219068,7 @@
       {
         "id": "bg-d2owon7",
         "label": "deep woods",
-        "image": "/static/images/backgrounds/deep_forest-1790288542838.png",
+        "image": "/static/images/backgrounds/deep_forest-1790288542838.webp",
         "rect": {
           "x": -2112.4829796974145,
           "y": 141.8495122417889,

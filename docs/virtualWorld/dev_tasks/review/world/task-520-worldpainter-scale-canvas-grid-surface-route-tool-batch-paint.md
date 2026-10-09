@@ -56,7 +56,7 @@ bottom layer beneath the grid lines — so you can load a zone's art as a refere
 plus every file in `static/images/backgrounds`, so the existing art is reused
 rather than re-uploaded; `POST .../grid/reference` sets/clears it. Reference-only:
 it never compiles into areas/ways. Live check: selecting
-`kraktooth-goblin-camp.png` mounted a 4th canvas whose centre pixel is the map at
+`kraktooth-goblin-camp.webp` mounted a 4th canvas whose centre pixel is the map at
 50% alpha. Tests: `tests/test_world_grid_routes.py` (+2).
 
 **Feedback round — drag paint, transparency, node-cost guard**:

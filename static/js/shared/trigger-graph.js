@@ -1232,6 +1232,13 @@ window.TriggerGraph = (() => {
         canvas.addEventListener('contextmenu', _onCanvasContextMenu);
         canvas.addEventListener('mousedown', _onCanvasMouseDown);
         canvas.addEventListener('wheel', _onCanvasWheel, { passive: false });
+        // Grow value textareas as their content is typed (task-755). Delegated on
+        // the canvas so it survives the node DOM being rebuilt on every edit.
+        canvas.addEventListener('input', (e) => {
+            const t = e.target;
+            if (t && t.tagName === 'TEXTAREA')
+                _autoGrow(t);
+        });
         document.addEventListener('keydown', _onKeyDown);
         document.addEventListener('keyup', _onKeyUp);
     }
@@ -1479,6 +1486,21 @@ window.TriggerGraph = (() => {
         }
     }
     // ─── Canvas rendering ───
+    /** Grow a value textarea to fit its content, so a long message or persona
+     *  prompt is readable without an inner scrollbar (task-755). `height:auto`
+     *  first, otherwise scrollHeight only ever reports the current fixed height. */
+    function _autoGrow(el) {
+        if (!el || el.tagName !== 'TEXTAREA')
+            return;
+        el.style.height = 'auto';
+        el.style.height = `${el.scrollHeight + 2}px`;
+    }
+    TG._autoGrow = _autoGrow;
+    function _sizeTextareas(root) {
+        if (!root)
+            return;
+        root.querySelectorAll('textarea.tg-field').forEach((t) => _autoGrow(t));
+    }
     function _rerenderCanvas() {
         const world = _worldEl();
         if (!world)
@@ -1604,6 +1626,7 @@ window.TriggerGraph = (() => {
         });
         div.addEventListener('dblclick', () => _setSelected(node.id));
         world.appendChild(div);
+        _sizeTextareas(div);
     }
     // ─── Wires ───
     function _rerenderWires() {

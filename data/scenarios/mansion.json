@@ -3705,7 +3705,7 @@
             "smell": "musty",
             "temperature": 15.9
           },
-          "image": "/static/images/nodes/area_foyer-1787060829612.jpg",
+          "image": "/static/images/nodes/area_foyer-1787060829612.webp",
           "world_scope_id": "mansion",
           "x": 640,
           "y": 760
@@ -6759,7 +6759,7 @@
             "torso"
           ],
           "hidden": false,
-          "image": "/static/images/nodes/item_faded_green_tank_top-1787061019344.png",
+          "image": "/static/images/nodes/item_faded_green_tank_top-1787061019344.webp",
           "insulation": 2,
           "library_id": "faded_green_tank_top",
           "locked": false,
@@ -10761,94 +10761,94 @@
         "properties": {
           "expressions": {
             "affectionate": {
-              "profile": "/static/images/nodes/player_elena_vance-profile-affectionate-1791068542853.png"
+              "profile": "/static/images/nodes/player_elena_vance-profile-affectionate-1791068542853.webp"
             },
             "afraid": {
-              "profile": "/static/images/nodes/player_elena_vance-profile-afraid-1791068542049.png"
+              "profile": "/static/images/nodes/player_elena_vance-profile-afraid-1791068542049.webp"
             },
             "angry": {
-              "profile": "/static/images/nodes/player_elena_vance-profile-angry-1791068541835.png"
+              "profile": "/static/images/nodes/player_elena_vance-profile-angry-1791068541835.webp"
             },
             "aroused": {
-              "profile": "/static/images/nodes/player_elena_vance-profile-aroused-1791068542647.png"
+              "profile": "/static/images/nodes/player_elena_vance-profile-aroused-1791068542647.webp"
             },
             "ashamed": {
-              "profile": "/static/images/nodes/player_elena_vance-profile-ashamed-1791068543061.png"
+              "profile": "/static/images/nodes/player_elena_vance-profile-ashamed-1791068543061.webp"
             },
             "calm": {
-              "profile": "/static/images/nodes/player_elena_vance-profile-calm-1791068543450.png"
+              "profile": "/static/images/nodes/player_elena_vance-profile-calm-1791068543450.webp"
             },
             "disgusted": {
-              "profile": "/static/images/nodes/player_elena_vance-profile-disgusted-1791068542453.png"
+              "profile": "/static/images/nodes/player_elena_vance-profile-disgusted-1791068542453.webp"
             },
             "envious": {
-              "profile": "/static/images/nodes/player_elena_vance-profile-envious-1791068543262.png"
+              "profile": "/static/images/nodes/player_elena_vance-profile-envious-1791068543262.webp"
             },
             "happy": {
-              "profile": "/static/images/nodes/player_elena_vance-profile-happy-1791068541133.png"
+              "profile": "/static/images/nodes/player_elena_vance-profile-happy-1791068541133.webp"
             },
             "neutral": {
-              "profile": "/static/images/nodes/player_elena_vance-profile-neutral-1791068540936.png"
+              "profile": "/static/images/nodes/player_elena_vance-profile-neutral-1791068540936.webp"
             },
             "sad": {
-              "profile": "/static/images/nodes/player_elena_vance-profile-sad-1791068541613.png"
+              "profile": "/static/images/nodes/player_elena_vance-profile-sad-1791068541613.webp"
             },
             "slot13": {
-              "profile": "/static/images/nodes/player_elena_vance-profile-slot13-1791068543640.png"
+              "profile": "/static/images/nodes/player_elena_vance-profile-slot13-1791068543640.webp"
             },
             "slot14": {
-              "profile": "/static/images/nodes/player_elena_vance-profile-slot14-1791068544204.png"
+              "profile": "/static/images/nodes/player_elena_vance-profile-slot14-1791068544204.webp"
             },
             "slot15": {
-              "profile": "/static/images/nodes/player_elena_vance-profile-slot15-1791068544403.png"
+              "profile": "/static/images/nodes/player_elena_vance-profile-slot15-1791068544403.webp"
             },
             "slot16": {
-              "profile": "/static/images/nodes/player_elena_vance-profile-slot16-1791068544624.png"
+              "profile": "/static/images/nodes/player_elena_vance-profile-slot16-1791068544624.webp"
             },
             "slot17": {
-              "profile": "/static/images/nodes/player_elena_vance-profile-slot17-1791068544836.png"
+              "profile": "/static/images/nodes/player_elena_vance-profile-slot17-1791068544836.webp"
             },
             "slot18": {
-              "profile": "/static/images/nodes/player_elena_vance-profile-slot18-1791068545033.png"
+              "profile": "/static/images/nodes/player_elena_vance-profile-slot18-1791068545033.webp"
             },
             "slot19": {
-              "profile": "/static/images/nodes/player_elena_vance-profile-slot19-1791068545218.png"
+              "profile": "/static/images/nodes/player_elena_vance-profile-slot19-1791068545218.webp"
             },
             "slot20": {
-              "profile": "/static/images/nodes/player_elena_vance-profile-slot20-1791068545403.png"
+              "profile": "/static/images/nodes/player_elena_vance-profile-slot20-1791068545403.webp"
             },
             "slot21": {
-              "profile": "/static/images/nodes/player_elena_vance-profile-slot21-1791068545595.png"
+              "profile": "/static/images/nodes/player_elena_vance-profile-slot21-1791068545595.webp"
             },
             "slot22": {
-              "profile": "/static/images/nodes/player_elena_vance-profile-slot22-1791068545775.png"
+              "profile": "/static/images/nodes/player_elena_vance-profile-slot22-1791068545775.webp"
             },
             "slot23": {
-              "profile": "/static/images/nodes/player_elena_vance-profile-slot23-1791068545972.png"
+              "profile": "/static/images/nodes/player_elena_vance-profile-slot23-1791068545972.webp"
             },
             "slot24": {
-              "profile": "/static/images/nodes/player_elena_vance-profile-slot24-1791068546163.png"
+              "profile": "/static/images/nodes/player_elena_vance-profile-slot24-1791068546163.webp"
             },
             "slot25": {
-              "profile": "/static/images/nodes/player_elena_vance-profile-slot25-1791068546364.png"
+              "profile": "/static/images/nodes/player_elena_vance-profile-slot25-1791068546364.webp"
             },
             "slot26": {
-              "profile": "/static/images/nodes/player_elena_vance-profile-slot26-1791068546580.png"
+              "profile": "/static/images/nodes/player_elena_vance-profile-slot26-1791068546580.webp"
             },
             "slot27": {
-              "profile": "/static/images/nodes/player_elena_vance-profile-slot27-1791068546772.png"
+              "profile": "/static/images/nodes/player_elena_vance-profile-slot27-1791068546772.webp"
             },
             "slot29": {
-              "profile": "/static/images/nodes/player_elena_vance-profile-slot29-1791068547179.png"
+              "profile": "/static/images/nodes/player_elena_vance-profile-slot29-1791068547179.webp"
             },
             "slot30": {
-              "profile": "/static/images/nodes/player_elena_vance-profile-slot30-1791068547373.png"
+              "profile": "/static/images/nodes/player_elena_vance-profile-slot30-1791068547373.webp"
             },
             "surprised": {
-              "profile": "/static/images/nodes/player_elena_vance-profile-surprised-1791068542257.png"
+              "profile": "/static/images/nodes/player_elena_vance-profile-surprised-1791068542257.webp"
             }
           },
-          "profile_image": "/static/images/nodes/player_elena_vance-profile-neutral-1791068540936.png",
+          "profile_image": "/static/images/nodes/player_elena_vance-profile-neutral-1791068540936.webp",
           "x": 2529.9,
           "y": 1586
         },
@@ -10873,97 +10873,97 @@
         "properties": {
           "expressions": {
             "affectionate": {
-              "profile": "/static/images/nodes/player_jake_halloway-profile-affectionate-1791068691722.png"
+              "profile": "/static/images/nodes/player_jake_halloway-profile-affectionate-1791068691722.webp"
             },
             "afraid": {
-              "profile": "/static/images/nodes/player_jake_halloway-profile-afraid-1791068690801.png"
+              "profile": "/static/images/nodes/player_jake_halloway-profile-afraid-1791068690801.webp"
             },
             "angry": {
-              "profile": "/static/images/nodes/player_jake_halloway-profile-angry-1791068690589.png"
+              "profile": "/static/images/nodes/player_jake_halloway-profile-angry-1791068690589.webp"
             },
             "aroused": {
-              "profile": "/static/images/nodes/player_jake_halloway-profile-aroused-1791068691481.png"
+              "profile": "/static/images/nodes/player_jake_halloway-profile-aroused-1791068691481.webp"
             },
             "ashamed": {
-              "profile": "/static/images/nodes/player_jake_halloway-profile-ashamed-1791068691947.png"
+              "profile": "/static/images/nodes/player_jake_halloway-profile-ashamed-1791068691947.webp"
             },
             "calm": {
-              "profile": "/static/images/nodes/player_jake_halloway-profile-calm-1791068692601.png"
+              "profile": "/static/images/nodes/player_jake_halloway-profile-calm-1791068692601.webp"
             },
             "disgusted": {
-              "profile": "/static/images/nodes/player_jake_halloway-profile-disgusted-1791068691283.png"
+              "profile": "/static/images/nodes/player_jake_halloway-profile-disgusted-1791068691283.webp"
             },
             "envious": {
-              "profile": "/static/images/nodes/player_jake_halloway-profile-envious-1791068692404.png"
+              "profile": "/static/images/nodes/player_jake_halloway-profile-envious-1791068692404.webp"
             },
             "happy": {
-              "profile": "/static/images/nodes/player_jake_halloway-profile-happy-1791068689539.png"
+              "profile": "/static/images/nodes/player_jake_halloway-profile-happy-1791068689539.webp"
             },
             "neutral": {
-              "profile": "/static/images/nodes/player_jake_halloway-profile-neutral-1791068689363.png"
+              "profile": "/static/images/nodes/player_jake_halloway-profile-neutral-1791068689363.webp"
             },
             "sad": {
-              "profile": "/static/images/nodes/player_jake_halloway-profile-sad-1791068690075.png"
+              "profile": "/static/images/nodes/player_jake_halloway-profile-sad-1791068690075.webp"
             },
             "slot13": {
-              "profile": "/static/images/nodes/player_jake_halloway-profile-slot13-1791068692831.png"
+              "profile": "/static/images/nodes/player_jake_halloway-profile-slot13-1791068692831.webp"
             },
             "slot14": {
-              "profile": "/static/images/nodes/player_jake_halloway-profile-slot14-1791068693086.png"
+              "profile": "/static/images/nodes/player_jake_halloway-profile-slot14-1791068693086.webp"
             },
             "slot15": {
-              "profile": "/static/images/nodes/player_jake_halloway-profile-slot15-1791068693299.png"
+              "profile": "/static/images/nodes/player_jake_halloway-profile-slot15-1791068693299.webp"
             },
             "slot16": {
-              "profile": "/static/images/nodes/player_jake_halloway-profile-slot16-1791068693527.png"
+              "profile": "/static/images/nodes/player_jake_halloway-profile-slot16-1791068693527.webp"
             },
             "slot17": {
-              "profile": "/static/images/nodes/player_jake_halloway-profile-slot17-1791068693750.png"
+              "profile": "/static/images/nodes/player_jake_halloway-profile-slot17-1791068693750.webp"
             },
             "slot18": {
-              "profile": "/static/images/nodes/player_jake_halloway-profile-slot18-1791068694061.png"
+              "profile": "/static/images/nodes/player_jake_halloway-profile-slot18-1791068694061.webp"
             },
             "slot19": {
-              "profile": "/static/images/nodes/player_jake_halloway-profile-slot19-1791068694338.png"
+              "profile": "/static/images/nodes/player_jake_halloway-profile-slot19-1791068694338.webp"
             },
             "slot20": {
-              "profile": "/static/images/nodes/player_jake_halloway-profile-slot20-1791068694686.png"
+              "profile": "/static/images/nodes/player_jake_halloway-profile-slot20-1791068694686.webp"
             },
             "slot21": {
-              "profile": "/static/images/nodes/player_jake_halloway-profile-slot21-1791068694955.png"
+              "profile": "/static/images/nodes/player_jake_halloway-profile-slot21-1791068694955.webp"
             },
             "slot22": {
-              "profile": "/static/images/nodes/player_jake_halloway-profile-slot22-1791068695835.png"
+              "profile": "/static/images/nodes/player_jake_halloway-profile-slot22-1791068695835.webp"
             },
             "slot23": {
-              "profile": "/static/images/nodes/player_jake_halloway-profile-slot23-1791068696046.png"
+              "profile": "/static/images/nodes/player_jake_halloway-profile-slot23-1791068696046.webp"
             },
             "slot24": {
-              "profile": "/static/images/nodes/player_jake_halloway-profile-slot24-1791068696497.png"
+              "profile": "/static/images/nodes/player_jake_halloway-profile-slot24-1791068696497.webp"
             },
             "slot25": {
-              "profile": "/static/images/nodes/player_jake_halloway-profile-slot25-1791068696735.png"
+              "profile": "/static/images/nodes/player_jake_halloway-profile-slot25-1791068696735.webp"
             },
             "slot26": {
-              "profile": "/static/images/nodes/player_jake_halloway-profile-slot26-1791068696950.png"
+              "profile": "/static/images/nodes/player_jake_halloway-profile-slot26-1791068696950.webp"
             },
             "slot27": {
-              "profile": "/static/images/nodes/player_jake_halloway-profile-slot27-1791068697163.png"
+              "profile": "/static/images/nodes/player_jake_halloway-profile-slot27-1791068697163.webp"
             },
             "slot28": {
-              "profile": "/static/images/nodes/player_jake_halloway-profile-slot28-1791068697363.png"
+              "profile": "/static/images/nodes/player_jake_halloway-profile-slot28-1791068697363.webp"
             },
             "slot29": {
-              "profile": "/static/images/nodes/player_jake_halloway-profile-slot29-1791068697571.png"
+              "profile": "/static/images/nodes/player_jake_halloway-profile-slot29-1791068697571.webp"
             },
             "slot30": {
-              "profile": "/static/images/nodes/player_jake_halloway-profile-slot30-1791068697800.png"
+              "profile": "/static/images/nodes/player_jake_halloway-profile-slot30-1791068697800.webp"
             },
             "surprised": {
-              "profile": "/static/images/nodes/player_jake_halloway-profile-surprised-1791068691014.png"
+              "profile": "/static/images/nodes/player_jake_halloway-profile-surprised-1791068691014.webp"
             }
           },
-          "profile_image": "/static/images/nodes/player_jake_halloway-profile-neutral-1791068689363.png",
+          "profile_image": "/static/images/nodes/player_jake_halloway-profile-neutral-1791068689363.webp",
           "x": 1758.7,
           "y": 2260.7
         },
@@ -10977,127 +10977,127 @@
         "properties": {
           "expressions": {
             "affectionate": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-affectionate-1791068822055.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-affectionate-1791068822055.webp"
             },
             "afraid": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-afraid-1791068820895.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-afraid-1791068820895.webp"
             },
             "angry": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-angry-1791068820703.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-angry-1791068820703.webp"
             },
             "aroused": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-aroused-1791068821851.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-aroused-1791068821851.webp"
             },
             "ashamed": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-ashamed-1791068822268.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-ashamed-1791068822268.webp"
             },
             "calm": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-calm-1791068822699.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-calm-1791068822699.webp"
             },
             "disgusted": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-disgusted-1791068821643.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-disgusted-1791068821643.webp"
             },
             "envious": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-envious-1791068822501.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-envious-1791068822501.webp"
             },
             "happy": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-happy-1791068820253.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-happy-1791068820253.webp"
             },
             "neutral": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-neutral-1791068820068.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-neutral-1791068820068.webp"
             },
             "sad": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-sad-1791068820476.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-sad-1791068820476.webp"
             },
             "slot13": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot13-1791068822959.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot13-1791068822959.webp"
             },
             "slot14": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot14-1791068823177.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot14-1791068823177.webp"
             },
             "slot15": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot15-1791068823433.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot15-1791068823433.webp"
             },
             "slot16": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot16-1791068823750.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot16-1791068823750.webp"
             },
             "slot17": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot17-1791068824393.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot17-1791068824393.webp"
             },
             "slot18": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot18-1791068824611.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot18-1791068824611.webp"
             },
             "slot19": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot19-1791068824814.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot19-1791068824814.webp"
             },
             "slot20": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot20-1791068825016.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot20-1791068825016.webp"
             },
             "slot21": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot21-1791068825296.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot21-1791068825296.webp"
             },
             "slot22": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot22-1791068825495.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot22-1791068825495.webp"
             },
             "slot23": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot23-1791068825745.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot23-1791068825745.webp"
             },
             "slot24": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot24-1791068826037.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot24-1791068826037.webp"
             },
             "slot25": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot25-1791068826226.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot25-1791068826226.webp"
             },
             "slot26": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot26-1791068826429.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot26-1791068826429.webp"
             },
             "slot27": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot27-1791068826621.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot27-1791068826621.webp"
             },
             "slot28": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot28-1791068826823.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot28-1791068826823.webp"
             },
             "slot29": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot29-1791068827021.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot29-1791068827021.webp"
             },
             "slot30": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot30-1791068827228.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot30-1791068827228.webp"
             },
             "slot31": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot31-1791068827425.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot31-1791068827425.webp"
             },
             "slot32": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot32-1791068827630.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot32-1791068827630.webp"
             },
             "slot33": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot33-1791068827831.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot33-1791068827831.webp"
             },
             "slot34": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot34-1791068828038.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot34-1791068828038.webp"
             },
             "slot35": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot35-1791068828244.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot35-1791068828244.webp"
             },
             "slot36": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot36-1791068828512.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot36-1791068828512.webp"
             },
             "slot37": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot37-1791068828753.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot37-1791068828753.webp"
             },
             "slot38": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot38-1791068829002.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot38-1791068829002.webp"
             },
             "slot39": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot39-1791068829241.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot39-1791068829241.webp"
             },
             "slot40": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot40-1791068829689.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-slot40-1791068829689.webp"
             },
             "surprised": {
-              "profile": "/static/images/nodes/player_kayla_jenkins-profile-surprised-1791068821416.png"
+              "profile": "/static/images/nodes/player_kayla_jenkins-profile-surprised-1791068821416.webp"
             }
           },
-          "profile_image": "/static/images/nodes/player_kayla_jenkins-profile-neutral-1791068820068.png",
+          "profile_image": "/static/images/nodes/player_kayla_jenkins-profile-neutral-1791068820068.webp",
           "x": 1704.3,
           "y": 2383.2
         },
@@ -11111,97 +11111,97 @@
         "properties": {
           "expressions": {
             "affectionate": {
-              "profile": "/static/images/nodes/player_kyrie_johansen-profile-affectionate-1791068984162.png"
+              "profile": "/static/images/nodes/player_kyrie_johansen-profile-affectionate-1791068984162.webp"
             },
             "afraid": {
-              "profile": "/static/images/nodes/player_kyrie_johansen-profile-afraid-1791068982972.png"
+              "profile": "/static/images/nodes/player_kyrie_johansen-profile-afraid-1791068982972.webp"
             },
             "angry": {
-              "profile": "/static/images/nodes/player_kyrie_johansen-profile-angry-1791068982784.png"
+              "profile": "/static/images/nodes/player_kyrie_johansen-profile-angry-1791068982784.webp"
             },
             "aroused": {
-              "profile": "/static/images/nodes/player_kyrie_johansen-profile-aroused-1791068983960.png"
+              "profile": "/static/images/nodes/player_kyrie_johansen-profile-aroused-1791068983960.webp"
             },
             "ashamed": {
-              "profile": "/static/images/nodes/player_kyrie_johansen-profile-ashamed-1791068984409.png"
+              "profile": "/static/images/nodes/player_kyrie_johansen-profile-ashamed-1791068984409.webp"
             },
             "calm": {
-              "profile": "/static/images/nodes/player_kyrie_johansen-profile-calm-1791068984891.png"
+              "profile": "/static/images/nodes/player_kyrie_johansen-profile-calm-1791068984891.webp"
             },
             "disgusted": {
-              "profile": "/static/images/nodes/player_kyrie_johansen-profile-disgusted-1791068983724.png"
+              "profile": "/static/images/nodes/player_kyrie_johansen-profile-disgusted-1791068983724.webp"
             },
             "envious": {
-              "profile": "/static/images/nodes/player_kyrie_johansen-profile-envious-1791068984663.png"
+              "profile": "/static/images/nodes/player_kyrie_johansen-profile-envious-1791068984663.webp"
             },
             "happy": {
-              "profile": "/static/images/nodes/player_kyrie_johansen-profile-happy-1791068982349.png"
+              "profile": "/static/images/nodes/player_kyrie_johansen-profile-happy-1791068982349.webp"
             },
             "neutral": {
-              "profile": "/static/images/nodes/player_kyrie_johansen-profile-neutral-1791068982170.png"
+              "profile": "/static/images/nodes/player_kyrie_johansen-profile-neutral-1791068982170.webp"
             },
             "sad": {
-              "profile": "/static/images/nodes/player_kyrie_johansen-profile-sad-1791068982585.png"
+              "profile": "/static/images/nodes/player_kyrie_johansen-profile-sad-1791068982585.webp"
             },
             "slot13": {
-              "profile": "/static/images/nodes/player_kyrie_johansen-profile-slot13-1791068985095.png"
+              "profile": "/static/images/nodes/player_kyrie_johansen-profile-slot13-1791068985095.webp"
             },
             "slot14": {
-              "profile": "/static/images/nodes/player_kyrie_johansen-profile-slot14-1791068985330.png"
+              "profile": "/static/images/nodes/player_kyrie_johansen-profile-slot14-1791068985330.webp"
             },
             "slot15": {
-              "profile": "/static/images/nodes/player_kyrie_johansen-profile-slot15-1791068985557.png"
+              "profile": "/static/images/nodes/player_kyrie_johansen-profile-slot15-1791068985557.webp"
             },
             "slot16": {
-              "profile": "/static/images/nodes/player_kyrie_johansen-profile-slot16-1791068986145.png"
+              "profile": "/static/images/nodes/player_kyrie_johansen-profile-slot16-1791068986145.webp"
             },
             "slot17": {
-              "profile": "/static/images/nodes/player_kyrie_johansen-profile-slot17-1791068986349.png"
+              "profile": "/static/images/nodes/player_kyrie_johansen-profile-slot17-1791068986349.webp"
             },
             "slot18": {
-              "profile": "/static/images/nodes/player_kyrie_johansen-profile-slot18-1791068986569.png"
+              "profile": "/static/images/nodes/player_kyrie_johansen-profile-slot18-1791068986569.webp"
             },
             "slot19": {
-              "profile": "/static/images/nodes/player_kyrie_johansen-profile-slot19-1791068986825.png"
+              "profile": "/static/images/nodes/player_kyrie_johansen-profile-slot19-1791068986825.webp"
             },
             "slot20": {
-              "profile": "/static/images/nodes/player_kyrie_johansen-profile-slot20-1791068987051.png"
+              "profile": "/static/images/nodes/player_kyrie_johansen-profile-slot20-1791068987051.webp"
             },
             "slot21": {
-              "profile": "/static/images/nodes/player_kyrie_johansen-profile-slot21-1791068987349.png"
+              "profile": "/static/images/nodes/player_kyrie_johansen-profile-slot21-1791068987349.webp"
             },
             "slot22": {
-              "profile": "/static/images/nodes/player_kyrie_johansen-profile-slot22-1791068987568.png"
+              "profile": "/static/images/nodes/player_kyrie_johansen-profile-slot22-1791068987568.webp"
             },
             "slot23": {
-              "profile": "/static/images/nodes/player_kyrie_johansen-profile-slot23-1791068987785.png"
+              "profile": "/static/images/nodes/player_kyrie_johansen-profile-slot23-1791068987785.webp"
             },
             "slot24": {
-              "profile": "/static/images/nodes/player_kyrie_johansen-profile-slot24-1791068987975.png"
+              "profile": "/static/images/nodes/player_kyrie_johansen-profile-slot24-1791068987975.webp"
             },
             "slot25": {
-              "profile": "/static/images/nodes/player_kyrie_johansen-profile-slot25-1791068988175.png"
+              "profile": "/static/images/nodes/player_kyrie_johansen-profile-slot25-1791068988175.webp"
             },
             "slot26": {
-              "profile": "/static/images/nodes/player_kyrie_johansen-profile-slot26-1791068988371.png"
+              "profile": "/static/images/nodes/player_kyrie_johansen-profile-slot26-1791068988371.webp"
             },
             "slot27": {
-              "profile": "/static/images/nodes/player_kyrie_johansen-profile-slot27-1791068988570.png"
+              "profile": "/static/images/nodes/player_kyrie_johansen-profile-slot27-1791068988570.webp"
             },
             "slot28": {
-              "profile": "/static/images/nodes/player_kyrie_johansen-profile-slot28-1791068988766.png"
+              "profile": "/static/images/nodes/player_kyrie_johansen-profile-slot28-1791068988766.webp"
             },
             "slot29": {
-              "profile": "/static/images/nodes/player_kyrie_johansen-profile-slot29-1791068988957.png"
+              "profile": "/static/images/nodes/player_kyrie_johansen-profile-slot29-1791068988957.webp"
             },
             "slot30": {
-              "profile": "/static/images/nodes/player_kyrie_johansen-profile-slot30-1791068989141.png"
+              "profile": "/static/images/nodes/player_kyrie_johansen-profile-slot30-1791068989141.webp"
             },
             "surprised": {
-              "profile": "/static/images/nodes/player_kyrie_johansen-profile-surprised-1791068983518.png"
+              "profile": "/static/images/nodes/player_kyrie_johansen-profile-surprised-1791068983518.webp"
             }
           },
-          "profile_image": "/static/images/nodes/player_kyrie_johansen-profile-neutral-1791068982170.png",
+          "profile_image": "/static/images/nodes/player_kyrie_johansen-profile-neutral-1791068982170.webp",
           "x": 1884.9,
           "y": 2498.3
         },
@@ -11215,98 +11215,98 @@
         "properties": {
           "expressions": {
             "affectionate": {
-              "profile": "/static/images/nodes/player_miki-profile-affectionate-1791068269225.png"
+              "profile": "/static/images/nodes/player_miki-profile-affectionate-1791068269225.webp"
             },
             "afraid": {
-              "profile": "/static/images/nodes/player_miki-profile-afraid-1791068268225.png"
+              "profile": "/static/images/nodes/player_miki-profile-afraid-1791068268225.webp"
             },
             "angry": {
-              "profile": "/static/images/nodes/player_miki-profile-angry-1791068268034.png"
+              "profile": "/static/images/nodes/player_miki-profile-angry-1791068268034.webp"
             },
             "aroused": {
-              "profile": "/static/images/nodes/player_miki-profile-aroused-1791068269021.png"
+              "profile": "/static/images/nodes/player_miki-profile-aroused-1791068269021.webp"
             },
             "ashamed": {
-              "profile": "/static/images/nodes/player_miki-profile-ashamed-1791068269450.png"
+              "profile": "/static/images/nodes/player_miki-profile-ashamed-1791068269450.webp"
             },
             "calm": {
-              "profile": "/static/images/nodes/player_miki-profile-calm-1791068269878.png"
+              "profile": "/static/images/nodes/player_miki-profile-calm-1791068269878.webp"
             },
             "disgusted": {
-              "profile": "/static/images/nodes/player_miki-profile-disgusted-1791068268823.png"
+              "profile": "/static/images/nodes/player_miki-profile-disgusted-1791068268823.webp"
             },
             "envious": {
-              "profile": "/static/images/nodes/player_miki-profile-envious-1791068269682.png"
+              "profile": "/static/images/nodes/player_miki-profile-envious-1791068269682.webp"
             },
             "happy": {
-              "profile": "/static/images/nodes/player_miki-profile-happy-1791068267262.png"
+              "profile": "/static/images/nodes/player_miki-profile-happy-1791068267262.webp"
             },
             "neutral": {
-              "profile": "/static/images/nodes/player_miki-profile-neutral-1791068267096.png"
+              "profile": "/static/images/nodes/player_miki-profile-neutral-1791068267096.webp"
             },
             "sad": {
-              "profile": "/static/images/nodes/player_miki-profile-sad-1791068267823.png"
+              "profile": "/static/images/nodes/player_miki-profile-sad-1791068267823.webp"
             },
             "slot13": {
-              "profile": "/static/images/nodes/player_miki-profile-slot13-1791068270247.png"
+              "profile": "/static/images/nodes/player_miki-profile-slot13-1791068270247.webp"
             },
             "slot14": {
-              "profile": "/static/images/nodes/player_miki-profile-slot14-1791068270582.png"
+              "profile": "/static/images/nodes/player_miki-profile-slot14-1791068270582.webp"
             },
             "slot15": {
-              "profile": "/static/images/nodes/player_miki-profile-slot15-1791068270773.png"
+              "profile": "/static/images/nodes/player_miki-profile-slot15-1791068270773.webp"
             },
             "slot16": {
-              "profile": "/static/images/nodes/player_miki-profile-slot16-1791068270980.png"
+              "profile": "/static/images/nodes/player_miki-profile-slot16-1791068270980.webp"
             },
             "slot17": {
-              "profile": "/static/images/nodes/player_miki-profile-slot17-1791068271206.png"
+              "profile": "/static/images/nodes/player_miki-profile-slot17-1791068271206.webp"
             },
             "slot18": {
-              "profile": "/static/images/nodes/player_miki-profile-slot18-1791068271399.png"
+              "profile": "/static/images/nodes/player_miki-profile-slot18-1791068271399.webp"
             },
             "slot19": {
-              "profile": "/static/images/nodes/player_miki-profile-slot19-1791068271562.png"
+              "profile": "/static/images/nodes/player_miki-profile-slot19-1791068271562.webp"
             },
             "slot20": {
-              "profile": "/static/images/nodes/player_miki-profile-slot20-1791068271726.png"
+              "profile": "/static/images/nodes/player_miki-profile-slot20-1791068271726.webp"
             },
             "slot21": {
-              "profile": "/static/images/nodes/player_miki-profile-slot21-1791068271890.png"
+              "profile": "/static/images/nodes/player_miki-profile-slot21-1791068271890.webp"
             },
             "slot22": {
-              "profile": "/static/images/nodes/player_miki-profile-slot22-1791068272049.png"
+              "profile": "/static/images/nodes/player_miki-profile-slot22-1791068272049.webp"
             },
             "slot23": {
-              "profile": "/static/images/nodes/player_miki-profile-slot23-1791068272206.png"
+              "profile": "/static/images/nodes/player_miki-profile-slot23-1791068272206.webp"
             },
             "slot24": {
-              "profile": "/static/images/nodes/player_miki-profile-slot24-1791068272369.png"
+              "profile": "/static/images/nodes/player_miki-profile-slot24-1791068272369.webp"
             },
             "slot25": {
-              "profile": "/static/images/nodes/player_miki-profile-slot25-1791068272546.png"
+              "profile": "/static/images/nodes/player_miki-profile-slot25-1791068272546.webp"
             },
             "slot26": {
-              "profile": "/static/images/nodes/player_miki-profile-slot26-1791068272753.png"
+              "profile": "/static/images/nodes/player_miki-profile-slot26-1791068272753.webp"
             },
             "slot27": {
-              "profile": "/static/images/nodes/player_miki-profile-slot27-1791068273526.png"
+              "profile": "/static/images/nodes/player_miki-profile-slot27-1791068273526.webp"
             },
             "slot28": {
-              "profile": "/static/images/nodes/player_miki-profile-slot28-1791068273763.png"
+              "profile": "/static/images/nodes/player_miki-profile-slot28-1791068273763.webp"
             },
             "slot29": {
-              "profile": "/static/images/nodes/player_miki-profile-slot29-1791068273968.png"
+              "profile": "/static/images/nodes/player_miki-profile-slot29-1791068273968.webp"
             },
             "slot30": {
-              "profile": "/static/images/nodes/player_miki-profile-slot30-1791068274348.png"
+              "profile": "/static/images/nodes/player_miki-profile-slot30-1791068274348.webp"
             },
             "surprised": {
-              "profile": "/static/images/nodes/player_miki-profile-surprised-1791068268623.png"
+              "profile": "/static/images/nodes/player_miki-profile-surprised-1791068268623.webp"
             }
           },
           "image": "",
-          "profile_image": "/static/images/nodes/player_miki-profile-neutral-1791068267096.png",
+          "profile_image": "/static/images/nodes/player_miki-profile-neutral-1791068267096.webp",
           "x": 2431.3,
           "y": 1709.8
         },
@@ -11320,97 +11320,97 @@
         "properties": {
           "expressions": {
             "affectionate": {
-              "profile": "/static/images/nodes/player_sammy_lopez-profile-affectionate-1791068865429.png"
+              "profile": "/static/images/nodes/player_sammy_lopez-profile-affectionate-1791068865429.webp"
             },
             "afraid": {
-              "profile": "/static/images/nodes/player_sammy_lopez-profile-afraid-1791068864382.png"
+              "profile": "/static/images/nodes/player_sammy_lopez-profile-afraid-1791068864382.webp"
             },
             "angry": {
-              "profile": "/static/images/nodes/player_sammy_lopez-profile-angry-1791068864199.png"
+              "profile": "/static/images/nodes/player_sammy_lopez-profile-angry-1791068864199.webp"
             },
             "aroused": {
-              "profile": "/static/images/nodes/player_sammy_lopez-profile-aroused-1791068865220.png"
+              "profile": "/static/images/nodes/player_sammy_lopez-profile-aroused-1791068865220.webp"
             },
             "ashamed": {
-              "profile": "/static/images/nodes/player_sammy_lopez-profile-ashamed-1791068865629.png"
+              "profile": "/static/images/nodes/player_sammy_lopez-profile-ashamed-1791068865629.webp"
             },
             "calm": {
-              "profile": "/static/images/nodes/player_sammy_lopez-profile-calm-1791068866054.png"
+              "profile": "/static/images/nodes/player_sammy_lopez-profile-calm-1791068866054.webp"
             },
             "disgusted": {
-              "profile": "/static/images/nodes/player_sammy_lopez-profile-disgusted-1791068865011.png"
+              "profile": "/static/images/nodes/player_sammy_lopez-profile-disgusted-1791068865011.webp"
             },
             "envious": {
-              "profile": "/static/images/nodes/player_sammy_lopez-profile-envious-1791068865852.png"
+              "profile": "/static/images/nodes/player_sammy_lopez-profile-envious-1791068865852.webp"
             },
             "happy": {
-              "profile": "/static/images/nodes/player_sammy_lopez-profile-happy-1791068863808.png"
+              "profile": "/static/images/nodes/player_sammy_lopez-profile-happy-1791068863808.webp"
             },
             "neutral": {
-              "profile": "/static/images/nodes/player_sammy_lopez-profile-neutral-1791068863640.png"
+              "profile": "/static/images/nodes/player_sammy_lopez-profile-neutral-1791068863640.webp"
             },
             "sad": {
-              "profile": "/static/images/nodes/player_sammy_lopez-profile-sad-1791068863998.png"
+              "profile": "/static/images/nodes/player_sammy_lopez-profile-sad-1791068863998.webp"
             },
             "slot13": {
-              "profile": "/static/images/nodes/player_sammy_lopez-profile-slot13-1791068866253.png"
+              "profile": "/static/images/nodes/player_sammy_lopez-profile-slot13-1791068866253.webp"
             },
             "slot14": {
-              "profile": "/static/images/nodes/player_sammy_lopez-profile-slot14-1791068866506.png"
+              "profile": "/static/images/nodes/player_sammy_lopez-profile-slot14-1791068866506.webp"
             },
             "slot15": {
-              "profile": "/static/images/nodes/player_sammy_lopez-profile-slot15-1791068866728.png"
+              "profile": "/static/images/nodes/player_sammy_lopez-profile-slot15-1791068866728.webp"
             },
             "slot16": {
-              "profile": "/static/images/nodes/player_sammy_lopez-profile-slot16-1791068866994.png"
+              "profile": "/static/images/nodes/player_sammy_lopez-profile-slot16-1791068866994.webp"
             },
             "slot17": {
-              "profile": "/static/images/nodes/player_sammy_lopez-profile-slot17-1791068867511.png"
+              "profile": "/static/images/nodes/player_sammy_lopez-profile-slot17-1791068867511.webp"
             },
             "slot18": {
-              "profile": "/static/images/nodes/player_sammy_lopez-profile-slot18-1791068867717.png"
+              "profile": "/static/images/nodes/player_sammy_lopez-profile-slot18-1791068867717.webp"
             },
             "slot19": {
-              "profile": "/static/images/nodes/player_sammy_lopez-profile-slot19-1791068867972.png"
+              "profile": "/static/images/nodes/player_sammy_lopez-profile-slot19-1791068867972.webp"
             },
             "slot20": {
-              "profile": "/static/images/nodes/player_sammy_lopez-profile-slot20-1791068868247.png"
+              "profile": "/static/images/nodes/player_sammy_lopez-profile-slot20-1791068868247.webp"
             },
             "slot21": {
-              "profile": "/static/images/nodes/player_sammy_lopez-profile-slot21-1791068868469.png"
+              "profile": "/static/images/nodes/player_sammy_lopez-profile-slot21-1791068868469.webp"
             },
             "slot22": {
-              "profile": "/static/images/nodes/player_sammy_lopez-profile-slot22-1791068868701.png"
+              "profile": "/static/images/nodes/player_sammy_lopez-profile-slot22-1791068868701.webp"
             },
             "slot23": {
-              "profile": "/static/images/nodes/player_sammy_lopez-profile-slot23-1791068868886.png"
+              "profile": "/static/images/nodes/player_sammy_lopez-profile-slot23-1791068868886.webp"
             },
             "slot24": {
-              "profile": "/static/images/nodes/player_sammy_lopez-profile-slot24-1791068869070.png"
+              "profile": "/static/images/nodes/player_sammy_lopez-profile-slot24-1791068869070.webp"
             },
             "slot25": {
-              "profile": "/static/images/nodes/player_sammy_lopez-profile-slot25-1791068869258.png"
+              "profile": "/static/images/nodes/player_sammy_lopez-profile-slot25-1791068869258.webp"
             },
             "slot26": {
-              "profile": "/static/images/nodes/player_sammy_lopez-profile-slot26-1791068869467.png"
+              "profile": "/static/images/nodes/player_sammy_lopez-profile-slot26-1791068869467.webp"
             },
             "slot27": {
-              "profile": "/static/images/nodes/player_sammy_lopez-profile-slot27-1791068869653.png"
+              "profile": "/static/images/nodes/player_sammy_lopez-profile-slot27-1791068869653.webp"
             },
             "slot28": {
-              "profile": "/static/images/nodes/player_sammy_lopez-profile-slot28-1791068869843.png"
+              "profile": "/static/images/nodes/player_sammy_lopez-profile-slot28-1791068869843.webp"
             },
             "slot29": {
-              "profile": "/static/images/nodes/player_sammy_lopez-profile-slot29-1791068870020.png"
+              "profile": "/static/images/nodes/player_sammy_lopez-profile-slot29-1791068870020.webp"
             },
             "slot30": {
-              "profile": "/static/images/nodes/player_sammy_lopez-profile-slot30-1791068870202.png"
+              "profile": "/static/images/nodes/player_sammy_lopez-profile-slot30-1791068870202.webp"
             },
             "surprised": {
-              "profile": "/static/images/nodes/player_sammy_lopez-profile-surprised-1791068864813.png"
+              "profile": "/static/images/nodes/player_sammy_lopez-profile-surprised-1791068864813.webp"
             }
           },
-          "profile_image": "/static/images/nodes/player_sammy_lopez-profile-neutral-1791068863640.png",
+          "profile_image": "/static/images/nodes/player_sammy_lopez-profile-neutral-1791068863640.webp",
           "x": 1811.7,
           "y": 2471.8
         },
@@ -11424,97 +11424,97 @@
         "properties": {
           "expressions": {
             "affectionate": {
-              "profile": "/static/images/nodes/player_the_butcher-profile-affectionate-1791069037822.png"
+              "profile": "/static/images/nodes/player_the_butcher-profile-affectionate-1791069037822.webp"
             },
             "afraid": {
-              "profile": "/static/images/nodes/player_the_butcher-profile-afraid-1791069036767.png"
+              "profile": "/static/images/nodes/player_the_butcher-profile-afraid-1791069036767.webp"
             },
             "angry": {
-              "profile": "/static/images/nodes/player_the_butcher-profile-angry-1791069036559.png"
+              "profile": "/static/images/nodes/player_the_butcher-profile-angry-1791069036559.webp"
             },
             "aroused": {
-              "profile": "/static/images/nodes/player_the_butcher-profile-aroused-1791069037638.png"
+              "profile": "/static/images/nodes/player_the_butcher-profile-aroused-1791069037638.webp"
             },
             "ashamed": {
-              "profile": "/static/images/nodes/player_the_butcher-profile-ashamed-1791069038033.png"
+              "profile": "/static/images/nodes/player_the_butcher-profile-ashamed-1791069038033.webp"
             },
             "calm": {
-              "profile": "/static/images/nodes/player_the_butcher-profile-calm-1791069038713.png"
+              "profile": "/static/images/nodes/player_the_butcher-profile-calm-1791069038713.webp"
             },
             "disgusted": {
-              "profile": "/static/images/nodes/player_the_butcher-profile-disgusted-1791069037443.png"
+              "profile": "/static/images/nodes/player_the_butcher-profile-disgusted-1791069037443.webp"
             },
             "envious": {
-              "profile": "/static/images/nodes/player_the_butcher-profile-envious-1791069038245.png"
+              "profile": "/static/images/nodes/player_the_butcher-profile-envious-1791069038245.webp"
             },
             "happy": {
-              "profile": "/static/images/nodes/player_the_butcher-profile-happy-1791069035860.png"
+              "profile": "/static/images/nodes/player_the_butcher-profile-happy-1791069035860.webp"
             },
             "neutral": {
-              "profile": "/static/images/nodes/player_the_butcher-profile-neutral-1791069035664.png"
+              "profile": "/static/images/nodes/player_the_butcher-profile-neutral-1791069035664.webp"
             },
             "sad": {
-              "profile": "/static/images/nodes/player_the_butcher-profile-sad-1791069036365.png"
+              "profile": "/static/images/nodes/player_the_butcher-profile-sad-1791069036365.webp"
             },
             "slot13": {
-              "profile": "/static/images/nodes/player_the_butcher-profile-slot13-1791069038931.png"
+              "profile": "/static/images/nodes/player_the_butcher-profile-slot13-1791069038931.webp"
             },
             "slot14": {
-              "profile": "/static/images/nodes/player_the_butcher-profile-slot14-1791069039122.png"
+              "profile": "/static/images/nodes/player_the_butcher-profile-slot14-1791069039122.webp"
             },
             "slot15": {
-              "profile": "/static/images/nodes/player_the_butcher-profile-slot15-1791069039361.png"
+              "profile": "/static/images/nodes/player_the_butcher-profile-slot15-1791069039361.webp"
             },
             "slot16": {
-              "profile": "/static/images/nodes/player_the_butcher-profile-slot16-1791069039772.png"
+              "profile": "/static/images/nodes/player_the_butcher-profile-slot16-1791069039772.webp"
             },
             "slot17": {
-              "profile": "/static/images/nodes/player_the_butcher-profile-slot17-1791069039977.png"
+              "profile": "/static/images/nodes/player_the_butcher-profile-slot17-1791069039977.webp"
             },
             "slot18": {
-              "profile": "/static/images/nodes/player_the_butcher-profile-slot18-1791069040161.png"
+              "profile": "/static/images/nodes/player_the_butcher-profile-slot18-1791069040161.webp"
             },
             "slot19": {
-              "profile": "/static/images/nodes/player_the_butcher-profile-slot19-1791069040345.png"
+              "profile": "/static/images/nodes/player_the_butcher-profile-slot19-1791069040345.webp"
             },
             "slot20": {
-              "profile": "/static/images/nodes/player_the_butcher-profile-slot20-1791069040537.png"
+              "profile": "/static/images/nodes/player_the_butcher-profile-slot20-1791069040537.webp"
             },
             "slot21": {
-              "profile": "/static/images/nodes/player_the_butcher-profile-slot21-1791069040726.png"
+              "profile": "/static/images/nodes/player_the_butcher-profile-slot21-1791069040726.webp"
             },
             "slot22": {
-              "profile": "/static/images/nodes/player_the_butcher-profile-slot22-1791069040929.png"
+              "profile": "/static/images/nodes/player_the_butcher-profile-slot22-1791069040929.webp"
             },
             "slot23": {
-              "profile": "/static/images/nodes/player_the_butcher-profile-slot23-1791069041155.png"
+              "profile": "/static/images/nodes/player_the_butcher-profile-slot23-1791069041155.webp"
             },
             "slot24": {
-              "profile": "/static/images/nodes/player_the_butcher-profile-slot24-1791069041953.png"
+              "profile": "/static/images/nodes/player_the_butcher-profile-slot24-1791069041953.webp"
             },
             "slot25": {
-              "profile": "/static/images/nodes/player_the_butcher-profile-slot25-1791069042231.png"
+              "profile": "/static/images/nodes/player_the_butcher-profile-slot25-1791069042231.webp"
             },
             "slot26": {
-              "profile": "/static/images/nodes/player_the_butcher-profile-slot26-1791069042460.png"
+              "profile": "/static/images/nodes/player_the_butcher-profile-slot26-1791069042460.webp"
             },
             "slot27": {
-              "profile": "/static/images/nodes/player_the_butcher-profile-slot27-1791069042675.png"
+              "profile": "/static/images/nodes/player_the_butcher-profile-slot27-1791069042675.webp"
             },
             "slot28": {
-              "profile": "/static/images/nodes/player_the_butcher-profile-slot28-1791069042907.png"
+              "profile": "/static/images/nodes/player_the_butcher-profile-slot28-1791069042907.webp"
             },
             "slot29": {
-              "profile": "/static/images/nodes/player_the_butcher-profile-slot29-1791069043119.png"
+              "profile": "/static/images/nodes/player_the_butcher-profile-slot29-1791069043119.webp"
             },
             "slot30": {
-              "profile": "/static/images/nodes/player_the_butcher-profile-slot30-1791069043419.png"
+              "profile": "/static/images/nodes/player_the_butcher-profile-slot30-1791069043419.webp"
             },
             "surprised": {
-              "profile": "/static/images/nodes/player_the_butcher-profile-surprised-1791069037257.png"
+              "profile": "/static/images/nodes/player_the_butcher-profile-surprised-1791069037257.webp"
             }
           },
-          "profile_image": "/static/images/nodes/player_the_butcher-profile-neutral-1791069035664.png",
+          "profile_image": "/static/images/nodes/player_the_butcher-profile-neutral-1791069035664.webp",
           "x": 2978.2,
           "y": 2165
         },
@@ -22508,7 +22508,7 @@
       "parent_id": null,
       "placements": {},
       "reference": {
-        "image": "/static/images/backgrounds/blackwood-manor-interior.png",
+        "image": "/static/images/backgrounds/blackwood-manor-interior.webp",
         "opacity": 0.5,
         "visible": true
       },
@@ -22542,7 +22542,7 @@
           "y": 0
         },
         "id": "bg-c7po7g8",
-        "image": "/static/images/backgrounds/blackwood-manor-interior.png",
+        "image": "/static/images/backgrounds/blackwood-manor-interior.webp",
         "label": "mansion",
         "locked": false,
         "opacity": 1,

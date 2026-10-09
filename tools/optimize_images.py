@@ -38,8 +38,20 @@ except ImportError:  # pragma: no cover - environment guard
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_DIRS = [ROOT / "static" / "images"]
 SOURCE_EXTS = {".png", ".jpg", ".jpeg"}
-# Data + engine text files that may hold a literal image path to rewrite.
-REF_GLOBS = ["data/**/*.json", "engine/**/*.py", "static/js/**/*.ts"]
+# Text files that may hold a literal image path to rewrite. Root-level JSON is
+# included because `world_template.json` and `.live_state.json` live at the repo
+# root, not under `data/`.
+REF_GLOBS = [
+    "*.json",
+    ".*.json",
+    "data/**/*.json",
+    "saves/**/*.json",
+    "engine/**/*.py",
+    "static/js/**/*.ts",
+    "tests/**/*.json",
+    "tests/**/*.py",
+    "docs/**/*.md",
+]
 
 
 def human(n: int) -> str:
@@ -108,9 +120,24 @@ def main() -> int:
     ap.add_argument("--apply", action="store_true", help="Write .webp files.")
     ap.add_argument("--update-refs", action="store_true",
                     help="Rewrite image paths in data/ and engine/ to .webp.")
+    ap.add_argument("--refs-only", action="store_true",
+                    help="Skip encoding; rewrite references for .webp files already on disk.")
     ap.add_argument("--delete-originals", action="store_true",
                     help="Remove the source files after a successful convert.")
     args = ap.parse_args()
+
+    # Reference-only pass: the sources are already converted (and possibly
+    # deleted), so build the rename map from the .webp files on disk and just
+    # rewrite the text references. Used to catch globs that the first pass missed.
+    if args.refs_only:
+        renames: dict[str, str] = {}
+        for webp in (ROOT / "static" / "images").rglob("*.webp"):
+            for ext in (".png", ".jpg", ".jpeg"):
+                renames[webp.stem + ext] = webp.name
+        changed = rewrite_refs(renames, apply=args.apply)
+        verb = "Rewrote" if args.apply else "Would rewrite"
+        print(f"{verb} references in {changed} file(s) for {len(renames)} converted image(s).")
+        return 0
 
     dirs = args.paths or DEFAULT_DIRS
     files = collect(dirs)

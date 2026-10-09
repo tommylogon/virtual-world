@@ -2,11 +2,12 @@
 VirtualWorld Engine - Flask Application
 Reworked with lessons from WorldGraph: modular, robust, and ready for expansion.
 """
-from flask import Flask, request
+from flask import Flask, request, g
 from virtual_world_engine import VirtualWorld
 from area import Area
 import json
 import os
+import threading
 import logging
 from routes.helpers import save_autosave, load_autosave_if_exists
 
@@ -99,6 +100,26 @@ def create_app(config=None):
     # Reset loads state is saved here so undo can restore deleted areas/connections.
     app._undo_stack = []
     app._redo_stack = []
+
+    # The dev server runs threaded (see app.run below) so a slow /api/state build
+    # no longer blocks image/static requests in a single worker. Serialize
+    # mutating API calls so concurrent writes to the shared world cannot
+    # interleave; reads, static files and the long-lived /api/events SSE stay
+    # concurrent. This is a dev-only guard, not a substitute for the engine's own
+    # invariants.
+    app._vw_write_lock = threading.Lock()
+
+    @app.before_request
+    def _lock_mutations():
+        if request.method in ('POST', 'PUT', 'PATCH', 'DELETE') and request.path.startswith('/api/'):
+            app._vw_write_lock.acquire()
+            g._vw_write_locked = True
+
+    @app.teardown_request
+    def _unlock_mutations(exc):
+        if getattr(g, '_vw_write_locked', False):
+            app._vw_write_lock.release()
+            g._vw_write_locked = False
 
     # Auto-save after every mutating API operation
     @app.after_request
@@ -267,4 +288,5 @@ if __name__ == '__main__':
     # VW_PORT lets parallel worktrees each run their own server for live
     # verification without colliding on 4444. Defaults to 4444 unchanged.
     app.run(debug=os.environ.get('VW_DEBUG') == '1',
-            port=int(os.environ.get('VW_PORT') or 4444))
+            port=int(os.environ.get('VW_PORT') or 4444),
+            threaded=True)

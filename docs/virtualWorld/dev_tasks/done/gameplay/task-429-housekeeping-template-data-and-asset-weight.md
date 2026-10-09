@@ -103,7 +103,7 @@ Measured: `static/images/backgrounds/` holds **18 files / 56.1 MB**. The task's
 flagged file, `ChatGPT_Image_Sep_20_2026_02_50_11_PM-1789922605242-1790076612209.png`
 (4,008 KB), has **0 references** anywhere in the repo (searched the whole tree
 for `1789922605242`, and for the filename) — the camp now points at
-`kraktooth-goblin-camp.png`. Deleted as a confirmed orphan.
+`kraktooth-goblin-camp.webp`. Deleted as a confirmed orphan.
 
 The broader re-encode is deferred: nearly every remaining file is ≥4 MB, several
 are referenced by `kraktooth_goblin_camp.json` (9 refs), `world_template.json`

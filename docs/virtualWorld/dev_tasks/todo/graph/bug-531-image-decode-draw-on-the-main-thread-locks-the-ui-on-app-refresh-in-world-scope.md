@@ -95,9 +95,34 @@ the report), but the asset size (task-754) still matters when they are on.
 1. **Stop the solver for large graphs:** in the
    `stabilizationIterationsDone` path, `network.setOptions({physics:{enabled:false}})`
    when the node count exceeds a threshold (the manual Physics toggle re-enables).
-2. **Scale the iteration budget** with node count instead of a flat 100.
+   **Implemented (2026-10-09):** `relative-layout.ts` now freezes the solver after
+   stabilization when the graph has ≥ 500 nodes (`LARGE_GRAPH_PHYSICS_CEILING`).
+   Small graphs keep live physics. Pending a live check.
+2. **Scale the iteration budget** with node count instead of a flat 100
+   (`network-manager.ts:316`) — still open; the 100-iteration stabilization is the
+   remaining load-time cost on a large graph.
 3. **Do not render the whole world:** the scope design (task-397) is "load one
    world scope at a time"; whole-world rendering of 2739 nodes is the root.
+
+### Correction (2026-10-09, later) — it is the CARDINAL map path, not "physics over 2739"
+
+Retracted: fix #1 above was a bad call — a node-count heuristic that overrides the
+user's Physics setting and ignores the layout mode. Reverted.
+
+The real cause, from the user's own model (areas should sit on coordinates; only
+items/characters should settle): the **cardinal** map layout path left areas and
+ways `physics: true, fixed: {x:false,y:false}` (`layout-engine.ts:124-173`), so the
+solver simulated every area and way — hundreds of pinned-by-intent nodes dragged
+off their anchors (and off the background art) with a full solver pass every frame.
+The **grid** path already pins them (`:678-688`, `:723`); the cardinal path did not.
+
+**Fixed (2026-10-09):** cardinal areas and ways are now pinned
+(`physics:false, fixed:{x:true,y:true}`) to their computed anchors/midpoints;
+items and characters stay simulated. Physics still follows the user's setting
+(`applyModePhysics`), now only over the contents. The stale "nodes drift by design"
+comment in `network-manager.ts` was corrected. Pending a live check.
+
+Still open: load-time stabilization iterations (item 2), whole-world scope (item 3).
 
 Verification: Firefox **Performance** capture of a world-scope refresh should show
 the long task; a live profile is still required before closing.
