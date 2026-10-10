@@ -42,6 +42,10 @@ const _SkyScape = (() => {
     // `_WEATHER_ICONS`, which also holds alias spellings for chip lookup and
     // must not be offered as selectable weather in a dropdown.
     const _WEATHER_IDS = [];
+    // spelling -> canonical id, from the engine (task-772). Resolves an authored
+    // spelling ("overcast") to the id the sky stage's weather map keys on, so the
+    // top bar and the stage cannot disagree about the same moment's weather.
+    const _WEATHER_ALIASES = {};
     let _vocabLoaded = false;
     let _repaint = null;
     /** Icon for a weather value: registry first, built-in map, else the fallback. */
@@ -69,6 +73,7 @@ const _SkyScape = (() => {
             // id's icon; the alias table comes from the engine, not a copy.
             const aliases = (d && d.aliases) || {};
             for (const [spelling, cid] of Object.entries(aliases)) {
+                _WEATHER_ALIASES[spelling] = cid;
                 if (_WEATHER_ICONS[cid])
                     _WEATHER_ICONS[spelling] = _WEATHER_ICONS[cid];
             }
@@ -197,101 +202,221 @@ const _SkyScape = (() => {
         }
     }
     // ── World Sky modal ────────────────────────────────────────────────
+    //
+    // The modal used to embed the whole `sky-atmosphere.html` console (its own
+    // header, time slider, season/moon deck) and stack a second header and three
+    // loose control rows on top — two UIs, two headers, two time controls. It is
+    // now a single surface: the console is reduced to a **scene-only hero**
+    // (`_embedStageCss` hides its chrome), and every control lives in a card
+    // built from the app's own design tokens (`_MODAL_CSS`).
+    const MODAL_CSS = `
+#sky-overlay{position:fixed;inset:0;background:rgba(2,5,11,.68);backdrop-filter:blur(3px);display:flex;align-items:flex-start;justify-content:center;z-index:21000;padding:5vh 16px;}
+.vwsky{width:min(1120px,96vw);max-height:92vh;display:flex;flex-direction:column;background:var(--bg-card,#161b22);border:1px solid var(--border,#30363d);border-radius:14px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.6);color:var(--text,#e6edf3);font-family:var(--font,'Segoe UI',sans-serif);}
+.vwsky-head{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border,#30363d);background:var(--bg-inset,#1c2128);flex:0 0 auto;}
+.vwsky-title{font-size:13px;font-weight:700;letter-spacing:.05em;}
+.vwsky-sum{font-size:11px;color:var(--text-dim,#8b949e);}
+.vwsky-x{margin-left:auto;background:none;border:1px solid transparent;color:var(--text-dim,#8b949e);font-size:15px;line-height:1;cursor:pointer;border-radius:6px;padding:2px 9px;}
+.vwsky-x:hover{background:var(--bg-hover,#30363d);color:var(--text,#e6edf3);}
+.vwsky-body{overflow:auto;padding:12px 14px 14px;display:flex;flex-direction:column;gap:10px;}
+.vwsky-stage{position:relative;height:168px;border:1px solid var(--border,#30363d);border-radius:10px;overflow:hidden;background:#04070d;flex:0 0 auto;}
+.vwsky-stage iframe{display:block;width:100%;height:100%;border:0;}
+.vwsky-card{background:var(--bg-inset,#1c2128);border:1px solid var(--border-light,#21262d);border-radius:10px;padding:10px 12px;}
+.vwsky-lab{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim,#8b949e);font-weight:700;margin-bottom:9px;}
+.vwsky-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+.vwsky-sep{width:1px;height:22px;background:var(--border,#30363d);}
+.vwsky-in,.vwsky-sel{font:inherit;font-size:12px;background:var(--bg-input,#21262d);color:var(--text,#e6edf3);border:1px solid var(--border,#30363d);border-radius:6px;padding:5px 8px;outline:none;}
+.vwsky-in:focus,.vwsky-sel:focus{border-color:var(--accent,#58a6ff);}
+.vwsky-in[type=number]{text-align:center;}
+.vwsky-btn{font:inherit;font-size:12px;background:var(--bg-hover,#30363d);color:var(--text,#e6edf3);border:1px solid var(--border,#30363d);border-radius:6px;padding:5px 11px;cursor:pointer;}
+.vwsky-btn:hover{border-color:var(--text-muted,#6e7681);}
+.vwsky-btn.pri{background:var(--accent-dim,#1f6feb);border-color:var(--accent-dim,#1f6feb);color:#fff;font-weight:600;}
+.vwsky-btn.pri:hover{background:var(--accent,#58a6ff);border-color:var(--accent,#58a6ff);}
+.vwsky-btn.sm{padding:4px 9px;font-size:11px;}
+.vwsky-lab-inline{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--text-dim,#8b949e);}
+.vwsky-dot{display:none;font-size:11px;color:var(--orange,#e3b341);margin-left:6px;}
+.vwsky-status{font-size:11px;color:var(--text-muted,#6e7681);margin-left:auto;}
+.vwsky-grid{display:grid;grid-template-columns:78px 1.05fr .85fr .8fr .8fr 56px 56px .8fr 1.35fr 28px;gap:6px;align-items:center;min-width:820px;}
+.vwsky-fhead{font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted,#6e7681);font-weight:700;padding:0 4px 2px;}
+.vwsky-fhead>span{padding:0 2px;}
+.vwsky-rows{display:flex;flex-direction:column;gap:6px;max-height:196px;overflow:auto;padding:2px;}
+.vwsky-fcell{font:inherit;font-size:11px;background:var(--bg-input,#21262d);color:var(--text,#e6edf3);border:1px solid var(--border,#30363d);border-radius:5px;padding:4px 6px;min-width:0;outline:none;}
+.vwsky-fcell:focus{border-color:var(--accent,#58a6ff);}
+.vwsky-del{font-size:11px;background:none;border:1px solid transparent;color:var(--text-muted,#6e7681);border-radius:5px;cursor:pointer;padding:3px 6px;}
+.vwsky-del:hover{color:var(--red,#f85149);background:var(--bg-hover,#30363d);}
+.vwsky-tl{margin:2px 0 8px;user-select:none;}
+.vwsky-ruler{position:relative;height:14px;}
+.vwsky-ruler>span{position:absolute;transform:translateX(-50%);font-size:9px;color:var(--text-muted,#6e7681);}
+.vwsky-ruler>i{position:absolute;bottom:-3px;width:1px;height:4px;background:var(--border,#30363d);}
+.vwsky-trackwrap{position:relative;}
+.vwsky-track{position:relative;height:46px;border-radius:8px;background:var(--bg,#0d1117);border:1px solid var(--border,#30363d);overflow:hidden;cursor:crosshair;touch-action:none;}
+.vwsky-blk{position:absolute;top:4px;bottom:4px;border-radius:6px;border-left:3px solid rgba(255,255,255,.4);display:flex;align-items:center;gap:5px;padding:0 7px;overflow:hidden;cursor:grab;font-size:11px;color:var(--text,#e6edf3);white-space:nowrap;}
+.vwsky-blk:active{cursor:grabbing;}
+.vwsky-blk .nm{overflow:hidden;text-overflow:ellipsis;}
+.vwsky-now{position:absolute;top:0;bottom:0;width:2px;background:var(--orange,#e3b341);box-shadow:0 0 6px var(--orange,#e3b341);}
+.vwsky-now::before{content:'';position:absolute;top:-1px;left:-2px;width:6px;height:6px;border-radius:50%;background:var(--orange,#e3b341);}
+.vwsky-scrub{position:absolute;top:0;bottom:0;width:1px;background:var(--accent,#58a6ff);pointer-events:none;}
+.vwsky-tip{position:absolute;top:-19px;transform:translateX(-50%);font-size:10px;background:var(--bg-hover,#30363d);border:1px solid var(--border,#30363d);border-radius:4px;padding:1px 6px;color:var(--text,#e6edf3);pointer-events:none;white-space:nowrap;}
+.vwsky-presets{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;}
+.vwsky-chip{font:inherit;font-size:11px;background:var(--bg-input,#21262d);color:var(--text-dim,#8b949e);border:1px solid var(--border,#30363d);border-radius:99px;padding:3px 10px;cursor:pointer;}
+.vwsky-chip:hover{color:var(--text,#e6edf3);border-color:var(--text-muted,#6e7681);}
+.vwsky-empty{font-size:11px;color:var(--text-muted,#6e7681);padding:12px;border:1px dashed var(--border,#30363d);border-radius:8px;text-align:center;}
+.vwsky-note{font-size:10.5px;line-height:1.55;color:var(--text-muted,#6e7681);margin-top:9px;}
+.vwsky-note code{font-family:var(--font-mono,monospace);background:var(--bg,#0d1117);padding:0 3px;border-radius:3px;}
+.vwsky-table{width:100%;min-height:96px;margin-top:6px;font-family:var(--font-mono,monospace);font-size:11px;background:var(--bg,#0d1117);color:var(--text,#e6edf3);border:1px solid var(--border,#30363d);border-radius:8px;padding:8px;outline:none;box-sizing:border-box;resize:vertical;}
+.vwsky-table:focus{border-color:var(--accent,#58a6ff);}
+.vwsky-foot{display:flex;flex-wrap:wrap;gap:16px;padding:9px 16px;border-top:1px solid var(--border,#30363d);font-size:10.5px;color:var(--text-muted,#6e7681);flex:0 0 auto;}
+.vwsky-foot code{color:var(--text-dim,#8b949e);font-family:var(--font-mono,monospace);}
+.vwsky-det{margin-top:9px;}
+.vwsky-det>summary{font-size:10.5px;color:var(--text-dim,#8b949e);cursor:pointer;user-select:none;}
+`;
+    // Injected into the same-origin stage iframe so the embedded console shows as
+    // a pure sky scene: its own header, deck and time slider are hidden and the
+    // canvas is told to fill, so nothing is duplicated by the modal around it.
+    const STAGE_CSS = `
+html,body{min-height:0!important;height:100%!important;padding:0!important;margin:0!important;display:block!important;background:transparent!important;overflow:hidden!important;}
+.console{width:100%!important;max-width:none!important;min-height:0!important;height:100%!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;display:block!important;}
+.top,.deck{display:none!important;}
+.scene{height:100%!important;min-height:0!important;border-radius:0!important;}
+`;
+    function _ensureModalStyle() {
+        if (document.getElementById('vwsky-style'))
+            return;
+        const style = document.createElement('style');
+        style.id = 'vwsky-style';
+        style.textContent = MODAL_CSS;
+        document.head.appendChild(style);
+    }
+    function _embedStageCss(iframe) {
+        try {
+            const doc = iframe && iframe.contentDocument;
+            if (!doc || !doc.head)
+                return;
+            let style = doc.getElementById('vwsky-embed');
+            if (!style) {
+                style = doc.createElement('style');
+                style.id = 'vwsky-embed';
+                doc.head.appendChild(style);
+            }
+            style.textContent = STAGE_CSS;
+        }
+        catch (e) { /* cross-origin guard; the stage just keeps its own chrome */ }
+    }
+    function _headSummary() {
+        const weather = effectiveWeather(_state());
+        const chip = _weatherChip(weather, '');
+        return `${chip} ${weather}`.trim();
+    }
     function openWorldSky() {
+        _ensureModalStyle();
         if (_modalEl) {
             _modalEl.style.display = 'flex';
             _sendStateToIframe();
             return;
         }
         const overlay = document.createElement('div');
-        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);display:flex;align-items:flex-start;justify-content:center;z-index:21000;';
+        overlay.id = 'sky-overlay';
         const box = document.createElement('div');
-        // task-762: the box must scroll. It now carries the forecast editor below
-        // the stage, so with `overflow:hidden` the editor was clipped and
-        // unreachable on any viewport shorter than the whole modal.
-        box.style.cssText = 'background:var(--bg-card,#121522);border:1px solid var(--border,#262c3f);border-radius:16px;margin-top:6vh;width:min(960px,94vw);max-width:94vw;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,0.5);';
+        box.className = 'vwsky';
         box.innerHTML = `
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 18px;border-bottom:1px solid var(--border,#262c3f);">
-                <div style="font-weight:700;font-size:13px;letter-spacing:.16em;">🌍 ATMOSPHERE <span style="font-size:10px;color:var(--text-dim,#6b7390);margin-left:2px;">time · season · weather · moon</span></div>
-                <button class="btn btn-sm btn-ghost" id="sky-close" style="padding:0 6px;">✕</button>
+            <div class="vwsky-head">
+                <span style="font-size:15px;">🌦</span>
+                <span class="vwsky-title">World Sky</span>
+                <span class="vwsky-sum" id="sky-head-summary"></span>
+                <button class="vwsky-x" id="sky-close" title="Close">✕</button>
             </div>
-            <iframe id="sky-atmosphere-frame" src="/static/sky-atmosphere.html" style="width:100%;border:none;display:block;background:#000;min-height:520px;"></iframe>
-            <div style="padding:8px 14px;border-top:1px solid var(--border,#262c3f);display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
-                <span style="font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-dim,#6b7390);font-weight:700;">⏰ Time:</span>
-                <input type="time" id="sky-time-input" style="font-size:11px;background:var(--bg-input,#0d1018);color:var(--text,#edf0ff);border:1px solid var(--border,#262c3f);border-radius:6px;padding:4px;width:80px;" title="Exact time (HH:MM)">
-                <button class="btn btn-sm btn-ghost sky-set-time" style="font-size:10px;padding:3px 8px;">Set</button>
-                <span style="border-left:1px solid var(--border,#262c3f);height:22px;width:0;"></span>
-                <button class="btn btn-sm btn-ghost sky-skip" data-min="-15">-15m</button>
-                <button class="btn btn-sm btn-ghost sky-skip" data-min="-60">-1h</button>
-                <button class="btn btn-sm btn-ghost sky-skip" data-min="15">+15m</button>
-                <button class="btn btn-sm btn-ghost sky-skip" data-min="60">+1h</button>
-                <button class="btn btn-sm btn-ghost sky-skip" data-min="1440">+1d</button>
-                <span style="border-left:1px solid var(--border,#262c3f);height:22px;width:0;"></span>
-                <span style="font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-dim,#6b7390);font-weight:700;">📅 Date:</span>
-                <input type="number" id="sky-date-day" min="1" max="30" style="width:44px;font-size:11px;background:var(--bg-input,#0d1018);color:var(--text,#edf0ff);border:1px solid var(--border,#262c3f);border-radius:6px;padding:4px;" title="Day">
-                <span style="color:var(--text-dim);font-size:11px;">/</span>
-                <input type="number" id="sky-date-month" min="1" max="12" style="width:44px;font-size:11px;background:var(--bg-input,#0d1018);color:var(--text,#edf0ff);border:1px solid var(--border,#262c3f);border-radius:6px;padding:4px;" title="Month">
-                <span style="color:var(--text-dim);font-size:11px;">/</span>
-                <input type="number" id="sky-date-year" min="1" style="width:56px;font-size:11px;background:var(--bg-input,#0d1018);color:var(--text,#edf0ff);border:1px solid var(--border,#262c3f);border-radius:6px;padding:4px;" title="Year">
-                <button class="btn btn-sm btn-ghost sky-set-date" style="font-size:10px;padding:3px 8px;">Set</button>
-            </div>
-            <div style="padding:8px 14px;border-top:1px solid var(--border,#262c3f);display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
-                <span style="font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-dim,#6b7390);font-weight:700;">🌤 Override:</span>
-                <select id="sky-override-weather" style="font-size:11px;background:var(--bg-input,#0d1018);color:var(--text,#edf0ff);border:1px solid var(--border,#262c3f);border-radius:6px;padding:4px;">
-                    <option value="">— weather</option>
-                    <option value="clear">☀️ clear</option><option value="cloudy">☁️ cloudy</option><option value="rainy">🌧️ rainy</option>
-                    <option value="stormy">⛈️ stormy</option><option value="snowy">🌨️ snowy</option><option value="foggy">🌫️ foggy</option><option value="windy">💨 windy</option>
-                </select>
-                <select id="sky-override-wind" style="font-size:11px;background:var(--bg-input,#0d1018);color:var(--text,#edf0ff);border:1px solid var(--border,#262c3f);border-radius:6px;padding:4px;">
-                    <option value="">— wind</option>
-                    <option value="none">none</option><option value="breeze">breeze</option><option value="wind">wind</option>
-                    <option value="gale">gale</option><option value="storm">storm</option><option value="hurricane">hurricane</option>
-                </select>
-                <select id="sky-override-wind-direction" style="font-size:11px;background:var(--bg-input,#0d1018);color:var(--text,#edf0ff);border:1px solid var(--border,#262c3f);border-radius:6px;padding:4px;" title="wind direction (from)">
-                    <option value="">— dir</option>
-                    <option value="north">N ↑</option><option value="northeast">NE ↗</option><option value="east">E →</option>
-                    <option value="southeast">SE ↘</option><option value="south">S ↓</option><option value="southwest">SW ↙</option>
-                    <option value="west">W ←</option><option value="northwest">NW ↖</option>
-                </select>
-                <select id="sky-override-humidity" style="font-size:11px;background:var(--bg-input,#0d1018);color:var(--text,#edf0ff);border:1px solid var(--border,#262c3f);border-radius:6px;padding:4px;">
-                    <option value="">— humidity</option>
-                    <option value="dry">dry</option><option value="humid">humid</option><option value="wet">wet</option><option value="flooding">flooding</option>
-                </select>
-                <input type="number" id="sky-override-duration" min="1" value="5" style="width:52px;font-size:11px;background:var(--bg-input,#0d1018);color:var(--text,#edf0ff);border:1px solid var(--border,#262c3f);border-radius:6px;padding:4px;" title="duration (turns)">
-                <button class="btn btn-sm btn-primary" id="sky-override-set" style="font-size:11px;">Set</button>
-                <button class="btn btn-sm btn-ghost" id="sky-override-clear" style="font-size:11px;">Clear</button>
-                <span class="sky-override-active" style="display:none;font-size:10px;color:var(--orange,#f0883e);margin-left:4px;">● override active</span>
-            </div>
-            <div style="padding:8px 14px;border-top:1px solid var(--border,#262c3f);">
-                <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px;">
-                    <span style="font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-dim,#6b7390);font-weight:700;">🌦 Forecast:</span>
-                    <select id="sky-sched-mode" style="font-size:11px;background:var(--bg-input,#0d1018);color:var(--text,#edf0ff);border:1px solid var(--border,#262c3f);border-radius:6px;padding:4px;" title="schedule mode">
-                        <option value="authored">authored</option>
-                        <option value="deterministic">deterministic</option>
-                        <option value="random">random</option>
-                        <option value="hybrid">hybrid</option>
-                        <option value="generated">generated</option>
-                    </select>
-                    <select id="sky-sched-granularity" style="font-size:11px;background:var(--bg-input,#0d1018);color:var(--text,#edf0ff);border:1px solid var(--border,#262c3f);border-radius:6px;padding:4px;" title="period over which entries repeat">
-                        <option value="hourly">hourly (1 day)</option>
-                        <option value="weekly">weekly (7 days)</option>
-                        <option value="yearly">yearly (365 days)</option>
-                    </select>
-                    <label style="font-size:10px;color:var(--text-dim,#6b7390);">seed <input type="number" id="sky-sched-seed" style="width:76px;font-size:11px;background:var(--bg-input,#0d1018);color:var(--text,#edf0ff);border:1px solid var(--border,#262c3f);border-radius:6px;padding:4px;" title="reproducibility seed"></label>
-                    <label style="font-size:10px;color:var(--text-dim,#6b7390);">interval <input type="number" id="sky-sched-interval" min="1" value="1" style="width:56px;font-size:11px;background:var(--bg-input,#0d1018);color:var(--text,#edf0ff);border:1px solid var(--border,#262c3f);border-radius:6px;padding:4px;" title="ticks between state-machine transitions"></label>
-                    <button class="btn btn-sm btn-ghost" id="sky-sched-add" style="font-size:10px;padding:3px 8px;">+ entry</button>
-                    <button class="btn btn-sm btn-primary" id="sky-sched-save" style="font-size:10px;padding:3px 8px;">Save schedule</button>
-                    <span class="sky-sched-status" style="font-size:10px;color:var(--text-dim,#6b7390);margin-left:auto;"></span>
+            <div class="vwsky-body">
+                <div class="vwsky-stage"><iframe id="sky-atmosphere-frame" src="/static/sky-atmosphere.html" title="Sky"></iframe></div>
+
+                <div class="vwsky-card">
+                    <span class="vwsky-lab">⏰ Time &amp; date</span>
+                    <div class="vwsky-row">
+                        <input type="time" id="sky-time-input" class="vwsky-in" style="width:98px;" title="Exact time (HH:MM)">
+                        <button class="vwsky-btn sm sky-set-time">Set</button>
+                        <span class="vwsky-sep"></span>
+                        <button class="vwsky-btn sm sky-skip" data-min="-60">−1h</button>
+                        <button class="vwsky-btn sm sky-skip" data-min="-15">−15m</button>
+                        <button class="vwsky-btn sm sky-skip" data-min="15">+15m</button>
+                        <button class="vwsky-btn sm sky-skip" data-min="60">+1h</button>
+                        <button class="vwsky-btn sm sky-skip" data-min="1440">+1d</button>
+                        <span class="vwsky-sep"></span>
+                        <input type="number" id="sky-date-day" class="vwsky-in" style="width:54px;" min="1" max="30" title="Day">
+                        <span style="color:var(--text-muted,#6e7681);">/</span>
+                        <input type="number" id="sky-date-month" class="vwsky-in" style="width:54px;" min="1" max="12" title="Month">
+                        <span style="color:var(--text-muted,#6e7681);">/</span>
+                        <input type="number" id="sky-date-year" class="vwsky-in" style="width:68px;" min="1" title="Year">
+                        <button class="vwsky-btn sm sky-set-date">Set</button>
+                    </div>
                 </div>
-                <div id="sky-sched-timeline" style="position:relative;height:20px;border-bottom:1px solid var(--border,#262c3f);margin-bottom:4px;"></div>
-                <div id="sky-sched-entries" style="display:flex;flex-direction:column;gap:4px;max-height:180px;overflow:auto;"></div>
-                <div style="font-size:9.5px;color:var(--text-dim,#6b7390);margin-top:4px;line-height:1.45;">Offsets are minutes into the period; entries repeat each period. Temperature and light are shown <em>in-game</em> as engine-derived values (base_temperature + diurnal/seasonal curve + climate); here you author only the <code>temperature_mod</code>/<code>light_mod</code> deltas. <code>wind</code> is magnitude; <code>wind_direction</code> is where it blows <em>from</em>. No precipitation is modelled yet. authored &amp; hybrid use the entries; deterministic / random / generated roll the table.</div>
-                <details style="margin-top:6px;">
-                    <summary style="font-size:10px;color:var(--text-dim,#6b7390);cursor:pointer;">transition table (deterministic / random / generated)</summary>
-                    <textarea id="sky-sched-table" spellcheck="false" placeholder='{ "clear": { "clear": 7, "cloudy": 2 } }' style="width:100%;min-height:92px;margin-top:4px;font-family:ui-monospace,monospace;font-size:10.5px;background:var(--bg-input,#0d1018);color:var(--text,#edf0ff);border:1px solid var(--border,#262c3f);border-radius:6px;padding:6px;box-sizing:border-box;"></textarea>
-                </details>
+
+                <div class="vwsky-card">
+                    <span class="vwsky-lab">🌤 Override<span class="sky-override-active vwsky-dot">● active</span></span>
+                    <div class="vwsky-row">
+                        <select id="sky-override-weather" class="vwsky-sel" title="weather">
+                            <option value="">— weather</option>
+                            <option value="clear">☀️ clear</option><option value="cloudy">☁️ cloudy</option><option value="rainy">🌧️ rainy</option>
+                            <option value="stormy">⛈️ stormy</option><option value="snowy">🌨️ snowy</option><option value="foggy">🌫️ foggy</option><option value="windy">💨 windy</option>
+                        </select>
+                        <select id="sky-override-wind" class="vwsky-sel" title="wind magnitude">
+                            <option value="">— wind</option>
+                            <option value="none">none</option><option value="breeze">breeze</option><option value="wind">wind</option>
+                            <option value="gale">gale</option><option value="storm">storm</option><option value="hurricane">hurricane</option>
+                        </select>
+                        <select id="sky-override-wind-direction" class="vwsky-sel" title="wind blows from">
+                            <option value="">— dir</option>
+                            <option value="north">N ↑</option><option value="northeast">NE ↗</option><option value="east">E →</option>
+                            <option value="southeast">SE ↘</option><option value="south">S ↓</option><option value="southwest">SW ↙</option>
+                            <option value="west">W ←</option><option value="northwest">NW ↖</option>
+                        </select>
+                        <select id="sky-override-humidity" class="vwsky-sel" title="humidity">
+                            <option value="">— humidity</option>
+                            <option value="dry">dry</option><option value="humid">humid</option><option value="wet">wet</option><option value="flooding">flooding</option>
+                        </select>
+                        <label class="vwsky-lab-inline">for <input type="number" id="sky-override-duration" class="vwsky-in" style="width:54px;" min="1" value="5" title="duration (turns)"> turns</label>
+                        <button class="vwsky-btn pri" id="sky-override-set">Set override</button>
+                        <button class="vwsky-btn" id="sky-override-clear">Clear</button>
+                    </div>
+                </div>
+
+                <div class="vwsky-card">
+                    <span class="vwsky-lab">🌦 Forecast schedule</span>
+                    <div class="vwsky-row" style="margin-bottom:10px;">
+                        <label class="vwsky-lab-inline">mode <select id="sky-sched-mode" class="vwsky-sel" title="schedule mode">
+                            <option value="authored">authored</option>
+                            <option value="deterministic">deterministic</option>
+                            <option value="random">random</option>
+                            <option value="hybrid">hybrid</option>
+                            <option value="generated">generated</option>
+                        </select></label>
+                        <label class="vwsky-lab-inline">period <select id="sky-sched-granularity" class="vwsky-sel" title="period entries repeat over">
+                            <option value="hourly">hourly · 1 day</option>
+                            <option value="weekly">weekly · 7 days</option>
+                            <option value="yearly">yearly · 365 days</option>
+                        </select></label>
+                        <label class="vwsky-lab-inline">seed <input type="number" id="sky-sched-seed" class="vwsky-in" style="width:80px;" title="reproducibility seed"></label>
+                        <label class="vwsky-lab-inline">every <input type="number" id="sky-sched-interval" class="vwsky-in" style="width:56px;" min="1" value="1" title="ticks between state-machine transitions"> ticks</label>
+                        <button class="vwsky-btn sm" id="sky-sched-add">+ entry</button>
+                        <button class="vwsky-btn pri sm" id="sky-sched-save">Save</button>
+                        <span class="vwsky-status sky-sched-status"></span>
+                    </div>
+                    <div id="sky-sched-timeline" class="vwsky-tl"></div>
+                    <div class="vwsky-fhead vwsky-grid">
+                        <span>Offset</span><span>Weather</span><span>Wind</span><span>From</span><span>Humidity</span>
+                        <span>Temp Δ</span><span>Light Δ</span><span>Air</span><span>Message</span><span></span>
+                    </div>
+                    <div id="sky-sched-entries" class="vwsky-rows"></div>
+                    <div class="vwsky-presets" id="sky-sched-presets"></div>
+                    <div class="vwsky-note">Offsets are minutes into the period; entries repeat each period. Temperature and light are shown <em>in-game</em> as engine-derived values; here you author only the <code>temperature_mod</code> / <code>light_mod</code> deltas. <code>wind</code> is magnitude; <code>wind_direction</code> is where it blows <em>from</em>. authored &amp; hybrid use the entries; deterministic / random / generated roll the table.</div>
+                    <details class="vwsky-det">
+                        <summary>Transition table — deterministic / random / generated</summary>
+                        <textarea id="sky-sched-table" class="vwsky-table" spellcheck="false" placeholder='{ "clear": { "clear": 7, "cloudy": 2 } }'></textarea>
+                    </details>
+                </div>
             </div>
-            <div style="padding:8px 14px;font-size:10.5px;color:var(--text-dim,#6b7390);border-top:1px solid var(--border,#262c3f);">Clock: <code id="sky-clock-readout"></code> · Moon: <code id="sky-moon-readout"></code> · Forecast: <code id="sky-forecast-readout"></code></div>
+            <div class="vwsky-foot">
+                <span>Clock <code id="sky-clock-readout"></code></span>
+                <span>Moon <code id="sky-moon-readout"></code></span>
+                <span>Forecast <code id="sky-forecast-readout"></code></span>
+            </div>
         `;
         overlay.appendChild(box);
         document.body.appendChild(overlay);
@@ -311,47 +436,49 @@ const _SkyScape = (() => {
         box.querySelector('#sky-override-clear')?.addEventListener('click', _clearOverride);
         box.querySelector('#sky-sched-add')?.addEventListener('click', () => _addEntryRow());
         box.querySelector('#sky-sched-save')?.addEventListener('click', _saveSchedule);
-        // Wire iframe load → feed state
         const iframe = document.getElementById('sky-atmosphere-frame');
-        iframe.addEventListener('load', () => _sendStateToIframe());
-        // Listen for 'sky:ready' from the iframe
+        iframe.addEventListener('load', () => { _embedStageCss(iframe); _sendStateToIframe(); });
         window.addEventListener('message', (ev) => {
             if (ev.data?.type === 'sky:ready')
                 _sendStateToIframe();
         });
         _populateControls();
         _sendStateToIframe();
-        // Poll state updates to the iframe
         if (_timer)
             clearInterval(_timer);
         _timer = setInterval(() => {
-            if (document.contains(overlay))
+            if (document.contains(overlay) && !_scrubActive)
                 _sendStateToIframe();
         }, 3000);
     }
-    function _sendStateToIframe() {
+    // The stage map keys on canonical ids, so an authored spelling ("overcast")
+    // must be resolved first or it falls through to "clear".
+    const STAGE_WEATHER_MAP = { clear: 'clear', cloudy: 'overcast', rainy: 'rain', stormy: 'storm', snowy: 'snow', foggy: 'fog', windy: 'partly' };
+    const MOON_INDEX = { new_moon: 0, crescent: 1, quarter: 2, gibbous: 3, full_moon: 4, waning: 5, blood_moon: 4 };
+    /** Post a sky state to the stage at a given hour. Shared by "now" and by the
+     *  timeline's hover-scrub, so the hero sky is a live preview of the schedule. */
+    function _postSky(hour, weather, syncLabel) {
         const iframe = document.getElementById('sky-atmosphere-frame');
         if (!iframe || !iframe.contentWindow)
             return;
         const state = _state();
-        const t = (state?.game_time || '09:40').split(':').map(Number);
-        const hour = (t[0] || 0) + (t[1] || 0) / 60;
-        // The engine's season, from the same helper the header uses (task-554).
-        const season = _season(state);
-        const weather = effectiveWeather(state);
-        const weatherMap = { clear: 'clear', cloudy: 'overcast', rainy: 'rain', stormy: 'storm', snowy: 'snow', foggy: 'fog', windy: 'partly' };
-        const moonIdx = { new_moon: 0, crescent: 1, quarter: 2, gibbous: 3, full_moon: 4, waning: 5, blood_moon: 4 };
+        const canon = _WEATHER_ALIASES[weather] || weather;
         const moon = state?.moon_phase || {};
-        const phase = moonIdx[moon.name || ''] !== undefined ? moonIdx[moon.name || ''] : 0;
+        const phase = MOON_INDEX[moon.name || ''] !== undefined ? MOON_INDEX[moon.name || ''] : 0;
         iframe.contentWindow.postMessage({
             type: 'engine:sky-state',
             t: hour,
-            season: season,
-            weather: weatherMap[weather] || 'clear',
+            season: _season(state),
+            weather: STAGE_WEATHER_MAP[canon] || 'clear',
             phase: phase,
-            engineTime: (state?.game_time || '').slice(0, 5),
+            engineTime: syncLabel || (state?.game_time || '').slice(0, 5),
             engineDay: state?.game_day || 1,
         }, '*');
+    }
+    function _sendStateToIframe() {
+        const state = _state();
+        const t = (state?.game_time || '09:40').split(':').map(Number);
+        _postSky((t[0] || 0) + (t[1] || 0) / 60, effectiveWeather(state), null);
     }
     function _closeSky() {
         if (_timer) {
@@ -445,7 +572,6 @@ const _SkyScape = (() => {
         const clockReadout = document.getElementById('sky-clock-readout');
         const moonReadout = document.getElementById('sky-moon-readout');
         const forecastReadout = document.getElementById('sky-forecast-readout');
-        const overrideActive = document.querySelector('.sky-override-active');
         if (timeInput) {
             const t = (state.game_time || '09:40').slice(0, 5);
             timeInput.value = t;
@@ -471,15 +597,26 @@ const _SkyScape = (() => {
         if (forecastReadout) {
             const sched = state.forecast_schedule || {};
             const entries = (sched.entries || []).length;
-            const ov = state.forecast_override;
-            forecastReadout.textContent = `${entries} entries (${sched.granularity || 'hourly'})${ov ? ' · GM override ACTIVE' : ''}`;
+            forecastReadout.textContent = `${entries} entries · ${sched.granularity || 'hourly'}`;
         }
-        if (overrideActive) {
-            const ov = state.forecast_override;
-            overrideActive.style.display = ov ? 'inline' : 'none';
-        }
+        _updateHeadSummary();
+        _updateOverrideIndicator();
         _populateWeatherSelect();
         _renderScheduleEditor();
+    }
+    /** The header's one-line "what the sky is right now" summary. */
+    function _updateHeadSummary() {
+        const el = document.getElementById('sky-head-summary');
+        if (el)
+            el.textContent = _headSummary();
+    }
+    /** The "override active" dot. Refreshed here *and* on every state update
+     *  (see `_paint`) so setting or clearing an override shows immediately,
+     *  instead of only after the modal is reopened or the clock is skipped. */
+    function _updateOverrideIndicator() {
+        const active = document.querySelector('.sky-override-active');
+        if (active)
+            active.style.display = _state().forecast_override ? 'inline' : 'none';
     }
     // ── forecast schedule editor (task-762) ─────────────────────────────
     // Author and view `forecast_schedule` over the existing GET/POST
@@ -492,10 +629,6 @@ const _SkyScape = (() => {
     const SCHED_DIRECTIONS = ['north', 'northeast', 'east', 'southeast',
         'south', 'southwest', 'west', 'northwest'];
     const SCHED_HUMIDITIES = ['dry', 'humid', 'wet', 'flooding'];
-    // offset · weather · wind · dir · humidity · tempΔ · lightΔ · air · message · ✕
-    // min-width keeps the grid from crushing; the container scrolls sideways.
-    const SCHED_ROW_STYLE = 'display:grid;grid-template-columns:76px 1.05fr 0.85fr 0.85fr 0.8fr 58px 58px 0.75fr 1.3fr 22px;gap:4px;align-items:center;min-width:860px;';
-    const SCHED_FIELD_STYLE = 'font-size:10.5px;background:var(--bg-input,#0d1018);color:var(--text,#edf0ff);border:1px solid var(--border,#262c3f);border-radius:5px;padding:3px;min-width:0;';
     /** Minimal HTML-escape for values the author types into the modal. */
     function _esc(s) {
         return String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -552,16 +685,16 @@ const _SkyScape = (() => {
     function _entryFieldsHtml(e) {
         const num = (v) => (v === undefined || v === null || v === '' ? '' : String(v));
         return ''
-            + `<input type="number" data-f="offset" value="${num(e.offset ?? 0)}" title="minutes into the period" style="${SCHED_FIELD_STYLE}">`
-            + `<select data-f="weather" title="weather" style="${SCHED_FIELD_STYLE}">${_options(_weatherIds(), e.weather || '', '— weather')}</select>`
-            + `<select data-f="wind" title="wind magnitude" style="${SCHED_FIELD_STYLE}">${_options(SCHED_WINDS, e.wind || '', '— wind')}</select>`
-            + `<select data-f="wind_direction" title="wind blows from" style="${SCHED_FIELD_STYLE}">${_options(SCHED_DIRECTIONS, e.wind_direction || '', '— dir')}</select>`
-            + `<select data-f="humidity" title="humidity" style="${SCHED_FIELD_STYLE}">${_options(SCHED_HUMIDITIES, e.humidity || '', '— humidity')}</select>`
-            + `<input type="number" step="0.5" data-f="temperature_mod" value="${num(e.temperature_mod)}" title="temperature delta (°C)" style="${SCHED_FIELD_STYLE}">`
-            + `<input type="number" step="1" data-f="light_mod" value="${num(e.light_mod)}" title="light delta" style="${SCHED_FIELD_STYLE}">`
-            + `<input type="text" data-f="air" value="${_esc(e.air)}" placeholder="air" title="air (free text)" style="${SCHED_FIELD_STYLE}">`
-            + `<input type="text" data-f="message" value="${_esc(e.message)}" placeholder="message" title="log message on this entry" style="${SCHED_FIELD_STYLE}">`
-            + `<button class="btn btn-sm btn-ghost sky-sched-del" title="remove entry" style="padding:0 4px;font-size:10px;">✕</button>`;
+            + `<input type="number" class="vwsky-fcell" data-f="offset" value="${num(e.offset ?? 0)}" title="minutes into the period">`
+            + `<select class="vwsky-fcell" data-f="weather" title="weather">${_options(_weatherIds(), e.weather || '', '— weather')}</select>`
+            + `<select class="vwsky-fcell" data-f="wind" title="wind magnitude">${_options(SCHED_WINDS, e.wind || '', '— wind')}</select>`
+            + `<select class="vwsky-fcell" data-f="wind_direction" title="wind blows from">${_options(SCHED_DIRECTIONS, e.wind_direction || '', '— dir')}</select>`
+            + `<select class="vwsky-fcell" data-f="humidity" title="humidity">${_options(SCHED_HUMIDITIES, e.humidity || '', '— humidity')}</select>`
+            + `<input type="number" class="vwsky-fcell" step="0.5" data-f="temperature_mod" value="${num(e.temperature_mod)}" title="temperature delta (degrees C)">`
+            + `<input type="number" class="vwsky-fcell" step="1" data-f="light_mod" value="${num(e.light_mod)}" title="light delta">`
+            + `<input type="text" class="vwsky-fcell" data-f="air" value="${_esc(e.air)}" placeholder="air" title="air (free text)">`
+            + `<input type="text" class="vwsky-fcell" data-f="message" value="${_esc(e.message)}" placeholder="message" title="log message on this entry">`
+            + `<button class="vwsky-del sky-sched-del" title="remove entry">✕</button>`;
     }
     function _wireRow(row) {
         row.querySelector('.sky-sched-del')?.addEventListener('click', () => row.remove());
@@ -572,8 +705,7 @@ const _SkyScape = (() => {
             return;
         const granularity = document.getElementById('sky-sched-granularity')?.value || 'hourly';
         const row = document.createElement('div');
-        row.className = 'sky-sched-row';
-        row.setAttribute('style', SCHED_ROW_STYLE);
+        row.className = 'vwsky-grid sky-sched-row';
         row.innerHTML = _entryFieldsHtml(e || { offset: _nextOffset() });
         _wireRow(row);
         // Drop the "no entries" placeholder if present.
@@ -615,34 +747,217 @@ const _SkyScape = (() => {
             const tt = sched.transition_table;
             table.value = (tt && Object.keys(tt).length) ? JSON.stringify(tt, null, 2) : '';
         }
-        _renderTimeline(sched);
         const box = document.getElementById('sky-sched-entries');
-        if (!box)
-            return;
-        const entries = Array.isArray(sched.entries) ? sched.entries : [];
-        if (!entries.length) {
-            box.innerHTML = `<div style="font-size:10px;color:var(--text-dim,#6b7390);">no entries — click “+ entry”</div>`;
-            return;
+        if (box) {
+            const entries = Array.isArray(sched.entries) ? sched.entries : [];
+            if (entries.length) {
+                box.innerHTML = '';
+                for (const e of entries)
+                    _addEntryRow(e);
+            }
+            else {
+                box.innerHTML = `<div class="vwsky-empty">No entries yet — add one, or pick a preset below.</div>`;
+            }
         }
-        box.innerHTML = '';
-        for (const e of entries)
-            _addEntryRow(e);
+        _renderTimeline(sched);
+        const presets = document.getElementById('sky-sched-presets');
+        if (presets && !presets.childElementCount) {
+            presets.innerHTML = SCHED_PRESETS.map((p, i) => `<button class="vwsky-chip" data-preset="${i}">${_esc(p.name)}</button>`).join('');
+            presets.querySelectorAll('[data-preset]').forEach((b) => {
+                b.addEventListener('click', () => _applyPreset(SCHED_PRESETS[Number(b.dataset.preset)].hours));
+            });
+        }
     }
-    /** A thin bar over the period with a chip per entry — the "timeline". */
+    // ── interactive timeline (task-762) ────────────────────────────────
+    // The schedule is temporal, so time *is* the editor: entries are draggable
+    // blocks over a ruled period, a playhead marks "now", and hovering the track
+    // scrubs the hero sky through the schedule live — no save, no round-trip.
+    const WEATHER_TINT = {
+        clear: 'rgba(210,164,65,.26)', cloudy: 'rgba(139,148,158,.28)',
+        windy: 'rgba(110,118,129,.26)', rainy: 'rgba(88,166,255,.28)',
+        stormy: 'rgba(188,140,255,.30)', foggy: 'rgba(139,148,158,.20)',
+        snowy: 'rgba(230,237,243,.26)', blizzard: 'rgba(230,237,243,.36)',
+        thunderstorm: 'rgba(188,140,255,.36)', heatwave: 'rgba(248,81,73,.28)',
+        cold_snap: 'rgba(88,166,255,.36)',
+    };
+    function _canonOf(w) {
+        return _WEATHER_ALIASES[w] || w;
+    }
+    function _weatherTint(w) {
+        return WEATHER_TINT[_canonOf(w)] || 'rgba(139,148,158,.24)';
+    }
+    /** Minutes-since-midnight of the current game time, for the "now" playhead. */
+    function _nowMinutes() {
+        const t = (_state().game_time || '00:00').split(':').map(Number);
+        return (t[0] || 0) * 60 + (t[1] || 0);
+    }
+    /** The entries as they are on screen right now (unsaved edits included). */
+    function _domEntries() {
+        const out = [];
+        document.querySelectorAll('#sky-sched-entries .sky-sched-row').forEach((row) => {
+            const get = (f) => row.querySelector(`[data-f="${f}"]`)?.value ?? '';
+            out.push({
+                offset: parseInt(get('offset') || '0', 10) || 0,
+                weather: get('weather'), wind: get('wind'),
+                wind_direction: get('wind_direction'), humidity: get('humidity'),
+            });
+        });
+        return out;
+    }
+    /** The active entry's weather at a period offset (wrapping) — for the scrub. */
+    function _weatherAt(entries, period, minutes) {
+        if (!entries.length)
+            return effectiveWeather(_state());
+        const off = ((minutes % period) + period) % period;
+        let best = null;
+        let wrap = null;
+        for (const e of entries) {
+            const eo = Number(e.offset) || 0;
+            if (!wrap || eo < (Number(wrap.offset) || 0))
+                wrap = e;
+            if (eo <= off && (!best || eo > (Number(best.offset) || 0)))
+                best = e;
+        }
+        const chosen = best || wrap;
+        return (chosen && chosen.weather) || '';
+    }
+    function _fmtOffset(minutes, granularity) {
+        const total = Math.round(minutes);
+        const hh = Math.floor((total % 1440) / 60);
+        const mm = total % 60;
+        const t = `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+        if (granularity === 'hourly')
+            return t;
+        return `Day ${Math.floor(total / 1440) + 1} ${t}`;
+    }
+    let _scrubActive = false;
+    function _endScrub() {
+        if (!_scrubActive)
+            return;
+        _scrubActive = false;
+        const scrub = document.getElementById('sky-scrub');
+        const tip = document.getElementById('sky-tip');
+        if (scrub)
+            scrub.style.display = 'none';
+        if (tip)
+            tip.style.display = 'none';
+        _sendStateToIframe(); // snap the sky back to now
+    }
+    function _scrubTo(minutes, entries, period, granularity) {
+        _scrubActive = true;
+        const pct = Math.min(100, Math.max(0, (minutes / period) * 100));
+        const weather = _weatherAt(entries, period, minutes);
+        _postSky((minutes / 60) % 24, weather || effectiveWeather(_state()), `${_fmtOffset(minutes, granularity)} · preview`);
+        const scrub = document.getElementById('sky-scrub');
+        const tip = document.getElementById('sky-tip');
+        if (scrub) {
+            scrub.style.display = 'block';
+            scrub.style.left = `${pct}%`;
+        }
+        if (tip) {
+            tip.style.display = 'block';
+            tip.style.left = `${pct}%`;
+            tip.textContent = `${_fmtOffset(minutes, granularity)} · ${weather || '—'}`;
+        }
+    }
+    /** The period as an editable track: draggable blocks, a ruler, a "now" line. */
     function _renderTimeline(sched) {
-        const bar = document.getElementById('sky-sched-timeline');
-        if (!bar)
+        const tl = document.getElementById('sky-sched-timeline');
+        if (!tl)
             return;
         const granularity = sched.granularity || 'hourly';
         const period = GRANULARITY_MINUTES[granularity] || 1440;
-        const entries = Array.isArray(sched.entries) ? sched.entries : [];
-        const marks = entries.map((e) => {
-            const off = Number(e.offset || 0);
-            const pct = Math.min(100, Math.max(0, (off / period) * 100));
-            const label = `${_offsetHint(off, granularity)} ${e.weather || ''}`.trim();
-            return `<span title="${_esc(label)}" style="position:absolute;left:${pct}%;transform:translateX(-50%);font-size:12px;line-height:20px;">${_weatherChip(e.weather || '', '·')}</span>`;
+        const entries = _domEntries();
+        const sorted = entries.map((e, i) => ({ e, i }))
+            .sort((a, b) => (Number(a.e.offset) || 0) - (Number(b.e.offset) || 0));
+        const rulerFracs = granularity === 'hourly' ? [0, .25, .5, .75, 1]
+            : granularity === 'weekly' ? [0, 1 / 7, 2 / 7, 3 / 7, 4 / 7, 5 / 7, 6 / 7, 1]
+                : [0, .25, .5, .75, 1];
+        const ruler = rulerFracs.map((f) => {
+            const lbl = granularity === 'hourly' ? `${String(Math.round(f * 24)).padStart(2, '0')}:00`
+                : granularity === 'weekly' ? `D${Math.round(f * 7) + 1}` : `M${Math.round(f * 12) + 1}`;
+            return `<i style="left:${f * 100}%"></i><span style="left:${f * 100}%">${lbl}</span>`;
         }).join('');
-        bar.innerHTML = marks;
+        const blocks = sorted.map(({ e, i }) => {
+            const start = Number(e.offset) || 0;
+            const after = sorted.find((o) => (Number(o.e.offset) || 0) > start);
+            const end = after ? (Number(after.e.offset) || 0) : period;
+            const left = (start / period) * 100;
+            const width = Math.max(3, ((end - start) / period) * 100);
+            const w = e.weather || '';
+            return `<div class="vwsky-blk" data-i="${i}" style="left:${left}%;width:${width}%;background:${_weatherTint(w)}" title="${_esc(_fmtOffset(start, granularity))}">
+                <span>${_weatherChip(w, '·')}</span><span class="nm">${_esc(w || 'no weather')}</span></div>`;
+        }).join('');
+        const nowPct = granularity === 'hourly' ? (_nowMinutes() / period) * 100 : -1;
+        const playhead = (nowPct >= 0 && nowPct <= 100)
+            ? `<div class="vwsky-now" style="left:${nowPct}%" title="now"></div>` : '';
+        tl.innerHTML = `<div class="vwsky-ruler">${ruler}</div>`
+            + `<div class="vwsky-trackwrap">`
+            + `<div class="vwsky-track" id="sky-tl-track">${blocks}${playhead}</div>`
+            + `<div class="vwsky-scrub" id="sky-scrub" style="display:none;"></div>`
+            + `<div class="vwsky-tip" id="sky-tip" style="display:none;"></div>`
+            + `</div>`;
+        const track = tl.querySelector('#sky-tl-track');
+        if (track)
+            _wireTimeline(track, entries, period, granularity);
+    }
+    function _wireTimeline(track, entries, period, granularity) {
+        const posToMin = (clientX) => {
+            const rect = track.getBoundingClientRect();
+            return Math.max(0, Math.min(period, ((clientX - rect.left) / rect.width) * period));
+        };
+        let drag = null;
+        track.querySelectorAll('.vwsky-blk').forEach((blk) => {
+            blk.addEventListener('pointerdown', (ev) => {
+                ev.preventDefault();
+                const i = Number(blk.dataset.i);
+                drag = { i, el: blk, startX: ev.clientX, startOffset: Number(entries[i]?.offset) || 0 };
+                blk.setPointerCapture(ev.pointerId);
+            });
+        });
+        track.addEventListener('pointermove', (ev) => {
+            if (drag) {
+                const rect = track.getBoundingClientRect();
+                const delta = ((ev.clientX - drag.startX) / rect.width) * period;
+                const off = Math.max(0, Math.min(period - 15, Math.round((drag.startOffset + delta) / 15) * 15));
+                drag.el.style.left = `${(off / period) * 100}%`;
+                const row = document.querySelectorAll('#sky-sched-entries .sky-sched-row')[drag.i];
+                const inp = row?.querySelector('[data-f="offset"]');
+                if (inp)
+                    inp.value = String(off);
+            }
+            else {
+                _scrubTo(posToMin(ev.clientX), entries, period, granularity);
+            }
+        });
+        track.addEventListener('pointerleave', () => { if (!drag)
+            _endScrub(); });
+        // Re-render on release so block widths re-derive from the new offsets.
+        const finish = () => {
+            if (drag) {
+                drag = null;
+                _renderTimeline(_state().forecast_schedule);
+            }
+        };
+        track.addEventListener('pointerup', finish);
+        window.addEventListener('pointerup', finish);
+    }
+    /** Preset day-shapes, seeded in hours, so an author gets a starting point. */
+    const SCHED_PRESETS = [
+        { name: '☀️ Clear', hours: [[0, 'clear']] },
+        { name: '🌦 Showery', hours: [[0, 'cloudy'], [6, 'rainy'], [10, 'rainy'], [13, 'cloudy'], [19, 'clear']] },
+        { name: '⛈️ Storm front', hours: [[0, 'cloudy'], [5, 'stormy'], [9, 'rainy'], [14, 'cloudy'], [18, 'clear']] },
+        { name: '❄️ Snow day', hours: [[0, 'snowy'], [9, 'snowy'], [16, 'cloudy']] },
+        { name: '🌫️ Foggy dawn', hours: [[0, 'foggy'], [4, 'foggy'], [8, 'clear']] },
+    ];
+    function _applyPreset(hours) {
+        const box = document.getElementById('sky-sched-entries');
+        if (!box)
+            return;
+        box.innerHTML = '';
+        for (const [h, weather] of hours)
+            _addEntryRow({ offset: Math.round(h * 60), weather });
+        _renderTimeline(_state().forecast_schedule);
     }
     /** Read the editor DOM back into a schedule, or report a validation error. */
     function _collectSchedule() {
@@ -733,8 +1048,11 @@ const _SkyScape = (() => {
             if (el && worldState?.data)
                 renderTopBar(el, _state());
             if (_modalEl) {
+                _updateHeadSummary();
+                _updateOverrideIndicator();
                 _populateWeatherSelect();
-                _sendStateToIframe();
+                if (!_scrubActive)
+                    _sendStateToIframe();
             }
         }
         try {

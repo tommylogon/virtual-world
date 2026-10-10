@@ -47,6 +47,33 @@ The box also had to become scrollable (`max-height:90vh; overflow-y:auto`): it
 was `overflow:hidden`, and the new section sat below the fold on a short viewport
 where it could not be reached at all.
 
+A browser pass over the whole weather surface turned up **two more defects**,
+both fixed here:
+
+- **The stage disagreed with the top bar about the same moment.** With an
+  authored spelling (`overcast`) effective at "now", the top bar read `overcast`
+  while the sky stage read `Clear`: the stage's `weatherMap` keys on canonical
+  ids, and the raw spelling fell through to the `'clear'` default. The widget now
+  resolves the spelling through the engine's own alias map before the stage
+  lookup, so both read the same value.
+- **The `● override active` dot did not update when an override was set.** It was
+  refreshed only by `_populateControls` (modal open or clock skip), not on a
+  state update, so setting an override showed the new weather but no dot until
+  the modal was reopened. It is now refreshed on every state update.
+
+**The modal was then rebuilt as one surface** instead of two stacked ones. It
+embedded `sky-atmosphere.html` — a 720-line console with its own header, time
+slider and season/moon deck — and added a *second* header and three loose,
+inline-styled control rows on top: two UIs, two headers, two time controls. The
+embedded console is now reduced to a **scene-only hero** (a scoped stylesheet
+injected into the same-origin iframe hides its chrome and lets the sky canvas
+fill), and every control lives in a **card** built from the app's own design
+tokens (`--bg-inset`, `--border`, `--accent`, `--font`): a labelled *Time & date*
+card, an *Override* card with a single active-dot, and a *Forecast schedule*
+card with a column-header row over the entry grid, a timeline on a real axis, a
+styled empty state, and a footer readout. All wiring survived (element ids were
+preserved); verified live, including no-scroll fit at 1600x900.
+
 ## Steps to verify
 
 1. Run `python tools/ts_convert.py check` (build:ts, typecheck, lint,
@@ -62,11 +89,16 @@ where it could not be reached at all.
      wind, wind_direction, humidity, temperature_mod, light_mod, air and message
      all survive a save; the override dropdown lists the registry's weather
      types (including the task-763 extremes).
-   - observed (live): 3 entries loaded with their `humidity` (`dry`/`humid`/`wet`)
-     intact; Save → `POST /api/settings/forecast` **200**, status `✓ saved`, GET
-     returns the entries unchanged; the override dropdown shows the 11 registry
-     ids (`clear…snowy` + `blizzard`/`cold_snap`/`heatwave`/`thunderstorm`) and
-     no alias spellings; the modal scrolls under a 600px viewport.
+   - observed (live): top bar renders (`08:58 · May 13, 2016 · quarter ·
+     overcast · in 3h 2m: rain`); the stage reads `Overcast` matching the bar
+     (was `Clear`); 3 entries load with their `humidity` (`dry`/`humid`/`wet`)
+     intact; `+ entry` adds a row and `✕` removes it; Save →
+     `POST /api/settings/forecast` **200**, status `✓ saved`, GET returns the
+     entries unchanged; the override dropdown shows the 11 registry ids
+     (`clear…snowy` + `blizzard`/`cold_snap`/`heatwave`/`thunderstorm`) and no
+     alias spellings; setting an override flips the bar to `snowy` and shows the
+     `● override active` dot, clearing hides it; the modal scrolls under a 600px
+     viewport.
 
 ## Acceptance
 
@@ -84,8 +116,9 @@ where it could not be reached at all.
 
 ## Files
 
-- `static/js/sky-scape.ts` (+ emitted `.js`) — the schedule editor, the
-  registry-driven weather dropdowns, and the scrollable modal.
+- `static/js/sky-scape.ts` (+ emitted `.js`) — the token-based modal styles
+  (`MODAL_CSS`), the scene-only stage embed (`STAGE_CSS`), the schedule editor,
+  the registry-driven weather dropdowns, and the two display fixes.
 - `routes/settings.py` — `area_overrides`/`date_overrides` passthrough and
   `weather_field` on the GET (task-763).
 - `tests/test_forecast_settings_route.py` — route round-trip.

@@ -1,6 +1,6 @@
 ---
 type: task
-status: review
+status: done
 area: emotions
 priority: medium
 ---
@@ -56,9 +56,8 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+- expected: a character Images tab holds the Expression Pack + sheet splitter; overview no longer inlines it.
+- observed (2026-10-10 live): tabs = Inventory/Bio/Images/Advanced; #data-tab=Images visible with 'EXPRESSION PACK / Profile / Full body / Split sheet' + expression cards (neutral..) + NOW.
 
 ## Files
 

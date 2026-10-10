@@ -204,6 +204,8 @@
   },
   "active": "628a877e9730f243",
   "lastOpenFiles": [
+    "dev_tasks/done/emotions/task-512-move-the-character-expression-pack-into-its-own-images-tab-in-the-inspector.md",
+    "dev_tasks/done/ui/task-479-surface-skill-dc-band-and-dice-breakdown-in-prompts-and-narration.md",
     "dev_tasks/done/ui/task-448-disambiguate-ambiguous-target-names.md",
     "dev_tasks/done/ui/task-598-scenario-manager-search-and-filter-the-scenario-list.md",
     "dev_tasks/done/ui/task-521-helpcenter-coverage-hint-the-newer-systems-and-audit-for-gaps.md",
@@ -228,8 +230,6 @@
     "dev_tasks/inprogress/ui/bug-526-sync-world-to-library-sync-all-ignores-the-active-tab-and-generated-entities-and-silently-overwrites.md",
     "dev_tasks/done/ui/task-558-wordwrap-way-and-edge-labels-in-the-graph-view.md",
     "dev_tasks/done/ui/task-370-command-palette-ctrl-k.md",
-    "dev_tasks/done/ui/task-770-rename-the-levels-layout-to-hierarchical-and-scope-its-use.md",
-    "dev_tasks/done/ui/task-532-graph-toolbar-collapse-zones-into-an-overflow-menu-on-narrow-windows.md",
     "Untitled.canvas",
     "dev_tasks/todo/gameplay/task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override.md.tmp.11928.1b3cb7021f85",
     "dev_tasks/todo/gameplay/task-716-fisherman-vertical-slice-reusable-water-activity-and-pursuit-loop.md.tmp.11928.2deae31d0cf1",
