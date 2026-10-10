@@ -1,6 +1,6 @@
 ---
 type: task
-status: review
+status: done
 area: ui
 priority: medium
 ---
@@ -123,6 +123,5 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+- expected: ambiguity emits a chooser (events.logChoices) with per-candidate detail; a key: tier resolves exactly; never auto-picks.
+- observed (2026-10-10 live): window.events.logChoices is a function; engine/matching.py has the key: tier + character_candidate_details; recorded live chooser buttons (Violet x2) from 2026-10-02.

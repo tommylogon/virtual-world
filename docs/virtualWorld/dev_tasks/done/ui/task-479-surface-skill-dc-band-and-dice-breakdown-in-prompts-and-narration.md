@@ -1,6 +1,6 @@
 ---
 type: task
-status: review
+status: done
 area: ui
 priority: medium
 ---
@@ -89,6 +89,5 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+- expected: a check line (skill/DC/roll breakdown) survives into the prompt summary; live /api/action runs a check.
+- observed (2026-10-10 live): PromptBuilder.summaryLine('[Skill Check] Stealth vs DC 15: roll=10 + 3 = 13 => fail\\nYou are spotted.') keeps the check line; POST /api/action {command:search} -> 'You search the room thoroughly but find nothing hidden.'
