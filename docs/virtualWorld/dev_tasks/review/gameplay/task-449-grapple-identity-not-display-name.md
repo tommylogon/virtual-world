@@ -27,7 +27,7 @@ releasing, or the desync repair (`sync()`, `:209`) can hit the **wrong**
 same-named character. Not exercised yet (no duplicate names in data), but it is
 the one *functional* duplicate-name bug left after task-446.
 
-## Fix
+## How
 
 - Add a reverse lookup on `PlayerManager` — `key_for_node_id(node_id)` (maintain a
   `node_id → key` index in `add_player`/`reindex`).
@@ -69,3 +69,20 @@ A few log strings print the registry key for a duplicated character. Use
   the right body.
 - Regression: full suite unchanged (same 60 pre-existing failures; no new).
 
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

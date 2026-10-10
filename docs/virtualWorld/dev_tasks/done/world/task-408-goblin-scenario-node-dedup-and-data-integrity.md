@@ -11,7 +11,7 @@ priority: high
 **Depends on:** nothing (data task).  
 **Evidence:** measured against `data/scenarios/`, 2026-09-19.
 
-## Goal
+## What
 
 Keep **one** goblin scenario, fix its duplicate character nodes and way ids,
 attach the intended traits, and introduce a folder-based authoring format that
@@ -64,7 +64,7 @@ Other verified facts:
   `kraktooth_goblin_camp_assembled.json`, `kraktooth_populated.json`,
   `kraktooth_generated_connected.json`, `kraktooth_generated.json`.
 
-## Changes
+## How
 
 1. **Consolidate.** Delete `kraktooth_goblin_camp_assembled.json`,
    `kraktooth_populated.json`, `kraktooth_generated_connected.json`, and
@@ -105,7 +105,7 @@ Other verified facts:
 - Changing weather or decay calibration (already landed).
 - Changing the runtime loader to read folders directly (compiler only, for now).
 
-## Verification
+## Steps to verify
 
 - A data test asserting node counts per type and no duplicate character names.
 - A reachability test using strict ids only.
@@ -339,3 +339,11 @@ fails on master: `create_app()` boots with `_scenario_name` already
 `named_world` never takes. It touches no file this task edits
 (`app.py`, `virtual_world_engine.py`, `world_template.json`) and fails in
 isolation.
+
+## Why
+
+TODO
+
+## Files
+
+- TODO

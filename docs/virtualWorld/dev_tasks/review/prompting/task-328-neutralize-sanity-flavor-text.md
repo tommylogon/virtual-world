@@ -5,13 +5,15 @@ status: review
 priority: high
 created: 2026-08-23
 tags: [prompting, vitals, sanity, copy]
+type: task
+area: prompting
 ---
 
 # Neutralize Sanity Flavor Text (De-Horror, De-Madness)
 
 **Status**: In Review — implemented 2026-08-31, code-verified + live browser check. Neutral stress wording applied to BOTH sanity surfaces (the design noted "four tier strings + stray line": the strings now live in `buildInsanityContext` tiers AND `describeVital('Sanity')` tiers — both fire in the same prompt, so both were neutralized per Tommy's confirmation). `rg "shadow|dark corner|madness|reality bends"` over the prompt-builder now hits only doc comments, no runtime prompt strings.
 
-## Summary
+## What
 
 The Sanity tier strings in `static/js/agent/prompt-builder/character-state.js`
 (lines ~100–103 and the "shadows seem to watch you" line at ~208) are horror-generic:
@@ -20,7 +22,7 @@ The Sanity tier strings in `static/js/agent/prompt-builder/character-state.js`
 Madness/hallucination-style text belongs to actual conditions, traits and intoxication —
 which are separate systems — not to the base sanity vital.
 
-## Motivation
+## Why
 
 Observed in taco_bell_date run (2026-08-23): Miki (Sanity 70) sits in a bright Taco Bell
 and her prompt tells her "the shadows seem to watch you." Wrong genre, wrong scene.
@@ -31,7 +33,7 @@ NOT madness. Madness/delusion/disorientation effects must come from named condit
 and known/unknown gating. The vital's baseline text should read plausibly for any setting:
 fantasy tavern, horror mansion, modern fast food.
 
-## Implementation
+## How
 
 Rewrite the four tier strings + stray line as scene-neutral escalation of stress:
 
@@ -52,10 +54,20 @@ Rules:
   (jumpiness, irritability, indecision) rather than hallucinated content.
 - Keep second-person voice; no pronoun+verb constructions (converter-safe per G1).
 
-## Acceptance Criteria
+## Acceptance
 
 - [ ] `rg "shadow|dark corner|madness|reality bends"` over prompt-builder returns no
       vitals-threshold hits.
 - [ ] taco_bell_date re-run: Miki's prompt shows stress wording that fits a lit restaurant.
 - [ ] Horror mansion run: low-sanity characters still feel appropriately tense via the
       neutral wording + area/environment dread lines, not hardcoded gothic imagery.
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

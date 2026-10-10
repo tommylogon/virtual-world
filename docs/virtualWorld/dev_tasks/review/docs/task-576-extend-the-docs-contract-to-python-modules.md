@@ -12,7 +12,7 @@ blocks: [task-578]
 **Related:** tools/js_module_index.py, docs/design/js-module-index.md, task-338
 **Blocks:** task-578
 
-## Goal
+## What
 
 Give every `engine/` and `routes/` module the same `@docs` docstring header the JS side
 already has, and grow the module index into a language-agnostic feature-to-documentation
@@ -32,7 +32,7 @@ The convention already exists and is already guarded — on one language only.
 So the link data exists, is machine-readable, and is checked by a test. What is missing is
 that it covers half the codebase, and that nothing in the running app can consume it.
 
-## Design
+## How
 
 Mirror the existing JS header, at the top of the module docstring:
 
@@ -91,3 +91,17 @@ Documented core modules: `engine/tick_manager`, `engine/foraging`,
       18 core modules do; the other 162 are baselined and filed as **task-669**.
       The convention and the guard are live; the backfill is bounded, known
       work rather than an undocumented gap.
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

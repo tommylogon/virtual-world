@@ -10,7 +10,7 @@ priority: low
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 Two functions extracted from agent-engine.js in task-218 are dead: across all of static/ and templates/ each appears only at its definition and export. git show 170d5f1:static/js/agent-engine.js shows neither was ever called from the engine, so this is pre-existing dead code, not an extraction regression. Either wire the observation phase through parseObservation (the observation memory written as src:observation evidently comes from another path) or delete both exports.
 
@@ -65,3 +65,21 @@ Drove a real turn with `VW.agent.stepOnce()` and watched the event stream:
 
 So the surviving parser path works in a real LLM turn, which is the behaviour the
 two deleted exports had no callers for. Moving to `done`.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

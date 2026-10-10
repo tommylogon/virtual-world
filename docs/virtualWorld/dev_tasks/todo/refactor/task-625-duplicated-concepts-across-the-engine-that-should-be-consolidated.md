@@ -10,7 +10,7 @@ priority: low
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 Cross-cutting: several concepts are implemented in more than one place with different behaviour, which is how the same fact ends up stored twice.
 
@@ -53,3 +53,21 @@ Each names the two stores and the authoritative side.
 
 Suggested order: #5 is done; do #1 and #2 as their own small changes (both are
 front-end/graph-boundary and testable), then defer #3/#4 to task-430.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

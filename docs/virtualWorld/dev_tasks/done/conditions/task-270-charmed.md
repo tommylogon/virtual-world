@@ -1,6 +1,8 @@
 ---
-group: Conditions
+area: conditions
 status: done
+type: task
+priority: medium
 ---
 
 # Condition: Charmed (`charmed`)
@@ -12,7 +14,7 @@ status: done
 
 ---
 
-## Purpose
+## What
 
 Magically (or socially) compelled by someone. You can't bring yourself to hurt them. Hidden by default so the charmed character doesn't necessarily know they've been influenced.
 
@@ -51,7 +53,7 @@ Magically (or socially) compelled by someone. You can't bring yourself to hurt t
 - Source: charmer (`source`), likely `source_type: "character"`.
 - Behavior/action gating: blocking attacks on the charmer is similar to `frightened_block` but not yet wired — needs an explicit gate or prompt-level handling.
 
-## Testing
+## Steps to verify
 
 - [ ] Charmed character is unable to harm the charmer.
 - [ ] Hidden (`known: False`) with no symptoms → agent perceives nothing from the condition.
@@ -62,3 +64,19 @@ Magically (or socially) compelled by someone. You can't bring yourself to hurt t
 - **How is "can't hurt the charmer" actually enforced?** Currently no gate uses `charmed` the way `frightened_block` uses `frightened`. Needs a `charmed_block` (or source-gate) + possibly `auto_fail` on attack-rolls against the source.
 - Should `charmed` render *some* subtle symptom ("you feel oddly fond") vs. total silence?
 - Interaction with `frightened` (both source-gated, could compose).
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

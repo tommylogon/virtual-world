@@ -1,5 +1,8 @@
 ---
-group: Characters
+area: emotions
+type: task
+status: done
+priority: medium
 ---
 
 # Character Expression Packs (profile + full body per emotion/action)
@@ -55,3 +58,29 @@ unchanged.
 ## Related
 
 - [[Characters/Emotion & Affect System]]
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

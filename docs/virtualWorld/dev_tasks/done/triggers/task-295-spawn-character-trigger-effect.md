@@ -1,8 +1,15 @@
+---
+type: task
+status: done
+area: triggers
+priority: medium
+---
+
 # Task-295: Trigger Effect to Spawn a Character
 
 **Status:** Done — implemented 2026-08-18.
 
-## Goal
+## What
 
 Add a `spawn_character` trigger effect so triggers and behaviours can introduce an
 NPC/character node at runtime (and optionally a live agent) — e.g. a quest NPC arrives
@@ -34,9 +41,25 @@ at an area, or a summon/summoned-beast appears.
 - `area` — optional area name override (blank = triggering actor's current area)
 - `message` — optional narration, supports `{character_name}`
 
-## Testing
+## Steps to verify
 
 - [x] `python -m pytest tests/ -q -k "not mcp and not emote"` → 976 passed, 1 skipped
 - [x] `node --check` on all touched JS files — clean
 - [x] `py_compile` on all touched Python — clean
 - [x] Unit tests: `test_spawn_character_from_library` + `test_spawn_character_unknown_id` pass
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

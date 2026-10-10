@@ -14,7 +14,7 @@ blocks: [task-578]
 **Blocked by:** task-446 (id-first node identity)
 **Blocks:** task-578
 
-## Goal
+## What
 
 Let an authored area, item, way, trigger or condition point at the documentation page
 that describes it, keyed by **node id** rather than display name.
@@ -34,7 +34,7 @@ resolve at the boundary (task-446 is in `inprogress` and touches
 would break the moment anything is renamed — which is exactly the failure mode task-446
 exists to remove. Do not build this on names.
 
-## Design
+## How
 
 - Optional field on the node schema, alongside the existing optional properties:
   ```json
@@ -76,3 +76,17 @@ construction; the work was the guard rails and the editor:
 - [x] The library editor exposes the field, and it is not required.
 - [x] JS gates clean: `node tools/unit/run.cjs` 485 passed, `npm run lint`,
       `npm run typecheck`.
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

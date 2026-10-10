@@ -1,7 +1,11 @@
-﻿---
-group: Environment & Climate
-wiki: "[[Environment/Light System]]"
 ---
+area: environment
+wiki: "[[Environment/Light System]]"
+type: task
+status: done
+priority: medium
+---
+
 # Sound Propagation Between Rooms
 
 **Filed**: 2026-07-15
@@ -10,11 +14,11 @@ wiki: "[[Environment/Light System]]"
 
 ---
 
-## Summary
+## What
 
 Sounds propagate between adjacent areas. A character playing loud music in the living room can be heard in the kitchen — with propagation reduced by door/way state.
 
-## Current State
+## Why
 
 Originally filed as "sounds are room-local". That is no longer true — a full propagation system exists.
 
@@ -41,7 +45,7 @@ Originally filed as "sounds are room-local". That is no longer true — a full p
 - **`look` output** — area description only renders the room's own noise ("The area is noisy with X sounds.", `engine/area_description.py:229`); it does NOT add "You can hear music from the living room." lines for heard sounds from adjacent areas. Agent awareness covers this via prompts.
 - **Room inspector "Sounds heard here" section** — no such UI exists.
 
-## Files Affected
+## Files
 
 - `engine/sound.py` (new, built) ✅
 - `engine/narration.py`, `engine/tick_manager.py`, `static/js/agent/prompt-builder.js` (wiring) ✅
@@ -52,3 +56,17 @@ Originally filed as "sounds are room-local". That is no longer true — a full p
 - Project decision: sound propagation lives in the Python backend (drives NPC awareness, narration, triggers).
 - `todo/environment/task-174-fire-mechanic-heat-source.md` (F6) and task-170 fire work use the same graph-scan pattern.
 - task-152 (whisper/shout alias + sound-source fixes) builds on this system.
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

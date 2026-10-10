@@ -12,7 +12,7 @@ priority: medium
 **Design:** `docs/design/worldpainter-knowledge-and-fog.md`,
 `docs/design/world-environment-taxonomy.md`
 
-## Goal
+## What
 
 Authoring layer: every world scope owns a bounded grid at its own resolution, with three modes - world (zones as cells, no interiors), town (paint settlement grid: walls, gates, roads, markets, buildings), interior (building/floor grid: rooms, doors, windows, tags). Zones ARE world_scopes (engine/world_scopes.py); select a zone to set its scale and open its drawn grid. Paint layers: biome/feature/road/elevation. Features are child scopes placed at a cell (e.g. a village inside a forest) that can be moved/added/deleted. Data model: per-scope grid_w/grid_h, cell_scale, layers, child placements; stable frames so references survive moves; a rule for move-overlap. UI renders each scope's grid.
 
@@ -136,3 +136,21 @@ duplicate zone (e.g. two "deep woods") was stuck.
 Tests: `tests/test_world_scopes.py` (+4 rename/delete), `tests/test_world_grid_routes.py`
 (+2 route), `tests/test_world_compile.py` (+1 island note),
 `tools/unit/test_worldpainter.js` (+1 `estimateCompile.isolated`).
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

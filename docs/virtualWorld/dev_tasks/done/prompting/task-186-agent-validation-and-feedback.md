@@ -1,9 +1,16 @@
+---
+type: task
+status: done
+area: prompting
+priority: medium
+---
+
 # Task: Agent Validation, Feedback & Emote Gating
 
 **Status**: Done
 **Completed**: 2026-08-03
 
-## Goal
+## What
 
 Stop the frontend agent loop from silently dropping actions and contradicting
 reality. Two concrete failures from `event_log_2026-08-02T12-00-06.txt`:
@@ -19,7 +26,7 @@ reality. Two concrete failures from `event_log_2026-08-02T12-00-06.txt`:
    kindling inside" while `use kindling on stove` failed. The model stores these as
    sensory memories and keeps re-trying.
 
-## Changes
+## How
 
 ### 1. `static/js/agent-engine.js` — `_validateAction` whitelist (line 617)
 - Add verbs the backend actually supports and the COMMANDS table advertises:
@@ -57,6 +64,7 @@ reality. Two concrete failures from `event_log_2026-08-02T12-00-06.txt`:
   different approach."`
 
 ## Files Modified
+
 - `static/js/agent-engine.js`
 - `static/js/agent/prompt-builder.js`
 - `docs/virtualWorld/AI & Narration/` (agent loop doc if present)
@@ -84,3 +92,21 @@ reality. Two concrete failures from `event_log_2026-08-02T12-00-06.txt`:
 - **Change 5 (hardening)** already covered by the failure-aware repeat
   warnings in `buildMemoryContext` (`prompt-builder.js:285-294`) — flags any
   failed action attempted 3+ times.
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

@@ -698,7 +698,7 @@ constant on-screen size, so they stay clickable when zoomed out.
 
 ## Related tasks
 
-- [[dev_tasks/inprogress/graph/task-451-multiple-background-images-per-scenario-with-easy-placement-and-layering|task-451: Multiple background images per scenario]]
+- [[task-451-multiple-background-images-per-scenario-with-easy-placement-and-layering|task-451: Multiple background images per scenario]]
 
 - [[task-100-graph-view-filters|task-100: Graph view filters]]
 - [[dev_tasks/done/graph/task-105-edge-refactor|task-105: Edge refactor (done)]]

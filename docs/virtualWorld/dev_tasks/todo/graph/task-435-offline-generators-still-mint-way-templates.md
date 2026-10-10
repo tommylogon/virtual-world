@@ -11,7 +11,7 @@ priority: low
 **Split out of:** task-395 (way-orientation authoring), which removed the bulk
 fill and the engine-side mint but left the generators that produced it.
 
-## Problem
+## Why
 
 task-395 removed `fix_way_orientation` and added `clear_way_fix_fields`, which
 reverts the minted values on demand by matching them **exactly**:
@@ -95,3 +95,21 @@ The cleanup half already shipped (`clear_way_fix_fields`,
 `routes/graph_ops.py:973-1004`; `fix_way_orientation` removed), and no generator
 test asserts "zero cleanable fields". This is a prerequisite for clean task-398
 generation output.
+
+## What
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

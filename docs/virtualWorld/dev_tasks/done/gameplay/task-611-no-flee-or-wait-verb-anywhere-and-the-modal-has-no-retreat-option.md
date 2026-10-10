@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 CORRECTED 2026-09-30 after live testing. The original claim said "no flee or wait";
 only half of that is true. `wait` DOES exist and answers "You start waiting
@@ -64,5 +64,23 @@ differently, the rule to change is the exit choice and nothing else.
 One implementation note: the first attempt used `world.gs`, which does not exist
 — the accessors are `world._get_current_area_id()` and
 `world.movement.name_matcher`. It 500'd on every call until corrected.
+
+- TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
 
 - TODO

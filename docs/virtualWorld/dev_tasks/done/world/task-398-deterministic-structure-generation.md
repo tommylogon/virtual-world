@@ -20,7 +20,7 @@ frontier), 495, 496 and 500 all wait on it. `task-496` explicitly overlaps it
 ("decide whether to fold it into 398 or keep it as the grid recipe"), and
 `task-439` is *not* a prerequisite here.
 
-## Goal
+## What
 
 Generate an unmade world scope into normal VirtualWorld graph nodes: real
 areas, real ways, relevant furniture/items, and optionally inhabitants. The
@@ -252,3 +252,20 @@ Gate: 61 failed / 4311 passed — the same 61 pre-existing failures.
   pool and the `at` edge in `tests/test_serialization.py`, but not yet for a
   generated subtree. Worth adding with the preview surface.
 
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

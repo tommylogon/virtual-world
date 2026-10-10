@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-28
 **Related:** task-401, task-397
 
-## Goal
+## What
 
 Give WorldGraph explicit scope/chunk load, unload and merge operations with ownership checks. load_from_dict() clears the whole graph and therefore cannot be the chunk loader; a scope must be materialised into a live graph and removed again without touching anything else.
 
@@ -47,3 +47,21 @@ scope is dropped with it, and task-584 owns the rule.
 Tests: `tests/test_world_chunks.py` (9) — merge isolation, duplicate load
 refusal, replace re-stamp, foreign-owner refusal, unload isolation (scope-less
 survivor + edge removal), slice round-trip, empty-scope refusal.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

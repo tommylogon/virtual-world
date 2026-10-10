@@ -34,7 +34,7 @@ task-378 (bulk selection), task-324 (domain tags), item-library/ai-generation.js
 (per-item "Improve" pattern), `static/js/shared/ai-generator.js:81`
 (`buildItemSystem`).
 
-## Problem
+## Why
 
 The editor today is *form-driven*: every create flow is a modal with discrete
 fields. For power users who already know the schema, that's fine. For anyone
@@ -103,3 +103,25 @@ The feature is implemented in `static/js/nl-editor/` and integrated into the app
 - `static/js/context-window.js`: Atomic tool-block preservation during pruning.
 - `static/js/ui/command-palette.js`: Added Cmd-L / Ctrl-L shortcut and palette action.
 - `static/js/ui/help-center.js`: Added coach tip in HelpCenter.
+
+## What
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

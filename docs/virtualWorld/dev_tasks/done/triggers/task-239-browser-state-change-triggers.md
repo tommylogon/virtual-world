@@ -1,9 +1,16 @@
-﻿# Task-239: Browser State Change Fires State-Change Triggers?
+---
+type: task
+status: done
+area: triggers
+priority: medium
+---
+
+# Task-239: Browser State Change Fires State-Change Triggers?
 
 **Status**: Resolved 2026-08-30 — decision: direct editor state edits stay a cheat/direct-edit path and do NOT fire triggers (avoid cascades); the engine state-change path (set_state effect, movement toggles) remains the trigger-firing path. No code change.
 **Source:** `dev_tasks/developer ideas.md` (change state in browser triggers state change triggers?)
 
-## Goal
+## What
 
 Determine whether setting a node's `current_state` in the editor (browser â†’ API) should
 fire the same state-change trigger effects as in-game state changes, and implement it if so.
@@ -16,3 +23,25 @@ fire the same state-change trigger effects as in-game state changes, and impleme
   node? Firing triggers on editor-state-change could cascade unintended effects.
 - Investigate how the API state-update route handles `current_state` vs the engine
   `set_state` path; decide trigger firing scope (area-wide, item-owned triggers, etc.).
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

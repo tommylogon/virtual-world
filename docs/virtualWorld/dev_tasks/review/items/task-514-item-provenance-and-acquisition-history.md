@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-24
 **Related:** task-408, task-403
 
-## Goal
+## What
 
 Give items an acquisition record so gear carries history — Mikka's wrench
 stolen from a human wagon, Gribba's apron taken from an abandoned farm, Vekka's
@@ -62,7 +62,19 @@ boot — and surface it on examine and in prompts.
 - A general history/event-log UI (task-340 is the unrelated event stream).
 - Changing `library_id` semantics.
 
-## Verification
+## Steps to verify
 
 - Unit test: author/spawn with provenance → examine shows it; steal updates it.
 - Document stacking behaviour in the test or task notes.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Files
+
+- TODO

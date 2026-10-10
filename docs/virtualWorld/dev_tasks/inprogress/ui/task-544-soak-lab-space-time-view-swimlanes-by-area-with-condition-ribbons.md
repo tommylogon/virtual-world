@@ -10,7 +10,7 @@ priority: low
 **Filed:** 2026-09-27
 **Related:** task-543 (the data), task-542 (naming/boundary)
 
-## Goal
+## What
 
 Answer the question a line chart cannot: **did those two ever share a room?**
 
@@ -78,7 +78,7 @@ Companion panels, cheap from the same data:
 - The existing lab polls; follow whatever cadence the vitals charts use rather
   than introducing a second polling path.
 
-## Acceptance criteria
+## Acceptance
 
 - [ ] A run with recorded telemetry renders swimlanes: area lanes on the y axis,
       time on the x, one band per character from its presence intervals.
@@ -107,3 +107,21 @@ Companion panels, cheap from the same data:
   diagram is the one that answers the question; a force graph would not.
 - Interactivity beyond hover and zoom. Resist building a general analysis tool
   here — pick one question and answer it well.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

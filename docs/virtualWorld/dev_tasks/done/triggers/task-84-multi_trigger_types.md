@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: triggers
+priority: medium
+---
+
 # Multi Trigger Types Per Trigger — One Trigger, Multiple Fire Conditions
 
 **Filed**: 2026-07-21
@@ -6,7 +13,7 @@
 
 ---
 
-## Summary
+## What
 
 Currently each trigger has a single `trigger_type` (e.g. `on_use`). A trigger should be able to fire on **multiple** trigger types — e.g. both `on_use` AND `on_examine`, or `on_open` AND `on_close`. This avoids duplicating the same effects/conditions across separate trigger entries.
 
@@ -65,8 +72,26 @@ Same change as inspector.js.
 
 Existing triggers with string `trigger_type` continue working. New triggers with multiple types are stored as `trigger_type: ["on_use", "on_examine"]`.
 
-## Files Affected
+## Files
 
 - `virtual_world_engine.py` — `_execute_triggers()` array support
 - `static/js/inspector.js` — edit trigger overlay UI
 - `static/js/item-library.js` — add trigger overlay UI
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

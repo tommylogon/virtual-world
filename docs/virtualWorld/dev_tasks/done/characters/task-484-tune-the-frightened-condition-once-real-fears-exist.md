@@ -4,6 +4,7 @@ status: done
 area: characters
 priority: medium
 ---
+
 # task-484: Tune the frightened condition once real fears exist
 
 **Filed:** 2026-09-23
@@ -40,7 +41,7 @@ not mine" or "that person frightens me". The natural test case is already in the
 scenario — the Eldenford Road Guard Captain, the one human with a military job,
 who starts on the Human Road and ends up in the goblin camp.
 
-## Goal
+## What
 
 Deferred from task-469: give 'frightened' real attack/defense modifiers and an
 ends_on once authored fears are common enough to calibrate against.
@@ -110,3 +111,20 @@ defensible reading: adrenaline does not make you harder to hit, it makes you
 fight worse. That is an argument, not a measurement, and is recorded here as
 such rather than written into the condition.
 
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

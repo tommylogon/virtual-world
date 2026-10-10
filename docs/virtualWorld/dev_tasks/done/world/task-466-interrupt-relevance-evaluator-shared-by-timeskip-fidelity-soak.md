@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-22
 **Related:** task-464, task-411, task-418, task-399, task-403
 
-## Goal
+## What
 
 One deterministic relevance/interrupt evaluator shared by timeskip actions (task-464), attention/fidelity tiers (task-411/418), soak deferral (task-399) and memory salience (task-403). Given a character and a tick's world deltas plus trace events, decide what they notice and must react to: threat (attack/steal/grapple/hostile approach), vital or condition threshold crossings, involuntary-action firing, discoveries matching interest tags or known goals, arrivals and sounds carried by awareness channels. Emits structured interrupt reasons (why-tags) and never calls an LLM. Stopping at a tick boundary means the post-interrupt state is an ordinary world state.
 
@@ -30,10 +30,22 @@ One deterministic relevance/interrupt evaluator shared by timeskip actions (task
 - [ ] Sound/awareness-channel inputs (task-418) beyond log/turn events.
 - [ ] A `salience` consumer for task-403 memory ranking.
 
-## Verification
+## Steps to verify
 
 `python -m pytest tests/test_timeskip.py -q` → 41 passed (11 pure evaluator cases incl. area/actor filtering).
 
 ## Review 2026-09-23 - shared evaluator closed
 
 Verified: `tests/test_timeskip.py` (41 passed) plus `tests/test_soak_chain.py` (5 passed) and the 289-passed soak/timeskip/fear/forage/loot/checks/skills/conditions slice. The soak-deferral consumer the shared evaluator was waiting for now lives in `engine/soak.py` promotion (`_promote_reason`). Remaining bullets are owned by other tasks: attention/fidelity tiers (task-411, task-418), sound/awareness channels (task-418), salience consumer for memory ranking (task-403). Closing.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Files
+
+- TODO

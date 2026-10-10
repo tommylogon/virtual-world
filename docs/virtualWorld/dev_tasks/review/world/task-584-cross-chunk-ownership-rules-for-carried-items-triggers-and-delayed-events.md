@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-28
 **Related:** task-401, task-581, task-583
 
-## Goal
+## What
 
 Decide and implement who owns a character, a carried or equipped item, a live trigger and a delayed event while its scope is unloaded, and make the answer consistent across a save and load round trip. A delayed event aimed at an unloaded node is globally indexed and either loads the scope when due or resolves through an explicit deferred policy; dropping it silently is forbidden.
 
@@ -51,3 +51,21 @@ assertion pinned exactly the silent drop this task forbids.
 Consistency across a save/load round trip: the index (including
 `character_location`/`item_location`) is persisted by `engine/serialization.py`;
 a scenario rederives it from the graph + manifest.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

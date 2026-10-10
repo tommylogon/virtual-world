@@ -1,7 +1,11 @@
 ---
-group: Graph & Area UX
+area: graph
 wiki: "[[World Building/Graph System]]"
+type: task
+status: done
+priority: medium
 ---
+
 # Task 100: Graph View Overlays — Light, Heat, Sound, Triggers, Cardinal
 
 **Status**: Done  
@@ -9,7 +13,7 @@ wiki: "[[World Building/Graph System]]"
 **Filed**: 2026-07-24  
 **Updated**: 2026-07-31  
 
-## Summary
+## What
 
 The graph currently shows one view — the structural room/door/item/character relationships. Add a view selector with different visual overlays to show environmental data, trigger propagation, and spatial relationships.
 
@@ -48,7 +52,7 @@ Rooms → ways → items, characters. Shows graph topology with type-based color
 - Area positions arranged geographically using existing cardinal layout
 - Useful for spatial navigation planning and debugging
 
-## Implementation
+## How
 
 ### Frontend
 
@@ -67,7 +71,7 @@ Each overlay:
 
 Switching back to Structural view clears the overlay by force-reloading graph data (which preserves node positions thanks to the save/restore in `loadGraphData`).
 
-## Files Affected
+## Files
 
 - `static/js/graph/network-manager.js` — add overlay functions (~150 lines)
 - `static/js/graph-manager.js` — extend setViewMode (~20 lines)
@@ -78,7 +82,7 @@ Switching back to Structural view clears the overlay by force-reloading graph da
 
 None — everything is frontend-only from existing state data. Task-80 (light spill system) backend code is not required.
 
-## Tests
+## Steps to verify
 
 - Each overlay renders without errors
 - Switching between overlays is instant
@@ -102,3 +106,11 @@ All overlays fully implemented and verified:
 | Overlay view buttons (dropdown) | `templates/index.html:115-121` |
 | Legend updates per mode | `network-manager.js:650` (`_updateOverlayLegend()`) |
 | Clear/reset overlay | `network-manager.js:637` (`_clearOverlay()`) |
+
+## Why
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

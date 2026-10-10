@@ -1,8 +1,15 @@
+---
+type: task
+status: review
+area: gameplay
+priority: medium
+---
+
 # Task: Command Parser — Multi-Word `use X on Y` Targets
 
 **Status**: In Review — implemented (verified 2026-08-08 code audit; moved from todo). `routes/action.py:290` joins the full remainder after `on` as the target (`target_name = ' '.join(tokens[on_idx + 1:])`), and quoted tokens become an explicit target+params pair for the inscribe path — multi-word targets like `dried flower crown` no longer truncate. Pending: dedicated backend test from the task's §3.
 
-## Goal
+## What
 
 Fix the parser so `use [item] on [target]` works with multi-word targets. Today
 `routes/action.py:180-181` takes only the **single token** after `on` as the
@@ -21,7 +28,7 @@ Multi-word item/target names are everywhere in this world (`Short Forest Cape`,
 `Dried Flower Crown (Crushed)`, `Stovepipe Leather Boots (Pair)`), so this
 breaks real interactions.
 
-## Changes
+## How
 
 ### 1. `routes/action.py` — `use` handler (lines 172-188)
 - Resolve the target as the **full remainder** after `on` when the rest is
@@ -52,6 +59,25 @@ breaks real interactions.
   - quoted multi-word target still works if that path is kept
 
 ## Files Modified
+
 - `routes/action.py`
 - `routes/helpers.py` (only if `tokenize_command` needs quoted-token awareness)
 - `tools/test_all.cjs` (or backend test file)
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

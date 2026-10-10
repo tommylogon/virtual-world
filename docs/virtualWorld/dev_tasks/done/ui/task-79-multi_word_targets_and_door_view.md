@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: ui
+priority: medium
+---
+
 # Multi-Word Targets + Way View on Open
 
 **Filed**: 2026-07-20
@@ -7,7 +14,7 @@
 
 ---
 
-## Summary
+## What
 
 Two fixes found while testing "open swinging door" from the living room.
 
@@ -44,13 +51,25 @@ You open the swinging door.
 The kitchen, with a checkered tablecloth on the table and dried herbs hanging from the ceiling.
 ```
 
-## Files Changed
+## Files
 
 | File | Change |
 |------|--------|
 | `app.py` | All branches updated to use `' '.join(tokens[1:])` with proper keyword splitting for `use`, `attack`, `rest`, `take` |
 | `virtual_world_engine.py` | `toggle_way()` saves `way_edge`; both toggle methods append `visible_in_direction` on open |
 
-## Tests
+## Steps to verify
 
 13/13 pass (`test_tokenizer.py` + `test_emote.py`)
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

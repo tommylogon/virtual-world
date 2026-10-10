@@ -11,7 +11,7 @@ priority: medium
 **Depends on:** task-399 (background runner); task-408 (clean scenario data);
 **task-406** (standing-item `on_tick` — see below).
 
-## Goal
+## What
 
 A settled camp can feed 23 characters for a week without supply collapse, via
 **plant items that grow resources on a timer**.
@@ -105,7 +105,7 @@ and product (item vs character):
    trail a direct "survival check → carcass" shortcut, or the node becomes a meat
    dispenser the moment the player watches it.
 
-## Changes
+## How
 
 1. Implement the plant pattern with `parameters.growth` + `adjust_parameter`
    (+1 per tick), a `growth >= 100` condition (`parameter_reached`), `spawn_item`
@@ -196,8 +196,16 @@ gauge-carrying item lost its counter at placement, and it now accepts an explici
 - A market economy, trade pricing, or detailed nutrition.
 - Repurposing `uses` for anything but remaining charges.
 
-## Verification
+## Steps to verify
 
 - Extend `tools/soak_sim.py` reporting with food/drink counts over time.
 - A 7-day soak run with the supply curve recorded in the progress doc.
 - Unit test: growth ticks to 100, spawns, resets, and respects the 10-item cap.
+
+## Why
+
+TODO
+
+## Files
+
+- TODO

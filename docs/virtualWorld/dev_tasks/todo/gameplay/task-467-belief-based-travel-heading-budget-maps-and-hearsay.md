@@ -12,7 +12,7 @@ priority: medium
 **Design:** `docs/design/worldpainter-knowledge-and-fog.md` — grids, belief
 travel and fog of war as one substrate (ties task-495/496/499).
 
-## Goal
+## What
 
 Travel to a destination held as a belief rather than a known node: heading plus time budget ('go west 2h') moves the character through the world, resolves whatever lies that way (including generated content, task-398/task-9) and validates the belief on arrival. Maps and directions gained from dialogue or items write knowledge (task-403) that upgrades a belief into a known route/area. Shares the heading + frontier primitive with Explore, and interrupts via task-466 (hazard, vital, interesting find).
 
@@ -40,6 +40,18 @@ grid is the shared model for authoring, movement and knowledge.
 - [ ] Maps and hearsay writing knowledge that upgrades a belief to a known route.
 - [ ] Generation-on-discovery at the frontier (task-398/task-9).
 
-## Verification
+## Steps to verify
 
 `python -m pytest tests/test_timeskip.py::test_route_helpers_report_hop_duration -q` → passed.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Files
+
+- TODO

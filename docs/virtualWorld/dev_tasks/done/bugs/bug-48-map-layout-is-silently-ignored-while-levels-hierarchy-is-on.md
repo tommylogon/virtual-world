@@ -10,11 +10,13 @@ priority: medium
 **Filed:** 2026-09-26
 **Related:** task-496 task-526
 
-## Goal
+## What
 
 loadGraphData only applies the painted-grid layout when !levelsOn, so with the Levels toggle on, clicking Map changes nothing and a painted zone keeps its hierarchical arrangement (looks like physics is on / nodes cramped). Decide the rule: Map should force Layout=free/off (or Levels should not be selectable in Map mode), and the two toolbar toggles must reflect a single source of truth. Add a test or documented invariant so 'Map does nothing' cannot recur.
 
 ## Acceptance
+
+
 
 ## Acceptance
 
@@ -56,3 +58,21 @@ Real interactions on the segmented control:
 
 No page errors. The refusal is visible (disabled + title) and programmatic
 reaches are both refused and explained, not silent.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

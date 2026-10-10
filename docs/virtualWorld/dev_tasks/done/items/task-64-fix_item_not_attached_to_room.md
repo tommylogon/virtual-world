@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: items
+priority: medium
+---
+
 # BUG: New Item Not Attached to Selected Area
 
 **Filed**: 2026-07-15
@@ -6,11 +13,11 @@
 
 ---
 
-## Summary
+## What
 
 When creating a new item via the "Add New Item" modal with a target room selected, the item is not always placed in the selected room. The user reports creating a "leather chair" intended for the "living room", but the item did not appear in that room.
 
-## Current State
+## Why
 
 In `main.js:openCreateModal()` (line 396-407), the item form includes a target room selector:
 
@@ -60,8 +67,22 @@ function addItemViaGraph() {
 3. Ensure the backend creates the item-in-room edge
 4. Verify the room lookup matches the graph's room ID normalization
 
-## Files Affected
+## Files
 
 - `static/js/api.js` — verify `createItem()` payload structure
 - `app.py` — verify backend `createItem` endpoint
 - `static/js/main.js` — verify the data object construction
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

@@ -1,6 +1,9 @@
 ---
-group: Trigger System
+area: triggers
 wiki: "[[Rules Engine/Triggers & Effects]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Triggers: Success and Fail Messages
@@ -11,11 +14,11 @@ wiki: "[[Rules Engine/Triggers & Effects]]"
 
 ---
 
-## Summary
+## What
 
 Currently, triggers have a single "Message" field that displays regardless of whether the trigger's condition succeeds or fails. Triggers need separate success and fail message fields so that the game can give contextual feedback.
 
-## Current State
+## Why
 
 In `item-library.js:_addTrigger()` (line 586-588), the trigger editor has a single message input:
 
@@ -73,7 +76,21 @@ Update `_refreshEditorWithTriggers()` to show both messages in the trigger list 
   - Fail message group visibility now updates dynamically when conditions are added/removed (`_updateFailGroupVisibility()` hooked into `show()`, `_addLeafTo`, `_addGroupTo`, `_removeCondItem`, `_ungroupGroup`) instead of only at editor load.
 - Related bug fix in `static/js/inspector.js` (edit-trigger button): trigger nodes are now actually created via `POST /api/graph/node` (previously `PATCH` 404'd, leaving orphan `triggers` edges whose target nodes didn't exist — making the edit button silently no-op). `_editTriggerFromNode` falls back to the edge's data copy when the node is missing, and saves keep node + edge properties in sync.
 
-## Files Affected
+## Files
 
 - `static/js/shared/trigger-editor.js` — fail message display/visibility + message→effect-param wiring
 - `static/js/inspector.js` — trigger node creation on add; edge-property fallback + node/edge sync on edit
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

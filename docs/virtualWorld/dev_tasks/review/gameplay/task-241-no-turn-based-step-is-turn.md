@@ -1,9 +1,16 @@
+---
+type: task
+status: review
+area: gameplay
+priority: medium
+---
+
 # Task-241: No-Turn-Based Mode — Each Step Is a Turn
 
 **Status:** In Review — implemented 2026-08-16.
 **Source:** `dev_tasks/developer ideas.md` (on no turn based eash step should be a turn)
 
-## Goal
+## What
 
 In "no turn based" mode — where you manually select one agent and step it
 (Step Once, or the loop repeats that same selected agent) — each step must
@@ -21,7 +28,7 @@ The bug this fixes: with turn-based off, Step Once currently runs the action but
 never ends the turn, so time does not advance and anything that waits for a new
 turn never fires.
 
-## Implementation
+## How
 
 - `static/js/agent/turn-queue.js`: extracted the wrap-complete block of
   `advance()` (`turnNumber++`, `ApiClient.applyTurn()`, `ApiClient.clearTurnEvents()`)
@@ -36,9 +43,21 @@ turn never fires.
 - Backend unchanged: `/api/turn/apply` → `tick_turn()` already applies decay +
   ticks for all characters.
 
-## Verification
+## Steps to verify
 
 - `node --check` passes on both edited files; 941 pytest pass.
 - Browser (live, 127.0.0.1:4444): turn-based off, `controllingPlayer='rat'`,
   `stepOnce()` → `time_ticks` 21→22 and `turnNumber` 0→1. Turn ends, clock
   advances, decay tick ran.
+
+## Why
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

@@ -1,8 +1,15 @@
-﻿# Task: Plan Loop-Breaking — Step Tracking & Failure Bailout
+---
+type: task
+status: done
+area: prompting
+priority: medium
+---
+
+# Task: Plan Loop-Breaking — Step Tracking & Failure Bailout
 
 **Status**: In Review — implemented (verified 2026-08-08 code audit; moved from todo). `_planProgress`/`_planFailures` tracked in `agent-engine.js`, `_trackPlanStep` gates on the backend `success` flag and blocks steps after 3 failures, `_shouldReplan` fires on stalled/blocked steps, step position rendered as `(done)`/`(CURRENT)` in the plan context, and failures feed plan regeneration. The raw `storeMemory(action → result)` violation is gone (memories come only from the reaction phase). Pending: the failure-aware repeat-warning extension from §6.
 
-## Goal
+## What
 
 Break the "replan → re-echo the same step" loop seen throughout
 `event_log_2026-08-02T12-00-06.txt`:
@@ -47,7 +54,7 @@ from the observe/reaction phase (that's where `_generateRichObservation` /
    failure — see `task-186-agent-validation-and-feedback` emote gating), **system wins**
    and corrects the memory.
 
-## Changes
+## How
 
 ### 0. Stop writing raw system strings to character memory
 - `agent-engine.js:327`: replace `storeMemory(charName, \`${finalAction} →
@@ -103,7 +110,26 @@ from the observe/reaction phase (that's where `_generateRichObservation` /
   plan-step failures live in `_planFailures`. Do not add a third parallel counter.
 
 ## Files Modified
+
 - `static/js/agent-engine.js`
 - `static/js/agent/prompt-builder.js`
 - `static/js/agent/plan-manager.js`
 - `docs/virtualWorld/AI & Narration/` (agent planning doc if present)
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

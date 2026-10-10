@@ -1,8 +1,15 @@
+---
+type: task
+status: review
+area: gameplay
+priority: medium
+---
+
 # Task: Move Output Clarity — Arrival Area Name
 
 **Status**: Implemented (verified 2026-08-06) — destination area name is already included in move output via `arrival_suffix` in `engine/movement.py` `move_to_area()`: `target_display = target_area_node.properties.get("display_name") or target_area_node.name; arrival_suffix = f" — you're in {target_display}."`. Move output now reads e.g. "You head through the north door. — you're in the Kitchen." The task goal (name the destination) is met. Should be moved to `done/` once a Playwright assertion (see Files Modified) is added.
 
-## Goal
+## What
 
 Make move results name the destination so the agent doesn't have to guess where
 it ended up. Currently `routes/action.py:96-108` builds the "You move" message
@@ -18,7 +25,7 @@ Evidence from `event_log_2026-08-02T12-00-06.txt`:
   kitchen" without a ground-truth name to confirm against, contributing to vague
   area references.
 
-## Changes
+## How
 
 ### 1. `routes/action.py` — move handler (lines 96-108)
 - Add the destination area name explicitly. Prefer:
@@ -38,6 +45,25 @@ Evidence from `event_log_2026-08-02T12-00-06.txt`:
   spatial grounding.
 
 ## Files Modified
+
 - `routes/action.py`
 - `tools/test_all.cjs` (assert destination name present in move output)
 - `docs/virtualWorld/` (if move format is documented anywhere)
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

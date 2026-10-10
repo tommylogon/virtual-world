@@ -1,3 +1,10 @@
+---
+type: task
+status: review
+area: ui
+priority: medium
+---
+
 # Task 334 — Human react phase + automatic memory capture
 
 **Status:** In Review — implemented 2026-08-24 as part of task-333's human turn panel
@@ -49,3 +56,25 @@ anything unless hand-added.
 
 Lane 1 (the core "react + memory" ask) is done; lanes 2/3 remain future work. Marked
 In Review for the implemented portion; reopen or file a follow-up for digest/interject.
+
+## What
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

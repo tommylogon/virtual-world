@@ -1,7 +1,11 @@
 ---
-group: Agent AI & Behavior
+area: characters
 wiki: "[[Characters/NPC Behavior System]]"
+type: task
+status: review
+priority: medium
 ---
+
 # Closeness as Behavioral Gate
 
 **Filed**: 2026-07-22
@@ -24,7 +28,7 @@ wiki: "[[Characters/NPC Behavior System]]"
 
 ---
 
-## Summary
+## What
 
 Relationships with closeness values exist but are purely informational — injected into the prompt as context. humanoidagents uses closeness as a **behavioral gate**: it checks closeness before deciding whether to react to another agent, and adjusts dialogue tone based on closeness level.
 
@@ -66,7 +70,7 @@ def get_sentiment_about_conversation(self, conversation_history, other_agent):
 
 ---
 
-## Changes
+## How
 
 ### 1. Add closeness gate to agent reaction check
 
@@ -104,3 +108,21 @@ Currently `player.py:233` has `update_relationship()` but it's only called from 
 2. Observe that they rarely react to each other's actions
 3. Increase closeness to 75 (close friend)
 4. Observe that they react more frequently and warmly
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

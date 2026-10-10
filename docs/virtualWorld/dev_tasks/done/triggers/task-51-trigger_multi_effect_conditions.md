@@ -1,6 +1,9 @@
 ---
-group: Trigger System
+area: triggers
 wiki: "[[Rules Engine/Triggers & Effects]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Multi-Effect / Multi-Condition Triggers
@@ -11,7 +14,7 @@ wiki: "[[Rules Engine/Triggers & Effects]]"
 
 ---
 
-## Summary
+## What
 
 Triggers currently support one `effect_type` + `effect_params` and one `condition`. To support recipes (lighting a fireplace needs: consume kindling + set_state + set_environment + message), triggers need arrays of both effects and conditions.
 
@@ -85,3 +88,25 @@ In `_execute_triggers()`:
 ## Dependencies
 
 - Prerequisite for: fireplace_lighting_recipe, way_trigger_events, heat_propagation
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

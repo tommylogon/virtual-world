@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-10-04
 **Related:** task-692, task-340
 
-## Goal
+## What
 
 Carry the performing actor on result rows so turn-feed stops attributing every NPC action to the human.
 
@@ -60,7 +60,7 @@ so this compares against the active player's name and inherits every
 name-matching concern from `engine/matching.py` (task-619 records the
 same field being stored in two shapes).
 
-## Fix
+## How
 
 Emit result rows with the actor, the way action rows already do. This is
 the same fix surface as task-692's director pass, which is why the two
@@ -93,3 +93,17 @@ runner green: **618 passed, 0 failed**.
 
 Not yet verified in a live LLM turn (that needs a real NPC action); the parse
 fix — the exact defect — is covered by the unit test.
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

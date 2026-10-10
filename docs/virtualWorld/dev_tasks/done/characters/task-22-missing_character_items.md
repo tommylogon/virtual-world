@@ -1,10 +1,17 @@
+---
+type: task
+status: done
+area: characters
+priority: medium
+---
+
 # Missing Character Items (Phone, Granola Bar, Flashlight, Water Bottle)
 
 **Filed**: 2026-07-18
 **Priority**: Medium
 **Status**: Todo — verified still missing on 2026-08-03 (full data audit). Implementation is design work, owner: Tommy.
 
-## Summary
+## What
 
 Several characters in `data/scenarios/mansion.json` lack items they're supposed to have. Originally filed against the old players-section `inventory` array (which no longer exists — mansion.json is fully graph/edge-based now, so that data-integrity symptom is obsolete). The **missing item instances are still absent** from the graph edges.
 
@@ -34,3 +41,25 @@ Existing trigger nodes worth mirroring for food/water instances: `trigger_item_g
 ## Note
 
 The original "inventory array vs graph edges must be kept in sync" validation concern is moot now that mansion.json is fully edge-based — no array to drift. If per-character instances are created (Option A), consider a quick sanity check that no character's `carrying`+`equipped` edges are empty by design.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

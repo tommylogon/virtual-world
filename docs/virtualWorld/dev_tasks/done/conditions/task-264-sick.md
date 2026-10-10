@@ -1,6 +1,8 @@
 ---
-group: Conditions
+area: conditions
 status: done
+type: task
+priority: medium
 ---
 
 # Condition: Sick (`sick`)
@@ -12,7 +14,7 @@ status: done
 
 ---
 
-## Purpose
+## What
 
 Generic illness. Hunger and thirst worsen over time. The canonical hidden (`known: False`) symptom-driven condition, and the building block for diseases/contagion.
 
@@ -57,7 +59,7 @@ Generic illness. Hunger and thirst worsen over time. The canonical hidden (`know
 - Disease/contagion authoring (`Conditions System.md` §Diseases & Contagion): carrier items + `apply_condition sick` via `on_tick`/`on_examine`.
 - Cure: `bitterweed_tonic` → `remove_condition sick`.
 
-## Testing
+## Steps to verify
 
 - [ ] Sick drains Hunger/Thirst each tick.
 - [ ] Multiple sick instances sum their drains (`accumulate`).
@@ -68,3 +70,19 @@ Generic illness. Hunger and thirst worsen over time. The canonical hidden (`know
 
 - Should specific diseases (flu, food poisoning) be separate conditions or instances/`source`-variants of generic `sick`? (Catalog stays small — prefer param via source/level.)
 - Relationship to task-190's `hypothermia` — sickness-family reuse vs. separate condition.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

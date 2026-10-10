@@ -10,7 +10,7 @@ priority: low
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 Civic appears in both ROOM_PURPOSES and CATEGORIES in worldpainter/editor.js, so the palette renders two separate 'Civic' headings -- one with 2 options under Rooms, one with 4 under Buildings. An author cannot tell from the heading which they are picking, and the room/building distinction is the whole reason the palette is grouped.
 
@@ -40,5 +40,23 @@ once as `(room)` and once as `(building)`.
     Transport, Structure
 
 plus 16 wild-terrain tiles loose at the top.
+
+- TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
 
 - TODO

@@ -5,7 +5,7 @@ tags: [system/ui, topic/validation]
 
 # Validator & Issues
 
-**Task:** [[dev_tasks/done/library/task-323-library-lint-validator|task-323]] · [[dev_tasks/done/ui/task-393-validator-triage-panel|task-393]] · pending: [[dev_tasks/todo/ui/task-443-validator-mismatch-recalibration-and-info-section|task-443]]
+**Task:** [[dev_tasks/done/library/task-323-library-lint-validator|task-323]] · [[dev_tasks/done/ui/task-393-validator-triage-panel|task-393]] · pending: [[task-443-validator-mismatch-recalibration-and-info-section|task-443]]
 
 Scenario lint, mismatches, and authoring blockers. There is **no single validator** —
 there are four independent instruments, and only one of them is wired to a UI:
@@ -140,7 +140,7 @@ actions are `warning`.
 
 ## Pending
 
-[[dev_tasks/todo/ui/task-443-validator-mismatch-recalibration-and-info-section|task-443]]
+[[task-443-validator-mismatch-recalibration-and-info-section|task-443]]
 records what task-393 specified but never built, and its first item is a
 correction of task-393's own claim:
 

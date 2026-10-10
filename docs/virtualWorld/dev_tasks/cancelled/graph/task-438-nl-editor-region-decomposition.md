@@ -26,7 +26,7 @@ task-410 (food renewal), task-411 (attention budget / fidelity tiers), task-422 
 > Supersedes relationship: this depends on task-439, which may no longer be a hard
 > prerequisite once the compiler owns ids.
 
-## Goal
+## What
 
 Type this into the NL editor and get a reviewable staged graph patch:
 
@@ -40,7 +40,7 @@ features, tags, ambience). The **topology** — node creation, way minting, boun
 retargeting, id casing, contents migration — is deterministic code. This is task-398's
 generator contract applied to an *existing* region instead of an unmade scope.
 
-## Problem
+## Why
 
 `area_deep_forest` is one node with six outbound ways (Raven River, Old Dwarven Ruins,
 Northern Hills, Human Road, Abandoned Farm, Murk Lake) and seven inbound
@@ -82,7 +82,7 @@ Deterministic · seedable · reviewable before Apply · idempotent (a second run
 duplicate) · provenance on every generated node · never overwrite manual edits ·
 **report** unresolved assignments, never silently substitute.
 
-## Design
+## How
 
 ### Anchor rule (v1): never delete the region node
 
@@ -236,3 +236,13 @@ same planner offline.
   NL editor's hard-coded 6000-token context (`static/js/nl-editor/agent-loop.js:23`;
   task-422 is still unstarted). Prefer several small `add_areas` calls over one giant
   `split_area`.
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

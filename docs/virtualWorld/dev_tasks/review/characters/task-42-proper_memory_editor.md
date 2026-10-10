@@ -1,6 +1,9 @@
 ---
-group: Agent AI & Behavior
+area: characters
 wiki: "[[AI & Narration/Memory System]]"
+type: task
+status: review
+priority: medium
 ---
 
 # Proper Memory Editor + World Lore
@@ -11,7 +14,7 @@ wiki: "[[AI & Narration/Memory System]]"
 
 ---
 
-## Summary
+## What
 
 Replace the single-textarea memory system with two complementary list-based systems:
 
@@ -192,7 +195,7 @@ See `vector_embeddings_rag_prep.md` for the future RAG integration plan.
 
 ---
 
-## Files Affected
+## Files
 
 - `virtual_world_engine.py` — add `world_lore` list field, auto-memory on events
 - `player.py` — add structured `memories` field
@@ -202,3 +205,21 @@ See `vector_embeddings_rag_prep.md` for the future RAG integration plan.
 - `static/js/agent-engine.js` — inject world lore + structured memories into prompt
 - `world_template.json` — add `world_lore` top-level field (list)
 - `static/css/style.css` — optional styling for list editors
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

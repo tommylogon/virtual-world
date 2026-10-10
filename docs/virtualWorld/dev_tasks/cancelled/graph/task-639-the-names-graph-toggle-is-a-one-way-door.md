@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 Turning the label toggle off does not restore the prior state.
 
@@ -37,3 +37,21 @@ can be absent without anything being broken.
 This is the fifth finding in the live audit retracted for the same reason --
 judged without interacting with the surface. Recorded in the audit README's
 method-limitation section.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

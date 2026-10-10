@@ -1,6 +1,9 @@
 ---
-group: Equipment & Inventory
+area: items
 wiki: "[[Items & Inventory/Items Overview]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Design: Route Food Items to "eat" Action Instead of Generic "use"
@@ -11,7 +14,7 @@ wiki: "[[Items & Inventory/Items Overview]]"
 
 ---
 
-## Summary
+## What
 
 Food items (tagged with `food`, `consumable`, etc.) previously worked through the generic `use` command. Now they have dedicated `eat_item()` and `drink_item()` processing paths that fire `on_eat`/`on_drink` triggers exclusively — no `on_use` fallback.
 
@@ -51,7 +54,7 @@ Food items (tagged with `food`, `consumable`, etc.) previously worked through th
 
 - ✅ No changes needed — `on_eat` and `on_drink` were already in `TRIGGER_TYPES`
 
-## How to Test
+## Steps to verify
 
 1. Start server: `python app.py`
 2. In a game with food items:
@@ -69,8 +72,20 @@ Food items (tagged with `food`, `consumable`, etc.) previously worked through th
 - Items can have BOTH `"use"` and `"eat"` in their actions list for dual functionality
 - The `_consume_item()` internal method shares ~90% of the logic with `use_item()` without duplicating code
 
-## Files Changed
+## Files
 
 - `virtual_world_engine.py` — added `eat_item()`, `drink_item()`, `_consume_item()`; updated `_check_ghost_action()`, streamlined `use_item()`
 - `app.py` — routing `eat`/`drink` to new methods
 - `static/js/item-library.js` — no changes needed (already had trigger types)
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

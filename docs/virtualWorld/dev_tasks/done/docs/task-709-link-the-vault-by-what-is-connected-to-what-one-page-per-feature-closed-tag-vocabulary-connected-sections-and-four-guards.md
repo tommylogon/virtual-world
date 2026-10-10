@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-10-05
 **Related:** task-661,task-26,task-91
 
-## Goal
+## What
 
 Turn docs/virtualWorld from an index with islands into a connected graph: a Features/ page per Feature Map row, a controlled tag vocabulary, a generated Connected section per note, Obsidian affordances used where they carry meaning, and four gates wired into npm run precommit so it cannot rot back.
 
@@ -94,3 +94,21 @@ pages with real code paths — they honestly say "Where it lives: not recorded y
 rather than guessing. `doc_links --orphans --all-notes` reports 635 unreferenced
 task files; that is expected, because the task tree is referenced by
 `related:` frontmatter rather than by wikilinks.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

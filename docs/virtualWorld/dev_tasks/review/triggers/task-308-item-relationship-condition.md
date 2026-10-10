@@ -1,6 +1,10 @@
-﻿---
-group: Triggers
 ---
+area: triggers
+type: task
+status: review
+priority: medium
+---
+
 # Item Relationship Condition (Bulging Pocket Check)
 
 **Filed**: 2026-08-19
@@ -24,3 +28,28 @@ Condition to check if self has an item in a relationship, or if an item has anot
 - `developer ideas.md` line 15
 - `engine/trigger_system.py` (`has_item`, `has_items`, `in_area`), `graph.py` spatial edges
 
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

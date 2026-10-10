@@ -11,7 +11,7 @@ priority: high
 **Related:** task-442, task-388
 **Area:** triggers (editor/compiler; no engine runtime materialisation)
 
-## Goal
+## What
 
 Fix the two dishonest trigger-graph compiles so no authored effect is silently dropped and OR/NOT conditions survive the round trip.
 
@@ -33,7 +33,7 @@ editor/compiler fix, independent of the runtime blueprint materialiser.
 
 Evidence: `static/js/shared/trigger-graph.js:1844`, `:1996`, `:2082-2113`.
 
-## Changes
+## How
 
 - Compile a NO branch to real engine conditions/effects, **or** make the editor
   refuse to save a NO branch it cannot represent. Silent truncation is not
@@ -96,3 +96,17 @@ Deliberately deferred (filed): condition **group nodes** so an imported OR/NOT
 group is editable again instead of refused (task-502); behavior-mode compile
 honesty, where `_traceBehavior`/`compileToBehaviors` still drop NO-branch
 actions (task-503).
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

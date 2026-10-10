@@ -11,7 +11,7 @@ priority: medium
 **Related:** task-523, bug-52
 **Status:** implemented 2026-09-27, in review
 
-## Problem
+## Why
 
 Four things on a painted map were fixed pixel constants, all tuned for the
 default 40px cell. Raise **Map grid** to 260 and the rooms spread out while their
@@ -80,3 +80,21 @@ way 26, item 30, character 42, font 14). The card is still capped and wraps a lo
 name, and `relative-layout` / `graph-background` still read `mapSpacing()`; only
 the "marks scale with the pitch" half is undone, because one slider should not
 both space the rooms and inflate the markers.
+
+## What
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

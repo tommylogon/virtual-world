@@ -26,3 +26,29 @@ priority: medium
 
 Original audit text mentioned "[💾 Commit] and [🌀 Restart]" — Restart stayed in the
 toolbar per the two-Restart consolidation; see task-368 for the menu wording.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

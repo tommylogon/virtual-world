@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-10-05
 **Related:** task-391
 
-## Goal
+## What
 
 An authored trigger can remove a target character from the roster, the graph and both lookup maps - the four-step teardown companions.py already performs privately.
 
@@ -63,3 +63,21 @@ Verified absent 2026-10-05: `EFFECT_TYPES` (engine/triggers/constants.py) has
 Whether an ascended ghost should leave a trace — a memory in the player, an
 empty chair, an item. That is a design call about what the ending is worth, not
 a mechanic, and it should be settled before this ships rather than after.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

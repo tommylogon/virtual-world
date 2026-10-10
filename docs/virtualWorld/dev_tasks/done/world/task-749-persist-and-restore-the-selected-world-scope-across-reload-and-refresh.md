@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-10-09
 **Related:** task-397 (world scope hierarchy and projection), task-439 (canonical area identity), task-451 (background layers)
 
-## Goal
+## What
 
 Selecting a world scope in the graph filter does not survive a page reload or
 app refresh: the graph reverts to whole world. Make the selected scope persist
@@ -60,3 +60,21 @@ Persisted per scenario in `localStorage` under `vw_graphScope_<scenario name>`
       the key).
 - [x] Whole-world selection still restores whole world (picking it clears the key).
 - [ ] Live: pick a scope, refresh, confirm it returns to the scope and the picker/breadcrumb agree.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

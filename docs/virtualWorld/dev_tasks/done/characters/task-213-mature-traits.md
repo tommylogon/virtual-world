@@ -17,7 +17,7 @@ task-488 and task-534.
 
 ---
 
-## Problem
+## Why
 
 The design calls for personality traits that modulate the pleasure system (`wired_differently`, `attention_seeker`, `exhibitionist`, `quick_recovery`, `sensory_memory`, `single_track`, `sex_addict`) plus a set of non-erotic "body reactions" (goosebumps, shivers, cough, sneeze, hiccup, itch).
 
@@ -81,7 +81,7 @@ the items 213 flagged as "what task-166 misses" — the other two were never
 missing at all (see the correction above). The one real gap, `sneeze`, is now
 **task-534**.
 
-## Testing
+## Steps to verify
 
 - [x] `wired_differently` multiplies the authored body parts — `tests/test_pleasure_system.py`
 - [x] `quick_recovery` halves the overstimulation bout — `tests/test_pleasure_system.py`
@@ -108,3 +108,19 @@ and worth adding alongside task-534 rather than reopening 213.
 - task-166 (done) — involuntary actions; covered hiccups, burps, yelps, stutters,
  shiver, cough, ramble
 - task-212 — verb multipliers (`body_part_multipliers` consumer)
+
+## What
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

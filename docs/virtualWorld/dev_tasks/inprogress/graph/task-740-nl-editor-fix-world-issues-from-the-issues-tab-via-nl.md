@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-10-08
 **Related:** 
 
-## Goal
+## What
 
 Add a list_world_issues read tool over GET /api/triggers/validate (validator-panel.ts:84) returning {code,node,message,severity}, then let the editor stage fixes with existing tools and re-validate to confirm. Cheapest highest-value slice of the full-authoring scope. See docs/design/nl-editor-full-authoring.md.
 
@@ -30,3 +30,20 @@ Add a list_world_issues read tool over GET /api/triggers/validate (validator-pan
 - Built clean; unit 624/0. Endpoint not live-confirmed this pass (dev server was down);
   wiring confirmed in the built `tools.js`.
 
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

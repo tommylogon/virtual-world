@@ -1,9 +1,16 @@
-﻿# Task-330: Trigger Effect — LLM-Generated Response
+---
+type: task
+status: review
+area: triggers
+priority: medium
+---
+
+# Task-330: Trigger Effect — LLM-Generated Response
 
 **Status**: Todo — blocked 2026-08-30: engine-side LLM provider was removed (task-99, backend LLM modules). Trigger effects fire server-side; llm_respond needs a server LLM path (provider route or browser round-trip callback). Composition design (on_speech + speech_matches gate) stays valid — implement once the LLM host question is settled.
 **Filed**: 2026-08-23
 
-## Summary
+## What
 
 New trigger effect type `llm_respond` (name TBD): when a trigger fires, the engine
 requests an LLM-generated spoken response on behalf of the node, using instructions
@@ -73,3 +80,24 @@ Sketch:
   per-node cooldown param?
 - Behavior-side twin filed separately as task-331 (same runtime, different executor).
 
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

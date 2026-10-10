@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-28
 **Related:** task-397, task-398
 
-## Goal
+## What
 
 Expose task-398's deterministic generation through the UI: a Generate action on an unmade scope card that carries a recipe, and a preview of the patch the recipe would apply (areas, items, and any missing tag candidates from the report) before anything is written.
 
@@ -75,3 +75,20 @@ report's missing tag candidates; (2) the Generate button + preview modal on the
 chosen surface; (3) the no-op-on-made-scope guard. Recommend resolving the
 scope-tree vs painter ownership question with task-592 first.
 
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

@@ -1,14 +1,18 @@
 ---
-group: Graph & Area UX
+area: gameplay
 wiki: "[[Rules Engine/Triggers & Effects]]"
+type: task
+status: review
+priority: medium
 ---
+
 # Task 101: Simultaneous Turns Per Area (Parallel Processing with Sync)
 
 **Status**: todo
 **Priority**: Low
 **Filed**: 2026-07-24
 
-## Summary
+## What
 
 Currently all characters are processed sequentially in a global initiative order. This task changes the game loop to process areas in parallel — all characters in a room act (sequentially within the room), then areas sync before the next tick. If one room finishes before another, it waits. Movement between areas during a tick is handled as a special case.
 
@@ -49,7 +53,7 @@ Tick N:
   - C does NOT get a new turn in Area A this tick
 - Dead/sleeping/unconscious characters are still processed (they just don't act)
 
-## Implementation
+## How
 
 ### Engine Changes
 
@@ -71,7 +75,7 @@ Tick N:
 - Turn order display might need room grouping
 - Step button advances one room-tick (all areas, all characters)
 
-## Files Affected
+## Files
 
 - `engine/tick_manager.py` — restructure tick loop for room-based processing
 - `engine/player_manager.py` — add `get_players_by_area()` grouping
@@ -79,7 +83,8 @@ Tick N:
 - `routes/action.py` — `/api/turn/apply` may need changes
 - `static/js/agent/turn-queue.js` — turn order display
 
-## Tests
+## Steps to verify
+
 - Two areas with characters — both process same tick
 - Character moves between areas mid-tick
 - Empty areas don't block processing
@@ -96,3 +101,11 @@ Tick N:
 - The **engine-level** flow above (true tick-level parallel processing, the
   Phase 3 sync barrier, Phase 4 cross-room movement resolution, `tick_manager`
   restructure) is still open and is absorbed by task-437 ("task-101 is step 5").
+
+## Why
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

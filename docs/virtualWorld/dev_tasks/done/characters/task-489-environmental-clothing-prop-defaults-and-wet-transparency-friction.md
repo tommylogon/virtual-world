@@ -10,7 +10,7 @@ priority: low
 **Filed:** 2026-09-23
 **Related:** task-215
 
-## Goal
+## What
 
 Finish task-215: give item nodes default comfort/friction/coverage/opacity (opacity 0.8, coverage 0.8 when absent), and couple the existing wet state (condition 'wet', equipment_bonuses.py:107) to clothing opacity/friction so rain/swimming makes layers more see-through and changes friction, then triggers description regeneration. Friction->arousal trickle already ships (engine/tick_manager.py:1028) as does weather/wind/humidity.
 
@@ -155,3 +155,21 @@ Row 1 is the refusal proved live on an item that authors both cancelled props:
 they are silently absent while `coverage` defaults into view. Row 2 is the item
 task-215 lists as still open — the description actually changes now. Row 4 is
 the defect that made rain do nothing at all.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

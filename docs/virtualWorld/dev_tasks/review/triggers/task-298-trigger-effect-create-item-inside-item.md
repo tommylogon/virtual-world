@@ -1,6 +1,10 @@
-﻿---
-group: Triggers
 ---
+area: triggers
+type: task
+status: review
+priority: medium
+---
+
 # Trigger Effect: Create Item Inside Another on Use
 
 **Filed**: 2026-08-19
@@ -27,3 +31,28 @@ Trigger effect to create a new item inside another item on use. Examples:
 - `developer ideas.md` line 5
 - `engine/effects.py` `handle_spawn_item` (fresh-copy semantics, task-294+), `engine/trigger_system.py` (`random_chance`, `speech_matches`, `sound_heard`)
 
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

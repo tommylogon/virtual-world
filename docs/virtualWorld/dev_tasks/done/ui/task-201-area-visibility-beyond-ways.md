@@ -1,6 +1,9 @@
 ---
-group: UI & Settings
+area: ui
 wiki: "[[dev_tasks/level-design-workflow]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Area Visibility Beyond Ways (examine + observation prompt)
@@ -11,11 +14,11 @@ wiki: "[[dev_tasks/level-design-workflow]]"
 
 ---
 
-## Problem
+## Why
 
 "From where you stand, the Upstairs Hall is visible beyond" currently lists little beyond auto env clues. There is no way to toggle whether characters/items in an area beyond a way appear in the narrative or agent prompt.
 
-## Design
+## How
 
 - This is not just the examine view — it also applies to the **agent room context** (`buildRoomContext` exits block).
 - The backend already has partial data (`see_through`, `area_description.py` visibility).
@@ -69,3 +72,17 @@ Do not build a separate preview surface — extend task-219 lens.
 - [[todo/ui/task-219-agent-lens-left-panel|task-219]]
 - [[todo/ui/task-220-unified-way-editor|task-220]]
 - [[dev_tasks/level-design-workflow|Level design workflow hub]]
+
+## What
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

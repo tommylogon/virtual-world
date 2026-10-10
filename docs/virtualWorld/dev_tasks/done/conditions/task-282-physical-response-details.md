@@ -1,6 +1,8 @@
 ---
-group: Conditions
+area: conditions
 status: done
+type: task
+priority: medium
 ---
 
 # Condition: Nipple Hard (`nipple_hard`)
@@ -12,7 +14,7 @@ status: done
 
 ---
 
-## Purpose
+## What
 
 A local, self-evident physical marker of arousal — a periodic Arousal feed with a visible tell. Minor, known, low-stakes.
 
@@ -64,3 +66,25 @@ A local, self-evident physical marker of arousal — a periodic Arousal feed wit
 
 - Is a gentle Arousal feed enough value to be a condition, or is it pure flavor? (task-209 lists it, so keep as authored.)
 - `stack: "noop"` — confirm re-stimulation doesn't need to escalate anything.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

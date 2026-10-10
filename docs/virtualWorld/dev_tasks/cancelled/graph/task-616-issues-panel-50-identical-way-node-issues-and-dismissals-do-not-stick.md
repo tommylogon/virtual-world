@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 The Issues panel fills with the same way-node problem repeated per node, and dismissing does not persist.
 
@@ -66,3 +66,21 @@ widget). In all three cases I judged the **default** rendering of a surface that
 
 The rule that would have caught all three: **before reporting that a surface is
 repetitive, missing, or unusable, enumerate its modes and look at each one.**
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

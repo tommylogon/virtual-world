@@ -1,6 +1,8 @@
 ---
-group: Conditions
+area: conditions
 status: done
+type: task
+priority: medium
 ---
 
 # Condition: Exhausted (`exhausted`)
@@ -12,7 +14,7 @@ status: done
 
 ---
 
-## Purpose
+## What
 
 Bone-tired. Leveled (1–6) with escalating Energy drain and movement penalty; each fresh bout of exhaustion stacks a level. A core fatigue/energy feedback loop.
 
@@ -56,7 +58,7 @@ Bone-tired. Leveled (1–6) with escalating Energy drain and movement penalty; e
 - `engine/movement.py` — dash/movement gating at low `effective_speed`.
 - Energy collapse → may trigger `unconscious`.
 
-## Testing
+## Steps to verify
 
 - [ ] Re-exhaustion bumps level (1→2→…→6), not a new instance.
 - [ ] Drain scales with level (L1 −1, L3 −3, L6 −4).
@@ -68,3 +70,19 @@ Bone-tired. Leveled (1–6) with escalating Energy drain and movement penalty; e
 - Where is the exhaustion level set from (energy threshold in `tick_manager`)?
 - Does reaching level 6 collapse into `unconscious`? If so, who applies that transition?
 - `symptom_for` can key-off `level` for leveled diseases — do we want exhaustion symptoms by level?
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

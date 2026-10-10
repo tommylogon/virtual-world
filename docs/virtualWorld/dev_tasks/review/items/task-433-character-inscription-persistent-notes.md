@@ -143,3 +143,25 @@ Tests: `tests/test_inscription.py` (8 passed);
 left as-is — the inscription path no longer depends on those handlers. `read`
 remains an `examine` alias with the inscription block rather than a first-class
 verb.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

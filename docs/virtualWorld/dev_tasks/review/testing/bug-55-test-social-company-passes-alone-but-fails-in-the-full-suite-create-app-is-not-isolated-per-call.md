@@ -13,7 +13,7 @@ priority: medium
 **Fixed:** 2026-09-29
 **Related:** task-551
 
-## Goal
+## What
 
 The second create_app() in a process does not behave like the first, so any test file running before test_social_company.py flips three of its seven assertions.
 
@@ -100,3 +100,21 @@ A booted world is not a state any route produces: `routes/saveload.py:43-45` and
 - [x] The measurement is now a mechanism assertion, not a stochastic aggregate — alone 72, introvert alone 78, company 80, extrovert company 83, every run.
 - [x] The failure count no longer swings by 3; the suite baseline drops to the remaining known failures.
 - [x] `test_clearing_the_source_leaves_the_name_alone` is fixed as a test-premise bug and the mis-grouping in `AGENTS.md` corrected.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

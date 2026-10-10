@@ -1,5 +1,8 @@
-﻿---
-group: Conditions
+---
+area: conditions
+type: task
+status: done
+priority: medium
 ---
 
 # Condition: Wet (`wet`)
@@ -11,7 +14,7 @@ group: Conditions
 
 ---
 
-## Purpose
+## What
 
 Body part or garment is soaked. Feeds into the insulation/clothing math — a wet coat provides less insulation, and being wet accelerates chilling (hypothermia).
 
@@ -68,3 +71,24 @@ Body part or garment is soaked. Feeds into the insulation/clothing math — a we
 - Does the engine currently support conditions on **items/garments**, or is that the killer-extension work (attach target types)?
 - Separate "damp" vs. "soaked" levels, or one `wet` with `level`/severity?
 
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

@@ -1,21 +1,24 @@
 ---
-group: Tech Debt & Testing
+area: ui
 wiki: "[[UI & Settings/Inspector Panels]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Prevent Double-Click on Step Button
 
 **Priority**: Medium
 
-## Summary
+## What
 
 Clicking the Step (⏭) button rapidly while a step is in progress queues up multiple `stepOnce()` calls, causing overlapping agent turns and confused state. The step button should be disabled while a step is in progress.
 
-## Current State
+## Why
 
 `config.busy` is already set during `step()` and `updateButtons()` already disables the button based on `config.busy || config.running`. But `stepOnce()` only checks `config.running`, and the button disable happens after the first `await` — so rapid double-clicks before the async yield can slip through.
 
-## Fix
+## How
 
 Add `config.busy` check to `stepOnce()`:
 
@@ -29,6 +32,16 @@ if (config.busy || config.running) { ... return; }
 **How to test**:
 - Click the Step (⏭) button rapidly multiple times. Verify only one step executes per click — the button should disable during execution and no overlapping agent turns occur.
 
-## Files Changed
+## Files
 
 - `static/js/agent-engine.js` — add `config.busy` check in `stepOnce()`
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

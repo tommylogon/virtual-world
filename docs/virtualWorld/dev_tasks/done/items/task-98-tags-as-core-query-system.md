@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: items
+priority: medium
+---
+
 # Task 98: Tags as a Core Query System
 
 **Status**: Done — implemented and verified 2026-08-13. Phase 2 browser E2E deferred to manual testing by user (automated Playwright attempts interrupted by modal interactions; core logic verified via state API and code inspection).
@@ -11,7 +18,7 @@
 
 ---
 
-## Summary
+## What
 
 Tags exist on items and characters but there was no unified way to query by tag. This task makes tags a first-class system used by triggers, agent focus, and perception.
 
@@ -178,3 +185,25 @@ Goal: New commands that use tag queries to make the world explorable.
 - [x] `find` command implemented with interest_tags default + explicit tag support (`routes/action.py`)
 - [x] `find` tests: 5 new tests in `tests/test_find_command.py` (explicit tag, interest_tags default, no interest_tags guidance, no matches, deduplication)
 - [x] Phase 2 browser E2E deferred to manual testing by user (attention reorder + examined-item drop-off logic verified via code + state API; browser automation interrupted by modal interactions)
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

@@ -1,14 +1,18 @@
 ---
-group: Combat & Abilities
+area: items
 wiki: "[[Environment/Light System]]"
+type: task
+status: review
+priority: medium
 ---
+
 # Proximity-Based Detection (EMF Reader, Future Tools)
 
 **Filed**: 2026-07-18
 **Priority**: Medium
 **Status**: Not Started
 
-## Summary
+## What
 
 Items like Elena's EMF reader should be able to detect nearby entities (characters, items, ways, areas) based on proximity in the graph. The EMF reader currently just has a static examine message.
 
@@ -35,7 +39,28 @@ Items like Elena's EMF reader should be able to detect nearby entities (characte
 
 **Deferred**: Post-merge feature branch. This branch is refactoring/testing only.
 
-
 ## Refactoring Impact (July 2026)
 
 Engine is modular. Create engine/proximity.py following DI. Wire in virtual_world_engine.py. Depends on player position and item graph positions. UI in static/js/inspector/.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

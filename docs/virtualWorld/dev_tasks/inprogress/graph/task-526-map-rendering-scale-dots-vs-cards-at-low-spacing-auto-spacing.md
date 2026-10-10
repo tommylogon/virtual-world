@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-26
 **Related:** task-523 task-496 task-548 bug-53
 
-## Goal
+## What
 
 A compiled area renders as a card whose width is its **name** plus padding, and
 the name does not shrink with the map pitch the way the padding does. So one
@@ -139,3 +139,21 @@ replaced: the pitch is now the mark envelope (`markEnvelopePitch`, 176px at
 node-size 1) and marks are fixed px (`MAP_MARK_PX`). What this file established
 and still holds: the stepper / `A` override, and deciding the pitch before
 anything reads it. See `docs/design/worldpainter-knowledge-and-fog.md`.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

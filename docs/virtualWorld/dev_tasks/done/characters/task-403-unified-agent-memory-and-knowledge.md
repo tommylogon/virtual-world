@@ -62,7 +62,7 @@ index) now exists:
 Still open below (the `AgentMind` facade, preconceived knowledge, need-driven
 retrieval, memory traits, memory decay).
 
-## Goal
+## What
 
 Collect the scattered knowledge systems already present in the codebase into
 one coherent "mind" per agent, and add the missing pieces: pre-conceived
@@ -253,7 +253,7 @@ into a player or character template. No code changes are needed beyond the
 bootstrap loader in `AgentMind.load_preconceived()`. The keys are optional;
 absence means "blank slate."
 
-## Verification
+## Steps to verify
 
 - Load a scenario with preconceived knowledge. Verify the agent's first active
   prompt includes the injected memory and can name the known area/way.
@@ -309,3 +309,15 @@ match/rank/no-match, the poor-memory cap, once-per-day need recall (no
 fabrication), decay inertness/removal/preconceived immunity, and a
 preconceived-knowledge world load. Related suites
 (background/serialization/promotion/traits/soak) all pass.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

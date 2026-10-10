@@ -1,6 +1,10 @@
 ---
-group: Environment
+area: environment
+type: task
+status: review
+priority: medium
 ---
+
 # Scenario Clock Start Time
 
 **Filed**: 2026-08-19
@@ -32,3 +36,29 @@ Allow changing the scenario's clock start time.
 
 - `developer ideas.md` line 7
 - `docs/virtualWorld/Environment/Time & Weather.md`, scenario files (`world_template.json` clock settings)
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

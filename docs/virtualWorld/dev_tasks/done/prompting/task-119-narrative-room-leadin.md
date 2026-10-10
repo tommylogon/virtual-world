@@ -1,6 +1,10 @@
 ---
-group: Prompt & Narrative Quality
+area: prompting
+type: task
+status: done
+priority: medium
 ---
+
 # Narrative Room Lead-in for Prompts
 
 **Filed**: 2026-07-29  
@@ -9,7 +13,7 @@ group: Prompt & Narrative Quality
 
 ---
 
-## Summary
+## What
 
 Replace the bare room name header in LLM prompts with a narrative lead-in sentence.
 
@@ -35,3 +39,25 @@ Full room description follows below as before.
 ### Scope
 - `static/js/agent/prompt-builder.js` — `buildRoomContext()` function
 - `static/js/agent-engine.js` — `_buildRoomContext()` function
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

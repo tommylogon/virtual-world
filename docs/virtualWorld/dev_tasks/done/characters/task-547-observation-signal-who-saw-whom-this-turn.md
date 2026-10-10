@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-27
 **Related:** task-487
 
-## Goal
+## What
 
 Nothing in the engine records that one character observed another, so any effect that depends on being seen or being exposed has no signal to read. Add a per-turn record of observers, with the public/covert distinction, built on the existing bystander-reaction perception pass.
 
@@ -173,3 +173,20 @@ not observe; a non-mature world records nothing for a sexual stimulus; the line
 cap does not truncate the observer set; an ignoring observer is still recorded;
 and the record ages out past its window without growing per turn.
 
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

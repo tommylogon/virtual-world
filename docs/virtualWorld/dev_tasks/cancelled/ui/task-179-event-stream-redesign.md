@@ -1,5 +1,8 @@
 ---
-group: UI
+area: ui
+type: task
+status: cancelled
+priority: medium
 ---
 
 # Event Stream Redesign — Turn Cards, Structured Events, LLM Chips
@@ -18,3 +21,29 @@ is live under task-340 — see `review/ui/task-340-event-stream-v2.md`.
 
 Kept here for the callsite audit table (234 `events.log()` callsites across 27
 files) which task-340 used as its contracting scope.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

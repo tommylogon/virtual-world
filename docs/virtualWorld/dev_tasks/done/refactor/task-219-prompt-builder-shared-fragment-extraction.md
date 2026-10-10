@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: refactor
+priority: medium
+---
+
 # Task 219: Prompt Builder Shared Fragment Extraction
 
 **Status**: Done — implemented 2026-08-13, verified via `tools/test_llm.cjs` (16/19, 3 pre-existing LLM endpoint failures unrelated to prompt output).
@@ -7,7 +14,7 @@
 
 ---
 
-## Summary
+## What
 
 The prompt builder had already been split from a monolithic `prompt-builder.js` into 6 modules (helpers, character-state, memory-context, room-context, system-prompt, turn-prompts). However, `turn-prompts.js` still contained large inline strings duplicated across phases: emote rules, memory instructions, ghost/dead flavor text, JSON schema examples, and plan guidance.
 
@@ -33,7 +40,7 @@ This task extracts those shared fragments into two new registries so they become
 
 ---
 
-## Verification
+## Steps to verify
 
 - `node --check` passes on all 8 prompt-builder files
 - `tools/test_llm.cjs`: 16/19 passed (3 failures are pre-existing LLM endpoint routing issues, unrelated to prompt text)
@@ -41,7 +48,7 @@ This task extracts those shared fragments into two new registries so they become
 
 ---
 
-## Files touched
+## Files
 
 - `static/js/agent/prompt-builder/context-sections.js` — new
 - `static/js/agent/prompt-builder/schema-fragments.js` — new
@@ -50,3 +57,15 @@ This task extracts those shared fragments into two new registries so they become
 - `static/js/agent/prompt-builder/index.js` — updated manifest
 - `templates/index.html` — added 2 script tags
 - `docs/virtualWorld/dev_tasks/dev_Task_sequence.md` — bumped to 219
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

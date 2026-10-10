@@ -5,19 +5,21 @@ status: cancelled
 priority: low
 created: 2026-08-02
 tags: [environment, temperature, weather, propagation]
+type: task
+area: environment
 ---
 
 # Wind as an Environmental Enum
 
-## Summary
+## What
 
 Add `wind` as an environment enum (from no wind to hurricane), affecting temperature and heat propagation, and potentially energy and other stats/conditions.
 
-## Problem
+## Why
 
 Environment props are `temperature`, `light`, `air`, `smell`, `noise` (area.py:10, engine/effects.py:300). There's no wind. Heat propagation (engine/environment_propagation.py:24) and heat sources don't know about airflow, so outdoor breeze or indoor draft can't affect temperature spread.
 
-## Implementation
+## How
 
 ### Wind enum
 
@@ -43,7 +45,7 @@ Environment props are `temperature`, `light`, `air`, `smell`, `noise` (area.py:1
 4. `engine/effects.py` — wind in set/adjust environment
 5. `routes/graph.py` + area editor JS — wind field
 
-## Testing
+## Steps to verify
 
 - [ ] Wind level persists in area env and serialization
 - [ ] Heat propagates faster in windy exterior areas
@@ -54,3 +56,11 @@ Environment props are `temperature`, `light`, `air`, `smell`, `noise` (area.py:1
 
 - [[review/environment/task-5-heat_propagation|task-5: Heat propagation]]
 - [[task-85-time_weather_dates|task-85: Time, weather, dates]]
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

@@ -1,10 +1,17 @@
+---
+type: task
+status: done
+area: graph
+priority: medium
+---
+
 # Task-249: Images on Nodes — Optional Display on Graph
 
 **Status:** In Review — implemented 2026-08-17; static checks + endpoint tests pass, pending browser E2E of the graph toggle/inspector UI.
 **Filed:** 2026-08-16 from developer ideas backlog.
 **Source:** `dev_tasks/developer ideas.md` (add images to nodes, optional display on graph?)
 
-## Goal
+## What
 
 Allow nodes (areas, items, characters, ways) to carry an image, with an optional display on
 the graph so a scenario can show icons/thumbnails instead of (or alongside) text labels.
@@ -58,3 +65,25 @@ the graph so a scenario can show icons/thumbnails instead of (or alongside) text
   replace path cleans up). Optional follow-up: a DELETE takes an `image` and removes the file.
 - Image mode switches small items/ways/characters/areas to circular thumbnails; verify area
   text still easy to read at a glance (label under image).
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

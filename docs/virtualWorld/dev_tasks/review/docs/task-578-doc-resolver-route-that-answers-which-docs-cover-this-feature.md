@@ -14,19 +14,19 @@ blocks: [task-579]
 **Blocked by:** task-576 (module `@docs` index), task-577 (node `docs` field)
 **Blocks:** task-579
 
-## Goal
+## What
 
 Expose one HTTP endpoint that indexes the documentation corpus and answers *"which pages
 cover this module path or this node id"*, so the app never reads `docs/` off disk.
 
-## Problem
+## Why
 
 `docs/` is not under `static/`, so the browser cannot reach the markdown today. Any
 authoring UI that wants to show documentation needs a route — and a naive one (serve the
 file, or scan the tree per request) would be both slow and unsafe, because the corpus
 contains 660 dev-task files and authored content that should not all be public.
 
-## Design
+## How
 
 - One index, built once, cached. Sources are exactly the two from the upstream tasks:
   the `@docs` header (task-576) and the node `docs` field (task-577). Do not add a third
@@ -86,3 +86,13 @@ so a Python module can declare a reasoned absence without failing the guard.
 - Full-text search across the corpus. This is a resolver, not a search engine.
 - Rendering markdown to HTML. The UI can do that client-side, and keeping the server out
   of it avoids an XSS surface.
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

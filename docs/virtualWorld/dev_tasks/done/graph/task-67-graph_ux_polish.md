@@ -1,6 +1,10 @@
 ---
-group: Graph & Area UX
+area: graph
+type: task
+status: done
+priority: medium
 ---
+
 # Graph UX Polish — Changes
 
 ## Files modified
@@ -20,3 +24,29 @@ group: Graph & Area UX
 5. Search — dims non-matching nodes, clears on empty input - ok
 6. Edge labels — default behavior unchanged (only unlocks/contains show text), but now toggleable via 🏷 Labels button to show all edge type labels - ok
 7. Equipment slot multi-select — Choices.js chips now have remove buttons so slots can be deselected - ok
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

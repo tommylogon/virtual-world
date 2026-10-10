@@ -1,6 +1,8 @@
 ---
-group: Conditions
+area: conditions
 status: done
+type: task
+priority: medium
 ---
 
 # Condition: Prone (`prone`)
@@ -12,7 +14,7 @@ status: done
 
 ---
 
-## Purpose
+## What
 
 On the ground. You can only crawl and fight clumsily. Distinct per-instance semantics matter here (a broken leg `prone` vs. a knock-down `prone`).
 
@@ -51,7 +53,7 @@ On the ground. You can only crawl and fight clumsily. Distinct per-instance sema
 - `engine/movement.py` — `movement_mode: "crawl"` gating in `move_to_area` (climb/jump refused).
 - `player.end_instances("stand")` / `end_instances("fix")` for per-instance resolution.
 
-## Testing
+## Steps to verify
 
 - [ ] Prone forces crawl movement; climb/jump refused.
 - [ ] `speed_mult 0.5` applies; combat mods `-2`/`-2`.
@@ -61,3 +63,19 @@ On the ground. You can only crawl and fight clumsily. Distinct per-instance sema
 
 - How is a permanent/broken-leg `prone` distinguished at author time (instance `ends_on: ["fix"]`)?
 - Should re-application ever refresh (stack `noop` seems right — you're already down).
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

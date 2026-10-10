@@ -1,6 +1,8 @@
 ---
-group: Pleasure System
+area: characters
 status: done
+type: task
+priority: medium
 ---
 
 # Environmental & Clothing Effects (Wet/Transparency/Friction)
@@ -98,3 +100,29 @@ Clothing needs `comfort`/`friction`/`coverage`/`opacity` properties so the LLM c
 ## Related
 
 - `task-232 humidity`, `task-210 description enrichment`, `task-208 release/edging/friction`
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

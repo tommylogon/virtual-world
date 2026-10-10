@@ -11,7 +11,7 @@ parent: task-685
 **Filed:** 2026-10-04
 **Related:** task-685, task-403
 
-## Goal
+## What
 
 Replace the flat trait-gated salience subtraction in `AgentMind.apply_decay`
 with activation decay in `memory_dynamics.apply_decay`, so that *what* a memory
@@ -42,3 +42,21 @@ is decides how fast it fades:
 - Is 0.01/tick the right default? One soak (task-466-style harness) should
   measure how many memories a typical 500-tick scenario loses. The freeze
   hatch exists, but the default should be defensible, not arbitrary.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

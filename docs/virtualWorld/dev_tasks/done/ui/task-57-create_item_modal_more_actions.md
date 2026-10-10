@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: ui
+priority: medium
+---
+
 # Create Item Modal: More Actions and Trigger Support
 
 **Filed**: 2026-07-15
@@ -6,11 +13,11 @@
 
 ---
 
-## Summary
+## What
 
 The "Add New Item" create modal currently only shows 3 action checkboxes (examine, take, use). Users need more action options and the ability to add triggers directly when creating an item.
 
-## Current State
+## Why
 
 In `main.js:openCreateModal()` (line 404), the item form has:
 
@@ -52,7 +59,21 @@ Add a basic trigger editor to the create modal, using the same trigger overlay s
 
 Option A is preferred because it's a single workflow.
 
-## Files Affected
+## Files
 
 - `static/js/main.js` — expand action checkboxes, add trigger section to create modal
 - `templates/index.html` — may need additional modal HTML for triggers
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

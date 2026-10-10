@@ -1,6 +1,10 @@
 ---
-group: Gameplay
+area: gameplay
+type: task
+status: todo
+priority: medium
 ---
+
 # Long-Distance Communication (Phones, Walkie-Talkies, Radios)
 
 **Filed**: 2026-08-19
@@ -36,3 +40,29 @@ Triggers/mechanics to allow long-distance communication — phones, walkie-talki
 - `task-352` — action economy (concurrency while on a call)
 - `developer ideas.md` line 6
 - `engine/sound.py`, `routes/action.py` speech verbs (`speak`/`shout`/`whisper`/`scream`)
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

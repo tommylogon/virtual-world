@@ -1,6 +1,9 @@
 ---
-group: Agent AI & Behavior
+area: characters
 wiki: "[[Characters/Vitals System]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Character Needs System Expansion — Review
@@ -56,3 +59,29 @@ wiki: "[[Characters/Vitals System]]"
 6380da4 fix: serialize decay_rates in engine to_dict
 f80b677 docs: add CRITICAL note to not restart server
 ```
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

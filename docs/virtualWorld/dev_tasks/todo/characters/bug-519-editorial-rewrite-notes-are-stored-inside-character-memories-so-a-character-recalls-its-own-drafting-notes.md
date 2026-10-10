@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-10-04
 **Related:** task-685, task-690, task-692
 
-## Goal
+## What
 
 Reject second-person editorial commentary at the memory-admission boundary so a memory can only contain first-person experience.
 
@@ -80,3 +80,21 @@ Surfaced while reading a full run export for the narration v2 work.
 Not narration's defect — filed separately because it is a memory-integrity
 bug and the fix belongs at the memory-admission boundary, not in the
 director pass.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

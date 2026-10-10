@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-10-06
 **Related:** task-714, task-707
 
-## Goal
+## What
 
 A character's memory store records no first-person account of dying, being resurrected, being driven by vitals, where they travelled, or what they perceived over time. Live repro: the Eldenford blacksmith died and his Mind contained nothing about why, where he had been, how he felt, what vitals drove him, or his reaction to resurrection. Author engine-side memory writes for these life events so both background-simulation and live-agent characters retain a real account, then Mind (task-714) can display it.
 
@@ -110,3 +110,21 @@ them.
 
 - task-714 (Mind display — the consumer), task-538 (unified death path), task-707 (memory
   decay), task-399 (promote/demote fidelity seam), task-542 (lived_log vs telemetry).
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-10-09
 **Related:** task-660 (auto-dress mature gate), task-206 (mature_content toggle), task-213/462 (mature traits/conditions hiding)
 
-## Goal
+## What
 
 Replace the `mature` **boolean property** with a `mature` **tag**, so the same
 `mature` marker works uniformly on items, characters, areas and ways and reuses
@@ -31,7 +31,7 @@ Current state — the boolean is real and read in four places:
 
 Data: 19 entries author `"mature": true`; traits/conditions carry no `tags` field today.
 
-## Plan
+## How
 
 1. Register `data/library/tags/mature.json` (`applies_to` covering item, character,
    area, way, trait, condition) so `scenario_tag_check.py` validates it.
@@ -73,3 +73,17 @@ and `remove_tag` can strip it at runtime (same as any tag; accepted).
 - [x] `tests/test_auto_dress.py` mature test now exercises the real tagged `ball_gag`, not a
       monkeypatched `_wearable_entries`.
 - [x] No second marker: the boolean is fully retired.
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

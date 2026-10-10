@@ -10,11 +10,12 @@ priority: medium
 **Filed:** 2026-10-04
 **Related:** bug-520,bug-521,task-444
 
-## Goal
+## What
 
 TODO
 
 ## Acceptance
+
 A short doc (docs/design/verification-playbook.md) capturing how to verify a UI
 claim end-to-end, distilled from the 2026-10-04 session so the next agent does not
 rediscover it. AGENTS.md points at it.
@@ -33,3 +34,20 @@ rediscover it. AGENTS.md points at it.
       agents need task-696.
 - [ ] Linked from the STOP gate section of AGENTS.md as the "how" companion.
 
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

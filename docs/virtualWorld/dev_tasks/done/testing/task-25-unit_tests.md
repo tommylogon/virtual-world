@@ -1,6 +1,10 @@
 ---
-group: Tech Debt & Testing
+area: testing
+type: task
+status: done
+priority: medium
 ---
+
 # Unit Tests
 
 **Filed**: 2026-07-15 (updated 2026-07-24)
@@ -9,7 +13,7 @@ group: Tech Debt & Testing
 
 ---
 
-## Summary
+## What
 
 The project now has comprehensive pytest unit tests covering all major engine modules. Core functionality is covered. Depth tests for UI components (room/door inspector, trigger editor interactions) were deferred as they're better suited to the Playwright click-through test upgrade (see task-97).
 
@@ -69,7 +73,7 @@ The project now has comprehensive pytest unit tests covering all major engine mo
 
 These were deferred to post-merge feature branches and are not blocking.
 
-## Verification
+## Steps to verify
 
 ### Run Tests
 ```powershell
@@ -86,3 +90,19 @@ Expected result: **395 tests pass, 0 failures**
 - `virtual_world/tests/test_equipment_system.py` — 35 equipment tests
 - `virtual_world/tests/test_lighting.py` — 35 lighting tests
 - `virtual_world/conftest.py` — shared engine fixtures
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

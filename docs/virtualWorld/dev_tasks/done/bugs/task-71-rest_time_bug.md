@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: bugs
+priority: medium
+---
+
 # Rest Time Bug — Time Does Not Advance Across All Characters
 
 **Filed**: 2026-07-17
@@ -6,7 +13,7 @@
 
 ---
 
-## Summary
+## What
 
 Multiple issues with rest/sleep:
 
@@ -24,8 +31,26 @@ Multiple issues with rest/sleep:
 
 `rest()` sets `self.player.state = "sleeping"` and `self.player.state_timer = minutes`. The timer decrements 1 per tick in `advance_clock()`. Since rest consumes multiple ticks at once, the timer works but the player is only awake after all those ticks pass in the clock.
 
-## Fix
+## How
 
 1. Ensure rest correctly advances the clock
 2. Rest should be N 5-minute ticks, not N abstract steps — duration = minutes / 5 (or rest explicitly in ticks)
 3. Apply baseline vital decay to ALL characters (not just the rester) for each elapsed tick to keep the world simulation consistent
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

@@ -10,7 +10,7 @@ priority: low
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 GET /api/library/rooms returns 400 while data/library/rooms/ contains 3 json files, so the room registry has no route to read it. Found while retracting task-620, which had wrongly claimed structures was unreachable.
 
@@ -100,3 +100,21 @@ set cannot grow unnoticed.
 Evidence: `python tools/lint_library.py --check stray_library_dirs` shows the
 warning above; `python -m pytest tests/test_library_lint_stray_dirs.py -q` — 3
 passed.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

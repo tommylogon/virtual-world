@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 GET /api/world/scopes/<id>/grid returns layers with only 'biome' and 'road' keys populated; a 'floor' layer and a 'climate' layer are absent entirely rather than present-and-empty, while the layer selector offers four layers (biome, road, floor, climate). The editor has to treat a missing layer as 'nothing painted', which is indistinguishable from 'not implemented' for anything reading the payload -- including a lint. The same applies to names: {} with 30 locations named on the reference art.
 
@@ -33,3 +33,21 @@ Re-confirmed in the tree: `_grid_payload` builds
 `PAINT_LAYERS = ("biome", "road", "floor", "climate")`, and
 `tests/test_world_grid_routes.py::test_grid_payload_presents_every_paint_layer`
 asserts it. Closed to `done`.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

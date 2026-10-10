@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-26
 **Related:** bug-48 task-526 task-527 task-521 bug_18
 
-## Goal
+## What
 
 docs/design/graph-toolbar-mockup.html was produced but never applied. Ship the redesign
 (Do / Where / Look zones, progressive disclosure) and fix the documented bugs: Legend
@@ -145,4 +145,20 @@ Measured on `west_woods` (53 areas, 77 ways, 154 edges): mean way-to-area distan
 Known limit, unchanged by this: at fit-all zoom on a scope this dense the way-node
 labels overlap into mush. That is rendering scale, not physics — see task-526.
 
+## Why
 
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

@@ -1,5 +1,8 @@
 ---
-group: Gameplay & Combat
+area: gameplay
+type: task
+status: review
+priority: medium
 ---
 
 # Over-Encumbrance Counts as One Size Larger
@@ -10,11 +13,11 @@ group: Gameplay & Combat
 
 ---
 
-## Problem
+## Why
 
 Carrying too much should make a character count as one size larger for passage, but there is no connection between carried weight and size gating.
 
-## Design
+## How
 
 - Items already have a `weight` property.
 - When total carried weight exceeds a threshold, the character counts as one size larger for movement and size gating (crawl / climb / jump).
@@ -24,3 +27,17 @@ Carrying too much should make a character count as one size larger for passage, 
 
 - engine/movement.py — apply encumbrance-driven size bump in crawl/climb/jump gating
 - engine/item_actions.py — expose total carried weight for the encumbrance threshold
+
+## What
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

@@ -1,7 +1,10 @@
 ---
-group: Characters
+area: characters
 status: done
+type: task
+priority: medium
 ---
+
 # Character Interest-Tag Data Pass + Duplicate Character Cleanup (task-326, was task-322)
 
 **Filed**: 2026-08-21  
@@ -19,7 +22,7 @@ kayla-sister.json (wrong-file landmine, dodged).
 
 ---
 
-## Summary
+## What
 
 Bring all 44 library characters to a realistic, *matchable* interest profile:
 8–14 `interest_tags` each, drawn from the 204-tag item vocabulary, mixing four
@@ -126,7 +129,7 @@ maya, sammy lopez, tala, the butcher, whiskers.
 - `data/library/characters/*.json` (data changes)
 - duplicate Violet + `?` files (deletions)
 
-## Verification
+## Steps to verify
 
 - `python tools/fix_character_interests.py` dry-run reviewed before apply
 - `python -m pytest tests/ -q -k "not mcp and not emote"`
@@ -153,3 +156,15 @@ until a loaded scenario reflects the new tags after refresh.
 - None (can start immediately)
 - Feeds: task-325 (auto-dress style matching), task-9 phase 2 (interest-weighted spawns)
 - Pairs with: task-323 lint (regression guard)
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

@@ -5,6 +5,8 @@ status: review
 priority: medium
 created: 2026-08-23
 tags: [prompting, agent-engine, vitals, ux]
+type: task
+area: prompting
 ---
 
 # Context-Aware Vitals Threshold Messages
@@ -17,14 +19,14 @@ addressed-to-you (reuses `classifySpeechType`), area noise, area tags, visible f
 area item list. CRITICAL NEEDS untouched. Note: design's `timeOfDay` field dropped — the
 `/api/state` payload has no clock field (it exists only as a trigger-condition config).
 
-## Summary
+## What
 
 Vitals threshold lines (`static/js/agent/prompt-builder/character-state.js`) are absolute —
 they fire purely from a numeric vital crossing a threshold and describe one fixed situation.
 Make them context-aware: the same low Social value must produce different text depending on
 whether the character is alone, in company, or mid-conversation.
 
-## Motivation
+## Why
 
 Observed contradiction (taco_bell_date run, 2026-08-23): Miki has Social 40, is seated
 next to Jake, actively talking with him — and her prompt reads:
@@ -43,7 +45,7 @@ Other known-shaky cases:
 - Sanity-tier dread text applied identically in a bright fast-food restaurant and a
   haunted cellar (genre mismatch tracked separately in task-328).
 
-## Implementation
+## How
 
 ### 1. Build a lightweight scene context object
 
@@ -80,7 +82,7 @@ otherwise keep current generic line.
 
 The urgent-need plan-forcing block works well (proven in taco run) and stays as-is.
 
-## Acceptance Criteria
+## Acceptance
 
 - [ ] No threshold line can contradict an observable fact of the current scene
       (people present, noise level, visible relevant items).
@@ -89,3 +91,13 @@ The urgent-need plan-forcing block works well (proven in taco run) and stays as-
 - [ ] All new lines are genre-neutral (see task-328) and second-person safe.
 - [ ] Re-run taco_bell_date scenario: Miki turn-0 prompt no longer says "isolated"
       while Jake stands beside her.
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

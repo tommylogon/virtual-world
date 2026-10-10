@@ -1,5 +1,8 @@
 ---
-group: Characters
+area: characters
+type: task
+status: review
+priority: medium
 ---
 
 # Body Part Targeted Injuries & Combat Routing
@@ -10,7 +13,7 @@ group: Characters
 
 ---
 
-## Problem
+## Why
 
 Combat (`engine/combat.py` `player_attack()`, line 62) routes **all** damage straight
 to `target.vitals["HP"]` with no body-part concept. There is no `where` parameter, no
@@ -92,7 +95,7 @@ bodies/injuries and is currently undefined.
 - `static/js/agent/action-normalizer.js` — `attack ... on <where>`
 - `tests/test_body_parts.py` — NEW test module
 
-## Testing
+## Steps to verify
 
 - [x] Weapon hit to a specified `where` applies damage AND a region-scoped injury
 - [x] Bare-handed aimed attack applies region injury
@@ -110,3 +113,15 @@ bodies/injuries and is currently undefined.
 - `todo/characters/task-190-more-conditions.md` — `injured`/`bleeding`/suffocating
 - `todo/characters/task-211-intimacy-verbs-actions.md` — `where`/`type`/`interact`
 - `todo/characters/task-207-body-state-and-vitals.md` — `body_state` per-part `injury`
+
+## What
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

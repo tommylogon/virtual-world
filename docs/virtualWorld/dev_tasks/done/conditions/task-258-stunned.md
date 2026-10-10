@@ -1,6 +1,8 @@
 ---
-group: Conditions
+area: conditions
 status: done
+type: task
+priority: medium
 ---
 
 # Condition: Stunned (`stunned`)
@@ -12,7 +14,7 @@ status: done
 
 ---
 
-## Purpose
+## What
 
 Reeling from a blow or effect. Can't act or move, fails STR/DEX saves. A fresh stun **extends the countdown** (`stack: refresh`).
 
@@ -51,7 +53,7 @@ Reeling from a blow or effect. Can't act or move, fails STR/DEX saves. A fresh s
 - `process_tick` countdown.
 - Chance-to-stun hooks (task-165 done) that apply this.
 
-## Testing
+## Steps to verify
 
 - [ ] Stun blocks actions/movement; speech allowed.
 - [ ] Fresh stun refreshes/extends the countdown, not a new instance.
@@ -62,3 +64,19 @@ Reeling from a blow or effect. Can't act or move, fails STR/DEX saves. A fresh s
 
 - Should damage end stun early (add `damage` to `ends_on`)? Currently only timed.
 - Confirm the extension math when a fresh stun is applied to an existing one.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

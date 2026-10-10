@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: characters
+priority: medium
+---
+
 # Memory Deletion — Cannot Delete Individual Memories from Character Inspector
 
 **Filed**: 2026-07-17
@@ -6,11 +13,11 @@
 
 ---
 
-## Summary
+## What
 
 The character inspector in the UI shows a 🗑 delete button for each memory entry, but clicking it fails to delete the memory. The backend DELETE endpoint exists and works, but the frontend call encounters an issue — likely the entry ID being empty or mismatched, or the frontend state not syncing properly after deletion.
 
-## Current State
+## Why
 
 ### Backend endpoint (`app.py:1648`)
 
@@ -75,16 +82,26 @@ self.memories.append({
 
 However, some memories (especially those loaded from save data or created by the MemoryStore frontend) may lack the `id` field entirely. The frontend display uses a fallback `mem_${i}` for rendering but the delete function passes the actual `m.id` which could be `undefined`.
 
-## Fix
+## How
 
 1. **Ensure all memories have IDs**: Backfill missing IDs in `player.py` constructor or `add_memory()`
 2. **Fix the frontend guard**: The `if (!entryId) return;` guard should not silently fail — it should log a warning or attempt to match by index
 3. **Add migration**: For existing saves, add IDs to any memory entries that lack them on `from_dict()` restore
 4. **Verify**: Delete button sends the correct entry ID, and refresh after delete succeeds
 
-## Files Affected
+## Files
 
 - `player.py` — ensure `id` field on all memories during init/restore
 - `virtual_world_engine.py` — memory restore in `from_dict()`, add ID backfill
 - `static/js/inspector.js` — `_deleteMemory()`, improve guard and error handling
 - `static/js/api.js` — `deletePlayerMemory()`, add error handling
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

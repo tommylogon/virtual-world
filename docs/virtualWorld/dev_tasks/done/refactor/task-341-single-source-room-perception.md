@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: refactor
+priority: medium
+---
+
 # Task 341 — Single-source room perception invariants (agent path + panel path)
 
 **Status:** In Review — implemented 2026-08-24, full suite 1129 passed.
@@ -84,8 +91,24 @@ requires:"none", unmet stranger) and asserts the two paths AGREE:
 same visible item set, same way set, same people masking. Drift then
 fails CI instead of surfacing in Tommy's playtests.
 
-## Verification
+## Steps to verify
 
 - Full pytest suite green; existing behavior-pinning tests unchanged.
 - Browser: men's restroom panel populated (bug-26), hidden ways still
   hidden until searched, "requires none" doors go/open normally.
+
+## What
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

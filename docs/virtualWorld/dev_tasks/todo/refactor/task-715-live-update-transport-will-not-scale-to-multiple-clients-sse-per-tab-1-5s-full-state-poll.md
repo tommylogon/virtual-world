@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-10-05
 **Related:** task-387 (NL editor), task-384 (world_changed push)
 
-## Goal
+## What
 
 Replace the per-tab SSE stream plus unconditional 1.5 s `/api/state` poll with a
 single multiplexed transport and an incremental delta, so N clients on one host
@@ -90,3 +90,21 @@ Two independent ceilings, both of which bind before "many players" does.
 - [ ] `/api/state` is not the unit of change. At 2.48 MB per poll per client,
       the bandwidth alone caps the player count. Decide the delta format before
       building more on top of the full-state payload.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

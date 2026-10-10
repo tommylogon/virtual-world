@@ -1,6 +1,8 @@
 ---
-group: Conditions
+area: conditions
 status: done
+type: task
+priority: medium
 ---
 
 # Condition: Sensitized (`sensitized`)
@@ -12,7 +14,7 @@ status: done
 
 ---
 
-## Purpose
+## What
 
 The edging stack. Repeated stimulation near the edge makes the character progressively more sensitive — every touch hits harder. Stacks by design.
 
@@ -76,3 +78,25 @@ The edging stack. Repeated stimulation near the edge makes the character progres
 - Exact accumulation trigger: does reaching a closeness threshold once bump the level, or per tick in the edge zone (task-208 friction)?
 - Cap — is there a maximum stack (e.g. level 3) before forced release/overstimulation (`overstimulated` interplay)?
 - Does high `sensitized` push toward `frantic` or `overstimulated`? (Sensitivity feeding either is a design lever.)
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

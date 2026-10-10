@@ -30,7 +30,7 @@ engine cannot currently express.
 Build task-545 (path tracking) and task-546 (frustration) first; this task then
 becomes a gate over the recorded path plus a consumer of the frustration state.
 
-## Goal
+## What
 
 Wire the single_track trait effect, which is currently defined but inert (effects: {single_track: true}, no consumer): gate the release path to a single predefined route so other stimulation only builds frustration. Tracked from task-213.
 
@@ -130,3 +130,21 @@ meter forced past the threshold, then `_pleasure_tick`.
 The designated route releases; a wrong route produces `frustrated` and no
 release; a non-carrier and a trait with no named route are byte-identical to the
 pre-change behaviour; and a release discharges the frustration it created.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

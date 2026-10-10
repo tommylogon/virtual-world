@@ -11,7 +11,7 @@ blocked_by: [task-651]
 **Filed:** 2026-10-03
 **Related:** task-499,task-676
 
-## Goal
+## What
 
 There is no map a human player can look at. Verified 2026-10-03 by count, not by inspection: the word minimap occurs in static/js only inside the doc comment of stream/stream-scrubber, where it means a timeline overview of the event stream (task-340) - zero implementations, zero mentions in templates/index.html, and absent from docs/virtualWorld/Feature Map.md, so no feature claims one. The G button in the graph toolbar is an editor graph-layout toggle, not a player map.
 
@@ -167,3 +167,21 @@ task. "Cells you have been" needs no reveal state to exist.
   Entertainment at 87/100). Rows exist for first meetings only, so the tooltip's
   who-was-there is honest but sparse. Changing that policy is its own decision.
 - `task-676`, the editor area mini-map, which stays separate.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

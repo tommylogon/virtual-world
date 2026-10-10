@@ -1,6 +1,8 @@
 ---
-group: Conditions
+area: conditions
 status: done
+type: task
+priority: medium
 ---
 
 # Condition: Poisoned (`poisoned`)
@@ -12,7 +14,7 @@ status: done
 
 ---
 
-## Purpose
+## What
 
 Toxin in the blood. You're losing HP. The canonical accumulating condition (5 vials of poison = 5 instances, drains sum) and the hidden-symptom reference.
 
@@ -58,7 +60,7 @@ Toxin in the blood. You're losing HP. The canonical accumulating condition (5 vi
 - Antidote: `neutralizing_draught` → `remove_condition poisoned`; `ends_on: ["antidote"]`.
 - Task-190 composition: poison + paralysis/unconscious/blind via parameters on an `on_eat` effect (bundled `extra_conditions`).
 
-## Testing
+## Steps to verify
 
 - [ ] Poison drains HP each tick.
 - [ ] Multiple poison instances sum drains.
@@ -69,3 +71,19 @@ Toxin in the blood. You're losing HP. The canonical accumulating condition (5 vi
 
 - Should different poisons carry different severity (via `periodic` instance override and `level`)?
 - `−5` HP/tick baseline — is that the right default vs. per-source override?
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

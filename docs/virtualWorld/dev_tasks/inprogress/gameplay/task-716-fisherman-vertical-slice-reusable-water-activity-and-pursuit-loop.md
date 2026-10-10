@@ -158,3 +158,29 @@ Verified **missing**, with counts (task claims re-measured, not assumed):
 - A **Schedule** is a calendar cue. Use existing time, sun/moon, seasons, and weather.
 - Cooking fish is a separate Activity plus world recipe (task-703), outside the minimum fishing loop.
 - No fishing-specific code branch may depend on the character’s name, one area id, or one fish id.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

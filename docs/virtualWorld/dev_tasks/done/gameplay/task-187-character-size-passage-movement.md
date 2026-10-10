@@ -5,11 +5,13 @@ status: done
 priority: medium
 created: 2026-08-06
 tags: [gameplay, movement, traits, ways, size]
+type: task
+area: gameplay
 ---
 
 # Character Size + Passage Movement (crawl/climb/jump)
 
-## Summary
+## What
 
 Characters get a selectable **size trait** (tiny / small / normal / huge / giant /
 titanic). Ways (doors, passages, tunnels) get a **`max_size`** property plus an optional
@@ -76,7 +78,7 @@ you don't fit. New movement verbs `crawl`, `climb`, `jump`, and **jump/climb fai
 7. `static/js/agent-engine.js` — validate/normalize crawl/climb/jump/stand
 8. `tests/test_movement.py` — size/passage tests
 
-## Testing
+## Steps to verify
 
 - [x] Fits: normal walks a normal door (no change) — `test_go_passes_through_plain_way`
 - [x] Tight fit: normal auto-crawls a small tunnel (no cost scaling) — `test_tight_fit_auto_crawls_without_scaling_cost`
@@ -89,3 +91,19 @@ you don't fit. New movement verbs `crawl`, `climb`, `jump`, and **jump/climb fai
 ## Status
 
 **Implemented 2026-08-06** — all eight backend + frontend touchpoints landed; moving to `review/` pending browser E2E.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

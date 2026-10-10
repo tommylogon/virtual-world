@@ -43,3 +43,29 @@ priority: medium
 The audit text asked for "per-group Commit/Discard; reuse sync-diff internals".
 Commit is per-section (not per-node) for v1 — per-node commit would be
 checkboxed UI over the same apply endpoint; noted as a possible v2.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

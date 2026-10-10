@@ -2,6 +2,7 @@
 type: bug
 status: done
 area: gameplay
+priority: medium
 ---
 
 # bug-35: give/steal skip the tiered item matcher — no fuzzy/alias fallback
@@ -45,7 +46,7 @@ difflib fuzzy, cutoff 0.7).
   `EDGE_EQUIPPED` edge (and multi-slot markers). It now removes the equipped edge
   and cleans markers too.
 
-## Tests
+## Steps to verify
 
 - `tests/test_matching.py::TestInventoryScopedItemMatching` — fuzzy misspelling
   resolves, area items are out of scope, alias resolves a worn item.
@@ -53,3 +54,23 @@ difflib fuzzy, cutoff 0.7).
   resolved item; worn item give transfers and unequips.
 - `tests/test_item_actions.py::TestStealItem` — misspelled steal resolves;
   equipped-item steal still works.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

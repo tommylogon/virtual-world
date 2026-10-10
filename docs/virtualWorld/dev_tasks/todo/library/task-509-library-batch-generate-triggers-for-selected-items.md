@@ -12,13 +12,13 @@ priority: medium
 **Depends on:** 508 — the depletion contract must be settled first, or a batch run
 would write (or deliberately omit) the wrong depletion on 505 items at once.
 
-## Goal
+## What
 
 Let the author **select N library items and run the trigger suggester across the
 whole selection**, with a reviewable diff before anything is written — instead of
 opening each of the 505 items and clicking "⚡ Suggest" one at a time.
 
-## Problem
+## Why
 
 The pieces exist but are strictly per-item:
 
@@ -35,7 +35,7 @@ The pieces exist but are strictly per-item:
 So nothing can say "these 65 tag-only edible items need consumption triggers —
 suggest them all and show me the diff". That is exactly the job task-506 needs.
 
-## Design
+## How
 
 - **Selection mode** that is independent of placement: an action bar appears when
   items are checked ("N selected"), reusing `_checkedIds` and `renderList`'s
@@ -75,7 +75,7 @@ suggest them all and show me the diff". That is exactly the job task-506 needs.
 - Per-item nutrition/restore tuning (task-506).
 - Authoring triggers for non-item node kinds (ways/areas keep their per-node path).
 
-## Verification
+## Steps to verify
 
 - JS unit (`tools/unit/run.cjs`): selecting N items yields N staged sets; existing
   triggers are skipped by the default policy; re-run is idempotent.
@@ -106,3 +106,7 @@ suggest them all and show me the diff". That is exactly the job task-506 needs.
 - This touches `static/js/item-library.js` (already modified here for task-636)
   and `static/js/shared/trigger-suggest-diff.js`; coordinate with
   `wt/items-library` before landing both.
+
+## Files
+
+- TODO

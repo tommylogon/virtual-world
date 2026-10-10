@@ -10,7 +10,7 @@ priority: low
 **Filed:** 2026-09-24
 **Related:** task-496, task-418, task-421
 
-## Goal
+## What
 
 Extend beyond-visibility from per-adjacent-way to a chained line of sight: an observer sees along a run of open/see_through ways as long as the floor property does not change; a floor step (or the run turning) breaks the chain. Build on see_through and visible_in_direction and floor (engine/lighting.py, engine/area_description.py, engine/movement.py, engine/room_perception.py). Decide the range/depth cap and whether a sighted cell reveals room contents or only the area name/description. Must not regress tests/test_beyond_visibility.py.
 
@@ -90,3 +90,21 @@ mutated; and task-201's `build_beyond_suffix` still behaving.
 `tests/test_beyond_visibility.py`, `test_area_description.py` and
 `test_lighting.py` all still pass (85 together), as the task's last acceptance
 line requires.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

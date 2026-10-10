@@ -1,6 +1,8 @@
 ---
-group: Conditions
+area: conditions
 status: done
+type: task
+priority: medium
 ---
 
 # Condition: Frightened (`frightened`)
@@ -12,7 +14,7 @@ status: done
 
 ---
 
-## Purpose
+## What
 
 Terrified of a specific thing. You can't fight it off and won't go back near it. The most source-aware condition — each instance carries `source` + `source_type` (way/area/item/character) that gate the matching action.
 
@@ -57,7 +59,7 @@ Terrified of a specific thing. You can't fight it off and won't go back near it.
 - `save` trigger effect (`{"type": "save", "params": {"stat": "WIS", "dc": 12, ...}}`) — applies `frightened` with the node's name as source.
 - `save_on` trait events: crawl/climb/jump → `"way"`, enter_area/loud_noise → `"area"`, see_item → `"item"`, combat takes_damage → `"character"`.
 
-## Testing
+## Steps to verify
 
 - [ ] Frightened of a way blocks re-using it; area blocks re-entry; item blocks touching; character blocks approach/attack.
 - [ ] Each instance gates only its own source (fear of room A doesn't block room B).
@@ -69,3 +71,19 @@ Terrified of a specific thing. You can't fight it off and won't go back near it.
 - How does fear clear (no `ends_on`)? Should a resolve/save, the source being removed, or time clear it?
 - Multiple sources of fear → multiple instances; should the strongest dominate?
 - Confirmation that `can_speak`/movement truly only gate the matching source type.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

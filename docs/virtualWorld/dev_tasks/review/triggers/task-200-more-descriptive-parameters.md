@@ -1,5 +1,8 @@
-﻿---
-group: Trigger System
+---
+area: triggers
+type: task
+status: review
+priority: medium
 ---
 
 # More Descriptive Template Parameters
@@ -10,11 +13,11 @@ group: Trigger System
 
 ---
 
-## Problem
+## Why
 
 Only `{game_time}` and a few template parameters exist. Template authors want `{uses}`, `{weight}`, `{condition}`, `{condition_severity}`, `{condition_duration}`, `{condition_cause}`, `{condition_effects}`, etc.
 
-## Design
+## How
 
 - Pure templating done in `_render_template` context building — no engine logic change, just more context keys.
 - The `{condition_*}` parameters only make sense once conditions are rich (task-190), so they should gate behind that work.
@@ -25,3 +28,16 @@ Only `{game_time}` and a few template parameters exist. Template authors want `{
 - engine/trigger_system.py — extend context building (lines 1652-1704) with new template parameters
 - engine/item_actions.py — expose item `uses` and `weight` to the template context
 
+## What
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 Map mode composites several unrelated background images at different scales; edges are drawn across empty space with no shared coordinate frame.
 
@@ -81,3 +81,21 @@ use their stale canvas coords, and painted nodes are placed from `cell × pitch`
 which removes the worst of the fan; the background art reads the same pitch
 (`graph-background`). Still open: the 25 scope-less ways, the 235 `logic_trigger`
 nodes with no `world_scope_id`, and the genuine cross-scope gateway edges.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

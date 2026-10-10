@@ -17,7 +17,7 @@ related: [task-586, task-444, task-572, task-574, bug-54]
 
 `task-574` (inprogress) is a per-feature test guide for everything built on 2026-09-27, in exactly the right shape already: **what it is / how to test it by hand / what passing looks like / the automated coverage that already guards it**. That is the per-feature content. This task supplies what a guide cannot: the world each step runs in, what it may write, and the gate. So phase 9 (painted world) should link to task-574's entries rather than restate them, and the WorldPainter steps should move under this task's phase structure rather than being duplicated.
 
-## Goal
+## What
 
 The 215-step click list in `done/testing/test-plan-100-items.md` is a presence check, not a plan: it has no world per step, no write-safety, and no contamination gate, so every step silently runs against the booted default world and is allowed to write to it. Restructure it so each phase runs in its own scratch scenario, each step declares what it may write, and a git-clean gate voids the run if anything touched a shipped file.
 
@@ -131,3 +131,21 @@ and executable; the run is not.
 - **task-586** is the foundation: the scratch world and the fixture should share one loader, and `solo()`/`company()` should be the only way isolation is expressed.
 - **task-444** implements the steps that need a browser; this task only has to make them addressable by step id.
 - **`data/scenarios/world_template.json`** is a hand-made backup of the root template, byte-identical, and it sits in the directory the scenario picker and `soak_runner` scan. It should move somewhere the app does not list — but it is the user's backup, so that move is theirs to approve.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

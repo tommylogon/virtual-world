@@ -1,6 +1,10 @@
 ---
-group: Tech Debt & Testing
+area: prompting
+type: task
+status: done
+priority: medium
 ---
+
 # Task 150: Prompt Builder Bug Fixes
 
 **Filed**: 2026-07-31  
@@ -9,7 +13,7 @@ group: Tech Debt & Testing
 
 ---
 
-## Summary
+## What
 
 Fix 6 confirmed bugs in the prompt-builder.js and agent pipeline that prevent cross-room awareness, cause duplicate inventory, and break memory parsing.
 
@@ -60,7 +64,7 @@ Fix 6 confirmed bugs in the prompt-builder.js and agent pipeline that prevent cr
 
 ---
 
-## Testing
+## Steps to verify
 
 - ✅ All 21 sound propagation tests pass
 - Manual testing needed:
@@ -76,3 +80,19 @@ Fix 6 confirmed bugs in the prompt-builder.js and agent pipeline that prevent cr
 
 - Task 149: Sound Propagation System (provides the data that feeds into WITNESSED)
 - Agent pipeline architecture (prompt-builder.js, agent-engine.js, world-state.js)
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

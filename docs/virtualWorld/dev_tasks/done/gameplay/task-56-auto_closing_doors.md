@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: gameplay
+priority: medium
+---
+
 # Auto-Closing Doors
 
 **Filed**: 2026-07-17
@@ -6,7 +13,7 @@
 
 ---
 
-## Summary
+## What
 
 Doors that automatically close after use. Examples:
 - **Convenience store door** — swings shut behind you
@@ -57,3 +64,25 @@ Add `auto_close` to the door connection edge instead of the door node, so each s
 - Should auto-close only fire when a player passes through, or also NPCs?
 - Should a door that's `locked` still auto-close? (Probably not — it should remain locked)
 - What about `blocked` or `broken` state ways?
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

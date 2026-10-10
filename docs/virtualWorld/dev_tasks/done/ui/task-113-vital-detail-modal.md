@@ -1,6 +1,10 @@
 ---
-group: Prompt & Narrative Quality
+area: ui
+type: task
+status: done
+priority: medium
 ---
+
 # Task 113: Vital Detail Modal — click vitals, see what affects them, edit values, decay rates, time to empty, mana for magic chars
 
 **Status**: Review  
@@ -10,7 +14,7 @@ group: Prompt & Narrative Quality
 
 ---
 
-## Summary
+## What
 
 Clicking a vital bar opens a modal with: current value (editable), decay rate (editable), time to empty, and conditions/effects affecting that vital. Characters with the `magic` tag get a Mana vital.
 
@@ -87,3 +91,25 @@ Clicking a vital bar opens a modal with: current value (editable), decay rate (e
 ### Frontend (done)
 - `virtual_world/templates/index.html` — modal HTML + modal JS functions
 - `virtual_world/static/js/inspector/agent-view.js` — clickable vitals, Mana display
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

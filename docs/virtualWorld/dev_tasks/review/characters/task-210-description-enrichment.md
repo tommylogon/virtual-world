@@ -1,6 +1,8 @@
 ---
-group: Pleasure System
+area: characters
 status: review
+type: task
+priority: medium
 ---
 
 # Description Enrichment (Body State + Item Details)
@@ -11,11 +13,11 @@ status: review
 
 ---
 
-## Problem
+## Why
 
 `_update_equipment_description()` (`engine/equipment.py:524`) feeds only item names to the LLM, so it can't reason about body state or visibility through clothing layers (a hard nipple under a sheer blouse, flushed cheeks, etc.).
 
-## Design
+## How
 
 - Enrich `_update_equipment_description()` prompt with:
   - `_get_body_state_description(player)` — text derived from conditions (`nipple_hard`, `aroused`, `blushing`, `wetness`) + `body_state` numeric values (e.g. cheeks flush > 0.5)
@@ -37,7 +39,7 @@ status: review
 - `static/js/agent/prompt-builder/character-state.js` — mature-gated body-state lines (`:478-492`)
 - `tests/test_description_enrichment.py` — 11 tests (task-486)
 
-## Testing
+## Steps to verify
 
 - [x] Description includes "hard nipples"/"flushed" when conditions present — visible-condition map in `_body_state_description_lines()`
 - [x] Sheer/opaque layer distinction shows in output — `opacity`/`coverage` in `_equipment_detail_lines()`
@@ -49,3 +51,11 @@ status: review
 - `task-486` — auto-regenerate description on body-state change (implemented; the former unmet acceptance item above)
 - `dev_tasks/# Nipple & Erogenous Zone System - Desig.md` — §9, Phase 3
 - `task-179 event stream redesign` (if description updates need to surface visually)
+
+## What
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

@@ -31,7 +31,7 @@ produce a deer you can hunt. Those are **character** spawns, and:
    dispenser the moment the player watches it, which is the background/foreground
    seam we have been careful about all along.
 
-## Design
+## How
 
 - **`tagged_count` condition** — count tagged entities in an area (or the world):
   `{"type":"tagged_count","target_has_tag":"rabbit","area":"current","value":4,"op":"lt"}`.
@@ -111,3 +111,17 @@ tested, but no scenario authors a burrow yet.
 - Ecology, predator/prey modelling, breeding genetics, or taming.
 - Multi-species food webs.
 - Generated creature lineages (task-404 is life *experiences*, not species).
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO

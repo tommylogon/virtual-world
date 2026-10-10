@@ -1,6 +1,8 @@
 ---
-group: UI
+area: ui
 status: review
+type: task
+priority: medium
 ---
 
 # Trigger/Behavior Graph Editor Overhaul: Pan, Zoom, Wire Clarity, Editing Power
@@ -15,7 +17,7 @@ clarity/editing) and Phase 3 (one action catalog) shipped 2026-10-03, verified b
 
 ---
 
-## Summary
+## What
 
 `static/js/shared/trigger-graph.js` (the 🧠 Behavior Graph / 🔀 Trigger Graph modal) is a hand-rolled
 node editor: absolutely-positioned `<div>` nodes + one SVG layer for wires. It has **no pan and no
@@ -24,7 +26,7 @@ cannot be deleted or told apart** (all render as identical blue, including YES v
 several compile paths **silently drop user-wired data** on save. This doc is the research: current
 state, defect list with line references, three enhancement options, a recommendation, and a phased plan.
 
-## Current State
+## Why
 
 - Single IIFE `window.TriggerGraph`, ~1,520 lines, no build step (script tag in `templates/index.html:991`).
 - Nodes are DOM `<div class="tg-node">` with live form fields inside (lit-html templates per node type
@@ -498,3 +500,21 @@ are free text where the form offers a select. Also still open: the mojibake in
 `behaviors-view.js` action labels (`ðŸ’¬ Message`) is fixed in the new catalog but the form's own
 legacy literal is gone, so the *rest* of that file's labels still need the encoding repair filed
 separately.
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

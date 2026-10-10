@@ -1,6 +1,9 @@
 ---
-group: Environment & Climate
+area: environment
 wiki: "[[Environment/Light System]]"
+type: task
+status: review
+priority: medium
 ---
 
 # Fireplace Lighting Recipe
@@ -11,7 +14,7 @@ wiki: "[[Environment/Light System]]"
 
 ---
 
-## Summary
+## What
 
 The fireplace in the Living Area is lightable by `use fireplace` when the player carries both **kindling** and **tinderbox**. Lighting it consumes the kindling, sets the fireplace state to `"on"`, and warms the room.
 
@@ -48,12 +51,12 @@ Three new capabilities were added to the trigger system:
    - Effects: `adjust_environment` (temperature+1, "The fire crackles warmly.")
    - Note: only fires during `process_toggleable_items` — the fireplace is not a toggleable item, so this is dormant. Requires a toggleable system or dedicated tick handler to activate.
 
-## Files Changed
+## Files
 
 - `virtual_world_engine.py` — added `has_items` condition, fixed `state_equals`, added `consume_item` effect
 - `world_template.json` — updated fireplace triggers and state
 
-## How to Test
+## Steps to verify
 
 1. Reset the world: `POST /api/reset`
 2. Set active player to Lyrie: `POST /api/player/set` with `{"name": "Lyrie"}`
@@ -82,3 +85,15 @@ You arrange the kindling in the hearth and light it with the tinderbox. Flames c
 - `use kindling on fireplace` is not supported (kindling has no `on_use_on` trigger for fireplace). Use `use fireplace` instead.
 - The on_tick trigger for gradual warming requires toggleable-item processing or a dedicated tick handler (existing limitation, not new).
 - When fireplace is already lit AND player has no kindling, two messages show: "already burning" + fail message. Informs the player of both conditions.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

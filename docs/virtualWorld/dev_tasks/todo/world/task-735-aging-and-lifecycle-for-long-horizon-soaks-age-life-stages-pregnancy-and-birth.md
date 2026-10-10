@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-10-08
 **Related:** task-670, task-733, task-685
 
-## Goal
+## What
 
 Make a 10-year soak credible: a character has an age that advances with sim time (birth tick + elapsed), passes through life stages, and can conceive, gestate and bear children, with the offspring becoming real characters. This is the clock and demographics a long-horizon simulation needs, not just two fields.
 
@@ -24,7 +24,7 @@ Make a 10-year soak credible: a character has an age that advances with sim time
   task-670). So a 10-year soak currently changes nothing about who ages, who can
   bear children, or who dies of old age.
 
-## Design
+## How
 
 `age` only means something with a clock. The system:
 
@@ -66,3 +66,17 @@ per character.
 - [ ] `age` and `pronouns` are available to prose/prompts.
 - [ ] No additional unbounded per-character store is introduced.
 - [ ] Live: run a timeskip across a life-stage threshold and observe the change.
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

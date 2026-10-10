@@ -1,8 +1,11 @@
 ---
-group: Agent AI & Behavior
+area: characters
 wiki: "[[AI & Narration/Memory System]]"
 status: done
+type: task
+priority: medium
 ---
+
 # Activate Cosine Similarity in MemoryStore
 
 **Filed**: 2026-07-22
@@ -118,7 +121,7 @@ tune the 0.35 threshold / 2× weight in `memory-context.js`.
 
 ---
 
-## Summary
+## What
 
 The embedding infrastructure exists (embedding generation, cache, `/api/embeddings` endpoint, `cosineSimilarity()`) but is **dormant** — the `retrieve()` method gives a flat `0.3` boost for any memory that has an embedding, instead of computing actual cosine similarity against the query.
 
@@ -149,7 +152,7 @@ Also: `buildContext()` at line 149-177 generates a `queryEmbedding` but passes i
 
 ---
 
-## Changes
+## How
 
 ### 1. Fix `retrieve()` to accept and use query embedding for cosine similarity
 
@@ -210,3 +213,21 @@ This mirrors humanoidagents' approach but keeps all 5 signals instead of just 3.
 1. Load a world with a character that has embedded memories
 2. Call `MemoryStore.retrieve()` with a query that has semantic overlap with a memory but zero keyword overlap (e.g. query "rest" for a memory about "slept in the bedroom")
 3. Verify the memory scores higher than without cosine sim
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

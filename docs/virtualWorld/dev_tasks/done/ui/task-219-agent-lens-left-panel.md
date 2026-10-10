@@ -1,6 +1,9 @@
 ---
-group: UI & Settings
+area: ui
 wiki: "[[dev_tasks/level-design-workflow]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Agent Lens — Left Panel (Area + Agent Preview)
@@ -11,13 +14,13 @@ wiki: "[[dev_tasks/level-design-workflow]]"
 
 ---
 
-## Problem
+## Why
 
 Level designers cannot see what an LLM agent (or human `look`) will receive until they run an agent step. Editing areas, ways, and items in the **right inspector** while guessing prompt output is slow and error-prone (labs doors, ladder views, jump pits, clearance doors).
 
 Players never stand *in* a way — perception is always **from an area**. Preview must reflect that.
 
-## Goal
+## What
 
 A **non-blocking** Agent Lens in the **left panel** (new tab or pin-able pane) that updates live while the inspector stays editable on the right.
 
@@ -77,7 +80,7 @@ Optional: **"Preview as if in…"** area dropdown (hypothetical placement) — c
 - Subscribe to `appEvents` `state:updated` where available
 - Manual 🔄 refresh button
 
-## Implementation
+## How
 
 ### New files
 
@@ -103,7 +106,7 @@ Optional: **"Preview as if in…"** area dropdown (hypothetical placement) — c
 - See-through toggles (`allow_see_character`, `allow_see_item`) in area lens
 - Beyond-way content in exits block
 
-## Verification
+## Steps to verify
 
 - [ ] Select Kitchen in graph → lens shows exits block matching `buildRoomContext` for Kaelen
 - [ ] Edit way `visible_in_direction` in inspector → lens updates without agent step
@@ -116,3 +119,11 @@ Optional: **"Preview as if in…"** area dropdown (hypothetical placement) — c
 - [[todo/ui/task-201-area-visibility-beyond-ways|task-201]] — see-through flags in lens
 - [[todo/ui/task-221-way-authoring-ux-and-tooltips|task-221]] — exit badges (`requires climb`, etc.) shown in lens
 - [[dev_tasks/level-design-workflow|Level design workflow hub]]
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

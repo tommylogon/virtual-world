@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-10-08
 **Related:** task-507, task-673, task-675, task-690, task-724, task-404, task-447
 
-## Goal
+## What
 
 Give a character one rich authoring surface (a full-page editor over the WorldGraph person schema shape) that projects into the primitives the simulation already reads: personality prose/structured, appearance/base_description, interest_tags/fear_tags, traits, skills, memories, known, relationships. Author once as a structured sheet; compile it into the fields the engine and prompts consume, so the richer form is usable data rather than dead authoring metadata.
 
@@ -63,7 +63,7 @@ Two of the fields the prose work depends on do **not exist** on a ViWo character
   field; an aging mechanic is separate (compare task-537 `age_effect`).
 - `sexuality`/`orientation` is also absent (only `kinks`/`turn_offs` exist).
 
-## Design
+## How
 
 - **Author once, on the node.** The rich `sheet` is authored definition on the
   character node (like task-507's structured block, and per task-724's decision
@@ -112,3 +112,17 @@ Two of the fields the prose work depends on do **not exist** on a ViWo character
 - [ ] Live: author a character from the sheet, save, reload, prompt contains the
       projected personality + appearance; `npm run build:ts` and the unit runner
       pass.
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

@@ -1,6 +1,10 @@
 ---
-group: Prompt & Narrative Quality
+area: prompting
+type: task
+status: done
+priority: medium
 ---
+
 # People Presence in Darkness — Sensory Cues
 
 **Filed**: 2026-07-29  
@@ -9,7 +13,7 @@ group: Prompt & Narrative Quality
 
 ---
 
-## Summary
+## What
 
 In dim or pitch-black conditions, other characters still exist and make noise. The prompt should list them with sensory cues rather than excluding them entirely.
 
@@ -27,3 +31,25 @@ Observe phase: people sometimes missing entirely while decision phase has them
 - `static/js/agent/prompt-builder.js` — `buildRoomContext()` people section
 - `static/js/agent-engine.js` — `_buildRoomContext()` people section
 - Needs relationship info to identify voices vs unknowns
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

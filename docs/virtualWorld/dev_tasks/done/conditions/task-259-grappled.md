@@ -1,6 +1,8 @@
 ---
-group: Conditions
+area: conditions
 status: done
+type: task
+priority: medium
 ---
 
 # Condition: Grappled (`grappled`)
@@ -12,7 +14,7 @@ status: done
 
 ---
 
-## Purpose
+## What
 
 Physically held by someone. Speed 0 until you escape. Source-gated: the active player (or grappler) relates to the held target.
 
@@ -51,7 +53,7 @@ Physically held by someone. Speed 0 until you escape. Source-gated: the active p
 - Grapple/restrain system (task-4 done) that applies/removes it.
 - `end_instances("escape")` and grappler-incapacitation wiring to auto-release.
 
-## Testing
+## Steps to verify
 
 - [ ] Grappled: speed 0, cannot act/move.
 - [ ] Escape ends only that instance.
@@ -62,3 +64,19 @@ Physically held by someone. Speed 0 until you escape. Source-gated: the active p
 
 - How is `grappler_incapacitated` triggered reliably (event when the source goes down)?
 - Is the grappler tracked in `source`, and does `source_type: "character"` gate anything?
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

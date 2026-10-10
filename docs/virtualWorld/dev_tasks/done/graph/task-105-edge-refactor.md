@@ -1,6 +1,11 @@
 ---
 wiki: "[[World Building/Graph System]]"
+type: task
+status: done
+area: graph
+priority: medium
 ---
+
 # Edge Type Refactor — Spatial Relations + Cleanup
 
 **Filed**: 2026-07-25
@@ -10,7 +15,7 @@ wiki: "[[World Building/Graph System]]"
 
 ---
 
-## Summary
+## What
 
 Replaced the three legacy edge types (`location`, `carried_by`, `contains`) with eight new spatial edge types (`in`, `on`, `under`, `behind`, `beside`, `at`, `carrying`, `equipped`). All engine modules, routes, and tests updated. Frontend got edge type dropdown on creation + inspector type changer.
 
@@ -49,7 +54,7 @@ Spatial types (`on`, `under`, `behind`, `beside`) exist in the graph API/UI. `ex
 ### Backward compatibility
 Old edges auto-migrate on `load_from_dict()`. Query backward compat via `resolve_edge_types()` — querying `"in"` still matches old `"location"` and `"contains"` edges.
 
-## Implementation
+## How
 
 ### `graph.py`
 - New constants: `EDGE_IN`, `EDGE_ON`, `EDGE_UNDER`, `EDGE_BEHIND`, `EDGE_BESIDE`, `EDGE_AT`, `EDGE_CARRYING`, `EDGE_EQUIPPED`
@@ -155,3 +160,17 @@ Example output for Task 4 (labs.json):
 
 - Read/cleanup tuples in `routes/graph.py:83,293,301,312` still list legacy names — harmless (they clear old edges from stale saves).
 - Frontend `world-state.js:146` default inventory list and `prompt-builder.js:596` still include `location`/`carried_by` — defensive fallbacks, no writes.
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

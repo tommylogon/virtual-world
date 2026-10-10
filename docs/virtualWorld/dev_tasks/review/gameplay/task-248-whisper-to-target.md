@@ -1,3 +1,10 @@
+---
+type: task
+status: review
+area: gameplay
+priority: medium
+---
+
 # Task-248: Whisper to a Target
 
 **Status:** In Review — implemented 2026-08-21, moved from todo/
@@ -20,7 +27,7 @@
 - Synergy: task-321 salience marks the whispered line `[Heard → addressed to you]` for the target.
 - Tests: `tests/test_realism_perception.py::TestDirectedWhisper` (4 tests) + closeness hooks (2).
 
-## Goal
+## What
 
 Allow a whisper directed at a specific character/player instead of only a room-wide
 whisper — a private aside that only the target hears (currently `whisper` is heard by the
@@ -33,3 +40,25 @@ whole room).
 - Sound/speech path: does a directed whisper carry through doors for its target, and is it
   shown only to that character (privacy) in the event stream?
 - Update prompt examples + COMMANDS table; confirm the LLM schema field for the target.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

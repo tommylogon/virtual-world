@@ -138,6 +138,14 @@ def create_app(config=None):
             if method in ('POST', 'PATCH', 'DELETE') and (
                 '/api/graph/' in path or '/api/players/' in path
                 or '/api/build/' in path or '/api/world/' in path
+                # Settings that persist to the scenario — clock, date, forecast,
+                # calendar, narration, ghost/mature flags — are edits too, so
+                # they must mark the scenario dirty and offer Commit. The
+                # app-global settings are excluded: they do not live in the
+                # scenario, so dirtying on them would be a false positive.
+                or (path.startswith('/api/settings/') and not path.startswith((
+                    '/api/settings/engine_config', '/api/settings/equip_slots',
+                    '/api/settings/auto_generate_descriptions')))
             ):
                 # Per-edit undo snapshots (task-371): every graph/player/build
                 # mutation becomes a labeled history entry so simple edits show
@@ -174,6 +182,11 @@ def create_app(config=None):
                         label = "character edit"
                     elif '/api/build/' in path:
                         label = "build edit"
+                    elif path.startswith('/api/settings/'):
+                        # A settings edit dirties the scenario (see the branch
+                        # above) but pushes no undo entry: a time-skip would
+                        # otherwise flood the history with "world edit".
+                        label = None
                     else:
                         label = "world edit"
                     if label is not None:

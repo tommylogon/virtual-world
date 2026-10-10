@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-25
 **Related:** 
 
-## Goal
+## What
 
 WorldPainter's reference image only has image/opacity/visible and is auto-fitted to the grid. Add scale/offset/crop handles (mirror the graph background's crop UX) and persist them on the scope reference, so the painter and the graph 'fit to painted grid' action share the same geometry.
 
@@ -39,3 +39,21 @@ agree. `null` rect = auto-fit. Corners scale the whole picture; edges cut it by
 following the pointer and shrinking the source window proportionally. Pure
 geometry lives in `grid-model.js` (unit-tested); the Konva handles/hit-test and
 persistence live in `editor.js`.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

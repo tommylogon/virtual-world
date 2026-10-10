@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 At this scenario's size the unfiltered list is unusable and the count icons carry no label.
 
@@ -51,5 +51,23 @@ mojibake'd (`Ã°Å¸` sequences, i.e. UTF-8 bytes read as Latin-1), so an edit 
 types a real emoji in `oldString` will not match. The glyphs are therefore built
 from `String.fromCharCode(0xD83C, 0xDFE0)` / `(0xD83C, 0xDF3F)` to match the
 existing bytes exactly rather than "fixing" the encoding in passing.
+
+- TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
 
 - TODO

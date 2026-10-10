@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-27
 **Related:** task-484,task-550
 
-## Goal
+## What
 
 A 3-day Kraktooth soak produced zero threat-tagged actions with five humans living inside the goblin camp, because nothing in the simulation can represent 'that is not mine' or 'that person frightens me'. Add a fear/territory response, and give task-484 the calibration data it has been waiting on.
 
@@ -200,3 +200,21 @@ re-run the Kraktooth soak once the humans carry `fear_tags` — which needs
 WT-A's task-408 first. 484 should stay blocked on that, or be closed as
 not-yet-earned, and this table is what makes either call an evidence-based one
 rather than a date-based one.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

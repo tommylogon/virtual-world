@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 **DECIDED 2026-09-30 by Tommy:** use the **D&D numbers until D&D stops making
 sense**, and the result has to work across **fantasy, modern, sci-fi, horror and
@@ -188,4 +188,20 @@ authored lower-case str:18 -> engine reads STR=18 CON=20 attack_bonus=3
 
 Live world returned to its prior state afterwards (probe characters removed).
 
+## Why
 
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

@@ -75,7 +75,7 @@ siblings today.
 > *speech* path and the random baseline roll. An earlier draft of this test
 > assumed otherwise and was wrong.
 
-## Acceptance criteria
+## Acceptance
 
 - [x] `sneeze` reachable as a reaction, matching the `itch`/`goosebumps` pattern.
 - [x] `sneeze` present in **both** `SPEECH_TRIGGERS` and `EMOTE_TRIGGERS`.
@@ -108,3 +108,25 @@ siblings today.
 - task-213 (done) — origin; its body-reaction accounting listed all three as
   missing, which was wrong for `itch` and `goosebumps`
 - task-166 (done) — the involuntary-action system this extends
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

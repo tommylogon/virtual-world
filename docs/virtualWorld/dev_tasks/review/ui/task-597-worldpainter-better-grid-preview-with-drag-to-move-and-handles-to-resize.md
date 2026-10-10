@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 The grid overlay does not communicate its extent or origin clearly, and moving or resizing it means editing numbers by hand. Show a clearer preview of the grid's bounds relative to the painted cells, and let it be dragged to reposition and resized by edge/corner handles rather than only through a dialog.
 
@@ -31,3 +31,21 @@ The grid overlay does not communicate its extent or origin clearly, and moving o
 - [x] Live proof (Playwright, `localhost:4465`): screenshot shows the frame,
       origin label, and handles; dragging the SE handle produced
       `Grid resized to 44×29`.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

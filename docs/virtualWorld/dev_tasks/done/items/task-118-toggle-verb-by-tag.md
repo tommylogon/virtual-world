@@ -1,6 +1,10 @@
 ---
-group: Trigger System
+area: items
+type: task
+status: done
+priority: medium
 ---
+
 # Toggle Verb by Item Tag
 
 **Filed**: 2026-07-29  
@@ -9,14 +13,14 @@ group: Trigger System
 
 ---
 
-## Summary
+## What
 
 The base toggle message currently uses "on"/"off" universally after the fix in `toggleable_items.py`. Instead, the verb should adapt to the item type:
 
 - Items tagged `electric` or `synthetic` → "turn on / turn off"
 - Everything else (torches, furnaces, candles, fireplaces) → "light / extinguish"
 
-## Implementation
+## How
 
 - `engine/toggleable_items.py` — check `tags` for `electric`/`synthetic` to choose status_word verb
 - Keep `current_state` as `"lit"/"unlit"` for the lighting system — only the message changes
@@ -24,3 +28,21 @@ The base toggle message currently uses "on"/"off" universally after the fix in `
 ## Reference
 
 Trigger messages (when they fire correctly per task-116) already have contextual flavor. This fix only affects the base fallback message.
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

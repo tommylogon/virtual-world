@@ -1,6 +1,10 @@
 ---
-group: Tech Debt & Testing
+area: testing
+type: task
+status: done
+priority: medium
 ---
+
 # Task 358: Upgrade Playwright Tests — Actually Test Things
 
 ## Outcome (verified 2026-09-22) — Phases 1–2 closed; Phases 3–5 re-filed as task-444
@@ -66,7 +70,7 @@ re-run here (they need a browser); nothing in the repo contradicts them.
 **Status**: In Progress (partial)  
 **Priority**: High  
 **Filed**: 2026-07-24  
-**Updated**: 2026-07-31  
+**Updated**: 2026-07-31
 
 ## The Problem
 
@@ -203,6 +207,7 @@ Existing files get upgraded in-place rather than rewritten:
 - ~~`test_ways.cjs`~~ — ⚠️ **does not exist** (corrected 2026-09-22); Phase 3 state verification moved to task-444
 
 ## Requirements
+
 - [x] Phase 1: Console error capture — `tools/test_helpers.cjs` created (`startSession`, `checkConsoleErrors`, `switchTab`, `showAgent`, `api`, `getState`, `gameCmd`); error capture (pageerror + console.error, filtering browser "Failed to load resource" noise) wired into `test_all.cjs`; `test_all.cjs` now closes the browser (runnable headless)
 - [x] Phase 2: Bug-regression click-through tests — `tools/test_regressions.cjs` maps the 10 known bugs to real UI click tests (settings tabs, trigger editor open, generate-from-equipment, turn advance, max-steps, initiative order, HP display, dropdown readability)
 - [ ] Phase 3: UI state persistence verification (edit → save → reload → verify) — only basic checks so far
@@ -223,3 +228,29 @@ Existing files get upgraded in-place rather than rewritten:
 - Phase 3: persistence verification pattern.
 - Phase 4: `page.route()` 500-mocking and connection-loss error-boundary tests.
 - Phase 5: `--suite` flag (smoke <30s / full) and JUnit XML output.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

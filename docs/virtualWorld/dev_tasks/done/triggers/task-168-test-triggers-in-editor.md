@@ -6,21 +6,23 @@ priority: medium
 created: 2026-08-02
 updated: 2026-08-05
 tags: [triggers, editor, ux, tooling]
+type: task
+area: triggers
 ---
 
 # Test Triggers in the Editor (Run Button)
 
 **Status**: In Review — implemented 2026-08-05. Backend `POST /api/triggers/test` (new `routes/triggers.py`) + `TriggerSystem.test_trigger()` (dry-run reports per-condition pass/fail + would-run effects + fireable check; live-run executes effects). Editor "▶ Run Test" button + result panel in `trigger-editor.js`. Browser-verified: button renders, fires API, shows condition PASS/FAIL + dry-run outputs + fireable warning. 5 new tests; suite 507 passed, 1 skipped.
 
-## Summary
+## What
 
 Add a way to test triggers from the editor — a run button on each trigger that simulates the trigger firing so the author sees its conditions and effects without having to play through the scenario.
 
-## Problem
+## Why
 
 The trigger editor (static/js/shared/trigger-editor.js) lets you build triggers but there's no way to verify them in place. Authors have to run the game, set up the situation, and trigger it manually to see if the conditions/effects are right.
 
-## Implementation
+## How
 
 ### Editor UI
 
@@ -47,7 +49,7 @@ The trigger editor (static/js/shared/trigger-editor.js) lets you build triggers 
 2. `routes/triggers.py` (or graph.py) — test endpoint
 3. `engine/trigger_system.py` — expose a safe evaluate/execute helper for testing
 
-## Testing
+## Steps to verify
 
 - [x] Run button appears on triggers in the editor — browser-verified (renders + fires API)
 - [x] Dry run shows condition pass/fail without side effects — `test_dry_run_reports_conditions_and_outputs`, `test_dry_run_flags_failed_condition`
@@ -61,3 +63,11 @@ The trigger editor (static/js/shared/trigger-editor.js) lets you build triggers 
 
 - [[todo/triggers/task-153-rename-item-trigger-effect|task-153: Rename effect]]
 - [[review/triggers/task-16-dymanic_trigger_templates|task-16: Dynamic trigger templates]]
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

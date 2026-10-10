@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-27
 **Related:** task-556, task-553, task-227
 
-## Goal
+## What
 
 Add weather prose to the area description so a character standing outside in a
 storm is told about it, and give the sun a presence beyond an implied light
@@ -158,3 +158,21 @@ still sees no weather even with narration in place:
 Hand-authored scenarios carry the tags by hand, which is why this survived:
 `world_template.json` has 28 hits, `The Valerious Case.json` 28,
 `kraktooth_goblin_camp.json` 11.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

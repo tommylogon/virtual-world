@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-08  
 **Prototype:** Millbrook Falls / The Pines
 
-## Goal
+## What
 
 Add a hierarchy *over* the existing area/way/item graph so the editor and
 runtime can address a world, settlement, building, or room group without
@@ -106,7 +106,7 @@ always remains in a real area, as today.
   model is not a scope manifest or streaming model. Do not couple this task to
   structure import.
 
-## Verification
+## Steps to verify
 
 - Pytest serialization fixture: absent, materialized, and unmade manifests.
 - Route tests prove an endpoint response excludes nodes outside the requested
@@ -277,3 +277,18 @@ once, because hanging the panel is the one failure the author cannot work around
   "fabricate nodes merely by being rendered" this task forbids.
 - The projection's scope-keyed fidelity handoff to task-500.
 
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

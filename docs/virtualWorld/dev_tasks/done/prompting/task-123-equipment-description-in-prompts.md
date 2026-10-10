@@ -1,15 +1,19 @@
 ---
-group: Equipment & Inventory
+area: prompting
+type: task
+status: done
+priority: medium
 ---
+
 # Equipment Description in Prompts Instead of Raw Slot List
 
 **Filed**: 2026-07-29  
 **Priority**: Low  
-**Status**: Done � equip/unequip now triggers LLM auto-generation via frontend hook in api.js
+**Status**: Done � equip/unequip now triggers LLM auto-generation via frontend hook in api.js
 
 ---
 
-## Summary
+## What
 
 Replace the raw equipped-items slot list in prompts with a natural-language equipment description generated on equip/unequip.
 
@@ -31,3 +35,25 @@ The `engine/equipment.py` system already generates a description string on equip
 - `player.py` — add `equipment_description` field
 - `static/js/agent/prompt-builder.js` — use equipment_description in `buildRoomContext()`
 - Keep the raw slot list available as fallback/backup
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

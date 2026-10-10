@@ -1,6 +1,9 @@
 ---
-group: Items & Crafting
+area: items
 wiki: "[[Items & Inventory/Items Overview]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Enhanced Item Creation: Multi-Target, Triggers, Prompt Preview
@@ -11,7 +14,7 @@ wiki: "[[Items & Inventory/Items Overview]]"
 
 ---
 
-## Summary
+## What
 
 The "Create New Item" modal (main.js) and Item Library generation (item-library.js) need three enhancements:
 
@@ -19,7 +22,7 @@ The "Create New Item" modal (main.js) and Item Library generation (item-library.
 2. **Trigger generation** — AI generates triggers but parse step discards them; all LLM prompts need up-to-date trigger docs
 3. **Prompt preview** — view and edit the assembled prompt before sending to the LLM
 
-## Current State
+## Why
 
 ### Trigger parsing missing in main.js (line 386-389)
 
@@ -74,7 +77,7 @@ Extend `POST /api/build/item` (app.py:1014) to accept `container` and `character
 - `container` → `contains` edge
 - `character` → `carried_by` edge
 
-## Files Affected
+## Files
 
 - **NEW** `static/js/prompt-docs.js` — shared trigger documentation
 - `static/js/main.js` — trigger parsing, system prompt, target selector, prompt preview
@@ -83,9 +86,17 @@ Extend `POST /api/build/item` (app.py:1014) to accept `container` and `character
 - `app.py` — extend `/api/build/item`
 - `templates/index.html` — script load order for new file
 
-## Verification
+## Steps to verify
 
 - Create item → target room → AI generate with triggers → verify triggers populate
 - Create item → target container → verify `contains` edge
 - Create item → target character → verify `carried_by` edge
 - Prompt preview → edit text → verify modified prompt used
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

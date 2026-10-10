@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: ui
+priority: medium
+---
+
 # New Way Modal: More Properties
 
 **Filed**: 2026-07-15
@@ -6,13 +13,13 @@
 
 ---
 
-## Summary
+## What
 
 The "Connect Rooms" / door creation modal is minimal. It only collects room A/B, directions, a locked checkbox, and a locked_with item. The modal needs more properties to support the richer door system (state, description, door ID naming, lock state options).
 
 the locked with property is obsolete as mentioned in a seperate task. triggers support this functioanlity now
 
-## Current State
+## Why
 
 In `main.js:openCreateModal()` (line 409-417), the connection form has:
 
@@ -73,8 +80,22 @@ Use the same collapsible sections pattern used elsewhere in the UI:
     Tags: [comma-separated input]
 ```
 
-## Files Affected
+## Files
 
 - `static/js/main.js` — expand connection modal form
 - `templates/index.html` — may need additional modal HTML
 - `app.py` — ensure all new fields are passed to the backend
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

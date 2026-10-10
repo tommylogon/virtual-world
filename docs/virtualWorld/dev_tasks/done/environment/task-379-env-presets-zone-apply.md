@@ -25,3 +25,29 @@ same `api.updateNode` path as the env editors — undo snapshots cover it — wi
 three zone scopes: this area, area + neighbours through open ways, all areas.
 The inspector also gained weather/wind/humidity editors so presets have
 something to capture.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

@@ -439,7 +439,15 @@ def find_or_spawn(gs, player, area_name, *, skill=None, want_tags=(), rng=None,
     table_entries = list(SKILL_TABLES.get(skill_key, [])) + extra_entries
     check_bonus = min(4, affinity + min(3, len({t for t in present if any(
         t in {str(x).lower() for x in e.get("tags", [])} for e in table_entries)})))
-    dc = max(MIN_DC, SEARCH_DC - check_bonus)
+    # Settled snow (task-556) hides what would otherwise be found: the search is
+    # harder by the area's *depth*, not by its weather word, so a clearing sky
+    # keeps the ground covered and the search slow until it thaws. Import locally
+    # to keep the weather engine off foraging's module-load path.
+    from engine.weather_forecast import snow_forage_dc_penalty
+    env = (area_node.properties or {}).get("environment")
+    env = env if isinstance(env, dict) else {}
+    snow_penalty = snow_forage_dc_penalty(env.get("snow_depth"))
+    dc = max(MIN_DC, SEARCH_DC - check_bonus + snow_penalty)
 
     ok, total = _search_check(gs, player, skill_key, dc)
     if not ok:

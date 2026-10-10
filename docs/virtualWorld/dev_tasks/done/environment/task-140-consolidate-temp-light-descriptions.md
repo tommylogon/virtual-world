@@ -1,6 +1,10 @@
-﻿---
-group: Environment & Climate
 ---
+area: environment
+type: task
+status: done
+priority: medium
+---
+
 # Consolidate Temperature & Light Description Systems
 
 **Filed**: 2026-07-30 (updated 2026-07-30)  
@@ -9,7 +13,7 @@ group: Environment & Climate
 
 ---
 
-## Summary
+## What
 
 Temperature and light descriptions are duplicated across 6+ locations with inconsistent thresholds, inconsistent labels, and some paths using raw ambient temperature while others use equipment-adjusted `feels_like`. Consolidate into one authoritative backend source, remove frontend duplicates, widen thresholds to cover realistic ranges.
 
@@ -108,3 +112,25 @@ Replace the current coarse bands with a fuller spectrum:
 
 - [[review/ui/task-113-vital-detail-modal|task-113: Vital detail modal]] — vital detail modal shows feels_like correctly
 - [[review/environment/task-5-heat_propagation|task-5: Heat propagation]]
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

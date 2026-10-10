@@ -1,6 +1,8 @@
 ---
-group: Items & Inventory
+area: items
 status: done
+type: task
+priority: medium
 ---
 
 # Freshness of Consumables (fresh/cooked/spoiled)
@@ -11,11 +13,11 @@ status: done
 
 ---
 
-## Problem
+## Why
 
 There is no way to track the state of food — it can't be fresh, cooked, or spoiled. This matters narratively: food should go bad over time and cooking should change its state.
 
-## Design
+## How
 
 - Model fresh / cooked / spoiled as condition instances attached to the item, which keeps the generic item template clean and reuses the existing condition system.
 - Use a periodic tick on the item to transition to spoiled after a duration.
@@ -26,3 +28,17 @@ There is no way to track the state of food — it can't be fresh, cooked, or spo
 
 - `engine/item_actions.py` — cooking transitions, spoil behavior on item use.
 - `engine/conditions.py` — condition instances for freshness states on items.
+
+## What
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

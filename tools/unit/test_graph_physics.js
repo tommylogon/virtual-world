@@ -84,3 +84,18 @@ test('the load path releases the transient instead of only resuming when it was 
     assertTrue(src.includes('GraphPhysics.resume();'), 'the load path releases the pause');
     assertFalse(src.includes('graphManager._physicsEnabled = true'), 'no hardcoded re-enable remains');
 });
+
+test('the lock is one signal: the toolbar reads the policy lock, and a lock change repaints the bar (bug-542)', () => {
+    // The lock the solver gates on is GraphPhysics._locked (fed by GraphBackground).
+    // The toolbar must read THAT, not a graph-manager copy — the old
+    // `_mapLayoutLocked` was never assigned, so the button never disabled for a
+    // locked world. AND setLocked must repaint the bar: the lock lands during load,
+    // after the toolbar's first paint.
+    const toolbar = __readFile('static/js/graph/toolbar.ts');
+    assertTrue(toolbar.includes('mapLocked: !!(window.GraphPhysics && window.GraphPhysics._locked)'), 'toolbar reads the policy lock');
+    assertFalse(toolbar.includes('gm._mapLayoutLocked'), 'no dead graph-manager lock field');
+
+    const physics = __readFile('static/js/graph/physics.ts');
+    const setLocked = physics.slice(physics.indexOf('setLocked(locked: boolean)'));
+    assertTrue(setLocked.includes('GraphToolbar.syncAll()'), 'a lock change repaints the toolbar');
+});

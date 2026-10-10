@@ -46,7 +46,7 @@ The node-ID input sits in a second flex row beside the 32px sync button, so it i
 `44 - 32 - gap = ~9px`: exactly one character. The name input rendered its full value at
 44px, so it was clipped to a sliver behind the badge.
 
-## Fix
+## How
 
 Two changes, both about giving the column a floor instead of letting it absorb the
 leftover space:
@@ -99,3 +99,17 @@ default panel width and measured the header inputs from the live DOM:
 | node-ID input | **177px** | full 28-char id |
 
 No truncation; the id is not one character. No page errors.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO

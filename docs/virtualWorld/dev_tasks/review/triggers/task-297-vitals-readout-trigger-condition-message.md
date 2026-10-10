@@ -1,6 +1,10 @@
-﻿---
-group: Triggers
 ---
+area: triggers
+type: task
+status: review
+priority: medium
+---
+
 # Vitals Readout as Trigger Condition and Message
 
 **Filed**: 2026-08-19
@@ -24,3 +28,28 @@ New triggers and conditions for using vitals readout as a condition, and getting
 - `developer ideas.md` line 4
 - `engine/trigger_system.py`, `engine/effects.py` (`handle_adjust_vital`, `_render_template`)
 
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

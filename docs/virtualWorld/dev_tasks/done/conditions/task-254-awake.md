@@ -1,6 +1,8 @@
 ---
-group: Conditions
+area: conditions
 status: done
+type: task
+priority: medium
 ---
 
 # Condition: Awake (`awake`)
@@ -12,7 +14,7 @@ status: done
 
 ---
 
-## Purpose
+## What
 
 The default resting state. Present when no other condition is active; `Player.state` reads back as `"awake"` when nothing else applies. Mostly a bookkeeping sentinel rather than a gameplay effect.
 
@@ -52,7 +54,7 @@ The default resting state. Present when no other condition is active; `Player.st
 - `player.py` `remove_condition` (line ~507) and `process_tick` — re-add default `awake` when the last condition clears.
 - Condition hierarchy order in `CONDITION_HIERARCHY` (lowest priority, listed last).
 
-## Testing
+## Steps to verify
 
 - [ ] Clearing the last non-awake condition restores an `awake` instance.
 - [ ] `Player.state` reads `"awake"` with no conditions.
@@ -60,3 +62,19 @@ The default resting state. Present when no other condition is active; `Player.st
 ## Open questions / things to work out
 
 - Should `awake`'s `excludes: ["unconscious"]` remain, or is that the only exclusion source that matters?
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

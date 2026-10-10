@@ -1,7 +1,11 @@
 ---
-group: Trigger System
+area: triggers
 wiki: "[[Rules Engine/Triggers & Effects]]"
+type: task
+status: done
+priority: medium
 ---
+
 		
 # Dynamic Trigger Templates — Variable Substitution in Trigger Messages
 
@@ -11,7 +15,7 @@ wiki: "[[Rules Engine/Triggers & Effects]]"
 
 ---
 
-## Summary
+## What
 
 Trigger messages support `{variable_name}` template substitution referencing game state, item properties, player stats, and environment data. Fully implemented in engine.
 
@@ -68,6 +72,24 @@ A container with custom params:
 ```
 → "Gold Coins — 5 remaining"
 
-## Files Changed
+## Files
 
 - `virtual_world_engine.py` — `_render_template()` method, context expansion in `_execute_triggers()`
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

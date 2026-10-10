@@ -12,7 +12,7 @@ parent: task-685
 **Related:** task-685
 **Mockup:** `docs/design/memory-mockup.html` (static, not wired)
 
-## Goal
+## What
 
 Grow the inspector's Memories tab (`static/js/inspector/memory-view.ts`) from a
 flat list into the memory mind, in four stages — engine fields from task-686
@@ -65,3 +65,21 @@ embedding status).
 - The mockup shows an emotional-encoding panel with named affect rows; the
   memory editor already edits `memory_emotions` — reuse that vocabulary, do
   not invent a second one.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

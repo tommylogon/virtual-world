@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 The biome palette is 105 options. It now renders as 23 real optgroups (fixed under the 623 work), but an author drawing a 30-location town floor plan still has to scroll to find 'Wall' or 'Door'. A live filter box above the select, matching on name and id, is the same affordance added to the Scenario Manager for 22 scenarios -- here it matters 5x more.
 
@@ -37,5 +37,23 @@ option so it can never sit on something unpaintable.
 
 **Verified live** in the Eldenford interior grid: typing `wall` narrows 105
 options to `Wall (wall)` (screenshot `audit/92-palette-filter-wall.png`).
+
+- TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
 
 - TODO

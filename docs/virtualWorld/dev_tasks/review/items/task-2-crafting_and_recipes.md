@@ -1,7 +1,11 @@
 ---
-group: Items & Crafting
+area: items
 wiki: "[[Items & Inventory/Items Overview]]"
+type: task
+status: review
+priority: medium
 ---
+
 # Crafting and Recipe System
 
 **Filed**: 2026-07-15
@@ -10,11 +14,11 @@ wiki: "[[Items & Inventory/Items Overview]]"
 
 ---
 
-## Summary
+## What
 
 Add a crafting/recipe system where items can be combined to create new items. Example: if character has recipe for "fried eggs" and uses egg on pan while oven is on → spawn fried_egg. If requirements not met → descriptive error message.
 
-## Design
+## How
 
 ### Recipe Format
 
@@ -80,7 +84,7 @@ An alternative approach uses triggers instead of a recipe system:
 
 Recommendation: Recipe system for complex crafting, triggers for simple single-item effects.
 
-## Files Affected
+## Files
 
 - `virtual_world_engine.py` — add recipe processing, craft/make command
 - `app.py` — add craft/make command handler
@@ -88,7 +92,6 @@ Recommendation: Recipe system for complex crafting, triggers for simple single-i
 - `static/js/inspector.js` — recipe display
 
 **Deferred**: Post-merge feature branch. This branch is refactoring/testing only.
-
 
 ## Refactoring Impact (July 2026)
 
@@ -108,3 +111,17 @@ The engine execution layer built for this
 task (`craft_item`, condition leaves, `give_item` outputs) is expected to
 survive the data migration; the graph-node format should not remain a second
 source of truth alongside the world-recipe entry.
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

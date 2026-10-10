@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-23
 **Related:** task-464, task-437, task-244, task-101, task-472
 
-## Goal
+## What
 
 A timeskip in a shared world is **not** a table consensus and **not** a blocking
 server jump. It is an **order attached to one character**, declared on that
@@ -65,7 +65,7 @@ Confirmed decisions (2026-09-23):
       character; 404 for an unknown name, clean no-op when there is no order).
 - [ ] Save/load: orders are deliberately transient; a reload abandons the order.
 
-## Verification
+## Steps to verify
 
 `python -m pytest tests/test_soak_orders.py -q` → 14 passed (incl. the state
 payload reporting the order for the roster). Targeted soak/background/timeskip/
@@ -75,3 +75,15 @@ lint / typecheck / module-index clean.
 ## Review 2026-09-23 - closed
 
 Verified: `tests/test_soak_orders.py` -> 16 passed and `tests/test_soak_chain.py` -> 5 passed on the real `tick_turn` loop (background pass -> policy -> time spent -> promotion -> resume memory -> `soak_end` event). Two things came out of that validation and are fixed here: a **search order now promotes on its find** (the policy result used to be dropped, unlike the blocking skip) and the roster row carries a **cancel** (`DELETE /api/world/soak?character=`). Orders stay transient by design, so the last box is a deliberate non-goal rather than open work. Closing.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Files
+
+- TODO

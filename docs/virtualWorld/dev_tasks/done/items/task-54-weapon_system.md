@@ -1,6 +1,9 @@
 ---
-group: Equipment & Inventory
+area: items
 wiki: "[[Rules Engine/Combat System]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Universal Weapon System
@@ -9,11 +12,11 @@ wiki: "[[Rules Engine/Combat System]]"
 **Priority**: High
 **Status**: In Review — implemented (code-verified 2026-08-11). Weapon damage/damage_dice/damage_type/resistances in `engine/equipment_bonuses.py:55-122`, `attack X with Y` combat resolution in `engine/combat.py`.
 
-## Summary
+## What
 
 Players should be able to attack each other using items as weapons. This includes both the slasher (Butcher) and normal characters (Kyrie with wrench, anyone with a cleaver, etc.).
 
-## Current State
+## Why
 
 - `attack [target]` → routes to `_slasher_attack()` which only works for `is_slasher` characters. Non-slashers get bare-handed messaging but the combat logic doesn't use their STR properly.
 - `attack [target] with [item]` → not parsed, target string includes `" with [item]"` → player not found
@@ -126,3 +129,21 @@ If the attacker has `is_slasher` trait:
 | Attacker attacks self | "You can't attack yourself." |
 | Slasher vs normal | Slasher gets damage bonuses, but normal characters can still hit |
 | Multiple weapons in inventory | Pick the first match by name (fuzzy) |
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

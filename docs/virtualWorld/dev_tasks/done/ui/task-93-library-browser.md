@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: ui
+priority: medium
+---
+
 # Library Browser — Unified UI for All Entity Types
 
 **Filed**: 2026-07-22
@@ -6,7 +13,7 @@
 
 ---
 
-## Summary
+## What
 
 Replaced the monolithic JSON registry files (`data/items.json` at 3819 lines, `data/characters.json`) with per-entity files under `data/library/`, and built a unified tabbed library browser UI covering Items, Characters, Rooms, Traits, Conditions, and Behaviours.
 
@@ -121,7 +128,7 @@ A single `/api/library/<type>` route handles all entity types. Import endpoints 
 2. Editor: Name, Description, Pattern (wander/still/patrol/flee/guard/follow/flee_from/investigate), Config JSON
 3. **💾 Save** → creates `data/library/behaviours/<id>.json`
 
-## Files Changed
+## Files
 
 - `tools/migrate_library.py` — new, one-time migration script
 - `routes/helpers.py` — per-file load_registry/save_registry
@@ -143,3 +150,21 @@ A single `/api/library/<type>` route handles all entity types. Import endpoints 
 - Areas and Ways directories exist but have no UI tab yet — could be added when the concept is implemented
 - Library entries can be bulk-imported from world via existing "Sync to Library" on items tab
 - Trigger templates as a standalone library type could be useful for reusing trigger configs across items/rooms
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

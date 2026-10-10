@@ -1,3 +1,10 @@
+---
+type: bug
+status: done
+area: bugs
+priority: medium
+---
+
 # Bug 30 — Sound propagation uses FIFO BFS over weighted barriers: finds first path, not quietest
 
 **Status:** Done — fixed 2026-09-22.
@@ -33,9 +40,29 @@ model too.
   `WAY_BARRIERS` / `NOISE_LEVELS` snapshots corrected (live lookups go through
   the `_*` helpers).
 
-## Tests
+## Steps to verify
 
 `tests/test_sound.py::TestLeastDampedPath` builds a diamond (A→B→C through one
 closed door vs A→D→C through two open ways, heavy route inserted first) and
 asserts the result uses the cheaper route's remaining penetration and direction.
 Existing `test_sound.py` (33) all green.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

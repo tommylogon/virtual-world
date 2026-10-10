@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-10-04
 **Related:** 
 
-## Goal
+## What
 
 Reporter sees save/load/library chatter in the HTC 'What happened' feed: 'scenario saved', loadout and grid messages. They are editor/GM operations with no place in the narrative a player reads. turn-feed.isObserverVisible already drops parsed.type === 'system', but parseEntry re-labels a system row as type 'action' whenever _tryParsePrefixedName matches (and as 'npc' for 'did nothing this turn'), so those rows leak. Filter operational chatter at the feed boundary rather than at each of the ~230 events.log('system-msg') call sites, which the raw event stream still needs.
 
@@ -36,3 +36,21 @@ rows do not match the parser, so nothing else that renders today is lost.
 
 Tests: `tools/unit/test_turn_feed_scope.js` (4). Verified failing with the
 filter disabled (`564 passed, 1 failed`) and green with it (`565 passed`).
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

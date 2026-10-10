@@ -1,6 +1,10 @@
-﻿---
-group: Gameplay
 ---
+area: gameplay
+type: task
+status: review
+priority: medium
+---
+
 # Auto-Dressing Characters from Interest Tags
 
 **Filed**: 2026-08-21  
@@ -9,7 +13,7 @@ group: Gameplay
 
 ---
 
-## Summary
+## What
 
 Procedurally assemble and equip a coherent outfit on a character: walk their
 `interest_tags` (style/domain signals) plus context (weather/temperature,
@@ -30,7 +34,7 @@ underwearâ†’baseâ†’outer, and equip through the existing EquipmentSyst
 - âŒ No outfit assembly logic: no "which slots must be filled", no layering
   order rules, no interestâ†’clothing selection
 
-## Design
+## How
 
 ### Slot coverage rules
 
@@ -84,7 +88,7 @@ goal using engine/size.py tiers.
 - `routes/*.py` (one thin route), `mcp_server.py` (one tool)
 - `tests/test_dressing.py` (new)
 
-## Verification
+## Steps to verify
 
 - pytest suite green
 - Manual: dress miki from a cold-area context â†’ underwear+top+outer present in
@@ -97,3 +101,11 @@ goal using engine/size.py tiers.
   and task-215 (environmental clothing effects share the weather signal)
 - Optional synergy: task-9 population can dress mannequins/rack displays using
   the same planner
+
+## Why
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

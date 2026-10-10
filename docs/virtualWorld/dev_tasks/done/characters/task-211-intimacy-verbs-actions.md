@@ -1,6 +1,8 @@
 ---
-group: Pleasure System
+area: characters
 status: done
+type: task
+priority: medium
 ---
 
 # Intimacy Verbs, Interact/Attack Distinction & Body-Part Targeting
@@ -11,11 +13,11 @@ status: done
 
 ---
 
-## Problem
+## Why
 
 The command parser (`routes/action.py`) has no intimacy verbs and no `where` body-part targeting. Actions are either item/movement/etc. or fall through to `process_emote` (flavor-only, no mechanical effect).
 
-## Design
+## How
 
 - **Verb collision check (verified):** `grab` → grapple (`routes/action.py:689`), `grope`/`grope around`/`feel around` → `fumble_around()` blind-nav (`routes/action.py:33` dispatch, handler at `:589`). New intimacy verbs (kiss, lick, suck, caress, pinch, tickle, etc.) must not collide — pick fresh tokens or extend the parser carefully.
 - Add `where`/`intensity` to the action schema (frontend → backend): action struct becomes `{action, type, target, where, intensity, emote}`. `type` ∈ `interact` (no damage) vs `attack` (existing `combat.py` path). Default `type: interact` so plain `kiss lydia` is non-combat.
@@ -30,7 +32,7 @@ The command parser (`routes/action.py`) has no intimacy verbs and no `where` bod
 - `static/js/agent/prompt-builder.js` — action examples + allowed verbs
 - `engine/pleasure_actions.py` — NEW: `_resolve_body_part()`, DC calculation, accessibility
 
-## Testing
+## Steps to verify
 
 - [ ] `kiss lydia` (no `where`) → default to lips/likely body part, interact type
 - [ ] `kiss lydia on neck` → resolved body part, not swallowed by emote fallback
@@ -55,3 +57,11 @@ target) gated by grapple/restraint state + mature toggle. The human-turn
 panel mockup (task-333) already renders this as a disabled menu entry with
 reason "self-only today" and will consume the new verbs automatically once
 they exist (menus are data-driven from actions+state).
+
+## What
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

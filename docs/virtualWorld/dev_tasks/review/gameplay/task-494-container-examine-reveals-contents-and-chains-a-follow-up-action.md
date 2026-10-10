@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-23
 **Related:** task-352, task-493, task-430, task-104
 
-## Goal
+## What
 
 Make container contents an explicit reveal and allow a two-step single turn: examine <container> marks its contents discovered (they render 'known' and become usable), and the examine can be followed by one item action (take/use) in the same turn, mirroring the dash multi-step precedent (engine/movement.py dash_to_area, tick_manager.py move/dash handling) and governed by action_costs. Decide whether carried-container contents stop being auto-listed before an examine. Belongs with the task-352 action-economy work.
 
@@ -217,3 +217,21 @@ to it.
 node-global vs per-player distinction in a table, which three client-side readers
 consume `discovered_items`, the `in`-not-only scope, and the reachability point
 that contents are targetable before any examine.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

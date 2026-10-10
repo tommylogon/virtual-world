@@ -1,6 +1,9 @@
-﻿---
-group: Environment & Climate
+---
+area: environment
 wiki: "[[Rules Engine/Temperature System]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Heat Propagation Through Open Ways
@@ -13,7 +16,7 @@ wiki: "[[Rules Engine/Temperature System]]"
 
 ---
 
-## Summary
+## What
 
 Temperature should gradually equalize between areas connected by open ways. This creates emergent behavior:
 - Lit fireplace warms adjacent areas through open doors
@@ -242,3 +245,25 @@ The way inspector in `area-view.js` or `way-view.js` should have an editable `in
 - NPCs reacting to temperature changes (future)
 - Dynamic insulation from player-built structures (future)
 - Fire spread (future -- task-5 was originally scoped for this but it's too much)
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

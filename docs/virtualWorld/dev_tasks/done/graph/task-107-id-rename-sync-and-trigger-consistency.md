@@ -12,13 +12,13 @@ wiki: "[[World Building/Graph System]]"
 
 ---
 
-## Summary
+## What
 
 When renaming an entity, the node ID should optionally sync with the new name. And when it does, any trigger effect params that reference the old ID must be updated too — otherwise triggers silently break.
 
 ---
 
-## Current State
+## Why
 
 Two decoupled inputs in the inspector (every entity type: room, item, door, character):
 
@@ -96,7 +96,7 @@ Run this server-side as part of the rename flow (not a separate API call — pig
 
 ---
 
-## Files Changed
+## Files
 
 | File | Change |
 |------|--------|
@@ -126,7 +126,7 @@ Run this server-side as part of the rename flow (not a separate API call — pig
 
 ---
 
-## Test Plan
+## Steps to verify
 
 1. Rename "Rusty Key" to "Golden Key" → ID changes from `item_rusty_key` to `item_golden_key`
 2. Verify trigger edge from `item_golden_key` to its `logic_trigger` still exists
@@ -134,3 +134,11 @@ Run this server-side as part of the rename flow (not a separate API call — pig
 4. Verify the item still works (take/use triggers fire normally)
 5. Test rename to same ID as another node → 409 error shown properly
 6. Test name change that normalizes to same ID → no-op, no error
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

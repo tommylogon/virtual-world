@@ -1,7 +1,10 @@
 ---
-group: UI
+area: ui
 status: done
+type: task
+priority: medium
 ---
+
 # Centralized Config Menu for Engine Constants
 
 **Filed**: 2026-08-19
@@ -74,7 +77,7 @@ Settings → ⚙️ **Engine Config** → edit values → 💾 Apply. File persi
 - Keep the MVP tight: one JSON config file + a route to read/write it + a simple editor panel.
 - Related: `task-301` (turn duration default is the exact kind of constant this exposes).
 
-## Files changed
+## Files
 
 - `engine/runtime_config.py` (new)
 - `engine/sound.py`, `engine/environment_propagation.py`, `engine/lighting.py`
@@ -88,3 +91,25 @@ Settings → ⚙️ **Engine Config** → edit values → 💾 Apply. File persi
 
 - `developer ideas.md` line 11
 - `config` module / constants in engine modules (sound, lighting, environment_propagation)
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

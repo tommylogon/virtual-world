@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-27
 **Related:** 
 
-## Goal
+## What
 
 3239 unit tests, but NO integration or E2E layer: no save/load round-trip, no timeskip determinism, no trigger fan-out, no scope load/unload, no perf baseline. The unit tests are strong; the seams between systems are untested, and the seams are where the remaining bugs are. Add a harness covering at minimum: save/load round-trip preserving two same-named areas in different scopes (the task-446 defect), same-seed trace equality (the 17 bare random call sites), and a compiled-region generation benchmark (task-402).
 
@@ -50,3 +50,21 @@ priority: high
 **Not done here:** task-402's ≥100k-node synthetic generator and the
 scoped-endpoint out-of-scope guard. The compiler seam is covered; the scale
 fixture is its own task.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

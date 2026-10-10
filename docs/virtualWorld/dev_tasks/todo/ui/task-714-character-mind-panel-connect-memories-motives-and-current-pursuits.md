@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-10-05
 **Related:** task-409, task-426, task-691, task-699, task-701, task-702, task-703, task-704, task-725
 
-## Goal
+## What
 
 Extend the existing character Mind view into one readable surface for why a character cares, what they are pursuing, how they currently plan to act, what activity is visibly underway, and which memories or schedule cues inform it.
 
@@ -50,3 +50,21 @@ In the live Kraktooth goblin camp, the character inspector has four tabs: Invent
 ## Sequencing and design references
 
 Build against the runtime data provided by pursuit selection/execution (tasks 704 and 702), the existing schedule cue layer (task-409), and Activity state. Use [[Character Pursuits]] as the vocabulary and prompt-format reference. Keep [[Activities & States]] as the Activity behavior reference. The UI may present only fields that are actually implemented and available; it must not imply that the future pursuit prompt block or all pursuit fields are already wired.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

@@ -11,7 +11,7 @@ priority: medium
 **Related:** 424, 506, 155, 196
 **Blocks:** 506 (the library-wide consumable pass cannot be authored correctly until the depletion model is fixed)
 
-## Goal
+## What
 
 Decide, implement, and document **one** rule for how an item's `uses` (`uses` =
 charges/durability, task-155) is spent on `eat`/`drink`, so the engine and the
@@ -111,7 +111,7 @@ engine already auto-spends `uses`.
 - Changing what counts as food/drink (`FOOD_TAGS`/`DRINK_TAGS`).
 - The `use` path's existing auto-decrement (it is already correct).
 
-## Verification
+## Steps to verify
 
 - Unit: `eat` an authored item with `uses: 2`, no `adjust_uses` → after one eat
   `uses == 1`, item present; after two, removed.
@@ -157,3 +157,15 @@ removes the silent-infinite failure class.
     `destroy_item`).
 - Soak: Kraktooth camp, one game week, `--background-all --mature` —
   **23/23 alive at 1 and 15 min/tick** (graph 188/190 nodes, bounded).
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Files
+
+- TODO

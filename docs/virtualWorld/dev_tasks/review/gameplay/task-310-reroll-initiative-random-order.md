@@ -1,6 +1,10 @@
 ---
-group: Gameplay
+area: gameplay
+type: task
+status: review
+priority: medium
 ---
+
 # Reroll Initiative on Random Order
 
 **Filed**: 2026-08-19
@@ -29,3 +33,29 @@ When using random order in turn-based mode, reroll the initiative list at the en
 
 - `developer ideas.md` line 17
 - Turn/initiative system (`static/js/` turn UI / agent turn scheduling)
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

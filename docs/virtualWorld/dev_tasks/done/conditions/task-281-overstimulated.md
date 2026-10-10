@@ -1,6 +1,8 @@
 ---
-group: Conditions
+area: conditions
 status: done
+type: task
+priority: medium
 ---
 
 # Condition: Overstimulated (`overstimulated`)
@@ -12,7 +14,7 @@ status: done
 
 ---
 
-## Purpose
+## What
 
 Too much, too fast — overstimulation. Drains Pleasure and costs Energy; excludes `satisfied`/`numb`. A negative/aversive state contrasted with the pleasant arousal bands.
 
@@ -71,3 +73,25 @@ Too much, too fast — overstimulation. Drains Pleasure and costs Energy; exclud
 - Is there a `numb` condition (referenced in `excludes`) yet? If not, the exclusion entry references something undefined.
 - Onset criteria — what triggers overstimulation vs. crossing into `frantic`? (Sustained stimulation vs. a spike.)
 - Recovery path: straight to `satisfied`, or through `sensitized`?
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

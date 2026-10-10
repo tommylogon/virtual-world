@@ -1,7 +1,11 @@
 ---
-group: Equipment & Inventory
+area: ui
 wiki: "[[Items & Inventory/Items Overview]]"
+type: task
+status: done
+priority: medium
 ---
+
 # Tab-Completion for Commands — Cycle Available Targets
 
 **Filed**: 2026-07-17
@@ -11,13 +15,13 @@ wiki: "[[Items & Inventory/Items Overview]]"
 
 ---
 
-## Summary
+## What
 
 Add Tab-key autocomplete to the command input that cycles through valid targets for whatever command verb is being typed. When the user types `take ` and presses Tab, it completes the next available item that supports `take`. Pressing Tab again cycles to the next one. Works for all commands where target completion makes sense.
 
 This is a keyboard-first, text-adventure-native replacement for a GUI context menu. Instead of clicking a target, you Tab through what you can interact with.
 
-## Design
+## How
 
 ### How it works
 
@@ -86,10 +90,24 @@ No new UI components needed — just the input field behaviour.
 - The current prefix (if any)
 - Player context (same area, lighting, state, etc.)
 
-## Files Affected
+## Files
 
 - `static/js/main.js` — Tab key handler on command input
 - `static/js/api.js` — add `getAutocomplete()` endpoint call
 - `routes/action.py` — add `/api/autocomplete` route  
 - `virtual_world_engine.py` — add `get_autocomplete_options(verb, prefix)` helper
 - `tests/test_autocomplete.py` — test autocomplete endpoint & engine logic
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

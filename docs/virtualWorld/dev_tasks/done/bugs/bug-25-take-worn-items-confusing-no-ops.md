@@ -1,4 +1,11 @@
-﻿# Bug 25 — take/wear no-ops read as failures and duplicate-wear stacks
+---
+type: bug
+status: done
+area: bugs
+priority: medium
+---
+
+# Bug 25 — take/wear no-ops read as failures and duplicate-wear stacks
 
 **Status:** Done — reframed and closed 2026-09-22. The engine-side messaging fix
 was already in place; the remaining live repro was a duplicate-item-instances
@@ -54,8 +61,28 @@ The remaining data-side root cause (two same-named item nodes on one character)
 is split out to **task-450** (`todo/items/`), which also adds a carried+equipped
 invariant at the load boundary.
 
-## Verification
+## Steps to verify
 
 - `tests/test_item_actions.py::TestTakeAlreadyHeld` (carried / worn / worn+stale
   carry edge), `tests/test_equipment_system.py` layering tests.
 - `tests/test_item_actions.py::TestGiveItem::test_give_worn_item_transfers_and_unequips`.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

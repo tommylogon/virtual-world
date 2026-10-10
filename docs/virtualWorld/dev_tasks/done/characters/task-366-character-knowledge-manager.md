@@ -19,3 +19,29 @@ priority: medium
   hidden markers, stale-ref cleanup, immediate save via
   `updateCharacter(known)`. Alias refs written so engine + prompt builder
   match (name / player_<slug> / character_<slug>; area name + node id + guess).
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

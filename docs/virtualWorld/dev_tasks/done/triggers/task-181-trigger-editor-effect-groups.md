@@ -1,5 +1,8 @@
 ---
-group: Triggers
+area: triggers
+type: task
+status: done
+priority: medium
 ---
 
 # Trigger Editor — Group Effects by Target Type
@@ -10,7 +13,7 @@ group: Triggers
 
 ---
 
-## Implementation
+## How
 
 - `static/js/shared/trigger-editor.js` — added `_buildGroupedEffectOpts()` and `_buildGroupedCondOpts()` helpers; both render `<optgroup>` labels. Updated `show()`, `_addEffectRow()`, and `_buildConditionRowEl()` to use grouped options.
 - `static/js/inspector.js` — added `group` property to all 20 effect types and all 15 condition types (in both `_addTriggerToNode` and `_editTriggerFromNode`).
@@ -38,7 +41,7 @@ group: Triggers
 | `area` | 🌍 Area/Environment | area_temp, weather |
 | `tag` | 🏷️ Tag | has_tag |
 
-## Verification
+## Steps to verify
 
 - Open trigger editor in inspector and item-library, verify grouped dropdown renders for both effects and conditions
 - Add an effect/condition from each group, save, verify it persists
@@ -47,11 +50,11 @@ group: Triggers
 
 ---
 
-## Problem
+## Why
 
 The trigger editor's effect dropdown is a flat list of 20+ effect types. Authors have to scan the whole list to find the right effect, especially when some are character-specific (adjust vital, apply condition), item-specific (adjust uses, rename), way-specific (unlock way), or area-specific (set environment).
 
-## Goal
+## What
 
 Group the effect type dropdown by target category so authors can find the right effect faster.
 
@@ -78,3 +81,11 @@ Note: some effects are cross-cutting (set_state, set_description work on any nod
 - Open trigger editor in inspector and item-library, verify grouped dropdown renders
 - Add an effect from each group, save, verify it persists
 - No backend changes needed (frontend-only)
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

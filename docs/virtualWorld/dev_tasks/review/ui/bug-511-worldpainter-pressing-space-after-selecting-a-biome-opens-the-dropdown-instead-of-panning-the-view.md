@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 In the fullscreen worldpainter, choosing a biome from the dropdown leaves the control focused, so the next space press is consumed as 'open the focused dropdown' rather than panning the view. Find where the key handler should suppress the browser default for space and blur the dropdown after a selection, and confirm the same bug does not exist in the other fullscreen tools.
 
@@ -30,3 +30,21 @@ In the fullscreen worldpainter, choosing a biome from the dropdown leaves the co
 
 The key handler is `state._keyDown` in `static/js/worldpainter/editor.js`; the
 blur is in `_valueControl` (value picker) and the brush select's change handler.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

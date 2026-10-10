@@ -1,6 +1,10 @@
-﻿---
-group: Graph & Area UX
 ---
+area: graph
+type: task
+status: done
+priority: medium
+---
+
 # One-Way Ways/Doors
 
 **Filed**: 2026-07-30  
@@ -10,13 +14,13 @@ group: Graph & Area UX
 
 ---
 
-## Summary
+## What
 
 Ways (doors, passages) that can only be traversed in one direction — e.g. a one-way door, a jump-down ledge, a slide, a portal that only goes one way.
 
 ---
 
-## Implementation
+## How
 
 ### Backend
 
@@ -49,3 +53,21 @@ Ways (doors, passages) that can only be traversed in one direction — e.g. a on
 ## Related
 
 - [[todo/gameplay/task-99-room-grids-and-movement|task-99: Room grids and movement]]
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

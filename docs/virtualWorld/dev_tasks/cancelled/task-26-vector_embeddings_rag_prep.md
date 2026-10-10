@@ -2,7 +2,10 @@
 group: Agent AI & Behavior
 wiki: "[[AI & Narration/Memory System]]"
 status: cancelled
+type: task
+priority: medium
 ---
+
 # Vector Embeddings & RAG Preparation
 
 ## Superseded by (2026-08-29)
@@ -68,7 +71,7 @@ as a historical record only.
 
 ---
 
-## Summary
+## What
 
 Prepare the memory and lore systems for future vector-embedding-based retrieval (RAG). Do **not** implement embeddings yet — this doc describes what the data model needs to support and the architectural decisions to make now so the RAG path is smooth later.
 
@@ -212,3 +215,25 @@ When RAG is implemented, the system checksums the content, compares to `embeddin
 - Should we support cross-character memory search (Tommy remembers something about Miki)?
 - How large can the total index grow before performance degrades? Estimate ~1000 entries max for a single scenario.
 - Should we provide a "test retrieval" button in the inspector to debug what the RAG would return?
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

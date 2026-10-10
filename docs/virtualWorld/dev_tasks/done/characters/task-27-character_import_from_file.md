@@ -1,6 +1,9 @@
 ---
-group: Items & Crafting
+area: characters
 wiki: "[[Characters/Characters Overview]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Character Import From Exported JSON File
@@ -11,7 +14,7 @@ wiki: "[[Characters/Characters Overview]]"
 
 ---
 
-## Summary
+## What
 
 The character inspector has an **Export JSON** button that saves a character card (personality, stats, inventory, memories, agent history, etc.) to a `.json` file. There's no corresponding **Import** button to load that file back in.
 
@@ -40,8 +43,26 @@ There IS `/api/registry/characters/import` but it only imports from the saved ch
 
 - Fields SKIPPED on import: agent_history, area_description/environment/exits/items, time_ticks/game_time, memory_store
 
-## Files Changed
+## Files
 
 - `static/js/inspector.js` — import button + `_importCharacter()`, `_saveDescription()`, Appearance textarea
 - `static/js/api.js` — `importPlayer()` method
 - `app.py` — `/api/players/import` endpoint
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

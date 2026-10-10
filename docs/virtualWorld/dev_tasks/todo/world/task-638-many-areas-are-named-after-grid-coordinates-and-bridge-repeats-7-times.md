@@ -12,7 +12,7 @@ related: [task-624, task-646]
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 Names embed '(world N,M)' and reuse common nouns, so several areas are indistinguishable by name. Tommy has confirmed this is the wrong call.
 
@@ -87,3 +87,21 @@ and `related: [task-646]` rather than migrated:
   current UI; the surviving issue is the stored name itself, which is 439/646's.
 
 No code or scenario data was changed by this lane.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

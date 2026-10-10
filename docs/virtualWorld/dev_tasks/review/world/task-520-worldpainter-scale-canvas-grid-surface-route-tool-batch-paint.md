@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-24
 **Related:** task-495, task-496
 
-## Goal
+## What
 
 Paint and navigate a massive world grid (16k+ cells) without DOM blowup or 10k area nodes: canvas-rendered grid, a route/trail tool with a cells-to-turns/hours readout, and one-request batch painting.
 
@@ -87,3 +87,21 @@ Still open (next slices):
   once (task-400); the renderer already scales, the generation side does not.
 - **rot.js** (adopt, do not hand-roll) for A*/FOV: per-agent fog of war and
   pathfound routes that avoid barriers rather than straight lines.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: characters
+priority: medium
+---
+
 # task-346 — Dedup same-tick near-verbatim memory writes
 
 **Status**: Done — implemented 2026-08-27.
@@ -20,7 +27,7 @@ within the same turn. Existing dedup (`static/js/agent/memory-manager.js`
 memory against itself; it doesn't compare across writers (think-phase 💭,
 observed 👁️ events surfacing as memories, react 📝).
 
-## Impact
+## Why
 
 Each duplicate permanently occupies recall slots and shows up together in
 every future I REMEMBER block — attention tax on every subsequent turn, and
@@ -60,3 +67,25 @@ multiple writes → single line in next turn's I REMEMBER.
   `test_write_dedup_allows_force_and_distinct` (force bypass + distinct text
   stays). `tests/test_memory_api.py`, `tests/test_memory_effects.py`,
   `tests/test_vector_store.py` all pass (43 total).
+
+## What
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-10-07
 **Related:** task-700, task-447, task-610, task-448
 
-## Goal
+## What
 
 Planning must be able to target what the prompt showed. The grounding facts currently use players_in_area[].name (the real name) while the room display masks unmet strangers via PromptBuilder.anonymousName, so a plan step 'approach the man' is rejected and the rejection prints the character's real name. Invariant: the grounder's facts must be the exact handles the prompt showed, and a real name must never appear for a character the player has not met.
 
@@ -86,3 +86,25 @@ can address, and the only handle it has for a stranger is the one the room showe
 Adjacent cosmetic defect, same code path: with an empty person `description`, the dim-light
 render (`room-context.ts:619`) yields *"A vague shape in the gloom — ."* — a dangling empty
 clause. Fold the fix in if it is cheap, or file separately.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

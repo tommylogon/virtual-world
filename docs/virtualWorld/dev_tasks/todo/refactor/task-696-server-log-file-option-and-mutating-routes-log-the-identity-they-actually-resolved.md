@@ -10,11 +10,12 @@ priority: medium
 **Filed:** 2026-10-04
 **Related:** bug-521
 
-## Goal
+## What
 
 TODO
 
 ## Acceptance
+
 Today's import bug (bug-521) produced exactly one server-side trace — a generic
 warning — and the updateCharacter response echoed `"player":"zombie"` for a call
 targeting `zombie__c4d808`. Name-resolution drift is this repo's most common bug
@@ -32,3 +33,20 @@ class; the logs should show it at the moment it happens.
 - [ ] Does not change any behavior — logging only, and the file option is
       off by default.
 
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

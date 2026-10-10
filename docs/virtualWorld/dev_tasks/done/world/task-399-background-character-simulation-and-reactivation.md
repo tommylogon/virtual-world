@@ -11,7 +11,7 @@ priority: high
 **Depends on:** task-397 for scope activation. Uses existing Player memories,
 activities, vitals, movement, and serialization.
 
-## Goal
+## What
 
 Let any existing character live cheaply while their scope is not actively
 observed, without changing who that character is. This is an execution mode,
@@ -212,3 +212,21 @@ No LLM call was made; repeated promotion is a no-op; a second offload/advance
 span adds at most one more memory. Tests: `tests/test_pines_slice.py`. No
 generation-on-open is exercised here (that is task-398), so the proof covers the
 background/reactivation seam, not scoped structure generation.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

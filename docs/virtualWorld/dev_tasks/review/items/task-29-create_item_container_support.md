@@ -1,7 +1,9 @@
 ---
-group: Items & Crafting
+area: items
 wiki: "[[Items & Inventory/Items Overview]]"
 status: review
+type: task
+priority: medium
 ---
 
 # Create Item Modal: Container Contents Support
@@ -12,11 +14,11 @@ status: review
 
 ---
 
-## Summary
+## What
 
 The "Add New Item" create modal does not support setting items as containers with contents inside. Users must create the item, then separately edit it in the library to add container contents.
 
-## Current State
+## Why
 
 In `main.js:openCreateModal()` (line 396-407), the item create form has fields for:
 - Name
@@ -74,8 +76,22 @@ The `api.createItem()` must handle the `contents` field and create `contains` ed
 - Check it, fill in JSON contents in the textarea that appears, submit. Verify the item is created with container contents visible in the inspector.
 - Open the Item Library, create/edit an item — verify the "📦 Container Contents" section with add/remove UI exists.
 
-## Files Affected
+## Files
 
 - `static/js/main.js` — add container contents section to create modal
 - `templates/index.html` — may need additional HTML for contents editor
 - `app.py` — ensure container contents are created as edges
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

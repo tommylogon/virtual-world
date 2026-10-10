@@ -10,7 +10,7 @@ priority: low
 **Filed:** 2026-09-26
 **Related:** task-496 task-498 task-747
 
-## Goal
+## What
 
 Exterior grid steps stay compass moves. When the **storey** delta between two
 adjacent exterior cells exceeds a threshold (suggested >3 storeys), the step is no
@@ -33,6 +33,8 @@ is a staircase, not a rockface. The gate should follow suit and only apply where
 storey step really is terrain (outdoors), so an interior can stack rooms freely.
 
 ## Acceptance
+
+
 
 ## Acceptance
 
@@ -75,3 +77,21 @@ storey step really is terrain (outdoors), so an interior can stack rooms freely.
   with a consequence* (failed climb → fall/push + damage) rather than a wall,
   task-747 replaces the refusal, for that way, with a check driven by the painted
   layers and `data/worldpainter/hazards.json`.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

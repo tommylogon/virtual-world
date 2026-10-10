@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 Every input that should affect a character's emotional state does affect it, in the one model, and that state surfaces memories, steers behaviour and shapes social interaction
 
@@ -206,4 +206,20 @@ time, because the relationship band and the traits still decide.
 Live world returned to its prior state afterwards (`afraid` restored to its
 baseline 10.0).
 
+## Why
 
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

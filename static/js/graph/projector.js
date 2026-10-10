@@ -16,6 +16,13 @@
  * @docs docs/virtualWorld/UI & Settings/Rendering & UI Modules.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
+/**
+ * Nodes parked by `applyVisibility` (`physics: false`) and the solver state to
+ * restore when they are shown again. Keyed by node id; a node absent from this
+ * map is treated as simulated on unhide. Module-private — never published on
+ * window. (bug-534)
+ */
+const _physicsBeforeHide = new Map();
 window.GraphProjector = {
     /**
      * A node's **storey index**: 0 ground, 1 up, -1 down, unbounded.
@@ -202,6 +209,14 @@ window.GraphProjector = {
      * Diffs BEFORE updating so unchanged nodes/edges are left untouched —
      * this is the cheap path that makes toggles not reset zoom/physics.
      *
+     * A hidden node is ALSO parked (`physics: false`). vis still runs hidden
+     * nodes through the solver, and a live hidden node keeps pulling its
+     * visible neighbours along their edges — which is what stretched edges out
+     * across the map when the Inhabited toggle (on by default) hid the
+     * uninhabited areas (bug-534). The node's own solver state is remembered so
+     * unhiding restores it exactly (a pinned node stays pinned). GraphFocus did
+     * this for the search path alone; doing it here covers every filter.
+     *
      * @param {object} network     - live vis.Network
      * @param {Set<string>} visibleIds - visible node ids
      */
@@ -215,8 +230,19 @@ window.GraphProjector = {
         const nodeUpdates = [];
         nodesDs.forEach((node) => {
             const shouldHide = !visibleIds.has(node.id);
-            if (node.hidden !== shouldHide)
-                nodeUpdates.push({ id: node.id, hidden: shouldHide });
+            if (node.hidden === shouldHide)
+                return;
+            if (shouldHide) {
+                if (!_physicsBeforeHide.has(node.id)) {
+                    _physicsBeforeHide.set(node.id, node.physics !== false);
+                }
+                nodeUpdates.push({ id: node.id, hidden: true, physics: false });
+            }
+            else {
+                const before = _physicsBeforeHide.has(node.id) ? _physicsBeforeHide.get(node.id) : true;
+                _physicsBeforeHide.delete(node.id);
+                nodeUpdates.push({ id: node.id, hidden: false, physics: before });
+            }
         });
         if (nodeUpdates.length > 0)
             nodesDs.update(nodeUpdates);

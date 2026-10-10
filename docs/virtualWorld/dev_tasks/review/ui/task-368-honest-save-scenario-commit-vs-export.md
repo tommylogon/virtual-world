@@ -25,3 +25,29 @@ priority: medium
 Original audit text: "menu wording + verifying the export path". The export path is
 `static/js/ui/world-export.js` (buildRangeLog / showRangeExport + file download); verified
 working with a live download round-trip.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

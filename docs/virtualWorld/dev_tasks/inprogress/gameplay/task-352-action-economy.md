@@ -269,7 +269,7 @@ the docs and not only in a task file.
  Both are already pinned (`tests/test_tick_time_scaling.py`,
  `tests/test_background_simulation.py`); new slot tests belong beside them.
 
-## Acceptance criteria
+## Acceptance
 
 - [ ] Every verb reachable from `routes/action_handlers.py` has a tier, and there is
  a test that fails when an unclassified verb is added.
@@ -548,3 +548,25 @@ raw-JSON mode, and the confirm overlay.
 - task-131 — stateful activities, the tier that already ships.
 - task-436 (review) — task durations, the model that removed time costs.
 - task-437 — resolution order, which a budget must not make worse.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

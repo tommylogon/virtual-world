@@ -1,0 +1,14 @@
+{
+  "id": "foggy",
+  "name": "Foggy",
+  "kind": "normal",
+  "order": 6,
+  "icon": "🌫️",
+  "light_mult": 0.4,
+  "time_dc": 18,
+  "description": "Fog has swallowed the place; shapes fade a short way off.",
+  "tags": [
+    "weather",
+    "sky"
+  ]
+}

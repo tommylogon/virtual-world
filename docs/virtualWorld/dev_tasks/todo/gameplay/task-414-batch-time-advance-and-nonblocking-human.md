@@ -16,7 +16,7 @@ freeze, and "while you waited" summary on top of this transport.
 **Evidence:** `static/js/agent-engine.js:862–869`, `static/js/agent/turn-queue.js:151–158`,
 `routes/action_handlers.py:1129–1132`, `tools/soak_sim.py:232`.
 
-## Goal
+## What
 
 Let the **server** advance N in-game minutes in one request, so a long run does
 not need the browser as metronome — without changing turn ordering or action
@@ -78,7 +78,7 @@ setting (default ~2s, `0` = fast-forward).
 input. A batch needs a no-human roster option or a turn timeout that
 resolves/defers the human turn.
 
-## Changes
+## How
 
 1. `POST /api/world/advance {ticks: N}` with a bounded summary response.
 2. Attended-character **plan continuation** during batch (LLM only at
@@ -103,7 +103,7 @@ resolves/defers the human turn.
 - Running LLM actions inside the batch loop.
 - A UI for replay/observation (task-415).
 
-## Verification
+## Steps to verify
 
 - Unit: `advance(N)` advances the clock by N and processes each character the
   expected number of times; attended plan continuation with no LLM call; human
@@ -123,3 +123,11 @@ resolves/defers the human turn.
   missing here is the named `POST /api/world/advance {ticks:N}` transport
   (only `/api/world/timeskip` and `/api/world/soak` are registered) and
   attended-plan continuation across the batch.
+
+## Why
+
+TODO
+
+## Files
+
+- TODO

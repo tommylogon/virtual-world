@@ -13,7 +13,7 @@ priority: high
 **Depends on:** task-416 (area index), task-407 (indexes), `engine/sound.py`.  
 **Related:** bug-30 (sound propagation path selection).
 
-## Problem
+## Why
 
 task-411 selects the attended set using `radius_hops: 2` — graph-hop distance
 from anchors. In a text/graph world with no Euclidean space, hop radius is an
@@ -27,7 +27,7 @@ a way. It is already implemented with per-way barriers (open 0.5 / see-through
 form of "one hop away," with the advantage that a locked door demotes someone
 for a *physical* reason instead of an arbitrary `enter: 2`.
 
-## Design
+## How
 
 **Awareness is a set of channels, each answering one question: from this origin
 area, what else can be perceived, and how strongly?**
@@ -100,7 +100,7 @@ walk may or may not give.
 - Changing per-character decision rules.
 - Simulating or advancing time (task-399/409, task-414).
 
-## Verification
+## Steps to verify
 
 - Unit: fixture with A–B open, B–C locked → sound from A reaches B, not C.
 - Unit: cap enforcement, eviction determinism, serialization of anchors.
@@ -207,3 +207,10 @@ new index.
 - No `hysteresis` parameter. A channel threshold is a plain float and flapping
   is a selection-policy question that belongs with the feed.
 
+## What
+
+TODO
+
+## Files
+
+- TODO

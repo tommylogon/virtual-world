@@ -1,6 +1,9 @@
 ---
-group: Items & Crafting
+area: items
 wiki: "[[Items & Inventory/Items Overview]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Item Parameters System — Dynamic Properties Displayed in Triggers
@@ -11,7 +14,7 @@ wiki: "[[Items & Inventory/Items Overview]]"
 
 ---
 
-## Summary
+## What
 
 Items now support dynamic template variables in trigger messages. The primary use case — grandfather clock showing current game time — is live and working.
 
@@ -51,7 +54,7 @@ Added a **"Parameters" section** to the item inspector (`_showItem()`) with:
 
 Parameters are stored in node properties as `{"parameters": {"key1": "value1", "key2": "value2"}}` and saved via the existing `api.updateNode()` endpoint.
 
-## Files Changed
+## Files
 
 | File | Change |
 |------|--------|
@@ -60,7 +63,7 @@ Parameters are stored in node properties as `{"parameters": {"key1": "value1", "
 | `data/items.json` | Updated library entry clock trigger message to use `{game_time}` |
 | `static/js/inspector.js` | Added Parameters UI section + 4 helper methods |
 
-## How to Test
+## Steps to verify
 
 1. Start the server (`python app.py`)
 2. Examine the grandfather clock in-game: `examine grandfather_clock`
@@ -92,3 +95,15 @@ Parameters are stored in node properties as `{"parameters": {"key1": "value1", "
 ## Note
 
 No new API endpoints were needed — the existing `api.updateNode()` (which calls `PATCH /api/graph/node/{id}`) already supports updating arbitrary node properties, including `parameters`.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

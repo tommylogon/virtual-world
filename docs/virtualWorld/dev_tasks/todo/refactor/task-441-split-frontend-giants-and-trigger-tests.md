@@ -13,7 +13,7 @@ priority: low
 task-440 (the backend counterparts), task-625 (real cross-cutting duplication, which is a
 different problem — see "Why this is not a de-duplication task").
 
-## Goal
+## What
 
 Extract focused modules from the oversized front-end files, and split the single trigger
 test module so failures isolate cleanly. **One file per commit, no behaviour change.**
@@ -79,7 +79,7 @@ Caveat on the measurement: `jscpd` catches **exact** clones at ≥50 tokens. Nea
 functions that differ by a name are not counted. If a specific pair looks suspicious,
 confirm by reading it — do not treat 1.14% as proof of zero duplication.
 
-## Approach
+## How
 
 1. **One file at a time.** Pick the smallest target first as the proof of pattern.
 2. **No behaviour change.** Keep `window.Foo` namespaces and re-export moved members as
@@ -114,3 +114,17 @@ confirm by reading it — do not treat 1.14% as proof of zero duplication.
 - Originally measured 2026-09-21 against `.js` files. Refreshed 2026-10-06 to `.ts`
   sources after the TypeScript migration; 12 files not on the original list were added,
   including `worldpainter/editor.ts`, now the largest file in the repo.
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

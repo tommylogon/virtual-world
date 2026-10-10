@@ -6,13 +6,15 @@ priority: high
 created: 2026-08-02
 updated: 2026-08-03
 tags: [environment, fire, heat, triggers, gameplay]
+type: task
+area: environment
 ---
 
 # Task 174: Fire Mechanic — Create Flame spawns a Heat-Source Ember (F6)
 
 **Status**: Done — verified 2026-08-03. All five root causes fixed; this was the "F6" fix referenced by task-170.
 
-## Goal
+## What
 
 Make Lyrie's `Create Flame` spell actually work: casting it spawns a fire/ember item in the room that radiates heat for ~3 turns then burns out. Previously: `use Create Flame` → "Something happens." — no ember, no warmth.
 
@@ -41,7 +43,7 @@ Dedicated "Area lit items burn down" loop (`tick_manager.py:330-361`): scans eac
 ### 5. `engine/effects.py` — empty message → no output ✅
 `handle_message` returns `[]` for empty messages (effects.py:81-85) instead of "Something happens.".
 
-## Verification
+## Steps to verify
 
 - Live simulation (throwaway script): spawn ember → `on_tick` 3→2→1→0 → `on_depleted` returns "The everflame ember gutters and dies." → tick_manager marks unlit and removes the node.
 - Backend suite: `python -m pytest tests/ -q -k "not mcp and not emote"` → 431 passed, 1 skipped.
@@ -60,3 +62,19 @@ Dedicated "Area lit items burn down" loop (`tick_manager.py:330-361`): scans eac
 
 - task-170 (fire spawn & content fixes) — follow-up gaps this left behind; all landed.
 - `docs/virtualWorld/dev_tasks/done/environment/task-12-sound_propagation.md` — same graph-scan propagation pattern.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

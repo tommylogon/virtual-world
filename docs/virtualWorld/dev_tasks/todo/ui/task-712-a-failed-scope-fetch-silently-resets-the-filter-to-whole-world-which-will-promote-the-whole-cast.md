@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-10-05
 **Related:** task-710,task-397
 
-## Goal
+## What
 
 network-manager.loadGraphData() catches ANY failure from getScopeSubgraph and silently resets graphManager._scopeFilter to null, falling back to the whole world. Once the scope filter drives the promoted set (task-710), that fallback stops being a rendering fallback: it promotes every character in the game.
 
@@ -67,3 +67,21 @@ fine, it just looks like the whole world.
 
 Harmless until task-710 ships; a live hazard afterwards. If 710 lands first, land
 this in the same change.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

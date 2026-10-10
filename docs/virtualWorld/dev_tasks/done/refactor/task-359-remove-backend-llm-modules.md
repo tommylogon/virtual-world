@@ -1,10 +1,17 @@
+---
+type: task
+status: done
+area: refactor
+priority: medium
+---
+
 # Task 359: Remove unused backend LLM modules
 
 **Status**: In Progress
 **Priority**: Medium
 **Filed**: 2026-07-24
 
-## Summary
+## What
 
 After switching "Generate from Equipment" to frontend `llmClient.chat()`, no active feature uses the backend LLM modules anymore. All AI generation now happens browser-side.
 
@@ -30,7 +37,23 @@ After switching "Generate from Equipment" to frontend `llmClient.chat()`, no act
 - `engine/skills.py` — removed unused `from config` import
 - `tests/test_emote.py` — removed (mocked `llm_connector`, no longer relevant)
 
-## Verification
+## Steps to verify
 
 - Server starts cleanly
 - All features use fallback paths (same behavior as before)
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

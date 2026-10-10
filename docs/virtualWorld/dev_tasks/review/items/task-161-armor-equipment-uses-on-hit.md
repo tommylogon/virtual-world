@@ -5,19 +5,21 @@ status: review
 priority: medium
 created: 2026-08-02
 tags: [items, equipment, combat, durability]
+type: task
+area: items
 ---
 
 # Armor and Equipment Uses Reduced on Hit
 
-## Summary
+## What
 
 Reduce armor/equipment uses when the wearer takes a hit, giving items durability without introducing new systems or values.
 
-## Problem
+## Why
 
 Combat already reduces *weapon* uses on a hit (engine/combat.py:115-117), but armor and other worn equipment never take wear. A vest that absorbed a dozen hits is as good as new, so durability has no downside.
 
-## Implementation
+## How
 
 - In `player_attack` (engine/combat.py:47), when the target takes a hit, decrement `uses` on their equipped armor/defense items
 - Respect `uses > 0` (skip infinite-use items, `uses = -1`)
@@ -30,7 +32,7 @@ Combat already reduces *weapon* uses on a hit (engine/combat.py:115-117), but ar
 1. `engine/combat.py` — decrement equipped armor uses on hit, break at 0
 2. `engine/equipment.py` — helper to find equipped defense items and remove broken ones
 
-## Testing
+## Steps to verify
 
 - [ ] Armor uses decrease when the wearer is hit
 - [ ] Armor breaks at 0 uses and is removed from equipment
@@ -40,3 +42,11 @@ Combat already reduces *weapon* uses on a hit (engine/combat.py:115-117), but ar
 ## Related
 
 - [[todo/items/task-155-item-uses-affect-weight|task-155: Item uses affect weight]]
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

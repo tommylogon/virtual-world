@@ -1,6 +1,10 @@
 ---
-group: Library
+area: library
+type: task
+status: done
+priority: medium
 ---
+
 # Domain Tag Schema + Area/Furniture Tagging Pass
 
 ## Outcome (verified 2026-09-22) — complete
@@ -62,7 +66,7 @@ on the area side, which is what task-9 → task-398 → task-438 were waiting on
 **Priority**: Medium
 **Depends on**: task-323 (lint validates the result) — landed and re-run here.
 
-## Summary
+## What
 
 Establish the **domain tag convention** that powers task-9's population chain: the
 *same* domain tag appears on areas, on display/storage furniture, and on items — then a
@@ -141,3 +145,25 @@ layer filters by `category` + `context` instead of inventing `domain_clothing` /
 - Blocks: task-9 implementation (chain needs real domain tags to walk) — **now unblocked
   on the area side**; task-398's tag-aware population and task-438's region decomposition
   both depend on these tags existing.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

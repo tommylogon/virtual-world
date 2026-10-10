@@ -1,6 +1,9 @@
 ---
-group: Items
+area: items
 wiki: "[[UI & Settings/Inspector Panels|Inspector]]"
+type: task
+status: review
+priority: medium
 ---
 
 # Auto-Add Inverse Actions (take↔drop, equip↔unequip)
@@ -11,11 +14,11 @@ wiki: "[[UI & Settings/Inspector Panels|Inspector]]"
 
 ---
 
-## Problem
+## Why
 
 Item `actions` are a gate/allowlist, but inverse verbs are not automatic: an item you can `take` doesn't advertise `drop` in its available actions, and one you can `equip` doesn't advertise `unequip`. Defining one and remembering the other by hand is error-prone.
 
-## Goal
+## What
 
 When a designer enables an allowed action on an item, also enable its inverse automatically (`take`↔`drop`, `equip`↔`unequip`), so the pair stays in sync everywhere item actions are defined or rendered.
 
@@ -25,7 +28,7 @@ When a designer enables an allowed action on an item, also enable its inverse au
 - Applies at every write path (inspector `update_node`/`build_item`, library place/import/refresh-from-library, scenario deserialization incl. container contents, `spawn_item` effect) and at read time in `_get_available_actions` so existing, never-re-saved items show the inverse immediately.
 - The world item inspector's action checkbox grid toggles the inverse together and creates a base `on_<inverse>` trigger when the action is enabled.
 
-## Implementation
+## How
 
 - `engine/item_actions.py` — new `INVERSE_ACTIONS` map + `normalize_item_actions()` helper (string or list → deduped list with inverses).
 - `routes/graph.py` — normalize `actions` in `update_node` and `build_item_legacy`.
@@ -35,9 +38,17 @@ When a designer enables an allowed action on an item, also enable its inverse au
 - `engine/trigger_system.py` — normalize in `_get_available_actions` (read-time safety net).
 - `static/js/inspector/item-view.js` — `INVERSE_ACTIONS` client-side; `_toggleAction` adds/removes the inverse and ensures the inverse's base trigger.
 
-## Verification
+## Steps to verify
 
 - [x] `python -m pytest tests/test_action_inverses.py -q` (9 tests: helper unit cases + `update_node`/`build_item` integration)
 - [x] Full suite: `python -m pytest tests/ -q -k "not mcp and not emote"` → 971 passed, 1 skipped
 - [x] `node --check static/js/inspector/item-view.js` clean
 - [ ] In-browser: enable `equip` on an item → `unequip` auto-checks + `on_unequip` trigger created; enable `take` → `drop` appears in the item's available actions
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

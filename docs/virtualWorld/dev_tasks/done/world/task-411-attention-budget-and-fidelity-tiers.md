@@ -35,7 +35,7 @@ Three separate things, easy to conflate:
 Status changes (focus moves) are the promote/demote seam: 411 names the set,
 412 does the handoff, 399/409 carries the off-screen time.
 
-## Design
+## How
 
 - **Anchors:** the focused character, the human player, pinned locations/items.
 - **Radius:** graph-hop distance from anchors; within X rooms counts as attended.
@@ -103,7 +103,7 @@ share the cap, so the nearest/high-priority win and the rest stay background.
 - Changing per-character decision rules.
 - Simulating or advancing time (that is 399/409 and 414).
 
-## Verification
+## Steps to verify
 
 - Unit: cap enforcement, eviction determinism, hysteresis, serialization.
 - A populated fixture (e.g. 200 characters) proving the set stays bounded.
@@ -234,3 +234,15 @@ Nothing calls `select()`. Feeding the attended set into the tick loop is
 task-399/409 (WT-C) and the time advance is task-414 (WT-0) — both outside this
 lane, and 411's own non-goals say so. The module is a selector with no caller
 until one of those lands.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## Files
+
+- TODO

@@ -1,6 +1,9 @@
 ---
-group: Items & Crafting
+area: emotions
 wiki: "[[Characters/Traits System]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Traits, Conditions & Emotions Editor
@@ -11,7 +14,7 @@ wiki: "[[Characters/Traits System]]"
 
 ---
 
-## Summary
+## What
 
 Characters have three separate systems: **traits** (permanent mechanical modifiers), **conditions** (temporary status effects), and **emotions** (current mood). These need a unified editor in the character inspector.
 
@@ -157,7 +160,7 @@ Already exists — enhance with:
 - `has_tag: vampire` condition on items/triggers
 - `target_has_tag: faction:guard` — check target character's tags
 
-## Files Affected
+## Files
 
 - `player.py` — ensure `traits`, `conditions`, `tags` stored cleanly
 - `virtual_world_engine.py` — trait processing in `_update_vitals()`, condition tick/decay, tag checks in triggers
@@ -165,7 +168,7 @@ Already exists — enhance with:
 - `static/js/api.js` — trait/condition/tag API methods
 - `app.py` — trait/condition/tag endpoints
 
-## Implementation
+## How
 
 ### Engine — `engine/traits.py` (new)
 - 23 trait definitions with full effect specs: glutton, cleanfreak, night_owl, morning_person, fast_healer, slow_healer, one_armed, small_bladder, big_bladder, blind, deaf, introvert, extrovert, apathetic, allergic (parameterized), light_sleeper, heavy_sleeper, immortal, dark_vision, darkvision (alias), slasher, is_slasher (alias), hardy
@@ -196,7 +199,7 @@ Already exists — enhance with:
 - `tests/test_traits.py`: 57 tests covering all trait definitions, effect resolution, tick processing.
 - `tests/test_conditions.py`: 38 tests for condition system.
 
-## Verification
+## Steps to verify
 
 ### Manual Test Steps
 
@@ -240,3 +243,11 @@ Already exists — enhance with:
 Run `node tools/test_engine.py` or check test_traits.py / test_conditions.py:
 - 57 trait tests should pass
 - 38 condition tests should pass
+
+## Why
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

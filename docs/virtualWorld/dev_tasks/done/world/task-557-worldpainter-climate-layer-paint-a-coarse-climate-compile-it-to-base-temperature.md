@@ -11,7 +11,7 @@ blocked_by: [task-553]
 **Filed:** 2026-09-27
 **Related:** task-553, task-497, task-496, task-745
 
-## Goal
+## What
 
 One coarse climate paint layer (arctic / temperate / arid / tropical /
 alpine) whose cells compile to a per-area `base_temperature`, so outdoor
@@ -71,6 +71,8 @@ stay out. Continuous numeric paint layers are exactly what the deleted
 `elevation` layer warns about, and the save/diff cost scales with fields.
 
 ## Acceptance
+
+
 
 ## Acceptance
 
@@ -141,3 +143,21 @@ stay out. Continuous numeric paint layers are exactly what the deleted
 - The climate values are the **mid-point of each band's range**, not its extreme:
   a painted arctic is cold without being the coldest thing on earth, and the
   diurnal and seasonal curve is added on top by task-553's model.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

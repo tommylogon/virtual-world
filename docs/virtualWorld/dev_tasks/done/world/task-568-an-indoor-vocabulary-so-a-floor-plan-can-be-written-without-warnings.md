@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-27
 **Related:** task-562, task-561, task-564, task-567
 
-## Goal
+## What
 
 A building interior (task-563) is somewhere you can be *in*, but there is
 nothing to paint it with. `classroom`, `hallway`, `stairway`, `corridor`,
@@ -47,6 +47,8 @@ the generate report, which is the only place a typo is visible.
   also make directly, and the two should agree.
 
 ## Acceptance
+
+
 
 ## Acceptance
 
@@ -104,3 +106,21 @@ the generate report, which is the only place a typo is visible.
 - `study` is a room **and** a purpose tag (a school room is a study of a subject).
   The palette groups by the tag, so a `classroom` and a `study` both land under
   "— Study —", which reads correctly for a school plan.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

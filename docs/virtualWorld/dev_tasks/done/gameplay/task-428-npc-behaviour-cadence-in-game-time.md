@@ -30,7 +30,7 @@ which is exactly why the divergence went unnoticed.
 `tests/test_npc_behavior_intervals.py` pins the unit, the floor (a short interval
 must not become "never"), and the junk fallback.
 
-## Problem
+## Why
 
 Everything else that measures time now scales with `time_per_tick_minutes`:
 vital decay, condition durations and periodics, body-temperature drift, starvation
@@ -58,7 +58,7 @@ It is inert in the goblin camp (`process_simple_npcs` skips anyone without
 has not surfaced — but it is a live divergence for any `simple_npc` character or
 authored `behaviors[]` patrol.
 
-## Design
+## How
 
 Express both intervals in **game minutes** and convert at evaluation:
 `due every max(1, round(interval_minutes / minutes_per_tick))` ticks, or reuse the
@@ -83,3 +83,17 @@ remove.
 - Deciding whether the legacy `npc_behavior` wander path should be retired —
   untested in practice, so it stays until someone exercises or removes it
   deliberately.
+
+## What
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

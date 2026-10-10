@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 The editor offers dropdown choices over data that is free-text and numeric. Area weather reads 'clear' while the world header reports 'overcast' -- precedence between area and world source is unresolved.
 
@@ -44,3 +44,21 @@ relabelled "— none (no weather line) —" to match what it does.
 `area_animal_pens` (light `"normal"`, noise `"busy"`) → light `INPUT` `"normal"`,
 noise `INPUT` `"busy"`; hint reads `world: overcast`, matching the top bar.
 Screenshot `inspector-640.png`. JS unit tests: 486 passed / 0 failed.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

@@ -1,6 +1,10 @@
-﻿---
-group: Bugs
 ---
+area: bugs
+type: bug
+status: done
+priority: medium
+---
+
 # Bug 32: spawn_item/spawn_character effects drifted from library data and route path
 
 **Filed**: 2026-08-21  
@@ -93,4 +97,24 @@ Fixed by parallel engine work (`deb7a5b3`, `caf5ffa4`):
 
 Suite at resolution time: 1051 passed, 0 failed.
 
+## What
 
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

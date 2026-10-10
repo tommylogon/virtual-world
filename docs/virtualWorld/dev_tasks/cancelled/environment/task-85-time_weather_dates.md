@@ -1,14 +1,18 @@
 ---
-group: Environment & Climate
+area: environment
 wiki: "[[Environment/Time & Weather]]"
+type: task
+status: cancelled
+priority: medium
 ---
+
 # Task 85: Time, Weather, Dates, and Moon Phases
 
 **Status**: todo
 **Priority**: Medium
 **Filed**: 2026-07-24 (updated from stub)
 
-## Summary
+## What
 
 The time system already tracks hours/minutes in a 24h cycle. This task adds:
 - Date tracking (day/month/year)
@@ -64,7 +68,7 @@ The time system already tracks hours/minutes in a 24h cycle. This task adds:
 - Weather display with simple icon (☀️🌤️☁️🌧️⛈️🌫️)
 - Weather change events in event stream: "The sky darkens as storm clouds roll in."
 
-## Files Affected
+## Files
 
 - `engine/tick_manager.py` — date calculation, weather tick, moon phase
 - `engine/weather.py` — new module (or add to tick_manager)
@@ -82,7 +86,7 @@ The time system already tracks hours/minutes in a 24h cycle. This task adds:
 - **Blocks**: Task-80 (light spill), Task-100 (graph light overlay)
 - **Related**: Task-80 (needs this for time-of-day light), Task-98 (tags for weather areas)
 
-## Testing
+## Steps to verify
 
 - Advance time from 06:00 to 18:00 — outdoor light stays bright
 - Advance to 19:00 — outdoor light drops to night level
@@ -91,3 +95,15 @@ The time system already tracks hours/minutes in a 24h cycle. This task adds:
 - New moon at midnight — outdoor light = 5 (pitch_black)
 - Weather change fires event in stream
 - Date increments correctly over multiple in-game days
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

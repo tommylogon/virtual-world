@@ -1,6 +1,10 @@
-﻿---
-group: Library
 ---
+area: library
+type: task
+status: done
+priority: medium
+---
+
 # Library Lint Validator (tools/lint_library.py)
 
 **Filed**: 2026-08-21  
@@ -9,7 +13,7 @@ group: Library
 
 ---
 
-## Summary
+## What
 
 One reusable lint script that catches the data-quality problems we keep finding
 by hand: dead interest tags, wearables missing `equip_slots`, tag case drift,
@@ -56,7 +60,7 @@ tags in, garbage rooms out).
 - `tools/lint_library.py` (new script)
 - optional: `routes/library_routes.py` (lint endpoint), `static/js/ui/*` (panel)
 
-## Verification
+## Steps to verify
 
 - Run against current tree: expects **0 errors** after task-326 lands
   (before that, check 1 reports the known dead tags — useful as a worklist)
@@ -66,3 +70,15 @@ tags in, garbage rooms out).
 
 - None. Run it before AND after task-326/task-324 data passes.
 - Feeds: task-9 (tag quality gate), future library edits (CI-able)
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

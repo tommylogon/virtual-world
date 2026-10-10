@@ -13,7 +13,7 @@ priority: medium
 knowledge dimension of the painted grid (movement + reveal + belief travel,
 task-467).
 
-## Goal
+## What
 
 Add an area/scope-level known set per character. player.known already gates hidden ways and items through viewer-aware perception (engine/room_perception.py; tests/test_known.py), and EDGE_KNOWN is abilities-only. Unknown cells/zones are fog on the map; walking, examining, or finding a map item reveals them - a map's use/read teaches known entries (reuse the existing teach path). Rendering: the map view shows only known cells/zones. Keep perception honest in agent prompts (an unaware agent is not told about unknown areas).
 
@@ -130,3 +130,21 @@ are the right shape; the call sites are `engine/movement.py` (mine) and
 `engine/effect_handlers/examine.py` (contended). Wiring the walk verb into
 movement is a one-line change and is left for a follow-up rather than done blind
 inside this task.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

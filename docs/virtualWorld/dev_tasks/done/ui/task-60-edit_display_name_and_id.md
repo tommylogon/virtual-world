@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: ui
+priority: medium
+---
+
 # Edit Display Name and ID for Rooms, Items, Doors
 
 **Filed**: 2026-07-15
@@ -6,11 +13,11 @@
 
 ---
 
-## Summary
+## What
 
 Users can edit the display name of areas, items, and ways in the inspector panel, but the underlying IDs are not editable. This means renaming something can create inconsistencies or require destructive recreate workflows. Id's are also not editable in the library or the seperate modals for creatig new enteties.
 
-## Current State
+## Why
 
 ### Area Inspector (`inspector.js:_showRoom()` line 455)
 The room name is editable via an inline `<input>` that calls `api.updateNode(nodeId, {name: this.value})`. The room's node ID (used in graph edges, API calls, etc.) is not editable.
@@ -54,8 +61,22 @@ Recommended: Option A, to keep concerns separated and make the migration explici
 - Show a warning if the new ID conflicts with an existing node
 - Auto-update the inspector view after ID change
 
-## Files Affected
+## Files
 
 - `static/js/inspector.js` — add editable ID field to room/item/door inspectors
 - `app.py` — add `updateNodeId` API endpoint or extend `updateNode`
 - `static/js/api.js` — add `updateNodeId()` method
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

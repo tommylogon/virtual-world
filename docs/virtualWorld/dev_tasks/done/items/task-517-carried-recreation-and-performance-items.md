@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-24
 **Related:** task-425, task-136, task-409
 
-## Goal
+## What
 
 Let carried entertainment items — Rikka's juggling stones, string puppet, cups,
 little drum — restore Entertainment and be usable by background NPCs, beyond
@@ -56,3 +56,21 @@ today's area-fixture-only recreation.
 
 - A full performance/skill minigame.
 - Novelty/discovery Entertainment (task-136).
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

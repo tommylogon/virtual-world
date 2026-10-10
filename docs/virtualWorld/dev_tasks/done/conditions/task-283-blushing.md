@@ -1,6 +1,8 @@
 ---
-group: Conditions
+area: conditions
 status: done
+type: task
+priority: medium
 ---
 
 # Condition: Blushing (`blushing`)
@@ -12,7 +14,7 @@ status: done
 
 ---
 
-## Purpose
+## What
 
 A **visual-only** signal — the character is visibly flushed with embarrassment or arousal. Notably, task-209 defines it as having **no mechanical effect**; it exists for appearance/perception.
 
@@ -64,3 +66,25 @@ A **visual-only** signal — the character is visibly flushed with embarrassment
 
 - Confirmation this is purely cosmetic (no perception/concentration penalty for embarrassment).
 - How other characters perceive it — same `perceived_conditions` path or an observer-facing line?
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

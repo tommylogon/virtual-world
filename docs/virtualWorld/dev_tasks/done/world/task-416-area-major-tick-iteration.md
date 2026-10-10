@@ -13,7 +13,7 @@ priority: high
 (attendance).  
 **Spec:** `docs/design/long-horizon-simulation-progress.md`.
 
-## Goal
+## What
 
 Restructure the per-tick sweep from entity-major to **area-major**:
 
@@ -48,7 +48,7 @@ If area-major iteration reorders who acts, the change is wrong. Keep the acting
 queue exactly as-is and use area grouping only for scoped evaluation, unless a
 separate task explicitly renegotiates turn order.
 
-## Changes
+## How
 
 1. Build an **area → [character]** index once per tick from
    `player.current_area` (and the graph `in` edges for items). Reverse index,
@@ -79,7 +79,7 @@ separate task explicitly renegotiates turn order.
 - Chunk unloading (task-401) or scope projection (task-397).
 - Multi-minute ticks (that is config: `time_per_tick_minutes`).
 
-## Verification
+## Steps to verify
 
 - Fixture test: characters in the same area share one index entry; characters in
   different areas never appear in each other's co-present set.
@@ -170,3 +170,10 @@ that, but a tag granted mid-turn would be missed, so it stays live.
   trigger system still consume unseeded `random`, so a session-level
   determinism test belongs with that work rather than here.
 
+## Why
+
+TODO
+
+## Files
+
+- TODO

@@ -554,6 +554,7 @@ like a hang.
 | New module `@powers` | `python tools/feature_index.py --check` |
 | Way properties | `python tools/way_property_index.py --check` |
 | Anything under `data/library/characters/` | `python tools/character_loadout_check.py --check` |
+| Anything under `data/library/weather/` | `python tools/weather_library_check.py --check` (or `npm run weather:check`) |
 | Vault notes | `npm run precommit` (runs all four vault guards) |
 | Export logs, before a release | `node tools/log_lint.cjs data/exports/<log>.txt` (or `npm run loglint -- <path>`) |
 | JS lint / typecheck | `npm run lint` / `npm run typecheck` (see `docs/design/typescript-migration.md`) |

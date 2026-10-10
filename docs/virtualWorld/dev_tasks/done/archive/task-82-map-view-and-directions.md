@@ -1,6 +1,11 @@
 ---
 wiki: "[[World Building/Graph System]]"
+type: task
+status: done
+area: archive
+priority: medium
 ---
+
 # Map View Fix + Multiple Direction Keys + Area Floor
 
 **Priority**: Medium
@@ -40,7 +45,28 @@ Allow both narrative directions (`"front_way"`, `"trail"`, `"hallway"`) and stan
 
 **Deferred**: Post-merge feature branch. This branch is refactoring/testing only.
 
-
 ## Refactoring Impact (July 2026)
 
 Map view exists as static/js/graph/map-view.js. Layout engine is static/js/graph/layout-engine.js. This task fixes open issues in map rendering, adds direction aliases, floor display — extend existing modules.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

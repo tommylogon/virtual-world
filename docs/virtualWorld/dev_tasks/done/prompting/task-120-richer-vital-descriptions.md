@@ -1,6 +1,10 @@
 ---
-group: Prompt & Narrative Quality
+area: prompting
+type: task
+status: done
+priority: medium
 ---
+
 # Richer Vital Descriptions for "HOW YOU ARE"
 
 **Filed**: 2026-07-29  
@@ -9,7 +13,7 @@ group: Prompt & Narrative Quality
 
 ---
 
-## Summary
+## What
 
 Replace flat vital statements like `"You are hungry."` with narrative descriptions that convey intensity and physical sensation.
 
@@ -30,3 +34,25 @@ You are hungry. You are thirsty.
 - `static/js/agent/prompt-builder.js` — `describeVitals()` function
 - Multiple narrative tiers per vital (matched to current threshold system)
 - Keep + add to existing threshold logic, don't replace
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

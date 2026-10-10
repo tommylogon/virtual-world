@@ -1,6 +1,10 @@
-﻿---
-group: Prompt & Narrative Quality
 ---
+area: characters
+type: task
+status: done
+priority: medium
+---
+
 # Entertainment Vital: Exploration & Novelty
 
 **Filed**: 2026-07-30 (updated 2026-08-02)  
@@ -42,13 +46,13 @@ verify and close.
 
 ---
 
-## Summary
+## What
 
 The Entertainment vital should increase naturally when characters visit new areas, find new items, or experience novel events — and be affected by character traits. Low Entertainment should prompt LLM agents to seek novelty (try new things, go new places) rather than just applying a stat penalty.
 
 ---
 
-## Problem
+## Why
 
 The Entertainment vital currently has a baseline decay but no natural way to increase it (only manually via actions like playing games). Going to a new area should be inherently entertaining. A character who never leaves the starter room should lose Entertainment over time.
 
@@ -97,3 +101,21 @@ These are injected into the agent prompt alongside the vital description, influe
 - `player.py` — vitals, traits
 - `engine/tick_manager.py`
 - `static/js/agent/prompt-builder.js` — describeVitals() and prompt injection
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

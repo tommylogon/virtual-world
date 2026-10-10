@@ -40,7 +40,7 @@ Those interpolations are Lit **text** bindings, so Lit escapes the markup and th
 sees it verbatim. `save.name` and `save.filename` are also text-bound, which is correct
 and should stay escaped.
 
-## Fix
+## How
 
 Preferred: stop pre-building markup as strings. Emit the badges as real elements in the
 template (e.g. a conditional badged span before the name, a small muted span after it),
@@ -91,3 +91,17 @@ Opened `#load-game-modal` and rendered the real list via
 - Row: `20261002 102656 · 08:00 · Kaelen Voss · world_template · 3 PCs · 19 areas · 560.2 KB`.
 
 No page errors.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO

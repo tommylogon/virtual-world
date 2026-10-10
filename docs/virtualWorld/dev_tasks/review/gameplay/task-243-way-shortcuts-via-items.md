@@ -1,3 +1,10 @@
+---
+type: task
+status: review
+area: gameplay
+priority: medium
+---
+
 # Task-243: Way Shortcuts Revealed by Having an Item
 **Status**: In Review — implemented 2026-08-31 (per Tommy: gate approach — "a trigger that on go checks has_item bike"). New `requires_item` way property: name/id ("bike") or tag gate ("tag:fly"), enforced in the movement passage gate (engine/movement.py) — visible-but-blocked without the gear, usable with it. Prompt exit lines show "(needs: bike)". tests/test_way_gates.py (5).
 
@@ -7,7 +14,7 @@
 **Status:** In backlog — filed 2026-08-16 from developer ideas backlog.
 **Source:** `dev_tasks/developer ideas.md` (way shortcuts revealed by having item)
 
-## Goal
+## What
 
 A way can be gated so it is only known/revealed (shown as an exit / navigable) while a
 character holds a specific item — e.g. a hidden passage or shortcut that appears in the
@@ -20,3 +27,25 @@ room's exit list only when you carry the key/map/token.
 - Reveal semantics: does the way appear in exits (visited, but not in "ways to go"), or
   only become traversable? Should holding the item re-route to a different destination.
 - Interaction with existing `hidden` way state and `view_from_a`/`view_from_b`.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

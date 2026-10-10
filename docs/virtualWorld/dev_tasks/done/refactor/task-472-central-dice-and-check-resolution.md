@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-23
 **Related:** task-471, task-470, task-468, task-159
 
-## Goal
+## What
 
 One place that answers what to roll, what modifies it, and how good the result is. Dice expressions, d20 with advantage/disadvantage (both cancel), the six ability scores and the skill->ability map, one auditable modifier pipeline (ability mod + skill/stat + traits + condition effects), degrees of success and criticals, opposed checks, and named DC bands. Call sites stop re-inventing pieces; SkillSystem.skill_check/saving_throw become thin adapters keeping their old tuple/message format, and skill checks finally include the ability modifier.
 
@@ -56,7 +56,7 @@ One place that answers what to roll, what modifies it, and how good the result i
 - [ ] Optional: the six abilities are currently read but never *changed* by play;
       no proficiency term yet (the skill value is the trained number).
 
-## Verification
+## Steps to verify
 
 `python -m pytest tests/test_checks.py tests/test_skills.py -q` → 63 passed.
 Targeted checks/skills/conditions/foraging/movement/grapple → 241 passed.
@@ -68,3 +68,15 @@ spawn a herb the character then cannot eat (15/15 repeat runs clean).
 ## Review 2026-09-23 - landed, closed
 
 Verified: `tests/test_checks.py tests/test_skills.py` -> 63 passed (the 62 exact-math/message assertions unchanged), plus the 289-passed chain slice. Remaining bullets are owned: combat/grapple migration and the leftover literal DCs (task-477), prompt/narration surfacing (task-479), mutable abilities + proficiency (task-480). Closing.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Files
+
+- TODO

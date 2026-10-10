@@ -11,7 +11,7 @@ priority: medium
 **Supersedes:** task-358 Phases 3–5 (Phases 1–2 shipped; that task is closed)
 **Related:** `tools/test_helpers.cjs`, `tools/test_regressions.cjs`, `tools/test_all.cjs`
 
-## Goal
+## What
 
 The Playwright suite currently checks **presence and API responses**, not that the UI
 persists state or degrades gracefully. Finish the three unstarted phases.
@@ -110,3 +110,21 @@ selected `[data-tab-btn]`, which no element carries; it now matches `[data-tab]`
   delete the file if it is dead. The two adopters are the ones that matter.
 - Re-running the historical `153/153` / `14/14` counts — point-in-time, nothing contradicts
   them.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

@@ -1,23 +1,25 @@
-﻿---
+---
 id: 160
 title: Parameterized Actions in Agent Prompts
 status: done
 priority: medium
 created: 2026-08-02
 tags: [prompting, agent-engine, actions]
+type: task
+area: prompting
 ---
 
 # Parameterized Actions in Agent Prompts
 
-## Summary
+## What
 
 Enhance the agent prompts so the LLM emits parameterized, structured action commands instead of loose natural-language actions — e.g. `use item: key, target: door1, speech: "lets see if this works", emote: "i turn the key and..."`.
 
-## Problem
+## Why
 
 The agent emits a free-text `action` field in its JSON (prompt-builder.js:722,786). The command parser then has to guess intent from arbitrary phrasing. Parameterized actions would make agent output deterministic, testable, and far less likely to fail.
 
-## Implementation
+## How
 
 ### Agent action schema (folded in from DeepSeek parameterized-JSON proposal)
 
@@ -97,7 +99,7 @@ distinction also fixes the Create Flame case — it should be `use` alone, not
 2. `static/js/agent-engine.js` — action normalization/validation
 3. `routes/action.py` — verify all parameterized forms parse correctly
 
-## Testing
+## Steps to verify
 
 - [x] Agent emits structured `action`/`item`/`target` fields for use/target cases
 - [x] `use_on <item> on <multi-word target>` executes correctly (no "invalid action", no inscribe side-effect)
@@ -231,3 +233,11 @@ The rework accidentally dropped valid verbs from the ACTIONS table that `_valida
 the normalizer still support. Restore: `equip`/`wear`, `unequip`/`remove`, `fumble`, and give
 `close` + `stats` their own example rows (they were folded into combined rows with only one
 example each). Keep the table lean but complete — the LLM can only emit verbs it sees.
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

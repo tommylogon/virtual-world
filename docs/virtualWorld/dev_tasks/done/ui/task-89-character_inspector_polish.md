@@ -1,7 +1,11 @@
 ---
-group: Prompt & Narrative Quality
+area: ui
 wiki: "[[Characters/Characters Overview]]"
+type: task
+status: done
+priority: medium
 ---
+
 # Character Inspector Polish
 
 **Filed**: 2026-07-21
@@ -11,7 +15,7 @@ wiki: "[[Characters/Characters Overview]]"
 
 ---
 
-## Summary
+## What
 
 Remaining polish items from task-17 (Editable Characters). All superseded by organic improvements — the equip picker works via `+` button and right-click context menus, inventory has its own tab, container inspection works via right-click → Open Container, and the dedicated paperdoll task covers the rest.
 
@@ -47,14 +51,31 @@ Remaining polish items from task-17 (Editable Characters). All superseded by org
 
 **Deferred:** Not a priority. Paperdoll task covers future drag-and-drop if needed.
 
-## Files Affected
+## Files
 
 - `static/js/inspector.js` — all four items
 - `static/css/style.css` — drag-and-drop visual feedback (if implemented)
 
 **Deferred**: Post-merge feature branch. This branch is refactoring/testing only.
 
-
 ## Refactoring Impact (July 2026)
 
 Inspector is 10+ files in static/js/inspector/. Container contents display modifies item-view.js and inventory-view.js. Empty slot picker and swap/drag-drop modify paperdoll-view.js. Each change scoped to its view module.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

@@ -1,3 +1,10 @@
+---
+type: bug
+status: done
+area: bugs
+priority: medium
+---
+
 # Bug 26 — Human turn panel empty for areas whose id isn't the canonical form
 
 **Status:** In Review — fixed 2026-08-24, name-based resolution +
@@ -27,7 +34,7 @@ by iterating nodes and matching NAME.
 task-333 previously patched a 500 crash in this same chain; the silent
 empty-result case survived it. Fourth drift incident — see task-341.
 
-## Fix
+## How
 
 `engine/scene_snapshot.py::_area_node_id`:
 - each getter result is now VALIDATED (must resolve to an existing area
@@ -36,7 +43,7 @@ empty-result case survived it. Fourth drift incident — see task-341.
   runs before the canonical-id fallback — same source of truth as
   area_description.
 
-## Tests
+## Steps to verify
 
 `tests/test_scene_snapshot.py::test_noncanonical_area_id_resolves_by_name`
 — area node at a non-canonical id with an apostrophe name; asserts the
@@ -72,3 +79,15 @@ All three graph walks (description, ways, items) resolve for the
 non-canonical id; the panel would not be empty. Player moved back to
 "Blizzard Forest Clearing" afterwards. `tests/test_scene_snapshot.py` also
 green in the same run (52 passed with the other selections).
+
+## What
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

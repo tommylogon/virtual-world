@@ -32,3 +32,29 @@ run + user playtest pending.
   3–8 rooms).
 - Append-to-existing-world mode (currently replaces; undo restores).
 - Room-template palette + draw-a-door flow (filed separately / idea).
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

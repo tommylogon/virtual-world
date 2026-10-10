@@ -19,7 +19,7 @@ the save layer is still display-name-keyed (`engine/serialization.py` writes
 `rooms_serialized[node.name]`), and 401 needs `current_area` as an id.
 **Related:** task-407 (graph edge indexing + case normalization), task-393 (validator triage), task-222 (serialize exits graph-only), `engine/serialization.py`, `docs/virtualWorld/World Building/Rooms & Areas.md`
 
-## Goal
+## What
 
 Make an area's **id** the canonical key everywhere it is persisted or looked up, so two
 areas may share a display name without one silently overwriting, re-homing, or
@@ -31,7 +31,7 @@ already contains `weeping_willow_hollow`, `snowbound_hollow`, `frozen_hollow`,
 `frozen_lake_clearing` and `blizzard_forest_clearing`; a decomposed world will have many
 "hollows", "clearings" and "crossings" at once.
 
-## Problem
+## Why
 
 The graph layer is already id-keyed and case-safe — `WorldGraph` resolves ids through
 `_id_index` (`graph.py:70-77`), keys `self.nodes` by id (`graph.py:137-138`), and treats an
@@ -68,7 +68,7 @@ area **id** collision as a hard error while auto-suffixing items/ways/characters
    `areas` and `rooms` keys, so any change must touch both paths or they diverge
    (`critical-review-scale-2026-09-08.md:32-34`).
 
-## Design
+## How
 
 ### Key by id, keep name as a field
 
@@ -190,3 +190,13 @@ the name-keyed map can be retired and the frontend migrated to ids.
 Tests: `tests/test_area_identity.py` (9) — id-exact and deterministic-ambiguous
 resolution, duplicate round-trip with distinct exits/environments, temperature by
 id, validator and lint wiring.
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

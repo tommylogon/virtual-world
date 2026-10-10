@@ -1,6 +1,10 @@
 ---
-group: Triggers
+area: triggers
+type: task
+status: review
+priority: medium
 ---
+
 # Warn on Empty Triggers
 
 **Filed**: 2026-08-19
@@ -33,3 +37,29 @@ Editor warning on triggers that are empty — no effects, or empty success/fail 
 
 - `developer ideas.md` line 13
 - Trigger editor (`static/js/shared/trigger-editor.js`), `engine/trigger_validator.py`
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

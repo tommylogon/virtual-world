@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-30
 **Related:**
 
-## Goal
+## What
 
 Delete definitions that appear exactly once in the codebase (their own definition)
 and are referenced nowhere. Each entry below is a static-analysis candidate with
@@ -181,3 +181,21 @@ session: it loads with no page errors and `VW.agent.stepOnce()` completed a real
 LLM turn (new thought + reaction bubbles in the event stream). Nothing in the
 removed set is reachable, so the behaviour is "app runs unchanged". Moving to
 `done`; the `#why-panel` orphan above is the one open item, kept recorded.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

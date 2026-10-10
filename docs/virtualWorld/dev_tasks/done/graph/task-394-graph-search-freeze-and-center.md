@@ -46,7 +46,7 @@ hidden nodes **keep their mass in the physics simulation** — they're invisible
 still repel. Expected behavior per user: on search-enter, matches should be
 centered in the middle of the viewport.
 
-## Problem
+## Why
 
 Two distinct bugs:
 
@@ -56,7 +56,7 @@ Two distinct bugs:
    spread-out start is slow and arbitrary — matches need an explicit compact
    layout, not "just fit the view".
 
-## Design
+## How
 
 ### A. Freeze the hidden set during search
 - While `searchQuery` is active, mark non-matching nodes (that are currently
@@ -91,7 +91,7 @@ Two distinct bugs:
   reload), so a clear always returns the user to the pre-search state.
 - Debounce already exists in `filterNodes` — cluster kicks in after it settles.
 
-## Verification
+## Steps to verify
 
 - `node --check` on touched files.
 - Manual: mansion → search "food" → food nodes gather near center; hidden nodes
@@ -103,7 +103,7 @@ Two distinct bugs:
   `templates/index.html:201`, persisted via localStorage; toggling ON during an
   active cluster un-clusters (restores layout), toggling OFF re-clusters.
 
-## Files changed
+## Files
 
 - `static/js/graph/focus.js` — reworked search settle flow:
   - `_parkHiddenSet()`: while a query is active, every node outside the visible
@@ -125,3 +125,11 @@ Two distinct bugs:
 - Manual browser pass still TODO: search "food" → matches gather center;
   Esc/clear → exact prior viewport restored; KEEP mode leaves matches
   geographically in place while hidden set stays frozen.
+
+## What
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

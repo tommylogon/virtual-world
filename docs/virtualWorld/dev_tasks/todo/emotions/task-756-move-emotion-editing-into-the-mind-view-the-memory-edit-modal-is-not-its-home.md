@@ -60,3 +60,17 @@ dashboard it is today) before this is built. If yes, the move is:
 - `static/js/inspector/mind-view.ts` (destination)
 - `static/js/inspector/memory-view.ts` (current editor: `memory_emotions` picker)
 - `static/js/api-client` (`updatePlayerMemory` / `addPlayerMemory`)
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO

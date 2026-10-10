@@ -1,0 +1,16 @@
+{
+  "id": "cold_snap",
+  "name": "Cold snap",
+  "kind": "extreme",
+  "order": 23,
+  "icon": "🥶",
+  "light_mult": 0.9,
+  "time_dc": 14,
+  "description": "A cold snap: the air bites, and every breath hangs white.",
+  "tags": [
+    "weather",
+    "sky",
+    "cold",
+    "extreme"
+  ]
+}

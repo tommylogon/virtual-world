@@ -1,3 +1,10 @@
+---
+type: bug
+status: done
+area: bugs
+priority: medium
+---
+
 # Bug 36 — `moveNode` called for nodes not in the DataSet: console spam + silent layout-restore failure
 
 **Status:** Done — fixed 2026-09-22.
@@ -32,10 +39,30 @@ already-correct `network-manager.js` pattern:
 skipped rather than wrapped, because the failure is a `console.error`, not an
 exception.
 
-## Verification
+## Steps to verify
 
 - `npm run lint` and `npm run typecheck` clean.
 - Manual: open the goblin camp, lock the background layout, trigger a world
   refetch and a cluster/un-cluster → no `moveNode does not exist` lines; positions
   still restore for present nodes; cluster round-trip returns nodes to prior
   positions.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

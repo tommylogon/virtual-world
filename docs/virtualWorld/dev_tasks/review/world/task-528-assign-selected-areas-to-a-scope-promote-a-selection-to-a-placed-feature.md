@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-26
 **Related:** task-496 task-397 task-378 task-523 task-495
 
-## Goal
+## What
 
 An area the author wrote by hand exists in the graph but has no place on a painted map:
 the map is a WorldPainter reference image with biome cells, and `compile_grid` only
@@ -117,3 +117,20 @@ generation-owned, so it wants its own public helper rather than a reuse of that 
   placed `Bathroom` on (5,3) (`cell`, `x/y = 200/120`, membership, one undo step),
   and Generate with biomes painted on (5,3) and (6,3) minted only `area_testmap_6_3`.
 
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

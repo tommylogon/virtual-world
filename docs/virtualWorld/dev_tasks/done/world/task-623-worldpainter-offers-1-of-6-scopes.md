@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 The WorldPainter scope picker exposes only one scope, so most world-scope authoring work cannot be reached through the UI.
 
@@ -72,5 +72,23 @@ request possible at all.
 
 **Knock-on:** this was one of ~20 `review/` tasks that could not be live-verified
 because the painter would not open their scope. Those are unblocked now.
+
+- TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
 
 - TODO

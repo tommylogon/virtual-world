@@ -12,7 +12,7 @@ priority: high
 **Related:** task-388 (trigger graph editor overhaul); task-501 (compile-honesty:
 NO-branch effects + OR/NOT — split out 2026-09-24, was Slice 2 here)
 
-## Goal
+## What
 
 Make a saved trigger **blueprint** something the engine can actually run, and give
 blueprints a real browser. Today a blueprint is a JSON document the editor can load and
@@ -83,3 +83,21 @@ user-saved ones), in the shape the item library already uses — not a floating 
   it showed 9 **↳ Attach** buttons; clicking Attach on *On Use → Message*
   created a `triggers` edge on the target item (0 → 1) and closed the modal,
   proving `POST /api/triggers/attach` materialises ordinary logic_trigger nodes.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

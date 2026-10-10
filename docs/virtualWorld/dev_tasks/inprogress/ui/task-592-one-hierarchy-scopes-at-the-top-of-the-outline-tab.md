@@ -11,7 +11,7 @@ related: [task-397, task-398, task-528, task-531, task-574]
 **Filed:** 2026-09-29
 **Related:** task-397, task-398, task-528, task-531, task-574
 
-## Goal
+## What
 
 One tree in one place: **world → scope → area**, in the Outline tab, so there is a
 single place to navigate the world and the "not built" signal sits next to the areas
@@ -114,3 +114,21 @@ Different subjects, different endpoints, disjoint data. The problem is everythin
   unbuilt in one window and expects you to know which of two buttons in another
   window fixes it. Nothing in the UI connects them, and that is a bigger usability
   hole than the visual duplication this task is named after.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

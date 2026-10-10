@@ -12,7 +12,7 @@ blocked_by: [task-324, task-403]
 **Depends on:** task-403 (unified memory/knowledge system), task-324
 (domain tags)
 
-## Goal
+## What
 
 Generate substantial life experience for characters — events, outcomes, fears,
 hopes, dreams, wants, likes, dislikes, trauma, and everything that makes people feel real — beyond what a personality summary can convey.
@@ -227,7 +227,7 @@ stable backstories.
 - `engine/tick_manager.py` — apply `personality_deltas` at load
 - `docs/virtualWorld/Systems/Memory System.md` — document the authoring workflow
 
-## Verification
+## Steps to verify
 
 - Generate backstory for Miki using `tools/generate_backstory.py`
 - Load Pines scenario with her backstory attached
@@ -246,3 +246,15 @@ stable backstories.
 - Real-time backstory generation during gameplay
 - Two-way sync between an external graph and VirtualWorld state
 - Full Neo4j event graph import
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

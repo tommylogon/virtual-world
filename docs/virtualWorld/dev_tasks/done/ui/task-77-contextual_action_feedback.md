@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: ui
+priority: medium
+---
+
 # Contextual Action Feedback — Smart Error Messages
 
 **Filed**: 2026-07-20
@@ -6,14 +13,14 @@
 
 ---
 
-## Summary
+## What
 
 When an action fails on an item (not found, wrong verb, impossible action), instead of
 generic "can't do that" messages, return a first-person contextual reason explaining
 *why* plus a list of what actions ARE valid for that item. This teaches the AI agent
 what's possible and makes the world feel more alive.
 
-## Problem
+## Why
 
 Currently, failing actions produce robotic messages:
 
@@ -43,7 +50,7 @@ Currently, failing actions produce robotic messages:
 | unequip | equip | Check if equipped |
 | break | break | Check if breakable |
 
-## Implementation
+## How
 
 ### 1. Add `_contextual_failure()` to engine
 
@@ -138,7 +145,17 @@ The agent's LLM learns:
 
 Over time, this teaches agents the game's physics and item grammar without hardcoded rules.
 
-## Files Affected
+## Files
 
 - `virtual_world_engine.py` — `_contextual_failure()`, validation in `take_item()`, `use_item()`, `use_item_on()`
 - `app.py` — possibly minor adjustments to how snake_case verbs map (read→examine, light→use, etc.)
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

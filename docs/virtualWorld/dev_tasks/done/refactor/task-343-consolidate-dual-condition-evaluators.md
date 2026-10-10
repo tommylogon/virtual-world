@@ -1,4 +1,11 @@
-﻿# task-343 — Consolidate the two divergent condition evaluators into one
+---
+type: task
+status: done
+area: refactor
+priority: medium
+---
+
+# task-343 — Consolidate the two divergent condition evaluators into one
 
 **Status**: Todo — filed 2026-08-27 from code review. Priority: do BEFORE the
 16-condition sweep (todo/conditions/*) — otherwise every new condition must be
@@ -21,7 +28,7 @@ Dead copy-paste inside condition_tree.py itself: `sound_heard`
 (:180-201) and `speech_matches` (:203-220) are re-implemented VERBATIM later
 in the same elif chain (:454-494) — unreachable branches that will rot first.
 
-## Goal
+## What
 
 One evaluator, one leaf registry:
 
@@ -39,4 +46,24 @@ One evaluator, one leaf registry:
 pytest suite green; new test asserting both call paths give identical answers
 for a fixture matrix of every leaf type incl. random_chance (seeded).
 
+## Why
 
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

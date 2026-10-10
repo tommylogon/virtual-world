@@ -10,10 +10,28 @@ priority: low
 **Filed:** 2026-10-04
 **Related:** 
 
-## Goal
+## What
 
 The live save authors on_light / on_toggle_off / on_toggle_on triggers on item_matches, item_candle_stub and item_candlestick, but their library entries under data/library/items carry no triggers, so re-importing any of them from the library drops the authored lighting behaviour and the node falls back to a plain dim light_source. The missing toggleable tag has been added to all three (both places). Sync the trigger definitions themselves, or state that the save is the authoring surface for these and the library is deliberately trigger-free.
 
 ## Acceptance
+
+- TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
 
 - TODO

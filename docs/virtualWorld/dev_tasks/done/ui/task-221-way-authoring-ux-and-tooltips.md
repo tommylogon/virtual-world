@@ -1,6 +1,9 @@
 ---
-group: UI & Settings
+area: ui
 wiki: "[[dev_tasks/level-design-workflow]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Way Authoring UX — Labels, Exit Badges, Edge Tooltips, Parameter Preview
@@ -11,7 +14,7 @@ wiki: "[[dev_tasks/level-design-workflow]]"
 
 ---
 
-## Problem
+## Why
 
 Way state UI is usable but labels mislead (e.g. "Description" reads like room prose, not closed-door appearance). Graph connection edge tooltips are thin. Agent prompt exits block doesn't show **requires climb/jump** or clearance tags. `{param:light}` in door text is easy to forget when parameters live on the way node.
 
@@ -86,7 +89,7 @@ Soft ⚠ in way inspector / lens — not a validator panel:
 - `static/js/graph/network-manager.js`
 - `static/js/inspector/helpers.js` — `resolveWayParams(text, parameters)`
 
-## Verification
+## Steps to verify
 
 - [x] `resolveWayParams` + preview block in `helpers.js`; shared badges in `way-authoring.js`
 - [x] Area exit rows show state/movement/tag/param badges (`area-view.js`)
@@ -103,3 +106,15 @@ Soft ⚠ in way inspector / lens — not a validator panel:
 - [[todo/ui/task-219-agent-lens-left-panel|task-219]]
 - [[todo/ui/task-220-unified-way-editor|task-220]]
 - [[review/triggers/task-keycard-clearance-target_has_tag-unlock_way-target|keycard clearance pattern]]
+
+## What
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

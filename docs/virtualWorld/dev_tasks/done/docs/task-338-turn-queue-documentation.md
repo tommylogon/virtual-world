@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: docs
+priority: medium
+---
+
 # Task 338 — Document turn-queue & human-turn gating architecture
 
 **Status:** Todo — filed 2026-08-23 after Tommy corrected a wrong
@@ -41,7 +48,7 @@ two-action turns, multi-human tables) all builds on these semantics.
   engine doc)
 - Cross-link from task-333/334
 
-## Verification
+## Steps to verify
 
 - A fresh agent (or human) can explain whose turn it is and why the
   command line still works, purely from the docs.
@@ -90,3 +97,15 @@ stranger-masking ("the woman") and the hover/click hint. Separately confirmed
 that a scenario whose every character is autonomous (`autonomy: true`) opens
 **no** modal — correct per the gate, and the reason an earlier attempt found
 `#htc-meta` missing.
+
+## What
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

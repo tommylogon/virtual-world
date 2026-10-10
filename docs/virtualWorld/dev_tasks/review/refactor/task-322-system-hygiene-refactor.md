@@ -5,13 +5,15 @@ status: review
 priority: medium
 created: 2026-08-21
 tags: [refactor, testing, engine, prompt-builder]
+type: task
+area: refactor
 ---
 
 # task-322: System Hygiene Refactor
 
 **Status** — In Review — all items implemented + verified 2026-08-21
 
-## Summary
+## What
 
 Cleanup pass over issues surfaced while landing tasks 92/94/248/133/230. Goal: leave the
 system in a state where the next feature work is cheaper and safer.
@@ -61,7 +63,7 @@ The 3 "pre-existing" failures were stale test expectations against retuned libra
 - spawn_character test hardcoded "Jake Halloway"/`player_Jake_Halloway`; library name is
   "jake halloway". Test derives name + node id from the library file.
 
-## Verification
+## Steps to verify
 
 - `python -m pytest tests/ -q -k "not mcp and not emote"` → **1051 passed, 0 failed**,
   1 skipped (first fully green run this session).
@@ -80,3 +82,19 @@ The 3 "pre-existing" failures were stale test expectations against retuned libra
 
 - `agent-engine.js` (~800) / `virtual_world_engine.py` (~980) modularization →
   task-314 (dedicated pass, per plan).
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

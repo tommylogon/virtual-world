@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: graph
+priority: medium
+---
+
 # Task 317 — Bidirectional Template-Link & Sync (World↔Library, unified)
 
 ## Status
@@ -23,7 +30,7 @@ decisions taken. What changed for this card's half specifically:
   dependent on remembering not to press Refresh.
 - The World→Library half was **verified as intact**, not re-implemented.
 
-## Goal
+## What
 
 Make template linking a coherent, safe system in BOTH directions across all node
 types (item, way, area, character):
@@ -74,9 +81,21 @@ Library→World (from 289/290):
 - per-type mutable-field whitelist — **not done** (inline per `_refresh_*`; no `engine/sync.py`)
 - variants + override tracking, `template_ref` migration (task-290) — **not started**
 
-## Verification
+## Steps to verify
 
 - Unit tests: both sync directions; empty-world-never-clobbers; refresh works on all
   4 types; break-link preserves node data; overrides skip on sync.
 - E2E: sync a bare world item to a rich template → template fields survive; refresh
   a linked area/character from template → updates apply.
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

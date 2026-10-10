@@ -1,6 +1,10 @@
-﻿---
-group: Environment & Climate
 ---
+area: environment
+type: task
+status: cancelled
+priority: medium
+---
+
 # Area Status System
 
 **Filed**: 2026-07-30  
@@ -9,13 +13,13 @@ group: Environment & Climate
 
 ---
 
-## Summary
+## What
 
 A flexible area status/effect system that models dynamic conditions in areas — fire, smoke, poison gas, extreme temperature, slime, magical fields, etc. — and how they affect characters and items. Trigger-driven for custom behavior.
 
 ---
 
-## Problem
+## Why
 
 Areas currently have static environment properties (temperature, light level). There's no system for dynamic, layered area effects that change over time and interact with characters. A room can be "on fire" but there's no fire system. A room can be "full of poison gas" but there's no gas system. This limits storytelling and environmental gameplay.
 
@@ -68,3 +72,21 @@ Each area gets a `statuses` list/dict, similar to how characters have conditions
 - [[review/environment/task-5-heat_propagation|task-5: Heat propagation]]
 - [[review/environment/task-126-tag-based-light-and-heat-sources|task-126: Tag-based light and heat sources]]
 - [[todo/environment/task-130-air-vacuum-atmospheric-effects|task-130: Air levels and atmospheric effects]]
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

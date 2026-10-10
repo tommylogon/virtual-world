@@ -10,7 +10,7 @@ created: 2026-07-27
 
 **Status**: done — verified 2026-08-03. `static/js/graph/map-view.js` no longer exists; zero references to `GraphMapView`, `_renderMapView`, or `map-view` in static/, templates/, css/, or tools/test_ui.cjs. The 🗺️ toolbar button (index.html:107) still exists but toggles the cardinal layout (task-112), not the removed map view.
 
-## Summary
+## What
 
 The map view (SVG-based cardinal direction room layout) is broken, unused, and architecturally nonsensical. Remove it entirely — button, module, CSS, dead code in graph-manager, and test references.
 
@@ -38,10 +38,26 @@ The map view (SVG-based cardinal direction room layout) is broken, unused, and a
 ### `docs/virtualWorld/dev_tasks/todo/task-82-map-view-and-directions.md`
 - Move to `done/archive/` (its core work is moot with map view removed)
 
-## Verification
+## Steps to verify
 
 - Server starts without errors
 - Graph/Outline buttons still work in the toolbar
 - No 404s for the removed JS file
 - No CSS references to map-view classes
 - No JS references to `GraphMapView` or `_renderMapView`
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

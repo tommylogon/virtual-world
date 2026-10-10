@@ -1,6 +1,10 @@
 ---
-group: Library
+area: library
+type: task
+status: review
+priority: medium
 ---
+
 # Select Library Item as Template When Syncing
 
 **Filed**: 2026-08-19
@@ -35,3 +39,29 @@ When syncing from library or saving to library, allow selecting which item from 
 
 - `developer ideas.md` line 2
 - `data/library/items/*.json`, `routes/library_routes.py`
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

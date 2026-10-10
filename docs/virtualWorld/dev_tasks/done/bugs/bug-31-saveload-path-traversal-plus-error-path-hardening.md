@@ -1,3 +1,10 @@
+---
+type: bug
+status: done
+area: bugs
+priority: medium
+---
+
 # Bug 31 — Save-load filename path traversal + two adjacent hardening fixes
 
 **Status**: Done — all three items verified resolved 2026-09-22 (fixed 2026-08-30).
@@ -57,3 +64,28 @@ not 500 TypeError; boot without env var shows debugger off in log line.
 
 dev nnotes: no idea what this means? can a agent or player potentially dlevte server files?
 
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

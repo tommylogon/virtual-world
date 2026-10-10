@@ -1,6 +1,9 @@
 ---
-group: UI & Settings
+area: ui
 wiki: "[[dev_tasks/level-design-workflow]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Unified Way Editor (Both Sides, One Save)
@@ -11,7 +14,7 @@ wiki: "[[dev_tasks/level-design-workflow]]"
 
 ---
 
-## Problem
+## Why
 
 A way is one passage connecting two areas, but authoring splits across:
 
@@ -22,7 +25,7 @@ A way is one passage connecting two areas, but authoring splits across:
 
 Designers tab-hop in `way-view.js` (Info / Behavior / Connections / Tags / Triggers) and mentally merge "Living Room → swinging door → Kitchen" with different commands each side (`go swinging door` vs `enter`, `go Ladder down` vs `go Ladder up`, `jump jump across`).
 
-## Goal
+## What
 
 One inspector layout for a way that shows **shared passage properties** and **both area sides** with explicit command names per side. Single save writes way node + both connection edges atomically.
 
@@ -88,7 +91,7 @@ Display inline ⚠ when:
 
 Optional: warn if serialized `areas.exits` cache drifts from graph (until task-222 removes cache)
 
-## Implementation
+## How
 
 ### Files
 
@@ -102,7 +105,7 @@ Optional: warn if serialized `areas.exits` cache drifts from graph (until task-2
 - Pathfinding / movement engine changes
 - Graph topology validation (user reports no broken connections today)
 
-## Verification
+## Steps to verify
 
 - [x] Unified **Passage** tab: shared props + both area sides + preview + **Save way** batch (`saveWayPassage`)
 - [x] Field renames applied (appearance, on traverse, command, view when open, required movement verb)
@@ -117,3 +120,11 @@ Optional: warn if serialized `areas.exits` cache drifts from graph (until task-2
 - [[review/characters/task-8-npc_behavior_movement|task-8]] — NPC `go` uses these commands
 - [[todo/ui/task-219-agent-lens-left-panel|task-219]]
 - [[todo/ui/task-221-way-authoring-ux-and-tooltips|task-221]]
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

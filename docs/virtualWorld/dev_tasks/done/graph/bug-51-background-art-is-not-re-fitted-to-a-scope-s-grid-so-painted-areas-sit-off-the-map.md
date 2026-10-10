@@ -42,7 +42,7 @@ rect, or a fit to the whole grid — was only ever reached from
 "fit to painted grid" menu action. **Nothing re-derived the art on load**, so the
 drift was permanent until someone happened to press the button.
 
-## Fix
+## How
 
 - `_reconcileReferenceArt()` re-applies `_applyReferenceLayout` for the layer
   that *is* the loaded scope's reference, on every world refetch
@@ -68,3 +68,25 @@ below it, which is also what the painter shows.
 
 **Note for the author:** the browser caches `static/js`, so this fix needs a hard
 refresh (Ctrl+F5) — a normal reload kept serving the old file.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

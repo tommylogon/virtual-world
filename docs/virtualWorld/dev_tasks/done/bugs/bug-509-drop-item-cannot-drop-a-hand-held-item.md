@@ -48,13 +48,13 @@ is "not carried" as far as drop is concerned. Only an intrinsic ability
 (spell, talent), which skips the hand step, or an item dropped straight onto
 the `carrying` edge by some other path, can be dropped at all.
 
-## Impact
+## Why
 
 Dropping is effectively unavailable for anything picked up by hand — which is
 most things. The failure message is also actively misleading: the character is
 holding the item.
 
-## Fix
+## How
 
 Scan `EDGE_CARRYING` **and** `EDGE_EQUIPPED` when resolving the drop target,
 and pop the item id from the player's `equipped` slot list (the unequip loop
@@ -62,7 +62,7 @@ just below the resolution already does this once the node is found, so it
 mostly needs to run in both cases). Carry-capacity/weight accounting is
 unaffected: the item is moving, not being destroyed.
 
-## Verification
+## Steps to verify
 
 ```
 python -m pytest tests/test_item_actions.py -q
@@ -110,3 +110,15 @@ item "Lumber Axe":
 The drop succeeds because `drop_item` now resolves the `equipped` edge the take
 created; before the fix it scanned only `carrying` and would have answered that
 the character did not have it. No page errors. Moving to `done`.
+
+## What
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

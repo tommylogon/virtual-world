@@ -11,7 +11,7 @@ related: [task-409, task-426, task-2, task-694, task-701, task-702, task-703, ta
 **Filed:** 2026-10-04
 **Clarified:** 2026-10-05
 
-## Goal
+## What
 
 Keep the game-design model in [`Character Pursuits.md`](../../../design/Character%20Pursuits.md) accurate. The earlier draft used “schedule” as the umbrella for reusable activities and blurred an ongoing Activity with the Pursuit that can bring a character to it. The corrected model distinguishes character goals and reasons, missions, reusable pursuit templates, active pursuits, calendar schedules, short-term plans, observable Activities, and world recipes.
 
@@ -33,3 +33,21 @@ Keep the game-design model in [`Character Pursuits.md`](../../../design/Characte
 ## Correction (2026-10-05)
 
 The prior draft described reusable activities as “schedules.” The designer clarified that fishing, cooking, bathing, sleeping, and similar things are **Activities**: they occur over time in a place, can be perceived, and may be interrupted. A **Pursuit** can include travel to the activity and carry the character's reason for doing it. A **Schedule** stays the clock/calendar reminder layer. `Character Pursuits.md` now uses those meanings throughout and separates current behavior from planned wiring.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

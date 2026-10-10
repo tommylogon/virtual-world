@@ -49,7 +49,7 @@ normal-speed click on the next node lands before any render ever observes A's ne
 value — and once B is the current view, the value it binds is still the stale `true`,
 so the diff stays silent forever.
 
-## Fix
+## How
 
 Bind the checkbox as a **property**, through lit's `live()` directive:
 
@@ -108,3 +108,17 @@ case: A on, B on) and a real click, not a DOM poke. A =
 
 `pass: true`. No page errors. The 250 ms debounce was never awaited; B was
 selected immediately after the click. Flags restored (A on, B off).
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO

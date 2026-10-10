@@ -1,6 +1,9 @@
 ---
-group: Trigger System
+area: triggers
 wiki: "[[Rules Engine/Triggers & Effects]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Task 114: Trigger Editor — Nested Rule Tree Conditions + Flow Reorder
@@ -12,7 +15,7 @@ wiki: "[[Rules Engine/Triggers & Effects]]"
 
 ---
 
-## Summary
+## What
 
 Rework the TriggerEditor (form-based) to:
 1. **Reorder flow**: Trigger Type → **Conditions** → Effects → Messages (was: Trigger → Effects → Conditions → Messages)
@@ -165,7 +168,7 @@ The context menu in `trigger-graph.js` has a z-index lower than the canvas overl
 
 ---
 
-## Verification
+## Steps to verify
 
 1. Open Inspector → Add Trigger → verify conditions section has nested builder
 2. Build `(has_item key AND skill_check) OR (state_equals door open)` — confirm tree renders right
@@ -209,3 +212,19 @@ All items implemented and verified:
 | Tree format detection | ✅ | `trigger_system.py:1173-1183` |
 | Unified condition evaluator | ✅ | `trigger_system.py:337` — `_evaluate_conditions()` handles both tree and flat |
 | TriggerGraph z-index fix | ✅ | `trigger-graph.js:522` — context menu z-index:10001 > modal z-index:9999 |
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

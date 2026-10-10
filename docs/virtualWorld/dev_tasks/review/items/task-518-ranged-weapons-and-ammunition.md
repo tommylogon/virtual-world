@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-24
 **Related:** task-54, task-362, task-427
 
-## Goal
+## What
 
 Add a real ranged-weapon and ammunition model for Vekka's compact hunting bow.
 Today the only "ranged" item is a scripted one-shot, not a weapon.
@@ -85,3 +85,21 @@ Acceptance: a bow attack uses the item's damage through the normal combat
 resolution; firing consumes one arrow and an empty quiver fails with no damage;
 ammo stacks decrement via `uses`; Vekka's bow is authored and tested. Tests:
 `tests/test_ranged_combat.py` (10 passed).
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

@@ -1,7 +1,11 @@
 ---
-group: Agent AI & Behavior
+area: characters
 wiki: "[[Characters/NPC Behavior System]]"
+type: task
+status: review
+priority: medium
 ---
+
 # Needs-Driven Autonomous Replanning
 
 **Filed**: 2026-07-22
@@ -23,7 +27,7 @@ wiki: "[[Characters/NPC Behavior System]]"
 
 ---
 
-## Summary
+## What
 
 Vitals currently exist and decay, but they're purely descriptive — the agent sees "You are hungry" in the prompt but has no mechanism to autonomously change course. In humanoidagents, when basic needs drop below a threshold, the agent asks itself "Should I change my plan?" and replans via LLM.
 
@@ -64,7 +68,7 @@ def change_plans_helper(LLM, suggested_change, existing_plan):
 
 ---
 
-## Changes
+## How
 
 ### 1. Add replan trigger check to `plan-manager.js` or `agent-engine.js`
 
@@ -131,3 +135,21 @@ Check: any vital below threshold?
 1. Load a character with Hunger=0
 2. Run 5 turns
 3. Verify the agent mentions food or eating in their plan or action (not just "you are hungry" in context)
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

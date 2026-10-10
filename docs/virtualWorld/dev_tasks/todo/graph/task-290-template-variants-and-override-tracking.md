@@ -1,3 +1,10 @@
+---
+type: task
+status: todo
+area: graph
+priority: medium
+---
+
 # Task 290 — Template Variants & Override Tracking
 
 ## Status
@@ -9,7 +16,7 @@ sync modal, diff-modal shows protected fields un-checked) — added 2026-08-20.
 task-290 makes this an author-declared `overrides` feature for Library→World.
 See **task-317**.
 
-## Goal
+## What
 
 Add two optional layers on top of the basic template-link system from task-289:
 
@@ -81,3 +88,21 @@ Add two optional layers on top of the basic template-link system from task-289:
 
 - Bulk variant creation from existing near-duplicate nodes (could be a later migration tool).
 - Conflict resolution when base and variant edit the same field (variant wins by design).
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

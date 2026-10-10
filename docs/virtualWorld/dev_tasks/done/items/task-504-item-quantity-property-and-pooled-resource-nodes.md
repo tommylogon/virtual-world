@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-24
 **Related:** 419, 438, 155, 427, 410, 483, 495, 496, 500
 
-## Goal
+## What
 
 Introduce a per-node `quantity` property (default 1) so one item node can
 represent *many of the same kind*. It is chiefly a presentation and data-model
@@ -160,8 +160,20 @@ WorldPainter scope/zone work (task-495/496/500). The generator authors
 - Stacking carried copies — that stays task-155.
 - Renaming display names on collision (ids only; project constraint).
 
-## Verification
+## Steps to verify
 
 - `python -m pytest tests/test_item_quantity.py tests/test_item_actions.py tests/test_scene_snapshot.py tests/test_forage_tables.py -q`
 - `python -m pytest -q` against the documented baseline (no new failures).
 - Week soak on the camp: food supply and 23/23 outcome unchanged.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Files
+
+- TODO

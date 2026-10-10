@@ -30,7 +30,7 @@ Two smaller problems in the same path:
 loops `api.deleteSaveGame(saves[i].filename)` with no exclusion for
 `save.autosave === true`.
 
-## Fix
+## How
 
 1. Exclude the autosave slot from Delete All (`saves.filter(s => !s.autosave)`), and
    make that explicit in the confirm text ("Delete all N saves? Autosave is kept.").
@@ -84,3 +84,17 @@ Drove the real client API against the running server:
 
 The bulk wipe removed only the user save and listed the autosave in `kept`; one
 request, no partial state. No page errors.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO

@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-10-06
 **Related:** task-702, task-716, task-569
 
-## Goal
+## What
 
 Durations should be authored in game minutes, not ticks. Activities already track both units deliberately (engine/activities.py:469 - duration_ticks predates the author-in-game-minutes rule, duration_minutes counts game time), but the plan step and start_activity effect only read duration_ticks, and background_plans._satisfied compares a duration_minutes value against elapsed_ticks. Fix the unit comparison, wire duration_minutes through start_activity, and convert the authored templates (data/library/pursuit_templates/fish-and-bring-home.json, data/library/items/angling_rod.json) to minutes.
 
@@ -82,3 +82,21 @@ change, and the 120-minute value needs a human confirm.
 
 - The activity-step executor itself (task-702).
 - The pursuit slice flow (task-716).
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

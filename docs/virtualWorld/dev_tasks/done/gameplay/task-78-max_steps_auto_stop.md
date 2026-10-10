@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: gameplay
+priority: medium
+---
+
 # Max Steps Auto-Stop
 
 **Filed**: 2026-07-20
@@ -7,11 +14,11 @@
 
 ---
 
-## Summary
+## What
 
 Add a numeric input next to the Run Simulation button that limits how many turns run before auto-stopping. Prevents infinite credit consumption when letting simulation run unattended.
 
-## Files Changed
+## Files
 
 | File | Change |
 |------|--------|
@@ -28,3 +35,21 @@ Add a numeric input next to the Run Simulation button that limits how many turns
 - Input is disabled while simulation is running
 - Step display switches to `Step: 3/10 (7 left)` during sim, reverts to `Step: idx/total` when stopped
 - On auto-stop: logs "Agent stopped.", re-enables play button and input
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

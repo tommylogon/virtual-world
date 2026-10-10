@@ -92,7 +92,19 @@ class TestVocabularyStaysInSync:
     def test_normalize_weather_aliases(self):
         assert normalize_weather("overcast") == "cloudy"
         assert normalize_weather("sunny") == "clear"
-        assert normalize_weather("  THUNDERSTORM ") == "stormy"
+        # thunderstorm/blizzard are their own extreme types now (task-763), no
+        # longer folded into stormy/snowy.
+        assert normalize_weather("  THUNDERSTORM ") == "thunderstorm"
+        assert normalize_weather("blizzard") == "blizzard"
+        # Plain spellings a hand-authored world writes must resolve too. The UI's
+        # WEATHER_CHIP already accepted these; the engine used to drop them, so a
+        # forecast entry saying weather:"rain" was invisible (found via the
+        # kraktooth scenario, whose third entry says exactly that).
+        assert normalize_weather("rain") == "rainy"
+        assert normalize_weather("storm") == "stormy"
+        assert normalize_weather("snow") == "snowy"
+        assert normalize_weather("wind") == "windy"
+        assert normalize_weather("fog") == "foggy"
         # Unknown stays unknown so each reader falls through to its own default
         # rather than silently becoming "clear".
         assert normalize_weather("meteor shower") == ""

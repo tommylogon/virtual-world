@@ -1,6 +1,9 @@
 ---
-group: Agent AI & Behavior
+area: characters
 wiki: "[[Characters/NPC Behavior System]]"
+type: task
+status: done
+priority: medium
 ---
 
 # NPC Behaviors: Add "go" Command
@@ -11,11 +14,11 @@ wiki: "[[Characters/NPC Behavior System]]"
 
 ---
 
-## Summary
+## What
 
 NPC behaviors support conditional actions triggered by events, but there is no "go" (move to room) action type. Simple NPCs can trigger messages, damage, etc., but cannot autonomously navigate between areas.
 
-## Current State
+## Why
 
 In `inspector.js:_showAgent()` (line 223-246), NPC behaviors are displayed with their triggers, conditions, and actions. The action types available for behaviors are the same as item actions (examine, take, use, etc.) — there's no movement action.
 
@@ -51,7 +54,21 @@ Add `go` to the available actions list when editing NPC behaviors. The behavior 
 - Open the inspector for an NPC with behaviors. Add a behavior action — verify "go" is available as an action type with a "Target Area" text field.
 - Set up a trigger (e.g. `on_tick`) with action type `go` targeting a room name. Advance time/steps. Verify the NPC moves to the target room.
 
-## Files Affected
+## Files
 
 - `virtual_world_engine.py` — add `go` action handling in behavior processing
 - `static/js/inspector.js` — add `go` action option in behavior editor
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

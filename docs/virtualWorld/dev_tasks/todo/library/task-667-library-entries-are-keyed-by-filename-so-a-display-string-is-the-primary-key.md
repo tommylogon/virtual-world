@@ -11,7 +11,7 @@ related: [task-446, task-619, task-665, task-660]
 **Filed:** 2026-10-01
 **Related:** task-446 (in progress), task-619, task-665, task-660
 
-## Problem
+## Why
 
 `load_registry` (`routes/helpers.py:209`) builds every library registry by
 listing `data/library/<type>/` and **keying each entry by its filename**:
@@ -122,3 +122,21 @@ All five returned `applied: []`, `linked: true`. Sync no longer depends on any
 name matching, so the cast can be synced now. That is a pin on today's
 filename-shaped keys — it does not survive a future rename, which is exactly
 what this task is for.
+
+## What
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

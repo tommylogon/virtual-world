@@ -1,6 +1,9 @@
 ---
-group: Items & Crafting
+area: items
 wiki: "[[World Building/Doors & Connections]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Remove Legacy `locked_with` Property — Review
@@ -31,9 +34,29 @@ wiki: "[[World Building/Doors & Connections]]"
 - **Item-to-item lockboxes** in engine — still uses `locked_with` for chest/container key matching. Separate feature, not related to ways.
 - **Documentation** (`GAME_MECHANICS_GUIDE.md`) — still references `locked_with`. Should be updated when documentation is overhauled.
 
-## How to Test
+## Steps to verify
 
 1. Open any room in the inspector (e.g. Living Area) — verify **no 🔑 badge** appears on locked exits
 2. Open a door inspector — verify no errors in console about `lockedWith`
 3. Create a trigger: `on_use_on` on a key item with `unlock_way` effect targeting a locked door — verify the door unlocks when using the key
 4. Type `use brass_key on front_way` — verify it unlocks via trigger (legacy `locked_with` is not consulted)
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 **DECIDED 2026-09-30 by Tommy:** split defence into **damage reduction** and an
 **evasion bonus**.
@@ -65,3 +65,21 @@ items: plate is easier to hit and hard to kill in; leather is the reverse.
 
 Not done here: the editor palette that makes the trade visible is a UI surface;
 the data model and combat resolution now carry both values for it to render.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

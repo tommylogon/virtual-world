@@ -10,7 +10,7 @@ priority: low
 **Filed:** 2026-10-01
 **Related:** 
 
-## Goal
+## What
 
 python tools/js_module_index.py --check exits 1 reporting 'New modules missing the @module/@contributes contract: static/js/agent/prompt-builder/room-context.js'. The header is complete (@module, @contributes, @powers, @relates) and the module IS listed in docs/design/js-module-index.md line 30, so the guard's parse is what is failing - most likely the '@contributes buildRoomContext/Parts' entry, whose slash-joined compound is not a plain comma-separated identifier list. Verified pre-existing on a clean master worktree (same message, exit 1), so not caused by task-313 which only edited the function bodies. Fix is to split the compound into two entries, then regenerate the index.
 
@@ -47,3 +47,21 @@ module has no BOM, which is why only this file was baselined.
 - task-668: `room-context.js` body is mojibaked (its UTF-8 bytes were decoded as
   cp1252 once, so em-dashes became a three-character sequence and emoji are
   damaged); not cleanly reversible.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

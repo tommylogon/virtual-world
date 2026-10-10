@@ -43,7 +43,7 @@ Note the existing tests (`test_build_connect_removes_stale_edges`,
 is an **intentional update/rewire**, so the fix is honest reporting, not a
 refusal. This is distinct from bug-16, which was the no-id case.
 
-## Fix
+## How
 
 - `routes/graph_ops.py` — capture whether the way existed before `add_node` and
   return `created`, `way_id`, `way_name`, `area_from`, `area_to`,
@@ -54,7 +54,7 @@ refusal. This is distinct from bug-16, which was the no-id case.
 - `static/js/graph/event-handlers.js` — the task-376 wizard uses the same helper.
 - `eslint.config.js` — `connectSummary` added to the cross-file globals list.
 
-## Tests
+## Steps to verify
 
 `tests/test_way_connect_repair.py::test_build_connect_reports_created_and_areas`
 — first connect with `way_id: door1` reports `created: true` and the two area
@@ -96,3 +96,11 @@ No page errors.
 - `static/js/graph/event-handlers.js` — `onAddEdge` success log
 - `eslint.config.js` — globals
 - `tests/test_way_connect_repair.py`
+
+## What
+
+TODO
+
+## Why
+
+TODO

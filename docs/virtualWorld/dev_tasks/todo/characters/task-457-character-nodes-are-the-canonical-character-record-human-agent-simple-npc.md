@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-22
 **Related:** task-446, task-316
 
-## Goal
+## What
 
 Make the character graph node the single source of truth for a character's full definition (stats, skills, vitals, traits, tags, interest_tags, personality, descriptions, emotion, conditions, simple_npc/autonomy/behaviour fields; inventory/equipped via edges). The Player object becomes a runtime view derived from and synced with the node: load seeds node properties from the players section (additive migration), node writes are authoritative, and no defining field lives only on the Player. Uniform for human, agent, soak and simple NPCs.
 
@@ -129,3 +129,21 @@ Consequence: **task-446 (id-first identity) and task-447 (aliases) rest on this
 foundation and cannot be honestly finished before it.** The write-path decision
 (the Player as a pure view vs a writable record kept in sync) is still open — see
 above.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

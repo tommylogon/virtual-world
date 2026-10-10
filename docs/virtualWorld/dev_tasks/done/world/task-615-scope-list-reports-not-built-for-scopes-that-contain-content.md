@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 The scope list contradicts the world contents, claiming unbuilt for scopes holding real areas/ways.
 
@@ -90,6 +90,7 @@ The claim was recorded against a six-scope world. It needs that world (or any
 world with scopes) before it can be confirmed or refuted. Deliberately not
 cancelled: "the list says not built for scopes that contain content" is
 untested, not disproven.
+
 ## Re-checked in the world it was filed against 2026-09-30
 
 I loaded `kraktooth_goblin_camp` (via the Scenario Manager's own open path) and
@@ -112,3 +113,21 @@ WorldPainter's scope list open next to the global one to confirm.
 
 Left open with that lead recorded, because "no scopes exist" is not the same as
 "the caption is correct".
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

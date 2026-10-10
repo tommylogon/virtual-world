@@ -1,7 +1,10 @@
 ---
-group: Prompt & Narrative Quality
+area: emotions
 status: done
+type: task
+priority: medium
 ---
+
 # Emotion Should Reflect Actual Vitals/State
 
 **Filed**: 2026-07-30
@@ -88,5 +91,32 @@ The emotion system (`player.emotion`) is currently set via triggers, action outc
 - If an explicit emotion was set recently (within N ticks), prefer that
 
 ## Related
+
 - `developer ideas.md` — emotion not matching vitals
 - [[Simulation Model]] — why this lives on the attended/agent tier
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

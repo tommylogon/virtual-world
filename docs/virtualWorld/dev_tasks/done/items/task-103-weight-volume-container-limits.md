@@ -1,7 +1,9 @@
 ---
-group: Equipment & Inventory
+area: items
 wiki: "[[Items & Inventory/Inventory]]"
 status: done
+type: task
+priority: medium
 ---
 
 # Task 103: Weight/Volume Limits for Containers
@@ -13,7 +15,7 @@ status: done
 
 ---
 
-## Summary
+## What
 
 Currently items can be freely put into any container regardless of size/weight. Add weight and volume limits to containers, with the simple rule: if an item weighs more than the container's capacity, it can't go in. More advanced physics (volume, shape) can come later.
 
@@ -79,3 +81,25 @@ Currently items can be freely put into any container regardless of size/weight. 
 - task-156: Weight affects energy decay
 - task-202: Over-encumbrance counts as one size larger
 - task-205: Player carry capacity system (displays, trait interactions)
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

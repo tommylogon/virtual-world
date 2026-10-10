@@ -1,7 +1,11 @@
 ---
-group: Tech Debt & Testing
+area: items
 wiki: "[[Library System/Library System Overview]]"
+type: task
+status: done
+priority: medium
 ---
+
 # Task 106: Tag Library + Searchable Tag Multiselect System
 
 **Status**: ✅ Done (2026-08-02)  
@@ -11,7 +15,7 @@ wiki: "[[Library System/Library System Overview]]"
 
 ---
 
-## Summary
+## What
 
 Tags are currently freeform strings scattered across items, characters, and rooms with no central registry, no autocomplete, and no consistent UI. Every place that edits tags has its own duplicated input pattern. This task creates a proper tag library and replaces all tag inputs with a searchable multiselect component.
 
@@ -358,3 +362,25 @@ Optional: a one-time `POST /api/tags/migrate` endpoint that scans all entities a
 | ✅ | Phase 3: Auto-registration in TagMultiselect + stats endpoint |
 | ✅ | Phase 3b: Tag validation on save (routes/helpers.py + PATCH node route) |
 | ✅ | Phase 4: Graph tag color indicators (tag panel, label icons, click-to-filter) |
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

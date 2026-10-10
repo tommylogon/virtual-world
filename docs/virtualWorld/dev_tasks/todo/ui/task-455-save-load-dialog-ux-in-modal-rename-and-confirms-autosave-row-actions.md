@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-22
 **Related:** task-369, bug-40, bug-42
 
-## Goal
+## What
 
 Bring the Save / Load modal in line with the rest of the UI: it is the last major
 surfacestill using native browser dialogs.
@@ -57,3 +57,17 @@ Current behavior in `static/js/ui/saveload-view.js`:
       `confirmDeleteAllSaves`, `loadGameList`
 - `templates/index.html` — modal markup if new in-modal elements are added
 - `static/css/style.css` — row/confirm styling
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO

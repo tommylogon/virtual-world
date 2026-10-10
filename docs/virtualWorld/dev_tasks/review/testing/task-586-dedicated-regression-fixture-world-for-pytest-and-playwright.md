@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-29
 **Related:** bug-55, task-444, task-572
 
-## Goal
+## What
 
 world_template.json is three things at once: the boot default a real player starts from, a selectable entry in the scenario picker (`engine/soak_runner.py:1062-1072`), and the de-facto fixture ~139 `create_app()` call sites depend on. It satisfies the third by accident — tests rely on incidental content (the first way node in insertion order, `Backpack` carrying `unequip`, `Living Area` never existing) — and that accident is what made bug-55 possible. Ship one declared, inert fixture under `tests/`, assert its contract in a test, and stop conflating it with shipped content.
 
@@ -100,3 +100,21 @@ Also: no decorative items with names tests collide with, and **no `Living Area`*
 - **What a real player's new game starts from.** The boot default needs its own small authored scenario, and `data/scenarios/world_template.json` (the duplicate) should be deleted. That is a content decision, not a testing one — file it separately.
 - **The Playwright harness on the fixture** — pinned seed, pinned start hour, `DATA_DIR` in a temp dir, and the Phase 3–5 work already tracked by **task-444**. This task only has to make the fixture *usable* by it.
 - **The `solo()`/`company()` helpers applied suite-wide**, replacing the hand-rolled "move everyone else to Kitchen" helpers one file at a time. That is **task-572**'s integration-layer territory, not a prerequisite for this fixture.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

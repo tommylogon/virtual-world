@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-22
 **Related:** task-408, task-316, task-446, task-457, task-439
 
-## Goal
+## What
 
 A character has exactly one graph node. Today the offline generator authors character_<slug> (description + in/carrying edges) while the runtime anchors player_<Name> (x/y + at/equipped/grappled edges) - the kraktooth scenario has 46 character nodes for 23 players, with a compatibility shim at engine/area_description.py:378. Pick one canonical node id (id-derived per task-316/446, unique names keeping the legacy derived id), merge authored nodes/edges into it at load, add a migration tool for existing scenarios/saves, and change tools/assemble_scenario.py + build_scenario.py + generate_scenario.py so the duplication cannot recur.
 
@@ -51,3 +51,20 @@ A character has exactly one graph node. Today the offline generator authors char
   task-408); the loader collapses it at load, and the next save writes the
   single-identity form.
 
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: ui
+priority: medium
+---
+
 # BUG: Area Item Lists Display Empty
 
 **Filed**: 2026-07-15
@@ -6,11 +13,11 @@
 
 ---
 
-## Summary
+## What
 
 The room inspector shows "No items" even when the room has items. The item list in the room inspector is always empty regardless of actual room contents.
 
-## Current State
+## Why
 
 In `inspector.js:_showRoom()` (line 588-592), the items rendering uses:
 
@@ -42,8 +49,22 @@ const itemsFromGraph = worldState.getItemsInArea(name);
 const itemsFromRoomData = (worldState.areas[name]?.items || []).map(i => i.name || i);
 ```
 
-## Files Affected
+## Files
 
 - `static/js/inspector.js` — fix items rendering in `_showRoom()`
 - `static/js/world-state.js` — may need to fix `getItemsInArea()` if that's the root cause
 - `static/js/api.js` — verify that `/api/state` returns items correctly
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

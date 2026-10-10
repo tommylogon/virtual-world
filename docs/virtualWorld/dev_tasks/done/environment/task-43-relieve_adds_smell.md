@@ -1,6 +1,9 @@
 ---
-group: Environment & Climate
+area: environment
 wiki: "[[World Building/Rooms & Areas]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Relieve Yourself Should ADD to Area Smell, Not Replace
@@ -11,7 +14,7 @@ wiki: "[[World Building/Rooms & Areas]]"
 
 ---
 
-## Summary
+## What
 
 The `relieve` command uses `env["smell"] = "urine"` which outright replaces any existing room smell. If the room already smells of smoke, dust, or rotting food, that's lost.
 
@@ -41,6 +44,24 @@ if "urine" not in current:
         env["smell"] = "urine"
 ```
 
-## Files Affected
+## Files
 
 - `app.py` — line 221, the `relieve` handler
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

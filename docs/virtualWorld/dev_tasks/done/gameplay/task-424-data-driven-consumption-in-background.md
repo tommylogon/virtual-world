@@ -43,7 +43,7 @@ set_state` hook (c) → the data pass on the five camp consumables (b). Only the
 retire `MEAL_RESTORE`/`DRINK_RESTORE`, and the soak should be unchanged because
 until (b) lands every camp item is still on the fallback.
 
-## Problem
+## Why
 
 Consumption has two mechanisms that disagree:
 
@@ -60,13 +60,13 @@ So the background tier cannot empty a container, destroys anything with
 `uses == -1` that it consumes, and forced the wash-spot fixture (task-410) to avoid
 the `water` tag purely to escape deletion.
 
-## Goal
+## What
 
 One consumption path. The background tier calls the authored one, with the active
 player swapped in for the decision (the same trick `_travel_toward` already uses
 for movement), so a glass empties, a skin keeps its charges, and bread is eaten.
 
-## Changes
+## How
 
 1. `_consume_here` delegates to the item-consume path instead of hardcoding
    depletion. Keep the current behaviour only as a degenerate fallback for items
@@ -96,7 +96,7 @@ for movement), so a glass empties, a skin keeps its charges, and bread is eaten.
 - Changing what counts as food/drink (`FOOD_TAGS`/`DRINK_TAGS`).
 - Refill mechanics beyond making them possible in data.
 
-## Verification
+## Steps to verify
 
 - Unit: `_consume_here` on a container item that authors an empty state leaves the
   node; on an item with no triggers it falls back and says so.
@@ -163,3 +163,6 @@ that several *authored* items, e.g. `rations_of_dried_meat` and `apple`, carry n
 depletion and are infinite once the authored path is live). The camp no longer
 touches the fallback: all five of its consumables now author `on_eat`/`on_drink`.
 
+## Files
+
+- TODO

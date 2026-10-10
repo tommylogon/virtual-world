@@ -1,5 +1,8 @@
-﻿---
-group: Trigger System
+---
+area: triggers
+type: task
+status: done
+priority: medium
 ---
 
 # First-Class Timer on Trigger
@@ -10,11 +13,11 @@ group: Trigger System
 
 ---
 
-## Problem
+## Why
 
 Timing is currently hacked via a "timer item" pattern. There is no first-class way to express "this happens after N ticks" on a trigger.
 
-## Design
+## How
 
 - A workable timer-item workaround exists: on_tick reduces uses, then a conditional unlock fires when uses hit zero.
 - A first-class timer trigger type is cleanup, not a necessity — the workaround already covers the core need.
@@ -26,3 +29,16 @@ Timing is currently hacked via a "timer item" pattern. There is no first-class w
 - engine/trigger_system.py — add first-class timer trigger type with duration/ticks field and expiry auto-fire
 - engine/effects.py — support effects tied to the timer trigger firing
 
+## What
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

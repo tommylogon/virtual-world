@@ -1,6 +1,9 @@
 ---
-group: Items & Crafting
+area: items
 wiki: "[[Items & Inventory/Items Overview]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Task 115: Field Locks + Refresh from Library
@@ -12,7 +15,7 @@ wiki: "[[Items & Inventory/Items Overview]]"
 
 ---
 
-## Summary
+## What
 
 **Field-level locking** lets you mark specific item properties as "locked" — they're preserved during AI Improve, Refresh from Library, and Sync to Library. Plus a **Refresh from Library** button that resets unlocked fields from the library template.
 
@@ -36,7 +39,7 @@ Locked fields are **never overwritten** by:
 
 ---
 
-## Implementation
+## How
 
 ### 1. Field Lock UI (item-view.js)
 
@@ -95,9 +98,21 @@ When refreshing the graph node from library, locked fields are preserved.
 
 ---
 
-## Verification
+## Steps to verify
 
 1. Open item inspector → toggle lock on description
 2. Click Improve → description stays unchanged
 3. Click Refresh from Library → locked fields preserved, unlocked reset
 4. Sync to Library → locked fields preserved on lib side
+
+## Why
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

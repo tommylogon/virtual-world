@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 Grid coordinates like '(world 16,4)' appear in narration a player reads. Note the way *hover* resolves names correctly ('north trail -> Camp Entrance') while the at-rest button label does not, so the clean form already exists.
 
@@ -63,3 +63,21 @@ pre-existing, not mine.
 
 Note `/api/state.current_area` still reports `Road (world 9,3)` because that is
 the stored *name*. Presentation is fixed; the data migration is task-638.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

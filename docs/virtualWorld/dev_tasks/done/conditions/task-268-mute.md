@@ -1,6 +1,8 @@
 ---
-group: Conditions
+area: conditions
 status: done
+type: task
+priority: medium
 ---
 
 # Condition: Mute (`mute`)
@@ -12,7 +14,7 @@ status: done
 
 ---
 
-## Purpose
+## What
 
 Can't speak. No sound comes out. The speech-blocking condition.
 
@@ -50,7 +52,7 @@ Can't speak. No sound comes out. The speech-blocking condition.
 - `engine/conditions.py` — `can_speak` (iterates conditions with `blocks_speech`).
 - Action input: speech actions should be rejected/blocked while mute.
 
-## Testing
+## Steps to verify
 
 - [ ] `can_speak` returns False while mute.
 - [ ] Speech/volume actions are blocked or natively handled.
@@ -60,3 +62,19 @@ Can't speak. No sound comes out. The speech-blocking condition.
 
 - Should mute be enforced in the action layer (reject `speech`), or just prompt-hinted? Verify actual enforcement path.
 - `default_duration: None` — should natural recovery ever apply, or is it always explicit cure/removal?
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

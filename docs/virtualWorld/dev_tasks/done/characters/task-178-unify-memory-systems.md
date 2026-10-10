@@ -1,6 +1,9 @@
 ---
-group: Agent AI & Behavior
+area: characters
 wiki: "[[AI & Narration/Memory System]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Task 178: Unify Character Memory Into One Backend System
@@ -13,7 +16,7 @@ wiki: "[[AI & Narration/Memory System]]"
 `Player.memories[]`; dead code deleted; verified live with the Valerius scenario (Lyrie run
 produced one clean `reaction` memory per turn with LLM-chosen importance + `entity_ids`).
 
-## Problem
+## Why
 
 Character memory is fragmented across **four** parallel systems, three of which
 duplicate each other and two of which are effectively dead:
@@ -120,7 +123,7 @@ optionally attach `entity_ids` from `extractEntities` (it currently doesn't —
 rich observations lose the entity links that template reactions get at
 `agent-engine.js:365,388,455`).
 
-## Changes
+## How
 
 ### Backend
 
@@ -175,7 +178,7 @@ rich observations lose the entity links that template reactions get at
 - Verify Entertainment-novelty tests still pass (discovery system untouched).
 - Full suite: `python -m pytest tests/ -q -k "not mcp and not emote"`.
 
-## Verification
+## Steps to verify
 
 - [x] No `_memory` / `knowledge` / `world_knowledge` remains in `.py` or `.js`
 - [x] `memory-store.js` and `entity-index.js` deleted, no dangling references
@@ -201,3 +204,15 @@ rich observations lose the entity links that template reactions get at
 - `app.py` autosave hook now skips in TESTING mode (prevents tests polluting
   `data/autosave.json`). New tests: `test_memory_api.py` (5), `test_spatial_memory.py` (6).
 - Full suite: 472 passed, 1 skipped (461 pre-existing + 11 new).
+
+## What
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

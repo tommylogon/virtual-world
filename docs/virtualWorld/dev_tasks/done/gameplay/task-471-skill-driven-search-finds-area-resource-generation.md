@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-23
 **Related:** task-470, task-468, task-399, task-464, task-9
 
-## Goal
+## What
 
 An area need not be hand-stocked to be worth searching. What a search turns up depends on the skill used (Survival -> herbs/fruit/roots/grubs, History -> old things, Religion -> relics, Perception -> scraps/tools/coins) and the area modifies both the chance and the flavour: a forest favours Survival, a ruin favours History/Religion, and an item already present (an old religious statue in a forest) raises the weight of the matching kind of find. Finds are ordinary library items spawned as fresh copies, one skill check, and a per-area daily cap so a long soak cannot turn one wood into a loot pinata.
 
@@ -50,7 +50,7 @@ An area need not be hand-stocked to be worth searching. What a search turns up d
   for tables, instead of the code constant.
 - [ ] Hints/HUD feedback for "what could be found here" so the player learns it.
 
-## Verification
+## Steps to verify
 
 `python -m pytest tests/test_search_loot.py -q` → 6 passed; targeted
 search/soak/actions regression → 289 passed.
@@ -90,3 +90,15 @@ step alongside the area's biome tag. Remaining: more religion/history content
 ## Review 2026-09-23 - core closed
 
 Verified: `tests/test_search_loot.py` -> 6 passed, plus the forage/soak slice (289 passed) and the junk/strong-result rules in the two updates above. Remaining authoring/UX items (the `find <skill>` affordance, findable-here hints, and a per-area table override + JSON surface) are filed as **task-483**; grouped items are **task-473**. Closing.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Files
+
+- TODO

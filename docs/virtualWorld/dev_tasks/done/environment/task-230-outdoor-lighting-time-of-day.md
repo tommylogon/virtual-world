@@ -1,10 +1,13 @@
 ---
-group: Environment & Climate
+area: environment
 status: done
 priority: high
 filed: 2026-08-15
 supersedes: [task-80-outdoor-lighting-day-night.md]
+type: task
 ---
+
+
 
 ## Implemented (2026-08-21)
 
@@ -20,7 +23,7 @@ supersedes: [task-80-outdoor-lighting-day-night.md]
 
 # Task 230: Time-of-Day Outdoor Lighting
 
-## Summary
+## What
 
 Outdoor rooms get their ambient light from the current game time, weather, and moon phase — not from a static `environment.light` value. Indoor rooms default to pitch black. Light spill from open/transparent doors connects interior spaces to the outside.
 
@@ -59,7 +62,7 @@ Only at night (19:00–05:00), only for outdoor rooms:
 - Crescent: +5
 - New moon: +0
 
-## Implementation
+## How
 
 ### `get_time_of_day_light(hour, weather, moon_phase)`
 
@@ -110,7 +113,7 @@ Doors with `"transparent": true` in properties allow light spill without being o
 - Spill multiplier: `×0.3` (vs `×0.5` for open doors)
 - Check `way_node.properties.get("transparent")` in the spill logic
 
-## Files Affected
+## Files
 
 1. `engine/lighting.py` — `get_time_of_day_light()`, update `get_ambient_light()`, transparent door spill
 2. `engine/tick_manager.py` — expose current hour/weather/moon to lighting system
@@ -126,7 +129,7 @@ Doors with `"transparent": true` in properties allow light spill without being o
 - **Blocked by**: task-227 (forecast provides weather), task-229 (moon phase)
 - **Blocks**: task-100 (graph light overlay needs computed light values)
 
-## Testing
+## Steps to verify
 
 - Outdoor room at noon (clear) → light = 80
 - Outdoor room at midnight (new moon, clear) → light = 15
@@ -135,3 +138,11 @@ Doors with `"transparent": true` in properties allow light spill without being o
 - Indoor room with open door to bright outdoor → light = 40
 - Indoor room with closed transparent door to bright outdoor → light = 24
 - Lit candle in indoor room → light = candle value
+
+## Why
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

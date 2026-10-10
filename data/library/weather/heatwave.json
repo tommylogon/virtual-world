@@ -1,0 +1,17 @@
+{
+  "id": "heatwave",
+  "name": "Heatwave",
+  "kind": "extreme",
+  "order": 22,
+  "icon": "🔥",
+  "light_mult": 1.0,
+  "time_dc": 10,
+  "description": "A heatwave: the air is still and oven-dry, and the sun is a weight on the skin.",
+  "tags": [
+    "weather",
+    "sky",
+    "hot",
+    "dry",
+    "extreme"
+  ]
+}

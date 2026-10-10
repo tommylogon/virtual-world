@@ -11,7 +11,7 @@ related: [task-693, task-409, task-702]
 **Filed:** 2026-10-04
 **Related:** task-693,task-409
 
-## Goal
+## What
 
 Change the short-term plan phase from `{'steps': ['prose']}` to typed steps in the primitive vocabulary (`act`, item/target, area, `until`, duration) and validate them against the graph before acceptance. Motivation (live evidence 2026-10-04): Vekka planned “use hanging meat” against flavor text and resolved to failure; prose plans can hallucinate affordances, while plans composed from facts can be checked. The typed step format is the same artifact task-702's executor can run for simple NPCs: an LLM's immediate approach, engine execution, and condition-leaf validation share one contract. It does not represent the character's longer pursuit or an ongoing Activity. Keep the freeform plan prompt as fallback when grounding rejects a step: rejection returns failed preconditions so the LLM re-composes.
 
@@ -20,6 +20,7 @@ Change the short-term plan phase from `{'steps': ['prose']}` to typed steps in t
 The current `=== YOUR PLAN ===` list is the character's short-term approach. A separate active-pursuit block (task-704) will provide the longer objective, motive, where/when, requirements, supplies, and checked progress. A plan can change after an interruption while the pursuit remains active; starting a time-spanning Activity is a separate engine action.
 
 ## Acceptance
+
 - [x] The plan phase responds with typed steps (act/item/target/area/until/
       duration) instead of prose; the decide prompt consumes the plan via
       PlanTracker's (CURRENT) marker exactly as today (grounded steps render to
@@ -105,3 +106,21 @@ Live fallback gap, still open: a model that answers in the legacy prose format
 is accepted ungrounded (the documented fallback). The retry nudge gets typed
 compliance on this model; a prose-locked model would need a prose-anchoring
 rule — deferred.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

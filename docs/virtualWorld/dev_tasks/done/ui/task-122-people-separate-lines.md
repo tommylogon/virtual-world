@@ -1,6 +1,10 @@
 ---
-group: Prompt & Narrative Quality
+area: ui
+type: task
+status: done
+priority: medium
 ---
+
 # Separate People Lines in Prompt Context
 
 **Filed**: 2026-07-29  
@@ -9,7 +13,7 @@ group: Prompt & Narrative Quality
 
 ---
 
-## Summary
+## What
 
 Character descriptions are currently concatenated into one comma-separated paragraph, making them hard to parse:
 
@@ -31,3 +35,25 @@ People here:
 ### Scope
 - `static/js/agent/prompt-builder.js` — `buildRoomContext()` people output format
 - `static/js/agent-engine.js` — `_buildRoomContext()` people output format
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

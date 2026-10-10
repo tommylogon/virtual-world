@@ -1,6 +1,9 @@
 ---
-group: Equipment & Inventory
+area: items
 wiki: "[[Items & Inventory/Item States & Toggleables]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Item Locked State — Lock Items, Block Contents Until Unlocked
@@ -11,7 +14,7 @@ wiki: "[[Items & Inventory/Item States & Toggleables]]"
 
 ---
 
-## Summary
+## What
 
 Items need a `locked` state that blocks contents from being revealed until unlocked. Locked items **still fire triggers** (`on_examine`, `on_take`, `on_use`) — so examine can give extra info, and a trapped chest can activate on pickup. Only contents (items inside) are hidden until unlocked.
 
@@ -110,9 +113,27 @@ Locked items show 🔒 in the game description panel.
 7. **Locked chest chain** — Examine grandfather clock → find brass key → take it → go to Master Bedroom → `use brass key on locked_chest` → unlocks
 8. **Container search** — While locked, searching room/inventory does NOT reveal items inside locked containers
 
-## Files Changed
+## Files
 
 - `virtual_world_engine.py` — `get_item_desc()` locked_message appended (triggers still fire), `take_item()` locked check removed, container search locked guards
 - `static/js/inspector.js` — lock icon in room list, locked_with/locked_message fields in item inspector
 - `static/js/main.js` — lock icon in game output panel
 - `world_template.json` — locked chest (master bedroom), locked cabinet (kitchen), with keys and contents
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

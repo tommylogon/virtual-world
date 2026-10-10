@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 Open a person menu in the HTC modal, then dismiss the modal. The THE WOMAN / Talk to / Examine / Attack panel stays rendered with no owner, and a transient .tsv-scrim (z-index 1390, position fixed, pointer-events auto, full viewport) swallows the next click before clearing. Symptom is a one-click tax or a double-click-to-act, not a lockout.
 
@@ -44,3 +44,21 @@ Fix direction: call the module (`TurnSceneView.closeMenu()`), not the payload.
 Also add the regression test this task never had (its acceptance was left
 TODO when it was marked done): open a person menu, hide the panel, assert
 `document.querySelector('.tsv-scrim')` is null.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

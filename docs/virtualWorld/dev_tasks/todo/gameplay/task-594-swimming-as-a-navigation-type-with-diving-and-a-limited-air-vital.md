@@ -10,10 +10,28 @@ priority: medium
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 Add swimming as a movement/navigation type alongside walking. Moving over water should be possible at the surface; deep water should require diving, which costs air. Dive duration is bounded by a new Air vital that depletes underwater and refills at the surface, and reaching zero has a defined consequence (drowning damage, forced surfacing, or death - the design decision is the point of the task). Check whether an existing vital or condition can carry this before adding anything new, and reuse the existing movement/action machinery rather than branching inside it.
 
 ## Acceptance
+
+- TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
 
 - TODO

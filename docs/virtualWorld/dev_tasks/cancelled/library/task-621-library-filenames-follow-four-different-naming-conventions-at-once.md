@@ -10,7 +10,7 @@ priority: low
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 mixed case, kebab-case, snake_case and spaced names coexist across data/library registries.
 
@@ -51,3 +51,21 @@ normalisation.
 Splitting one root cause across two tickets is the failure mode the audit's own
 filing discipline warns about: the tree would claim 52 ids are outstanding twice
 and no one could tell which ticket owns the `hidden door` collision.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

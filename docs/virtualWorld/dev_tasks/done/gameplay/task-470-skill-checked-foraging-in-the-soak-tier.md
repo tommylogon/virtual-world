@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-23
 **Related:** task-468, task-469, task-399, task-464
 
-## Goal
+## What
 
 Finding something tucked away in the soak tier is a Perception check rather than a guarantee, so outcomes vary by character: a perceptive forager eats from a larder where a clumsy one searches, misses, and moves on. Open-area resources and carried food stay automatic (maintenance, not a puzzle); a miss costs the search time but not the item, so survival is not made flaky.
 
@@ -37,7 +37,7 @@ Finding something tucked away in the soak tier is a Perception check rather than
 A world can therefore starve a poor forager *only* of hoarded food. If blanket
 foraging difficulty is ever wanted, the knob is `FORAGE_SKILL` / `FORAGE_DC`.
 
-## Verification
+## Steps to verify
 
 `python -m pytest tests/test_foraging.py -q` → 5 passed. Targeted background/soak/
 timeskip regression → 133 passed.
@@ -45,3 +45,15 @@ timeskip regression → 133 passed.
 ## Review 2026-09-23 - closed
 
 Verified: `tests/test_foraging.py` -> 5 passed, plus the 289-passed chain slice. No open bullets; the design note is intentional and the difficulty knobs (`FORAGE_SKILL` / `FORAGE_DC`) stay documented in the file. Closing.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Files
+
+- TODO

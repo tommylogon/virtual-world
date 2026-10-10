@@ -12,7 +12,7 @@ blocked_by: [task-9, task-323, task-324, task-397, task-398, task-399]
 **Depends on:** task-397, task-398, task-399; task-323/task-324/task-9 for
 tag-aware furnishing.
 
-## Goal
+## What
 
 Make `data/scenarios/pines.json` the first end-to-end proof of the scalable
 world model. This is deliberately small: it proves semantics and authoring
@@ -119,3 +119,25 @@ called.
   preview") is the only part of the script left, and it is a surface, not a
   mechanic.
 - **task-585** — the `allow_regenerate` contract (see above).
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

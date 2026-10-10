@@ -1,6 +1,10 @@
 ---
-group: Graph & Area UX
+area: environment
+type: task
+status: done
+priority: medium
 ---
+
 # Area Events: Presence-Scoped Window
 
 **Filed**: 2026-07-30  
@@ -9,7 +13,7 @@ group: Graph & Area UX
 
 ---
 
-## Summary
+## What
 
 Area events are scoped to a character's presence in the room. Events only appear in a character's prompt if the character was physically in the same room when the event happened. Entering a room does not let you see events that happened before you arrived. Leaving a room means you don't see events that happen after you left.
 
@@ -303,3 +307,25 @@ Simplified vs the design doc (kept as future work if wanted): full sensory
 channel tags (visual/auditory/tactile with deaf/sleeping states — currently
 only the blind→auditory rule), and sub-tick initiative ordering for
 same-tick presence races.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

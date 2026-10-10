@@ -13,13 +13,13 @@ priority: high
 `engine/tick_manager.py:635–692`; `engine/triggers/execution.py:277`;
 `engine/legacy_compat.py:57`.
 
-## Goal
+## What
 
 Make trigger dispatch **event-driven across every node type**, give standing
 items a real tick path, and stop paying for triggers that do not exist — without
 changing what any trigger does.
 
-## Problem
+## Why
 
 1. `_fire_turn_triggers` (`virtual_world_engine.py:971`) and
    `_fire_time_triggers` (`:984`) iterate **every** node and skip
@@ -46,7 +46,7 @@ changing what any trigger does.
    access (`engine/legacy_compat.py:57`) — so building a discarded context can
    rebuild the exits of the active area.
 
-## Changes
+## How
 
 1. **Event index.** Maintain a map from trigger event/type → set of source node
    ids, built from trigger edges (`trigger_type`, scalar or list), covering
@@ -86,7 +86,7 @@ changing what any trigger does.
 - Changing the trigger authoring format, condition trees, or effect handlers.
 - Removing or globally reworking the `current_area` property (see task-407).
 
-## Verification
+## Steps to verify
 
 - Unit: standing-item `on_tick`; no double-fire when also carried/lit; item
   turn/time trigger; no-match `_execute_triggers` returns `[]` without context;
@@ -128,3 +128,7 @@ across add / remove / load / clear, including list-valued `trigger_type` and the
 legacy no-`trigger_type` shape.
 
 Focused run: 6 new tests pass; trigger suites 191 passed. Moved to review.
+
+## Files
+
+- TODO

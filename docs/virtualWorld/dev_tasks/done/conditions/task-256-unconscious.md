@@ -1,6 +1,8 @@
 ---
-group: Conditions
+area: conditions
 status: done
+type: task
+priority: medium
 ---
 
 # Condition: Unconscious (`unconscious`)
@@ -12,7 +14,7 @@ status: done
 
 ---
 
-## Purpose
+## What
 
 Knocked out, asleep, or collapsed from exhaustion. Incapacitated until woken or revived. Doubles as the engine-managed sleep/energy-collapse state (`source: "sleep"` has `blocks_speech: False`).
 
@@ -54,7 +56,7 @@ Knocked out, asleep, or collapsed from exhaustion. Incapacitated until woken or 
 - Energy collapse path — applies `unconscious` and drops held items.
 - Combat death vs knock-out — `damage` in `ends_on` differentiates.
 
-## Testing
+## Steps to verify
 
 - [ ] Knock-out: `blocks_actions`/`blocks_movement`/`blocks_speech` True, `defense_mod -5`.
 - [ ] Sleep instance leaves speech enabled.
@@ -66,3 +68,19 @@ Knocked out, asleep, or collapsed from exhaustion. Incapacitated until woken or 
 
 - Should fight-damage always wake someone, or should a heavy blow keep them down (currently `damage` in `ends_on`)?
 - Relationship between `drops_held_items` on unconscious vs. keeping grip (compare `paralysed`, which keeps grip).
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

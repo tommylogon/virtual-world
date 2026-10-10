@@ -1,5 +1,8 @@
-﻿---
-group: Conditions
+---
+area: conditions
+type: task
+status: done
+priority: medium
 ---
 
 # Condition: Hypothermia (`hypothermia`)
@@ -11,7 +14,7 @@ group: Conditions
 
 ---
 
-## Purpose
+## What
 
 Dangerous cold — the body's temperature drops. Built from the sickness family: escalating, symptom-driven, drains vitals, becomes lethal if untreated. Closely tied to `wet` and the temperature/insulation system.
 
@@ -80,3 +83,24 @@ Dangerous cold — the body's temperature drops. Built from the sickness family:
 - Recovery speed and whether a heat source is required vs. gradual outdoor warming.
 - Composition with `unconscious` at severe level (collapse) — who applies it?
 
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

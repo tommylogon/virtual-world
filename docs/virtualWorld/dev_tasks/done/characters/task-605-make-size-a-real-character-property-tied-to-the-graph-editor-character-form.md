@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 **DECIDED 2026-09-30 by Tommy:** add a **separate `size` property to character
 nodes**.
@@ -83,5 +83,23 @@ every tier resolving to its own index.
 **Not done here, deliberately:** the 6 tiers still may not span the range once
 occupancy is in play -- a 1cm spider and a world-consuming leviathan are both
 ends. Left as the open question on this task rather than guessed at.
+
+- TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
 
 - TODO

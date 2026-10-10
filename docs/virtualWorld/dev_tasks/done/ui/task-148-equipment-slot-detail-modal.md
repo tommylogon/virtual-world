@@ -1,6 +1,10 @@
-﻿---
-group: Equipment & Inventory
 ---
+area: ui
+type: task
+status: done
+priority: medium
+---
+
 # Equipment Slot Detail Modal
 
 **Filed**: 2026-07-30  
@@ -9,13 +13,13 @@ group: Equipment & Inventory
 
 ---
 
-## Summary
+## What
 
 When clicking on an equipment slot in the paperdoll inspector (e.g. "Torso", "Head", "Legs"), open a modal/popup that shows the full layer stack for that slot, the bonuses each item provides, and allows unequip/reorder actions — making character design and gear inspection easier.
 
 ---
 
-## Problem
+## Why
 
 Currently, clicking a filled equipment slot in the paperdoll inspects the **outermost** item node. To see what's beneath layers, you hover over tiny `↳` indicators or click a `📋 layers` badge. There's no consolidated view of a slot's entire layer stack with bonuses, and unequipping inner layers requires multiple steps.
 
@@ -112,7 +116,7 @@ function getSlotBonuses(nodeProperties) {
 - `engine/equipment_bonuses.py` — aggregate_bonuses() for server-side bonus calc
 - `static/js/inspector/paperdoll-view.js` — existing paperdoll rendering
 
-## Implementation
+## How
 
 **Completed**: 2026-07-31
 
@@ -134,3 +138,17 @@ function getSlotBonuses(nodeProperties) {
 - Layer reordering via `_moveLayer()` helper (client-side array swap)
 - Item names are clickable to open the item inspector
 - Accessories section now clickable — opens the same modal for the accessory slot (unlimited capacity)
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

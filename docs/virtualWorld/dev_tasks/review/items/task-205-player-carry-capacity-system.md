@@ -1,11 +1,13 @@
 ---
 id: 205
 title: Player Carry Capacity System
-group: Equipment & Inventory
+area: items
 wiki: "[[Items & Inventory/Inventory]]"
 priority: medium
 created: 2026-08-08  # back-filled from implementation in 42ca0b14
 tags: [items, weight, traits, ui, vitals, movement]
+type: task
+status: review
 ---
 
 # Player Carry Capacity System
@@ -27,7 +29,7 @@ tags: [items, weight, traits, ui, vitals, movement]
 
 ---
 
-## Summary
+## What
 
 The player has a hard carrying capacity limit (`BASE_CARRY_CAPACITY = 100 kg`, scaled by
 trait `carry_capacity_mod`), enforced via `_check_player_capacity` in `engine/item_actions.py`.
@@ -128,7 +130,7 @@ the hooks into energy/movement/traits. Container-specific limits remain under ta
 5. `static/js/inspector/paperdoll-view.js` — carry weight display + progress bar
 6. `static/js/inspector/item-view.js` — `current_carry_weight` read-only field, `equipped_weight_mod` / `container_weight_mod` / `capacity_modifier` editable fields on container items
 
-## Testing
+## Steps to verify
 
 - [ ] Empty character has 0/100 kg, no penalty
 - [ ] Character at 50% capacity triggers moderate-load energy cost on move
@@ -146,3 +148,19 @@ the hooks into energy/movement/traits. Container-specific limits remain under ta
 - task-155: Item Uses Affect Weight
 - task-156: Weight Affects Energy Decay
 - task-202: Over-Encumbrance Counts as One Size Larger
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

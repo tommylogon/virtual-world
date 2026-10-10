@@ -6,21 +6,23 @@ priority: medium
 created: 2026-08-02
 updated: 2026-08-05
 tags: [triggers, speech, narration]
+type: task
+area: triggers
 ---
 
 # Speech Phrase Triggers
 
 **Status**: In Review — implemented 2026-08-05. `on_speech` trigger type fires on the speaking area node (wired in `virtual_world_engine.py` `broadcast_speech`); `speech_matches` condition (exact/contains/startswith/endswith/fuzzy) in both NPC + item condition evaluators; `{speech}`/`{speaker}` exposed in trigger context; trigger outputs logged. Editor: `on_speech` type + phrase/mode fields added (inspector + item-library). 5 new tests; suite 502 passed, 1 skipped.
 
-## Summary
+## What
 
 Fire triggers when a character says a specific phrase or word in a room — exact match or fuzzy match.
 
-## Problem
+## Why
 
 There's no `on_speech` trigger type. NPCs can react to speech via `on_speech_heard` behaviors (engine/narration.py:242) and the `sound_heard` condition checks recent hearing (engine/trigger_system.py:493), but there's no trigger type that fires a full trigger effect set when a keyword/phrase is spoken in a room. Password doors, magic words, and NPCs that react to being addressed need this.
 
-## Implementation
+## How
 
 ### Trigger type
 
@@ -45,7 +47,7 @@ There's no `on_speech` trigger type. NPCs can react to speech via `on_speech_hea
 3. `engine/area_description.py` or movement — associate area triggers with speech
 4. Trigger editor JS — new trigger type + phrase field
 
-## Testing
+## Steps to verify
 
 - [x] Exact phrase fires the trigger — `test_speech_matches_condition_exact_no_fire`
 - [x] Fuzzy/substring match fires when phrase is contained in longer speech — `test_speech_matches_condition_contains`
@@ -59,3 +61,11 @@ There's no `on_speech` trigger type. NPCs can react to speech via `on_speech_hea
 
 - [[review/environment/task-149-sound-propagation-system|task-149: Sound propagation system]]
 - [[review/triggers/task-52-trigger_success_fail_messages|task-52: Trigger success/fail messages]]
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

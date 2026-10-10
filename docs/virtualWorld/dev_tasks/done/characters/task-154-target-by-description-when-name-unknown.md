@@ -6,11 +6,13 @@ priority: high
 created: 2026-08-02
 updated: 2026-08-03
 tags: [characters, targeting, matching, discovery]
+type: task
+area: characters
 ---
 
 # Target by Description When Name Unknown
 
-## Summary
+## What
 
 Let actions like `attack`, `examine`, or `steal from` target a character by their description/appearance when the actor doesn't know their name yet — `attack the tall man in the corner` resolves to the right character, and strangers are presented by appearance, not their database name.
 
@@ -30,7 +32,7 @@ Backend suite green (**438 passed, 1 skipped**). Live-verified on port 4444:
 
 New tests: `tests/test_matching.py` (generic woman/man/stranger cases), `tests/test_player_meeting.py` (first_sighting stamp, pronoun label), `tests/test_item_actions.py` (examineable-list anonymization).
 
-## Implementation
+## How
 
 ### Backend matching — `engine/matching.py` ✅
 New `_match_character_name(input_str, exclude_self=True)` returning `(name, candidates)`:
@@ -59,7 +61,7 @@ New `_match_character_name(input_str, exclude_self=True)` returning `(name, cand
 6. `engine/area_description.py` — strangers shown by appearance ✅
 7. `virtual_world_engine.py` — `_match_character_name` delegate ✅
 
-## Testing
+## Steps to verify
 
 - [x] Attack by description resolves to the correct character — matcher tests (`tests/test_matching.py::TestCharacterMatching`)
 - [x] Ambiguous descriptions prompt for a choice — candidates returned, surfaced in attack/steal/examine
@@ -73,3 +75,15 @@ New `_match_character_name(input_str, exclude_self=True)` returning `(name, cand
 - `talk to` and `give to` aren't separate command surfaces in `routes/action.py` (speech is directional via say/whisper/shout) — nothing to hook there yet.
 - **Fixed in this round (task-171 follow-up):** `area_description.py` no longer prints `[holding: Create Flame]` for anyone — intrinsic-ability items are filtered from the carried list. Also fixed a reveal ordering bug: the first sighting now shows the stranger by appearance, and the real name appears from the next encounter (the meeting was being registered before the line was built, leaking the name on first sight).
 - The `worldState.data.players` keys stay as real names (used as map keys); anonymization happens at render time (area description / prompts).
+
+## Why
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

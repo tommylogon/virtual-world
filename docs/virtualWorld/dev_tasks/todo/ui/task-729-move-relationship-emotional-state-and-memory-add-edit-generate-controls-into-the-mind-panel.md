@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-10-07
 **Related:** task-42, task-691, task-714
 
-## Goal
+## What
 
 The character Mind surface becomes the single place to read AND edit a character's inner state: relationships, emotional state, and memory add/edit/generate controls currently scattered across the Bio tab and the Memories tab move into the Mind panel, so viewing why a character feels/pursues is also where a designer corrects it. Display half is task-714; this is the editing half and must not duplicate it.
 
@@ -74,3 +74,21 @@ create a second source of truth — call the existing handlers and endpoints and
   question (in-inspector panel vs separate route).
 - `lns` vs the affect map: confirm against task-652 (one emotional model) which
   store relationships and feelings are edited against before moving the controls.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

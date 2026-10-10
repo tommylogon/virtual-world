@@ -92,3 +92,25 @@ import does) is still **not** built — it is a code change in `library_ops.py`,
 a testing-infra one, and is left for the character/library lane. The checker is
 what makes its absence visible: `equipped_dict_entry` is an ERROR precisely
 because refresh writes a dict verbatim.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

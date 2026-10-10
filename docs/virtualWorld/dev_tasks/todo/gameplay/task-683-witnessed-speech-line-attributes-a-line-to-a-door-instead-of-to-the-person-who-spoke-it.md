@@ -10,10 +10,28 @@ priority: medium
 **Filed:** 2026-10-04
 **Related:** 
 
-## Goal
+## What
 
 As Jake in the foyer the panel shows: [Heard from the library_door_back -> to you] a woman's voice said: elena!! the bookcase ... The direction is a door node, not a speaker, so the line reads as if the door talked. A character standing in earshot should be attributed the way any other agent would perceive it. Reporter has not yet pinned the expectation (speaker named vs anonymous voice with a correct origin), so confirm the intended rendering before implementing, and trace which layer supplies the Heard from value (sound propagation vs the prompt builder) rather than patching the rendered string.
 
 ## Acceptance
+
+- TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
 
 - TODO

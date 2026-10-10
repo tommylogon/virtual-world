@@ -1,3 +1,9 @@
+---
+type: bug
+status: cancelled
+priority: medium
+---
+
 # Bug 12: 
 
 INFO:werkzeug:127.0.0.1 - - [26/Jul/2026 00:25:33] "GET /api/library/traits HTTP/1.1" 200 -
@@ -34,3 +40,29 @@ INFO:werkzeug:127.0.0.1 - - [26/Jul/2026 00:25:43] "POST /api/action HTTP/1.1" 5
 INFO:werkzeug:127.0.0.1 - - [26/Jul/2026 00:25:43] "GET /api/state HTTP/1.1" 200 -
 INFO:werkzeug:127.0.0.1 - - [26/Jul/2026 00:25:44] "GET /api/graph/nodes HTTP/1.1" 200 -
 INFO:werkzeug:127.0.0.1 - - [26/Jul/2026 00:25:44] "GET /api/graph/edges HTTP/1.1" 200 -
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

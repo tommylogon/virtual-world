@@ -1,8 +1,15 @@
+---
+type: task
+status: done
+area: ui
+priority: medium
+---
+
 # Task-250: Merge Agents and Initiative Lists Into One Clickable List
 
 **Status:** Done — implemented 2026-08-16, live-verified. Moved to review/.
 
-## Goal
+## What
 
 Combine the two left-side lists — the Agents list (`#agent-list`) and the
 Initiative Order list (`#initiative-list`) — into a single list. Right now the
@@ -27,7 +34,7 @@ round, initiative roll).
   **Turn Order select**, and the **🎲 Re-roll** button (index.html:80-89) — these
   need a new home after the merge.
 
-## Implementation
+## How
 
 - `templates/index.html`: removed the `⚔️ Initiative` tab button and its pane. Moved the
   Turn-Based Mode checkbox + Turn Order select (and the 🎲 Re-roll button, now in the Agents
@@ -40,7 +47,7 @@ round, initiative roll).
   longer calls it. `switchLeftTab()` tab list dropped 'initiative'.
 - Re-roll button visibility handled in `renderAgentList()` (initiative order + turn-based only).
 
-## Verification
+## Steps to verify
 
 - `node --check` on ui-controller.js; `pytest` guard suites pass (62).
 - Live: turn-based ON + initiative → 14 rows ordered by queue with pos/▶️/⏳ icon, rolls,
@@ -55,3 +62,15 @@ round, initiative roll).
   Combine both — or keep the agent row as the base and append order info?
 - Is "select active" the right click action for the ordered rows, or should
   normal agents also open the inspector (match simple-NPC behavior)?
+
+## Why
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

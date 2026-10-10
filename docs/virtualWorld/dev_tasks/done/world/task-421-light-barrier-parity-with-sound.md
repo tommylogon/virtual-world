@@ -11,7 +11,7 @@ priority: medium
 **Relates:** `engine/lighting.py`, `engine/sound.py`, task-418 (awareness
 channels), bug-30.
 
-## Problem
+## Why
 
 The world now has two propagation systems with **different barrier semantics**:
 
@@ -26,7 +26,7 @@ door. That is physically wrong, it makes the light level of a corridor
 depend on rooms it cannot actually see into, and it will quietly break any
 future stealth or darkness mechanic that trusts area light level.
 
-## Design
+## How
 
 1. Apply the same barrier table to light spill as to sound. A locked door should
    produce approximately zero spill; a closed door a small fraction; an
@@ -58,7 +58,7 @@ future stealth or darkness mechanic that trusts area light level.
 - Changing how light is authored on items or areas.
 - Fixing bug-30 (sound path selection) — separate concern.
 
-## Verification
+## Steps to verify
 
 - Unit: barrier gating for open / see-through / closed / locked.
 - Unit: cache invalidation on a door state change.
@@ -186,3 +186,11 @@ test file also pins its own defaults, so it does not depend on that fix holding.
   `engine/effect_handlers/ways.py` is caught by the barrier signature, so no
   further `graph.py` change is needed. If someone later adds a cheaper cache, the
   signature is the thing that must be kept.
+
+## What
+
+TODO
+
+## Files
+
+- TODO

@@ -1,6 +1,9 @@
 ---
-group: Graph & Area UX
+area: graph
 wiki: "[[World Building/Graph System]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Per-Node Graph Gravity Toggle
@@ -11,7 +14,7 @@ wiki: "[[World Building/Graph System]]"
 
 ---
 
-## Summary
+## What
 
 The graph now has a saved, per-node **Central pull enabled** toggle. It is available from the inspector for areas, items, ways, and character nodes.
 
@@ -29,7 +32,25 @@ When disabled, the node is excluded from vis-network physics, so it remains in p
 
 vis-network exposes central gravity as a graph-wide setting. The implemented per-node behavior uses `physics: false`, so opting out also disables spring and other force movement for that node; it functions as a position lock.
 
-## Files Changed
+## Files
 
 - `static/js/graph-manager.js` — maps `central_gravity_enabled` to the vis-network node physics option and refresh signature.
 - `static/js/inspector.js` — adds the inspector control and persistence handler.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

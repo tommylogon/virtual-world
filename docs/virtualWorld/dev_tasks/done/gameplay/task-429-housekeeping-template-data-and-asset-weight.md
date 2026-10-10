@@ -121,3 +121,25 @@ The running app (booted from the edited template) reports:
 - no node carries the old item id (`item_bush of berries_1788218658044_568`).
 
 239 nodes total, matching the file. Moving to `done`.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

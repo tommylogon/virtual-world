@@ -27,3 +27,25 @@ committed file — most likely overwritten by a live-world persist (the file car
 ## Acceptance
 
 - TODO — see task-408 acceptance.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

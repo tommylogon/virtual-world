@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-10-05
 **Related:** task-685,task-687,task-688
 
-## Goal
+## What
 
 Decay fades a memory's activation toward zero. Removal requires an actor, an explicit trigger effect, or deliberate reflection consolidation - never a falling number.
 
@@ -144,3 +144,21 @@ removed first"). It cannot be weakened — the honest move is to replace it with
 activation-ordering assertion (the important memory's activation stays strictly
 higher) and drop the deletion claim. Flagged for whoever picks up 687; task-707
 blocks it.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

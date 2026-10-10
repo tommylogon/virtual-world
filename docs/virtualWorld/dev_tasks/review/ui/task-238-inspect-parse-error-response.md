@@ -1,8 +1,15 @@
+---
+type: task
+status: review
+area: ui
+priority: medium
+---
+
 # Task-238: Click a Parse Error to Inspect the Raw Response
 
 **Status:** In Review — implemented as part of the event-stream v2 work (task-340).
 
-## Goal
+## What
 
 Surface raw LLM response text in a clickable way when parsing fails.
 
@@ -23,3 +30,25 @@ Surface raw LLM response text in a clickable way when parsing fails.
 Part of task-340's stream v2 refactor; verified in the event stream (bubble + expand +
 export). The original audit question of which surfaces hit parse errors is answered by
 the stream logging path (agent `_parseReaction`/`_normalizeStructuredAction`).
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

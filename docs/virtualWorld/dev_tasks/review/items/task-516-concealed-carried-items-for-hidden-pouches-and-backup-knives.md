@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-24
 **Related:** task-3, task-236, task-177
 
-## Goal
+## What
 
 Define concealed-on-person items — hidden from onlookers and loot but drawable
 by the owner — distinct from authoring-hidden world nodes. Motivating gear:
@@ -100,3 +100,21 @@ competing visibility flag.
 
 Not done: the inspector hide/reveal toggle (task-236) and a per-thief discovery
 memory (the reveal is global, matching the existing area `search` verb).
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

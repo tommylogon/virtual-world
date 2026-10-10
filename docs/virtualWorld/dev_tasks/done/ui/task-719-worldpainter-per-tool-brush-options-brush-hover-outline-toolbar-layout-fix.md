@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-10-06
 **Related:** worldpainter editor.ts
 
-## Goal
+## What
 
 Move brush size selector into per-tool rail options, add dashed white brush hover preview outline on grid, and fix toolbar layout so it no longer blocks the grid below it.
 
@@ -32,3 +32,21 @@ clipped); contrast 4.4-6.6 against map content. `python
 tools/ts_convert.py check`: build/typecheck/lint/unit/header survival/
 window guards all ok (module:check failure is the pre-existing
 a394b51e debt, unrelated).
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

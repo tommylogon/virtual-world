@@ -26,12 +26,12 @@ Without task-420 the foreground and background tiers write relationship state
 through different paths, so a tier change can jump the value.  
 **Spec:** `docs/design/reversibility-contract.md`, `docs/design/trace-format.md`.
 
-## Goal
+## What
 
 Implement the promote/offload handoffs so a character can switch fidelity
 without ever becoming a different person or rewriting their past.
 
-## Changes
+## How
 
 1. **Promotion handoff.** Build a catch-up summary from
    `engine/trace.summarize_window` since the character was last foreground;
@@ -62,9 +62,17 @@ without ever becoming a different person or rewriting their past.
 - LLM-written catch-up summaries in v1 (template first).
 - Editing past memories (the contract forbids rewriting history).
 
-## Verification
+## Steps to verify
 
 - Unit: idempotent activation, no duplicate memory, determinism, invariant
   checks, save/load mid-span.
 - Contract test: an item taken in background is neither duplicated nor lost
   across promote → demote.
+
+## Why
+
+TODO
+
+## Files
+
+- TODO

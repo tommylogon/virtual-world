@@ -1,6 +1,9 @@
 ---
-group: Tech Debt & Testing
+area: items
 wiki: "[[World Building/Doors & Connections]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Task 97: Consolidate `locked` Boolean into `current_state`
@@ -11,7 +14,7 @@ Items had two properties expressing the same concept: `locked` (boolean) and `cu
 
 The old unlock path (`locked_with` key-matching, `locked = False`) was dead code — replaced by trigger-based unlocking.
 
-## Changes
+## How
 
 ### `engine/item_actions.py`
 - Removed dead unlock path (~lines 716-725): `properties.get("locked")` → `locked_with` match → `locked = False`
@@ -38,10 +41,26 @@ The old unlock path (`locked_with` key-matching, `locked = False`) was dead code
 
 (desk.json and create_flame.json were already clean.)
 
-## Verification
+## Steps to verify
 
 - [ ] No `properties.get("locked")` remains in any `.py` file under `engine/`
 - [ ] No `"locked":` remains in any `.json` under `data/library/items/`
 - [ ] `pytest tests/test_emote.py` passes
 - [ ] Manual: examine a `current_state: "locked"` item → shows locked message, hides contents
 - [ ] Manual: `use key on locked_item` → works via triggers (no longer relies on `locked_with`)
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

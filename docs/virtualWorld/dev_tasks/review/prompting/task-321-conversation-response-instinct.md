@@ -5,13 +5,15 @@ status: review
 priority: medium
 created: 2026-08-21
 tags: [prompt-builder, agent, dialogue, prompting]
+type: task
+area: prompting
 ---
 
 # task-321: Conversation Response Instinct
 
 **Status** — In Review — implemented + verified 2026-08-21 (node --check clean, live browser test against running server using real Lyrie state, pytest baseline unchanged). Moved from todo/ 2026-08-21.
 
-## Summary
+## What
 
 Improve how characters respond to spoken dialogue without forcing them to act.
 Two separable problems:
@@ -89,3 +91,25 @@ choose silence if hiding/sneaking/in danger. The INSTINCT text says so explicitl
 - This is the first pass; the eventual (optional) `to:` field on speech (backend +
   speak UI) remains possible later as a true "said to you" channel (Fork 1B), kept
   out of scope here to honor the no-forcing principle and no-schema-change goal.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

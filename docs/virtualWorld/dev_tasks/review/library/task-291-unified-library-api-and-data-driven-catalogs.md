@@ -5,6 +5,8 @@ status: review
 priority: high
 created: 2026-08-17
 tags: [library, refactor, conditions, traits, api, data-driven]
+type: task
+area: library
 ---
 
 # Unified Library API + data-driven Conditions & Traits catalogs
@@ -12,7 +14,7 @@ tags: [library, refactor, conditions, traits, api, data-driven]
 Part of **Library 2.0** (design: `docs/virtualWorld/Library System/Library 2.0 - Unified Library Design.md`).
 Implements the Phase 1 backend consolidation and the conditions/traits data-driven migration.
 
-## Summary
+## What
 
 - **One library API.** `routes/items_registry.py` folded into `routes/library_routes.py` and deleted.
   All callers (browser, item editor, agent inspector, MCP server) now hit `/api/library/*`.
@@ -20,7 +22,7 @@ Implements the Phase 1 backend consolidation and the conditions/traits data-driv
   (`player.py`) and `TRAIT_DEFINITIONS` (`engine/traits.py`) become fallbacks that load from
   `data/library/conditions/*.json` and `data/library/traits/*.json` at import time.
 
-## Files Changed
+## Files
 
 ### Backend consolidation
 - `routes/library_routes.py` — added `POST /api/library/<type>/<id>/rename` (write new + GC old,
@@ -52,7 +54,7 @@ Implements the Phase 1 backend consolidation and the conditions/traits data-driv
 - `seed_trait_library()` rewrites the legacy params-only files to the canonical full schema (migrated
   52 files → 46 canonical + 6 untouched `size_*`).
 
-## Verification
+## Steps to verify
 
 - `node --check` + `py_compile` clean.
 - Full suite green: **959 passed, 1 skipped** (baseline 955; +4 from migrated library tests).
@@ -87,3 +89,15 @@ source, hardcoded dicts are fallback). Backend consolidation to a single `/api/l
   `load_registry` / `save_registry` samples). It still shows a removed item field (`effect_target`) and omits
   DiffModal, refresh-from-library, build-item-from-library and the condition catalog, so the rewrite is
   still open here.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-27
 **Related:** task-488
 
-## Goal
+## What
 
 Stimulation with no route to release currently just sits on the meter. Give the engine a way to accumulate frustration (and release it) when arousal climbs with no satisfying outcome.
 
@@ -123,9 +123,26 @@ python -m pytest tests/test_condition_catalog.py -q                          # p
 **Full suite compared by failure NAME against the clean-master baseline**: 15
 failed on both, `Compare-Object` empty.
 
-
 ## Related
 
 - task-488 — the consumer this unblocks
 - task-545 — supplies the path knowledge that makes "wrong path" frustration possible
 - task-209 (done) — `sensitized`, the edging condition this mirrors
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

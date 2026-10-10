@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-30
 **Related:** [task-602]
 
-## Goal
+## What
 
 The HTC person menu offers only Talk to / Examine / Attack. The backend supports ~23: attack, approach, grab, release, escape, lead, give, steal, name, teach, shout, whisper, scream, sing, wake, relieve, plus 8 intimate verbs in engine/pleasure_actions.py (kiss, lick, suck, bite, caress, pinch, blow, tickle) each with an authored default body region, plus the grapple subsystem with per-hand targeting. 8 of those verbs are body-part-targeted, so they depend on the same region mechanism task-602 fixes.
 
@@ -111,7 +111,6 @@ Engine (new `TestWhisperAudience`, 6 tests):
 (target hears; stranger does not; a friend does; an acquaintance does not; the
 event names the audience).
 
-
 ## Files
 
 - `static/js/agent/turn-scene-view.js` — `buildPersonMenu`, nested/talk menus,
@@ -120,3 +119,16 @@ event names the audience).
   handler, directed-whisper target, teach parsing.
 - `static/js/agent/action-normalizer.js` — `wake`/`release` target cases.
 
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO

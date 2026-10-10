@@ -1,6 +1,10 @@
 ---
-group: Trigger System
+area: triggers
+type: task
+status: done
+priority: medium
 ---
+
 # Toggle Trigger & Event Stream Audit
 
 **Filed**: 2026-07-29  
@@ -9,7 +13,7 @@ group: Trigger System
 
 ---
 
-## Summary
+## What
 
 Ensure that all trigger effect messages from backend actions (especially toggle on/off) are:
 
@@ -35,3 +39,25 @@ Currently, the `on_toggle_on` trigger for the flashlight (message: *"You click t
 - `routes/action.py` — result passing to frontend
 - `static/js/event-stream.js` — rendering of action results
 - `static/js/agent/prompt-builder.js` — inclusion in LLM context
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

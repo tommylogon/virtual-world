@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-23
 **Related:** task-210
 
-## Goal
+## What
 
 Regenerate the stored player.description when conditions/body_state change, not only on equip/unequip: add an _update_state_description() hook (guarded by world.auto_generate_descriptions) and optionally _get_state_hash() caching skipped when mature_content is off. Tracked from task-210.
 
@@ -22,7 +22,7 @@ Regenerate the stored player.description when conditions/body_state change, not 
 - `engine/pleasure_actions.py`-style matures stay off in non-mature worlds.
 - Test coverage added; `python -m pytest tests/test_<name>.py -q` green.
 
-## Implementation
+## How
 
 - `engine/equipment.py`:
   - `VISIBLE_BODY_STATE_PHRASES` module constant — the visible-condition map shared by the prompt block and the fingerprint.
@@ -32,8 +32,16 @@ Regenerate the stored player.description when conditions/body_state change, not 
 - `engine/tick_manager.py` — `tick_turn()` reconciles every living character once per turn, catching conditions changed by direct `player.conditions` dict writes (not just `add_condition`/`remove_condition`).
 - `engine/conditions.py` — `ConditionsSystem.apply_condition`/`remove_condition` refresh immediately via `_refresh_description` (best-effort; the per-turn hook is the safety net).
 
-## Testing
+## Steps to verify
 
 - [x] `tests/test_description_enrichment.py` (11 tests): regeneration on apply/remove, no-op when unchanged, non-visible conditions ignored, `auto_generate_descriptions` gate, `mature_content` gate, item `current_state` sensitivity, conditions-system immediate refresh, and the tick safety net after a direct dict write.
 - [x] `python -m pytest tests/test_description_enrichment.py -q` → 11 passed.
 - [x] Full suite unchanged from baseline (63 pre-existing failures, no new ones).
+
+## Why
+
+TODO
+
+## Files
+
+- TODO

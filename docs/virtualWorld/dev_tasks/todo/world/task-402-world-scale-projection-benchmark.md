@@ -11,7 +11,7 @@ blocked_by: [task-397, task-401]
 **Filed:** 2026-09-08  
 **Depends on:** task-397. Extend after task-401 when real chunk loading exists.
 
-## Goal
+## What
 
 Prove the scale claims with generated fixture data before treating a
 million-node world as supported. A passing Pines slice proves user semantics;
@@ -51,3 +51,20 @@ does not set arbitrary universal performance targets before the host budget is
 chosen, but it must establish bounded-payload behavior and catch accidental
 whole-world graph responses.
 
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

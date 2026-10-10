@@ -1,14 +1,21 @@
+---
+type: task
+status: done
+area: items
+priority: medium
+---
+
 # Fuzzy Item Matching: Word Boundaries
 
 **Filed**: 2026-07-19
 **Priority**: High
 **Status**: Done — Option A (word-boundary regex) + alias tier live in engine/matching.py:155-196. Audited 2026-08-03
 
-## Summary
+## What
 
 `_match_item_name()` uses substring matching (`nn in ni`) which matches item names inside compound words. `examine dusty_bookshelf` matches item `"Book"` because "book" is a substring of "bookshelf". The engine should respect word boundaries.
 
-## Current State
+## Why
 
 `virtual_world_engine.py:167` (`_match_item_name`):
 
@@ -74,3 +81,17 @@ For the last case, "key" matching "Keycard" is useful but "key" matching "Donkey
 ## Files
 
 - `virtual_world_engine.py:167-218` — `_match_item_name()`
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

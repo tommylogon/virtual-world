@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-27
 **Related:** 
 
-## Goal
+## What
 
 Wire data/worldpainter/biomes.json resource_distribution (line 1818) into a spawner that places items into compiled areas. The data is authored and validated (engine/biomes.py:397-416) but has ZERO runtime consumers -- a repo-wide grep finds only the data, the loader, the validator and the tests. Blocked by the item-affinity vocabulary task and by task-504 (quantity/pooled nodes). Populate GenerationReport.unresolved_tags (generation.py:48) when a tag resolves to nothing. task-497 is filed done but its acceptance criteria read as behaviour; its own note admits no engine behaviour change. Trust the code, not the folder.
 
@@ -60,3 +60,21 @@ unchanged.
 the resource should be a pool (`quantity` + `harvest`), the library entry's own
 shape decides and `build_item_node` does not carry `quantity`/`harvest` today.
 Filed as a follow-up rather than guessed.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

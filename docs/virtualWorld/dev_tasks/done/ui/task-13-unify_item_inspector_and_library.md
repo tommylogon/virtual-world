@@ -1,7 +1,11 @@
 ---
-group: Items & Crafting
+area: ui
 wiki: "[[Items & Inventory/Items Overview]]"
+type: task
+status: done
+priority: medium
 ---
+
 # Unify Item Inspector and Library Editors
 
 **Filed**: 2026-07-18
@@ -11,7 +15,7 @@ wiki: "[[Items & Inventory/Items Overview]]"
 
 ---
 
-## Summary
+## What
 
 The two item editors evolved independently but have organically converged through other tasks. As of 2026-07-30:
 
@@ -38,3 +42,25 @@ The two item editors evolved independently but have organically converged throug
 - Unlock edges management — obsolete, removed
 - Graph physics toggle — doesn't belong in library
 - Move to container — doesn't belong in library (templates aren't placed)
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

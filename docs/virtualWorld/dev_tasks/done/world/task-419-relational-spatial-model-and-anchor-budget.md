@@ -90,7 +90,7 @@ layer expands into "rocks", "undergrowth", "fallen oak."
 - Changing movement, `approach`, or sound rules.
 - Authoring every anchor for every existing area.
 
-## Verification
+## Steps to verify
 
 - Unit: invariant — attempt a second `at` edge, assert the first is cleared.
 - Unit: proximity derivation returns 1 / 2 / unreachable for the three cases.
@@ -173,3 +173,18 @@ differently depending on how it was loaded would be worse than no budget.
   is not yet wired to a validation *surface* (there is no graph-validator route
   in the app to hang it on). That is a follow-up, not a claim.
 
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Files
+
+- TODO

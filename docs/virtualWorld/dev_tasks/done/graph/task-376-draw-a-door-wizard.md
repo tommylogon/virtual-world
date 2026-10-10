@@ -38,7 +38,7 @@ live instance found the three real gaps the audit lists:
 (`way-view.js:334`). Only the *create* form lacked it, so this is wiring
 existing machinery, not a new mechanic.
 
-## Changes
+## How
 
 - `ui/create-modal.js` — `Way Name` field; a 10-entry cardinal `<datalist>` on
   both direction inputs (suggestions only, directions stay free text); a
@@ -87,3 +87,24 @@ node id containing an apostrophe yields `way_abandoned_hunter\'s_cabin_east` —
 a literal backslash in the id. Harmless for lookup but it breaks naive
 `getElementById`. Untouched.
 
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

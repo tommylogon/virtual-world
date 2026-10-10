@@ -10,7 +10,7 @@ priority: low
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 The scope tree is hierarchical but the select's option list is flat, losing the structure the tree has.
 
@@ -70,5 +70,23 @@ Two notes for whoever picks up adjacent work:
   `templates/index.html`. The unit runner loads modules itself, so the 8 tests
   passed while the page still had `window.ScopeOptions` undefined — the tests
   could not catch the missing tag, and only loading the real page did.
+
+- TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
 
 - TODO

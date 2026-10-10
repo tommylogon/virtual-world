@@ -1,6 +1,10 @@
 ---
-group: Items & Inventory
+area: items
+type: task
+status: review
+priority: medium
 ---
+
 # Take Equips to Hands, Stow/Put Stores Items
 
 **Filed**: 2026-07-30
@@ -9,7 +13,7 @@ group: Items & Inventory
 
 ---
 
-## Problem
+## Why
 
 Currently `take <item>` always puts the item into carrying (inventory). This is unintuitive — if you pick up a sword, you're holding it in your hand, not stuffing it in a bag.
 
@@ -36,3 +40,21 @@ Currently `take <item>` always puts the item into carrying (inventory). This is 
 - `routes/action.py` — command parser, add `stow` alias
 - `engine/equipment.py` — hand-slot checks, two-handed logic
 - `static/js/agent/prompt-builder.js` — command table update for `stow`
+
+## What
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

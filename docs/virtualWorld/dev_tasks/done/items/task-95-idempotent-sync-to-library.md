@@ -1,8 +1,11 @@
 ---
-
-group: Items & Crafting
+area: items
 wiki: "[[Library System/Library System Overview]]"
+type: task
+status: done
+priority: medium
 ---
+
 # Idempotent Sync to Library — Conflict-Aware Entity Sync
 
 **Filed**: 2026-07-23 (updated 2026-07-31)
@@ -103,3 +106,29 @@ Area exits save as templates (descriptive + state fields + `target_room_hint` st
 4. Add "Sync from World" buttons to each library tab
 5. On import, save embedded items as library entries
 6. Update "📋 Sync to Library" toolbar button
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

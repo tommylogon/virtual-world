@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 0 to 100 takes ~26,500 turns (about 2,700 in-game days), yet the engine shouts urgency at 90. Hunger can only be relieved by eating, so every character is permanently 'very hungry' from tick one. The vital modal compounds it by labelling the quantity 'decay' and 'TIME TO EMPTY' when hunger fills.
 
@@ -45,3 +45,21 @@ The genuine residue is a copy observation, not a defect: the tier messages in
 `tick_manager.get_need_message` are rate-agnostic, so a 3-week hunger drive and
 a 16-hour energy draw are announced in identical urgency language. That belongs
 with the audit's notes, not the backlog.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

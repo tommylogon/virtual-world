@@ -63,7 +63,7 @@ contradicts an engine default, with a `DOCUMENTED_DRIFT` allowlist for deliberat
 per-scenario values, plus a test pinning `SOCIAL_COMPANY_GAIN <= baseline` so
 co-presence cannot silently become the source again.
 
-## Problem
+## Why
 
 Every character in `data/scenarios/kraktooth_goblin_camp.json` bakes a
 `decay_rates` block. Three of those values disagree with `BASELINE_DECAY`
@@ -150,3 +150,21 @@ task-423's Social deltas land on an already-capped vital.
 - Adding Sanity sources (comfort, company, fear relief) — task-425 non-goal.
 - Per-character decay profiles; the bake is uniform today and stays so unless
   someone deliberately authors otherwise.
+
+## What
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

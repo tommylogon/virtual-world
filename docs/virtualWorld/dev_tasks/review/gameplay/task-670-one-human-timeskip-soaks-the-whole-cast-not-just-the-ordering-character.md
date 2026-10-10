@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-10-02
 **Related:** task-481, task-464, task-482
 
-## Goal
+## What
 
 Confirmed design 2026-10-02: 0 attended humans -> world advance with everyone in soak; 1 attended human -> the same blocking advance, with the ordering character on its declared intent and EVERY other character on background fidelity for the span; 4+ attended humans -> a soak order carried by the turn loop. The middle case is built wrong: timeskip.advance leaves nearby NPCs and agents at active fidelity, so a one-human wait runs LLM turns for the cast instead of backsim. Fix by sharing advance_world's everyone-soaked span helper.
 
@@ -91,3 +91,21 @@ they advanced.
   `test_soak_orders.py`; its own summary display was the `undefined` fix above.
 - `git stash` was not used (shared-worktree rule); the A/B was done by stubbing
   the new seam back to a no-op, which is behaviourally identical to its absence.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

@@ -10,7 +10,7 @@ priority: low
 **Filed:** 2026-09-22
 **Related:** task-441, bug-40
 
-## Goal
+## What
 
 `static/js/ui/saveload-view.js` is 648 lines and mixes four unrelated concerns:
 
@@ -57,3 +57,17 @@ if portable logic is introduced.
 - `static/js/ui/<new settings view>.js` — extracted toggles
 - `templates/index.html` — script tags
 - `static/css/style.css` — `.save-game-item` row classes
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO

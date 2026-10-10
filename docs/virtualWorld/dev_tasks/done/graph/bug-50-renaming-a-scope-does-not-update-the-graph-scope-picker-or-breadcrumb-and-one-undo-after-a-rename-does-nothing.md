@@ -69,3 +69,29 @@ Live, with no page reload between any step: rename → picker and breadcrumb bot
 show "ZZ renamed camp"; one Undo → both back to "goblin camp"; Redo → both back
 to "ZZ renamed camp". The camp was left named "goblin camp" and the test paint
 was cleared.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

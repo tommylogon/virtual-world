@@ -1,6 +1,8 @@
 ---
-group: Pleasure System
+area: characters
 status: done
+type: task
+priority: medium
 ---
 
 # Release Event, Edging & Clothing Friction
@@ -11,11 +13,11 @@ status: done
 
 ---
 
-## Problem
+## Why
 
 The arousal meter needs a payoff path (release), a frustration path (edging), and a passive source (clothing friction). None exist yet.
 
-## Design
+## How
 
 - Release event in `tick_turn()`: when `Stimulation >= 65` AND `Arousal >= 40` → trigger cascade (Energy -20, Entertainment +30, Hygiene -10, Sanity +15, Stimulation reset to 5, Arousal -30, apply `satisfied` 20t + `overstimulated` 5t).
 - Edging in `tick_turn()`: when `50 <= Stimulation < 65`, add `sensitized` (level 1, 10t) stacks + Arousal +1.
@@ -25,7 +27,7 @@ The arousal meter needs a payoff path (release), a frustration path (edging), an
 
 - `engine/tick_manager.py` — `tick_turn()` hooks: `_check_release_threshold`, `_trigger_release_event`, `_apply_edging_effect`, `_apply_clothing_friction`
 
-## Testing
+## Steps to verify
 
 - [ ] Release fires only above threshold, applies correct vital deltas + conditions
 - [ ] Edging adds `sensitized` stacks without releasing
@@ -34,3 +36,11 @@ The arousal meter needs a payoff path (release), a frustration path (edging), an
 ## Related
 
 - `dev_tasks/# Nipple & Erogenous Zone System - Desig.md` — §4 Release/Edging, §6 friction, Phase 1
+
+## What
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

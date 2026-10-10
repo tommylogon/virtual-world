@@ -1,6 +1,9 @@
 ---
-group: UI Refactor
+area: refactor
 wiki: "[[UI & Settings/Inspector Panels]]"
+type: task
+status: done
+priority: medium
 ---
 
 # lit-html Inspector Conversion
@@ -10,7 +13,7 @@ wiki: "[[UI & Settings/Inspector Panels]]"
 
 ---
 
-## Summary
+## What
 
 All inspector views (`#inspector-panel`) previously used vanilla JS `innerHTML` template literals with inline event handlers. This was fragile: mixing rendering approaches caused DOM state conflicts, escaping was manual and error-prone, and re-rendering destroyed/recreated the entire panel DOM on every update.
 
@@ -52,7 +55,7 @@ Kept as a single string template (48 inline handlers) but rendered through `Insp
 
 Left as string output (consumed by agent-view's string template) — a prior session's edit had stripped its `esc()` calls on the assumption of full lit rendering; those were restored because agent-view emits them through `unsafeHTML`, where manual escaping is still required.
 
-## Verification
+## Steps to verify
 
 Static (done):
 - `node --check` passes on all converted inspector/graph files
@@ -85,3 +88,15 @@ Pending browser E2E (user):
 - `virtual_world/static/js/graph/edge-inspector.js`
 - `virtual_world/static/js/graph-manager.js`
 - `virtual_world/templates/index.html` — script load order (panel.js after helpers, lit-bootstrap as deferred module)
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

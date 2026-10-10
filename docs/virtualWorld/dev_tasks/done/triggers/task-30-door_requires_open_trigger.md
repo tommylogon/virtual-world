@@ -1,6 +1,9 @@
 ---
-group: Trigger System
+area: triggers
 wiki: "[[World Building/Doors & Connections]]"
+type: task
+status: done
+priority: medium
 ---
 
 # `requires_open` Trigger Type for Doors
@@ -9,7 +12,7 @@ wiki: "[[World Building/Doors & Connections]]"
 **Priority**: Low — review / optional
 **Status**: Implemented but unused
 
-## Summary
+## What
 
 A new trigger type `requires_open` was added to the door movement system in `virtual_world_engine.py`. When a door has a `triggers` edge with `trigger_type: "requires_open"`, its conditions are evaluated before auto-opening. If any condition fails, the door stays shut and a fail message is shown.
 
@@ -30,6 +33,24 @@ else:                          → auto-open, walk through
 
 Should `requires_open` be kept as an alternative approach for door gating? It allows conditions (like `has_item`, `state_equals`) rather than just skill checks. But `needs_open` already covers the most common case. If kept, update the door editor UI in the inspector to support adding `requires_open` trigger edges.
 
-## Files Affected
+## Files
 
 - `virtual_world_engine.py` — `move_to_area()`: added `requires_open` trigger check before auto-open
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

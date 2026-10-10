@@ -1,14 +1,15 @@
 ---
-group: Environment & Climate
+area: environment
 status: done
 priority: medium
 filed: 2026-08-15
 supersedes: [task-163-wind-environmental-enum.md, task-194-wind-water-resistance-insulation.md]
+type: task
 ---
 
 # Task 231: Wind System
 
-## Summary
+## What
 
 Add `wind` as an area environment property. Wind accelerates heat propagation, creates wind chill on effective temperature, drains Energy during exterior movement, and can extinguish light/heat sources. Wet clothing loses insulation effectiveness. Items can have `wind_resistance` and `water_resistance` as percentage values.
 
@@ -99,7 +100,7 @@ if wind in ("gale", "storm", "hurricane"):
         # fire on_extinguished trigger
 ```
 
-## Files Affected
+## Files
 
 1. `engine/environment_propagation.py` — wind multiplier on heat propagation rate
 2. `engine/equipment_bonuses.py` — wind chill resisted by wind_resistance %, wet penalty resisted by water_resistance %
@@ -114,7 +115,7 @@ if wind in ("gale", "storm", "hurricane"):
 - **Blocked by**: task-227 (forecast provides wind values)
 - **Blocks**: task-232 (humidity + wet interaction)
 
-## Testing
+## Steps to verify
 
 - Hurricane wind increases heat propagation rate 3x
 - Wind chill lowers effective temp, wind_resistance reduces the penalty
@@ -130,3 +131,15 @@ propagation (stronger wind of the pair wins), `_process_wind_extinguish()`
 (gale/storm/hurricane snuffing lit items), wind energy drain on moves, and
 `set_environment`/`adjust_environment` + `adjust_wind` support. `set_wet`
 effect added by this audit (soaks the actor's equipped gear or a named item).
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

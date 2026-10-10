@@ -56,8 +56,35 @@ The react-after-action prompt keeps `emotion` for own-outcome mood; `toward`
 there is only secondary (own action involving them).
 
 ## Files touched (all phases)
+
 - `engine/derive.py` (new), `engine/grapple.py`
 - `player.py`, `routes/player_ops.py`, `routes/players.py`
 - `static/js/agent-engine.js`, `static/js/agent/response-parser.js`
 - `static/js/agent/prompt-builder/{schema-fragments,turn-prompts,character-state}.js`
 - `tests/test_derive.py` (new), `tests/test_grapple.py`
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

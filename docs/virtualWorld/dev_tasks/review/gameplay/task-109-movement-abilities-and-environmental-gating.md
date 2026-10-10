@@ -1,7 +1,10 @@
 ---
-group: Agent AI & Behavior
+area: gameplay
 wiki: "[[Items & Inventory/Items Overview]]"
 blocked_by: [task-110]
+type: task
+status: review
+priority: medium
 ---
 
 # Task 109: Movement Abilities and Environmental Gating
@@ -13,7 +16,7 @@ blocked_by: [task-110]
 
 ---
 
-## Summary
+## What
 
 Design question deferred from the Stat Modifiers brainstorming session (2026-07-26):
 
@@ -39,3 +42,25 @@ Items like jetpacks (fly), wingsuits (glide), and scuba gear (dive) grant the pl
 - Light spill through open ways (task-230)
 - Skill-check-gated traversal (triggers on ways)
 - Room environment system (temperature, air, light)
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

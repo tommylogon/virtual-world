@@ -1,6 +1,8 @@
 ---
-group: Conditions
+area: conditions
 status: done
+type: task
+priority: medium
 ---
 
 # Condition: Frantic (`frantic`)
@@ -12,7 +14,7 @@ status: done
 
 ---
 
-## Purpose
+## What
 
 Peak arousal band (Arousal 90+). Overwhelming — strong Stimulation, heavy Energy and Sanity cost, big combat distraction, auto-failed self-control. Edge of composure.
 
@@ -71,3 +73,25 @@ Peak arousal band (Arousal 90+). Overwhelming — strong Stimulation, heavy Ener
 - Is a `defense_mod −5` + heavy Sanity/Energy drain intended to be genuinely dangerous (accident/collapse risk), or just roleplay fluff?
 - Does extreme arousal feed into involuntary actions (task-166) or self-control saves?
 - `self_control` check pathway — ability check vs. save.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

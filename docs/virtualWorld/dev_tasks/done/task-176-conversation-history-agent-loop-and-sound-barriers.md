@@ -1,3 +1,9 @@
+---
+type: task
+status: done
+priority: medium
+---
+
 # Task-176: Conversation-History Agent Loop & Sound Barrier Attenuation
 
 **Status:** LANDED 2026-08-03 — verified live in the Task 3 sound-propagation test world (Jane doe / Jane two / John two).
@@ -42,7 +48,27 @@ Result: normal speech (pen 1) reaches only the adjacent room through open doors 
 - **Stranger rule moved to system prompt** (was observe-specific, mansion-specific wording).
 - **Rules trimmed** — removed redundant bullets (one-action-per-turn, "go needs a destination", sound prose duplicated in the COMMANDS table).
 
-## Verification
+## Steps to verify
 
 - Backend: `pytest tests/ -k "not mcp and not emote"` → green (442 passed, 1 skipped at the time of writing; barrier tests updated for 0.5/0.75).
 - Live: whisper reached only the adjacent room, normal speech died at the open-door chain boundary, react stayed silent between volumes, `wait` executed as a no-op, tags survived reload.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

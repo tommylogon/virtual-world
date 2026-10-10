@@ -1,6 +1,8 @@
 ---
-group: Conditions
+area: conditions
 status: done
+type: task
+priority: medium
 ---
 
 # Condition: Restrained (`restrained`)
@@ -12,7 +14,7 @@ status: done
 
 ---
 
-## Purpose
+## What
 
 Tied, bound, or held fast. Speed 0, attacks at disadvantage, DEX saves fail. Differentiated from `grappled` (grappled is person-held and has no DEX autofail; restrained is binding with a DEX autofail).
 
@@ -50,7 +52,7 @@ Tied, bound, or held fast. Speed 0, attacks at disadvantage, DEX saves fail. Dif
 - `engine/conditions.py` — saves, speed, combat mods.
 - Rope/binding use flows, capture mechanics.
 
-## Testing
+## Steps to verify
 
 - [ ] Restrained: speed 0, cannot act/move, DEX saves fail.
 - [ ] Combat mods `-2`/`-2` apply.
@@ -60,3 +62,19 @@ Tied, bound, or held fast. Speed 0, attacks at disadvantage, DEX saves fail. Dif
 
 - Intentional overlap/contrast with `grappled` — when is a hold a grapple vs. a restraint (roots/traps/person?)?
 - Should escaping restraints be possible by strength without an explicit `escape` action name?
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

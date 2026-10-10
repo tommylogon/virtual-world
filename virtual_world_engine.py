@@ -173,6 +173,11 @@ class VirtualWorld:
         self._forecast_sched_obj = None
         self._forecast_last_entry_key = None
         self._forecast_last_minute = None
+        # task-763: the generated per-area weather field and the day it was rolled
+        # for. Runtime-derived (never persisted); the field is exposed through the
+        # forecast view, and rebuilt when the clock rolls over to a new day.
+        self._weather_field = {}
+        self._weather_field_day = None
         # task-234 one-shot cache: {(node_id, trigger_type): game_day_bucket}.
         self._time_trigger_cache = {}
 
@@ -1350,15 +1355,82 @@ class VirtualWorld:
             self._forecast_sched_obj = sched
         return sched
 
+    def _area_terrain_index(self):
+        """Open-sky areas as ``({area_id: tags}, {area_id: {neighbours}},
+        {area_id: climate})``.
+
+        Neighbours are the other open-sky areas reachable through a way: an area
+        connects to a way node and the way connects on to the far area, so the
+        front-spread coupling (task-763) reads the same edges movement does. The
+        climate map carries only areas the compiler painted (task-557) — absent
+        for an unpainted world. Only open-sky areas are indexed; an interior room
+        is not part of the sky.
+        """
+        from engine.area_tags import is_open_sky
+        from graph import EDGE_CONNECTION
+        areas = {}
+        climates = {}
+        for node in self.graph.nodes.values():
+            if node.type == "area" and is_open_sky(node.properties.get("tags")):
+                areas[node.id] = node.properties.get("tags") or []
+                # The compiler's painted climate (task-557), when the area has one.
+                climate = node.properties.get("climate")
+                if climate:
+                    climates[node.id] = climate
+        neighbours = {}
+        for area_id in areas:
+            found = set()
+            for edge in self.graph.get_edges_for_source(area_id, EDGE_CONNECTION):
+                for onward in self.graph.get_edges_for_source(edge.target, EDGE_CONNECTION):
+                    if onward.target in areas and onward.target != area_id:
+                        found.add(onward.target)
+            neighbours[area_id] = found
+        return areas, neighbours, climates
+
+    def _weather_field_for_day(self, season):
+        """The generated per-area weather field for the current day (task-763).
+
+        Rolled **once per game day** — the machine's default interval is one tick,
+        which would churn the field every tick — and cached until the day turns.
+        Seeded from the schedule's seed with the day folded in, so a world's month
+        is reproducible and tomorrow differs from today. Ordered overrides are
+        applied on top (area > date > heuristic).
+        """
+        raw = getattr(self, "forecast_schedule", None) or {}
+        day = int(getattr(self, "game_day", 1) or 1)
+        if self._weather_field_day == day and self._weather_field:
+            return self._weather_field
+        from engine.weather_forecast import (apply_field_overrides,
+                                             generate_weather_field)
+        areas, neighbours, climates = self._area_terrain_index()
+        field = generate_weather_field(
+            self._weather_field, areas, neighbours,
+            table=(raw.get("transition_table") or None),
+            season=season,
+            seed=raw.get("seed"),
+            day=day,
+            climates=climates,
+        )
+        field = apply_field_overrides(
+            field,
+            area_overrides=raw.get("area_overrides"),
+            date_overrides=raw.get("date_overrides"),
+            day=day,
+        )
+        self._weather_field = field
+        self._weather_field_day = day
+        return field
+
     def set_forecast_override(self, data: dict):
         """Set (or clear) a GM/trigger forecast override (task-234).
 
-        ``data`` accepts weather/wind/humidity/temperature_mod/light_mod/air/
-        blood_moon + ``duration_ticks``; ``clear_all`` or an empty payload
-        clears the override. Returns the active override (None if cleared).
+        ``data`` accepts weather/wind/wind_direction/humidity/temperature_mod/
+        light_mod/air/blood_moon + ``duration_ticks``; ``clear_all`` or an empty
+        payload clears the override. Returns the active override (None if
+        cleared).
         """
         override = {}
-        for key in ("weather", "wind", "humidity", "temperature_mod", "light_mod", "air", "blood_moon"):
+        for key in ("weather", "wind", "wind_direction", "humidity", "temperature_mod", "light_mod", "air", "blood_moon"):
             if data.get(key) is not None:
                 override[key] = data[key]
         if data.get("duration_ticks") is not None:
@@ -1415,7 +1487,8 @@ class VirtualWorld:
         """
         raw = getattr(self, "forecast_schedule", None)
         if not isinstance(raw, dict) or not any([
-            raw.get("entries"), raw.get("mode") in ("deterministic", "random", "hybrid"),
+            raw.get("entries"),
+            raw.get("mode") in ("deterministic", "random", "hybrid", "generated"),
         ]):
             # Still let a duration-based GM override revert even without a schedule.
             override = getattr(self, "forecast_override", None)
@@ -1450,10 +1523,16 @@ class VirtualWorld:
         sched_env = sched.current_environment(
             self.time_ticks, self.time_per_tick_minutes, self.game_day)
         eff = sched.resolve(sched_env, override)
-        if not any(eff.get(k) for k in ("weather", "wind", "humidity", "air",
-                                        "temperature_mod", "light_mod")):
+        if not any(eff.get(k) for k in ("weather", "wind", "wind_direction",
+                                        "humidity", "air", "temperature_mod",
+                                        "light_mod")):
             return
-        self._apply_forecast_env(eff)
+        # task-763: the generated field supplies per-area weather. A GM/trigger
+        # override that names a weather still wins over it and applies globally.
+        field = None
+        if sched.mode == "generated" and not (override and override.get("weather")):
+            field = self._weather_field_for_day(self.current_season())
+        self._apply_forecast_env(eff, field=field)
 
         # 4. Narrate weather entry transitions.
         entry = sched.get_entry_for_time(minute_now, self.game_day)
@@ -1474,7 +1553,7 @@ class VirtualWorld:
             if not first:
                 self.add_log_entry(f"[Season] {season.capitalize()} arrives.")
 
-    def _apply_forecast_env(self, eff: dict):
+    def _apply_forecast_env(self, eff: dict, field: dict | None = None):
         """Write the effective weather baseline onto exterior (or all) areas.
 
         **Write order matters here, and the forecast is a delta layer.** The
@@ -1497,8 +1576,9 @@ class VirtualWorld:
         """
         from engine.area_tags import is_open_sky
         from engine.runtime_config import config as _cfg
-        from engine.weather_forecast import (OUTDOOR_BASE_C, resolve_season,
-                                             temp_curve_for_hour)
+        from engine.weather_forecast import (OUTDOOR_BASE_C, advance_snow_depth,
+                                             resolve_season, temp_curve_for_hour,
+                                             weather_tuning)
         scope = str(_cfg.get("forecast.apply_scope", "exterior"))
         # `is not None` rather than truthiness: an authored 0 is a real delta that
         # says "no change", and a truthiness test would drop it on the floor.
@@ -1515,6 +1595,10 @@ class VirtualWorld:
         # The engine is the only place a season is read (task-554), so the clock —
         # not a save file and not a sky widget — is what turns the year.
         season = self.current_season()
+        # task-763: when the machine (not an authored entry) is the source, each
+        # area's state also carries its wind/humidity/temperature tendency.
+        mode = (getattr(self, "forecast_schedule", None) or {}).get("mode")
+        tuned = mode in ("deterministic", "random", "hybrid", "generated")
         for node in self.graph.nodes.values():
             if node.type != "area":
                 continue
@@ -1526,12 +1610,22 @@ class VirtualWorld:
             if scope == "exterior" and not is_open_sky(tags):
                 continue
             env = node.properties.setdefault("environment", {})
-            if eff.get("weather"):
-                env["weather"] = eff["weather"]
-            if eff.get("wind"):
-                env["wind"] = eff["wind"]
-            if eff.get("humidity"):
-                env["humidity"] = eff["humidity"]
+            # task-763: a generated field sets the weather *per area*; otherwise
+            # the one effective weather applies to all. Wind and humidity follow
+            # the area's own state when the machine is the source, and an explicit
+            # forecast value still wins.
+            weather = (field or {}).get(node.id) or eff.get("weather")
+            if weather:
+                env["weather"] = weather
+            tuning = weather_tuning(weather) if (tuned and weather) else {}
+            wind = eff.get("wind") or tuning.get("wind")
+            if wind:
+                env["wind"] = wind
+            if eff.get("wind_direction"):
+                env["wind_direction"] = eff["wind_direction"]
+            humidity = eff.get("humidity") or tuning.get("humidity")
+            if humidity:
+                env["humidity"] = humidity
             if eff.get("air"):
                 env["air"] = eff["air"]
             # The world's own climate. An area that authored no
@@ -1549,10 +1643,44 @@ class VirtualWorld:
             if not (base == base and base not in (float("inf"), float("-inf"))):
                 base = OUTDOOR_BASE_C      # NaN or ±inf is a bad save, not a climate
             curve = temp_curve_for_hour(hour, season) if (authored or season) else 0.0
-            delta = curve + (float(temp_mod) if temp_mod is not None else 0.0)
+            # The area's state nudges temperature too (task-763), unless the
+            # forecast authored a temperature_mod, which wins.
+            area_temp_mod = temp_mod if temp_mod is not None else tuning.get("temperature_mod")
+            delta = curve + (float(area_temp_mod) if area_temp_mod is not None else 0.0)
             env["temperature"] = round(base + delta, 1)
             if light_mod is not None:
                 env["light"] = round(min(100, 80 + float(light_mod)))
+            # Surface snow (task-556): a settled **depth**, not the word "snowy".
+            # Only under the open sky, and only the depth moves here — a clearing
+            # sky decays it over hours (the entry that made it is gone; the snow
+            # it left is not) rather than wiping it. A world that never snows
+            # never gains the key, and the key is dropped once it melts to zero,
+            # so a clear world is unchanged and a thawed one leaves no residue.
+            if is_open_sky(tags):
+                try:
+                    elapsed = float(getattr(self, "time_per_tick_minutes", 0) or 0)
+                except (TypeError, ValueError):
+                    elapsed = 0.0
+                # Precipitation amount (task-763): the state's mm/hour, written
+                # only when it is falling (a dry world gains no key), and read back
+                # to scale how fast snow settles. Authored entries may set it too.
+                precip = eff.get("precipitation")
+                if precip is None:
+                    precip = tuning.get("precipitation")
+                try:
+                    precip = float(precip) if precip is not None else None
+                except (TypeError, ValueError):
+                    precip = None
+                if precip is not None and precip > 0:
+                    env["precipitation"] = round(precip, 2)
+                else:
+                    env.pop("precipitation", None)
+                    precip = None
+                depth = advance_snow_depth(env.get("snow_depth"), weather, elapsed, precip)
+                if depth > 0:
+                    env["snow_depth"] = depth
+                else:
+                    env.pop("snow_depth", None)
             node.updated = time.time()
 
     def get_turn_events_for_area(self, area_name, exclude_actor=None):

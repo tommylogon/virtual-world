@@ -14,12 +14,13 @@ task-414 (batch advance), task-411 (attention tiers), task-412
 (promotion/demotion).  
 **Note:** ties existing UI work together; does not replace those tasks.
 
-## Goal
+## What
 
 Let the user **watch** a long-running world, **follow** a character, and **drop
 in** to interact — the "experience it, don't just measure it" goal.
 example if tha tof humanoid agents https://github.com/humanoidagents/humanoidagents
-## Changes
+
+## How
 
 1. **Observer view.** Live world clock, notable events drawn from the trace,
    alive/dead counts and key vitals, and who is currently attended (task-411).
@@ -43,7 +44,15 @@ example if tha tof humanoid agents https://github.com/humanoidagents/humanoidage
 - A new rendering engine.
 - Editing the world from observer mode.
 
-## Verification
+## Steps to verify
 
 - A browser/manual pass over a long run: watch, follow, drop in, return.
 - Assert the displayed background facts match trace entries for the character.
+
+## Why
+
+TODO
+
+## Files
+
+- TODO

@@ -32,7 +32,7 @@ through to the plain-click branch, which opened the inspector. Nothing was broke
 in the selection bookkeeping itself — `_toggleBulkSelect` and the action bar work
 once they are reached.
 
-## Fix
+## How
 
 - `GraphEventHandlers.modifiers(params)` unwraps the event once, handling all three
   shapes vis/hammer can pass: the wrapper (read `srcEvent`), a bare DOM event, and
@@ -56,3 +56,25 @@ three in `_bulkSelection`; the scope picker listed all five scopes; choosing the
 camp moved all three to `deep_woods_2` in one request, cleared the selection and
 removed the bar. Shift-clicking the same node twice deselects it. The three test
 areas were put back the way they were found.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-27
 **Related:** task-497 task-560 task-562 task-566
 
-## Goal
+## What
 
 The author wants to select a *building type* per cell — residential, religious,
 shopping mall, market, fast food, mansion, castle — and have it be the cell's
@@ -73,3 +73,21 @@ carried on the node.
 - **The stale feature entries are still there**, so `building` and `town` are
   paintable in two senses. Worth a decision: drop them, or keep them as paintable
   *districts* (a `town` cell being a knot of streets is a reasonable thing).
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

@@ -15,7 +15,7 @@ batch advance + world lock — the transport), task-399/409 (soak policies),
 task-466 (interrupts), task-412 (promotion + summary/memory), task-437 (deterministic
 resolution order).
 
-## Goal
+## What
 
 Give the player **timeskip actions**: declare an intent plus a span of game time,
 and the world advances through that span at maximum speed with the player's own
@@ -208,7 +208,7 @@ get their normal consolidation.
 - Explore heading: chosen by the player, or "most frontier" auto? Proposed: player
   heading optional, auto-frontier default.
 
-## Verification
+## Steps to verify
 
 - Unit: `advance(intent, minutes, policy)` advances the clock exactly; idle equals a
   plain N-minute loop; policy decisions respect traits/schedule/vitals.
@@ -269,3 +269,15 @@ Full suite: 60 failed / 3378 passed (same 60 pre-existing). `tests/test_timeskip
 ## Review 2026-09-23 - core closed
 
 Core acceptance is evidenced in the Progress block above; `mode:"world"`/`mode:"character"` and the composer entry point are in place. Chain validated end to end by `tests/test_soak_chain.py` (5 passed) on the real `tick_turn` loop. The deferred extras moved to **task-482** (spans beyond the 1,440-min cap, leisure vendor purchases, explore frontier preference tied to generation); the composer quick-pick question was settled by task-481 (status belongs in the roster, not the composer, and cancel now lives there). Closing.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Files
+
+- TODO

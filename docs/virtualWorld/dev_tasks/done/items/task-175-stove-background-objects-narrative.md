@@ -1,4 +1,4 @@
-﻿---
+---
 id: 175
 title: Stove & Background Objects — Narrative Handling (no item needed)
 status: done
@@ -6,13 +6,15 @@ priority: medium
 created: 2026-08-02
 updated: 2026-08-03
 tags: [items, matching, flavor, narrative]
+type: task
+area: items
 ---
 
 # Task 175: Stove & Background Objects — Narrative Handling (no item needed)
 
 **Status**: Done — verified 2026-08-03.
 
-## Goal
+## What
 
 Background objects referenced only in descriptions (kitchen stove, loose tile, moon, fireplace) are handled **by narrative responses, not real items**. `examine stove` returns *"You examine stove. … It does not seem to be of any use."*, the character remembers it as narrative, and `stove` resolves against the room description — **not** against *Stovepipe Leather Boots (Pair)*.
 
@@ -49,3 +51,25 @@ The flavor fallback returns narrative text, not a raw system string, so it flows
 - `task-181-command-parser-multiwindow-targets` (multi-word `use X on Y`).
 - `task-174` (fire mechanic) — `use create flame` alone spawns the lit ember.
 - `task-160` (parameterized actions) — fixes emission, not resolution.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

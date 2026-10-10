@@ -6,11 +6,13 @@ priority: medium
 created: 2026-08-23
 updated: 2026-08-23
 tags: [refactor, engine, items, deprecation, data-migration]
+type: task
+area: refactor
 ---
 
 # Migrate Legacy Item Effect Props to Triggers, Then Remove Support
 
-## Summary
+## What
 
 The legacy consumable shortcut `effect_stat` / `effect_amount` / `effect_target` must be
 **migrated to trigger-based functionality** across all scenario/library data (especially
@@ -40,7 +42,7 @@ Breakdown by content:
 - **14 light items** — `effect_stat: "light"`, `effect_target: "room"` (e.g.
   `item_hand_lamp` amount 60, `pines` miki phone amount 35): legacy room-light change.
 
-## Implementation
+## How
 
 ### 1. One-off migration script: `tools/migrate_legacy_item_effects.py`
 
@@ -69,7 +71,7 @@ per-file before/after count.
 ScenarioCreationGuide §2.3 DEPRECATED banner → flip wording to "removed"; §20.6 stays as
 the canonical pattern.
 
-## Acceptance Criteria
+## Acceptance
 
 - [ ] `rg "effect_stat|effect_amount|effect_target"` over `data/scenarios/`,
       `data/library/`, `engine/`, `static/js/` returns zero production hits.
@@ -118,3 +120,17 @@ carry the keys** — 499 with `effect_stat: null` (strip, no behaviour lost),
   default, `--apply`), covering both shapes, then the read/serialization
   removal + scrub-on-load, then the acceptance spot-checks. All 15 minutes of
   design are done here; only execution + verification remain.
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

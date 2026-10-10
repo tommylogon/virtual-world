@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 Two of the library registries render empty and have no tab in the library UI, so authored content in them is unreachable.
 
@@ -58,3 +58,21 @@ markup. That is the tenth DOM-vs-pixels disagreement in this audit, and it
 happened *after* I had already written the rule into `AGENTS.md`. Reading the
 screenshot first is the habit that has to stick; reading the DOM to decide
 *whether to take* a screenshot is the same error in a new costume.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

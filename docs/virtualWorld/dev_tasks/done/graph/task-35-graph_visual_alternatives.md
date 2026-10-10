@@ -1,6 +1,9 @@
 ---
-group: Graph & Area UX
+area: graph
 wiki: "[[World Building/Graph System]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Graph / Visual Alternatives
@@ -11,7 +14,7 @@ wiki: "[[World Building/Graph System]]"
 
 ---
 
-## Summary
+## What
 
 The vis.js network graph is the primary visualization, but it can become cluttered with many nodes/edges. Alternative views are needed for different use cases: room-focused layout, item hierarchies, character locations.
 
@@ -83,8 +86,26 @@ A simple collapsible tree view in the left or right panel:
 - Toolbar buttons (`index.html:77-109`) toggle between all three modes
 **How to test**: Click the 🔮 Graph / 🗺 Map / 📋 Outline buttons in the graph toolbar. In Map view: verify rooms are positioned by compass direction and connection lines appear. In Outline view: verify collapsible tree with rooms → items → characters. In Graph view: right-click any node to see context menu.
 
-## Files Affected
+## Files
 
 - `static/js/graph-manager.js` — add view mode switching
 - `static/css/style.css` — styles for alternative views
 - `templates/index.html` — toolbar toggle buttons
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-10-05
 **Related:** task-399,task-411,task-418
 
-## Goal
+## What
 
 Selecting a scope in the graph editor's scope filter promotes that scope's residents and puts everyone else on the soak (backsim) tier. Whole world is the explicit no-backsim mode: everyone stays active until human players run a timeskip.
 
@@ -78,3 +78,21 @@ leaving it to whichever path runs first.
 
 - task-399 (promotion bridge), task-411 / task-418 (the designed selector, whose
   `attended_set` still has no production caller), task-397 (scope filter).
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

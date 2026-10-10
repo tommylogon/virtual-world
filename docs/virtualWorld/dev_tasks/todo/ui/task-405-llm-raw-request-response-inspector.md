@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-17  
 **Depends on:** none
 
-## Goal
+## What
 
 Show the complete raw HTTP exchange with the LLM provider in the UI, not just
 the extracted assistant text. Users need to verify what is actually sent and
@@ -18,7 +18,7 @@ received — headers, status, full JSON body, usage, reasoning tokens, tool
 calls, errors — for debugging providers like OpenRouter, LM Studio, Ollama,
 OpenAI, etc.
 
-## Current state
+## Why
 
 `static/js/shared/dataset-collector.js` already captures `{ messages, response,
 label, model, parsed_ok, repaired }` to IndexedDB, and a floating panel exports
@@ -159,7 +159,7 @@ capture overhead is negligible (IndexedDB writes are async and fire-and-forget).
 - `static/css/llm-inspector.css` (new) — syntax highlighting, layout
 - `templates/index.html` or command palette — entry point for the inspector
 
-## Verification
+## Steps to verify
 
 - Make an LLM call with `showRawLLM` enabled
 - Open inspector, verify request headers + body + response status + full body
@@ -203,3 +203,11 @@ Not done / caveats: no syntax highlighting or collapsible nested arrays (JSON is
 pretty-printed in a scrollable `<pre>`); no export of raw exchanges; the button
 and panel sit alongside the 🧪 dataset panel (both float bottom-right, so they
 can overlap if both are open).
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

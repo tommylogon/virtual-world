@@ -1,5 +1,8 @@
 ---
-group: Items & Inventory
+area: items
+type: task
+status: done
+priority: medium
 ---
 
 # Item `last_relation` Property (Use Returns to Origin)
@@ -10,17 +13,17 @@ group: Items & Inventory
 
 ---
 
-## Problem
+## Why
 
 When you `use` an unequipped item (one that's in your inventory/carrying), it stays in inventory after use. There's no memory of where it came from, so you can't return it to its original spot. Knife on table → take → use → stays in hand/inventory instead of going back to the table.
 
 The graph edges that track location (`on`, `under`, `behind`, `beside`, `at`, `in`, `carrying`, `equipped`) are **removed** on pickup, so the "last known spot" is lost.
 
-## Goal
+## What
 
 Stamp the item's last spatial relation on pickup, so `use` / `drop` can return it to that origin.
 
-## Design
+## How
 
 - **Property**: `last_relation` dict on the item node:
   ```
@@ -48,3 +51,17 @@ Stamp the item's last spatial relation on pickup, so `use` / `drop` can return i
 - Pairs with the spatial tracking added in the 2026-08-10 take-item refactor.
 - Not a new system — just a property write + edge recreation.
 - Does NOT affect equipped items in hand (they stay in hand on use, per the current design).
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

@@ -423,6 +423,7 @@ VOCABULARY_TYPES = {
     'features': {'backing': 'dir', 'dir': 'features'},
     'resource_distribution': {'backing': 'dir', 'dir': 'resource_distribution'},
     'hostile_distribution': {'backing': 'dir', 'dir': 'hostile_distribution'},
+    'weather': {'backing': 'dir', 'dir': 'weather'},
     'floor_plans': {'backing': 'file', 'file': 'worldpainter/interiors.json',
                     'collection': 'plans'},
     'hazards': {'backing': 'file', 'file': 'worldpainter/hazards.json',
@@ -494,6 +495,9 @@ def _vocabulary_problems(vocab_type, entry_id, rec):
     if vocab_type == 'hazards':
         from engine import hazards as hazards_mod
         return hazards_mod.hazard_problems(entry_id, rec)
+    if vocab_type == 'weather':
+        from engine import weather_types as weather_mod
+        return weather_mod.record_problems(entry_id, rec)
     from engine import interior_gen
     return interior_gen.plan_problems(entry_id, rec)
 
@@ -535,12 +539,19 @@ def handle_vocabulary_list(app, vocab_type):
     if vocab_type not in VOCABULARY_TYPES:
         return jsonify({"error": f"Unknown vocabulary type: {vocab_type}"}), 400
     entries = _load_vocabulary(app.config['DATA_DIR'], vocab_type)
-    return jsonify({
+    payload = {
         "type": vocab_type,
         "entries": [{"id": k, "name": (v or {}).get("name") or (v or {}).get("label") or k,
                      "record": v}
                     for k, v in sorted(entries.items())],
-    })
+    }
+    # Weather ships its spelling aliases so a client can resolve an authored
+    # value ("overcast") to a canonical id's icon without keeping a second copy
+    # of the alias table (task-772).
+    if vocab_type == 'weather':
+        from engine.weather_types import WEATHER_ALIASES
+        payload['aliases'] = dict(WEATHER_ALIASES)
+    return jsonify(payload)
 
 
 def handle_vocabulary_save(app, vocab_type, entry_id):

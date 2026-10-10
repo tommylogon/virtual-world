@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-27
 **Related:** task-562 task-561 task-535 task-567
 
-## Goal
+## What
 
 A building on a town grid is entered with 'in' from ANY side that has a way, not walked into with a compass direction. Today a cell-to-cell adjacency inside a grid is always a compass step and only a child-scope boundary is a narrative 'enter', so a building cell is a place like any other. Change: a cell that has a child scope (an interior) is entered with 'in'/'out' like a feature entry; a cell with no interior gets a themed refusal drawn from its building type ('The door is shut.' / 'It's locked.' / 'Closed for the season.') on a closed/locked way state, so a key or a knock can change it later. The movement semantics then fall out of the existing way graph: 'out' from inside a tavern lands on its cell, an adjacent temple is one turn, and dash_to_area already chains a second hop in one turn. A gap between two buildings is not a place, so an alley only works if the author paints it.
 
@@ -147,3 +147,21 @@ A building on a town grid is entered with 'in' from ANY side that has a way, not
   here a building with no sides is simply a building with no doors.
 - **No room vocabulary yet** (`classroom`, `hallway`, `stairway` compile as
   unknown-id places with a warning), so a real floor plan still needs it.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

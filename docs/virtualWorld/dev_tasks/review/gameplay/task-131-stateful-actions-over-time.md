@@ -1,6 +1,10 @@
-﻿---
-group: Agent AI & Behavior
 ---
+area: gameplay
+type: task
+status: review
+priority: medium
+---
+
 # Stateful Actions Over Time
 
 **Filed**: 2026-07-30  
@@ -29,13 +33,13 @@ group: Agent AI & Behavior
 
 ---
 
-## Summary
+## What
 
 Handle character actions that set a state over time — bathing, sleeping in a bed, waiting, meditating — where the character enters a continuous state that progresses turn-by-turn until complete or interrupted.
 
 ---
 
-## Problem
+## Why
 
 Currently all actions are atomic single-turn commands: `wear hat`, `go north`, `take apple`. There's no way to do something that takes multiple turns or sets a sustained state. Sleeping in a bed should restore energy over several ticks. Bathing should set the character to be using the bath, preferably after undressing (which mans we need a way to also quicly dress or undress so charatcers dont need 15 turns to get undressed for a bath. )
 
@@ -147,3 +151,21 @@ Standardized conditions with D&D-style definitions (from existing system + expan
 - [[todo/gameplay/task-104-multi-action-command-sequences|task-104: Multi-action command sequences]]
 - [[todo/gameplay/task-90-delayed_event_queue|task-90: Delayed event queue]]
 - `engine/tick_manager.py`
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

@@ -1,14 +1,15 @@
 ---
-group: Environment & Climate
+area: environment
 status: done
 priority: high
 filed: 2026-08-15
 supersedes: [task-85-time_weather_dates.md]
+type: task
 ---
 
 # Task 227: Environment Forecast Schedule Engine
 
-## Summary
+## What
 
 Replace ad-hoc weather with a **forecast schedule** system. The scenario designer (or GM) defines environment properties at any game time as a authored schedule — hourly detail, weekly averages, or yearly climate patterns. Triggers and API calls can temporarily override the forecast for story moments.
 
@@ -136,7 +137,7 @@ In `tick_turn()`, after `advance_clock(1)`:
 
 `set_environment` / `adjust_environment` trigger effects are **temporary** (they modify the area's static env dict for one tick or until cleared). The forecast is the **baseline** that gets re-applied each turn.
 
-## Files Affected
+## Files
 
 1. `engine/weather_forecast.py` — new module
 2. `engine/tick_manager.py` — call forecast each turn, apply overrides, fire change events
@@ -153,7 +154,7 @@ In `tick_turn()`, after `advance_clock(1)`:
 - **Blocked by**: Nothing
 - **Blocks**: task-228 (date tracking), task-229 (moon phase), task-230 (outdoor lighting)
 
-## Testing
+## Steps to verify
 
 - Hourly forecast changes ambient light at hour boundary
 - Weekly forecast changes on day boundary
@@ -173,3 +174,15 @@ deterministic / random / hybrid modes, seed support), tick integration via
 `EFFECT_TYPES` + validator + both trigger editors (they existed as handlers
 but were unregistered, so validation and the editors rejected them).
 GM override UI lives in the SkyScape widget / World Sky panel (`sky-scape.js`).
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

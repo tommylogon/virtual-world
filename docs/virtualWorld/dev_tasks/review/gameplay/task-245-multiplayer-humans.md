@@ -1,3 +1,10 @@
+---
+type: task
+status: review
+area: gameplay
+priority: medium
+---
+
 # Task-245: Multiplayer Humans — Online or Local
 
 **Status:** In Review — local multi-human MVP implemented 2026-08-16.
@@ -11,7 +18,7 @@ thatHuman)` before prompting, so each human is targeted in queue order and gets 
 turn handoff via the existing `active_player` mechanism. No online/concurrent-writer
 support (Flask is single-process) — that remains out of scope.
 
-## Goal
+## What
 
 Support more than one human-controlled player in the world, either locally (multiple
 humans taking turns on the same machine) or online (humans in different sessions sharing
@@ -25,3 +32,25 @@ the same world state).
   single-process/single-threaded here) — locking, session identity, and tick scheduling
   for multiple humans must be designed before building.
 - Recommend scoping MVP to local multi-human first; online is a large architectural lift.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

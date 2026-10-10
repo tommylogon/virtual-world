@@ -10,7 +10,7 @@ priority: low
 **Filed:** 2026-09-23
 **Related:** task-472, task-474
 
-## Goal
+## What
 
 Give characters a progression model: use-based skill advancement (rolling a skill can raise it), abilities as mutable stats changed by play, and an optional proficiency term so the sheet expresses trained + ability separately. Also define setting skill packs so a new setting can grant its own skills to the relevant characters on top of the base list.
 
@@ -59,3 +59,21 @@ Implemented and tested; moving to review.
 
 Remaining for this task: authoring follow-ups only — a scenario would set
 `skill_growth` and apply packs on load, and richer pack vocabulary is data.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

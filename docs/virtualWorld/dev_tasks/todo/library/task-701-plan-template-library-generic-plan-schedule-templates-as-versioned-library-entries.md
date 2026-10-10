@@ -11,7 +11,7 @@ related: [task-694, task-2, task-409, task-426, task-699]
 **Filed:** 2026-10-04
 **Clarified:** 2026-10-05
 
-## Goal
+## What
 
 Provide reusable, character-agnostic pursuit templates that characters can choose, be offered, or be assigned. A template is like a recipe for a longer undertaking: it says what the character is trying to do, where and when it applies, what they need or must know, how progress is checked, and when to stop. The bound pursuit instance adds the character's own reason and target. A template does not force an LLM agent to comply.
 
@@ -39,3 +39,21 @@ Keep the meanings separate:
 ## Current slice
 
 The current registry/module has haul, gather, and rally templates with typed travel/take/drop steps. This is partial background content. It does not yet support the full pursuit schema, LLM selection, ongoing Activity steps, or the prompt block; those are follow-up acceptance criteria above.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

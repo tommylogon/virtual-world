@@ -230,5 +230,11 @@ window.GraphPhysics = {
     setLocked(locked: boolean): void {
         GraphPhysics._locked = !!locked;
         GraphPhysics.apply();
+        // The lock decides whether the Physics button can do anything, so the
+        // affordance must follow it exactly as it follows the user's own toggle
+        // (setUserEnabled). Without this the lock lands during load — after the
+        // toolbar's initial paint — and the button keeps offering a resume that
+        // the solver will refuse (bug-542).
+        if ((window as any).GraphToolbar) (window as any).GraphToolbar.syncAll();
     }
 };

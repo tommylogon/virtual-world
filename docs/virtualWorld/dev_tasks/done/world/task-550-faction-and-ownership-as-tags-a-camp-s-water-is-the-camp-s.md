@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-27
 **Related:** task-549
 
-## Goal
+## What
 
 Areas carry tags but no owner, so the goblin camp's single water source and waste disposal are a shared resource with no claimant. Make faction and ownership tag-based so using someone else's resource is an event.
 
@@ -179,3 +179,21 @@ Nothing about the call is conditional: `note_contested_use` returns `None` for a
 owner, for a commons, and for a factionless character, so it can be made
 unconditional at every site without gating anything. **Posted to the board for
 WT-C.**
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

@@ -1,13 +1,14 @@
 ---
-group: Environment & Climate
+area: environment
 status: done
 priority: high
 filed: 2026-08-15
+type: task
 ---
 
 # Task 234: Trigger & GM Integration for Forecast & Environment Overrides
 
-## Summary
+## What
 
 Expand `set_environment` / `adjust_environment` to support all new environment keys (`weather`, `wind`, `humidity`, `transparent`). Add `forecast_override` and `adjust_forecast` trigger effects so the GM (or scenario triggers) can temporarily override the authored forecast schedule. Add time-of-day/moon trigger conditions (`on_dawn`, `on_dusk`, `on_full_moon`, `on_blood_moon`). Add `on_turn_start` / `on_turn_end` trigger types for areas/characters. Add API endpoints and a basic GM control panel.
 
@@ -205,7 +206,7 @@ if override:
             world_state.pop("forecast_override", None)
 ```
 
-## Files Affected
+## Files
 
 1. `engine/effects.py` — add `forecast_override`, `adjust_forecast`, expand `set_environment` keys
 2. `engine/trigger_system.py` — register new effect types + time/moon conditions + `on_turn_start`/`on_turn_end` trigger types
@@ -221,7 +222,7 @@ if override:
 
 - **Blocked by**: task-227 (forecast engine), task-228 (calendar), task-229 (moon phase), task-231 (wind), task-232 (humidity), task-233 (area statuses)
 
-## Testing
+## Steps to verify
 
 - `set_environment weather=stormy` changes area weather immediately
 - `forecast_override weather=stormy duration_ticks=60` locks global weather for 60 turns then reverts
@@ -249,3 +250,15 @@ This audit registered all of those trigger types + effects in
 `TRIGGER_TYPES` / `EFFECT_TYPES` (they fired engine-side but were unregistered,
 so the validator and both editors rejected them), and added the full param
 blocks to the form and graph editors.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

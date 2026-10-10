@@ -28,3 +28,29 @@ Follow-up note from 2026-08-30 kept for context: the per-edit push moved OUTSIDE
 TESTING gate so test worlds still record (autosave remains TESTING-gated). Original
 audit text: "10-deep stack with labels; click = restore" — stack depth is controlled by
 the server (default keeps ~50 in memory; UI shows the newest 10).
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

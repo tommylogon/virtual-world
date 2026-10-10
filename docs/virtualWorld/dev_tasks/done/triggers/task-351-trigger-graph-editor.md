@@ -1,6 +1,9 @@
 ---
-group: Trigger System
+area: triggers
 wiki: "[[Rules Engine/Triggers & Effects]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Trigger Graph Editor — Node-Based Blueprint System
@@ -76,7 +79,7 @@ real and currently unowned.
 
 ---
 
-## Summary
+## What
 
 Replace the current form-based trigger editor with a **node-graph editor** (Unreal Blueprint-style) where triggers are visually constructed by connecting nodes. The resulting trigger graph can be saved as a **blueprint** and attached to any item, way, or character.
 
@@ -178,6 +181,7 @@ Replace the current form-based trigger editor with a **node-graph editor** (Unre
 - Phase 3: Runtime compile of blueprints → graph edges + trigger nodes; condition branching (YES/NO); AND/OR condition logic
 
 **Phase 2 & 3**: Not started
+
 ## Follow-up (2026-09-02)
 
 UX/viewport overhaul research for this editor filed as [[task-388-trigger-graph-editor-overhaul]]
@@ -186,3 +190,25 @@ YES/NO branch coloring, cycle prevention, undo/multi-select, and compile-honesty
 (fan-out and behavior NO-branch wires are silently dropped on save; behavior priority is derived
 from node Y position, overriding the editable Priority field). Those compile findings should be
 resolved as part of this task's Phase 3 engine work.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

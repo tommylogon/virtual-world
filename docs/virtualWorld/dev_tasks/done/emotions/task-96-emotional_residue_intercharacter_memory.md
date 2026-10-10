@@ -1,8 +1,11 @@
 ---
-group: Agent AI & Behavior
+area: emotions
 wiki: "[[AI & Narration/Memory System]]"
 status: done
+type: task
+priority: medium
 ---
+
 # 🧠 Emotional Residue + Inter-Character Memory Planting — Dev Task
 
 **Filed**: 2026-07-22
@@ -126,3 +129,29 @@ Natural fade of emotional state over game ticks. No prompt changes needed — `b
 When an emote targets specific characters, plant a copy in their memory too.
 
 (Original detailed checklists removed 2026-08-23 — see git history if needed.)
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

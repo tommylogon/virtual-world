@@ -11,19 +11,19 @@ priority: medium
 **Depends on:** task-406, task-407 (the fixes this guards).  
 **Related:** task-402 (world-scale projection benchmark) — different layer.
 
-## Goal
+## What
 
 Make per-tick simulation throughput measurable and protect it against
 regressions.
 
-## Problem
+## Why
 
 The hot-path cost was only discovered by profiling (trigger/exit plumbing, not
 LLM). task-402 benchmarks **projection payload**, not the per-tick simulation
 loop, and there is no committed baseline for ticks/sec, per-tick node/edge
 visits, exit rebuilds, or `.lower()` calls.
 
-## Changes
+## How
 
 1. A repeatable benchmark command (extend `tools/soak_sim.py` or add
    `tools/bench_ticks.py`) that prints, with a fixed seed and scenario:
@@ -46,7 +46,7 @@ visits, exit rebuilds, or `.lower()` calls.
 - Universal wall-clock targets before a host budget is chosen.
 - Browser rendering benchmarks.
 
-## Verification
+## Steps to verify
 
 - Run the command before/after task-406/task-407 and record the delta.
 - Temporarily revert one fix to confirm the guard trips.
@@ -95,3 +95,7 @@ Follow-ups spotted by the profile (candidates for a next pass): memoise
 `_item_light_stats`/`get_ambient_light` with explicit lit-state invalidation,
 reduce `Player.state` cost, and stop `remove_edge` from triggering a full edge
 index rebuild.
+
+## Files
+
+- TODO

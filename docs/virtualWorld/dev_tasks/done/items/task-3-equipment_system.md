@@ -1,7 +1,11 @@
 ---
-group: Equipment & Inventory
+area: items
 wiki: "[[Items & Inventory/Equipment & Paperdoll]]"
+type: task
+status: done
+priority: medium
 ---
+
 # Equipment & Layering System
 
 **Filed**: 2026-07-15 (updated 2026-07-30)
@@ -10,7 +14,7 @@ wiki: "[[Items & Inventory/Equipment & Paperdoll]]"
 
 ---
 
-## Summary
+## What
 
 A slot-based equipment system where items are worn in layered stacks on body slots. Orders of wearing determines what's visible vs concealed, and the LLM narrates the result in plain English rather than exposing slot/layer metadata. Two-handed items occupy both hand slots. Container items (backpacks, pouches, pockets) hold other items inside them.
 
@@ -48,7 +52,6 @@ A slot-based equipment system where items are worn in layered stacks on body slo
 
 - Fixed `CONDITION_HIERARCHY` naming mismatch: `"asleep"` → `"sleeping"` in `player.py` so `player.state` returns `"sleeping"` matching all engine checks
 - Updated `test_unequip_empty_slot_raises_error` regex to match current error message `"Nothing equipped in your {slot}"`
-
 
 ## Equipment Slots
 
@@ -172,3 +175,25 @@ See `task-105-edge-refactor.md` for the edge type refactor:
 - `in` — item/character in room or container (replaces `location` + `contains`)
 - `carried` — item in character inventory (replaces `carried_by`)
 - `equipped` — item equipped on character (slot in edge properties)
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

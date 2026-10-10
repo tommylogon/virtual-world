@@ -10,7 +10,7 @@ priority: low
 **Filed:** 2026-10-09
 **Related:** 
 
-## Goal
+## What
 
 Trigger-graph value textareas are fixed rows=2 and scroll instead of growing with their content, and the inspector triggers-section header packs five buttons into one nowrap row that clips on a narrow panel. Make textareas grow to fit their value, and let the button row wrap.
 
@@ -35,3 +35,21 @@ and `engine/effect_handlers/movement.py` remains (unrelated, py module headers).
 Still unimplemented from the same recon: a left-to-right stacking-siblings graph
 layout for the trigger graph — it needs a decision first, since condition
 `output_yes`/`output_no` sockets are `side:'bottom'` and are compile-coupled.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

@@ -13,7 +13,7 @@ related: [task-569, task-570, task-573, task-568, task-497]
 **Answers for:** `docs/design/roadmap.md` (Part 2), which recommends task-569 (resource consumer) and task-570 (hostile consumer) as the cheapest large win in the repository
 **Blocks:** task-589 (a WorldPainter tab in the library) — the tab's shape depends on where the data ends up
 
-## Goal
+## What
 
 The instinct is that WorldPainter data belongs in `data/library/`, split per entry like everything else in there. The scope is **three things that are not alike**, and the first job is to find that out rather than assume they travel together:
 
@@ -192,3 +192,21 @@ them rather than a migration.
 
 `rooms` / `behaviours` / `structures` drift is out of scope here and already
 owned elsewhere (task-645 / task-590 / task-591).
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

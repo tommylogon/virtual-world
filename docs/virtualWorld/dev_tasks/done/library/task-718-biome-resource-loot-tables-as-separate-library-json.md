@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-10-05
 **Related:** task-569,task-571,task-573,task-588,task-589,task-716
 
-## Goal
+## What
 
 Split the weighted fish/scrap/trash water-resource tables out of biomes.json into their own library JSON vocabulary, authored separately from biomes and pursuits like items and areas are. Author river/shallows/pool/rapids fish tags and matching item definitions; make the fishing Activity resolver sample this table at runtime.
 
@@ -81,4 +81,20 @@ owned by **task-589** (this card does not need to be re-done).
    and `biomes.hostile_distribution()` return the library-backed per-biome dicts
    when the bundled keys are absent. No save conversion is required.
 
+## Why
 
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

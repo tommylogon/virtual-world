@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-10-08
 **Related:** task-352, task-733, task-537
 
-## Goal
+## What
 
 Treat intrinsic abilities (INTRINSIC_ABILITY_TAGS: spell/ability/innate/intrinsic/power) as non-physical everywhere, not just in appearance: exclude them from the physical-possession verbs (take, drop, place, put, stow, give, steal) and model acquisition as grant/revoke through a physical carrier (hacking chip, spellbook, implant). Today an ability can be dropped on the ground and picked up by anyone.
 
@@ -37,7 +37,7 @@ character's possession can be **`drop`-ped into the area and `take`-n by anyone*
 Violet dropping her invisibility on the ground. Latent, because no content authors
 abilities yet.
 
-## Design
+## How
 
 An ability is **non-physical**, so the physical-possession verbs do not apply:
 
@@ -76,3 +76,17 @@ the ability's cost table is over that different verb set.
 - Do abilities occupy a containment slot on the character at all, or are they purely
   tag-marked nodes owned by the character? Confirm the containment model before
   excluding the verbs.
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

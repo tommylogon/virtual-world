@@ -1,5 +1,8 @@
 ---
-group: Characters
+area: characters
+type: task
+status: done
+priority: medium
 ---
 
 # NPC Behavior Phase 2: Sensory Triggers, Faction Logic, Attack
@@ -68,3 +71,29 @@ Builds on Phase 1 to add sensory awareness (smell, sight, sound), tag-based fact
 
 - Phase 1: `task-389` (shipped)
 - `task-214` (NPC perception & reaction), `task-409` (background schedules)
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

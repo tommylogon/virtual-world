@@ -1,6 +1,9 @@
 ---
-group: Items & Crafting
+area: items
 wiki: "[[Library System/Library System Overview]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Remove "Add from Library" from Area Actions
@@ -11,11 +14,11 @@ wiki: "[[Library System/Library System Overview]]"
 
 ---
 
-## Summary
+## What
 
 The room inspector panel has an "Add from Library" button under Area Actions. This button duplicates functionality that already exists via the toolbar "Item Library" button (which also supports placing items in specific areas). The room-level action is redundant. we also already have a right click context menu to add items to a room directly
 
-## Current State
+## Why
 
 In `inspector.js:_showRoom()` (line 552), the room inspector renders:
 
@@ -40,6 +43,20 @@ If the room inspector feels empty after removal, consider replacing with a text 
 - Open the inspector for any room. Under "Area Actions", verify the "📚 Add from Library" button is **not** present.
 - Verify the 📚 Item Library toolbar button still works for adding items to areas.
 
-## Files Affected
+## Files
 
 - `static/js/inspector.js` — remove button HTML and its action section if empty
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

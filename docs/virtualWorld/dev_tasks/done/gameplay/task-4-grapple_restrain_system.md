@@ -1,14 +1,18 @@
 ---
-group: Combat & Abilities
+area: gameplay
 wiki: "[[Rules Engine/Combat System]]"
+type: task
+status: done
+priority: medium
 ---
+
 # Grapple/Restrain System (Hook, Rope, Zipties, Handcuffs)
 
 **Filed**: 2026-07-18
 **Priority**: Medium
 **Status**: In Progress — grab/drag/escape/release/limits/tracking implemented + verified 2026-08-08 (see below); restraint items (hook/rope/zipties) and the emote validator still pending. Foundation: `grappled`/`grappling`/`restrained` conditions defined in `player.py` with `BLOCKING_CONDITIONS` and `CONDITION_HIERARCHY`.
 
-## Summary
+## What
 
 The Butcher's hook should be usable to grapple and restrain characters. This requires a new item subtype for restraint tools. Future items: rope, zipties, handcuffs, chains.
 
@@ -33,7 +37,7 @@ bound: Cannot move, cannot use items, cannot attack. Escape DC varies by restrai
 grappled: Cannot move. Can still use items/attack with penalties.
 ```
 
-## Implementation
+## How
 
 - New `restraint` property on items: `{"type": "hook", "escape_dc": 15, "hp": 20}`
 - Restrained characters get `state = "bound"` 
@@ -176,7 +180,24 @@ Remaining: restraint items beyond the trigger approach (raised DC / HP for rope/
 data work, not code), grappled penalties on non-combat skill checks (currently only
 combat).
 
-
 ## Refactoring Impact (July 2026)
 
 Engine is modular. Create engine/restrain.py following DI. Wire in virtual_world_engine.py. Use existing engine/effects.py for status effects. Commands in routes/action.py. May need new item node properties.
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-27
 **Related:** task-542 (naming/boundary), task-544 (the view), task-537 (`why` vocabulary)
 
-## Problem
+## Why
 
 A soak run currently cannot answer **"who did what, where, and when"** — not
 because the data is too big, but because it is never written down. The
@@ -144,7 +144,7 @@ an otherwise readable format.
   append-only JSONL on disk for the full run. Reading a 7-day audit should never
   be gated on what fit in RAM.
 
-## Acceptance criteria
+## Acceptance
 
 - [x] A run exposes, per character, the ordered presence intervals covering the
       whole run with no gaps and no overlaps.
@@ -172,3 +172,21 @@ an otherwise readable format.
   Per-tick detail is available where it already exists (the vitals samples).
 - Changing what the soak *measures* about survival. This adds an orthogonal
   stream, it does not alter the existing summaries.
+
+## What
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

@@ -113,4 +113,16 @@ chooser like every other verb. Two regression tests
 `test_lead_by_key_reaches_the_chosen_character`) pin both the non-500 and the
 key-target path; `tests/test_ambiguous_target.py -> 4 passed`.
 
+## What
 
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO

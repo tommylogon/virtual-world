@@ -1,3 +1,10 @@
+---
+type: bug
+status: done
+area: bugs
+priority: medium
+---
+
 # Bug 28 — === CONVERSATION === echoes characters' own speech mangled (apostrophes stripped, lowercased)
 
 **Status**: Resolved as historical — the corruption was real, the transform is
@@ -28,7 +35,7 @@ Suspect: the anti-repeat conversation-history builder in the JS agent side
 sanitizer applied to stored turn_events server-side. Trace where the
 conversation section text is sourced.
 
-## Impact
+## Why
 
 - ANTI-REPEAT instruction tells the model not to repeat lines it already
   said — but the reference lines are corrupted versions of its own words.
@@ -126,3 +133,24 @@ because there is nothing to fix; the guards are the deliverable.
 line containing apostrophes + capitals, next decide-phase `CONVERSATION` block
 matches the spoken text verbatim.
 
+## What
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

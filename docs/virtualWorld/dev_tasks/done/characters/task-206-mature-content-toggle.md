@@ -1,6 +1,8 @@
 ---
-group: Pleasure System
+area: characters
 status: done
+type: task
+priority: medium
 ---
 
 # Mature Content Toggle
@@ -11,11 +13,11 @@ status: done
 
 ---
 
-## Problem
+## Why
 
 The pleasure/arousal system must be fully gated behind a global opt-in flag so the base game stays a standard survival RPG. Without a toggle, the new vitals, intimacy verbs, and adult traits leak into every scenario.
 
-## Design
+## How
 
 - **No config.toml in this repo.** Settings follow the `ghost_mode` pattern (verified): a world attribute (`app.world.mature_content`, default `False`) + `/api/settings/mature_content` GET/POST routes + frontend toggle persisted in IndexedDB via `config.js`. Mirror the existing `ghost_mode` wiring: `routes/settings.py:13-35`, `static/js/config.js:43-98`, `static/js/api.js:299-310`.
 - Check the flag everywhere the erotic system touches:
@@ -32,7 +34,7 @@ The pleasure/arousal system must be fully gated behind a global opt-in flag so t
 - `static/js/config.js` + `static/js/api.js` + settings UI — toggle
 - Every pleasure-system touchpoint above
 
-## Testing
+## Steps to verify
 
 - [ ] With flag OFF: no arousal vitals appear, intimacy verbs rejected, no adult traits in list
 - [ ] With flag ON: system fully active
@@ -41,3 +43,11 @@ The pleasure/arousal system must be fully gated behind a global opt-in flag so t
 ## Related
 
 - `dev_tasks/# Nipple & Erogenous Zone System - Desig.md` — §Additions #6
+
+## What
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

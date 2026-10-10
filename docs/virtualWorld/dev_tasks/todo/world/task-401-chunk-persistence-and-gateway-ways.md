@@ -29,7 +29,7 @@ worth landing on its own merits: it removes a real correctness hazard (a
 duplicate area name splitting a character's location) whether or not chunking
 ever happens.
 
-## Goal
+## What
 
 Turn the proven scope model into real scale: materialized scopes can be loaded
 and evicted independently while remaining part of one persistent world.
@@ -107,3 +107,21 @@ Still open for the umbrella to close: the benchmark/report half (task-402
 territory) and the editor-scope-request half; the global node/edge **scans** are
 not yet fully replaced by the index (noted in task-583). Those are the reasons
 the sub-tasks are in review rather than done.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

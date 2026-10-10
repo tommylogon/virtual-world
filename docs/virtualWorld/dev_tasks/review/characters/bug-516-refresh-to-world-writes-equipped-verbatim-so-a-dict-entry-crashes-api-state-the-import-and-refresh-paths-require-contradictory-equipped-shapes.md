@@ -31,7 +31,7 @@ in the library and cannot survive the path that is supposed to deliver it.
 That pattern now has three instances (ways, characters, equipped) and is worth
 treating as one systemic problem rather than three tickets.
 
-## Goal
+## What
 
 Make the library character equipped field have ONE defined shape that both handle_library_import_character and _refresh_character honour, and stop refresh-to-world from writing a shape the runtime cannot read.
 
@@ -54,3 +54,21 @@ Make the library character equipped field have ONE defined shape that both handl
       non-breaking for them.
 - [ ] Regression test: a template whose `equipped` holds dicts is refreshed, then
       `/api/state` is requested and returns 200.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

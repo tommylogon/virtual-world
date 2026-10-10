@@ -1,6 +1,9 @@
 ---
-group: Tech Debt & Testing
+area: testing
 wiki: "[[AI & Narration/LLM Providers]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Task 88: LLM Request/Response Logging in Event Stream
@@ -11,13 +14,13 @@ wiki: "[[AI & Narration/LLM Providers]]"
 
 ---
 
-## Summary
+## What
 
 Every LLM call should log its **full request (prompt) and response** to the event stream so you can see exactly what's being sent and received. Currently only the agent engine does this — 16 other call sites are invisible.
 
 ---
 
-## Current state
+## Why
 
 **Done.** Every LLM call goes through `llmClient.chat()` which logs full request/response to EventStream:
 
@@ -76,7 +79,7 @@ Modified `chat()` to emit request/response to EventStream directly. This catches
 | `static/js/llm-client.js` | Add EventStream logging in `chat()` |
 | `static/js/agent-engine.js` | Remove duplicate logging (now handled by llmClient) |
 
-## Verification
+## Steps to verify
 
 1. Open event stream
 2. Click Improve on any item — should see `📤 LLM` bubble with full prompt, then `🤖 LLM` bubble with full response
@@ -84,3 +87,15 @@ Modified `chat()` to emit request/response to EventStream directly. This catches
 4. Generate narration — same
 5. Agent engine phases — same (should still work, just from a different source)
 6. Toggle `filterRawLLM` in Settings — bubbles should show/hide
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

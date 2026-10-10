@@ -1,6 +1,8 @@
 ---
-group: Pleasure System
+area: characters
 status: done
+type: task
+priority: medium
 ---
 
 # Verb Base Multipliers & Action→BodyPart→Trait Pipeline
@@ -11,11 +13,11 @@ status: done
 
 ---
 
-## Problem
+## Why
 
 Each intimacy verb needs base mechanical properties (pressure, pleasure multiplier, pain potential, stim type) so the system can compute stimulation before intensity/body-part/trait modifiers. Without defaults, "gentle kiss" vs "firm pinch" can't be calculated.
 
-## Design
+## How
 
 - New file `engine/pleasure_actions.py` with `VERB_BASE` table (from design §Additions #1): `caress/pinch/kiss/lick/suck/bite/blow/tickle` with `pressure`, `pleasure_mult`, `pain_potential`, `stim_type` (sustained/rhythmic/spike).
 - Multiplier pipeline: `VERB_BASE → × intensity modifier (light/normal/firm) → × body_part sensitivity (from `body_state`) → × trait multiplier (per-body-part) → applies to Stimulation/Pleasure, adjusted by mood/context/relationship`.
@@ -27,7 +29,7 @@ Each intimacy verb needs base mechanical properties (pressure, pleasure multipli
 - `engine/pleasure_actions.py` — NEW: `VERB_BASE`, `apply_stimulation()`, multiplier pipeline
 - `engine/traits.py` — body-part multiplier lookup (see task-213)
 
-## Testing
+## Steps to verify
 
 - [ ] Same verb + different intensity scales stimulation correctly
 - [ ] Body-part sensitivity (nipple 0.9 vs 0.7) affects gain
@@ -38,3 +40,11 @@ Each intimacy verb needs base mechanical properties (pressure, pleasure multipli
 
 - `dev_tasks/# Nipple & Erogenous Zone System - Desig.md` — §Additions #1, Phase 4
 - `task-211 intimacy verbs` (action dispatch), `task-213 traits`
+
+## What
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

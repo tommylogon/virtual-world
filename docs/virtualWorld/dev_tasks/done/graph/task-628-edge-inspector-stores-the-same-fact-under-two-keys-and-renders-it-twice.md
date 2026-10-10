@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 A single connection fact is stored under two keys and rendered as 'south <-> south' with untyped properties.
 
@@ -170,3 +170,21 @@ programmatic node-selection path.
    and select a way; or
 2. Add a way-selectable path to the harness so edge inspection is reachable
    without canvas coordinates.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

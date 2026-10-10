@@ -183,3 +183,25 @@ while keeping their opaque node ids. The
 Kraktooth scrap example is still the authored pursuit case. This runner does
 not yet start a persistent Activity or inject the pursuit into an LLM prompt;
 those are task-702/task-704 work.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

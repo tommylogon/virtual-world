@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-27
 **Related:** 
 
-## Goal
+## What
 
 tools/lint_library.py never opens data/worldpainter/biomes.json. Its only area-adjacent check is area_tag_gaps (:223-229), which asks whether an area has ANY tags -- not whether the tag vocabulary meets the biomes. Add a check reporting every biome whose resource_distribution tags resolve to no library item, so the gap in task-569 surfaces as a countable list rather than a silent one.
 
@@ -39,3 +39,21 @@ Evidence:
   next biome or the next item removal).
 - `python -m pytest tests/test_library_lint_biomes.py -q` — 4 passed, including a
   fixture that plants an uncovered biome and asserts it is reported.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

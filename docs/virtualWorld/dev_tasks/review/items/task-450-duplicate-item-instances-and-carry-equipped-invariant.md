@@ -27,7 +27,7 @@ both-edge state comes from load/legacy/test paths that add `CARRYING` without
 removing `EQUIPPED` (`serialization_legacy.py`, `routes/library_ops.py`,
 `engine/dressing.py` + `equip_item` when seeding).
 
-## Goal
+## What
 
 1. **Find the duplication source.** Identify where a character can end up with
    two same-named item nodes (dressing, library population, scenario assembly,
@@ -88,3 +88,17 @@ paths, which the load normalizer repairs.
       nothing).
 - [x] `take`/`equip` on a legitimate state cannot reach the contradiction,
       because the state is repaired before any verb runs.
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

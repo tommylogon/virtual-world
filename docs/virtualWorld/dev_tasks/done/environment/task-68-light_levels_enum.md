@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: environment
+priority: medium
+---
+
 # Light Levels: Align Agent Engine Thresholds with Backend Enum
 
 **Filed**: 2026-07-15
@@ -6,7 +13,7 @@
 
 ---
 
-## Summary
+## What
 
 Area light is a percentage (0-100) with a backend conversion function `_light_to_level()` that maps to 5 enum levels: **pitch_black** (≤20), **dim** (≤40), **normal** (≤70), **bright** (≤90), **blinding** (>90). 
 
@@ -39,3 +46,25 @@ The frontend agent engine had hardcoded numeric thresholds (≤10, ≤25) that d
 - Update create-room modal and AI generation format hints
 - Update trigger condition/effect UI for new enum values
 - Update `world_template.json` default values
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

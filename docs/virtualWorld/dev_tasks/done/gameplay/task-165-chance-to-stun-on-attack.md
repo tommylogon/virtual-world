@@ -5,19 +5,21 @@ status: done
 priority: low
 created: 2026-08-02
 tags: [combat, conditions, gameplay]
+type: task
+area: gameplay
 ---
 
 # Chance to Stun on Attack
 
-## Summary
+## What
 
 Add a chance to stun the target when an attack hits — e.g. a heavy hit from a slasher can leave the target needing to rest for a turn.
 
-## Problem
+## Why
 
 Combat resolves damage but has no crowd control (engine/combat.py). A hit either deals damage or misses; there's no way for a hit to stagger the target. Conditions exist (engine/conditions.py, player.py:7-33) but nothing in combat applies `stunned`/`paralysed` to a hit target.
 
-## Implementation
+## How
 
 - Add a stun chance on hit, driven by weapon properties: `stun_chance` (e.g. 0-100) on the weapon, plus maybe a `stun_duration` in turns
 - On a successful hit, roll for stun; if it succeeds, apply the `stunned` condition to the target for the duration
@@ -31,7 +33,7 @@ Combat resolves damage but has no crowd control (engine/combat.py). A hit either
 2. `player.py` — `stunned` added to BLOCKING_CONDITIONS, CONDITION_HIERARCHY, CONDITION_DEFAULT_TIMERS (2 ticks) ✅
 3. `routes/items_registry.py` — `stun_chance`/`stun_duration` copied in build + refresh; `static/js/item-library.js` — Stun Chance/Duration fields in the weapon editor ✅
 
-## Testing
+## Steps to verify
 
 - [x] Weapon with stun_chance can stun a target
 - [x] Stunned target can't act for the duration
@@ -46,3 +48,11 @@ Combat resolves damage but has no crowd control (engine/combat.py). A hit either
 
 - [[todo/gameplay/task-159-saves-and-reactions|task-159: Saves and reactions]]
 - [[todo/gameplay/task-131-stateful-actions-over-time|task-131: Stateful actions (conditions)]]
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

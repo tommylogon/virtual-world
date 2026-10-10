@@ -1,6 +1,10 @@
 ---
-group: Tech Debt & Testing
+area: gameplay
+type: task
+status: done
+priority: medium
 ---
+
 # Task 152: Fix Whisper/Shout Clobbered by Alias Normalization
 
 **Filed**: 2026-07-31  
@@ -9,7 +13,7 @@ group: Tech Debt & Testing
 
 ---
 
-## Summary
+## What
 
 The `whisper` and `shout` speech commands were silently degrading to normal speech because the verb alias normalization in `routes/action.py` rewrote them to `say` before the speech handler ever saw them. Only `scream` survived (it wasn't in the alias map).
 
@@ -36,7 +40,7 @@ So `whisper psst` became `say psst` → normal level. `shout hey` became `say he
 - `shout` and `whisper` now pass through untouched to the speech handler
 - `yell` maps to `shout` (semantically correct — yelling IS shouting)
 
-## Verification
+## Steps to verify
 
 Command parsing now produces the correct levels:
 
@@ -75,3 +79,19 @@ Two related gaps in the sound propagation system:
 1. **Same-area sound sources were inaudible.** `_process_sound_sources()` only notified characters in *adjacent* hearing areas, so a character standing next to a ringing alarm clock got no hearing entry. Fixed by adding the origin area to the notification set (`hearing_areas[area_id] = (sound_level, "")`) before the loop.
 
 2. **Sound sources never appeared in WITNESSED.** The prompt builder filtered out `type === 'sound_source'` entries from `recent_hearing`, so even when a sound propagated, the character never perceived it. Fixed by rendering them as `[Heard from the X from the alarm clock] piercing alarm.`
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-27
 **Related:** task-227, task-231, task-232, task-234
 
-## Goal
+## What
 
 Split authored climate baseline from simulated temperature: add
 `env.base_temperature` and a diurnal/seasonal curve, so the forecast applies a
@@ -68,6 +68,8 @@ vs `floor` (storey index) in `engine/world_grid.py`:
 
 ## Acceptance
 
+
+
 ## Acceptance
 
 - [x] **`outdoor_temp_for_hour` exists as `temp_curve_for_hour(hour, season)`**,
@@ -117,3 +119,21 @@ vs `floor` (storey index) in `engine/world_grid.py`:
 - Hours outside 0-23 clamp rather than raise, matching
   `engine.lighting.outdoor_light_for_hour`, so the two curves cannot disagree
   about a silly hour.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

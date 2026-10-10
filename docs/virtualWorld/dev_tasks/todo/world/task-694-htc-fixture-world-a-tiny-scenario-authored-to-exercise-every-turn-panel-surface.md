@@ -10,11 +10,12 @@ priority: high
 **Filed:** 2026-10-04
 **Related:** task-677,task-448,bug-23,bug-521,task-679
 
-## Goal
+## What
 
 TODO
 
 ## Acceptance
+
 A small world (10-20 areas) authored ONCE so the harness (task-693) can exercise
 everything the human turn panel does. Content before instrumentation — the fixture
 is what makes the checks real.
@@ -34,3 +35,20 @@ is what makes the checks real.
       without authoring errors (`tools/tasks.py validate`-equivalent: scenario
       integrity checks green).
 
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

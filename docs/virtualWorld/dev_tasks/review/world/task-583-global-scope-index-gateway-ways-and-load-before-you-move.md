@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-28
 **Related:** task-401, task-582
 
-## Goal
+## What
 
 Keep a small global index outside any chunk: scope ids, area ownership, character and unique-item location, boundary ways, and scheduled work. Gateway ways name a remote target_area_id and target_scope_id, and the movement system loads the destination scope before it resolves the way. Replace the global node and edge scans that make loaded-chunk support a claim rather than a fact.
 
@@ -58,3 +58,21 @@ serialization are not yet replaced by the index for loaded chunks — the index
 exists and the load-before-move path uses it, but the "scans replaced"
 acceptance needs a follow-up. The index is a derived cache, not a second source
 of truth: the graph remains authoritative when whole.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

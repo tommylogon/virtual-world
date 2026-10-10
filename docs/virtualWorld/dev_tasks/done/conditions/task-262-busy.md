@@ -1,6 +1,8 @@
 ---
-group: Conditions
+area: conditions
 status: done
+type: task
+priority: medium
 ---
 
 # Condition: Busy (`busy`)
@@ -12,7 +14,7 @@ status: done
 
 ---
 
-## Purpose
+## What
 
 Occupied with a persistent multi-turn activity. Non-blocking and interruptible; the activity carries the flavor + regen mix rather than this condition. Shared across all activities that need an "occupied" marker.
 
@@ -50,7 +52,7 @@ Occupied with a persistent multi-turn activity. Non-blocking and interruptible; 
 - `engine/activities.py` — applies/removes `busy` as activities start/finish; the activity stores flavor + regen separately.
 - Interruptibility: ending an activity calls `end_conditions`/`end_instances("stop")`.
 
-## Testing
+## Steps to verify
 
 - [ ] Being `busy` does not prevent acting (interruptible by design).
 - [ ] Ending an activity clears the `busy` marker.
@@ -59,3 +61,19 @@ Occupied with a persistent multi-turn activity. Non-blocking and interruptible; 
 
 - Does `busy` actually gate anything, or is it purely informational now? (Activities themselves, not the condition, likely own interrupt behavior.)
 - Duplicated `busy` instances from stacked activities — does `stack: "noop"` leave stale markers?
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

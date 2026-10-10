@@ -12,7 +12,7 @@ priority: medium
 **Design:** `docs/design/world-environment-taxonomy.md` — the expanded 170-category
 vocabulary and per-entry record shape this data file should grow toward.
 
-## Goal
+## What
 
 Define the tile taxonomy and its mapping to engine tags: roads (gravel/dirt/paved/cobblestone), forests (sparse/dense/leaf/mixed/pine), hills, mountains, cliffs, ravines, chasms, beach, lake, river, deep water, ocean, stream, spring, farmland; features (bridges, tunnels, towns, buildings, ruins). Provide per-biome description fragments and distribution layers for resources (tie to the engine/foraging.py tag->yield map, which already keys off road/forest/ruin tags) and hostiles (predators/bandits/monsters by biome and distance from settlement). Data-first so the vocabulary can grow.
 
@@ -58,3 +58,21 @@ change beyond extending the foraging tag vocabulary.
   bands sane, a new biome added as **data only** validates, a deliberately bad
   biome is rejected, and missing rule sets are flagged. 1508 tests across
   biomes + foraging + data-mojibake pass.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

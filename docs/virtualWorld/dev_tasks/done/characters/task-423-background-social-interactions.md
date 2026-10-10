@@ -138,7 +138,7 @@ runs for the mover (task-425's deferred perception trigger).
   the player, because `observe_area` only runs for the mover — a perception
   trigger, deferred by task-425's non-goals.)
 
-## Goal
+## What
 
 Two co-present background characters pick a social action; rules, relationship
 and traits decide which one and how it lands; **each side records its own
@@ -161,7 +161,7 @@ No LLM in the tick. Deterministic, seeded, replayable.
 | `decision_utils.call_llm_for_choice` | **replace** — a weighted band draw; the background tier never calls an LLM |
 | Neo4j, day granularity, milestone hazard functions, 1.3MB event tables | **do not import** |
 
-## Design
+## How
 
 ### 1. Action vocabulary and per-character weights
 
@@ -290,7 +290,7 @@ outcome table's input rather than inventing new thresholds.
 - Multi-party (3+) interactions, groups, or overheard conversations.
 - Fertility/children, romance trees, or family structures beyond closeness.
 
-## Verification
+## Steps to verify
 
 - Unit: weighted draw respects trait modifiers over N seeded samples.
 - Unit: outcome tiers map to the expected per-side deltas; the sign rule holds
@@ -303,3 +303,11 @@ outcome table's input rather than inventing new thresholds.
   without a prior interaction.
 - Soak: week at 1 and at 15 min/tick, identical interactions-per-hour; survival
   unchanged (task-410 remains the food-limited constraint).
+
+## Why
+
+TODO
+
+## Files
+
+- TODO

@@ -1,4 +1,11 @@
-﻿# Social Vital: Communication & Interaction
+---
+type: task
+status: review
+area: characters
+priority: medium
+---
+
+# Social Vital: Communication & Interaction
 
 **Filed**: 2026-07-30  
 **Priority**: Medium  
@@ -6,7 +13,7 @@
 
 ---
 
-## Problem
+## Why
 
 The Social vital decays over time but has no natural way to increase except via manual actions. Characters should gain Social from talking (to others or themselves), and traits should modify how this works.
 
@@ -29,3 +36,25 @@ The Social vital decays over time but has no natural way to increase except via 
 - [[review/characters/task-28-character_needs_system|task-28: Character needs system]]
 - `player.py` — vitals, traits
 - `engine/tick_manager.py`
+
+## What
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

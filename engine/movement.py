@@ -815,6 +815,16 @@ class MovementSystem:
             encumbrance_cost = self._get_encumbrance_energy_cost()
             if encumbrance_cost:
                 self.gs.apply_action("move", {"energy": encumbrance_cost}, player=self.gs.player)
+            # Settled snow (task-556): the destination's depth, not its weather
+            # word, is what costs. Deeper snow costs more energy, so clearing
+            # weather keeps slowing travel until the snow actually thaws. Import
+            # locally: movement is loaded very early and snow rules live in the
+            # weather engine.
+            from engine.weather_forecast import snow_movement_energy
+            snow_cost = snow_movement_energy(
+                (target_area_node.properties.get("environment", {}) or {}).get("snow_depth"))
+            if snow_cost:
+                self.gs.apply_action("move", {"energy": snow_cost}, player=self.gs.player)
         # Fire on_enter triggers on the door (e.g., auto-close behind player,
         # fear saves on "fleshy orifice" doors) — game_state so save gates work
         enter_outputs = self.triggers._execute_triggers(

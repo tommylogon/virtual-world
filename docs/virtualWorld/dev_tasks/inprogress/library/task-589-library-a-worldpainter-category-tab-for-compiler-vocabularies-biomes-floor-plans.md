@@ -13,7 +13,7 @@ related: [task-588, task-495, task-568, task-569, task-571, task-573, task-716, 
 **Related:** task-588, task-495, task-568
 **Blocked by:** task-588 (the tab's shape depends on where the data ends up)
 
-## Goal
+## What
 
 Surface biomes and interior floor plans in the library so an author can read and search them, without pretending they are materializable entities. Every current REGISTRY_TYPE can be placed into a world (`materialize_library_item`, `placeItemFromLibrary`); a biome is read by a compiler and an interior plan is instantiated by `interior_gen`, so they need a second kind of library entry: **browsable vocabulary, no place action**.
 
@@ -156,3 +156,21 @@ selector and per-type **New** defaults list all five.
    `world_template.json`); `behaviours/` is registered (1 file), `structures/`
    registered (0). The register-vs-migrate choice is task-761's, and it will not
    delete `rooms` merely for being unregistered.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

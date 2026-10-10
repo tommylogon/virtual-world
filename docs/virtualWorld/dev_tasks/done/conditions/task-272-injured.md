@@ -1,5 +1,8 @@
-﻿---
-group: Conditions
+---
+area: conditions
+type: task
+status: done
+priority: medium
 ---
 
 # Condition: Injured (`injured`)
@@ -11,7 +14,7 @@ group: Conditions
 
 ---
 
-## Purpose
+## What
 
 A wounded body part (light/moderate/severe). Uses `level` for severity and `ends_on: ["fix"]` so healing removes it. Core to injury â†’ healing gameplay.
 
@@ -75,3 +78,24 @@ A wounded body part (light/moderate/severe). Uses `level` for severity and `ends
 - Is "severe injury" just a high `level`, or a separate condition (e.g. a broken bone â†’ `prone` with `ends_on: ["fix"]`)?
 - `speed_mult 0.95` baseline vs. level-scaled — decide.
 
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

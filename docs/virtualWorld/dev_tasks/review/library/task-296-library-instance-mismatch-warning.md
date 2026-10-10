@@ -1,6 +1,10 @@
 ---
-group: Library
+area: library
+type: task
+status: review
+priority: medium
 ---
+
 # Warn on Library/Instance Mismatch
 
 **Filed**: 2026-08-19
@@ -33,3 +37,29 @@ Warn when an instanced entity's properties no longer match its selected template
 
 - `developer ideas.md` line 3
 - `data/library/items/*.json`, `routes/library_routes.py`
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

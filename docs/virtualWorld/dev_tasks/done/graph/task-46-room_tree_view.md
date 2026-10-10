@@ -1,13 +1,16 @@
 ---
-group: Graph & Area UX
+area: graph
 wiki: "[[World Building/Graph System]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Area Tree Overview (under Analyze)
 
 **Priority**: Medium
 
-## Summary
+## What
 
 Add a collapsible tree view to the existing Analyze button showing all rooms, their descriptions, exits, items, and characters present — a hierarchical overview of the complete world state.
 
@@ -47,7 +50,25 @@ Add a collapsible tree view to the existing Analyze button showing all rooms, th
 - Click the Analyze button. Verify a collapsible tree view appears showing all rooms, their descriptions (truncated at 120 chars with "more" link), exits with directions, items, and characters.
 - Click ▶ toggles to expand/collapse room details. Click 📋 to copy tree to clipboard.
 
-## Files Changed
+## Files
 
 - `static/js/graph-manager.js` — rewrite `showAnalysis()` with tree rendering + toggle
 - `static/css/style.css` — add tree indentation, toggle, and item styles
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-10-08
 **Related:** task-685, task-690, task-404, task-724, task-366
 
-## Goal
+## What
 
 Unify the character's separate knowledge stores (known, crafting_known/recipes, known locations, known_way_aspects) with the memory model so one prose+data record shape carries all learned content. Keep distinct lifecycles: episodic memories tick/decay/emotion-weight; semantic and procedural knowledge are stable and do not fade on the event curve. discovered_exits and visited_areas stay derived indexes over the graph, not persisted stores.
 
@@ -37,7 +37,7 @@ self.discovered_exits = set()          self.known_way_aspects = {}
 self.discovered_items = set()          self.visited_areas = set()
 ```
 
-## Design
+## How
 
 One knowledge/memory **record** (prose + data + `kind` + salience + rehearsal),
 with a **lifecycle curve per kind** — not a binary "episodic decays, semantic
@@ -90,3 +90,17 @@ they should not age at the same rate. The model unifies the *shape*; the
 - [ ] Existing saves and scenarios round-trip.
 - [ ] A targeted test proves a semantic record survives a decay pass that trims
       an episodic one.
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

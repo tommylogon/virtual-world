@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-10-01
 **Related:** task-519, task-619, task-513, bug-516
 
-## Goal
+## What
 
 Bring the Kraktooth cast rename + equipment rework to a consistent, recorded state, or revert it. Currently it exists only as staged git renames and half-edited JSON with no task tracking it.
 
@@ -111,3 +111,21 @@ placeholder names (`player_Eldenford_Blacksmith` and the other four, at
 files alone guarantees a duplicate on the next save, which is exactly how
 `Eldenford Merchant.json` came to exist. The rename cannot be completed in the
 library in isolation.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

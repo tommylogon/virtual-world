@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-10-07
 **Related:** task-340, task-692, task-245
 
-## Goal
+## What
 
 Add a fourth character control mode, 'directed', beside npc / human / llm: the character's LLM still generates its turn (nudge -> action, speech, inner monologue, emote, emotion, memory) but does NOT act on its own. Instead the HTC modal opens pre-filled with the generated draft, the director may edit any field, reroll any field individually, or chat with a director prompt to guide a regeneration, then press Act to commit through the existing compose-then-commit path. Design-only for now.
 
@@ -86,3 +86,21 @@ vocabulary every badge already uses.
 ## Notes
 
 Design-only. Not implemented.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

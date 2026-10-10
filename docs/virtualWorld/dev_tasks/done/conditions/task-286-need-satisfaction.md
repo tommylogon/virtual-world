@@ -1,6 +1,8 @@
 ---
-group: Conditions
+area: conditions
 status: done
+type: task
+priority: medium
 ---
 
 # Condition: Satisfied (`satisfied`)
@@ -12,7 +14,7 @@ status: done
 
 ---
 
-## Purpose
+## What
 
 The pleasant post-release state. Arousal resolves and the character is contented, calm, and (briefly) resistant to further arousal. The natural endpoint of `frantic`/`release`/climax.
 
@@ -71,3 +73,25 @@ The pleasant post-release state. Arousal resolves and the character is contented
 - Refractory period: how long before the character can be re-aroused (drain rate vs. `default_duration`)?
 - Should `satisfied` carry any combat/behavioral "relaxed" trait (fewer aggressive options), or stay neutral?
 - Does `satisfied` interact with `overstimulated`'s exclusion both ways (overstimulated excludes satisfied)? Currently only one direction is declared.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

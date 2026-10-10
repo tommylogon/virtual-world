@@ -1,5 +1,8 @@
-﻿---
-group: Trigger System
+---
+area: triggers
+type: task
+status: done
+priority: medium
 ---
 
 # Trigger to Change View-from-Direction
@@ -10,11 +13,11 @@ group: Trigger System
 
 ---
 
-## Problem
+## Why
 
 What you see through a way should change dynamically. Today the view through a connection is static; a trigger cannot update the scene the player perceives when looking through a door, window, or opening.
 
-## Design
+## How
 
 - This is way METADATA — `see_through`, `description`, and visibility rules live in `area_description.py`, not on the edge itself.
 - A trigger can mutate that way metadata so the same connection shows a different scene based on state.
@@ -25,3 +28,16 @@ What you see through a way should change dynamically. Today the view through a c
 - `engine/area_description.py` — expose way metadata (see_through, visibility) as trigger-mutable state
 - `engine/trigger_system.py` — trigger type that changes the view-from-direction
 
+## What
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

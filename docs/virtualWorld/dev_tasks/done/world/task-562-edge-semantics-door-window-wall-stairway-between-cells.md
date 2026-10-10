@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-27
 **Related:** task-560 task-561 task-563 task-564 task-525 task-552
 
-## Goal
+## What
 
 Painting a plan needs to say how two cells connect, not only what each cell is. A
 Japanese high-school plan (brown hallways that merge, 4 gray cells that merge into
@@ -93,3 +93,21 @@ area and every adjacency became an open way. Also: cells that are not places.
 - The high school plan has no *room* vocabulary yet: `classroom`, `hallway` and
   `stairway` are not in the taxonomy, so the tests use real ids and the plan test
   accepts the WARNING. A room/interior vocabulary is worth filing.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

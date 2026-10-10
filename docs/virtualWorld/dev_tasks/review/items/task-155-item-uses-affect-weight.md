@@ -5,8 +5,9 @@ status: review
 priority: medium
 created: 2026-08-02
 tags: [items, weight, containers, realism, inventory, merging]
-group: Equipment & Inventory
+area: items
 wiki: "[[Items & Inventory/Inventory]]"
+type: task
 ---
 
 # Task 155: Item Uses Affect Weight & Stackable Instances
@@ -17,7 +18,7 @@ wiki: "[[Items & Inventory/Inventory]]"
 
 ---
 
-## Summary
+## What
 
 Two related concerns for multi-use consumable items:
 
@@ -27,7 +28,7 @@ Two related concerns for multi-use consumable items:
    (e.g. two breads), they should be combinable / splittable rather than managed as
    separate nodes, with weight and uses correctly merged or partitioned.
 
-## Problem
+## Why
 
 ### Weight is static
 
@@ -43,7 +44,7 @@ nodes. The player can't merge them into one 8-use 1.0 kg loaf, split one into tw
 or destroy a partial loaf to top up another. This clutters inventory and makes weight
 accounting wrong when uses are consumed on only one copy.
 
-## Design
+## How
 
 ### A. Weight Per Unit
 
@@ -139,7 +140,7 @@ When an item has many uses and you want to divide it:
 6. `static/js/inspector/inventory-grid.js` — stack context menu (combine/split/destroy)
 7. `engine/matching.py` — numbered match disambiguation for combine/split targets
 
-## Testing
+## Steps to verify
 
 - [ ] Bread with 4 uses at 0.5kg → after eating 1 use, weight = 0.375kg
 - [ ] Bread with 4/4 uses → weight = full `base_weight`
@@ -157,3 +158,11 @@ When an item has many uses and you want to divide it:
 - [[review/items/task-103-weight-volume-container-limits|task-103: Weight/Volume Limits for Containers]]
 - [[todo/items/task-205-player-carry-capacity-system|task-205: Player Carry Capacity System]]
 - [[todo/items/task-102-progressive-item-status-multi-use.md|task-102: Progressive Item Status]]
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

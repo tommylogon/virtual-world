@@ -53,5 +53,32 @@ speech (+2), give (+5), and combat (-30); several save/label/guidance defects fo
 - **Derive relationships from memories (#8)** — seeded `closeness:0` can contradict authored memories of prior acquaintance; deicde whether to auto-derive or keep as an authoring invariant.
 
 ## Related
+
 - [[Characters/Relationships System]]
 - [[AI & Narration/Agent Engine]] (task-94 closeness gates behavior)
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

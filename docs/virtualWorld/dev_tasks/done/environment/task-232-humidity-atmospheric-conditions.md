@@ -1,14 +1,15 @@
 ---
-group: Environment & Climate
+area: environment
 status: done
 priority: low
 filed: 2026-08-15
 supersedes: [task-130-air-vacuum-atmospheric-effects.md, task-195-humidity-in-areas.md]
+type: task
 ---
 
 # Task 232: Humidity & Atmospheric Conditions
 
-## Summary
+## What
 
 Add `humidity` as an area environment property with gameplay effects on effective temperature, item drying, and stealth. Expand `air` propagation so smoke, poison gas, and other atmospheric conditions can spread through open connections.
 
@@ -66,7 +67,7 @@ Air propagation is **slower** than heat propagation.
 
 Flooding spreads to lower-connected areas through open doors (water flows downhill). Use area height metadata or simple direction-based spread.
 
-## Files Affected
+## Files
 
 1. `engine/area.py` — add `humidity` to default environment
 2. `engine/equipment_bonuses.py` — humidity modifier on effective_temp
@@ -80,7 +81,7 @@ Flooding spreads to lower-connected areas through open doors (water flows downhi
 
 - **Blocked by**: task-227 (forecast provides humidity), task-231 (wind affects drying)
 
-## Testing
+## Steps to verify
 
 - Humid area feels +2°C warmer than actual temp
 - Wet items in humid air dry 2x slower than in dry air
@@ -98,3 +99,15 @@ ways, arriving as `hazy` first, slower than heat) wired into tick, and wet-item
 drying driven by humidity (dry 0.25/tick, humid half, wet quarter, flooding 0)
 with a wind speed-up. Flooding spread is covered by task-233's `flooded`
 status propagation.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-10-07
 **Related:** task-42, task-691, task-714, task-729, task-404
 
-## Goal
+## What
 
 Add a conversational memory-authoring flow to the Mind panel: the designer states something the character might have experienced, and the character (per its personality, existing memories, relationships and emotional state) responds in its own voice about what it would think, remember and feel. The exchange iterates until the designer accepts, and the accepted turn becomes a real memory. Replaces the current one-shot theme-to-JSON seed draft with an interactive, character-driven flow.
 
@@ -70,3 +70,21 @@ This replaces the one-shot theme-to-JSON draft; it does not add a new memory sto
 - Whether the saved memory gets a distinct `source` (e.g. `manual:authored`) so an
   authored memory is distinguishable from a lived one. bug-519 shows editorial
   residue must be identifiable.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

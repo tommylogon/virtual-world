@@ -1,4 +1,11 @@
-﻿# Light-Level Dependent Area Descriptions
+---
+type: task
+status: review
+area: environment
+priority: medium
+---
+
+# Light-Level Dependent Area Descriptions
 
 **Filed**: 2026-07-30  
 **Priority**: Low  
@@ -17,13 +24,13 @@
 
 ---
 
-## Summary
+## What
 
 Generate different area descriptions based on current light level — a room looks different in bright daylight vs pitch darkness vs dim torchlight. Characters in the same room with different light sources or darkvision see different descriptions.
 
 ---
 
-## Problem
+## Why
 
 Currently area descriptions are static regardless of lighting. A room described as "a cozy library with warm oak shelves" reads the same in pitch darkness. Light level affects vitals (comfort, damage) but not the descriptive text.
 
@@ -45,3 +52,21 @@ Currently area descriptions are static regardless of lighting. A room described 
 - [[done/prompting/task-121-people-in-darkness-sensory-cues|task-121: People in darkness sensory cues]]
 - [[todo/environment/task-230-outdoor-lighting-time-of-day|task-230: Time-of-Day Outdoor Lighting]]
 - [[review/environment/task-126-tag-based-light-and-heat-sources|task-126: Tag-based light and heat sources]]
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

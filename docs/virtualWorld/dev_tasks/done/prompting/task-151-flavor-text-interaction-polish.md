@@ -1,6 +1,10 @@
 ---
-group: Tech Debt & Testing
+area: prompting
+type: task
+status: done
+priority: medium
 ---
+
 # Task 151: Flavor Text Interaction Polish
 
 **Filed**: 2026-07-31  
@@ -9,13 +13,13 @@ group: Tech Debt & Testing
 
 ---
 
-## Summary
+## What
 
 Polish the interaction layer so that attempts to interact with objects that only exist in descriptive text (flavor text) produce in-character narrative responses instead of technical "not found" errors. Also improves the WITNESSED prompt section.
 
 ---
 
-## Changes
+## How
 
 ### 1. Descriptive-target fallback for "use X on Y" ✅
 **File**: `engine/item_actions.py` — `_descriptive_target_failure()`
@@ -55,7 +59,7 @@ The `[WITNESSED DEBUG]` and `[AGENT DEBUG]` console logs added during the WITNES
 
 ---
 
-## Tests
+## Steps to verify
 
 Added `tests/test_descriptive_targets.py` (6 tests):
 - Flavor target match returns narrative sentence
@@ -82,3 +86,15 @@ Added `tests/test_descriptive_targets.py` (6 tests):
 
 - Task 149: Sound Propagation System
 - Task 150: Prompt Builder Bug Fixes
+
+## Why
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

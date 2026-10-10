@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-24
 **Related:** task-9, task-3, task-408
 
-## Goal
+## What
 
 Turn the six-goblin gear matrix into real `data/library/items/*.json` templates
 via a compact, reviewable spec, so the kit exists, validates, and can be
@@ -92,8 +92,20 @@ not block the batch on new slots.
 - New engine mechanics for concealment (task-516), ownership (task-515) or
   ammunition (task-518); those get their own fields once decided.
 
-## Verification
+## Steps to verify
 
 - `python tools/gen_library_items.py --check` (compile-twice equality).
 - `python tools/lint_library.py`.
 - Targeted item/library tests via `python -m pytest tests/ -q`.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Files
+
+- TODO

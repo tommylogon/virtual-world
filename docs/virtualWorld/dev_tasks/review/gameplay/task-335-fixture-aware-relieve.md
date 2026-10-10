@@ -1,3 +1,10 @@
+---
+type: task
+status: review
+area: gameplay
+priority: medium
+---
+
 # Task 335 — Fixture-aware relieve + turn-message polish
 
 **Status:** In Review — all four items closed 2026-08-24. Toilet-aware
@@ -64,7 +71,7 @@ to verify), but `relieve` itself still has no notion of toilet fixtures.
    42). Same family as the second-person converter gotcha (guide §20);
    strip/merge leading name+pronoun pairs in emote rendering.
 
-## Verification
+## Steps to verify
 
 - Panel-submitted `{action:'eat', item:'burrito'}` → `eat burrito`
   (normalizer cases added); raw text `eat burrito` unchanged
@@ -74,3 +81,19 @@ to verify), but `relieve` itself still has no notion of toilet fixtures.
   friendly error. Full suite: 1116 passed.
 - Relieve fixture branching + emote pronoun fix verified by code read
   (landed in earlier sessions). Browser E2E still pending.
+
+## What
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

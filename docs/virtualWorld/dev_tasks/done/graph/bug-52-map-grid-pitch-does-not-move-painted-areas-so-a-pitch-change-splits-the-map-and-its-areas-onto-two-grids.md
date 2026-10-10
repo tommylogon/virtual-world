@@ -36,7 +36,7 @@ kept whatever pitch they were last saved at (40px), while
 Measured on the goblin camp before the fix: pitch 260, art `5200 × 1743`
 (= 20 × 260, letterboxed), areas still at 40px/cell.
 
-## Fix
+## How
 
 - A node carrying `properties.cell` is **always** placed at its cell. The flag is
   about physics, and the lattice is not physics: for a painted node the cell *is*
@@ -55,7 +55,7 @@ Measured on the goblin camp before the fix: pitch 260, art `5200 × 1743`
   (Checked the saved world: no drift had happened yet — all 21 areas were exactly
   `cell * 40`.)
 
-## Tests
+## Steps to verify
 
 - `test_graph_layout_engine.js`: a painted area and a placed way are placed at
   `cell * pitch` with physics off, while a frozen area *without* a cell is left
@@ -78,3 +78,19 @@ whole world, read by both `GraphLayoutEngine.mapSpacing()` (the lattice) and
 `_mapUnitsPerCell()` (the art). It is also **Map-layout only** — in Graph layout
 the areas sit on their saved positions and the toolbar says so, so raising the
 pitch there does nothing by design.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

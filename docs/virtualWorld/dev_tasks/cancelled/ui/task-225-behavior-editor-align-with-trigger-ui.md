@@ -1,5 +1,8 @@
 ---
-group: UI - NPC Behaviors
+area: ui
+type: task
+status: cancelled
+priority: medium
 ---
 
 # Behavior Editor — Align with Trigger Graph Editor UX
@@ -20,3 +23,29 @@ The flat `behaviors-view.js` form still exists alongside it (toggle views),
 and the compound-condition plain-JSON area remains for authors who prefer it,
 but the graph editor is the modern path. Any remaining gaps (blueprint mode,
 dry-run) are tracked in task-226's deferred list.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

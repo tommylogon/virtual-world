@@ -1,6 +1,8 @@
 ---
-group: Pleasure System
+area: characters
 status: done
+type: task
+priority: medium
 ---
 
 # Body State & New Vitals (Arousal/Stimulation/Pleasure)
@@ -11,11 +13,11 @@ status: done
 
 ---
 
-## Problem
+## Why
 
 There's no per-body-part numeric state and no arousal system. The design calls for a lightweight `body_state` dict on the Player plus three new vitals, all feeding existing condition/decay infrastructure.
 
-## Design
+## How
 
 - Add `player.body_state` dict: `nipples` (left/right: hardness, puffiness, flush, sensitivity, injury, pierced), `cheeks` (flush), `genitals` (erection, wetness, sensitivity, injury). Quick numeric lookups only — body parts are NOT graph nodes.
   - **Shipped:** the dict exists, keyed by body region id, with `sensitivity` seeded from the catalog (nipples 0.9/0.7) — `engine/body_parts.py::default_body_state`, `player.py:141`.
@@ -30,7 +32,7 @@ There's no per-body-part numeric state and no arousal system. The design calls f
 - `engine/body_parts.py` — `default_body_state()` (`:265`) and nipple sensitivities (`:127`, `:132`)
 - `engine/vitals.py` — Arousal/Stimulation/Pleasure classified as decaying resources (`:36-38`)
 
-## Testing
+## Steps to verify
 
 - [x] `body_state` initializes with correct defaults (nipples 0.9/0.7 sensitivity) — `tests/test_body_parts.py`
 - [x] New vitals appear in player vitals with correct range 0-100 — `tests/test_pleasure_system.py`
@@ -39,3 +41,11 @@ There's no per-body-part numeric state and no arousal system. The design calls f
 ## Related
 
 - `dev_tasks/# Nipple & Erogenous Zone System - Desig.md` — §1, §4, Phase 1
+
+## What
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

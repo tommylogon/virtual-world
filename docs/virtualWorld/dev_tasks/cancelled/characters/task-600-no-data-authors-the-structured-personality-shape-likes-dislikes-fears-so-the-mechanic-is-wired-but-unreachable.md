@@ -11,7 +11,7 @@ related: [task-593, bug-514, task-599, task-601]
 **Filed:** 2026-09-30
 **Related:** task-593, bug-514, task-599
 
-## Goal
+## What
 
 engine/character_appearance.py reads a structured personality object with likes, dislikes, fears, kinks and turn_offs (PERSONALITY_FIELDS at :51, consumed at :146, :364, :383, :414) and tests cover it, but every character in data/ authors personality as a plain prose string instead - all 23 Kraktooth characters, and the library characters. The mechanic is implemented, wired and tested but no content can reach it, so it is untested in the simulation. Two things to settle: author the structured shape for a representative character or two so the wired mechanic can actually occur, and decide how the prose-string and structured-object forms of the same field are meant to coexist.
 
@@ -141,3 +141,21 @@ the thing at all.
 
 This is the ninth finding in the live audit retracted after checking it against
 the running app rather than against the markup.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

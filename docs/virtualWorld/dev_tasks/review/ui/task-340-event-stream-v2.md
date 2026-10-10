@@ -1,3 +1,10 @@
+---
+type: task
+status: review
+area: ui
+priority: medium
+---
+
 # task-340 — Event Stream v2: who/what/where/outcome/debug/story
 
 **Status**: In Review — implemented 2026-08-24, all touched files pass `node --check`,
@@ -103,7 +110,7 @@ tracker (she stops retrying dead ends) and to the stream (✕ not ✓).
   recall note stay visible (flex-shrink: 0).
 - **Pills tightened**: smaller padding/font so phase markers read as chips, not rows.
 
-## Verification
+## Steps to verify
 
 - `node --check` green on event-stream.js, llm-client.js, agent-engine.js and all six
   new stream/* modules.
@@ -119,3 +126,23 @@ tracker (she stops retrying dead ends) and to the stream (✕ not ✓).
 - Replay/story EXPORT button (story mode currently view-only)
 - Set window._lastRecallStats in prompt-builder/memory-context.js for recall annotation
 - Trigger provenance chips (node-id threading from backend)
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

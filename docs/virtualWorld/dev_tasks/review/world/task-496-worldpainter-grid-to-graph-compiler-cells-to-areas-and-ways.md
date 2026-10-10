@@ -14,7 +14,7 @@ priority: high
 
 **Overlaps task-398.** task-398 already owns the deterministic generation contract (the `GenerationPatch` shape, provenance, apply-once, "a manual edit survives a second run"). This task is the *painted-grid recipe* — wilderness/road/biome tiles + region-merge — that should emit a `GenerationPatch` through 398's contract rather than a parallel generator. Decide whether to fold it into 398 or keep it as the grid recipe.
 
-## Goal
+## What
 
 Compile a painted scope grid into the existing area/way node+edge format: cells become areas (optionally region-merged by biome via flood-fill), adjacent cells get ways (direction, open/see_through, floor), and areas get tags, environment, floor and world_scope_id. Descriptions are deterministic templates over (own tile + 4 neighbours + exits/directions), reusing visible_in_direction (engine/area_description.py); no LLM at lattice scale. Emit into the scenario/library formats so the engine is unchanged. Decide grid-canonical vs baked-and-hand-edited per zone to avoid the task-289/290/317 clobber trap.
 
@@ -296,3 +296,20 @@ records, via `engine.biomes.ground_surface`). Changed:
   capped at ±10** (that cap quietly truncated a skyscraper at ten floors), and
   every consumer coerces a legacy non-numeric value to ground.
 
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

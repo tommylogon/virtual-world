@@ -1,9 +1,16 @@
+---
+type: task
+status: done
+area: ui
+priority: medium
+---
+
 # Task-246: Graph — Show All or Selected Floors of Areas
 
 **Status:** Done — implemented 2026-08-16, live-verified. Moved to review/.
 **Source:** `dev_tasks/developer ideas.md` (option to show all or select floors of areas only)
 
-## Goal
+## What
 
 Add a graph filter to show all areas or a selected floor/subset of areas (e.g. basement /
 ground / upper), so large multi-floor scenarios can be navigated without clutter.
@@ -19,7 +26,7 @@ ground / upper), so large multi-floor scenarios can be navigated without clutter
   floor plus their unlinked children are omitted; edges to hidden endpoints skipped; the
   items/triggers toggles still gate their respective node kinds).
 
-## Implementation
+## How
 
 - `static/js/graph-manager.js`: added `_floorFilter`/`_floorOptions` state,
   `setFloorFilter()`, `refreshFloorOptions()`, `floorFilterActive()`.
@@ -28,9 +35,21 @@ ground / upper), so large multi-floor scenarios can be navigated without clutter
   those render, and edges whose endpoints are hidden are skipped. Populates the picker after load.
 - `templates/index.html`: added the floor filter `<select>` to the graph toolbar.
 
-## Verification
+## Steps to verify
 
 - `node --check` on both JS files; `pytest` guard suites pass (62).
 - Live (world has floors 0 and -1): All floors → 51 nodes (areas on 0 and -1). Floor "0" →
   only 0-floor areas + children. Floor "-1" → only the 1 cellar area + its 4 children.
   Composes with item/trigger toggles.
+
+## Why
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-23
 **Related:** task-491
 
-## Goal
+## What
 
 Write the canonical technical page for the item/action model so these rules are discoverable without reading code: the actions list as the capability gate (take_item raises when 'take' absent, take_drop_actions.py:388-393), reach rules (engine/item_reach.py), depletion branching (generic use detaches; lit carried -> unlit + on_depleted; lit area -> burned out + removed; armor -> broken; food -> consume path), container nesting, and the planned part/component contract. Patterns to imitate: the item_reach.py module docstring and engine/item_actions.py facade docstring.
 
@@ -43,3 +43,21 @@ Two findings the page records that differ from the task's shorthand:
 - [~] "Registered in the docs index": the vault has no separate note index to
       register into; reachability is via [[Items Overview]] / the Feature Map,
       not a registry edit.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

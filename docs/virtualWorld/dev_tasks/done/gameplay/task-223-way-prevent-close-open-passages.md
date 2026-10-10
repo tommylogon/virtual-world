@@ -1,6 +1,9 @@
 ---
-group: Gameplay
+area: gameplay
 wiki: "[[dev_tasks/level-design-workflow]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Way State Guards — prevent_close for Pits, Ladders, Open Shafts
@@ -11,17 +14,16 @@ wiki: "[[dev_tasks/level-design-workflow]]"
 
 ---
 
-## Problem
+## Why
 
 Any way including open jump pits and ladders can be closed via area inspector **Open/Close** buttons (`toggleDoorState`) or triggers that set `current_state: closed`. For labs Task 18 jump pit and ladder shaft, closing would nonsensically "shut" an open hole or climbable ladder.
 
 Nothing in the engine prevents this today. but i do want to allow triggers to still open or close ways.
 
-## Goal
+## What
 
 If a way has  traversal type of jump, climb or crawl, do not allow charaters to close or open those by doing open "way name" or close "wayname", only allow via triggers.
 - Blocks player/agent `close` actions on that way
-
 
 ## Use cases
 
@@ -31,16 +33,14 @@ If a way has  traversal type of jump, climb or crawl, do not allow charaters to 
 | Ladder (`requires: climb`)  |
 | Normal door | false |
 
-
-
-## Implementation
+## How
 
 - `engine/movement.py` — refuse character open/close on jump/climb/crawl ways and `prevent_close` flags (`_open_passage_block` in `toggle_way` + `toggle_way_by_id`)
 - `static/js/main.js` — `toggleDoorState` (inspector Open/Close buttons) uses the direct node PATCH instead of the action route, keeping the inspector fully authoring-capable
 - `static/js/inspector/way-view.js` — **☐ Prevent closing (open passage)** checkbox (passage tab), saved to node + library sync
 - Way node properties + serialization (`prevent_close` through save/refresh/library)
 
-## Verification
+## Steps to verify
 
 - [x] Jump way: character `close`/`open` refused, state unchanged
 - [x] Normal door: still closable/openable by characters
@@ -52,3 +52,11 @@ If a way has  traversal type of jump, climb or crawl, do not allow charaters to 
 
 - [[todo/ui/task-220-unified-way-editor|task-220]]
 - User way templates — set default for pit/ladder templates
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

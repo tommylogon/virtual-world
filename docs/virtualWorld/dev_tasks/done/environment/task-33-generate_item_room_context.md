@@ -1,6 +1,9 @@
 ---
-group: Agent AI & Behavior
+area: environment
 wiki: "[[World Building/Rooms & Areas]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Generate Item: Pass Area Description as AI Context
@@ -11,11 +14,11 @@ wiki: "[[World Building/Rooms & Areas]]"
 
 ---
 
-## Summary
+## What
 
 When generating an item via AI (from the create modal or item library), the room description is not passed to the LLM. This means generated items are generic and not thematically aligned with the room they're placed in.
 
-## Current State
+## Why
 
 In `main.js:generateWithAI()` (line 308-311), the AI generation prompt for items is:
 
@@ -62,7 +65,21 @@ Respond ONLY with raw JSON matching the form fields. No markdown.
 - Open the create modal for an Item, select a target room. Type an AI prompt, ensure "🧠 Use world context" is checked. Click Generate. Verify the generated item matches the room's theme.
 - Uncheck "Use world context", generate again. Verify the output is more generic (no room-specific styling).
 
-## Files Affected
+## Files
 
 - `static/js/main.js` — add room context to item AI generation in create modal
 - `static/js/item-library.js` — add room context to library's AI generation
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

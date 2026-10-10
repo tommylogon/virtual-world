@@ -31,7 +31,7 @@ Hand-nudging the rect was also the wrong *mechanism*: since bug-51 the art is
 discarded on the next render — two sources of truth that disagree, and the drag's
 own movement lost on reload.
 
-## Fix
+## How
 
 One source, one answer, the same as everywhere else:
 
@@ -53,3 +53,25 @@ Live, on the author's world, dragging west_woods: the offset moved
 (-4.39, -3.26) → (-0.71, -1.42) cells and the **west woods** art followed,
 (-1271, 889) → (-315, 1367), while the **goblin camp** art stayed exactly where it
 was at (-1467, -634). The zone was then put back to the author's own offset.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

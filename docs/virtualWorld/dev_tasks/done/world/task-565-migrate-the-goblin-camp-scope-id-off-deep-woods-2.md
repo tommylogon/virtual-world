@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-27
 **Related:** task-560 task-496
 
-## Goal
+## What
 
 The scope's display name is already 'goblin camp'; the id is still deep_woods_2 because ids are minted once as a slug of the name at creation (routes/world_grid_ops.py:237) and the rename route only touches the display name. The project's rule is that ids change and display names do not, so the id is what is stale. Migrate deep_woods_2 -> goblin_camp: the world_scopes key, world_scope_id on all its areas, the parent's placements key, then regenerate the zone so area_deep_woods_2_x_y node ids follow. Check the OUTER deep_woods scope first - if it is genuinely a forest zone wrapping the camp, its id and name are correct as they are and only the interior changes. Scope ids are immutable by design, so this needs a one-off migration script, not a route.
 
@@ -98,3 +98,21 @@ carries one. So a scope-level query over ways returns nothing. That is a WorldPa
 compiler gap rather than a migration gap, so it is not fixed here, but it is the
 same class of problem this task is about: an area knows which scope claims it and a
 way beside it does not.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

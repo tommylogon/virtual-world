@@ -1,9 +1,13 @@
 ---
-group: Environment & Climate
+area: environment
+type: task
+status: done
+priority: medium
 ---
+
 # Task 141: Graph-scan lighting — convert remaining item JSONs + cleanup
 
-## Goal
+## What
 
 Replace the dual system of `player.item_statuses` + `effect_target/effect_amount` toggle tracking with a single emergent approach: items hold their own state (`current_state: "lit"` / `"unlit"`) and the lighting engine scans the graph to calculate room brightness.
 
@@ -127,7 +131,7 @@ The world item inspector (`item-view.js:286-296`) already shows `light_level` wh
 
 ---
 
-## Verification
+## Steps to verify
 
 1. Toggle each converted item on/off → correct light contribution
 2. Drop/pick up a lit lamp → room lighting adjusts immediately
@@ -136,3 +140,19 @@ The world item inspector (`item-view.js:286-296`) already shows `light_level` wh
 5. Serialization round-trip → state preserved (already on graph nodes)
 6. Graph overlay shows accurate light level
 7. Library editor shows `light_level` for `light_source` items
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

@@ -10,7 +10,7 @@ priority: low
 **Filed:** 2026-09-23
 **Related:** task-309
 
-## Goal
+## What
 
 Complete the still-open part of task-309: D&D-style damage resistance/immunity for incorporeal undead (resistance to nonmagical weapons, immunity to cold/necrotic/poison) and condition immunities (grappled/restrained/prone/exhausted/...). Engine hooks: engine/combat.py damage resolution and engine/conditions.py application.
 
@@ -140,3 +140,21 @@ No authoring surface. Nothing in `data/library` or a scenario carries a
 `["undead", "ghost"]` character yet, so the mechanic is reachable only from code.
 `data/library/characters/` and the scenarios are not this lane's to populate, and
 doing so would also want task-457's canonical node first.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

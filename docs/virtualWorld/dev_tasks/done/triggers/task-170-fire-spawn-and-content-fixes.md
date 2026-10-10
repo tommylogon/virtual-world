@@ -1,4 +1,11 @@
-﻿# Task-170: Fire Spawn & Content Fixes (ember burn-down, Culdron, flame messaging, burn-duration UX)
+---
+type: task
+status: done
+area: triggers
+priority: medium
+---
+
+# Task-170: Fire Spawn & Content Fixes (ember burn-down, Culdron, flame messaging, burn-duration UX)
 
 **Status:** ALL FOUR ISSUES LANDED AND LIVE-VERIFIED 2026-08-03 — backend green, live playtest passed, one bonus fix.
 **Source:** Verification playtest of the F1-F8 fixes (world_template scenario, Lyrie + Kaelen, 2026-08-02 evening session). All root causes verified against the live `data/autosave.json` and current engine code.
@@ -13,7 +20,7 @@
 
 ---
 
-## Goal
+## What
 
 Fix the four issues found while verifying the F1-F8 fixes in a live playtest:
 
@@ -180,3 +187,25 @@ The ember spawns with no hint of how long it lasts. The player (and the NPCs, wh
 - **Order:** Issue 1 first (engine root cause, unblocks real fire gameplay), then 2 & 3 (content + messaging), then 4 (UX). Issues 2-4 are independent of each other.
 - **Generalize the verification:** after Issue 1, any library item with `triggers` becomes spawnable-with-triggers — verify one second item (e.g. a lantern) to prove it's not ember-specific.
 - Related task: `todo/environment/task-174-fire-mechanic-heat-source.md` (F6, landed) — this task is the follow-up gap it left behind.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

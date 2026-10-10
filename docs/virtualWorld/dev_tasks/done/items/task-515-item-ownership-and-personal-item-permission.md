@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-24
 **Related:** task-20, task-450
 
-## Goal
+## What
 
 Let an item be personally owned so others cannot casually take or use it —
 Gribba's treasured Good Knife "nobody else may touch" — while keeping an
@@ -53,3 +53,21 @@ explicit, contested steal path.
 
 - A full property/faction law system.
 - Locked containers and keys (task-20).
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

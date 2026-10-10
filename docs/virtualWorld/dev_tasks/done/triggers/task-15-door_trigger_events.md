@@ -1,6 +1,9 @@
 ---
-group: Trigger System
+area: triggers
 wiki: "[[World Building/Doors & Connections]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Cross-Entity Trigger Effects (Target Any Node)
@@ -11,7 +14,7 @@ wiki: "[[World Building/Doors & Connections]]"
 
 ---
 
-## Summary
+## What
 
 Triggers need to target and modify arbitrary nodes (items, ways, areas, characters) — not just the trigger's source node or current room. Already proven: `front_way` `on_open` → `set_state` on `item_fireplace` works. This card expands to a full cross-entity effect system.
 
@@ -74,7 +77,7 @@ Effects:
 - `adjust_uses` → `node_id: "item_lockbox", delta: -1`
 - `spawn_item` → `item_id: "gold_coin"`
 
-## Verification
+## Steps to verify
 
 ### 1. `append_description` effect
 1. Open an item's trigger editor (e.g. a note/paper item)
@@ -120,3 +123,19 @@ Effects:
 - `app.py` — scenario_ended flags in API responses
 - `templates/index.html` — cancel button
 - `world_template.json` — locked state handling
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

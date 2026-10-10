@@ -1,14 +1,21 @@
+---
+type: task
+status: done
+area: triggers
+priority: medium
+---
+
 # Surface Skill Check Roll in Trigger Output
 
 **Filed**: 2026-07-19
 **Priority**: Medium
 **Status**: Done — verified 2026-08-03. Option A implemented: `_last_skill_check_msg` set in the skill_check condition paths (engine/trigger_system.py:287, 579) and appended to trigger outputs then reset (`:1252-1254`).
 
-## Summary
+## What
 
 When a trigger condition is of type `skill_check`, the roll result message (e.g., `"[Skill Check] Investigation vs DC 14 (medium): roll=15 + 2 = 17 => success"`) is discarded by `_evaluate_trigger_condition`. The player sees the `success_message` or `fail_message` from the trigger but never sees the actual dice roll.
 
-## Current State
+## Why
 
 `virtual_world_engine.py:1131-1135`:
 
@@ -24,7 +31,7 @@ elif ctype == "skill_check":
 
 Additionally, when the condition fails and the trigger's `fail_message` is shown (lines 1298-1301, 1308-1311), the roll still isn't included in the output.
 
-## Fix
+## How
 
 ### Option A: Store the roll message on the world instance
 
@@ -64,3 +71,13 @@ Instead of the engine adding the roll message, configure the trigger's `fail_mes
 
 - `virtual_world_engine.py:1131-1135` — `_evaluate_trigger_condition`
 - `virtual_world_engine.py:3920-3943` — `skill_check()`
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

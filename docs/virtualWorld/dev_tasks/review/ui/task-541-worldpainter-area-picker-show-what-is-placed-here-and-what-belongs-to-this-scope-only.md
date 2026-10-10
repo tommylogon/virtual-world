@@ -11,7 +11,7 @@ priority: medium
 **Related:** task-528, task-539, task-540
 **Status:** implemented 2026-09-27, in review
 
-## Goal
+## What
 
 Once membership is edited on the node (task-539), the place tool's dropdown should
 just answer "which areas belong to the scope I am painting?". It used to list
@@ -48,3 +48,21 @@ up in the world map's picker as if they belonged there.
 The old flat "📍 name (x,y)" chip row for already-placed areas is gone: those areas
 are now the first optgroup, with their cell, so the same information is in one
 place instead of two.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-27
 **Related:** task-545,task-547
 
-## Goal
+## What
 
 Characters have no species or faction field at all, so an animal, a goblin and a human are the same kind of thing to the simulation. Add a species/faction identity that the need layer can read.
 
@@ -187,4 +187,20 @@ round trip that was broken before `_serialize_player` learned about the field.
 - task-653 — occupancy, the sibling reader of the size axis
 - task-606 — scale-correct ability scores, which species and size both feed
 
+## Why
 
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

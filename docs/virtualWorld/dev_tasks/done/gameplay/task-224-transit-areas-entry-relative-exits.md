@@ -1,6 +1,9 @@
 ---
-group: Gameplay
+area: gameplay
 wiki: "[[dev_tasks/level-design-workflow]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Transit Areas — Entry-Relative Exit Labels (back / forward)
@@ -35,7 +38,7 @@ wiki: "[[dev_tasks/level-design-workflow]]"
 
 ---
 
-## Problem
+## Why
 
 **Between-rooms** are a first-class level-design pattern: ventilation shaft crawl, stair landing, elevator cage, chase tunnel, free-fall sequence (call out each turn), etc. The player stands in a **transit area** with two (or more) ways out.
 
@@ -50,7 +53,7 @@ From **inside**, the headscratcher:
 
 Text worlds lack 2D spatial relations; **entry-relative labeling** is the clean fix for transit areas.
 
-## Goal
+## What
 
 When a character enters a tagged **transit area**, remember **where they came from** via **character AT entry way** (graph edge — see [[todo/gameplay/task-135-character-item-spatial-relationships|task-135]]). While inside, the way they're AT is **back**; the other connection is **forward**.
 
@@ -163,7 +166,7 @@ Destination-sensory commands from inside shaft (`flutter` / `grate`) — no engi
 | UI tag | `static/js/inspector/area-view.js` |
 | Tests | `tests/test_transit_areas.py` — enter from A, back goes A; enter from B, back goes B |
 
-## Verification
+## Steps to verify
 
 - [ ] Task 18 shaft tagged transit: enter from Room 4 → look shows `[back]` to Room 4, `[forward]` toward Room 3
 - [ ] Same shaft, enter from Room 3 → back/forward swap
@@ -186,3 +189,15 @@ Destination-sensory commands from inside shaft (`flutter` / `grate`) — no engi
 ## Notes
 
 User quote: *"The crawl area is the point — landing between stairs, elevator, chase tunnel, free fall each turn. Text world has no north; entry-relative is the fix."*
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

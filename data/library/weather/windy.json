@@ -1,0 +1,14 @@
+{
+  "id": "windy",
+  "name": "Windy",
+  "kind": "normal",
+  "order": 3,
+  "icon": "💨",
+  "light_mult": 0.8,
+  "time_dc": 16,
+  "description": "",
+  "tags": [
+    "weather",
+    "sky"
+  ]
+}

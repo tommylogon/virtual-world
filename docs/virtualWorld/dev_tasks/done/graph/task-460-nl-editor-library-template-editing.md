@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-22
 **Related:** task-289, task-317, task-457
 
-## Goal
+## What
 
 Let the NL editor edit library registries, not just read them: create/update character, item, area, way and trait templates with schema validation and the mature-content filter, so archetype-level changes ('all goblins have darkvision') are possible and future spawns inherit. Wires the existing POST /api/library/<type> endpoints into ToolRouter with staged review.
 
@@ -36,3 +36,20 @@ Let the NL editor edit library registries, not just read them: create/update cha
 - [x] Tests: `tests/test_nl_editor_validation.py` (upsert writes the registry,
       bad registry/id refused, mature gate, delete).
 
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

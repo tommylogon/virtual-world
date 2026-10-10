@@ -1,14 +1,21 @@
+---
+type: task
+status: done
+area: triggers
+priority: medium
+---
+
 # Trigger Execution: Read from Node When Edge Properties Empty
 
 **Filed**: 2026-07-19
 **Priority**: High
 **Status**: Done — verified 2026-08-03. Conditions/effects now fall back to the target `logic_trigger` node when the edge properties are empty (engine/trigger_system.py:1192-1201 conditions, :1212 effects), plus a singular `condition` fallback.
 
-## Summary
+## What
 
 `_execute_triggers()` reads trigger conditions and effects ONLY from the **edge** properties. When a trigger edge has `"properties": {}` and the actual conditions/effects are on the **target trigger node**, the trigger fires with empty defaults — producing blank output.
 
-## Current State
+## Why
 
 `virtual_world_engine.py:1276-1287`:
 
@@ -51,7 +58,7 @@ Example: `world_template.json` Stone Table with Heating Rune, `on_take` trigger:
 
 Compare to the `on_examine` trigger edge (lines 799-824) which **does** have all properties inlined on the edge — this one works correctly.
 
-## Fix
+## How
 
 When edge properties are empty for conditions/effects, fall back to reading from the **target trigger node**:
 
@@ -83,3 +90,13 @@ Or more cleanly: always prefer edge properties, but if both edge and node lack t
 
 - `virtual_world_engine.py:1276-1287` — `_execute_triggers()`
 - `world_template.json:885-887` — affected trigger edge
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

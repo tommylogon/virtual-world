@@ -5,19 +5,21 @@ status: done
 priority: low
 created: 2026-08-02
 tags: [items, weight, vitals, movement]
+type: task
+area: items
 ---
 
 # Weight Affects Energy Decay
 
-## Summary
+## What
 
 Make carried weight affect energy cost, at least on movement. Carrying a heavy load should drain energy faster when moving.
 
-## Problem
+## Why
 
 `ACTION_COSTS["move"]` is a flat `{time: 1, energy: 1}` (virtual_world_engine.py:82) and movement applies it directly (engine/movement.py:245). Total carried weight is never factored in, so a character hauling a hundred kilos moves at the same energy cost as one carrying nothing.
 
-## Implementation
+## How
 
 - Compute total carried weight from `EDGE_CARRYING` edges to the player node
 - Add a weight threshold multiplier to the move energy cost: e.g. baseline `energy` cost scales up beyond a comfortable weight limit
@@ -31,7 +33,7 @@ Make carried weight affect energy cost, at least on movement. Carrying a heavy l
 2. `engine/movement.py` — pass carried weight into the move action cost
 3. `player.py` — optional carry capacity field
 
-## Testing
+## Steps to verify
 
 - [ ] Heavily loaded character loses more energy per move
 - [ ] Empty-handed character matches current cost (no regression)
@@ -41,3 +43,11 @@ Make carried weight affect energy cost, at least on movement. Carrying a heavy l
 ## Related
 
 - [[todo/items/task-155-item-uses-affect-weight|task-155: Item uses affect weight]]
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

@@ -1,9 +1,16 @@
-﻿# Task-356: Trigger Effect to Spawn an Area
+---
+type: task
+status: done
+area: triggers
+priority: medium
+---
+
+# Task-356: Trigger Effect to Spawn an Area
 
 **Status**: In Review — implemented 2026-08-30 (ways.py `spawn_area` — area node + env/tags/floor; duplicate = no-op)
 **Source:** discussion — triggers can currently `spawn_item` but not areas.
 
-## Goal
+## What
 
 Add a `spawn_area` trigger effect so triggers and behaviours can create a whole new area
 node (with environment) at runtime — e.g. an area that only exists after a ritual, or
@@ -31,3 +38,21 @@ when a character crosses a threshold.
 - `engine/trigger_validator.py` — schema/validation for new params.
 - `static/js/inspector/behaviors-view.js` + trigger editor — new effect entry + fields.
 - `docs/virtualWorld/` trigger docs — list `spawn_area`.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

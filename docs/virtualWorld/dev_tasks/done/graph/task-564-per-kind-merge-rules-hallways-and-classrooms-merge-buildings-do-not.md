@@ -10,11 +10,13 @@ priority: medium
 **Filed:** 2026-09-27
 **Related:** task-561 task-562 task-496
 
-## Goal
+## What
 
 Region merging is one global switch per scope, but a high-school plan needs different rules per kind in the same grid: a run of hallway cells merges into one corridor, 4 classroom cells merge into one room, and adjacent building cells never merge (a terrace of houses is several buildings, not one). The machinery already exists (world_compile._regions with an identity function); it needs the identity to carry a per-kind merge rule instead of the whole scope sharing one toggle. Also decide what the 'merge' control means once this lands - a default per mode, with the toggle as an override.
 
 ## Acceptance
+
+
 
 ## Acceptance
 
@@ -43,3 +45,21 @@ Region merging is one global switch per scope, but a high-school plan needs diff
   what the author paints, and making rooms merge unconditionally would make it
   impossible to have a study next to a bedroom. Rooms follow the switch; only
   circulation (shape, not count) and buildings (a plot, not a run) are per-kind.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

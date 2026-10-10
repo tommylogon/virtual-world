@@ -1,3 +1,10 @@
+---
+type: task
+status: cancelled
+area: testing
+priority: medium
+---
+
 # Regression Testing: Programmable Agent Script (Live Test Runner)
 
 **Filed**: 2026-07-15
@@ -6,11 +13,11 @@
 
 ---
 
-## Summary
+## What
 
 Create a programmable agent test runner that plays through the default scenario automatically, following a script of actions, to verify the happy flow works end-to-end. This is a live test (against the real engine, not mocked) that catches regressions.
 
-## Design
+## How
 
 ### Concept
 
@@ -78,7 +85,7 @@ The default scenario should have a script covering:
 - Talk (player speech)
 - Character state changes (sleep, rest)
 
-## Files Affected
+## Files
 
 - `opencode_tools/test_runner.py` — new test runner script
 - `tests/test_scenarios.py` — or new test file
@@ -103,3 +110,17 @@ The end-to-end regression intent is covered by existing suites, so the bespoke
 Note `tests/test_scenarios.py` covers scenario CRUD/import audit only, not this runner.
 Caveat: the Playwright suite needs a running server + Playwright and is not wired into
 `pytest`/CI, so the *automated* part of the intent is only partially covered.
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

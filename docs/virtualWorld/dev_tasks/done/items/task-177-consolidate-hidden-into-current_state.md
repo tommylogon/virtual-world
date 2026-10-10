@@ -1,6 +1,9 @@
 ---
-group: Tech Debt & Testing
+area: items
 wiki: "[[Items & Inventory/Items Overview|Items Overview]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Task 177: Consolidate `hidden` Boolean into `current_state`
@@ -31,7 +34,7 @@ Worse: the UI already offers `hidden`/`visible` as valid item *states* (`item-li
 
 An item is **visible** iff `current_state != "hidden"`. Default (missing/any other state) = visible. This kills the default-asymmetry bug.
 
-## Changes
+## How
 
 ### Engine (backend)
 
@@ -74,10 +77,26 @@ Script to convert every item node with `"hidden": true` → `"current_state": "h
 - Glass-case case: a visible (`current_state != "hidden"`) item inside a container shows up in the initial prompt via the container loop (`world-state.js:225`). Correct.
 - Hidden lives on the content node, state on the container node — no collision (closed toy_box with hidden contents is fine).
 
-## Verification
+## Steps to verify
 
 - [x] No `properties.get("hidden"` / `properties["hidden"]` remains in any `.py` under `engine/`, `routes/`
 - [x] No `"hidden":` remains in item nodes under `data/` (exits may keep `current_state: "hidden"`)
 - [x] No `.hidden` / `properties?.hidden` remains in `static/js/` for items
 - [x] Full pytest suite passes (455 passed, 1 skipped)
 - [x] Manual: Task 4 — Ink Pen/Painting/rug/toy_box visible in agent prompt; toy_soldiers only after examining toy_box (toy_soldiers set `current_state: "hidden"` in labs.json + autosave.json)
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

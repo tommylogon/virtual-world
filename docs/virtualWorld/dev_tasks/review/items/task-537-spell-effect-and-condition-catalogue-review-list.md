@@ -430,3 +430,29 @@ Re-checked the list against the tree rather than trusting the 2026-09-27 pass:
   `need_hunger` — and then every count splits three ways, with no way to tell a
   data problem from a vocabulary problem. Retrofitting costs a rewrite of every
   recorded run, which are the expensive artifact.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

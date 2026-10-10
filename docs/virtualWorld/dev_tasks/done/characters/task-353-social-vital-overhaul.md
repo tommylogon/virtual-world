@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: characters
+priority: medium
+---
+
 # Task 353: Social Vital Overhaul — Real Social Mechanics
 
 **Filed**: 2026-08-15  
@@ -6,7 +13,7 @@
 
 ---
 
-## Problem
+## Why
 
 Social vital currently mixes **social connection** (talking, being with people) with **physical comfort** (humid air penalizes Social, perfume boosts Social). These are separate concerns. The humid/smell effects belong in Hygiene or Entertainment, not Social. Additionally, several defined mechanics are never consumed by the engine.
 
@@ -107,3 +114,25 @@ Scenario setup: characters with different traits placed in controlled environmen
 - `traits.py` — extrovert/introvert/SOCIAL_GAIN/GROUP_ENERGY_DRAIN
 - `character-state.js:150-152` — low Social narration injection
 - `game_tools.py:167-168` — advice for low Social
+
+## What
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

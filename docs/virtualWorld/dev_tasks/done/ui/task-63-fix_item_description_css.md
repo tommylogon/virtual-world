@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: ui
+priority: medium
+---
+
 # BUG: Item Description Fields Have Wrong CSS (White/Cramped)
 
 **Filed**: 2026-07-15
@@ -6,11 +13,11 @@
 
 ---
 
-## Summary
+## What
 
 Item description text fields (and possibly other fields in the item inspector) display with white backgrounds and cramped spacing, unlike other text fields in the app which use the dark theme's input styling.
 
-## Current State
+## Why
 
 In `inspector.js:_showItem()` (line 650), the item description textarea is rendered as:
 
@@ -47,6 +54,20 @@ Apply the same styling pattern to the item description textarea as the room insp
 - Way description field in `_showDoor()` (need to read it)
 - Any other textarea/input in item inspector that lacks proper styling
 
-## Files Affected
+## Files
 
 - `static/js/inspector.js` — add proper styling to item description and other fields
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

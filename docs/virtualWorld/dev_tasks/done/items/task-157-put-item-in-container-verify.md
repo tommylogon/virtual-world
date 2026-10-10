@@ -5,11 +5,13 @@ status: done
 priority: low
 created: 2026-08-02
 tags: [items, containers, verify]
+type: task
+area: items
 ---
 
 # Put Item in Container (Verify Existing)
 
-## Summary
+## What
 
 The "put item in container" feature already exists. This task is to verify it works end-to-end and close out the idea.
 
@@ -28,3 +30,25 @@ Already implemented. `put_item_in_container` exists in engine/item_actions.py:48
 **Verified 2026-08-02** — all checks pass via `tests/test_item_actions.py::TestPutInContainer` (carried containers, world-placed containers, capacity enforcement, take-back, non-container rejection).
 
 **Status: DONE** — moved to `done/items/`.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

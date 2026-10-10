@@ -1,6 +1,9 @@
 ---
-group: Items & Crafting
+area: items
 wiki: "[[Items & Inventory/Items Overview]]"
+type: task
+status: review
+priority: medium
 ---
 
 # Use Item with Parameters (Text/Message Passing)
@@ -13,7 +16,7 @@ current code 2026-09-21).
 
 ---
 
-## Summary
+## What
 
 Items support parameterized use: `use pen on paper "i wrote this"` writes text on
 the paper. The intent is item-to-item communication, writing systems, and complex
@@ -140,7 +143,7 @@ is a node id and the field is always `description`.
 - Regression: `use pen on paper` (no quotes) writes nothing; `use create flame
   on dried flower crown` does not inscribe (task-363 cases).
 
-## Files Affected
+## Files
 
 - `routes/action_handlers.py` — `use` parsing, quoted target/params split
 - `routes/helpers.py` — `tokenize_command_detailed` quoted-token tracking
@@ -152,3 +155,21 @@ is a node id and the field is always `description`.
 - `static/js/item-library.js`, `static/js/shared/trigger-*.js`,
   `static/js/prompt-docs.js` — effect authoring + prompt docs
 - `tests/` — **no inscription test exists yet** (task-433 adds one)
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

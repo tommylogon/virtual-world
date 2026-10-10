@@ -1,6 +1,10 @@
-﻿---
-group: Environment & Climate
 ---
+area: environment
+type: task
+status: cancelled
+priority: medium
+---
+
 # Air Levels, Vacuum & Atmospheric Effects
 
 **Filed**: 2026-07-30  
@@ -9,13 +13,13 @@ group: Environment & Climate
 
 ---
 
-## Summary
+## What
 
 Add air quality/atmosphere as an environmental property for areas. Areas can have no air (vacuum), thin air, poison gas, smoke, or other atmospheric conditions that affect characters over time.
 
 ---
 
-## Problem
+## Why
 
 Currently areas have temperature and light but no concept of air quality. You can't model vacuum in space, smoke-filled rooms, poison gas, or suffocation hazards.
 
@@ -46,3 +50,21 @@ Currently areas have temperature and light but no concept of air quality. You ca
 
 - [[review/environment/task-5-heat_propagation|task-5: Heat propagation]]
 - [[review/environment/task-126-tag-based-light-and-heat-sources|task-126: Tag-based light and heat sources]]
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

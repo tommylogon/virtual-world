@@ -23,3 +23,29 @@ priority: medium
 
 Filed separately from 369 but landed in the same dialog. Task 369's doc is the canonical
 entry; this file records the distinction (validate-before-load vs preview counts).
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

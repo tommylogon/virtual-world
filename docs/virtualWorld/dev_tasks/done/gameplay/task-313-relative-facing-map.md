@@ -88,14 +88,14 @@ ways stay cardinals** and only narrative/entry ways act as entry features. If
 facing were derived from any cardinal way, it would fight the map editor's
 cardinal layout instead of complementing it.
 
-## Problem
+## Why
 
 A character has no orientation, so "to your left" resolves to nothing. The words
 `left` and `right` are already accepted by the parser and then fail, and `back` /
 `forward` are handled only by a transit branch that no area can reach. The user
 experience is that relative movement words are typed, accepted, and dead.
 
-## Design
+## How
 
 **Facing is the heading of travel, and it persists until the character moves
 again.** When a character crosses a way into an area, stamp the entry way on the
@@ -119,7 +119,7 @@ resolved cardinal to the same exit resolution that "go north" uses today. This i
 what makes it additive: "go left" becomes "go <cardinal>", and the area's own
 handles are untouched.
 
-## Acceptance criteria
+## Acceptance
 
 - [ ] Crossing a way stamps the entry way and derived `facing` on the character;
  the value survives turns where the character does not move.
@@ -161,7 +161,7 @@ handles are untouched.
  which is the main payoff of dropping the tag. The one content edit this task
  does carry is the two exits on the labs ventilation shaft.
 
-## Verification
+## Steps to verify
 
 - Unit: a four-way area; enter from the south, assert `go left` resolves to the
   west way and `go right` to the east way; repeat entering from the west and
@@ -266,3 +266,11 @@ face differently — which is the point.
 - `engine/character_spatial.py`, `engine/movement.py`, `engine/matching.py`
 - Decision: exterior ways stay cardinals; only narrative/entry ways act as entry
  features.
+
+## What
+
+TODO
+
+## Files
+
+- TODO

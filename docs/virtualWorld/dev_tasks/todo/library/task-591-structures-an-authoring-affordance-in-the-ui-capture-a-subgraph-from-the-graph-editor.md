@@ -11,7 +11,7 @@ related: [task-357, task-291]
 **Filed:** 2026-09-29
 **Related:** task-357, task-291
 
-## Goal
+## What
 
 `engine/structures.py` already implements a structure as a portable, internally-wired subgraph — **areas + ways + items + residents** — and `routes/structures.py` registers five endpoints including `save` and `materialize`. Nothing in `static/` or `templates/` mentions a structure template, so the entire feature is reachable by curl only, `data/library/structures/` is empty, and no structure has ever been captured. Give it a way in from the graph editor.
 
@@ -41,3 +41,21 @@ Capture is the interesting direction and it needs the graph editor: the author h
 - A structure can be materialized twice into the same world with **no id collision**, proved by a test that exercises `_deterministic_suffix` (`structures.py:89`) — the second instance's names and ids must both differ while the wiring stays intact.
 - Deleting a template from the UI removes the file via `delete_registry_entry` and leaves existing materialized instances in the world alone.
 - A first real template is captured and committed, so `data/library/structures/` is not empty on `master`.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

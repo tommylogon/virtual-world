@@ -11,7 +11,7 @@ parent: task-685
 **Filed:** 2026-10-04
 **Related:** task-685
 
-## Goal
+## What
 
 Characters may remember wrong things, and the system must not silently resolve
 conflicts into objective truth. What it does instead is **mark** them:
@@ -44,3 +44,21 @@ conflicts into objective truth. What it does instead is **mark** them:
   acceptable for v1, or do authored scenarios need a language-neutral escape
   hatch (an explicit `contradicts` param on grant_memory effects)? Leaning:
   add the explicit param — it is two lines and makes authored drama reliable.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

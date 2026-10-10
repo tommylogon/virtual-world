@@ -159,6 +159,10 @@ def register_settings_routes(app):
                 "forecast_schedule": dict(getattr(world, 'forecast_schedule', {}) or {}),
                 "forecast_override": dict(getattr(world, 'forecast_override', {}) or {})
                     if getattr(world, 'forecast_override', None) else None,
+                # task-763: the generated per-area weather field for the current
+                # day (empty unless mode is `generated`). Runtime-derived, so it
+                # is read here rather than stored in the schedule.
+                "weather_field": dict(getattr(world, '_weather_field', {}) or {}),
                 "moon_phase": world.current_moon_phase(),
                 "game_day": int(world.game_day),
                 "game_month": int(world.game_month),
@@ -190,10 +194,16 @@ def register_settings_routes(app):
                 "transition_interval": int(schedule.get("transition_interval", 1) or 1),
                 "transition_table": schedule.get("transition_table") or {},
                 "entries": schedule.get("entries") or [],
+                # task-763: ordered overrides for the generated field (area beats
+                # date beats heuristic). Without these the route would strip them.
+                "area_overrides": schedule.get("area_overrides") or {},
+                "date_overrides": schedule.get("date_overrides") or {},
             }
             app.world._forecast_sched_obj = None
             app.world._forecast_last_entry_key = None
             app.world._forecast_last_minute = None
+            app.world._weather_field = {}
+            app.world._weather_field_day = None
             from routes.saveload import _push_undo_snapshot
             _push_undo_snapshot(app, label="forecast schedule update")
             return jsonify({"status": "success"})

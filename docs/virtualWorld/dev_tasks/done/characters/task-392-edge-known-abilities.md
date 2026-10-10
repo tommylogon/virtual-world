@@ -11,7 +11,7 @@ priority: high
 **Status**: In Progress — core implementation complete; QA in progress  
 **Source**: Character backstory from `data/library/characters/Lyrie.json` — spells are currently forced to exist as carried/equipped intrinsic-ability items. We want a graph-native “character knows this spell” relationship instead of pretending every spell is a physical inventory slot.
 
-## Summary
+## What
 
 Add a new graph edge `EDGE_KNOWN` that represents a character's knowledge of an ability/spell/power item. This lets authors and systems express “Lyrie CAN create flame” without requiring the spell to be physically carried or equipped. The graph remains the source of truth; no parallel character registry is introduced.
 
@@ -84,7 +84,7 @@ get_edges_for_target(player_id, EDGE_KNOWN)       # known abilities
    - Ensure ability lookups in prompts reflect known-but-not-carried spells.
    - Do not reveal known abilities to other characters; they remain invisible unless the caster uses them.
 
-## Verification
+## Steps to verify
 
 - `pytest tests/ -q` green, including new tests for `EDGE_KNOWN` resolution, casting from known abilities, and serialization round-trip.
 - Manual: import/create an ability item, mark it known for a character, verify `use <spell>` works without the item being in inventory/equipment/area.
@@ -156,3 +156,19 @@ caller. Recorded here so it is a decision rather than an accident.
 **Still outstanding:** the manual browser playtest of `use <known ability>`. No
 automated test drives `use_item()` end-to-end, and the inspector routes it relies
 on (`routes/graph.py:80-82,108-110`) have no route-level test either.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-30
 **Related:** [task-601]
 
-## Goal
+## What
 
 task-601's lint check now reports 52 offenders: 36 characters (Arix, Croak-Mother, Old Iron-Back, the butcher...), 15 tags (frozen thicket, hidden door...), and 1 item (baker's_bread). load_registry keys entries by filename verbatim, so none resolve by their snake_case form. NOT a rename-and-done: the spaced ids are referenced in 20+ places across areas/characters/items/rooms/ways, and 'hidden door' would MERGE into the existing 'hidden_door' -- decide whether they are the same tag first. Character display names are unaffected (the name field is separate), so this is safe to do but needs the references updated in the same change.
 
@@ -59,3 +59,21 @@ A recursive scan of every JSON under `data/library/`, `data/scenarios/` and
 `fear_tags`, `known_tags`, `applies_to`) returns **0 references**, so the rename
 breaks nothing. (The only textual hits are way/exit `name`/`direction` strings
 such as the `willow gap` way — display strings, not tag ids, and unchanged.)
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

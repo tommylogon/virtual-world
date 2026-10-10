@@ -11,7 +11,7 @@ priority: high
 **Related:** task-495, task-528, task-541
 **Status:** implemented 2026-09-27, in review
 
-## Goal
+## What
 
 After placing an area or painting a cell there was no way to see what a cell
 holds. Add an inspector: hovering a cell shows a tooltip (painted
@@ -55,3 +55,21 @@ Reads from buildRows/areaMap/featureMap, so the data is already in the payload.
   change it.
 - The "Open area" action closes the painter first (`VW.inspector.showNode`), since
   the painter is a modal overlay over the graph.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

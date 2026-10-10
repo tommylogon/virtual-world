@@ -13,7 +13,7 @@ children: [task-686, task-687, task-688, task-689, task-690, task-691]
 **Design doc:** `docs/virtualWorld/AI & Narration/Memory Dynamics.md`
 **Interface mockup:** `docs/design/memory-mockup.html`
 
-## Goal
+## What
 
 Make memory a dynamic system instead of a static list: dynamic availability
 (activation), confidence, reinforcement on recall and re-encounter, non-uniform
@@ -51,3 +51,21 @@ they expect to happen next?*
 - Default-on decay changes existing scenarios by design. Confirm the default
   rate (0.01/tick) feels right after one soak; `memory.decay_per_tick: 0`
   is the freeze hatch.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

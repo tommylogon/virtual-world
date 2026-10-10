@@ -11,7 +11,7 @@ blocked_by: [task-701, task-702]
 
 **Clarified:** 2026-10-05
 
-## Goal
+## What
 
 Keep three meanings distinct. A **Pursuit** can bring a character to a place and give them a reason to cook. The **cooking Activity** is the visible process happening over time at a cooking area. The **world recipe** defines how the food transformation resolves: required ingredients, equipment, area conditions, duration, skill/quality tiers, and resulting items.
 
@@ -27,3 +27,21 @@ Evolve task-2's crafting from instant graph-node transmutation to a world-recipe
 - [ ] Author the cooked-egg recipe end to end in the fixture world. A meal-preparation pursuit can call that recipe, and a clock schedule can prompt the pursuit at breakfast time.
 - [ ] Demonstrate the Activity, recipe outcome, and pursuit progress in the browser and event stream; another character can perceive the cook at the station.
 - [ ] Resolve task-2's review status with a pointer to this task; retire the old node format rather than maintaining a second source of truth.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

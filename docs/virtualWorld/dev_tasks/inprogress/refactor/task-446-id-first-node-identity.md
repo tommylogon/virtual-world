@@ -138,3 +138,24 @@ Functional duplicate display names, non-breaking:
   a pure-uid anchor migration is a later step.
 - Slice B (location by id) is **task-439**, not this task.
 
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

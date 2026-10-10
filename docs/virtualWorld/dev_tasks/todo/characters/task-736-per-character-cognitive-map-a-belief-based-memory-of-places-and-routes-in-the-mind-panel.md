@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-10-08
 **Related:** task-714, task-734, task-691, task-677, task-581
 
-## Goal
+## What
 
 Give each character a mental map of the places they remember and the ways they know to reach them: a belief-based (not truth-based) projection of that character's place and route memory, rendered per character and shown in the Mind panel. It may be incomplete or wrong - the character believes the door is open, or that the mill is east. Reuse the existing spatial-memory data (known_way_aspects, discovered_exits, visited_areas) and the turn-minimap rendering; do not add a new store.
 
@@ -27,7 +27,7 @@ The spatial memory already exists and is written; it just has no view:
 - `static/js/agent/turn-minimap.ts` — the existing "where you've been" renderer
   (task-677), currently for the human turn panel.
 
-## Design
+## How
 
 A **cognitive map** is the character's *beliefs* about geography, not the world's
 truth:
@@ -83,3 +83,17 @@ The map and the memory model are one dataset in two views — not a second store
 - [ ] `npm run build:ts` and `node tools/unit/run.cjs` pass.
 - [ ] Live: walk a character through several areas, open the Mind panel, and see
       its map grow; confirm it differs from a second character's.
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

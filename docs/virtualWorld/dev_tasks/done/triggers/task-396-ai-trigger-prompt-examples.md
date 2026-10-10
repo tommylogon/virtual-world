@@ -224,6 +224,7 @@ Each effect = `{"type": "<t>", "params": {...}}`. Prose lives in
 run in order.
 
 ## Narrative / state
+
 | type | what it does | example |
 |---|---|---|
 | `message` | prints narratATION (the workhorse) | `{"type":"message","params":{"message":"The doll's head turns to face you."}}` |
@@ -235,6 +236,7 @@ run in order.
 | `set_description` / `append_description` | (re)write a node's description | `{"type":"append_description","params":{"node_id":"self","text":" It is warmer now."}}` |
 
 ## Vitals / conditions
+
 | type | what it does | example |
 |---|---|---|
 | `adjust_vital` | add/subtract a vital | `{"type":"adjust_vital","params":{"stat":"Hunger","amount":-30,"target":"self","success_message":"…"}}` |
@@ -248,6 +250,7 @@ run in order.
 | `consume_item` | remove an item from the player | `{"type":"consume_item","params":{"item_id":"bread_loaf","target":"self"}}` |
 
 ## Env / area / way
+
 | type | what it does | example |
 |---|---|---|
 | `set_environment` | override full env keys (light/temp/air/smell/noise…) on an area | `{"type":"set_environment","params":{"light":40,"smell":"woodsmoke","message":"…"}}` |
@@ -262,6 +265,7 @@ run in order.
 | `set_wet` | wet/dry clothing | `{"type":"set_wet","params":{"wet":true,"target":"self","message":"…"}}` |
 
 ## Spawn / memory / meta (GM + NPC)
+
 | type | what it does |
 |---|---|
 | `spawn_character` | spawn a character |
@@ -476,7 +480,7 @@ Skill gate goes in the **condition** (as you said), reveal in the effect:
 **Expanding to the full catalogs is a deliberate, reversible choice** — do it only if
 generations under-perform, and re-run the prompt tests afterwards.
 
-## Verification
+## Steps to verify
 
 - **Prompt side — automated.** `node tools/unit/run.cjs` →
   `tools/unit/test_trigger_suggest_ai.js` (16 tests): the hard rules are stated, and
@@ -485,3 +489,23 @@ generations under-perform, and re-run the prompt tests afterwards.
   wine and a fireplace; assert every trigger has non-empty `effects[]`, prose lives in
   `params[].message` and not the top-level strings, no `on_light` + `on_toggle_on` pair
   on one item, and the heat source yields zero env triggers.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

@@ -1,3 +1,10 @@
+---
+type: task
+status: review
+area: gameplay
+priority: medium
+---
+
 > NOTE 2026-08-30: duplicate todo copy removed — this file is canonical.
 
 # Task 337 — Polarity-aware vital adjustment feedback + Hunger/Thirst drive flip
@@ -19,7 +26,7 @@ vital: eating applies `Hunger -30` (value DOWN = good), damage applies
 `HP -5` (down = bad), `Social +10` is good but `Bladder +40` is bad.
 Players and LLMs both have to guess. Needs fixing for ALL vitals.
 
-## Design
+## How
 
 1. **Per-vital polarity metadata** — one table (engine/vitals.py or
    runtime_config DEFAULTS): for each vital, which direction is
@@ -88,7 +95,7 @@ task lands — flip fixes them retroactively.
   this task covers adjustment RESULT messages; keep them consistent)
 - task-207 body-state-and-vitals
 
-## Verification
+## Steps to verify
 
 - Drink → thirst-easing message; take poison → worsening wording
 - Every vital type renders direction-correct feedback via unit test
@@ -118,3 +125,15 @@ world_template copies and 14 library items: consume effects now NEGATIVE
 (drives fall toward 0 = satisfied). Kept positive: water_pitcher's
 bladder +10 on_drink — drinking filling the bladder is correct new
 semantics. Verified by re-scan + full suite (1120 passed).
+
+## What
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

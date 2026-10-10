@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: refactor
+priority: medium
+---
+
 # Task 314 — Modularize the largest files
 
 ## Outcome (verified 2026-09-22) — reconciled and closed
@@ -103,7 +110,7 @@ way-view modules).
 
 ---
 
-## Summary
+## What
 
 Line-count audit of `virtual_world/` (2026-08-19, excluding `node_modules`, `.kilo`, venvs; 190 project files, 59,528 lines) identified the files that have outgrown single-file ergonomics. Several are already over ~1,000 lines or sit in the 700–900 range where extracting focused modules pays off. This task tracks which files need refactoring and modularization, per layer.
 
@@ -166,18 +173,18 @@ for steal rolls.
 
 **Runner-up**: `static/js/event-stream.js` (775), `static/js/inspector/behaviors-view.js` (575), `static/js/graph-manager.js` (550), `static/js/ui-controller.js` (531).
 
-## Tests
+## Steps to verify
 
 - `tests/test_trigger_system.py` (2,253) is the largest test file by far. Split by subsystem (evaluation, effects, conditions, scheduling) so failures isolate cleanly.
 
-## Approach
+## How
 
 1. **One file at a time** — pick the smallest "runner-up" first as a proof-of-pattern, then move up.
 2. **No behavior change** in this pass — extraction only, keep public imports/API stable.
 3. Verify each extraction: backend `python -m pytest tests/ -q -k "not mcp and not emote"`, frontend `node --check` on every touched JS file.
 4. Follow the same shape as task-218 (module per concern, table of what moved, lines saved).
 
-## Files changed
+## Files
 
 ### Frontend — `static/js/graph/network-manager.js`
 
@@ -276,3 +283,11 @@ namespace. Add beside that line:
 
 - All touched JS files pass `node --check`.
 - Pytest suite stays green (959 passed baseline).
+
+## Why
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

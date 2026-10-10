@@ -1,14 +1,15 @@
 ---
-group: Environment & Climate
+area: environment
 status: done
 priority: medium
 filed: 2026-08-15
 supersedes: [task-85-time_weather_dates.md]
+type: task
 ---
 
 # Task 228: Date Tracking & Game Calendar
 
-## Summary
+## What
 
 Add a game calendar (day / month / year) derived from `time_ticks`. Expose it in world state and the API so other systems (moon phases, forecast schedules, scenarios with seasonal themes) can reference absolute dates.
 
@@ -18,7 +19,7 @@ Add a game calendar (day / month / year) derived from `time_ticks`. Expose it in
 - `time_per_tick_minutes = 5` — each tick = 5 game minutes
 - `clock_start_hour = 8`, `clock_start_minute = 0` — day starts at 08:00
 
-## Implementation
+## How
 
 ### Calendar Config
 
@@ -66,7 +67,7 @@ Add `game_day`, `game_month`, `game_year`, `calendar_config` to `/api/state` res
 
 Event stream header format: `"Day {day}, Month {month}, Year {year} — {HH:MM} — {weather}"`
 
-## Files Affected
+## Files
 
 1. `engine/tick_manager.py` — add `game_day`, `game_month`, `game_year` properties
 2. `virtual_world_engine.py` — add `calendar_config` defaults
@@ -80,7 +81,7 @@ Event stream header format: `"Day {day}, Month {month}, Year {year} — {HH:MM} 
 - **Blocked by**: Nothing
 - **Blocks**: task-227 (forecast schedule uses day for weekly/yearly), task-229 (moon phase uses game_day)
 
-## Testing
+## Steps to verify
 
 - Advance time across midnight → `game_day` increments
 - Advance across month boundary → `game_month` increments
@@ -94,3 +95,11 @@ Fully implemented before this audit: `game_day/month/year` + `calendar_config`
 on the engine, serialization, `/api/state` exposure. This audit added the UI
 half: turn-card headers now render `Day N, Month N, Year N` (event-stream.js
 `_turnLabel`); the SkyScape top-bar widget also shows the date.
+
+## Why
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

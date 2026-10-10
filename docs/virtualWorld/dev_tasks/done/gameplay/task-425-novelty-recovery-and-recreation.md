@@ -104,7 +104,7 @@ frontend readers (`room-context.js`, `memory-context.js`,
 `contextual-actions.js`). Both are still written, so those readers keep working.
 Retiring them is filed as **task-430**.
 
-## Problem
+## Why
 
 Entertainment has **no recurring source**, so it sits at 0 forever.
 
@@ -211,7 +211,7 @@ evicted subject from `memory_index` so this falls out for free. The caveat is th
 coupling itself — suppression, eviction and deliberate forgetting now move a
 vitals system, so that has to be stated rather than discovered.
 
-## Changes
+## How
 
 1. **Delete** `visited_areas` and `discovered_items`; derive last-seen from
    observation memories (the index they needed now exists — see above).
@@ -250,10 +250,18 @@ vitals system, so that has to be stated rather than discovered.
 - Social interaction itself (task-423) — this only supplies the bonus it grants.
 - Sanity, which wants its own sources (comfort, company, fear relief).
 
-## Verification
+## Steps to verify
 
 - Unit: the curve — immediate re-entry 0, mid-window partial, saturated 15.
 - Unit: set→map migration on load.
 - Unit: a recreational fixture's authored `adjust_vital Entertainment` applies
   (background and player).
 - Soak: Entertainment non-zero and stable over a week.
+
+## What
+
+TODO
+
+## Files
+
+- TODO

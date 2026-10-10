@@ -1,12 +1,22 @@
+---
+type: task
+status: done
+area: refactor
+priority: medium
+---
+
 # Task 218 — agent-engine.js clean-code extraction
 
 ## Status
+
 Done — implemented 2026-08-12
 
-## Summary
+## What
+
 Split `agent-engine.js` (892 lines) into focused modules following the existing modularization plan.
 
-## Files changed
+## Files
+
 - `static/js/agent/action-normalizer.js` — new
 - `static/js/agent/response-parser.js` — new
 - `static/js/agent/threat-detector.js` — new
@@ -29,6 +39,7 @@ Split `agent-engine.js` (892 lines) into focused modules following the existing 
 | `plan-tracker.js` | `_trackPlanStep`, `_shouldReplan`, plan state maps | ~60 |
 
 ## agent-engine.js now owns
+
 - `step()` orchestrator (reactive + non-reactive)
 - `_runDashFollowUp`
 - `_callLLM` / `_callLLMMessages` / `_showManualPrompt`
@@ -37,7 +48,8 @@ Split `agent-engine.js` (892 lines) into focused modules following the existing 
 - `_surfaceRejectedAction`
 - `_checkCancel`
 
-## Verification
+## Steps to verify
+
 - `node --check` passes on all 8 modified/new JS files
 - Backend pytest: 856 passed (11 pre-existing trigger_system failures, unrelated)
 - Frontend LLM tests: 16/19 passed (3 failures need running server, pre-existing)
@@ -80,3 +92,15 @@ engine behaviour work, out of scope for a readability refactor.
 Still not observed firing: `parseObservation`, `parseDecisionWithSpeech`,
 `AgentState.markUnconscious` (needs a passing-out character), and
 `PlanTracker.resetAll` (only on `agent.reset()`).
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

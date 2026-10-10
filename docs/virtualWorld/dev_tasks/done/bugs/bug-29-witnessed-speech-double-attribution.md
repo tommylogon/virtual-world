@@ -1,3 +1,10 @@
+---
+type: bug
+status: done
+area: bugs
+priority: medium
+---
+
 # Bug 29 — Same witnessed speech appears twice with different attributions
 
 **Status**: Premise disproven against the artifact. Recommend closing — no
@@ -126,3 +133,28 @@ A dedupe-by-event-id change would be untestable against a bug that does not
 exist, and would risk collapsing the legitimate carry-over of an unanswered line
 into the next turn's prompt.
 
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

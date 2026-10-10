@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: ui
+priority: medium
+---
+
 # Task 339 — Stranger naming & acquaintance mechanism
 
 **Status:** In Review — designed with Tommy 2026-08-24, implemented same
@@ -28,7 +35,7 @@ unrealistic ("how do you SEE someone's name?"). Decided:
 - The full room description also gates the full-description prose on
   name knowledge (descriptions may name people in text).
 
-## Implementation
+## How
 
 - `Player.learn_name(other, tick)` / `Player.knows_name(other)` — the
   name-knowledge primitives (`first_sighting` = name unknown).
@@ -44,7 +51,7 @@ unrealistic ("how do you SEE someone's name?"). Decided:
 - Panel hover foot reads "recognized/stranger — you don't know their
   name yet".
 
-## Verification
+## Steps to verify
 
 `tests/test_name_learning.py` (8): self-intro teaches, third-party
 mention teaches, non-matching speech doesn't, speaker doesn't learn own
@@ -52,3 +59,19 @@ name, idempotent + logged once, scene never reveals by re-sighting but
 flips after learning, examine masks, nametag reveals. Updated two
 `test_area_description.py` tests that pinned the old sighting-reveal.
 Full suite 1108 green.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

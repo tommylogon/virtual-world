@@ -1,6 +1,10 @@
 ---
-group: Prompt & Narrative Quality
+area: prompting
+type: task
+status: done
+priority: medium
 ---
+
 # Align Plan Generation Prompt with Main Prompt Templates
 
 **Filed**: 2026-07-30
@@ -10,7 +14,7 @@ group: Prompt & Narrative Quality
 
 ---
 
-## Problem
+## Why
 
 The plan generation prompt uses different section names than the main prompt templates:
 
@@ -49,3 +53,21 @@ The plan prompt is built in a separate code path (likely `plan-manager.js`) that
 
 1. `static/js/agent/plan-manager.js` — prompt section rename/dedupe, `buildRoomContext(..., false)`
 2. `static/js/agent/prompt-builder.js` — `includePlan` param on `buildRoomContext`
+
+## What
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

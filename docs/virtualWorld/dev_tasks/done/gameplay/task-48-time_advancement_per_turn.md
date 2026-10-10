@@ -1,6 +1,9 @@
 ---
-group: Environment & Climate
+area: gameplay
 wiki: "[[Environment/Time & Weather]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Time Advancement Per Turn
@@ -9,11 +12,11 @@ wiki: "[[Environment/Time & Weather]]"
 **Priority**: High
 **Status**: In Review — implemented (code-verified 2026-08-11). Time advances once per full turn: `advance_clock(1)` inside `tick_turn()` at `engine/tick_manager.py:446`; per-request `_action_time_consumed` flag (`tick_manager.py:59`, reset at `routes/action.py:141`) suppresses per-action advances.
 
-## Summary
+## What
 
 Every `POST /api/action` and `GET /api/room/description` advances the clock by 5 minutes (1 tick) by default, even for actions that shouldn't consume meaningful time (speech, examine, etc.). An agent step can advance time by 15–20 minutes when it should only advance by 1 tick when the full turn cycle completes.
 
-## Current State
+## Why
 
 Time advances in 4 places per agent step:
 
@@ -88,3 +91,17 @@ This way, during a full turn cycle (multiple agent steps), time only advances on
 - `app.py:505` — default `advance_clock(1)`, needs gating or removal
 - `virtual_world_engine.py:2911` — `tick_turn()`, candidate for explicit time advance
 - `agent-engine.js:254` — `getAreaDescription()` in observe phase (triggers extra `apply_action("look")`)
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

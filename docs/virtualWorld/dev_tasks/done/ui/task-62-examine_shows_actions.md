@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: ui
+priority: medium
+---
+
 # Examine Enhancement — Show Available Actions When Examining an Object
 
 **Filed**: 2026-07-17
@@ -6,7 +13,7 @@
 
 ---
 
-## Summary
+## What
 
 When a player examines an object, the result should include not only the object's description but also a list of **available actions** the player can perform on it. This helps players discover what they can do with items without trial-and-error guessing.
 
@@ -23,7 +30,7 @@ Available actions:
   [toggle] Toggle the chime
 ```
 
-## Current State
+## Why
 
 ### Examine result (`virtual_world_engine.py:1326`)
 
@@ -88,8 +95,22 @@ for action in actions:
 
 In the examine output displayed in the event stream, render actions as clickable buttons that populate the command input. This would require changes to the event stream rendering in `static/js/event-stream.js`.
 
-## Files Affected
+## Files
 
 - `virtual_world_engine.py` — `get_item_desc()`, new `_get_available_actions()`
 - `static/js/event-stream.js` — (optional) render clickable action buttons in examine output
 - `world_template.json` — add action metadata for template items
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

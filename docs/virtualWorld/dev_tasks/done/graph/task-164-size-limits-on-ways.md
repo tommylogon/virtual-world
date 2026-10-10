@@ -5,11 +5,13 @@ status: done
 priority: low
 created: 2026-08-02
 tags: [graph, ways, movement, gating, stateful-actions]
+type: task
+area: graph
 ---
 
 # Size Limits on Ways
 
-## Summary
+## What
 
 Add size requirements to ways. A small tunnel can't fit a large character, and a normal-sized character may need to crawl — tying into stateful actions where a character is set to `busy` while passing through certain ways.
 
@@ -50,7 +52,7 @@ Ways have no size concept (engine/movement.py:46 `connect_areas` sets state/desc
 3. `routes/graph.py` + way editor JS — size field
 4. `player.py` — character size field
 
-## Testing
+## Steps to verify
 
 - [x] Large character blocked by tiny way
 - [x] Small character passes freely
@@ -62,3 +64,19 @@ Ways have no size concept (engine/movement.py:46 `connect_areas` sets state/desc
 - [[dev_tasks/review/gameplay/task-187-character-size-passage-movement|task-187: Character size + passage movement]]
 - [[todo/gameplay/task-131-stateful-actions-over-time|task-131: Stateful actions over time]]
 - [[todo/graph/task-128-one-way-ways|task-128: One-way ways]]
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

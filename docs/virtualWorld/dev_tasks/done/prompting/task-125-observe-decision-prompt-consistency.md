@@ -1,6 +1,10 @@
 ---
-group: Agent AI & Behavior
+area: prompting
+type: task
+status: done
+priority: medium
 ---
+
 # Observe/Decision Prompt Consistency
 
 **Filed**: 2026-07-29  
@@ -9,7 +13,7 @@ group: Agent AI & Behavior
 
 ---
 
-## Summary
+## What
 
 Ensure the observe phase and decision phase prompts agree on what information is available. Currently they can show different data (e.g., observe has no people/items, decision has full list).
 
@@ -26,3 +30,25 @@ Ensure the observe phase and decision phase prompts agree on what information is
 ### Scope
 - `static/js/agent-engine.js` — observe and decision prompt building
 - `static/js/agent/prompt-builder.js` — unified context builder
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

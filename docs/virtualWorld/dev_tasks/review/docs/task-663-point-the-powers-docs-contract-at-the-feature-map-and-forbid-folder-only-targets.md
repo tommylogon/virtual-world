@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-10-01
 **Related:** task-576, task-578, task-661, task-664
 
-## Goal
+## What
 
 The front-end module contract lets a module satisfy @docs by naming a folder: 26 of 43 unresolved declarations are things like 'docs/virtualWorld/Library System/', so the contract passes with nothing readable existing. 16 declare 'none' and 1 declares nothing. Now that docs/virtualWorld/Feature Map.md is the canonical feature list, point @powers at feature names in that file and have js_module_index --check fail on a folder target. This is the front-end half of task-576 (extend the contract to Python, 147 modules currently unguarded) and gives task-578 (a doc resolver route) something to resolve against.
 
@@ -47,3 +47,20 @@ The front-end module contract lets a module satisfy @docs by naming a folder: 26
   when `tools/tasks.py move` relocated a file without rewriting inbound links, so this task's own
   `@docs` values will rot the same way until that tool is fixed.
 
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

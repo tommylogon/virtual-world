@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-10-07
 **Related:** bug-526, task-724
 
-## Goal
+## What
 
 Make Sync World to Library answer 'which authored changes deserve to become library templates?' instead of 'sync everything'. Collapse item instances into one template row, exclude generated and unchanged by default, and lead with a reviewable changeset rather than a silent whole-world batch. A batch should be a handful of decisions, not hundreds.
 
@@ -91,3 +91,21 @@ a name+tags slug, and **ask when ambiguous** rather than guess.
       too (bug-526).
 - [ ] `_group()` unit-tested; `npm run build:ts` and `node tools/unit/run.cjs`
       pass.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

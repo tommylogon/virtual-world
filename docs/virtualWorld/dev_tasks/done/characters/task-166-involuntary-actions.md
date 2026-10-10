@@ -5,6 +5,8 @@ status: done
 priority: low
 created: 2026-08-02
 tags: [characters, speech, emote, flavor]
+type: task
+area: characters
 ---
 
 # Involuntary Actions (Hiccups, Burps, Yelps, Stutters)
@@ -52,15 +54,15 @@ silently scale with turn length.
 
 ---
 
-## Summary
+## What
 
 Add involuntary actions — a hiccup, a burp, a yelp, a stutter, etc. — that can be injected into a character's speech or emote, triggered by conditions, random chance, or specific situations.
 
-## Problem
+## Why
 
 Speech and emote are always deliberate. Nothing makes a character hiccup mid-sentence, stutter when frightened, or yelp when startled. These little moments add life to the simulation but don't exist.
 
-## Implementation
+## How
 
 ### Involuntary event sources
 
@@ -90,7 +92,7 @@ The erogenous-zone design doc (§Additions #3) lists "body reactions" — gooseb
 3. `engine/player_conditions.py` — `itch` / `goosebumps` flavor conditions
 4. `tools/unit/test_involuntary.js` + `tools/unit/run.cjs` — tests
 
-## Testing
+## Steps to verify
 
 - [x] Frightened character stutters occasionally
 - [x] Random hiccup/burp appears at low frequency
@@ -104,3 +106,7 @@ The erogenous-zone design doc (§Additions #3) lists "body reactions" — gooseb
 - [[todo/gameplay/task-165-chance-to-stun-on-attack|task-165: Stun conditions]]
 - [[done/prompting/task-151-flavor-text-interaction-polish|task-151: Flavor text polish]]
 - `todo/pleasure/task-209-arousal-conditions.md` — arousal-linked body reactions (nipple hardening, blushing) live there; keep non-erotic reactions here
+
+## Acceptance
+
+- [ ] TODO

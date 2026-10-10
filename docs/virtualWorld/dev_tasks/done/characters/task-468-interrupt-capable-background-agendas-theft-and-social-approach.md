@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-22
 **Related:** task-464, task-466, task-409, task-399, task-214
 
-## Goal
+## What
 
 Give background/soak policies the actor-driven agendas timeskip interrupts depend on:
 theft (reuse `steal_item`) and deliberate social approach toward the player. Agenda
@@ -64,3 +64,21 @@ Implemented and tested; moving to review.
 
 Remaining: nothing mechanical; a scenario can author `thief` traits/tags and the
 agenda does the rest.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

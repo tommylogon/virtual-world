@@ -1,6 +1,9 @@
 ---
-group: Trigger System
+area: triggers
 wiki: "[[Rules Engine/Triggers & Effects]]"
+type: task
+status: review
+priority: medium
 ---
 
 # Stateful Continuous Triggers (While State = X → Effect)
@@ -11,14 +14,14 @@ wiki: "[[Rules Engine/Triggers & Effects]]"
 
 ---
 
-## Summary
+## What
 
 Triggers currently fire once on an event (on_use, on_take, on_tick). There is no "while state = X" continuous trigger pattern. Examples:
 - Fireplace state = "lit" → room temperature increases while lit
 - Flashlight/torch state = "on" → room light = 70 while on
 - Character is in room → sound propagates to adjacent room
 
-## Current State
+## Why
 
 ### `_execute_triggers()` (`virtual_world_engine.py:875-1012`)
 
@@ -88,7 +91,21 @@ In the trigger editor (`item-library.js`), add:
 - Use the item to toggle state between lit/unlit. Verify room temperature changes accordingly.
 - Check the trigger editor in Item Library — verify `on_state_enter` and `on_state_exit` appear in the trigger type dropdown, with a "Target State" input field.
 
-## Files Affected
+## Files
 
 - `virtual_world_engine.py` — add on_state_enter/on_state_exit trigger types, detect state transitions
 - `static/js/item-library.js` — add new trigger types to UI
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

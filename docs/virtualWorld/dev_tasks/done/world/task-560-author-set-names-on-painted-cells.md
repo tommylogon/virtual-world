@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-27
 **Related:** task-496 task-540 task-561 task-526
 
-## Goal
+## What
 
 Every painted place is named by the compiler alone: `<label> (<scope> x,y)`. A
 19-location town is 19 coordinate names, so painted towns and interiors cannot be
@@ -75,3 +75,21 @@ could seek a bed or a meal in is identifiable from its node.
 - **Interiors name the same way**, so a room is nameable now — but a 2×2 classroom
   merging into one place names the whole region, which is task-564's business.
 - `deep_woods_2` still carries its stale id (task-565).
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

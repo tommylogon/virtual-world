@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-23
 **Related:** task-471; task-470; task-473
 
-## Goal
+## What
 
 Deferred from task-471: a 'find <skill>' help/UI affordance, HUD hints for what could be found in an area, and a per-area override + JSON library surface for the forage tables instead of the code constant.
 
@@ -52,3 +52,21 @@ Backend and data implemented and tested; moving to review.
 Remaining for this task: the actual **HUD display** of `findable_hint` in the
 front-end (template/JS surface), which is a UI wiring follow-up; the query and
 the data surface it needs are done.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

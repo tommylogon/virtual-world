@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-27
 **Related:** task-543 (telemetry capture), task-544 (space-time view), task-537
 
-## Problem
+## Why
 
 There are **two different record systems** in this codebase and they are not the
 same thing, but nothing says so. The result is that merging them looks entirely
@@ -98,7 +98,7 @@ telemetry, not scene" — using *telemetry* for UI instrumentation. Different
 domain, so not a blocker, but the word would then carry two senses. Either add a
 line to that doc distinguishing them, or retitle it to "instrumentation".
 
-## Acceptance criteria
+## Acceptance
 
 - [x] `trace_log` → `lived_log` (or the fallback is taken and documented), with
       every reference updated including the deserialiser, so **old saves still
@@ -172,3 +172,21 @@ Targeted run: `python -m pytest tests -k "lived_log or promotion or soak_telemet
 `test_promotion.py::test_observe_route_queues_residents_and_404s_unknown_scope`,
 is on the repo's known pre-existing baseline (AGENTS.md), and the edits here are
 docstring-only. Full-suite A/B was not re-run for a path-only change.
+
+## What
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

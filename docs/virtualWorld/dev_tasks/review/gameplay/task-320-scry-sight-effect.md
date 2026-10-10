@@ -1,3 +1,10 @@
+---
+type: task
+status: review
+area: gameplay
+priority: medium
+---
+
 # Task 320: Scry / Far-Sight Effect — see into other areas via items
 **Status**: In Review — implemented 2026-08-31. New scry trigger effect: engine/scry.py builds a frozen distant-area view (rendered description + ambient light + exits) — the shared observer path is untouched (no agent-prompt drift). Registered in EFFECT_TYPES + effect handler + trigger-types.js + trigger editor (target area select + lead-in/fail messages).
 
@@ -9,7 +16,7 @@
 **Filed**: 2026-08-20
 **Group**: Gameplay / Triggers
 
-## Summary
+## What
 
 Add a new trigger effect `scry` that resolves a *target area* (by name, by tag, or by
 directional chain-follow) and returns that area's description to the player — full room
@@ -50,7 +57,7 @@ Resolution precedence: `area` param → `tag` param → `direction` param → fa
 match → cardinal word → tag match. Nothing resolves → narrative failure ("You can't make
 out anything in that direction.").
 
-## Implementation
+## How
 
 1. **New module `engine/scry.py`** — all real logic:
    - `resolve_scry_target(params, context, game_state) -> Node | None` — area lookup by
@@ -74,14 +81,14 @@ out anything in that direction.").
 5. **Agent prompt** — small addition to `static/js/agent/prompt-builder/system-prompt.js`:
    scry/sight items can be used with `use_on` on a direction or place name to see into it.
 
-## Tests
+## Steps to verify
 
 - `tests/test_scry.py` (new): name resolution, tag resolution, direction chain-follow with
   range, open_only blocking, dark/empty target handling, glimpse vs full output shape.
 - Extend `tests/test_trigger_system.py`: `scry` effect fires through `on_use_on` with
   target_name, and fails gracefully on unresolvable targets.
 
-## Files affected
+## Files
 
 - `virtual_world/engine/scry.py` (new)
 - `virtual_world/engine/effects.py`
@@ -92,3 +99,11 @@ out anything in that direction.").
 - `virtual_world/static/js/agent/prompt-builder/system-prompt.js`
 - `virtual_world/tests/test_scry.py` (new)
 - `virtual_world/tests/test_trigger_system.py`
+
+## Why
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

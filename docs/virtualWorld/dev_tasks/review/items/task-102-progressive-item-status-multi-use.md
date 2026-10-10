@@ -1,14 +1,18 @@
 ---
-group: Equipment & Inventory
+area: items
 wiki: "[[Items & Inventory/Item States & Toggleables]]"
+type: task
+status: review
+priority: medium
 ---
+
 # Task 102: Progressive Item Status — Multi-Use Activation
 
 **Status**: todo
 **Priority**: Medium
 **Filed**: 2026-07-24
 
-## Summary
+## What
 
 Some items need multiple uses to activate (like a generator requiring 15 successful repairs). This is already achievable with the existing trigger system by stacking `on_use` triggers that check a counter condition. This task formalizes the pattern as a first-class feature with UI feedback.
 
@@ -50,7 +54,7 @@ In the item inspector:
 - Status persists across room changes
 - Visual state reflects progress even when inspector is closed
 
-## Implementation
+## How
 
 ### Backend
 - Add `progress_to_state` map to items: `{10: "humming", 15: "on"}`
@@ -62,7 +66,7 @@ In the item inspector:
 - Status indicator based on threshold
 - Message feedback per use increment
 
-## Files Affected
+## Files
 
 - `item.py` — progress_to_state field?
 - `engine/trigger_system.py` — on_use_progressive type
@@ -70,7 +74,16 @@ In the item inspector:
 - `static/js/inspector/item-view.js` — progress bar UI
 - `static/js/inspector/trigger-helpers.js` — new trigger type in editor
 
-## Tests
+## Steps to verify
+
 - Item with 15 max_uses, verify state changes at threshold
 - Progress survives save/load
 - Visual progress bar updates on each use
+
+## Why
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

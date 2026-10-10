@@ -10,10 +10,28 @@ priority: low
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 The turn result panel renders 'Observed: someone Knife', 'someone take Knife' and 'someoneYou take the knife' -- should be 'you', and the missing space shows the substitution happens at template level rather than as a name lookup.
 
 ## Acceptance
+
+- TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
 
 - TODO

@@ -106,3 +106,25 @@ Safe order for the next pass (each step lands with its tests):
 5. Verify: `adventurous` pays on first entry only (micro-scenario), known-route
    block non-empty for a visited area after loading an old save, and the
    background-week soak is unchanged.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

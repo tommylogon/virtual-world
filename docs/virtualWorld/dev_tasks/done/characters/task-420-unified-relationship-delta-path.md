@@ -52,7 +52,7 @@ needs the name → character-node-id mapping that task-423 establishes when it
 populates `entity_ids` with `[actor_id, target_id, area_id]`, so it is recorded
 there rather than half-fixed here.
 
-## Problem
+## Why
 
 Relationship state is written from several places with no shared entry point:
 
@@ -74,7 +74,7 @@ Two consequences:
    scalar. At promotion/demotion (task-412) the value can jump, because the two
    paths never agreed on how it evolves.
 
-## Design
+## How
 
 A single mutation entry point:
 
@@ -121,9 +121,17 @@ through the same clamp with a recorded cause.
 - Relationship simulation of any new kind (this is plumbing only).
 - Replacing `engine/derive.py`; it becomes a *caller* of the new function.
 
-## Verification
+## Steps to verify
 
 - Unit: each cause produces the expected delta and trace entry.
 - Unit: clamping is identical regardless of caller.
 - Regression: combat relationship test (the "psychotic friend" betrayal case at
   `engine/combat.py:159`) still passes.
+
+## What
+
+TODO
+
+## Files
+
+- TODO

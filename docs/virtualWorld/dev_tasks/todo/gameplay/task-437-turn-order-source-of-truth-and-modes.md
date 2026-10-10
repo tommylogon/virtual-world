@@ -1,5 +1,9 @@
 ---
 blocked_by: [task-436]
+type: task
+status: todo
+area: gameplay
+priority: medium
 ---
 
 # task-437 — One turn order, owned by the engine, with simultaneous as a mode
@@ -66,7 +70,7 @@ matter to how this feels" question gets answered.
 resources (the last item, one bed, a shared door) is a legitimate internal
 optimisation of the mode, not a different mode.
 
-## Design
+## How
 
 1. **The engine resolves and stores.** At the start of a timeframe the engine
    resolves the order once — seeded — and **stores the resolved list for that
@@ -127,3 +131,17 @@ intent folded into the same commit, instead of a special path.
 `rerollInitiatives`) and sits in `review/` as though it were not. Its remaining
 work is exactly step 1–4 above — moving the decision to the server. `task-101` is
 step 5.
+
+## What
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

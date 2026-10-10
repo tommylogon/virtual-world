@@ -1,5 +1,8 @@
 ---
-group: UI - NPC Behaviors
+area: ui
+type: task
+status: review
+priority: medium
 ---
 
 # Unified Behavior/State Machine Graph Editor
@@ -10,7 +13,7 @@ group: UI - NPC Behaviors
 
 ---
 
-## Problem
+## Why
 
 Simple NPC behaviors are currently defined as a flat array of `{trigger, interval, priority, conditions, actions}` objects. State machines are implicit — transitions happen via `set_npc_state` actions scattered across behaviors. There's no visual way to see how states connect or how the full AI behaves as a system.
 
@@ -18,7 +21,7 @@ The trigger graph editor (`static/js/shared/trigger-graph.js`) already has a pro
 
 ---
 
-## Goal
+## What
 
 Build a **Behavior Graph Editor** that:
 
@@ -267,3 +270,17 @@ This goes beyond the scope of this task but the graph editor should be built wit
 - [x] Integrate with behaviors-view.js (graph toggle in modal)
 - [ ] Blueprint save/load (library integration) — shared, needs behavior-mode toggle (Deferred)
 - [ ] Test/dry-run button (shared endpoint is trigger-only; Deferred)
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

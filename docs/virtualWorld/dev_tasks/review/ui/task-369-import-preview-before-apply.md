@@ -24,3 +24,29 @@ priority: medium
 The Deep audit button was added in the same session (validator on the throwaway world
 dict). Original audit text asked for counts + sanity issues only; the audit is the
 superset. task-375 (audit-on-import) is folded into this — no separate UI needed.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

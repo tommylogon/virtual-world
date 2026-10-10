@@ -5,19 +5,21 @@ status: done
 priority: low
 created: 2026-08-02
 tags: [gameplay, movement, actions]
+type: task
+area: gameplay
 ---
 
 # Dash Movement Action
 
-## Summary
+## What
 
 Add a `dash` action: run into another area and immediately get the option to run again — no inner monologue or other actions allowed between the two moves.
 
-## Problem
+## Why
 
 Movement is one area per action (engine/movement.py `move_to_area`), and each agent action costs a full turn. There's no way to cover ground quickly, which makes chases and escape attempts tedious.
 
-## Implementation
+## How
 
 ### Command
 
@@ -37,7 +39,7 @@ Movement is one area per action (engine/movement.py `move_to_area`), and each ag
 2. `engine/movement.py` — `dash_to_area()` (two moves, chained, compact single action) ✅
 3. `static/js/agent/prompt-builder.js` — dash added to allowed movement commands ✅
 
-## Testing
+## Steps to verify
 
 - [x] `dash north` moves ONE area (single fast hop)
 - [x] Agent immediately gets a second decision step to chain another `go`
@@ -53,3 +55,11 @@ Movement is one area per action (engine/movement.py `move_to_area`), and each ag
 ## Related
 
 - [[todo/items/task-156-weight-affects-energy-decay|task-156: Weight affects energy decay]]
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

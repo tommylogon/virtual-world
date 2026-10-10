@@ -5,6 +5,8 @@ status: done
 priority: high
 created: 2026-08-17
 tags: [conditions, blind, sensory, catalog]
+type: task
+area: conditions
 ---
 
 # Condition: Blind (`blind`)
@@ -17,7 +19,7 @@ implemented via **task-287** (2026-08-17). Moved here from `todo/conditions/`.
 
 ---
 
-## Purpose
+## What
 
 Can't see. Sight checks fail; attacks are clumsy. The canonical `auto_fail_checks` gate for the `sight`
 sense. The sensory-mode system built on top of it (task-287) treats blindness as **pitch black
@@ -68,7 +70,7 @@ regardless of light** and gates visual data at the source.
   - `engine/grapple.py` — `lead()` cooperative grab (guided movement while blind).
   - `data/library/items/guiding_cane.json` — `<sensory_aid>` item, `sensory_bonus: 3`.
 
-## Testing
+## Steps to verify
 
 - [x] Catalog entry present and correct — `test_condition_definitions_catalog` asserts
   `blind` `auto_fail_checks == ["sight"]`.
@@ -89,3 +91,19 @@ regardless of light** and gates visual data at the source.
   - Darkness as a separate pathway, or just a low-light variant of this (task-133 light-level area
     descriptions). Task-287's "pitch black regardless of light" only means blind *overrides* light —
     the two systems are not merged.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

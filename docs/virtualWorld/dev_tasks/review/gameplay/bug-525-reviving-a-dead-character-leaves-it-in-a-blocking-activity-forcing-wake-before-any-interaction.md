@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-10-07
 **Related:** task-725, task-131
 
-## Goal
+## What
 
 Death must end the character's activity, and a manual revive (HP/Energy restored, conditions cleared) must leave the character able to act. Today clearing the conditions does not clear player.activity, so the activity gate keeps blocking everything except wake even though the character is otherwise awake.
 
@@ -40,7 +40,7 @@ sleeping", and the activity gate demanded `wake`.
 
 Being dead and being unconscious are **conditions**; the activity was `sleeping`.
 
-## Fix
+## How
 
 - End the character's activity on death (and on any death→revive path), so a
   revived character is not stuck in a blocking activity.
@@ -65,3 +65,17 @@ guarded). So a revived character is no longer stuck in `sleeping` behind the
 activity gate. `python -m py_compile` clean; frontend unit runner 618 passed.
 Not yet verified live (needs a server restart). Still open: a proper revive path
 (none exists; the user revived by hand).
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

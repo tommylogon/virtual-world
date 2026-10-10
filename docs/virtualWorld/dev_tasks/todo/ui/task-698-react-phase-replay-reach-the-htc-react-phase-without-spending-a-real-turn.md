@@ -10,11 +10,12 @@ priority: low
 **Filed:** 2026-10-04
 **Related:** task-679,task-333
 
-## Goal
+## What
 
 TODO
 
 ## Acceptance
+
 The react phase (and task-679's wall-of-text fix) cannot be verified without
 committing a real action, which spends a turn and mutates the world. The
 verification session of 2026-10-04 had to rely on the user's screenshot.
@@ -29,3 +30,21 @@ verification session of 2026-10-04 had to rely on the user's screenshot.
       movement/prose/exits, clamped height, no raw way tail.
 - [ ] The affordance is hidden behind a flag or a dev-only entry point so normal
       play cannot trigger it accidentally.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

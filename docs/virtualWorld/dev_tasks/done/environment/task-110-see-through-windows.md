@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: environment
+priority: medium
+---
+
 # Task 110: See-Through Windows (visible_in_direction for closed doors)
 
 **Status**: Done
@@ -8,11 +15,11 @@
 
 ---
 
-## Summary
+## What
 
 `visible_in_direction` text (the custom "what you see beyond" description on room→door edges) was only shown when the door state was `"open"`. Windows — doors you can see through but not walk through — were impossible without building the description into the door node's `description` field, which conflates the door itself with what's visible beyond it.
 
-## Solution
+## How
 
 Added `see_through` boolean property on door nodes. When `true`:
 
@@ -51,3 +58,21 @@ Added `see_through` boolean property on door nodes. When `true`:
 ```
 
 Exit renders as: `[north] Through the window you see the moonlit garden below.`
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

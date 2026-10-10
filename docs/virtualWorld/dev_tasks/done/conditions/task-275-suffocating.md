@@ -1,5 +1,8 @@
-﻿---
-group: Conditions
+---
+area: conditions
+type: task
+status: done
+priority: medium
 ---
 
 # Condition: Suffocating (`suffocating`)
@@ -11,7 +14,7 @@ group: Conditions
 
 ---
 
-## Purpose
+## What
 
 Can't breathe — drowning, choking, airless area. A hard, urgent gate with a short lethal countdown.
 
@@ -71,3 +74,24 @@ Can't breathe — drowning, choking, airless area. A hard, urgent gate with a sh
 - Default `4` ticks with `HP -4` — confirm lethality target (fast but survivable with prompt rescue).
 - Any interactions with `wet`/`unconscious` (blacking out).
 
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

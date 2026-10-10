@@ -1,3 +1,10 @@
+---
+type: task
+status: review
+area: ui
+priority: medium
+---
+
 # Task 342 — Composer you-strip: full vitals + vital detail modal + story triggers
 
 **Status:** In Review — implemented 2026-08-24, full suite 1130 passed,
@@ -12,7 +19,7 @@ open the vital detail modal from the panel. Second point: native engine
 verbs (take/open/search) don't NEED triggers, but flavor triggers give
 items story — the audit's "no triggers" flags were opportunities, not bugs.
 
-## Implementation
+## How
 
 - `static/js/shared/vital-color.js` (new) — ONE polarity-aware
   bar-color/percent/suffix implementation reading `vital_polarity` from
@@ -30,9 +37,21 @@ items story — the audit's "no triggers" flags were opportunities, not bugs.
   earring/monster can/phone `on_examine`, cash register `on_open`
   (Tyler's stare), register drawer `on_search` (the DO NOT COUNT post-it).
 
-## Verification
+## Steps to verify
 
 - pytest 1130 passed; `node --check` on all three touched JS files
 - Scenario audit: HIGH 0, MED 0 (was H=1 M=14 after the wardrobe pass)
 - Browser: composer strip shows all vitals with inspector-matching
   colors; click a vital → detail modal; examine the earring → flavor.
+
+## What
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

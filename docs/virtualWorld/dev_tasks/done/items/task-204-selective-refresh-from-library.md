@@ -1,5 +1,8 @@
 ---
-group: Library
+area: items
+type: task
+status: done
+priority: medium
 ---
 
 # Selective Refresh from Library (Items + Ways)
@@ -10,11 +13,11 @@ group: Library
 
 ---
 
-## Problem
+## Why
 
 `refresh-from-library` blindly overwrote all unlocked properties and wiped all triggers. For items, the frontend didn't even show a preview — it just called the endpoint and refreshed. This made it impossible to use library refresh when a placed item/way had custom triggers you wanted to keep.
 
-## Fix
+## How
 
 **Backend**:
 - `routes/library_routes.py` — new `POST /api/ways/<node_id>/refresh-from-library` endpoint. Accepts `{sections: [...]}` and only touches those fields + respects `locked_fields`. Without `sections`, does legacy blind refresh.
@@ -27,7 +30,19 @@ group: Library
 
 **Way inspector tabs**: also added tab layout (Info | Behavior | Connections | Tags & More | Triggers) + Parameters section in Info tab.
 
-## Verification
+## Steps to verify
 
 - 5 new tests in `tests/test_library_refresh.py`: selective way refresh, missing library entry, selective item refresh, blind item refresh, blind way refresh.
 - Full suite: 838 passed, 11 pre-existing give-item failures, 0 regressions.
+
+## What
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

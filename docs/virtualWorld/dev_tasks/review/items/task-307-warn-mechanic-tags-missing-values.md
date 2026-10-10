@@ -1,6 +1,10 @@
 ---
-group: Items
+area: items
+type: task
+status: review
+priority: medium
 ---
+
 # Warn on Mechanic Tags Missing Values or Equip Slots
 
 **Filed**: 2026-08-19
@@ -40,3 +44,29 @@ Editor warning when an item has a mechanic tag (insulation, weapon, clothing, et
 
 - `developer ideas.md` line 14
 - Item editor/inspector (`static/js/inspector.js`, `static/js/item-library.js`), `engine/equipment.py`
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

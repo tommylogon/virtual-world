@@ -1,5 +1,8 @@
-﻿---
-group: Characters
+---
+area: characters
+type: task
+status: review
+priority: medium
 ---
 
 # More Conditions (wet, injured, bleeding, hypothermia, suffocating, petrified)
@@ -10,11 +13,11 @@ group: Characters
 
 ---
 
-## Problem
+## Why
 
 Only basic conditions exist, so there's no way to represent rich states like a body part being wet, an injury, active bleeding, sickness, or hard gates like suffocation and petrification. These states are core to the narrative and currently can't be modelled.
 
-## Design
+## How
 
 - Conditions are already multi-instance lists carrying `duration`, `source`, `level`, `periodic`, `symptoms`, `ends_on`, and `gate` fields — build on this existing shape rather than adding new fields.
 - **Wet**: attach to an equip slot / garment and feed into the existing insulation math (a wet coat provides less insulation).
@@ -31,3 +34,16 @@ Only basic conditions exist, so there's no way to represent rich states like a b
 - `engine/item_actions.py` — condition interactions with items and garments.
 - `engine/movement.py` — blood trail go-hook, movement gating.
 
+## What
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

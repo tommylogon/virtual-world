@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: misc
+priority: medium
+---
+
 # July 20 Batch — Cross-Entity Effects, Inspector UI, Item Library
 
 ## Engine (`virtual_world_engine.py`)
@@ -62,3 +69,29 @@
 
 - **Cancelled**: task-14 (action_costs_to_time) — doesn't fit turn-based model
 - **Updated**: task-15 (way_trigger_events → cross-entity trigger effects)
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

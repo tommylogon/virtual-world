@@ -10,7 +10,7 @@ priority: low
 **Filed:** 2026-10-06
 **Related:** task-625, task-446, task-716, task-725
 
-## Goal
+## What
 
 Investigate and consolidate the redundant homes for a character's state: location stored as player.current_area (name) + player.current_area_id + graph 'in' edge, tags/traits present on both the Player object and the character node's properties, and `personality`/`description` present only on the node while the LLM prompt and Mind read them off the Player. Do NOT merge the Player model with the character node - that split is intended (task-463). Coordinate with task-446 (id-first identity), which moves these keys.
 
@@ -133,3 +133,21 @@ remain open.
 - Merging the `Player` model with the character node (intended split, task-463).
 - Retiring `__`-suffixed identities (task-446).
 - The general duplicated-concept inventory (task-625).
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

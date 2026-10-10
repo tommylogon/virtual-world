@@ -47,7 +47,7 @@ Data corroboration: only `data/scenarios/kraktooth_goblin_camp.json` carries a
 `static/images/backgrounds/` holds five images - i.e. per-scenario maps exist locally but the
 world block is empty, which is exactly the failing input.
 
-## Fix
+## How
 
 A record now has to actually contain something. Added `_hasBackground(record)`: true when it
 has an `image`, a `rect`, or non-empty `positions`. The world block is used only if it passes
@@ -107,3 +107,17 @@ exactly what a mapless scenario serializes) and emitted `state:updated`.
 `{}`-is-truthy bug). Additionally, `tools/unit/test_graph_background.js` covers
 `_hasBackground({}) === false` and `_hasBackground({layers: []}) === false`
 (green in the 485-test run). No page errors.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO

@@ -36,7 +36,7 @@ Note: `bug-31` covers path *validation* (traversal). This is filename *generatio
   scenario-name route (`saveload.py:793`), and the scenario path helper
   (`saveload.py:638`), so a fix must be applied consistently or the sites will drift.
 
-## Fix
+## How
 
 1. Resolve a free filename: if the target exists, append a numeric/disambiguating
    suffix (`..._2`, `..._3`) — never silently overwrite a different save. Slot
@@ -88,3 +88,17 @@ display names). Tests in `tests/test_saveload.py` (`TestSanitizeFilename`,
 - `routes/helpers.py` — `_save_game` sanitizer + filename (282-326)
 - `routes/saveload.py` — rename sanitizer (312), scenario name (793), `_safe_scenario_name` (638)
 - `tests/test_saveload.py` — collision and unicode coverage
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO

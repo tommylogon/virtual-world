@@ -1,17 +1,20 @@
 ---
-group: Agent AI & Behavior
+area: gameplay
 wiki: "[[Items & Inventory/Items Overview]]"
+type: task
+status: review
+priority: medium
 ---
+
 # Task 104: Multi-Action Command Sequences
 
 **Status**: todo
 **Priority**: Low
 **Filed**: 2026-07-24
 
-## Summary
+## What
 
 Allow characters to queue up a sequence of commands that execute in order, enabling macro-actions like "use key on door, go north, look" as one atomic operation. Useful for both player convenience and NPC multi-step behaviors. BUT not sure if i really want this or not. might tie into a action point system downt he line
-
 
 ## What Already Exists
 
@@ -20,7 +23,7 @@ Allow characters to queue up a sequence of commands that execute in order, enabl
 - Turn queue handles step-by-step execution
 - NPC behaviors have an `actions` array
 
-## Implementation
+## How
 
 ### Frontend
 - Command input allows `;` or `→` separated sequences: `use key on door; go north; look`
@@ -39,7 +42,7 @@ Allow characters to queue up a sequence of commands that execute in order, enabl
 - **Very long sequences**: Cap at 10 commands (configurable)
 - **Multi-character**: Only valid for the acting character's commands
 
-## Files Affected
+## Files
 
 - `routes/action.py` — `/api/action/sequence` endpoint
 - `virtual_world_engine.py` — sequence execution loop
@@ -47,9 +50,18 @@ Allow characters to queue up a sequence of commands that execute in order, enabl
 - `static/js/ui-controller.js` — sequence UI feedback
 - `static/js/event-stream.js` — sequence step events
 
-## Tests
+## Steps to verify
+
 - Sequence of 3 commands executes in order
 - Failed command stops sequence with error message
 - State passes between commands (move then look)
 - Empty sequence returns error
 - Single command in sequence = normal /api/action
+
+## Why
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

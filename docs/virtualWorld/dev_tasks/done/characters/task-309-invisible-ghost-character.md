@@ -1,6 +1,10 @@
 ---
-group: Characters
+area: characters
+type: task
+status: done
+priority: medium
 ---
+
 # Invisible Ghost NPC / Undead Traits
 
 **Filed**: 2026-08-19
@@ -57,3 +61,29 @@ Make the ghost in the mansion an invisible/ghost character — a "dead ghost" �
 - `task-490` — incorporeal damage resistance and condition immunities (still open)
 - `developer ideas.md` line 16
 - `engine/ghost.py`, `engine/conditions.py`, trait system (`data/library/traits/*.json`)
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

@@ -11,7 +11,7 @@ priority: low
 **Supersedes:** task-314's backend scope (which was measured 2026-09-21 and is now closed)
 **Related:** task-83 (code readability), task-218 (the module-per-concern shape this follows)
 
-## Goal
+## What
 
 Extract focused modules from the backend files that outgrew single-file ergonomics.
 **One file per commit, no behaviour change** — extraction only, public imports and APIs
@@ -38,7 +38,7 @@ template-context block from `triggers/execution.py` — de-duplicate while split
 `serialization_template` + `serialization_legacy`; `engine/player_conditions.py` (841)
 was already extracted from `player.py`.
 
-## Approach
+## How
 
 1. **One file at a time.** Start with the smallest target that has a clean seam, as the
    proof of pattern, then move up. Do not batch.
@@ -60,3 +60,17 @@ was already extracted from `player.py`.
 - Behaviour changes, renames of public APIs, or architectural redesign.
 - Chasing a line-count target — a file that is cohesive at 900 lines stays 900 lines.
 - The frontend/JS and test splits (task-441).
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

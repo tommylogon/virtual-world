@@ -1,14 +1,21 @@
+---
+type: task
+status: done
+area: items
+priority: medium
+---
+
 # Task: Resistance & Weapon Rework
 
 ## Status
 
 **Status**: In Review — implementation complete 2026-08-05. Single `resistance` tag + `resistances` dict (data/library/tags/resistance.json exists), no per-type tags remain in engine/frontend; combat.py parses damage_dice + damage_type + damage_skill + resisted_damage; item-view.js + item-library.js wired for resistance/weapon fields. Moved from inprogress.
 
-## Goal
+## What
 
 Replace per-type resistance tags (`fire_resistant`, `cold_resistant`, etc.) with a single `resistance` tag whose values live in the `resistances` property dict. Add weapon dice, skill, and damage type support.
 
-## Changes
+## How
 
 ### 1. Tag Library
 - **Create** `data/library/tags/resistance.json` — single `resistance` tag
@@ -40,6 +47,7 @@ Replace per-type resistance tags (`fire_resistant`, `cold_resistant`, etc.) with
 - Update `test_combat.py` for new weapon properties
 
 ## Files Modified
+
 - `data/library/tags/resistance.json` (new)
 - `engine/equipment_bonuses.py`
 - `engine/combat.py`
@@ -47,3 +55,21 @@ Replace per-type resistance tags (`fire_resistant`, `cold_resistant`, etc.) with
 - `static/js/item-library.js`
 - `docs/virtualWorld/Items & Inventory/Items Overview.md`
 - `docs/virtualWorld/Items & Inventory/Equipment & Paperdoll.md`
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

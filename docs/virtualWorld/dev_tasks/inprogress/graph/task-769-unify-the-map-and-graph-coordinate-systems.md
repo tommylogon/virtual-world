@@ -91,3 +91,7 @@ placement.
 `C:\Users\Tommy\AppData\Local\Temp\kilo\repro2.js` (temporary) — loads the real
 modules, seeds from `data`, runs `apply()`, prints long-edge counts. Delete when
 the fix is confirmed live.
+
+## Why
+
+TODO

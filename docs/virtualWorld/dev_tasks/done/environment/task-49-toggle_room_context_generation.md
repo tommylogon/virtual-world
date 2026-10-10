@@ -1,6 +1,9 @@
 ---
-group: Agent AI & Behavior
+area: environment
 wiki: "[[AI & Narration/Narration System]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Toggle for Area Context in AI Generation
@@ -11,11 +14,11 @@ wiki: "[[AI & Narration/Narration System]]"
 
 ---
 
-## Summary
+## What
 
 Add a toggle/checkbox in the create modal and item library that controls whether AI generation includes context about the current room (for items) or existing areas (for areas). Some users may want standalone generation without context bias.
 
-## Current State
+## Why
 
 Neither the create modal nor the item library has any toggle for context inclusion. Context is either always sent or never sent.
 
@@ -50,8 +53,22 @@ Default to **checked** (context included), since this is the more useful behavio
 - Open the Item Library, click Generate — verify a "🧠 Use room context" checkbox exists.
 - Uncheck and generate — verify the AI prompt excludes room/world context.
 
-## Files Affected
+## Files
 
 - `static/js/main.js` — check context toggle before including room context in prompts
 - `static/js/item-library.js` — check context toggle before including room context in prompts
 - `templates/index.html` — add toggle checkbox to create modal forms
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

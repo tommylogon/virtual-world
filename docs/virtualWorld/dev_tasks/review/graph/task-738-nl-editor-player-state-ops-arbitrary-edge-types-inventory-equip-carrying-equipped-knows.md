@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-10-08
 **Related:** 
 
-## Goal
+## What
 
 The editor's op model is graph-shaped; it cannot touch Player state. Add staged ops for inventory add/remove, equip/unequip, and the real edge vocabulary (carrying, equipped, knows, owns, faction) instead of the spatial-only in/on/under/behind/beside/at enum. Route player_* ops to routes/player_ops.py on Apply. See docs/design/nl-editor-full-authoring.md.
 
@@ -69,3 +69,20 @@ with `emotion:{name:"not_a_dim"}` returned **422** with *"Unknown emotion dimens
 'not_a_dim' …"*. Not yet exercised: the editor **staging** the op through the agent
 loop (needs the model) — the editor UI itself was served but not scripted.
 
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

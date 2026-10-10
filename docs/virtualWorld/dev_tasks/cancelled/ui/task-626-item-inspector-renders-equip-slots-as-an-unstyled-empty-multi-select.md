@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-30
 **Related:** [task-292]
 
-## Goal
+## What
 
 equip_slots shows as a blank unstyled multi-select holding ten slots, so authored slots are invisible. Note 'apron' declares equip_slots ['torso'] but its actions lack 'equip'.
 
@@ -48,3 +48,21 @@ without interacting with it. The underlying observation that prompted it --
 `apron` declares `equip_slots: ["torso"]` but its `actions` lack `equip`, so the
 slot is authored and unreachable -- is real and is already filed under task-292
 and task-610.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

@@ -1,7 +1,11 @@
 ---
-group: Equipment & Inventory
+area: ui
 wiki: "[[Items & Inventory/Equipment & Paperdoll]]"
+type: task
+status: review
+priority: medium
 ---
+
 # Paperdoll Icon Art — game-icons.net SVGs
 
 **Filed**: 2026-07-21
@@ -10,11 +14,11 @@ wiki: "[[Items & Inventory/Equipment & Paperdoll]]"
 
 ---
 
-## Summary
+## What
 
 The paperdoll in the Equipment tab currently uses text labels only. Add SVG icon art from game-icons.net (CC0/CC BY 3.0) to make each slot visually distinctive with fantasy/RPG-themed icons.
 
-## Current State
+## Why
 
 Paperdoll has 13 slots in CSS grid human silhouette, each showing a text label ("Head", "Neck", "Torso", etc.) and the equipped item name. No visual icons.
 
@@ -37,7 +41,7 @@ Paperdoll has 13 slots in CSS grid human silhouette, each showing a text label (
 
 All SVGs saved to `static/icons/` with `fill="currentColor"` for theme compatibility.
 
-## Implementation
+## How
 
 1. Create `static/icons/` directory
 2. Save each SVG file with `fill="currentColor"`
@@ -59,6 +63,7 @@ Each icon maps to a paperdoll slot in `static/js/inspector/paperdoll-view.js`.
 
 The project readme now includes the following section:
 ```
+
 ## Icons
 
 Icons used in this project are from [game-icons.net](https://game-icons.net/).
@@ -75,8 +80,18 @@ License: CC BY 3.0
 
 **TODO**: Extract SVGs from archive, modify `fill` attributes, wire into paperdoll-view.js
 
-## Files Affected
+## Files
 
 - `static/icons/` — SVG icon files
 - `static/js/inspector/paperdoll-view.js` — slot-to-icon mapping
 - `virtual_world/readme.md` — attribution section
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

@@ -1,0 +1,15 @@
+{
+  "id": "rainy",
+  "name": "Rainy",
+  "kind": "normal",
+  "order": 4,
+  "icon": "🌧️",
+  "light_mult": 0.5,
+  "time_dc": 18,
+  "description": "Rain is falling, cold and steady.",
+  "tags": [
+    "weather",
+    "sky",
+    "wet"
+  ]
+}

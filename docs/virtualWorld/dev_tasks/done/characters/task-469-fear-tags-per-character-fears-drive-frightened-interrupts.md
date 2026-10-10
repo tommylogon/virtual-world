@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-23
 **Related:** task-464, task-466, task-214, task-213, task-326
 
-## Goal
+## What
 
 Replace the global hostile notion with per-character fear tags. Characters carry fear_tags (mirroring interest_tags); meeting a co-located character/item or an area whose tags intersect them applies the existing source-gated frightened condition and raises a fear interrupt so a timeskip pauses. Fears are authorable via trigger effects (add_fear_tag/add_interest_tag) and learnable via deliberate agent verbs (fear <target> / interest <target>). Guards vs farmers vs goblins differ purely by their fear_tags, so no group panics at itself.
 
@@ -33,10 +33,22 @@ Replace the global hostile notion with per-character fear tags. Characters carry
 - [ ] Awareness channels (sound) as a fear source (task-418); currently co-location only.
 - [ ] Condition `frightened` tuning once real fears exist (its attack/defense mods and `ends_on`).
 
-## Verification
+## Steps to verify
 
 `python -m pytest tests/test_fear.py -q` → 15 passed. Targeted regression (serialization, save/load, effects, triggers, identity, timeskip) → 274 passed. `tools/unit` → 130 passed. lint / typecheck / module-index clean.
 
 ## Review 2026-09-23 - core closed
 
 Verified: `tests/test_fear.py` plus the soak-chain promotion case (`frightened` applied, order promoted, `soak_end` event). Remaining bullets: normal-play NPC fear behaviour (task-214/354), awareness channels as a fear source (task-418), and `frightened` tuning filed as **task-484**. Closing.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Files
+
+- TODO

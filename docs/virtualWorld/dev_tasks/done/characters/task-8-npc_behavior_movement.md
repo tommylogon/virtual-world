@@ -1,8 +1,11 @@
 ---
-group: Agent AI & Behavior
+area: characters
 wiki: "[[Characters/NPC Behavior System]]"
 status: done
+type: task
+priority: medium
 ---
+
 # NPC Behavior Movement Enhancement (Go / Random / Patrol)
 
 **Filed**: 2026-07-15
@@ -11,7 +14,7 @@ status: done
 
 ---
 
-## Summary
+## What
 
 The `go` action in the behavior system currently teleports an NPC directly to a named room — no pathfinding, no door checks, no randomness. It needs to support three movement modes: pathfinding to a specific room via ways, moving to a random connected room, and cycling through a patrol route.
 
@@ -40,7 +43,7 @@ The `go` action in the behavior system currently teleports an NPC directly to a 
 
 - `tests/test_npc_behaviors.py`: goto via way, random, patrol cycle, locked door blocked
 
-## Verification
+## Steps to verify
 
 ```powershell
 python -m pytest tests/test_npc_behaviors.py -q
@@ -52,3 +55,19 @@ Browser E2E: rat Kitchen ↔ Cellar via trapdoor after reset — pending manual 
 ## Original design (reference)
 
 See git history / prior `todo/characters/task-8-npc_behavior_movement.md` for full design notes.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

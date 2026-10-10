@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-28
 **Related:** task-398, task-400
 
-## Goal
+## What
 
 Decide and implement what an explicit allow_regenerate re-run may overwrite on a node that carries generation provenance. Today apply_patch re-stamps the incoming node in place, so a re-run silently reverts a hand edit; the opposite requirement also exists, namely that a legitimate recipe change must reach nodes the recipe already emitted.
 
@@ -63,3 +63,21 @@ by hand".
 
 - Making recipes version-migrate old output (a separate, larger question).
 - The `Generate` button and preview surface (task-580).
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

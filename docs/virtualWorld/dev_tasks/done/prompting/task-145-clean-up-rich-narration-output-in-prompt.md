@@ -1,6 +1,10 @@
 ---
-group: Prompt & Narrative Quality
+area: prompting
+type: task
+status: done
+priority: medium
 ---
+
 # Review Rich Narration / Area Description Output Quality
 
 **Status**: In Review — implemented (verified 2026-08-08 code audit; moved from todo). Hybrid approach per the task's Fix Option 1: `buildNarratedRoomContext()` (`prompt-builder.js:831`) builds the full room context and replaces only the `Description:` line with LLM narration; the old full-replacement rich-observation path is gone. AI-narration of action results also lives in `agent-engine.js`. Pending: visual/E2E review of the hybrid output.
@@ -11,7 +15,7 @@ group: Prompt & Narrative Quality
 
 ---
 
-## Problem
+## Why
 
 When rich narration mode is on, the area description is generated via LLM and used as the `observeContext` in the observation prompt. This replaces `buildRoomContext()` output. The generated descriptions are often verbose and may not include all the structural information (exits, items, inventory) that the standard room context provides.
 
@@ -27,3 +31,25 @@ Additionally, the observe path in rich mode builds its own inventory string but 
 
 - `_generateRichObservation()` in `agent-engine.js`
 - `buildRoomContext()` and `buildNarratedRoomContext()` in `prompt-builder.js`
+
+## What
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

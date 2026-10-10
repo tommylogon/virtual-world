@@ -5,11 +5,13 @@ status: review
 priority: high
 created: 2026-08-17
 tags: [gameplay, conditions, blind, prompt, movement, sensory]
+type: task
+area: gameplay
 ---
 
 # Blind Character Sensory System
 
-## Summary
+## What
 
 A character under the `blind` condition is treated as **pitch black regardless of light**, and their
 observation is **gated at the source** — the visual data is not handed to the LLM at all, instead of
@@ -35,7 +37,7 @@ movement, a `listen` verb, and a cooperative `lead` (guide) mechanic.
 6. **`lead` = cooperative grab** — target consents, no resist roll, positioned *beside* the guide, and
    dragged by the guide's movement. `stand` recovers from the stumble-prone.
 
-## Files Changed
+## Files
 
 - `static/js/agent/prompt-builder/room-context.js` — `isBlind` branch (framing, sensed exits, known items,
   audio/scent people, speech-only witnessed).
@@ -52,7 +54,7 @@ movement, a `listen` verb, and a cooperative `lead` (guide) mechanic.
   (Inspector condition-editor tooling — `/api/conditions`, full-payload `add_condition`, `api.js`,
   `agent-view.js` modal — is split out into **task-288**.)
 
-## Testing
+## Steps to verify
 
 - [x] `node --check` on all edited JS; `py_compile` on all edited Python — clean.
 - [x] Full suite: 955 passed, 1 skipped, 71 deselected; same 4 pre-existing failures
@@ -75,3 +77,15 @@ blind prompt and a live blind-run in a scenario with exits/people to confirm the
   see `task-trait-condition-system-v2`).
 - Cane bonus on the `search` command (currently only `fumble`) — easy follow-up.
 - Task docs + `my-thoughts-about-virtual-world.md` wrap-up if this becomes a keeper.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

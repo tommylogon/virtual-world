@@ -5,19 +5,21 @@ status: done
 priority: low
 created: 2026-08-02
 tags: [triggers, tags, graph]
+type: task
+area: triggers
 ---
 
 # Add Tag to Target via Trigger
 
-## Summary
+## What
 
 Add a trigger effect that adds (or removes) a tag on a target node, so a trigger can change how the world categorizes items/areas over time.
 
-## Problem
+## Why
 
 Trigger effects can *target* items by tag (`target_tag` in engine/trigger_system.py:1267) and can `set_hidden`, `adjust_uses`, `rename`, etc. — but nothing can *add* or *remove* a tag. If a trigger should make something flammable, mark a room as discovered, or turn an item into a light source after use, there's no way to do it.
 
-## Implementation
+## How
 
 ### Effects
 
@@ -37,7 +39,7 @@ Trigger effects can *target* items by tag (`target_tag` in engine/trigger_system
 2. `engine/effects.py` — `handle_add_tag`/`handle_remove_tag` handlers + `_resolve_effect_target`/`_normalize_tags` helpers ✅
 3. `static/js/shared/trigger-editor.js`, `static/js/shared/trigger-graph.js`, `static/js/inspector.js`, `static/js/item-library.js` — effect options + tag/node param fields ✅
 
-## Testing
+## Steps to verify
 
 - [x] add_tag adds the tag to the target item's properties
 - [x] remove_tag removes it
@@ -52,3 +54,11 @@ Trigger effects can *target* items by tag (`target_tag` in engine/trigger_system
 
 - [[todo/triggers/task-153-rename-item-trigger-effect|task-153: Rename effect]]
 - [[review/items/task-98-tags-as-core-query-system|task-98: Tags as core query system]]
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

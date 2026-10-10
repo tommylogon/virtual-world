@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-10-04
 **Related:** task-692
 
-## Goal
+## What
 
 Stop the narrated room description from being sent to
 `/api/players/<name>/speak`, which attributes it to the character as
@@ -62,7 +62,7 @@ Compounding it: this fires on **every** room context build for **every**
 character, not once per room. A tick where several NPCs move through the
 same area has each of them emit a spoken paragraph.
 
-## Fix
+## How
 
 Render the narration as an emote in the event stream locally (the
 `events.log(..., 'system-msg')` call in `_generateAINarration` already
@@ -86,3 +86,17 @@ a deliberate decision, not a side effect of wanting italics.
   which one survives.
 - Regression guard: a test that a narrated room context build performs
   no `POST /api/players/*/speak`.
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-10-06
 **Related:** 
 
-## Goal
+## What
 
 When in map mode, calculate the correct coordinates to place a way node between its two connected areas, taking the spacing/distance between the areas into account (e.g. midpoint or interpolated position along the gap).
 
@@ -56,3 +56,21 @@ feed into, not only the coordinates. The edge-fan half is shared with task-618.
 item/character **held in a painted area** ignores its stale canvas `x`/`y` and is
 placed beside the room (the long `in`-edge fan). Gateway edges (cross-scope) are
 unchanged and still draw long — that half is task-618.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

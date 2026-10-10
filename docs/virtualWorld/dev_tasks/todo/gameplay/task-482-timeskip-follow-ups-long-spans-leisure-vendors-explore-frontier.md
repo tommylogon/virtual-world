@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-23
 **Related:** task-464; task-467; task-398
 
-## Goal
+## What
 
 Deferred from task-464: spans beyond the 1,440-min route cap (soak-runner-style job), leisure buying from a vendor, and explore frontier preference tied to generation (task-398).
 
@@ -42,3 +42,21 @@ task-398). The **task-436 Energy resolution residual was deliberately not folded
 in here**: its cause is still unidentified, two prior fixes failed, and without a
 reproduction harness a third blind change risks the soak baseline. The next step
 is a measurement harness, not another guess.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

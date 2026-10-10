@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-10-04
 **Related:** task-593, task-400, task-661, bug-517, bug-518, bug-519
 
-## Goal
+## What
 
 Replace the `narration_mode` flag with a real DM layer that reads engine
 perception, never contradicts it, and treats human narration as a
@@ -433,3 +433,21 @@ than a badge that lies.
   tier. If narration is attended-only, the cheap tier renders the
   mechanical row and that asymmetry must be visible in the UI rather
   than looking like a bug.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

@@ -1,8 +1,11 @@
 ---
-group: Agent AI & Behavior
+area: gameplay
 wiki: "[[dev_tasks/level-design-workflow]]"
 status: done
+type: task
+priority: medium
 ---
+
 # Character ? Item Spatial Relationships
 
 **Filed**: 2026-07-30  
@@ -13,7 +16,7 @@ status: done
 
 ---
 
-## Summary
+## What
 
 When a character interacts with an item (examines it, uses it, stands on/near/under it), create a spatial edge between the character and that item � `character AT piano`, `character UNDER chandelier`, `character ON trap`. This gives other characters a sense of where people are positioned relative to objects in the room, beyond just "they're in the same area."
 
@@ -84,3 +87,25 @@ People lines: `the stranger at the north`, `the woman beside the piano`. Strange
 - [[AI & Narration/Agent Engine]]
 - [[review/ui/task-201-area-visibility-beyond-ways|task-201]]
 - [[review/gameplay/task-224-transit-areas-entry-relative-exits|task-224]]
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

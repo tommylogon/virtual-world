@@ -1,3 +1,10 @@
+---
+type: task
+status: review
+area: items
+priority: medium
+---
+
 # Task-236: "Hide Items" Toggle — Reveal Items on Click
 
 **Status:** In Review — implemented 2026-08-16, syntax-checked, pending live browser E2E.
@@ -15,7 +22,7 @@ In **hide items mode** (`_showItems === false`), item nodes are normally filtere
 
 Turning the toggle back to "show items" clears any temporarily revealed nodes.
 
-## Implementation
+## How
 
 - `static/js/graph/network-manager.js`
   - Extracted the per-node label/tooltip/color styling out of `loadGraphData()` into a reusable `buildNodeConfig(nodeData)` helper, so revealed nodes render identically to normal ones.
@@ -27,7 +34,23 @@ Turning the toggle back to "show items" clears any temporarily revealed nodes.
 
 Note: the relation edges to hidden item nodes are already rendered in the graph (only the item *nodes* are filtered out), so adding the item nodes back reuses the existing edges — no edge surgery needed.
 
-## Verification
+## Steps to verify
 
 - `node --check` passes on all three modified JS files.
 - Live browser check in the map editor pending: click an area / character / item in hide mode reveals its items; clicking empty space hides them.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

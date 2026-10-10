@@ -1,3 +1,10 @@
+---
+type: bug
+status: done
+area: bugs
+priority: medium
+---
+
 # Bug 27 — Outcome lines render "the the <item>" with missing space before relation
 
 **Status**: Done — fixed 2026-08-28.
@@ -58,3 +65,29 @@ Both defects were **engine-side**, in `engine/items/take_drop_actions.py` (not t
 Verified: `engine/items/take_drop_actions.py` compiles; `tests/test_item_actions.py`
 (61) all pass. Taking an item `under the Booth Table` now reads
 `You pick up the blue butterfly earring from under the Booth Table.`
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

@@ -1,5 +1,8 @@
 ---
-group: Pleasure System
+area: characters
+type: task
+status: done
+priority: medium
 ---
 
 # NPC Perception & Reaction Framework
@@ -67,3 +70,29 @@ NPCs can't mechanically "notice" another character's state (hard nipples, blushi
 
 - [[Intimacy and Body Sensitivity System - Design]] §8 (Phase 6)
 - `task-213 mature traits`, `task-211 intimacy verbs`, `task-208 friction`
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

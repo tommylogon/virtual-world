@@ -1,6 +1,9 @@
 ---
-group: Trigger System
+area: triggers
 wiki: "[[Rules Engine/Triggers & Effects]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Trigger Conditions: Dropdown for "has_item in Inventory"
@@ -11,11 +14,11 @@ wiki: "[[Rules Engine/Triggers & Effects]]"
 
 ---
 
-## Summary
+## What
 
 When creating a trigger condition of type `has_item`, the user currently selects from a multi-select element. This should be a proper dropdown with a searchable list of all known items (from world).
 
-## Current State
+## Why
 
 In `item-library.js:_addTrigger()` (lines 693-712), when the condition type changes to `has_item`, the UI shows a hidden `<select id="trigger-cond-extra">` element populated with library items via `Object.entries(this.data)`. 
 
@@ -43,6 +46,20 @@ When user selects "Has item in inventory" from condition dropdown:
 - Start typing an item name — verify matching items from the library appear as suggestions.
 - Save the trigger, verify the condition stores the correct item ID.
 
-## Files Affected
+## Files
 
 - `static/js/item-library.js` — replace the `trigger-cond-extra` select with searchable input+datalist
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

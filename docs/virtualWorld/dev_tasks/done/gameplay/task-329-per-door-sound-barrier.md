@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: gameplay
+priority: medium
+---
+
 # Task-329: Per-Door Sound Barrier Property
 
 **Status**: In Review — implemented + committed 2026-08-23 (`100b7cc3`), moved to
@@ -13,7 +20,7 @@ TemplateResult, but `showWay` still wrapped it in `unsafeHTML()` → every way
 inspector crashed ("unsafeHTML() called with a non-string value"). Fixed by direct
 interpolation (`${passageHtml}`); all ways verified rendering after.
 
-## Summary
+## What
 
 Ways get an optional `sound_barrier` float property. When set, it replaces the
 state-derived barrier while the door is in a solid state (`closed`, `blocked`,
@@ -24,13 +31,13 @@ are untouched; see_through still wins over state lookup as today (sound.py:83).
 Single value per door — no separate closed/locked/blocked overrides on the node.
 Falls back to the task-304 config chain so Engine Config remains the global tuner.
 
-## Motivation
+## Why
 
 Hidden/solid doors currently block even shouts (barrier 2 ≥ shout penetration 2).
 Designers need doors with different acoustic mass (vault door vs thin wooden door)
 without editing global config per scenario.
 
-## Implementation
+## How
 
 1. `engine/sound.py` — `get_way_barrier()`: read `properties.sound_barrier`
    (float-coerced) before the see_through/state lookup, only for solid states.
@@ -50,3 +57,17 @@ without editing global config per scenario.
 - `pytest` sound suite + guard suites.
 - Live: way inspector field renders, saves via api.updateNode, propagation
   reflects the custom value.
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-23
 **Related:** task-472, task-474, task-475, task-213
 
-## Goal
+## What
 
 Make checks differ per character without an LLM: role/trait skill biases (hunter -> Survival/Nature/Animal Handling, guard -> Perception/Insight/Intimidation, thief -> Sleight of Hand/Stealth, healer -> Medicine/Insight, scholar -> History/Religion/Arcana, smith -> Athletics/craft), feeding the existing TraitSystem.get_skill_check_mods seam so a goblin trapper out-forages a child in the same wood.
 
@@ -63,3 +63,21 @@ Implemented and tested; moving to review.
 Remaining for this task: the authoring data pass that puts `role:` tags on the
 cast (a scenario/library edit per character, deferrable) — the *mechanism* and
 its acceptance are complete.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

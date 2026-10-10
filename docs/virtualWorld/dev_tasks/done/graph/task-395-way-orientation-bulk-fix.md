@@ -99,7 +99,7 @@ by the same class: ways missing `pass_message`, cardinal direction, and/or
    in the existing per-way ✨ Improve AI (draft-for-review, never auto-applied
    en masse).
 
-## Verification
+## Steps to verify
 
 - `pytest tests/test_trigger_validator.py tests/test_undo_history.py tests/test_way_connect_repair.py` — 54 passed.
 - Live: author-set pass_message preserved by cleanup; minted template values removed.
@@ -111,3 +111,23 @@ by the same class: ways missing `pass_message`, cardinal direction, and/or
 - Per-direction pass/visible prose → move those fields onto the area→way edges
   (they're currently single node-level props), then an AI "write missing flavor"
   batch can target per-direction text with real context.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

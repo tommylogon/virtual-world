@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-28
 **Related:** task-521,task-496,task-535,task-560,task-563
 
-## Goal
+## What
 
 Make the WorldPainter say why a scope cannot be compiled, and what to paint next,
 before the author presses Generate.
@@ -78,3 +78,21 @@ neither was discoverable from the UI:
   `entry_phrase` (task-529), `sides` (task-563) and `gateway_from` (task-535).
   That is a data-loss bug, not a guidance gap, and it is why
   "paint first, generate last" is advice in the `wp-generate` tip.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

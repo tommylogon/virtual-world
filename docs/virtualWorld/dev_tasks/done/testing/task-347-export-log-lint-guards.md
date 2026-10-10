@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: testing
+priority: medium
+---
+
 # task-347 — Export-log lint guards: grep-able regression checks over play sessions
 
 **Status**: Todo — filed 2026-08-27 from export-log review.
@@ -14,7 +21,7 @@ Sibling to task-11 (live-agent regression harness): task-11 replays full
 sessions with an actual model; THIS task needs no model — just lint existing/
 new exports for known-bad signatures.
 
-## Goal
+## What
 
 `tools/log_lint.cjs <export.txt ...>` (+ optional pytest twin reading new
 exports) checking patterns like:
@@ -68,3 +75,24 @@ historical logs stay annotated (lint runs per-file, not per-build).
   matching the earlier finding that the two quoted lines were different
   utterances.
 
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

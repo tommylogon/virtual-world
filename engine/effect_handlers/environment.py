@@ -20,7 +20,7 @@ def handle_set_environment(self, params, context, item_node=None, game_state=Non
     if not isinstance(env, dict):
         env = {}
     for key in ["light", "temperature", "air", "smell", "noise",
-                "weather", "wind", "humidity"]:
+                "weather", "wind", "wind_direction", "humidity"]:
         if key in params:
             if key == "light":
                 env[key] = game_state._light_to_level(params[key])
@@ -55,13 +55,14 @@ def handle_adjust_environment(self, params, context, item_node=None, game_state=
                 env[key] = max(-50, min(100, current + int(params[key])))
             except (ValueError, TypeError):
                 pass
-    for key in ["air", "smell", "noise", "weather", "wind", "humidity"]:
+    for key in ["air", "smell", "noise", "weather", "wind", "wind_direction", "humidity"]:
         if key in params:
             env[key] = params[key]
     # task-234: adjust_weather / adjust_wind / adjust_humidity cycle the enum.
     cycles = {
         "adjust_weather": (params.get("adjust_weather"), __import__("engine.weather_forecast", fromlist=["WEATHER_STATES"]).WEATHER_STATES),
         "adjust_wind": (params.get("adjust_wind"), __import__("engine.weather_forecast", fromlist=["WIND_STATES"]).WIND_STATES),
+        "adjust_wind_direction": (params.get("adjust_wind_direction"), __import__("engine.weather_forecast", fromlist=["WIND_DIRECTIONS"]).WIND_DIRECTIONS),
         "adjust_humidity": (params.get("adjust_humidity"), __import__("engine.weather_forecast", fromlist=["HUMIDITY_STATES"]).HUMIDITY_STATES),
     }
     for key, (steps, states) in cycles.items():

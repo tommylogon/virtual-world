@@ -10,11 +10,12 @@ priority: high
 **Filed:** 2026-10-04
 **Related:** task-444,bug-520,bug-521
 
-## Goal
+## What
 
 TODO
 
 ## Acceptance
+
 - [ ] `python tools/e2e.py --scenario <name>` boots the app on a scratch port
       (`VW_PORT`, never 4444), waits for the mid-boot state to clear, and runs the
       requested check in a driven browser.
@@ -33,3 +34,20 @@ TODO
 - [ ] Runs green headlessly on this machine; a clean-checkout A/B is not required
       for UI checks but failures must name the interaction that failed.
 
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

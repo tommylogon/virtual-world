@@ -1,6 +1,9 @@
 ---
-group: Items & Crafting
+area: triggers
 wiki: "[[Rules Engine/Triggers & Effects]]"
+type: task
+status: done
+priority: medium
 ---
 
 # AI Generate Triggers for New Items
@@ -11,11 +14,11 @@ wiki: "[[Rules Engine/Triggers & Effects]]"
 
 ---
 
-## Summary
+## What
 
 When generating an item with AI, no triggers are generated. The AI only generates basic properties (name, description, actions, uses, weight, hidden). Users must manually add triggers afterward, which defeats the purpose of AI generation for complex interactive items.
 
-## Current State
+## Why
 
 In `main.js:generateWithAI()` (line 351-354), the AI response for items is parsed as:
 
@@ -68,7 +71,21 @@ If the create modal doesn't yet have trigger UI, store the generated triggers in
 - After generation, scroll to the "Triggers JSON" textarea — verify it's populated with trigger data from the AI.
 - Submit the item, then open it in the Item Library — verify triggers were saved and are editable.
 
-## Files Affected
+## Files
 
 - `static/js/main.js` — extend format hint, parse triggers from AI response
 - `static/js/item-library.js` — extend library AI generation to include triggers
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

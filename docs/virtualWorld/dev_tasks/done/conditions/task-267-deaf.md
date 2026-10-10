@@ -1,6 +1,8 @@
 ---
-group: Conditions
+area: conditions
 status: done
+type: task
+priority: medium
 ---
 
 # Condition: Deaf (`deaf`)
@@ -12,7 +14,7 @@ status: done
 
 ---
 
-## Purpose
+## What
 
 Can't hear. Hearing cues are lost. The `auto_fail_checks` gate for the `hearing` sense — pairs with `blind` for the senses family.
 
@@ -50,7 +52,7 @@ Can't hear. Hearing cues are lost. The `auto_fail_checks` gate for the `hearing`
 - `engine/conditions.py` — `auto_fails_checks(player, "hearing")`, perception.
 - Sensory context: hearing-based cues (audio) dropped/gated when deaf.
 
-## Testing
+## Steps to verify
 
 - [ ] Hearing checks auto-fail while deaf.
 - [ ] Hearing-based context lines are gated/omitted.
@@ -60,3 +62,19 @@ Can't hear. Hearing cues are lost. The `auto_fail_checks` gate for the `hearing`
 
 - Should deafness gate speech perception differently from sound cue delivery (self vs. incoming audio)?
 - Pairs with `blind` for a full sensory-deprivation scenario — any combined handling?
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

@@ -11,7 +11,7 @@ blocked_by: [task-700, task-701]
 
 **Clarified:** 2026-10-05
 
-## Goal
+## What
 
 Run grounded short-term plans that make progress on an actor's active pursuit. The **pursuit** is the longer undertaking and reason; the **plan** is the current approach; an **Activity** is the observable process that can run over time after the actor reaches a place. Use one set of world rules for LLM agents, simple NPCs, and background characters, with different levels of decision detail.
 
@@ -35,3 +35,21 @@ Build on the existing movement, action, condition, perception, memory, activity,
 ## Current slice
 
 `engine/background_plans.py` currently advances typed haul/gather/rally plans for background characters and can resume a multi-step plan after a need action. The actor-bound pursuit survives in `Player.active_pursuit`; its immediate steps live in `Player.plan`. The runner does not yet start ongoing Activities from pursuit steps or supply the active pursuit to an LLM prompt.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

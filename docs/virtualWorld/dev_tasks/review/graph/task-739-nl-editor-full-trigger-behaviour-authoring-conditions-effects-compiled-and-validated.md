@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-10-08
 **Related:** 
 
-## Goal
+## What
 
 create_node can mint an empty logic_trigger but the editor cannot author its logic. Expose the existing condition/effect schema and the graph->behaviour compile (shared/trigger-graph.ts compileToBehaviorsWithIssues) so the editor can create AND validate a trigger. Reuse engine/triggers; do not invent a second format. See docs/design/nl-editor-full-authoring.md.
 
@@ -78,3 +78,21 @@ trigger_type 'on_nonsense'."*). Not yet exercised: the three read tools
 (`get_trigger_schema`, `get_behaviours`, `compile_behaviours`) invoked by the agent —
 they are served and loaded (`tools.js` contains them, `window.NlEditorBudget` /
 `TriggerTypes` load) but were not driven end-to-end.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

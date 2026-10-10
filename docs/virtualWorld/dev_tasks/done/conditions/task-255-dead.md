@@ -1,6 +1,8 @@
 ---
-group: Conditions
+area: conditions
 status: done
+type: task
+priority: medium
 ---
 
 # Condition: Dead (`dead`)
@@ -12,7 +14,7 @@ status: done
 
 ---
 
-## Purpose
+## What
 
 Terminal state. The character cannot act, cannot move, and drops everything they hold. Hardest of the hard gates.
 
@@ -53,7 +55,7 @@ Terminal state. The character cannot act, cannot move, and drops everything they
 - Cures: `remove_condition dead` via ally-administered items (`target: "target"` + `on_use_on`) per `Conditions System.md` §4.
 - `ghost_mode` (dead characters can act) at the system level, not the catalog.
 
-## Testing
+## Steps to verify
 
 - [ ] Death sets `blocked_actions`/`blocked_movement` and speed 0.
 - [ ] Holding items drop into the area on death.
@@ -64,3 +66,19 @@ Terminal state. The character cannot act, cannot move, and drops everything they
 - Should `blocks_speech` be True for a corpse, or is leaving it off intentional?
 - Should `dead` auto-clear all other conditions (many catalogs make death exclusionary)? Currently `excludes: []`.
 - Where is the canonical revive flow (which trigger/effect removes `dead`)?
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

@@ -1629,11 +1629,34 @@
         // filtered views. vis-network LOGS (never throws) on an unknown id, so
         // the try/catch below can't silence it; skip those ids here (bug-36).
         const live = new Set(network.body?.data?.nodes?.getIds?.() || []);
+        // In Map mode the painted grid owns every painted node's position
+        // (`cell * pitch`, `GraphLayoutEngine.scopedGridPosition`), so a saved
+        // canvas snapshot is a copy from whatever pitch it was captured at.
+        // Re-applying it after a spacing change dragged every area and way off
+        // its cell onto that stale frame (bug-543): the grid laid them out, then
+        // the world-refetch the fit-write triggers called this and moveNode'd
+        // them back to the old pitch. A painted node is not a target for a saved
+        // canvas position — the same rule `persistPositionsToWorld` already
+        // applies on the way out.
+        const gm = (typeof graphManager !== 'undefined' ? graphManager : null);
+        let isPainted = null;
+        if (gm && gm._cardinalLayout === true) {
+            const nodesObj = gm._graphNodesObj || {};
+            const engine = typeof GraphLayoutEngine !== 'undefined' ? GraphLayoutEngine : null;
+            if (engine && typeof engine.hasPaintedCoords === 'function') {
+                isPainted = (id) => {
+                    const props = (nodesObj[id] || {}).properties || {};
+                    return !!engine.hasPaintedCoords(props);
+                };
+            }
+        }
         for (const id of Object.keys(state.positions)) {
             const position = state.positions[id];
             if (!position)
                 continue;
             if (!live.has(id))
+                continue;
+            if (isPainted && isPainted(id))
                 continue;
             try {
                 network.moveNode(id, position.x, position.y);

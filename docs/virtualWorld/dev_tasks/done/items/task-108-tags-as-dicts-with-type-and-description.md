@@ -1,5 +1,9 @@
 ---
 wiki: "[[Items & Inventory/Items Overview]]"
+type: task
+status: done
+area: items
+priority: medium
 ---
 
 # Task 108: Tags as Dicts with Type and Description
@@ -11,7 +15,7 @@ wiki: "[[Items & Inventory/Items Overview]]"
 
 ---
 
-## Summary
+## What
 
 Tags are currently `list[str]` (e.g. `["food", "fruit"]` or `["two_handed", "metal"]`). Change them to `list[dict]` so each tag carries metadata inline:
 
@@ -30,7 +34,7 @@ This lets the system distinguish **category tags** (fantasy, magical, book, tabl
 
 ---
 
-## Design
+## How
 
 ### Tag shape
 
@@ -138,3 +142,21 @@ The inline `type` field on the entity tag can be auto-populated from the library
 | | Replace all engine tag checks |
 | | Update frontend tag display/editing |
 | | Update library JSON files |
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

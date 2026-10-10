@@ -117,3 +117,25 @@ This bug is the UI-visible face of task-724's `personality`/`description`
 finding. It is filed separately only because it is a concrete, reproducible
 defect (screenshot + live payload). If task-724 is actioned first, close this
 against it rather than fixing twice.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

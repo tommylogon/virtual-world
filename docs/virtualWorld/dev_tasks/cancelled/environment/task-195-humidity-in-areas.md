@@ -1,5 +1,8 @@
 ---
-group: Environment & Climate
+area: environment
+type: task
+status: cancelled
+priority: medium
 ---
 
 # Humidity in Areas
@@ -10,11 +13,11 @@ group: Environment & Climate
 
 ---
 
-## Problem
+## Why
 
 Humidity, flooding, and smoke should exist as environmental states in an area. Today an area has no way to express "humid", "flooding", or "full of smoke", so those conditions cannot drive gameplay.
 
-## Design
+## How
 
 - Model as a condition on the area: `"humid"`, `"flooding"`, `"full of smoke"`.
 - Needs a concrete mechanical effect to be worth adding — candidates: drying speed, `effective_temp`, stealth.
@@ -24,3 +27,17 @@ Humidity, flooding, and smoke should exist as environmental states in an area. T
 
 - `engine/area_description.py` — represent humidity/flood/smoke conditions on an area
 - `engine/conditions.py` — define the condition types and their effects
+
+## What
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

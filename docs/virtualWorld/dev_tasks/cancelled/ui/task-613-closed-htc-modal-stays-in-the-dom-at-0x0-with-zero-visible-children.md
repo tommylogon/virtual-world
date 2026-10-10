@@ -10,7 +10,7 @@ priority: low
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 After a turn closes, #htc-modal remains in the DOM with a 0x0 rect and no offsetParent-bearing children while #htc-overlay is display:none. Element presence is therefore not a valid 'is the modal open' test -- the stale innerText still reads a phase marker. Anything probing this surface (tests included) will read a closed modal as open.
 
@@ -26,3 +26,21 @@ not an application defect. The actual fault was in the audit probe, which tested
 ``document.getElementById('htc-modal')`` for presence and read a closed modal as
 open. Nothing to fix in the app; the lesson is recorded in the live audit README
 as the ninth DOM-vs-pixels disagreement.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

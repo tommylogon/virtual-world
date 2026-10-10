@@ -6,21 +6,23 @@ priority: medium
 created: 2026-08-10
 updated: 2026-08-10
 tags: [gameplay, matching, aliases, commands, inspector]
+type: task
+area: gameplay
 ---
 
 # Subjective Aliases — Command Resolution by Alternative Names
 
 **Status**: In Review — implemented 2026-08-10. Items already resolved aliases via `properties.aliases`; extended the same mechanism to ways, areas, and characters plus an editable 🔖 Aliases field in the inspector for all four node types. 7 new tests in `tests/test_matching.py` (`TestAliasMatching`); `test_matching.py` = 63 passed, 1 skipped. Live-verified against the running server: PATCHed `way_Foyer_library_door` → `"go the study"` moved Jake to Library; PATCHed `player_The_Butcher` → `"examine the meat man"` resolved to The Butcher (distinctive alias, not a name substring); inspector Aliases field renders + saves on all four views (item/way/area/character), save round-trip confirmed via `GET /api/graph/nodes`.
 
-## Summary
+## What
 
 Let every item, way, area, and character resolve by one or more alternative names in commands — "go the study", "attack the butcher", "take the ghost detector". Aliases live on the node's `properties.aliases` (list or comma/`|`-separated string) and are editable in the inspector.
 
-## Problem
+## Why
 
 Items could already be targeted by aliases, but ways, areas, and characters could only be matched by their exact display name. Subjective names (pet names, alternate titles, player-typed shorthand) failed: `go the study` fell through to fuzzy/description matching or just missed.
 
-## Implementation
+## How
 
 ### Backend (`engine/matching.py`)
 
@@ -33,7 +35,7 @@ Items could already be targeted by aliases, but ways, areas, and characters coul
 - `static/js/inspector/helpers.js`: shared `InspectorHelpers.renderAliasesSection(nodeId, aliases)` + `InspectorHelpers.saveAliases(nodeId, value)` (comma-separated input; saves via `api.updateNode(nodeId, { properties: { aliases } })` on Enter/blur, then `worldState.fetch()`).
 - Wired into `item-view.js` (after tags), `way-view.js` (after tags), `area-view.js` (after tags), and `agent-view.js` (after Tags; character node id `player_<name with spaces→underscores>` looked up via `worldState.getNode`).
 
-## Testing
+## Steps to verify
 
 - [x] 7 tests in `tests/test_matching.py` `TestAliasMatching`: item alias, comma-string alias, way alias, area alias via exit (fixture ways needed a `connection` edge added), character alias, ambiguous character alias, area alias with no exit stays unmatched — 63 passed, 1 skipped
 - [x] Live: `go the study` → Library (way alias)
@@ -45,3 +47,11 @@ Items could already be targeted by aliases, but ways, areas, and characters coul
 ## Related
 
 - Idea #7 — Subjective alias system in `developer ideas.md`
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

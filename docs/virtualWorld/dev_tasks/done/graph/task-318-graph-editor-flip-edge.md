@@ -1,14 +1,17 @@
 ---
-group: Graph
+area: graph
 status: done
+type: task
+priority: medium
 ---
+
 # Graph Editor: Flip Edge Direction
 
 **Filed**: 2026-08-20
 **Priority**: Medium
 **Status**: In Review — implemented 2026-08-20
 
-## Implementation
+## How
 
 Added a "Flip Edge" option to the graph editor's edge context menu (right-click on an edge).
 
@@ -21,7 +24,7 @@ Frontend (`static/js/`):
 - `graph/context-menu.js`: added "🔀 Flip Edge" to edge context menu and `flip_edge` case in `ctxAction()`.
 - Frontend also blocks `connection`/`triggers`/`requires` edges before calling the API.
 
-## Verification
+## Steps to verify
 
 - JS syntax check passed for `context-menu.js`, `api.js`, `network-manager.js`
 - Python tests pass (same 3 pre-existing failures in `test_trigger_system.py`, unrelated)
@@ -50,3 +53,19 @@ Context:
 - `routes/graph.py` edge endpoints
 - `static/js/graph/context-menu.js`
 - `static/js/api.js`
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

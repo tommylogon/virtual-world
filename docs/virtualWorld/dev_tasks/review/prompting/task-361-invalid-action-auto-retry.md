@@ -5,6 +5,8 @@ status: review
 priority: medium
 created: 2026-07-31
 tags: [agent-engine, automation, ux]
+type: task
+area: prompting
 ---
 
 # Invalid Action Auto-Retry Setting
@@ -15,11 +17,11 @@ default off), not raw `localStorage`; and per Tommy's confirmation the same-turn
 BOTH verb-level rejections (ActionNormalizer gate) and engine-executed failures — one retry,
 no extra step, retry outcome feeds the react phase. Frontmatter `id` corrected 150 → 361.
 
-## Summary
+## What
 
 Add a new automation setting that, when enabled, automatically offers the agent a retry when it performs an invalid action. Instead of just logging the error and moving on, the system will feed back the error message to the agent and prompt it to choose a different action.
 
-## Motivation
+## Why
 
 Currently, when an agent performs an invalid action (e.g., trying to attack a non-existent target, using an item that doesn't exist, or moving to an invalid location), the action fails silently or with a brief error log. The agent wastes its turn and doesn't learn from the mistake. This setting would:
 
@@ -28,7 +30,7 @@ Currently, when an agent performs an invalid action (e.g., trying to attack a no
 3. Reduce wasted turns on invalid actions
 4. Make the simulation feel more responsive and intelligent
 
-## Implementation
+## How
 
 ### Settings Panel
 
@@ -99,7 +101,7 @@ Choose a different action. You cannot repeat the failed action.
 3. `static/js/agent/prompt-builder.js` - Add retry prompt builder function
 4. `static/js/config.js` - Add `autoRetryInvalid` to config defaults
 
-## Testing
+## Steps to verify
 
 - [ ] Setting appears in Agent Settings panel
 - [ ] Setting persists across page reloads
@@ -125,3 +127,11 @@ Choose a different action. You cannot repeat the failed action.
 - Smart error classification (only retry certain error types)
 - Track retry success rate for analytics
 - Visual indicator in UI when retry occurs
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

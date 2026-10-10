@@ -1,6 +1,10 @@
 ---
-group: Environment & Climate
+area: environment
+type: task
+status: done
+priority: medium
 ---
+
 # Task 149: Sound Propagation System
 
 **Filed**: 2026-07-31  
@@ -9,13 +13,13 @@ group: Environment & Climate
 
 ---
 
-## Summary
+## What
 
 Implement a graph-based sound propagation system where speech and sound sources travel through connected areas based on penetration values, door states, and ambient noise levels.
 
 ---
 
-## Design
+## How
 
 ### Speech Levels (4 tiers)
 
@@ -181,7 +185,7 @@ Sound sources propagate like speech but:
 
 ---
 
-## Verification
+## Steps to verify
 
 ### All Tests Passing (21/21)
 1. ✅ Whisper in area A → only characters in A hear it
@@ -281,3 +285,15 @@ scream Help!                 # Scream (pen=3, alerts 3 areas away)
 - NPCs could have "hearing" trait (good/poor hearing) affecting perception (future)
 - Sound propagation is deterministic — same setup always produces same results
 - Deduplication prevents spam when sound sources tick continuously
+
+## Why
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

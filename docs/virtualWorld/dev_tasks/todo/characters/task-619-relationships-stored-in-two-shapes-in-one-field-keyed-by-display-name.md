@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 Relationships are keyed by display name, not by node id, so renaming a
 character orphans its relationships.
@@ -39,5 +39,23 @@ a partial migration that is half done or a legitimate second representation.
 The relationship field holds two record shapes and is keyed by display name rather than id, so a rename orphans the relationship.
 
 ## Acceptance
+
+- TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
 
 - TODO

@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-10-09
 **Related:** task-739 (NL trigger authoring), task-512 (expression pack images tab)
 
-## Goal
+## What
 
 The trigger editor shows a `message` effect with a **Message** field *and*, in the
 same dialog, separate **Success Message** and **Fail Message** fields. They write
@@ -70,3 +70,21 @@ narrate via `success_message` working. Applied identically at every site:
 - [ ] Editor UX follow-up: the trigger editor still shows trigger-level Success/Fail
       fields beside the effect's `message`. Collapsing to one unambiguous field and
       hiding `fail_message` for effects that cannot fail is a separate UI task.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

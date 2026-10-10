@@ -1,14 +1,15 @@
 ---
-group: Environment & Climate
+area: environment
 status: done
 priority: medium
 filed: 2026-08-15
 supersedes: [task-138-area-status-system.md]
+type: task
 ---
 
 # Task 233: Area Status System
 
-## Summary
+## What
 
 Add a general-purpose `statuses` list to area nodes, mirroring the character condition instance schema. This is the framework for dynamic environmental effects: `on_fire`, `flooded`, `poison_gas`, `blessed`, `darkness_magic`, etc. Statuses can tick damage to characters, modify environment properties, and propagate through open connections.
 
@@ -152,7 +153,7 @@ New trigger effects:
 - `apply_area_status` — adds a status to a area
 - `clear_area_status` — removes a status type from a area
 
-## Files Affected
+## Files
 
 1. `engine/area_statuses.py` — new module
 2. `engine/tick_manager.py` — call `area_statuses.process_tick()` each turn
@@ -168,7 +169,7 @@ New trigger effects:
 - **Blocked by**: task-227 (forecast drives base environment; statuses layer on top)
 - **Blocks**: task-232 (humidity could be a status or env property)
 
-## Testing
+## Steps to verify
 
 - `on_fire` raises room temp +10/tick, deals 1 HP/tick, produces smoke
 - `flooded` propagates to adjacent areas through open doors
@@ -189,3 +190,15 @@ engine wiring (`world.area_statuses`, `_area_statuses_tick()` in tick_turn),
 node-ref params), the `area_has_status` trigger condition, status flavour
 lines in `area_description`, and tests (`tests/test_area_statuses.py`).
 Both trigger editors expose the new effects/condition.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

@@ -1,14 +1,18 @@
 ---
-group: Environment & Climate
+area: environment
 wiki: "[[Environment/Light System]]"
+type: task
+status: cancelled
+priority: medium
 ---
+
 # Task 80: Outdoor Lighting & Day/Night Cycle
 
 **Status**: todo
 **Priority**: Medium
 **Filed**: 2026-07-15 (updated 2026-07-24)
 
-## Goal
+## What
 
 Create a complete light model where rooms get their ambient light from:
 1. **Outdoor rooms** (tagged `"outdoor"`) — get light from time of day (sunlight, moonlight, or none)
@@ -167,7 +171,7 @@ Related Tasks
 4. **Phase 4**: Move interior room default light from 80 to 0 (pitch black), test everything breaks appropriately
 5. **Phase 5**: Moon phase calculation + moonlight light levels
 
-## Files Affected
+## Files
 
 - `engine/lighting.py` — `get_ambient_light()`, new `get_time_of_day_light()`, transparent door spill
 - `engine/tick_manager.py` — moon phase calculation (or route helper)
@@ -176,7 +180,7 @@ Related Tasks
 - `routes/state.py` — expose moon phase in API state
 - `static/js/graph/network-manager.js` — light overlay color mapping
 
-## Testing
+## Steps to verify
 
 - Outdoor room at noon → light = 80 (bright)
 - Outdoor room at midnight (new moon) → light = 5 (pitch_black)
@@ -185,3 +189,15 @@ Related Tasks
 - Indoor room connected to outdoor via closed transparent door → light = 24 (dim, 80 × 0.3)
 - Indoor room with lit candle AND open door to bright room → max(candle_light, spill) = own light wins
 - Close the door → candle alone keeps the room lit
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

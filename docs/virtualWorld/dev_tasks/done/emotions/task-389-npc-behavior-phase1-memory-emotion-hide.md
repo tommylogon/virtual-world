@@ -1,5 +1,8 @@
 ---
-group: Characters
+area: emotions
+type: task
+status: done
+priority: medium
 ---
 
 # NPC Behavior Phase 1: Memory, Emotion, Flags, Universal Hide
@@ -10,13 +13,13 @@ group: Characters
 
 ---
 
-## Summary
+## What
 
 Simple NPCs (behavior tree) currently have only 10 action types and cannot write to their own character data. This task adds the foundational actions and conditions that enable NPCs to form memories, track emotions, set flags, and hide — closing the gap with agent/player characters.
 
 Hiding is a **universal action** available to all characters (players, agents, and simple NPCs). Items that can be hidden in/behind/under are marked with a `hideable` tag.
 
-## Current State
+## Why
 
 `engine/triggers/behaviors.py` (`_execute_behavior_actions`) supports only: `message`, `speak`, `llm_respond`, `set_npc_state`, `damage`, `heal`, `set_environment`, `spawn_item`, `teleport`, `go`.
 
@@ -223,7 +226,7 @@ Add new condition types to the behavior condition editor dropdown.
 - Create a behavior with `hide_in`. Verify the NPC disappears from the area view.
 - Create a behavior with `character_has_tag` condition. Verify it only fires for matching characters.
 
-## Files Affected
+## Files
 
 - `engine/triggers/behaviors.py` — new action handlers (hide_in, hide_behind, hide_under, unhide, add_memory, set_emotion, set_flag)
 - `engine/triggers/condition_tree.py` — new condition evaluators (npc_emotion_is, npc_is_hidden, character_has_tag)
@@ -232,3 +235,17 @@ Add new condition types to the behavior condition editor dropdown.
 - `engine/serialization.py` — persist `hidden` edges and `flags` dict
 - `static/js/inspector/behaviors-view.js` — UI for new actions/conditions
 - `engine/npc_behaviors.py` — edge cleanup on character death/relocation
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

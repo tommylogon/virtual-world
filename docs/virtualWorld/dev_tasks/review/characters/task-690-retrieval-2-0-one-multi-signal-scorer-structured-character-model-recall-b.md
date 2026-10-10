@@ -11,7 +11,7 @@ parent: task-685
 **Filed:** 2026-10-04
 **Related:** task-685, task-91, task-350
 
-## Goal
+## What
 
 Stop "give the agent 10 important memories"; start "give the agent the memories
 this situation makes relevant, plus the conclusions it has already drawn":
@@ -52,3 +52,21 @@ this situation makes relevant, plus the conclusions it has already drawn":
 - Half-life 300 ticks is a guess; tie it to `memory.decay_per_tick` so decay
   and recency share one notion of "how long ago is old"? Leaning yes — one
   constant, two consumers.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

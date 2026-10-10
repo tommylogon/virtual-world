@@ -1,0 +1,17 @@
+{
+  "id": "thunderstorm",
+  "name": "Thunderstorm",
+  "kind": "extreme",
+  "order": 21,
+  "icon": "⛈️",
+  "light_mult": 0.2,
+  "time_dc": 22,
+  "description": "A thunderstorm: lightning splits the sky and the rain comes down in sheets.",
+  "tags": [
+    "weather",
+    "sky",
+    "wet",
+    "wind",
+    "extreme"
+  ]
+}

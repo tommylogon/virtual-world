@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-25
 **Related:** 
 
-## Goal
+## What
 
 Secondary generation pass (item population / world state). Rule: a plain close action must NOT close an outdoor/outside way -- you cannot close a road into a forest or a cliff by hand. Blocking is done by an item or trigger setting the way state (fallen tree, barricade, rockslide, wolves den). At generation, deterministically mark a subset of outside ways blocked, each with a per-biome 'what blocks it' description.
 
@@ -159,3 +159,21 @@ End to end through the real compiler: a 9×9 grid blocks outdoor ways and leaves
 doors alone; the same seed recompiles identically; a **fresh manifest** compiles
 to the same world (a regenerate, not a re-read); the generate report says what
 it blocked; nothing is stranded; and the 2×2 and single-cell edges.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

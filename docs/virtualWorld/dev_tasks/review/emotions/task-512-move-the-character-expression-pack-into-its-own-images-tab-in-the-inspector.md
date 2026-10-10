@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-24
 **Related:** task-445
 
-## Goal
+## What
 
 The Expression Pack (profile/full-body art per emotion, plus the ✂️ sheet
 splitter) currently renders inside the character inspector directly under the
@@ -46,4 +46,20 @@ PERSIST_ACROSS_RERENDER {"imagesVisibleAgain":true}
 
 Screenshot: `review-verify/512-images-tab.png`.
 
+## Why
 
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

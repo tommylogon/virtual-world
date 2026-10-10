@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-27
 **Related:** task-549
 
-## Goal
+## What
 
 Bladder relief is currently only possible in an area tagged latrine/toilet/bathroom. Everywhere else the meter just maxes and Hygiene decays, which punishes a world for lacking a fixture. Let a character relieve themselves in any outdoor area; the tag marks a proper place, not the only legal one.
 
@@ -167,5 +167,23 @@ one.
 - task-550 — an unowned camp water is what pulls the humans in the first place
 
 
+
+- TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
 
 - TODO

@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: gameplay
+priority: medium
+---
+
 # task-436 — Task durations, and removing `ACTION_COSTS.time`
 
 **Status:** done — all residuals resolved. The per-turn action budget is
@@ -233,7 +240,7 @@ Two things the probe settled that this task had guessed at:
 New: `tests/test_action_costs.py` pins the split, including a structural check
 that no cost entry regains a `time` key.
 
-## Plan
+## How
 
 1. Fold the multiplier into the cost table so vital costs are **absolute**:
    `move {energy: 1}`, `look {energy: 0}`, `use {energy: 1}`, `take {energy: 1}`,
@@ -314,3 +321,17 @@ Both were investigated and closed with **no engine change**:
 
 Full suite: **60 failed / 3812 passed** — the documented ~60-failure baseline;
 the three `test_tick_time_scaling.py` failures are gone.
+
+## What
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

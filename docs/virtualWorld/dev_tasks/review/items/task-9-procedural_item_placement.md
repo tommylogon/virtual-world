@@ -1,7 +1,11 @@
-﻿---
-group: Items & Crafting
-wiki: "[[Items & Inventory/Items Overview]]"
 ---
+area: items
+wiki: "[[Items & Inventory/Items Overview]]"
+type: task
+status: review
+priority: medium
+---
+
 # Procedural Item Placement: Tag-Chain Area Population Engine
 
 **Filed**: 2026-07-17  
@@ -13,7 +17,7 @@ by task-438 (NL-editor region decomposition, which needs `engine/population.py`)
 
 ---
 
-## Summary
+## What
 
 Auto-populate areas with fitting items from the library by walking a three-level
 tag chain: **area domain tags â†’ display/storage furniture that shares the domain
@@ -138,7 +142,7 @@ pending (server was down).
 - Character equipment generation (task-325) and LLM-hybrid selection remain later
   phases.
 
-## Verification
+## Steps to verify
 
 - `python -m pytest tests/ -q -k "not mcp and not emote"`
 - Manual: populate the mansion kitchen + a store area; `look` shows items on/in
@@ -150,3 +154,19 @@ pending (server was down).
 Item creation lives in static/js/ui/create-modal.js, routes/library_routes.py,
 engine/item_actions.py. Population logic goes in **engine/population.py** (new);
 do not grow item_actions.py past the file-size rule.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

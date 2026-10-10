@@ -13,7 +13,7 @@ priority: medium
 
 **Overlaps task-401 and task-411.** task-401 already owns chunk load/evict (the actual materialisation), and task-411 (selector) + task-418 (awareness channels) own fidelity-tier selection. This task's only unique delta is using *zones* as the selection key and keeping WorldPainter-side zone records — consider folding it into 401/411 rather than tracking it separately.
 
-## Goal
+## What
 
 Use zones (world_scopes) as the spatial key for the existing fidelity tiers (task-399 background fidelity; engine/soak.py promote/demote; engine/trace.py records promote/demote). Distant zones should exist as scope records only and materialise their areas/ways on approach (lazy instantiation), so a 500-zone world does not hold every area/way node at once - this is the actual offloading win. Tie to task-411/412/418 attention tiers and task-407 graph edge-indexing/perf.
 
@@ -135,3 +135,21 @@ own nodes; the rebuild reproducing ids *and* provenance, plus the ambiguous-seed
 report; approach idempotence; the injected compiler; and the **bounded node
 count**: 2, 8 and 32 zones, one resident, measuring that 16× the zones costs
 under 4× the nodes and that 8 and 32 cost *the same*.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

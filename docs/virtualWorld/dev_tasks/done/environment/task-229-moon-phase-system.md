@@ -1,14 +1,15 @@
 ---
-group: Environment & Climate
+area: environment
 status: done
 priority: medium
 filed: 2026-08-15
 supersedes: [task-85-time_weather_dates.md, task-80-outdoor-lighting-day-night.md]
+type: task
 ---
 
 # Task 229: Moon Phase System
 
-## Summary
+## What
 
 Add a deterministic moon phase cycle (30-day) based on `game_day`. Moon phase affects outdoor night ambient light. Full moon makes outdoor nights visibly brighter; new moon keeps them pitch black.
 
@@ -25,7 +26,7 @@ Add a deterministic moon phase cycle (30-day) based on `game_day`. Moon phase af
 | 20–24 | full_moon | +25 |
 | 25–29 | waning | +10 |
 
-## Implementation
+## How
 
 ### Calculation
 
@@ -61,7 +62,7 @@ def get_moon_phase(game_day: int) -> dict:
 - UI sidebar shows moon icon
 - Area descriptions mention moonlight when relevant
 
-## Files Affected
+## Files
 
 1. `engine/weather_forecast.py` — `get_moon_phase()` helper
 2. `engine/lighting.py` — `get_time_of_day_light()` consumes moon phase
@@ -75,7 +76,7 @@ def get_moon_phase(game_day: int) -> dict:
 - **Blocked by**: task-228 (needs `game_day`)
 - **Blocks**: task-230 (outdoor lighting uses moon bonus)
 
-## Testing
+## Steps to verify
 
 - `game_day` 0 → new_moon, night outdoor light = base night value
 - `game_day` 22 → full_moon, night outdoor light = base + 25
@@ -89,3 +90,11 @@ lighting integration via `lighting.moon_provider` (outdoor night bonus,
 obscuring weather), `blood_moon` override + red-moon descriptions, and
 `moon_phase` in `/api/state`. This audit confirmed the UI: SkyScape top-bar
 shows the moon icon; turn headers include it too.
+
+## Why
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

@@ -84,22 +84,13 @@ def light_description(ambient_light: int) -> str:
 # and not one word about the rain. The sun was worse — daylight was a light
 # curve plus an hour comparison, so nothing ever said it was dawn.
 
-#: One sentence per canonical weather state. An empty string means "say
-#: nothing": a clear sky needs no announcement, and ``windy`` is narrated from
-#: the ``wind`` magnitude instead (see :data:`WIND_PROSE`) so a gale does not
-# produce two sentences about wind. ``tests/test_weather_narration.py`` asserts
-# every value in ``WEATHER_STATES`` has an entry here — a state with no
-# sentence is exactly the bug this table fixes, and the forecast may write any
-# value in that list.
-WEATHER_PROSE = {
-    "clear": "",
-    "cloudy": "A flat grey lid of cloud sits over the place.",
-    "windy": "",
-    "rainy": "Rain is falling, cold and steady.",
-    "stormy": "The storm is breaking overhead — rain lashes sideways and the wind screams.",
-    "foggy": "Fog has swallowed the place; shapes fade a short way off.",
-    "snowy": "Snow is falling, and it muffles every sound.",
-}
+#: One sentence per weather type, from the library registry (task-772). An empty
+#: string means "say nothing": a clear sky needs no announcement, and ``windy``
+#: is narrated from the ``wind`` magnitude instead (see :data:`WIND_PROSE`) so a
+#: gale does not produce two sentences about wind. Loaded from
+#: ``engine.weather_types`` so a type added to ``data/library/weather/`` brings
+#: its own sentence and this table cannot drift from the vocabulary.
+from engine.weather_types import WEATHER_PROSE  # noqa: E402
 
 #: Wind prose, keyed by the ``wind`` magnitude the forecast writes. ``none`` and
 #: an unset key say nothing.
@@ -149,14 +140,17 @@ def time_of_day_prose(hour) -> str:
 from engine.area_tags import is_open_sky as _is_open_sky  # canonical: see engine/area_tags.py
 
 
-def weather_description(weather, wind_level, noise) -> List[str]:
+def weather_description(weather, wind_level, noise, snow_depth=0) -> List[str]:
     """Sentences for the sky above an outdoor area, in reading order.
 
     ``weather`` and ``wind_level`` are the canonicalised values (see
     ``engine.weather_forecast.normalize_weather``); ``noise`` is the area's raw
     noise descriptor, kept only to avoid saying the same thing twice.
+    ``snow_depth`` is the settled depth the forecast has accumulated on the area
+    (task-556) — narrated from the *depth*, not the weather word, so the ground
+    stays described as snowed over after the sky has cleared.
     """
-    from engine.weather_forecast import normalize_weather
+    from engine.weather_forecast import normalize_weather, snow_depth_prose
 
     lines: List[str] = []
     weather = normalize_weather(weather)
@@ -172,6 +166,11 @@ def weather_description(weather, wind_level, noise) -> List[str]:
     wind_line = WIND_PROSE.get(str(wind_level or "").strip().lower(), "")
     if wind_line and str(noise or "").strip().lower() not in ("windy", "howling"):
         lines.append(wind_line)
+
+    # Ground last: a clearing sky can still leave the world under snow.
+    snow_line = snow_depth_prose(snow_depth)
+    if snow_line:
+        lines.append(snow_line)
     return lines
 
 
@@ -468,7 +467,8 @@ class AreaDescription:
         # stone wall, and an indoor room has no dawn.
         if _is_open_sky(area_node.properties.get("tags", []) if area_node else []):
             env_summary.extend(weather_description(
-                env.get("weather", ""), env.get("wind", ""), env.get("noise", "")))
+                env.get("weather", ""), env.get("wind", ""), env.get("noise", ""),
+                env.get("snow_depth", 0)))
             hour = self.lighting.hour_provider() if self.lighting.hour_provider else None
             tod = time_of_day_prose(hour)
             if tod:

@@ -1,7 +1,11 @@
 ---
-group: Tech Debt & Testing
+area: refactor
 wiki: "[[UI & Settings/Inspector Panels]]"
+type: task
+status: todo
+priority: medium
 ---
+
 # Code Readability Refactor — Variable Naming & Comments
 
 **Priority**: HIGH
@@ -10,7 +14,7 @@ wiki: "[[UI & Settings/Inspector Panels]]"
 
 ---
 
-## Summary
+## What
 
 Large parts of the codebase, , use cryptic single-letter variable names (`tn`, `ep`, `ef`, `rn`, `dn`, `sn`, `nid`, `v`, `ct`, `cv`, `tp`, `ns`, `lw`, `ni`) with no comments explaining intent. This makes the code harder to read, debug, and maintain.
 
@@ -18,8 +22,7 @@ Large parts of the codebase, , use cryptic single-letter variable names (`tn`, `
 
 Improve readability without breaking anything. No functional changes.
 
-## Approach
-
+## How
 
 1. When modifying a function, rename its single-letter variables to descriptive names
 2. Add a brief comment explaining what non-obvious blocks do
@@ -59,7 +62,7 @@ Improve readability without breaking anything. No functional changes.
 - Add a comment for any block that isn't immediately obvious — especially trigger dispatch, effect execution, condition evaluation
 - No action-at-a-distance: if a function depends on a subtle side effect, document it
 
-## Verification
+## Steps to verify
 
 No functional changes — verify by:
 1. Run `pytest tests/` before and after — same results
@@ -73,3 +76,11 @@ No functional changes — verify by:
 - `static/js/inspector.js` — tertiary
 - `static/js/item-library.js` — tertiary
 - Any other file touched during feature work
+
+## Why
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

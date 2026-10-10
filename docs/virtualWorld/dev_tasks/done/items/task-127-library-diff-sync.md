@@ -1,15 +1,23 @@
 ---
-group: Items & Crafting
+area: items
+type: task
+status: done
+priority: medium
 ---
+
 # Library Conflict-Aware Sync — Phase 1: Items + Ways
 
-## Problem
+## Why
+
 "Save to Library" does a silent overwrite. If you save a world item that happens to share a name with a library entry, the library version gets replaced entirely — tags, triggers, properties and all. This is how the hand_lamp lost its proper definition.
 
-## Solution
+## How
+
 Replace silent overwrite with a diff modal (same pattern as graph-editor's selective import at `graph-editor/js/ui.js:3700-3780`). Sections that match are skipped; differing sections are highlighted green; user picks which to update or saves as a duplicate.
 
 ## Status: ✅ Done — moved to review/
+
+
 
 ## Phase 1 Scope (this task)
 
@@ -67,6 +75,25 @@ virtual_world/
 └── templates/
     └── index.html                     ← already loaded diff-modal.js
 ```
+
 ## Phase 2: Character + Room sync (task-95)
 
 Not in scope here. See task-95 for full spec.
+
+## What
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

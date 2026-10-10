@@ -76,7 +76,7 @@ pegging the camp, that the company gain stays *below* the baseline (a steadying
 influence, not a source), and that the rest block is bounded and expressed in game
 minutes.
 
-## Problem
+## Why
 
 Sanity is drained from at least five places and restored from none:
 
@@ -135,3 +135,21 @@ rather than by anything that happened to them.
 - Fear/paranoia content, sanity-break narratives, or the `paranoid` branch.
 - Reworking the Social/Entertainment coupling penalties; task-431 settled Social.
 - Mental-health realism beyond a meter with believable sources and sinks.
+
+## What
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

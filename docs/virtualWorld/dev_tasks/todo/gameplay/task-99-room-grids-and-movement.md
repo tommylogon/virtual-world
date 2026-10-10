@@ -1,14 +1,18 @@
 ---
-group: Graph & Area UX
+area: gameplay
 wiki: "[[World Building/Rooms & Areas]]"
+type: task
+status: todo
+priority: medium
 ---
+
 # Task 99: Area Grids — Movement Costs, Size/Shape, and Pathfinding
 
 **Status**: todo
 **Priority**: Medium
 **Filed**: 2026-07-24
 
-## Summary
+## What
 
 Currently areas are dimensionless nodes — you're either *in* a room or you're not. This task adds a 2D grid to areas, allowing movement costs, item positioning, and NPC pathfinding within areas.
 
@@ -87,7 +91,7 @@ room.grid = {
 3. **Phase 3**: Grid visualization in inspector (frontend)
 4. **Phase 4**: NPC pathfinding + procedural generation
 
-## Files Affected
+## Files
 
 - `room.py` — add grid field with tile data, item/character positions, exit coords
 - `engine/movement.py` — `move_to` coordinate handler, add movement cost calculation
@@ -98,8 +102,21 @@ room.grid = {
 - `static/js/graph/` — optional grid overlay on areas
 - `world_template.json` / library areas — grid data
 
-## Tests
+## Steps to verify
+
 - A* pathfinding on various grid layouts (open, obstacles, mazes)
 - Movement cost calculation
 - NPC pathfinding integration
 - Serialization (grid + positions survive save/load)
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

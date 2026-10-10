@@ -11,7 +11,7 @@ blocked_by: [task-746, task-745]
 **Filed:** 2026-10-09
 **Related:** task-496 task-525 task-529 task-745
 
-## Goal
+## What
 
 world_compile emits no triggers today; give it a hazards pass that reads data/worldpainter/hazards.json (task-745) and the painted layers and attaches a compact hazards:[...] descriptor to generated ways/areas (the engine expands it at load, so no trigger-node spam). Rules: a way crossing water with no bridge -> river; a way with requires: jump over water -> fall into the water; a _climb_step rising or falling -> cliff/fall, REPLACING the hard refusal task-525 chose where the author wants a check with a consequence; a thorn/bramble biome -> thorns. Severity from storey_delta (an 89-storey drop is lethal). Direction from the current layer, defaulting to the storey gradient. This also gives the on_fail hook its compiler side, and the hazard reader is what makes trigger-written condition tags (flooded) fire consequences. Depends on task-745 (layer+table) and task-746 (effect).
 
@@ -37,3 +37,20 @@ functional, and is read by nothing — the exact "exists ≠ wired" anti-pattern
 repo treats as a finding. So this card waits for task-746 (the consumer) and the
 task-745 paint layer, then the derivation is a small, testable compiler pass.
 
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

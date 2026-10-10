@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 Nodes do not appear on the map; hundreds of 40px-wide overlapping boxes make labels illegible at 205 areas / 636 nodes.
 
@@ -73,3 +73,21 @@ compact map mode to keep the art readable.
 No code change was warranted; the finding is retracted with the measurement
 above. The task-618 fix (same sweep) additionally removed the spurious long
 edges that made the whole-world overview look broken.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

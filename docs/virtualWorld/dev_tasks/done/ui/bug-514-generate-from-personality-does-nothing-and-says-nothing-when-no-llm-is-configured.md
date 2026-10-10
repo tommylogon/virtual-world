@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 Both generators open with 'if (!player || !AIGenerator.isConfigured()) return;'. With no provider configured the button silently does nothing - no toast, no disabled state, no explanation - so it reads as a broken button rather than a missing setting. Verified in the browser: AIGenerator.isConfigured() false produces no prompt, no write and no message. Disable the button with a tooltip pointing at Settings, or toast a reason.
 
@@ -53,3 +53,21 @@ Changes in `static/js/inspector/agent-view.js`:
 
 No page errors. `node tools/unit/run.cjs` → 485 passed; `npm run lint` and
 `npm run typecheck` clean. No engine or data change.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

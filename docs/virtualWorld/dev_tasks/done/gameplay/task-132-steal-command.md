@@ -1,5 +1,8 @@
 ---
-group: Agent AI & Behavior
+area: gameplay
+type: task
+status: done
+priority: medium
 ---
 
 # Steal Command
@@ -10,13 +13,13 @@ group: Agent AI & Behavior
 
 ---
 
-## Summary
+## What
 
 Add a `steal <item> from <target>` command — Sleight of Hand vs Perception contest to take items from other characters.
 
 ---
 
-## Implementation
+## How
 
 - `engine/item_actions.py:steal_item` — parses item + target, finds item in target's inventory via `EDGE_CARRYING`/`EDGE_EQUIPPED`, rolls 1d20 + skill vs target's 1d20 + Perception
 - Success: item edges moved from target to player, triggers `on_take`
@@ -32,3 +35,21 @@ Add a `steal <item> from <target>` command — Sleight of Hand vs Perception con
 - `engine/item_actions.py` — added `steal_item` method
 - `routes/action.py` — registered `steal` command parser
 - `virtual_world_engine.py` — `steal_item` pass-through
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

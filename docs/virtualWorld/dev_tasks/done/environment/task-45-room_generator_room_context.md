@@ -1,6 +1,9 @@
 ---
-group: Agent AI & Behavior
+area: environment
 wiki: "[[World Building/Rooms & Areas]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Area Generator: Pass Existing Rooms as AI Context
@@ -11,11 +14,11 @@ wiki: "[[World Building/Rooms & Areas]]"
 
 ---
 
-## Summary
+## What
 
 When generating a room via AI, no context about existing areas is provided to the LLM. This means generated areas may be thematically inconsistent with the world, use duplicate names, or describe environments that don't fit the established setting.
 
-## Current State
+## Why
 
 In `main.js:generateWithAI()` (line 310), the room generation prompt is:
 
@@ -60,6 +63,20 @@ See separate task: `toggle_room_context_generation.md` — a toggle should contr
 - Open the create modal, select Area, type an AI prompt, ensure "🧠 Use world context" is checked. Click Generate. Verify the generated room fits the existing world theme.
 - Check the network request to the LLM — verify existing areas and their descriptions are included in the prompt.
 
-## Files Affected
+## Files
 
 - `static/js/main.js` — add room context to AI generation in create modal
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

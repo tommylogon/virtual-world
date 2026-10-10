@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-23
 **Related:** task-471, task-472, task-474
 
-## Goal
+## What
 
 Separate noticing from searching: Perception spots something easy to miss, Investigation works out where to look and what it means (a two-step notice-then-search). Add search loot tables and forage-tagged content for Nature (reagents, tracks, safe plants), Investigation (documents, mechanisms, hidden caches) and Arcana (arcane items, anomalies), plus a small Medicine table for recognising a useful plant, so the skill list has content beyond Survival/Perception/History/Religion.
 
@@ -54,3 +54,21 @@ Remaining for this task: the richer content pass the task names — documents,
 mechanisms, hidden caches and arcane items/anomalies as their own library
 entries/tags (today the tables reuse the existing tag vocabulary), which is a
 data-authoring follow-up rather than a mechanic.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

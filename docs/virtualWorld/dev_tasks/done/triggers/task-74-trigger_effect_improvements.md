@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: triggers
+priority: medium
+---
+
 # Trigger Effect Improvements — adjust_vital, set_state, Memory, TurnQueue
 
 **Filed**: 2026-07-18
@@ -6,7 +13,7 @@
 
 ---
 
-## Summary
+## What
 
 Four fixes/improvements applied across multiple files:
 
@@ -17,7 +24,7 @@ Four fixes/improvements applied across multiple files:
 
 ---
 
-## Changes
+## How
 
 ### 1. adjust_vital — Stat datalist
 
@@ -69,3 +76,21 @@ Four fixes/improvements applied across multiple files:
 **Root cause**: `reset()` did not clear the turn queue. On scenario load, `uploadWorld()` called `agent.reset()` then `worldState.fetch()`, but the old queue survived. `stepOnce()` only re-initialized when `turnQueue.length === 0`, which was never true with stale names. So the old scenario's characters appeared in initiative order.
 
 **Why it's fixed now**: `reset()` clears the queue → `_renderInitiative` shows nothing → on worldState update, queue auto-initializes from current `worldState.players` → correct characters appear.
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

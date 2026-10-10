@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 POST /api/players/<name> with {equipped: {...}} returns 200 and updates player.equipped, but creates NO EDGE_CARRYING/EDGE_EQUIPPED edge. Everything that actually reads equipment reads the EDGES: engine/combat.py _best_weapon_node (weapon selection) and engine/equipment_bonuses.get_equipment_nodes (defense, insulation, resistances). So a client that equips a character through the API gets a silent no-op in combat and in damage reduction -- equipped items appear in the inspector and do nothing. Found while live-verifying task-607, and then confirmed properly by taking a weapon rather than writing the field.
 
@@ -196,4 +196,20 @@ path).
 Live world returned to its prior state afterwards (rat moved back to the
 Kitchen, Kaelen active, no test nodes left).
 
+## Why
 
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

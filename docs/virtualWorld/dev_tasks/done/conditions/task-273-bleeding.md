@@ -1,5 +1,8 @@
-﻿---
-group: Conditions
+---
+area: conditions
+type: task
+status: done
+priority: medium
 ---
 
 # Condition: Bleeding (`bleeding`)
@@ -11,7 +14,7 @@ group: Conditions
 
 ---
 
-## Purpose
+## What
 
 Actively losing HP from a wound. A periodic-drain condition whose effects leave visible marks (blood pool, blood trails) and which must be stopped by treating it.
 
@@ -75,3 +78,24 @@ Actively losing HP from a wound. A periodic-drain condition whose effects leave 
 - Drain balance: base `âˆ’3`/tick reasonably lethal but survivable with fast treatment.
 - Should `bleeding` auto-stop when HP hits 0 (death) — handled by `dead` excludes or explicit logic?
 
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

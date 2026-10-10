@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-10-05
 **Related:** task-411,task-418,task-710
 
-## Goal
+## What
 
 engine/attention.py is 24.9 KB implementing AttentionBudget, AwarenessChannel, SoundChannel and TIER_NAMES. It is imported by exactly two files, both tests: tests/test_attention.py and tests/test_zones.py. Nothing in engine/, routes/ or app.py imports it.
 
@@ -57,3 +57,21 @@ accident: either the awareness selector stays unwired until something needs
 finer-than-scope granularity, or it is wired as an additional filter. Task-710's
 scope resolution and this selector are not currently known to compose; if both
 end up live, that composition needs its own acceptance criteria.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

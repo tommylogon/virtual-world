@@ -1,4 +1,11 @@
-﻿# Bug 24 — Way menu gates Go/Open on requires:"none" (panel-only)
+---
+type: bug
+status: done
+area: bugs
+priority: medium
+---
+
+# Bug 24 — Way menu gates Go/Open on requires:"none" (panel-only)
 
 **Status:** Done — confirmed by Tommy 2026-08-30.
 hardening, 1 new unit test, full suite 1121 passed. Browser E2E pending.
@@ -18,7 +25,7 @@ through verbatim and `turn-scene-view.js` treats any truthy `requires` as
 a gate: Go disabled ("requires none"), Open/Close suppressed
 (`!way.requires` fails), â›° marker + hover text shown.
 
-## Fix
+## How
 
 - `engine/scene_snapshot.py`: normalize none-like requires
   ("none"/"nothing"/"no", case-insensitive) to `""` in the ways payload.
@@ -26,7 +33,7 @@ a gate: Go disabled ("requires none"), Open/Close suppressed
   by buildWayMenu, the exit hover card, and the â›° marker — same
   normalization client-side (defense in depth for stale payloads).
 
-## Tests
+## Steps to verify
 
 `tests/test_scene_snapshot.py::test_requires_none_is_not_a_gate` — a way
 with `requires: "none"` ships `"requires": ""` in the scene payload.
@@ -37,3 +44,14 @@ with `requires: "none"` ships `"requires": ""` in the scene payload.
 - Browser: reload panel â†’ restroom door menu must show enabled Go + Open;
   no "requires none" reason text, no â›° marker.
 
+## What
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

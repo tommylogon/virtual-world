@@ -1,7 +1,10 @@
 ---
-group: Characters
+area: characters
 status: done
+type: task
+priority: medium
 ---
+
 # Pack Logic for Simple NPCs
 
 **Filed**: 2026-08-19
@@ -112,3 +115,29 @@ as a target; a call stamps the target on every listener and returns them in a
 stable order; a herd does not howl every tick; the hook sets a pack target,
 ignores non-packs, and survives a packmate with `tags = None`; and
 formation/flanking/role-assignment names are absent from the module.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

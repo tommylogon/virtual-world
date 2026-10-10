@@ -1,0 +1,14 @@
+{
+  "id": "cloudy",
+  "name": "Cloudy",
+  "kind": "normal",
+  "order": 2,
+  "icon": "☁️",
+  "light_mult": 0.7,
+  "time_dc": 15,
+  "description": "A flat grey lid of cloud sits over the place.",
+  "tags": [
+    "weather",
+    "sky"
+  ]
+}

@@ -1,3 +1,10 @@
+---
+type: task
+status: review
+area: gameplay
+priority: medium
+---
+
 # Task-244: Structured Human Turn Composer — Reply Like an Agent
 
 **Status:** In Review — implemented 2026-08-16.
@@ -19,7 +26,7 @@
 - `templates/index.html` — composer script loaded after `response-parser.js`.
 - `static/js/main.js` — `VW.humanTurnComposer` registered.
 
-## Goal
+## What
 
 On a human player's turn, prompt the human with a **structured action composer** instead of
 the plain free-text command box — a form (or raw-JSON text area) to fill in the SAME
@@ -97,3 +104,25 @@ Fix:
 
 Verified: `tools/test_control_mode.cjs` E2E — mode cycles llm → npc → human → llm with
 `autonomy` + `simple_npc` persisted through the backend each click; 942 pytest pass.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

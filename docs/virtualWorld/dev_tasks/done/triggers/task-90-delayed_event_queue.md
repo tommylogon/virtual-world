@@ -1,7 +1,11 @@
 ---
-group: Agent AI & Behavior
+area: triggers
 wiki: "[[AI & Narration/Agent Engine]]"
+type: task
+status: done
+priority: medium
 ---
+
 # Delayed Event Queue — Schedule Trigger Effects N Ticks Later
 
 **Filed**: 2026-07-21
@@ -10,7 +14,7 @@ wiki: "[[AI & Narration/Agent Engine]]"
 
 ---
 
-## Summary
+## What
 
 Add the ability to schedule a trigger effect to fire N ticks in the future. This is the single biggest missing causality mechanism — it enables curses, poisons, timed puzzles, summoned creature durations, and any "X happens Y turns from now" scenario. Currently every effect is immediate; the world can't remember to do something later.
 
@@ -18,7 +22,7 @@ Add the ability to schedule a trigger effect to fire N ticks in the future. This
 
 The LLM handles character minds — but it cannot reliably fire an effect 5 turns later across context windows and turns. Only the engine can guarantee delayed causality. This is world-physics, not narrative.
 
-## Design
+## How
 
 ### Data model
 
@@ -97,7 +101,7 @@ Add `delayed_events` to `to_dict()` and `load_from_dict()` so scheduled events s
 | Ritual completion | Place 3 items on altar → after all placed, 2 ticks → ritual fires |
 | Patrol timing | NPC reaches checkpoint → 15 ticks later → next patrol cycle |
 
-## Files Affected
+## Files
 
 - `virtual_world_engine.py` — `delayed_events` queue, processing in `tick_turn()`, `schedule_trigger` effect handler, `on_delayed` in TRIGGER_TYPES, serialization
 - `static/js/item-library.js` — show `schedule_trigger` in effect type list if needed
@@ -110,7 +114,20 @@ Add `delayed_events` to `to_dict()` and `load_from_dict()` so scheduled events s
 
 **Deferred**: Post-merge feature branch. This branch is refactoring/testing only.
 
-
 ## Refactoring Impact (July 2026)
 
 TickManager (engine/tick_manager.py) processes per-tick logic. Create engine/event_queue.py — delayed event queue. Wire into TickManager.tick_turn(). Event data: {tick_trigger, effect_type, effect_params, target_node_id}. Follow existing trigger effect patterns from engine/effects.py.
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

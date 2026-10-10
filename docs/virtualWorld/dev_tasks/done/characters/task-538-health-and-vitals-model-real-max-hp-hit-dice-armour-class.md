@@ -13,7 +13,7 @@ be able to set HP and Max HP more easily, 100 being default is not quite correct
 especially in a D&D-like basis."*
 **Related:** task-537 §M, task-352 (action economy), task-213 (traits)
 
-## Problem
+## Why
 
 **The engine has no health model — it has a 100.** `Max_HP` is the only vital
 with a maximum, and its default is the literal `100`, hardcoded in at least ten
@@ -147,7 +147,7 @@ an unrelated concept — an item's own protection, not a worn stat.
 This is the one item here that changes core resolution, so it is called out as
 its own follow-up rather than folded in here.
 
-## Design
+## How
 
 **`Max_HP` becomes data, not a constant.** The minimum viable change is:
 
@@ -173,7 +173,7 @@ library items and 68 characters predate any hit-dice concept and must keep
 working unchanged; a stat block may want either, and both authoring styles
 should coexist.
 
-## Acceptance criteria
+## Acceptance
 
 - [x] One resolver answers "the ceiling for this vital on this character", and
       every site in the table above reads it. No hardcoded `100` remains in an HP
@@ -360,7 +360,6 @@ exactly the reason it did before this task: five templates
 already missing on master. The two templates this task needs **are** present,
 with real demo params rather than the generator's empty `{}`.
 
-
 ## Split out rather than folded in
 
 - **Armour class** — its own task. It changes core resolution, so it does not
@@ -393,3 +392,17 @@ with real demo params rather than the generator's empty `{}`.
  this area and are the precedent for `modify_vital_max` as an effect.
 - `engine/body_parts.py` — task-253's per-region state, the future home of
  localised HP.
+
+## What
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

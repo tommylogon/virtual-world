@@ -1,13 +1,17 @@
 ---
-group: Environment & Climate
+area: environment
+type: task
+status: done
+priority: medium
 ---
+
 # Task: Add `ambient_light_level` to State Response
 
 **Filed**: 2026-07-30  
 **Priority**: Medium  
 **Status**: Done  
 
-## Summary
+## What
 
 The backend's `LightingSystem.light_to_level()` converts numeric light (0-100) to a 5-level string enum (`pitch_black`, `dim`, `normal`, `bright`, `blinding`). The frontend had duplicate copies of this conversion (`PromptBuilder.lightToLevel` in `prompt-builder.js`, `_lightToLevel` in `agent-engine.js`) with slightly different thresholds — meaning they could drift from the backend's authoritative values.
 
@@ -31,7 +35,30 @@ Fix: Include `ambient_light_level` (the string enum) in the `/api/state` respons
 The `lightToLevel()` and `_lightToLevel()` conversion functions remain as fallbacks for cases where only raw `environment.light` values are available (e.g., exit descriptions reading from raw graph nodes). The graph overlay's `_lightToInt()` reverse conversion unchanged — that's display-only.
 
 ## Files Modified
+
 - `engine/serialization.py`
 - `static/js/agent/prompt-builder.js`
 - `static/js/agent-engine.js`
 - `docs/virtualWorld/Environment/Light System.md`
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

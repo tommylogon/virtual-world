@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-27
 **Related:** task-559, task-553, task-227, task-230, task-496
 
-## Goal
+## What
 
 A forecast never darkens the world, and a painted WorldPainter world gets no
 weather at all.
@@ -205,3 +205,21 @@ outdoor = str(record.get("mode") or "world") == "world"
 - A `town`- or `interior`-mode scope still compiles **without** the tag.
 - An existing saved world recompiles without losing areas.
 - No name in `engine/weather_forecast.py` is defined without a reader.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

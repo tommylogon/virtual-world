@@ -11,7 +11,7 @@ priority: high
 **Related:** task-101 (simultaneous), task-352, task-436, task-437
 **Origin:** found while scoping task-352 (action economy).
 
-## Goal
+## What
 
 Simultaneous mode should be **turn-based with the wait removed**: every autonomous
 character resolves their turn without waiting for the previous one, and the world
@@ -114,7 +114,7 @@ the world's life, `tools/game_tools.py` short-circuits its per-action tick
 permanently. `tests/test_action_costs.py` sets the flag explicitly rather than
 exercising the lifecycle, so nothing covers it. Fix or remove it here.
 
-## Acceptance criteria
+## Acceptance
 
 - [ ] The world clock advances in simultaneous mode. Pinned by a test that runs a
  simultaneous round and asserts `time_ticks` moved.
@@ -192,3 +192,21 @@ re-deriving it.
 
 Moved to `done` on the strength of the live-browser observation, not the unit
 tests alone.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

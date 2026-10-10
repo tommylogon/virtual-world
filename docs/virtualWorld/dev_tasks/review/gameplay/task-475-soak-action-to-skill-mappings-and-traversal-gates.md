@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-23
 **Related:** task-472, task-474, task-470, task-464, task-746
 
-## Goal
+## What
 
 Give the soak tier real checks on risky actions instead of only forage: hazard travel (Survival), climb/jump/swim/force (Athletics), balance/squeeze (Acrobatics), sneak/avoid notice (Stealth), calm/ride a beast (Animal Handling), treat/diagnose (Medicine), read a mood before approaching (Insight), identify a safe plant (Nature), investigate a body or scene (Investigation/Medicine). Failure must change the path (lost time, a detour, a minor condition), never spiral into starvation; routine maintenance takes 10 and never rolls.
 
@@ -29,6 +29,18 @@ Give the soak tier real checks on risky actions instead of only forage: hazard t
 - [ ] Actions in `SOAK_ACTIONS` that need a policy hook before they can roll: calm/ride (task-476), treat/diagnose/identify_plant (task-478), read_mood and investigate (task-468).
 - [ ] Swim/force have no verb yet: `move_to_area` understands crawl/climb/jump only, so water is modelled as an Athletics hazard on the area rather than a swim verb.
 
-## Verification
+## Steps to verify
 
 `python -m pytest tests/test_traversal.py -q` -> 12 passed; traversal/soak/timeskip/background/forage/loot/checks/skills slice -> 331 passed.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Files
+
+- TODO

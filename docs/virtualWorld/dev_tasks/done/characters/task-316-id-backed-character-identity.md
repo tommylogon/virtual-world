@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: characters
+priority: medium
+---
+
 # task-316 — ID-backed character identity (same-name support)
 
 **Status**: Done — identity delivered under task-446 Slice A; fresh character
@@ -31,7 +38,7 @@ Remaining follow-ups live elsewhere: disambiguation UX (**task-448**), character
 alters (**task-447**), grapple identity (**task-449**), and location-by-id
 (**task-439**).
 
-## Goal
+## What
 
 Give every character a stable, opaque backend id so same-named entities are distinct
 (e.g. 100 zombies all named "zombie", two characters both named "Violet"), while the
@@ -83,10 +90,26 @@ Supporting:
 - `graph.add_node`: include character nodes in the unique-suffix branch (or rely on
   id generation in player_manager) so a duplicate player id can never silently overwrite.
 
-## Verification
+## Steps to verify
 
 - Unit tests: spawn two same-named characters → 2 distinct players, 2 distinct nodes,
   separate relationship slots.
 - Autosave round-trip keeps ids stable; old name-keyed save still loads.
 - E2E: 100 zombie spawns exist as unique entities; `attack zombie at the door` /
   `attack the ugly one` resolve; agent output never shows an id.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

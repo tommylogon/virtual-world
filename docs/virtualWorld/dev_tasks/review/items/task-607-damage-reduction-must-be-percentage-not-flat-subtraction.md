@@ -11,7 +11,7 @@ related: [task-604, task-606]
 **Filed:** 2026-09-30
 **Related:** task-604 (two-axis defense/evasion), task-606 (scale-correct stats)
 
-## Goal
+## What
 
 **DECIDED 2026-09-30 by Tommy:** default to **flat** number reduction, and
 express it the way weapon damage already is -- **a field you can type `d8`, or
@@ -171,3 +171,21 @@ The mode selector is implemented on top of the earlier expression work.
   the same helpers; the log tags the mode.
 - Content: `padded_gambeson` (dice expression, flat mode),
   `plate_cuirass` / `duelists_leathers` (the task-604 axes).
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

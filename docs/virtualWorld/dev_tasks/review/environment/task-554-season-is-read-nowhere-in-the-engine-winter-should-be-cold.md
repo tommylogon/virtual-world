@@ -11,7 +11,7 @@ blocked_by: [task-553]
 **Filed:** 2026-09-27
 **Related:** task-553, task-227
 
-## Goal
+## What
 
 Move the season logic out of the sky widget into the engine, so the temperature
 curve and narration know what season it is.
@@ -57,6 +57,8 @@ waiting to happen: they can disagree, and the engine has no copy to arbitrate.
    (`virtual_world_engine.py:1269-1276`), so a world visibly turns to winter.
 
 ## Acceptance
+
+
 
 ## Acceptance
 
@@ -106,3 +108,21 @@ waiting to happen: they can disagree, and the engine has no copy to arbitrate.
 - `DEFAULT_SEASON` is `summer`, which is what the old frontend fell back to and
   what the shipping scenarios declare — so their temperature behaviour is
   unchanged.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

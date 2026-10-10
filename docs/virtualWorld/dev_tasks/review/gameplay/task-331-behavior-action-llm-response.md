@@ -1,3 +1,10 @@
+---
+type: task
+status: review
+area: gameplay
+priority: medium
+---
+
 # Task-331: Behavior Action — LLM-Generated Response
 **Status**: In Review — implemented 2026-08-31. llm_respond behavior action (engine/triggers/behaviors.py) queues a browser-side request via the task-330 pipeline (same request shape: instructions/fallback/max_words/cooldown); the browser posts back via /api/llm_respond and the line broadcasts as speech. Editor entries added in behaviors-view.js + trigger-graph.js action dropdown.
 
@@ -7,7 +14,7 @@
 **Status**: Todo
 **Filed**: 2026-08-23
 
-## Summary
+## What
 
 Behavior-side twin of task-330: new behavior action type `llm_respond` (name TBD)
 in `_execute_behavior_actions()` so simple NPCs (shopkeepers, merchants, mirrors)
@@ -62,3 +69,25 @@ the behavior path.
 Same list as task-330 (attribution, memory, cooldown) plus:
 - Does an NPC mid-response block its other behaviors for a tick?
 - Interaction with `npc_action_interval` — respond immediately or next tick?
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

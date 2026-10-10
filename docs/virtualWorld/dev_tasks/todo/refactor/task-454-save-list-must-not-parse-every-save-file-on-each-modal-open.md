@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-22
 **Related:** task-401, task-402
 
-## Goal
+## What
 
 Make `GET /api/save-games` cheap regardless of how big the saved worlds get.
 
@@ -52,3 +52,17 @@ or corrupt entry must self-heal, never crash the list.
 - `routes/saveload.py` — `list_save_games` (248-283)
 - `routes/helpers.py` — write the index/metadata at save/autosave time
 - `tests/test_saveload.py` — index hit/miss/stale coverage
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO

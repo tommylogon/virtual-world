@@ -203,7 +203,7 @@ Fixes landed this pass (all committed, all separate from the Social question):
   Social avg 0.7 → 20.2 over 3 days; it does not solve the week-long equilibrium
   above, but it is the coarse-social half of slice 1 and is orthogonal to chores.
 
-## Goal
+## What
 
 Background characters behave like **supercharged simple NPCs**: a deterministic,
 action-oriented planner pursues their goals every tick, with **one local LLM
@@ -224,7 +224,7 @@ to reach toward.
 This keeps cost proportional to population × game-days, not ticks, and keeps
 behaviour auditable.
 
-## Changes
+## How
 
 1. **Schedule model.** Authored per character
    (`{start, activity, destination_scope_or_area, fallback, vital_policy}`),
@@ -267,7 +267,7 @@ behaviour auditable.
 - A general economy, relationship simulation, or full offscreen combat.
 - Replacing the existing foreground LLM loop.
 
-## Verification
+## Steps to verify
 
 - Extend `tests/test_background_simulation.py`: seed determinism (reflection
   off), reflection cap, goal-planner selection, deferral, symmetric
@@ -311,3 +311,11 @@ terms.
 This task's remaining scope (daily reflection, coarse social, and the
 ship-the-data decision) can connect to pursuit execution without redefining the
 clock scheduler or creating a second time system.
+
+## Why
+
+TODO
+
+## Files
+
+- TODO

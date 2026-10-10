@@ -10,7 +10,7 @@ priority: low
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 The WorldPainter reference-image picker lists 19 backgrounds including 'eldenford - wrong orientatoin.webp' -- a file whose name says it is the wrong orientation. It sits next to the correct eldenford.webp, so an author tracing over the map can pick the wrong one and get a mirrored map. Either rename it out of the directory or have the picker mark it.
 
@@ -66,3 +66,21 @@ Two things worth deciding separately:
    skips) is safer than deletion and is reversible.
 2. Roughly 4 MB of exact duplicates is dead weight in the repo regardless of
    which are kept.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: emotions
+priority: medium
+---
+
 # Narrative Actions (Emote / `do` System)
 
 **Filed**: 2026-07-20
@@ -40,7 +47,7 @@ All phases implemented and tested (13/13 tests passing):
 - `.msg-bubble-emote` CSS with pink left-border accent (`#ff79c6`)
 - `emote(text)` MCP tool in `mcp_server.py`
 
-## Files Changed
+## Files
 
 | File | Change |
 |------|--------|
@@ -53,3 +60,25 @@ All phases implemented and tested (13/13 tests passing):
 | `mcp_server.py` | `emote(text)` MCP tool |
 | `tests/test_tokenizer.py` | 10 new tests |
 | `tests/test_emote.py` | 3 new tests |
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

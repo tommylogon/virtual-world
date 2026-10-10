@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-10-05
 **Related:** task-710,task-399,task-670
 
-## Goal
+## What
 
 The scope selection is a standing rule, not a one-shot click. A character who walks into the selected scope promotes; one who walks out goes back to backsim. Re-evaluated per tick against the focused scope's own areas.
 
@@ -59,3 +59,21 @@ Memory churn on the boundary is accepted by the designer for now and is recorded
 here so it is a decision rather than an oversight. Revisit only if it becomes a
 problem — the lever, if it does, is a minimum background span before a span is
 worth summarising, or hysteresis on the boundary.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

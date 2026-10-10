@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-10-01
 **Related:** 
 
-## Goal
+## What
 
 Ten shipped, reachable features have no documentation at all. Enumerated and measured in docs/virtualWorld/Feature Map.md (58 features, 10 with no note): search/forage, background simulation (backsim), per-agent knowledge (fog of war), the WorldPainter editor, grid-to-graph compile, the NL editor, recent edits + undo, validator + issues, the event stream, and the soak lab. Write one note per feature, in the vault folder its subject belongs to, and flip the row in Feature Map.md from none to a link when it lands. A feature with no note is the dangerous case: for fog of war the module is complete and tested, task-499 sits in done/, and nothing calls it.
 
@@ -53,3 +53,21 @@ Also corrected the Grid-to-graph size claim (largest *non-test* Python file;
 - [x] Each note cites real code (`file:line`) and states wired vs unwired from a
       measured grep/call trace, not from the module's existence.
 - [x] The two corrected Feature Map claims are recorded in the map itself.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

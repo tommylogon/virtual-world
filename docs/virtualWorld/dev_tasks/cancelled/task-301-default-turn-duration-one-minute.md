@@ -1,6 +1,10 @@
 ---
 group: Environment
+type: task
+status: cancelled
+priority: medium
 ---
+
 # Default Time per Turn: 1 Minute Instead of 5
 
 **Filed**: 2026-08-19
@@ -30,3 +34,29 @@ Cancelled in favour of the per-scenario path this task itself recommended:
 task-300's clock settings plus `GET/POST /api/settings/time_per_tick` already
 let each scenario opt into 1-minute turns without re-pacing every other
 scenario. A global default change is deliberately not made.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

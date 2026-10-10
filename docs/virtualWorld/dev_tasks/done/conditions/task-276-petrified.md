@@ -1,5 +1,8 @@
-﻿---
-group: Conditions
+---
+area: conditions
+type: task
+status: done
+priority: medium
 ---
 
 # Condition: Petrified (`petrified`)
@@ -11,7 +14,7 @@ group: Conditions
 
 ---
 
-## Purpose
+## What
 
 Turned to stone (magical). A total, deliberate incapacitation — immobile, unable to act, all STR/DEX checks fail. Usually from a magical effect (medusa-style gaze, cursed artifact), not combat.
 
@@ -67,3 +70,24 @@ Turned to stone (magical). A total, deliberate incapacitation — immobile, unab
 - Does a petrified character keep their `busy`/activity state frozen, or does petrification need to clear other conditions?
 - Source types (creature/artifact) and the reverse trigger — where does `stone_to_flesh` live?
 
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

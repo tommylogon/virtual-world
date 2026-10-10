@@ -1,5 +1,8 @@
-﻿---
-group: Trigger System
+---
+area: triggers
+type: task
+status: done
+priority: medium
 ---
 
 # Trigger Effects for Character Memory
@@ -10,7 +13,7 @@ group: Trigger System
 
 ---
 
-## Problem
+## Why
 
 Triggers can modify the world (items, conditions, environment) but cannot touch `Player.memories[]`. We want trigger effects that let in-world events surface, suppress, or strengthen a character's memories — without requiring authors to track individual memory IDs at scale.
 
@@ -18,7 +21,7 @@ Narrative injection is already covered by the `message` effect. This task adds t
 
 ---
 
-## Design
+## How
 
 Three new effect types, all targeting memories by **tag or keyword filter**,
 never by individual ID:
@@ -134,3 +137,16 @@ from results.
 - Embedding-based memory retrieval (separate task; keyword matching is the
   matching mechanism here).
 
+## What
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

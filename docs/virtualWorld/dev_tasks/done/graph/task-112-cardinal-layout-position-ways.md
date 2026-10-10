@@ -12,11 +12,11 @@ wiki: "[[World Building/Graph System]]"
 
 **Status**: in_progress (implementation done, testing pending)
 
-## Summary
+## What
 
 The cardinal layout (🗺️ Map button) was only positioning area nodes on the BFS grid. Everything else (ways, items, characters) was frozen at random vis.js positions — making the layout look broken. This task positions **all** node types, enables physics for items/characters, adds auto-reverse cardinal on way inspector, and live re-layout on cardinal change.
 
-## Changes
+## How
 
 ### `static/js/graph/layout-engine.js` — rewritten `applyCardinalLayout()`
 
@@ -51,7 +51,7 @@ The cardinal layout (🗺️ Map button) was only positioning area nodes on the 
 
 - Removed map view `setViewMode('map')` test (task-111)
 
-## Verification
+## Steps to verify
 
 - [ ] 🗺️ Map button places rooms on grid, ways at midpoints
 - [ ] Items appear below their parent room in columns
@@ -61,3 +61,15 @@ The cardinal layout (🗺️ Map button) was only positioning area nodes on the 
 - [ ] Toggling Map off returns to normal force-directed graph
 - [ ] Items/characters have physics enabled and settle naturally
 - [ ] Server starts clean, no 404s
+
+## Why
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

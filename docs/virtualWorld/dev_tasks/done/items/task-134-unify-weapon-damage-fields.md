@@ -1,6 +1,10 @@
 ---
-group: Equipment & Inventory
+area: items
+type: task
+status: done
+priority: medium
 ---
+
 # Unify Weapon Damage Fields
 
 **Filed**: 2026-07-30 (updated 2026-07-30)  
@@ -9,13 +13,13 @@ group: Equipment & Inventory
 
 ---
 
-## Summary
+## What
 
 Combine the two separate `damage` (flat) and `damage_dice` fields on weapon items into a single `damage` field that accepts dice notation like `"2d6+3"` or a flat number `"8"`.
 
 ---
 
-## Problem
+## Why
 
 Weapons currently have two fields:
 - `damage`: flat number (e.g. `8`)
@@ -42,3 +46,21 @@ This is confusing and inconsistent. The system uses `damage_dice` if available, 
 - `data/scenarios/combat_pit.json` — all weapon entries updated
 - `static/js/item-library.js` — replaced separate Flat Damage + Damage Dice inputs with a single "Damage" field. Save/load/sync/diff all use unified field.
 - `static/js/inspector/item-view.js` — replaced separate Flat Damage + Damage Dice inputs with single Damage field.
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

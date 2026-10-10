@@ -20,7 +20,7 @@ what actually differs from the original proposal.
 > Note: the original spec said "12 spell items" and then listed 15. All 15 were
 > authored.
 
-## Summary
+## What
 
 Create 12 spell items for Lyrie, each tied to a specific life memory or enduring situation. Spells should reflect her personality: well-intentioned, slightly chaotic, deeply kind, and occasionally catastrophic. Some should be implementable with existing engine effects; others should propose new trigger/effect types that would meaningfully expand the engine.
 
@@ -752,7 +752,7 @@ Each spell below includes a full item JSON spec (library-ready), suggested trigg
 4. **Assign spells to Lyrie**: add the completed item `library_id`s to `inventory` in `data/library/characters/Lyrie.json`.
 5. **QA**: run `python -m pytest tests/ -q -k "trigger"` and manual playtest of each spell in a test scenario.
 
-## Verification
+## Steps to verify
 
 - All 15 spells import cleanly from the library browser.
 - Existing-effect spells fire correctly on first manual test.
@@ -872,3 +872,19 @@ Two proposals were substituted rather than invented:
 - `Fluffy` is `autonomy: false` / `simple_npc: false`, so it never draws an LLM
  turn and never soaks. That is deliberate — a conjured object is not an actor —
  but it does mean it is a static prop, not a companion you can talk to.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

@@ -32,7 +32,7 @@ record. The mature gating and picker hiding already in place
 (`routes/library_ops.py` filters traits while `mature_content` is off) do not need
 to change.
 
-## Goal
+## What
 
 Wire the exhibitionist trait effect, which is currently defined but inert (effects: {exhibitionist: true}, no consumer): grant arousal/pleasure when the character is publicly exposed or being looked at, and add a behavior_prompt. Tracked from task-213.
 
@@ -133,3 +133,21 @@ reached from the intimacy path, not merely callable.
 
 Note the fourth row: a public sighting with **no trait** grants nothing and says
 nothing, which is the non-carrier acceptance criterion in one line.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

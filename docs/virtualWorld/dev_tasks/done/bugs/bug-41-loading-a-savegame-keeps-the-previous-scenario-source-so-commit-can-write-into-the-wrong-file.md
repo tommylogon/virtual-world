@@ -39,7 +39,7 @@ deliberately sets `app.world._scenario_source = None` when `_save_metadata` is p
 and syncs `_commit_seq`. That route got the semantics right; the dedicated load-game
 route did not, and the two have drifted apart.
 
-## Fix
+## How
 
 Extract one helper (e.g. `_adopt_loaded_world(app, data)`) that both routes call after
 `load_from_dict`, so the two paths cannot diverge again. A savegame is a runtime
@@ -87,9 +87,22 @@ load-game; name taken from the payload not the stale scenario; `_commit_seq`
 synced; `/api/load` with `_save_metadata` clears the source; autosave refreshed
 (and *not* written for ephemeral loads).
 
-
 ## Files
 
 - `routes/saveload.py` — `load_game` (331-344), `load_world` (75-124), new shared helper
 - `engine/serialization.py` — `load_from_dict` name handling (440-450)
 - `tests/test_saveload.py` — regression coverage for the load-game path
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO

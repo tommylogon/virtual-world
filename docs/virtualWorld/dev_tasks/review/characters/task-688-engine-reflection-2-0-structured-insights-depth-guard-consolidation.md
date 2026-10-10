@@ -11,7 +11,7 @@ parent: task-685
 **Filed:** 2026-10-04
 **Related:** task-685, task-350, task-96
 
-## Goal
+## What
 
 Reflection stops being summarize-only and starts changing the character, and
 can no longer eat itself:
@@ -53,3 +53,21 @@ can no longer eat itself:
 - Should the emotional association of an insight also respike the live emotion
   system at reflect time (the client already respikes on recall)? Leaning no
   (double-counting); record the decision in the design doc when resolved.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

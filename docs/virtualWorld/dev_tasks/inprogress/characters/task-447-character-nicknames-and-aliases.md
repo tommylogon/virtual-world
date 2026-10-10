@@ -109,3 +109,21 @@ stable (opaque anchor). `PlayerManager.rename_player` enforces key uniqueness.
 NL tool `rename_character` + batch op + validator. Live-verified on a second
 server copy: `Jake Halloway -> Cullen Rutherford` moved 4 relationship keys and
 re-keyed the roster. Tests: `tests/test_nl_editor_rename_character.py` (4).
+
+## What
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

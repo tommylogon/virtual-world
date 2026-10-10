@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-23
 **Related:** 
 
-## Goal
+## What
 
 Reported: 'disable physics on ways does not work, I tried to place a way where I want it and it still gets physics pushed'. Cause: applyCardinalLayout (static/js/graph/layout-engine.js) rebuilt wayUpdates/looseUpdates with an anchor position and physics:true, fixed:{x:false,y:false}, overriding the inspector's central_gravity_enabled=false freeze; GraphRelativeLayout.apply also positioned children without checking the flag. Fixed: the cardinal layout now filters out any node with central_gravity_enabled === false, relative-layout.apply skips frozen nodes (and records no offset, so the follow pass ignores them), and dragging a frozen node now writes its position to properties.x/y so the placement survives a reload.
 
@@ -18,7 +18,7 @@ Reported: 'disable physics on ways does not work, I tried to place a way where I
 
 - TODO
 
-## Verification
+## Steps to verify
 
 Reproduced and fixed live in the running app, through the same API the inspector's "Physics enabled" checkbox uses:
 
@@ -64,3 +64,15 @@ on (`_physicsEnabled: true`, `activeLayout(): 'graph'`):
 | forced full `loadGraphData()` rebuild | `{x:4321, y:-1234}` — held exactly |
 
 Flag restored afterwards. No page errors.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Files
+
+- TODO

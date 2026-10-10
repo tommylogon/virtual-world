@@ -1,14 +1,21 @@
+---
+type: task
+status: done
+area: gameplay
+priority: medium
+---
+
 # Pause/Restart Resets Turn to Zero
 
 **Filed**: 2026-07-19
 **Priority**: High
 **Status**: Done — fixed via the TurnQueue refactor (start() only initializes the queue when empty; turnNumber preserved across pause). Audited 2026-08-03
 
-## Summary
+## What
 
 Pausing the simulation and clicking "Start" calls `initializeTurnQueue()`, which resets `this.turnNumber = 0`. The turn count should be preserved across pauses so the simulation continues from where it left off.
 
-## Current State
+## Why
 
 `agent-engine.js:45-76` — `initializeTurnQueue()`:
 
@@ -49,7 +56,7 @@ Also called from `setCharacter()` in `main.js:1352` and `main.js:1396/1410`.
 3. User clicks "Start" → `start()` → `initializeTurnQueue()` → `this.turnNumber = 0` (lost!)
 4. Turn counter UI shows "Turn: 0" instead of "Turn: 10"
 
-## Fix
+## How
 
 ### Option A: Preserve existing turnNumber in initializeTurnQueue
 
@@ -100,3 +107,13 @@ initializeTurnQueue(preserveTurn = false) {
 
 - `static/js/agent-engine.js:45-76` — `initializeTurnQueue()`
 - `static/js/agent-engine.js:470-474` — `start()`
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

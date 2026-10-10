@@ -1,7 +1,9 @@
 ---
-group: Gameplay
+area: gameplay
 wiki: "[[dev_tasks/level-design-workflow]]"
 status: done
+type: task
+priority: medium
 ---
 
 # Serialize Exits from Graph Only (Remove Duplicate exits Cache)
@@ -12,7 +14,7 @@ status: done
 
 ---
 
-## Problem
+## Why
 
 Saved scenarios contain **two representations** of the same exit data:
 
@@ -28,7 +30,7 @@ Runtime already uses graph only:
 
 Authors editing one UI field update the graph. Opening raw JSON (e.g. `labs.json`) can show **different** `visible_in_direction` text in `graph.edges` vs `rooms[].exits` for the same ladder — confusing even when gameplay is correct.
 
-## Goal
+## What
 
 Single source of truth: **graph**. Serialized files either omit per-area `exits` or always rebuild on load and never read stale copies.
 
@@ -63,7 +65,7 @@ Single source of truth: **graph**. Serialized files either omit per-area `exits`
 - `world_template.json` — if exits duplication exists
 - `tests/test_serialization.py` — round-trip: edit edge view → save → load → exits match
 
-## Verification
+## Steps to verify
 
 - [ ] Edit ladder view in way inspector → save → reload → agent lens shows one consistent text
 - [ ] Grep saved JSON: no duplicate `visible_in_direction` under `rooms.*.exits` OR clearly documented as derived empty
@@ -73,3 +75,11 @@ Single source of truth: **graph**. Serialized files either omit per-area `exits`
 
 - [[todo/ui/task-219-agent-lens-left-panel|task-219]]
 - [[dev_tasks/level-design-workflow|Level design workflow hub]]
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

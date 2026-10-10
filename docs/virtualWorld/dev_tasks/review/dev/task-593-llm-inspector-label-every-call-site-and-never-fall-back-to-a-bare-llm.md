@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 Every provider call the browser makes reaches the inspector under a name that says which button or subsystem made it, so 'the inspector is empty' and 'the inspector shows 17 identical LLM entries' are both distinguishable from working
 
@@ -92,3 +92,21 @@ larger piece of work had the architecture been the other way round.
 - `chatWithTools` (the NL editor and the agent loop) already passes a label and
   routes through the same `chat()`, so tool-calling exchanges were never the
   problem.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

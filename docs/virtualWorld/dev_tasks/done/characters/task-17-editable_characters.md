@@ -1,6 +1,9 @@
 ---
-group: Prompt & Narrative Quality
+area: characters
 wiki: "[[Characters/Characters Overview]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Editable Characters — Paperdoll, Grid Inventory, Auto-Appearance
@@ -11,7 +14,7 @@ wiki: "[[Characters/Characters Overview]]"
 
 ---
 
-## Summary
+## What
 
 The character inspector needs a full overhaul: tabbed sections, an RPG-style grid inventory with tooltips, a paperdoll equipment view (editable, not read-only), and auto-generated appearance descriptions derived from equipped items. The equipment engine is tracked in `task-3-equipment_system.md` — this task covers the frontend UI.
 
@@ -206,7 +209,7 @@ When the scenario loads, these items are created (if not existing) and equipped 
 
 When editing a character, equipment slots can be pre-filled from the paperdoll editor. This sets up starting gear for any character before the scenario begins.
 
-## Files Affected
+## Files
 
 - `static/js/inspector.js` — tabbed layout, paperdoll editor, grid inventory, tooltips, context menus
 - `static/js/main.js` — right-click context menu handlers, drop command
@@ -215,3 +218,21 @@ When editing a character, equipment slots can be pre-filled from the paperdoll e
 - `static/js/item-library.js` — equip_slots, container fields in item editor
 - `player.py` — base_appearance vs derived_appearance
 - Scenario data files — `equipped` field on character definitions
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

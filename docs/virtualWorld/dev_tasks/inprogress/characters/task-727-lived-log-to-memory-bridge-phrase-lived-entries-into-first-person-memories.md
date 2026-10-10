@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-10-06
 **Related:** task-725, task-714, task-412, task-399
 
-## Goal
+## What
 
 Make the objective lived_log produce the first-person memories the Mind panel shows, instead of only one aggregate sentence on promotion. Add a deterministic (no-LLM, v1) per-entry phrasing pass keyed on kind and why, modelled on engine/social_text.py, writing memories with entity_ids and a per-player memorized-through mark so nothing is duplicated. Cover the meaningful kinds (relationship, threat, need, death, social, pursuit, plan); do not duplicate the observation memories that record_observation already writes. Measured baseline: a 30-min timeskip writes 471 lived entries across 23/28 characters but only turns observation/social into memories.
 
@@ -44,3 +44,21 @@ Remaining: a live-browser check (the running server needs a restart to load the
 change), entity-id extraction (memories currently carry tags + location, not
 node ids), a death sample in a live skip, and deciding whether `act`/`plan`
 entries with a meaningful `why` also deserve their own memories.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

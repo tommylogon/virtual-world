@@ -1,6 +1,10 @@
 ---
-group: Agent AI & Behavior
+area: prompting
+type: task
+status: done
+priority: medium
 ---
+
 # Rich Memory Toggle — LLM-Generated vs Template Observations
 
 **Filed**: 2026-07-29  
@@ -10,7 +14,7 @@ group: Agent AI & Behavior
 
 ---
 
-## Summary
+## What
 
 Add a setting under LLM/Agent config that controls how observations are stored:
 
@@ -43,3 +47,25 @@ Add a setting under LLM/Agent config that controls how observations are stored:
 - No blocking — agent step continues without waiting for the LLM call
 - Failures silently caught (non-critical)
 - Both modes produce past-tense output
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

@@ -77,7 +77,7 @@ Entertainment was 0, then pinned at 100, and now settles mid-range with the
 recreational fixtures doing real work. Perf also improved (86-105 ticks/s vs
 34-58) because perception observes fewer subjects.
 
-## Problem
+## Why
 
 Two code paths pay Entertainment for the same experience — meeting someone:
 
@@ -138,3 +138,21 @@ character would silently stop being idempotent.
   perception trigger task-425 deferred, and it needs a perception pass on the
   *observer*, not a novelty change.
 - Any change to the novelty curve itself.
+
+## What
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

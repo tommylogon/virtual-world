@@ -1,6 +1,9 @@
 ---
-group: Prompt & Narrative Quality
+area: ui
 wiki: "[[UI & Settings/Inspector Panels]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Inspector: Show Game Time Instead of Ticks
@@ -11,11 +14,11 @@ wiki: "[[UI & Settings/Inspector Panels]]"
 
 ---
 
-## Summary
+## What
 
 Inspector panels (memories, timeline, room event log, world lore) displayed raw tick numbers like `[Tick 42]` or `[T42]`. These now show `HH:MM` game time, matching the event stream format.
 
-## Changes
+## How
 
 - Made `EventBus.tickToTime()` public (was `_tickToTime`)
 - Replaced tick displays in 5 inspector locations:
@@ -28,8 +31,22 @@ Inspector panels (memories, timeline, room event log, world lore) displayed raw 
   - Save slot list
   - Timeline popup header
 
-## Files Changed
+## Files
 
 - `static/js/event-stream.js` — renamed `_tickToTime` → `tickToTime`
 - `static/js/inspector.js` — 5 tick displays → `events.tickToTime(tick)`
 - `static/js/main.js` — 2 tick displays → `events.tickToTime(tick)`
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

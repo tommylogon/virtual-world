@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-10-07
 **Related:** task-716, task-726, task-703, task-725
 
-## Goal
+## What
 
 Make object interaction the entry point for activities: use <bed> to sleep, use <chair> to rest, use <bath> to bathe, via an on_use trigger to the start_activity effect. Delete the bare fish verb (the angling rod already does it) and demote the rest/sleep/bathe/sit/lie verbs to an inferior fallback so a character with no furniture can still rest anywhere. Add an actor-chosen duration channel so 'use bed for 6 hours' works, keep 'until rested' via completion:vital_full, and ground background_simulation NPC sleep in a real bed when one is present.
 
@@ -126,3 +126,21 @@ character per X hours).
 - **Tent** and the remaining bed/chair/basin variants (many library items) still
   lack the trigger.
 - **Bed occupancy** (`at` → `on`/`in`) — the open question above.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

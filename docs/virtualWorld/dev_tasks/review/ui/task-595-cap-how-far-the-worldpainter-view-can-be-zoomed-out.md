@@ -10,7 +10,7 @@ priority: low
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 Zoom-out currently has no floor, so the view can be reduced to an unusable state. Clamp the minimum zoom to a level where the painted grid and at least one biome remain legible, and show a disabled zoom control (or snap back) rather than letting the user reach the clamp.
 
@@ -29,3 +29,21 @@ Zoom-out currently has no floor, so the view can be reduced to an unusable state
 
 The floor existed at 0.12; the ticket's "no floor" premise was stale, but the
 floor was not legible and the control never reflected it. Both are now true.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

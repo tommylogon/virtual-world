@@ -174,7 +174,14 @@ window.GraphToolbar = {
             // The painted lattice only applies in the Map layout, so a stale
             // flag from a previous load must not disable physics elsewhere.
             paintedGrid: !!(gm && gm._paintedGridLayout) && layout === 'map',
-            mapLocked: !!(gm && gm._mapLayoutLocked) && layout === 'map',
+            // The node-layout lock (🔒 in the background menu) is owned by
+            // GraphBackground and fed to the physics policy — `GraphPhysics.
+            // _locked` is the ONE flag the solver's gate reads (task-765). Read
+            // that, not a graph-manager field: the old `_mapLayoutLocked` was
+            // never assigned anywhere, so the lock never disabled this button
+            // and a locked world looked like a dead toggle (bug-542). The lock
+            // holds positions in every layout, so it is not gated to Map.
+            mapLocked: !!(window.GraphPhysics && window.GraphPhysics._locked),
             physicsEnabled: !!(gm && gm._physicsEnabled),
             searchQuery,
             manualMode,

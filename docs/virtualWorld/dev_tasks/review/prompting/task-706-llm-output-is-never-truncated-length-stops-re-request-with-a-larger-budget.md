@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-10-05
 **Related:** task-700
 
-## Goal
+## What
 
 A length stop from the provider re-requests with a doubled budget instead of handing a fragment to the caller.
 
@@ -39,7 +39,7 @@ phase turned a half-written JSON plan into **no plan** and logged nothing. The
 plus per-call caps means there is no single number to raise. So the fix belongs
 where the truncation happens.
 
-## Implementation
+## How
 
 `static/js/llm-client.ts`:
 
@@ -83,3 +83,17 @@ Live (browser, real loaded `window.llmClient`, stubbed provider), 2026-10-04:
 primary fix, and stays: it also covers a provider that returns cut-off text
 **without** a stop reason (some local proxies), which no amount of budget
 escalation can detect.
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

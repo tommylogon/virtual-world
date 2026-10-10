@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-28
 **Related:** task-401, task-446
 
-## Goal
+## What
 
 Replace the display-name current_area convention with stable area ids, and name exactly one authoritative location record per character and per unique item, so a duplicated human-readable area name can never split an entity's location. This is the precondition for chunk unload: a chunk cannot own a stale copy of a character.
 
@@ -51,3 +51,21 @@ rename and cannot be retired first.
 Regression: full suite 15 failed / 6660 passed; the **same 15 names fail on a
 clean `master` worktree** (task-457 canonical identity + `kraktooth_goblin_camp`
 data drift), verified by A/B, so none are from this change.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

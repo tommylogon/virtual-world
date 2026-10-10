@@ -1,3 +1,10 @@
+---
+type: task
+status: review
+area: library
+priority: medium
+---
+
 # Task 357 — Structure templates: capture + materialize connected areas (with population)
 
 **Status:** In Review — backend + routes + UI + tests implemented 2026-09-22
@@ -166,7 +173,7 @@ decide to ignore or delete.
 - Autosave/scenario source untouched — materialization mutates the running world
   only.
 
-## Verification
+## Steps to verify
 
 - pytest: new `tests/test_structures.py` green; no regressions (existing suite;
   known pre-existing failures: MCP `.fn` wrapper, social/tick scaling).
@@ -230,3 +237,22 @@ decide to ignore or delete.
   resolution) is task-446; until it lands, `mint` remains the default and
   task-357 keeps minting `miki 2`.
 
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

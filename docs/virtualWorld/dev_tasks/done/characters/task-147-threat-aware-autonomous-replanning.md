@@ -1,7 +1,11 @@
 ---
-group: Agent AI & Behavior
+area: characters
 wiki: "[[Characters/NPC Behavior System]]"
+type: task
+status: done
+priority: medium
 ---
+
 # Threat-Aware Autonomous Replanning
 
 **Filed**: 2026-07-30
@@ -10,7 +14,9 @@ wiki: "[[Characters/NPC Behavior System]]"
 
 ---
 
-## Summary
+## What
+
+
 
 ## Summary
 
@@ -47,7 +53,7 @@ A new `hostile` trait was added as the threat marker, separate from the existing
 
 ---
 
-## Changes
+## How
 
 ### 1. Add `_getThreatAlert()` to AgentEngine (`agent-engine.js`) ✅ DONE
 
@@ -122,3 +128,21 @@ REACT phase (unchanged)
    - Set a character to `hidden` state — verify undetected
    - Trigger attack event — verify target replans
    - Friendly NPC with high relationship — verify no false positive
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

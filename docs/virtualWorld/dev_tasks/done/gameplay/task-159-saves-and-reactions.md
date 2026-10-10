@@ -5,11 +5,13 @@ status: done
 priority: medium
 created: 2026-08-02
 tags: [combat, skills, gameplay, reactions]
+type: task
+area: gameplay
 ---
 
 # Saves and Reactions to Actions and Events
 
-## Summary
+## What
 
 Give characters a chance to avoid traps, attacks, or other events via a saving throw / reaction roll. When something dangerous happens, the character rolls against a relevant stat or skill to dodge, resist, or avoid it.
 
@@ -32,7 +34,7 @@ What was still missing and is now implemented (2026-08-07):
 - No facade access → `VirtualWorld.saving_throw(player, stat, dc)` added (`virtual_world_engine.py`), so effects/triggers/routes can call through `game_state`.
 - Editor wiring: `save_throw` appears in the trigger editor condition dropdowns (item library, inspector, graph editor) with stat-or-skill + DC + optional target fields, and in the LLM condition lists.
 
-## Design
+## How
 
 ### One primitive, everyone funnels through it
 
@@ -67,7 +69,7 @@ Failed (or absent) save → full `amount`. Successful save → `amount // 2` (`o
 
 Deliberately NOT converted to saves (scope decision 2026-08-07): `player_attack` keeps its attack roll vs DEX defense roll. Saves are for traps/hazards/resistance, not melee hits.
 
-## Files Changed
+## Files
 
 1. `engine/skills.py` — `saving_throw` unified (stats + skills, negative mods, any player)
 2. `virtual_world_engine.py` — facade `saving_throw`
@@ -77,7 +79,7 @@ Deliberately NOT converted to saves (scope decision 2026-08-07): `player_attack`
 6. `static/js/main.js`, `static/js/shared/ai-generator.js`, `static/js/prompt-docs.js`, `static/js/item-library/ai-generation.js` — LLM condition lists
 7. Tests: `tests/test_skills.py::TestSavingThrows`, `tests/test_trigger_system.py::TestSaveThrowCondition`, `tests/test_effects_save.py` (new)
 
-## Testing
+## Steps to verify
 
 - [x] Trap trigger with save can be dodged (`save_throw` condition gates the effect)
 - [x] Failed save applies full damage, success applies reduced/zero (`handle_damage` save tests)
@@ -90,3 +92,11 @@ Deliberately NOT converted to saves (scope decision 2026-08-07): `player_attack`
 
 - [[review/gameplay/task-4-grapple_restrain_system|task-4: Grapple/Restrain]] — first `saving_throw` consumer (STR saves on grab/escape)
 - [[todo/gameplay/task-165-chance-to-stun-on-attack|task-165: Chance to stun on attack]]
+
+## Why
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

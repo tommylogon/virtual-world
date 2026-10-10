@@ -41,7 +41,7 @@ no cache to invalidate. If character counts grow an order of magnitude, revisit.
 The blocking-activity part of the design this task fed into was **removed** —
 see task-423's outcome for the measurement that killed it.
 
-## Problem
+## Why
 
 task-409 §4 defines coarse meetings as *"Deterministic from relationships +
 traits + vitals + seeded RNG; apply symmetric relationship deltas."*
@@ -54,7 +54,7 @@ feature; it is incorrect behaviour written into a high-priority task, and it is
 the direct consequence of the relational world model (there is no distance to
 accidentally prevent it).
 
-## Design
+## How
 
 The meeting pass runs **per area**, never globally:
 
@@ -96,10 +96,18 @@ Additional rules:
 - Foreground social interaction (that stays with the LLM loop).
 - Schedules/work (still task-409 §1–3).
 
-## Verification
+## Steps to verify
 
 - Unit: three characters in two areas → only the co-present pair meets.
 - Unit: same-area pair with negative affinity → no meeting, or a hostile one, per
   the authored rule (must be explicit, not accidental).
 - Determinism: seed replay with reflection disabled.
 - Extend `tests/test_background_simulation.py`.
+
+## What
+
+TODO
+
+## Files
+
+- TODO

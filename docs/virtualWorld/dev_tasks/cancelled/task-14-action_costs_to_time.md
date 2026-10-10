@@ -1,3 +1,9 @@
+---
+type: task
+status: cancelled
+priority: medium
+---
+
 # Action Costs to Time
 
 **Filed**: 2026-07-15
@@ -6,11 +12,11 @@
 
 ---
 
-## Summary
+## What
 
 Actions currently cost energy and ticks uniformly. Different actions should take different amounts of game time: walking through a door might take 1 time unit, walking up a long staircase might take 5, examining an item might take 0 (free action).
 
-## Current State
+## Why
 
 ### Action cost system (`virtual_world_engine.py:68`)
 
@@ -100,6 +106,20 @@ For now, leave this as-is. Time cost = game minutes consumed.
 
 **Cancelled 2026-07-20**: Variable per-action time costs don't fit the turn-based architecture. All actions happen within a single configurable turn duration (default 5 min). Time only advances on turn boundaries — individual actions can't consume time independently without breaking the multi-character sequential-action model. Action costs are now handled via the trigger system instead.
 
-## Files Affected
+## Files
 
 - `virtual_world_engine.py` — check door/item for time_cost overrides in `apply_action()`
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

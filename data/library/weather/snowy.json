@@ -1,0 +1,15 @@
+{
+  "id": "snowy",
+  "name": "Snowy",
+  "kind": "normal",
+  "order": 7,
+  "icon": "🌨️",
+  "light_mult": 0.6,
+  "time_dc": 18,
+  "description": "Snow is falling, and it muffles every sound.",
+  "tags": [
+    "weather",
+    "sky",
+    "cold"
+  ]
+}

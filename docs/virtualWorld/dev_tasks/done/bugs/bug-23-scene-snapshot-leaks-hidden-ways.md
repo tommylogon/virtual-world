@@ -1,4 +1,11 @@
-﻿# Bug 23 — Human turn panel scene leaks hidden (undiscovered) ways
+---
+type: bug
+status: done
+area: bugs
+priority: medium
+---
+
+# Bug 23 — Human turn panel scene leaks hidden (undiscovered) ways
 
 **Status:** Done — confirmed by Tommy 2026-08-30.
 1120 passed. Browser E2E pending.
@@ -20,7 +27,7 @@ key in `player.discovered_exits`; search/fumble discovery (narration.py)
 writes that key and flips the way's state off "hidden". The panel snapshot
 must obey the same contract.
 
-## Fix
+## How
 
 - `engine/scene_snapshot.py` ways loop: skip ways with
   `current_state == "hidden"` unless `player_manager.is_slasher(player_name)`
@@ -28,7 +35,7 @@ must obey the same contract.
   exact rule + key shape used by look and narration.
 - Module docstring updated.
 
-## Tests
+## Steps to verify
 
 `tests/test_scene_snapshot.py`:
 - `test_hidden_ways_stay_out_of_scene` — hidden way absent for a normal player
@@ -43,3 +50,14 @@ must obey the same contract.
 - Browser: reload panel in a room with an undiscovered hidden way — chip
   must be gone; after `search` finds it, it must appear.
 
+## What
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

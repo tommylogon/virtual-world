@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: refactor
+priority: medium
+---
+
 # Modularize app.py into Route Modules
 
 **Filed**: 2026-07-16
@@ -6,7 +13,7 @@
 
 ---
 
-## Summary
+## What
 
 Split `app.py` (1560 lines, 69 routes in one `register_routes()` function) into per-domain modules under a `routes/` package. Each module exports a `register_<domain>_routes(app)` function that the main `register_routes()` calls.
 
@@ -144,3 +151,25 @@ Once the file is modularized, each module can be individually:
 - Upgraded to Flask Blueprints for URL prefixing
 - Unit-tested independently with mocked `app`
 - Refactored (e.g., splitting `take_action` into a command-pattern dispatcher)
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

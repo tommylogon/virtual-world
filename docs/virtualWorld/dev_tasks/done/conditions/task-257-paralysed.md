@@ -1,6 +1,8 @@
 ---
-group: Conditions
+area: conditions
 status: done
+type: task
+priority: medium
 ---
 
 # Condition: Paralysed (`paralysed`)
@@ -12,7 +14,7 @@ status: done
 
 ---
 
-## Purpose
+## What
 
 Rigor-locked — cannot move, act, or speak, and fails STR/DEX saves. Unlike `unconscious`, the character **keeps their grip** on held items.
 
@@ -52,7 +54,7 @@ Rigor-locked — cannot move, act, or speak, and fails STR/DEX saves. Unlike `un
 - `process_tick` duration countdown (auto-expires).
 - Potential source: poison variants, certain traps/effects.
 
-## Testing
+## Steps to verify
 
 - [ ] Paralysis blocks actions/movement/speech; speed 0.
 - [ ] Stronger paralysis does not stack/reset (`stack: noop`).
@@ -63,3 +65,19 @@ Rigor-locked — cannot move, act, or speak, and fails STR/DEX saves. Unlike `un
 
 - Should anything end paralysis early (e.g. an antidote / `cure` in `ends_on`)?
 - Gap vs. unconscious: keep grip vs. drop — confirm that's the intended differentiator.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

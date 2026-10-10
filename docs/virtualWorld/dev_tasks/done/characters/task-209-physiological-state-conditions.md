@@ -1,6 +1,8 @@
 ---
-group: Pleasure System
+area: characters
 status: done
+type: task
+priority: medium
 ---
 
 # Arousal State Conditions & Threshold Triggers
@@ -11,11 +13,11 @@ status: done
 
 ---
 
-## Problem
+## Why
 
 The arousal vitals need to manifest as visible/influential character states. These are modeled as conditions with periodic effects, symptoms, and combat mods — no new architecture.
 
-## Design
+## How
 
 - Add condition definitions to `player.py` `CONDITION_DEFINITIONS` (verified location, `player.py:30`):
   - `warming_up` (periodic Stimulation +1), `aroused` (Stim +2, attack/defense -2, auto_fail perception/concentration), `highly_aroused` (Stim +3, Energy -2, attack/defense -3, auto_fail + willpower), `frantic` (Stim +4, Energy -3, Sanity -2, attack/defense -5, auto_fail + self_control)
@@ -32,7 +34,7 @@ The arousal vitals need to manifest as visible/influential character states. The
 - `engine/player.py` — condition definitions (`CONDITION_DEFINITIONS` at `player.py:30`)
 - `engine/tick_manager.py` — threshold checks (`tick_turn()` at line 83)
 
-## Testing
+## Steps to verify
 
 - [ ] Arousal crosses 15/30/50/90 → correct condition applied
 - [ ] Drops below threshold → condition removed
@@ -42,3 +44,11 @@ The arousal vitals need to manifest as visible/influential character states. The
 ## Related
 
 - `dev_tasks/# Nipple & Erogenous Zone System - Desig.md` — §2, §4, Phase 2
+
+## What
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

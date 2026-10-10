@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-27
 **Related:** 
 
-## Goal
+## What
 
 biomes.json hostile_distribution (line 2195) declares base_chance / per_area_from_settlement / max_chance per biome. It is loaded (engine/biomes.py:135) and validated (:418-439) but has no runtime consumer; HOSTILE_KINDS (engine/biomes.py:41) appears nowhere outside biomes.py and its tests. Needs task-569's spawner and the item-affinity vocabulary. Distance-from-settlement is already computable from the world grid.
 
@@ -46,3 +46,21 @@ knows the cells) and can be supplied per area.
 
 Left in `todo`; not moved to review, because the behaviour is not demonstrated
 live.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: graph
+priority: medium
+---
+
 # Task 289 — Generic Template-Link & Sync System for All Node Types
 
 ## Status
@@ -10,7 +17,7 @@ was how `library_id` ended up with three different id-resolution behaviours. See
 World → Library half is task-317's, and its safety rules were already shipped
 2026-08-20 and are preserved.
 
-## Goal
+## What
 
 Generalize the existing `refresh-from-library` item sync into a first-class template-link system that works for **areas, ways, items, and characters**. Authors can bind a placed node to a library template, sync changes from that template, and break the link to make the node standalone.
 
@@ -181,3 +188,21 @@ fails, so none are mine.
 - Filed separately: **task-658** — `python tools/js_module_index.py --check` fails
   on `room-context.js` despite a complete header. Verified pre-existing on a clean
   `master` worktree (same message, exit 1), so not caused by this work.
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

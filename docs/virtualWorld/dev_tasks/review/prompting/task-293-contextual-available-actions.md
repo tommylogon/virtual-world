@@ -1,8 +1,15 @@
+---
+type: task
+status: review
+area: prompting
+priority: medium
+---
+
 # task-293: Contextual "Available Actions" prompts
 
 **Status** — In Review — implemented (contextual-actions.js wired into room-context.js); verified live render 2026-08-21. Moved from todo/ 2026-08-21.
 
-## Summary
+## What
 
 Replace the static 30-row ACTIONS table in the character system prompt with a compact
 static core plus a per-turn `=== AVAILABLE ACTIONS ===` block built from each character's
@@ -54,3 +61,25 @@ the agent sees exactly what it can do right now instead of a wall of verbs.
 - The system prompt is cached per character (`agent-engine.js:26`) — a page reload rebuilds
   it so the trimmed prompt applies.
 - `docs/design/*` are stale design snapshots; not in scope to sync.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

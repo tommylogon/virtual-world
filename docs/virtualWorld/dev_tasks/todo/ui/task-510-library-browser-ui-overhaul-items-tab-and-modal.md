@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-24
 **Related:** 509, 508, 506
 
-## Goal
+## What
 
 Modernize the Library Browser's **items pane**. It is the primary authoring surface
 for the library items, and it is currently a fixed 800px modal built almost
@@ -83,7 +83,7 @@ it does not scale and it does not help the author find what matters.
 - The other tabs (characters, areas, traits, conditions, behaviours, tags, ways)
   — visual consistency only, no rework.
 
-## Verification
+## Steps to verify
 
 - `node tools/unit/run.cjs`, `npm run lint`, `npm run typecheck`,
   `node --check` on changed modules, and `python tools/js_module_index.py --check`
@@ -105,3 +105,19 @@ data-layer finding, not a UI one:
   "missing description" filter is a real authoring pass rather than a nicety.
 - **Every filter is single-select except the presets.** Type and quality compose;
   the mockup keeps that composition rather than adding a query language.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

@@ -11,7 +11,7 @@ parent: task-685
 **Filed:** 2026-10-04
 **Related:** task-685, task-346, task-403
 
-## Goal
+## What
 
 Memory entries gain optional dynamics fields, and memory gets a reinforcement
 loop: recall and re-encounter make a memory more available instead of the store
@@ -53,3 +53,21 @@ accumulating near-duplicates with a ratcheting importance.
   background-simulation need recall? Yes by default (thinking about it is
   reinforcement), but confirm the need-recall surfaced-memory copy doesn't
   double-stamp (the copy is a new memory; the source gets the stamp).
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

@@ -1,3 +1,9 @@
+---
+type: task
+status: cancelled
+priority: medium
+---
+
 # Task 336 — Lock/unlock player commands for ways (trigger-first)
 
 **Status:** Todo — found 2026-08-23 during human-panel mockup work
@@ -45,7 +51,7 @@ existing machinery:
   `lock_way` effect (mirror of `unlock_way`), `_get_available_actions` way branch
 - `docs/virtualWorld/Triggers/` — effect/type doc update
 
-## Verification
+## Steps to verify
 
 - labs.json keycard door: `unlock door 5` without card → trigger fail
   message; with card → success + state opens
@@ -53,3 +59,15 @@ existing machinery:
   can work"
 - Panel menus show disabled Lock/Unlock with reasons (no trigger / already
   locked)
+
+## What
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

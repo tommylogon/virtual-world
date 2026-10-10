@@ -10,11 +10,11 @@ priority: medium
 **Filed:** 2026-10-01
 **Related:** task-325, task-654
 
-## Goal
+## What
 
 Replace or augment engine/dressing.py auto_dress() tag-intersection selection with an LLM pass so the chosen gear fits the CHARACTER rather than merely sharing a tag, keeping the deterministic path as the fallback when no LLM is configured. Verify live in the browser.
 
-## Problem
+## Why
 
 The inspector button `🤖 Auto-Dress from Interests`
 (`static/js/inspector/agent-view.js:956`, task-325) presents as an LLM feature --
@@ -377,3 +377,21 @@ nothing") and does not trigger the deterministic fallback. The distinction from
       panel shows the *right* character, untick one item, equip, and read the
       equipped slots back. This is the verification that would have caught the
       merchant mix-up, and it has not been run.
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

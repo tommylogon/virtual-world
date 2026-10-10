@@ -11,7 +11,7 @@ related: [task-528, task-553, task-554, task-557, task-558, task-564, task-566, 
 **Filed:** 2026-09-28
 **Related:** task-528, task-553, task-554, task-557, task-558, task-564, task-566, task-567, task-568, task-525, task-529, task-535, task-536, bug-48
 
-## Goal
+## What
 
 A per-feature test guide for everything built on 2026-09-27, so each can be checked
 by hand in the app and against the suite.
@@ -426,3 +426,21 @@ Consequences:
 - The boundary-way feature (entry 1) has **no dev task of its own** — it is the
   deferred half of task-528, which is in review. Filing it separately is worth doing
   so its acceptance has a home.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

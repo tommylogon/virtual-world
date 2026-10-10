@@ -13,7 +13,7 @@ supersedes: "Library 2.0 - Unified Library Design.md §1.3 'Behaviours tab — R
 **Related:** task-291, task-586
 **Supersedes:** `docs/virtualWorld/Library System/Library 2.0 - Unified Library Design.md` §1.3, the "Behaviours tab" row, which says "Remove the tab/type"
 
-## Goal
+## What
 
 The shipped Behaviours tab can search, create and save behaviour entries into `data/library/behaviours/`, and `engine/npc_behaviors.py:486` reads only `player.behaviors[]`. So the UI has a **live authoring path that produces files the engine ignores** — the exact divergence the same design doc records for traits, where the chosen fix was unify rather than remove. Fix the engine side instead of deleting a working editor.
 
@@ -91,3 +91,21 @@ Evidence:
   the catalog.
 - `tests/test_npc_behaviors.py tests/test_library_character_import.py
   tests/test_library_refresh.py` — all green (25 passed together).
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

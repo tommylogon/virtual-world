@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 The current single dropdown hides the difference between palette entry types. Replace it with a visible palette that can be filtered or grouped by kind - buildings, biomes, roads, ways - and that offers the information a person actually needs at paint time: what each entry is, what it does, and what it connects to. Two questions the palette must answer without opening anything else: 'what is the difference between a bridge and a road?' and 'where is the exit from here?'. Related to the palette: the inspector has no reach from a painted cell to the exits and ways touching it.
 
@@ -37,3 +37,21 @@ The current single dropdown hides the difference between palette entry types. Re
 - [x] Live proof (Playwright, `localhost:4465`): detail strings above; cell
       (14,8) panel reads `exits  N: empty · E: empty · S: road · W: road`.
 - [x] Unit test `cellNeighbours names the exits around a cell (task-596)`.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

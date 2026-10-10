@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-24
 **Related:** task-501, task-388
 
-## Goal
+## What
 
 Make compileToBehaviors honest: a condition NO branch that carries actions must compile or be visibly refused, never silently dropped.
 
@@ -59,3 +59,21 @@ behavior model genuinely has no else, so the honest outcome is a refusal).
   action is refused; a clean graph compiles without a refusal). Verified:
   `node tools/unit/run.cjs` 176 passed (13 pre-existing `test_plan_tracker.js`
   failures); `node --check`/`npm run lint`/`npm run typecheck` clean.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

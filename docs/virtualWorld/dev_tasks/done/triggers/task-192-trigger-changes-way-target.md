@@ -1,5 +1,8 @@
-﻿---
-group: Trigger System
+---
+area: triggers
+type: task
+status: done
+priority: medium
 ---
 
 # Trigger to Change a Way's Target/Direction/Description
@@ -10,11 +13,11 @@ group: Trigger System
 
 ---
 
-## Problem
+## Why
 
 Want elevators/vehicles/portals that repoint connections dynamically. A way currently points at a fixed area; nothing lets a trigger rewire where a connection leads without manually editing the graph.
 
-## Design
+## How
 
 - A way IS a node (`type="way"`); areas connect to it via `EDGE_CONNECTION` edges (graph.py:294).
 - The way carries `current_state`, `description`, `tags`, `see_through`, etc.
@@ -31,3 +34,16 @@ Want elevators/vehicles/portals that repoint connections dynamically. A way curr
 - `graph.py` — helper for reconnecting connection edges safely
 - `virtual_world_engine.py` — wiring the new trigger/effect into the engine
 
+## What
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

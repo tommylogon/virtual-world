@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-10-08
 **Related:** task-390, task-550, task-619
 
-## Goal
+## What
 
 Make hostility group-scoped and fear group-aware. Today the real aggro engine is the slasher/is_slasher trait (engine/traits.py:394-407) -> npc_behaviors.slasher_hunt (npc_behaviors.py:747) -> target filter not is_slasher (npc_behaviors.py:824-830), tick hook tick_manager.py:599, combat bonus combat.py:383-404; the mansion uses it. The hostile trait (traits.py:408-414) is documented as dangerous flee or fight but only tints social tone and the fear shout weight (background_social.py:325 and 1278); its HOSTILE effect constant is read nowhere else. Replace the boolean trait exclusion with a group/faction relation so a creature is hostile to a set of groups (everyone except my faction), hostility exemption is same-faction so lich-A undead fight lich-B undead while each ignores its own, and fear exemption is same-group (undead do not fear undead) as a separate criterion. Goblins fear zombies via the goblin fear_tags, independent of whether the zombie is hostile. Decide whether to wire the hostile trait to this relation or deprecate it, since two names for dangerous is the confusion. Acceptance: the zombie/lich/goblin cases; the mansion slasher behaviour must not regress. Relates to task-390 (faction logic, done), task-550 (faction tags, done), task-619 (fear writes relationships).
 
@@ -47,3 +47,21 @@ Make hostility group-scoped and fear group-aware. Today the real aggro engine is
   "shout" weight.
 - Fear path that writes relationships for non-characters (the `Water Skin`
   case) is task-619's other half.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

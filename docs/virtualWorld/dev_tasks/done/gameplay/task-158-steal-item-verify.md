@@ -5,11 +5,13 @@ status: done
 priority: low
 created: 2026-08-02
 tags: [characters, stealth, combat, verify]
+type: task
+area: gameplay
 ---
 
 # Steal Item from Character (Verify Existing)
 
-## Summary
+## What
 
 The "steal item from another character" feature already exists with a Sleight of Hand vs Perception contest. This task is to verify it works end-to-end and close out the idea.
 
@@ -27,3 +29,25 @@ Already implemented. `steal_item` in engine/item_actions.py:556 does a `Sleight 
 **Verified 2026-08-02** — all checks pass via `tests/test_item_actions.py::TestStealItem`. One bug found and fixed: the success path did not remove the `EDGE_EQUIPPED` edge when stealing an equipped item (item ended up equipped on the victim AND carried by the thief). Fixed in `engine/item_actions.py` — success now removes both `EDGE_CARRYING` and `EDGE_EQUIPPED`.
 
 **Status: DONE** — moved to `done/gameplay/`.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

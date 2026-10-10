@@ -1,0 +1,15 @@
+{
+  "id": "clear",
+  "name": "Clear",
+  "kind": "normal",
+  "order": 1,
+  "icon": "☀️",
+  "light_mult": 1.0,
+  "time_dc": 10,
+  "description": "",
+  "tags": [
+    "weather",
+    "sky",
+    "dry"
+  ]
+}

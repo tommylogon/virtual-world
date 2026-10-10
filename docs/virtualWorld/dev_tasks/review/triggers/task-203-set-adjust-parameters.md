@@ -1,5 +1,8 @@
 ---
-group: Trigger System
+area: triggers
+type: task
+status: review
+priority: medium
 ---
 
 # Set/Adjust Parameters via Trigger (All Node Types)
@@ -10,13 +13,13 @@ group: Trigger System
 
 ---
 
-## Problem
+## Why
 
 There's no trigger effect to mutate the `parameters` key-value dict on a node, even though `{param:<key>}` already renders from it. Today you'd hand-edit node data to change a door's indicator from red→green→yellow, which defeats the whole trigger system.
 
 Also, `{param:<key>}` context is only populated for the *triggering item* — not for ways, areas, or characters when they're described/examined.
 
-## Goal
+## What
 
 A `set_parameter` / `adjust_parameter` trigger effect that works on **any** node type (characters, items, ways, areas), plus rendering wiring so `{param:<key>}` resolves for ways/areas/characters in their descriptions and examine output.
 
@@ -27,7 +30,7 @@ A circular door whose description reads `... under the number is a {param:light}
 - `on_lock` trigger → `set_parameter {key: light, value: red}`
 - `on_open` / `on_close` → `yellow` / `green`
 
-## Design
+## How
 
 - **Effect handler(s)** in `engine/effects.py`:
   - `handle_set_parameter` — `params: {key, value, node_id|self|target_tag}`; uses `_resolve_effect_target()` (already resolves any node) and writes into `target_node.properties.setdefault("parameters", {})`.
@@ -47,3 +50,13 @@ A circular door whose description reads `... under the number is a {param:light}
 - `static/js/inspector.js` — add new effect types to the editor list
 - `static/js/item-library.js` — add new effect types to `EFFECT_TYPES`
 - `tests/test_effects_save.py`, `tests/test_trigger_system.py` — tests
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

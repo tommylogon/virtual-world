@@ -13,7 +13,7 @@ priority: low
 every finite item authored here would need a hand-written `adjust_uses` that the
 trigger suggester/AI is explicitly told not to add.
 
-## Goal
+## What
 
 Give every edible/drinkable library item its own `on_eat`/`on_drink` trigger
 (`adjust_vital` + depletion), so nothing usable as food depends on the background
@@ -243,3 +243,21 @@ That case now has its own constant, `WATER_AREA_DRINK_RESTORE`.
 
 - Nutrition/diet detail; per-item restore tuning is a separate content pass.
 - Changing `FOOD_TAGS`/`DRINK_TAGS`.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

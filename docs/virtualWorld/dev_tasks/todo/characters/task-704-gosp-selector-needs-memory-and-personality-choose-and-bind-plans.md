@@ -11,7 +11,7 @@ blocked_by: [task-701, task-702, task-705]
 
 **Clarified:** 2026-10-05
 
-## Goal
+## What
 
 Choose or propose a suitable **pursuit** when needs, a goal, an accepted mission, a meaningful event, or a schedule reminder makes one relevant. A pursuit has a character's reason and longer-term objective; its short-term plan handles the present situation; an Activity begins when the character reaches a place and performs something over time.
 
@@ -32,3 +32,21 @@ Selection must read the actor's real state and knowledge. Needs, personality, me
 - [ ] A rejection is a choice, not failure. No retry penalty, replan penalty, or forced re-proposal of the same rejected pursuit in the same selection cycle.
 - [ ] Demonstrate conflicting needs with one hungry, lonely goblin that accepts a suggested pursuit and another moment where the same goblin declines it for a stronger personal reason, using the same catalog and no character-specific special case.
 - [ ] task-426's haul/gather/rally content is either absorbed as initial pursuit templates or explicitly retired. No second archetype system remains beside the pursuit catalog.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

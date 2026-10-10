@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: characters
+priority: medium
+---
+
 # Conditions System (Character Status Effects)
 
 **Filed**: 2026-07-15
@@ -6,11 +13,11 @@
 
 ---
 
-## Summary
+## What
 
 Characters need a proper conditions/status effects system. Currently states are limited to: awake, sleeping, dead, unconscious. A conditions system should support: awake, dead, asleep, unconscious, paralysed, blind, deaf, sick, poisoned, grappled, restrained — where multiple conditions can apply simultaneously with independent effects.
 
-## Current State
+## Why
 
 ### Player state (`player.py`)
 
@@ -84,14 +91,14 @@ In agent inspector, show conditions as labeled badges:
 
 Click to inspect condition details. Show condition source and remaining duration.
 
-## Files Affected
+## Files
 
 - `player.py` — replace `state` with `conditions` set
 - `virtual_world_engine.py` — update all state checks, add condition processing, add trigger effects
 - `static/js/inspector.js` — display conditions in agent inspector
 - `static/js/api.js` — condition update API
 
-## Implementation
+## How
 
 ### Engine
 - **`player.py`**: `state` replaced with `conditions` set. Backward-compatible `state` property.
@@ -106,3 +113,13 @@ Click to inspect condition details. Show condition source and remaining duration
 
 ### Tests
 - **`tests/test_conditions.py`**: 38 tests covering hierarchy, exclusions, periodic effects, timers, emotions, backward-compat state, serialization.
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

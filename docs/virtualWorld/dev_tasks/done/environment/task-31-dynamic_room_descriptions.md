@@ -1,6 +1,9 @@
 ---
-group: Environment & Climate
+area: environment
 wiki: "[[World Building/Rooms & Areas]]"
+type: task
+status: done
+priority: medium
 ---
 
 # Dynamic Area Descriptions from Items and Environment
@@ -11,11 +14,11 @@ wiki: "[[World Building/Rooms & Areas]]"
 
 ---
 
-## Summary
+## What
 
 Area descriptions are currently static text. Items in the room are listed separately as a flat list after the description. The goal is to make room descriptions **dynamic** — composed from a base description, items' descriptions, environment (temp/smell/sound), and character positions — so that `look` outputs a rich, natural narrative of what's actually in the room and where things are.
 
-## Current State
+## Why
 
 ### How `look` works now (`virtual_world_engine.py:567-686`)
 
@@ -43,7 +46,7 @@ The items are just a flat name list. Their descriptions are not woven into the n
 
 This returns a structured dict with `description`, `environment`, `items` (name + description), `characters`, and `recent_events`. It's used for LLM context, but the player-facing `look` doesn't use item descriptions.
 
-## Design
+## How
 
 ### Phase 1: Compose item descriptions into room description
 
@@ -119,7 +122,17 @@ If items are taken, moved, or destroyed, the description updates automatically s
 - Verify environment summary appears (temperature, air, smell, noise) only for notable conditions.
 - Verify hidden items do NOT appear in the look output.
 
-## Files Affected
+## Files
 
 - `virtual_world_engine.py` — rewrite `get_area_description()` to compose item descriptions; update `get_narration_context_for_area()` similarly
 - `app.py` — the `look` command handler may need simplification since items would be in the description now (line 274-279)
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

@@ -1,3 +1,10 @@
+---
+type: task
+status: review
+area: ui
+priority: medium
+---
+
 # Task 333 — Human Turn Panel v2: scene-first redesign
 
 **Status:** In Review — Phase 1 implemented 2026-08-24 (scene snapshot
@@ -389,3 +396,29 @@ panel is now the v2.7 three-zone layout:
 server's autosave write — passed clean on rerun); node --check on all six
 touched JS files; live scene smoke against the autosave world. Browser
 E2E of the full panel still to do.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

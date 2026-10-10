@@ -1,6 +1,10 @@
 ---
-group: Tech Debt & Testing
+area: bugs
+type: task
+status: done
+priority: medium
 ---
+
 # Log Race Condition — Concurrent LLM Response Interleaving
 
 **Filed**: 2026-07-29  
@@ -9,7 +13,7 @@ group: Tech Debt & Testing
 
 ---
 
-## Summary
+## What
 
 When multiple LLM agent calls complete at the same tick, their responses can get interleaved/concatenated into a single log entry. Observed in both the event log and mansion log:
 
@@ -31,3 +35,25 @@ Both subagents were dispatched at the same tick, and their streaming/finish call
 - `static/js/event-stream.js` — streaming span isolation per call
 - `static/js/llm-client.js` — concurrent call handling
 - `static/js/agent-engine.js` — dispatch of concurrent agent steps
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

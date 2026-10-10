@@ -1,0 +1,16 @@
+{
+  "id": "stormy",
+  "name": "Stormy",
+  "kind": "normal",
+  "order": 5,
+  "icon": "⛈️",
+  "light_mult": 0.3,
+  "time_dc": 20,
+  "description": "The storm is breaking overhead — rain lashes sideways and the wind screams.",
+  "tags": [
+    "weather",
+    "sky",
+    "wet",
+    "extreme"
+  ]
+}

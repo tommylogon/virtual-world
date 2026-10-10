@@ -1,9 +1,16 @@
-﻿# Task-294: Trigger Effect to Spawn a Way
+---
+type: task
+status: done
+area: triggers
+priority: medium
+---
+
+# Task-294: Trigger Effect to Spawn a Way
 
 **Status**: In Review — implemented 2026-08-30 (engine/effect_handlers/ways.py spawn_way + registry + EFFECT_TYPES + editor label; mirrors connect_areas topology incl. one_way; idempotent; tests in tests/test_trigger_effect_ways.py)
 **Source:** discussion — triggers can currently `spawn_item` but not ways.
 
-## Goal
+## What
 
 Add a `spawn_way` trigger effect so triggers (and behaviours) can materialize a way
 node at runtime — e.g. a hidden passage opens when a condition is met, or an item's
@@ -33,3 +40,21 @@ node at runtime — e.g. a hidden passage opens when a condition is met, or an i
 - `engine/trigger_validator.py` — schema/validation for the new params.
 - `static/js/inspector/behaviors-view.js` + trigger editor — new effect entry + fields.
 - `docs/virtualWorld/` trigger docs — list `spawn_way` as a supported effect type.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

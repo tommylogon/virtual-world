@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: characters
+priority: medium
+---
+
 # Task-171: Hide Intrinsic Abilities on Character Examine
 
 **Status:** REVIEW — implemented 2026-08-03, backend tests green, uncommitted.
@@ -5,7 +12,7 @@
 
 ---
 
-## Goal
+## What
 
 Intrinsic abilities (spells, talents) should **never** show up in another character's examine output, while physical items that merely contain magic (scrolls, spell books) stay visible.
 
@@ -15,7 +22,7 @@ Intrinsic abilities (spells, talents) should **never** show up in another charac
 - Physical magic items (scrolls, spell books) should be tagged `scroll` / `book` (plus `magic` if desired) and **not** `spell` / `ability` → they remain visible.
 - The player themselves still sees everything (self-examine uses the full equipment view).
 
-## Changes
+## How
 
 - **`engine/equipment.py`**
   - New module constant `INTRINSIC_ABILITY_TAGS` (frozenset above).
@@ -29,7 +36,7 @@ Intrinsic abilities (spells, talents) should **never** show up in another charac
 - `test_other_narrative_hides_intrinsic_abilities` — equipped `Create Flame` (tags `fire,spell,magic`) hidden from other narrative, still visible in self narrative.
 - `test_other_narrative_shows_physical_magic_items` — equipped `Scroll of Fireball` (tags `scroll,magic`) still visible.
 
-## Verification
+## Steps to verify
 
 - `python -m pytest tests/test_equipment_system.py -q` → 37 passed.
 - Full backend suite: `python -m pytest tests/ -q -k "not mcp and not emote"` → **407 passed, 1 skipped**.
@@ -39,3 +46,15 @@ Intrinsic abilities (spells, talents) should **never** show up in another charac
 - **Follow-up landed 2026-08-03:** the area-description "People here" `[holding: ...]` list now also filters intrinsic-ability items (`engine/area_description.py`, `_is_intrinsic_ability` helper) — Create Flame no longer leaks there either. Covered by new tests in `tests/test_area_description.py`.
 - Currently `Create Flame` is *carried* by Lyrie (carrying edge), not equipped — it was already invisible in the viewer narrative; this fix makes the rule robust for equipped intrinsic abilities and establishes the tag convention going forward.
 - Data check: ensure no scroll/book items accidentally carry the `spell` or `ability` tag (`rg -l '"spell"' data/library data/scenarios`), otherwise they'd be hidden too.
+
+## Why
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

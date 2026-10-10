@@ -1,4 +1,11 @@
-﻿# Bug 33 — Human-initiated speech lands outside turn cards in event stream
+---
+type: bug
+status: done
+area: bugs
+priority: medium
+---
+
+# Bug 33 — Human-initiated speech lands outside turn cards in event stream
 
 **Status:** Done — fixed 2026-09-22.
 
@@ -34,8 +41,28 @@ The take-failure concatenation glitch ("earringfrom", doubled "the") was already
 fixed separately in bug-27 (`_display_name` + a leading space before the relation
 clause); no remaining work here.
 
-## Verification
+## Steps to verify
 
 - `npm run lint` and `npm run typecheck` clean.
 - Manual: control a character and speak → the speech line, emote, action and
   result all sit inside the character's turn card; interjections likewise.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

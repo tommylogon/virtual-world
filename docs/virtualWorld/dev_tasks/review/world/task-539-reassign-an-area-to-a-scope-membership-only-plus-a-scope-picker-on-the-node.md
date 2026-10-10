@@ -15,7 +15,7 @@ where membership is visible — click the area node, pick its scope from a dropd
 done. No separate bulk-move flow; the WorldPainter then only has to list the areas
 of the scope you are painting (task-541).
 
-## Problem
+## Why
 
 `world_scope_id` *is* scope membership — the scope views read nothing else
 (`world_scopes.own_area_ids` / `area_ids_in_scope`, and `project_subgraph`'s "a
@@ -83,3 +83,21 @@ the world left as it was found.
 - The task-535 half (turning a *selection* into a new child scope) is untouched.
   A multi-selection can now be moved into an *existing* scope (see below), but
   making a new child scope out of a selection is still task-535.
+
+## What
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

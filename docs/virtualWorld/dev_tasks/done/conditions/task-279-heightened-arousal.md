@@ -1,6 +1,8 @@
 ---
-group: Conditions
+area: conditions
 status: done
+type: task
+priority: medium
 ---
 
 # Condition: Highly Aroused (`highly_aroused`)
@@ -12,7 +14,7 @@ status: done
 
 ---
 
-## Purpose
+## What
 
 High arousal band (Arousal 50–90). Strong stimulation, Energy cost, significant combat distraction, and auto-failed willpower/concentration.
 
@@ -69,3 +71,25 @@ High arousal band (Arousal 50–90). Strong stimulation, Energy cost, significan
 
 - Does `willpower` share the `auto_fail_checks` pathway, or is it an ability save (`auto_fail_saves`)? Confirm the check taxonomy.
 - Energy drain stacking with `exhausted` — should this accelerate collapse?
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

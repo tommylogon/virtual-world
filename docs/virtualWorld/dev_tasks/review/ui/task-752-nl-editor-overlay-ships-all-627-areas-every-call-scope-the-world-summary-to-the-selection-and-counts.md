@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-10-09
 **Related:** task-422 (NL editor budget controls), task-739 (read tools)
 
-## Goal
+## What
 
 Every NL editor turn ships the **entire** world summary in the system prompt: all
 areas (627 in kraktooth_goblin_camp) and the full character roster, regardless of
@@ -37,7 +37,7 @@ The read tools already exist to fetch specifics on demand — `list_nodes`
 (filter/paged), `search_graph_nodes` (fuzzy), `get_node`, `list_world_summary` —
 so the overlay does not need to be the whole world.
 
-## Plan
+## How
 
 1. Overlay carries **counts** plus only the selection's neighbourhood: the
    selected node's area and its directly connected areas (or the active scope's
@@ -72,3 +72,17 @@ so the overlay does not need to be the whole world.
 - **Not yet verified live:** the before/after input-token count on the same
   question (needs a browser call to re-measure; ~627→≤30 area lines should remove
   roughly 15k of the ~32.8k input tokens).
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

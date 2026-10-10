@@ -1,3 +1,10 @@
+---
+type: task
+status: review
+area: prompting
+priority: medium
+---
+
 # task-345 — Grammar guardrail for LLM-generated appearance text
 
 **Status**: In Review — implemented 2026-08-31, (a)+(b) as recommended plus (c)-ish
@@ -45,3 +52,29 @@ Recommend (a)+(b): instruction plus automated catch. (c) optional.
 Generate appearances across several providers/models (incl. small local ones
 — the repro came from stealth/ox-alpha) → zero `\byou is\b|\byou was\b` hits;
 regression: pre-existing broken text can be repaired via a regenerate action.
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

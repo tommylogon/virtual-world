@@ -1,6 +1,8 @@
 ---
-group: Conditions
+area: conditions
 status: done
+type: task
+priority: medium
 ---
 
 # Condition: Aroused (`aroused`)
@@ -12,7 +14,7 @@ status: done
 
 ---
 
-## Purpose
+## What
 
 Mid arousal band (Arousal 30–50). Notable Stimulation gain, measurable combat distraction, and auto-failed perception/concentration checks.
 
@@ -66,3 +68,25 @@ Mid arousal band (Arousal 30–50). Notable Stimulation gain, measurable combat 
 
 - Do `perception`/`concentration` checks exist in the engine's check system, and will `auto_fail_checks` pick them up (same pathway as `sight`/`hearing`)?
 - Confirm the Stimulation→Arousal feed and handoff to `highly_aroused`.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

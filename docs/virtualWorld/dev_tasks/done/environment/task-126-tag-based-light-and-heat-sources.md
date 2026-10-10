@@ -1,15 +1,19 @@
 ---
-group: Environment & Climate
+area: environment
+type: task
+status: done
+priority: medium
 ---
+
 # Tag-based light and heat sources
 
-## Summary
+## What
 
 Turned `light_source` from a decorative tag into a mechanic gate, and added `heat_source` as its thermal counterpart. Items no longer contribute light just because they're `current_state == "lit"` — they need the `light_source` tag. Heat works the same way: slap `heat_source` on any lit item and it pushes room temperature toward its target.
 
 `light_level` property uses string enum values instead of numbers: `pitch_black` (10), `dim` (30), `normal` (55), `bright` (80), `blinding` (95). Inspector shows a dropdown.
 
-## Changes
+## How
 
 ### `data/library/tags/heat_source.json` — new tag
 
@@ -54,7 +58,7 @@ Fields toggle live as tags change.
 - The world template still has fireplace on_tick triggers doing `adjust_environment temperature +1` — redundant now but harmless (room settles ~1°C above target). Remove when convenient.
 - Items carried/equipped by characters in an area contribute to light but NOT to heat (yet). Heat only scans items directly in the area via `EDGE_LOCATION`.
 
-## Files touched
+## Files
 
 ```
 virtual_world/
@@ -69,3 +73,17 @@ virtual_world/
     ├── item-view.js                       ← light_level dropdown + heat_source fields
     └── trigger-helpers.js                 ← fix "Effect: ?" for empty effects
 ```
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

@@ -10,10 +10,28 @@ priority: medium
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 Selecting any turn mode leaves the caption reading 'Characters act one at a time' (the Sequential description). The agent list IS correctly ordered by initiative; only the caption is wrong.
 
 ## Acceptance
+
+- TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
 
 - TODO

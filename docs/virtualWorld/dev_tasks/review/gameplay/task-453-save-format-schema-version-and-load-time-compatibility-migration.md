@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-22
 **Related:** task-439, task-446, task-365
 
-## Goal
+## What
 
 Give the save/scenario payload an explicit **format schema version** and make load
 check it, so a file written before a breaking format change can never load silently
@@ -115,3 +115,21 @@ not corrupting the files that predate the field.
       task-439/task-446 is **not** done here — this task provides the gate and
       the registry; the name-keyed migration is content that belongs with those
       tasks. No checked-in file needs it today.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO

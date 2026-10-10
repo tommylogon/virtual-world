@@ -1,6 +1,8 @@
 ---
-group: Conditions
+area: conditions
 status: done
+type: task
+priority: medium
 ---
 
 # Condition: Warming Up (`warming_up`)
@@ -12,7 +14,7 @@ status: done
 
 ---
 
-## Purpose
+## What
 
 First arousal band. Arousal is building — mild Stimulation gain each tick. Applied when Arousal crosses into the 15–30 band.
 
@@ -66,3 +68,25 @@ First arousal band. Arousal is building — mild Stimulation gain each tick. App
 - Exact Stimulation↔Arousal loop wiring (which vital feeds which).
 - Band re-entry timing to avoid flickering at the boundary (hysteresis).
 - Is a `defense/attack_mod` appropriate at this mild stage, or zero?
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

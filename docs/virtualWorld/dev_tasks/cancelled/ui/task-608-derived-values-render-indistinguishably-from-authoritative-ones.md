@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 A derived display must declare itself. The human-turn modal renders strangers as 'the woman'/'the man' with no signal that they are unknown, that names exist, or that talking reveals them -- a competent first-time reader takes it for a broken name lookup. Same class as way labels showing raw node names. Every surface this audit misread was one that showed a fact without showing where the fact came from.
 
@@ -58,3 +58,21 @@ gender, and the name arrives through interaction.
 
 If someone later wants that tightened, the right change is in the hover copy
 (disambiguate the two), not in a claim that the modal fails to declare itself.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

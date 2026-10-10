@@ -1,4 +1,11 @@
-﻿# Task: Stove & Background Objects — Narrative Handling (no item needed)
+---
+type: task
+status: done
+area: items
+priority: medium
+---
+
+# Task: Stove & Background Objects — Narrative Handling (no item needed)
 
 **Status**: Implemented (verified 2026-08-06) — both core changes present in code:
 - `engine/matching.py`: word-boundary substring matching (comment: `"stove" must not match "stovepipe"`); `stove` resolves against room description, not `Stovepipe Leather Boots (Pair)`. Prereq task-183 landed.
@@ -6,7 +13,7 @@
 - Character memory of the narrative result flows via the observe/reaction synthesis (system-vs-character separation); `_descriptive_target_failure` still logs a witnessable turn event.
 The decision to NOT implement a real stove item stands. Move to `done/` after a backend test asserts `examine stove` → flavor text (never boots) and `use kindling on stove` → scenery-failure narrative.
 
-## Goal
+## What
 
 Background objects referenced only in descriptions (the Kitchen stove, the loose
 tile, the moon, the fireplace) should be handled **by narrative responses, not by
@@ -33,7 +40,7 @@ the target phrase (word-boundary aware), and both are reached **only after** rea
 item/exit/character resolution fails. So the stove narrative already works — it just
 never gets reached because substring matching hijacks `stove` first.
 
-## Changes
+## How
 
 ### 1. Rely on the name-matching fix (dependency)
 - `task-183-name-matching-aliases` must land first: word-boundary matching in
@@ -83,13 +90,33 @@ never gets reached because substring matching hijacks `stove` first.
   (then it follows `task-174-fire-mechanic-heat-source` patterns).
 
 ## Files Modified
+
 - `engine/item_actions.py` — `_describe_flavor_target` no-use note (optional, small)
 - `engine/matching.py` — via `task-183-name-matching-aliases` (word-boundary)
 - Tests: backend matching/parser test file + `tools/test_all.cjs`
 
 ## Related
+
 - `task-183-name-matching-aliases` (prerequisite)
 - `task-181-command-parser-multiwindow-targets` (multi-word `use X on Y` targets)
 - `task-174-fire-mechanic-heat-source` (Create Flame as `use` alone)
 - `task-160-parameterized-actions-in-prompts` (agent emits clean structured targets;
   fixes emission, not resolution)
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

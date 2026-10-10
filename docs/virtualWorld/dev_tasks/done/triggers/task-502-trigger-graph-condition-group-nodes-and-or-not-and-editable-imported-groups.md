@@ -10,7 +10,7 @@ priority: medium
 **Filed:** 2026-09-24
 **Related:** task-501, task-388
 
-## Goal
+## What
 
 Give OR/NOT condition groups a real node representation so an imported group is editable instead of refused by task-501's compile guard.
 
@@ -48,3 +48,21 @@ linear AND chain. This task gives groups a real node so they can be edited.
   paths drawn, group operator select = `or`; clicking **Apply** compiled to
   `{"operator":"or","conditions":[has_trait, in_area]}` with no compile error.
   Screenshot `review-verify`-class artifact kept only in temp, not committed.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

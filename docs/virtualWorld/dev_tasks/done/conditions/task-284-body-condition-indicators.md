@@ -1,6 +1,8 @@
 ---
-group: Conditions
+area: conditions
 status: done
+type: task
+priority: medium
 ---
 
 # Condition: Wetness (`wetness`)
@@ -12,7 +14,7 @@ status: done
 
 ---
 
-## Purpose
+## What
 
 Physical arousal wetness. A steady Arousal feed that is **hidden (`known: False`) unless exposed** — the character may not know, and others only see it if clothing/situation reveals it. (Distinct from the thermal `wet` condition in task-190 — different domain.)
 
@@ -71,3 +73,25 @@ Physical arousal wetness. A steady Arousal feed that is **hidden (`known: False`
 - **Exposure logic**: what determines if the condition is perceivable to others (clothing `strip`/`undress` state)?
 - **Name clash**: this `wetness` vs. task-190 `wet` — distinct ids? Consider `arousal_wetness` if collision risk.
 - Does `known` need to vary per-observer (self knows vs. others know), which the catalog can't express — how to handle exposure-then-knowledge?
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

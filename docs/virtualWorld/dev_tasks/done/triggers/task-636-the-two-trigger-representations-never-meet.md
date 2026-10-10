@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-30
 **Related:** 
 
-## Goal
+## What
 
 logic_trigger nodes and trigger arrays on items coexist with no compiler between them in the UI, so a mechanic authored one way is invisible the other way.
 
@@ -57,3 +57,25 @@ had no single compiler and could disagree invisibly.
   `TriggerGraph.triggersFromGraphEdges` and `VW.itemLib._extractTriggersFromEdges`
   returned byte-identical trigger sets for a node with a materialised trigger —
   the item library and the inspector now read the same compiler.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

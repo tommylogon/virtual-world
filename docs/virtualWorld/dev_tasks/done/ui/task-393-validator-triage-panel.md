@@ -104,7 +104,7 @@ working set is small and always current.
   external checklists rot. Any progress state must live in the nodes themselves.
 - The user already uses the Issues tab (left panel) daily.
 
-## Design
+## How
 
 ### A. Grouping (two views of the same list)
 - **Node view**: one row per logical node. A way with 6 side-warnings collapses to
@@ -168,14 +168,14 @@ working set is small and always current.
 - Dismiss epoch: store `last_epoch` with the dismissal; any node change (state:
   updated → node.updated timestamp) clears it.
 
-## Verification
+## Steps to verify
 
 - `node --check` on all touched JS files.
 - Manual: open mansion, Issues tab → rows collapse, scroll works, dismiss survives
   reload, dedupe removes empty stubs, progress bar reflects real covered count.
 - Pytest unchanged (JS-only).
 
-## Files changed
+## Files
 
 - `engine/trigger_validator.py` — `_filter_ignored(issues)` in `validate()`: skips
   issues whose `code` is in the owning node's `ignored_issues`, unless the node was
@@ -208,3 +208,15 @@ working set is small and always current.
   restore re-shows; `_ignored_at` set in props).
 - Manual browser pass still TODO (grouping UI, scroll, dismiss-until-touched
   persistence across reload).
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## Acceptance
+
+- [ ] TODO

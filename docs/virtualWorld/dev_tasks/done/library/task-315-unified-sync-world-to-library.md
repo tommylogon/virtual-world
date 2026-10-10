@@ -1,3 +1,10 @@
+---
+type: task
+status: done
+area: library
+priority: medium
+---
+
 # Unified Sync World → Library
 
 **Filed**: 2026-08-19
@@ -20,7 +27,7 @@ per-tab sync buttons for items / characters / areas, but:
   entries, and the library entry only gets a stale `contents` id list,
 - comparison used naive `JSON.stringify` (key-order sensitive) → false diffs.
 
-## Goal
+## What
 
 One **"Sync World to Library"** flow covering items, ways, areas, and characters:
 
@@ -38,7 +45,7 @@ One **"Sync World to Library"** flow covering items, ways, areas, and characters
 4. Both directions usable: world→library sync AND the library browser can
    sync/save to a nested `cards` entry.
 
-## Implementation
+## How
 
 - **Restore the toolbar button** → opens the new unified sync view.
 - **`syncAllWorld()`** orchestrator + `worldSyncList` view (reuses DiffModal per entity).
@@ -128,3 +135,21 @@ One **"Sync World to Library"** flow covering items, ways, areas, and characters
 - `docs/virtualWorld/Library System/Library 2.0 - Unified Library Design.md` (Phase 2)
 - `docs/virtualWorld/dev_tasks/done/items/task-95-idempotent-sync-to-library.md`
 - `docs/virtualWorld/dev_tasks/done/items/task-127-library-diff-sync.md`
+
+## Why
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

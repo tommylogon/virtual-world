@@ -22,3 +22,29 @@ priority: high
 - Backend: `_save_game` slot support, save + rename routes, traversal
   hardening (`_safe_save_path`), list stats.
 - Tests: `tests/test_saveload.py` (10).
+
+## What
+
+TODO
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Acceptance
+
+- [ ] TODO
+
+## Files
+
+- TODO

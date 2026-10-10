@@ -46,7 +46,7 @@ on refresh. That is not a template link (the branch this task already calls out
 as wrong) and it is exactly the busywork this task exists to make unnecessary.
 Replace it with library-id references once materialization is lossless.
 
-## Goal
+## What
 
 Make character `inventory` entries that reference library ids materialize
 losslessly and support equipping, then wire the six goblins' starting gear from
@@ -106,8 +106,20 @@ auto-adds new items to the library.
 - Runtime save-format changes beyond loadouts.
 - Reworking the equipment slot set (task-513 covers partial-armor mapping).
 
-## Verification
+## Steps to verify
 
 - Route/library test asserting preserved properties for a string reference.
 - A load test for a goblin with weapon and armor equipped.
 - `python -m pytest tests/ -q` for saveload/library/character tests.
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Files
+
+- TODO

@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-22
 **Related:** task-438, task-457
 
-## Goal
+## What
 
 Add a deterministic bulk staging op so one intent ('give all goblins darkvision') becomes one reviewable patch: update_matching_nodes (and a set_character_field convenience) filtered by kind/tag/area, an explicit affected-entity list shown before Apply, dict-field merge, per-target failure reporting, and idempotent re-run. Extends the batch vocabulary (_BATCH_PHASE in routes/graph_ops.py) and ToolRouter/TOOL_DEFINITIONS.
 
@@ -46,3 +46,20 @@ Add a deterministic bulk staging op so one intent ('give all goblins darkvision'
 - `staging.js` fallback (stale server) reports bulk ops as an error instead of
   dropping them silently.
 
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO

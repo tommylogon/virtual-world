@@ -10,7 +10,7 @@ priority: high
 **Filed:** 2026-09-27
 **Related:** task-488
 
-## Goal
+## What
 
 Stimulation is a single anonymous scalar, so nothing can tell a release threshold which path produced it. Record the source of Stimulation gains per player so path-sensitive effects have something to read.
 
@@ -132,9 +132,26 @@ failed on both, `Compare-Object` empty.
 mature conditions and asserted 10; `frustrated` makes it 11. That count was
 updated with the reason, not loosened.
 
-
 ## Related
 
 - task-488 — the consumer this unblocks
 - task-546 — frustration, the other half of task-488
 - task-212 / task-213 (done) — the multiplier pipeline this sits in
+
+## Why
+
+TODO
+
+## How
+
+TODO
+
+## Steps to verify
+
+1. TODO
+   - expected: TODO
+   - observed: TODO
+
+## Files
+
+- TODO
