@@ -247,6 +247,6 @@ area_node.properties["environment"] = {
 
 **Dev tasks** — [[dev_tasks/cancelled/environment/task-80-outdoor-lighting-day-night|task]], [[dev_tasks/done/environment/task-12-sound_propagation|task]], [[dev_tasks/review/environment/task-18-fireplace_lighting_recipe|task]], [[dev_tasks/review/items/task-10-proximity_detection_emf|task]]
 
-**Neighbouring notes** — [[Temperature System]], [[Time & Weather]]
+**Neighbouring notes** — [[Temperature System]], [[Time & Weather]], [[Weather Guide]], [[Weather System]]
 
 <!-- connected:end -->

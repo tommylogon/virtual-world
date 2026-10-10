@@ -218,8 +218,13 @@ const _SkyScape = (() => {
 .vwsky-x{margin-left:auto;background:none;border:1px solid transparent;color:var(--text-dim,#8b949e);font-size:15px;line-height:1;cursor:pointer;border-radius:6px;padding:2px 9px;}
 .vwsky-x:hover{background:var(--bg-hover,#30363d);color:var(--text,#e6edf3);}
 .vwsky-body{overflow:auto;padding:12px 14px 14px;display:flex;flex-direction:column;gap:10px;}
-.vwsky-stage{position:relative;height:168px;border:1px solid var(--border,#30363d);border-radius:10px;overflow:hidden;background:#04070d;flex:0 0 auto;}
+.vwsky-stage{position:relative;height:238px;border:1px solid var(--border,#30363d);border-radius:10px;overflow:hidden;background:#04070d;flex:0 0 auto;}
 .vwsky-stage iframe{display:block;width:100%;height:100%;border:0;}
+.vwsky-stats{display:flex;flex-wrap:wrap;gap:8px;padding:1px 1px 0;}
+.vwsky-stat{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--text,#e6edf3);background:var(--bg-inset,#1c2128);border:1px solid var(--border-light,#21262d);border-radius:99px;padding:3px 11px;}
+.vwsky-stat b{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted,#6e7681);font-weight:700;}
+.vwsky-transport{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+.vwsky-at{margin-left:auto;font-family:var(--font-mono,monospace);font-size:11px;color:var(--text-dim,#8b949e);}
 .vwsky-card{background:var(--bg-inset,#1c2128);border:1px solid var(--border-light,#21262d);border-radius:10px;padding:10px 12px;}
 .vwsky-lab{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim,#8b949e);font-weight:700;margin-bottom:9px;}
 .vwsky-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
@@ -268,6 +273,22 @@ const _SkyScape = (() => {
 .vwsky-foot code{color:var(--text-dim,#8b949e);font-family:var(--font-mono,monospace);}
 .vwsky-det{margin-top:9px;}
 .vwsky-det>summary{font-size:10.5px;color:var(--text-dim,#8b949e);cursor:pointer;user-select:none;}
+.vwsky-tabs{display:flex;gap:6px;align-items:center;}
+.vwsky-tab{font:inherit;font-size:11px;background:var(--bg-inset,#1c2128);color:var(--text-dim,#8b949e);border:1px solid var(--border-light,#21262d);border-radius:8px;padding:5px 13px;cursor:pointer;}
+.vwsky-tab:hover{color:var(--text,#e6edf3);}
+.vwsky-tab.on{background:var(--bg-hover,#30363d);color:var(--text,#e6edf3);border-color:var(--border,#30363d);font-weight:600;}
+.vwsky-rbadge{font-size:9px;letter-spacing:.04em;margin-left:8px;padding:1px 8px;border-radius:99px;background:var(--bg-hover,#30363d);color:var(--text-dim,#8b949e);text-transform:none;font-weight:600;}
+.vwsky-rbadge.live{background:rgba(63,185,80,.16);color:var(--green,#3fb950);}
+.vwsky-rwrap{max-height:340px;overflow:auto;border:1px solid var(--border-light,#21262d);border-radius:8px;}
+.vwsky-rtable{border-collapse:separate;border-spacing:0;width:100%;font-size:11px;}
+.vwsky-rtable th,.vwsky-rtable td{padding:5px 8px;text-align:center;border-bottom:1px solid var(--border-light,#21262d);white-space:nowrap;}
+.vwsky-rtable thead th{position:sticky;top:0;z-index:2;background:var(--bg-inset,#1c2128);font-size:9.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted,#6e7681);}
+.vwsky-rtable .vwsky-rcorner,.vwsky-rtable .vwsky-rname{position:sticky;left:0;z-index:1;background:var(--bg-inset,#1c2128);text-align:left;font-weight:600;color:var(--text,#e6edf3);}
+.vwsky-rtable thead .vwsky-rcorner{z-index:3;}
+.vwsky-rtable tbody tr:hover td{background:var(--bg-hover,#30363d);}
+.vwsky-rtable .vwsky-rtoday{background:rgba(88,166,255,.07);}
+.vwsky-rchip{display:block;font-size:14px;line-height:1.15;}
+.vwsky-rtemp{display:block;font-size:9.5px;color:var(--text-dim,#8b949e);font-family:var(--font-mono,monospace);}
 `;
     // Injected into the same-origin stage iframe so the embedded console shows as
     // a pure sky scene: its own header, deck and time slider are hidden and the
@@ -326,6 +347,24 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
             </div>
             <div class="vwsky-body">
                 <div class="vwsky-stage"><iframe id="sky-atmosphere-frame" src="/static/sky-atmosphere.html" title="Sky"></iframe></div>
+
+                <div class="vwsky-stats" id="sky-stats"></div>
+                <div class="vwsky-transport">
+                    <button class="vwsky-btn sm" id="sky-play" title="Play the day through the schedule">▶ Play day</button>
+                    <span class="vwsky-sep"></span>
+                    <button class="vwsky-btn sm sky-jump" data-hour="6">Dawn</button>
+                    <button class="vwsky-btn sm sky-jump" data-hour="12">Noon</button>
+                    <button class="vwsky-btn sm sky-jump" data-hour="18">Dusk</button>
+                    <button class="vwsky-btn sm sky-jump" data-hour="0">Midnight</button>
+                    <button class="vwsky-btn sm" id="sky-now" title="Back to the live clock">⏱ Now</button>
+                    <span class="vwsky-at" id="sky-at"></span>
+                </div>
+
+                <div class="vwsky-tabs">
+                    <button class="vwsky-tab on" id="sky-tab-forecast" title="Author and view the forecast schedule">Forecast</button>
+                    <button class="vwsky-tab" id="sky-tab-regions" title="The next days, per open-sky area">Regions</button>
+                </div>
+                <div id="sky-view-forecast" class="vwsky-view">
 
                 <div class="vwsky-card">
                     <span class="vwsky-lab">⏰ Time &amp; date</span>
@@ -411,6 +450,22 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
                         <textarea id="sky-sched-table" class="vwsky-table" spellcheck="false" placeholder='{ "clear": { "clear": 7, "cloudy": 2 } }'></textarea>
                     </details>
                 </div>
+
+                </div>
+                <div id="sky-view-regions" class="vwsky-view" style="display:none;">
+                    <div class="vwsky-card">
+                        <span class="vwsky-lab">Regions<span class="vwsky-rbadge" id="sky-regions-badge"></span></span>
+                        <div class="vwsky-row" style="margin-bottom:9px;">
+                            <input type="text" id="sky-regions-filter" class="vwsky-in" placeholder="Filter areas..." style="width:172px;" title="Filter areas by name">
+                            <span class="vwsky-sep"></span>
+                            <label class="vwsky-lab-inline">days <input type="number" id="sky-regions-days" class="vwsky-in" style="width:54px;" min="1" max="30" value="7"></label>
+                            <button class="vwsky-btn sm" id="sky-regions-refresh">Refresh</button>
+                            <span class="vwsky-status" id="sky-regions-status"></span>
+                        </div>
+                        <div id="sky-regions-grid" class="vwsky-rwrap"></div>
+                        <div class="vwsky-note">The generated per-area weather the engine would roll for each of the next <em>N</em> days, starting today. A pure projection over <code>generate_weather_field</code> - opening this tab never advances the clock. A <strong>preview</strong> badge means the world's forecast mode is not <code>generated</code>, so the live sim follows its authored schedule instead.</div>
+                    </div>
+                </div>
             </div>
             <div class="vwsky-foot">
                 <span>Clock <code id="sky-clock-readout"></code></span>
@@ -436,6 +491,16 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
         box.querySelector('#sky-override-clear')?.addEventListener('click', _clearOverride);
         box.querySelector('#sky-sched-add')?.addEventListener('click', () => _addEntryRow());
         box.querySelector('#sky-sched-save')?.addEventListener('click', _saveSchedule);
+        box.querySelector('#sky-play')?.addEventListener('click', _togglePlay);
+        box.querySelector('#sky-now')?.addEventListener('click', () => { _stopPlay(); _endScrub(); });
+        box.querySelectorAll('.sky-jump').forEach((b) => {
+            b.addEventListener('click', () => _jumpToHour(Number(b.dataset.hour) || 0));
+        });
+        box.querySelector('#sky-tab-forecast')?.addEventListener('click', () => _switchSkyTab('forecast'));
+        box.querySelector('#sky-tab-regions')?.addEventListener('click', () => _switchSkyTab('regions'));
+        box.querySelector('#sky-regions-refresh')?.addEventListener('click', () => _renderRegions(true));
+        box.querySelector('#sky-regions-days')?.addEventListener('change', () => _renderRegions(true));
+        box.querySelector('#sky-regions-filter')?.addEventListener('input', () => _renderRegions(false));
         const iframe = document.getElementById('sky-atmosphere-frame');
         iframe.addEventListener('load', () => { _embedStageCss(iframe); _sendStateToIframe(); });
         window.addEventListener('message', (ev) => {
@@ -465,12 +530,16 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
         const canon = _WEATHER_ALIASES[weather] || weather;
         const moon = state?.moon_phase || {};
         const phase = MOON_INDEX[moon.name || ''] !== undefined ? MOON_INDEX[moon.name || ''] : 0;
+        // The engine's area temperature, so the hero's readout is the sim's number,
+        // not the stage's own seasonal guess (the two disagreed by 3 degrees).
+        const envTemp = _currentAreaEnv(state).env.temperature;
         iframe.contentWindow.postMessage({
             type: 'engine:sky-state',
             t: hour,
             season: _season(state),
             weather: STAGE_WEATHER_MAP[canon] || 'clear',
             phase: phase,
+            tempC: envTemp !== undefined && envTemp !== null ? Number(envTemp) : undefined,
             engineTime: syncLabel || (state?.game_time || '').slice(0, 5),
             engineDay: state?.game_day || 1,
         }, '*');
@@ -485,6 +554,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
             clearInterval(_timer);
             _timer = null;
         }
+        _stopPlay();
         if (_modalEl)
             _modalEl.remove();
         _modalEl = null;
@@ -600,6 +670,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
             forecastReadout.textContent = `${entries} entries · ${sched.granularity || 'hourly'}`;
         }
         _updateHeadSummary();
+        _renderStats();
         _updateOverrideIndicator();
         _populateWeatherSelect();
         _renderScheduleEditor();
@@ -609,6 +680,184 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
         const el = document.getElementById('sky-head-summary');
         if (el)
             el.textContent = _headSummary();
+    }
+    /** The controlled player's current area — the place the sky is "over". */
+    function _currentAreaEnv(state) {
+        const players = (state.players || {});
+        const name = state.active_player;
+        const p = (name && players[name]) || {};
+        const areaId = p.current_area_id;
+        const g = state.graph;
+        const rawNodes = (g && g.nodes) || [];
+        const arr = (Array.isArray(rawNodes) ? rawNodes
+            : Object.values(rawNodes));
+        const node = arr.find((n) => n && n.type === 'area'
+            && (n.id === areaId || (!areaId && n.name === p.current_area)));
+        const props = (node && node.properties);
+        const env = (props && props.environment) || {};
+        return { env: env, area: String((node && node.name) || p.current_area || '') };
+    }
+    /** The hero's live readout — the real environment of the area you are in. */
+    function _renderStats() {
+        const el = document.getElementById('sky-stats');
+        if (!el)
+            return;
+        const { env } = _currentAreaEnv(_state());
+        const parts = [];
+        const add = (label, value) => {
+            if (value)
+                parts.push(`<span class="vwsky-stat"><b>${_esc(label)}</b>${_esc(value)}</span>`);
+        };
+        const wind = env.wind ? `${String(env.wind)}${env.wind_direction ? ' · ' + String(env.wind_direction) : ''}` : '';
+        add('Wind', wind);
+        add('Humidity', env.humidity ? String(env.humidity) : '');
+        add('Air', env.air ? String(env.air) : '');
+        add('Temp', env.temperature != null ? `${Math.round(Number(env.temperature))}°C` : '');
+        add('Light', env.light != null ? `${Math.round(Number(env.light))}%` : '');
+        add('Precip', env.precipitation ? `${env.precipitation} mm/h` : '');
+        add('Snow', env.snow_depth ? `${env.snow_depth} cm` : '');
+        el.innerHTML = parts.join('');
+    }
+    let _playTimer = null;
+    function _stopPlay() {
+        if (_playTimer !== null) {
+            clearInterval(_playTimer);
+            _playTimer = null;
+        }
+        const btn = document.getElementById('sky-play');
+        if (btn)
+            btn.textContent = '▶ Play day';
+    }
+    function _updateAtLabel(weather, label) {
+        const el = document.getElementById('sky-at');
+        if (el)
+            el.textContent = `${label} · ${weather || '—'}`;
+    }
+    /** "Play the day": step a preview through the schedule, sky and ribbon in step. */
+    function _togglePlay() {
+        if (_playTimer !== null) {
+            _stopPlay();
+            _endScrub();
+            return;
+        }
+        const sched = (_state().forecast_schedule || {});
+        const gran = sched.granularity || 'hourly';
+        const period = GRANULARITY_MINUTES[gran] || 1440;
+        const entries = _domEntries();
+        let minute = _nowMinutes();
+        const btn = document.getElementById('sky-play');
+        if (btn)
+            btn.textContent = '⏸ Pause';
+        _playTimer = window.setInterval(() => {
+            minute = (minute + 15) % period;
+            const weather = _weatherAt(entries, period, minute);
+            _scrubTo(minute, entries, period, gran);
+            _updateAtLabel(weather, _fmtOffset(minute, gran));
+        }, 130);
+    }
+    function _jumpToHour(hour) {
+        _stopPlay();
+        const sched = (_state().forecast_schedule || {});
+        const gran = sched.granularity || 'hourly';
+        const period = GRANULARITY_MINUTES[gran] || 1440;
+        const minute = Math.max(0, Math.min(period, hour * 60));
+        const entries = _domEntries();
+        _scrubTo(minute, entries, period, gran);
+        _updateAtLabel(_weatherAt(entries, period, minute), _fmtOffset(minute, gran));
+    }
+    // -- regions outlook (task-762) ------------------------------------
+    // A days x per-area table, projected over the generated field via
+    // GET /api/settings/forecast/outlook. It is a *read*: switching to this tab
+    // never ticks the world. The hero and transport stay visible above, so the
+    // sky the table describes is always on screen.
+    let _regionsData = null;
+    let _regionsFetching = false;
+    function _switchSkyTab(which) {
+        const regions = which === 'regions';
+        const f = document.getElementById('sky-view-forecast');
+        const r = document.getElementById('sky-view-regions');
+        if (f)
+            f.style.display = regions ? 'none' : '';
+        if (r)
+            r.style.display = regions ? '' : 'none';
+        document.getElementById('sky-tab-forecast')?.classList.toggle('on', !regions);
+        document.getElementById('sky-tab-regions')?.classList.toggle('on', regions);
+        if (regions && !_regionsData)
+            _renderRegions(true);
+    }
+    /** Render (and optionally refetch) the regions table. `force` re-hits the API. */
+    function _renderRegions(force) {
+        const grid = document.getElementById('sky-regions-grid');
+        if (!grid)
+            return;
+        const status = document.getElementById('sky-regions-status');
+        if (force && !_regionsFetching) {
+            _regionsFetching = true;
+            const daysEl = document.getElementById('sky-regions-days');
+            const days = Math.max(1, Math.min(30, Number(daysEl?.value) || 7));
+            if (status)
+                status.textContent = 'loading...';
+            fetch(`/api/settings/forecast/outlook?days=${days}`, { cache: 'no-store' })
+                .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+                .then((d) => {
+                _regionsData = d;
+                _regionsFetching = false;
+                if (status)
+                    status.textContent = '';
+                _renderRegions(false);
+            })
+                .catch(() => {
+                _regionsFetching = false;
+                if (status)
+                    status.textContent = 'could not load outlook';
+                grid.innerHTML = '<div class="vwsky-empty">Could not load the outlook.</div>';
+            });
+            return;
+        }
+        if (!_regionsData)
+            return;
+        grid.innerHTML = _regionsTable(_regionsData);
+    }
+    /** The table: one row per open-sky area, one column per day, today first. */
+    function _regionsTable(data) {
+        const days = data.days || [];
+        if (!days.length)
+            return '<div class="vwsky-empty">No open-sky areas to forecast.</div>';
+        // The badge is the honesty line: a live field vs a preview the sim is not
+        // actually running.
+        const badge = document.getElementById('sky-regions-badge');
+        if (badge) {
+            badge.textContent = data.generated ? 'live field' : `preview - mode: ${data.mode || 'authored'}`;
+            badge.classList.toggle('live', !!data.generated);
+        }
+        const filterEl = document.getElementById('sky-regions-filter');
+        const q = (filterEl?.value || '').trim().toLowerCase();
+        const all = data.areas || [];
+        const areas = all.filter((a) => !q || a.name.toLowerCase().includes(q));
+        let head = '<thead><tr><th class="vwsky-rcorner">Area</th>';
+        for (const d of days) {
+            const moon = MOON_CHIP[(d.moon && d.moon.name) || ''] || '';
+            const cls = d.offset === 0 ? ' class="vwsky-rtoday"' : '';
+            head += `<th${cls}>${_esc(_monthName(d.month))} ${_esc(d.day_of_month)}<br>${moon}</th>`;
+        }
+        head += '</tr></thead>';
+        let body = '';
+        for (const a of areas) {
+            body += `<tr><td class="vwsky-rname" title="${_esc(a.id)}">${_esc(a.name)}</td>`;
+            for (const d of days) {
+                const state = (d.states || {})[a.id] || '';
+                const temp = (d.temps || {})[a.id];
+                const cls = d.offset === 0 ? ' class="vwsky-rtoday"' : '';
+                const t = temp != null ? `${Math.round(Number(temp))}\u00b0` : '';
+                body += `<td${cls} title="${_esc(a.name)} - ${_esc(state)}${t ? ', ' + t : ''}">`
+                    + `<span class="vwsky-rchip">${_weatherChip(state, '')}</span>`
+                    + `<span class="vwsky-rtemp">${t}</span></td>`;
+            }
+            body += '</tr>';
+        }
+        const count = `${areas.length} of ${all.length} areas - ${days.length} days`;
+        return `<table class="vwsky-rtable">${head}<tbody>${body}</tbody></table>`
+            + `<div class="vwsky-note" style="padding:7px 9px;">${_esc(count)}</div>`;
     }
     /** The "override active" dot. Refreshed here *and* on every state update
      *  (see `_paint`) so setting or clearing an override shows immediately,
@@ -912,7 +1161,10 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
                 ev.preventDefault();
                 const i = Number(blk.dataset.i);
                 drag = { i, el: blk, startX: ev.clientX, startOffset: Number(entries[i]?.offset) || 0 };
-                blk.setPointerCapture(ev.pointerId);
+                try {
+                    blk.setPointerCapture(ev.pointerId);
+                }
+                catch (e) { /* synthetic/edge pointer */ }
             });
         });
         track.addEventListener('pointermove', (ev) => {
@@ -1049,6 +1301,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
                 renderTopBar(el, _state());
             if (_modalEl) {
                 _updateHeadSummary();
+                _renderStats();
                 _updateOverrideIndicator();
                 _populateWeatherSelect();
                 if (!_scrubActive)

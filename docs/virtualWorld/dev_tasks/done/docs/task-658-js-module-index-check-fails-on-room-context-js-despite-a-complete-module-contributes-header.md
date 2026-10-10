@@ -1,6 +1,6 @@
 ---
 type: task
-status: review
+status: done
 area: docs
 priority: low
 ---
@@ -58,9 +58,8 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+- expected: js_module_index --check exits 0 (BOM no longer drops the header).
+- observed (2026-10-10): 'Contract check OK (172 known-uncovered, 0 known-bad-@docs, no new)'.
 
 ## Files
 

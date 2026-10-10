@@ -417,7 +417,11 @@ TODO
 
 ## Acceptance
 
-- [ ] TODO
+- [ ] The human-turn modal is the three-zone panel (scene view / one-box input / you-strip), not the old field grid; JSON mode unchanged and the submit contract preserved.
+- [ ] Scene view renders the area's entities (area / people / things / ways) as chips; hover = a free-look card ("free look · no turn cost"); click = a data-driven context menu that FILLS the draft and never submits (compose-then-commit).
+- [ ] Way menus never pre-leak mechanics: locked/jammed hints (`knownLocked` / `knownJammed`) appear only after the character examines the way or fails to go through it.
+- [ ] Stranger masking renders via `unknown_display_name()`; the area-bar counters read the scene source, not the stale counts.
+- [ ] `GET /api/scene/<player>` builds the payload (people/items/ways/you-strip); the panel does not appear outside the controlled character's queued slot; confirm-before-Act toggle works.
 
 ## Files
 

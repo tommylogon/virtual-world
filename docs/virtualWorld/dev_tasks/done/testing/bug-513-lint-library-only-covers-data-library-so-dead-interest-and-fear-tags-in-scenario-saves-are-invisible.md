@@ -1,6 +1,6 @@
 ---
 type: bug
-status: review
+status: done
 area: testing
 priority: medium
 ---
@@ -60,9 +60,8 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+- expected: a gate reads interest/fear tags in data/scenarios/*.json (not just data/library), with a baseline.
+- observed (2026-10-10): tools/scenario_tag_check.py exists and runs the rule semantics over scenarios; --check exits 1 reporting NEW dead tags (Cullen Rutherford, zombies) beyond the 198-finding baseline -> tool works; the findings are newly-authored debt needing --update-baseline. npm run scenario-tags:check exposes it; tests/test_scenario_tag_check.py pins the rules.
 
 ## Files
 

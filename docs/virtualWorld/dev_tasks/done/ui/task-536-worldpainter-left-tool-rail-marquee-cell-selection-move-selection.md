@@ -1,6 +1,6 @@
 ---
 type: task
-status: review
+status: done
 area: ui
 priority: medium
 ---
@@ -71,9 +71,8 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+- expected: a left tool rail with Select/marquee + Move.
+- observed (2026-10-10 live, painter open): rail buttons = Select / Paint / Erase / Move / Route / Feature / Area / Inspect, plus Grid/Generate/Ungenerate/Add feature.
 
 ## Files
 

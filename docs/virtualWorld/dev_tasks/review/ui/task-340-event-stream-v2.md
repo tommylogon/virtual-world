@@ -141,7 +141,12 @@ TODO
 
 ## Acceptance
 
-- [ ] TODO
+- [ ] Acting-character results stay INSIDE one turn card (no `system-msg` split) and are outcome-tinted: success green ✓, failure red ✕, minor/no-op dimmed ℹ.
+- [ ] AI-narrated results render as gold 🎭 `msg-narrated`; directed whispers as 🔒 `actor → target:`; replans as `msg-crisis` naming the critical need/threat; pruning as ✂ `msg-prune` once per signature.
+- [ ] Phase pills for observe/think/decide/act/react; `actor · A → B` area dividers; `N minutes pass` rows for ≥30 unlogged game-minutes.
+- [ ] Turn-queue strip (up-next order, human slot 🎤) renders on advanceTurn; timeline scrubber is click-to-jump; stream search hides non-matching cards with a match count.
+- [ ] Story mode (▤ / ▥ / 📖) toggles cards/compact/story and persists in localStorage; story renders the session as serif small-caps scene lines.
+- [ ] Bubble hover shows relative time; the area filter survives a reload; scrollback cap raised (500 → 2000).
 
 ## Files
 

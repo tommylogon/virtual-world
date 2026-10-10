@@ -1,6 +1,6 @@
 ---
 type: task
-status: review
+status: done
 area: ui
 priority: high
 ---
@@ -66,9 +66,8 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+- expected: hovering/right-clicking a cell reads what is on it.
+- observed (2026-10-10 live): mousemove over the grid centre -> HUD readout '(9,4) - nothing here' (the card's empty-cell format).
 
 ## Files
 

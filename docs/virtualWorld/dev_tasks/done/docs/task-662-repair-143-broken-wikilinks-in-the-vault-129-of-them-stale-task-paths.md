@@ -1,6 +1,6 @@
 ---
 type: task
-status: review
+status: done
 area: docs
 priority: medium
 ---
@@ -65,9 +65,8 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+- expected: vault wikilinks resolve, no stale task paths.
+- observed (2026-10-10): python tools/doc_links.py --count -> broken occurrences: 0 / broken distinct: 0; --check exits 0.
 
 ## Files
 

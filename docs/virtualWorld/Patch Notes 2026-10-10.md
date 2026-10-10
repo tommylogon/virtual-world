@@ -96,6 +96,18 @@ while they are held, so one glance tells you which state you are in.
 - A stale, unused "refresh the graph" command with no button anywhere was removed rather
   than left to mislead the next reader.
 
+---
+
+## Follow-up: the pause button, and the map that drifted
+
+Two things the same day's work left behind, found while checking a long list of older fixes.
+
+**The pause button did not believe the lock.** If you had frozen the map's layout — the little lock that pins every room and object where you put it — the pause button still lit up as though things were moving, and clicking it changed nothing at all. The button was asking a question nobody was answering: it looked for a setting that was never actually written. It now checks the same thing the simulation checks, so when the layout is locked the button greys out and tells you why.
+
+**The map jumped a few seconds after you resized it.** Nudging the map's spacing puts every room and road neatly on the painted map for a moment — and then, seconds later, they slid off somewhere else. The editor was remembering an old snapshot of where everything sat (from a *previous* spacing) and quietly re-applying it over the new, correct arrangement. It now leaves painted rooms and roads where the map put them, the same way it already refuses to store a canvas position for a painted room in the first place.
+
+Neither changed the world itself. One stopped a button from lying; the other stopped a saved memory from overwriting a fresh decision.
+
 <!-- connected:start -->
 ## Connected
 

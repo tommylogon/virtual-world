@@ -293,6 +293,10 @@ const state={
   weather:'clear',
   phase:Math.round((((Date.now()-Date.UTC(2000,0,6,18,14))/86400000)%29.53058867)/29.53058867*8)%8,
   playing:false, units:'C', dial:false,
+  // task-762: when embedded, the engine owns temperature — it posts tempC and
+  // the readout shows that, so the modal and the strip cannot disagree. Standalone
+  // (no parent), tempC stays null and temp() falls back to the seasonal model.
+  tempC:null,
 };
 const eased={cover:0,cloudA:0,dark:0,rain:0,snow:0,fog:0,wind:8,gray:0,light:0};
 
@@ -619,7 +623,11 @@ function dayLabel(){ const s=SEASONS[state.season],t=state.t;
   if(t<s.sr+.8)return 'Dawn'; if(t<11)return 'Morning'; if(t<14)return 'Midday';
   if(t<s.ss-1.6)return 'Afternoon'; if(t<s.ss-.5)return 'Golden hour';
   if(t<s.ss+.5)return 'Sunset'; return 'Dusk'; }
-function temp(){ const s=SEASONS[state.season];
+function temp(){
+  // Engine-provided temperature wins (embedded in the World Sky modal): the sim
+  // wrote the real area temperature, so the hero must show it, not its own guess.
+  if(state.tempC!==null && state.tempC!==undefined) return Math.round(state.tempC);
+  const s=SEASONS[state.season];
   const c=s.base+s.amp*Math.cos((state.t-15)/24*2*Math.PI)+(WEATHER[state.weather].temp??0);
   return Math.round(state.units==='C'?c:c*9/5+32); }
 function updateTrack(){
@@ -705,6 +713,7 @@ window.addEventListener('message', ev => {
         if (d.season !== undefined) { state.season = d.season; refreshTrackSeason(); }
         if (d.weather !== undefined) state.weather = d.weather;
         if (d.phase !== undefined) state.phase = d.phase;
+        if (d.tempC !== undefined) state.tempC = d.tempC;
         // Update the "synced" indicator
         if (d.engineTime) $('#syncNote').textContent = '🔗 synced to ' + d.engineTime;
         if (d.engineDay) $('#syncNote').textContent += ' · Day ' + d.engineDay;

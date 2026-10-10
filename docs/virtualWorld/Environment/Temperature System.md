@@ -97,6 +97,6 @@ Core Body Temperature (player.vitals.Temperature)
 
 **Dev tasks** — [[dev_tasks/done/environment/task-5-heat_propagation|task]]
 
-**Neighbouring notes** — [[Light System]], [[Time & Weather]]
+**Neighbouring notes** — [[Light System]], [[Time & Weather]], [[Weather Guide]], [[Weather System]]
 
 <!-- connected:end -->

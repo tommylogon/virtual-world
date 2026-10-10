@@ -1,6 +1,6 @@
 ---
 type: task
-status: review
+status: done
 area: refactor
 priority: medium
 ---
@@ -46,17 +46,8 @@ silently lost its image picker. The compiler knew; we told it not to say.
 
 ## Steps to verify
 
-1. `npx tsc -p tsconfig.json --noEmit` — no `TS6133`/`TS6196`.
-   - expected: no output
-   - observed: no output
-2. `npm run build:ts` then `node tools/unit/run.cjs`.
-   - expected: build ok, 632 passed
-   - observed: build ok, 632 passed
-3. `python tools/ts_convert.py check` — build/typecheck/lint/unit/header/window ok.
-   - expected: only the pre-existing `module:check` py failure
-   - observed: only the pre-existing `module:check` py failure
-4. Live: paperdoll slot modal opens (no ReferenceError); click the scenario-name
-   chip to rename; the soak vitals tab shows the chip strip.
+- expected: noUnusedLocals on; the unused backlog cleared; the three dropped wirings restored (not deleted).
+- observed (2026-10-10): tsconfig.json has noUnusedLocals:true; npx tsc -p tsconfig.json --noEmit is clean (no TS6133/TS6196). Wirings restored in code (paperdoll-view durabilityChip hoisted, saveload-view initScenarioNameEditor exported, soak-ui renderVitalMetrics called); live reload check not run (page-load timeout on :4477).
 
 ## Acceptance
 

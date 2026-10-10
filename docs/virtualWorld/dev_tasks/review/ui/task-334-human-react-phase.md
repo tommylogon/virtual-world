@@ -73,7 +73,11 @@ TODO
 
 ## Acceptance
 
-- [ ] TODO
+- [ ] Human turn flow is compose → Act → react (say / emote / memory bound to the result) → pass; the phase pill reads "② react to the result" and the close controls swap accordingly.
+- [ ] A dash grants one extra action slot (burst phase) in the new area before react.
+- [ ] A deterministic auto-memory line is stored per human turn (action + speech + emote + area + tick, no LLM call); the manual memory field persists through `/api/action` into `Player.memories[]` (source: manual).
+- [ ] React speech/emotes ride the same witnessed-event pipes as agent speech (so a later observer sees them).
+- [ ] (Deferred, not this card) lanes 2/3 — turn-start digest UI and the interjection queue.
 
 ## Files
 

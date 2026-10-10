@@ -1,6 +1,6 @@
 ---
 type: task
-status: review
+status: done
 area: ui
 priority: low
 ---
@@ -40,9 +40,8 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+- expected: zoom-out floor is legible, the minus control disables at it.
+- observed (2026-10-10 live, goblin_camp painter): 40 clicks on the painter's minus -> button.disabled === true (floor holds).
 
 ## Files
 

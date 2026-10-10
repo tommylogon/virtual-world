@@ -152,7 +152,7 @@ action inside it is free in game time and the round advances once at the end. Se
 
 ## Forecast Schedule & Weather
 
-Weather is managed through a **forecast schedule** (task-227) stored in world state as `forecast_schedule`. Today it is an authored schedule that `tick_turn()` applies each turn as the environmental baseline; the intended design is a **seeded, terrain-aware heuristic that generates a dated weather field** over a horizon, varying per area and taking terrain into account, with ordered date/area overrides (task-763 generator, task-762 forecast view).
+Weather is managed through a **forecast schedule** (task-227) stored in world state as `forecast_schedule`. `tick_turn()` applies it each turn as the environmental baseline for exterior areas. Beyond the authored and state-machine modes, the `generated` mode rolls a **seeded, terrain-aware, dated weather field** — per open-sky area, biased by season, biome tags and painted climate, neighbour-coupled, with ordered date/area overrides (task-763 generator, task-762 view). The full current design is in [[Weather System]]; the user-facing guide is [[Weather Guide]].
 
 ### Forecast Modes
 
@@ -162,6 +162,7 @@ Weather is managed through a **forecast schedule** (task-227) stored in world st
 | `deterministic` | Weighted state machine with fixed probabilities (no randomness). E.g., `"clear": 70% → "cloudy": 20% → "windy": 10%`. |
 | `random` | Same transition table, but uses `random()` each interval. Optional `seed` for reproducibility. |
 | `hybrid` | Authored schedule defines base temperature/light; state machine layers weather on top. |
+| `generated` | Seeded per-area field: every open-sky area rolls its own weather, biased by season/terrain/climate, neighbours coupled (see [[Weather System]]). |
 
 ### Forecast Data Model
 
@@ -470,6 +471,6 @@ the property is absent, see_through still wins over state lookup. Implemented in
 
 **Dev tasks** — [[dev_tasks/cancelled/environment/task-85-time_weather_dates|task]], [[dev_tasks/done/gameplay/task-48-time_advancement_per_turn|task]]
 
-**Neighbouring notes** — [[Light System]], [[Temperature System]]
+**Neighbouring notes** — [[Light System]], [[Temperature System]], [[Weather Guide]], [[Weather System]]
 
 <!-- connected:end -->

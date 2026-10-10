@@ -74,6 +74,29 @@ card with a column-header row over the entry grid, a timeline on a real axis, a
 styled empty state, and a footer readout. All wiring survived (element ids were
 preserved); verified live, including no-scroll fit at 1600x900.
 
+**A second pass made the hero a real readout and added the outlook.** The stage
+was raised to 238px, a **live environment strip** was added beneath it (Wind,
+Humidity, Air, Temp, Light, Precip, Snow - read from the controlled player's
+current area, so it shows real values rather than a placeholder), and a
+**transport** row (Play day, Dawn/Noon/Dusk/Midnight, Now) drives the existing
+schedule scrub. The embedded stage now takes its temperature from the same
+engine value the strip shows, so the hero and the strip cannot disagree (they
+read 25 vs 28 before).
+
+The same pass added a **Regions** tab (a segmented toggle under the transport;
+the hero and transport stay visible across both tabs). It renders a days x
+per-area table - one row per open-sky area, one column per day, today first -
+projected over the generated field by `VirtualWorld.weather_outlook()` and served
+by `GET /api/settings/forecast/outlook`. The projection rolls
+`generate_weather_field` forward one day at a time (each day's field is the next
+day's coupling input) and **never writes** `self._weather_field` or the clock, so
+opening the tab cannot advance the world. Each cell is the engine's weather word
+and its tuning-derived daytime temperature (reusing `temp_curve_for_hour` and
+`weather_tuning`, so the numbers are the engine's own, not the client's). A badge
+says `live field` when the mode is `generated` and `preview - mode: <mode>`
+otherwise, because in any other mode the sim follows the authored schedule and
+the field is only a preview.
+
 ## Steps to verify
 
 1. Run `python tools/ts_convert.py check` (build:ts, typecheck, lint,
@@ -97,8 +120,19 @@ preserved); verified live, including no-scroll fit at 1600x900.
      entries unchanged; the override dropdown shows the 11 registry ids
      (`clear…snowy` + `blizzard`/`cold_snap`/`heatwave`/`thunderstorm`) and no
      alias spellings; setting an override flips the bar to `snowy` and shows the
-     `● override active` dot, clearing hides it; the modal scrolls under a 600px
-     viewport.
+      `● override active` dot, clearing hides it; the modal scrolls under a 600px
+      viewport.
+4. Run `python -m pytest tests/test_forecast_outlook.py`.
+   - expected: 8 passed - the outlook is per-area, reproducible, honours the
+     ordered overrides, advances the date, and never writes the live field or the
+     clock.
+   - observed: 8 passed.
+5. In a browser, open World Sky and switch to the Regions tab.
+   - expected: a days x per-area table with a mode badge; the clock does not move.
+   - observed (live): **470 rows**, 8 header cells (Area + 7 days), **3760 cells**;
+     badge `preview - mode: authored`; clock `08:58:00` before and after
+     switching, so the tab did not tick; filter `Farm` narrows to 1 row; the tab
+     toggle restores the Forecast view with its ribbon intact.
 
 ## Acceptance
 
@@ -113,12 +147,21 @@ preserved); verified live, including no-scroll fit at 1600x900.
   author sets, the temperature shown in-game stays engine-derived, and the
   transition table is shown for the modes that cannot be enumerated ahead.
 - [x] A save is lossless — no authored entry field is dropped.
+- [x] A live environment strip and a transport bar make the hero a real readout.
+- [x] A **Regions** tab shows the next days per open-sky area, projected over the
+  generated field, without advancing the world, with a badge distinguishing a
+  live field from a preview.
 
 ## Files
 
 - `static/js/sky-scape.ts` (+ emitted `.js`) — the token-based modal styles
   (`MODAL_CSS`), the scene-only stage embed (`STAGE_CSS`), the schedule editor,
-  the registry-driven weather dropdowns, and the two display fixes.
+  the registry-driven weather dropdowns, the two display fixes, the live stats
+  strip and transport, and the Regions tab (`_switchSkyTab`, `_renderRegions`,
+  `_regionsTable`).
+- `virtual_world_engine.py` — `weather_outlook(days)` (the pure look-ahead over
+  `generate_weather_field`) and `_calendar_dims`.
 - `routes/settings.py` — `area_overrides`/`date_overrides` passthrough and
-  `weather_field` on the GET (task-763).
+  `weather_field` on the GET (task-763); `GET /api/settings/forecast/outlook`.
 - `tests/test_forecast_settings_route.py` — route round-trip.
+- `tests/test_forecast_outlook.py` — the outlook projection.

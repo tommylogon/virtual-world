@@ -4,38 +4,17 @@
     "type": "split",
     "children": [
       {
-        "id": "b498f12c8f93bd24",
+        "id": "e057053b7fa035cb",
         "type": "tabs",
         "children": [
           {
-            "id": "628a877e9730f243",
+            "id": "d501ca50fee0a7b8",
             "type": "leaf",
             "state": {
-              "type": "canvas",
-              "state": {
-                "file": "Untitled.canvas",
-                "viewState": {
-                  "x": 777.9999694824219,
-                  "y": -206.33334350585938,
-                  "zoom": 0
-                }
-              },
-              "icon": "lucide-layout-dashboard",
-              "title": "Untitled"
-            }
-          },
-          {
-            "id": "1ec7dd69978fc063",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "_Index.md",
-                "mode": "source",
-                "source": false
-              },
+              "type": "empty",
+              "state": {},
               "icon": "lucide-file",
-              "title": "_Index"
+              "title": "New tab"
             }
           }
         ]
@@ -202,8 +181,20 @@
       "bases:Create new base": false
     }
   },
-  "active": "628a877e9730f243",
+  "active": "d501ca50fee0a7b8",
   "lastOpenFiles": [
+    "_Index.md",
+    "dev_tasks/level-design-workflow.md",
+    "Untitled.canvas",
+    "dev_tasks/done/testing/bug-513-lint-library-only-covers-data-library-so-dead-interest-and-fear-tags-in-scenario-saves-are-invisible.md",
+    "dev_tasks/done/refactor/task-757-enable-nounusedlocals-and-clear-the-unused-symbol-backlog-three-orphaned-ui-wirings-restored.md",
+    "Environment/Weather System.md",
+    "dev_tasks/done/docs/task-658-js-module-index-check-fails-on-room-context-js-despite-a-complete-module-contributes-header.md",
+    "Environment/Weather Guide.md",
+    "dev_tasks/done/docs/task-662-repair-143-broken-wikilinks-in-the-vault-129-of-them-stale-task-paths.md",
+    "dev_tasks/done/ui/task-536-worldpainter-left-tool-rail-marquee-cell-selection-move-selection.md",
+    "dev_tasks/done/ui/task-540-worldpainter-cell-inspector-hover-or-click-a-cell-to-read-what-is-on-it.md",
+    "dev_tasks/done/ui/task-595-cap-how-far-the-worldpainter-view-can-be-zoomed-out.md",
     "dev_tasks/done/emotions/task-512-move-the-character-expression-pack-into-its-own-images-tab-in-the-inspector.md",
     "dev_tasks/done/ui/task-479-surface-skill-dc-band-and-dice-breakdown-in-prompts-and-narration.md",
     "dev_tasks/done/ui/task-448-disambiguate-ambiguous-target-names.md",
@@ -219,18 +210,6 @@
     "dev_tasks/done/ui/task-635-vital-modal-is-a-raw-numeric-editor-not-natural-language-details.md",
     "dev_tasks/done/ui/task-288-condition-editor-modal.md",
     "dev_tasks/review/environment/task-762-forecast-page-author-and-view-the-weather-schedule.md",
-    "dev_tasks/done/ui/task-305-warn-way-missing-authoring-fields.md",
-    "dev_tasks/done/ui/task-237-save-area-to-library.md",
-    "dev_tasks/done/ui/task-251-character-inspector-tab-restructure.md",
-    "dev_tasks/done/ui/task-240-area-inspector-ways-show-cardinals.md",
-    "dev_tasks/done/ui/task-722-add-breadcrumb-navigation-to-inspector.md",
-    "dev_tasks/done/ui/task-443-validator-mismatch-recalibration-and-info-section.md",
-    "dev_tasks/done/ui/task-721-add-orphaned-node-detection-to-validatorpanel.md",
-    "dev_tasks/done/ui/task-720-add-node-type-filter-to-validatorpanel.md",
-    "dev_tasks/inprogress/ui/bug-526-sync-world-to-library-sync-all-ignores-the-active-tab-and-generated-entities-and-silently-overwrites.md",
-    "dev_tasks/done/ui/task-558-wordwrap-way-and-edge-labels-in-the-graph-view.md",
-    "dev_tasks/done/ui/task-370-command-palette-ctrl-k.md",
-    "Untitled.canvas",
     "dev_tasks/todo/gameplay/task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override.md.tmp.11928.1b3cb7021f85",
     "dev_tasks/todo/gameplay/task-716-fisherman-vertical-slice-reusable-water-activity-and-pursuit-loop.md.tmp.11928.2deae31d0cf1",
     "dev_tasks/todo/gameplay/task-716-fisherman-vertical-slice-reusable-water-activity-and-pursuit-loop.md.tmp.11928.81725a043b30",

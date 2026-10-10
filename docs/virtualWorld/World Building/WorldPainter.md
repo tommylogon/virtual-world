@@ -5,7 +5,7 @@ tags: [system/graph]
 
 # WorldPainter
 
-**Tasks:** [[dev_tasks/review/world/task-495-worldpainter-recursive-scope-grids-and-3-mode-editor|task-495]] (recursive scope grids, 3-mode editor) · [[dev_tasks/review/world/task-520-worldpainter-scale-canvas-grid-surface-route-tool-batch-paint|task-520]] (canvas surface, route tool, batch paint) · [[dev_tasks/review/ui/task-540-worldpainter-cell-inspector-hover-or-click-a-cell-to-read-what-is-on-it|task-540]] (cell inspector)
+**Tasks:** [[dev_tasks/review/world/task-495-worldpainter-recursive-scope-grids-and-3-mode-editor|task-495]] (recursive scope grids, 3-mode editor) · [[dev_tasks/review/world/task-520-worldpainter-scale-canvas-grid-surface-route-tool-batch-paint|task-520]] (canvas surface, route tool, batch paint) · [[task-540-worldpainter-cell-inspector-hover-or-click-a-cell-to-read-what-is-on-it|task-540]] (cell inspector)
 
 WorldPainter is the editor that paints a **[[World Scopes|scope]]'s grid**: layers of
 biome / road / floor / climate, keyed by `"x,y"` cell, stored on the scope record in the
@@ -155,7 +155,7 @@ single POST, so each is a single undo step.
 - **Names are not a layer.** There is no name vocabulary; a name is a value in the
   `names` map beside `layers` (`grid-model.js:258-266`), and the eraser does not clear it.
 - **Zoom is capped** —
-  [[dev_tasks/todo/ui/task-595-cap-how-far-the-worldpainter-view-can-be-zoomed-out|task-595]].
+  [[task-595-cap-how-far-the-worldpainter-view-can-be-zoomed-out|task-595]].
 - **The grid preview cannot be moved or resized yet** —
   [[dev_tasks/todo/ui/task-597-worldpainter-better-grid-preview-with-drag-to-move-and-handles-to-resize|task-597]].
 - **Preflight must be kept in step with the compiler.** `preflight()` says so in its own

@@ -1421,6 +1421,122 @@ class VirtualWorld:
         self._weather_field_day = day
         return field
 
+    def _calendar_dims(self):
+        """The scenario calendar as ``(days_per_month, months_per_year)``."""
+        cfg = getattr(self, "calendar_config", None) or {}
+        try:
+            dpm = max(1, int(cfg.get("days_per_month", 30)))
+        except (TypeError, ValueError):
+            dpm = 30
+        try:
+            mpy = max(1, int(cfg.get("months_per_year", 12)))
+        except (TypeError, ValueError):
+            mpy = 12
+        return dpm, mpy
+
+    def weather_outlook(self, days: int = 7) -> dict:
+        """A look-ahead over the generated field for the next ``days`` days (task-762).
+
+        Pure projection. It rolls the same seeded :func:`generate_weather_field`
+        the live sim uses forward from the current day, one day at a time (each
+        day's field is the next day's coupling input), and **never writes**
+        ``self._weather_field`` - the live field is only read as the seed. So the
+        outlook and the day the sim actually reaches agree, and opening the widget
+        cannot advance the world.
+
+        Returns the per-area weather for the day it is on plus ``days - 1`` ahead,
+        with the date, season and moon for each day. The per-area environment the
+        field implies is derived here from the engine's own curve and tuning (a
+        13:00 daytime temperature, and the wind/humidity/precipitation a state
+        implies), so the client renders numbers the sim would produce rather than
+        its own guesses.
+        """
+        from engine.weather_forecast import (
+            OUTDOOR_BASE_C, apply_field_overrides, generate_weather_field,
+            get_moon_phase, temp_curve_for_hour, weather_tuning)
+        raw = getattr(self, "forecast_schedule", None) or {}
+        if not isinstance(raw, dict):
+            raw = {}
+        try:
+            n = max(1, min(int(days or 7), 30))
+        except (TypeError, ValueError):
+            n = 7
+        start = int(self.game_day)
+        dpm, mpy = self._calendar_dims()
+        areas, neighbours, climates = self._area_terrain_index()
+        # The season is what the engine reports for *now*, for every day in the
+        # window: `world_state` is authored scenario data that the clock does not
+        # advance, so `current_season()` would answer the same on each future day.
+        # Advancing the month here would invent a turn the sim does not make.
+        season = self.current_season()
+
+        # Base temperature and display name per open-sky area, read off the graph.
+        names: dict = {}
+        bases: dict = {}
+        for node in self.graph.nodes.values():
+            if node.type != "area":
+                continue
+            names[node.id] = (node.properties.get("name")
+                              or getattr(node, "name", None) or node.id)
+            try:
+                bases[node.id] = float(
+                    (node.properties.get("environment") or {}).get(
+                        "base_temperature", OUTDOOR_BASE_C))
+            except (TypeError, ValueError):
+                bases[node.id] = OUTDOOR_BASE_C
+
+        prev = dict(getattr(self, "_weather_field", {}) or {})
+        out_days = []
+        for k in range(n):
+            day = start + k
+            field = generate_weather_field(
+                prev, areas, neighbours,
+                table=(raw.get("transition_table") or None),
+                season=season, seed=raw.get("seed"), day=day, climates=climates)
+            field = apply_field_overrides(
+                field, area_overrides=raw.get("area_overrides"),
+                date_overrides=raw.get("date_overrides"), day=day)
+            temps: dict = {}
+            daytime = temp_curve_for_hour(13, season)
+            for area_id, state in field.items():
+                tune = weather_tuning(state)
+                try:
+                    mod = float(tune.get("temperature_mod") or 0.0)
+                except (TypeError, ValueError):
+                    mod = 0.0
+                temps[area_id] = round(
+                    bases.get(area_id, OUTDOOR_BASE_C) + daytime + mod, 1)
+            out_days.append({
+                "offset": k,
+                "day": day,
+                "day_of_month": (day - 1) % dpm + 1,
+                "month": (day - 1) // dpm % mpy + 1,
+                "year": (day - 1) // (dpm * mpy) + 1,
+                "season": season,
+                "moon": get_moon_phase(day),
+                "states": dict(field),
+                "temps": temps,
+            })
+            prev = field
+
+        tuning: dict = {}
+        for day in out_days:
+            for state in day["states"].values():
+                if state not in tuning:
+                    tune = weather_tuning(state)
+                    if tune:
+                        tuning[state] = tune
+        return {
+            "mode": raw.get("mode", "authored"),
+            "generated": raw.get("mode") == "generated",
+            "start_day": start,
+            "days": out_days,
+            "areas": sorted(
+                ({"id": aid, "name": names.get(aid, aid)} for aid in areas),
+                key=lambda a: str(a["name"]).lower()),
+            "tuning": tuning,
+        }
+
     def set_forecast_override(self, data: dict):
         """Set (or clear) a GM/trigger forecast override (task-234).
 

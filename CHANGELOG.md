@@ -53,6 +53,24 @@ vis-network, Konva, Notyf, Popper, Tippy and Choices are vendored under `static/
 
 ---
 
+## Unreleased — lock-aware physics, painted positions, review sweep (2026-10-10, follow-up)
+
+**Follow-up to *Update in Place*.** Two graph-view regressions the review pass surfaced, and a sweep of the verification backlog. Committed from a shared worktree, so this window also captures concurrent lighting/weather edits (Light/Temperature/Time & Weather docs, `sky-scape`, `routes/settings.py`, `virtual_world_engine.py`, forecast tests).
+
+### 🔒 The Physics button respects the node-layout lock (bug-542)
+
+`GraphToolbar.state()` read `gm._mapLayoutLocked` — a field that was never assigned anywhere — so `mapLocked` was always false and the button never disabled for the lock: a locked world showed a live-looking ⏸, flipped `_physicsEnabled` on click, and moved nothing, with no reason shown. It now reads the one flag the solver gates on (`GraphPhysics._locked`), and `GraphPhysics.setLocked()` calls `GraphToolbar.syncAll()` — the lock lands during load, after the bar's first paint, so the signal alone was not enough. Locked → the button disables and names the lock.
+
+### 📍 A spacing change keeps painted areas and ways on their cells (bug-543)
+
+`GraphBackground._applyPositions()` re-applied the saved canvas snapshot over the nodes the grid had just placed. The snapshot predates the pitch change, so a spacing nudge placed every area/way correctly for a moment, then the fit-write's `world_changed` → `state:updated` → `_applyPositions` dragged them onto the stale frame. It now skips grid-owned (painted) nodes when Map mode owns the layout — the same "a painted node is not a target for a saved canvas position" rule `persistPositionsToWorld` already applied on the way out. Measured on `goblin_camp`: `area_scrap_pile` stayed on `(-4996,2240)` instead of jumping to the saved `(-6756,3029)`.
+
+### 🧹 Review sweep
+
+34 `review` cards verified against the running app or a gate tool and closed; two partial cards returned to `inprogress` (`bug-526` overwrite-confirm, `task-751` native-popup migration); four `review/ui` stubs given acceptance criteria (task-333/334/340/342). Vault/tool gates all green: `doc_links --count` 0 broken, `js_module_index --check` OK, `feature_index --check` OK, `character_loadout_check --check` OK, `noUnusedLocals` on and clean.
+
+---
+
 ## Unreleased — "A Day in the Life" (2026-10-06)
 
 **26 commits, 9 distinct tasks and bugs.** This window closes the "Things Stop Vanishing" work by shipping the painting and library tooling it depended on, then adds a fog-of-war minimap, a bug report workflow, and a memory dynamics pass.

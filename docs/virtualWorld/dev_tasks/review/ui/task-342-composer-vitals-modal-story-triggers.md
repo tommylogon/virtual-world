@@ -50,7 +50,10 @@ TODO
 
 ## Acceptance
 
-- [ ] TODO
+- [ ] The composer you-strip renders ALL vitals (preferred order + extras, `Max_*` skipped) with polarity-aware colors from the shared `vital-color.js` — Hunger/Thirst/Bladder go red when high, exactly like the inspector.
+- [ ] Temperature renders in °C with the 25–45 window mapping.
+- [ ] Every vital chip is clickable and opens the shared `openVitalModal` (character name sourced from `scene.you.name`).
+- [ ] Story triggers author flavour on native-action items (earring/can/phone `on_examine`, register `on_open`, drawer `on_search`) in the taco_bell scenario.
 
 ## Files
 

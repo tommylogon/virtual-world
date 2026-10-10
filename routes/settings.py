@@ -177,6 +177,17 @@ def register_settings_routes(app):
             logger.exception("Error in /api/settings/forecast")
             return jsonify({"error": str(e)}), 500
 
+    @app.route('/api/settings/forecast/outlook', methods=['GET'])
+    def get_forecast_outlook():
+        """task-762: the next N days of per-area weather, projected over the
+        generated field. A pure read - it never advances the world or the clock."""
+        try:
+            days = request.args.get('days', 7, type=int) or 7
+            return jsonify(app.world.weather_outlook(days))
+        except Exception as e:
+            logger.exception("Error in /api/settings/forecast/outlook")
+            return jsonify({"error": str(e)}), 500
+
     @app.route('/api/settings/forecast', methods=['POST'])
     def set_forecast():
         """task-227: replace the whole forecast schedule."""
