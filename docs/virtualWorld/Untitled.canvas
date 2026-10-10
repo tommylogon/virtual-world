@@ -1,12 +1,16 @@
 {
 	"nodes":[
-		{"id":"ff9de7293da4f1ae","x":-274,"y":-296,"width":250,"height":60,"type":"text","text":"Character"},
-		{"id":"5c35f83465a1aa38","x":-332,"y":-45,"width":250,"height":60,"type":"text","text":"shirt"},
-		{"id":"36c403ee35be0357","x":0,"y":-75,"width":250,"height":60,"type":"text","text":"bra"}
+		{"id":"ff9de7293da4f1ae","type":"text","text":"Character","x":-274,"y":-296,"width":250,"height":60},
+		{"id":"5c35f83465a1aa38","type":"text","text":"shirt","x":-332,"y":-45,"width":250,"height":60},
+		{"id":"36c403ee35be0357","type":"text","text":"bra","x":0,"y":-75,"width":250,"height":60},
+		{"id":"a007e0d9a343982f","x":406,"y":-454,"width":250,"height":60,"type":"text","text":"character james"},
+		{"id":"1fdf018228d1ba3d","x":656,"y":-220,"width":84,"height":50,"color":"3","type":"text","text":"road"},
+		{"id":"f0ed7ca3585926f8","x":406,"y":-220,"width":100,"height":50,"color":"4","type":"text","text":"woods"}
 	],
 	"edges":[
 		{"id":"91fc570a0ac268ae","fromNode":"5c35f83465a1aa38","fromSide":"top","toNode":"ff9de7293da4f1ae","toSide":"bottom","label":"Equiped"},
 		{"id":"f350d4c73ff7605a","fromNode":"36c403ee35be0357","fromSide":"top","toNode":"ff9de7293da4f1ae","toSide":"bottom","label":"equiped"},
-		{"id":"19f29a1a88fa53df","fromNode":"36c403ee35be0357","fromSide":"left","toNode":"5c35f83465a1aa38","toSide":"right","label":"Under"}
+		{"id":"19f29a1a88fa53df","fromNode":"36c403ee35be0357","fromSide":"left","toNode":"5c35f83465a1aa38","toSide":"right","label":"Under"},
+		{"id":"9f7d85ea5e50442a","fromNode":"a007e0d9a343982f","fromSide":"bottom","toNode":"1fdf018228d1ba3d","toSide":"top","label":"IN"}
 	]
 }

@@ -4,6 +4,55 @@ All notable changes to VirtualWorld. See `docs/virtualWorld/Scenario Workflows &
 
 ---
 
+## Unreleased — "Update in Place" (2026-10-10)
+
+**One commit.** A correctness and performance pass on the graph view: it stops rebuilding the world on every tick, kills the freeze that made a whole-world load unusable, keeps a refreshed scope from silently widening to the whole world, and fixes a crash the threaded dev server was hiding. Verified in the running app.
+
+```
+JS unit tests:  669 passed / 0 failed   (was 613)
+Python suite:   42 failed / 7,672 passed / 1 skipped  (353 s)
+Whole world:    the ~108 s post-load freeze is gone; a scoped load is ~0.25 s
+```
+
+### ⚡ State changes update the graph in place (task-764, partial)
+
+`GET /api/state` already carries the graph, so a tick or an edit no longer pays a second world fetch plus `setData()` plus a re-layout plus a camera refit. New `GraphNetwork.syncGraphData()` diffs the payload against the loaded set and updates a changed node with **one batched `nodes.update`**; `main.ts`'s `worldState.on('update')` routes there instead of `loadGraphData()`. A full `loadGraphData()` is now reserved for scenario load/reset, a scope switch, a layout-mode switch, and a structural change (a node or edge added or removed — detected by the `_nodeProj` / `_lastEdgeSig` signatures). The redundant reloads that sat *after* a `worldState.fetch()` were deleted from the inspector, undo/redo, the way editor, the sprite sheet, the edit feed and the undo history; the dead `graphEditor.fetchGraph()` is gone. Dead code is not kept "just in case".
+
+### 🥶 The freeze was one `nodes.update()` per node
+
+`GraphNetwork._applyNodeLabelDecorations` called `nodes.update({...})` inside a `forEach`; vis's `DataSet.update()` fires a full-graph redraw **per call**, so ~2763 calls froze the browser for **108 770 ms**. It now collects the changed rows and calls `nodes.update(arr)` once. `applyTagFilter` had the identical bug and is fixed the same way. This was the freeze on the *second* pass, once the tag library arrived and labels changed.
+
+### 🔭 A refreshed scope stays the scope
+
+`syncGraphData` must not adopt the whole-world `worldState.graph` map as a scoped view's loaded set — doing so makes the next sync treat every world node as "loaded", build a config for each, and pour the whole world into the scope's dataset. Refresh in `goblin_camp` now shows its **142** nodes, not the world's 2,763. (bug-535 — the first load building the whole world before restoring the saved scope — is fixed alongside.)
+
+### 🧵 The threaded dev server's read/write race
+
+`app.run(threaded=True)` serializes *mutating* `/api/` calls; GETs read the live graph unlocked, so `/api/triggers/validate` could iterate `graph.nodes` while a concurrent write added a node — `RuntimeError: dictionary changed size during iteration`. The validator's graph walks and `graph.py`'s `to_dict` / `get_edges_by_type` now iterate snapshots. The systemic fix (synchronize reads, or copy-on-write the world per request) is filed as **bug-536**.
+
+### 🎛 Physics: one owner, honest buttons (task-765)
+
+New `static/js/graph/physics.ts` (`window.GraphPhysics`) owns "should the solver run" — one pure `shouldRun`, one writer to the network options, with the node-count valve and the layout lock read in the same place. The ⏸ Physics button now flips its glyph to ▶ when paused, and disabling no longer re-sends the solver block in the same `setOptions` call (that re-initialised the solver and snapped every node back to its seeded position).
+
+### 📍 Coordinates and the ring seed (task-769, partial)
+
+`GraphLayoutEngine.seedFor` / `paintedFrame`: a painted cell always seeds to its grid position, and a saved `x`/`y` is honoured only inside the painted frame. Uncelled ways are placed at their rooms' midpoint, and `on` is a recognised relation. `GraphRelativeLayout.apply()` now seeds **once per layout** (`_seedApplied`; `reseed()` re-arms it) — it used to run unguarded on every `stabilizationIterationsDone`, so a mid-life re-stabilization re-seeded every settled node back onto its ring.
+
+### 🔗 Self-hosted vendor assets
+
+vis-network, Konva, Notyf, Popper, Tippy and Choices are vendored under `static/js/vendor` / `static/css/vendor` instead of loaded from CDNs, so a first load no longer waits on the network.
+
+### 📚 Docs
+
+`AGENTS.md` gains a **"Graph view: update in place"** section (the load-vs-sync policy, the `nodes.update` batching bug, the "instrumenting a hot path measures the logger" trap, and the "spectator is a poll, edits are an SSE" note); `docs/virtualWorld/World Building/Graph System.md` carries the same policy as **"Load vs in-place sync"**.
+
+### 📏 Known state of the suite at this commit
+
+- **JS**: `ts_convert.py check` green — build, typecheck, lint, module:check, **669 unit tests** (was 613), all 167 emitted modules.
+- **Python**: **42 failed / 7,672 passed / 1 skipped** (353 s). The failures concentrate in the kraktooth **scenario and library content** tests (`test_goblin_loadouts` 7, `test_ownership` 4, `test_character_identity` 4, `test_scenario_data_integrity` 4, `test_goblin_gear`/`test_kraktooth_gear`, `test_scope_id_migration`, …) plus two docs checks (`docs/dev_tasks.md` mojibake; a `156 != 157` curated-note count). These are working-tree / content drift, **not** this window's code — verified for the two docs checks individually. Not A/B-verified here because the worktree is shared and live.
+
+---
+
 ## Unreleased — "A Day in the Life" (2026-10-06)
 
 **26 commits, 9 distinct tasks and bugs.** This window closes the "Things Stop Vanishing" work by shipping the painting and library tooling it depended on, then adds a fog-of-war minimap, a bug report workflow, and a memory dynamics pass.

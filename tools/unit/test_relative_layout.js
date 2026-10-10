@@ -59,6 +59,41 @@ test('a trigger sits on its host and a way between its rooms', () => {
     assertEq(mid, { x: 400, y: 300 }, 'way midpoint');
 });
 
+test('an item `on` a surface hangs off it (task-769)', () => {
+    const nodes = { area_cooking: { type: 'area' }, item_pot: { type: 'item' } };
+    const edges = [{ type: 'on', source: 'item_pot', target: 'area_cooking' }];
+    assertEq(GraphRelativeLayout.parentOf('item_pot', edges, nodes), 'area_cooking', 'on → parent');
+    const out = GraphRelativeLayout.layoutPositions(nodes, edges, { area_cooking: { x: 0, y: 0 } });
+    assertTrue(Number.isFinite(out.item_pot.x), 'the item is placed beside the surface');
+});
+
+test('an uncelled way is placed from its rooms, not its stale coord (task-769)', () => {
+    const updated = [];
+    const nodes = {
+        area_a: { type: 'area', properties: { cell: { x: 0, y: 0 } } },
+        area_b: { type: 'area', properties: { cell: { x: 2, y: 0 } } },
+        way_gate: { type: 'way', properties: { x: 9000, y: 9000 } },  // no cell: a stale canvas coord
+    };
+    const edges = [
+        { type: 'connection', source: 'area_a', target: 'way_gate' },
+        { type: 'connection', source: 'way_gate', target: 'area_b' },
+    ];
+    const prev = globalThis.graphManager;
+    const live = { area_a: { x: 0, y: 0 }, area_b: { x: 200, y: 0 }, way_gate: { x: 9000, y: 9000 } };
+    globalThis.graphManager = {
+        _graphNodesObj: nodes, _graphEdgesArr: edges,
+        network: { body: { nodes: live, data: { nodes: { update: (u) => updated.push(...u) } } }, getPositions: () => live },
+    };
+    try {
+        GraphRelativeLayout.reseed();
+        GraphRelativeLayout.apply();
+        const way = updated.find((u) => u.id === 'way_gate');
+        assertTrue(!!way, 'the uncelled way was placed');
+        assertTrue(Math.abs(way.x - 100) < 200 && Math.abs(way.y) < 200,
+            `between its rooms, not at the stale coord (${Math.round(way.x)},${Math.round(way.y)})`);
+    } finally { globalThis.graphManager = prev; }
+});
+
 test('a trigger hosted by a way hangs off that way', () => {
     const nodes = { area_a: { type: 'area' }, area_b: { type: 'area' }, way_door: { type: 'way' }, trigger_door: { type: 'logic_trigger' } };
     const edges = [
@@ -176,6 +211,7 @@ test('apply() seeds children and leaves them in the solver', () => {
         },
     };
     try {
+        GraphRelativeLayout.reseed();
         const count = GraphRelativeLayout.apply();
         assertEq(count, updated.length, 'returns what it placed');
         assertTrue(updated.every((u) => u.id !== 'area_hall'), 'areas untouched');
@@ -185,6 +221,38 @@ test('apply() seeds children and leaves them in the solver', () => {
         assertTrue(updated.every((u) => u.fixed === false && u.physics === true),
             'children are simulated');
         assertTrue(updated.some((u) => u.id === 'item_bag'), 'the carried bag was placed');
+    } finally {
+        globalThis.graphManager = previousGraphManager;
+    }
+});
+
+test('apply() seeds once per layout; only reseed() re-arms it', () => {
+    const updated = [];
+    const previousGraphManager = globalThis.graphManager;
+    globalThis.graphManager = {
+        _graphNodesObj: NODES,
+        _graphEdgesArr: EDGES,
+        network: {
+            body: {
+                nodes: { area_hall: { x: 0, y: 0 }, area_cellar: { x: 800, y: 600 } },
+                data: { nodes: { update: (u) => updated.push(...u) } },
+            },
+            getPositions: () => POS,
+        },
+    };
+    try {
+        GraphRelativeLayout.reseed();
+        const first = GraphRelativeLayout.apply();
+        assertTrue(first > 0, 'the first apply seeds the rings');
+        const afterFirst = updated.length;
+        // stabilizationIterationsDone fires again mid-life (e.g. a node gained
+        // or lost its physics flag): a second apply must NOT re-seed, or every
+        // settled node snaps back onto its ring and reads as a rebuild.
+        assertEq(GraphRelativeLayout.apply(), 0, 'a second apply is a no-op');
+        assertEq(updated.length, afterFirst, 'nothing was re-seeded');
+        // Only an explicit reseed (a new layout generation) re-arms it.
+        GraphRelativeLayout.reseed();
+        assertTrue(GraphRelativeLayout.apply() > 0, 'reseed re-arms the seed');
     } finally {
         globalThis.graphManager = previousGraphManager;
     }
@@ -205,6 +273,7 @@ test('a child is seeded on its ring and the sim owns it from there', () => {
     try {
         // The lamp is wherever the solver flung it; the seed puts it back on its
         // ring once, and after that nothing re-places it.
+        GraphRelativeLayout.reseed();
         GraphRelativeLayout.apply();
         const lamp = updated.find((u) => u.id === 'item_lamp');
         assertTrue(!!lamp, 'the lamp was placed');
@@ -286,6 +355,7 @@ test('a frozen node keeps its own place and stays out of the solver', () => {
         },
     };
     try {
+        GraphRelativeLayout.reseed();
         GraphRelativeLayout.apply();
         assertTrue(!updated.some((u) => u.id === 'item_lamp'), 'the frozen node is not repositioned');
         assertTrue(updated.some((u) => u.id === 'char_kael'), 'others are seeded and simulated');

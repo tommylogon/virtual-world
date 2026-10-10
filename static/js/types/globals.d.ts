@@ -234,6 +234,7 @@ interface Window {
  */
 declare const InspectorHelpers: any;   // inspector/helpers.js
 declare const GraphToolbar: any;       // graph/toolbar.js
+declare const GraphPhysics: any;       // graph/physics.js — the one physics policy
 declare const DiffModal: any;          // shared/diff-modal.js
 declare const WayAuthoring: any;       // inspector/way-authoring.js
 declare const EmbeddingClient: any;    // shared/embedding-client.js (converted; narrow when convenient)
@@ -366,6 +367,7 @@ interface Window {
     GraphNetwork: any;
     GraphNodeOps: any;
     GraphOverlays: any;
+    GraphPhysics: any;
     GraphProjector: any;
     GraphRelativeLayout: any;
     GraphScopeTree: any;
@@ -513,6 +515,9 @@ declare const GraphNetwork: {
     buildLegendRows(...args: any[]): any;
     buildNodeConfig(...args: any[]): any;
     buildOptions(...args: any[]): any;
+    isNodePinned(...args: any[]): any;
+    PHYSICS_NODE_LIMIT: any;
+    nodesOverPhysicsLimit(...args: any[]): any;
     buildTooltip(...args: any[]): any;
     buildTooltipHtml(...args: any[]): any;
     centralGravityFor(...args: any[]): any;
@@ -524,6 +529,9 @@ declare const GraphNetwork: {
     init(...args: any[]): any;
     legendChrome(...args: any[]): any;
     loadGraphData(...args: any[]): any;
+    syncGraphData(...args: any[]): any;
+    _nodeProjection(...args: any[]): any;
+    _edgeSig(...args: any[]): any;
     mapCompact(...args: any[]): any;
     mapSizeScale(...args: any[]): any;
     nodeSizeScale(...args: any[]): any;
@@ -648,6 +656,8 @@ interface GraphManager {
     _floorOptions: any;
     _labelCache: any;
     _lastSig: string;
+    _nodeProj: any;
+    _lastEdgeSig: string;
     _legendEl: any;
     _mapSpacingAuto: any;
     _nodeLabelsShown: any;

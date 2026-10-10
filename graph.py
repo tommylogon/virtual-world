@@ -376,7 +376,7 @@ class WorldGraph:
 
     def get_edges_by_type(self, edge_type: str) -> List[Edge]:
         match_types = resolve_edge_types(edge_type)
-        return [e for e in self.edges if e.type in match_types]
+        return [e for e in list(self.edges) if e.type in match_types]
 
     def normalize_edges(self):
         """Migrate all legacy edge types to their modern equivalents in-place.
@@ -402,14 +402,18 @@ class WorldGraph:
 
     def to_dict(self) -> dict:
         self.normalize_node_types()
+        # Snapshot both containers. A GET rebuilds this while a concurrent
+        # mutating request (the write lock serializes writes, but reads run
+        # unlocked) may be adding/removing nodes or edges; iterating the live
+        # dict then raises "dictionary changed size during iteration".
         return {
-            "nodes": {node_id: n.to_dict() for node_id, n in self.nodes.items()},
-            "edges": [e.to_dict() for e in self.edges]
+            "nodes": {node_id: n.to_dict() for node_id, n in list(self.nodes.items())},
+            "edges": [e.to_dict() for e in list(self.edges)]
         }
 
     def normalize_node_types(self):
         """Migrate legacy node types to their canonical form (door → way)."""
-        for node in self.nodes.values():
+        for node in list(self.nodes.values()):
             if node.type == "door":
                 node.type = "way"
 

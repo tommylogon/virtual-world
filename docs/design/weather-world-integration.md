@@ -183,8 +183,8 @@ The filed tasks, in order:
 - **Lapse rate:** how much does one storey / one cliff step shift temperature?
   Elevation exists per area but has never fed the model.
 - **Is `season` a world-level fact, or does a painted climate region shift it?**
-  The forecast is currently global-per-tick; per-area seasons are a much larger
-  change and are out of scope until step 5 proves the need.
+  The forecast is currently global-per-tick; per-area variation is the intent
+  (task-763), sequenced after the spatial baseline (step 5, task-557).
 - **Snow: accumulate and decay, or a boolean?** Accumulation is better but
   needs a tick-level decay rule and save/load coverage.
 - **Does humidity get a source** (water proximity, season) or stay authored?
@@ -193,9 +193,20 @@ The filed tasks, in order:
 
 - A second climate representation, or climate stored outside `area.environment`.
 - Climate as an input to navigation, steering, or the LLM prompt (deferred).
-- Per-area seasons.
-- A procedural weather simulation. The forecast is authored / state-machine by
-  design (task-227) and stays that way.
+
+*Corrected 2026-10-10.* An earlier revision of this list also read:
+
+> - Per-area seasons.
+> - A procedural weather simulation. The forecast is authored / state-machine
+>   by design (task-227) and stays that way.
+
+That was a **misreading of the intended design, not a decision.** The intent is
+a **seeded, terrain-aware heuristic that generates a dated weather field** over
+a horizon, varying per area, with ordered date/area overrides — the authored
+schedule is one *input mode* to that generator, not its ceiling. The generator
+is **task-763** and the view is **task-762**; spatial weather is no longer
+deferred (see §7). The authored modes (`authored`/`deterministic`/`random`/
+`hybrid`) remain, as inputs to and fallbacks for the generator.
 
 ## 9. Adjacent, not covered here
 

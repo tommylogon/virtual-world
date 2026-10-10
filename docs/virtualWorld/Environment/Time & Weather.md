@@ -152,7 +152,7 @@ action inside it is free in game time and the round advances once at the end. Se
 
 ## Forecast Schedule & Weather
 
-Weather is managed through a **forecast schedule** (task-227) stored in world state as `forecast_schedule`. This is not a weather simulation — it is an authored schedule that `tick_turn()` applies each turn as the environmental baseline.
+Weather is managed through a **forecast schedule** (task-227) stored in world state as `forecast_schedule`. Today it is an authored schedule that `tick_turn()` applies each turn as the environmental baseline; the intended design is a **seeded, terrain-aware heuristic that generates a dated weather field** over a horizon, varying per area and taking terrain into account, with ordered date/area overrides (task-763 generator, task-762 forecast view).
 
 ### Forecast Modes
 

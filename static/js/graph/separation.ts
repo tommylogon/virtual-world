@@ -200,7 +200,20 @@ const _GraphSeparation: GraphSeparationApi = {
         for (const id of ids) out[id] = { x: source[id].x, y: source[id].y };
         if (ids.length < 2) return out;
 
-        const connected = this._connectedPairs(edges);
+        // Adjacency, not a Set of "a\0b" strings: a connectivity test must not
+        // allocate a fresh key per neighbour pair per iteration. At ~2763 nodes
+        // and 6 iterations the string churn was ~6s of a whole-world load; the
+        // check is now a Set lookup on ids that already exist (task-769 perf).
+        const connected = new Map<string, Set<string>>();
+        for (const edge of edges || []) {
+            if (!edge || !edge.source || !edge.target) continue;
+            let a = connected.get(edge.source);
+            if (!a) { a = new Set<string>(); connected.set(edge.source, a); }
+            a.add(edge.target);
+            let b = connected.get(edge.target);
+            if (!b) { b = new Set<string>(); connected.set(edge.target, b); }
+            b.add(edge.source);
+        }
         const movable: Record<string, boolean> = {};
         const radius: Record<string, number> = {};
         const start: Record<string, SeparationPos> = {};
@@ -219,8 +232,9 @@ const _GraphSeparation: GraphSeparationApi = {
             let any = false;
 
             for (const id of ids) {
-                const cx = Math.floor(out[id].x / cell);
-                const cy = Math.floor(out[id].y / cell);
+                const self = out[id];
+                const cx = Math.floor(self.x / cell);
+                const cy = Math.floor(self.y / cell);
                 for (let gx = cx - 1; gx <= cx + 1; gx++) {
                     for (let gy = cy - 1; gy <= cy + 1; gy++) {
                         const bucket = grid.get(`${gx},${gy}`);
@@ -228,9 +242,10 @@ const _GraphSeparation: GraphSeparationApi = {
                         for (const other of bucket) {
                             // `other > id` visits each pair exactly once.
                             if (other <= id) continue;
-                            if (connected.has(this._pairKey(id, other))) continue;
-                            const dx = out[other].x - out[id].x;
-                            const dy = out[other].y - out[id].y;
+                            const nb = connected.get(id);
+                            if (nb && nb.has(other)) continue;
+                            const dx = out[other].x - self.x;
+                            const dy = out[other].y - self.y;
                             const dist2 = dx * dx + dy * dy;
                             if (dist2 > spec.max * spec.max) continue;
                             const dist = Math.sqrt(dist2);

@@ -114,15 +114,17 @@ test('a painted area is placed at its cell even with physics off (bug-52)', () =
     const ds = { get: (id) => (id in nodes ? { id } : null), update: (u) => applied.push(...u) };
     const prevNetwork = graphManager.network;
     const prevToolbar = window.GraphToolbar;
-    const prevGraphNetwork = window.GraphNetwork;
+    const prevGraphPhysics = window.GraphPhysics;
     const physicsCalls = [];
     graphManager.network = { setOptions: () => {}, redraw: () => {}, fit: () => {} };
-    // The grid layout now switches the solver through GraphNetwork.applyModePhysics
-    // (so centralGravity follows the layout). network-manager.js is not loaded in
-    // this sandbox, so stand in for the seam and record what it was asked to do;
-    // the decision itself is covered live, and `centralGravityFor` is pure.
-    window.GraphNetwork = {
-        applyModePhysics: (enabled) => physicsCalls.push(enabled),
+    // The grid layout now holds the solver through the one physics policy
+    // (GraphPhysics.pause — task-765), so the decision and centralGravity follow
+    // the layout in one place. physics.js is loaded here, but its real apply()
+    // reaches for the network; stand in for the seam and record the call.
+    window.GraphPhysics = {
+        pause: () => physicsCalls.push(false),
+        resume: () => physicsCalls.push(true),
+        apply: () => {},
     };
     window.GraphToolbar = { syncAll: () => {} };
     try {
@@ -141,7 +143,7 @@ test('a painted area is placed at its cell even with physics off (bug-52)', () =
         config = undefined;
         graphManager.network = prevNetwork;
         window.GraphToolbar = prevToolbar;
-        window.GraphNetwork = prevGraphNetwork;
+        window.GraphPhysics = prevGraphPhysics;
     }
 });
 
@@ -458,4 +460,56 @@ test('isFrozen follows the author flag, with a safe fallback', () => {
         'layout_static');
     assertFalse(GraphLayoutEngine.isFrozen({ properties: {} }), 'default is dynamic');
     assertFalse(GraphLayoutEngine.isFrozen(null), 'a missing node is dynamic');
+});
+
+// ─── The seed rule (task-769) ────────────────────────────────────────────────
+// Where a node starts is a coordinate decision, owned by GraphLayoutEngine. A
+// saved canvas x/y from another frame (a whole-world physics layout, or bug-52's
+// creep) used to seed items/triggers/characters ~20 000 px from their areas and
+// stretch every `in` edge to them.
+
+test('paintedFrame is the cell × pitch bounding box, and null with no cells', () => {
+    const prev = config;
+    config = { graphMapSpacing: 100 };
+    try {
+        const frame = GraphLayoutEngine.paintedFrame({
+            area_a: { type: 'area', properties: { cell: { x: 1, y: 2 } } },
+            way_b: { type: 'way', properties: { cell: { x: 4, y: 5 } } },
+            loose: { type: 'item', properties: { x: -21000, y: 4000 } },
+        });
+        assertEq(frame, { minX: 100, minY: 200, maxX: 400, maxY: 500 }, 'bbox of the cells, loose node ignored');
+        assertEq(GraphLayoutEngine.paintedFrame({ i: { type: 'item', properties: { x: 1, y: 1 } } }), null, 'no cells → null');
+    } finally { config = prev; }
+});
+
+test('seedFor: a painted cell always seeds to cell × pitch, whatever the frame', () => {
+    const prev = config;
+    config = { graphMapSpacing: 100 };
+    try {
+        assertEq(GraphLayoutEngine.seedFor({ properties: { cell: { x: 3, y: 2 } } }, null),
+            { x: 300, y: 200 }, 'cell wins with no frame');
+        const frame = { minX: 0, minY: 0, maxX: 1000, maxY: 1000 };
+        assertEq(GraphLayoutEngine.seedFor({ properties: { cell: { x: 3, y: 2 }, x: -9e9, y: -9e9 } }, frame),
+            { x: 300, y: 200 }, 'cell beats a stale saved x/y');
+    } finally { config = prev; }
+});
+
+test('seedFor: a saved x/y is honoured only inside the painted frame', () => {
+    const prev = config;
+    config = { graphMapSpacing: 100 };
+    try {
+        const frame = { minX: 0, minY: 0, maxX: 1000, maxY: 1000 };
+        assertEq(GraphLayoutEngine.seedFor({ properties: { x: 500, y: 600 } }, frame),
+            { x: 500, y: 600 }, 'in-frame saved position is kept');
+        // The bug: a 21 000 px leftover stranded the node.
+        assertEq(GraphLayoutEngine.seedFor({ properties: { x: -21000, y: 4000 } }, frame),
+            null, 'out-of-frame leftover is dropped');
+        // Slightly outside (within two cells of slack) is still in-frame.
+        assertEq(GraphLayoutEngine.seedFor({ properties: { x: 1150, y: -150 } }, frame),
+            { x: 1150, y: -150 }, 'two cells of slack');
+        // No frame at all → nothing to reject against, honour the value.
+        assertEq(GraphLayoutEngine.seedFor({ properties: { x: -21000, y: 4000 } }, null),
+            { x: -21000, y: 4000 }, 'no painted frame → trust the saved position');
+        assertEq(GraphLayoutEngine.seedFor({ properties: {} }, frame), null, 'nothing to seed → null');
+    } finally { config = prev; }
 });

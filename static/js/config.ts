@@ -71,6 +71,7 @@ class ConfigManagerImpl {
     declare graphImprovedLayout: boolean;
     declare graphLayoutMode: string;
     declare graphCardinalLayout: boolean;
+    declare graphPhysicsNodeLimit: number;
     declare graphMapSpacing: number;
     declare graphMapSpacingAuto: boolean;
     declare graphRepelEnabled: boolean;
@@ -159,6 +160,9 @@ class ConfigManagerImpl {
         this.graphSpringConstant = parseFloat(await storage.getConfig('graph_spring_constant')) || 0.1;
         this.graphItemEdgeLength = parseInt(await storage.getConfig('graph_item_edge_length')) || 60;
         this.graphSolver = await storage.getConfig('graph_solver') || 'forceAtlas2Based';
+        // Above this many nodes physics is suppressed (task-768). Adjustable so a
+        // big world can be re-enabled deliberately; default is a safety valve.
+        this.graphPhysicsNodeLimit = parseInt(await storage.getConfig('graph_physics_node_limit')) || 8000;
         this.graphEdgeWidth = parseInt(await storage.getConfig('graph_edge_width')) || 1;
         this.graphArrows = (await storage.getConfig('graph_arrows')) !== 'false';
         this.graphImprovedLayout = (await storage.getConfig('graph_improved_layout')) === 'true';
@@ -383,6 +387,7 @@ class ConfigManagerImpl {
         await storage.setConfig('graph_spring_constant', String(this.graphSpringConstant));
         await storage.setConfig('graph_item_edge_length', String(this.graphItemEdgeLength));
         await storage.setConfig('graph_solver', this.graphSolver);
+        await storage.setConfig('graph_physics_node_limit', String(this.graphPhysicsNodeLimit));
         await storage.setConfig('graph_edge_width', String(this.graphEdgeWidth));
         await storage.setConfig('graph_arrows', this.graphArrows ? 'true' : 'false');
         await storage.setConfig('graph_improved_layout', this.graphImprovedLayout ? 'true' : 'false');

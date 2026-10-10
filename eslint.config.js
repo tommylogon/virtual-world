@@ -81,7 +81,7 @@ for (const name of [
     'CommandPalette', 'ContextWindowManager', 'CreateModal', 'DiffModal',
     'EdgeTypes', 'EmbeddingClient', 'EmotePicker', 'EventBus',
     'GraphContextMenu', 'GraphEventHandlers', 'GraphLayoutEngine',
-    'GraphNodeOps', 'GraphOverlays', 'GraphRelativeLayout', 'GraphTooltips',
+    'GraphNodeOps', 'GraphOverlays', 'GraphPhysics', 'GraphRelativeLayout', 'GraphTooltips',
     'GraphTreeView',
     'HumanTurnComposer', 'InspectorAgentView', 'InspectorAreaView',
     'InspectorBehaviors', 'InspectorItemView', 'InspectorLore',

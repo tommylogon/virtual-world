@@ -2147,19 +2147,23 @@ interface BackgroundState {
         }
     }
 
-    /** Re-apply physics for the current lock state, undoing our own freeze. */
+    /**
+     * Feed the node-layout lock into the one physics policy (task-765).
+     *
+     * Lock is an INPUT to GraphPhysics, not a place that writes the solver or the
+     * user's preference: locking holds positions, unlocking releases them, and the
+     * user's own on/off survives either way. The old `physicsDisabledByLock`
+     * bookkeeping existed only because two writers had to remember each other —
+     * the policy recomputes from the current lock state instead.
+     */
     function _applyLockState(network: GraphNetwork | null): void {
-        if (state.layoutLocked) {
-            if (network) network.setOptions({ physics: { enabled: false } });
-            if (typeof graphManager !== 'undefined' && graphManager) graphManager._physicsEnabled = false;
-            state.physicsDisabledByLock = true;
-        } else if (state.physicsDisabledByLock) {
-            // WE froze physics for the previous world's lock — undo it, so a new
-            // scenario doesn't inherit the old one's frozen layout.
-            if (network) network.setOptions({ physics: { enabled: true } });
-            if (typeof graphManager !== 'undefined' && graphManager) graphManager._physicsEnabled = true;
-            state.physicsDisabledByLock = false;
+        const gp = (window as unknown as { GraphPhysics?: { setLocked(l: boolean): void } }).GraphPhysics;
+        if (gp && typeof gp.setLocked === 'function') {
+            gp.setLocked(state.layoutLocked === true);
+            return;
         }
+        // Fallback only when physics.js has not loaded (should not happen).
+        if (network) network.setOptions({ physics: { enabled: !state.layoutLocked } });
     }
 
     /** The world was refetched: restore (or clear) this world's maps. */

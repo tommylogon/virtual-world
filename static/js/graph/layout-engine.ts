@@ -457,6 +457,71 @@
     },
 
     /**
+     * The bounding box of every painted cell in this node set, in the same frame
+     * as `gridPosition()` (cell × pitch). A saved canvas x/y outside this box is
+     * not a position in *this* world — it is a leftover from another frame (a
+     * whole-world physics layout at ~10⁴ scale, or bug-52's creep), and seeding a
+     * node onto it strands the node thousands of px from the area it belongs to
+     * and draws every `in` edge as a laser (task-769).
+     *
+     * @param {Object} nodesObj - id → graph node
+     * @returns {{minX:number,minY:number,maxX:number,maxY:number}|null}
+     */
+    paintedFrame(nodesObj: Record<string, any>) {
+        const LE = window.GraphLayoutEngine;
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity, any = false;
+        for (const id of Object.keys(nodesObj || {})) {
+            const props = (nodesObj[id] || {}).properties || {};
+            if (!LE.hasPaintedCoords(props)) continue;
+            const p = LE.gridPosition(props.cell);
+            if (!p) continue;
+            any = true;
+            if (p.x < minX) minX = p.x;
+            if (p.y < minY) minY = p.y;
+            if (p.x > maxX) maxX = p.x;
+            if (p.y > maxY) maxY = p.y;
+        }
+        return any ? { minX, minY, maxX, maxY } : null;
+    },
+
+    /**
+     * The one seed rule (task-769): *where does a node start?* This is the
+     * coordinate owner's job, not the physics policy's — physics decides whether
+     * the solver may move a node, this decides which frame its start is in.
+     *
+     *   - a painted cell → its grid position (cell × pitch), always;
+     *   - otherwise its saved canvas x/y, but ONLY when that coordinate falls in
+     *     the painted frame (a value outside it is from another frame);
+     *   - otherwise no seed: the node starts at the canvas default and the
+     *     relative layout / solver places it from its holder.
+     *
+     * @param {Object} nodeData
+     * @param {{minX:number,minY:number,maxX:number,maxY:number}|null} [frame]
+     * @returns {{x:number,y:number}|null}
+     */
+    seedFor(nodeData: any, frame?: { minX: number; minY: number; maxX: number; maxY: number } | null) {
+        const LE = window.GraphLayoutEngine;
+        const props = (nodeData && nodeData.properties) || {};
+        if (LE.hasPaintedCoords(props)) {
+            const p = LE.gridPosition(props.cell);
+            if (p) return p;
+        }
+        const x = props.x, y = props.y;
+        if (typeof x === 'number' && typeof y === 'number' && isFinite(x) && isFinite(y)) {
+            if (!frame) return { x, y };
+            // Two cells of slack: a loose node a step outside the painted area is
+            // still in-frame; 20 000 px out is a different world.
+            const margin = LE.mapSpacing() * 2;
+            if (x >= frame.minX - margin && x <= frame.maxX + margin
+                    && y >= frame.minY - margin && y <= frame.maxY + margin) {
+                return { x, y };
+            }
+            return null;
+        }
+        return null;
+    },
+
+    /**
      * The scope a compiled node belongs to. Areas and ways both store
      * `world_scope_id`; a gateway also carries `generated.scope_id`.
      * @param {Object} node
@@ -621,7 +686,12 @@
         const heldIn: Record<string, string[]> = {};
         const holderOf: Record<string, string> = {};
         for (const edge of edges) {
-            if (edge.type !== 'in') continue;
+            // `in` (item/char in a room), `on` (item resting on a surface) and
+            // `at` (item/char at a place) all anchor a loose node to an area.
+            // Reading only `in` left `on`/`at` nodes placed from their stale
+            // canvas coords — the same frame mismatch, one relation type later
+            // (task-769).
+            if (edge.type !== 'in' && edge.type !== 'on' && edge.type !== 'at') continue;
             const source = nodesObj[edge.source];
             const target = nodesObj[edge.target];
             if (!source || !target || target.type !== 'area') continue;
@@ -775,7 +845,7 @@
         const updates = window.GraphLayoutEngine._gridUpdates(nodesObj, nodesDS, offsets)
             .filter((u: any) => u && !frozen(u.id));
         nodesDS.update(updates);
-        window.GraphNetwork.applyModePhysics(false);
+        window.GraphPhysics.pause();
         // The solver is off for this placement pass only. The user's preference
         // (`graphManager._physicsEnabled`) is deliberately NOT cleared here: the
         // load path restores it when the user wants physics in Map mode, so the

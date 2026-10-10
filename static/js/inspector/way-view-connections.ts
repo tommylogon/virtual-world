@@ -69,12 +69,7 @@ window.InspectorWayViewConnections = (() => {
                 wvcApi.updateEdge(oppositeSource, wayId, { old_type: 'connection', properties: { cardinal: rev } })
             );
         }
-        Promise.all(updates).then(() => worldState.fetch()).then(() => {
-            if (window.graphManager && graphManager._cardinalLayout) {
-                graphManager._lastSig = '';
-                graphManager.loadGraphData();
-            }
-        });
+        Promise.all(updates).then(() => worldState.fetch());
     };
 
     C._parseConnections = function(connEdges: WVCEdge[], nodeId: string): WVCConnInfo {

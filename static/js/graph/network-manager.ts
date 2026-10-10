@@ -67,6 +67,113 @@ type RelLayoutWin = {
 // bootstrap), not at parse time. Unique per file so top-level consts never collide.
 const networkManagerHtmlTag = (strings: TemplateStringsArray, ...values: unknown[]): any => window.Lit.html(strings, ...values);
 
+// DEBUG (temporary, remove after the ordering audit): ordered load trace.
+// Numbered by call order, timestamped from the first trace call. Console only.
+const networkManagerTrace = (where: string, what: string): void => {
+    const w = window as unknown as { __vt0?: number; __vtn?: number };
+    if (w.__vt0 === undefined) w.__vt0 = performance.now();
+    w.__vtn = (w.__vtn || 0) + 1;
+    console.info('VWLOAD ' + String(w.__vtn).padStart(2, '0') + ' +'
+        + String(Math.round(performance.now() - w.__vt0)).padStart(6, ' ') + 'ms  '
+        + where + ' :: ' + what);
+};
+
+// DEBUG (temporary): wrap every graph-module method so ONE reload logs the real
+// call order + cost, without hand-picking phases. Only the first few calls of a
+// method are logged (order + nesting); beyond that it aggregates SILENTLY —
+// because a per-call console.info is far slower than the work itself, so logging
+// every call of a hot method MEASURES THE LOGGER, not the code (the first trace's
+// 6s `resolve` was inflated exactly that way). Read `window.__vtFlush()` for totals.
+const networkManagerTraceWrap = (): void => {
+    const W = window as unknown as Record<string, any>;
+    if (W.__vtWrappedOnce) return;
+    W.__vtWrappedOnce = true;
+    W.__vtd = 0;
+    const hot = (W.__vtHot = W.__vtHot || {}) as Record<string, { n: number; t: number; logged: number }>;
+    const LOG_PER_FN = 3;
+    const indent = (d: number): string => '  '.repeat(Math.min(d, 14));
+    const wrap = (obj: any, label: string): void => {
+        if (!obj || typeof obj !== 'object') return;
+        for (const k of Object.keys(obj)) {
+            const fn = obj[k];
+            if (typeof fn !== 'function' || fn.__vwWrapped) continue;
+            const name = label + '.' + k;
+            const w = function (this: unknown, ...args: unknown[]): unknown {
+                const h = hot[name] || (hot[name] = { n: 0, t: 0, logged: 0 });
+                h.n++;
+                const t0 = performance.now();
+                const logIt = h.logged < LOG_PER_FN;
+                if (logIt) { h.logged++; console.info('VW ' + indent(W.__vtd) + '▶ ' + name + '  @' + Math.round(t0)); W.__vtd++; }
+                const done = (): void => {
+                    const dt = performance.now() - t0;
+                    h.t += dt;
+                    if (logIt) { W.__vtd--; console.info('VW ' + indent(W.__vtd) + '◀ ' + name + '  +' + Math.round(dt) + 'ms'); }
+                };
+                let r: unknown;
+                try { r = fn.apply(this, args); }
+                catch (err) { done(); throw err; }
+                if (r && typeof (r as { then?: unknown }).then === 'function') {
+                    return (r as Promise<unknown>).then(
+                        (v: unknown) => { done(); return v; },
+                        (err: unknown) => { done(); throw err; });
+                }
+                done();
+                return r;
+            };
+            w.__vwWrapped = true; obj[k] = w;
+        }
+    };
+    for (const [label, obj] of [
+        ['GraphNetwork', W.GraphNetwork], ['GraphRelativeLayout', W.GraphRelativeLayout],
+        ['GraphLayoutEngine', W.GraphLayoutEngine], ['GraphPhysics', W.GraphPhysics],
+        ['GraphToolbar', W.GraphToolbar], ['GraphProjector', W.GraphProjector],
+        ['GraphOverlays', W.GraphOverlays], ['GraphBackground', W.GraphBackground],
+        ['GraphTooltips', W.GraphTooltips], ['GraphSeparation', W.GraphSeparation]
+    ] as [string, unknown][]) {
+        wrap(obj, label);
+    }
+    W.__vtFlush = (): string[] =>
+        Object.keys(hot).sort((a, b) => hot[b].t - hot[a].t)
+            .map((k) => k + '  n=' + hot[k].n + '  total=' + Math.round(hot[k].t) + 'ms');
+};
+(window as unknown as Record<string, unknown>).__vt = networkManagerTrace;
+(window as unknown as Record<string, unknown>).__vtWrap = networkManagerTraceWrap;
+
+// DEBUG (temporary): COST, not just order. A Long Task observer records every
+// main-thread block > 50ms the load spends its time in — the thing a per-call
+// console trace cannot show, because entry order is not where the time goes.
+// (The browser's own Performance panel still beats this for a real flamegraph;
+// this is the zero-effort version that lands in one console report.)
+const networkManagerPerfStart = (): void => {
+    const W = window as unknown as Record<string, any>;
+    if (W.__vtPerfOn) return;
+    W.__vtPerfOn = true;
+    W.__vtLong = [];
+    try {
+        const obs = new PerformanceObserver((list: any) => {
+            for (const e of list.getEntries()) {
+                W.__vtLong.push({ at: Math.round(e.startTime), dur: Math.round(e.duration) });
+                console.info('VWLONG +' + Math.round(e.startTime) + 'ms  dur=' + Math.round(e.duration) + 'ms');
+            }
+        });
+        obs.observe({ entryTypes: ['longtask'] });
+    } catch (e) { /* longtask unsupported */ }
+};
+(window as unknown as Record<string, unknown>).__vtPerfStart = networkManagerPerfStart;
+
+// DEBUG (temporary): print the load report — aggregated hot calls (count + total
+// ms) then the long tasks. Callable from the console too: window.__vtReport().
+const networkManagerReport = (): void => {
+    const W = window as unknown as Record<string, any>;
+    console.info('VWREPORT ===== load report =====');
+    console.info('VWREPORT -- aggregated (per-node/edge builders) --');
+    for (const line of (W.__vtFlush ? W.__vtFlush() : [])) console.info('VWREPORT   ' + line);
+    console.info('VWREPORT -- long tasks (main-thread blocks >50ms) --');
+    for (const l of (W.__vtLong || [])) console.info('VWREPORT   +' + l.at + 'ms  dur=' + l.dur + 'ms');
+    console.info('VWREPORT ===== end =====');
+};
+(window as unknown as Record<string, unknown>).__vtReport = networkManagerReport;
+
 // Item → parent attachment edge types: the child points AT its parent
 // (salt --[on]--> table, top --[equipped]--> char). These springs render
 // shorter so attached items cluster around the node that holds them.
@@ -164,11 +271,13 @@ function _firstSentence(text: unknown, maxLines: number): string {
      * and loads the initial graph data.
      */
     async init() {
+        networkManagerTrace('GraphNetwork.init', 'START');
         const container = document.getElementById('graph-container');
         if (!container) return;
 
         const options = GraphNetwork.buildOptions();
         graphManager.network = new vis.Network(container, { nodes: [], edges: [] }, options);
+        networkManagerTrace('GraphNetwork.init', 'vis.Network constructed (physics.enabled=' + !!options.physics?.enabled + ')');
         if ((window as unknown as RelLayoutWin).GraphRelativeLayout) (window as unknown as RelLayoutWin).GraphRelativeLayout!.attach(graphManager.network);
 
         // Create legend overlay (after vis.js so it doesn't get cleared)
@@ -189,6 +298,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
         graphManager._tagLibrary = null;
         container.appendChild(graphManager._tagPanelEl);
         GraphNetwork.ensureTagLibrary();
+        networkManagerTrace('GraphNetwork.init', 'legend + tag panel + tag library ready, events bound');
 
         graphManager.network.on("click", (params: any) => GraphEventHandlers.onClick(params));
         graphManager.network.on("doubleClick", (params: any) => GraphEventHandlers.onDoubleClick(params));
@@ -212,8 +322,20 @@ function _firstSentence(text: unknown, maxLines: number): string {
         // Scope offsets must be known before the first layout, or a moved zone
         // would render at its painted position until the next reload (task-523).
         await graphManager.loadScopeFilterOptions();
+        networkManagerTrace('GraphNetwork.init', 'scope options loaded');
+        // Restore the saved scope BEFORE the first load (task-749). Without this
+        // the first loadGraphData builds the WHOLE WORLD, the saved scope is
+        // applied a moment later, and the graph is rebuilt a second time — two
+        // full builds per refresh, which is why selecting a scope never made the
+        // load smaller: you were paying the whole-world cost first, every time.
+        graphManager._restoreScopeFilterOnce();
+        networkManagerTrace('GraphNetwork.init', 'scope restored: ' + (graphManager._scopeFilter || '*whole world*'));
         await GraphNetwork.loadGraphData();
-        setTimeout(() => GraphNetwork.fitView(), 100);
+        networkManagerTrace('GraphNetwork.init', 'FIRST loadGraphData returned');
+        setTimeout(() => { networkManagerTrace('GraphNetwork.init', 'fitView (fires 100ms after load)'); GraphNetwork.fitView(); }, 100);
+        // DEBUG (temporary): dump the load report 3s after the first load, once
+        // the long tasks from decoration/fitView have been observed.
+        setTimeout(() => { (window as unknown as { __vtReport?: () => void }).__vtReport?.(); }, 3000);
     },
 
     /**
@@ -249,26 +371,42 @@ function _firstSentence(text: unknown, maxLines: number): string {
     },
 
     /**
-     * The one place a layout switch pushes solver settings.
+     * Compatibility shim over the one physics policy (task-765). The decision and
+     * the `setOptions` write now live in GraphPhysics; callers that still speak a
+     * boolean are translated to the policy's two transients:
+     *   - `applyModePhysics(false)` = hold the solver off (a load/placement/kick
+     *     window) = GraphPhysics.pause();
+     *   - `applyModePhysics(true)` = release it = GraphPhysics.resume().
+     * New code should call GraphPhysics.pause()/resume()/apply() directly.
      *
-     * Every mode change needs `physics.enabled` to follow, and now `centralGravity`
-     * with it — which is why the scattered `setOptions({physics:{enabled}})` calls
-     * come through here rather than each re-deciding. (This area has already been
-     * bitten once: four silent re-enablers had to be fixed when Levels was added.)
-     *
-     * @param {boolean} enabled - whether the solver should run
+     * @param {boolean} enabled - false = hold off, true = release
      */
     applyModePhysics(enabled: boolean): void {
-        const gm = (typeof graphManager !== 'undefined' && graphManager) || null;
-        if (!gm || !gm.network || !gm.network.setOptions) return;
-        const cfg = config || ({} as ConfigManager);
-        const solver = cfg.graphSolver || 'forceAtlas2Based';
-        gm.network.setOptions({
-            physics: {
-                enabled: !!enabled,
-                [solver as string]: { centralGravity: GraphNetwork.centralGravityFor() }
-            }
-        });
+        if (enabled) GraphPhysics.resume();
+        else GraphPhysics.pause();
+    },
+
+    /**
+     * Above this many nodes the force solver is suppressed (task-768). The graph
+     * layer must serve a 10-area adventure and a whole-world graph, not one tuned
+     * size; past the limit physics is the wrong tool and positions must come from
+     * saved layout or the painted grid instead.
+     */
+    PHYSICS_NODE_LIMIT: 8000,
+
+    /** True when the live graph exceeds PHYSICS_NODE_LIMIT (task-768). */
+    nodesOverPhysicsLimit(): boolean {
+        let count = 0;
+        try {
+            const nd = graphManager && graphManager.network && graphManager.network.body
+                && graphManager.network.body.data && graphManager.network.body.data.nodes;
+            count = (nd && typeof nd.length === 'number') ? nd.length
+                : (graphManager && graphManager.nodes ? graphManager.nodes.size : 0);
+        } catch (e) { return false; }
+        const cfg = (typeof config !== 'undefined' && config) || null;
+        const limit = cfg && Number.isFinite(Number(cfg.graphPhysicsNodeLimit)) && Number(cfg.graphPhysicsNodeLimit) > 0
+            ? Number(cfg.graphPhysicsNodeLimit) : GraphNetwork.PHYSICS_NODE_LIMIT;
+        return count > limit;
     },
 
     /**
@@ -311,7 +449,9 @@ function _firstSentence(text: unknown, maxLines: number): string {
             : { forceAtlas2Based: { gravitationalConstant: cfg.graphGravitationalConstant ?? -8, centralGravity: gravity, springLength: spring(120), springConstant: cfg.graphSpringConstant ?? 0.1, damping: cfg.graphDamping ?? 0.4 } };
         return {
             physics: {
-                enabled: !levels, solver,
+                // The decision is the policy's (task-765), so the options the
+                // Network is constructed with agree with every later apply.
+                enabled: GraphPhysics.shouldRun(), solver,
                 ...physicsBase,
                 stabilization: { iterations: 100, fit: false }
             },
@@ -528,13 +668,12 @@ function _firstSentence(text: unknown, maxLines: number): string {
     applyGraphSettings(rebuild = false) {
         if (!graphManager.network) return;
         const levelsOn = ((typeof config !== 'undefined' && config && config.graphLayoutMode) || 'free') === 'levels';
-        graphManager._physicsEnabled = !levelsOn;
+        // The solver state is the policy's to decide (GraphPhysics.shouldRun),
+        // reached through GraphPhysics.apply() below. This used to write
+        // `_physicsEnabled = !levelsOn` here, which stomped a user's saved
+        // "physics off" the moment any graph setting changed (task-765).
         graphManager.network.setOptions(GraphNetwork.buildOptions());
-        if (!levelsOn && graphManager._physicsEnabled) {
-            try {
-                graphManager.network.startSimulation();
-            } catch (err) { /* ignore — already running */ }
-        }
+        GraphPhysics.apply();
         if (!rebuild) {
             // Edge rest lengths and the overlap guard live outside the solver's
             // options: lengths are stamped per edge in the dataset (attachments
@@ -584,6 +723,35 @@ function _firstSentence(text: unknown, maxLines: number): string {
     },
 
     /**
+     * The per-node identity used to decide when a reload is needed and, in
+     * syncGraphData(), whether one node changed (task-764).
+     *
+     * Must include the RESOLVED character avatar (current emotion -> profile),
+     * not just `properties.image`: an emotion change or a profile-only upload
+     * leaves `image` untouched, and a stale projection would keep the node on
+     * the previous face or hide a change that needs an in-place update.
+     *
+     * Deliberately excludes prose (description/personality) that the graph does
+     * not draw, so editing it never costs a node update.
+     */
+    _nodeProjection(id: string, nodeData: any): string {
+        const avatar = (window as unknown as RelLayoutWin).CharacterArt
+            ? (window as unknown as RelLayoutWin).CharacterArt!.avatarFor(nodeData.properties, (window as unknown as RelLayoutWin).CharacterArt!.emotionKeyForName(nodeData.name))
+            : (nodeData.properties?.image || '');
+        const cell = nodeData.properties?.cell;
+        const cellKey = cell && Number.isFinite(Number(cell.x)) && Number.isFinite(Number(cell.y)) ? `${cell.x},${cell.y}` : '';
+        return `${id}:${nodeData.type}:${nodeData.properties?.current_state || ''}:${nodeData.properties?.central_gravity_enabled !== false}:${nodeData.properties?.layout_static === true}:${cellKey}:${avatar}`;
+    },
+
+    /** The edge-set signature: identity of every edge, order-independent. */
+    _edgeSig(edgesArr: any[]): string {
+        return (edgesArr || [])
+            .map((edgeObj: any) => `${edgeObj.source}:${edgeObj.target}:${edgeObj.type}:${edgeObj.properties?.description || ''}`)
+            .sort()
+            .join('|');
+    },
+
+    /**
      * Fetches node and edge data from the API and updates the vis.js network.
      * Includes a signature-based deduplication to skip redundant reloads,
      * preserves node positions when possible, and applies cardinal layout
@@ -620,24 +788,23 @@ function _firstSentence(text: unknown, maxLines: number): string {
                 edgesArr = await (ApiClient as unknown as { getGraphEdges(): Promise<any> }).getGraphEdges();
             }
 
-            // Skip reload if graph structure hasn't changed (avoids jitter on tick updates).
-            // The signature must include the RESOLVED character avatar (current
-            // emotion -> profile), not just `properties.image`: an emotion change
-            // or a profile-only upload leaves `image` untouched, and a stale
-            // signature would then keep the node on the previous face.
+            // Skip reload if graph structure hasn't changed (avoids jitter on
+            // tick updates). The per-node projection is also captured into
+            // `_nodeProj`, and the edge signature into `_lastEdgeSig`, so
+            // GraphNetwork.syncGraphData() can tell a property-only change
+            // (one node, update it in place) from a structural one (reload).
+            const projMap: Record<string, string> = {};
             const nodeSig = Object.entries(nodesObj)
                 .sort(([a], [b]) => a.localeCompare(b))
                 .map(([id, nodeData]: [string, any]) => {
-                    const avatar = (window as unknown as RelLayoutWin).CharacterArt
-                        ? (window as unknown as RelLayoutWin).CharacterArt!.avatarFor(nodeData.properties, (window as unknown as RelLayoutWin).CharacterArt!.emotionKeyForName(nodeData.name))
-                        : (nodeData.properties?.image || '');
-                    return `${id}:${nodeData.type}:${nodeData.properties?.current_state || ''}:${nodeData.properties?.central_gravity_enabled !== false}:${avatar}`;
+                    const projection = GraphNetwork._nodeProjection(id, nodeData);
+                    projMap[id] = projection;
+                    return projection;
                 })
                 .join('|');
-            const edgeSig = edgesArr
-                .map((edgeObj: any) => `${edgeObj.source}:${edgeObj.target}:${edgeObj.type}:${edgeObj.properties?.description || ''}`)
-                .sort()
-                .join('|');
+            graphManager._nodeProj = projMap;
+            const edgeSig = GraphNetwork._edgeSig(edgesArr);
+            graphManager._lastEdgeSig = edgeSig;
             const sig = `${graphManager._scopeFilter || '*'}|${nodeSig}|${edgeSig}`;
             if (sig === graphManager._lastSig) return;
             graphManager._lastSig = sig;
@@ -687,10 +854,17 @@ function _firstSentence(text: unknown, maxLines: number): string {
             // applyVisibility(), so toggles never need a full setData() rebuild
             // (which was causing zoom/pan loss + jitter). Build every node here.
 
+            // The painted frame (task-769): the bounding box of every cell × pitch
+            // in this node set. buildNodeConfig uses it to reject a saved x/y that
+            // belongs to another frame, which is what stranded items/triggers/
+            // characters 20 000 px from their areas and stretched their edges.
+            const seedFrame = (GraphLayoutEngine as any)?.paintedFrame
+                ? (GraphLayoutEngine as any).paintedFrame(nodesObj)
+                : null;
             for (const id in nodesObj) {
                 const nodeData = nodesObj[id];
                 graphManager.nodes.set(id, nodeData);
-                visNodes.push(this.buildNodeConfig(nodeData));
+                visNodes.push(this.buildNodeConfig(nodeData, seedFrame));
             }
 
             const renderedConnectionPairs = new Set<string>();
@@ -837,9 +1011,15 @@ function _firstSentence(text: unknown, maxLines: number): string {
             }
             // Disable physics during data swap to avoid jitter
             const levelsOn = ((typeof config !== 'undefined' && config && config.graphLayoutMode) || 'free') === 'levels';
-            const wasPhysics = graphManager._physicsEnabled && !levelsOn;
-            GraphNetwork.applyModePhysics(false);
+            GraphPhysics.pause();
             graphManager.network.setData({ nodes: visNodes, edges: visEdges });
+            // setData() re-emits initPhysics and can re-enable the solver behind
+            // our back (bug-534): the disable above is not enough, so re-assert it
+            // for the whole placement window. Until `apply()` below has placed the
+            // content relative to its holder, free nodes are unpositioned, and a
+            // live solver flings them out — stretching every edge until it
+            // converges. That was the intermittent load slowness/edge stretch.
+            GraphNetwork.applyModePhysics(false);
             // Restore positions only for nodes that still exist
             const newNodeIds = new Set(visNodes.map(nodeConfig => nodeConfig.id));
             for (const [id, pos] of Object.entries(savedPositions) as [string, { x: number; y: number }][]) {
@@ -877,7 +1057,11 @@ function _firstSentence(text: unknown, maxLines: number): string {
         // their edges across the map (the follow timer sleeps itself when
         // physics is off, so there is no steady-state cost to leave it on).
         if ((window as unknown as RelLayoutWin).GraphRelativeLayout) {
-            try { (window as unknown as RelLayoutWin).GraphRelativeLayout!.apply(); } catch (err) { /* ignore */ }
+            try {
+                // A fresh load re-arms the once-per-layout seed, then applies it.
+                (window as unknown as RelLayoutWin).GraphRelativeLayout!.reseed();
+                (window as unknown as RelLayoutWin).GraphRelativeLayout!.apply();
+            } catch (err) { /* ignore */ }
         }
 
 
@@ -889,10 +1073,11 @@ function _firstSentence(text: unknown, maxLines: number): string {
             // simulates items and characters — the rooms stay on their cells and
             // the background art keeps lining up. Locking the node layout (🔒 in
             // the background menu) still wins over both.
-            if (wasPhysics) {
-                graphManager._physicsEnabled = true;
-                GraphNetwork.applyModePhysics(true);
-            }
+            // NOTE: the solver is deliberately NOT resumed here. The placement
+            // window stays open through the per-node decoration passes below
+            // (visibility, tippy tooltips, label icons/LOD), so vis's animation
+            // loop does not contend with them on the main thread. GraphPhysics.
+            // resume() runs once everything is placed AND decorated (below).
 
             // Put the camera back where the user had it (setData's internal
             // stabilization re-fit it to the whole graph; positions were restored
@@ -921,6 +1106,14 @@ function _firstSentence(text: unknown, maxLines: number): string {
             // Now that labels are decorated, apply the zoom-LOD decision.
             GraphNetwork.applyNodeLabelVisibility(true);
 
+            // Everything is placed AND decorated: release the placement window.
+            // The policy reads the user's own preference (seeded from the engine
+            // config before this load, task-765), so a saved "physics off" stays
+            // off rather than being forced back on. Resuming here — not before the
+            // decoration passes — keeps the solver's animation loop from fighting
+            // the per-node work above for the main thread.
+            GraphPhysics.resume();
+
             // Refresh floor picker options from areas now present
             graphManager.refreshFloorOptions();
 
@@ -940,9 +1133,115 @@ function _firstSentence(text: unknown, maxLines: number): string {
             // The toolbar's loaded-node stat reads _graphNodesObj, so repaint it
             // only now that the new dataset is in place (task-530).
             if ((window as unknown as RelLayoutWin).GraphToolbar) GraphToolbar.syncAll();
+
+            // DEBUG (temporary): the per-function totals, in the trace itself
+            // (no need to call __vtReport by hand).
+            try {
+                const flush = (window as unknown as { __vtFlush?: () => string[] }).__vtFlush;
+                if (flush) for (const line of flush()) console.info('VWHOT ' + line);
+            } catch (err) { /* ignore */ }
         } catch (err) {
             console.warn("Graph API unavailable:", err);
         }
+    },
+
+    /**
+     * Re-sync the live graph from state the UI already holds, WITHOUT a refetch
+     * or a dataset rebuild (task-764).
+     *
+     * The `/api/state` payload already carries the graph, so a tick or an
+     * inspector edit that changed only node PROPERTIES — a character's
+     * `current_state`, an emotion/avatar, a pinned flag, a cell, a name — must
+     * not pay a world fetch, a `setData()`, a re-relayout and a camera refit.
+     * Those property changes are the ones that fire many times a minute, and
+     * they are what this exists to keep cheap.
+     *
+     * A change to the node OR edge SET (a node/edge added or removed, a way
+     * reconnected) replaces the dataset, so that path falls back to
+     * `loadGraphData()`. That is rare and deliberate, unlike a state tick.
+     *
+     * A scoped view is a subgraph while the payload is the whole world, so a
+     * node the view does not hold may simply be out of scope and is never
+     * added here; a node the view DOES hold that vanished from the payload was
+     * deleted, and still forces the reload.
+     */
+    syncGraphData() {
+        const gm = graphManager;
+        if (!gm || !gm.network) return;
+        const loaded = gm._graphNodesObj;
+        if (!loaded || !Object.keys(loaded).length) return;
+        const next = (typeof worldState !== 'undefined' && worldState) ? worldState.graph : null;
+        if (!next || !next.nodes) return;
+        const scoped = !!gm._scopeFilter;
+
+        // Whole-world view: the payload and the view share a node/edge set, so
+        // a changed set is a real structural change. A scoped view is a slice,
+        // so only a vanished node can be detected here (below).
+        if (!scoped) {
+            if (GraphNetwork._edgeSig(next.edges || []) !== gm._lastEdgeSig) {
+                gm._lastSig = '';
+                GraphNetwork.loadGraphData();
+                return;
+            }
+            if (Object.keys(next.nodes).length !== Object.keys(loaded).length) {
+                gm._lastSig = '';
+                GraphNetwork.loadGraphData();
+                return;
+            }
+        }
+
+        const body = gm.network.body;
+        const nodesDS = body && body.data && body.data.nodes;
+        if (!nodesDS) return;
+
+        const frame = (GraphLayoutEngine as any)?.paintedFrame
+            ? (GraphLayoutEngine as any).paintedFrame(next.nodes)
+            : null;
+
+        const updates: any[] = [];
+        const nextProj: Record<string, string> = {};
+        for (const id in loaded) {
+            const nextNode = next.nodes[id];
+            if (!nextNode) {
+                // A node the view holds is gone from the payload — structural.
+                gm._lastSig = '';
+                GraphNetwork.loadGraphData();
+                return;
+            }
+            const projection = GraphNetwork._nodeProjection(id, nextNode);
+            nextProj[id] = projection;
+            if (projection !== (gm._nodeProj && gm._nodeProj[id])) {
+                updates.push(GraphNetwork.buildNodeConfig(nextNode, frame));
+            }
+        }
+
+        gm._nodeProj = nextProj;
+        if (scoped) {
+            // A scoped view holds a SUBGRAPH while the payload is the whole
+            // world, so it must NOT adopt the whole-world node map as its
+            // loaded set (that is what `_graphNodesObj` is, and what the
+            // toolbar counts). Doing so makes the NEXT sync treat every world
+            // node as "loaded", build a config for each, and pour the whole
+            // world into the scope's dataset — the scope silently disappears.
+            // Keep the scope's node set and only refresh the data it points at.
+            for (const id in loaded) {
+                const fresh = next.nodes[id];
+                if (fresh) loaded[id] = fresh;
+            }
+        } else {
+            gm._graphNodesObj = next.nodes;
+        }
+        // Any later structural change must not be masked by a stale reload hash.
+        gm._lastSig = '';
+        if (!updates.length) return;
+
+        // One batched DataSet pass — the labels/icons and visibility were
+        // derived from the OLD node data, so re-apply them for the change.
+        nodesDS.update(updates);
+        GraphNetwork._applyNodeLabelDecorations();
+        GraphNetwork.applyVisibility();
+        GraphNetwork.applyNodeLabelVisibility();
+        if ((window as unknown as RelLayoutWin).GraphToolbar) GraphToolbar.syncAll();
     },
 
     /**
@@ -1102,10 +1401,9 @@ function _firstSentence(text: unknown, maxLines: number): string {
      * label is fixed ("⏸ Physics") and its state is aria-pressed; the toolbar
      * disables it with a reason when a layout or overlay owns positions.
      */
+    /** Alias of the one toggle (task-765): GraphPhysics owns the flip + persist. */
     togglePhysics() {
-        graphManager._physicsEnabled = !graphManager._physicsEnabled;
-        GraphNetwork.applyModePhysics(graphManager._physicsEnabled);
-        if ((window as unknown as RelLayoutWin).GraphToolbar) GraphToolbar.syncAll();
+        GraphPhysics.toggleUserEnabled();
     },
 
     /**
@@ -1188,6 +1486,16 @@ function _firstSentence(text: unknown, maxLines: number): string {
     },
 
     /**
+     * The per-node "is this node's position fixed by author/paint" rule now lives
+     * in GraphPhysics.nodePinned (task-765/766), so the node level and the graph
+     * level of the same decision cannot disagree. Kept as a delegate for existing
+     * callers.
+     */
+    isNodePinned(nodeData: any): boolean {
+        return GraphPhysics.nodePinned(nodeData);
+    },
+
+    /**
      * Builds a vis.js node config object for a node from its raw graph data.
      * Centralized so reveal-on-click can reuse the same label/tooltip/color
      * styling the main load path uses.
@@ -1195,7 +1503,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
      * @param {Object} nodeData - raw node data from the graph
      * @returns {Object} vis.js node configuration
      */
-    buildNodeConfig(nodeData: any): any {
+    buildNodeConfig(nodeData: any, frame?: { minX: number; minY: number; maxX: number; maxY: number } | null): any {
         const nodeConfig: Record<string, any> = {
             id: nodeData.id,
             label: typeof NodeBadges !== 'undefined'
@@ -1206,13 +1514,10 @@ function _firstSentence(text: unknown, maxLines: number): string {
             // to vis-network's native (plain-text) title when tippy is absent,
             // so the two never show at once.
             title: typeof tippy === 'undefined' ? GraphNetwork.buildTooltip(nodeData) : undefined,
-            // The solver has no central gravity (see buildOptions), so a node in
-            // it is held by its own edges rather than dragged to the middle. This
-            // flag is therefore a straight "simulate this node or pin it": the
-            // inspector's Physics-enabled off, or an explicit layout_static
-            // (task-485). Off applies to every node type.
-            physics: nodeData.properties?.central_gravity_enabled !== false
-                && nodeData.properties?.layout_static !== true,
+            // Physics is decided once, after the seed below (task-765/766): a node
+            // is pinned when the author froze it, or when it carries a painted cell
+            // coordinate. The solver has no central gravity (see buildOptions), so
+            // this flag is a straight "simulate this node or hold it in place".
             // Per-node shape (groups no longer define shape — see options.groups).
             // The image branch below overrides this with circularImage.
             shape: ({ area: 'box', item: 'diamond', way: 'triangle', character: 'ellipse' } as Record<string, string>)[nodeData.type] || 'ellipse'
@@ -1228,22 +1533,19 @@ function _firstSentence(text: unknown, maxLines: number): string {
             nodeConfig.widthConstraint = { maximum: LE.markCardMax() * GraphNetwork.nodeSizeScale() };
         }
 
-        // Seed the position: a painted node from its cell × pitch (the map frame),
-        // a hand-placed node from its saved canvas x/y. `_gridUpdates` re-places
-        // painted nodes on load anyway; seeding from the cell avoids a one-frame
-        // jump from the compiler's `cell × 40` copy.
-        const seedCell = nodeData.properties?.cell;
-        if (inMap && LE && LE.gridPosition
-                && seedCell && Number.isFinite(Number(seedCell.x)) && Number.isFinite(Number(seedCell.y))) {
-            const seeded = LE.gridPosition(seedCell);
-            if (seeded) { nodeConfig.x = seeded.x; nodeConfig.y = seeded.y; }
-        } else if (typeof nodeData.properties?.x === 'number' && typeof nodeData.properties?.y === 'number') {
-            // Saved layout: a node whose x/y were persisted to the world
-            // (right-click → 🗺 → 💾 Save layout) loads back in place instead of
-            // being freshly simulated. Whether it then HOLDS is the physics lock.
-            nodeConfig.x = nodeData.properties.x;
-            nodeConfig.y = nodeData.properties.y;
-        }
+        // Seed the position through the one coordinate rule (GraphLayoutEngine.
+        // seedFor, task-769): a painted cell always seeds to cell × pitch; a
+        // cell-less node seeds from its saved canvas x/y ONLY when that value is
+        // inside the painted frame. A leftover from another frame (a whole-world
+        // physics layout, or bug-52's creep) is dropped rather than stranding the
+        // node thousands of px from its area and stretching every edge to it.
+        // Whether the node then HOLDS is the physics flag set just below.
+        const seed = LE && LE.seedFor ? LE.seedFor(nodeData, frame) : null;
+        if (seed) { nodeConfig.x = seed.x; nodeConfig.y = seed.y; }
+
+        // One rule for "simulate or hold" (task-765/766): author-frozen, or a
+        // painted cell coordinate. The seed above only supplies x/y.
+        nodeConfig.physics = !GraphNetwork.isNodePinned(nodeData);
 
         // Way nodes: color by state
         if (nodeData.type === 'way') {
@@ -1471,12 +1773,20 @@ function _firstSentence(text: unknown, maxLines: number): string {
     _applyNodeLabelDecorations() {
         const nodes = graphManager.network?.body?.data?.nodes;
         if (!nodes || typeof NodeBadges === 'undefined') return;
+        // ONE batched update, never one-per-node. vis's `DataSet.update()` fires
+        // an update + a full-graph redraw per CALL, so `nodes.update({...})` inside
+        // this loop was ~2763 redraws of a 2763-node/6340-edge graph — the 108s
+        // freeze. It only bit on the second pass, once the tag library had loaded
+        // and every label actually changed (the first pass changed nothing, so it
+        // measured 61ms). Collect the changed rows and update the set once.
+        const updates: Array<{ id: string; label: string; decoratedLabel: boolean }> = [];
         nodes.forEach((node: any) => {
             const nodeData = graphManager.nodes.get(node.id);
             if (!nodeData) return;
             const label = NodeBadges.formatLabel(nodeData, GraphNetwork._tagMetaFor(nodeData));
-            if (node.label !== label) nodes.update({ id: node.id, label, decoratedLabel: true });
+            if (node.label !== label) updates.push({ id: node.id, label, decoratedLabel: true });
         });
+        if (updates.length) nodes.update(updates);
     },
 
     /** @deprecated Use _applyNodeLabelDecorations */
@@ -1542,6 +1852,10 @@ function _firstSentence(text: unknown, maxLines: number): string {
         const nodes = graphManager.network?.body?.data?.nodes;
         if (!nodes) return;
         const filter = graphManager._tagFilter;
+        // Batched, same reason as _applyNodeLabelDecorations: a per-node
+        // `nodes.update()` redraws the whole graph each call, so filtering by a
+        // tag used to cost one full redraw per node (task-perf).
+        const updates: Array<{ id: string; opacity: number }> = [];
         nodes.forEach((node: any) => {
             const nodeData = graphManager.nodes.get(node.id);
             let match = !filter;
@@ -1549,8 +1863,9 @@ function _firstSentence(text: unknown, maxLines: number): string {
                 match = GraphNetwork._tagMetaFor(nodeData).some((m: any) => m.tag === filter);
             }
             const opacity = match ? 1.0 : 0.15;
-            if (node.opacity !== opacity) nodes.update({ id: node.id, opacity });
+            if (node.opacity !== opacity) updates.push({ id: node.id, opacity });
         });
+        if (updates.length) nodes.update(updates);
     },
 
     /**
@@ -1664,12 +1979,10 @@ function _firstSentence(text: unknown, maxLines: number): string {
      */
     _clearOverlay() {
         graphManager._lastSig = '';
-        GraphNetwork.applyModePhysics(false);
+        GraphPhysics.pause();
         GraphNetwork.loadGraphData();
-        const levelsOn = ((typeof config !== 'undefined' && config && config.graphLayoutMode) || 'free') === 'levels';
-        if (graphManager._physicsEnabled && !levelsOn) {
-            GraphNetwork.applyModePhysics(true);
-        }
+        // The policy decides the final state — a saved "physics off" stays off.
+        GraphPhysics.apply();
     },
 
     /**
@@ -1803,8 +2116,10 @@ function _firstSentence(text: unknown, maxLines: number): string {
      */
     applyOverlay(mode: string): void {
         if (!graphManager.network) { console.warn('Graph not initialized'); return; }
-        GraphNetwork.applyModePhysics(false);
         graphManager._overlayMode = mode;
+        // No boolean here: whether physics runs while an overlay is on is the
+        // policy's decision (GraphPhysics.shouldRun reads the overlay state).
+        GraphPhysics.apply();
 
         if (mode === 'structural') {
             GraphNetwork._clearOverlay();

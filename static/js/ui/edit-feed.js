@@ -81,10 +81,6 @@ const EditFeed = (() => {
                     toastError('Undo failed: ' + data.error);
                     return;
                 }
-                try {
-                    graphManager.loadGraphData();
-                }
-                catch (e) { }
                 worldState.fetch();
                 if (typeof toastInfo === 'function')
                     toastInfo('Undid: ' + label + '.');

@@ -129,6 +129,8 @@ class GraphManagerImpl {
     declare nodes: Map<string, GraphManagerNodeData>;
     declare _contextTarget: GraphManagerContextTarget;
     declare _lastSig: string;          // hash to skip redundant reloads
+    declare _nodeProj: Record<string, string> | null;  // task-764: per-node signature for in-place sync
+    declare _lastEdgeSig: string;      // task-764: edge-set signature (reload vs in-place sync)
     declare _scopeFilter: string | null;    // task-397: load one world scope at a time
     declare _scopeRestoreAttempted: boolean; // task-749: restore the saved scope once per load
     declare _scopeOffsets: Record<string, { x?: number; y?: number } | null>; // task-523
@@ -181,6 +183,8 @@ class GraphManagerImpl {
         this.nodes = new Map();
         this._contextTarget = null;
         this._lastSig = '';          // hash to skip redundant reloads
+        this._nodeProj = null;       // task-764
+        this._lastEdgeSig = '';      // task-764
         this._scopeFilter = null;    // task-397: load one world scope at a time
         this._scopeRestoreAttempted = false; // task-749
         this._scopeOffsets = {};     // task-523: scopeId -> {x,y} map offset (cells)
@@ -227,9 +231,20 @@ class GraphManagerImpl {
     }
 
     async init() {
+        // DEBUG (temporary): wrap graph methods (call order) + start the long-task
+        // observer (cost) before anything graph runs.
+        const dbg = window as unknown as { __vtWrap?: () => void; __vtPerfStart?: () => void };
+        dbg.__vtWrap?.();
+        dbg.__vtPerfStart?.();
+        // Read the saved engine config FIRST (task-765): the physics on/off
+        // preference must be seeded before the first load builds the Network, or
+        // a saved "off" is applied only after the expensive physics has already
+        // run — and the toggle looks broken on reload. It only sets state fields
+        // here; the live network does not exist yet, so its apply calls are
+        // skipped and loadGraphData below reads the preference.
+        await this._applyEngineConfigDefaults();
         await GraphNetwork.init();
         if (window.GraphBackground) await window.GraphBackground.init();
-        await this._applyEngineConfigDefaults();
         // bug-510: config._initPromise resolved before init() runs (main.js), so
         // the persisted Map choice is available here even if the constructor saw
         // a pre-load default.
@@ -449,9 +464,9 @@ class GraphManagerImpl {
                 this._physicsEnabled = !!values['graph.physics_enabled'];
                 // Hierarchical mode owns positions: the solver would drag nodes
                 // off their levels, so the stored preference is not applied there.
-                const on = this._physicsEnabled && !this._levelsMode();
+                // The policy decides the rest (GraphPhysics.shouldRun, task-765).
                 if (this.network) {
-                    GraphNetwork.applyModePhysics(on);
+                    GraphPhysics.apply();
                 }
             }
             if ('graph.show_items' in values) {
@@ -629,7 +644,7 @@ class GraphManagerImpl {
     toggleCardinalLayout() {
         if (this._levelsMode()) {
             if (typeof toastError === 'function') {
-                toastError('Map is unavailable while Levels owns the layout — pick Graph first, then Map.');
+                toastError('Map is unavailable while Hierarchical owns the layout — pick Graph first, then Map.');
             }
             return false;
         }
@@ -650,6 +665,18 @@ class GraphManagerImpl {
         this._restoreScopeFilterOnce();
         this._clearBulkSelection();
         return GraphNetwork.loadGraphData();
+    }
+
+    /**
+     * Bring the live graph up to date from the state the UI already holds,
+     * WITHOUT a refetch or a rebuild (task-764). This is the graph's update
+     * path on every state change — a property-only change updates one node in
+     * place; only a change to the node/edge set falls back to loadGraphData().
+     * Full loads are reserved for scenario load/reset, a scope switch and a
+     * layout-mode switch.
+     */
+    syncGraphData() {
+        return GraphNetwork.syncGraphData();
     }
 
     /**
@@ -1249,10 +1276,9 @@ class GraphManagerImpl {
     }
 
     togglePhysics() {
-        graphManager._physicsEnabled = !graphManager._physicsEnabled;
-        GraphNetwork.applyModePhysics(graphManager._physicsEnabled);
-        if (window.GraphToolbar) GraphToolbar.syncAll();
-        graphManager._saveGraphConfigKey('graph.physics_enabled', graphManager._physicsEnabled);
+        // One toggle, one owner (task-765): GraphPhysics flips _physicsEnabled,
+        // applies the policy and persists the choice.
+        GraphPhysics.toggleUserEnabled();
     }
 
     /** Free physics layout <-> vis hierarchical levels (task-485). */
@@ -1401,19 +1427,22 @@ class GraphManagerImpl {
             // Disengage cardinal layout first so loadGraphData doesn't re-apply it
             if (this._cardinalLayout) {
                 this._cardinalLayout = false;
-                this._physicsEnabled = true;
+                // NOTE: leaving Map does NOT force the user's physics back on
+                // (task-765). The preference is theirs; the policy reads it.
                 this._persistCardinalLayout();   // bug-510: the choice is real
             }
             if (this.network) {
                 GraphNetwork.applyOverlay('structural');
-                GraphNetwork.applyModePhysics(this._physicsEnabled && !this._levelsMode());
+                GraphPhysics.apply();
                 this.fitView();
             }
         } else if (overlayModes.includes(mode)) {
             if (visEl) visEl.style.display = '';
             if (this.network) {
-                GraphNetwork.applyModePhysics(false);
+                // _viewMode is already `mode`, so the policy sees the overlay and
+                // holds the solver — no boolean to pass.
                 GraphNetwork.applyOverlay(mode);
+                GraphPhysics.apply();
             }
         }
         if (window.GraphToolbar) GraphToolbar.syncAll();

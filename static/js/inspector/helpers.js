@@ -34,7 +34,12 @@ const InspectorHelpersModule = (() => {
      * @returns {TemplateResult}
      */
     H.graphGravityControl = function (nodeId, props = {}) {
-        const enabled = props.central_gravity_enabled !== false && props.layout_static !== true;
+        // Reflect the EFFECTIVE physics, not the stored flag: a painted node is
+        // pinned at build time, so the switch must show that too (task-766).
+        const GN = window.GraphNetwork;
+        const enabled = !(GN && typeof GN.isNodePinned === 'function'
+            ? GN.isNodePinned({ properties: props })
+            : (props.central_gravity_enabled === false || props.layout_static === true));
         const num = (value) => (Number(value) > 0 ? Number(value) : '');
         return htmlTag `<div class="inspector-section">
             <h3>Graph Physics</h3>
@@ -85,10 +90,9 @@ const InspectorHelpersModule = (() => {
         const relativeLayout = window.GraphRelativeLayout;
         if (relativeLayout)
             relativeLayout.reseed();
+        // worldState.fetch() emits 'update' → main.ts routes it to
+        // graphManager.syncGraphData(): the node updates in place, no reload.
         await worldState.fetch();
-        if (graphManager) {
-            graphManager.loadGraphData();
-        }
     };
     /**
      * The inspector's "Physics enabled" switch for a node.
@@ -109,13 +113,12 @@ const InspectorHelpersModule = (() => {
             console.warn(`Could not update graph physics for node ${nodeId}`);
             return;
         }
-        const relativeLayout = window.GraphRelativeLayout;
-        if (relativeLayout)
-            relativeLayout.reseed();
+        // worldState.fetch() emits 'update' → main.ts routes it to
+        // graphManager.syncGraphData(): the node updates in place, no reload.
+        // No reseed: a per-node pin does not change the derived parent/depth
+        // caches, and re-arming the seed would snap every settled node back onto
+        // its ring (task-764 follow-up).
         await worldState.fetch();
-        if (graphManager) {
-            graphManager.loadGraphData();
-        }
     };
     /**
      * Add a parameter key-value pair to a node (reads from #param-key-{nodeId}, #param-val-{nodeId})
@@ -374,11 +377,10 @@ const InspectorHelpersModule = (() => {
         }
         events.log('Image set.', 'system-msg');
         H._refreshImagePreview(nodeId, res.image || '');
-        if (graphManager)
-            graphManager._lastSig = '';
+        // The graph follows state: worldState.fetch() emits 'update', which
+        // main.ts routes to graphManager.syncGraphData() — an in-place node
+        // update, not a reload (task-764).
         worldState.fetch();
-        if (graphManager)
-            graphManager.loadGraphData();
     };
     /**
      * Bind an explicit image URL/path to a node (from the URL text input).
@@ -394,11 +396,10 @@ const InspectorHelpersModule = (() => {
         await api.updateNode(nodeId, { properties: { image: url } });
         events.log('Image URL set.', 'system-msg');
         H._refreshImagePreview(nodeId, url);
-        if (graphManager)
-            graphManager._lastSig = '';
+        // The graph follows state: worldState.fetch() emits 'update', which
+        // main.ts routes to graphManager.syncGraphData() — an in-place node
+        // update, not a reload (task-764).
         worldState.fetch();
-        if (graphManager)
-            graphManager.loadGraphData();
     };
     /**
      * Clear a node's image binding.
@@ -408,11 +409,10 @@ const InspectorHelpersModule = (() => {
         await api.removeNodeImage(nodeId);
         events.log('Image removed.', 'system-msg');
         H._refreshImagePreview(nodeId, '');
-        if (graphManager)
-            graphManager._lastSig = '';
+        // The graph follows state: worldState.fetch() emits 'update', which
+        // main.ts routes to graphManager.syncGraphData() — an in-place node
+        // update, not a reload (task-764).
         worldState.fetch();
-        if (graphManager)
-            graphManager.loadGraphData();
     };
     // ─────────────────── Expression Pack (SillyTavern-style) ───────────────────
     /**
@@ -669,11 +669,10 @@ const InspectorHelpersModule = (() => {
         }
         events.log('Expression image set.', 'system-msg');
         H._refreshExpressionGrid(nodeId, kind);
-        if (graphManager)
-            graphManager._lastSig = '';
+        // The graph follows state: worldState.fetch() emits 'update', which
+        // main.ts routes to graphManager.syncGraphData() — an in-place node
+        // update, not a reload (task-764).
         worldState.fetch();
-        if (graphManager)
-            graphManager.loadGraphData();
     };
     /** Drop-to-set: an image file dropped on an expression card. */
     H.dropExpressionImage = function (nodeId, kind, key, ev) {
@@ -707,11 +706,10 @@ const InspectorHelpersModule = (() => {
         }
         events.log('Expression image removed.', 'system-msg');
         H._refreshExpressionGrid(nodeId, kind);
-        if (graphManager)
-            graphManager._lastSig = '';
+        // The graph follows state: worldState.fetch() emits 'update', which
+        // main.ts routes to graphManager.syncGraphData() — an in-place node
+        // update, not a reload (task-764).
         worldState.fetch();
-        if (graphManager)
-            graphManager.loadGraphData();
     };
     /**
      * Open the picker for one expression card.
@@ -765,11 +763,10 @@ const InspectorHelpersModule = (() => {
         else
             delete props.image;
         H._refreshExpressionGrid(nodeId, kind);
-        if (graphManager)
-            graphManager._lastSig = '';
+        // The graph follows state: worldState.fetch() emits 'update', which
+        // main.ts routes to graphManager.syncGraphData() — an in-place node
+        // update, not a reload (task-764).
         worldState.fetch();
-        if (graphManager)
-            graphManager.loadGraphData();
         return true;
     };
     /** Start renaming an expression in place. Enter commits, Esc cancels, blur commits. */
@@ -878,11 +875,10 @@ const InspectorHelpersModule = (() => {
         }
         events.log(`Expression '${key}' deleted.`, 'system-msg');
         H._refreshExpressionGrid(nodeId, kind);
-        if (graphManager)
-            graphManager._lastSig = '';
+        // The graph follows state: worldState.fetch() emits 'update', which
+        // main.ts routes to graphManager.syncGraphData() — an in-place node
+        // update, not a reload (task-764).
         worldState.fetch();
-        if (graphManager)
-            graphManager.loadGraphData();
     };
     H.addExpressionKey = function (nodeId) {
         const input = document.getElementById(`expr-new-${H.escId(nodeId)}`);

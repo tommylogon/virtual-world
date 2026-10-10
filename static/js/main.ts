@@ -279,10 +279,13 @@ function saveAgentSettings() { SettingsView.saveConfigToServer(); }
 
 // Graph editor toolbar
 const graphEditor = {
-    undo() { (ApiClient as any).undo().then((res: any) => { if (!res.error) { graphManager.loadGraphData(); events.log('Undo (restored previous state)', 'system-msg'); } else { events.log('Undo: ' + res.error, 'error-msg'); } }).catch((e: any) => events.log('Undo failed: ' + e.message, 'error-msg')); },
-    redo() { (ApiClient as any).redo().then((res: any) => { if (!res.error) { graphManager.loadGraphData(); events.log('Redo (restored next state)', 'system-msg'); } else { events.log('Redo: ' + res.error, 'error-msg'); } }).catch((e: any) => events.log('Redo failed: ' + e.message, 'error-msg')); },
-    showTemplates() { VW?.inspector?.showTemplates?.() || events.log('Templates panel', 'system-msg'); },
-    fetchGraph() { graphManager.loadGraphData(); }
+    // Undo/redo restore server state, which mutates the graph. Re-fetch state so
+    // the 'update' it emits routes to graphManager.syncGraphData() — one in-place
+    // node update, not a full rebuild. (The server also broadcasts `world_changed`,
+    // but fetching here keeps it deterministic rather than SSE-timing-dependent.)
+    undo() { (ApiClient as any).undo().then((res: any) => { if (!res.error) { worldState.fetch(); events.log('Undo (restored previous state)', 'system-msg'); } else { events.log('Undo: ' + res.error, 'error-msg'); } }).catch((e: any) => events.log('Undo failed: ' + e.message, 'error-msg')); },
+    redo() { (ApiClient as any).redo().then((res: any) => { if (!res.error) { worldState.fetch(); events.log('Redo (restored next state)', 'system-msg'); } else { events.log('Redo: ' + res.error, 'error-msg'); } }).catch((e: any) => events.log('Redo failed: ' + e.message, 'error-msg')); },
+    showTemplates() { VW?.inspector?.showTemplates?.() || events.log('Templates panel', 'system-msg'); }
 };
 
 
@@ -873,8 +876,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // Update play/pause buttons
         ui.showPlayPause(!config.running, Boolean(config.running));
         
-        // Reload graph data to reflect any changes (nodes deleted, edges added/removed, etc.)
-        graphManager.loadGraphData();
+        // Reflect any graph change IN PLACE (task-764). This fires on every
+        // state update — the spectator poll and every `world_changed` edit — so
+        // it must not refetch or rebuild: syncGraphData() updates a changed node
+        // in place and only falls back to a full load when the node/edge set
+        // itself changed (add/remove). Graph reloads are reserved for scenario
+        // load/reset, a scope switch and a layout-mode switch.
+        graphManager.syncGraphData();
     });
     
     // Command input handler & Tab autocomplete (task-6)

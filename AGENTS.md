@@ -268,6 +268,95 @@ missing.
 
 ---
 
+## Graph view: update in place, never rebuild on a state change
+
+The graph is rendered by vis.js and updated by `GraphNetwork.syncGraphData()`
+(`static/js/graph/network-manager.ts`; the wrapper is
+`graphManager.syncGraphData()`). `main.ts`'s `worldState.on('update')` handler
+calls the sync, **not** `loadGraphData()`.
+
+**The state payload already carries the graph.** `GET /api/state` includes
+`graph.nodes` / `graph.edges`, so a poll or an edit does not need a second fetch.
+`syncGraphData()` diffs `worldState.graph` against the loaded set and applies a
+changed node with **one batched `nodes.update`**. It does not refetch, does not
+`setData`, does not re-relayout and does not move the camera.
+
+A full `loadGraphData()` is reserved for changes that genuinely alter what is
+loaded or how it is placed:
+
+| Trigger | Why a full load |
+|---|---|
+| scenario load / reset / new scenario | the whole graph is replaced |
+| scope switch (`setScopeFilter`) | a different node set (a subgraph) |
+| layout-mode switch (Levels/Free, `applyGraphSettings(true)`) | a different placement algorithm |
+| `syncGraphData` structural fallback | a node or edge was added/removed (the `_nodeProj` / `_lastEdgeSig` signatures disagree) |
+
+A **property-only** change (a character's `current_state`, an emotion/avatar, a
+pin, a `cell`, a name) is never a rebuild. A `loadGraphData()` on that path is a
+bug, not a design. Note the corollary: because a `worldState.fetch()` emits
+`'update'`, any edit that already fetches state must **not** also call
+`loadGraphData()` — the redundant reload is the thing to delete.
+
+**`_graphNodesObj` is the loaded set.** It is what the toolbar counts
+(`toolbar.ts: _nodeCounts`) and what the graph diff and the projector read. A
+**scoped** view holds a *subgraph* of `worldState.graph`, so a sync must never
+assign the whole-world map to it — doing so makes the next sync treat every
+world node as "loaded", build a config for each, and pour the whole world into
+the scope's dataset, silently widening the scope. Refresh in scope mode
+(goblin_camp = 142 nodes / 21 areas server-side) must keep showing 142, not the
+world's 2763.
+
+Not yet migrated (view toggles that still reload because their styling is baked
+into the dataset at build time): `toggleEdgeLabels`, `setEdgeLabelSize`,
+`toggleImages`, `_clearOverlay`. Convert them to in-place `edges.update` /
+`nodes.update` when touched.
+
+### One `nodes.update()` call redraws the WHOLE graph — batch it
+
+`GraphNetwork._applyNodeLabelDecorations` called `nodes.update({...})` **once per
+node** inside a `forEach`. vis's `DataSet.update()` fires an update and a
+full-graph redraw **per call**, so ~2763 calls froze the browser for **108 770 ms**
+on the second load (the first pass had no tags, so no label changed and it was
+61 ms). The fix was to collect changed rows into an array and call
+`nodes.update(arr)` **once**. The same bug lived in `applyTagFilter`. Any per-node
+`nodes.update()` / `edges.update()` inside a loop is this bug. Batch it.
+
+### The relative-layout ring is a seed, not a leash
+
+`GraphRelativeLayout.apply()` puts each child on its ring **once per layout**
+(`_seedApplied`); only `reseed()` re-arms it, and a fresh load calls
+`reseed()` + `apply()`. It used to run unguarded on every
+`stabilizationIterationsDone`, so a mid-life re-stabilization — toggling one
+node's physics, say — re-seeded every settled node back onto its ring, which
+read as the graph rebuilding/refreshing. After the seed the solver owns
+positions. A per-node pin must not call `reseed()`.
+
+### Instrumenting a hot path measures the logger, not the code
+
+A tracer that `console.info()`s on every call of a hot method can cost more than
+the method it wraps: a per-call log inflated a separation pass to a reported
+**"6 s"** that was almost entirely the logging. Make a tracer **adaptive** (log
+the first few calls per function, aggregate silently after), or use a platform
+profiler. And `PerformanceObserver('longtask')` does **not** exist in Firefox —
+the long-task section reads empty there, which is not evidence of "no long
+tasks".
+
+### Spectator mode is a poll; edits are an SSE
+
+Two different paths reach `worldState.fetch()`, and only one is spectator-gated:
+
+- The **1.5 s poll** (`WorldState.startPolling`) is started only from the
+  `spectator-mode` checkbox, which ships **unchecked** — so there is no poll by
+  default.
+- The **`/api/events` SSE** (`world-state.ts` `connectLiveEdits`) opens
+  **unconditionally** and fetches state on every `world_changed` — any mutating
+  API call, including external / MCP edits — even with spectator OFF.
+
+Do not reason about graph updates from the spectator checkbox. (This mixed-up
+sentence cost several exchanges across one session.)
+
+---
+
 ## Agent operating rules
 
 ### Before editing
@@ -473,7 +562,9 @@ Notes on the gates:
 
 - **`ts_convert.py check` is the front-end gate.** The whole classic-script front
   end is `.ts` emitting to `.js` (158 files, migration complete). `npm run lint`
-  alone will not catch a behavioural regression.
+  alone will not catch a behavioural regression. A run can fail with
+  `TS5033 ... user-mapped section open` when the running server or browser holds
+  the emitted `.js` open; it is **transient — just re-run**.
 - **`feature_index.py`**: `--report` joins features to claiming modules (and shows
   unclaimed features); `--write` regenerates `docs/design/feature-index.md`;
   `--update-baseline` accepts today's debt. A feature is **not** a module:
@@ -498,6 +589,11 @@ Notes on the gates:
   `ReferenceError` if the module has not loaded (this broke `test_fear_verbs` in
   a browser). Add the name to `interface Window` (generated by
   `tools/window_members.py`).
+  - The gate also flags a `window.X` **removed** from a file (even when the whole
+    block around it was deleted, not just the prefix). If the removal is
+    intended, record a verdict in `tools/window-usage-reviewed.json` (key
+    `<emitted .js path>::<name>`) or restore the prefix; an unreviewed drop fails
+    `ts_convert.py check`.
 - **Never add a top-level `const`/`let`/`class` for something published on
   `window`.** In a classic script it becomes a global lexical binding, and two
   files declaring one name is a parse-time `SyntaxError` that kills the whole

@@ -337,7 +337,9 @@ type FocusWin = { GraphToolbar?: { syncDisabled(): void } };
         if (graphManager._physicsEnabled === false) return;
         const nodes = graphManager.network.body?.data?.nodes;
         if (!nodes) return;
-        GraphNetwork.applyModePhysics(true);
+        // Ask the policy to run the solver (it still honours the user's off
+        // switch, the layout gates and the valve — task-765).
+        GraphPhysics.apply();
         try {
             graphManager.network.stabilize(60);
         } catch (e) { /* ignore */ }

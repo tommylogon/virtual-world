@@ -1348,13 +1348,8 @@ const _SpriteSheet = (() => {
         // Refresh the gallery once, not per tile.
         if (H && H._refreshExpressionGrid)
             H._refreshExpressionGrid(nodeId, kind);
-        if (typeof graphManager !== 'undefined' && graphManager) {
-            graphManager._lastSig = '';
-        }
         if (typeof worldState !== 'undefined' && worldState)
             worldState.fetch();
-        if (typeof graphManager !== 'undefined' && graphManager)
-            graphManager.loadGraphData();
         if (!failures.length)
             closeDialog();
     }

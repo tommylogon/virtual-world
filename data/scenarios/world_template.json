@@ -285,7 +285,7 @@
       "patrol_route": [],
       "patrol_index": 0,
       "feels_like": 23,
-      "current_carry_weight": 28.000000000000004,
+      "current_carry_weight": 28.0,
       "max_carry_capacity": 100.0,
       "at_way_id": null,
       "facing": null,

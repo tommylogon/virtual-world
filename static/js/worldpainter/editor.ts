@@ -345,6 +345,7 @@
         view: { x?: number; y?: number; scale: number } | null;
         route: WpCell[];
         stage: WpKonvaStage | null;
+        resizeObs: ResizeObserver | null;
         shapes: Record<string, WpKonvaNode> | null;
         layers: WpKonvaLayers | null;
         gridHolder: HTMLElement | null;
@@ -453,6 +454,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         view: null,            // {scale} — Konva owns the live transform
         route: [],             // waypoints for the route/trail tool
         stage: null,
+        resizeObs: null,
         shapes: null,
         layers: null,
         gridHolder: null,
@@ -774,9 +776,9 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
             'align-items:center;justify-content:center;');
         overlay.addEventListener('click', (ev) => { if (ev.target === overlay) close(); });
         const panel = _el('div',
-            'background:var(--bg-panel,#1b1b21);color:var(--text,#ddd);border:1px solid ' +
-            'var(--border,#444);border-radius:10px;width:min(1000px,94vw);max-height:92vh;' +
-            'display:flex;flex-direction:column;padding:14px;font-size:13px;box-shadow:0 12px 40px rgba(0,0,0,0.55);');
+            'background:var(--bg-panel,#1b1b21);color:var(--text,#ddd);' +
+            'border-radius:0;width:100%;height:100%;box-sizing:border-box;' +
+            'display:flex;flex-direction:column;padding:14px;font-size:13px;');
         panel.setAttribute('data-role', 'worldpainter');
         state.overlay = overlay;
         state.body = panel;
@@ -797,6 +799,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
     function close(): void {
         _unbindKeys();
         _gridDragRelease();
+        if (state.resizeObs) { state.resizeObs.disconnect(); state.resizeObs = null; }
         if (state.overlay) state.overlay.remove();
         state.overlay = null;
         state.payload = null;
@@ -1052,7 +1055,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         head.appendChild(spacer);
         head.appendChild(_btn('Close', close));
         panel.appendChild(head);
-        const box = _el('div', 'overflow:auto;');
+        const box = _el('div', 'display:flex;flex-direction:column;flex:1 1 auto;min-height:0;overflow:auto;');
         panel.appendChild(box);
         state.scrollBox = box;
         // Restore AFTER the content is in. load() calls this while the box is
@@ -1102,7 +1105,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         if (state.tool === 'area') box.appendChild(_areaBar(p));
         // Rail beside the canvas, not above it: the tool column and the map it
         // acts on are read together, and the map gets the width back (task-536).
-        const withRail = _el('div', 'display:flex;gap:10px;align-items:flex-start;');
+        const withRail = _el('div', 'display:flex;gap:10px;align-items:stretch;flex:1 1 auto;min-height:0;');
         withRail.appendChild(_toolRail(p));
         withRail.appendChild(_grid(p));
         box.appendChild(withRail);
@@ -1932,7 +1935,7 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
         // `min-width:0` is the other half: a flex item's default `min-width:auto`
         // refuses to shrink below its content, which fights the zoom buttons.
         const wrap = _el('div',
-            'flex:1 1 auto;min-width:0;position:relative;height:480px;'
+            'flex:1 1 auto;min-width:0;min-height:240px;position:relative;'
             + 'border:1px solid var(--border,#3a3a44);'
             + 'border-radius:8px;background:#0d0d11;overflow:hidden;margin-bottom:10px;');
         wrap.setAttribute('data-role', 'wp-grid');
@@ -2169,6 +2172,20 @@ const SCOPES_URL = '/api/world/scopes?flat=1';
             width: holder.clientWidth || 900,
             height: holder.clientHeight || 480,
         });
+        // The panel fills the viewport, so the canvas has to follow a window
+        // resize instead of keeping its mount size — Konva sizes a stage once
+        // and never tracks its container.
+        if (state.resizeObs) state.resizeObs.disconnect();
+        state.resizeObs = null;
+        if (typeof ResizeObserver !== 'undefined') {
+            const ro = new ResizeObserver(() => {
+                stage.width(holder.clientWidth || 900);
+                stage.height(holder.clientHeight || 480);
+                stage.batchDraw();
+            });
+            ro.observe(holder);
+            state.resizeObs = ro;
+        }
         const shape = (draw: (ctx: CanvasRenderingContext2D) => void): WpKonvaNode =>
             new K.Shape({ listening: false, sceneFunc: draw });
         const bgShape = shape((ctx) => _drawGridLines(ctx, p));

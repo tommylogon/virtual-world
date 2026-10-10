@@ -69,10 +69,6 @@ const UndoHistory = (() => {
                 toastError('Undo failed: ' + data.error);
                 return;
             }
-            try {
-                graphManager.loadGraphData();
-            }
-            catch (e) { }
             worldState.fetch();
             if (typeof toastInfo === 'function')
                 toastInfo('Restored (' + (idx + 1) + ' step' + (idx ? 's' : '') + ').');

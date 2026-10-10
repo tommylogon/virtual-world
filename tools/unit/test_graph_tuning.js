@@ -3,9 +3,9 @@
  *
  * GraphNetwork.applyGraphSettings() is the one writer of "physics settings
  * changed". It has two paths: the default tunes the graph as it is on screen
- * (setOptions + startSimulation — no refetch, no reseed, no camera move; the
- * old unconditional rebuild re-fit the camera ~1s after every slider tick,
- * which the user read as the graph reloading under them), and `rebuild`
+ * (setOptions + the physics policy's apply — no refetch, no reseed, no camera
+ * move; the old unconditional rebuild re-fit the camera ~1s after every slider
+ * tick, which the user read as the graph reloading under them), and `rebuild`
  * re-derives the layout from data for Levels/Free switches.
  */
 'use strict';
@@ -28,7 +28,7 @@ test('applyGraphSettings tunes in place by default: no refetch, no signature bla
     const defaultPath = src.slice(0, src.indexOf('GraphNetwork.loadGraphData()'));
     assertFalse(defaultPath.includes("_lastSig = ''"), 'does not blank the load signature');
     assertFalse(defaultPath.includes('loadGraphData'), 'does not refetch the dataset');
-    assertTrue(defaultPath.includes('startSimulation()'), 'wakes the frozen solver');
+    assertTrue(defaultPath.includes('GraphPhysics.apply()'), 'wakes the frozen solver through the one policy (task-765)');
 });
 
 test('the rebuild path is opt-in and still refetches, reseeds and restabilizes', () => {
@@ -122,4 +122,29 @@ test('the dead global edge-length knob is gone from both surfaces', () => {
     // It stays an engine fallback (rare edges carry no length of their own).
     const nm = __readFile('static/js/graph/network-manager.ts');
     assertTrue(nm.includes('graphSpringLength'), 'config key still drives the solver fallback');
+});
+
+test('the first load restores the saved scope BEFORE building the graph (task-749)', () => {
+    // Without this, the first loadGraphData builds the WHOLE WORLD and the saved
+    // scope is applied a moment later — two full builds per refresh, which is why
+    // a selected scope never made the load smaller.
+    const nm = __readFile('static/js/graph/network-manager.ts');
+    const initAt = nm.indexOf('async init()');
+    assertTrue(initAt !== -1, 'init exists');
+    const init = nm.slice(initAt, nm.indexOf('async loadGraphData()'));
+    const restoreAt = init.indexOf('_restoreScopeFilterOnce()');
+    const loadAt = init.indexOf('GraphNetwork.loadGraphData()');
+    assertTrue(restoreAt !== -1, 'init restores the saved scope');
+    assertTrue(loadAt !== -1, 'init loads the graph');
+    assertTrue(restoreAt < loadAt, 'restore happens before the first load');
+});
+
+test('label decoration and tag filter batch their vis DataSet updates', () => {
+    // vis's DataSet.update() fires an update + full-graph redraw PER CALL. A
+    // per-node update inside the loop was ~2763 redraws — the 108s freeze. Both
+    // sites must collect rows and update the set once.
+    const nm = __readFile('static/js/graph/network-manager.ts');
+    assertFalse(nm.includes('nodes.update({ id: node.id, label'), 'no per-node label update');
+    assertFalse(nm.includes('nodes.update({ id: node.id, opacity }'), 'no per-node opacity update');
+    assertTrue(nm.includes('if (updates.length) nodes.update(updates);'), 'label path batches');
 });

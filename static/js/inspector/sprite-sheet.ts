@@ -1438,9 +1438,7 @@ function _frameHandles(cuts: SpriteCuts): Record<string, { x: number; y: number 
         if (typeof events !== 'undefined' && events) events.log(`Sprite sheet: uploaded ${targets.length - failures.length}/${targets.length} expression tile(s).`, failures.length ? 'error-msg' : 'system-msg');
         // Refresh the gallery once, not per tile.
         if (H && H._refreshExpressionGrid) H._refreshExpressionGrid(nodeId, kind);
-        if (typeof graphManager !== 'undefined' && graphManager) { graphManager._lastSig = ''; }
         if (typeof worldState !== 'undefined' && worldState) worldState.fetch();
-        if (typeof graphManager !== 'undefined' && graphManager) graphManager.loadGraphData();
         if (!failures.length) closeDialog();
     }
 

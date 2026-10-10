@@ -51,10 +51,11 @@ const _GraphRelativeLayout = {
         { type: 'carrying', child: 'source' }, // item -> carrier
         { type: 'equipped', child: 'source' }, // item -> wearer
         { type: 'at', child: 'source' }, // item -> area it stands in
+        { type: 'on', child: 'source' }, // item -> surface it rests on (task-769)
         { type: 'in', child: null }, // mixed: the shallower end is the parent
         { type: 'triggers', child: 'target' }, // host -> trigger
     ],
-    RELATION_TYPES: new Set(['carrying', 'equipped', 'at', 'in', 'triggers']),
+    RELATION_TYPES: new Set(['carrying', 'equipped', 'at', 'in', 'triggers', 'on']),
     // Contents ORBIT their parent: a ring around the room, radius grown to fit
     // however many things are in there (so labels do not collide), and smaller
     // rings for contents nested inside a container. Nothing is stretched away —
@@ -516,6 +517,14 @@ const _GraphRelativeLayout = {
         // Hierarchical mode owns positions; a seed would fight it.
         if (this.levelsMode())
             return 0;
+        // The ring is a SEED, not a leash (module note) — seed ONCE per layout
+        // and let the solver own each node from there. `stabilizationIterationsDone`
+        // fires again on any mid-life re-stabilisation (e.g. a node gaining or
+        // losing its physics flag), and an unguarded re-seed snapped every
+        // settled node back onto its ring — which read as the graph rebuilding.
+        // `reseed()` is the only thing that re-arms this.
+        if (this._seedApplied)
+            return 0;
         const nodes = this._nodes();
         if (!Object.keys(nodes).length)
             return 0;
@@ -527,7 +536,15 @@ const _GraphRelativeLayout = {
         for (const [id, rawPos] of Object.entries(derived)) {
             const pos = rawPos;
             const node = nodes[id];
-            if (!node || node.type === 'area' || node.type === 'way')
+            if (!node || node.type === 'area')
+                continue;
+            // A painted way already sits on its cell (buildNodeConfig, task-766) —
+            // don't move it. An UNCELled way has only its rooms, so place it at
+            // their midpoint; otherwise it keeps a stale saved coordinate and its
+            // connection edges stretch across the map when physics is off
+            // (task-769 — the running solver used to hide this).
+            if (node.type === 'way'
+                && window.GraphLayoutEngine.hasPaintedCoords(node.properties || {}))
                 continue;
             // A node the user froze keeps its own place and stays out of the
             // solver — that is what "Physics enabled" off means.
@@ -545,6 +562,7 @@ const _GraphRelativeLayout = {
             }
             catch (err) { /* ignore */ }
         }
+        this._seedApplied = true;
         return updates.length;
     },
     /**
@@ -604,9 +622,9 @@ const _GraphRelativeLayout = {
         }
         return updates.length;
     },
-    /** Drop the derived cache so the next apply() re-reads the graph. */
-    /** Drop the derived caches so the next apply() re-reads the graph. */
+    /** Drop the derived caches and re-arm the once-per-layout seed. */
     reseed() {
+        this._seedApplied = false;
         this._depthCache = null;
         this._parentCache = null;
     },

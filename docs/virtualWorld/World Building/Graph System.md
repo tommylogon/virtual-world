@@ -326,9 +326,45 @@ solvers are not on the same scale.
 
 The repulsion/spring numbers above are the balance measured for **Map** mode (gravity 0, areas pinned);
 they are shared with the graph view, where nothing is pinned. Physics can be toggled on/off. Nodes can
-have `central_gravity_enabled: false` to lock their position. The graph uses signature-based
-deduplication to avoid jitter on tick updates — only reloads the vis.js data when the graph structure
-actually changes.
+have `central_gravity_enabled: false` to lock their position.
+
+### Load vs in-place sync
+
+A graph reload is a full `loadGraphData()`: it refetches nodes and edges, calls
+`setData()` (which redraws the WHOLE graph), re-derives the relative layout and
+re-fits the camera. It is reserved for changes that genuinely alter what is
+loaded or how it is placed:
+
+| Trigger | Why a full load |
+|---|---|
+| scenario load / reset / new scenario | the whole graph is replaced |
+| scope switch | a different node set (a subgraph) |
+| layout-mode switch (Graph / Map / Levels) | a different placement algorithm |
+| a node or edge was added or removed | the dataset itself changes |
+
+Everything else is an **in-place sync**. `GraphNetwork.syncGraphData()`
+(`graph/network-manager.js`) runs on every `worldState` `'update'` — which is
+driven by the spectator 1.5 s poll and by the `/api/events` SSE on every edit.
+The `/api/state` payload already carries `graph.nodes` / `graph.edges`, so the
+sync diffs that against the loaded set and applies a changed node with **one
+batched `nodes.update`**; it does not refetch, `setData`, re-layout or move the
+camera. A **property-only** change (a character's `current_state`, an
+emotion/avatar, a pin, a `cell`, a name) is therefore never a rebuild — which is
+why editing a node in the inspector, moving a character, or an undo no longer
+reloads the world. The per-node identity the sync compares is
+`GraphNetwork._nodeProjection()`; the edge-set signature is
+`GraphNetwork._edgeSig()`; both are captured at load into `graphManager._nodeProj`
+/ `_lastEdgeSig`.
+
+> **One `nodes.update()` call redraws the whole graph.** vis's `DataSet.update()`
+> fires a full-graph redraw **per call**, so a per-node `update()` inside a loop
+> is pathological: `_applyNodeLabelDecorations` once made ~2763 calls and froze
+> the browser for **108 770 ms**. Always collect rows and call `update(arr)` once.
+
+Not yet migrated: the view toggles `toggleEdgeLabels`, `setEdgeLabelSize` and
+`toggleImages` (and `_clearOverlay`) still reload, because their styling is baked
+into the dataset at build time. Convert them to in-place `edges.update` /
+`nodes.update` when touched.
 
 > **Known gap — a content whose room is frozen has no anchor.** vis does not apply spring forces to a
 > node with `physics: false`, so a simulated item/character/trigger whose parent is *excluded* from

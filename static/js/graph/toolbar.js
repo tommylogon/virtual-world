@@ -65,7 +65,7 @@ window.GraphToolbar = {
     physicsAvailability(state) {
         const s = state || {};
         if (s.layout === 'levels') {
-            return { enabled: false, reason: 'Levels owns node positions — physics is off until you pick Graph or Map.' };
+            return { enabled: false, reason: 'Hierarchical owns node positions — physics is off until you pick Graph or Map.' };
         }
         if (s.overlay && s.overlay !== 'none') {
             return { enabled: false, reason: 'An overlay recolors the canvas and holds positions while it is on.' };
@@ -618,12 +618,17 @@ window.GraphToolbar = {
         press('btn-node-labels', gm._showNodeLabels);
         press('btn-legend', gm._legendVisible);
         const phys = document.getElementById('btn-physics');
-        if (phys)
-            phys.setAttribute('aria-pressed', gm._physicsEnabled ? 'true' : 'false');
+        if (phys) {
+            const on = !!gm._physicsEnabled;
+            phys.setAttribute('aria-pressed', on ? 'true' : 'false');
+            // The glyph follows the state — ⏸ while the solver runs (click to
+            // pause), ▶ while it is held (click to resume). The word stays, so
+            // the button width does not jump.
+            phys.textContent = `${on ? '⏸' : '▶'} Physics`;
+        }
     },
     /**
      * Honest affordances: disable what cannot run, and say why in the tooltip.
-     * The label never changes — the label is "⏸ Physics" whatever the state.
      */
     syncDisabled() {
         const s = GraphToolbar.state();

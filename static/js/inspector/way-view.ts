@@ -161,12 +161,7 @@ window.InspectorWayView = (() => {
                 api.updateEdge(oppositeSource, wayId, { old_type: 'connection', properties: { cardinal: rev } })
             );
         }
-        Promise.all(updates).then(() => worldState.fetch()).then(() => {
-            if (window.graphManager && graphManager._cardinalLayout) {
-                graphManager._lastSig = '';
-                graphManager.loadGraphData();
-            }
-        });
+        Promise.all(updates).then(() => worldState.fetch());
     };
 
     // The reconnect implementation lives in way-view-connections.js (module
@@ -394,10 +389,6 @@ window.InspectorWayView = (() => {
             await api.updateNode(wayId, { properties: nodePatch });
             await Promise.all(edgeUpdates);
             await worldState.fetch();
-            if (window.graphManager && graphManager._cardinalLayout) {
-                graphManager._lastSig = '';
-                graphManager.loadGraphData();
-            }
             if (window.VW?.inspector) VW.inspector.showNode(wayId);
             events.log('Way passage saved.', 'system-msg');
         } catch (err) {

@@ -101,7 +101,16 @@ class WorldState {
         }
     }
 
-    /** Start polling for spectator mode */
+    /**
+     * Start polling for spectator mode.
+     *
+     * Spectator-only, and gated on the `spectator-mode` checkbox (which ships
+     * UNCHECKED): main.ts calls this only from SaveLoadView.toggleSpectator().
+     * It is NOT the graph's update path — see the `/api/events` stream below,
+     * which opens unconditionally and fires `worldState.fetch()` on every
+     * `world_changed` even with spectator OFF. Do not reason about graph
+     * updates from the spectator checkbox alone.
+     */
     startPolling(intervalMs = 1500) {
         this.stopPolling();
         // A full /api/state build can take seconds on a large world. Without a
@@ -349,6 +358,12 @@ class WorldState {
 // server. Refetch world state in real time so those edits appear in the GUI
 // without a manual refresh, and log a thin line when a non-local editor acted.
 // Runs immediately (no `load` race) and lets the browser auto-reconnect.
+//
+// SPECTATOR-INDEPENDENT: unlike the 1.5s poll in startPolling() — which runs
+// only while the spectator checkbox is ticked (it ships unchecked) — this
+// stream is NOT gated on spectator mode. It fires on every world edit
+// regardless, so a graph update can arrive with spectator off. This is the
+// path an external editor / MCP edit takes into the GUI.
 (function connectLiveEdits() {
   if (typeof EventSource === 'undefined') return;
   let es = null;

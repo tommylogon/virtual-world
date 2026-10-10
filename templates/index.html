@@ -24,13 +24,13 @@
      (task-558). 9.1.9 is the 9.x line this code targets and it supports the
      `widthConstraint` label wrapping the graph view relies on. Bump this
      deliberately, with the graph view checked, never by letting a tag float. -->
-<script type="text/javascript" src="https://unpkg.com/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
+<script type="text/javascript" src="/static/js/vendor/vis-network/vis-network-9.1.9.min.js"></script>
     <!-- WorldPainter grid surface (task-495): canvas scene graph for the big grid. -->
-    <script src="https://unpkg.com/konva@9/konva.min.js"></script>
+    <script src="/static/js/vendor/konva/konva-9.min.js"></script>
     <link rel="stylesheet" href="/static/css/style.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js@10.2.0/public/assets/styles/choices.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css">
+    <link rel="stylesheet" href="/static/css/vendor/notyf/notyf-3.min.css">
+    <link rel="stylesheet" href="/static/css/vendor/choices/choices-10.2.0.min.css">
+    <link rel="stylesheet" href="/static/css/vendor/animate.css/animate-4.1.1.min.css">
 </head>
 <body data-scenario-name="{{ scenario_name or '' }}" data-app-version="{{ app_version or '' }}">
     <a href="#command-input" class="skip-link">Skip to command input</a>
@@ -227,7 +227,7 @@
                     <div class="toolbar-segment" id="layout-segment" role="tablist" aria-label="Layout mode">
                         <button class="toolbar-btn" id="btn-layout-graph" role="tab" data-layout="graph" aria-selected="true" onclick="GraphToolbar.setLayout('graph')" title="Free graph layout — nodes sit where you put them (or wherever physics settles them)">🔮 Graph</button>
                         <button class="toolbar-btn" id="btn-cardinal" role="tab" data-layout="map" aria-selected="false" onclick="GraphToolbar.setLayout('map')" title="Map layout: use painted grid positions when the world was painted, otherwise arrange areas from exit directions">🗺️ Map</button>
-                        <button class="toolbar-btn" id="btn-layout-mode" role="tab" data-layout="levels" aria-selected="false" onclick="GraphToolbar.setLayout('levels')" title="Hierarchical layout — nodes sit by relation level, physics off">🌳 Levels</button>
+                        <button class="toolbar-btn" id="btn-layout-mode" role="tab" data-layout="levels" aria-selected="false" onclick="GraphToolbar.setLayout('levels')" title="Hierarchical layout — nodes sit by relation level, physics off">🌳 Hierarchical</button>
                     </div>
                     <div class="toolbar-dropdown menu-anchor">
                         <button class="toolbar-btn" id="btn-overlays" data-help="overlays" aria-haspopup="menu" aria-expanded="false" onclick="GraphToolbar.togglePopover(event,'view-menu')" title="Overlays, what is shown on the canvas, labels and the legend">👁 View ▾</button>
@@ -1312,10 +1312,10 @@
     <input type="hidden" id="system-prompt" value="">
 
     <!-- Third-party UI libraries (CDN) -->
-    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
-    <script src="https://unpkg.com/@popperjs/core@2"></script>
-    <script src="https://unpkg.com/tippy.js@6"></script>
-    <script src="https://cdn.jsdelivr.net/npm/choices.js@10.2.0/public/assets/scripts/choices.min.js"></script>
+    <script src="/static/js/vendor/notyf/notyf-3.min.js"></script>
+    <script src="/static/js/vendor/popper/popper-2.min.js"></script>
+    <script src="/static/js/vendor/tippy/tippy-6.min.js"></script>
+    <script src="/static/js/vendor/choices/choices-10.2.0.min.js"></script>
     <script src="/static/js/ui-helpers.js"></script>
 
     <!-- Load JS modules in dependency order -->
@@ -1393,6 +1393,7 @@
     <script src="/static/js/agent/memory-manager.js"></script>
     <script src="/static/js/agent/plan-manager.js"></script>
     <script src="/static/js/ui-controller.js"></script>
+    <script src="/static/js/graph/physics.js"></script>
     <script src="/static/js/graph/edge-types.js"></script>
     <script src="/static/js/graph/context-menu.js"></script>
     <script src="/static/js/graph/layout-engine.js"></script>

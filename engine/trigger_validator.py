@@ -238,10 +238,10 @@ class TriggerValidator:
         """
         issues: List[dict] = []
         connected: Set[str] = set()
-        for edge in self.graph.edges:
+        for edge in list(self.graph.edges):
             connected.add(str(edge.source).lower())
             connected.add(str(edge.target).lower())
-        for node in self.graph.nodes.values():
+        for node in list(self.graph.nodes.values()):
             if str(node.id).lower() in connected:
                 continue
             if node_id and node.id.lower() != node_id.lower():
@@ -401,7 +401,7 @@ class TriggerValidator:
     
     def _is_shared_trigger(self, trigger_node: Node) -> bool:
         incoming = [
-            e for e in self.graph.edges
+            e for e in list(self.graph.edges)
             if e.target == trigger_node.id and e.type == "triggers"
         ]
         distinct_sources = {e.source for e in incoming}
@@ -684,7 +684,7 @@ class TriggerValidator:
         ``edge.target == node.id`` edges are checked.
         """
         issues: List[dict] = []
-        for node in self.graph.nodes.values():
+        for node in list(self.graph.nodes.values()):
             if node.type != "way":
                 continue
             if node_id and node.id.lower() != node_id.lower():
@@ -699,7 +699,7 @@ class TriggerValidator:
                         f"(engine falls back to its default).",
                         source_node_id=node.id,
                     ))
-            for edge in self.graph.edges:
+            for edge in list(self.graph.edges):
                 if edge.type != EDGE_CONNECTION or edge.target != node.id:
                     continue
                 eprops = edge.properties or {}
@@ -725,7 +725,7 @@ class TriggerValidator:
         """Warn on items carrying a mechanical tag but missing the values the
         engine reads for it (task-307)."""
         issues: List[dict] = []
-        for node in self.graph.nodes.values():
+        for node in list(self.graph.nodes.values()):
             if node.type != "item":
                 continue
             if node_id and node.id.lower() != node_id.lower():
@@ -765,7 +765,7 @@ class TriggerValidator:
         """Warn on instanced items drifted from their library template
         (bug_14 — refresh-to-world resyncs)."""
         issues: List[dict] = []
-        for node in self.graph.nodes.values():
+        for node in list(self.graph.nodes.values()):
             if node.type != "item":
                 continue
             if node_id and node.id.lower() != node_id.lower():
@@ -853,7 +853,7 @@ class TriggerValidator:
 
     def _tag_exists(self, tag: str) -> bool:
         tag = str(tag).lower()
-        for node in self.graph.nodes.values():
+        for node in list(self.graph.nodes.values()):
             tags = node.properties.get("tags", [])
             if isinstance(tags, str):
                 tags = [t.strip() for t in tags.split(",")]
@@ -864,7 +864,7 @@ class TriggerValidator:
 
     def _item_exists(self, needle: str) -> bool:
         needle = str(needle).lower()
-        for node in self.graph.nodes.values():
+        for node in list(self.graph.nodes.values()):
             if node.type != "item":
                 continue
             if needle in (node.name or "").lower() or needle in (node.id or "").lower():
@@ -873,14 +873,14 @@ class TriggerValidator:
 
     def _node_name_matches(self, needle: str) -> bool:
         needle = str(needle).lower()
-        for node in self.graph.nodes.values():
+        for node in list(self.graph.nodes.values()):
             if needle in (node.name or "").lower() or needle in (node.id or "").lower():
                 return True
         return False
 
     def _area_matches(self, name: str) -> bool:
         name = str(name).lower()
-        for node in self.graph.nodes.values():
+        for node in list(self.graph.nodes.values()):
             if node.type != "area":
                 continue
             if (node.name or "").lower() == name or node.id.lower() == name:
@@ -897,7 +897,7 @@ class TriggerValidator:
 
     def _character_exists(self, needle: str) -> bool:
         needle = str(needle).lower()
-        for node in self.graph.nodes.values():
+        for node in list(self.graph.nodes.values()):
             if node.type != "character":
                 continue
             if needle in (node.name or "").lower() or needle in (node.id or "").lower():
