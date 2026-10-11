@@ -1,6 +1,6 @@
 ---
 area: triggers
-wiki: "[[World Building/Doors & Connections]]"
+wiki: "[[Connections]]"
 type: task
 status: done
 priority: medium

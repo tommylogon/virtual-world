@@ -187,6 +187,6 @@ Registrars: `routes/world_grid.py` (URLs only) and `routes/world_grid_ops.py`
 
 **Features** — [[scopes|Scopes]] (#49)
 
-**Neighbouring notes** — [[Doors & Connections]], [[Generated Scenario Review (2026-08)]], [[Graph System]], [[Grid to Graph]], [[Millbrook Falls Town Map]], [[Rooms & Areas]]
+**Neighbouring notes** — [[Connections]], [[Generated Scenario Review (2026-08)]], [[Graph System]], [[Grid to Graph]], [[Millbrook Falls Town Map]], [[Rooms & Areas]]
 
 <!-- connected:end -->

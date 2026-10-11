@@ -57,8 +57,8 @@ rest point at a note covering the area rather than the specific feature.
 |---|---|---|---|---|
 | 1 | Look around | Read a room: light, temperature, sound, smell, who's here, what they are doing | wired | [[Rooms & Areas]] |
 | 2 | Examine | Inspect a thing in detail; a container reveals *and* credits its contents | wired | [[Items Overview]] |
-| 3 | Move | Traverse ways; size, load and ability gate what you can pass | wired | [[Doors & Connections]] |
-| 4 | Open / close | Doors, gates, lids — and ways that refuse to be hand-closed | wired | [[Doors & Connections]] |
+| 3 | Move | Traverse ways; size, load and ability gate what you can pass | wired | [[Connections]] |
+| 4 | Open / close | Doors, gates, lids — and ways that refuse to be hand-closed | wired | [[Connections]] |
 | 5 | Take / drop / give | Move items between the world, containers, and inventories | wired | [[Items Overview]] |
 | 6 | Use / use on | `use X on Y` with typed targets; writing and inscriptions | wired | [[Items Overview]] |
 | 7 | Talk / speak | Dialogue, and speech heard by others in the area | wired | [[NPC Behavior System]] |
@@ -92,7 +92,7 @@ rest point at a note covering the area rather than the specific feature.
 | 35 | LLM calls | Every character and narration call, and which provider served it | wired | [[LLM Providers]] |
 | 36 | **The sky** | The world above you: time of day, date, moon phase, weather, and season — and setting the date and the weather schedule for the scenario | wired | [[Time & Weather]] |
 | 37 | **Spectator mode** | Watch the simulation run without acting; the world updates itself | wired | [[Time & Weather]] |
-| 38 | **Traversal abilities** | Walk, crawl, climb and jump as separate movement systems, each gated by ability and by the floor layer | wired | [[Doors & Connections]] |
+| 38 | **Traversal abilities** | Walk, crawl, climb and jump as separate movement systems, each gated by ability and by the floor layer | wired | [[Connections]] |
 | 39 | **Auto-description** | Descriptions written for you when equipment or appearance changes | wired | [[Character Images & Expression Packs]] |
 | 40 | **Taking an agent over** | Hand a character between simple behaviour, an LLM agent, and the human | wired | [[NPC Behavior System]] |
 | 41 | **Memory pipeline** | What an agent's recall is built from, including embeddings over stored memory | wired | [[Memory System]] |

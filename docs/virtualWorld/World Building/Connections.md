@@ -3,9 +3,15 @@ type: doc
 tags: [system/world]
 ---
 
-﻿# Doors & Connections
+﻿# Connections
 
-Doors are the glue that connects rooms into a traversable world. Every exit in VirtualWorld is a **door node** — there are no direct room-to-room connections. The pattern is always `room → door → room`, and this indirection is what makes the system powerful.
+> **Status.** This page is the graph/architecture reference. The node type is
+> `way`, not `door`, and ids are `way_<area>_<direction>` — older parts of this
+> page still say `door`. The **state model lives in [[World Building/Ways|Ways]]**;
+> the state list reproduced lower in this page predates the current
+> `current_state` set.
+
+A way is the glue that connects areas into a traversable world. Every exit in VirtualWorld is a **way node** — there are no direct area-to-area connections. The pattern is always `area → way → area`, and this indirection is what makes the system powerful.
 
 > **Character position at doors:** `open`, `close`, `go`, and `use [item] on [door]` walk the actor **AT** the way as part of the action. Witnesses see *"Jake at the north"* in room look and agent prompts. Transit areas use `transit`/`passage` tags for **back/forward** when AT an entry way. Full reference: [[Gameplay/Character Spatial Position]].
 

@@ -519,6 +519,55 @@ Update docs only after behavior is verified, using precise terms:
 
 Never call a mechanic complete when only its data model or seam exists.
 
+### Writing documentation (the Ways standard)
+
+`docs/virtualWorld/World Building/Ways.md` is the worked example;
+`Way Properties.md` and the pre-2026-10-11 `Doors & Connections.md` are the
+anti-examples. A page in this vault is a manual for the world, written for the
+person building or playing it — not a restatement of the schema.
+
+1. **Write for the author and the player, not the code.** A code reference
+   (`movement.py:564`) is a footnote; the document's job is the decision — what a
+   thing is, when to use it, and why. A `property | values | read by` table is a
+   generated reference, not a page.
+2. **Order it the way the reader meets it:** what it is → what you see → what you
+   can change → how to author one → how to use it. Not alphabetical, not by field
+   list.
+3. **Attach a concrete in-world example to every abstract rule.** "A frost
+   giant's iron door." "A mouse hole the winged woman hid behind." "A thorn bush
+   wedged in the cave mouth." The picture is the meaning.
+4. **Show the actual player-facing output.** For a way that is the exit line —
+   `[rocky slope] is open — … (you can go through it, approach it, dash, examine
+   or close it)`. A page that documents internals and never shows what a
+   character experiences has documented the wrong thing.
+5. **Say why where the engine is indifferent.** `locked` and `blocked` are the
+   same to the engine and completely different to an author; the page exists to
+   tell them which to pick.
+6. **Truth over completeness.** Verify every claim against the current code before
+   shipping it and name drift where you find it. A confident lie is worse than a
+   gap: the old ways pages listed `broken` and never mentioned `hidden`, called
+   the node type `door` (it is `way`) and the id `door_<Room>_…` (it is
+   `way_<area>_…`). Every stale line reference is a thing the next reader must
+   re-verify.
+7. **Correct the system, not the reader.** When the user contradicts a doc, go and
+   look. The doc that was never maintained is the suspect, not the person who
+   knows the system.
+8. **Connect the page.** `[[wikilinks]]` to its siblings and to the generated
+   schema page; the `## Connected` block is machine-owned. The page should carry
+   the changelog — *what changed, why and when* — fed by the task cards that
+   touch it (a card's `wiki:` points at the page it concerns).
+
+**Generated vs hand-written.** A schema/reference page (`Way Properties.md`,
+`Action Tiers`) is generated and drift-guarded: never hand-edit its body, and
+never let it stand in for the conceptual page. The conceptual page (`Ways.md`) is
+hand-written and links *down* to the generated one for the full key list. When a
+generated page's own contents drift from the engine — a `values` tuple that no
+longer matches — that is a bug in the declaration; file it, do not paper over it
+in prose.
+
+**Coverage gaps are content or tasks, not prose.** An engine-only property that
+no UI exposes is a UI task, not a documentation footnote.
+
 ---
 
 ## Where things live
@@ -750,6 +799,7 @@ python tools/tasks.py roadmap [--out PATH]
 python tools/tasks.py graph [--json]
 python tools/tasks.py next [--limit N] [--json]
 python tools/tasks.py backfill [--status ...] [--content] [--write]   # canonical-schema gap; --content drafts with the local LLM
+python tools/tasks.py link-deps [--status ...] [--write]   # dependency frontmatter -> [[wikilinks]] in each card
 python tools/tasks.py index [--clear]   # derived cache; only after an external tool rewrote many files
 ```
 
@@ -765,6 +815,16 @@ order, and the cited simulation-substrate audit — is `docs/design/roadmap.md`.
 The same core is exposed over
 MCP at `tools/tasks_mcp.py` (`python tools/tasks_mcp.py`); its write tools
 `add_task` / `set_task` default to `dry_run`.
+
+**Dependency wikilinks.** The dependency keys are the machine-readable graph and
+Obsidian reads none of them, so each card also carries the same relations as
+`[[wikilinks]]` in its preamble, between `<!-- deps:start -->` and
+`<!-- deps:end -->`. `link-deps [--write]` renders them (the migration and the
+repair); `new` and `set` keep the block in step whenever a dependency is written;
+`validate` warns when a card's block is missing or stale. The links are bare
+basenames (`[[task-570-hostile-distribution-consumer]]`) because Obsidian
+resolves a basename from any folder, so a `move` between status folders cannot
+break one, and a ref that resolves to no card is omitted rather than linked.
 
 **Canonical card schema.** A card body is `## What` / `## Why` / `## How` /
 `## Steps to verify` / `## Acceptance` / `## Files`, where a verify step holds

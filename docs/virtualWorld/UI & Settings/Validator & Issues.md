@@ -178,7 +178,7 @@ correction of task-393's own claim:
 - [[Library System Overview]] — templates the drift check compares against
 - [[UI & Settings/NL Editor|NL Editor]] — the pre-Apply gate
 - [[Tags System]] · [[Domain & Role Tags]] — mechanical tags and what they require
-- [[Doors & Connections]] · [[Way Properties]] — the way authoring checks
+- [[Connections]] · [[Way Properties]] — the way authoring checks
 
 <!-- connected:start -->
 ## Connected

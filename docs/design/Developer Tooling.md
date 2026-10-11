@@ -27,7 +27,7 @@ sqlite3 ruff uv node npm code obsidian nmap docker wget gh`.
 | JavaScript | 250 files, 64,084 code lines, 18,383 complexity |
 | JSON | 2,927 files, **278,030 lines** — the real currency, not the code |
 | Markdown | 894 notes, 277,840 lines |
-| HTML | 19 files, **183,414 lines** — generated mega-files (`docs/dev_tasks.html`) |
+| HTML | generated dumps of the task tree only; the large `docs/dev_tasks.html` was deleted 2026-10-11 as a redundant snapshot of the in-vault tree |
 | tests | 214 pytest files; suite takes minutes and one file hangs |
 | live graph | 658 nodes / 207 areas / 361 ways / 35 items / 23 characters |
 | `GET /api/state` | **2.48 MB, p50 756 ms, p99 876 ms** at 10 connections — and the client polls it every 1.5 s |

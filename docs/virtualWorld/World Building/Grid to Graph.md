@@ -212,7 +212,7 @@ and fog of war as the known set. Its `Related:` header points at
 
 - [[WorldPainter]] — the authoring surface that produces the grid
 - [[World Scopes]] — placements, promotion, `baked` scopes
-- [[Rooms & Areas]] · [[Doors & Connections]] · [[Way Properties]] — what the compiled nodes are
+- [[Rooms & Areas]] · [[Connections]] · [[Way Properties]] — what the compiled nodes are
 - [[Graph System]] · [[World Scopes]] — where they land
 
 <!-- connected:start -->
@@ -224,6 +224,6 @@ and fog of war as the known set. Its `Related:` header points at
 
 **Features** — [[grid-to-graph|Grid to graph]] (#48)
 
-**Neighbouring notes** — [[Doors & Connections]], [[Generated Scenario Review (2026-08)]], [[Graph System]], [[Millbrook Falls Town Map]], [[Rooms & Areas]], [[Way Properties]]
+**Neighbouring notes** — [[Connections]], [[Generated Scenario Review (2026-08)]], [[Graph System]], [[Millbrook Falls Town Map]], [[Rooms & Areas]], [[Way Properties]]
 
 <!-- connected:end -->

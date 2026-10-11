@@ -45,7 +45,8 @@ This is the Obsidian vault for **VirtualWorld** — a Flask + JS text-based game
 | Doc | What it covers |
 |-----|---------------|
 | [[World Building/Rooms & Areas\|Rooms & Areas]] | Area nodes, environment properties, descriptions per light level, area concept |
-| [[World Building/Doors & Connections\|Doors & Connections]] | Way nodes, 6 states, connections, hidden doors, unlocking, auto-close, pass_message |
+| [[World Building/Ways\|Ways]] | The conceptual guide: what a way is, states, blocked vs locked, traversal, behaviour options, navigation, triggers |
+| [[Connections]] | Way graph architecture: connection edges, node ids, toggle/reconnect operations, unlocking, hidden ways, graph colours |
 | [[World Building/Graph System\|Graph System]] | WorldGraph, Node/Edge dataclasses, 5 node types, 7 edge types, serialization, derived layout (orbit, levels, per-node physics) |
 | [[World Building/World Scopes\|World Scopes]] | Scope hierarchy and manifest, per-scope projection, unmade scopes, deterministic generation recipes |
 | [[World Building/WorldPainter\|WorldPainter]] | Paint a world on a grid: 8 tools, 3 modes, 4 layers |

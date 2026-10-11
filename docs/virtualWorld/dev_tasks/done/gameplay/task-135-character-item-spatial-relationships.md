@@ -83,7 +83,7 @@ People lines: `the stranger at the north`, `the woman beside the piano`. Strange
 ## Related
 
 - [[Gameplay/Character Spatial Position]] � **main reference**
-- [[World Building/Doors & Connections]]
+- [[Connections]]
 - [[AI & Narration/Agent Engine]]
 - [[review/ui/task-201-area-visibility-beyond-ways|task-201]]
 - [[review/gameplay/task-224-transit-areas-entry-relative-exits|task-224]]

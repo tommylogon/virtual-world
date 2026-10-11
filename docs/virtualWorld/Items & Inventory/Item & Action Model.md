@@ -155,7 +155,7 @@ The contract is fully implemented in code — `is_portable`, `is_part`, `parent_
 - [[Equipment & Paperdoll]]
 - [[Item States & Toggleables]]
 - [[Character Spatial Position]]
-- [[Doors & Connections]]
+- [[Connections]]
 - [[Triggers & Effects]]
 - [[Light System]]
 - [[Tags System]]

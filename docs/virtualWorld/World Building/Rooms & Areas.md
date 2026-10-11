@@ -292,7 +292,7 @@ The door node holds the state (open/closed/locked/blocked/broken/hidden), descri
 
 This indirection through door nodes is what makes the system flexible — ways can have independent state, triggers, skill checks, auto-close behavior, and hidden visibility separate from the areas they connect.
 
-For full details, see [Doors & Connections](Doors & Connections.md).
+For full details, see [Connections](Connections.md).
 
 ## The "Area" Concept
 
@@ -358,6 +358,6 @@ The `MovementSystem.add_area()` method (`engine/movement.py:23-35`) is rarely ca
 
 **Dev tasks** — [[dev_tasks/done/environment/task-31-dynamic_room_descriptions|task]], [[dev_tasks/done/environment/task-33-generate_item_room_context|task]], [[dev_tasks/done/environment/task-43-relieve_adds_smell|task]], [[dev_tasks/done/environment/task-45-room_generator_room_context|task]], [[dev_tasks/todo/gameplay/task-99-room-grids-and-movement|task]]
 
-**Neighbouring notes** — [[Doors & Connections]], [[Generated Scenario Review (2026-08)]], [[Graph System]], [[Grid to Graph]], [[Millbrook Falls Town Map]], [[Way Properties]]
+**Neighbouring notes** — [[Connections]], [[Generated Scenario Review (2026-08)]], [[Graph System]], [[Grid to Graph]], [[Millbrook Falls Town Map]], [[Way Properties]]
 
 <!-- connected:end -->

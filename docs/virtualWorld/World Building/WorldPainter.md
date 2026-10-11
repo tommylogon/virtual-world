@@ -157,7 +157,7 @@ single POST, so each is a single undo step.
 - **Zoom is capped** —
   [[task-595-cap-how-far-the-worldpainter-view-can-be-zoomed-out|task-595]].
 - **The grid preview cannot be moved or resized yet** —
-  [[dev_tasks/todo/ui/task-597-worldpainter-better-grid-preview-with-drag-to-move-and-handles-to-resize|task-597]].
+  [[task-597-worldpainter-better-grid-preview-with-drag-to-move-and-handles-to-resize|task-597]].
 - **Preflight must be kept in step with the compiler.** `preflight()` says so in its own
   docstring: a `block` must be a condition `compile_grid()` refuses, or one it will refuse
   once the stated remedy is applied; anything advisory belongs at `warn`
@@ -200,6 +200,6 @@ single POST, so each is a single undo step.
 
 **Features** — [[worldpainter|WorldPainter]] (#47)
 
-**Neighbouring notes** — [[Doors & Connections]], [[Generated Scenario Review (2026-08)]], [[Graph System]], [[Grid to Graph]], [[Millbrook Falls Town Map]], [[Rooms & Areas]]
+**Neighbouring notes** — [[Connections]], [[Generated Scenario Review (2026-08)]], [[Graph System]], [[Grid to Graph]], [[Millbrook Falls Town Map]], [[Rooms & Areas]]
 
 <!-- connected:end -->

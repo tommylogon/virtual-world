@@ -21,8 +21,8 @@ Status counts: `planned` 2, `unwired` 1, `wired` 73.
 |---|---|---|---|
 | 1 | [[look-around\|Look around]] | `wired` | [[Rooms & Areas]] |
 | 2 | [[examine\|Examine]] | `wired` | [[Items Overview]] |
-| 3 | [[move\|Move]] | `wired` | [[Doors & Connections]] |
-| 4 | [[open-close\|Open / close]] | `wired` | [[Doors & Connections]] |
+| 3 | [[move\|Move]] | `wired` | [[Connections]] |
+| 4 | [[open-close\|Open / close]] | `wired` | [[Connections]] |
 | 5 | [[take-drop-give\|Take / drop / give]] | `wired` | [[Items Overview]] |
 | 6 | [[use-use-on\|Use / use on]] | `wired` | [[Items Overview]] |
 | 7 | [[talk-speak\|Talk / speak]] | `wired` | [[NPC Behavior System]] |
@@ -56,7 +56,7 @@ Status counts: `planned` 2, `unwired` 1, `wired` 73.
 | 35 | [[llm-calls\|LLM calls]] | `wired` | [[LLM Providers]] |
 | 36 | [[the-sky\|The sky]] | `wired` | [[Time & Weather]] |
 | 37 | [[spectator-mode\|Spectator mode]] | `wired` | [[Time & Weather]] |
-| 38 | [[traversal-abilities\|Traversal abilities]] | `wired` | [[Doors & Connections]] |
+| 38 | [[traversal-abilities\|Traversal abilities]] | `wired` | [[Connections]] |
 | 39 | [[auto-description\|Auto-description]] | `wired` | [[Character Images & Expression Packs]] |
 | 40 | [[taking-an-agent-over\|Taking an agent over]] | `wired` | [[NPC Behavior System]] |
 | 41 | [[memory-pipeline\|Memory pipeline]] | `wired` | [[Memory System]] |

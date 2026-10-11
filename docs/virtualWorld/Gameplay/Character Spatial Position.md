@@ -195,7 +195,7 @@ Frontend mirror: `static/js/agent/prompt-builder/room-context.js` (`spatialPosit
 
 ## Related docs
 
-- [[World Building/Doors & Connections|Doors & Connections]] — way graph structure
+- [[Connections]] — way graph structure
 - [[AI & Narration/Agent Engine|Agent Engine]] — room context + prompts
 - [[Rules Engine/Combat System|Combat System]] — attack positioning
 

@@ -237,7 +237,7 @@ Grants immunity to a specific condition. Checked by `is_immune_to_condition()`.
 
 ### Size Traits (task-187)
 
-The six `size_*` traits are **mutually exclusive** and drive the passage system (see [[World Building/Doors & Connections]]): ways carry a `max_size` property, and `engine/size.py` resolves a tier index from whichever `size_*` trait is present (default `normal` when none). One tier over a way's `max_size` auto-crawls; two or more tiers over blocks the move entirely. Crawl is flavor + gating only — it does not scale costs (the way's `cost.time` is a duration hint for future stateful actions, not per-action clock advancement). Size is purely a trait tier model — there is no height property.
+The six `size_*` traits are **mutually exclusive** and drive the passage system (see [[Connections]]): ways carry a `max_size` property, and `engine/size.py` resolves a tier index from whichever `size_*` trait is present (default `normal` when none). One tier over a way's `max_size` auto-crawls; two or more tiers over blocks the move entirely. Crawl is flavor + gating only — it does not scale costs (the way's `cost.time` is a duration hint for future stateful actions, not per-action clock advancement). Size is purely a trait tier model — there is no height property.
 
 ## How the Engine Applies Traits
 

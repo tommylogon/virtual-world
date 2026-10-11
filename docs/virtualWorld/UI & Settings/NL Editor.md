@@ -129,7 +129,7 @@ Every tray row has a checkbox; `Apply Selected (n)` calls `index.js:134`
 
 - [[Graph System]] — the model being edited
 - [[Library System Overview]] — the library-first mandate
-- [[Doors & Connections]] — what `connect_areas` writes
+- [[Connections]] — what `connect_areas` writes
 - [[UI & Settings/Recent Edits & Undo|Recent Edits & Undo]] — where the Apply lands in history
 - [[Scenario Workflows & UI Audit]] — how this sits in the authoring workflow
 

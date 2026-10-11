@@ -244,7 +244,7 @@ per cell, per area, or per scope — task-499 starts at area/scope.
 ## Related docs
 
 - [[Rooms & Areas]] — what a reveal is teaching
-- [[Doors & Connections]] — `way_visible_to` and hidden exits
+- [[Connections]] — `way_visible_to` and hidden exits
 - [[Character Spatial Position]] — the other half of hidden-node perception
 - [[Memory System]] — `agent_memory` and the authored-knowledge path
 - [[Items Overview]] — the "Known by" control and authored item ids
