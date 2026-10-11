@@ -11,6 +11,11 @@ blocked_by: [task-701, task-702]
 
 **Clarified:** 2026-10-05
 
+<!-- deps:start -->
+**Blocked by:** [[task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries]], [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]]
+**Related:** [[task-2-crafting_and_recipes]], [[task-18-fireplace_lighting_recipe]], [[task-197-teach-skill-recipe]], [[task-504-item-quantity-property-and-pooled-resource-nodes]], [[task-472-central-dice-and-check-resolution]], [[task-699-gosp-design-doc-schedules-plan-templates-and-recipe-activities-as-one-goap-layer]], [[task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries]], [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]]
+<!-- deps:end -->
+
 ## What
 
 Keep three meanings distinct. A **Pursuit** can bring a character to a place and give them a reason to cook. The **cooking Activity** is the visible process happening over time at a cooking area. The **world recipe** defines how the food transformation resolves: required ingredients, equipment, area conditions, duration, skill/quality tiers, and resulting items.

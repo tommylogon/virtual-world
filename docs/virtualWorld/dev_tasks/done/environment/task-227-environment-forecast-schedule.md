@@ -9,6 +9,10 @@ type: task
 
 # Task 227: Environment Forecast Schedule Engine
 
+<!-- deps:start -->
+**Supersedes:** [[task-85-time_weather_dates]]
+<!-- deps:end -->
+
 ## What
 
 Replace ad-hoc weather with a **forecast schedule** system. The scenario designer (or GM) defines environment properties at any game time as a authored schedule — hourly detail, weekly averages, or yearly climate patterns. Triggers and API calls can temporarily override the forecast for story moments.

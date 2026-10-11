@@ -12,6 +12,11 @@ related: [task-624, task-646]
 **Filed:** 2026-09-30
 **Related:** 
 
+<!-- deps:start -->
+**Blocked by:** [[task-439-canonical-area-identity-in-save-and-lookups]]
+**Related:** [[task-624-command-output-leaks-internal-ids-into-player-facing-prose]], [[task-646-rename-space-separated-registry-ids-52-total-and-resolve-the-hidden-door-collision]]
+<!-- deps:end -->
+
 ## What
 
 Names embed '(world N,M)' and reuse common nouns, so several areas are indistinguishable by name. Tommy has confirmed this is the wrong call.

@@ -9,6 +9,10 @@ type: task
 
 # Task 233: Area Status System
 
+<!-- deps:start -->
+**Supersedes:** [[task-138-area-status-system]]
+<!-- deps:end -->
+
 ## What
 
 Add a general-purpose `statuses` list to area nodes, mirroring the character condition instance schema. This is the framework for dynamic environmental effects: `on_fire`, `flooded`, `poison_gas`, `blessed`, `darkness_magic`, etc. Statuses can tick damage to characters, modify environment properties, and propagate through open connections.

@@ -11,6 +11,11 @@ blocked_by: [task-701, task-702, task-705]
 
 **Clarified:** 2026-10-05
 
+<!-- deps:start -->
+**Blocked by:** [[task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries]], [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]], [[task-705-requirement-condition-leaves-quantity-area-function-knowledge-and-ownership]]
+**Related:** [[task-426-plan-archetypes-and-group-goals]], [[task-409-background-schedules-work-and-coarse-social]], [[task-685-memory-dynamics-memories-that-reinforce-fade-contradict-and-change-the-character]], [[task-699-gosp-design-doc-schedules-plan-templates-and-recipe-activities-as-one-goap-layer]], [[task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries]], [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]]
+<!-- deps:end -->
+
 ## What
 
 Choose or propose a suitable **pursuit** when needs, a goal, an accepted mission, a meaningful event, or a schedule reminder makes one relevant. A pursuit has a character's reason and longer-term objective; its short-term plan handles the present situation; an Activity begins when the character reaches a place and performs something over time.

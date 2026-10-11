@@ -13,6 +13,11 @@ related: [task-588, task-495, task-568, task-569, task-571, task-573, task-716, 
 **Related:** task-588, task-495, task-568
 **Blocked by:** task-588 (the tab's shape depends on where the data ends up)
 
+<!-- deps:start -->
+**Blocked by:** [[task-588-investigate-where-worldpainter-vocabularies-live]]
+**Related:** [[task-588-investigate-where-worldpainter-vocabularies-live]], [[task-495-worldpainter-recursive-scope-grids-and-3-mode-editor]], [[task-568-an-indoor-vocabulary-so-a-floor-plan-can-be-written-without-warnings]], [[task-569-biome-resource-distribution-consumer]], [[task-571-item-biome-affinity-field]], [[task-573-lint-biome-coverage-from-biomes-json]], [[task-716-fisherman-vertical-slice-reusable-water-activity-and-pursuit-loop]], [[task-718-biome-resource-loot-tables-as-separate-library-json]]
+<!-- deps:end -->
+
 ## What
 
 Surface biomes and interior floor plans in the library so an author can read and search them, without pretending they are materializable entities. Every current REGISTRY_TYPE can be placed into a world (`materialize_library_item`, `placeItemFromLibrary`); a biome is read by a compiler and an interior plan is instantiated by `interior_gen`, so they need a second kind of library entry: **browsable vocabulary, no place action**.

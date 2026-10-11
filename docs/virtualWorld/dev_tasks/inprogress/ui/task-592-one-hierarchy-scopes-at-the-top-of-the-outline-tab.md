@@ -11,6 +11,10 @@ related: [task-397, task-398, task-528, task-531, task-574]
 **Filed:** 2026-09-29
 **Related:** task-397, task-398, task-528, task-531, task-574
 
+<!-- deps:start -->
+**Related:** [[task-397-world-scope-hierarchy-and-projection]], [[task-398-deterministic-structure-generation]], [[task-528-assign-selected-areas-to-a-scope-promote-a-selection-to-a-placed-feature]], [[task-531-graph-workspace-contextual-scope-bar-breadcrumb-counts-generate-clear]], [[task-574-test-guide-the-2026-09-27-worldpainter-session]]
+<!-- deps:end -->
+
 ## What
 
 One tree in one place: **world → scope → area**, in the Outline tab, so there is a

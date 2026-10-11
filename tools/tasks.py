@@ -18,6 +18,7 @@ Usage:
     python tools/tasks.py graph [--json]
     python tools/tasks.py next [--limit N] [--json]
     python tools/tasks.py backfill [--status S...] [--content] [--write]
+    python tools/tasks.py link-deps [--status S...] [--write]
     python tools/tasks.py index [--clear]
     python tools/tasks.py help [command]
     python tools/tasks.py
@@ -35,6 +36,11 @@ not installed), so a list value stays a list. Dependency keys are
 frontmatter and titles are cached in ``.tasks-index.json`` keyed by mtime+size.
 That cache is derived only -- it changes no result, and ``index --clear``
 deletes it.
+
+Those dependency keys are the machine-readable graph (``graph``, ``next`` and
+``roadmap`` read nothing else) and Obsidian reads none of it, so
+``link-deps`` renders the same relations as ``[[wikilinks]]`` in each card's
+preamble and keeps them in step whenever a dependency is written.
 
 On Windows, ``tools\\tasks.bat`` forwards to this script with the same
 arguments, e.g. ``tools\\tasks.bat help`` or ``tasks list --status todo``.
@@ -173,6 +179,151 @@ def missing_sections(text: str):
 
 def default_root() -> Path:
     return Path(__file__).resolve().parent.parent / "docs" / "virtualWorld" / "dev_tasks"
+
+
+# ── dependency wikilinks ─────────────────────────────────────────────────
+#
+# The dependency keys above are the machine-readable graph, and Obsidian reads
+# none of it: 746 of 885 cards linked to nothing at all. This section renders
+# that same frontmatter as [[wikilinks]] so the relations are navigable in the
+# vault.
+#
+# The block lives in the card preamble, ahead of the first ``## `` heading,
+# because ``merge_card`` rewrites section bodies but carries the preamble
+# through verbatim -- so a ``set --section`` cannot drop it.
+#
+# The link form is the bare basename (``[[task-570-hostile-distribution...]]``).
+# Obsidian resolves a basename from any folder, so a ``move`` between status
+# folders cannot break one, which is the same rule ``doc_links.py`` states and
+# the reason ``move`` retargets inbound links. Every stem under dev_tasks is
+# unique (899 distinct of 899), so a basename is never ambiguous.
+#
+# A ref that resolves to no card is left out rather than linked: a broken
+# [[wikilink]] fails ``links``, and ``validate`` already warns about the
+# dangling frontmatter ref itself.
+
+DEPS_START = "<!-- deps:start -->"
+DEPS_END = "<!-- deps:end -->"
+
+# Emission order: what holds this card back, what it holds back, then the rest.
+DEP_LINK_ORDER = ("blocked_by", "depends_on", "blocks", "children",
+                  "parent", "supersedes", "related")
+DEP_LABELS = {
+    "blocked_by": "Blocked by",
+    "depends_on": "Depends on",
+    "blocks": "Blocks",
+    "children": "Children",
+    "parent": "Parent",
+    "supersedes": "Supersedes",
+    "related": "Related",
+}
+
+
+def dep_stems(root: Optional[Path] = None) -> Dict[str, str]:
+    """``task-570`` -> ``task-570-hostile-distribution-consumer``, every card.
+
+    The stem is the wikilink target. Built from the whole tree rather than from
+    a filtered set, so a ref resolves no matter which cards a command is
+    looking at.
+    """
+    root = root or default_root()
+    out: Dict[str, str] = {}
+    for e in iter_entries(root):
+        if e.kind and e.id not in out:
+            out[e.id] = e.path.stem
+    return out
+
+
+def _dep_lines(fm: Dict, stems: Dict[str, str]) -> Tuple[List[str], List[str]]:
+    """``(markdown lines, unresolved refs)`` for one card's dependency keys."""
+    lines: List[str] = []
+    unresolved: List[str] = []
+    for key in DEP_LINK_ORDER:
+        refs: List[str] = []
+        for ref in _as_refs(fm.get(key)):
+            if ref not in refs:
+                refs.append(ref)
+        links = [f"[[{stems[r]}]]" for r in refs if r in stems]
+        unresolved.extend(f"{key}: {r}" for r in refs if r not in stems)
+        if links:
+            lines.append(f"**{DEP_LABELS[key]}:** " + ", ".join(links))
+    return lines, unresolved
+
+
+def dep_block(fm: Dict, stems: Dict[str, str]) -> str:
+    """The marker-delimited block, or ``""`` when no dependency resolves."""
+    lines, _ = _dep_lines(fm, stems)
+    return "\n".join([DEPS_START, *lines, DEPS_END]) if lines else ""
+
+
+def _join_block(before: str, after: str, block: str) -> str:
+    """Splice ``block`` between two chunks, one blank line on each side."""
+    if not block:
+        if not after.strip():
+            return before.rstrip("\n") + "\n"
+        return before.rstrip("\n") + "\n\n" + after.lstrip("\n")
+    if not after.strip():
+        return before.rstrip("\n") + "\n\n" + block + "\n"
+    return before.rstrip("\n") + "\n\n" + block + "\n\n" + after.lstrip("\n")
+
+
+def refresh_dep_block(text: str, stems: Dict[str, str],
+                      fm: Optional[Dict] = None) -> Tuple[str, List[str]]:
+    """Return ``text`` with its dependency block inserted, refreshed or removed.
+
+    Idempotent: the span between the markers is replaced wholesale, and a card
+    whose dependencies have all gone loses the block instead of keeping a stale
+    one. Returns ``(new_text, unresolved refs)``.
+    """
+    fm = parse_frontmatter(text)[0] if fm is None else fm
+    block = dep_block(fm, stems)
+    _, unresolved = _dep_lines(fm, stems)
+
+    span = re.search(re.escape(DEPS_START) + r".*?" + re.escape(DEPS_END),
+                     text, re.S)
+    if span:
+        return _join_block(text[:span.start()], text[span.end():], block), unresolved
+
+    if not block:
+        return text, unresolved
+
+    m = H2_RE.search(text)
+    if m:
+        return _join_block(text[:m.start()], text[m.start():], block), unresolved
+    return _join_block(text, "", block), unresolved
+
+
+def _write_card(path: Path, text: str) -> None:
+    """Write a card, keeping a UTF-8 BOM the file already carries.
+
+    ``read_text`` strips one via utf-8-sig, so a plain utf-8 write would silently
+    drop it from any card a migration touches. A handful of legacy cards carry
+    one (the underscore-named bugs among them).
+    """
+    has_bom = path.read_bytes().startswith(b"\xef\xbb\xbf")
+    path.write_text(text, encoding="utf-8-sig" if has_bom else "utf-8")
+
+
+def dep_block_gap(text: str, stems: Dict[str, str]) -> str:
+    """``""`` when a card's dependency block matches its frontmatter, else why.
+
+    The rot guard: a card whose frontmatter names relations while its block is
+    missing or stale reads as unlinked in Obsidian even though the graph knows
+    better. It returns early for the ~92% of cards that carry no dependency, so
+    the check is cheap, and it compares the block body rather than the whole
+    file so incidental whitespace is not reported.
+    """
+    fm = parse_frontmatter(text)[0]
+    if not any(_as_refs(fm.get(k)) for k in DEPENDENCY_KEYS):
+        return ""
+    want = dep_block(fm, stems)
+    span = re.search(re.escape(DEPS_START) + r".*?" + re.escape(DEPS_END),
+                     text, re.S)
+    if span is None:
+        return "has dependency frontmatter but no [[wikilink]] block" if want else ""
+    if span.group(0) != want:
+        return "dependency [[wikilink]] block is stale"
+    return ""
 
 
 # ── model ────────────────────────────────────────────────────────────────
@@ -620,15 +771,30 @@ def _section_md(key: str, value) -> str:
     return str(value).strip()
 
 
+def _payload_dep_block(payload: Dict, related: str,
+                       stems: Optional[Dict[str, str]]) -> str:
+    """The dependency block for a card ``new``/``add_task`` is about to write."""
+    dep_fm = {k: payload[k] for k in DEPENDENCY_KEYS if payload.get(k)}
+    if related and "related" not in dep_fm:
+        dep_fm["related"] = related
+    if not dep_fm:
+        return ""
+    return dep_block(dep_fm, dep_stems() if stems is None else stems)
+
+
 def render_card(*, kind: str, num: int, title: str, status: str, area: str,
                 priority: str, filed: str, related: str = "", wiki: str = "",
-                payload: Optional[Dict] = None) -> str:
+                payload: Optional[Dict] = None,
+                stems: Optional[Dict[str, str]] = None) -> str:
     """Build a canonical card body (frontmatter + ordered sections).
 
     The section set is ``CANONICAL_SECTIONS``; ``payload`` may supply any of the
     canonical keys plus frontmatter fields (``horizon``, ``effort``, ``goal``,
     ``wiki`` and the dependency keys). Empty sections fall back to stubs, so a
     scaffolded card is always the right *shape* even before it is written into.
+
+    ``stems`` maps a dependency id to its current file stem so the scaffolded
+    card's ``[[wikilinks]]`` resolve; it defaults to a scan of the tree.
     """
     payload = payload or {}
     fm = [f"type: {'bug' if kind == 'bug' else 'task'}",
@@ -657,6 +823,9 @@ def render_card(*, kind: str, num: int, title: str, status: str, area: str,
            f"# {kind}-{num}: {title}", "",
            f"**Filed:** {filed}",
            f"**Related:** {rel}", ""]
+    block = _payload_dep_block(payload, related, stems)
+    if block:
+        out += [block, ""]
     for key, heading, _aliases in CANONICAL_SECTIONS:
         out += [f"## {heading}", "", _section_md(key, payload.get(key)), ""]
     return "\n".join(out).rstrip() + "\n"
@@ -827,7 +996,7 @@ def cmd_new(args) -> int:
                        priority=str(payload.get("priority") or args.priority),
                        filed=_dt.date.today().isoformat(),
                        related=args.related, wiki=getattr(args, "wiki", "") or "",
-                       payload=payload)
+                       payload=payload, stems=dep_stems(args.root))
     path.write_text(body, encoding="utf-8")
     print(str(path))
     return 0
@@ -892,25 +1061,41 @@ def cmd_move(args) -> int:
 
 
 def apply_set(text: str, fm_updates: Dict[str, str],
-              sections: Optional[Dict[str, str]] = None) -> str:
+              sections: Optional[Dict[str, str]] = None,
+              stems: Optional[Dict[str, str]] = None) -> str:
     """Return ``text`` with frontmatter fields and/or sections updated.
 
     Pure (no I/O) so ``set`` and the MCP skin share it. With ``sections`` it
     replaces those canonical sections in place and touches nothing else; with
     only ``fm_updates`` it rewrites just those frontmatter keys.
+
+    Writing a dependency key also refreshes the card's ``[[wikilink]]`` block
+    from the merged frontmatter, so the links cannot describe the previous
+    relations. ``stems`` maps a dependency id to its current file stem and
+    defaults to a scan of the tree.
     """
     if sections:
-        return merge_card(text, sections, overwrite=True, add_missing=False,
-                          preserve_order=True, fm_updates=fm_updates)
-    fm_block = _split_frontmatter(text)
-    if fm_block is None:
-        # A legacy card with no frontmatter block (it carried a prose
-        # `**Status:**` header instead): synthesize one above the body so
-        # `set` can still record a field.
-        return ("---" + _update_frontmatter("", fm_updates)
-                + "\n---\n\n" + text.lstrip("\n"))
-    end = text.find("\n---", 3)
-    return "---" + _update_frontmatter(fm_block, fm_updates) + text[end:]
+        new_text = merge_card(text, sections, overwrite=True, add_missing=False,
+                              preserve_order=True, fm_updates=fm_updates)
+    else:
+        fm_block = _split_frontmatter(text)
+        if fm_block is None:
+            # A legacy card with no frontmatter block (it carried a prose
+            # `**Status:**` header instead): synthesize one above the body so
+            # `set` can still record a field.
+            new_text = ("---" + _update_frontmatter("", fm_updates)
+                        + "\n---\n\n" + text.lstrip("\n"))
+        else:
+            end = text.find("\n---", 3)
+            new_text = "---" + _update_frontmatter(fm_block, fm_updates) + text[end:]
+
+    if any(key in fm_updates for key in DEPENDENCY_KEYS):
+        merged = dict(parse_frontmatter(text)[0])
+        merged.update({k: v for k, v in fm_updates.items()
+                       if k in DEPENDENCY_KEYS})
+        new_text, _ = refresh_dep_block(
+            new_text, dep_stems() if stems is None else stems, fm=merged)
+    return new_text
 
 
 def cmd_set(args) -> int:
@@ -957,7 +1142,8 @@ def cmd_set(args) -> int:
         return 1
 
     try:
-        new_text = apply_set(text, fm_updates, sections)
+        new_text = apply_set(text, fm_updates, sections,
+                             stems=dep_stems(args.root))
     except ValueError as exc:
         print(f"error: {entry.path}: {exc}", file=sys.stderr)
         return 1
@@ -965,7 +1151,7 @@ def cmd_set(args) -> int:
     if new_text == text:
         print(f"unchanged: {entry.path}")
         return 0
-    entry.path.write_text(new_text, encoding="utf-8")
+    _write_card(entry.path, new_text)
     print(str(entry.path))
     return 0
 
@@ -1500,6 +1686,7 @@ def cmd_validate(args) -> int:
     entries = iter_entries(args.root)
     errors: List[str] = []
     warnings: List[str] = []
+    stems = {e.id: e.path.stem for e in entries if e.kind}
 
     # Duplicate ids
     seen: Dict[Tuple[str, int], List[Entry]] = {}
@@ -1534,7 +1721,8 @@ def cmd_validate(args) -> int:
                 f"frontmatter status '{fm_status}' != folder '{e.status}': {e.path}")
 
         # Referenced ids. Prose lines and frontmatter lists both count.
-        lines = try_read_text(e.path).splitlines()
+        text = try_read_text(e.path)
+        lines = text.splitlines()
         for key in ("related", "blocks", "blocked_by", "supersedes", "parent",
                     "children", "depends_on"):
             for ref in _as_refs(e.frontmatter().get(key)):
@@ -1546,6 +1734,10 @@ def cmd_validate(args) -> int:
                     ref = f"{kind.lower()}-{int(num)}"
                     if ref not in known_ids:
                         warnings.append(f"dangling reference {ref} in {e.path.name}")
+
+        gap = dep_block_gap(text, stems)
+        if gap:
+            warnings.append(f"{e.id}: {gap} (run link-deps --write)")
 
     if getattr(args, "schema", False):
         warnings.extend(_schema_warnings(entries))
@@ -1570,6 +1762,66 @@ def cmd_links(args) -> int:
     return doc_links.main(argv)
 
 
+def cmd_link_deps(args) -> int:
+    """Render each card's dependency frontmatter as [[wikilinks]].
+
+    This is the migration and the repair for the dependency block: it walks the
+    cards, renders the frontmatter keys (``blocked_by``, ``depends_on``,
+    ``blocks``, ``children``, ``parent``, ``supersedes``, ``related``) as
+    basename wikilinks, and inserts, refreshes or removes the marker-delimited
+    block to match. Default is a dry run; ``--write`` applies it. A ref that
+    resolves to no card is reported and left out, so the run cannot create a
+    broken link.
+    """
+    wanted = set(args.status) if getattr(args, "status", None) else set(STATUSES)
+    entries = [e for e in iter_entries(args.root) if e.kind and e.status in wanted]
+    stems = dep_stems(args.root)
+
+    changed: List[Tuple[Entry, str, List[str]]] = []
+    unresolved_all: List[str] = []
+    links_added = 0
+    for e in sorted(entries, key=lambda x: (x.kind, x.num)):
+        text = try_read_text(e.path)
+        if not text:
+            continue
+        new_text, unresolved = refresh_dep_block(text, stems)
+        if unresolved:
+            unresolved_all.extend(f"{e.id}: {u}" for u in unresolved)
+        if new_text != text:
+            # Only the block changes, so the delta is the links it added (or,
+            # for a card whose deps all vanished, removed).
+            links_added += (new_text.count("[[") - text.count("[["))
+            changed.append((e, new_text, unresolved))
+
+    write = getattr(args, "write", False)
+    if getattr(args, "json", False):
+        print(json.dumps({
+            "scanned": len(entries), "cards_to_change": len(changed),
+            "written": len(changed) if write else 0,
+            "links_added": links_added,
+            "unresolved": unresolved_all,
+            "cards": [{"id": e.id, "status": e.status, "area": e.area}
+                      for e, _t, _u in changed]}, indent=2))
+        return 0
+
+    for e, _new_text, unresolved in changed:
+        note = f"  ({len(unresolved)} unresolved)" if unresolved else ""
+        print(f"{e.id:<10} {e.status:<10} {e.area:<12}{note}")
+    for u in unresolved_all:
+        print(f"warn: unresolved dependency ref {u}", file=sys.stderr)
+
+    if write:
+        for e, new_text, _u in changed:
+            _write_card(e.path, new_text)
+        print(f"\n{len(entries)} cards scanned, {len(changed)} rewritten, "
+              f"{links_added} link line(s), {len(unresolved_all)} unresolved")
+    else:
+        print(f"\n{len(entries)} cards scanned, {len(changed)} would change, "
+              f"{len(unresolved_all)} unresolved")
+        print("(dry run - re-run with --write to apply)")
+    return 0
+
+
 def _norm(status: str) -> str:
     return status.strip().lower().replace("_", "").replace("-", "")
 
@@ -1592,6 +1844,7 @@ Commands:
     list      list tasks/bugs, optionally filtered
     validate  check ids, filenames, folders and cross-references
     links     check the vault's [[wikilinks]] against the notes on disk
+    link-deps render dependency frontmatter as [[wikilinks]] (repair/migration)
     index     rebuild or clear the derived frontmatter cache
     status    counts by status / area / horizon
     roadmap   generate the roadmap view from folders + horizon
@@ -1719,6 +1972,33 @@ that cite it: `move` rewrites inbound links, and this catches what it misses.
   python tools/tasks.py links --report
 
 Implementation lives in tools/doc_links.py.
+""",
+    "link-deps": """\
+link-deps [--status STATUS...] [--write] [--json]
+
+Render each card's dependency frontmatter (related, blocked_by, depends_on,
+blocks, children, parent, supersedes) as [[wikilinks]] in the card preamble,
+between `<!-- deps:start -->` and `<!-- deps:end -->`. The dependency keys are
+the machine-readable graph and Obsidian reads none of them, so a card's
+relations were invisible in the vault.
+
+Links are the bare basename ([[task-570-hostile-distribution-consumer]]), which
+Obsidian resolves from any folder, so a `move` between status folders cannot
+break one. A ref that resolves to no card is reported and left out, so a run
+never creates a broken link.
+
+Idempotent: the block is replaced wholesale, and a card whose dependencies all
+disappeared loses the block. `new` and `set` keep the block in step when they
+write a dependency, so this is the migration for cards written before it
+existed and the repair for one edited by hand.
+
+  --status  limit to cards in these status folders (default: all)
+  --write   apply the block (default is a dry run that prints what would change)
+  --json    machine-readable summary
+
+  python tools/tasks.py link-deps
+  python tools/tasks.py link-deps --write
+  python tools/tasks.py link-deps --status todo inprogress review --write
 """,
     "index": """\
 index [--clear]
@@ -2039,6 +2319,15 @@ def build_parser() -> argparse.ArgumentParser:
     lk = sub.add_parser("links", help="check the vault's [[wikilinks]]")
     lk.add_argument("--report", action="store_true", help="list the broken links")
     lk.set_defaults(func=cmd_links)
+
+    ld = sub.add_parser("link-deps",
+                        help="render dependency frontmatter as [[wikilinks]]")
+    ld.add_argument("--status", nargs="+", choices=STATUSES,
+                    help="only cards in these status folders")
+    ld.add_argument("--write", action="store_true",
+                    help="apply the block (default is a dry run)")
+    ld.add_argument("--json", action="store_true")
+    ld.set_defaults(func=cmd_link_deps)
 
     hp = sub.add_parser("help", help="show the guide, or help for one command")
     hp.add_argument("topic", nargs="?", choices=sorted(HELP_TOPICS))

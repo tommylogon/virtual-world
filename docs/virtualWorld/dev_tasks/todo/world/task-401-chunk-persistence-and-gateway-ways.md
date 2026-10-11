@@ -15,6 +15,11 @@ blocked_by: [task-397, task-398, task-399, task-400]
 goal, the reasoning and the acceptance for the whole effort stay here, the work
 does not.
 
+<!-- deps:start -->
+**Blocked by:** [[task-397-world-scope-hierarchy-and-projection]], [[task-398-deterministic-structure-generation]], [[task-399-background-character-simulation-and-reactivation]], [[task-400-pines-world-scale-vertical-slice]]
+**Children:** [[task-581-stable-area-ids-and-one-authoritative-location-for-characters-and-items]], [[task-582-chunk-load-unload-and-merge-apis-on-worldgraph]], [[task-583-global-scope-index-gateway-ways-and-load-before-you-move]], [[task-584-cross-chunk-ownership-rules-for-carried-items-triggers-and-delayed-events]]
+<!-- deps:end -->
+
 ## Sub-tasks
 
 | Sub-task | Covers |

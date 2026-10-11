@@ -11,6 +11,10 @@ related: [task-693, task-409, task-702]
 **Filed:** 2026-10-04
 **Related:** task-693,task-409
 
+<!-- deps:start -->
+**Related:** [[task-693-e2e-verification-harness-one-command-that-boots-the-app-drives-the-browser-and-asserts-live-state]], [[task-409-background-schedules-work-and-coarse-social]], [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]]
+<!-- deps:end -->
+
 ## What
 
 Change the short-term plan phase from `{'steps': ['prose']}` to typed steps in the primitive vocabulary (`act`, item/target, area, `until`, duration) and validate them against the graph before acceptance. Motivation (live evidence 2026-10-04): Vekka planned “use hanging meat” against flavor text and resolved to failure; prose plans can hallucinate affordances, while plans composed from facts can be checked. The typed step format is the same artifact task-702's executor can run for simple NPCs: an LLM's immediate approach, engine execution, and condition-leaf validation share one contract. It does not represent the character's longer pursuit or an ongoing Activity. Keep the freeform plan prompt as fallback when grounding rejects a step: rejection returns failed preconditions so the LLM re-composes.

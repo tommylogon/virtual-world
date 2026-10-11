@@ -11,6 +11,10 @@ related: [task-673, task-674, task-369, task-384]
 **Filed:** 2026-10-09
 **Related:** task-673, task-674, task-369, task-384
 
+<!-- deps:start -->
+**Related:** [[task-673-entityeditor-frame-mount-unmount-full-surface-editors-alongside-the-inspector-panel]], [[task-674-item-editor-render-actions-as-a-15-row-enable-cost-matrix-table]], [[task-369-import-preview-before-apply]], [[task-384-per-edit-undo-feed]]
+<!-- deps:end -->
+
 ## What
 
 InspectorHelpers.improveWithAI (static/js/inspector/helpers.ts) sends the LLM result straight to api.updateNode with no preview. The moment the model answers, description, actions, tags, uses, weight, current_state, action_costs and skill_check have already changed in the world. The same codebase already owns a preview widget — shared/diff-modal.ts — and the item library-refresh path uses it (InspectorItemView._refreshFromLibrary in static/js/inspector/item-view.ts, which calls DiffModal.show(...) then api.refreshFromLibrary). Improve is the one AI write path that skips it.

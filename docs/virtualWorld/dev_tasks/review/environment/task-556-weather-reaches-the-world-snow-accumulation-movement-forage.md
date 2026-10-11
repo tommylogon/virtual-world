@@ -11,6 +11,10 @@ blocked_by: [task-553]
 **Filed:** 2026-09-27
 **Related:** task-232, task-553
 
+<!-- deps:start -->
+**Blocked by:** [[task-553-per-area-base-temperature-plus-a-diurnal-seasonal-outdoor-curve]]
+<!-- deps:end -->
+
 ## What
 
 Give snowy weather a consequence: accumulate snow on an area and let it change surface presentation, movement cost and forage, instead of being a label that only dims the light.

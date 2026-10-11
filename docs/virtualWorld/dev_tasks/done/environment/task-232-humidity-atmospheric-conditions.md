@@ -9,6 +9,10 @@ type: task
 
 # Task 232: Humidity & Atmospheric Conditions
 
+<!-- deps:start -->
+**Supersedes:** [[task-130-air-vacuum-atmospheric-effects]], [[task-195-humidity-in-areas]]
+<!-- deps:end -->
+
 ## What
 
 Add `humidity` as an area environment property with gameplay effects on effective temperature, item drying, and stealth. Expand `air` propagation so smoke, poison gas, and other atmospheric conditions can spread through open connections.

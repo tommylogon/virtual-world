@@ -12,6 +12,10 @@ blocked_by: [task-9, task-323, task-324, task-397, task-398, task-399]
 **Depends on:** task-397, task-398, task-399; task-323/task-324/task-9 for
 tag-aware furnishing.
 
+<!-- deps:start -->
+**Blocked by:** [[task-9-procedural_item_placement]], [[task-323-library-lint-validator]], [[task-324-domain-tag-schema-and-area-furniture-pass]], [[task-397-world-scope-hierarchy-and-projection]], [[task-398-deterministic-structure-generation]], [[task-399-background-character-simulation-and-reactivation]]
+<!-- deps:end -->
+
 ## What
 
 Make `data/scenarios/pines.json` the first end-to-end proof of the scalable

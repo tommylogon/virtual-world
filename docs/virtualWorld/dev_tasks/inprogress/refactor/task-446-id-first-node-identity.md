@@ -10,6 +10,10 @@ blocked_by: [task-457]
 
 **Filed:** 2026-09-22 (from task-357 design review).
 
+<!-- deps:start -->
+**Blocked by:** [[task-457-character-nodes-are-the-canonical-character-record-human-agent-simple-npc]]
+<!-- deps:end -->
+
 ## Principle
 
 Backend data operations on nodes are keyed by **id**. Names are user-facing: a

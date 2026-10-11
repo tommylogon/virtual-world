@@ -15,6 +15,11 @@ blocked_by: [task-403, task-409, task-417]
 (co-presence).  
 **Relates:** task-425 (novelty), task-410 (sources to gather from).
 
+<!-- deps:start -->
+**Blocked by:** [[task-403-unified-agent-memory-and-knowledge]], [[task-409-background-schedules-work-and-coarse-social]], [[task-417-co-presence-gate-for-coarse-meetings]]
+**Related:** [[task-704-gosp-selector-needs-memory-and-personality-choose-and-bind-plans]], [[task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries]]
+<!-- deps:end -->
+
 ## Progress (2026-09-30) — the carry/refill substrate landed
 
 The precondition an expedition plan needs now exists in

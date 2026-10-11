@@ -16,6 +16,10 @@ freeze, and "while you waited" summary on top of this transport.
 **Evidence:** `static/js/agent-engine.js:862–869`, `static/js/agent/turn-queue.js:151–158`,
 `routes/action_handlers.py:1129–1132`, `tools/soak_sim.py:232`.
 
+<!-- deps:start -->
+**Blocked by:** [[task-399-background-character-simulation-and-reactivation]], [[task-409-background-schedules-work-and-coarse-social]], [[task-411-attention-budget-and-fidelity-tiers]], [[task-412-promotion-demotion-and-trace-consolidation]]
+<!-- deps:end -->
+
 ## What
 
 Let the **server** advance N in-game minutes in one request, so a long run does

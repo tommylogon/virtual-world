@@ -15,6 +15,10 @@ critical retention, array-measured pruning).
 **Relates:** `static/js/nl-editor/agent-loop.js`, `static/js/nl-editor/index.js`,
 `static/js/nl-editor/ui.js`, `static/js/config.js`.
 
+<!-- deps:start -->
+**Blocked by:** [[task-387-natural-language-editor-mode]]
+<!-- deps:end -->
+
 ## What
 
 Make the NL editor's LLM budget visible and adjustable from the NL editor tab,

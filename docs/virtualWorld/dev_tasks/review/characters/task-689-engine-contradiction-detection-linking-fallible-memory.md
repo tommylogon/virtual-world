@@ -11,6 +11,10 @@ parent: task-685
 **Filed:** 2026-10-04
 **Related:** task-685
 
+<!-- deps:start -->
+**Parent:** [[task-685-memory-dynamics-memories-that-reinforce-fade-contradict-and-change-the-character]]
+<!-- deps:end -->
+
 ## What
 
 Characters may remember wrong things, and the system must not silently resolve

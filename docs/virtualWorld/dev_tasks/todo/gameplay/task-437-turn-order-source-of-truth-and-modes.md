@@ -14,6 +14,10 @@ priority: medium
 **Absorbs:** task-310 (reroll initiative / random order), task-101 (simultaneous room turns)
 **Related:** task-244 (human turn parameters), task-241, task-338 (turn queue docs)
 
+<!-- deps:start -->
+**Blocked by:** [[task-436-task-durations-and-remove-action-cost-time]]
+<!-- deps:end -->
+
 ## Why
 
 There is no single answer to "who acts first", and the order that matters most is

@@ -12,6 +12,10 @@ blocked_by: [task-324, task-403]
 **Depends on:** task-403 (unified memory/knowledge system), task-324
 (domain tags)
 
+<!-- deps:start -->
+**Blocked by:** [[task-324-domain-tag-schema-and-area-furniture-pass]], [[task-403-unified-agent-memory-and-knowledge]]
+<!-- deps:end -->
+
 ## What
 
 Generate substantial life experience for characters — events, outcomes, fears,

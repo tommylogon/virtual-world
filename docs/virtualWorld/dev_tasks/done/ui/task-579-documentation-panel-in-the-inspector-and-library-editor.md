@@ -12,6 +12,10 @@ blocked_by: [task-578]
 **Related:** task-575, task-521
 **Blocked by:** task-578 (the resolver route)
 
+<!-- deps:start -->
+**Blocked by:** [[task-578-doc-resolver-route-that-answers-which-docs-cover-this-feature]]
+<!-- deps:end -->
+
 ## What
 
 Surface the documentation covering the selected feature in the authoring UI, next to the

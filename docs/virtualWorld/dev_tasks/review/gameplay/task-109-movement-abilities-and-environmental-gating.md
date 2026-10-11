@@ -16,6 +16,10 @@ priority: medium
 
 ---
 
+<!-- deps:start -->
+**Blocked by:** [[task-110-see-through-windows]]
+<!-- deps:end -->
+
 ## What
 
 Design question deferred from the Stat Modifiers brainstorming session (2026-07-26):

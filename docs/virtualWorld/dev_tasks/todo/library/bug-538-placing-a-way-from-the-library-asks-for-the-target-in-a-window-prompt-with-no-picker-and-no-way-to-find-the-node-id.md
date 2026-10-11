@@ -11,6 +11,10 @@ related: [task-751]
 **Filed:** 2026-10-10
 **Related:** 
 
+<!-- deps:start -->
+**Related:** [[task-751-replace-native-alert-confirm-prompt-popups-with-a-promise-based-in-app-dialog]]
+<!-- deps:end -->
+
 ## What
 
 Placing a way from the library opens a browser window.prompt asking the author to type a target node id. There is no picker, no search and no way to discover the id, so the placement is effectively unusable by hand. Replace the prompt with the same placement flow items use (a target picker / openForRoom over the graph), so an author picks the destination area or way from a searchable list or by clicking the graph. Surfaced 2026-10-10 while trying to verify task-659 (library way spawn carries insulation/sound_barrier) - the spawn could not be reached by hand.

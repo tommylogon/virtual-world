@@ -11,6 +11,11 @@ blocked_by: [task-700, task-701]
 
 **Clarified:** 2026-10-05
 
+<!-- deps:start -->
+**Blocked by:** [[task-700-grounded-plan-contract-the-llm-plan-phase-emits-typed-steps-validated-against-world-facts]], [[task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries]]
+**Related:** [[task-409-background-schedules-work-and-coarse-social]], [[task-426-plan-archetypes-and-group-goals]], [[task-90-delayed_event_queue]], [[task-699-gosp-design-doc-schedules-plan-templates-and-recipe-activities-as-one-goap-layer]], [[task-700-grounded-plan-contract-the-llm-plan-phase-emits-typed-steps-validated-against-world-facts]], [[task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries]], [[task-703-recipe-as-activity-recipes-become-plan-templates-with-duration-success-and-fail-outcomes]], [[task-704-gosp-selector-needs-memory-and-personality-choose-and-bind-plans]]
+<!-- deps:end -->
+
 ## What
 
 Run grounded short-term plans that make progress on an actor's active pursuit. The **pursuit** is the longer undertaking and reason; the **plan** is the current approach; an **Activity** is the observable process that can run over time after the actor reaches a place. Use one set of world rules for LLM agents, simple NPCs, and background characters, with different levels of decision detail.

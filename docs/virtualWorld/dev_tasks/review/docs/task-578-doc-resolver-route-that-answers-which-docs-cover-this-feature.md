@@ -14,6 +14,11 @@ blocks: [task-579]
 **Blocked by:** task-576 (module `@docs` index), task-577 (node `docs` field)
 **Blocks:** task-579
 
+<!-- deps:start -->
+**Blocked by:** [[task-576-extend-the-docs-contract-to-python-modules]], [[task-577-authorable-docs-field-on-library-nodes]]
+**Blocks:** [[task-579-documentation-panel-in-the-inspector-and-library-editor]]
+<!-- deps:end -->
+
 ## What
 
 Expose one HTTP endpoint that indexes the documentation corpus and answers *"which pages

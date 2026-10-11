@@ -9,6 +9,10 @@ type: task
 
 # Task 229: Moon Phase System
 
+<!-- deps:start -->
+**Supersedes:** [[task-85-time_weather_dates]], [[task-80-outdoor-lighting-day-night]]
+<!-- deps:end -->
+
 ## What
 
 Add a deterministic moon phase cycle (30-day) based on `game_day`. Moon phase affects outdoor night ambient light. Full moon makes outdoor nights visibly brighter; new moon keeps them pitch black.

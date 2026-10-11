@@ -11,6 +11,10 @@ related: [bug-516, task-519, task-654, task-665]
 **Filed:** 2026-10-01
 **Related:** bug-516, task-519, task-654, task-665
 
+<!-- deps:start -->
+**Related:** [[bug-516-refresh-to-world-writes-equipped-verbatim-so-a-dict-entry-crashes-api-state-the-import-and-refresh-paths-require-contradictory-equipped-shapes]], [[task-519-character-starting-loadouts-from-the-item-library]], [[task-654-player-equipped-and-the-equipment-graph-edges-are-two-sources-of-truth-the-api-writes-only-the-first]], [[task-665-kraktooth-cast-rework-is-half-migrated-in-the-working-tree-5-staged-renames-4-un-migrated-duplicate-merchant-entry-7-descriptions-claiming-nonexistent-items]]
+<!-- deps:end -->
+
 ## What exists now
 
 `python tools/character_loadout_check.py --check` (plus `--report`,

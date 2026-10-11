@@ -12,6 +12,10 @@ blocks: [task-578]
 **Related:** tools/js_module_index.py, docs/design/js-module-index.md, task-338
 **Blocks:** task-578
 
+<!-- deps:start -->
+**Blocks:** [[task-578-doc-resolver-route-that-answers-which-docs-cover-this-feature]]
+<!-- deps:end -->
+
 ## What
 
 Give every `engine/` and `routes/` module the same `@docs` docstring header the JS side

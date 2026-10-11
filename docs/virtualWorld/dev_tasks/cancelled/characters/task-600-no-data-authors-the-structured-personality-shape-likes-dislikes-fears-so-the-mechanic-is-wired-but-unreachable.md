@@ -11,6 +11,10 @@ related: [task-593, bug-514, task-599, task-601]
 **Filed:** 2026-09-30
 **Related:** task-593, bug-514, task-599
 
+<!-- deps:start -->
+**Related:** [[task-593-llm-inspector-label-every-call-site-and-never-fall-back-to-a-bare-llm]], [[bug-514-generate-from-personality-does-nothing-and-says-nothing-when-no-llm-is-configured]], [[task-599-clean-up-dead-interest-tags-across-the-library-characters]], [[task-601-settle-the-tag-id-charset-data-uses-and-spaces-the-declared-pattern-allows-neither]]
+<!-- deps:end -->
+
 ## What
 
 engine/character_appearance.py reads a structured personality object with likes, dislikes, fears, kinks and turn_offs (PERSONALITY_FIELDS at :51, consumed at :146, :364, :383, :414) and tests cover it, but every character in data/ authors personality as a plain prose string instead - all 23 Kraktooth characters, and the library characters. The mechanic is implemented, wired and tested but no content can reach it, so it is untested in the simulation. Two things to settle: author the structured shape for a representative character or two so the wired mechanic can actually occur, and decide how the prose-string and structured-object forms of the same field are meant to coexist.

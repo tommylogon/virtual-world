@@ -11,6 +11,10 @@ related: [task-357, task-291]
 **Filed:** 2026-09-29
 **Related:** task-357, task-291
 
+<!-- deps:start -->
+**Related:** [[task-357-structure-save-load-connected-areas]], [[task-291-unified-library-api-and-data-driven-catalogs]]
+<!-- deps:end -->
+
 ## What
 
 `engine/structures.py` already implements a structure as a portable, internally-wired subgraph — **areas + ways + items + residents** — and `routes/structures.py` registers five endpoints including `save` and `materialize`. Nothing in `static/` or `templates/` mentions a structure template, so the entire feature is reachable by curl only, `data/library/structures/` is empty, and no structure has ever been captured. Give it a way in from the graph editor.

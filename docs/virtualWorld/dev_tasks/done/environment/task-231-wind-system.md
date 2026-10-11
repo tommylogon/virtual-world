@@ -9,6 +9,10 @@ type: task
 
 # Task 231: Wind System
 
+<!-- deps:start -->
+**Supersedes:** [[task-163-wind-environmental-enum]], [[task-194-wind-water-resistance-insulation]]
+<!-- deps:end -->
+
 ## What
 
 Add `wind` as an area environment property. Wind accelerates heat propagation, creates wind chill on effective temperature, drains Energy during exterior movement, and can extinguish light/heat sources. Wet clothing loses insulation effectiveness. Items can have `wind_resistance` and `water_resistance` as percentage values.

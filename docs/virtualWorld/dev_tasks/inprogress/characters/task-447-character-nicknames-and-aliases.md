@@ -12,6 +12,10 @@ blocked_by: [task-457]
 **Related:** task-446 (id-first node identity), task-448 (ambiguous target prompt),
 `engine/matching.py` (character alias tier), `engine/serialization.py`
 
+<!-- deps:start -->
+**Blocked by:** [[task-457-character-nodes-are-the-canonical-character-record-human-agent-simple-npc]]
+<!-- deps:end -->
+
 ## Why
 
 A character can go by a short name the game must resolve: "Vi" for *Violet

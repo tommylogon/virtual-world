@@ -11,6 +11,10 @@ parent: task-685
 **Filed:** 2026-10-04
 **Related:** task-685, task-350, task-96
 
+<!-- deps:start -->
+**Parent:** [[task-685-memory-dynamics-memories-that-reinforce-fade-contradict-and-change-the-character]]
+<!-- deps:end -->
+
 ## What
 
 Reflection stops being summarize-only and starts changing the character, and

@@ -11,6 +11,10 @@ blocked_by: [task-397, task-401]
 **Filed:** 2026-09-08  
 **Depends on:** task-397. Extend after task-401 when real chunk loading exists.
 
+<!-- deps:start -->
+**Blocked by:** [[task-397-world-scope-hierarchy-and-projection]], [[task-401-chunk-persistence-and-gateway-ways]]
+<!-- deps:end -->
+
 ## What
 
 Prove the scale claims with generated fixture data before treating a

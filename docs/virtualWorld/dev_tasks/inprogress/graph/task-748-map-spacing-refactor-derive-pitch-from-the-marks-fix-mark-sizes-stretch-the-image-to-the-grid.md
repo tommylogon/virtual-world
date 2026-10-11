@@ -11,6 +11,10 @@ related: [task-526, task-548, task-527, bug-528, bug-529, task-618, task-723]
 **Filed:** 2026-10-09
 **Related:** task-526 task-548 task-527 bug-528 bug-529 task-618 task-723
 
+<!-- deps:start -->
+**Related:** [[task-526-map-rendering-scale-dots-vs-cards-at-low-spacing-auto-spacing]], [[task-548-map-drawing-scales-with-the-pitch-node-sizes-item-offsets-item-rings-and-the-solver-spring]], [[task-527-graph-steady-state-performance-on-a-large-painted-map-profile-fix]], [[bug-528-map-label-lod-gates-on-raw-zoom-scale-so-names-stay-hidden-on-a-high-pitch-map]], [[bug-529-worldpainter-compiled-ways-carry-no-tags-so-every-generated-way-reads-tags-none]], [[task-618-map-mode-draws-four-scattered-images-with-edges-over-nothing]], [[task-723-calculate-way-node-coordinates-between-areas-in-map-mode]]
+<!-- deps:end -->
+
 ## Why
 
 The map's pitch (px between painted cells) is derived from the wrong things, and the marks drawn on it scale with the pitch. Three independent anchors are in play and none of them is the thing that actually matters.

@@ -11,6 +11,10 @@ related: [task-528, task-553, task-554, task-557, task-558, task-564, task-566, 
 **Filed:** 2026-09-28
 **Related:** task-528, task-553, task-554, task-557, task-558, task-564, task-566, task-567, task-568, task-525, task-529, task-535, task-536, bug-48
 
+<!-- deps:start -->
+**Related:** [[task-528-assign-selected-areas-to-a-scope-promote-a-selection-to-a-placed-feature]], [[task-553-per-area-base-temperature-plus-a-diurnal-seasonal-outdoor-curve]], [[task-554-season-is-read-nowhere-in-the-engine-winter-should-be-cold]], [[task-557-worldpainter-climate-layer-paint-a-coarse-climate-compile-it-to-base-temperature]], [[task-558-wordwrap-way-and-edge-labels-in-the-graph-view]], [[task-564-per-kind-merge-rules-hallways-and-classrooms-merge-buildings-do-not]], [[task-566-let-the-simulation-seek-a-place-by-function-a-bed-a-forge-a-bath]], [[task-567-a-building-s-interior-can-be-generated-from-its-type-then-edited]], [[task-568-an-indoor-vocabulary-so-a-floor-plan-can-be-written-without-warnings]], [[task-525-elevation-floor-delta-gates-traversal-climb-required-past-n-floors]], [[task-529-feature-entry-direction-phrases-narrative-move-verbs-on-entry-edges]], [[task-535-promote-a-graph-selection-into-a-new-child-scope-with-a-gateway]], [[task-536-worldpainter-left-tool-rail-marquee-cell-selection-move-selection]], [[bug-48-map-layout-is-silently-ignored-while-levels-hierarchy-is-on]]
+<!-- deps:end -->
+
 ## What
 
 A per-feature test guide for everything built on 2026-09-27, so each can be checked

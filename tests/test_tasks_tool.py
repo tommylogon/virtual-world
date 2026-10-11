@@ -447,8 +447,176 @@ def test_set_creates_frontmatter_when_the_card_has_none(tmp_path):
     assert err == "" and fm["blocked_by"] == ["task-436"]
 
 
-# ── dependency graph / next ──────────────────────────────────────────────
+# ── dependency wikilinks (link-deps) ─────────────────────────────────────
 
+
+def _dep_tree(tmp_path: Path) -> Path:
+    root = tmp_path / "dev_tasks"
+    _write(root / "todo" / "world" / "task-1-paint-a-world.md",
+           "---\nstatus: todo\nblocked_by: [task-2]\nrelated: [task-3]\n---\n\n"
+           "# task-1: Paint a world\n\n## What\n\nbody\n")
+    _write(root / "done" / "graph" / "task-2-link-nodes.md",
+           "---\nstatus: done\n---\n\n# task-2: Link nodes\n\n## What\n\nbody\n")
+    _write(root / "todo" / "graph" / "task-3-tidy-nodes.md",
+           "---\nstatus: todo\n---\n\n# task-3: Tidy nodes\n\n## What\n\nbody\n")
+    return root
+
+
+def test_dep_stems_maps_id_to_basename(tmp_path):
+    stems = tasks.dep_stems(_dep_tree(tmp_path))
+    assert stems["task-2"] == "task-2-link-nodes"
+    assert stems["task-3"] == "task-3-tidy-nodes"
+
+
+def test_refresh_dep_block_inserts_basename_links(tmp_path):
+    root = _dep_tree(tmp_path)
+    text = tasks.read_text(root / "todo" / "world" / "task-1-paint-a-world.md")
+    new, unresolved = tasks.refresh_dep_block(text, tasks.dep_stems(root))
+    assert unresolved == []
+    assert tasks.DEPS_START in new and tasks.DEPS_END in new
+    assert "**Blocked by:** [[task-2-link-nodes]]" in new
+    assert "**Related:** [[task-3-tidy-nodes]]" in new
+    # the block sits ahead of the first section, where merge_card preserves it
+    assert new.index(tasks.DEPS_END) < new.index("## What")
+    # and the frontmatter is untouched
+    assert "blocked_by: [task-2]" in new and "related: [task-3]" in new
+
+
+def test_refresh_dep_block_is_idempotent(tmp_path):
+    root = _dep_tree(tmp_path)
+    stems = tasks.dep_stems(root)
+    text = tasks.read_text(root / "todo" / "world" / "task-1-paint-a-world.md")
+    once, _ = tasks.refresh_dep_block(text, stems)
+    twice, _ = tasks.refresh_dep_block(once, stems)
+    assert twice == once
+
+
+def test_refresh_dep_block_removes_the_block_when_deps_go(tmp_path):
+    root = _dep_tree(tmp_path)
+    stems = tasks.dep_stems(root)
+    text = tasks.read_text(root / "todo" / "world" / "task-1-paint-a-world.md")
+    with_block, _ = tasks.refresh_dep_block(text, stems)
+    stripped = tasks.refresh_dep_block(
+        with_block, stems, fm={"blocked_by": [], "related": []})[0]
+    assert tasks.DEPS_START not in stripped
+    assert "## What" in stripped, "the body survives removing the block"
+
+
+def test_unresolvable_ref_is_reported_and_not_linked(tmp_path):
+    root = _dep_tree(tmp_path)
+    # task-99 does not exist: it must not become a broken [[wikilink]]
+    _write(root / "todo" / "world" / "task-1-paint-a-world.md",
+           "---\nstatus: todo\nblocked_by: [task-99, task-2]\n---\n\n"
+           "# task-1: Paint a world\n\n## What\n\nbody\n")
+    text = tasks.read_text(root / "todo" / "world" / "task-1-paint-a-world.md")
+    new, unresolved = tasks.refresh_dep_block(text, tasks.dep_stems(root))
+    block = new.split(tasks.DEPS_START)[1].split(tasks.DEPS_END)[0]
+    assert "task-99" not in block, "a dangling ref is never linked"
+    assert "[[task-2-link-nodes]]" in block, "the resolvable ref still links"
+    assert unresolved == ["blocked_by: task-99"]
+    # the frontmatter keeps the ref, so `validate` still reports it as dangling
+    assert "blocked_by: [task-99, task-2]" in new
+
+
+def test_render_card_carries_the_block(tmp_path):
+    stems = tasks.dep_stems(_dep_tree(tmp_path))
+    card = tasks.render_card(kind="task", num=9, title="New", status="todo",
+                             area="ui", priority="low", filed="2026-10-11",
+                             payload={"blocked_by": ["task-2"]}, stems=stems)
+    assert "**Blocked by:** [[task-2-link-nodes]]" in card
+    assert card.index(tasks.DEPS_END) < card.index("## What")
+
+
+def test_apply_set_refreshes_only_when_a_dependency_changes(tmp_path):
+    root = _dep_tree(tmp_path)
+    stems = tasks.dep_stems(root)
+    path = root / "todo" / "world" / "task-1-paint-a-world.md"
+    text = tasks.read_text(path)
+
+    set_dep = tasks.apply_set(text, {"blocked_by": "[task-3]"}, stems=stems)
+    assert "**Blocked by:** [[task-3-tidy-nodes]]" in set_dep
+    assert "task-2-link-nodes" not in set_dep.split("## What")[0]
+
+    set_other = tasks.apply_set(text, {"priority": "high"}, stems=stems)
+    assert tasks.DEPS_START not in set_other, \
+        "a non-dependency set must not invent a block"
+
+
+def test_set_keeps_the_block_in_step(tmp_path):
+    root = _dep_tree(tmp_path)
+    path = root / "todo" / "world" / "task-1-paint-a-world.md"
+    assert tasks.cmd_set(_set_args(root, blocked_by="task-3")) == 0
+    text = tasks.read_text(path)
+    assert "blocked_by: [task-3]" in text
+    assert "**Blocked by:** [[task-3-tidy-nodes]]" in text
+    assert "task-2-link-nodes" not in text
+
+
+def test_link_deps_writes_and_then_reports_nothing(tmp_path, capsys):
+    root = _dep_tree(tmp_path)
+    assert tasks.cmd_link_deps(
+        tasks.argparse.Namespace(root=root, status=None, write=True,
+                                 json=False)) == 0
+    assert tasks.DEPS_START in tasks.read_text(
+        root / "todo" / "world" / "task-1-paint-a-world.md")
+    capsys.readouterr()
+    # a second run must be a clean no-op
+    assert tasks.cmd_link_deps(
+        tasks.argparse.Namespace(root=root, status=None, write=False,
+                                 json=True)) == 0
+    data = json.loads(capsys.readouterr().out)
+    assert data["cards_to_change"] == 0
+    assert data["unresolved"] == []
+
+
+def test_validate_warns_when_a_dep_block_is_missing(tmp_path, capsys):
+    root = _dep_tree(tmp_path)
+    assert tasks.cmd_validate(
+        tasks.argparse.Namespace(root=root, quiet=False, schema=False)) == 0
+    out = capsys.readouterr().out
+    assert "no [[wikilink]] block" in out
+    # after the migration the warning is gone
+    tasks.cmd_link_deps(tasks.argparse.Namespace(root=root, status=None,
+                                                 write=True, json=False))
+    capsys.readouterr()
+    assert tasks.cmd_validate(
+        tasks.argparse.Namespace(root=root, quiet=False, schema=False)) == 0
+    assert "no [[wikilink]] block" not in capsys.readouterr().out
+
+
+def test_link_deps_preserves_a_utf8_bom(tmp_path):
+    # read_text strips the BOM via utf-8-sig, so the writer must put it back.
+    root = _dep_tree(tmp_path)
+    path = root / "todo" / "world" / "task-1-paint-a-world.md"
+    text = tasks.read_text(path)
+    _write(path, text, bom=True)
+    assert path.read_bytes().startswith(b"\xef\xbb\xbf")
+    assert tasks.cmd_link_deps(tasks.argparse.Namespace(
+        root=root, status=None, write=True, json=False)) == 0
+    assert path.read_bytes().startswith(b"\xef\xbb\xbf"), "BOM must survive"
+    assert tasks.DEPS_START in tasks.read_text(path)
+
+
+def test_basename_dep_link_survives_a_status_move(tmp_path, capsys):
+    # The whole reason the block uses a bare basename: `move` changes the
+    # folder, not the stem, so an inbound link cannot rot.
+    root = _dep_tree(tmp_path)
+    assert tasks.cmd_link_deps(tasks.argparse.Namespace(
+        root=root, status=None, write=True, json=False)) == 0
+    before = tasks.read_text(root / "todo" / "world" / "task-1-paint-a-world.md")
+    assert "[[task-2-link-nodes]]" in before
+
+    assert tasks.cmd_move(tasks.argparse.Namespace(
+        root=root, kind="task", id=2, status="review")) == 0
+    assert (root / "review" / "graph" / "task-2-link-nodes.md").exists()
+
+    after = tasks.read_text(root / "todo" / "world" / "task-1-paint-a-world.md")
+    assert "[[task-2-link-nodes]]" in after, "the link must not change"
+    assert tasks.dep_block_gap(after, tasks.dep_stems(root)) == "", \
+        "and it must still match the frontmatter"
+
+
+# ── dependency graph / next ──────────────────────────────────────────────
 
 def test_graph_finds_the_critical_path(tmp_path, capsys):
     root = tmp_path / "dev_tasks"

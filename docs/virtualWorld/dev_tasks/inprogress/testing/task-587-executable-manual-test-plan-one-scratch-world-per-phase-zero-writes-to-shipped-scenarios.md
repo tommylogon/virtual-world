@@ -13,6 +13,10 @@ related: [task-586, task-444, task-572, task-574, bug-54]
 **Related:** task-586, task-444, task-572, task-574, bug-54
 **Supersedes:** `docs/virtualWorld/dev_tasks/done/testing/test-plan-100-items.md`
 
+<!-- deps:start -->
+**Related:** [[task-586-dedicated-regression-fixture-world-for-pytest-and-playwright]], [[task-444-playwright-persistence-and-error-boundaries]], [[task-572-integration-test-layer]], [[task-574-test-guide-the-2026-09-27-worldpainter-session]], [[bug-54-weather-is-invisible-to-the-engine-weather-light-mult-has-no-readers-and-compiled-areas-carry-no-outdoor-exterior-tag]]
+<!-- deps:end -->
+
 ## Overlaps task-574 — do not write the same steps twice
 
 `task-574` (inprogress) is a per-feature test guide for everything built on 2026-09-27, in exactly the right shape already: **what it is / how to test it by hand / what passing looks like / the automated coverage that already guards it**. That is the per-feature content. This task supplies what a guide cannot: the world each step runs in, what it may write, and the gate. So phase 9 (painted world) should link to task-574's entries rather than restate them, and the WorldPainter steps should move under this task's phase structure rather than being duplicated.

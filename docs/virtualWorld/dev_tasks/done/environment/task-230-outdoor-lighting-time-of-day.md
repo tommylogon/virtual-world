@@ -7,7 +7,9 @@ supersedes: [task-80-outdoor-lighting-day-night.md]
 type: task
 ---
 
-
+<!-- deps:start -->
+**Supersedes:** [[task-80-outdoor-lighting-day-night]]
+<!-- deps:end -->
 
 ## Implemented (2026-08-21)
 

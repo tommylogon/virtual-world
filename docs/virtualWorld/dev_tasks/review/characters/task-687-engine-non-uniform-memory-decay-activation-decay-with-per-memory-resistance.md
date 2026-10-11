@@ -11,6 +11,10 @@ parent: task-685
 **Filed:** 2026-10-04
 **Related:** task-685, task-403
 
+<!-- deps:start -->
+**Parent:** [[task-685-memory-dynamics-memories-that-reinforce-fade-contradict-and-change-the-character]]
+<!-- deps:end -->
+
 ## What
 
 Replace the flat trait-gated salience subtraction in `AgentMind.apply_decay`

@@ -11,6 +11,10 @@ related: [task-227, task-231, task-234, task-555, task-556, task-557, task-758, 
 **Filed:** 2026-10-10
 **Related:** task-227, task-231, task-234, task-555, task-556, task-557, task-758, task-762
 
+<!-- deps:start -->
+**Related:** [[task-227-environment-forecast-schedule]], [[task-231-wind-system]], [[task-234-trigger-environment-forecast-overrides]], [[task-555-wind-gets-a-direction-not-just-a-magnitude]], [[task-556-weather-reaches-the-world-snow-accumulation-movement-forage]], [[task-557-worldpainter-climate-layer-paint-a-coarse-climate-compile-it-to-base-temperature]], [[task-758-biome-records-add-climate-and-neighbour-fields-for-the-palette]], [[task-762-forecast-page-author-and-view-the-weather-schedule]], [[task-772-weather-types-are-a-closed-enum-make-them-per-scenario-data-enables-extreme-setting-specific-weather]]
+<!-- deps:end -->
+
 ## What
 
 A heuristic weather field a world can generate over a dated horizon (e.g. a month) and that the forecast view (task-762) reads. Seeded from the world so the horizon is reproducible. Per scope/area, terrain modifies the heuristic: reuse the existing thermal baseline (base_temperature, season, temp_curve_for_hour) plus the climate paint layer (task-557) and the biome/area tags the compiler already writes (world_compile.py), instead of a second climate model: elevation/mountain colder and snowier, coast wetter and foggier, forest humid, desert dry. Overrides are ordered patches with one precedence chain: area override > date override > generated heuristic > authored schedule > default. Extend engine/weather_forecast.py and world.forecast_schedule; the authored schedule becomes one input mode, not the whole system. New state only where the model genuinely lacks it: precipitation amount (there is no mm/accumulation field today) and wind direction (task-555, todo). This field is what task-762 renders and what task-556's effects consume; without task-555/556 the field is decorative.

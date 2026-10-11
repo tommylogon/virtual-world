@@ -9,6 +9,10 @@ type: task
 
 # Task 228: Date Tracking & Game Calendar
 
+<!-- deps:start -->
+**Supersedes:** [[task-85-time_weather_dates]]
+<!-- deps:end -->
+
 ## What
 
 Add a game calendar (day / month / year) derived from `time_ticks`. Expose it in world state and the API so other systems (moon phases, forecast schedules, scenarios with seasonal themes) can reference absolute dates.

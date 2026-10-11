@@ -13,6 +13,10 @@ related: [task-569, task-570, task-573, task-568, task-497]
 **Answers for:** `docs/design/roadmap.md` (Part 2), which recommends task-569 (resource consumer) and task-570 (hostile consumer) as the cheapest large win in the repository
 **Blocks:** task-589 (a WorldPainter tab in the library) — the tab's shape depends on where the data ends up
 
+<!-- deps:start -->
+**Related:** [[task-569-biome-resource-distribution-consumer]], [[task-570-hostile-distribution-consumer]], [[task-573-lint-biome-coverage-from-biomes-json]], [[task-568-an-indoor-vocabulary-so-a-floor-plan-can-be-written-without-warnings]], [[task-497-worldpainter-biome-feature-taxonomy-and-distribution-layers]]
+<!-- deps:end -->
+
 ## What
 
 The instinct is that WorldPainter data belongs in `data/library/`, split per entry like everything else in there. The scope is **three things that are not alike**, and the first job is to find that out rather than assume they travel together:

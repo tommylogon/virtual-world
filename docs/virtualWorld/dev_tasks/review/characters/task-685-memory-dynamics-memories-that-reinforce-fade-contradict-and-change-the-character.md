@@ -13,6 +13,10 @@ children: [task-686, task-687, task-688, task-689, task-690, task-691]
 **Design doc:** `docs/virtualWorld/AI & Narration/Memory Dynamics.md`
 **Interface mockup:** `docs/design/memory-mockup.html`
 
+<!-- deps:start -->
+**Children:** [[task-686-engine-memory-dynamics-fields-reinforcement-on-recall-and-re-encounter]], [[task-687-engine-non-uniform-memory-decay-activation-decay-with-per-memory-resistance]], [[task-688-engine-reflection-2-0-structured-insights-depth-guard-consolidation]], [[task-689-engine-contradiction-detection-linking-fallible-memory]], [[task-690-retrieval-2-0-one-multi-signal-scorer-structured-character-model-recall-b]], [[task-691-memory-mind-interface-dynamics-badges-connections-per-person-profiles-dashboard]]
+<!-- deps:end -->
+
 ## What
 
 Make memory a dynamic system instead of a static list: dynamic availability

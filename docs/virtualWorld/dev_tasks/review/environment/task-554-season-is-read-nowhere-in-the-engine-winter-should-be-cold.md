@@ -11,6 +11,10 @@ blocked_by: [task-553]
 **Filed:** 2026-09-27
 **Related:** task-553, task-227
 
+<!-- deps:start -->
+**Blocked by:** [[task-553-per-area-base-temperature-plus-a-diurnal-seasonal-outdoor-curve]]
+<!-- deps:end -->
+
 ## What
 
 Move the season logic out of the sky widget into the engine, so the temperature

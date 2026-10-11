@@ -12,6 +12,11 @@ related: [task-714, task-757]
 **Filed:** 2026-10-09
 **Related:** task-691 (Mind dashboard), task-714 (character mind panel), task-757 (dead-cluster removal)
 
+<!-- deps:start -->
+**Blocked by:** [[task-691-memory-mind-interface-dynamics-badges-connections-per-person-profiles-dashboard]]
+**Related:** [[task-714-character-mind-panel-connect-memories-motives-and-current-pursuits]], [[task-757-enable-nounusedlocals-and-clear-the-unused-symbol-backlog-three-orphaned-ui-wirings-restored]]
+<!-- deps:end -->
+
 ## What
 
 Relocate per-memory emotion editing (label + intensity) from the memory-edit

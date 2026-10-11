@@ -16,6 +16,10 @@ related: [task-497, task-557, task-569, task-718, task-745, task-759]
 schema per entry)". The record converges on *some* of that schema — not all of
 it, because the rest belongs in separate registries (see "Deliberately not here").
 
+<!-- deps:start -->
+**Related:** [[task-497-worldpainter-biome-feature-taxonomy-and-distribution-layers]], [[task-557-worldpainter-climate-layer-paint-a-coarse-climate-compile-it-to-base-temperature]], [[task-569-biome-resource-distribution-consumer]], [[task-718-biome-resource-loot-tables-as-separate-library-json]], [[task-745-worldpainter-hazards-a-current-strength-paint-layer-plus-a-hazards-json-category-table]], [[task-759-worldpainter-biome-palette-illustrated-tile-grid-category-rail-and-a-rich-detail-panel]]
+<!-- deps:end -->
+
 ## What
 
 Extend `data/worldpainter/biomes.json` records with the two field groups that are

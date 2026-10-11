@@ -11,6 +11,10 @@ related: [task-409, task-426, task-2, task-694, task-701, task-702, task-703, ta
 **Filed:** 2026-10-04
 **Clarified:** 2026-10-05
 
+<!-- deps:start -->
+**Related:** [[task-409-background-schedules-work-and-coarse-social]], [[task-426-plan-archetypes-and-group-goals]], [[task-2-crafting_and_recipes]], [[task-694-htc-fixture-world-a-tiny-scenario-authored-to-exercise-every-turn-panel-surface]], [[task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries]], [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]], [[task-703-recipe-as-activity-recipes-become-plan-templates-with-duration-success-and-fail-outcomes]], [[task-704-gosp-selector-needs-memory-and-personality-choose-and-bind-plans]]
+<!-- deps:end -->
+
 ## What
 
 Keep the game-design model in [`Character Pursuits.md`](../../../design/Character%20Pursuits.md) accurate. The earlier draft used “schedule” as the umbrella for reusable activities and blurred an ongoing Activity with the Pursuit that can bring a character to it. The corrected model distinguishes character goals and reasons, missions, reusable pursuit templates, active pursuits, calendar schedules, short-term plans, observable Activities, and world recipes.

@@ -11,6 +11,10 @@ related: [task-604, task-606]
 **Filed:** 2026-09-30
 **Related:** task-604 (two-axis defense/evasion), task-606 (scale-correct stats)
 
+<!-- deps:start -->
+**Related:** [[task-604-split-defense-into-two-anti-correlated-axes-damage-reduction-and-evasion]], [[task-606-author-scale-correct-ability-scores-per-size-tier-so-a-leviathan-is-not-str-9]]
+<!-- deps:end -->
+
 ## What
 
 **DECIDED 2026-09-30 by Tommy:** default to **flat** number reduction, and

@@ -14,6 +14,11 @@ blocks: [task-578]
 **Blocked by:** task-446 (id-first node identity)
 **Blocks:** task-578
 
+<!-- deps:start -->
+**Blocked by:** [[task-446-id-first-node-identity]]
+**Blocks:** [[task-578-doc-resolver-route-that-answers-which-docs-cover-this-feature]]
+<!-- deps:end -->
+
 ## What
 
 Let an authored area, item, way, trigger or condition point at the documentation page

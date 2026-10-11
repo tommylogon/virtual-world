@@ -11,6 +11,10 @@ related: [task-446, task-619, task-665, task-660]
 **Filed:** 2026-10-01
 **Related:** task-446 (in progress), task-619, task-665, task-660
 
+<!-- deps:start -->
+**Related:** [[task-446-id-first-node-identity]], [[task-619-relationships-stored-in-two-shapes-in-one-field-keyed-by-display-name]], [[task-665-kraktooth-cast-rework-is-half-migrated-in-the-working-tree-5-staged-renames-4-un-migrated-duplicate-merchant-entry-7-descriptions-claiming-nonexistent-items]], [[task-660-auto-dress-from-interests-is-deterministic-tag-matching-not-llm-driven-button-and-help-text-imply-otherwise]]
+<!-- deps:end -->
+
 ## Why
 
 `load_registry` (`routes/helpers.py:209`) builds every library registry by

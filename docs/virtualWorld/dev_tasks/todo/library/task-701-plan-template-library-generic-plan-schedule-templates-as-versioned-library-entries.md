@@ -11,6 +11,10 @@ related: [task-694, task-2, task-409, task-426, task-699]
 **Filed:** 2026-10-04
 **Clarified:** 2026-10-05
 
+<!-- deps:start -->
+**Related:** [[task-694-htc-fixture-world-a-tiny-scenario-authored-to-exercise-every-turn-panel-surface]], [[task-2-crafting_and_recipes]], [[task-409-background-schedules-work-and-coarse-social]], [[task-426-plan-archetypes-and-group-goals]], [[task-699-gosp-design-doc-schedules-plan-templates-and-recipe-activities-as-one-goap-layer]]
+<!-- deps:end -->
+
 ## What
 
 Provide reusable, character-agnostic pursuit templates that characters can choose, be offered, or be assigned. A template is like a recipe for a longer undertaking: it says what the character is trying to do, where and when it applies, what they need or must know, how progress is checked, and when to stop. The bound pursuit instance adds the character's own reason and target. A template does not force an LLM agent to comply.

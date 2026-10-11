@@ -11,6 +11,10 @@ blocked_by: [task-553]
 **Filed:** 2026-09-27
 **Related:** task-553, task-497, task-496, task-745
 
+<!-- deps:start -->
+**Blocked by:** [[task-553-per-area-base-temperature-plus-a-diurnal-seasonal-outdoor-curve]]
+<!-- deps:end -->
+
 ## What
 
 One coarse climate paint layer (arctic / temperate / arid / tropical /
