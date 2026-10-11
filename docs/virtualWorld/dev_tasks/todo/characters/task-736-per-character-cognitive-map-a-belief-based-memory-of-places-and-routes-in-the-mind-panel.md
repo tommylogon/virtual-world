@@ -18,7 +18,10 @@ Give each character a mental map of the places they remember and the ways they k
 
 The spatial memory already exists and is written; it just has no view:
 
-- `engine/agent_memory.py` — `known_way_aspects`, a bucket per `(way_id, aspect)`.
+- `engine/agent_memory.py` — `knows_way(way_id, aspect)`; it resolves the way's
+  sides and writes `Player.learn_way_aspect(area_name, direction, aspect)`, so
+  the real key is `known_way_aspects[(area, direction)]` (a bucket of aspects),
+  not `(way_id, aspect)`.
 - `engine/movement.py` — writes spatial memory on a crossing ("spatial memory's
   known-route").
 - `discovered_exits` — the `(area, direction)` pairs the character has seen;

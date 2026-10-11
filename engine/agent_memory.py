@@ -114,10 +114,36 @@ class AgentMind:
         return any(str(k).lower() == str(name).lower() for k in self.player.known)
 
     def knows_way(self, way_id: str, aspect: str = None) -> None:
-        """Record a known way (optionally a discovered aspect of it)."""
-        bucket = self.player.known_way_aspects.setdefault((str(way_id), ""), set())
-        if aspect:
-            bucket.add(str(aspect))
+        """Record a known way (optionally a discovered aspect of it).
+
+        The store is keyed ``(area, direction)`` — the key
+        ``Player.learn_way_aspect`` writes and ``scene_snapshot`` /
+        ``routes/player_ops`` read through ``knows_way_aspect``. A way node id is
+        not a key in that store, so the way's *sides* are resolved from the graph
+        and the aspect recorded against each. Keying on the id used to write a
+        bucket no reader could see, so authored ``known_ways`` taught the
+        character nothing.
+        """
+        player = self.player
+        sides = []
+        if self.graph is not None:
+            # Import locally: engine.graph is loaded early and this module is
+            # imported by the memory facade.
+            from graph import EDGE_CONNECTION
+            for edge in self.graph.get_edges_for_target(str(way_id), EDGE_CONNECTION):
+                direction = (edge.properties or {}).get("direction")
+                area = self.graph.get_node(edge.source)
+                if direction and area is not None:
+                    sides.append((area.name, direction))
+        # No graph, or a way with no resolvable sides, cannot be recorded in a
+        # store keyed by (area, direction) — write nothing rather than a key no
+        # reader can see.
+        for area_name, direction in sides:
+            if aspect:
+                player.learn_way_aspect(area_name, direction, aspect)
+            else:
+                key = (str(area_name), str(direction))
+                player.known_way_aspects.setdefault(key, set())
 
     # ── preconceived knowledge (scenario bootstrap) ──────────────────────
     def load_preconceived(self, pdata: Dict[str, Any], tick: int = 0) -> int:

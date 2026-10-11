@@ -6,12 +6,25 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from app import create_app
+from graph import WorldGraph, Node, Edge, EDGE_CONNECTION
 from player import Player
 from engine.agent_memory import AgentMind
 
 
 def _world():
     return create_app({"TESTING": True}).world
+
+
+def _graph_with_way(way_id="way_kitchen_to_pantry", direction="south"):
+    """A kitchen -> way -> pantry graph, so `knows_way` has sides to resolve."""
+    g = WorldGraph()
+    g.add_node(Node(id="area_kitchen", type="area", name="kitchen"))
+    g.add_node(Node(id="area_pantry", type="area", name="pantry"))
+    g.add_node(Node(id=way_id, type="way", name="pantry door", properties={}))
+    g.add_edge(Edge(source="area_kitchen", target=way_id, type=EDGE_CONNECTION,
+                    properties={"direction": direction}))
+    g.add_edge(Edge(source=way_id, target="area_pantry", type=EDGE_CONNECTION))
+    return g
 
 
 def _player(world, name="Scout", **kwargs):
@@ -26,8 +39,8 @@ def _player(world, name="Scout", **kwargs):
 
 class TestPreconceived:
     def test_injects_memories_areas_and_ways(self):
-        world = _world()
-        p = _player(world)
+        graph = _graph_with_way()
+        p = _player(None)
         pdata = {
             "preconceived_knowledge": {
                 "memories": [
@@ -39,15 +52,20 @@ class TestPreconceived:
                 "known_ways": {"way_kitchen_to_pantry": ["hidden", "behind_shelf"]},
             }
         }
-        added = AgentMind(p, world.graph).load_preconceived(pdata)
+        mind = AgentMind(p, graph)
+        added = mind.load_preconceived(pdata)
 
         assert added == 1
         memory = p.memories[0]
         assert memory["source"] == "preconceived"
         assert memory["location"] == "kitchen"
-        assert AgentMind(p, world.graph).knows_area("kitchen")
-        assert AgentMind(p, world.graph).knows_area("item_dried_meat")
-        assert "hidden" in p.known_way_aspects[("way_kitchen_to_pantry", "")]
+        assert mind.knows_area("kitchen")
+        assert mind.knows_area("item_dried_meat")
+        # The authored aspects land in the (area, direction) shape that
+        # knows_way_aspect / scene_snapshot read — not a way-id bucket.
+        assert p.knows_way_aspect("kitchen", "south", "hidden") is True
+        assert p.knows_way_aspect("kitchen", "south", "behind_shelf") is True
+        assert ("way_kitchen_to_pantry", "") not in p.known_way_aspects
 
     def test_is_idempotent(self):
         world = _world()
