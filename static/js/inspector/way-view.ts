@@ -7,7 +7,7 @@
  * @contributes InspectorWayView: showWay, state, cardinal/direction, connections, reconnectWays
  * @powers Way authoring — inspecting and editing doors/passages and what they connect
  * @relates renders through InspectorPanel; delegates to way-view-connections + way-view-triggers
- * @docs docs/virtualWorld/World Building/Doors & Connections.md
+ * @docs docs/virtualWorld/World Building/Ways.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 window.InspectorWayView = (() => {

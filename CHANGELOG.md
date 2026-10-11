@@ -4,6 +4,90 @@ All notable changes to VirtualWorld. See `docs/virtualWorld/Scenario Workflows &
 
 ---
 
+## Unreleased — "Ways and Wires" (2026-10-11)
+
+**One commit.** The task vault stops being islands and the ways documentation is
+rewritten as a guide checked against the engine, not a restatement of the schema.
+Dependency frontmatter is now rendered as Obsidian wikilinks; a character's
+learned way-aspects land in the key the readers actually read; four redundant
+task-tree dumps are gone. Verified against the tree with the vault guards.
+
+```
+link-deps:   67 cards, 232 links, 0 unresolved; a second run changes nothing
+validate:    0 errors / 48 warnings (baseline, unchanged)
+vault:       doc_links 1 pre-existing break; doc_tags / doc_connected / feature_pages green
+cards that link to nothing: 746 -> 681
+```
+
+### 🔗 Dependency frontmatter renders as `[[wikilinks]]` (task-780-adjacent)
+
+The dependency keys (`blocked_by`, `depends_on`, `blocks`, `children`, `parent`,
+`supersedes`, `related`) were the machine-readable graph, and Obsidian read none
+of it — 746 of 885 cards linked to nothing. `python tools/tasks.py link-deps
+[--write]` renders them between `<!-- deps:start -->` and `<!-- deps:end -->` in
+the card preamble, which `merge_card` carries through verbatim so a `set
+--section` cannot drop it. Links are bare basenames because Obsidian resolves a
+basename from any folder, so a `move` between status folders cannot break one
+(all 899 stems are unique). A ref that resolves to no card is omitted, never
+linked. `new` and `set` keep the block in step; `validate` warns when a block is
+missing or stale.
+
+### 📖 Ways rewritten as a guide, and checked against the code
+
+`docs/virtualWorld/World Building/Ways.md` (307 lines) leads with what a way is,
+what you see, what you can change, how to author one, and how to navigate it —
+the frost giant's iron door, the mouse hole, the thorn bush in the cave mouth.
+Reading it against the engine retracted four claims the old pages asserted:
+
+- the **node type is `way`**, not `door`, and ids are `way_<area>_<direction>`;
+- **`see_through` is a property, not a state** (`declared_state` is documented
+  "never `see_through`"); the six states are open/closed/locked/blocked/broken/hidden;
+- **`broken` is real but half-implemented** — open/close refuses it, traversal
+  does not, and the light/sound tables fold it to `open` (now bug-547);
+- the exit line says **`is clear`** under open sky and **`is open`** otherwise.
+
+`AGENTS.md` gains **"Writing documentation (the Ways standard)"** — eight rules
+for a page in this vault, with `Ways.md` as the worked example and the old
+`Way Properties.md` / `Doors & Connections.md` as the anti-examples.
+
+### 🧠 `known_ways` wrote a bucket nothing could read
+
+`agent_memory.knows_way(way_id, aspect)` — the writer behind a scenario's
+preconceived `known_ways` — wrote `known_way_aspects[(way_id, "")]`, while
+`scene_snapshot` and `routes/player_ops` read `[(area_name, direction)]` through
+`Player.knows_way_aspect`. Authored way knowledge taught the character nothing.
+It now resolves the way's sides from the graph and records each via
+`learn_way_aspect`. The old test asserted the dead key, so it had passed for the
+wrong reason; it now builds a real `area → way → area` graph and asserts the
+mechanism.
+
+### 🧹 Four redundant task-tree dumps removed
+
+`dev_tasks-review-done.md`, `dev_tasks-todo-inprogress.md`, `docs/dev_tasks.md`
+and `docs/dev_tasks.html` were stale generated snapshots of a tree that already
+lives in the vault; `tools/dump_tasks.py` regenerates one on demand. `WORKTREE_PLAN.md`
+(an ephemeral overnight sweep, superseded by `docs/design/worktree-parallelisation-plan.md`)
+and a one-off agent plan went with them. `BUGBOT.md` was checked and **kept** — it
+is loaded into the reviewer's context.
+
+### 📚 Docs
+
+`World Building/Doors & Connections.md` is renamed to **`Connections.md`** (the
+node type is not `door`); 32 inbound links were retargeted across 26 notes with
+`doc_links.retarget_links`, so nothing dangles. The page carries a status banner
+pointing at `Ways.md` for the state model.
+
+### 🧭 Also in this checkpoint (in-flight, not part of this entry)
+
+The shared tree also carries work in progress committed as a checkpoint, not
+claimed as released: the event-stream export path (`static/js/ui/event-log-export.ts`
+plus `stream/*` and `world-export`), way-inspector edits (`way-view`, `way-authoring`,
+`way-view-connections`), agent/turn-composer edits, scenario and library data, and
+a large `review → done` task move. Documented separately, if at all, by whoever
+finishes it.
+
+---
+
 ## Unreleased — "Update in Place" (2026-10-10)
 
 **One commit.** A correctness and performance pass on the graph view: it stops rebuilding the world on every tick, kills the freeze that made a whole-world load unusable, keeps a refreshed scope from silently widening to the whole world, and fixes a crash the threaded dev server was hiding. Verified in the running app.

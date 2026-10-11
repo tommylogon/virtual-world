@@ -6,7 +6,7 @@
  * @contributes WayAuthoring: way naming, state, cardinal/direction helpers, vis edge tooltips
  * @powers Way authoring — consistent way editing across the way inspector, area exits, graph tooltips, and agent lens
  * @relates used by way-view + area-view + graph/network-manager (edge tooltips)
- * @docs docs/virtualWorld/World Building/Doors & Connections.md
+ * @docs docs/virtualWorld/World Building/Ways.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 const WayAuthoringModule = (() => {

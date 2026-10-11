@@ -2351,6 +2351,96 @@ label.chip-toggle.on { background: rgba(88, 166, 255, 0.12); border-color: var(-
 }
 .lib-tab-pane.active { display: flex; flex-direction: column; flex: 1; }
 
+/* ── Library Browser: use the viewport (2026-10-11) ──────────────────
+ * The browser is modal — nothing behind it is clickable while it is
+ * open — so it may take the viewport instead of an 800px card with
+ * 300px lists. The panes, their list columns and their lists become
+ * flex children that fill the height, so the modal never scrolls as a
+ * whole and nothing spills sideways. `!important` beats the one-off
+ * inline max-heights the panes carried; each list keeps its own
+ * scroll. The editors drop `overflow-x:hidden`, which was hiding a
+ * real sideways spill rather than fixing it. */
+#library-modal .modal-content {
+    width: min(1520px, 96vw);
+    height: min(92vh, 980px);
+    max-height: 94vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+#library-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+/* the two-column row inside a pane */
+#library-modal .lib-tab-pane.active { min-height: 0; }
+#library-modal .lib-tab-pane.active > div:first-child {
+    flex: 1;
+    min-height: 0;
+}
+/* the list column — a flex column so its list can grow into it */
+#library-modal .lib-tab-pane.active > div:first-child > div:first-child {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+/* the list itself — was capped at 300px, stranding the extra height */
+#library-modal div[id$="-list"] {
+    flex: 1;
+    min-height: 0;
+    max-height: none !important;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+/* the editor column */
+#library-modal div[id$="-editor"] {
+    flex: 1;
+    min-width: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+/* Prettifying: the tab strip becomes chips rather than underlined text,
+ * and the list rows get a hover and rounded ends. */
+#library-modal .library-tabs {
+    gap: 2px;
+    padding: 3px;
+    background: var(--bg-inset);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+#library-modal .lib-tab {
+    padding: 5px 11px;
+    border-radius: 6px;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+}
+#library-modal .lib-tab:hover {
+    background: var(--bg-card);
+    border-bottom-color: transparent;
+}
+#library-modal .lib-tab.selected {
+    background: var(--bg-card);
+    border-bottom-color: var(--accent);
+}
+#library-modal div[id$="-list"] > * {
+    border-radius: 6px;
+}
+#library-modal div[id$="-list"] > *:hover {
+    background: var(--bg-inset);
+}
+/* A thin scrollbar inside the modal, so the taller lists read as
+ * scrollable without a chunky default bar. */
+#library-modal ::-webkit-scrollbar { width: 9px; height: 9px; }
+#library-modal ::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 6px;
+}
+#library-modal ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+#library-modal ::-webkit-scrollbar-track { background: transparent; }
+
 @media (max-width: 1200px) {
     #left-panel { width: 280px; min-width: 240px; }
     #right-panel { width: 320px; min-width: 260px; }

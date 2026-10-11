@@ -55,7 +55,7 @@ class StreamRawLLM {
         header.className = 'rawllm-chip-header';
         window.Lit.render(window.Lit.html `
             <span class="bubble-icon">${icon}</span>
-            <span class="bubble-tick">[${this._bus._nextLineLabel()}]</span>
+            <span class="bubble-tick">[${this._bus._nextLineLabel(bubble)}]</span>
             <span class="bubble-actor bubble-rawllm-actor">${labelText}</span>
             <span class="rawllm-toggle">▸</span>`, header);
         const body = document.createElement('pre');
@@ -140,7 +140,7 @@ class StreamRawLLM {
         bubble.style.cursor = 'pointer';
         const err = this._bus._escapeHtml(errMsg || 'parse error');
         window.Lit.render(window.Lit.html `
-<span class="bubble-icon">⚠️</span><span class="bubble-tick">[${this._bus._nextLineLabel()}]</span> <span class="bubble-actor bubble-error-actor">${charName}</span> <span class="bubble-text bubble-error-text">parse error: ${phase ? this._bus._escapeHtml(phase) + ' · ' : ''}${window.Lit.unsafeHTML(err)} <span style="color:var(--accent);text-decoration:underline;font-size:10px;">🔍 view raw response</span></span><div class="parse-raw" style="display:none;margin-top:6px;max-height:220px;overflow:auto;font-family:var(--font-mono);font-size:10px;color:var(--text-dim);white-space:pre-wrap;border-top:1px solid var(--border);padding-top:4px;"></div>`, bubble);
+<span class="bubble-icon">⚠️</span><span class="bubble-tick">[${this._bus._nextLineLabel(bubble)}]</span> <span class="bubble-actor bubble-error-actor">${charName}</span> <span class="bubble-text bubble-error-text">parse error: ${phase ? this._bus._escapeHtml(phase) + ' · ' : ''}${window.Lit.unsafeHTML(err)} <span style="color:var(--accent);text-decoration:underline;font-size:10px;">🔍 view raw response</span></span><div class="parse-raw" style="display:none;margin-top:6px;max-height:220px;overflow:auto;font-family:var(--font-mono);font-size:10px;color:var(--text-dim);white-space:pre-wrap;border-top:1px solid var(--border);padding-top:4px;"></div>`, bubble);
         bubble.addEventListener('click', () => {
             const rawBox = bubble.querySelector('.parse-raw');
             if (!rawBox)

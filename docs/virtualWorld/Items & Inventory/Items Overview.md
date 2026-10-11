@@ -537,7 +537,7 @@ The `weight` property exists on items (`Item.__init__`, `item.py`) but there is 
 
 **Features** — [[examine|Examine]] (#2), [[take-drop-give|Take / drop / give]] (#5), [[use-use-on|Use / use on]] (#6), [[eat-drink|Eat / drink]] (#10), [[read-write|Read / write]] (#13)
 
-**Dev tasks** — [[dev_tasks/done/items/task-108-tags-as-dicts-with-type-and-description|task]], [[dev_tasks/done/items/task-115-field-locks-and-refresh-from-library|task]], [[dev_tasks/done/items/task-177-consolidate-hidden-into-current_state|task]], [[dev_tasks/done/items/task-19-food_items_eat_action|task]], [[dev_tasks/done/items/task-21-item_parameters_system|task]], [[dev_tasks/done/items/task-32-enhanced_item_creation|task]] … +8 more
+**Dev tasks** — [[dev_tasks/done/items/task-108-tags-as-dicts-with-type-and-description|task]], [[dev_tasks/done/items/task-115-field-locks-and-refresh-from-library|task]], [[dev_tasks/done/items/task-177-consolidate-hidden-into-current_state|task]], [[dev_tasks/done/items/task-19-food_items_eat_action|task]], [[dev_tasks/done/items/task-21-item_parameters_system|task]], [[dev_tasks/done/items/task-29-create_item_container_support|task]] … +8 more
 
 **Neighbouring notes** — [[Equipment & Paperdoll]], [[Inventory]], [[Item & Action Model]], [[Item States & Toggleables]]
 

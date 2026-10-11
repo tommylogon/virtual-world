@@ -334,9 +334,12 @@ class EventBus {
         return `Turn ${turn}${datePart} | ${time}${moonPart}`;
     }
 
-    /** Per-line bubble label — global monotonic sequence + current game time. */
-    _nextLineLabel() {
+    /** Per-line bubble label — global monotonic sequence + current game time.
+     *  Stamps `data-seq` on the bubble so the export and the restore read the
+     *  attribute instead of re-parsing the label string (task-777). */
+    _nextLineLabel(bubble?: HTMLElement) {
         const seq = this._lineSeq++;
+        if (bubble) bubble.setAttribute('data-seq', String(seq));
         const time = this.tickToTime(VW?.state?.tick || 0);
         return `Tick ${seq} | ${time}`;
     }
@@ -370,7 +373,7 @@ class EventBus {
         bubble.title = this.tickToRelative(tick);
         const body = this._cards.bodyFor(charName, streamEl);
         this._insertTimeGap(body || streamEl);
-        window.Lit.render(eventStreamHtmlTag`<span class="bubble-icon">💭</span><span class="bubble-tick">[${this._nextLineLabel()}]</span> <span class="bubble-actor bubble-thought-actor">${charName}</span><span class="bubble-text bubble-thought-text">${thought}</span>`, bubble);
+        window.Lit.render(eventStreamHtmlTag`<span class="bubble-icon">💭</span><span class="bubble-tick">[${this._nextLineLabel(bubble)}]</span> <span class="bubble-actor bubble-thought-actor">${charName}</span><span class="bubble-text bubble-thought-text">${thought}</span>`, bubble);
         this._appendBubble(streamEl, bubble);
         this._recordPhase(charName, 'think', { thought });
     }
@@ -589,7 +592,7 @@ class EventBus {
             ? window.Lit.unsafeHTML(outcomeBadge + displayText + badgeHtml)
             : window.Lit.unsafeHTML(outcomeBadge + displayText);
 
-        window.Lit.render(eventStreamHtmlTag`<span class="bubble-icon">${icon}</span><span class="bubble-tick">[${this._nextLineLabel()}]</span> <span class="bubble-actor bubble-${type}-actor">${agentName}</span> <span class="bubble-text bubble-${type}-text">${textSpan}</span>`, bubble);
+        window.Lit.render(eventStreamHtmlTag`<span class="bubble-icon">${icon}</span><span class="bubble-tick">[${this._nextLineLabel(bubble)}]</span> <span class="bubble-actor bubble-${type}-actor">${agentName}</span> <span class="bubble-text bubble-${type}-text">${textSpan}</span>`, bubble);
 
         const body = this._cards.current?.querySelector('.turn-card-body');
         if (body && isAgentEvent) {
@@ -692,7 +695,7 @@ class EventBus {
         const icons: Record<string, string> = { observe: '👁️', think: '💭', decide: '🎯', act: '⚡', react: '🔄' };
         const icon = icons[phase] || '➡️';
         const label = subtext ? `${phase} · ${subtext}` : phase;
-        window.Lit.render(eventStreamHtmlTag`<span class="bubble-icon">${icon}</span><span class="bubble-tick">[${this._nextLineLabel()}]</span><span class="bubble-phase-pill">${label}</span>`, bubble);
+        window.Lit.render(eventStreamHtmlTag`<span class="bubble-icon">${icon}</span><span class="bubble-tick">[${this._nextLineLabel(bubble)}]</span><span class="bubble-phase-pill">${label}</span>`, bubble);
 
         // observe/think always start a fresh card — same actor's NEXT turn
         // must not merge into the previous turn's card.

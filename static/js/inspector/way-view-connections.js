@@ -7,7 +7,7 @@
  * @contributes InspectorWayViewConnections: add/remove/reconnect the areas a way joins
  * @powers Way authoring, Move, Open / close — fixing a way's endpoints (the authoring half of graph reachability)
  * @relates called by way-view; writes through the graph API
- * @docs docs/virtualWorld/World Building/Doors & Connections.md
+ * @docs docs/virtualWorld/World Building/Ways.md
  */
 // GENERATED: source is the sibling .ts. Do not hand-edit; run `npm run build:ts`.
 window.InspectorWayViewConnections = (() => {

@@ -67,7 +67,11 @@ interface PromptBuilderWindowSurface { PromptBuilder: Record<string, any> }
      */
     function turnSlots(player: unknown): Record<string, number> | undefined {
         const slots = (player as { turn_slots?: Record<string, number> } | null | undefined)?.turn_slots;
-        return slots && typeof slots === 'object' ? slots : undefined;
+        if (!slots || typeof slots !== 'object') return undefined;
+        // bug-544: an empty `turn_slots` (`{}`) is the "not started yet" sentinel
+        // the engine lazily fills — NOT "all spent". Returning it would make the
+        // prompt hide every verb on the first turn of a fresh character.
+        return Object.keys(slots).length ? slots : undefined;
     }
 
     async function _matchMemory(memories: MemoryEntry[], text: string, charName: string): Promise<MemoryEntry | null> {

@@ -5,49 +5,116 @@ tags: [system/ui, topic/validation]
 
 # Event Log Export & Stream Rendering
 
-This documents the **Markdown event-log export** (`ui/world-export.js`) and the related stream
-rendering/ordering improvements that were bundled with it.
+The event stream exports to **Markdown**, **plain text**, **JSON** and **JSONL**, all projected from
+the same DOM rows and all driven by one export modal. The projection, the four renderers and the
+modal live in `ui/event-log-export.js`; `ui/world-export.js` keeps `saveFileWithDialog` and delegates
+the three header buttons into it, so the `WorldExport.*` surface is unchanged.
 
 ---
 
-## Event log export (📥)
+## The three buttons and the modal (📥 ⏩ 📋)
 
-The **Export** button (`WorldExport.exportEventLog()`) writes the visible event stream to a
-Markdown file. Two distinct "tick" concepts live in the stream, and the export keeps them honest:
+All three header buttons open the same modal, pre-set:
 
-- **Event sequence (`[Tick N]`)** — a global per-line counter (`_nextLineLabel()` → `_lineSeq++`).
-  This is the *run sequence id*, used in the filename.
-- **World turn** — from each turn card's `[Turn N | HH:MM]` header. This is the *in-game* turn.
+| Button | Opens the modal as |
+|---|---|
+| 📥 **Export event log to file** | whole log · destination *Save to file* |
+| ⏩ **Export a range** | range controls focused |
+| 📋 **Copy event stream** | whole log · destination *Copy to clipboard* |
 
-### Filename & header
-
-`<scenario>_tick_<maxEventTick>_event_log_<ts>.md`. The `tick` value is the **highest `[Tick N]`
-sequence id present in the stream** (scanning each row's `.bubble-tick`), falling back to the world
-clock (`worldState.tick`, i.e. `time_ticks`) if the stream has no sequence labels. The header reads:
+The modal owns: **unit** (Tick sequence — the default — or Turn), **From / To** bounded by what the
+stream actually contains, an **actor** multi-select (fed from the roster of names the stream has
+seen), an **area** select (fed from the areas present in the stream), a **format** (Markdown / Plain /
+JSON / JSONL), a **destination** (Save to file / Copy to clipboard), an **Ignore stream filters**
+escape hatch, and a live summary line — for example:
 
 ```
-> Run tick <N> · final turn <M> · exported <ts>
+ticks 12–340 | Lyrie | Goblin Camp | 412 events | jsonl | filters applied
 ```
 
-So the filename matches the log's own sequence, and the world turn is called out explicitly.
+The summary is the point: it names the unit, the bounds, the scope and the active filters *before*
+you click, so an export can never silently drop the LLM payloads, an actor or a whole area.
 
-### Filters are respected
+A clipboard copy over ~2 MB prompts first — some browsers refuse a write that large.
 
-The export walks the **actual bubbles/rows** (each `.msg-bubble`), not `element.textContent` of the
-whole turn card. This matters because turning off a filter (e.g. **LLM logs**) hides a row with
-`display: none` — and `.textContent` of a card would **still include hidden rows**. The export skips
-any row whose `style.display === 'none'`, so an unchecked LLM-log filter genuinely strips the raw
-prompt dumps from the file.
+### Two "tick" concepts, kept honest
 
-### Grouping & formatting
+- **Tick sequence** (`[Tick N]`) — a global per-line counter (`_nextLineLabel()` → `_lineSeq++`).
+  This is the *run sequence id* and the default **range unit**.
+- **World turn** — from each turn card's `[Turn N | HH:MM]` header. Selectable as the range unit.
+- **World clock tick** — a per-row field (`tick`); it is *not* a range unit.
 
-- Events are grouped under **`## Turn N — actor · HH:MM`** headings (read from each turn card's
-  header), rather than the old `## Tick N` derived from a first-`[Tick]` match (which never matched
-  its own content and produced non-monotonic headings).
-- Each event is **one bullet** (`- icon actor — text`), with newlines preserved (grabs the
-  `.bubble-text` / phase-pill text, not glued `.textContent`). No more `Use🎭[Tick 14]`-style glue.
-- System rows / area transitions that sit directly in the stream get a `## Setup` section or their own
-  bullets rather than being swallowed into a card.
+### Filename
+
+`<scenario>_<unit>_<from>-<to>_event_log_<ts>.{md,txt,json,jsonl}`.
+
+---
+
+## The event record
+
+Every exported event is one record:
+
+```
+{ seq, tick, time, day, turn, actor, area, type, text, icon?, outcome?, payload? }
+```
+
+- `seq` — the tick-sequence id (the range key), stamped as `data-seq` on the row when its label is
+  emitted; the projection falls back to parsing `[Tick N]` for rows saved before task-777.
+- `tick` — the world clock (`data-tick`); `time` and `day` come from the row's label and its turn card.
+- `turn` — the enclosing turn card's number, or `null` for a loose row (a system row, a time gap, an
+  area transition).
+- `actor` / `area` — `data-actor` / `data-stream-area`.
+- `type` — `data-type` (`speech`, `action`, `thought`, `result`, `rawllm`, `error`, `phase`,
+  `stream`, …) or a synthetic `scope` / `scope-empty` / `system`.
+- `text` — the **raw** text (`dataset.rawText`), not the story-mode-stripped `.bubble-text`.
+- `outcome` — from the `outcome-*` class on a result row. `payload` — `{ header, body }` on a raw-LLM
+  chip; the collapsed body is read regardless of its `display: none`, which is a *collapse*, not a
+  filter.
+
+Rows with no tick — the scope banner, a scope-empty note, a time gap, an area transition — carry
+`seq: -1` and appear in Markdown/Plain only; JSON and JSONL are the ticked events alone.
+
+### Markdown & Plain
+
+Markdown groups events under `## Turn N — actor · HH:MM · Day D, …` and emits one bullet per event
+(`- icon actor — text`); a raw-LLM chip becomes a `<details>` payload block. Plain is the bare lines.
+The scope banner is its own message (`> **📌 Scoped to: …**`): the projection reads the banner's label
+span, never its container `textContent`, so the clear button's `×` is not glued on, and a turn heading
+ends with the game time, not a stray `]`.
+
+### JSON & JSONL
+
+**JSONL** is one record per line with no envelope, so `jq` works directly:
+
+```
+jq 'select(.actor=="Lyrie")' run.jsonl
+jq -s 'group_by(.actor) | map({actor: .[0].actor, n: length})' run.jsonl
+```
+
+**JSON** is an envelope, so a reader can detect shape drift instead of guessing:
+
+```json
+{
+  "schema": 1,
+  "scenario": "goblin_camp",
+  "exported_at": "2026-10-11T19:40:00.000Z",
+  "world_tick": 42,
+  "range": { "unit": "tick", "from": 12, "to": 340 },
+  "filters": { "actor": "Lyrie", "area": null, "search": "", "ignored": false, "kinds": {} },
+  "counts": { "events": 412, "turns": 6, "actors": 3, "areas": 4 },
+  "events": []
+}
+```
+
+---
+
+## Filters are respected
+
+The projection walks the actual rows (each `.msg-bubble`), not a container's `textContent`. Rows the
+stream filters hide (`display: none` — the kind chips, the actor dropdown, the area filter, the search
+box) are skipped, and the modal's summary names them. The **Ignore stream filters** checkbox is the
+explicit escape hatch. The `timeline-scrubber` and `turn-queue-strip` are stream chrome (a live status
+widget, not a message) and are skipped; the scope banner is a message and is kept.
 
 ---
 
@@ -71,10 +138,12 @@ the agent decide phase and the human-turn reply path. It was previously logged a
 
 | File | Role |
 |------|------|
-| `static/js/ui/world-export.js` | `exportEventLog`, `buildMarkdownLog`, filename/header, `saveFileWithDialog` |
+| `static/js/ui/event-log-export.js` | projection (`projectStreamRows`), renderers (Markdown/Plain/JSON/JSONL), the export modal, range/scope honesty |
+| `static/js/ui/world-export.js` | `saveFileWithDialog`; delegates `exportEventLog` / `copyEventLogToClipboard` / `showRangeExport` into the module |
+| `static/js/event-stream.js` | `_nextLineLabel` (stamps `data-seq`), `_addBubble`, `_escapeHtml` (sequence labels, per-row text) |
+| `static/js/stream/stream-persistence.js` | restore reads `data-seq` (with a `[Tick N]` fallback for pre-task-777 saves) |
 | `static/css/style.css` | `.bubble-text { white-space: pre-wrap }` |
 | `static/js/agent-engine.js` | emote-before-result ordering |
-| `static/js/event-stream.js` | `_nextLineLabel`, `_addBubble`, `_escapeHtml` (sequence labels, per-row text) |
 
 ## Related
 

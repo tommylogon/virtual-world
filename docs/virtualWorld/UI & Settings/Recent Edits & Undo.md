@@ -5,7 +5,7 @@ tags: [system/ui]
 
 # Recent Edits & Undo
 
-**Task:** [[dev_tasks/done/ui/task-371-undo-history-dropdown-labels|task-371]] · [[dev_tasks/review/ui/task-372-recently-edited-rail|task-372]] · [[dev_tasks/done/ui/task-373-changes-since-source-panel|task-373]] · [[dev_tasks/review/ui/task-384-per-edit-undo-feed|task-384]]
+**Task:** [[dev_tasks/done/ui/task-371-undo-history-dropdown-labels|task-371]] · [[task-372-recently-edited-rail|task-372]] · [[dev_tasks/done/ui/task-373-changes-since-source-panel|task-373]] · [[task-384-per-edit-undo-feed|task-384]]
 
 "What changed, and undoing it" is **four separate surfaces** over one primitive.
 The primitive is a server-side stack of whole-world snapshots in `app._undo_stack`;

@@ -339,7 +339,7 @@ The paperdoll is rendered in `static/js/inspector/paperdoll-view.js`:
 
 **Features** — [[wear-equip|Wear / equip]] (#14)
 
-**Dev tasks** — [[dev_tasks/done/items/task-3-equipment_system|task]], [[dev_tasks/review/ui/task-87-paperdoll_icon_art|task]]
+**Dev tasks** — [[dev_tasks/done/items/task-3-equipment_system|task]], [[dev_tasks/done/ui/task-87-paperdoll_icon_art|task]]
 
 **Neighbouring notes** — [[Inventory]], [[Item & Action Model]], [[Item States & Toggleables]], [[Items Overview]]
 

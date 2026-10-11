@@ -227,7 +227,7 @@ via `GET /api/players/<name>/memories/people`).
 
 **Features** — [[memory|Memory]] (#22), [[memory-pipeline|Memory pipeline]] (#41)
 
-**Dev tasks** — [[dev_tasks/cancelled/task-26-vector_embeddings_rag_prep|task]], [[dev_tasks/done/characters/task-178-unify-memory-systems|task]], [[dev_tasks/done/characters/task-37-memory_context_relative_time|task]], [[dev_tasks/done/characters/task-91-activate_cosine_similarity_retrieval|task]], [[dev_tasks/done/emotions/task-96-emotional_residue_intercharacter_memory|task]], [[dev_tasks/review/characters/task-42-proper_memory_editor|task]]
+**Dev tasks** — [[dev_tasks/cancelled/task-26-vector_embeddings_rag_prep|task]], [[dev_tasks/done/characters/task-178-unify-memory-systems|task]], [[dev_tasks/done/characters/task-37-memory_context_relative_time|task]], [[dev_tasks/done/characters/task-42-proper_memory_editor|task]], [[dev_tasks/done/characters/task-91-activate_cosine_similarity_retrieval|task]], [[dev_tasks/done/emotions/task-96-emotional_residue_intercharacter_memory|task]]
 
 **Neighbouring notes** — [[Agent Engine]], [[LLM Providers]], [[Memory Dynamics]], [[Narration System]], [[Turn-Based System]]
 

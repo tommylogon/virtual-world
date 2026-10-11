@@ -231,7 +231,13 @@ const HumanTurnComposerModule = (() => {
     function turnSlots() {
         const players = worldState.players;
         const slots = players && _charName ? players[_charName]?.turn_slots : null;
-        return slots && typeof slots === 'object' ? { ...slots } : null;
+        if (!slots || typeof slots !== 'object')
+            return null;
+        // bug-544: `Player.turn_slots` starts as `{}` ("not started yet" —
+        // player.py), and the engine's `_slot_gate` lazily fills an empty budget.
+        // So an EMPTY object means "no budget published", NOT "all slots spent".
+        // Reading `{}` as spent refused the first action of a fresh turn.
+        return Object.keys(slots).length ? { ...slots } : null;
     }
     function renderPips() {
         const s = turnSlots() || { major: 0, minor: 0, free: 0 };

@@ -375,8 +375,14 @@ class AgentEngine {
             if (res.success === false)
                 break;
             await worldState.fetch();
+            // bug-544: break only on a PUBLISHED budget that is exhausted. An
+            // empty `turn_slots` (`{}`) is the "not started" sentinel the engine
+            // lazily fills; treating it as spent ended the human turn after one
+            // step and refused the next action.
             const slots = worldState.players?.[charName]?.turn_slots;
-            if (!slots || !Object.values(slots).some((n) => n > 0))
+            const spentOut = !!slots && Object.keys(slots).length > 0
+                && !Object.values(slots).some((n) => n > 0);
+            if (spentOut)
                 break;
             reply = await HumanTurnComposer.request(charName, { lastResult: res.text });
         }
@@ -979,8 +985,13 @@ class AgentEngine {
                         // prompt (which already hides what is unaffordable) is the
                         // real gate; this is only the "budget is empty" stop.
                         const slotsNow = (worldState.data?.players?.[charName]?.turn_slots);
-                        const anySlotLeft = slotsNow && Object.values(slotsNow).some((n) => n > 0);
-                        if (!anySlotLeft)
+                        // bug-544: an empty `{}` is "no budget published" (the
+                        // engine lazily fills it), not "budget empty" — only a
+                        // published-and-spent budget ends the turn, otherwise a
+                        // fresh character's loop exited before acting once.
+                        const spentOut = !!slotsNow && Object.keys(slotsNow).length > 0
+                            && !Object.values(slotsNow).some((n) => n > 0);
+                        if (spentOut)
                             turnDone = true;
                     }
                 }

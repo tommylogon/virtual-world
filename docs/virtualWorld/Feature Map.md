@@ -110,7 +110,7 @@ rest point at a note covering the area rather than the specific feature.
 | 48 | Grid to graph | Compile cells into areas, ways, gateways, buildings | wired | [[Grid to Graph]] |
 | 49 | Scopes | Nested world scopes, projection, manifest | wired | [[World Scopes]] |
 | 50 | Node inspectors | 12 panels: area, item, character, way, memory, behaviours, lore, paperdoll, tags, conditions, traits, automation | wired | [[Inspector Panels]] |
-| 51 | Way authoring | Create and edit ways, doors, connections, cardinals | wired | [[Way Properties]] |
+| 51 | Way authoring | Create and edit ways, doors, connections, cardinals | wired | [[World Building/Ways\|Ways]] |
 | 52 | Trigger / effect editor | Author triggers, conditions and effects on any node | wired | [[Triggers & Effects]] |
 | 53 | **NL editor** | Describe a change in prose; see a plan before it is applied | wired | [[NL Editor]] |
 | 54 | Expression pack editor | Per-emotion art slots, plus **Split sheet** for grid sheets | wired | [[Character Images & Expression Packs]] |

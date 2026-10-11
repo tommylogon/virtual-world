@@ -82,10 +82,6 @@ const HumanTurnComposerModule = (() => {
             #htc-meta b { color:#b48ce0; }
             #htc-close { background:none; border:0; color:#6b7686; cursor:pointer; font-size:15px; }
 
-            .htc-digest { margin:10px 16px 0; background:#241a10; border:1px solid #40301c; border-radius:10px; padding:8px 12px; }
-            .htc-digest .dt { font-size:10.5px; text-transform:uppercase; letter-spacing:1.1px; color:#ffb37a; margin-bottom:4px; }
-            .htc-digest .di { font-size:12px; color:#e8c49a; padding:1px 0; }
-            .htc-digest .drow { display:flex; gap:6px; margin-top:6px; }
             .htc-linkbtn { background:none; border:0; color:#ffb37a; font-size:11.5px; cursor:pointer; }
             .htc-linkbtn.muted { color:#6b7686; }
 
@@ -234,7 +230,12 @@ const HumanTurnComposerModule = (() => {
     function turnSlots(): Record<string, number> | null {
         const players = (worldState as unknown as { players?: Record<string, { turn_slots?: Record<string, number> }> }).players;
         const slots = players && _charName ? players[_charName]?.turn_slots : null;
-        return slots && typeof slots === 'object' ? { ...slots } : null;
+        if (!slots || typeof slots !== 'object') return null;
+        // bug-544: `Player.turn_slots` starts as `{}` ("not started yet" —
+        // player.py), and the engine's `_slot_gate` lazily fills an empty budget.
+        // So an EMPTY object means "no budget published", NOT "all slots spent".
+        // Reading `{}` as spent refused the first action of a fresh turn.
+        return Object.keys(slots).length ? { ...slots } : null;
     }
 
     function renderPips() {

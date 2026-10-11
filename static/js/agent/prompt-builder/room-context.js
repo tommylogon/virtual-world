@@ -59,7 +59,12 @@ window.PromptBuilder = window.PromptBuilder || {};
      */
     function turnSlots(player) {
         const slots = player?.turn_slots;
-        return slots && typeof slots === 'object' ? slots : undefined;
+        if (!slots || typeof slots !== 'object')
+            return undefined;
+        // bug-544: an empty `turn_slots` (`{}`) is the "not started yet" sentinel
+        // the engine lazily fills — NOT "all spent". Returning it would make the
+        // prompt hide every verb on the first turn of a fresh character.
+        return Object.keys(slots).length ? slots : undefined;
     }
     async function _matchMemory(memories, text, charName) {
         if (!text)

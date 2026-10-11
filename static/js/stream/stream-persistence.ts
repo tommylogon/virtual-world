@@ -90,9 +90,18 @@ class StreamPersistence {
         window.Lit.render(window.Lit.html`${entries.map(e => window.Lit.unsafeHTML(e))}`, streamEl);
         streamEl.scrollTop = streamEl.scrollHeight;
         let maxSeq = -1;
-        for (const el of streamEl.querySelectorAll('.bubble-tick')) {
-            const m = el.textContent.match(/\[Tick\s+(\d+)\|/);
-            if (m) maxSeq = Math.max(maxSeq, parseInt(m[1], 10));
+        for (const el of streamEl.querySelectorAll<HTMLElement>('[data-seq]')) {
+            const v = parseInt(el.getAttribute('data-seq') || '', 10);
+            if (Number.isFinite(v)) maxSeq = Math.max(maxSeq, v);
+        }
+        if (maxSeq < 0) {
+            // Legacy persisted rows (saved before task-777) carry no data-seq:
+            // fall back to the [Tick N | ...] label so the counter does not
+            // restart at 0 and re-issue seq ids.
+            for (const el of streamEl.querySelectorAll('.bubble-tick')) {
+                const m = (el.textContent || '').match(/\[Tick\s+(\d+)\|/);
+                if (m) maxSeq = Math.max(maxSeq, parseInt(m[1], 10));
+            }
         }
         this._bus._lineSeq = maxSeq + 1;
         this._bus._cards.rebindAll(streamEl);

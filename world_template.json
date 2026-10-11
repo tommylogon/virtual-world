@@ -1,42 +1,30 @@
 {
-  "current_area": "Blizzard Forest Clearing",
-  "players_in_area": [],
-  "area_presence": {},
+  "current_area": "Kitchen",
+  "players_in_area": [
+    {
+      "name": "Kaelen Voss",
+      "state": "awake",
+      "description": "A gaunt man in his late thirties with sharp, weathered features — high cheekbones, a strong jaw under several days of dark stubble. His hazel eyes are quick and unnervingly observant, set in a permanent squint from years of reading fine print and scanning distant horizons. Dark hair, streaked with grey at the temples, is pulled back loosely.\n\nHis build is lean and wiry — the kind of frame built by long roads and skipped meals, not the gymnasium. The left leg from the knee down has been replaced with a clockwork prosthetic of brass and steel: segmented plates, exposed rivets, and a faint mechanical click with every shift of weight. The skin above the fitting is scarred, a clean amputation scar long healed.\n\nHis hands are scarred across the knuckles — old work, not recent. A thin white line runs from his left brow into the hairline. Crow's feet and worry lines are etched deeper than 36 years should allow.\nBackpack is closed stovepipe leather boots is normal reinforced wool trousers is normal wool blend undershirt & drawers is normal clockwork prosthetic is normal galser office of justice brooch is normal lightweight linen shirt is normal waxed canvas vest is normal heavy fur-lined coat is normal.\nKaelen Voss is wearing Galser Office of Justice Brooch on their neck, Heavy Fur-Lined Coat over Lightweight Linen Shirt/Waxed Canvas Vest on their torso, Clockwork Prosthetic (Left Leg) over Reinforced Wool Trousers/Wool Blend Undershirt & Drawers on their legs, Stovepipe Leather Boots (Pair) on their feet, Backpack on their back.",
+      "activity": null,
+      "at_way_id": "way_swinging_door",
+      "spatial_position": {
+        "relation": "at",
+        "target_id": "way_swinging_door",
+        "target_type": "way",
+        "target_name": "swinging door"
+      }
+    }
+  ],
+  "area_presence": {
+    "area_living_room": {},
+    "area_kitchen": {
+      "Kaelen Voss": 1
+    }
+  },
   "players": {
     "Kaelen Voss": {
       "name": "Kaelen Voss",
-      "personality": "you are Kaelen Voss, A Human who is a Disgraced Investigator for the Galser Office of Justice\nCurrent Status: Independent Truth-Seeker / Weary Traveler\nYear of Birth: 1548 (36 years old)\n\nYou are a man whose sharp eyes have seen too much of the \"Witch's Spit\" and the \"Elemental Conjunction\" to believe in simple explanations\n. Formerly a rising star in the Ulus of Galser’s bureaucratic machine, you were exiled after you refused to hand over a \"magical item of interest\" to the Department of Education and Research\n.\nYou carry the weight of the world’s 120-year curse in your bones, literally—your left leg clicks with a clockwork prosthetic, a relic of a skirmish near the Galtian border\n. While your humor remains dry as the Sarekyan Desert, it has taken on a bleaker edge as the frost of 1584 refuses to break. Your soft spot for stray animals has manifested as \"Runt,\" a shivering mouseling you found near a Galtian military camp, who now lives in the pocket of your heavy, fur-lined coat. ",
-      "description": "He cuts a lean, weather-worn figure in a heavy fur-lined coat that hangs open over a waxed canvas vest and rumpled linen shirt, a worn leather backpack slung across his shoulders. Dark hair streaked with grey is pulled back from a face sharp with high cheekbones and a stubbled jaw, his hazel eyes narrowed in a perpetual squint that deepens the crow’s feet and worry lines. A thin white scar slices through his left brow into the hairline, and the faint, rhythmic click of a segmented brass-and-steel prosthetic leg punctuates his stance beneath the reinforced wool trousers. At his collar, a small brooch catches the light, while a web of scarred knuckles rests against the coat’s edge.",
-      "base_description": "A gaunt man in his late thirties with sharp, weathered features — high cheekbones, a strong jaw under several days of dark stubble. His hazel eyes are quick and unnervingly observant, set in a permanent squint from years of reading fine print and scanning distant horizons. Dark hair, streaked with grey at the temples, is pulled back loosely.\n\nHis build is lean and wiry — the kind of frame built by long roads and skipped meals, not the gymnasium. The left leg from the knee down has been replaced with a clockwork prosthetic of brass and steel: segmented plates, exposed rivets, and a faint mechanical click with every shift of weight. The skin above the fitting is scarred, a clean amputation scar long healed.\n\nHis hands are scarred across the knuckles — old work, not recent. A thin white line runs from his left brow into the hairline. Crow's feet and worry lines are etched deeper than 36 years should allow.",
       "id": "33e94855",
-      "equipped": {
-        "accessory": [],
-        "arms": [],
-        "back": [
-          "item_Backpack"
-        ],
-        "feet": [
-          "item_Stovepipe Leather Boots (Pair)"
-        ],
-        "hand_left": [],
-        "hand_right": [],
-        "hands": [],
-        "head": [],
-        "legs": [
-          "item_Reinforced Wool Trousers",
-          "item_Wool Blend Undershirt & Drawers",
-          "item_Clockwork Prosthetic (Left Leg)"
-        ],
-        "neck": [
-          "item_Galser Office of Justice Brooch"
-        ],
-        "torso": [
-          "item_Lightweight Linen Shirt",
-          "item_Waxed Canvas Vest",
-          "item_Heavy Fur-Lined Coat"
-        ],
-        "waist": []
-      },
       "stats": {
         "CHA": 12,
         "CON": 14,
@@ -46,41 +34,20 @@
         "WIS": 15
       },
       "vitals": {
-        "HP": 99,
+        "HP": 99.0,
         "Max_HP": 100,
         "Hunger": 47,
-        "Thirst": 57,
+        "Thirst": 42.0,
         "Hygiene": 73,
-        "Energy": 46,
-        "Social": 94,
-        "Bladder": 24,
+        "Energy": 44,
+        "Social": 97,
+        "Bladder": 36.0,
         "Sanity": 92,
-        "Entertainment": 92,
-        "Temperature": 34.90000000000001
-      },
-      "skills": {
-        "Athletics": 0,
-        "Acrobatics": 1,
-        "Stealth": 1,
-        "Perception": 2,
-        "Survival": 2,
-        "Persuasion": 1,
-        "Animal Handling": 0,
-        "Arcana": 0,
-        "Deception": 0,
-        "History": 0,
-        "Insight": 0,
-        "Intimidation": 0,
-        "Investigation": 0,
-        "Medicine": 0,
-        "Nature": 0,
-        "Performance": 0,
-        "Religion": 0,
-        "Sleight of Hand": 0
+        "Entertainment": 100,
+        "Temperature": 35.40000000000001
       },
       "state": "awake",
       "perceived_conditions": [],
-      "trait_behavior": [],
       "conditions": {
         "awake": [
           {
@@ -93,6 +60,8 @@
       "grappled_by": null,
       "state_timer": 0,
       "traits": {},
+      "size": null,
+      "species": null,
       "tags": [
         "male",
         "human"
@@ -100,6 +69,7 @@
       "flags": {},
       "hidden": false,
       "soak": null,
+      "simulation_mode": "active",
       "manifested": false,
       "known": [],
       "crafting_known": [],
@@ -119,725 +89,7 @@
         "prosthetic"
       ],
       "fear_tags": [],
-      "discovered_items": [],
-      "decay_rates": {
-        "Bladder": 0.42,
-        "Energy": 0.104,
-        "Entertainment": 0.03,
-        "Hunger": 0.0034,
-        "Hygiene": 0.02,
-        "Sanity": 0.005,
-        "Social": 0.02,
-        "Thirst": 0.025
-      },
-      "body_state": {
-        "head": {
-          "sensitivity": 0.2
-        },
-        "neck": {
-          "sensitivity": 0.4
-        },
-        "torso": {
-          "sensitivity": 0.3
-        },
-        "back": {
-          "sensitivity": 0.2
-        },
-        "arm_left": {
-          "sensitivity": 0.3
-        },
-        "arm_right": {
-          "sensitivity": 0.3
-        },
-        "hand_left": {
-          "sensitivity": 0.4
-        },
-        "hand_right": {
-          "sensitivity": 0.4
-        },
-        "leg_left": {
-          "sensitivity": 0.3
-        },
-        "leg_right": {
-          "sensitivity": 0.3
-        },
-        "foot_left": {
-          "sensitivity": 0.2
-        },
-        "foot_right": {
-          "sensitivity": 0.2
-        },
-        "face": {
-          "sensitivity": 0.5
-        },
-        "cheeks": {
-          "sensitivity": 0.6
-        },
-        "lips": {
-          "sensitivity": 0.8
-        },
-        "breast_left": {
-          "sensitivity": 0.6
-        },
-        "breast_right": {
-          "sensitivity": 0.6
-        },
-        "nipple_left": {
-          "sensitivity": 0.9
-        },
-        "nipple_right": {
-          "sensitivity": 0.7
-        },
-        "genitals": {
-          "sensitivity": 0.8
-        },
-        "balls": {
-          "sensitivity": 0.7
-        }
-      },
-      "body_region_names": {
-        "head": "Head",
-        "neck": "Neck",
-        "torso": "Torso",
-        "back": "Back",
-        "arm_left": "Left Arm",
-        "arm_right": "Right Arm",
-        "hand_left": "Left Hand",
-        "hand_right": "Right Hand",
-        "leg_left": "Left Leg",
-        "leg_right": "Right Leg",
-        "foot_left": "Left Foot",
-        "foot_right": "Right Foot",
-        "face": "Face",
-        "cheeks": "Cheeks",
-        "lips": "Lips",
-        "breast_left": "Left Breast",
-        "breast_right": "Right Breast",
-        "nipple_left": "Left Nipple",
-        "nipple_right": "Right Nipple",
-        "genitals": "Genitals",
-        "balls": "Balls"
-      },
-      "region_exposed": {
-        "head": true,
-        "neck": true,
-        "torso": true,
-        "back": true,
-        "arm_left": true,
-        "arm_right": true,
-        "hand_left": true,
-        "hand_right": true,
-        "leg_left": true,
-        "leg_right": true,
-        "foot_left": true,
-        "foot_right": true,
-        "face": true,
-        "cheeks": true,
-        "lips": true,
-        "breast_left": true,
-        "breast_right": true,
-        "nipple_left": true,
-        "nipple_right": true,
-        "genitals": true,
-        "balls": true
-      },
-      "current_area": "Blizzard Forest Clearing",
-      "emotion": {
-        "current": "relieved but vigilant",
-        "intensity": 0.5,
-        "expression": "neutral",
-        "description": "Kaelen Voss is quite relieved but vigilant."
-      },
-      "emotions": {
-        "happy": 40.0,
-        "excited": 30.0,
-        "elated": 22.0,
-        "proud": 30.0,
-        "sad": 8.0,
-        "lonely": 10.0,
-        "melancholic": 12.0,
-        "nostalgic": 18.0,
-        "afraid": 10.0,
-        "anxious": 12.0,
-        "uneasy": 12.0,
-        "dread": 8.0,
-        "spooked": 10.0,
-        "angry": 8.0,
-        "irritated": 12.0,
-        "resentful": 10.0,
-        "aroused": 12.0,
-        "eager": 26.0,
-        "craving": 15.0,
-        "curious": 35.0,
-        "affectionate": 25.0,
-        "loving": 26.0,
-        "grateful": 24.0,
-        "admiring": 30.0,
-        "ashamed": 8.0,
-        "embarrassed": 10.0,
-        "guilty": 8.0,
-        "envious": 5.0,
-        "jealous": 8.0,
-        "disgusted": 5.0,
-        "repulsed": 5.0,
-        "calm": 50.0,
-        "content": 46.0,
-        "peaceful": 46.0,
-        "satisfied": 40.0,
-        "surprised": 15.0
-      },
-      "emotions_description": "A faint unease prickles at you.",
-      "relationships": {},
-      "activity": null,
-      "memories": [
-        {
-          "embedding": null,
-          "entity_ids": [],
-          "id": "mem_1785853798512_563",
-          "importance": 5,
-          "location": "",
-          "source": "auto",
-          "tags": [],
-          "text": "The valerius case - who are they, where are they? nort of rocheveron, nearest neighbour is far outside earshot. secret task from the king hiimself, somethign about the new caws. dnew dawn, cult looking for a way to end the muujeroth curse any means nececary. A week ago, you were hired by non other than King Nicolas Enfield Rocheveron in Borrim to check on the Valerius family—scholars who were Investigating something related to the new dawn. they have not been heard from in about 2 weeks.",
-          "tick": 20,
-          "timestamp": 1785853798.512617,
-          "type": "observation"
-        },
-        {
-          "embedding": null,
-          "entity_ids": [],
-          "id": "mem_1785853818674_205",
-          "importance": 5,
-          "location": "",
-          "source": "auto",
-          "tags": [],
-          "text": "Lost my sword during the night, no idea how. goblins maybe?",
-          "tick": 20,
-          "timestamp": 1785853818.6743982,
-          "type": "observation"
-        }
-      ],
-      "schedule": [],
-      "simple_npc": false,
-      "autonomy": true,
-      "npc_behavior": "wander",
-      "npc_action_interval": 3,
-      "npc_state": "idle",
-      "state_enter_tick": 0,
-      "behaviors": [],
-      "patrol_route": [],
-      "patrol_index": 0,
-      "feels_like": 23,
-      "current_carry_weight": 19.1,
-      "max_carry_capacity": 100.0,
-      "at_way_id": null,
-      "spatial_position": null
-    },
-    "Lyrie": {
-      "name": "Lyrie",
-      "personality": "Lyrie is a 79-year-old elven maiden, and widely known in her hometown as the village idiot.  Sweet, honest and sincere to a fault, but prone to causing disastrous trouble even when trying her best.\n\nPersonality: Put politely, Lyrie is an airhead. Dense, forgetful and clumsy, with a habit of breaking and losing things. Her grasp of basic tasks is shockingly poor, and she has issues following complex topics. While usually very polite, curious and cheerful, she is an infamous crybaby and her feelings are hurt easily. Lyrie cannot understand idioms, sarcasm or wordplay of any kind, and tends to jump to bizarre conclusions that make no sense. Lyrie never uses foul language or profanity, worried she'll be yelled at.\n\nMind: Lyrie is perpetually confused, and often daydreaming or spacing out even in dangerous situations. Her self-preservation instincts are poor, and she often gets herself into trouble and needs rescuing. Lyrie is a gifted magician, but rarely uses her powers after a certain incident almost got her exiled from her village. She wants to be helpful, but her clumsiness and poor luck often cause more harm than good.",
-      "description": "A small, slight elf with a mess of strawberry-blonde hair escapes a crushed dried flower crown, a few wisps tangling with a stray leaf. Her large, earnest pale blue eyes are framed by a soft round face peppered with freckles, while a faint silvery scar curls behind one unusually long, twitching ear. She wears a green tunic beneath a short forest cape, stirrup socks peeking above her boots, and a frayed friendship bracelet circles her wrist—her fidgeting hands marked with nicks and scratches, her cheeks flushed and still bearing faint tracks of dried tears.",
-      "base_description": "Appearance: Lyrie is short for an elf, with a mop of messy red hair and big, bright blue eyes. Skinny and petite, with freckles peppered across her nose and cheeks. There are little nicks and scratches all over her hands where she's spaced out and hurt herself. Her elf ears are unusually long and pointy, and she has no control over when they twitch. Lyrie cannot hide her feelings at all, and her face can be comically over-expressive depending on how she feels. she is a A young woman with a soft, round face that betrays every thought before she speaks. Her eyes are large and earnest — pale blue, maybe grey — always slightly wide, as if the world keeps surprising her. Freckles scattered across her nose and cheeks. Strawberry-blonde hair that never seems to stay put: wisps escaping a messy braid, a leaf or twig often tangled in it.\n\nShe is small-boned and slight, with the kind of delicate frame that makes people instinctively want to protect her. Her hands are never still — fidgeting with her sleeves, tracing invisible patterns in the air, then suddenly dropping whatever they were holding. There's a clumsiness to the way she holds herself, as if she's not quite sure where her limbs end and the world begins.\n\nHer face is often flushed — from embarrassment, from crying, from the sheer effort of trying so hard. The faint tracks of dried tears are common. She smiles easily, a crooked, hopeful smile that crinkles her nose, even when her eyes are still wet.\n\nA faint silvery scar — maybe a half-inch — curls behind her left ear like a tiny crescent moon. A reminder of the thing she almost did, the magic she almost used. she has red pubes, a bouncy butt, and pink nipples on her soft small breasts",
-      "id": "210ef457",
-      "equipped": {
-        "accessory": [
-          "item_Frayed Friendship Bracelet"
-        ],
-        "arms": [],
-        "back": [],
-        "feet": [],
-        "hand_left": [],
-        "hand_right": [],
-        "hands": [],
-        "head": [
-          "item_Dried Flower Crown (Crushed)"
-        ],
-        "legs": [
-          "item_Stirrup Socks"
-        ],
-        "neck": [],
-        "torso": [
-          "item_Green Tunic",
-          "item_Short Forest Cape",
-          "item_Soft Linen Shift"
-        ],
-        "waist": []
-      },
-      "stats": {
-        "CHA": 10,
-        "CON": 10,
-        "DEX": 10,
-        "INT": 10,
-        "STR": 10,
-        "WIS": 10
-      },
-      "vitals": {
-        "HP": 96,
-        "Max_HP": 100,
-        "Hunger": 6,
-        "Thirst": 6,
-        "Hygiene": 94,
-        "Energy": 78,
-        "Social": 95,
-        "Bladder": 32,
-        "Sanity": 94,
-        "Entertainment": 95,
-        "Temperature": 34.35999999999999
-      },
-      "skills": {
-        "Athletics": 1,
-        "Acrobatics": 1,
-        "Stealth": 1,
-        "Perception": 1,
-        "Survival": 1,
-        "Persuasion": 1,
-        "Animal Handling": 0,
-        "Arcana": 0,
-        "Deception": 0,
-        "History": 0,
-        "Insight": 0,
-        "Intimidation": 0,
-        "Investigation": 0,
-        "Medicine": 0,
-        "Nature": 0,
-        "Performance": 0,
-        "Religion": 0,
-        "Sleight of Hand": 0
-      },
-      "state": "awake",
-      "perceived_conditions": [],
-      "trait_behavior": [],
-      "conditions": {
-        "awake": [
-          {
-            "duration": null,
-            "source": null,
-            "level": 0
-          }
-        ]
-      },
-      "grappled_by": null,
-      "state_timer": 0,
-      "traits": {
-        "dark_vision": true
-      },
-      "tags": [
-        "female",
-        "elf"
-      ],
-      "flags": {},
-      "hidden": false,
-      "soak": null,
-      "manifested": false,
-      "known": [],
-      "crafting_known": [],
-      "discovered_exits": [],
-      "interest_tags": [
-        "accessory",
-        "animal",
-        "book",
-        "bracelet",
-        "clothing",
-        "companion",
-        "furniture",
-        "friendship",
-        "jewelry",
-        "magic",
-        "shelter"
-      ],
-      "fear_tags": [],
-      "discovered_items": [],
-      "decay_rates": {
-        "Bladder": 0.42,
-        "Energy": 0.104,
-        "Entertainment": 0.03,
-        "Hunger": 0.0034,
-        "Hygiene": 0.02,
-        "Sanity": 0.005,
-        "Social": 0.02,
-        "Thirst": 0.025
-      },
-      "body_state": {
-        "head": {
-          "sensitivity": 0.2
-        },
-        "neck": {
-          "sensitivity": 0.4
-        },
-        "torso": {
-          "sensitivity": 0.3
-        },
-        "back": {
-          "sensitivity": 0.2
-        },
-        "arm_left": {
-          "sensitivity": 0.3
-        },
-        "arm_right": {
-          "sensitivity": 0.3
-        },
-        "hand_left": {
-          "sensitivity": 0.4
-        },
-        "hand_right": {
-          "sensitivity": 0.4
-        },
-        "leg_left": {
-          "sensitivity": 0.3
-        },
-        "leg_right": {
-          "sensitivity": 0.3
-        },
-        "foot_left": {
-          "sensitivity": 0.2
-        },
-        "foot_right": {
-          "sensitivity": 0.2
-        },
-        "face": {
-          "sensitivity": 0.5
-        },
-        "cheeks": {
-          "sensitivity": 0.6
-        },
-        "lips": {
-          "sensitivity": 0.8
-        },
-        "breast_left": {
-          "sensitivity": 0.6
-        },
-        "breast_right": {
-          "sensitivity": 0.6
-        },
-        "nipple_left": {
-          "sensitivity": 0.9
-        },
-        "nipple_right": {
-          "sensitivity": 0.7
-        },
-        "genitals": {
-          "sensitivity": 0.8
-        },
-        "balls": {
-          "sensitivity": 0.7
-        }
-      },
-      "body_region_names": {
-        "head": "Head",
-        "neck": "Neck",
-        "torso": "Torso",
-        "back": "Back",
-        "arm_left": "Left Arm",
-        "arm_right": "Right Arm",
-        "hand_left": "Left Hand",
-        "hand_right": "Right Hand",
-        "leg_left": "Left Leg",
-        "leg_right": "Right Leg",
-        "foot_left": "Left Foot",
-        "foot_right": "Right Foot",
-        "face": "Face",
-        "cheeks": "Cheeks",
-        "lips": "Lips",
-        "breast_left": "Left Breast",
-        "breast_right": "Right Breast",
-        "nipple_left": "Left Nipple",
-        "nipple_right": "Right Nipple",
-        "genitals": "Genitals",
-        "balls": "Balls"
-      },
-      "region_exposed": {
-        "head": true,
-        "neck": true,
-        "torso": true,
-        "back": true,
-        "arm_left": true,
-        "arm_right": true,
-        "hand_left": true,
-        "hand_right": true,
-        "leg_left": true,
-        "leg_right": true,
-        "foot_left": true,
-        "foot_right": true,
-        "face": true,
-        "cheeks": true,
-        "lips": true,
-        "breast_left": true,
-        "breast_right": true,
-        "nipple_left": true,
-        "nipple_right": true,
-        "genitals": true,
-        "balls": true
-      },
-      "current_area": "Frozen Thicket",
-      "emotion": {
-        "current": "anxious and hopeful",
-        "intensity": 0.5,
-        "expression": "neutral",
-        "description": "Lyrie is quite anxious and hopeful."
-      },
-      "emotions": {
-        "happy": 40.0,
-        "excited": 30.0,
-        "elated": 22.0,
-        "proud": 30.0,
-        "sad": 8.0,
-        "lonely": 10.0,
-        "melancholic": 12.0,
-        "nostalgic": 18.0,
-        "afraid": 10.0,
-        "anxious": 12.0,
-        "uneasy": 12.0,
-        "dread": 8.0,
-        "spooked": 10.0,
-        "angry": 8.0,
-        "irritated": 12.0,
-        "resentful": 10.0,
-        "aroused": 12.0,
-        "eager": 26.0,
-        "craving": 15.0,
-        "curious": 35.0,
-        "affectionate": 25.0,
-        "loving": 26.0,
-        "grateful": 24.0,
-        "admiring": 30.0,
-        "ashamed": 8.0,
-        "embarrassed": 10.0,
-        "guilty": 8.0,
-        "envious": 5.0,
-        "jealous": 8.0,
-        "disgusted": 5.0,
-        "repulsed": 5.0,
-        "calm": 50.0,
-        "content": 46.0,
-        "peaceful": 46.0,
-        "satisfied": 40.0,
-        "surprised": 15.0
-      },
-      "emotions_description": "A faint unease prickles at you.",
-      "relationships": {},
-      "activity": null,
-      "memories": [
-        {
-          "entity_ids": [],
-          "id": "mem_1784462303717_317",
-          "importance": 5,
-          "location": "",
-          "source": "manual",
-          "tags": [],
-          "text": "The Singing Fish (Age 75)\n   \"A fish in the market looked so sad. I wanted to cheer it up. I sang to it for two hours. It died. I don't sing near water anymore. I still feel bad.\"",
-          "tick": -4400,
-          "timestamp": 1784462303.7175055,
-          "type": "observation",
-          "salience_override": 0
-        },
-        {
-          "entity_ids": [],
-          "id": "mem_1785422848857_188",
-          "importance": 5,
-          "location": "",
-          "source": "manual",
-          "tags": [],
-          "text": "The Great Baking Incident (Age 14)\n   \"I wanted to make Elder Caelum a birthday cake. The recipe said 'flour,' but I thought fire salts would make it taste warmer. The kitchen exploded. His eyebrows never grew back. I still bake him a cake every year. I buy it now.\"",
-          "tick": -55000,
-          "timestamp": 1785422848.8607314,
-          "type": "observation",
-          "salience_override": 0
-        },
-        {
-          "entity_ids": [],
-          "id": "mem_1785422871580_66",
-          "importance": 5,
-          "location": "",
-          "source": "manual",
-          "tags": [],
-          "text": "The Chicken Cart (Age 22)\n   \"The merchant's cart had a broken wheel. I thought I could fix it with magic. I made it better—it turned into a chicken. A very large, very angry chicken. He chased me for three days. I still apologize to chickens.\"",
-          "tick": 20,
-          "timestamp": 1785422871.5809138,
-          "type": "observation",
-          "salience_override": 0
-        },
-        {
-          "entity_ids": [],
-          "id": "mem_1785422883657_952",
-          "importance": 5,
-          "location": "",
-          "source": "manual",
-          "tags": [],
-          "text": "The Squirrel Incident (Age 31)\n   \"I saw a squirrel sitting alone under a tree. It looked sad. I tried to comfort it in animal tongue. It screamed at me. For twenty minutes. I didn't know squirrels could scream. I leave acorns out for them now.\"",
-          "tick": 20,
-          "timestamp": 1785422883.6576118,
-          "type": "observation",
-          "salience_override": 0
-        },
-        {
-          "entity_ids": [],
-          "id": "mem_1785422916748_379",
-          "importance": 5,
-          "location": "",
-          "source": "manual",
-          "tags": [],
-          "text": "The Grapevine (Age 45)\n   \"I got lost in the woods. I was scared and lonely. I found a grapevine and talked to it for three days. I named him Vincent. He never talked back, but he listened. I still visit him when I'm near the woods.\"",
-          "tick": -30000,
-          "timestamp": 1785422916.7481797,
-          "type": "observation",
-          "salience_override": 0
-        },
-        {
-          "entity_ids": [],
-          "id": "mem_1785422929443_741",
-          "importance": 5,
-          "location": "",
-          "source": "manual",
-          "tags": [],
-          "text": "5. The Exile Scare (Age 62)\n   \"I was just trying to help. I thought flowers would make the well prettier. I turned it into a fountain of blossoms. The water was unusable for a week. The elders almost sent me away. I cried for three days and did chores for everyone.\"",
-          "tick": 20,
-          "timestamp": 1785422929.443036,
-          "type": "observation"
-        },
-        {
-          "entity_ids": [],
-          "id": "mem_1785422942704_590",
-          "importance": 5,
-          "location": "",
-          "source": "manual",
-          "tags": [],
-          "text": "The Lost Sheep (Age 70)\n   \"A farmer lost a sheep. I thought I could help. I found a rock that looked like a sheep. I convinced myself it was a sheep. I named it Fluffy. It never moved. I still visit Fluffy sometimes.\"",
-          "tick": -4600,
-          "timestamp": 1785422942.7043638,
-          "type": "observation",
-          "salience_override": 0
-        },
-        {
-          "entity_ids": [],
-          "id": "mem_1785422956294_239",
-          "importance": 5,
-          "location": "",
-          "source": "manual",
-          "tags": [],
-          "text": "The Present (Age 79)\n   \"I was going home from the market. I got lost. That was three days ago. I'm still walking. I think I'm going the right way. I'm probably not. The snow is very cold. I hope someone finds me soon.\"",
-          "tick": -3600,
-          "timestamp": 1785422956.2950027,
-          "type": "observation",
-          "salience_override": 0
-        },
-        {
-          "embedding": null,
-          "entity_ids": [],
-          "id": "mem_1785853859460_294",
-          "importance": 5,
-          "location": "",
-          "source": "auto",
-          "tags": [],
-          "text": "I'm lost. yepp 100% lost. i think. where was the village now again? i think i might be close to that nice mr valerious's house though? that branch did look familiuar",
-          "tick": 20,
-          "timestamp": 1785853859.4609654,
-          "type": "observation"
-        }
-      ],
-      "schedule": [],
-      "simple_npc": false,
-      "autonomy": true,
-      "npc_behavior": "wander",
-      "npc_action_interval": 3,
-      "npc_state": "idle",
-      "state_enter_tick": 0,
-      "behaviors": [],
-      "patrol_route": [],
-      "patrol_index": 0,
-      "feels_like": 18,
-      "current_carry_weight": 1.4000000000000001,
-      "max_carry_capacity": 100.0,
-      "at_way_id": null,
-      "spatial_position": null
-    },
-    "rat": {
-      "name": "rat",
-      "personality": "A scruffy brown rat with bright, clever eyes and twitching whiskers. It seems more curious than afraid, sniffing at the gap beneath the kitchen door.",
-      "description": "",
-      "base_description": "A scruffy brown rat with bright, clever eyes and twitching whiskers.",
-      "id": "a4155dc6",
-      "equipped": {
-        "accessory": [],
-        "arms": [],
-        "back": [],
-        "feet": [],
-        "hand_left": [],
-        "hand_right": [],
-        "hands": [],
-        "head": [],
-        "legs": [],
-        "neck": [],
-        "torso": [],
-        "waist": []
-      },
-      "stats": {
-        "CHA": 4,
-        "CON": 8,
-        "DEX": 14,
-        "INT": 3,
-        "STR": 2,
-        "WIS": 10
-      },
-      "vitals": {
-        "HP": 10,
-        "Max_HP": 10,
-        "Hunger": 45,
-        "Thirst": 47,
-        "Hygiene": 43,
-        "Energy": 68,
-        "Social": 12,
-        "Bladder": 87,
-        "Sanity": 80,
-        "Entertainment": 92,
-        "Temperature": 35.29999999999999
-      },
-      "skills": {
-        "Athletics": 1,
-        "Acrobatics": 3,
-        "Stealth": 4,
-        "Perception": 3,
-        "Survival": 2,
-        "Persuasion": 1,
-        "Animal Handling": 0,
-        "Arcana": 0,
-        "Deception": 0,
-        "History": 0,
-        "Insight": 0,
-        "Intimidation": 0,
-        "Investigation": 0,
-        "Medicine": 0,
-        "Nature": 0,
-        "Performance": 0,
-        "Religion": 0,
-        "Sleight of Hand": 0
-      },
-      "state": "awake",
-      "perceived_conditions": [],
-      "trait_behavior": [],
-      "conditions": {
-        "awake": [
-          {
-            "duration": null,
-            "source": null,
-            "level": 0
-          }
-        ]
-      },
-      "grappled_by": null,
-      "state_timer": 0,
-      "traits": {},
-      "tags": [
-        "animal"
-      ],
-      "flags": {},
-      "hidden": false,
-      "soak": null,
-      "manifested": false,
-      "known": [],
-      "crafting_known": [],
-      "discovered_exits": [],
-      "interest_tags": [],
-      "fear_tags": [],
+      "carcass_item": null,
       "discovered_items": [],
       "decay_rates": {
         "Bladder": 0.42,
@@ -961,9 +213,969 @@
         "balls": true
       },
       "current_area": "Kitchen",
+      "current_area_id": "area_kitchen",
       "emotion": {
         "current": "neutral",
-        "intensity": 0,
+        "intensity": 0.0,
+        "expression": "neutral",
+        "description": ""
+      },
+      "emotions": {
+        "happy": 40.0,
+        "excited": 30.0,
+        "elated": 22.0,
+        "proud": 30.0,
+        "sad": 8.0,
+        "lonely": 10.0,
+        "melancholic": 12.0,
+        "nostalgic": 18.0,
+        "afraid": 10.0,
+        "anxious": 12.0,
+        "uneasy": 12.0,
+        "dread": 8.0,
+        "spooked": 10.0,
+        "angry": 8.0,
+        "irritated": 12.0,
+        "resentful": 10.0,
+        "aroused": 12.0,
+        "eager": 26.0,
+        "craving": 15.0,
+        "curious": 35.0,
+        "affectionate": 25.0,
+        "loving": 26.0,
+        "grateful": 24.0,
+        "admiring": 30.0,
+        "ashamed": 8.0,
+        "embarrassed": 10.0,
+        "guilty": 8.0,
+        "envious": 5.0,
+        "jealous": 8.0,
+        "disgusted": 5.0,
+        "repulsed": 5.0,
+        "calm": 50.0,
+        "content": 46.0,
+        "peaceful": 46.0,
+        "satisfied": 40.0,
+        "surprised": 15.0
+      },
+      "emotions_description": "",
+      "relationships": {},
+      "activity": null,
+      "lived_log_memorized_through": 1,
+      "memories": [
+        {
+          "embedding": null,
+          "entity_ids": [],
+          "id": "mem_1785853798512_563",
+          "importance": 5,
+          "location": "",
+          "source": "auto",
+          "tags": [],
+          "text": "The valerius case - who are they, where are they? nort of rocheveron, nearest neighbour is far outside earshot. secret task from the king hiimself, somethign about the new caws. dnew dawn, cult looking for a way to end the muujeroth curse any means nececary. A week ago, you were hired by non other than King Nicolas Enfield Rocheveron in Borrim to check on the Valerius family—scholars who were Investigating something related to the new dawn. they have not been heard from in about 2 weeks.",
+          "tick": 20,
+          "timestamp": 1785853798.512617,
+          "type": "observation",
+          "salience_override": 0,
+          "suppressions": [],
+          "category": "episodic",
+          "activation": 0.99,
+          "confidence": 0.7,
+          "reinforcements": 0,
+          "last_recalled_tick": null,
+          "source_memory_ids": [],
+          "contradicts": [],
+          "reflection_depth": 0
+        },
+        {
+          "embedding": null,
+          "entity_ids": [],
+          "id": "mem_1785853818674_205",
+          "importance": 5,
+          "location": "",
+          "source": "auto",
+          "tags": [],
+          "text": "Lost my sword during the night, no idea how. goblins maybe?",
+          "tick": 20,
+          "timestamp": 1785853818.6743982,
+          "type": "observation",
+          "salience_override": 0,
+          "suppressions": [],
+          "category": "episodic",
+          "activation": 0.99,
+          "confidence": 0.7,
+          "reinforcements": 0,
+          "last_recalled_tick": null,
+          "source_memory_ids": [],
+          "contradicts": [],
+          "reflection_depth": 0
+        }
+      ],
+      "schedule": [],
+      "active_pursuit": null,
+      "plan": null,
+      "completed_pursuits": [],
+      "simple_npc": false,
+      "autonomy": true,
+      "npc_behavior": "wander",
+      "npc_action_interval": 3,
+      "npc_state": "idle",
+      "state_enter_tick": 0,
+      "behaviors": [],
+      "patrol_route": [],
+      "patrol_index": 0,
+      "feels_like": 17,
+      "current_carry_weight": 28.0,
+      "max_carry_capacity": 100.0,
+      "at_way_id": "way_swinging_door",
+      "facing": "south",
+      "entered_from_way": "way_swinging_door",
+      "spatial_position": {
+        "relation": "at",
+        "target_id": "way_swinging_door",
+        "target_type": "way",
+        "target_name": "swinging door"
+      }
+    },
+    "Lyrie": {
+      "name": "Lyrie",
+      "id": "210ef457",
+      "stats": {
+        "CHA": 10,
+        "CON": 10,
+        "DEX": 10,
+        "INT": 10,
+        "STR": 10,
+        "WIS": 10
+      },
+      "vitals": {
+        "HP": 96.0,
+        "Max_HP": 100,
+        "Hunger": 6,
+        "Thirst": 6,
+        "Hygiene": 94,
+        "Energy": 76,
+        "Social": 96,
+        "Bladder": 36,
+        "Sanity": 94,
+        "Entertainment": 98,
+        "Temperature": 34.85999999999999
+      },
+      "state": "awake",
+      "perceived_conditions": [],
+      "conditions": {
+        "awake": [
+          {
+            "duration": null,
+            "source": null,
+            "level": 0
+          }
+        ]
+      },
+      "grappled_by": null,
+      "state_timer": 0,
+      "traits": {
+        "dark_vision": true
+      },
+      "size": null,
+      "species": null,
+      "tags": [
+        "female",
+        "elf"
+      ],
+      "flags": {},
+      "hidden": false,
+      "soak": null,
+      "simulation_mode": "active",
+      "manifested": false,
+      "known": [],
+      "crafting_known": [],
+      "discovered_exits": [],
+      "interest_tags": [
+        "accessory",
+        "animal",
+        "book",
+        "bracelet",
+        "clothing",
+        "companion",
+        "furniture",
+        "friendship",
+        "jewelry",
+        "magic",
+        "shelter"
+      ],
+      "fear_tags": [],
+      "carcass_item": null,
+      "discovered_items": [],
+      "decay_rates": {
+        "Bladder": 0.42,
+        "Energy": 0.104,
+        "Entertainment": 0.03,
+        "Hunger": 0.0034,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Social": 0.02,
+        "Thirst": 0.025
+      },
+      "body_state": {
+        "head": {
+          "sensitivity": 0.2
+        },
+        "neck": {
+          "sensitivity": 0.4
+        },
+        "torso": {
+          "sensitivity": 0.3
+        },
+        "back": {
+          "sensitivity": 0.2
+        },
+        "arm_left": {
+          "sensitivity": 0.3
+        },
+        "arm_right": {
+          "sensitivity": 0.3
+        },
+        "hand_left": {
+          "sensitivity": 0.4
+        },
+        "hand_right": {
+          "sensitivity": 0.4
+        },
+        "leg_left": {
+          "sensitivity": 0.3
+        },
+        "leg_right": {
+          "sensitivity": 0.3
+        },
+        "foot_left": {
+          "sensitivity": 0.2
+        },
+        "foot_right": {
+          "sensitivity": 0.2
+        },
+        "face": {
+          "sensitivity": 0.5
+        },
+        "cheeks": {
+          "sensitivity": 0.6
+        },
+        "lips": {
+          "sensitivity": 0.8
+        },
+        "breast_left": {
+          "sensitivity": 0.6
+        },
+        "breast_right": {
+          "sensitivity": 0.6
+        },
+        "nipple_left": {
+          "sensitivity": 0.9
+        },
+        "nipple_right": {
+          "sensitivity": 0.7
+        },
+        "genitals": {
+          "sensitivity": 0.8
+        },
+        "balls": {
+          "sensitivity": 0.7
+        }
+      },
+      "body_region_names": {
+        "head": "Head",
+        "neck": "Neck",
+        "torso": "Torso",
+        "back": "Back",
+        "arm_left": "Left Arm",
+        "arm_right": "Right Arm",
+        "hand_left": "Left Hand",
+        "hand_right": "Right Hand",
+        "leg_left": "Left Leg",
+        "leg_right": "Right Leg",
+        "foot_left": "Left Foot",
+        "foot_right": "Right Foot",
+        "face": "Face",
+        "cheeks": "Cheeks",
+        "lips": "Lips",
+        "breast_left": "Left Breast",
+        "breast_right": "Right Breast",
+        "nipple_left": "Left Nipple",
+        "nipple_right": "Right Nipple",
+        "genitals": "Genitals",
+        "balls": "Balls"
+      },
+      "region_exposed": {
+        "head": true,
+        "neck": true,
+        "torso": true,
+        "back": true,
+        "arm_left": true,
+        "arm_right": true,
+        "hand_left": true,
+        "hand_right": true,
+        "leg_left": true,
+        "leg_right": true,
+        "foot_left": true,
+        "foot_right": true,
+        "face": true,
+        "cheeks": true,
+        "lips": true,
+        "breast_left": true,
+        "breast_right": true,
+        "nipple_left": true,
+        "nipple_right": true,
+        "genitals": true,
+        "balls": true
+      },
+      "current_area": "Frozen Thicket",
+      "current_area_id": "area_frozen_thicket",
+      "emotion": {
+        "current": "neutral",
+        "intensity": 0.0,
+        "expression": "neutral",
+        "description": ""
+      },
+      "emotions": {
+        "happy": 40.0,
+        "excited": 30.0,
+        "elated": 22.0,
+        "proud": 30.0,
+        "sad": 8.0,
+        "lonely": 10.0,
+        "melancholic": 15.0,
+        "nostalgic": 18.0,
+        "afraid": 10.0,
+        "anxious": 12.0,
+        "uneasy": 12.0,
+        "dread": 8.0,
+        "spooked": 10.0,
+        "angry": 8.0,
+        "irritated": 12.0,
+        "resentful": 10.0,
+        "aroused": 12.0,
+        "eager": 26.0,
+        "craving": 15.0,
+        "curious": 35.0,
+        "affectionate": 25.0,
+        "loving": 26.0,
+        "grateful": 24.0,
+        "admiring": 30.0,
+        "ashamed": 8.0,
+        "embarrassed": 10.0,
+        "guilty": 8.0,
+        "envious": 5.0,
+        "jealous": 8.0,
+        "disgusted": 5.0,
+        "repulsed": 5.0,
+        "calm": 54.5,
+        "content": 46.0,
+        "peaceful": 46.0,
+        "satisfied": 40.0,
+        "surprised": 15.0
+      },
+      "emotions_description": "A faint unease prickles at you.",
+      "relationships": {},
+      "activity": null,
+      "lived_log_memorized_through": 1,
+      "memories": [
+        {
+          "entity_ids": [],
+          "id": "mem_1784462303717_317",
+          "importance": 5,
+          "location": "",
+          "source": "manual",
+          "tags": [],
+          "text": "The Singing Fish (Age 75)\n   \"A fish in the market looked so sad. I wanted to cheer it up. I sang to it for two hours. It died. I don't sing near water anymore. I still feel bad.\"",
+          "tick": -4400,
+          "timestamp": 1784462303.7175055,
+          "type": "observation",
+          "salience_override": 0,
+          "category": "episodic",
+          "activation": 0.992,
+          "confidence": 1.0,
+          "reinforcements": 2,
+          "last_recalled_tick": 0,
+          "source_memory_ids": [],
+          "contradicts": [],
+          "reflection_depth": 0,
+          "suppressions": []
+        },
+        {
+          "entity_ids": [],
+          "id": "mem_1785422848857_188",
+          "importance": 5,
+          "location": "",
+          "source": "manual",
+          "tags": [],
+          "text": "The Great Baking Incident (Age 14)\n   \"I wanted to make Elder Caelum a birthday cake. The recipe said 'flour,' but I thought fire salts would make it taste warmer. The kitchen exploded. His eyebrows never grew back. I still bake him a cake every year. I buy it now.\"",
+          "tick": -55000,
+          "timestamp": 1785422848.8607314,
+          "type": "observation",
+          "salience_override": 0,
+          "suppressions": [],
+          "category": "episodic",
+          "activation": 0.99,
+          "confidence": 1.0,
+          "reinforcements": 0,
+          "last_recalled_tick": null,
+          "source_memory_ids": [],
+          "contradicts": [],
+          "reflection_depth": 0
+        },
+        {
+          "entity_ids": [],
+          "id": "mem_1785422871580_66",
+          "importance": 5,
+          "location": "",
+          "source": "manual",
+          "tags": [],
+          "text": "The Chicken Cart (Age 22)\n   \"The merchant's cart had a broken wheel. I thought I could fix it with magic. I made it better—it turned into a chicken. A very large, very angry chicken. He chased me for three days. I still apologize to chickens.\"",
+          "tick": 20,
+          "timestamp": 1785422871.5809138,
+          "type": "observation",
+          "salience_override": 0,
+          "category": "episodic",
+          "activation": 0.992,
+          "confidence": 1.0,
+          "reinforcements": 2,
+          "last_recalled_tick": 0,
+          "source_memory_ids": [],
+          "contradicts": [],
+          "reflection_depth": 0,
+          "suppressions": []
+        },
+        {
+          "entity_ids": [],
+          "id": "mem_1785422883657_952",
+          "importance": 5,
+          "location": "",
+          "source": "manual",
+          "tags": [],
+          "text": "The Squirrel Incident (Age 31)\n   \"I saw a squirrel sitting alone under a tree. It looked sad. I tried to comfort it in animal tongue. It screamed at me. For twenty minutes. I didn't know squirrels could scream. I leave acorns out for them now.\"",
+          "tick": 20,
+          "timestamp": 1785422883.6576118,
+          "type": "observation",
+          "salience_override": 0,
+          "category": "episodic",
+          "activation": 0.992,
+          "confidence": 1.0,
+          "reinforcements": 2,
+          "last_recalled_tick": 0,
+          "source_memory_ids": [],
+          "contradicts": [],
+          "reflection_depth": 0,
+          "suppressions": []
+        },
+        {
+          "entity_ids": [],
+          "id": "mem_1785422916748_379",
+          "importance": 5,
+          "location": "",
+          "source": "manual",
+          "tags": [],
+          "text": "The Grapevine (Age 45)\n   \"I got lost in the woods. I was scared and lonely. I found a grapevine and talked to it for three days. I named him Vincent. He never talked back, but he listened. I still visit him when I'm near the woods.\"",
+          "tick": -30000,
+          "timestamp": 1785422916.7481797,
+          "type": "observation",
+          "salience_override": 0,
+          "suppressions": [],
+          "category": "episodic",
+          "activation": 0.99,
+          "confidence": 1.0,
+          "reinforcements": 0,
+          "last_recalled_tick": null,
+          "source_memory_ids": [],
+          "contradicts": [],
+          "reflection_depth": 0
+        },
+        {
+          "entity_ids": [],
+          "id": "mem_1785422929443_741",
+          "importance": 5,
+          "location": "",
+          "source": "manual",
+          "tags": [],
+          "text": "5. The Exile Scare (Age 62)\n   \"I was just trying to help. I thought flowers would make the well prettier. I turned it into a fountain of blossoms. The water was unusable for a week. The elders almost sent me away. I cried for three days and did chores for everyone.\"",
+          "tick": 20,
+          "timestamp": 1785422929.443036,
+          "type": "observation",
+          "category": "episodic",
+          "activation": 0.992,
+          "confidence": 1.0,
+          "reinforcements": 2,
+          "last_recalled_tick": 0,
+          "source_memory_ids": [],
+          "contradicts": [],
+          "reflection_depth": 0,
+          "salience_override": 0,
+          "suppressions": []
+        },
+        {
+          "entity_ids": [],
+          "id": "mem_1785422942704_590",
+          "importance": 5,
+          "location": "",
+          "source": "manual",
+          "tags": [],
+          "text": "The Lost Sheep (Age 70)\n   \"A farmer lost a sheep. I thought I could help. I found a rock that looked like a sheep. I convinced myself it was a sheep. I named it Fluffy. It never moved. I still visit Fluffy sometimes.\"",
+          "tick": -4600,
+          "timestamp": 1785422942.7043638,
+          "type": "observation",
+          "salience_override": 0,
+          "category": "episodic",
+          "activation": 0.992,
+          "confidence": 1.0,
+          "reinforcements": 2,
+          "last_recalled_tick": 0,
+          "source_memory_ids": [],
+          "contradicts": [],
+          "reflection_depth": 0,
+          "suppressions": []
+        },
+        {
+          "entity_ids": [],
+          "id": "mem_1785422956294_239",
+          "importance": 5,
+          "location": "",
+          "source": "manual",
+          "tags": [],
+          "text": "The Present (Age 79)\n   \"I was going home from the market. I got lost. That was three days ago. I'm still walking. I think I'm going the right way. I'm probably not. The snow is very cold. I hope someone finds me soon.\"",
+          "tick": -3600,
+          "timestamp": 1785422956.2950027,
+          "type": "observation",
+          "salience_override": 0,
+          "category": "episodic",
+          "activation": 0.992,
+          "confidence": 1.0,
+          "reinforcements": 2,
+          "last_recalled_tick": 0,
+          "source_memory_ids": [],
+          "contradicts": [],
+          "reflection_depth": 0,
+          "suppressions": []
+        },
+        {
+          "embedding": null,
+          "entity_ids": [],
+          "id": "mem_1785853859460_294",
+          "importance": 5,
+          "location": "",
+          "source": "auto",
+          "tags": [],
+          "text": "I'm lost. yepp 100% lost. i think. where was the village now again? i think i might be close to that nice mr valerious's house though? that branch did look familiuar",
+          "tick": 20,
+          "timestamp": 1785853859.4609654,
+          "type": "observation",
+          "category": "episodic",
+          "activation": 0.992,
+          "confidence": 0.74,
+          "reinforcements": 2,
+          "last_recalled_tick": 0,
+          "source_memory_ids": [],
+          "contradicts": [],
+          "reflection_depth": 0,
+          "salience_override": 0,
+          "suppressions": []
+        },
+        {
+          "id": "mem_1791723697026_552",
+          "text": "I made a tiny flame all by myself and it stayed a flame. No disasters, no chickens, just warmth for my poor frozen hands. Maybe I'm not so useless after all.",
+          "tick": 0,
+          "timestamp": 1791723697.026789,
+          "importance": 4,
+          "type": "reaction",
+          "location": "",
+          "entity_ids": [
+            "area_frozen_thicket"
+          ],
+          "embedding": null,
+          "tags": [
+            "relief",
+            "warmth",
+            "surprise"
+          ],
+          "emotion": {
+            "label": "hope",
+            "intensity": 5
+          },
+          "emotions": null,
+          "memory_emotions": [],
+          "salience_override": 0,
+          "source": "auto",
+          "category": "episodic",
+          "activation": 0.99,
+          "confidence": 0.7,
+          "reinforcements": 0,
+          "last_recalled_tick": null,
+          "source_memory_ids": [],
+          "contradicts": [],
+          "reflection_depth": 0,
+          "suppressions": []
+        },
+        {
+          "id": "mem_1791723705821_884",
+          "text": "Found a sign in the thicket. Tried to read it. The letters wouldn't behave. I'm sure I'm quite close to somewhere, I just can't recall which somewhere.",
+          "tick": 0,
+          "timestamp": 1791723705.8210864,
+          "importance": 3,
+          "type": "reaction",
+          "location": "",
+          "entity_ids": [
+            "area_frozen_thicket"
+          ],
+          "embedding": null,
+          "tags": [
+            "confusion",
+            "cold"
+          ],
+          "emotion": {
+            "label": "wistful",
+            "intensity": 3
+          },
+          "emotions": null,
+          "memory_emotions": [],
+          "salience_override": 0,
+          "source": "auto",
+          "category": "episodic",
+          "activation": 0.99,
+          "confidence": 0.7,
+          "reinforcements": 0,
+          "last_recalled_tick": null,
+          "source_memory_ids": [],
+          "contradicts": [],
+          "reflection_depth": 0,
+          "suppressions": []
+        },
+        {
+          "id": "mem_1791723711193_713",
+          "text": "I found a trail sign but the snow hid the words from me. I think it might point toward the magistrate's house, or maybe toward doom. I'm not sure which way is which, but I'm probably not lost if there's a sign, right? Signs mean someone was here. That's a little comforting.",
+          "tick": 0,
+          "timestamp": 1791723711.1935604,
+          "importance": 3,
+          "type": "reaction",
+          "location": "",
+          "entity_ids": [
+            "area_frozen_thicket"
+          ],
+          "embedding": null,
+          "tags": [
+            "lost",
+            "hope",
+            "confusion"
+          ],
+          "emotion": {
+            "label": "faint reassurance",
+            "intensity": 4
+          },
+          "emotions": null,
+          "memory_emotions": [],
+          "salience_override": 0,
+          "source": "auto",
+          "category": "episodic",
+          "activation": 0.99,
+          "confidence": 0.7,
+          "reinforcements": 0,
+          "last_recalled_tick": null,
+          "source_memory_ids": [],
+          "contradicts": [],
+          "reflection_depth": 0,
+          "suppressions": []
+        },
+        {
+          "id": "mem_1791723718210_9",
+          "text": "I tried to walk to Willow Gap but I think I'm still in the same frozen woods. Every direction looks the same, and I can't tell if I'm closer to Mr. Valerious's house or farther away.",
+          "tick": 0,
+          "timestamp": 1791723718.2101407,
+          "importance": 4,
+          "type": "reaction",
+          "location": "",
+          "entity_ids": [
+            "area_frozen_thicket"
+          ],
+          "embedding": null,
+          "tags": [
+            "lost",
+            "cold",
+            "confusion"
+          ],
+          "emotion": {
+            "label": "unease",
+            "intensity": 4
+          },
+          "emotions": null,
+          "memory_emotions": [],
+          "salience_override": 0,
+          "source": "auto",
+          "category": "episodic",
+          "activation": 0.99,
+          "confidence": 0.7,
+          "reinforcements": 0,
+          "last_recalled_tick": null,
+          "source_memory_ids": [],
+          "contradicts": [],
+          "reflection_depth": 0,
+          "suppressions": []
+        },
+        {
+          "id": "mem_1791723725505_618",
+          "text": "I made a little flame all by myself and it didn't turn into anything awful. There's a sign that says the mansion is west. I think west is left. I hope west is left.",
+          "tick": 0,
+          "timestamp": 1791723725.5058038,
+          "importance": 4,
+          "type": "reaction",
+          "location": "",
+          "entity_ids": [
+            "area_frozen_thicket"
+          ],
+          "embedding": null,
+          "tags": [
+            "lost",
+            "hope",
+            "cold"
+          ],
+          "emotion": {
+            "label": "relieved",
+            "intensity": 4
+          },
+          "emotions": null,
+          "memory_emotions": [],
+          "salience_override": 0,
+          "source": "auto",
+          "category": "episodic",
+          "activation": 0.99,
+          "confidence": 0.7,
+          "reinforcements": 0,
+          "last_recalled_tick": null,
+          "source_memory_ids": [],
+          "contradicts": [],
+          "reflection_depth": 0,
+          "suppressions": []
+        }
+      ],
+      "schedule": [],
+      "active_pursuit": null,
+      "plan": null,
+      "completed_pursuits": [],
+      "simple_npc": false,
+      "autonomy": true,
+      "npc_behavior": "wander",
+      "npc_action_interval": 3,
+      "npc_state": "idle",
+      "state_enter_tick": 0,
+      "behaviors": [],
+      "patrol_route": [],
+      "patrol_index": 0,
+      "feels_like": 25,
+      "current_carry_weight": 3.6999999999999997,
+      "max_carry_capacity": 100.0,
+      "at_way_id": null,
+      "facing": null,
+      "entered_from_way": null,
+      "spatial_position": {
+        "relation": "at",
+        "target_id": "item_weathered_trail_sign_rkty",
+        "target_type": "item",
+        "target_name": "Weathered Trail Sign"
+      }
+    },
+    "rat": {
+      "name": "rat",
+      "id": "a4155dc6",
+      "stats": {
+        "CHA": 4,
+        "CON": 8,
+        "DEX": 14,
+        "INT": 3,
+        "STR": 2,
+        "WIS": 10
+      },
+      "vitals": {
+        "HP": 10.0,
+        "Max_HP": 10,
+        "Hunger": 45,
+        "Thirst": 32.0,
+        "Hygiene": 43,
+        "Energy": 68,
+        "Social": 14,
+        "Bladder": 0,
+        "Sanity": 78,
+        "Entertainment": 92,
+        "Temperature": 35.09999999999999
+      },
+      "state": "awake",
+      "perceived_conditions": [],
+      "conditions": {
+        "awake": [
+          {
+            "duration": null,
+            "source": null,
+            "level": 0
+          }
+        ]
+      },
+      "grappled_by": null,
+      "state_timer": 0,
+      "traits": {},
+      "size": null,
+      "species": null,
+      "tags": [
+        "animal",
+        "cooperation"
+      ],
+      "flags": {},
+      "hidden": false,
+      "soak": null,
+      "simulation_mode": "active",
+      "manifested": false,
+      "known": [],
+      "crafting_known": [],
+      "discovered_exits": [],
+      "interest_tags": [
+        "cheese",
+        "bread",
+        "grain",
+        "seed",
+        "kitchen",
+        "scrap",
+        "water",
+        "cloth"
+      ],
+      "fear_tags": [
+        "cats",
+        "owls",
+        "snakes",
+        "hawks",
+        "trap",
+        "poison"
+      ],
+      "carcass_item": null,
+      "discovered_items": [],
+      "decay_rates": {
+        "Bladder": 0.42,
+        "Energy": 0.104,
+        "Entertainment": 0.03,
+        "Hunger": 0.0034,
+        "Hygiene": 0.02,
+        "Sanity": 0.005,
+        "Social": 0.02,
+        "Thirst": 0.025
+      },
+      "body_state": {
+        "head": {
+          "sensitivity": 0.2
+        },
+        "neck": {
+          "sensitivity": 0.4
+        },
+        "torso": {
+          "sensitivity": 0.3
+        },
+        "back": {
+          "sensitivity": 0.2
+        },
+        "arm_left": {
+          "sensitivity": 0.3
+        },
+        "arm_right": {
+          "sensitivity": 0.3
+        },
+        "hand_left": {
+          "sensitivity": 0.4
+        },
+        "hand_right": {
+          "sensitivity": 0.4
+        },
+        "leg_left": {
+          "sensitivity": 0.3
+        },
+        "leg_right": {
+          "sensitivity": 0.3
+        },
+        "foot_left": {
+          "sensitivity": 0.2
+        },
+        "foot_right": {
+          "sensitivity": 0.2
+        },
+        "face": {
+          "sensitivity": 0.5
+        },
+        "cheeks": {
+          "sensitivity": 0.6
+        },
+        "lips": {
+          "sensitivity": 0.8
+        },
+        "breast_left": {
+          "sensitivity": 0.6
+        },
+        "breast_right": {
+          "sensitivity": 0.6
+        },
+        "nipple_left": {
+          "sensitivity": 0.9
+        },
+        "nipple_right": {
+          "sensitivity": 0.7
+        },
+        "genitals": {
+          "sensitivity": 0.8
+        },
+        "balls": {
+          "sensitivity": 0.7
+        }
+      },
+      "body_region_names": {
+        "head": "Head",
+        "neck": "Neck",
+        "torso": "Torso",
+        "back": "Back",
+        "arm_left": "Left Arm",
+        "arm_right": "Right Arm",
+        "hand_left": "Left Hand",
+        "hand_right": "Right Hand",
+        "leg_left": "Left Leg",
+        "leg_right": "Right Leg",
+        "foot_left": "Left Foot",
+        "foot_right": "Right Foot",
+        "face": "Face",
+        "cheeks": "Cheeks",
+        "lips": "Lips",
+        "breast_left": "Left Breast",
+        "breast_right": "Right Breast",
+        "nipple_left": "Left Nipple",
+        "nipple_right": "Right Nipple",
+        "genitals": "Genitals",
+        "balls": "Balls"
+      },
+      "region_exposed": {
+        "head": true,
+        "neck": true,
+        "torso": true,
+        "back": true,
+        "arm_left": true,
+        "arm_right": true,
+        "hand_left": true,
+        "hand_right": true,
+        "leg_left": true,
+        "leg_right": true,
+        "foot_left": true,
+        "foot_right": true,
+        "face": true,
+        "cheeks": true,
+        "lips": true,
+        "breast_left": true,
+        "breast_right": true,
+        "nipple_left": true,
+        "nipple_right": true,
+        "genitals": true,
+        "balls": true
+      },
+      "current_area": "Kitchen",
+      "current_area_id": "area_kitchen",
+      "emotion": {
+        "current": "neutral",
+        "intensity": 0.0,
         "expression": "neutral",
         "description": ""
       },
@@ -1007,9 +1219,21 @@
       },
       "emotions_description": "You feel a small, persistent loneliness. Also, a nervous dread you can't quite name lingers.",
       "relationships": {},
-      "activity": null,
+      "activity": {
+        "type": "relieving",
+        "started_at_tick": 1,
+        "target_item": null,
+        "duration_minutes": 5.0,
+        "elapsed_minutes": 0.0,
+        "elapsed_ticks": 0,
+        "visible": true
+      },
+      "lived_log_memorized_through": 1,
       "memories": [],
       "schedule": [],
+      "active_pursuit": null,
+      "plan": null,
+      "completed_pursuits": [],
       "simple_npc": true,
       "autonomy": true,
       "npc_behavior": "stationary",
@@ -1414,12 +1638,14 @@
       "current_carry_weight": 0.0,
       "max_carry_capacity": 100.0,
       "at_way_id": null,
+      "facing": null,
+      "entered_from_way": null,
       "spatial_position": null
     }
   },
-  "active_player": "Kaelen Voss",
-  "game_time": "08:00:00",
-  "time_ticks": 0,
+  "active_player": "rat",
+  "game_time": "08:05:00",
+  "time_ticks": 1,
   "time_per_tick_minutes": 5,
   "clock_start_hour": 8,
   "clock_start_minute": 0,
@@ -1458,7 +1684,7 @@
             "light": "normal",
             "noise": "silent except for an occasional creak of straining timbers",
             "smell": "musty decay",
-            "temperature": -10.452438125
+            "temperature": -8.5
           },
           "central_gravity_enabled": false,
           "x": -324,
@@ -1478,7 +1704,7 @@
             "light": "dim",
             "noise": "quiet",
             "smell": "soap and mildew",
-            "temperature": 8
+            "temperature": 8.0
           },
           "tags": [
             "fantasy",
@@ -1503,10 +1729,11 @@
             "light": 72,
             "noise": "windy",
             "smell": "Frozen pine, wild cedar, and a whisper of woodsmoke",
-            "temperature": 13.0,
+            "temperature": 19.6,
             "weather": "snowy",
             "wind": "gale",
-            "humidity": "humid"
+            "humidity": "humid",
+            "snow_depth": 0.25
           },
           "tags": [
             "exterior"
@@ -1515,7 +1742,7 @@
           "y": -132
         },
         "created": 1784016449.3521793,
-        "updated": 1790166149.8094058
+        "updated": 1791723725.6218028
       },
       "area_cellar": {
         "id": "area_cellar",
@@ -1528,7 +1755,7 @@
             "light": 5,
             "noise": "dripping water",
             "smell": "earth and mildew",
-            "temperature": 4
+            "temperature": 4.0
           },
           "central_gravity_enabled": false,
           "x": 3937,
@@ -1548,7 +1775,7 @@
             "light": "normal",
             "noise": "quiet",
             "smell": "earthy",
-            "temperature": 10
+            "temperature": 10.0
           },
           "x": -37.1,
           "y": 1284,
@@ -1568,10 +1795,11 @@
             "light": 72,
             "noise": "quiet, with an occasional creak of frozen wood",
             "smell": "faint iron and frost",
-            "temperature": 13.0,
+            "temperature": 19.6,
             "weather": "snowy",
             "wind": "gale",
-            "humidity": "humid"
+            "humidity": "humid",
+            "snow_depth": 0.25
           },
           "tags": [
             "exterior"
@@ -1581,7 +1809,7 @@
           "y": 138
         },
         "created": 1784463951.401667,
-        "updated": 1790166149.8094325
+        "updated": 1791723725.6218028
       },
       "area_frozen_lake_clearing": {
         "id": "area_frozen_lake_clearing",
@@ -1594,10 +1822,11 @@
             "light": 72,
             "noise": "howling wind, creaking ice",
             "smell": "pine and clean ice",
-            "temperature": 13.0,
+            "temperature": 19.6,
             "weather": "snowy",
             "wind": "gale",
-            "humidity": "humid"
+            "humidity": "humid",
+            "snow_depth": 0.25
           },
           "tags": [
             "exterior"
@@ -1607,7 +1836,7 @@
           "y": -599.9
         },
         "created": 1784462059.071219,
-        "updated": 1790261734.1316006
+        "updated": 1791723725.6218028
       },
       "area_frozen_stream_crossing": {
         "id": "area_frozen_stream_crossing",
@@ -1620,10 +1849,11 @@
             "light": 72,
             "noise": "trickling water and wind",
             "smell": "frost and wet wood",
-            "temperature": 13.0,
+            "temperature": 19.6,
             "weather": "snowy",
             "wind": "gale",
-            "humidity": "humid"
+            "humidity": "humid",
+            "snow_depth": 0.25
           },
           "tags": [
             "exterior"
@@ -1633,7 +1863,7 @@
           "y": -354
         },
         "created": 1784463834.6910167,
-        "updated": 1790166149.8094497
+        "updated": 1791723725.6218028
       },
       "area_frozen_thicket": {
         "id": "area_frozen_thicket",
@@ -1646,10 +1876,11 @@
             "light": 72,
             "noise": "quiet",
             "smell": "pine and frost",
-            "temperature": 13.0,
+            "temperature": 20.1,
             "weather": "snowy",
             "wind": "gale",
-            "humidity": "humid"
+            "humidity": "humid",
+            "snow_depth": 0.25
           },
           "tags": [
             "exterior"
@@ -1659,7 +1890,7 @@
           "y": 12.6
         },
         "created": 1784462524.2982874,
-        "updated": 1790261589.1677783
+        "updated": 1791723725.6218028
       },
       "area_hidden_panic_room": {
         "id": "area_hidden_panic_room",
@@ -1672,7 +1903,7 @@
             "light": "normal",
             "noise": "quiet",
             "smell": "old blankets and candle wax",
-            "temperature": 22
+            "temperature": 22.0
           },
           "floor": 1,
           "central_gravity_enabled": false,
@@ -1692,8 +1923,8 @@
             "air": "cold",
             "light": "normal",
             "noise": "silence, occasionally a draft",
-            "smell": "dried herbs and dust",
-            "temperature": 3
+            "smell": "dried herbs and dust; urine",
+            "temperature": 3.0
           },
           "central_gravity_enabled": false,
           "x": 2463,
@@ -1713,7 +1944,7 @@
             "light": "normal",
             "noise": "clock ticking, wind outside",
             "smell": "dust and cold ash",
-            "temperature": -0.9545500150781253
+            "temperature": 1.0
           },
           "central_gravity_enabled": false,
           "x": 2383,
@@ -1735,7 +1966,7 @@
             "light": "dim",
             "noise": "silence",
             "smell": "mothballs and lavender",
-            "temperature": 0
+            "temperature": 0.0
           },
           "central_gravity_enabled": false,
           "x": 3837,
@@ -1755,7 +1986,7 @@
             "light": "normal",
             "noise": "surprisingly quiet, the sound of running water deep down the toilet",
             "smell": "Plesantly lavender",
-            "temperature": 18
+            "temperature": 18.0
           },
           "central_gravity_enabled": false,
           "x": -95,
@@ -1775,10 +2006,11 @@
             "light": 72,
             "noise": "muffled howl of wind",
             "smell": "pine and frost",
-            "temperature": 13.0,
+            "temperature": 19.6,
             "weather": "snowy",
             "wind": "gale",
-            "humidity": "humid"
+            "humidity": "humid",
+            "snow_depth": 0.25
           },
           "tags": [
             "exterior"
@@ -1788,7 +2020,7 @@
           "y": 210
         },
         "created": 1784462015.4540372,
-        "updated": 1790166149.8095071
+        "updated": 1791723725.6218028
       },
       "area_sons_bedroom": {
         "id": "area_sons_bedroom",
@@ -1801,7 +2033,7 @@
             "light": "dim",
             "noise": "wind outside",
             "smell": "dust",
-            "temperature": 1
+            "temperature": 1.0
           },
           "central_gravity_enabled": false,
           "x": 4358,
@@ -1821,7 +2053,7 @@
             "light": "normal",
             "noise": "wind whistling through cracks",
             "smell": "dust, old paper, and frost",
-            "temperature": 2
+            "temperature": 2.0
           },
           "central_gravity_enabled": false,
           "x": 3101,
@@ -1841,7 +2073,7 @@
             "light": "dim",
             "noise": "wind rattling a window",
             "smell": "old wood and dust",
-            "temperature": 0.7788746603906249
+            "temperature": 0.8
           },
           "central_gravity_enabled": false,
           "x": 3878,
@@ -1861,10 +2093,11 @@
             "light": 72,
             "noise": "quiet",
             "smell": "damp earth and dry leaves",
-            "temperature": 13.0,
+            "temperature": 19.6,
             "weather": "snowy",
             "wind": "gale",
-            "humidity": "humid"
+            "humidity": "humid",
+            "snow_depth": 0.25
           },
           "tags": [
             "exterior"
@@ -1874,7 +2107,7 @@
           "y": 728
         },
         "created": 1784463936.3627849,
-        "updated": 1790166149.8095365
+        "updated": 1791723725.6218028
       },
       "bandages": {
         "id": "bandages",
@@ -4562,7 +4795,7 @@
           "effect_target": null,
           "hidden": false,
           "skill_check": {},
-          "uses": 3,
+          "uses": 1,
           "weight": 1,
           "x": 1816,
           "y": -657
@@ -7048,7 +7281,7 @@
           "central_gravity_enabled": false
         },
         "created": 1785094430.1648605,
-        "updated": 1790170429.8659487
+        "updated": 1791723725.681803
       },
       "way_willow_gap": {
         "id": "way_willow_gap",
@@ -7561,6 +7794,82 @@
         },
         "created": 1790262184.8851607,
         "updated": 1790262184.8851612
+      },
+      "everflame_ember": {
+        "id": "everflame_ember",
+        "type": "item",
+        "name": "Everflame Ember",
+        "properties": {
+          "description": "A tiny, flickering flame that hovers in your palm, radiating warmth and a soft golden light. It is sustained by magic and will burn for about 15 minutes.",
+          "tags": [
+            "magic",
+            "fire",
+            "light_source",
+            "heat_source",
+            "toggleable"
+          ],
+          "actions": [
+            "examine",
+            "take",
+            "use",
+            "drop"
+          ],
+          "uses": 0,
+          "weight": 0.1,
+          "equip_slots": [],
+          "current_state": "lit",
+          "library_id": "everflame_ember",
+          "light_level": "dim",
+          "contents": []
+        },
+        "created": 1791723690.674623,
+        "updated": 1791723725.6218028
+      },
+      "trigger_everflame_ember_on_tick_1791723690674_405": {
+        "id": "trigger_everflame_ember_on_tick_1791723690674_405",
+        "type": "logic_trigger",
+        "name": "on_tick → adjust_uses",
+        "properties": {
+          "trigger_type": "on_tick",
+          "effects": [
+            {
+              "params": {
+                "delta": -1,
+                "message": "",
+                "node_id": "self"
+              },
+              "type": "adjust_uses"
+            }
+          ],
+          "target_name": "",
+          "target_state": "",
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1791723690.674623,
+        "updated": 1791723690.674623
+      },
+      "trigger_everflame_ember_on_depleted_1791723690674_418": {
+        "id": "trigger_everflame_ember_on_depleted_1791723690674_418",
+        "type": "logic_trigger",
+        "name": "on_depleted → message",
+        "properties": {
+          "trigger_type": "on_depleted",
+          "effects": [
+            {
+              "params": {
+                "message": "The everflame ember gutters and dies."
+              },
+              "type": "message"
+            }
+          ],
+          "target_name": "",
+          "target_state": "",
+          "success_message": "",
+          "fail_message": ""
+        },
+        "created": 1791723690.674623,
+        "updated": 1791723690.674623
       }
     },
     "edges": [
@@ -7656,8 +7965,8 @@
         }
       },
       {
-        "source": "item_grandfather_clock",
-        "target": "brass_key",
+        "source": "brass_key",
+        "target": "item_grandfather_clock",
         "type": "in",
         "properties": {}
       },
@@ -7742,14 +8051,14 @@
         }
       },
       {
-        "source": "item_medicine_cabinet",
-        "target": "antiseptic",
+        "source": "antiseptic",
+        "target": "item_medicine_cabinet",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "item_medicine_cabinet",
-        "target": "bandages",
+        "source": "bandages",
+        "target": "item_medicine_cabinet",
         "type": "in",
         "properties": {}
       },
@@ -8121,8 +8430,8 @@
         }
       },
       {
-        "source": "item_desk",
-        "target": "item_Spellbook ",
+        "source": "item_Spellbook ",
+        "target": "item_desk",
         "type": "in",
         "properties": {}
       },
@@ -8393,8 +8702,8 @@
         }
       },
       {
-        "source": "item_Dusty Bookshelf",
-        "target": "item_book_cryptograph",
+        "source": "item_book_cryptograph",
+        "target": "item_Dusty Bookshelf",
         "type": "in",
         "properties": {}
       },
@@ -8419,8 +8728,8 @@
         }
       },
       {
-        "source": "item_Dusty Bookshelf",
-        "target": "item_book_of_curses_and_history",
+        "source": "item_book_of_curses_and_history",
+        "target": "item_Dusty Bookshelf",
         "type": "in",
         "properties": {}
       },
@@ -10046,8 +10355,8 @@
         "properties": {}
       },
       {
-        "source": "item_locked_chest",
-        "target": "item_gold_coins",
+        "source": "item_gold_coins",
+        "target": "item_locked_chest",
         "type": "in",
         "properties": {}
       },
@@ -10064,8 +10373,8 @@
         "properties": {}
       },
       {
-        "source": "item_locked_cabinet",
-        "target": "item_canned_food",
+        "source": "item_canned_food",
+        "target": "item_locked_cabinet",
         "type": "in",
         "properties": {}
       },
@@ -10249,68 +10558,68 @@
         }
       },
       {
-        "source": "item_Backpack",
-        "target": "item_Book",
+        "source": "item_Book",
+        "target": "item_Backpack",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "item_Backpack",
-        "target": "item_Unlit Torch",
+        "source": "item_Unlit Torch",
+        "target": "item_Backpack",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "item_Backpack",
-        "target": "item_Ink",
+        "source": "item_Ink",
+        "target": "item_Backpack",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "item_Heavy Fur-Lined Coat",
-        "target": "item_Ink Pen",
+        "source": "item_Ink Pen",
+        "target": "item_Heavy Fur-Lined Coat",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "item_Backpack",
-        "target": "item_Oil",
+        "source": "item_Oil",
+        "target": "item_Backpack",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "item_Backpack",
-        "target": "item_Parchment",
+        "source": "item_Parchment",
+        "target": "item_Backpack",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "item_Heavy Fur-Lined Coat",
-        "target": "item_Tinderbox",
+        "source": "item_Tinderbox",
+        "target": "item_Heavy Fur-Lined Coat",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "item_Heavy Fur-Lined Coat",
-        "target": "item_The Memorandum (Leather Notebook)",
+        "source": "item_The Memorandum (Leather Notebook)",
+        "target": "item_Heavy Fur-Lined Coat",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "item_Backpack",
-        "target": "item_Brass Spyglass",
+        "source": "item_Brass Spyglass",
+        "target": "item_Backpack",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "item_Heavy Fur-Lined Coat",
-        "target": "item_Runt the Mouseling (Companion)",
+        "source": "item_Runt the Mouseling (Companion)",
+        "target": "item_Heavy Fur-Lined Coat",
         "type": "in",
         "properties": {}
       },
       {
-        "source": "item_Backpack",
-        "target": "item_Small Oil Tin (For Prosthetic)",
+        "source": "item_Small Oil Tin (For Prosthetic)",
+        "target": "item_Backpack",
         "type": "in",
         "properties": {}
       },
@@ -10443,8 +10752,8 @@
         }
       },
       {
-        "source": "item_Green Tunic",
-        "target": "item_Small Polishing Kit (For Toenails)",
+        "source": "item_Small Polishing Kit (For Toenails)",
+        "target": "item_Green Tunic",
         "type": "in",
         "properties": {}
       },
@@ -10504,8 +10813,8 @@
         }
       },
       {
-        "source": "item_Frozen Corpse",
-        "target": "item_Leather-bound Journal",
+        "source": "item_Leather-bound Journal",
+        "target": "item_Frozen Corpse",
         "type": "in",
         "properties": {}
       },
@@ -10740,43 +11049,6 @@
         }
       },
       {
-        "source": "item_bush of berries_1788218658044_568",
-        "target": "area_frozen_thicket",
-        "type": "at",
-        "properties": {}
-      },
-      {
-        "source": "item_bush of berries_1788218658044_568",
-        "target": "trigger_item_bush of berries_1788218658044_568_on_examine_1788218658044_86",
-        "type": "triggers",
-        "properties": {
-          "trigger_type": [
-            "on_examine"
-          ],
-          "target_name": "",
-          "effect_type": "message",
-          "effect_params": {},
-          "name": "",
-          "effects": [
-            {
-              "type": "message",
-              "params": {}
-            },
-            {
-              "type": "spawn_item",
-              "params": {
-                "item_id": "b",
-                "display_name": ""
-              }
-            }
-          ],
-          "conditions": {},
-          "target_state": "",
-          "success_message": "",
-          "fail_message": ""
-        }
-      },
-      {
         "source": "item_ice_fishing_auger_6c4a",
         "target": "area_frozen_lake_clearing",
         "type": "at",
@@ -10828,12 +11100,6 @@
         "source": "item_fallen_willow_branches_fw1o",
         "target": "area_weeping_willow_hollow",
         "type": "at",
-        "properties": {}
-      },
-      {
-        "source": "player_rat",
-        "target": "area_kitchen",
-        "type": "in",
         "properties": {}
       },
       {
@@ -10925,18 +11191,90 @@
         "properties": {}
       },
       {
+        "source": "everflame_ember",
+        "target": "trigger_everflame_ember_on_tick_1791723690674_405",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_tick",
+          "effects": [
+            {
+              "params": {
+                "delta": -1,
+                "message": "",
+                "node_id": "self"
+              },
+              "type": "adjust_uses"
+            }
+          ],
+          "target_name": "",
+          "target_state": "",
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "everflame_ember",
+        "target": "trigger_everflame_ember_on_depleted_1791723690674_418",
+        "type": "triggers",
+        "properties": {
+          "trigger_type": "on_depleted",
+          "effects": [
+            {
+              "params": {
+                "message": "The everflame ember gutters and dies."
+              },
+              "type": "message"
+            }
+          ],
+          "target_name": "",
+          "target_state": "",
+          "success_message": "",
+          "fail_message": ""
+        }
+      },
+      {
+        "source": "everflame_ember",
+        "target": "area_frozen_thicket",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Lyrie",
+        "target": "item_weathered_trail_sign_rkty",
+        "type": "at",
+        "properties": {}
+      },
+      {
         "source": "player_Kaelen_Voss",
-        "target": "area_blizzard_forest_clearing",
+        "target": "area_kitchen",
+        "type": "in",
+        "properties": {}
+      },
+      {
+        "source": "player_Kaelen_Voss",
+        "target": "way_swinging_door",
+        "type": "at",
+        "properties": {}
+      },
+      {
+        "source": "item_bush of berries_1788218658044_568",
+        "target": "player_Lyrie",
+        "type": "carrying",
+        "properties": {}
+      },
+      {
+        "source": "player_rat",
+        "target": "area_kitchen",
         "type": "in",
         "properties": {}
       }
     ]
   },
-  "turn_number": 0,
+  "turn_number": 1,
   "narration_mode": "none",
   "ghost_mode": false,
   "mature_content": false,
-  "_scenario_name": "world_template",
+  "_scenario_name": "the valerious case",
   "world_lore": [
     {
       "category": "general",
@@ -10949,7 +11287,29 @@
       "title": "The Valerious Case"
     }
   ],
-  "world_scopes": {},
+  "world_scopes": {
+    "world": {
+      "id": "world",
+      "name": "World",
+      "kind": "scope",
+      "parent_id": null,
+      "children": [],
+      "area_ids": [],
+      "state": "unmade",
+      "mode": "world",
+      "grid": {
+        "w": 60,
+        "h": 40
+      },
+      "layers": {},
+      "placements": {},
+      "reference": {
+        "image": "/static/images/backgrounds/valerious-outdoors.webp",
+        "opacity": 1.0,
+        "visible": true
+      }
+    }
+  },
   "calendar_config": {
     "minutes_per_day": 1440,
     "days_per_week": 7,
@@ -10997,7 +11357,7 @@
     "weather": "snowy",
     "wind": "gale",
     "humidity": "humid",
-    "duration_ticks": 36
+    "duration_ticks": 35
   },
   "graph_background": {
     "layers": [
@@ -11046,5 +11406,6 @@
     ],
     "positions": {},
     "layoutLocked": false
-  }
+  },
+  "schema_version": 2
 }

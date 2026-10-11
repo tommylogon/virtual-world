@@ -201,6 +201,9 @@ load('static/js/soak/soak-format.js');
 load('static/js/soak/soak-charts.js');
 load('static/js/soak/soak-spacetime.js');
 load('static/js/ui/timeskip.js');
+// The event-log export projections/renderers are plain functions over the DOM +
+// plain records; the fake element in test_event_log_export.js drives it.
+load('static/js/ui/event-log-export.js');
 // Loads after the document/localStorage stubs above; its `init()` only installs
 // listeners, so the registry it exports is intact for the guard test.
 load('static/js/ui/help-center.js');

@@ -175200,6 +175200,7 @@
   },
   "mature_content": true,
   "narration_mode": "none",
+  "persist": true,
   "players": {
     "Arix": {
       "active_pursuit": null,
@@ -175663,9 +175664,9 @@
           ],
           "text": "You have been in the Cooking Area.",
           "tick": 58,
-          "timestamp": 1791658664.2703888,
+          "timestamp": 1791727026.4303174,
           "type": "reaction",
-          "visits": 13
+          "visits": 15
         }
       ],
       "name": "Arix",
@@ -176444,9 +176445,9 @@
           ],
           "text": "You have been in the Side Tunnels.",
           "tick": 58,
-          "timestamp": 1791658664.2713895,
+          "timestamp": 1791727026.431317,
           "type": "reaction",
-          "visits": 13
+          "visits": 15
         }
       ],
       "name": "Belne",
@@ -176775,9 +176776,9 @@
           ],
           "text": "You have been in the Murk Lake.",
           "tick": 58,
-          "timestamp": 1791658664.2723887,
+          "timestamp": 1791727026.4323173,
           "type": "reaction",
-          "visits": 120
+          "visits": 122
         }
       ],
       "name": "Croak-Mother",
@@ -178314,9 +178315,9 @@
           ],
           "text": "You have been in the Road (world 18,3).",
           "tick": 58,
-          "timestamp": 1791658664.2743917,
+          "timestamp": 1791727026.4343188,
           "type": "social",
-          "visits": 19
+          "visits": 21
         }
       ],
       "name": "Eldenford Elder",
@@ -179146,9 +179147,9 @@
           ],
           "text": "You have been in the Road (world 18,3).",
           "tick": 58,
-          "timestamp": 1791658664.2753906,
+          "timestamp": 1791727026.4353192,
           "type": "social",
-          "visits": 83
+          "visits": 85
         },
         {
           "activation": 0.8215,
@@ -179637,9 +179638,9 @@
           ],
           "text": "You have been in the Road (world 18,3).",
           "tick": 58,
-          "timestamp": 1791658664.2753906,
+          "timestamp": 1791727026.4363172,
           "type": "social",
-          "visits": 83
+          "visits": 85
         },
         {
           "activation": 0.8215,
@@ -183543,9 +183544,9 @@
           "tags": [],
           "text": "You have been in the Side Tunnels.",
           "tick": 58,
-          "timestamp": 1791658664.2803886,
+          "timestamp": 1791727026.4403172,
           "type": "reaction",
-          "visits": 13
+          "visits": 15
         }
       ],
       "name": "Rikka",
@@ -183910,9 +183911,9 @@
           ],
           "text": "You have been in the Raven River.",
           "tick": 58,
-          "timestamp": 1791658664.2813902,
+          "timestamp": 1791727026.441317,
           "type": "reaction",
-          "visits": 120
+          "visits": 122
         },
         {
           "activation": 0.43,
@@ -186087,9 +186088,9 @@
           ],
           "text": "You have been in the Food Storage.",
           "tick": 58,
-          "timestamp": 1791658664.2843897,
+          "timestamp": 1791727026.4443169,
           "type": "reaction",
-          "visits": 29
+          "visits": 31
         },
         {
           "activation": 0.643,
@@ -231638,6 +231639,5 @@
       },
       "state": "materialized"
     }
-  },
-  "persist": true
+  }
 }

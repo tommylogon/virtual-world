@@ -551,8 +551,7 @@ class ConfigManagerImpl {
             // DeepSeek is OpenAI-format compatible; base_url https://api.deepseek.com
             // also works (the /v1 suffix is what the OpenAI SDK-style calls here
             // expect). Current model names are `deepseek-flash` and
-            // `deepseek-v4-pro`; deepseek-v4-flash / deepseek-chat /
-            // deepseek-reasoner are retired legacy aliases.
+            // `deepseek-v4-pro` /
             'DeepSeek': {
                 apiKey: liveKey, apiBase: 'https://api.deepseek.com/v1', model: 'deepseek-flash',
                 streaming: true, showLogs: false, turnBased: false, turnOrder: 'sequential'
