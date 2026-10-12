@@ -555,6 +555,7 @@ const _GraphRelativeLayout = {
             // In the solver, and not pinned: the player can still drag it, and the
             // sim keeps it beside whatever holds it.
             updates.push({ id, x: pos.x, y: pos.y, fixed: false, physics: true });
+            window.GraphNetwork?._posTrace?.('GraphRelativeLayout.apply', id, pos.x, pos.y);
         }
         if (updates.length) {
             try {
@@ -613,6 +614,7 @@ const _GraphRelativeLayout = {
             if (!Number.isFinite(pos.x) || !Number.isFinite(pos.y))
                 continue;
             updates.push({ id, x: pos.x, y: pos.y });
+            window.GraphNetwork?._posTrace?.('GraphRelativeLayout.separation', id, pos.x, pos.y);
         }
         if (updates.length) {
             try {

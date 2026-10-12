@@ -238,6 +238,6 @@ The affect map lives in `engine/emotion.py` (dimensions, axes, `spike`/`decay`/`
 
 **Features** — [[emotion|Emotion]] (#20)
 
-**Neighbouring notes** — [[Activities & States]], [[Background Simulation]], [[Character Images & Expression Packs]], [[Characters Overview]], [[NPC Behavior System]], [[Relationships System]]
+**Neighbouring notes** — [[Activities & States]], [[Background Simulation]], [[Character Images & Expression Packs]], [[Characters Overview]], [[GIMP]], [[MOSIAC]]
 
 <!-- connected:end -->

@@ -115,5 +115,132 @@ function flattenScopes(payload) {
     walk(payload.children, 0, null);
     return out;
 }
-window
-    .ScopeOptions = { populate, flattenScopes };
+/**
+ * The scope a node belongs to, resolved from the graph itself.
+ *
+ * A node declares its own scope in `properties.world_scope_id` (areas and
+ * hand-placed things) or `properties.generated.scope_id` (compiled/generated
+ * nodes) — the same two keys `graph.py` `_declared_scope` reads. A node with
+ * neither (a character, a free-floating library item) is scope-less and is
+ * located by walking the spatial edges UP from it to the area that contains it
+ * and on to whichever ancestor declares a scope.
+ *
+ * This is the client mirror of `WorldGraph.scope_owners()` (task-582/583). It
+ * exists here rather than calling the backend because `/api/state` already
+ * ships the whole-world nodes and edges, so a selection can resolve its scope
+ * with zero round-trips.
+ *
+ * @param {string} nodeId  the node to locate
+ * @param {object|Map} nodes  whole-world nodes, id → node (a plain dict as
+ *                            `/api/state` returns, or a Map)
+ * @param {Array} edges    whole-world edges, each {source, target, type}
+ * @returns {string|null} the owning scope id, or null when the node declares
+ *                        no scope and has no spatial path to one
+ */
+function resolveScopeForNode(nodeId, nodes, edges) {
+    if (!nodeId || !nodes)
+        return null;
+    const getNode = (id) => {
+        if (nodes instanceof Map)
+            return nodes.get(id) || null;
+        return nodes[id] || null;
+    };
+    const parent = _spatialParents(nodes, edges);
+    const seen = new Set();
+    let cur = String(nodeId);
+    // Bounded, and cycle-safe twice over: `seen` refuses a repeat, and the hop
+    // cap stops a hand-authored cycle from spinning. The deepest chain measured
+    // in a real scenario is 4 (item in a container in an area); 12 is slack.
+    for (let hop = 0; cur && hop < 12; hop++) {
+        if (seen.has(cur))
+            return null;
+        seen.add(cur);
+        const own = nodeScopeId(getNode(cur));
+        if (own)
+            return String(own);
+        cur = parent.get(cur) || null;
+    }
+    return null;
+}
+/**
+ * The scope a single node declares for itself, or null.
+ *
+ * The canonical read of `properties.world_scope_id` then
+ * `properties.generated.scope_id` — the same two keys `graph.py`
+ * `_declared_scope` reads on the backend. `GraphLayoutEngine.nodeScopeId`
+ * delegates here so the rule has one home; this module is `shared/` and the
+ * layout engine is `graph/`, so a graph→shared read is the right direction.
+ *
+ * @param {object} node  a graph node ({properties} is what is read)
+ * @returns {*} the declared scope id, or null when the node declares none
+ */
+function nodeScopeId(node) {
+    const props = (node && node.properties) || {};
+    if (props.world_scope_id)
+        return props.world_scope_id;
+    const generated = props.generated;
+    if (generated && generated.scope_id)
+        return generated.scope_id;
+    return null;
+}
+/**
+ * The best spatial parent per node: for each node, the container reachable by
+ * the highest-priority preposition it has. `at` is weaker than `in` (a
+ * character can be `at` a landmark and `in` an area at once), so a node keeps
+ * the strongest relation. The one builder both `resolveScopeForNode` (which
+ * walks it) and `spatialParentOf` (which reports one hop) read.
+ *
+ * @returns {Map<string,string>} child id -> parent id
+ */
+function _spatialParents(nodes, edges) {
+    const parent = new Map();
+    const bestRank = new Map();
+    const has = (id) => {
+        if (nodes instanceof Map)
+            return nodes.has(id);
+        return !!nodes && Object.prototype.hasOwnProperty.call(nodes, id);
+    };
+    for (const e of (edges || [])) {
+        const rank = SPATIAL_EDGE_TYPES.indexOf(String(e.type));
+        if (rank < 0)
+            continue;
+        const src = String(e.source);
+        const tgt = String(e.target);
+        if (src === tgt)
+            continue;
+        if (!has(src) || !has(tgt))
+            continue;
+        const prev = bestRank.get(src);
+        if (prev === undefined || rank < prev) {
+            bestRank.set(src, rank);
+            parent.set(src, tgt);
+        }
+    }
+    return parent;
+}
+/**
+ * The node that directly holds *nodeId* by a spatial preposition (`in`/`on`/
+ * `under`/`behind`/`at`), or null. The local frame a node sits in, for a
+ * position readout — see `graphManager.debugNodePosition`.
+ */
+function spatialParentOf(nodeId, nodes, edges) {
+    if (!nodeId)
+        return null;
+    return _spatialParents(nodes, edges).get(String(nodeId)) || null;
+}
+// The spatial prepositions that place one node inside another, best first.
+// `in`/`on`/`under`/`behind` are containment; `at` is "standing at a landmark"
+// (a character `at` a bookshelf or a way) and is only trusted when nothing
+// stronger exists.
+//
+// Deliberately EXCLUDED, with why each is not a place relation:
+//   - `beside`     character→character adjacency, not containment; two
+//                  characters beside each other can straddle an area boundary.
+//   - `carrying`,  item→character possession. The direction is not even
+//     `equipped`   consistent in the data (both item→char and char→item occur),
+//                  so walking it can resolve a character's scope via an item.
+//   - `connection` the generic structural edge (area↔way), not a place.
+//   - `triggers`,  attachment and knowledge, not location.
+//     `known`
+const SPATIAL_EDGE_TYPES = ['in', 'on', 'under', 'behind', 'at'];
+window.ScopeOptions = { populate, flattenScopes, resolveScopeForNode, spatialParentOf, nodeScopeId };

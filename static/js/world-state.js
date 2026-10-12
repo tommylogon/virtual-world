@@ -16,6 +16,8 @@ class WorldState {
         this._listeners = {};
         this._pollTimer = null;
         this._equipSlots = null;
+        this._inflight = null;
+        this._refetchRequested = false;
     }
     /** Subscribe to state changes */
     on(event, callback) {
@@ -69,6 +71,29 @@ class WorldState {
      *               when it arrives.
      */
     async fetch(lite = false) {
+        // Coalesce concurrent fetches into one. app.py broadcasts `world_changed`
+        // for EVERY mutating /api/ call, so the SSE (connectLiveEdits) refetches
+        // state AND the call site often fetches again — two full /api/state
+        // downloads for a single edit (14 MB on a large world). While one fetch
+        // is in flight a second request joins it; if a change landed during it,
+        // exactly one trailing fetch runs so nothing is dropped.
+        if (this._inflight) {
+            this._refetchRequested = true;
+            return this._inflight;
+        }
+        this._inflight = this._fetchNow(lite);
+        try {
+            return await this._inflight;
+        }
+        finally {
+            this._inflight = null;
+            if (this._refetchRequested) {
+                this._refetchRequested = false;
+                void this.fetch(false);
+            }
+        }
+    }
+    async _fetchNow(lite) {
         try {
             const url = lite ? '/api/state?lite=1' : '/api/state';
             const resp = await fetch(url);

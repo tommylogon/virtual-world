@@ -11,17 +11,13 @@ wiki: "[[Weather System]]"
 **Filed:** 2026-10-12
 **Related:** task-227, task-762
 
-<!-- deps:start -->
-**Related:** [[task-227-environment-forecast-schedule]], [[task-762-forecast-page-author-and-view-the-weather-schedule]]
-<!-- deps:end -->
-
 ## What
 
 Finish the 'forecast schedule' -> 'Forecast' rename (Character Pursuits.md, Decisions 2026-10-12) at the IDENTIFIER level. The user-facing label pass is already done (docs, UI strings, tooltips, comments). Remaining scope: the world-state key `forecast_schedule` -> `forecast`; the POST body field `schedule` on `/api/settings/forecast` -> `forecast`; the Python class `ForecastSchedule` -> `Forecast`; and the sky-scape editor function names / element ids. Accept the legacy spellings on load so existing saves, scenarios and fixtures do not lose their weather.
 
 ## Why
 
-"Schedule" now belongs to MOSAIC (the decision layer's Schedule letter). Left in code, `forecast_schedule` / `ForecastSchedule` / the `schedule` body field keep two meanings of the same word alive for every future reader and agent, which is exactly what the rename exists to remove. This is the deferred half of the decision; the surface already reads "Forecast".
+"Schedule" now belongs to MOSIAC (the decision layer's Schedule letter). Left in code, `forecast_schedule` / `ForecastSchedule` / the `schedule` body field keep two meanings of the same word alive for every future reader and agent, which is exactly what the rename exists to remove. This is the deferred half of the decision; the surface already reads "Forecast".
 
 ## How
 

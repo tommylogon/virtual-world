@@ -3,15 +3,15 @@ type: doc
 tags: [system/docs, system/characters]
 ---
 
-# Character pursuits, schedules, plans, and activities (MOSAIC)
+# Character pursuits, schedules, plans, and activities (MOSIAC)
 
 This is a game-design model for what characters mean to do, how they choose a longer undertaking, how they act on the immediate situation, and what other people can witness in the world.
 
-## The system is called MOSAIC
+## The system is called MOSIAC
 
-**MOSAIC** — **M**otivation, **O**bligations, **S**chedules, **A**ttention, **I**ntentions, **C**hoice — is the name of the system this page specifies. A character's behaviour emerges from those competing pieces of their life rather than one giant goal list trying to run the whole person, and a mosaic is separate pieces forming one coherent whole.
+**MOSIAC** — **M**otivation, **O**bligations, **S**chedules, **I**ntentions, **A**ttention, **C**hoice — is the name of the system this page specifies. A character's behaviour emerges from those competing pieces of their life rather than one giant goal list trying to run the whole person, and a mosaic is separate pieces forming one coherent whole.
 
-The vocabulary below are MOSAIC's **inputs**: Motivation is why a character moves at all (needs, drives), Obligations what they owe others (missions, promises), Schedules what the calendar expects, Attention what they notice (perception, salient events), Intentions what they are committed to (goals, pursuits). **Choice** is where they resolve — the selector that binds a plan and an action. The character decides; the world resolves the consequences.
+The vocabulary below are MOSIAC's **inputs**: Motivation is why a character moves at all (needs, drives), Obligations what they owe others (missions, promises), Schedules what the calendar expects, Attention what they notice (perception, salient events), Intentions what they are committed to (goals, pursuits). **Choice** is where they resolve — the selector that binds a plan and an action. The character decides; the world resolves the consequences.
 
 ## The vocabulary
 
@@ -224,35 +224,282 @@ The next work is captured in tasks 699 and 701–705, with task-409 preserving t
 
 ## Tasks
 
-MOSAIC is built across these cards:
+MOSIAC is built across these cards:
 
-- [[task-699-mosaic-design-doc-schedules-plan-templates-and-recipe-activities-as-one-goap-layer|task-699]] — this design doc.
+- [[task-699-mosiac-design-doc-schedules-plan-templates-and-recipe-activities-as-one-decision-layer|task-699]] — this design doc.
 - [[task-700-grounded-plan-contract-the-llm-plan-phase-emits-typed-steps-validated-against-world-facts|task-700]] — the grounded (typed, validated) plan contract.
 - [[task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries|task-701]] — the reusable plan/template library.
 - [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override|task-702]] — the executor: the engine runs typed plans, with invalidation and needs-override.
 - [[task-703-recipe-as-activity-recipes-become-plan-templates-with-duration-success-and-fail-outcomes|task-703]] — recipes become plan templates.
-- [[task-704-mosaic-selector-needs-memory-and-personality-choose-and-bind-plans|task-704]] — the **Choice** step: needs, memory and personality choose and bind plans.
+- [[task-704-mosiac-selector-needs-memory-and-personality-choose-and-bind-plans|task-704]] — the **Choice** step: needs, memory and personality choose and bind plans.
 - [[task-409-background-schedules-work-and-coarse-social|task-409]] — the **Schedule** layer.
 - [[task-426-plan-archetypes-and-group-goals|task-426]] — plan archetypes and group goals.
-- [[task-714-character-mind-panel-connect-memories-motives-and-current-pursuits|task-714]] — the Mind panel where MOSAIC becomes visible.
+- [[task-714-character-mind-panel-connect-memories-motives-and-current-pursuits|task-714]] — the Mind panel where MOSIAC becomes visible.
 - [[task-726-activity-and-pursuit-durations-are-authored-in-ticks-the-game-minutes-path-is-not-wired-end-to-end|task-726]] — durations in game minutes, not ticks.
 
 ## Decisions (2026-10-12)
 
 Recorded while naming the system.
 
-- **MOSAIC is one unified decision layer**, used by LLM agents **and** soak/background NPCs alike — not two implementations.
-- **Promotion is per scope.** A character out of scope becomes a soak NPC that maintains and acts on its MOSAIC. (The `engine/attention.py` cap/tier selector was rejected and deleted.)
+- **MOSIAC is one unified decision layer**, used by LLM agents **and** soak/background NPCs alike — not two implementations.
+- **Promotion is per scope.** A character out of scope becomes a soak NPC that maintains and acts on its MOSIAC. (The `engine/attention.py` cap/tier selector was rejected and deleted.)
 - **Durations are game minutes**, not ticks and not turns, for activities and pursuits.
 - **The soak need not be reproducible.** Life is unpredictable within the limits of the world's starting conditions and the butterfly effect.
 - **Obligations** (missions, appointments, promises, duties) is a **new** piece with no home in code yet.
 - **Attention** needs an improved salience layer for both soak and LLM agents; the earliest such system was the **threat** system (see the mansion killer arriving while characters kept investigating). Example target: a character bathing in a river who is found by another should react, next turn, to being seen naked.
-- The LLM's **per-turn plan** ("what do I need to do right now to reach a short-term goal" — `window.PlanTracker` / `buildPlanContext`) is outdated and must be reworked into MOSAIC.
-- The weather **forecast** is renamed from "forecast schedule" to just **Forecast**, so "Schedule" means MOSAIC's Schedule only.
+- The LLM's **per-turn plan** ("what do I need to do right now to reach a short-term goal" — `window.PlanTracker` / `buildPlanContext`) is outdated and must be reworked into MOSIAC.
+- The weather **forecast** is renamed from "forecast schedule" to just **Forecast**, so "Schedule" means MOSIAC's Schedule only.
+
+## The architecture: MOSIAC, GIMP and the disposition (2026-10-12)
+
+Agreed 2026-10-12. These entries revise the vocabulary and the decisions above; where they
+differ, these win. The letters, and the role of each layer, are settled. The score
+vocabulary and the coefficients are not - they are the first build item (see the plan).
+
+The manual pages for the two systems are [[MOSIAC]] and [[GIMP]]; the rest of this
+document is the design intent behind them.
+
+### The letters, revised
+
+| Letter | Concern | In a line |
+|---|---|---|
+| **M** | what motivates the character toward a goal | "become chief" - the drive |
+| **O** | what the character owes | kill X, collect Y, scout area Z, meet me at the place at this time, deliver this, promise not to cheat on Mia |
+| **S** | the schedule or routines of the character | school and work schedules; Tyler running before his shift, home to shower before work |
+| **I** | the intention of the pursuit, and why | "date Mia because she is cute"; "because then I am respected and powerful" |
+| **A** | what requires attention right now | danger, interests, fear, vitals - whatever is most pressing |
+| **C** | the actionable choices available right now | the verbs available to reach the goal |
+
+Proposed: the order becomes **M-O-S-I-A-C** ("MOSIAC"), because **Attention** and
+**Choice** are the *lowest, right-now* level, below the standing context of M / O / S / I.
+
+Two shifts sit inside this. **Needs move from M to A**: a need is a signal (hunger,
+fear, danger), not an aspiration, so it belongs in the salience filter - which also
+means a `drive` animal is A + C and nothing else. And **Motivation and Intention are
+both a "why", at different depths**: *become chief* is the motivation; *because then I
+am respected and powerful* is the intention.
+
+### Goals live outside MOSIAC
+
+MOSIAC is the *why and how of deciding*. Goals are the *objects of want*, and they get
+their own layer:
+
+- **Goal** - what you want to achieve. Set from any variety of need: hand-authored in the
+  editor, or created at runtime by a verb or free action ("set a new goal").
+- **Pursuit** - how you go about achieving it.
+- **Motivation** - the drive, the why ("become chief").
+- **Obligation** - may support a goal or get in its way.
+- **Schedule** - may mean a character only gets an allotted window to work toward a goal.
+  Characters can add, remove and edit their own schedules, as people naturally do.
+- **Intention** - a why, but a different one. See above.
+
+Goals can be **linked and blocked** by other goals, characters, events or items, so they
+**chain up**. Because the chain is data, it can be **played back**: what a character
+achieved, which goals were reached and when, what was blocked, what was dropped, what
+changed over time.
+
+### GIMP - the goal layer
+
+The four things about a want, named **GIMP** - **G**oal, **I**ntention, **M**otivation,
+**P**ursuit. Agreed 2026-10-12.
+
+| | Question | Example |
+|---|---|---|
+| **G** Goal | what do they want to achieve? | "become chief" |
+| **I** Intention | why pursue *this* goal? | "because then I am respected" |
+| **M** Motivation | why do they move at all? | "I want respect and power" |
+| **P** Pursuit | how? | the execution |
+
+Four questions, no two the same: what / why-this / why-at-all / how.
+
+**Motivation** and **Intention** are the same two concepts MOSIAC carries as **M** and
+**I** - GIMP is that pair bound to one goal and its pursuit. MOSIAC is the *state of the
+decider*; GIMP is the *anatomy of a want*. The overlap is deliberate, but it means GIMP
+is **not a second source of Motivation**: there is one Motivation, read by MOSIAC as an
+input and named by GIMP on a goal. If GIMP's M and I were ever authored separately from
+MOSIAC's, you would have two copies of the same word and the duplication smell that comes
+with it.
+
+This replaces the earlier "one **GOAP** layer" framing; that acronym is retired and no longer names a slug or a card.
+
+### GIMP is authored; MOSIAC is runtime
+
+The working split, agreed 2026-10-12:
+
+- **GIMP is the goal layer.** Authored in the editor for a character, and mutated at runtime
+  by goal verbs ("set a new goal", free actions). It owns **Motivation** and **Intention**
+  (the two words the acronyms share) as well as **Goal** and **Pursuit**.
+- **MOSIAC is the runtime state** - per character, per turn. It reads the character's GIMP
+  (the active goals, their Motivation and Intention), adds the standing constraints
+  (**O**bligations, **S**chedules), computes the moment (**A**ttention, **C**hoices), and
+  hands that context to whichever actor is driving - the soak policy or an LLM.
+- **MOSIAC informs; the actor acts.** MOSIAC does not decide. The **disposition**
+  (personality, morality, memory, trauma) is what the actor uses to rank the options MOSIAC
+  assembled.
+
+In one line: **GIMP is what a character wants; MOSIAC is what they are dealing with right
+now; the disposition is who is deciding.**
+
+Ownership rule: **Motivation and Intention live in GIMP.** MOSIAC reads them and never
+re-stores them.
+
+### The soak disposition - weights, gates, and one dimension space
+
+The LLM is easy: hand it the character's prose and traits and let it reason. The soak has no
+brain, so the disposition has to be **numbers** - but the numbers must come from the *same*
+authored data, or the two tiers drift apart.
+
+**One dimension space, many characters.** Declare a small vocabulary of decision dimensions
+once - say ten: safety, sustenance, rest, social, duty, curiosity, comfort, acquisition,
+order, aggression. Every action is scored on how well it serves each dimension; every
+character carries a weight on each dimension. Then:
+
+```
+score(action) = disposition_weights . action_features + goal_alignment(action, active_goal)
+```
+
+- **action_features** - how much the action serves each dimension. Derived from the verb's
+  tier and the target's tags where it can be (eat -> sustenance; attack -> aggression +
+  safety; examine -> curiosity), authored explicitly only where it cannot.
+- **disposition_weights** - the character's numbers, **derived from traits, not hand-authored
+  per character**. One table maps a trait to weight deltas (`cowardly` = safety +2,
+  aggression -4; `patient` = order +2, comfort +1). A character's numbers are its traits,
+  which are already authored.
+- **goal_alignment** - from GIMP: does the action advance the active goal or its next step.
+  A separate term, so *what they want* and *who they are* stay apart.
+- **live modifiers** - emotion, needs, relationships and recent memories nudge the weights
+  (fear raises safety, hunger raises sustenance, a memory bound to an entity raises
+  avoidance or affinity toward it).
+
+**Weights are soft; gates are hard.** A weight says "rather not"; a gate says "cannot".
+
+- **Capability gates** already exist: action budget, prerequisites, location, the tier gate.
+- **Value gates** come from traits and morality: `honest` excludes theft, `nonviolent`
+  excludes attack, `loyal` excludes betraying an ally. A gate *removes* the option; it never
+  just lowers the score.
+
+**The pick is deterministic** - argmax with a stable tie-break, so a decision is reproducible
+for debugging. A seeded jitter can add variety without losing that.
+
+**Why it scales:** the dimension list and the trait-to-weight table are authored **once**. A
+new character needs no new numbers - it needs traits, which it already has. A new verb needs
+one row. The LLM reads the same traits plus the prose for nuance, so both tiers share one
+authoring act and differ only in quality.
+
+This is **task-704** (needs, memory and personality choose and bind plans). Suggested shape:
+one module owns the dimension vocabulary and the trait table (a single declaration, in the
+manner of `tools/way_properties.py`), and exposes a score + gate + pick the soak runner calls.
+
+### The personality catalogue versus the trait system (2026-10-12)
+
+A **100-trait / 200-modifier catalogue** was proposed: each personality trait is a normalized
+float (0..1, default 0.5) contributing `(value - 0.5) * coefficient` to a latent decision
+score. The model is sound and matches the sketch above. Three integrations decide whether it
+works.
+
+1. **There is already a trait system.** `engine/traits.py` owns `TRAIT_DEFINITIONS`,
+   `data/library/traits/*.json`, a data-driven loader and a `_trait_is_active` gate.
+   `player.traits` maps `trait_id -> True | str | number`, and a trait carries `effects`,
+   `conflicts`, `save_on` hooks, and a `behavior_prompt` - which is the *whisper* half
+   (task-487) already. The catalogue is therefore a **second thing sharing the name
+   "trait"**. Separate them by role:
+   - **`traits`** - capabilities, hooks and flags (dark_vision, hardy, the phobia `save_on`s).
+   - **`personality`** - the continuous dials that weight decisions (the catalogue).
+   Watch the collision: the `personality` field is currently a **prose string**, so a numeric
+   map cannot live under that name. Pick a distinct key.
+
+2. **The target vocabulary must be declared before the 200 rules mean anything.** The
+   catalogue's targets (`choice.utility.forceful_action`, `attention.salience.threat`,
+   `choice.risk_penalty_multiplier`, `choice.abandon_threshold`, ...) **do not exist in the
+   code** - verified by grep. They are also not one kind: utilities, multipliers, thresholds,
+   salience weights, belief gates. `add_delta` means something different for each, and "clamp
+   the aggregate to its declared range" is undefined until every target declares a **(kind,
+   base, range)**. Declare the target registry once (the `tools/way_properties.py` pattern)
+   and gate the catalogue against it, or a single typo in 200 strings is silent.
+
+3. **The catalogue is half the model.** It maps character -> target score. The other half -
+   **action -> target score** - is missing; without it the weights do nothing. A verb has to
+   declare what it contributes to `forceful_action` and friends.
+
+Two cleanups inside the catalogue:
+
+- **Collapse bipolar pairs split into two traits.** optimism/pessimism, sociability/
+  introversion, present/future orientation, distractibility/attentional persistence are each
+  one axis written as two unipolar traits; two of them invites contradictory authoring
+  (0.8 optimism *and* 0.8 pessimism) and inflates the count. The engine already models
+  bipolarity with `conflicts` (night_owl/morning_person, observant/oblivious).
+- **Watch double-counting on a shared target.** aggression, anger_proneness,
+  retaliatory_tendency and vengefulness all push toward conflict; a violent, angry, vengeful
+  character stacks four contributions onto one score. Aggregate per target and consider
+  normalizing, or the top of the range becomes a caricature.
+
+Keep: the **neutral-0.5 default** (an unauthored character scores exactly average, so existing
+characters do not move - a real backward-compat win); targets as **scores, not world writes**
+(personality never makes an impossible action possible); and **one shared candidate set** for
+soak and the LLM, with the authoritative action validator shared.
+
+Where the catalogue lives: it was produced outside the repo. If adopted, it belongs in-repo
+(`data/library/traits/` beside the existing library, or a new `data/personality/`) with a
+`schema_version`, and its own `--check` gate like `character_loadout_check.py`.
+
+### What the catalogue actually teaches, and whether the direction is right
+
+The catalogue is **inspiration, not gospel**. Strip the 100 traits and 200 coefficients and
+what remains is the durable design:
+
+- **A decision is a function over a declared set of named scores.** Characters weight them,
+  candidates contribute to them, the pick is argmax, gates exclude. That pattern - not the
+  trait list - is the transferable idea. The traits and numbers are one instantiation of it.
+- **The scores are the common currency for every contributor**, not just personality. Traits,
+  needs, emotion, memories, relationships, obligations, and GIMP's active goal all write into
+  the *same* score set. That is where **GIMP** (goal alignment) and the **disposition**
+  (trait weights) meet. Design the registry as that currency and the model is "MOSIAC + GIMP";
+  design it as "personality scores" and it is only one contributor.
+- **Features must be computed from live state, not authored constants.** The catalogue treats
+  a score as a fixed contribution per trait. Loyalty, trauma and need cannot work that way -
+  they have to read the world (relationship closeness, a memory bound to an entity, a pressing
+  vital) or they cannot be expressed at all.
+
+**Direction, against the requirements.** Right for the **soak side of the disposition**, and
+only there.
+
+- It does **not** cover GIMP - goals, intentions, pursuits are separate; the catalogue is the
+  disposition.
+- It drifts toward a **full cognitive architecture** (belief update, attention switching,
+  perception gates). MOSIAC requires a *decision context and a ranker*, not a whole mind.
+  Keep the scope on deciding.
+
+So: adopt the **score-registry + two-sided-contribution** pattern; declare the registry first;
+compute features from state; keep the scope on deciding; and render the same registry as
+**whispers** for the LLM, so soak and LLM share one vocabulary rather than two.
+
+### The open question: what ranks?
+
+What decides which goal a character works on, when, and with what priority? That is the
+thing that separates individuals: what they value, what they are like - personality
+types, morality, social constructs and expectations, memories and trauma. It is what
+makes two characters with the same goals act differently, and it is the **selector** that
+sits over the letters.
+
+This is the same question the earlier work called **disposition** (weights for the soak,
+whispers for the LLM, both at once). It is not a letter. MOSIAC is what is *on the
+table*; the ranking layer is *who is deciding* - and it is where an LLM agent and a soak
+NPC use the same context and the same action set but resolve them differently in quality,
+never in capability.
+
+### Supersedes
+
+- "**Choice** is where they resolve - the selector that binds a plan and an action" is
+  superseded: **Choice** here is the set of *available* actions, and the resolution moves
+  to the ranking layer above.
+- "**Motivation** is why a character moves at all (needs, drives)" is revised: needs moved
+  to **Attention**; Motivation is the standing drive.
+- The open 9-nouns question is partly answered: **Goal** and **Pursuit** are not letters -
+  they live in the goals layer, so the count mismatch with 6 letters is expected.
 
 ## Open questions
 
-- This page defines **nine** nouns (Need, Goal, Mission, Pursuit template, Pursuit, Schedule, Plan, Activity, Recipe) but MOSAIC has **six** letters; Mission, Pursuit template, Activity and Recipe map to none. Is the vocabulary a layer *under* MOSAIC, or does the page need reconciling with the name?
+- This page defines **nine** nouns (Need, Goal, Mission, Pursuit template, Pursuit, Schedule, Plan, Activity, Recipe) but MOSIAC has **six** letters; Mission, Pursuit template, Activity and Recipe map to none. Is the vocabulary a layer *under* MOSIAC, or does the page need reconciling with the name?
 
 <!-- connected:start -->
 ## Connected
@@ -261,8 +508,8 @@ Recorded while naming the system.
 
 **Features** — [[background-simulation|Background simulation]] (#28)
 
-**Dev tasks** — [[dev_tasks/todo/characters/bug-549-character-definition-is-blank-on-the-live-player-after-a-scenario-load|bug]]
+**Dev tasks** — [[dev_tasks/todo/characters/bug-549-character-definition-is-blank-on-the-live-player-after-a-scenario-load|bug]], [[dev_tasks/todo/characters/task-799-disposition-spike-do-three-unrelated-soak-decisions-fit-one-score-registry|task]], [[dev_tasks/todo/characters/task-800-disposition-score-registry-declare-the-decision-score-vocabulary|task]], [[dev_tasks/todo/characters/task-802-disposition-character-weights-from-traits-plus-live-modifiers|task]], [[dev_tasks/todo/characters/task-803-disposition-value-gates-traits-and-morality-as-hard-exclusions|task]], [[dev_tasks/todo/characters/task-804-disposition-pick-argmax-with-a-stable-tie-break|task]] … +11 more
 
-**Neighbouring notes** — [[MOSAIC Character Profiles]], [[MOSAIC Goals and Pursuits - Worked Examples]]
+**Neighbouring notes** — [[MOSIAC Character Profiles]]
 
 <!-- connected:end -->

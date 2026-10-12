@@ -8,13 +8,13 @@ related: [task-409, task-426, task-2, task-694, task-701, task-702, task-703, ta
 
 # task-699: Character pursuits, schedules, plans, activities, and recipes
 
-**System name:** **MOSAIC** — Motivation, Obligations, Schedules, Attention, Intentions, Choice. This card is the design doc for the MOSAIC decision layer; see `Character Pursuits.md`.
+**System name:** **MOSIAC** — Motivation, Obligations, Schedules, Intentions, Attention, Choice. This card is the design doc for the MOSIAC decision layer; see `Character Pursuits.md`.
 
 **Filed:** 2026-10-04
 **Clarified:** 2026-10-05
 
 <!-- deps:start -->
-**Related:** [[task-409-background-schedules-work-and-coarse-social]], [[task-426-plan-archetypes-and-group-goals]], [[task-2-crafting_and_recipes]], [[task-694-htc-fixture-world-a-tiny-scenario-authored-to-exercise-every-turn-panel-surface]], [[task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries]], [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]], [[task-703-recipe-as-activity-recipes-become-plan-templates-with-duration-success-and-fail-outcomes]], [[task-704-mosaic-selector-needs-memory-and-personality-choose-and-bind-plans]]
+**Related:** [[task-409-background-schedules-work-and-coarse-social]], [[task-426-plan-archetypes-and-group-goals]], [[task-2-crafting_and_recipes]], [[task-694-htc-fixture-world-a-tiny-scenario-authored-to-exercise-every-turn-panel-surface]], [[task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries]], [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]], [[task-703-recipe-as-activity-recipes-become-plan-templates-with-duration-success-and-fail-outcomes]], [[task-704-mosiac-selector-needs-memory-and-personality-choose-and-bind-plans]]
 <!-- deps:end -->
 
 ## What

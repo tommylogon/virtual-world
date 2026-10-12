@@ -108277,11 +108277,11 @@
         "id": "player_james",
         "name": "james",
         "properties": {
-          "x": 7417.8,
-          "y": -8523.5,
-          "personality": "You are James, a weathered river fisherman. You are patient, practical, and slow to anger. You know every reach of the Raven River and which pools hold fish at which hour. You talk to the river more than to people.",
+          "base_description": "a composed, middle-aged man trained in clinical work; a therapist with the doctor's letters on his wall, a soft tidy sweater, folded legs, notebook and pen in hand, kind eyes and a warm, unhurried steadiness to him.",
           "description": "A lean, sun-browned man in a patched oilskin coat, waders, and a battered straw hat. A fishing rod is slung over his shoulder and a woven creel hangs at his hip.",
-          "base_description": "a composed, middle-aged man trained in clinical work; a therapist with the doctor's letters on his wall, a soft tidy sweater, folded legs, notebook and pen in hand, kind eyes and a warm, unhurried steadiness to him."
+          "personality": "You are James, a weathered river fisherman. You are patient, practical, and slow to anger. You know every reach of the Raven River and which pools hold fish at which hour. You talk to the river more than to people.",
+          "x": 7417.8,
+          "y": -8523.5
         },
         "type": "character",
         "updated": 1791636160.0986664
@@ -175667,9 +175667,9 @@
           ],
           "text": "You have been in the Cooking Area.",
           "tick": 58,
-          "timestamp": 1791727026.4303174,
+          "timestamp": 1791821063.606554,
           "type": "reaction",
-          "visits": 15
+          "visits": 16
         }
       ],
       "name": "Arix",
@@ -176448,9 +176448,9 @@
           ],
           "text": "You have been in the Side Tunnels.",
           "tick": 58,
-          "timestamp": 1791727026.431317,
+          "timestamp": 1791821063.6085532,
           "type": "reaction",
-          "visits": 15
+          "visits": 16
         }
       ],
       "name": "Belne",
@@ -176779,9 +176779,9 @@
           ],
           "text": "You have been in the Murk Lake.",
           "tick": 58,
-          "timestamp": 1791727026.4323173,
+          "timestamp": 1791821063.6085532,
           "type": "reaction",
-          "visits": 122
+          "visits": 123
         }
       ],
       "name": "Croak-Mother",
@@ -178318,9 +178318,9 @@
           ],
           "text": "You have been in the Road (world 18,3).",
           "tick": 58,
-          "timestamp": 1791727026.4343188,
+          "timestamp": 1791821063.6105528,
           "type": "social",
-          "visits": 21
+          "visits": 22
         }
       ],
       "name": "Eldenford Elder",
@@ -179150,9 +179150,9 @@
           ],
           "text": "You have been in the Road (world 18,3).",
           "tick": 58,
-          "timestamp": 1791727026.4353192,
+          "timestamp": 1791821063.6115544,
           "type": "social",
-          "visits": 85
+          "visits": 86
         },
         {
           "activation": 0.8215,
@@ -179641,9 +179641,9 @@
           ],
           "text": "You have been in the Road (world 18,3).",
           "tick": 58,
-          "timestamp": 1791727026.4363172,
+          "timestamp": 1791821063.6125531,
           "type": "social",
-          "visits": 85
+          "visits": 86
         },
         {
           "activation": 0.8215,
@@ -183547,9 +183547,9 @@
           "tags": [],
           "text": "You have been in the Side Tunnels.",
           "tick": 58,
-          "timestamp": 1791727026.4403172,
+          "timestamp": 1791821063.617554,
           "type": "reaction",
-          "visits": 15
+          "visits": 16
         }
       ],
       "name": "Rikka",
@@ -183914,9 +183914,9 @@
           ],
           "text": "You have been in the Raven River.",
           "tick": 58,
-          "timestamp": 1791727026.441317,
+          "timestamp": 1791821063.617554,
           "type": "reaction",
-          "visits": 122
+          "visits": 123
         },
         {
           "activation": 0.43,
@@ -186091,9 +186091,9 @@
           ],
           "text": "You have been in the Food Storage.",
           "tick": 58,
-          "timestamp": 1791727026.4443169,
+          "timestamp": 1791821063.6215558,
           "type": "reaction",
-          "visits": 31
+          "visits": 32
         },
         {
           "activation": 0.643,

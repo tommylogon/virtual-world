@@ -98,6 +98,16 @@ type GraphManagerEdgeTypes = {
 type GraphManagerScopeOptions = {
     flattenScopes(payload: unknown): GraphManagerScopeSummary[];
     populate(sel: Element, scopes: GraphManagerScopeSummary[]): void;
+    resolveScopeForNode(
+        nodeId: string,
+        nodes: Record<string, GraphManagerNodeData> | Map<string, GraphManagerNodeData> | null,
+        edges: GraphManagerEdgeData[] | null
+    ): string | null;
+    spatialParentOf(
+        nodeId: string,
+        nodes: Record<string, GraphManagerNodeData> | Map<string, GraphManagerNodeData> | null,
+        edges: GraphManagerEdgeData[] | null
+    ): string | null;
 };
 
 /**
@@ -231,11 +241,6 @@ class GraphManagerImpl {
     }
 
     async init() {
-        // DEBUG (temporary): wrap graph methods (call order) + start the long-task
-        // observer (cost) before anything graph runs.
-        const dbg = window as unknown as { __vtWrap?: () => void; __vtPerfStart?: () => void };
-        dbg.__vtWrap?.();
-        dbg.__vtPerfStart?.();
         // Read the saved engine config FIRST (task-765): the physics on/off
         // preference must be seeded before the first load builds the Network, or
         // a saved "off" is applied only after the expensive physics has already
@@ -604,6 +609,13 @@ class GraphManagerImpl {
 
     setScopeFilter(scopeId: string) {
         this._scopeFilter = scopeId || null;
+        // Keep the picker in step for EVERY caller, not just GraphToolbar.loadScope.
+        // loadScope set `sel.value` itself before calling here, so a DIRECT call —
+        // e.g. focusNode switching to a node's owning scope — loaded the new scope
+        // while the dropdown kept the old label (the graph changed, the picker
+        // lied). syncScope() repaints the chip/counts/tree, not the select.
+        const scopeSel = document.getElementById('graph-scope-filter') as HTMLSelectElement | null;
+        if (scopeSel) scopeSel.value = this._scopeFilter || '';
         this._persistScopeFilter();
         this._lastSig = '';
         if (window.GraphToolbar) GraphToolbar.syncAll();
@@ -1237,7 +1249,12 @@ class GraphManagerImpl {
     /**
      * Move the camera to a graph node: switch back to graph view if an
      * overlay is active, highlight the node, and animate the viewport to it.
-     * Falls back to a fit-all view when the node isn't in the loaded graph.
+     *
+     * When the node is not in the loaded scope, switch to the scope that owns
+     * it and focus once that scope has loaded — selecting a character, item,
+     * area or way from the outline, the agent list or Ctrl+K should land the
+     * graph on the scope the node actually lives in, not fit-all over a
+     * subgraph that never contained it.
      *
      * @param {string} nodeId - The graph node id to focus on
      */
@@ -1245,18 +1262,153 @@ class GraphManagerImpl {
         if (!this.network) return;
         if (this._viewMode !== 'graph') this.setViewMode('graph');
         if (this.nodes.has(nodeId)) {
-            this.network.selectNodes([nodeId]);
-            // Zoom is the user's ⚙ Tune / Settings → Camera choice (was a
-            // hardcoded 1.15; config.ts defaults to the same value).
-            const zoom = (typeof config !== 'undefined' && config && Number(config.graphFocusZoom))
-                ? Number(config.graphFocusZoom) : 1.15;
-            this.network.focus(nodeId, {
-                scale: zoom,
-                animation: { duration: 500, easingFunction: 'easeInOutQuad' }
-            });
-        } else {
-            this.fitView();
+            this._focusLoadedNode(nodeId);
+            return;
         }
+        // Not in the loaded scope: switch to the owning scope, then focus once
+        // its subgraph has loaded. A node with no declared scope and no spatial
+        // path to one (free-floating inventory, an unlocated character) keeps
+        // the old fit-all fallback rather than guessing a scope.
+        const scope = this._resolveScopeForNode(nodeId);
+        if (scope && scope !== this._scopeFilter) {
+            Promise.resolve(this.setScopeFilter(scope))
+                .then(() => { if (this.nodes.has(nodeId)) this._focusLoadedNode(nodeId); })
+                .catch(() => { /* scope load failed — leave the view as it was */ });
+            return;
+        }
+        this.fitView();
+    }
+
+    /** Highlight and animate to a node already present in the loaded graph. */
+    _focusLoadedNode(nodeId: string) {
+        this.network.selectNodes([nodeId]);
+        // Zoom is the user's ⚙ Tune / Settings → Camera choice (was a
+        // hardcoded 1.15; config.ts defaults to the same value).
+        const zoom = (typeof config !== 'undefined' && config && Number(config.graphFocusZoom))
+            ? Number(config.graphFocusZoom) : 1.15;
+        this.network.focus(nodeId, {
+            scale: zoom,
+            animation: { duration: 500, easingFunction: 'easeInOutQuad' }
+        });
+    }
+
+    /**
+     * The scope that owns *nodeId*, resolved from the WHOLE-WORLD graph.
+     *
+     * `this.nodes` holds only the loaded scope's subgraph, so a node selected
+     * from the outline, the agent list or Ctrl+K may not be in it — asking the
+     * loaded map would answer "no scope" for exactly the nodes that need the
+     * switch. `worldState.graph` carries every node and edge.
+     *
+     * @param {string} nodeId - The graph node id to locate
+     * @returns {string|null} the owning scope id, or null when undeterminable
+     */
+    _resolveScopeForNode(nodeId: string): string | null {
+        const options = (window as unknown as { ScopeOptions?: GraphManagerScopeOptions }).ScopeOptions;
+        if (!options || typeof options.resolveScopeForNode !== 'function') return null;
+        const graph = worldState?.graph;
+        if (!graph) return null;
+        return options.resolveScopeForNode(
+            nodeId,
+            graph.nodes as Record<string, GraphManagerNodeData>,
+            graph.edges as GraphManagerEdgeData[]);
+    }
+
+    /**
+     * Read-only position readout for a node, in BOTH frames, to pin a placement
+     * bug in one look:
+     *
+     *   - **GLOBAL** `canvas`   — its x/y in the vis body (where it is drawn).
+     *   - **LOCAL**  `cell`      — its painted grid coordinate, if it has one.
+     *   - **LOCAL**  `offsetFromHolder` — (canvas of this node) minus (canvas of
+     *                             the node that holds it: its spatial parent),
+     *                             i.e. its position in its holder's frame.
+     *   - `scope`                — the scope it belongs to.
+     *
+     * It also reports the stored `properties.x/y`, what `seedFor()` would pick,
+     * and whether the node is frozen, because those are the inputs a position
+     * bug hides between.
+     *
+     * Usage (DevTools console):
+     *   graphManager.debugNodePosition()            // the selected node
+     *   graphManager.debugNodePosition('player_Arix')
+     *   VW.nodePos('Arix')                          // same, by name
+     *
+     * @param {string} [nodeIdOrName] a node id, a node name, or omitted for the
+     *                                current selection
+     * @returns {Object|null} the readout (also console.logged)
+     */
+    debugNodePosition(nodeIdOrName?: string) {
+        const graph = worldState?.graph;
+        if (!graph || !graph.nodes) { console.warn('debugNodePosition: no world graph'); return null; }
+        const nodes = graph.nodes as Record<string, GraphManagerNodeData>;
+        const edges = (graph.edges || []) as GraphManagerEdgeData[];
+        const options = (window as unknown as { ScopeOptions?: GraphManagerScopeOptions }).ScopeOptions;
+
+        let id = nodeIdOrName
+            || (this.network && typeof this.network.getSelectedNodes === 'function'
+                ? this.network.getSelectedNodes()[0] : '');
+        if (id && !nodes[id]) {
+            // Accept a display name or a bare character name.
+            const want = String(id);
+            id = Object.keys(nodes).find((k) => {
+                const n = nodes[k];
+                return !!n && (n.name === want || k === want || k.endsWith(want));
+            }) || '';
+        }
+        const node = id ? nodes[id] : null;
+        if (!node) { console.warn('debugNodePosition: node not found for', nodeIdOrName); return null; }
+
+        const props = (node.properties || {}) as Record<string, unknown>;
+        const round = (v: unknown) => (typeof v === 'number' ? Math.round(v * 10) / 10 : null);
+        const body: any = this.network?.body?.nodes?.[id];
+        const hasCanvas = !!body && Number.isFinite(body.x) && Number.isFinite(body.y);
+        const canvas = hasCanvas ? { x: body.x as number, y: body.y as number } : null;
+
+        const LE = (window as unknown as { GraphLayoutEngine?: any }).GraphLayoutEngine;
+        const rel = (window as unknown as { GraphRelativeLayout?: any }).GraphRelativeLayout;
+        const frame = LE && LE.paintedFrame ? LE.paintedFrame(nodes) : null;
+
+        const parentId = options ? options.spatialParentOf(id, nodes, edges) : null;
+        const parentNode = parentId ? nodes[parentId] : null;
+        const parentBody: any = parentId ? this.network?.body?.nodes?.[parentId] : null;
+        const offsetFromHolder = (canvas && parentBody && Number.isFinite(parentBody.x) && Number.isFinite(parentBody.y))
+            ? { dx: round(canvas.x - parentBody.x), dy: round(canvas.y - parentBody.y) }
+            : null;
+
+        const out = {
+            id,
+            type: node.type,
+            name: node.name,
+            VIEW_scopeFilter: this._scopeFilter || '(whole world)',
+            VIEW_layout: this._cardinalLayout ? 'map' : 'graph',
+            VIEW_pitch: LE && LE.mapSpacing ? LE.mapSpacing() : null,
+            GLOBAL_canvas: canvas ? { x: round(canvas.x), y: round(canvas.y) } : null,
+            LOCAL_cell: (props.cell as unknown) || null,
+            LOCAL_scope: options ? options.resolveScopeForNode(id, nodes, edges) : null,
+            LOCAL_offsetFromHolder: offsetFromHolder,
+            holder: parentId ? {
+                id: parentId,
+                name: parentNode ? parentNode.name : undefined,
+                in_loaded_graph: this.nodes.has(parentId),
+                painted: LE && LE.hasPaintedCoords ? !!LE.hasPaintedCoords((parentNode && parentNode.properties) || {}) : null,
+                cell: ((parentNode && parentNode.properties && parentNode.properties.cell) as unknown) || null,
+                canvas: parentBody && Number.isFinite(parentBody.x)
+                    ? { x: round(parentBody.x), y: round(parentBody.y) } : null,
+            } : null,
+            saved_properties_xy: (typeof props.x === 'number' && typeof props.y === 'number')
+                ? { x: props.x, y: props.y } : null,
+            seed_for: LE && LE.seedFor ? LE.seedFor(node, frame) : null,
+            frozen: rel && rel.isStatic ? !!rel.isStatic(node) : false,
+            in_loaded_graph: this.nodes.has(id),
+        };
+        try {
+            console.log('node position', out);
+            // A one-line JSON copy too: a collapsed object in DevTools cannot be
+            // pasted, and this readout exists to be shared.
+            console.log('node position json', JSON.stringify(out));
+        } catch (e) { /* ignore */ }
+        return out;
     }
 
     /**

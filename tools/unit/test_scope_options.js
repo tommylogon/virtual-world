@@ -196,3 +196,173 @@ test('round-trip: flatten then populate yields the same scope set', () => {
     const ids = []; (function w(e) { for (const c of e.children) { if (c.tagName === 'OPTION') ids.push(c.value); else w(c); } })(sel);
     assertEq(ids.sort().join(','), 'a,b,world', 'all three scopes reachable in the picker');
 });
+
+// --- nodeScopeId: the ONE per-node declaration read ---------------------------
+// Both ScopeOptions.resolveScopeForNode and GraphLayoutEngine.nodeScopeId need
+// "what scope does this node declare". It lives here once; the layout engine
+// delegates, so the two cannot drift.
+const _nodeScopeId = window.ScopeOptions.nodeScopeId;
+
+test('nodeScopeId reads world_scope_id then generated.scope_id', () => {
+    assertEq(_nodeScopeId({ properties: { world_scope_id: 'a' } }), 'a', 'world_scope_id');
+    assertEq(_nodeScopeId({ properties: { generated: { scope_id: 'b' } } }), 'b', 'generated.scope_id');
+    assertEq(_nodeScopeId({ properties: {} }), null, 'neither key');
+    assertEq(_nodeScopeId(null), null, 'null node');
+});
+
+test('world_scope_id wins when a node carries both', () => {
+    assertEq(_nodeScopeId({ properties: { world_scope_id: 'w', generated: { scope_id: 'g' } } }),
+        'w', 'declaration order is not incidental');
+});
+
+test('GraphLayoutEngine.nodeScopeId delegates to the shared reader', () => {
+    const node = { properties: { world_scope_id: 'mansion' } };
+    assertEq(window.GraphLayoutEngine.nodeScopeId(node), _nodeScopeId(node),
+        'the layout engine and the resolver agree on the declaration');
+    assertEq(window.GraphLayoutEngine.nodeScopeId({ properties: { generated: { scope_id: 'z' } } }),
+        'z', 'and on the generated fallback');
+});
+
+// --- spatialParentOf: the one-hop holder --------------------------------------
+const _spatialParentOf = window.ScopeOptions.spatialParentOf;
+
+test('spatialParentOf returns the highest-priority holder', () => {
+    const nodes = { c: plain(), way: area('s'), room: area('s') };
+    // c is both `at` the way and `in` the room -> `in` wins.
+    const edges = [edge('c', 'way', 'at'), edge('c', 'room', 'in')];
+    assertEq(_spatialParentOf('c', nodes, edges), 'room', 'in beats at');
+});
+
+test('spatialParentOf ignores non-spatial relations', () => {
+    const nodes = { c: plain(), room: area('s') };
+    assertEq(_spatialParentOf('c', nodes, [edge('c', 'room', 'connection')]), null, 'connection');
+    assertEq(_spatialParentOf('c', nodes, [edge('c', 'c', 'in')]), null, 'self-edge');
+    assertEq(_spatialParentOf('c', nodes, []), null, 'no edges');
+});
+
+// --- resolveScopeForNode: which scope owns a node ------------------------------
+// The graph view focuses a node selected from the outline / agent list / Ctrl+K
+// by switching to its owning scope. The resolver is the pure rule behind that,
+// so it is pinned here rather than by eye in a browser.
+const _resolve = window.ScopeOptions.resolveScopeForNode;
+
+const area = (scope) => ({ properties: { world_scope_id: scope } });
+const gen = (scope) => ({ properties: { generated: { scope_id: scope } } });
+const plain = () => ({ properties: {} });
+const edge = (source, target, type) => ({ source, target, type });
+
+test('a node that declares its own scope resolves directly', () => {
+    const nodes = { area_attic: area('mansion'), other: plain() };
+    assertEq(_resolve('area_attic', nodes, []), 'mansion', 'world_scope_id wins');
+});
+
+test('generated.scope_id is read when world_scope_id is absent', () => {
+    const nodes = { way_x: gen('goblin_camp') };
+    assertEq(_resolve('way_x', nodes, []), 'goblin_camp', 'generated scope read');
+});
+
+test('own scope beats a spatial parent', () => {
+    const nodes = { item_a: area('room_1'), area_parent: area('room_2') };
+    const edges = [edge('item_a', 'area_parent', 'in')];
+    assertEq(_resolve('item_a', nodes, edges), 'room_1', 'the declaration is authoritative');
+});
+
+test('a character resolves through its containing area', () => {
+    const nodes = { player_elena: plain(), area_library: area('mansion') };
+    const edges = [edge('player_elena', 'area_library', 'in')];
+    assertEq(_resolve('player_elena', nodes, edges), 'mansion', 'walked up one hop');
+});
+
+test('a nested item resolves through its container to the area', () => {
+    const nodes = {
+        item_key: plain(), item_lockbox: plain(), area_attic: area('mansion'),
+    };
+    const edges = [edge('item_key', 'item_lockbox', 'in'), edge('item_lockbox', 'area_attic', 'in')];
+    assertEq(_resolve('item_key', nodes, edges), 'mansion', 'two containment hops');
+});
+
+test('`in` is preferred over `at` when a character has both', () => {
+    const nodes = {
+        player_v: plain(), way_hall: area('wrong_scope'), area_library: area('right_scope'),
+    };
+    const edges = [edge('player_v', 'way_hall', 'at'), edge('player_v', 'area_library', 'in')];
+    assertEq(_resolve('player_v', nodes, edges), 'right_scope',
+        'the area wins over the landmark it stands at');
+});
+
+test('`beside` is NOT walked (character adjacency is not containment)', () => {
+    const nodes = { player_a: plain(), player_b: area('elsewhere') };
+    const edges = [edge('player_a', 'player_b', 'beside')];
+    assertEq(_resolve('player_a', nodes, edges), null,
+        'a character does not inherit a neighbour\'s scope');
+});
+
+test('`carrying` and `equipped` are NOT walked', () => {
+    const nodes = { item_sword: plain(), player_x: area('somewhere') };
+    const edges = [
+        edge('item_sword', 'player_x', 'carrying'),
+        edge('item_sword', 'player_x', 'equipped'),
+    ];
+    assertEq(_resolve('item_sword', nodes, edges), null,
+        'possession is not a place relation and its direction is not consistent');
+});
+
+test('`connection` and `triggers` are NOT walked', () => {
+    const nodes = { way_a: plain(), area_a: area('s1'), trig: plain(), item_a: plain() };
+    const edges = [
+        edge('way_a', 'area_a', 'connection'),
+        edge('item_a', 'trig', 'triggers'),
+    ];
+    assertEq(_resolve('way_a', nodes, edges), null, 'connection is structural, not spatial');
+    assertEq(_resolve('item_a', nodes, edges), null, 'a trigger edge is not a location');
+});
+
+test('an unknown node id resolves to null', () => {
+    assertEq(_resolve('nope', { a: area('s') }, []), null, 'absent node');
+    assertEq(_resolve('', { a: area('s') }, []), null, 'empty id');
+    assertEq(_resolve('a', null, null), null, 'no graph at all');
+});
+
+test('a containment cycle terminates instead of hanging', () => {
+    const nodes = { a: plain(), b: plain() };
+    const edges = [edge('a', 'b', 'in'), edge('b', 'a', 'in')];
+    assertEq(_resolve('a', nodes, edges), null, 'cycle yields null, no infinite walk');
+});
+
+test('a scope-less chain with no area returns null', () => {
+    const nodes = { a: plain(), b: plain() };
+    const edges = [edge('a', 'b', 'in')];
+    assertEq(_resolve('a', nodes, edges), null, 'walk ends at a node that declares nothing');
+});
+
+test('a Node id is not confused with an identical-looking edge endpoint case', () => {
+    const nodes = { 'Item_A': plain(), 'area_b': area('s9') };
+    const edges = [edge('Item_A', 'area_b', 'in')];
+    assertEq(_resolve('Item_A', nodes, edges), 's9', 'exact-id match');
+    assertEq(_resolve('item_a', nodes, edges), null, 'ids are exact, not case-folded');
+});
+
+test('the walk works with a Map as well as a plain object', () => {
+    const nodes = new Map([['player_z', plain()], ['area_z', area('mansion')]]);
+    const edges = [edge('player_z', 'area_z', 'in')];
+    assertEq(_resolve('player_z', nodes, edges), 'mansion', 'Map input accepted');
+});
+
+test('a self-edge is ignored', () => {
+    const nodes = { a: area('self') };
+    // `area('self')` declares normally; the self-edge must not affect it.
+    const edges = [edge('a', 'a', 'in')];
+    assertEq(_resolve('a', nodes, edges), 'self', 'declaration still read');
+});
+
+test('a chain deeper than the hop cap returns null rather than walking forever', () => {
+    const nodes = {}; const edges = [];
+    const DEPTH = 20;
+    for (let i = 0; i < DEPTH; i++) { nodes['n' + i] = plain(); }
+    nodes['n' + (DEPTH - 1)] = area('deep_scope');
+    for (let i = 0; i < DEPTH - 1; i++) { edges.push(edge('n' + i, 'n' + (i + 1), 'in')); }
+    // Scope sits 19 hops up, past the 12-hop cap.
+    assertEq(_resolve('n0', nodes, edges), null, 'capped');
+    // A shallow chain to the same declaration still resolves.
+    assertEq(_resolve('n' + (DEPTH - 2), nodes, edges), 'deep_scope', 'one hop in');
+});

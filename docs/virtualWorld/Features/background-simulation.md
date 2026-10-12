@@ -14,6 +14,8 @@ tags: [status/wired, surface/in-game, system/characters, system/docs]
 
 - [[Background Simulation]]
 - [[Character Pursuits]]
+- [[MOSIAC]]
+- [[GIMP]]
 
 ## Where it lives
 

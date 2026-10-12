@@ -3,7 +3,7 @@ type: task
 status: todo
 area: library
 priority: high
-related: [task-694, task-2, task-409, task-426, task-699]
+related: [task-694, task-2, task-409, task-426, task-699, task-807]
 ---
 
 # task-701: Pursuit template library: reusable undertakings as versioned entries
@@ -12,7 +12,7 @@ related: [task-694, task-2, task-409, task-426, task-699]
 **Clarified:** 2026-10-05
 
 <!-- deps:start -->
-**Related:** [[task-694-htc-fixture-world-a-tiny-scenario-authored-to-exercise-every-turn-panel-surface]], [[task-2-crafting_and_recipes]], [[task-409-background-schedules-work-and-coarse-social]], [[task-426-plan-archetypes-and-group-goals]], [[task-699-mosaic-design-doc-schedules-plan-templates-and-recipe-activities-as-one-goap-layer]]
+**Related:** [[task-694-htc-fixture-world-a-tiny-scenario-authored-to-exercise-every-turn-panel-surface]], [[task-2-crafting_and_recipes]], [[task-409-background-schedules-work-and-coarse-social]], [[task-426-plan-archetypes-and-group-goals]], [[task-699-mosiac-design-doc-schedules-plan-templates-and-recipe-activities-as-one-decision-layer]], [[task-807-gimp-the-goal-model-and-its-serialization]]
 <!-- deps:end -->
 
 ## What

@@ -403,6 +403,6 @@ The library contains 8 characters as of writing:
 
 **Dev tasks** — [[dev_tasks/done/characters/task-17-editable_characters|task]], [[dev_tasks/done/characters/task-27-character_import_from_file|task]], [[dev_tasks/done/ui/task-89-character_inspector_polish|task]]
 
-**Neighbouring notes** — [[Activities & States]], [[Background Simulation]], [[Character Images & Expression Packs]], [[Emotion & Affect System]], [[NPC Behavior System]], [[Relationships System]]
+**Neighbouring notes** — [[Activities & States]], [[Background Simulation]], [[Character Images & Expression Packs]], [[Emotion & Affect System]], [[GIMP]], [[MOSIAC]]
 
 <!-- connected:end -->

@@ -81,7 +81,7 @@ Checklist:
 - [ ] Scale / back-sim (consider abilities and movement capabilities)
 - beach — shrine — lake … bottom — underwater ↓ bottom
 - [ ] How to handle prices, ledger, shops
-- [ ] Quests, missions, jobs — how do we handle generated requests for others to complete? obligations in MOSAIC
+- [ ] Quests, missions, jobs — how do we handle generated requests for others to complete? obligations in MOSIAC
 - [ ] biomes seasonsa nd variants (dead forest, [tundra?], frozen, burned, [stare?]), frozen cliff, snow cliff, rockcliff
 - [ ] Make characters not want to stay in certain areas, like trashpiles, wasteareas, latrines, dirty or cold or too hot areas
 - [ ] UI designer bot? specialise agent with a UI toolkit and data?
@@ -721,7 +721,7 @@ These recur and are worth pulling out of the per-page detail:
   naming affordances (p13), templates (pp. 1, 12, 26).
 - **Crafting + skill** (pp. 22, 23) and **recipes as data**.
 - **Triggers** with a fixed event vocabulary and conditional effects (pp. 21, 25).
-- **Schedules / pursuits / MOSAIC** (pp. 16, 17) — already codified elsewhere in
+- **Schedules / pursuits / MOSIAC** (pp. 16, 17) — already codified elsewhere in
   the repo (`Character Pursuits.md`, task-699 and related), so listed here for
   completeness, not as new work.
 - **Biome fallout/states** (p2) and **layers beyond the current four** (p4).

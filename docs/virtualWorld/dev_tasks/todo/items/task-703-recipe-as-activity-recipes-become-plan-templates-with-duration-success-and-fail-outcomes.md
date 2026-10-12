@@ -3,7 +3,7 @@ type: task
 status: todo
 area: items
 priority: medium
-related: [task-2, task-18, task-197, task-504, task-472, task-699, task-701, task-702]
+related: [task-2, task-18, task-197, task-504, task-472, task-699, task-701, task-702, task-807]
 blocked_by: [task-701, task-702]
 ---
 
@@ -13,7 +13,7 @@ blocked_by: [task-701, task-702]
 
 <!-- deps:start -->
 **Blocked by:** [[task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries]], [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]]
-**Related:** [[task-2-crafting_and_recipes]], [[task-18-fireplace_lighting_recipe]], [[task-197-teach-skill-recipe]], [[task-504-item-quantity-property-and-pooled-resource-nodes]], [[task-472-central-dice-and-check-resolution]], [[task-699-mosaic-design-doc-schedules-plan-templates-and-recipe-activities-as-one-goap-layer]], [[task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries]], [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]]
+**Related:** [[task-2-crafting_and_recipes]], [[task-18-fireplace_lighting_recipe]], [[task-197-teach-skill-recipe]], [[task-504-item-quantity-property-and-pooled-resource-nodes]], [[task-472-central-dice-and-check-resolution]], [[task-699-mosiac-design-doc-schedules-plan-templates-and-recipe-activities-as-one-decision-layer]], [[task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries]], [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]], [[task-807-gimp-the-goal-model-and-its-serialization]]
 <!-- deps:end -->
 
 ## What

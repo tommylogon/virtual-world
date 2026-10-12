@@ -327,14 +327,23 @@ class UIController {
     }
     // --- Character Select ---
     selectAgent(name) {
-        if (worldState.players?.[name]) {
-            ApiClient.setActivePlayer(name).then(async () => {
-                await worldState.fetch();
-                VW?.inspector?.showAgent(name);
-                config.controllingPlayer = name;
-                graphManager.focusNode(`player_${name.replace(/\s+/g, '_')}`);
-            });
-        }
+        if (!worldState.players?.[name])
+            return;
+        // Open the inspector from the state we ALREADY hold. This used to await
+        // `setActivePlayer` and then a full `worldState.fetch()` before showing
+        // anything, so on a large world (kraktooth: 2763 nodes, ~14 MB
+        // /api/state) the panel appeared seconds after the click.
+        VW?.inspector?.showAgent(name);
+        config.controllingPlayer = name;
+        graphManager.focusNode(`player_${name.replace(/\s+/g, '_')}`);
+        // The write needs NO explicit refetch: app.py's after_request broadcasts
+        // `world_changed` for every mutating /api/ call, and the SSE
+        // (world-state.ts connectLiveEdits) fetches state on it, which re-renders
+        // the panels. The explicit fetch here was a second full /api/state
+        // download per click (the SSE already did one).
+        ApiClient
+            .setActivePlayer(name)
+            .catch(() => { });
     }
     // --- Agent UI form controls ---
     initAgentUI() {

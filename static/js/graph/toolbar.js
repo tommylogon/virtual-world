@@ -809,11 +809,8 @@ window.GraphToolbar = {
             crumbs.appendChild(crumb);
         });
     },
-    /** Load a scope by id, keeping the picker's value in step. */
+    /** Load a scope by id. `setScopeFilter` keeps the picker's value in step. */
     loadScope(scopeId) {
-        const sel = document.getElementById('graph-scope-filter');
-        if (sel)
-            sel.value = scopeId || '';
         const gm = window.graphManager;
         if (gm)
             gm.setScopeFilter(scopeId);

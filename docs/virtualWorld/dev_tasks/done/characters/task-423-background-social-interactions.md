@@ -286,7 +286,7 @@ outcome table's input rather than inventing new thresholds.
 
 - Real dialogue text. Actions are mechanical; prose is the promotion summary.
 - LLM calls in the background tier.
-- Full GOAP/planning. This is a scored, weighted chooser.
+- Full plan-space search / planning systems. This is a scored, weighted chooser.
 - Multi-party (3+) interactions, groups, or overheard conversations.
 - Fertility/children, romance trees, or family structures beyond closeness.
 

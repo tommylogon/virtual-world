@@ -307,6 +307,6 @@ Traits are defined in `engine/traits.py` (`TRAIT_DEFINITIONS` at 71-233 and the 
 
 **Dev tasks** — [[dev_tasks/done/emotions/task-24-traits_conditions_emotions_editor|task]]
 
-**Neighbouring notes** — [[Activities & States]], [[Background Simulation]], [[Character Images & Expression Packs]], [[Characters Overview]], [[Emotion & Affect System]], [[NPC Behavior System]]
+**Neighbouring notes** — [[Activities & States]], [[Background Simulation]], [[Character Images & Expression Packs]], [[Characters Overview]], [[Emotion & Affect System]], [[GIMP]]
 
 <!-- connected:end -->

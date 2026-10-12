@@ -334,6 +334,12 @@ window.GraphLayoutEngine = {
     /** Clear space left between the largest card and the way beside it, in px. */
     MARK_ENVELOPE_GAP: 20,
     /**
+     * The flat auto pitch (px per painted cell) `autoMapSpacing` returns,
+     * whatever the scope. See `autoMapSpacing` for why this is a constant and
+     * what it trades off. Tune here, in one place.
+     */
+    AUTO_MAP_PITCH: 800,
+    /**
      * The smallest pitch at which the marks cannot overlap: two area cards a cell
      * apart with a way node on the midpoint between them. The binding case is
      * `card + way + gap` — a half-cell must hold a half-card and a half-way — so
@@ -397,20 +403,19 @@ window.GraphLayoutEngine = {
         return false;
     },
     /**
-     * The default map pitch: the **mark envelope** (see `markEnvelopePitch`) —
-     * how much room the marks need, not how many cells fit the canvas and not
-     * how wide the world is.
+     * The default map pitch: a **flat 800 px/cell** for every painted scope.
      *
-     * Returns `null` when nothing is painted, so a hand-authored world keeps
-     * whatever pitch the user has. This is the *default*; the toolbar's stepper
-     * is the override (see `graphManager.setMapSpacing`).
+     * Operator call, 2026-10-12. The mark envelope (`markEnvelopePitch`) is the
+     * *no-overlap minimum* (176 at node-size 1) and reads as cramped on a map;
+     * every attempt to derive the pitch from the world, the canvas or the image
+     * (the task-748 history) produced a number that fought the operator's eye. So
+     * auto is a single constant. The envelope still wins when a large node-size
+     * pushes it above 800 (`Math.max`), so overlap is impossible either way.
      *
-     * History (task-748): the first version aimed `AUTO_SPAN_PX` of canvas at the
-     * painted extent; the next aimed `AUTO_CELLS_ACROSS` cells at the viewport.
-     * Both made the pitch a function of something other than the marks, and both
-     * clamped into a band that fought the intent (a 240 floor on a wide world, a
-     * 40 floor on a small pane). The envelope needs no clamp: it *is* the value
-     * that keeps the invariant "no overlap, a way fits between two areas".
+     * Known trade-off, accepted: the pitch does not scale with the scope, so a
+     * 160x120 grid (raven river) becomes a 128000 x 96000 px canvas and its
+     * reference art is upscaled hard, where a 20x7 grid (kraktoot world) is fine.
+     * The manual stepper's override (task-526) is unchanged.
      *
      * @param {Object} nodesObj - the nodes being laid out
      * @param {{w:number,h:number}} [viewSize] - ignored; kept for call compatibility
@@ -419,7 +424,8 @@ window.GraphLayoutEngine = {
     autoMapSpacing(nodesObj, viewSize) {
         if (!window.GraphLayoutEngine.hasPaintedGrid(nodesObj))
             return null;
-        return window.GraphLayoutEngine.markEnvelopePitch();
+        const LE = window.GraphLayoutEngine;
+        return Math.max(LE.markEnvelopePitch(), LE.AUTO_MAP_PITCH);
     },
     /**
      * The map canvas size in px. No longer feeds the pitch (task-748) - kept for
@@ -526,14 +532,16 @@ window.GraphLayoutEngine = {
     /**
      * The scope a compiled node belongs to. Areas and ways both store
      * `world_scope_id`; a gateway also carries `generated.scope_id`.
+     *
+     * Delegates to `shared/scope-options` (the scope vocabulary module) so the
+     * rule has ONE home — `ScopeOptions.resolveScopeForNode` walks the same
+     * declaration up the containment graph, and the two must not drift. This
+     * file is `graph/` and the delegate is `shared/`, so the direction is right.
      * @param {Object} node
      * @returns {string|null}
      */
     nodeScopeId(node) {
-        const props = (node || {}).properties || {};
-        return props.world_scope_id
-            || (props.generated && props.generated.scope_id)
-            || null;
+        return window.ScopeOptions.nodeScopeId(node);
     },
     /**
      * A node's map offset in canvas px, from the per-scope offset table.
@@ -774,6 +782,7 @@ window.GraphLayoutEngine = {
                 physics: !pinnedToGrid && !frozen,
                 fixed: pinnedToGrid ? { x: true, y: true } : { x: false, y: false },
             });
+            window.GraphNetwork?._posTrace?.('gridUpdates.' + (window.GraphLayoutEngine.hasPaintedCoords(props) ? 'paintedCell' : 'savedXY'), id, p.x, p.y, node.type);
             placed.add(id);
             if (isArea)
                 anchors[id] = p;
@@ -790,14 +799,11 @@ window.GraphLayoutEngine = {
                 if (placed.has(id) || !nodesDS.get(id))
                     return;
                 const isChar = (nodesObj[id] || {}).type === 'character';
-                updates.push({
-                    id,
-                    x: anchor.x + (isChar ? beside.charX : beside.itemX) + (index % beside.perRow) * beside.step,
-                    y: anchor.y + (isChar ? beside.charY : beside.itemY)
-                        + Math.floor(index / beside.perRow) * beside.step,
-                    physics: true,
-                    fixed: { x: false, y: false },
-                });
+                const bx = anchor.x + (isChar ? beside.charX : beside.itemX) + (index % beside.perRow) * beside.step;
+                const by = anchor.y + (isChar ? beside.charY : beside.itemY)
+                    + Math.floor(index / beside.perRow) * beside.step;
+                updates.push({ id, x: bx, y: by, physics: true, fixed: { x: false, y: false } });
+                window.GraphNetwork?._posTrace?.('gridUpdates.beside', id, bx, by, 'held in ' + areaId);
             });
         }
         // Ways that belong to the map were skipped by the loop above;
@@ -811,6 +817,7 @@ window.GraphLayoutEngine = {
             if (!pos)
                 continue;
             updates.push({ id: wayId, x: pos.x, y: pos.y, physics: false, fixed: { x: true, y: true } });
+            window.GraphNetwork?._posTrace?.('gridUpdates.wayBetweenRooms', wayId, pos.x, pos.y);
             placed.add(wayId);
         }
         return updates;

@@ -110,6 +110,6 @@ Activities live on `Player.activity` and `player.state` (`player.py:172`), advan
 
 **Features** — [[activities-states|Activities & states]] (#26)
 
-**Neighbouring notes** — [[Background Simulation]], [[Character Images & Expression Packs]], [[Characters Overview]], [[Emotion & Affect System]], [[NPC Behavior System]], [[Relationships System]]
+**Neighbouring notes** — [[Background Simulation]], [[Character Images & Expression Packs]], [[Characters Overview]], [[Emotion & Affect System]], [[GIMP]], [[MOSIAC]]
 
 <!-- connected:end -->

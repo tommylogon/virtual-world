@@ -3,7 +3,7 @@ type: task
 status: todo - out of date, need to re-measure and re-author
 area: characters
 priority: high
-related: [task-702, task-704, task-699]
+related: [task-702, task-704, task-699, task-814]
 blocked_by: [task-399, task-408]
 ---
 
@@ -15,7 +15,7 @@ blocked_by: [task-399, task-408]
 
 <!-- deps:start -->
 **Blocked by:** [[task-399-background-character-simulation-and-reactivation]], [[task-408-goblin-scenario-node-dedup-and-data-integrity]]
-**Related:** [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]], [[task-704-mosaic-selector-needs-memory-and-personality-choose-and-bind-plans]], [[task-699-mosaic-design-doc-schedules-plan-templates-and-recipe-activities-as-one-goap-layer]]
+**Related:** [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]], [[task-704-mosiac-selector-needs-memory-and-personality-choose-and-bind-plans]], [[task-699-mosiac-design-doc-schedules-plan-templates-and-recipe-activities-as-one-decision-layer]], [[task-814-mosiac-schedules-a-character-can-edit-themselves]]
 <!-- deps:end -->
 
 ## Progress (slice 1)

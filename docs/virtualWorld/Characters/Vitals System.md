@@ -585,6 +585,6 @@ Characters often start with vitals below 100 to simulate pre-existing conditions
 
 **Dev tasks** — [[dev_tasks/done/characters/task-28-character_needs_system|task]]
 
-**Neighbouring notes** — [[Activities & States]], [[Background Simulation]], [[Character Images & Expression Packs]], [[Characters Overview]], [[Emotion & Affect System]], [[NPC Behavior System]]
+**Neighbouring notes** — [[Activities & States]], [[Background Simulation]], [[Character Images & Expression Packs]], [[Characters Overview]], [[Emotion & Affect System]], [[GIMP]]
 
 <!-- connected:end -->

@@ -175,6 +175,6 @@ Relationships are authored and mutated through `engine/relationships.py` (`apply
 
 **Features** — [[relationships|Relationships]] (#21)
 
-**Neighbouring notes** — [[Activities & States]], [[Background Simulation]], [[Character Images & Expression Packs]], [[Characters Overview]], [[Emotion & Affect System]], [[NPC Behavior System]]
+**Neighbouring notes** — [[Activities & States]], [[Background Simulation]], [[Character Images & Expression Packs]], [[Characters Overview]], [[Emotion & Affect System]], [[GIMP]]
 
 <!-- connected:end -->

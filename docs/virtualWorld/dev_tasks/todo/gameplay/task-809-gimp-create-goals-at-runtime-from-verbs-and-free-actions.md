@@ -1,0 +1,47 @@
+---
+type: task
+status: todo
+area: gameplay
+priority: medium
+wiki: "[[Character Pursuits]]"
+related: [task-702, task-691, task-714]
+blocked_by: [task-807]
+---
+
+# task-809: GIMP: create goals at runtime from verbs and free actions
+
+**Filed:** 2026-10-12
+**Related:** task-702
+
+<!-- deps:start -->
+**Blocked by:** [[task-807-gimp-the-goal-model-and-its-serialization]]
+**Related:** [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]], [[task-691-memory-mind-interface-dynamics-badges-connections-per-person-profiles-dashboard]], [[task-714-character-mind-panel-connect-memories-motives-and-current-pursuits]]
+<!-- deps:end -->
+
+## What
+
+A character (or a player) can set a new goal, complete one, or drop one during play - hand-authored not required.
+
+## Why
+
+Goals chain up from need: a verb or free action creates a goal, which MOSIAC then works toward. Editor-only authoring would freeze goals at design time.
+
+## How
+
+A set_goal / complete_goal / drop_goal free action (or verb) writing the Goal model. Validate against world state (a goal is a want, not a world change).
+
+## Steps to verify
+
+1. In a live session, issue the set-goal action, then complete one, then drop one.
+   - expected: the goal appears, changes status and disappears in the 🧠 Mind panel (`InspectorMindView`) and in GET /api/state.
+   - observed: TODO
+
+## Acceptance
+
+- [ ] A goal can be created, completed and dropped at runtime.
+- [ ] The action is authorable in the action tiers.
+
+## Files
+
+- `engine/action_tiers.py`
+- `engine/goals.py`

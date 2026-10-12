@@ -78,6 +78,10 @@ interface PreviewModalEl extends HTMLDivElement {
     VW.agent = agent;
     VW.ui = ui;
     VW.graph = graphManager;
+    // Position readout: `VW.nodePos()` for the selected node, or `VW.nodePos(id|name)`.
+    // Shows global canvas x/y vs local cell / holder-relative offset.
+    (VW as unknown as { nodePos?: (id?: string) => unknown }).nodePos =
+        (id?: string) => graphManager.debugNodePosition(id);
     VW.itemLib = itemLib;
     VW.dialog = (window as unknown as { Dialog?: unknown }).Dialog;
     VW.inspector = inspector;
@@ -871,7 +875,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 agent.initializeTurnQueue();
             }
         }
-        ui.renderAll(state);
+        // NOTE: no ui.renderAll(state) here. Panel rendering is driven by the
+        // `state:updated` bus event (ui-controller.ts subscribes and calls
+        // renderAll). world-state.fetch() emits BOTH `update` (this handler) and
+        // `state:updated`, so calling renderAll in both places re-rendered every
+        // panel twice per fetch — four times per agent click, which did two
+        // fetches. Keep the one subscription.
         
         // Update play/pause buttons
         ui.showPlayPause(!config.running, Boolean(config.running));

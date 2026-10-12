@@ -209,6 +209,8 @@ Registrars: `routes/world_grid.py` (URLs only) and `routes/world_grid_ops.py`
 
 **Features** — [[scopes|Scopes]] (#49)
 
+**Dev tasks** — [[dev_tasks/review/ui/task-815-selecting-a-node-from-the-outline-agent-list-or-ctrl-k-switches-the-graph-to-its-owning-scope|task]]
+
 **Neighbouring notes** — [[Connections]], [[Generated Scenario Review (2026-08)]], [[Graph System]], [[Grid to Graph]], [[Millbrook Falls Town Map]], [[Movement]]
 
 <!-- connected:end -->

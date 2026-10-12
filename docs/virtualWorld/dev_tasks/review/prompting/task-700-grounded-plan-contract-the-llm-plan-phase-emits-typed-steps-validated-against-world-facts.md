@@ -3,7 +3,7 @@ type: task
 status: review
 area: prompting
 priority: high
-related: [task-693, task-409, task-702]
+related: [task-693, task-409, task-702, task-807]
 ---
 
 # task-700: Grounded plan contract: the LLM plan phase emits typed steps validated against world facts
@@ -12,7 +12,7 @@ related: [task-693, task-409, task-702]
 **Related:** task-693,task-409
 
 <!-- deps:start -->
-**Related:** [[task-693-e2e-verification-harness-one-command-that-boots-the-app-drives-the-browser-and-asserts-live-state]], [[task-409-background-schedules-work-and-coarse-social]], [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]]
+**Related:** [[task-693-e2e-verification-harness-one-command-that-boots-the-app-drives-the-browser-and-asserts-live-state]], [[task-409-background-schedules-work-and-coarse-social]], [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]], [[task-807-gimp-the-goal-model-and-its-serialization]]
 <!-- deps:end -->
 
 ## What

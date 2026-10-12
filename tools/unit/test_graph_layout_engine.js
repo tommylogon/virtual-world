@@ -184,20 +184,29 @@ test('map marks are fixed px, so the pitch never resizes them (task-748)', () =>
     config = undefined;
 });
 
-test('autoMapSpacing is the mark envelope, not a viewport or world width (task-748)', () => {
-    // The pitch is how much room the marks need, so it does not move with the
-    // canvas size or the painted extent. card 130 + way 26 + gap 20 = 176.
+test('autoMapSpacing is a flat constant, not a viewport or world width (task-748, 2026-10-12)', () => {
+    // Operator call 2026-10-12: auto is a single flat pitch (AUTO_MAP_PITCH),
+    // not the mark envelope. It does not move with the canvas size or the
+    // painted extent. The envelope remains the no-overlap FLOOR, so it only
+    // wins when a large node-size pushes it above the constant.
     const painted = { a: { type: 'area', properties: { cell: { x: 0, y: 0 } } } };
-    assertEq(GraphLayoutEngine.autoMapSpacing(painted, { w: 1400, h: 1400 }), 176, 'the envelope');
-    assertEq(GraphLayoutEngine.autoMapSpacing(painted, { w: 400, h: 400 }), 176,
+    const AUTO = GraphLayoutEngine.AUTO_MAP_PITCH;
+    assertTrue(AUTO >= 600, `the flat auto pitch is large (${AUTO})`);
+    assertEq(GraphLayoutEngine.autoMapSpacing(painted, { w: 1400, h: 1400 }), AUTO, 'the flat value');
+    assertEq(GraphLayoutEngine.autoMapSpacing(painted, { w: 400, h: 400 }), AUTO,
         'a small pane does not lower it');
-    assertEq(GraphLayoutEngine.autoMapSpacing(painted, { w: 100000, h: 100000 }), 176,
+    assertEq(GraphLayoutEngine.autoMapSpacing(painted, { w: 100000, h: 100000 }), AUTO,
         'a big pane does not raise it');
 
     // The painted extent does NOT change the pitch either.
     const big = { a: { type: 'area', properties: { cell: { x: 199, y: 132 } } } };
-    assertEq(GraphLayoutEngine.autoMapSpacing(big, { w: 1400, h: 1400 }), 176,
+    assertEq(GraphLayoutEngine.autoMapSpacing(big, { w: 1400, h: 1400 }), AUTO,
         'a 200-cell world gets the same pitch');
+
+    // The envelope is still the floor: a node-size that inflates it past the
+    // constant must win, so overlap can never return.
+    assertEq(GraphLayoutEngine.autoMapSpacing(painted, { w: 1400, h: 1400 }),
+        Math.max(GraphLayoutEngine.markEnvelopePitch(), AUTO), 'envelope floors the constant');
 
     // Nothing painted → no opinion, so a hand-authored world keeps its pitch.
     assertEq(GraphLayoutEngine.autoMapSpacing({}, { w: 1400, h: 1400 }), null, 'nothing painted -> no opinion');

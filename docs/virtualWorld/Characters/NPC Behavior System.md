@@ -483,6 +483,6 @@ This is separate from the main `player.memories[]` list, which stores narrative 
 
 **Dev tasks** — [[dev_tasks/done/bugs/bug_8-max-steps-counts-characters-not-turns|bug_8]], [[dev_tasks/done/characters/task-147-threat-aware-autonomous-replanning|task]], [[dev_tasks/done/characters/task-38-npc_behavior_go_command|task]], [[dev_tasks/done/characters/task-8-npc_behavior_movement|task]], [[dev_tasks/done/characters/task-92-needs_driven_autonomous_replanning|task]], [[dev_tasks/done/characters/task-94-closeness_as_behavioral_gate|task]]
 
-**Neighbouring notes** — [[Activities & States]], [[Background Simulation]], [[Character Images & Expression Packs]], [[Characters Overview]], [[Emotion & Affect System]], [[Relationships System]]
+**Neighbouring notes** — [[Activities & States]], [[Background Simulation]], [[Character Images & Expression Packs]], [[Characters Overview]], [[Emotion & Affect System]], [[GIMP]]
 
 <!-- connected:end -->

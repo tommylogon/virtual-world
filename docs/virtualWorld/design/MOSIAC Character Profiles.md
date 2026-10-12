@@ -3,15 +3,17 @@ type: doc
 tags: [system/docs, system/characters]
 ---
 
-# MOSAIC Character Profiles
+# MOSIAC Character Profiles
 
-What MOSAIC looks like when it is filled in. For every character of three shipped scenarios - **mansion**, **taco_bell_date** and **kraktooth_goblin_camp** - the six letters as the inputs, ten **Intentions**, and **Choice** as the disposition that weighs them.
+What MOSIAC looks like when it is filled in. For every character of four shipped scenarios - **mansion**, **The Valerious Case**, **taco_bell_date** and **kraktooth_goblin_camp** - the six letters as the inputs, ten **Intentions**, and **Choice** as the disposition that weighs them.
 
 Grounded in the characters as authored. Each profile is read off the character's real `personality` and `base_description` in `data/library/characters/` (and their node prose where the library has none), not from their names. That matters: the first pass at this exercise guessed roles from names, and several guesses were wrong - the mansion cast are not dinner guests, and tyler is not a rival ex, he is the cashier. The ten intentions below follow the character each one is grounded in.
 
-## The shape of a MOSAIC
+The point is not that every intention is built today. It is to see which MOSIAC pieces the content actually demands and which are missing, and how the shape differs by scenario type: a narrative night that runs on obligations and attention, versus a sandbox day that runs on schedules.
 
-MOSAIC names six **concerns**: five inputs and one resolution.
+## The shape of a MOSIAC
+
+MOSIAC names six **concerns**: five inputs and one resolution.
 
 | Letter | Concern | Reads / produces |
 |---|---|---|
@@ -29,7 +31,7 @@ The artifacts those concerns produce belong to the *world*, not the letters: a *
 - `sapient` - needs, obligations, intentions. An LLM agent or a simple NPC.
 - `drive` - urges only, no intentions: hunger, territory, fear. Animals and the undead.
 
-A boar is not pursuing a goal; it is hungry. Give it intentions and MOSAIC dresses instinct up as choice.
+A boar is not pursuing a goal; it is hungry. Give it intentions and MOSIAC dresses instinct up as choice.
 
 ### The structured forms
 
@@ -311,6 +313,67 @@ A fast-food first date that jake decided - out loud - was a date. **No schedules
 10. Get home - I
 
 ---
+
+## The Valerious Case
+
+A snowbound investigation in a fantasy winter (the curse of 1584). Cast: **Kaelen Voss**, a disgraced investigator; **Lyrie**, an elven airhead; and a **rat**. **No schedules** - it is one night in the snow.
+
+### Kaelen Voss - the disgraced investigator
+`The Valerious Case / sapient` - exiled from the Galser Office of Justice, clockwork leg, dry humor
+- **M** find the truth of what happened here; be right, this time, in the open
+- **O** to whoever sent him; to the stray he keeps
+- **S** none
+- **A** fine print, distant horizons, anything that does not add up; the small animal
+- **C** dry and unflappable; reads the detail before the scene
+
+1. Find the missing person before the storm closes - I
+2. Survive the blizzard: warmth, shelter, dry clothes - M
+3. Reach the hunter's cabin - I
+4. Search the study for the record - I
+5. Open the hidden panic room - I
+6. Follow the tracks before snow covers them - I
+7. Confront whoever is lying - I
+8. Keep the rat alive, and out of his food - O
+9. Get back out of the woods - M
+10. Bring proof to whoever sent him - O
+
+### Lyrie - the elven airhead
+`The Valerious Case / sapient` - sweet, clumsy, disastrous, no self-preservation
+- **M** help, cheerfully; be liked; follow whatever is interesting
+- **O** to whoever she is with - she would never let them down on purpose
+- **S** none
+- **A** whatever catches her eye; nothing for long
+- **C** jumps to a bizarre conclusion and acts on it with total sincerity
+
+1. Stay with Kaelen, and lose him anyway - O
+2. Help with something and break it - M
+3. Follow a weird idea to its ridiculous end - M
+4. Find something pretty in the snow - I
+5. Ask a question that makes no sense - M
+6. Cry, then carry on - M
+7. Wander somewhere she should not - I
+8. Try to feed the rat - I
+9. Get lost, and be found - I
+10. Be there at the end without meaning to be - O
+
+### rat - the rat
+`The Valerious Case / drive`
+- **M** food; warmth; safety
+- **O** none
+- **S** none
+- **A** the gap under the door; crumbs; movement
+- **C** instinct; curious before it is afraid
+
+1. Sniff under the kitchen door - I
+2. Find food - I
+3. Hide in the cellar - I
+4. Gnaw the grain sack - I
+5. Reach the pantry - I
+6. Escape the trap - I
+7. Nest in the wall - I
+8. Flee the fire - I
+9. Find water - I
+10. Watch the humans - I
 
 ## kraktooth_goblin_camp
 
@@ -796,10 +859,10 @@ The sandbox: a goblin camp in the deep woods beside Eldenford, 27 characters, ru
 ## What this shows
 
 1. **Grounding changes the character, not just the words.** Read off names, mansion looked like a dinner-party whodunit and tyler looked like a rival ex. Read off the library, mansion is a paranormal investigation with a slasher and a haunting, and tyler is the boy at the register counting minutes to his ride. The inputs (M / O / A / C) are what re-ground the ten - and they move a lot.
-2. **The cast is shared across scenarios.** jake, miki and kayla carry the same authored person across mansion and taco_bell_date. A MOSAIC is the *character's*, not the scenario's, so the same inputs travel with them - which is the argument for a character-level, not scene-level, definition.
-3. **Obligations are everywhere and have no home.** Protect, guard, report, feed, keep-close, do-not-abandon - most intentions across all three scenarios are owed to someone. The most demanded letter is the one with no code.
+2. **The cast is shared across scenarios.** jake, miki and kayla carry the same authored person across mansion and taco_bell_date. A MOSIAC is the *character's*, not the scenario's, so the same inputs travel with them - which is the argument for a character-level, not scene-level, definition.
+3. **Obligations are everywhere and have no home.** Protect, guard, report, feed, keep-close, do-not-abandon - most intentions across all four scenarios are owed to someone. The most demanded letter is the one with no code.
 4. **The drive tier is not binary.** Nine kraktooth characters plus the cat have urges, not intentions - but two of them are the counter-example: **Silver-Talon** carries messages for Vekka, and **Croak-Mother** is "unnervingly intelligent" and deals with the shaman. A flat `drive` tier would flatten a bond and a legend into instinct. The tier needs a seam for the exceptional animal.
-5. **The eldenford three are the richest case.** The Farmer, the Merchant and the Road Guard Captain each carry a private load - the farmer's fear of the silence, the merchant's second set of accounts and the men who did not come back, the captain's unspoken arrangement with the raiders. None of it is a schedule or a goal; all of it is **Attention** and **Choice**. MOSAIC's hardest job is not the chores, it is the thing they are not saying.
+5. **The eldenford three are the richest case.** The Farmer, the Merchant and the Road Guard Captain each carry a private load - the farmer's fear of the silence, the merchant's second set of accounts and the men who did not come back, the captain's unspoken arrangement with the raiders. None of it is a schedule or a goal; all of it is **Attention** and **Choice**. MOSIAC's hardest job is not the chores, it is the thing they are not saying.
 
 ### One data note
 
@@ -810,6 +873,6 @@ The sandbox: a goblin camp in the deep woods beside Eldenford, 27 characters, ru
 
 *Generated by `python tools/doc_connected.py --apply` — relations the repo already asserts (Feature Map rows, task `wiki:` frontmatter, module `@docs` headers, same-folder notes), not invented.*
 
-**Neighbouring notes** — [[Character Pursuits]], [[MOSAIC Goals and Pursuits - Worked Examples]]
+**Neighbouring notes** — [[Character Pursuits]]
 
 <!-- connected:end -->

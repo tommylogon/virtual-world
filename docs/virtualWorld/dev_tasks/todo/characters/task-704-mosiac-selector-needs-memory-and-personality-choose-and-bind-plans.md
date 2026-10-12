@@ -9,13 +9,13 @@ blocked_by: [task-701, task-702, task-705]
 
 # task-704: Pursuit selection from goals, needs, memory, perception, and world time
 
-**System name:** the **MOSAIC** selector — the *Choice* step of MOSAIC (Motivation, Obligations, Schedules, Attention, Intentions, Choice). It reads those inputs and binds a plan.
+**System name:** the **MOSIAC** selector — the *Choice* step of MOSIAC (Motivation, Obligations, Schedules, Intentions, Attention, Choice). It reads those inputs and binds a plan.
 
 **Clarified:** 2026-10-05
 
 <!-- deps:start -->
 **Blocked by:** [[task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries]], [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]], [[task-705-requirement-condition-leaves-quantity-area-function-knowledge-and-ownership]]
-**Related:** [[task-426-plan-archetypes-and-group-goals]], [[task-409-background-schedules-work-and-coarse-social]], [[task-685-memory-dynamics-memories-that-reinforce-fade-contradict-and-change-the-character]], [[task-699-mosaic-design-doc-schedules-plan-templates-and-recipe-activities-as-one-goap-layer]], [[task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries]], [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]]
+**Related:** [[task-426-plan-archetypes-and-group-goals]], [[task-409-background-schedules-work-and-coarse-social]], [[task-685-memory-dynamics-memories-that-reinforce-fade-contradict-and-change-the-character]], [[task-699-mosiac-design-doc-schedules-plan-templates-and-recipe-activities-as-one-decision-layer]], [[task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries]], [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]]
 <!-- deps:end -->
 
 ## What

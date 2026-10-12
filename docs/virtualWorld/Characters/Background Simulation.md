@@ -322,6 +322,6 @@ The background tier is split across `engine/background_simulation.py` (`Backgrou
 
 **Features** — [[background-simulation|Background simulation]] (#28)
 
-**Neighbouring notes** — [[Activities & States]], [[Character Images & Expression Packs]], [[Characters Overview]], [[Emotion & Affect System]], [[NPC Behavior System]], [[Relationships System]]
+**Neighbouring notes** — [[Activities & States]], [[Character Images & Expression Packs]], [[Characters Overview]], [[Emotion & Affect System]], [[GIMP]], [[MOSIAC]]
 
 <!-- connected:end -->

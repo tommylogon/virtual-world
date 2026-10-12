@@ -488,6 +488,7 @@ declare const GraphNetwork: {
     _attachTippyTooltips(...args: any[]): any;
     _bindEdgeHoverTooltips(...args: any[]): any;
     _captureBaseStyles(...args: any[]): any;
+    _cellSig(...args: any[]): any;
     _clearOverlay(...args: any[]): any;
     _computeAmbientLight(...args: any[]): any;
     _computeVisibleNodeIds(...args: any[]): any;
@@ -531,6 +532,7 @@ declare const GraphNetwork: {
     loadGraphData(...args: any[]): any;
     syncGraphData(...args: any[]): any;
     _nodeProjection(...args: any[]): any;
+    _posTrace(...args: any[]): any;
     _edgeSig(...args: any[]): any;
     mapCompact(...args: any[]): any;
     mapSizeScale(...args: any[]): any;

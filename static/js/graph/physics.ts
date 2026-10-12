@@ -159,6 +159,32 @@ window.GraphPhysics = {
     },
 
     /**
+     * Write each node's LIVE physics-body position into the DataSet, so a later
+     * solver re-seed (a pause, a stabilization) rebuilds the body from where the
+     * nodes actually are rather than from the coordinate the DataSet was loaded
+     * with. One batched update — never one call per node, which redraws the whole
+     * graph per node.
+     */
+    _snapshotBodyToDataset(): void {
+        const gm: any = (typeof graphManager !== 'undefined' && graphManager) || null;
+        const nodesDS = gm && gm.network && gm.network.body && gm.network.body.data
+            && gm.network.body.data.nodes;
+        const body = gm && gm.network && gm.network.body && gm.network.body.nodes;
+        if (!nodesDS || !body) return;
+        const updates: Array<{ id: string; x: number; y: number }> = [];
+        for (const id of Object.keys(body)) {
+            const b = body[id];
+            if (b && Number.isFinite(b.x) && Number.isFinite(b.y)) {
+                updates.push({ id, x: b.x as number, y: b.y as number });
+                (window as unknown as { GraphNetwork?: { _posTrace?(...a: any[]): void } }).GraphNetwork?._posTrace?.('physics._snapshotBodyToDataset', id, b.x, b.y);
+            }
+        }
+        if (updates.length) {
+            try { nodesDS.update(updates); } catch (e) { /* ignore */ }
+        }
+    },
+
+    /**
      * The ONE writer. Compute the decision and push it onto the network. Every
      * former `applyModePhysics(enabled)` site now lands here.
      */
@@ -167,6 +193,14 @@ window.GraphPhysics = {
         if (!gm || !gm.network || !gm.network.setOptions) return;
         const run = GraphPhysics.shouldRun(GraphPhysics.readState());
         if (!run) {
+            // Freeze exactly where the nodes ARE — but ONLY for a real pause.
+            // During a load, GraphPhysics.pause() holds the solver off
+            // transiently while the placement passes are still running; writing
+            // the DataSet then captures HALF-PLACED body positions, and the grid
+            // placement reads them back, so the map lands off its background art.
+            // `_paused` is exactly that transient window (pause() sets it,
+            // resume() clears it); a user pause never sets it.
+            if (!GraphPhysics._paused) GraphPhysics._snapshotBodyToDataset();
             // Disable WITHOUT resending the solver block. Changing a solver
             // option in the same setOptions() call makes vis.js re-initialise
             // the force solver, which re-runs it from the seeded positions — so

@@ -293,6 +293,6 @@ Helpers live in
 
 **Features** — [[character-art|Character art]] (#32), [[auto-description|Auto-description]] (#39), [[expression-pack-editor|Expression pack editor]] (#54)
 
-**Neighbouring notes** — [[Activities & States]], [[Background Simulation]], [[Characters Overview]], [[Emotion & Affect System]], [[NPC Behavior System]], [[Relationships System]]
+**Neighbouring notes** — [[Activities & States]], [[Background Simulation]], [[Characters Overview]], [[Emotion & Affect System]], [[GIMP]], [[MOSIAC]]
 
 <!-- connected:end -->

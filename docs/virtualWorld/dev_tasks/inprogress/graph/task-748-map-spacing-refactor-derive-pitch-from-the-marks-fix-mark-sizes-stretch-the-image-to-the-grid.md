@@ -94,14 +94,39 @@ Residuals:
 
 ## What
 
-TODO
+Operator report 2026-10-12 (kraktooth world scope, Map mode): the auto spacing reads around 200 in the toolbar, but the operator finds roughly 800 is the first value at which the map looks good and the cells are properly spaced - about 4.5x the 176 mark envelope.
+
+This is the same shape as the 2026-10-10 reopen on deep woods (auto 260, ~600 expected, ~2.3x). Two scopes, same direction, both multiples of the envelope.
+
+Design contradiction to resolve before touching the maths: the Intended model below says auto is the mark envelope, a CONSTANT independent of world, canvas and image. The operator consistently expects auto to be several times that and to grow with the scope. Those cannot both hold. Either
+  (a) auto becomes a function of the scope (its grid/cell count or painted extent), which re-introduces a world/canvas term the refactor deliberately removed, or
+  (b) the envelope is kept and the looks-cramped complaint is treated as the screen-space crowding case, whose stated fix is LOD (bug-528 / task-527), not a larger pitch.
+Pick one; do not half-change the formula. Evidence to re-measure live: the toolbar reading on the world and deep-woods scopes, and the on-screen card-to-cell fill ratio at each.
 
 ## How
 
-TODO
+2026-10-12 operator decision OVERRIDES the envelope model for the AUTO default. autoMapSpacing() now returns a flat AUTO_MAP_PITCH = 800 px/cell, wrapped in Math.max(markEnvelopePitch(), AUTO_MAP_PITCH) so the mark envelope stays the no-overlap FLOOR (it only wins if a large node-size pushes it above 800). markEnvelopePitch() is unchanged at 176 and mapSpacing()'s fallback still uses it.
+
+Why: the operator reported twice (deep woods 2026-10-10: auto 260, wanted ~600; kraktoot world 2026-10-12: auto ~200, wanted ~800) and asked for a flat large default instead of the constant envelope. The Intended model above (auto == envelope == a constant derived from the marks) is superseded for the auto VALUE; the no-overlap invariant is preserved by the floor.
+
+Trade-off accepted and recorded: the pitch does not scale with the scope, so a 160x120 grid (raven river) becomes a 128000 x 96000 px canvas with its reference art upscaled hard, where a 20x7 grid (kraktoot world) is comfortable. Revisit if the large-grid scopes matter.
+
+Files: static/js/graph/layout-engine.ts (AUTO_MAP_PITCH, autoMapSpacing), tools/unit/test_graph_layout_engine.js.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
+1. Load the kraktooth goblin camp scenario in Map mode and select the world scope.
+   - expected (fixed): the Tune spacing reads 800 (AUTO_MAP_PITCH), and the cells are comfortably spaced rather than cramped
+   - observed: operator 2026-10-12 — 800 looks okay.
+2. Check the reference art still aligns to the grid and is not visibly broken.
+   - expected: the image fills the grid rect; note how blurry it is at 800 vs 176
+   - observed: operator 2026-10-12 — art still fine at 800 on the world scope
+3. Switch to a large-grid scope (raven river 160x120, abandoned farms 160x100).
+   - expected: judge whether the ~128000px canvas and the upscaled art are acceptable; if not, record the value you would want and whether it should scale per scope
+   - observed: TODO — the remaining decision on this card
+4. Round-trip the controls: nudge the spacing stepper -, +, then press the A (auto) button.
+   - expected: the manual override sticks, and A returns to 800
+   - observed: TODO
+5. Confirm the no-overlap floor still holds at a high Node size.
+   - expected: a node-size that pushes the mark envelope above 800 wins (marks never overlap)
    - observed: TODO

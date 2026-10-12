@@ -167,6 +167,6 @@ Skills live in `engine/skills.py` (the stateless `SkillSystem`: construction 12-
 
 **Features** — [[skills|Skills]] (#19)
 
-**Neighbouring notes** — [[Activities & States]], [[Background Simulation]], [[Character Images & Expression Packs]], [[Characters Overview]], [[Emotion & Affect System]], [[NPC Behavior System]]
+**Neighbouring notes** — [[Activities & States]], [[Background Simulation]], [[Character Images & Expression Packs]], [[Characters Overview]], [[Emotion & Affect System]], [[GIMP]]
 
 <!-- connected:end -->

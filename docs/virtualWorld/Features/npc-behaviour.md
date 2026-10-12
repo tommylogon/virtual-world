@@ -13,6 +13,7 @@ tags: [status/wired, surface/in-game, system/characters]
 ## How it works
 
 - [[NPC Behavior System]]
+- [[MOSIAC]]
 
 ## Where it lives
 

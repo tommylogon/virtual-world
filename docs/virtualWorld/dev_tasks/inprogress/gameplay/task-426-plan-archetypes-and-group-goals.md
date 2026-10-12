@@ -1,7 +1,7 @@
 ---
 type: task
 status: inprogress
-related: [task-704, task-701]
+related: [task-704, task-701, task-807, task-810]
 area: gameplay
 priority: medium
 blocked_by: [task-403, task-409, task-417]
@@ -17,7 +17,7 @@ blocked_by: [task-403, task-409, task-417]
 
 <!-- deps:start -->
 **Blocked by:** [[task-403-unified-agent-memory-and-knowledge]], [[task-409-background-schedules-work-and-coarse-social]], [[task-417-co-presence-gate-for-coarse-meetings]]
-**Related:** [[task-704-mosaic-selector-needs-memory-and-personality-choose-and-bind-plans]], [[task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries]]
+**Related:** [[task-704-mosiac-selector-needs-memory-and-personality-choose-and-bind-plans]], [[task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries]], [[task-807-gimp-the-goal-model-and-its-serialization]], [[task-810-gimp-the-goal-graph-links-blocks-and-chaining]]
 <!-- deps:end -->
 
 ## Progress (2026-09-30) — the carry/refill substrate landed
@@ -117,7 +117,7 @@ and peeling off.
 
 ## Non-goals
 
-- Full GOAP search over the whole action set. Templates first; search only if a
+- Full plan-space search over the whole action set. Templates first; search only if a
   goal genuinely cannot be expressed as a template.
 - LLM-authored plans in the tick loop.
 - Negotiation, politics, or multi-faction strategy.

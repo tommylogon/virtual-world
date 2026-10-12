@@ -3,12 +3,17 @@ type: task
 status: todo
 area: ui
 priority: medium
+related: [task-409, task-426, task-691, task-699, task-701, task-702, task-703, task-704, task-725, task-800, task-802, task-806, task-807, task-810, task-811, task-812, task-813, task-814]
 ---
 
 # task-714: Character Mind panel: connect memories, motives, and current pursuits
 
 **Filed:** 2026-10-05
 **Related:** task-409, task-426, task-691, task-699, task-701, task-702, task-703, task-704, task-725
+
+<!-- deps:start -->
+**Related:** [[task-409-background-schedules-work-and-coarse-social]], [[task-426-plan-archetypes-and-group-goals]], [[task-691-memory-mind-interface-dynamics-badges-connections-per-person-profiles-dashboard]], [[task-699-mosiac-design-doc-schedules-plan-templates-and-recipe-activities-as-one-decision-layer]], [[task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries]], [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]], [[task-703-recipe-as-activity-recipes-become-plan-templates-with-duration-success-and-fail-outcomes]], [[task-704-mosiac-selector-needs-memory-and-personality-choose-and-bind-plans]], [[task-725-memories-carry-nothing-about-death-vitals-travel-perception-or-resurrection]], [[task-800-disposition-score-registry-declare-the-decision-score-vocabulary]], [[task-802-disposition-character-weights-from-traits-plus-live-modifiers]], [[task-806-split-traits-capabilities-from-personality-decision-dials]], [[task-807-gimp-the-goal-model-and-its-serialization]], [[task-810-gimp-the-goal-graph-links-blocks-and-chaining]], [[task-811-gimp-achievement-log-and-goal-replay]], [[task-812-mosiac-per-character-context-assembly-m-o-s-i-a-c]], [[task-813-mosiac-obligations-the-missing-letter-s-data]], [[task-814-mosiac-schedules-a-character-can-edit-themselves]]
+<!-- deps:end -->
 
 ## What
 

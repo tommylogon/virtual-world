@@ -231,5 +231,5 @@ cached on graph + door revision) and its 34 tests in
 [[task-713-engine-attention-py-is-a-dead-second-implementation-of-the-attended-set-selector]]'s
 resolution, and are not to be wired as-is. Its future use is a perception channel
 (comms, sight, magic), e.g. [[task-299-long-distance-communication]]'s phone
-calls, and possibly an input to MOSAIC's Attention salience layer, which belongs
+calls, and possibly an input to MOSIAC's Attention salience layer, which belongs
 to those tasks rather than to this one. Nothing else from this card is kept.

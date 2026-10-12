@@ -3,7 +3,7 @@ type: task
 status: todo
 area: gameplay
 priority: high
-related: [task-409, task-426, task-90, task-699, task-700, task-701, task-703, task-704]
+related: [task-409, task-426, task-90, task-699, task-700, task-701, task-703, task-704, task-807, task-812]
 blocked_by: [task-700, task-701]
 ---
 
@@ -13,7 +13,7 @@ blocked_by: [task-700, task-701]
 
 <!-- deps:start -->
 **Blocked by:** [[task-700-grounded-plan-contract-the-llm-plan-phase-emits-typed-steps-validated-against-world-facts]], [[task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries]]
-**Related:** [[task-409-background-schedules-work-and-coarse-social]], [[task-426-plan-archetypes-and-group-goals]], [[task-90-delayed_event_queue]], [[task-699-mosaic-design-doc-schedules-plan-templates-and-recipe-activities-as-one-goap-layer]], [[task-700-grounded-plan-contract-the-llm-plan-phase-emits-typed-steps-validated-against-world-facts]], [[task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries]], [[task-703-recipe-as-activity-recipes-become-plan-templates-with-duration-success-and-fail-outcomes]], [[task-704-mosaic-selector-needs-memory-and-personality-choose-and-bind-plans]]
+**Related:** [[task-409-background-schedules-work-and-coarse-social]], [[task-426-plan-archetypes-and-group-goals]], [[task-90-delayed_event_queue]], [[task-699-mosiac-design-doc-schedules-plan-templates-and-recipe-activities-as-one-decision-layer]], [[task-700-grounded-plan-contract-the-llm-plan-phase-emits-typed-steps-validated-against-world-facts]], [[task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries]], [[task-703-recipe-as-activity-recipes-become-plan-templates-with-duration-success-and-fail-outcomes]], [[task-704-mosiac-selector-needs-memory-and-personality-choose-and-bind-plans]], [[task-807-gimp-the-goal-model-and-its-serialization]], [[task-812-mosiac-per-character-context-assembly-m-o-s-i-a-c]]
 <!-- deps:end -->
 
 ## What

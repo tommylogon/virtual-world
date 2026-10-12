@@ -67,112 +67,53 @@ type RelLayoutWin = {
 // bootstrap), not at parse time. Unique per file so top-level consts never collide.
 const networkManagerHtmlTag = (strings: TemplateStringsArray, ...values: unknown[]): any => window.Lit.html(strings, ...values);
 
-// DEBUG (temporary, remove after the ordering audit): ordered load trace.
-// Numbered by call order, timestamped from the first trace call. Console only.
-const networkManagerTrace = (where: string, what: string): void => {
-    const w = window as unknown as { __vt0?: number; __vtn?: number };
-    if (w.__vt0 === undefined) w.__vt0 = performance.now();
-    w.__vtn = (w.__vtn || 0) + 1;
-    console.info('VWLOAD ' + String(w.__vtn).padStart(2, '0') + ' +'
-        + String(Math.round(performance.now() - w.__vt0)).padStart(6, ' ') + 'ms  '
-        + where + ' :: ' + what);
+// (The ordered load trace, the method-wrapper cost tracer, the Long Task
+// observer and the load report were removed. Position debugging now lives in
+// the position tracer below, which logs WHERE a node is moved.)
+
+// ── Position tracer ─────────────────────────────────────────────────────────
+// Logs every write to a node's position, so "why did this node move?" is
+// answerable from the console. Every writer calls VWPos.track(origin, id, x, y).
+//
+//   VWPos.on('player_Arix')   // trace one node
+//   VWPos.on('*')             // trace every node
+//   VWPos.off()
+//   VWPos.report()            // the tracked history, in order
+//
+// Each line names the WRITER and the coordinates it wrote. The last writer
+// before a jump is the culprit; the order also shows whether a later pass
+// overrode an earlier one.
+const vwPosHistory: Array<{ t: number; origin: string; id: string; x: number; y: number; extra?: string }> = [];
+let vwPosT0 = 0;
+
+/** The one entry point every position writer calls. No-op until armed. */
+const vwPosTrack = (origin: string, id: string, x: unknown, y: unknown, extra?: string): void => {
+    const filter = (window as unknown as { __vwPosFilter?: string | null }).__vwPosFilter;
+    if (!filter) return;
+    if (filter !== '*' && filter !== id) return;
+    const nx = Number(x), ny = Number(y);
+    if (!Number.isFinite(nx) || !Number.isFinite(ny)) return;
+    const at = Math.round(performance.now() - vwPosT0);
+    vwPosHistory.push({ t: at, origin, id, x: nx, y: ny, extra });
+    console.info('VWPOS +' + String(at).padStart(6, ' ') + 'ms  ' + origin + '  '
+        + id + ' → (' + Math.round(nx) + ', ' + Math.round(ny) + ')'
+        + (extra ? '  ' + extra : ''));
 };
 
-// DEBUG (temporary): wrap every graph-module method so ONE reload logs the real
-// call order + cost, without hand-picking phases. Only the first few calls of a
-// method are logged (order + nesting); beyond that it aggregates SILENTLY —
-// because a per-call console.info is far slower than the work itself, so logging
-// every call of a hot method MEASURES THE LOGGER, not the code (the first trace's
-// 6s `resolve` was inflated exactly that way). Read `window.__vtFlush()` for totals.
-const networkManagerTraceWrap = (): void => {
-    const W = window as unknown as Record<string, any>;
-    if (W.__vtWrappedOnce) return;
-    W.__vtWrappedOnce = true;
-    W.__vtd = 0;
-    const hot = (W.__vtHot = W.__vtHot || {}) as Record<string, { n: number; t: number; logged: number }>;
-    const LOG_PER_FN = 3;
-    const indent = (d: number): string => '  '.repeat(Math.min(d, 14));
-    const wrap = (obj: any, label: string): void => {
-        if (!obj || typeof obj !== 'object') return;
-        for (const k of Object.keys(obj)) {
-            const fn = obj[k];
-            if (typeof fn !== 'function' || fn.__vwWrapped) continue;
-            const name = label + '.' + k;
-            const w = function (this: unknown, ...args: unknown[]): unknown {
-                const h = hot[name] || (hot[name] = { n: 0, t: 0, logged: 0 });
-                h.n++;
-                const t0 = performance.now();
-                const logIt = h.logged < LOG_PER_FN;
-                if (logIt) { h.logged++; console.info('VW ' + indent(W.__vtd) + '▶ ' + name + '  @' + Math.round(t0)); W.__vtd++; }
-                const done = (): void => {
-                    const dt = performance.now() - t0;
-                    h.t += dt;
-                    if (logIt) { W.__vtd--; console.info('VW ' + indent(W.__vtd) + '◀ ' + name + '  +' + Math.round(dt) + 'ms'); }
-                };
-                let r: unknown;
-                try { r = fn.apply(this, args); }
-                catch (err) { done(); throw err; }
-                if (r && typeof (r as { then?: unknown }).then === 'function') {
-                    return (r as Promise<unknown>).then(
-                        (v: unknown) => { done(); return v; },
-                        (err: unknown) => { done(); throw err; });
-                }
-                done();
-                return r;
-            };
-            w.__vwWrapped = true; obj[k] = w;
-        }
-    };
-    for (const [label, obj] of [
-        ['GraphNetwork', W.GraphNetwork], ['GraphRelativeLayout', W.GraphRelativeLayout],
-        ['GraphLayoutEngine', W.GraphLayoutEngine], ['GraphPhysics', W.GraphPhysics],
-        ['GraphToolbar', W.GraphToolbar], ['GraphProjector', W.GraphProjector],
-        ['GraphOverlays', W.GraphOverlays], ['GraphBackground', W.GraphBackground],
-        ['GraphTooltips', W.GraphTooltips], ['GraphSeparation', W.GraphSeparation]
-    ] as [string, unknown][]) {
-        wrap(obj, label);
-    }
-    W.__vtFlush = (): string[] =>
-        Object.keys(hot).sort((a, b) => hot[b].t - hot[a].t)
-            .map((k) => k + '  n=' + hot[k].n + '  total=' + Math.round(hot[k].t) + 'ms');
+(window as unknown as Record<string, unknown>).VWPos = {
+    on(filter: string): void {
+        (window as unknown as { __vwPosFilter?: string | null }).__vwPosFilter = filter;
+        vwPosT0 = performance.now();
+        vwPosHistory.length = 0;
+        console.info('VWPos: tracing "' + filter + '"');
+    },
+    off(): void {
+        (window as unknown as { __vwPosFilter?: string | null }).__vwPosFilter = null;
+        console.info('VWPos: off');
+    },
+    report(): unknown[] { return vwPosHistory.slice(); },
+    track: vwPosTrack,
 };
-(window as unknown as Record<string, unknown>).__vt = networkManagerTrace;
-(window as unknown as Record<string, unknown>).__vtWrap = networkManagerTraceWrap;
-
-// DEBUG (temporary): COST, not just order. A Long Task observer records every
-// main-thread block > 50ms the load spends its time in — the thing a per-call
-// console trace cannot show, because entry order is not where the time goes.
-// (The browser's own Performance panel still beats this for a real flamegraph;
-// this is the zero-effort version that lands in one console report.)
-const networkManagerPerfStart = (): void => {
-    const W = window as unknown as Record<string, any>;
-    if (W.__vtPerfOn) return;
-    W.__vtPerfOn = true;
-    W.__vtLong = [];
-    try {
-        const obs = new PerformanceObserver((list: any) => {
-            for (const e of list.getEntries()) {
-                W.__vtLong.push({ at: Math.round(e.startTime), dur: Math.round(e.duration) });
-                console.info('VWLONG +' + Math.round(e.startTime) + 'ms  dur=' + Math.round(e.duration) + 'ms');
-            }
-        });
-        obs.observe({ entryTypes: ['longtask'] });
-    } catch (e) { /* longtask unsupported */ }
-};
-(window as unknown as Record<string, unknown>).__vtPerfStart = networkManagerPerfStart;
-
-// DEBUG (temporary): print the load report — aggregated hot calls (count + total
-// ms) then the long tasks. Callable from the console too: window.__vtReport().
-const networkManagerReport = (): void => {
-    const W = window as unknown as Record<string, any>;
-    console.info('VWREPORT ===== load report =====');
-    console.info('VWREPORT -- aggregated (per-node/edge builders) --');
-    for (const line of (W.__vtFlush ? W.__vtFlush() : [])) console.info('VWREPORT   ' + line);
-    console.info('VWREPORT -- long tasks (main-thread blocks >50ms) --');
-    for (const l of (W.__vtLong || [])) console.info('VWREPORT   +' + l.at + 'ms  dur=' + l.dur + 'ms');
-    console.info('VWREPORT ===== end =====');
-};
-(window as unknown as Record<string, unknown>).__vtReport = networkManagerReport;
 
 // Item → parent attachment edge types: the child points AT its parent
 // (salt --[on]--> table, top --[equipped]--> char). These springs render
@@ -271,13 +212,11 @@ function _firstSentence(text: unknown, maxLines: number): string {
      * and loads the initial graph data.
      */
     async init() {
-        networkManagerTrace('GraphNetwork.init', 'START');
         const container = document.getElementById('graph-container');
         if (!container) return;
 
         const options = GraphNetwork.buildOptions();
         graphManager.network = new vis.Network(container, { nodes: [], edges: [] }, options);
-        networkManagerTrace('GraphNetwork.init', 'vis.Network constructed (physics.enabled=' + !!options.physics?.enabled + ')');
         if ((window as unknown as RelLayoutWin).GraphRelativeLayout) (window as unknown as RelLayoutWin).GraphRelativeLayout!.attach(graphManager.network);
 
         // Create legend overlay (after vis.js so it doesn't get cleared)
@@ -298,7 +237,6 @@ function _firstSentence(text: unknown, maxLines: number): string {
         graphManager._tagLibrary = null;
         container.appendChild(graphManager._tagPanelEl);
         GraphNetwork.ensureTagLibrary();
-        networkManagerTrace('GraphNetwork.init', 'legend + tag panel + tag library ready, events bound');
 
         graphManager.network.on("click", (params: any) => GraphEventHandlers.onClick(params));
         graphManager.network.on("doubleClick", (params: any) => GraphEventHandlers.onDoubleClick(params));
@@ -322,20 +260,14 @@ function _firstSentence(text: unknown, maxLines: number): string {
         // Scope offsets must be known before the first layout, or a moved zone
         // would render at its painted position until the next reload (task-523).
         await graphManager.loadScopeFilterOptions();
-        networkManagerTrace('GraphNetwork.init', 'scope options loaded');
         // Restore the saved scope BEFORE the first load (task-749). Without this
         // the first loadGraphData builds the WHOLE WORLD, the saved scope is
         // applied a moment later, and the graph is rebuilt a second time — two
         // full builds per refresh, which is why selecting a scope never made the
         // load smaller: you were paying the whole-world cost first, every time.
         graphManager._restoreScopeFilterOnce();
-        networkManagerTrace('GraphNetwork.init', 'scope restored: ' + (graphManager._scopeFilter || '*whole world*'));
         await GraphNetwork.loadGraphData();
-        networkManagerTrace('GraphNetwork.init', 'FIRST loadGraphData returned');
-        setTimeout(() => { networkManagerTrace('GraphNetwork.init', 'fitView (fires 100ms after load)'); GraphNetwork.fitView(); }, 100);
-        // DEBUG (temporary): dump the load report 3s after the first load, once
-        // the long tasks from decoration/fitView have been observed.
-        setTimeout(() => { (window as unknown as { __vtReport?: () => void }).__vtReport?.(); }, 3000);
+        setTimeout(() => { GraphNetwork.fitView(); }, 100);
     },
 
     /**
@@ -738,9 +670,27 @@ function _firstSentence(text: unknown, maxLines: number): string {
         const avatar = (window as unknown as RelLayoutWin).CharacterArt
             ? (window as unknown as RelLayoutWin).CharacterArt!.avatarFor(nodeData.properties, (window as unknown as RelLayoutWin).CharacterArt!.emotionKeyForName(nodeData.name))
             : (nodeData.properties?.image || '');
-        const cell = nodeData.properties?.cell;
-        const cellKey = cell && Number.isFinite(Number(cell.x)) && Number.isFinite(Number(cell.y)) ? `${cell.x},${cell.y}` : '';
+        const cellKey = GraphNetwork._cellSig(nodeData);
         return `${id}:${nodeData.type}:${nodeData.properties?.current_state || ''}:${nodeData.properties?.central_gravity_enabled !== false}:${nodeData.properties?.layout_static === true}:${cellKey}:${avatar}`;
+    },
+
+    /**
+     * The one call every position writer makes, so "who moved this node?" is
+     * answerable from the console (`VWPos.on('<id>')`). No-op until armed.
+     */
+    _posTrace(origin: string, id: string, x: unknown, y: unknown, extra?: string): void {
+        vwPosTrack(origin, id, x, y, extra);
+    },
+
+    /**
+     * A node's painted-cell signature (`"x,y"`, or '' when it has none). One
+     * source for the projection's cell term and for the "did this node's place
+     * actually change?" test in syncGraphData.
+     */
+    _cellSig(node: any): string {
+        const cell = node && node.properties && node.properties.cell;
+        return (cell && Number.isFinite(Number(cell.x)) && Number.isFinite(Number(cell.y)))
+            ? `${cell.x},${cell.y}` : '';
     },
 
     /** The edge-set signature: identity of every edge, order-independent. */
@@ -1025,6 +975,7 @@ function _firstSentence(text: unknown, maxLines: number): string {
             for (const [id, pos] of Object.entries(savedPositions) as [string, { x: number; y: number }][]) {
                 if (!newNodeIds.has(id)) continue;
                 graphManager.network.moveNode(id, pos.x, pos.y);
+                GraphNetwork._posTrace('loadGraphData.restoreSavedPosition', id, pos.x, pos.y);
             }
             // Apply cardinal-based area layout only in MAP mode: the Map tab
             // (`_cardinalLayout`). In the graph view nodes are placed by hand
@@ -1133,13 +1084,6 @@ function _firstSentence(text: unknown, maxLines: number): string {
             // The toolbar's loaded-node stat reads _graphNodesObj, so repaint it
             // only now that the new dataset is in place (task-530).
             if ((window as unknown as RelLayoutWin).GraphToolbar) GraphToolbar.syncAll();
-
-            // DEBUG (temporary): the per-function totals, in the trace itself
-            // (no need to call __vtReport by hand).
-            try {
-                const flush = (window as unknown as { __vtFlush?: () => string[] }).__vtFlush;
-                if (flush) for (const line of flush()) console.info('VWHOT ' + line);
-            } catch (err) { /* ignore */ }
         } catch (err) {
             console.warn("Graph API unavailable:", err);
         }
@@ -1211,7 +1155,21 @@ function _firstSentence(text: unknown, maxLines: number): string {
             const projection = GraphNetwork._nodeProjection(id, nextNode);
             nextProj[id] = projection;
             if (projection !== (gm._nodeProj && gm._nodeProj[id])) {
-                updates.push(GraphNetwork.buildNodeConfig(nextNode, frame));
+                const config = GraphNetwork.buildNodeConfig(nextNode, frame);
+                // A property-only change must NOT move the node. buildNodeConfig
+                // re-seeds x/y from seedFor() — the node's saved properties.x/y
+                // or its painted cell — so an unchanged-cell node would be
+                // carried to that SEED and a live drag reset. Only a genuine
+                // painted-cell change legitimately relocates a node, so drop the
+                // seed x/y otherwise and let the solver/drag position stand.
+                if (GraphNetwork._cellSig(loaded[id]) === GraphNetwork._cellSig(nextNode)) {
+                    delete config.x;
+                    delete config.y;
+                }
+                updates.push(config);
+                if (config.x !== undefined) {
+                    GraphNetwork._posTrace('syncGraphData', id, config.x, config.y, 'cell changed');
+                }
             }
         }
 
@@ -1541,7 +1499,11 @@ function _firstSentence(text: unknown, maxLines: number): string {
         // node thousands of px from its area and stretching every edge to it.
         // Whether the node then HOLDS is the physics flag set just below.
         const seed = LE && LE.seedFor ? LE.seedFor(nodeData, frame) : null;
-        if (seed) { nodeConfig.x = seed.x; nodeConfig.y = seed.y; }
+        if (seed) {
+            nodeConfig.x = seed.x;
+            nodeConfig.y = seed.y;
+            GraphNetwork._posTrace('buildNodeConfig.seedFor', nodeData.id, seed.x, seed.y);
+        }
 
         // One rule for "simulate or hold" (task-765/766): author-frozen, or a
         // painted cell coordinate. The seed above only supplies x/y.

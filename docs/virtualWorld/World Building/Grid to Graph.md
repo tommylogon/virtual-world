@@ -250,6 +250,8 @@ and fog of war as the known set. Its `Related:` header points at
 
 **Features** — [[grid-to-graph|Grid to graph]] (#48)
 
+**Dev tasks** — [[dev_tasks/todo/world/task-816-a-scope-can-hold-painted-cells-outside-its-own-grid-so-those-cells-sit-off-the-map-and-cannot-be-touched|task]]
+
 **Neighbouring notes** — [[Connections]], [[Generated Scenario Review (2026-08)]], [[Graph System]], [[Millbrook Falls Town Map]], [[Movement]], [[Rooms & Areas]]
 
 <!-- connected:end -->
