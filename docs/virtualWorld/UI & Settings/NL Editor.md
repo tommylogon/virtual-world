@@ -5,6 +5,14 @@ tags: [system/ui, topic/authoring]
 
 # NL Editor
 
+## What you can do
+
+Describe the change you want in plain English and get a world back. The NL editor
+is a left-hand tab holding a tool-calling conversation, a tray of staged
+operations, and a **diff of what will actually change** — so you approve the plan
+before anything is applied. It is the fastest way to build a room, an item or a
+connection without touching the inspector.
+
 **Task:** [[dev_tasks/done/graph/task-387-natural-language-editor-mode|task-387]] · validation/diff: [[task-461-nl-editor-validation-gate-and-apply-time-property-diff|task-461]]
 
 Describe a change to the world in prose; see the plan before it is applied. The NL
@@ -132,6 +140,22 @@ Every tray row has a checkbox; `Apply Selected (n)` calls `index.js:134`
 - [[Connections]] — what `connect_areas` writes
 - [[UI & Settings/Recent Edits & Undo|Recent Edits & Undo]] — where the Apply lands in history
 - [[Scenario Workflows & UI Audit]] — how this sits in the authoring workflow
+
+## Where it lives
+
+- `static/js/nl-editor/index.js` (`window.NLEditor` singleton)
+- `static/js/nl-editor/agent-loop.js` (ReAct loop, system prompt, `maxIterations: 100`)
+- `static/js/nl-editor/tools.js` (29 `TOOL_DEFINITIONS`, `OverlayGraphView`)
+- `static/js/nl-editor/staging.js` (`StagingBuffer`, batch apply, per-op replay fallback)
+- `static/js/nl-editor/diff.js` (property-level diff for tray)
+- `static/js/nl-editor/ghosts.js` (dashed previews on vis.js graph)
+- `static/js/nl-editor/ui.js` (chat stream, staged tray, validation bubble)
+- `engine/nl_editor_validation.py` (`validate_ops`, `errors_only` pre-Apply gate)
+- `routes/graph_ops.py:1174-1268` (`_validate_batch_ops`, `handle_graph_validate`, `handle_graph_batch`, `_push_undo_snapshot`)
+- `routes/graph.py:122-127` (`/api/graph/batch`, `/api/graph/batch/validate`)
+- `routes/saveload.py` (undo snapshot integration)
+- `templates/index.html` (NL Editor tab markup, `Cmd-L` / `Ctrl-L` binding)
+- `static/js/ui/command-palette.js` (keyboard shortcuts)
 
 <!-- connected:start -->
 ## Connected

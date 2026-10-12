@@ -5,6 +5,22 @@ tags: [system/graph]
 
 # WorldPainter
 
+## What you can do
+
+WorldPainter is the editor for painting a scope's grid — you choose a tool (select, paint, erase, move, route, feature, area, inspect), a layer (biome, road, floor, climate), and a value from the palette, then paint cells on the canvas. You can draw routes (Bresenham lines) for roads, place child scopes (features) or existing areas onto cells, name cells, and see preflight blockers before generating. The grid is authoring data only; clicking "Generate" compiles it into real area and way nodes via Grid to Graph. The editor has three modes (world/town/interior) that change compilation behavior, and the palette is served from the backend taxonomy so ids are always valid.
+
+## Where it lives
+
+- `static/js/worldpainter/editor.js` — tools, rail, palette, canvas, grid dialog, all POSTs
+- `static/js/worldpainter/grid-model.js` — cell keys, rows, layer colours, storey reads, area estimate, cell inspector
+- `routes/world_grid.py` — 22 route registrations (thin)
+- `routes/world_grid_ops.py` — handlers, `_grid_payload`, vocabulary endpoint
+- `engine/world_grid.py` — the record: `PAINT_LAYERS`, `CLIMATE_BASE_C`, paint/place/name normalisation
+- `engine/biomes.py` — the taxonomy (`data/worldpainter/biomes.json`) and `cell_kind`
+- `engine/world_compile.py` — the consumer — see [[Grid to Graph]]
+- `data/worldpainter/biomes.json` — biome/feature/climate taxonomy
+- `tools/unit/test_worldpainter.js` — view-model unit tests (`npm run unit`)
+
 **Tasks:** [[dev_tasks/review/world/task-495-worldpainter-recursive-scope-grids-and-3-mode-editor|task-495]] (recursive scope grids, 3-mode editor) · [[dev_tasks/review/world/task-520-worldpainter-scale-canvas-grid-surface-route-tool-batch-paint|task-520]] (canvas surface, route tool, batch paint) · [[task-540-worldpainter-cell-inspector-hover-or-click-a-cell-to-read-what-is-on-it|task-540]] (cell inspector)
 
 WorldPainter is the editor that paints a **[[World Scopes|scope]]'s grid**: layers of
@@ -190,6 +206,18 @@ single POST, so each is a single undo step.
 - [[Graph System]] — the graph the compile writes into
 - [[Millbrook Falls Town Map]] — a painted world as it reads in play
 - `docs/design/worldpainter-knowledge-and-fog.md` — "WorldPainter grids, belief-based travel, and fog of war", the target architecture (cited as a path: `docs/design/` is outside the note vault)
+
+## Where it lives
+
+- `static/js/worldpainter/editor.js` — tools, rail, palette, canvas, grid dialog, all POSTs
+- `static/js/worldpainter/grid-model.js` — cell keys, rows, layer colours, storey reads, area estimate, cell inspector
+- `routes/world_grid.py` — 22 route registrations (thin)
+- `routes/world_grid_ops.py` — handlers, `_grid_payload`, vocabulary endpoint
+- `engine/world_grid.py` — the record: `PAINT_LAYERS`, `CLIMATE_BASE_C`, paint/place/name normalisation
+- `engine/biomes.py` — the taxonomy (`data/worldpainter/biomes.json`) and `cell_kind`
+- `engine/world_compile.py` — the consumer — see [[Grid to Graph]]
+- `data/worldpainter/biomes.json` — biome/feature/climate taxonomy
+- `tools/unit/test_worldpainter.js` — view-model unit tests (`npm run unit`)
 
 <!-- connected:start -->
 ## Connected

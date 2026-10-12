@@ -5,6 +5,19 @@ tags: [system/world]
 
 # World Scopes
 
+## What you can do
+
+A world scope is a named, addressable region (like "Millbrook Falls > Downtown District > The Pines Apartment Complex > Floor 2") that organizes the world into a hierarchy. Scopes are the unit of loading, projection, and generation. You can navigate the scope tree in the UI, create new scopes, paint grids within them (biomes, roads, floors, climate), place child scopes or hand-authored areas on cells, and generate content from a painted grid or a recipe. As a player, you move through scopes seamlessly — they determine what's loaded and visible without you managing them directly.
+
+## Where it lives
+
+- `engine/world_scopes.py` — manifest, projection (`project`, `project_subgraph`), membership (`area_ids_in_scope`, `own_area_ids`)
+- `engine/generation_recipes.py` / `engine/generation.py` — `GenerationPatch`, `apply_patch`, recipes (e.g., `apartment.v1`)
+- `routes/world_grid.py` / `routes/world_grid_ops.py` — scope CRUD, grid paint/place/name, generate/ungenerate, promote
+- `static/js/graph/scope-tree.js` — editor scope tree UI
+- `engine/world_grid.py` — `PAINT_LAYERS`, `CLIMATE_BASE_C`, grid record structure
+- `engine/biomes.py` — taxonomy (`data/worldpainter/biomes.json`), `cell_kind`, `forage_skill_bonus`
+
 A **world scope** is a named, addressable region of the world with a parent. It is
 the unit of loading, of projection, of generation and — later — of eviction.
 `Millbrook Falls > Downtown District > The Pines Apartment Complex > Floor 2` is
@@ -179,6 +192,15 @@ Registrars: `routes/world_grid.py` (URLs only) and `routes/world_grid_ops.py`
 - [[Rooms & Areas]] — what a scope contains.
 - [[Graph System]] — nodes, ways, and the projection over them.
 - [[Millbrook Falls Town Map]] — the first authored scope hierarchy.
+
+## Where it lives
+
+- `engine/world_scopes.py` — manifest, projection (`project`, `project_subgraph`), membership (`area_ids_in_scope`, `own_area_ids`)
+- `engine/generation_recipes.py` / `engine/generation.py` — `GenerationPatch`, `apply_patch`, recipes (e.g., `apartment.v1`)
+- `routes/world_grid.py` / `routes/world_grid_ops.py` — scope CRUD, grid paint/place/name, generate/ungenerate, promote
+- `static/js/graph/scope-tree.js` — editor scope tree UI
+- `engine/world_grid.py` — `PAINT_LAYERS`, `CLIMATE_BASE_C`, grid record structure
+- `engine/biomes.py` — taxonomy (`data/worldpainter/biomes.json`), `cell_kind`, `forage_skill_bonus`
 
 <!-- connected:start -->
 ## Connected

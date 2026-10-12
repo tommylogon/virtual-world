@@ -5,6 +5,10 @@ tags: [system/characters]
 
 # Activities & States (task-131)
 
+## What you can do
+
+Characters settle into persistent activities — rest, sleep, wait, meditate, bathe, sit, or lie down — that span multiple turns while the world keeps ticking around them. The `rest`, `sleep`, and `wait` commands each take a duration and regenerate a different vital per game minute, but sleep won't start at full Energy and a loud noise can wake you via a Wis save. While occupied you're visible to others as a state and to the LLM as a behavioral nudge, and `strip`/`dress` trade your gear for a takeable clothing pile.
+
 Characters can enter **persistent multi-turn activities** — resting, sleeping, waiting, meditating, bathing, sitting, lying down. Activities live on `Player.activity` and advance one step per `tick_turn()` (once per full turn cycle — **no fast-forward**, the clock only moves when everyone has acted).
 
 ## Activity versus pursuit and schedule
@@ -94,6 +98,10 @@ Full stateful one-layer-per-turn dress/undress is a planned follow-up.
 - `agent-engine.js` `_isBusy` skips characters whose state is sleeping/resting/meditating/busy or who have an activity — they consume a cheap skip slot, everyone else acts normally, and the round ticks once.
 - Simple NPCs (`npc_behaviors.py`) skip while sleeping/unconscious or in an activity.
 - `conditions` hierarchy gained `resting`/`meditating`/`busy` (display only; not blocking).
+
+## Where it lives
+
+Activities live on `Player.activity` and `player.state` (`player.py:172`), advancing one step per `tick_turn()` in `engine/tick_manager.py`. The command gate that starts and ends them is in `routes/action.py`, and the `ACTIVITY_INTERRUPTIBLE`, `ACTIVITY_CONDITIONS`, `ACTIVITY_REGEN`, `ACTIVITY_LABELS`, and `ACTIVITY_SKIP_TURNS` registries in the activities module define which activities expire, what condition they set, and what they regenerate. They serialize through `to_dict`/`serialization.py`, are skipped by the turn loop via `_isBusy` in `agent-engine.js` and by `npc_behaviors.py`, and announce themselves in `buildRoomContext` and the agent prompt's `=== YOUR STATE ===` block. The novelty system that rewards first visits and meetings is in `movement.py:226-240` and `player.py` (`register_first_meeting`).
 
 <!-- connected:start -->
 ## Connected

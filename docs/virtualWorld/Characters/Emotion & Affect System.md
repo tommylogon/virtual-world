@@ -5,6 +5,10 @@ tags: [system/characters]
 
 # Emotion & Affect System
 
+## What you can do
+
+Every character carries a rolling map of emotional dimensions, each a 0-100 scale drifting back toward baseline, and the world reads that map as their mood each turn. Your feelings shift from live events and from memories — your own recollections re-feel when they surface, and a remembered word spoken by another lands on you too, tugging your Sanity, Entertainment, or Social vital and nudging your relationship with whoever said it. An unknown voice still strikes an emotion, but only someone you know by name can turn a feeling into a changed relationship.
+
 VirtualWorld gives every character a **multi-dimensional emotional state** (the *affect map*) that sits
 *alongside* the vitals and relationships, and a set of **recall hooks** that let a memory's emotion
 actually land on a character when it surfaces. This page documents both the player-facing behaviour and
@@ -220,6 +224,10 @@ Legacy single-label spike, now accepting the **expanded** dimension set.
 - [[Characters/Vitals System]] — Sanity / Entertainment / Social
 - [[Gameplay/Turn Queue & Human Turns]] — where the WITNESSED block is built
 - [[Emotion & Mood — Whole-System Analysis]] — the whole-system read of affect across mind, body and mood
+
+## Where it lives
+
+The affect map lives in `engine/emotion.py` (dimensions, axes, `spike`/`decay`/`describe`, `LABEL_TO_DIM`, `VITAL_EFFECTS`, `RELATIONSHIP_VALENCE`), with relationship drives folded into `engine/derive.py`. The two recall endpoints are in `routes/player_ops.py` (`handle_spike_emotion`, `handle_map_player_emotions`) registered at `routes/players.py` for `/emotions` and `/emotions/map`. The frontend mappers are `static/js/shared/emotion-mapper.js` (keyword + semantic), `static/js/agent/prompt-builder/memory-context.js` (self-recall re-feel via `_respikeFromMemories`), and `static/js/agent/prompt-builder/room-context.js` (social recall via `_fireSocialRecall`). Config knobs live in `engine/runtime_config.py` (section `emotion`).
 
 <!-- connected:start -->
 ## Connected

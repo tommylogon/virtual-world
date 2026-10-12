@@ -5,6 +5,10 @@ tags: [system/ui, topic/authoring]
 
 # VirtualWorld Scenario Creation Guide
 
+## What you can do
+
+Author complete scenarios as JSON files that the engine loads directly: define the graph (areas, ways, items, triggers, spatial edges), the authoritative `players` block (personality, vitals, skills, memories, emotion, autonomy, NPC behavior), world lore for agent prompts, and runtime state (active player, clock, turn number, narration mode, ghost mode). Every interactive thing must be a graph node, every relationship a graph edge, and every character in `players`. The guide covers all five node types (area, way, item, character, logic_trigger) with their properties, all edge types (connection, in/on/under/beside/behind/at, triggers, equipped, carrying), 27 trigger types, condition and effect catalogs, trigger examples, and the load/save round-trip. Tested against `serialization.py`, `trigger_system.py`, `effects.py`, and 15+ AI-generated scenarios.
+
 Comprehensive reference for authoring scenario JSON files, usable by both humans and LLMs.
 Tested against engine `serialization.py`, `trigger_system.py`, `effects.py`, and 15+ AI-generated scenarios.
 
@@ -2180,6 +2184,19 @@ patch the source before loading, or change things live via the inspector and let
 `=== YOUR MIND ===`, low Social → isolation line). Threshold wording context-awareness is
 tracked as tasks 327/328.
 
+## Where it lives
+
+- Core load/save: `engine/serialization.py` — `load_from_dict`, `to_dict`
+- Graph model: `graph.py` — nodes, edges, properties
+- Trigger system: `engine/trigger_system.py` — 27 trigger types, conditions, effects
+- Effects: `engine/effects.py` — effect catalog, `adjust_vital`, `consume_item`, `set_environment`, `adjust_environment`
+- Item actions: `engine/item_actions.py` — verb coverage, `on_eat`/`on_drink` fallback
+- Area/way/item/character node shapes: this document (§2)
+- Edge types: this document (§3)
+- Scenario API: `routes/scenarios.py` — load, save, list
+- Scenario files: `data/scenarios/*.json`
+- World template: `data/world_template.json`
+
 <!-- connected:start -->
 ## Connected
 
@@ -2187,6 +2204,6 @@ tracked as tasks 327/328.
 
 **Features** — [[scenario-creation|Scenario creation]] (#57)
 
-**Neighbouring notes** — [[Emotion & Mood — Whole-System Analysis]], [[Feature Map]], [[History]], [[Patch Notes 2026-08-22 to 2026-09-22]], [[Patch Notes 2026-09-28]], [[Patch Notes 2026-09-30]]
+**Neighbouring notes** — [[Commands]], [[Emotion & Mood — Whole-System Analysis]], [[Feature Ledger]], [[Feature Map]], [[History]], [[Patch Notes 2026-08-22 to 2026-09-22]]
 
 <!-- connected:end -->

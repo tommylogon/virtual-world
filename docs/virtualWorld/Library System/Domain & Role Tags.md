@@ -5,6 +5,10 @@ tags: [system/library]
 
 # Domain & Role Tags — the population chain
 
+## What you can do
+
+Tag areas with domain tags (like `kitchen`, `library`, `garden`) to declare what a place is for. Tag furniture with role tags (`display`, `container`, `storage`) plus matching domain tags to make them placement targets. Tag items with the same domain tags to make them candidates for placement. The population engine (`engine/population.py`) then auto-furnishes areas by matching domain tags across all three levels — an area tagged `library` gets `bookshelf_item` (furniture with `display` + `library`) which gets `book` items (tagged `library`). Setting tags (`interior`, `exterior`, `mansion`) and descriptive tags (`wooden`, `ritual`) coexist but don't drive the chain. Run `python tools/tag_domains.py --apply` to add missing tags across the library, and `python tools/lint_library.py` to verify every area has at least one tag.
+
 The convention that lets `engine/population.py` (task-9) auto-furnish an area from
 the library. Filed by task-324.
 
@@ -105,6 +109,16 @@ python tools/lint_library.py
 - [[Library System/Library System Overview]]
 - [[dev_tasks/inprogress/library/task-324-domain-tag-schema-and-area-furniture-pass|task-324: domain tag schema + area/furniture pass]]
 - `docs/virtualWorld/dev_tasks/todo/items/task-9-procedural_item_placement.md` — the population engine that consumes this chain
+
+## Where it lives
+
+- Population engine: `engine/population.py` (task-9)
+- Tag domain tables: `tools/tag_domains.py` — `AREA_DOMAINS`, `FURNITURE_TAGS`, `ITEM_TAGS`, `NEEDED_TAGS`
+- Tag metadata files: `data/library/tags/*.json` — each tag carries `category`, `contexts`, `implies`, `applies_to`
+- Library areas: `data/library/areas/*.json` — `tags` array
+- Library items: `data/library/items/*.json` — `tags` array
+- Verification: `python tools/lint_library.py` — `area_tag_gaps`, `singleton_tags`, `dead_interests`
+- Dry-run/apply: `python tools/tag_domains.py` / `--apply` / `--domains`
 
 <!-- connected:start -->
 ## Connected

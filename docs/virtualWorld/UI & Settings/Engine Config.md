@@ -5,6 +5,14 @@ tags: [system/ui]
 
 # Engine Config
 
+## What you can do
+
+Change how the simulation behaves without restarting it. The Engine Config tab
+(Settings → ⚙️ Engine Config) is the editor for the engine's numeric tuning
+constants — light, heat, sound and the rest — the values that used to mean editing
+Python source and restarting to experiment. Move a slider and the running world
+picks it up.
+
 The **Engine Config** tab (Settings → ⚙️ Engine Config) is the user-facing editor for the engine's
 numeric tuning constants — the values that previously required editing Python source and
 restarting to experiment with. It is task-304.
@@ -146,6 +154,17 @@ Done. The value will appear in Settings → Engine Config on next load.
 - [[Environment/Temperature System]] — heat propagation
 - [[Environment/Time & Weather]] — tick cycle that drives propagation
 - `data/engine_config.json` — the persisted overrides
+
+## Where it lives
+
+- `engine/runtime_config.py` (`DEFAULTS` dict, `SCHEMA`, `RuntimeConfig` singleton, `config.get()`, `save()`, `reset()`)
+- `routes/settings.py` (`GET/POST /api/settings/engine_config`, `POST /api/settings/engine_config/reset`)
+- `static/js/ui/engine-config-view.js` (`EngineConfigView.load()`, lit-html schema-driven rendering into `#tab-engine-config`)
+- `engine/sound.py` (reads `sound.*` via `_speech_levels()`, `_way_barriers()`, `_noise_levels()` helpers)
+- `engine/environment_propagation.py` (reads `heat.base_rate`, `heat.max_delta` live)
+- `engine/lighting.py` (reads `light.spill_factor` live in `get_ambient_light()`)
+- `data/engine_config.json` (persisted overrides, optional file)
+- `templates/index.html` (Settings modal markup, Engine Config tab)
 
 <!-- connected:start -->
 ## Connected

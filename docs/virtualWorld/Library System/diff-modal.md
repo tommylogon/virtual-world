@@ -5,18 +5,9 @@ tags: [system/ui]
 
 # DiffModal — Per-Item / Per-Property Upgrade
 
-The conflict-resolution modal for world-to-library sync now supports **per-entry**
-selection, not just whole-section clobbering. Instead of "everything or nothing"
-per category, you can pick individual memories, items, relationships, conditions,
-vitals, decay rates, and equipped slots to carry across in either direction.
+## What you can do
 
-## Where it lives
-
-- static/js/shared/diff-modal.js — the modal itself (rendering + result shape).
-- static/js/library-browser.js — **save** direction (world → library).
-- static/js/inspector/agent-view.js — marks scriptable character sections.
-- static/js/shared/template-sync.js — **refresh** direction (library → world).
-- routes/library_ops.py — backend refresh apply (_refresh_character).
+When syncing a character between the world and the library, the DiffModal now lets you pick individual entries — specific memories, relationships, vitals, decay rates, conditions, equipped slots, and inventory items — instead of clobbering entire sections. Expand a section to see each entry with a status badge (= identical, + only in source, - only in destination, ~ differs) and a checkbox. Whole-category checkboxes and "Select all N entries" toggles remain for bulk actions. Save direction (world → library) pre-selects changed or world-only entries; Refresh direction (library → world) pre-selects changed or library-only entries. The result returns both whole-section keys and per-entry identifiers so callers can apply only what you selected.
 
 ## What changed
 
@@ -114,6 +105,15 @@ memories, relationships, vitals, decay_rates, conditions, equipped, and inventor
 pytest tests/ -k 'library or refresh' covers the backend refresh + save
 round-trips. DiffModal.applyEntrySelection is exercised for both directions via
 the library save/sync paths in library-browser.js.
+
+## Where it lives
+
+- Modal: `static/js/shared/diff-modal.js` — rendering, result shape, `applyEntrySelection`
+- Save direction (world → library): `static/js/library-browser.js`
+- Character sections marker: `static/js/inspector/agent-view.js`
+- Refresh direction (library → world): `static/js/shared/template-sync.js`
+- Backend refresh apply: `routes/library_ops.py` — `_refresh_character`, `_apply_entry_selection`
+- Per-entry character sections: memories, relationships, vitals, decay_rates, conditions, equipped, inventory
 
 <!-- connected:start -->
 ## Connected

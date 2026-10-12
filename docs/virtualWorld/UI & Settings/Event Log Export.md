@@ -5,6 +5,14 @@ tags: [system/ui, topic/validation]
 
 # Event Log Export & Stream Rendering
 
+## What you can do
+
+Take the log with you. The event stream exports to **Markdown**, **plain text**,
+**JSON** and **JSONL** — all four projected from the same DOM rows and all driven
+by one export modal, so what you read on screen is what lands in the file. Use
+Markdown or plain text to hand a session to someone; use JSON/JSONL to feed a
+tool.
+
 The event stream exports to **Markdown**, **plain text**, **JSON** and **JSONL**, all projected from
 the same DOM rows and all driven by one export modal. The projection, the four renderers and the
 modal live in `ui/event-log-export.js`; `ui/world-export.js` keeps `saveFileWithDialog` and delegates
@@ -144,6 +152,16 @@ the agent decide phase and the human-turn reply path. It was previously logged a
 | `static/js/stream/stream-persistence.js` | restore reads `data-seq` (with a `[Tick N]` fallback for pre-task-777 saves) |
 | `static/css/style.css` | `.bubble-text { white-space: pre-wrap }` |
 | `static/js/agent-engine.js` | emote-before-result ordering |
+
+## Where it lives
+
+- `static/js/ui/event-log-export.js` (projection, four renderers, export modal, range/scope controls)
+- `static/js/ui/world-export.js` (`saveFileWithDialog`, header button delegation)
+- `static/js/event-stream.js` (`_nextLineLabel` stamps `data-seq`, `_addBubble`, `_escapeHtml`)
+- `static/js/stream/stream-persistence.js` (restore reads `data-seq` with `[Tick N]` fallback)
+- `static/css/style.css` (`.bubble-text { white-space: pre-wrap }` preserves newlines)
+- `static/js/agent-engine.js` (emote-before-result ordering in agent decide phase and human-turn reply)
+- `templates/index.html` (event stream header buttons: 📥 ⏩ 📋)
 
 ## Related
 

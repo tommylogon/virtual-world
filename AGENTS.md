@@ -519,12 +519,59 @@ Update docs only after behavior is verified, using precise terms:
 
 Never call a mechanic complete when only its data model or seam exists.
 
-### Writing documentation (the Ways standard)
+### Writing documentation: the feature / mechanic / system standard
 
 `docs/virtualWorld/World Building/Ways.md` is the worked example;
 `Way Properties.md` and the pre-2026-10-11 `Doors & Connections.md` are the
 anti-examples. A page in this vault is a manual for the world, written for the
 person building or playing it — not a restatement of the schema.
+
+**Three tiers, three readers.** Every note is written at one of these depths, and
+a feature page carries all three in order:
+
+| tier | what it answers | reader |
+|---|---|---|
+| **feature** | what is this, and what can I do with it? | the player |
+| **mechanic** | how does it work — the rules, fields and effects? | the author |
+| **system** | where does it live — code, data, config? | the engineer |
+
+A **feature** is something a person does, uses or interacts with (movement, tags,
+the lighting system, an item, a way). A **mechanic** is how it works: the
+operations and rules inside a feature. A **system** is the implemented whole —
+the module, the data and the config that make the mechanic true. The verbs you
+perform (`go`, `take`, `attack`) are a feature's *mechanics*, not features of
+their own: you *do* movement; you do it *by* typing `go`. (`go` is not the
+feature, exactly as pressing W is not the feature of a shooter.)
+
+**The page template.** A feature page is written in this order, and the reader
+stops when they are satisfied:
+
+1. **What it is** — one paragraph, in-world, no jargon. A thing, not a field list.
+2. **What you see / what you can do** — the surface, with the real player-facing
+   output quoted.
+3. **How it works** — the mechanics: the rules, the knobs, the thresholds, the
+   *why* where the engine is indifferent. This is where an author stops.
+4. **Where it lives** — the system: module, data file, config key, route. This is
+   where an engineer stops.
+5. **See also** + the machine-owned `## Connected` block.
+
+An **entity** (a way, an item, an area, a character, a scope) is a graph node
+with its own properties and an authoring surface, so it gets a page of its own
+and other features link *to* it — it is never inlined into the feature that
+happens to act on it. A **shared mechanic** (tags, conditions, light) is read by
+many features, so it gets one page and every feature links up to it; never copy
+its rules into a feature page.
+
+**Naming and home.** A feature page is named for the feature, not the module
+(`Movement`, not `movement.py`), and lives in the vault folder that owns the
+subject — `World Building/` for the world's objects, `Characters/` for a
+character's, `Rules Engine/` for a resolution system, `Items & Inventory/`,
+`Environment/`, `Gameplay/`. A **family** (Environment: light, heat, weather,
+sky) gets an umbrella page linking subpages, because the parts have independent
+authoring surfaces. A single page is the default; a family is for when a reader
+would search for one part.
+
+The eight rules below still apply on top of the tiers:
 
 1. **Write for the author and the player, not the code.** A code reference
    (`movement.py:564`) is a footnote; the document's job is the decision — what a
@@ -553,9 +600,9 @@ person building or playing it — not a restatement of the schema.
    look. The doc that was never maintained is the suspect, not the person who
    knows the system.
 8. **Connect the page.** `[[wikilinks]]` to its siblings and to the generated
-   schema page; the `## Connected` block is machine-owned. The page should carry
-   the changelog — *what changed, why and when* — fed by the task cards that
-   touch it (a card's `wiki:` points at the page it concerns).
+   schema page; the `## Connected` block is machine-owned. The page carries the
+   changelog — *what changed, why and when* — generated from the task cards whose
+   `wiki:` points at it.
 
 **Generated vs hand-written.** A schema/reference page (`Way Properties.md`,
 `Action Tiers`) is generated and drift-guarded: never hand-edit its body, and
@@ -567,6 +614,11 @@ in prose.
 
 **Coverage gaps are content or tasks, not prose.** An engine-only property that
 no UI exposes is a UI task, not a documentation footnote.
+
+**Intent is a separate layer.** Where a feature is *going* — what it will do when
+it is finished — never sits on the feature page next to the truth of what it does
+now. Intent that ages beside truth becomes a lie. Keep it one link away, in a
+dated "design intent" note or the roadmap.
 
 ---
 

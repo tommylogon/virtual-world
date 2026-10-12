@@ -5,6 +5,10 @@ tags: [system/environment]
 
 # Body Temperature
 
+## What you can do
+
+Your character has a core body temperature vital (default 37°C) that drifts toward the effective ambient temperature each tick — cooling in the cold, warming in the heat, and self-regulating back toward 37°C in the comfortable range. Extreme core temperatures deal damage each tick (hypothermia below 33°C, heat stroke above 40°C) and can kill at <30°C or >42°C. Cold also drains Energy, and three exhaustion cycles from Energy depletion causes death from exposure even without reaching lethal core temps. HP regeneration is blocked while your core temperature is outside the 35–39°C safe band. You can see your body temperature in the vital bar, read narrative warnings in area descriptions, and equip insulated clothing to shift the effective temperature you feel.
+
 ## Core Temp Vital
 
 Each player has a `Temperature` vital tracked separately from room temperature:
@@ -128,6 +132,15 @@ if p.exhaustion_count >= 3:
 | Exhaustion death | `tick_manager.py` | 138-149 |
 | HP regen gate | `tick_manager.py` | 288-293 |
 | Vital detail API | `routes/players.py` | 361-432 |
+
+## Where it lives
+
+- Player initialization: `player.py:71-78`
+- Core drift + damage: `tick_manager.py:196-275`
+- Death check: `tick_manager.py:185-192`
+- Exhaustion death: `tick_manager.py:138-149`
+- HP regen gate: `tick_manager.py:288-293`
+- Vital detail API: `routes/players.py:361-432`
 
 <!-- connected:start -->
 ## Connected

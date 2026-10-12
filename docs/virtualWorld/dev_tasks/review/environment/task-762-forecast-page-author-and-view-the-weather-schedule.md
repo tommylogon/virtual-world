@@ -73,7 +73,7 @@ embedded console is now reduced to a **scene-only hero** (a scoped stylesheet
 injected into the same-origin iframe hides its chrome and lets the sky canvas
 fill), and every control lives in a **card** built from the app's own design
 tokens (`--bg-inset`, `--border`, `--accent`, `--font`): a labelled *Time & date*
-card, an *Override* card with a single active-dot, and a *Forecast schedule*
+card, an *Override* card with a single active-dot, and a *Forecast*
 card with a column-header row over the entry grid, a timeline on a real axis, a
 styled empty state, and a footer readout. All wiring survived (element ids were
 preserved); verified live, including no-scroll fit at 1600x900.

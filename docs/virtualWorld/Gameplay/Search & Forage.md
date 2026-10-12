@@ -5,6 +5,21 @@ tags: [system/gameplay]
 
 # Search & Forage
 
+## What you can do
+
+You can `search` to reveal hidden items in the room (a Perception check at DC 12). You can `find <skill>` (Survival, Perception, History, Religion, Nature, Investigation, Arcana, Medicine) to forage for resources — a weighted draw from that skill's table, affected by area tags and what you need, with a daily cap of 3 finds per area shared across all searchers. A strong success (margin ≥5) gives you what you looked for; a bare success mostly yields junk (sticks). You can also `find <tag>` to sense items already in the room carrying that tag (no spawning). Some areas have custom `forage_tables` overriding the global tables. Perception-gated `notice` must succeed before `search_hidden` can find concealed caches.
+
+## Where it lives
+
+- `engine/foraging.py` — core logic (`find_or_spawn`, `notice`, `search_hidden`, `findable_here`, `findable_hint`, skill tables, area bonuses, `forage` tag curation)
+- `data/library/foraging.json` — authoritative `skill_tables` (8 skills), `skill_display`, `area_skill_bonus` (27 area tags)
+- `routes/action_handlers.py` — `search`, `find <skill>`, `find <tag>` verb handlers
+- `engine/biomes.py` — `forage_skill_bonus` (merges biome tags), `_forage_vocabulary` (validates biome resource tags)
+- `engine/background_simulation.py` — soak tier foraging (`_forage_spawn`, `best_skill_for`)
+- `engine/autocomplete.py` — `find`/`forage` prefix completion
+- `engine/soak_telemetry.py` — trace schema for `forage:`/`search:` reason tags
+- `data/library/items/*.json` — items with `forage` mechanics tag (146 items)
+
 Searching an area is a **weighted draw over skill tables**, not a lookup of what is
 lying there. What a search turns up depends on the *skill* it is made with and on the
 *area* it is made in; a failed check finds nothing, a bare success mostly finds
@@ -255,6 +270,17 @@ reachable food calls `_forage_spawn` (`background_simulation.py:931`), which pic
 - [[Tags System]] — the `forage` mechanics tag
 - [[Vitals System]] — Hunger / Thirst, the drives the soak tier answers
 - [[World Scopes]] — who is observed and who is backgrounded
+
+## Where it lives
+
+- `engine/foraging.py` — core logic (`find_or_spawn`, `notice`, `search_hidden`, `findable_here`, `findable_hint`, skill tables, area bonuses, `forage` tag curation)
+- `data/library/foraging.json` — authoritative `skill_tables` (8 skills), `skill_display`, `area_skill_bonus` (27 area tags)
+- `routes/action_handlers.py` — `search`, `find <skill>`, `find <tag>` verb handlers
+- `engine/biomes.py` — `forage_skill_bonus` (merges biome tags), `_forage_vocabulary` (validates biome resource tags)
+- `engine/background_simulation.py` — soak tier foraging (`_forage_spawn`, `best_skill_for`)
+- `engine/autocomplete.py` — `find`/`forage` prefix completion
+- `engine/soak_telemetry.py` — trace schema for `forage:`/`search:` reason tags
+- `data/library/items/*.json` — items with `forage` mechanics tag (146 items)
 
 <!-- connected:start -->
 ## Connected

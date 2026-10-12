@@ -5,6 +5,14 @@ tags: [system/ui]
 
 # Frontend Rendering & Module Layout
 
+## What you can do
+
+Read this before you change how the UI is wired. It is not a feature you use — it
+is the map of how the browser side is put together: the lit-html rendering
+system, the classic-script versus deferred-module bootstrap, and the graph module
+split. The ordering rule that keeps `window.Lit` from racing `main.js` init is the
+reason this page exists.
+
 How the browser-side UI is structured: the lit-html rendering system, the classic-script vs
 deferred-module bootstrap, and the graph module split. This page exists because the wiring is
 non-obvious — especially the ordering rule that keeps `window.Lit` from racing `main.js` init.
@@ -232,6 +240,25 @@ with `node --check` (JS) / `pytest` (Python) after each move.
 - [[Settings & Configuration]] — settings modal + browser-side config
 - [[Inspector Panels]] — inspector views (lit-html consumers)
 - [[Engine Config]] — schema-driven lit-html editor (backend constants)
+
+## Where it lives
+
+- `static/js/vendor/lit-html/` (vendored lit-html, no CDN)
+- `static/js/shared/lit-bootstrap.js` (deferred ES module, stamps `window.Lit` API)
+- `static/js/main.js` (classic script, polls for `window.Lit` before `init()`)
+- `static/js/event-stream.js` (defers `restoreLog()` if `window.Lit` missing)
+- `static/js/graph/projector.js` (pure visibility projection)
+- `static/js/graph/overlays.js` (5 ambient overlays: light/heat/sound/trigger/cardinal, change-cached lighting)
+- `static/js/graph/tooltips.js` (node/edge tippy tooltips)
+- `static/js/graph/focus.js` (search reveal, camera fit, bounded physics kick)
+- `static/js/graph/layout-engine.js`, `static/js/graph/node-badges.js` (layout, badges)
+- `static/js/graph/network-manager.js` (shell + thin `@deprecated` delegates)
+- `static/js/bug-report.ts` (dialog, picker, multipart POST)
+- `routes/bug_reports.py`, `routes/bug_reports_ops.py` (bug report handler)
+- `templates/index.html` (script load order, modal markup, toolbar buttons)
+- `static/js/ui/engine-config-view.js` (lazy-loaded Engine Config tab)
+- `static/js/inspector/panel.js` (`InspectorPanel` render entrypoint)
+- `tools/unit/test_graph_toolbar.js`, `tools/unit/test_graph_tuning.js` (parity/apply-path tests)
 
 <!-- connected:start -->
 ## Connected

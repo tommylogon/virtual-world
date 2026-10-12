@@ -5,6 +5,10 @@ tags: [system/characters]
 
 # Relationships System
 
+## What you can do
+
+Relationships are the social debt each character carries toward everyone they've met, and the world reads that debt as a label — rival, friend, inseparable — that steers how you act around them. Speaking to someone, handing them an item, or landing a blow shifts your standing both ways, feeding the LLM's behavioral guidance and your grapple DC. In the background, co-present characters pair up and their own standings tick forward too, so the camp's politics breathe even when you're not watching.
+
 > Type: system · area: characters · status: accurate as-of 2026-09 · source: engine/relationships.py, player.py, engine/speech.py, engine/combat.py, engine/items/transfer_actions.py, engine/background_social.py, static/js/agent/prompt-builder/character-state.js
 
 Relationships are the social state each character tracks toward every other character they've met. They drive **display labels**, **behavioral guidance injected into the prompt**, a **grapple modifier**, and — since task-423 — **whether two characters will socialise, and how it lands**. They are *not* automatically derived from memories — they are mutated by authored *events*.
@@ -159,6 +163,10 @@ to_dict() emits **only** {closeness, interaction_count} per relationship.
 - [[Characters/Characters Overview]]
 - [[AI & Narration/Agent Engine]] (closeness gates behavior, task-94)
 - [[Gameplay/Character Spatial Position]]
+
+## Where it lives
+
+Relationships are authored and mutated through `engine/relationships.py` (`apply_relationship_delta`, `apply_symmetric_delta`, `ensure_relationship`, `clamp_closeness`, `closeness_band`, `BAND_LABELS`) and stored on `Player.relationships` (`player.py`). Writers that push deltas live in `engine/speech.py` (dialogue +2), `engine/items/transfer_actions.py` (give +5), `engine/combat.py` (attack -30), and `engine/background_social.py` (background pairing per side). The one-mutation-path doctrine is guarded by a test scanning `engine/`, `routes/` and `player.py` for `relationships[...] = `. Display labels and behavioral guidance are read from `static/js/agent/prompt-builder/character-state.js`, and grapple reads the relationship in `engine/grapple.py:61-69,305`. Serialization emits closeness and interaction_count from `player.py:621-627`.
 
 <!-- connected:start -->
 ## Connected

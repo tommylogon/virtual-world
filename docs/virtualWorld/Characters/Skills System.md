@@ -5,6 +5,10 @@ tags: [system/characters]
 
 # Skills System
 
+## What you can do
+
+Skills are your character's trained proficiencies, each a number added to a d20 roll against a Difficulty Class that grades the attempt from very easy to very hard. A skill you lack still counts as a roll of 1d20 + 0 — never a refused attempt — so you can always reach into the unknown. The same dice feed combat, where your attack stacks 1d20 + Strength against another's 1d20 + Dexterity.
+
 Skills are numeric proficiencies that modify dice rolls for action resolution. The system is stateless — all dependencies (player manager, logging) are injected via the `SkillSystem` constructor (`engine/skills.py:12-26`).
 
 ## Skill Values
@@ -151,6 +155,10 @@ Skills are displayed in the Inspector UI's character editor panel. Each skill sh
 
 - [[task-3-equipment_system|task-3: Equipment system]]
 - [[dev_tasks/review/items/task-54-weapon_system|task-54: Weapon system]]
+
+## Where it lives
+
+Skills live in `engine/skills.py` (the stateless `SkillSystem`: construction 12-26, `skill_check` 43-91, `roll_dice` 30-39, DC table 74-83, `player_state_remedy` 95-110, `log_llm_call` stub 114-135). A character's skill values are stored in the `skills` dict on the player (`player.py:75-80`), and combat resolution in `engine/combat.py:26-105` calls into `SkillSystem` for attack/defense rolls, damage, and `WEAPON_KEYWORDS` (10-14). The Inspector UI's character editor panel shows and edits skills inline, and the API exposes them at `POST /api/players`, `POST /api/players/<name>`, and `POST /api/players/import`.
 
 <!-- connected:start -->
 ## Connected

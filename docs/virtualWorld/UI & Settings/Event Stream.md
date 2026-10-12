@@ -5,6 +5,14 @@ tags: [system/ui]
 
 # Event Stream
 
+## What you can do
+
+Read what just happened. The event stream is the turn-by-turn log — every action,
+every line of narration, every system message — with filters and search so you
+can find the turn something changed. It is the surface you use to answer "when did
+that start?", and its **export** is a separate job (see
+[[UI & Settings/Event Log Export|Event Log Export]]).
+
 The event stream is the turn-by-turn log shown on every turn (Feature Map row 56: "The turn-by-turn log with filters and search"). Its *export* is documented separately — see [[Event Log Export]].
 
 ## Architecture
@@ -68,6 +76,20 @@ The backend `engine/logging_events.py` (`GameLogger`) maintains `turn_events` (c
 | `static/js/event-bus.js` | `appEvents` — tiny pub/sub for `'log'` event |
 | `static/js/agent/turn-feed.js` | `TurnFeed` — viewer-scoped ring buffer, digest, sound propagation |
 | `engine/logging_events.py` | `GameLogger` — backend turn_events, game_log, save_run_log |
+
+## Where it lives
+
+- `static/js/event-stream.js` (`EventBus` / `events` singleton — core, delegation, row routing, turn cards, phases, time gaps, area transitions)
+- `static/js/stream/stream-filters.js` (`StreamFilters` — kind/actor/area/search, persisted area filter)
+- `static/js/stream/stream-turn-cards.js` (`StreamTurnCards` — card open/close, bodyFor, collapse)
+- `static/js/stream/stream-scrubber.js` (`StreamScrubber` — minimap segments, click-to-jump, scroll head)
+- `static/js/stream/stream-persistence.js` (`StreamPersistence` — IndexedDB save/restore, world-keyed)
+- `static/js/stream/stream-control-mode.js` (`StreamControlMode` — Human/LLM/NPC cycling via `ApiClient.updateCharacter`)
+- `static/js/stream/stream-raw-llm.js` (`StreamRawLLM` — LLM request/response chips, token meters)
+- `static/js/event-bus.js` (`appEvents` — tiny pub/sub for `'log'` event)
+- `static/js/agent/turn-feed.js` (`TurnFeed` — viewer-scoped ring buffer, digest, sound propagation mirror)
+- `engine/logging_events.py` (`GameLogger` — backend `turn_events`, `game_log`, `save_run_log`)
+- `templates/index.html` (event stream container markup)
 
 <!-- connected:start -->
 ## Connected

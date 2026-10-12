@@ -5,6 +5,13 @@ tags: [system/testing, topic/performance]
 
 # Soak Lab
 
+## What you can do
+
+Run the world for a long time and watch what breaks. The Soak Lab (`/soak`) runs
+automated long-horizon simulations with live tuning and telemetry, so you can
+change a constant mid-run and see the effect on the same characters rather than
+restarting. It is the tool for finding the failure that only appears at tick 400.
+
 The Soak Lab (`/soak`) runs automated long-horizon simulations with live tuning and telemetry (Feature Map row 58: "Automated long runs, live tuning, telemetry").
 
 ## Architecture
@@ -101,6 +108,27 @@ The telemetry recorder is installed via `recording(recorder)` context manager (`
 | `static/js/soak/soak-format.js` | formatters, query-string config |
 | `engine/soak_runner.py` | `SoakRun` / `SoakConfig` / registry, `execute`, `snapshot`, `report`, telemetry integration |
 | `engine/soak_telemetry.py` | `TelemetryRecorder` — intervals, events, why_breakdown, condition_spans, JSONL, vocabulary |
+
+## Where it lives
+
+- `static/js/soak/soak-app.js` (bootstrap, UI binding, meta/runs loading, shared-URL config restore)
+- `static/js/soak/soak-state.js` (`SoakState` — config, run list, incremental 450ms polling, cursors, `SERIES_CACHE`)
+- `static/js/soak/soak-ui.js` (`SoakUI` — full dashboard: form, presets, saved configs, run list, progress, Overview/Vitals/Survival/Growth/Space-Time/Characters/Compare tabs)
+- `static/js/soak/soak-api.js` (`SoakApi` — `meta`, `listRuns`, `startRun`, `stopRun`, `getRun`, `report`, `characters`, `characterSeries`, `samples`, `telemetry`)
+- `static/js/soak/soak-charts.js` (dependency-free SVG: `renderLineChart`, `renderDonut`, `renderBarChart`, `renderVerticalBars`, `histogram`, `niceTicks`, `scaleFor`)
+- `static/js/soak/soak-spacetime.js` (`SoakSpacetime` — swimlanes, collisions, deaths, condition ribbons, why breakdown, heatmap)
+- `static/js/soak/soak-presets.js` (Kraktooth/Stress/Long presets, localStorage saved configs)
+- `static/js/soak/soak-format.js` (formatters: `fmtInt`, `fmtNum`, `pct`, `fmtDuration`, `fmtClock`, `titleCase`, `vitalColor`, `esc`, `queryToConfig`)
+- `engine/soak_runner.py` (`SoakRun`, `SoakConfig`, registry, `execute` sync/daemon, samples, events, deaths, vitals series, growth metrics, `TelemetryRecorder` integration)
+- `engine/soak_telemetry.py` (`TelemetryRecorder` — run-owned measurement store, presence intervals, events with `why` vocabulary, condition spans, JSONL export, `WHY_PREFIXES`, `EXCLUDED_PREFIXES = ("llm:",)`)
+- `engine/lived_log.py` (boundary: `recording(recorder)` context manager, `active_recorder()`)
+- `data/soak_telemetry/<run_id>.jsonl` (append-only JSONL telemetry export)
+- `data/scenarios/*.json`, `world_template.json` (scenario sources for soak runs)
+
+## Status
+
+- **task-543** (telemetry capture): **review** — acceptance criteria met (intervals on area change, `why` vocabulary, save exclusion, flat memory, JSONL export).
+- **task-544** (space-time view): **inprogress** — swimlanes, collisions, deaths, condition ribbons, why breakdown, heatmap built; remaining: 30-day render without freezing, spatial lane ordering stability, empty state for no-telemetry runs, pure-JS geometry unit tests.
 
 <!-- connected:start -->
 ## Connected

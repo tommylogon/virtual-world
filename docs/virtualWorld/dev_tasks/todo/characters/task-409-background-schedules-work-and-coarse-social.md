@@ -15,7 +15,7 @@ blocked_by: [task-399, task-408]
 
 <!-- deps:start -->
 **Blocked by:** [[task-399-background-character-simulation-and-reactivation]], [[task-408-goblin-scenario-node-dedup-and-data-integrity]]
-**Related:** [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]], [[task-704-gosp-selector-needs-memory-and-personality-choose-and-bind-plans]], [[task-699-gosp-design-doc-schedules-plan-templates-and-recipe-activities-as-one-goap-layer]]
+**Related:** [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]], [[task-704-mosaic-selector-needs-memory-and-personality-choose-and-bind-plans]], [[task-699-mosaic-design-doc-schedules-plan-templates-and-recipe-activities-as-one-goap-layer]]
 <!-- deps:end -->
 
 ## Progress (slice 1)

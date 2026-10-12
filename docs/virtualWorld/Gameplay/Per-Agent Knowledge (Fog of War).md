@@ -5,8 +5,12 @@ tags: [system/gameplay]
 
 # Per-Agent Knowledge (Fog of War)
 
+## What you can do
+
+Each character maintains a personal `known` list of areas, ways, and items they've been told about — walking into an area reveals it, examining a way teaches where it leads, examining a place teaches itself, and a sightline run teaches every area along it. A map item with `charted_areas` teaches exactly those entries (or the whole world if the key is absent, nothing if it's an empty array). The perception gate uses this list to decide whether hidden ways and items are visible to a character. You can also teach knowledge directly via `teach_from_map`, forget specific entries, and query the fog view (`fog_view`) to get known/unknown sets with counts for map rendering. The honesty filter `only_known` ensures an agent never sees what it hasn't learned — a filter that can't decide returns nothing, never the input. Currently the module is complete and tested but **unwired**: no runtime code calls the reveal functions on movement or examine, so per-agent knowledge only works for authored starting knowledge.
+
 `player.known` is a per-character list of the places, ways and items they have been
-**told about**. `engine/fog.py` (346 lines) is the module that writes it: three reveal
+told about. `engine/fog.py` (346 lines) is the module that writes it: three reveal
 verbs, a map-teach path, and the one filter that decides what a character may be told.
 It is **unwired** — see "Unwired" below for the measurement.
 
@@ -248,6 +252,18 @@ per cell, per area, or per scope — task-499 starts at area/scope.
 - [[Character Spatial Position]] — the other half of hidden-node perception
 - [[Memory System]] — `agent_memory` and the authored-knowledge path
 - [[Items Overview]] — the "Known by" control and authored item ids
+
+## Where it lives
+
+- Core module: `engine/fog.py` — `Known` class, `reveal_area`, `reveal_examined`, `reveal_sightline`, `teach_from_map`, `fog_view`, `only_known`, `unknown_are_hidden`
+- Perception gate (reads `player.known`): `engine/room_perception.py:56` — `way_visible_to`, `visible_area_items`
+- Called from: `engine/area_description.py:259`, `engine/scene_snapshot.py:198,164`, `engine/observation.py:108`, `engine/movement.py:945`
+- Serialization: `engine/serialization.py:147,351` — `player.known` list out/in
+- Authored seeding: `player.py:229-234` — `self.known = []` from character data
+- Preconceived knowledge: `engine/serialization.py:433-438` → `agent_memory.load_preconceived`
+- ID repair: `engine/character_identity.py:228` — `rewrite_known`
+- Inspector "Known by" control: edits `player.known`
+- Tests: `tests/test_fog.py` (24 tests), `tests/test_known.py`
 
 <!-- connected:start -->
 ## Connected

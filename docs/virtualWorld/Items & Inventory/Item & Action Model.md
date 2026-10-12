@@ -5,6 +5,30 @@ tags: [system/items]
 
 # Item & Action Model
 
+## What you can do
+
+Every item declares what can be done with it through an `actions` list (examine, take, use, eat, drink, open, close, equip, etc.). You can only interact with items that are reachable — carried, equipped, inside open containers you carry, in the current room, or inside open containers in the room. An item is portable (can be taken, dropped, given, stolen, put away) only if it declares `take` in its actions; non-portable "part" items stay attached to their parent. When you use an item with limited uses, it depletes and either disappears (generic items) or goes inert (parts). Containers hold items via graph edges and have optional weight capacity.
+
+## Where it lives
+
+- `engine/items/action_contract.py` — `is_portable`, `is_part`, `parent_of`, `portable_refusal`
+- `engine/items/take_drop_actions.py` — take, drop, stow; placement-edge capture/retarget
+- `engine/items/use_actions.py` — use, use-on; depletion branching via `_depleted_by_use`
+- `engine/items/consume_actions.py` — eat, drink; charge spend, depletion
+- `engine/items/place_actions.py` — put-in-container, place-on-surface; placement-edge cleanup
+- `engine/items/transfer_actions.py` — give, steal; character-to-character transfer with portability gate
+- `engine/items/ownership.py` — `owner` / `personal` permission model; `permission_refusal`
+- `engine/items/stacking.py` — combine / split stackable instances; `stackable_twins`
+- `engine/items/carry_weight.py` — encumbrance math; `BASE_CARRY_CAPACITY`, container capacity
+- `engine/item_reach.py` — `find_reachable`, `reachable_items`; the single reachability rule
+- `engine/character_spatial.py` — spatial edges, one-`at` invariant, proximity, approach helpers
+- `engine/toggleable_items.py` — lit/unlit state flip; uses burn to 0 → `on_depleted`
+- `engine/equipment.py` — equip/unequip on body slots; `decrement_armor_uses_on_hit`
+- `engine/tick_manager.py` — area-item burn-down (`_burn_down_area_item`); standing `on_tick`
+- `engine/triggers/ui.py` — `_get_available_actions`, `_contextual_failure` for the context menu
+- `graph.py:579-595` — Edge-type constants and `SPATIAL_EDGE_TYPES`
+- `data/library/items/*.json` — item definitions with `actions`, `uses`, `weight`, `tags`, `triggers`
+
 The item/action model is a single graph-based truth: every item is a `Node` of `type="item"`, and what a character can do to it is decided by three things in order — the item's advertised `actions`, whether it is **reachable** given the character's position, and whether it is **portable** (i.e. not a fixed part). This page collects those rules so they are discoverable without reading code.
 
 ## 1. The `actions` list is the capability gate
@@ -159,6 +183,26 @@ The contract is fully implemented in code — `is_portable`, `is_part`, `parent_
 - [[Triggers & Effects]]
 - [[Light System]]
 - [[Tags System]]
+
+## Where it lives
+
+- `engine/items/action_contract.py` — `is_portable`, `is_part`, `parent_of`, `portable_refusal`
+- `engine/items/take_drop_actions.py` — take, drop, stow; placement-edge capture/retarget
+- `engine/items/use_actions.py` — use, use-on; depletion branching via `_depleted_by_use`
+- `engine/items/consume_actions.py` — eat, drink; charge spend, depletion
+- `engine/items/place_actions.py` — put-in-container, place-on-surface; placement-edge cleanup
+- `engine/items/transfer_actions.py` — give, steal; character-to-character transfer with portability gate
+- `engine/items/ownership.py` — `owner` / `personal` permission model; `permission_refusal`
+- `engine/items/stacking.py` — combine / split stackable instances; `stackable_twins`
+- `engine/items/carry_weight.py` — encumbrance math; `BASE_CARRY_CAPACITY`, container capacity
+- `engine/item_reach.py` — `find_reachable`, `reachable_items`; the single reachability rule
+- `engine/character_spatial.py` — spatial edges, one-`at` invariant, proximity, approach helpers
+- `engine/toggleable_items.py` — lit/unlit state flip; uses burn to 0 → `on_depleted`
+- `engine/equipment.py` — equip/unequip on body slots; `decrement_armor_uses_on_hit`
+- `engine/tick_manager.py` — area-item burn-down (`_burn_down_area_item`); standing `on_tick`
+- `engine/triggers/ui.py` — `_get_available_actions`, `_contextual_failure` for the context menu
+- `graph.py:579-595` — Edge-type constants and `SPATIAL_EDGE_TYPES`
+- `data/library/items/*.json` — item definitions with `actions`, `uses`, `weight`, `tags`, `triggers`
 
 <!-- connected:start -->
 ## Connected

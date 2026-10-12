@@ -5,6 +5,23 @@ tags: [system/gameplay, topic/turns]
 
 # Turn Queue & Human Turns
 
+## What you can do
+
+In turn-based mode, you act when your character's turn comes up in the queue. The queue orders characters by sequential (alphabetical), random (reshuffled each cycle), or initiative (d20 + DEX). When it's your turn, the human turn panel opens — you compose actions in three zones (do / say / emote / memory) and commit them with Act (hover = free look, click = context menu to fill draft). One turn = do + say + emote together. A successful dash grants one extra action. The always-available command line is a director override that bypasses the queue entirely. You can also "Speak as guest" to broadcast speech without a character. If you never answer, the simulation waits indefinitely — no timeout, no auto-pass.
+
+## Where it lives
+
+- `static/js/agent/turn-queue.js` — `TurnQueue` class: `initialize`, `reconcile`, `advance`, `endTurn`, `getCurrentCharacter`, order modes
+- `static/js/agent/human-turn-composer.js` — `HumanTurnComposer`: panel UI, compose-then-commit, burst turns, interject
+- `static/js/agent/agent-engine.js` — `_humanTurn` gate, run loop suspension
+- `static/js/event-stream.js` — `renderQueueStrip` (up-next strip)
+- `static/js/graph/toolbar.js` — Turn Order panel (whole round, rolls, per-slot status)
+- `routes/action_handlers.py` — `/api/action` endpoint for composed turns
+- `routes/player_ops.py` — `handle_player_speak` (guest speech)
+- `engine/speech.py` — `broadcast_speech`, sound propagation through ways
+- `engine/sound.py` — penetration, barriers, ambient noise damping
+- `config.js` / IndexedDB — `config.turnBased`, `config.turnOrder`, `config.ghostMode`, `config.controllingPlayer`
+
 How turn order works, how the human turn panel knows it's someone's turn,
 and why the always-available command line is not a bug.
 
@@ -221,6 +238,19 @@ disagreement between them as a bug without checking
 - task-310 random reshuffle · task-322 R5 vital thresholds consumed per
   turn · task-334 react phase design · task-241 non-turn-based stepping ·
   task-333 scene panel (mockup: `docs/design/human-turn-panel-v2-mockup.html`)
+
+## Where it lives
+
+- `static/js/agent/turn-queue.js` — `TurnQueue` class: `initialize`, `reconcile`, `advance`, `endTurn`, `getCurrentCharacter`, order modes
+- `static/js/agent/human-turn-composer.js` — `HumanTurnComposer`: panel UI, compose-then-commit, burst turns, interject
+- `static/js/agent/agent-engine.js` — `_humanTurn` gate, run loop suspension
+- `static/js/event-stream.js` — `renderQueueStrip` (up-next strip)
+- `static/js/graph/toolbar.js` — Turn Order panel (whole round, rolls, per-slot status)
+- `routes/action_handlers.py` — `/api/action` endpoint for composed turns
+- `routes/player_ops.py` — `handle_player_speak` (guest speech)
+- `engine/speech.py` — `broadcast_speech`, sound propagation through ways
+- `engine/sound.py` — penetration, barriers, ambient noise damping
+- `config.js` / IndexedDB — `config.turnBased`, `config.turnOrder`, `config.ghostMode`, `config.controllingPlayer`
 
 <!-- connected:start -->
 ## Connected

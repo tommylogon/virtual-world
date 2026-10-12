@@ -5,6 +5,15 @@ tags: [system/ui]
 
 # Recent Edits & Undo
 
+## What you can do
+
+Change your mind. Four surfaces sit over one primitive: a history dropdown, a
+live event feed, a per-browser "recently edited" rail, and a per-edit undo. All
+four walk the same server-side stack of whole-world snapshots, so any of them can
+put the world back to a state it was actually in — and the rail tells you what
+changed *since the scenario source*, which is the question that matters when you
+have been editing for an hour.
+
 **Task:** [[dev_tasks/done/ui/task-371-undo-history-dropdown-labels|task-371]] · [[task-372-recently-edited-rail|task-372]] · [[dev_tasks/done/ui/task-373-changes-since-source-panel|task-373]] · [[task-384-per-edit-undo-feed|task-384]]
 
 "What changed, and undoing it" is **four separate surfaces** over one primitive.
@@ -105,6 +114,17 @@ the 🌀 Changes button.
 | `static/js/ui/changes-panel.js` | live-vs-source diff, per-group Commit/Discard |
 | `static/js/ui/command-palette.js:256-265` | Ctrl+S commit, Ctrl+Z / Ctrl+Shift+Z |
 | `static/js/ui/scenario-status.js:52` | the dirty dot the Changes panel clears |
+
+## Where it lives
+
+- `routes/saveload.py` (`_snapshot`, `_push_undo_snapshot`, `_unpack_stack_entry`, `_restore_snapshot`, `POST /api/undo`, `GET /api/undo/list`, scenario diff endpoint)
+- `static/js/ui/undo-history.js` (history dropdown, multi-step restore)
+- `static/js/ui/edit-feed.js` (`world_changed` feed, per-row undo button)
+- `static/js/ui/recent-edits.js` (localStorage rail, hooks `ApiClient.updateNode`, `ApiClient.duplicateNode`)
+- `static/js/ui/changes-panel.js` (live-vs-source diff, per-group Commit/Discard)
+- `static/js/ui/command-palette.js` (Ctrl+Z / Ctrl+Shift+Z, Ctrl+S)
+- `static/js/ui/scenario-status.js` (dirty dot indicator)
+- `templates/index.html` (toolbar buttons: 📜, 🕘, 🌀)
 
 ---
 

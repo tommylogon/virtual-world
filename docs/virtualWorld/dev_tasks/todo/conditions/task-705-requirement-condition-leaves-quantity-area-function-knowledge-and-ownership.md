@@ -12,7 +12,7 @@ related: [task-566, task-504, task-472, task-699, task-701, task-702]
 **Related:** task-566,task-504,task-472
 
 <!-- deps:start -->
-**Related:** [[task-566-let-the-simulation-seek-a-place-by-function-a-bed-a-forge-a-bath]], [[task-504-item-quantity-property-and-pooled-resource-nodes]], [[task-472-central-dice-and-check-resolution]], [[task-699-gosp-design-doc-schedules-plan-templates-and-recipe-activities-as-one-goap-layer]], [[task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries]], [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]]
+**Related:** [[task-566-let-the-simulation-seek-a-place-by-function-a-bed-a-forge-a-bath]], [[task-504-item-quantity-property-and-pooled-resource-nodes]], [[task-472-central-dice-and-check-resolution]], [[task-699-mosaic-design-doc-schedules-plan-templates-and-recipe-activities-as-one-goap-layer]], [[task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries]], [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]]
 <!-- deps:end -->
 
 ## What

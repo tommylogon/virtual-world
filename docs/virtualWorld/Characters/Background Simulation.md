@@ -5,6 +5,10 @@ tags: [system/characters]
 
 # Background Simulation
 
+## What you can do
+
+When it's not your turn to decide, the world keeps running — background characters work through a survival ladder and then meet each other, all on the same clock and the same graph as your actions. A fed, rested character may do nothing at all this tick, while a thirsty one sets out for water or a lonely one seeks company, and the social pass pairs co-present characters into conversations, teasing, theft, or quiet avoidance. The tier runs on the same Player objects and graph as the foreground, so a character promoted out of background and back never has their state contradict itself.
+
 The background tier is the deterministic rule layer that decides what every character
 **except** the ones making their own decisions does with a turn. It runs on the same
 `Player` object, the same graph and the same clock as the foreground — it differs
@@ -304,6 +308,10 @@ mention an event that happened to them.
 - [[World Scopes]] — who is observed and who is backgrounded
 - [[Search & Forage]] — the background tier's forage path
 - [[Activities & States]] — `foraging`, `working`, `bathing`, and the `busy` condition they share
+
+## Where it lives
+
+The background tier is split across `engine/background_simulation.py` (`BackgroundSimulation.process_due()` at 200, the survival ladder in `_act`), `engine/background_social.py` (`run_fear_pass`, `run_social_pass`, `run_social_approach`, `run_theft_pass`), and `engine/background_plans.py` (assigned pursuits and short-term plans). It is reached from `engine/tick_manager.py:1092-1102` (inside `tick_turn`), `routes/action_handlers.py:1384` (`/api/turn/apply`), `engine/timeskip.py` (217, 373/385/394 for soak), `engine/soak.py:98`, and `engine/soak_runner.py`. The promotion handoff lives in `engine/promotion.py` over `engine/lived_log.py`, the vocabulary contract is enforced by `engine/soak_telemetry.py:75` (checked by `tools/why_vocabulary.py`), and relationship/memory nudges are templated in `engine/social_text.py` and folded by `engine/derive.py`. Design rationale is in `docs/design/reversibility-contract.md` and `docs/design/long-horizon-simulation-progress.md`, with the lived-log schema in `docs/design/lived-log-format.md`.
 
 <!-- connected:start -->
 ## Connected

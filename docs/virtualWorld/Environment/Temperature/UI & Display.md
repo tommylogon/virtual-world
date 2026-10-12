@@ -5,6 +5,10 @@ tags: [system/environment]
 
 # UI & Display
 
+## What you can do
+
+Your body temperature appears as a color-coded vital bar (red for danger <33°C and >40°C, blue for cold 33–34°C, green for safe 35–39°C, yellow for warm 40°C) with narrative tier descriptions ranging from "shivering uncontrollably" to "heat is overwhelming." Area descriptions show effective temperature bands from "pleasant" to "deadly cold" with matching warnings like "the cold is biting" or "hypothermia is imminent." The graph heat overlay colors rooms by environment temperature (dark blue for ≤-20°C through red for >45°C). You can also see area temperature in the room info panel, body temperature in the player stats panel, and temperature-related vital changes logged as game messages.
+
 ## Vital Bar
 
 - Range 25–45°C mapped to 0–100%: `((value − 25) / 20) × 100`
@@ -81,6 +85,17 @@ Rooms colored by environment temperature in the graph heat overlay:
 | Frontend narrative | `agent-engine.js` | 180-184 |
 | Frontend alerts | `ui-controller.js` | 118-119 |
 | Graph heat overlay | `network-manager.js` | 375-386 |
+
+## Where it lives
+
+- Temperature description (14 bands): `area_description.py` — `temperature_description()`, `temperature_warning()`
+- Area descriptions: `area_description.py:141-230`
+- Feels-like serialization: `serialization.py:_compute_feels_like()`
+- Vital detail API: `routes/players.py:361-432`
+- Frontend vital bar: `agent-view.js:233-275`
+- Frontend narrative: `agent-engine.js:180-184`
+- Frontend alerts: `ui-controller.js:118-119`
+- Graph heat overlay: `network-manager.js:375-386`
 
 <!-- connected:start -->
 ## Connected

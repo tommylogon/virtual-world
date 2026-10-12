@@ -5,6 +5,17 @@ tags: [system/library]
 
 # Tags System
 
+## What you can do
+
+Tag something and the world changes. A tag is a label you put on an item, an
+area or a character, and the engine reads it: `container` makes a thing hold
+things, `light_source` makes it glow, `heat_source` warms the room around it, and
+a character's tags are what a stranger sees before they know your name.
+
+Tags are also how you *find* things — the library browser filters on them, and
+triggers can target them. Which tags the engine actually reads, and what each one
+does, is the list below.
+
 Tags are lightweight, id-keyed classifiers attached to items, areas, and characters. They
 drive engine behavior (containers, surfaces, light/heat/sound sources, stranger labels,
 equipment, vitals) and power library-browser filtering.
@@ -213,6 +224,25 @@ id-keyed library dedupes repeats. Manual tag creation uses the `TagMultiselect` 
 - [[Library System/Domain & Role Tags]] — the area → furniture → item population chain
 - [[Items & Inventory/Items Overview]]
 - [[AI & Narration/Memory System]]
+
+## Where it lives
+
+- `data/library/tags/<id>.json` (tag library files)
+- `engine/item_actions.py` (`container`, `furniture`, `place_item`, `put_item_in_container`)
+- `engine/toggleable_items.py` (`toggleable`, `electric`, `synthetic`, `light_source` toggle logic)
+- `engine/lighting.py` (`light_source` light emission)
+- `engine/environment_propagation.py` (`heat_source` heat emission)
+- `engine/sound.py` (`sound_source` sound propagation)
+- `engine/equipment.py` (`two_handed`, `INTRINSIC_ABILITY_TAGS`)
+- `engine/equipment_bonuses.py` (`weapon` attack bonus, `resistance` elemental resistances)
+- `engine/trigger_system.py` (`food`, `drink`, `openable` action gating)
+- `player.py` (`unknown_display_name`, `_tag_unknown_name`, `sync_vitals_with_tags` for `magic` tag)
+- `engine/area_description.py` (first impression rendering)
+- `graph.py` (`get_items_by_tag`, `get_characters_by_tag`, `get_tagged_items_in_area`)
+- `static/js/agent/memory-manager.js` (auto-registration to POST `/api/library/tags`)
+- `static/js/inspector/agent-view.js` (`InspectorAgentView._computeFirstImpression`)
+- `static/js/agent/prompt-builder/` (`anonymousName`, `voiceLabel`, `buildRoomContext`)
+- Tag API: `GET /api/tags/search`, `GET /api/tags/validate`, `GET /api/tags/stats`, `POST /api/library/tags`
 
 <!-- connected:start -->
 ## Connected

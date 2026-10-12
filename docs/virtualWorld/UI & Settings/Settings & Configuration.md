@@ -5,6 +5,15 @@ tags: [system/ui]
 
 # Settings & Configuration
 
+## What you can do
+
+Tune the engine without editing code. Settings covers three different things in
+three different places: the **engine's numeric constants** (light, heat, sound —
+see [[UI & Settings/Engine Config|Engine Config]]), the **browser-side
+preferences** (API keys, model, graph layout), and the **scenario and app
+saves**. Change one and it persists; change the engine constants and they apply
+live.
+
 VirtualWorld's settings are managed through a combination of backend route handlers, a frontend `ConfigManager` with IndexedDB persistence, and a settings UI panel.
 
 ## Settings Architecture
@@ -192,6 +201,21 @@ Game state (areas, players, items, etc.) is persisted via:
 
 - [[task-86-ux_ui_improvements|task-86: UX/UI improvements]]
 - [[dev_tasks/todo/refactor/task-83-code_readability_refactor|task-83: Code readability refactor]]
+
+## Where it lives
+
+- `routes/settings.py` (`register_settings_routes`, all settings endpoints)
+- `static/js/config.js` (`ConfigManager` / `window.config`, IndexedDB persistence)
+- `engine/runtime_config.py` (`DEFAULTS`, `SCHEMA`, `config.get()`, `RuntimeConfig.save()`, `reset()`)
+- `engine/sound.py` (reads `sound.*` config via helpers)
+- `engine/environment_propagation.py` (reads `heat.*` config)
+- `engine/lighting.py` (reads `light.spill_factor` config)
+- `data/engine_config.json` (persisted engine config overrides)
+- `routes/helpers.py` (`_save_game`, `_save_scenario`)
+- `static/js/ui/settings-view.js` (Settings panel tabs)
+- `static/js/ui/command-palette.js` (keyboard shortcuts: `Cmd-L`, `Cmd-K`, `Ctrl-Z`)
+- `static/js/ui/scenario-status.js` (dirty dot for Changes panel)
+- `templates/index.html` (settings modal markup, script tags)
 
 <!-- connected:start -->
 ## Connected

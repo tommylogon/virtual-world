@@ -9,7 +9,9 @@ tags: [system/ai, topic/turns]
 
 # Turn-Based System
 
-The engine supports four modes of operation for how agents and the game world advance: **off** (continuous), **sequential**, **random**, and **initiative**. All are toggled from the Automation tab in the Settings modal.
+## What you can do
+
+Choose one of four turn modes from the Automation tab in Settings: **Off** (continuous play, the active character acts immediately with no automatic vital decay), **Sequential** (characters act in alphabetical order, vital decay and environment effects apply when the queue wraps), **Random** (queue shuffled each round), or **Initiative** (each character rolls d20 + DEX bonus, highest acts first). The initiative sidebar shows the round number, each character's position, roll, and status (active/done/waiting). In turn-based mode, "Play" steps through the queue with a 2-second delay between steps; the step display shows `Turn N+1 — M/K` (current step / total per round). Dead characters are excluded unless Ghost Mode is enabled. Reactive Mode (the LLM's think-decide-act-react cycle) is a separate setting orthogonal to the turn queue.
 
 ## Modes
 
@@ -137,6 +139,17 @@ Orthogonal to turn-based vs continuous.
 | `engine/tick_manager.py` | `tick_turn()` — decay, environment, NPCs |
 | `engine/logging_events.py` | Turn events logging |
 | `routes/action.py` | `/api/turn/apply`, `/api/turn/clear` |
+
+## Where it lives
+
+- Frontend queue: `static/js/agent/turn-queue.js` — `TurnQueue` singleton (`initialize`, `advance`, `getCurrentCharacter`)
+- Agent step loop: `static/js/agent-engine.js`
+- Config persistence: `static/js/config.js` — `turnBased`, `turnOrder`
+- Initiative sidebar & step display: `static/js/ui-controller.js`
+- Settings form: `static/js/ui/settings-view.js`, `templates/index.html`
+- Backend tick processing: `engine/tick_manager.py` — `TickManager.tick_turn()`
+- Turn events logging: `engine/logging_events.py`
+- API routes: `routes/action.py` — `/api/turn/apply`, `/api/turn/clear`
 
 <!-- connected:start -->
 ## Connected

@@ -5,6 +5,10 @@ tags: [system/environment]
 
 # Equipment & Temperature
 
+## What you can do
+
+Equip clothing and gear with insulation values to shift the effective ambient temperature you feel — positive insulation traps body heat (warming you in the cold) while negative insulation wicks heat away (cooling you in the heat), and values stack across all worn items. The same coat that keeps you alive in a blizzard will cook you in a desert. Items with the `resistance` tag and a `resistances` dict reduce typed damage (fire, cold, toxic) but do not affect temperature directly. Any item tagged `toxic_resistant` grants resistance 3, fully blocking standard toxic air damage (HP -3/tick). You can see insulation effects reflected in the effective temperature shown in area descriptions and the vital bar.
+
 ## Insulation
 
 Equipped items with an `insulation` property shift the effective ambient temperature before it affects the player:
@@ -56,6 +60,10 @@ Per-type tags (`fire_resistant`, `cold_resistant`, `vacuum_sealed`, etc.) are re
 | Concern | File | Lines |
 |---------|------|-------|
 | Equipment bonuses (insulation) | `equipment_bonuses.py` | 34-99 |
+
+## Where it lives
+
+- Equipment bonuses (insulation): `equipment_bonuses.py:34-99`
 
 <!-- connected:start -->
 ## Connected

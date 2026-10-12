@@ -5,6 +5,10 @@ tags: [system/environment]
 
 # Weather Guide
 
+## What you can do
+
+Open the **World Sky** panel from the Sky Clock to read the live sky, preview upcoming weather, and author the forecast that drives the world's weather. You can set a one-shot GM override to force a storm or clear sky for a scene, choose between authored, deterministic, random, hybrid, or generated modes, and use the Regions tab to see a per-area, per-day outlook of what the seeded generator will produce. The panel is both the view and the authoring surface — nothing about weather is edited anywhere else.
+
 A player / GM guide to the weather system: where it lives, how to read it, how to
 author it, and what it actually does in play. For the engine internals, see
 [[Weather System]]; for the clock, calendar and lighting it rides on, see
@@ -20,7 +24,7 @@ The whole weather surface is one modal: the **World Sky** panel.
 - **Click the Sky Clock** to open **World Sky**.
 
 Nothing about the weather is edited anywhere else. The panel is view + author in
-one place, over the same schedule the engine runs.
+one place, over the same forecast the engine runs.
 
 ## The World Sky panel
 
@@ -30,8 +34,8 @@ From top to bottom:
 |------|---------------|
 | **Hero** | The live sky scene, drawn from the current weather, time of day and moon. It is a preview surface, not a control. |
 | **Live strip** | The *actual* environment of the area the controlled character is standing in: Wind, Humidity, Air, Temp, Light, Precip, Snow. Empty chips are simply not set on that area. |
-| **Transport** | `▶ Play day` animates the schedule across the period; `Dawn` / `Noon` / `Dusk` / `Midnight` jump to an hour; `⏱ Now` returns to the live clock. Transport previews the sky — it does not move game time. |
-| **Tabs** | **Forecast** (author/view the schedule) and **Regions** (a dated per-area outlook). The hero and transport stay visible across both. |
+| **Transport** | `▶ Play day` animates the forecast across the period; `Dawn` / `Noon` / `Dusk` / `Midnight` jump to an hour; `⏱ Now` returns to the live clock. Transport previews the sky — it does not move game time. |
+| **Tabs** | **Forecast** (author/view the forecast) and **Regions** (a dated per-area outlook). The hero and transport stay visible across both. |
 | **Footer** | Clock, Moon and Forecast readouts: `Day N`, the moon phase and its night-light bonus, and the entry count. |
 
 ## The Forecast tab
@@ -44,7 +48,7 @@ every time-of-day effect move with them.
 
 ### Override
 
-A one-shot GM override that **supersedes the schedule** for a set number of turns:
+A one-shot GM override that **supersedes the forecast** for a set number of turns:
 pick a `weather`, `wind` magnitude, wind `dir`ection, and `humidity`, set a
 duration, and **Set override**. The `● active` dot shows while one is running; it
 auto-reverts when the duration runs out, or you can **Clear** it. An override that
@@ -53,9 +57,9 @@ names a weather wins over the generated field and applies to the whole world.
 Use it for a scripted storm, a sudden cold snap, or a scene that needs a
 particular sky right now.
 
-### Forecast schedule
+### Forecast
 
-The schedule is the world's baseline weather. The card authors it:
+The forecast is the world's baseline weather. The card authors it:
 
 | Control | Meaning |
 |---------|---------|
@@ -64,9 +68,9 @@ The schedule is the world's baseline weather. The card authors it:
 | **seed** | Makes `deterministic`, `random` and `generated` reproducible. The same seed and day always roll the same weather. |
 | **every N ticks** | How often the state machine rolls to a new state. |
 | **+ entry** | Add a row. |
-| **Save** | Writes the schedule. Nothing is applied until you save. |
+| **Save** | Writes the forecast. Nothing is applied until you save. |
 
-Each entry row is one scheduled moment:
+Each entry row is one moment in the period:
 
 | Field | Meaning |
 |-------|---------|
@@ -81,7 +85,7 @@ Each entry row is one scheduled moment:
 | **Message** | A line narrated in the log when this entry becomes active. |
 
 Below the rows sits a **timeline**: each entry is a block on the period axis, and
-you can **drag a block** to reschedule it or **hover** to scrub the hero sky to
+you can **drag a block** to move it to a new time or **hover** to scrub the hero sky to
 that moment. **Presets** (Clear / Showery / Storm front / Snow day / Foggy dawn)
 fill in a whole day in one click. A collapsed **Transition table** holds the JSON
 weights the state-machine modes roll against.
@@ -120,7 +124,7 @@ The badge tells you the truth of what you are looking at:
 - **`live field`** — the world's mode is `generated`, so this *is* the weather the
   simulation will produce.
 - **`preview - mode: <mode>`** — the world is on another mode, so the live sim
-  follows its authored schedule instead and the grid is a preview of what
+  follows its authored forecast instead and the grid is a preview of what
   `generated` *would* give.
 
 Opening the tab is a **read**: it never advances the clock or the world.
@@ -199,7 +203,7 @@ Weather types are **library data**, not code. Each state is a record in
 prose. Adding a new weather type — a sandstorm, acid rain — is adding a record,
 not editing the engine; the generator and the dropdowns pick it up.
 
-The **schedule** itself is stored per scenario in `world_state.forecast_schedule`
+The **forecast** itself is stored per scenario in `world_state.forecast_schedule`
 and edited through the panel or `POST /api/settings/forecast`.
 
 <!-- connected:start -->
@@ -207,6 +211,6 @@ and edited through the panel or `POST /api/settings/forecast`.
 
 *Generated by `python tools/doc_connected.py --apply` — relations the repo already asserts (Feature Map rows, task `wiki:` frontmatter, module `@docs` headers, same-folder notes), not invented.*
 
-**Neighbouring notes** — [[Light System]], [[Temperature System]], [[Time & Weather]], [[Weather System]]
+**Neighbouring notes** — [[Environment]], [[Light System]], [[Temperature System]], [[Time & Weather]], [[Weather System]]
 
 <!-- connected:end -->

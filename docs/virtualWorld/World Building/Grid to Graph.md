@@ -5,6 +5,21 @@ tags: [system/graph]
 
 # Grid to Graph
 
+## What you can do
+
+The Grid to Graph compiler turns a painted WorldPainter grid into actual area and way nodes in the live graph. You invoke it by clicking "Generate" on a scope (or via lazy materialization when approaching an unmade scope, or via a recipe). The compiler flood-fills painted cells into regions, creates one area node per region with properties (floor, surface, biome/road, environment, description, coordinates), emits ways between adjacent regions (open passages, doors, stairs, gateways to child scopes), and applies deterministic outdoor way blocking. The same scope can be regenerated (with `allow_regenerate`) or ungenerated back to an unmade state. Output is a `GenerationPatch` applied atomically — same seed + recipe + clean fixture always yields identical nodes and edges.
+
+## Where it lives
+
+- `engine/world_compile.py` — the compiler (regions, areas, ways, gateways, buildings, blocking, preflight)
+- `engine/world_grid.py` — the painted record: `PAINT_LAYERS`, cell keys, `floor_at`, placements
+- `engine/biomes.py` — `cell_kind`, `is_building`, `is_stair`, `merge_rule`, `ground_surface`
+- `engine/generation.py` — `GenerationPatch` / `apply_patch` — provenance and the once-only guard
+- `engine/zones.py` — lazy materialisation caller (`ZoneManager.materialise`)
+- `routes/world_grid_ops.py` — the Generate endpoint and `_grid_payload`
+- `tests/test_world_compile.py` — the mapping (112 tests)
+- `tests/test_zones.py`, `tests/test_way_blocking.py`, `tests/test_open_sky.py` — zone, blocking, determinism paths
+
 **Task:** [[dev_tasks/review/world/task-496-worldpainter-grid-to-graph-compiler-cells-to-areas-and-ways|task-496]] (the compiler) · [[dev_tasks/review/world/task-400-pines-world-scale-vertical-slice|task-400]] (the recipe sibling path)
 
 `engine/world_compile.py` turns one painted scope grid into normal `area` and `way` nodes.
@@ -214,6 +229,17 @@ and fog of war as the known set. Its `Related:` header points at
 - [[World Scopes]] — placements, promotion, `baked` scopes
 - [[Rooms & Areas]] · [[Connections]] · [[Way Properties]] — what the compiled nodes are
 - [[Graph System]] · [[World Scopes]] — where they land
+
+## Where it lives
+
+- `engine/world_compile.py` — the compiler (regions, areas, ways, gateways, buildings, blocking, preflight)
+- `engine/world_grid.py` — the painted record: `PAINT_LAYERS`, cell keys, `floor_at`, placements
+- `engine/biomes.py` — `cell_kind`, `is_building`, `is_stair`, `merge_rule`, `ground_surface`
+- `engine/generation.py` — `GenerationPatch` / `apply_patch` — provenance and the once-only guard
+- `engine/zones.py` — lazy materialisation caller (`ZoneManager.materialise`)
+- `routes/world_grid_ops.py` — the Generate endpoint and `_grid_payload`
+- `tests/test_world_compile.py` — the mapping (112 tests)
+- `tests/test_zones.py`, `tests/test_way_blocking.py`, `tests/test_open_sky.py` — zone, blocking, determinism paths
 
 <!-- connected:start -->
 ## Connected

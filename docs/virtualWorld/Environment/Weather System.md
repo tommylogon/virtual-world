@@ -5,14 +5,9 @@ tags: [system/environment]
 
 # Weather System
 
-Technical reference for how weather works in VirtualWorld *now*: the vocabulary,
-the schedule, the seeded generator, how it reaches the world, and the readers
-that give it consequences. Player/GM-facing usage is in [[Weather Guide]]; the
-clock, calendar and lighting it rides on are in [[Time & Weather]].
+## What you can do
 
-Status: implemented, wired and authored. Vocabulary, per-area generation, snow,
-the per-area write, and the Regions outlook have all shipped (task-231/232/234,
-553–557, 762, 763, 772).
+The weather system drives per-area sky state, temperature, light, wind, humidity, air quality, and snow depth across the world. You author a forecast (or let the seeded generator create one per area) that the engine applies each turn, modulating ambient temperature, daylight, movement cost, foraging difficulty, and area prose. A GM override can supersede the forecast for scripted scenes. The Regions tab projects the generated field forward without mutating the live world.
 
 ## Where the code lives
 
@@ -54,9 +49,9 @@ default instead of silently becoming `clear`.
 `tools/weather_library_check.py` validates the records (fields, reachability from
 the generator across seasons/terrain) — currently **11 records, 0 errors**.
 
-## 2. The schedule (`ForecastSchedule`)
+## 2. The forecast (`ForecastSchedule`)
 
-The schedule is the world's authored baseline, stored in
+The forecast is the world's authored baseline, stored in
 `world_state.forecast_schedule`.
 
 **Modes** (`engine/weather_forecast.ForecastSchedule`):
@@ -67,18 +62,18 @@ The schedule is the world's authored baseline, stored in
 | `deterministic` | `roll_state()` walks the `transition_table`. Always seeded (seed defaults to `0`), so the sequence is reproducible. |
 | `random` | The same weighted pick, unseeded. |
 | `hybrid` | Authored entries supply the base; `current_state` supplies the weather. |
-| `generated` | The per-area field (§3) supplies the weather; the schedule supplies the seed/table/overrides. |
+| `generated` | The per-area field (§3) supplies the weather; the forecast supplies the seed/table/overrides. |
 
 **Period** comes from `granularity`: `hourly` = 1440 min, `weekly` = 10080,
 `yearly` = 525600. Entries repeat each period; weekly/yearly also shift the origin
 by `game_day`.
 
-**Override.** A separate `forecast_override` dict supersedes the schedule
+**Override.** A separate `forecast_override` dict supersedes the forecast
 (`set_forecast_override`). It is set from the UI or a trigger (`forecast_override`
 effect) and carries `duration_ticks`; `_forecast_tick` counts it down and reverts
 when it hits zero, logging `[Weather] The override wears off`. `resolve()`
 overlays the override's `weather`/`wind`/`wind_direction`/`humidity`/
-`temperature_mod`/`light_mod`/`air`/`blood_moon` on the schedule environment.
+`temperature_mod`/`light_mod`/`air`/`blood_moon` on the forecast environment.
 
 The forecast is a **delta overlay**, re-applied every turn — trigger
 `set_environment`/`adjust_environment` effects are temporary and the forecast
@@ -132,7 +127,7 @@ one area over it).
 
 **Cadence.** The live world rolls the field **once per game day**, not per tick:
 `_weather_field_for_day(season)` caches on `self._weather_field` /
-`self._weather_field_day`, seeded from the schedule's `seed` with the day folded
+`self._weather_field_day`, seeded from the forecast's `seed` with the day folded
 in, and reuses the previous day's field as `prev` (the coupling input).
 `_area_terrain_index()` supplies `areas`/`neighbours`/`climates`: open-sky areas
 (`is_open_sky`), neighbours found through area → way → area edges (`EDGE_CONNECTION`,
@@ -267,8 +262,8 @@ coupling input. It **never writes** `self._weather_field` or the clock.
 
 | Route | Method | Purpose |
 |---|---|---|
-| `/api/settings/forecast` | GET | Schedule + active override + moon + date/season + `weather_field` (current-day field). |
-| `/api/settings/forecast` | POST | Replace the whole schedule (including `area_overrides`/`date_overrides`); resets the caches. |
+| `/api/settings/forecast` | GET | Forecast + active override + moon + date/season + `weather_field` (current-day field). |
+| `/api/settings/forecast` | POST | Replace the whole forecast (including `area_overrides`/`date_overrides`); resets the caches. |
 | `/api/settings/forecast-override` | POST | Set/clear the GM override; re-runs `_forecast_tick`. |
 | `/api/settings/forecast/outlook` | GET | The N-day per-area projection (§7). |
 
@@ -298,7 +293,7 @@ coupling input. It **never writes** `self._weather_field` or the clock.
 |---|---|
 | `tests/test_weather_generator.py` | Seasonal/terrain edges, the extreme cap and gating, coupling maths, seeded per-area reproducibility, override precedence. |
 | `tests/test_snow_accumulation.py` | Accumulation/decay, precipitation scaling, movement/forage thresholds, prose. |
-| `tests/test_forecast_settings_route.py` | The schedule round-trips through the route; the field is exposed. |
+| `tests/test_forecast_settings_route.py` | The forecast round-trips through the route; the field is exposed. |
 | `tests/test_weather_types.py` | The library vocabulary, aliases, extremes. |
 | `tests/test_weather_narration.py` | Weather/wind/time-of-day prose. |
 | `tests/test_forecast_outlook.py` | The outlook is per-area, reproducible, honours overrides, advances the date, and never writes the live field or the clock. |
@@ -306,11 +301,23 @@ coupling input. It **never writes** `self._weather_field` or the clock.
 `tools/weather_library_check.py --check` validates the records;
 `tools/weather_preview.py` renders the generator standings for eyeballing.
 
+## Where it lives
+
+- Vocabulary: `engine/weather_types.py` loads `data/library/weather/*.json`
+- Forecast engine: `engine/weather_forecast.py` — `ForecastSchedule`, generator, snow model, moon phases, temperature curve
+- World integration: `virtual_world_engine.py` — `_forecast_tick`, `_weather_field_for_day`, `_apply_forecast_env`, `weather_outlook`, `set_forecast_override`
+- API: `routes/settings.py` — `GET`/`POST /api/settings/forecast`, `POST /api/settings/forecast-override`, `GET /api/settings/forecast/outlook`
+- UI: `static/js/sky-scape.ts` — Sky Clock and World Sky modal
+- Readers: `engine/movement.py`, `engine/foraging.py`, `engine/area_description.py`, `engine/lighting.py`, `engine/environment_propagation.py`, `engine/equipment_bonuses.py`
+- Content: `data/library/weather/*.json` — 11 weather type records
+
 <!-- connected:start -->
 ## Connected
 
 *Generated by `python tools/doc_connected.py --apply` — relations the repo already asserts (Feature Map rows, task `wiki:` frontmatter, module `@docs` headers, same-folder notes), not invented.*
 
-**Neighbouring notes** — [[Light System]], [[Temperature System]], [[Time & Weather]], [[Weather Guide]]
+**Dev tasks** — [[dev_tasks/todo/environment/task-798-rename-the-weather-forecast-schedule-key-and-its-identifiers-to-forecast|task]]
+
+**Neighbouring notes** — [[Environment]], [[Light System]], [[Temperature System]], [[Time & Weather]], [[Weather Guide]]
 
 <!-- connected:end -->

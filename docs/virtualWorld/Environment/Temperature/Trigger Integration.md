@@ -5,6 +5,10 @@ tags: [system/environment]
 
 # Temperature Trigger Integration
 
+## What you can do
+
+Use trigger conditions `temperature_below` and `temperature_above` to check if the current room temperature crosses a threshold, then fire effects like `set_environment` (absolute override of temperature, light, smell, noise) or `adjust_environment` (incremental change clamped to -50..100°C). This lets you build fireplaces that light and warm a room to 22°C then tick upward until 28°C, radiators that nudge temperature each tick, or freezer doors that chill the area when opened. The conditions read the room's `environment.temperature` from the character's current area, and the effects write back to that same environment dict.
+
 ## Conditions
 
 The trigger system (`trigger_system.py`) supports two temperature-related condition types:
@@ -74,6 +78,11 @@ The fireplace uses:
 |---------|------|-------|
 | Temperature trigger conditions | `trigger_system.py` | 557-597 |
 | Environment trigger effects | `effects.py` | 278-308, 394-428 |
+
+## Where it lives
+
+- Temperature trigger conditions: `trigger_system.py:557-597`
+- Environment trigger effects: `effects.py:278-308, 394-428`
 
 <!-- connected:start -->
 ## Connected

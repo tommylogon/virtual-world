@@ -5,6 +5,10 @@ tags: [system/rules]
 
 # Conditions System
 
+## What you can do
+
+Temporary conditions mark your character with things like poisoned, blind, stunned, or exhausted, each rewriting what you can do and what the world can do to you. They gate actions and movement, drain your vitals each turn, slow your speed, and turn your attacks or defenses into auto-failures on the right check — poisons accumulate while stuns refresh, per the stacking rule on each effect. You perceive them through symptoms and physical cues, never raw engine IDs.
+
 ## Overview
 
 The Conditions System manages temporary status effects on characters. Conditions are identified by a canonical id (`"poisoned"`, `"blind"`, `"asleep"`, etc.) and modify a character's capabilities, apply periodic effects, and gate actions.
@@ -423,6 +427,10 @@ The condition library has a matching **cure item per condition** (e.g. `bitterwe
 - [[dev_tasks/review/triggers/task-50-trigger_condition_has_item_dropdown|task-50: Trigger condition has_item dropdown]]
 - [[dev_tasks/review/triggers/task-51-trigger_multi_effect_conditions|task-51: Trigger multi effect conditions]]
 - task-163: Condition system redesign (no such task file)
+
+## Where it lives
+
+Conditions live in `engine/conditions.py` (the `ConditionsSystem` class, instance-field helpers, perception lines, and combat modifier aggregation), with the `CONDITION_DEFINITIONS` catalog and derived constants in `engine/player_conditions.py` (and referenced in `player.py:30-215, 228-250, 400-554`). The editable source of truth is `data/library/conditions/*.json`, loaded into the in-memory catalog with a merge-over-fallback onto the hardcoded dict. Tick integration and the unconscious state machine are in `engine/tick_manager.py`; trigger effect handlers at `engine/effects.py:638,658`; advantage/disadvantage resolution in `engine/checks.py`; carried-item `on_tick` fires in `tick_manager.py`; and `data/library/items/plague_miasma.json` is the reference contagion carrier. The Inspector (`static/js/inspector/`) shows condition badges.
 
 <!-- connected:start -->
 ## Connected

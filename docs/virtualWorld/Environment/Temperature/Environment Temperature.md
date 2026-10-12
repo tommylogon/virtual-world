@@ -5,6 +5,10 @@ tags: [system/environment]
 
 # Environment Temperature
 
+## What you can do
+
+Each area has a base temperature (its authored climate) that the simulation modulates with a diurnal curve, seasonal bias, and forecast deltas to produce the current simulated temperature. You can set base temperatures by painting climate in WorldPainter, use triggers to set or adjust temperature directly, place heat sources like fireplaces or radiators that gradually warm rooms, and toggle items like torches or air conditioners that apply instant temperature modifiers. Temperature propagates between connected areas through open ways — exterior areas act as infinite reservoirs — and wind accelerates the exchange. You read the effective temperature (with wind chill and humidity) in area descriptions and the graph heat overlay.
+
 ## Room Property
 
 Stored as an integer in each room's `environment` dict:
@@ -149,6 +153,15 @@ Hot + humid conditions are especially punishing (Thirst drain + discomfort).
 | Propagation + heat source call in tick | `tick_manager.py` | 320-325 |
 | Environment trigger effects | `effects.py` | 278-308, 394-428 |
 | Area descriptions | `area_description.py` | 141-175, 202-210 |
+
+## Where it lives
+
+- Area environment default: `area.py:8-14`
+- Temperature propagation: `environment_propagation.py:24-69`
+- Apply heat sources: `environment_propagation.py:110-149`
+- Propagation + heat source call in tick: `tick_manager.py:320-325`
+- Environment trigger effects: `effects.py:278-308, 394-428`
+- Area descriptions: `area_description.py:141-175, 202-210`
 
 <!-- connected:start -->
 ## Connected

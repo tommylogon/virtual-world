@@ -5,6 +5,10 @@ tags: [system/memory, topic/memory-dynamics, topic/reflection, topic/retrieval]
 
 # Memory Dynamics — from a memory list to an evolving internal model
 
+## What you can do
+
+Your character's memories evolve over time: they gain activation when recalled, decay when neglected, and can contradict each other — making your character fallible. Memories are categorized (episodic, semantic, procedural, social, belief) so retrieval returns a structured character model (events, beliefs, social model, expectations) instead of a flat list. Reflection produces actionable insights (beliefs with confidence, behavioral guidance, relationship deltas) that change how your character acts, not just summaries. Consolidation compresses old episodic memories into semantic traces when the store presses against its cap. The inspector's Memories tab shows dynamics badges (confidence, reinforcement count, contradiction links, faded styling) and a per-person relationship profile derived from your remembered experiences.
+
 > [!success] Status 2026-10-04 (task-685..691) — **implemented and wired**
 > The engine arithmetic (`engine/memory_dynamics.py`), the write-path
 > reinforcement and contradiction detection (both the engine and the HTTP write
@@ -377,6 +381,17 @@ Risks called out honestly:
   (react memory, reflect) with better contracts.
 - Not a replacement for `SpatialMemory` / `visited_areas` / `discovered_items`
   (discovery state) or `VectorStore` (the index) — §5 composes with them.
+
+## Where it lives
+
+- Engine arithmetic: `engine/memory_dynamics.py`
+- Write-path reinforcement & contradiction detection: engine + `routes/memories.py`
+- Tick decay/consolidation hook: `engine/tick_manager.py`
+- Structured reflect endpoint: `routes/memories.py` — `/memories/retrieve`, `/memories/reflect`
+- Client recall block & Memory Mind dashboard: `static/js/agent/memory-manager.ts`, `static/js/mind-view.ts`
+- Inspector dynamics UI: `static/js/inspector/agent-view.js` (badges, stats, filters, Category/Confidence/Connections editor)
+- Per-person profiles endpoint + panel: `routes/players.py`, `static/js/inspector/agent-view.js`
+- Tests: `tests/test_memory_dynamics.py`
 
 ## 10. Related
 

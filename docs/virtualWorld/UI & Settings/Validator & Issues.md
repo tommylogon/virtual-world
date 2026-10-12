@@ -5,6 +5,15 @@ tags: [system/ui, topic/validation]
 
 # Validator & Issues
 
+## What you can do
+
+Find out what is broken before a player does. There is no single validator —
+there are four independent instruments, and only one of them is wired to a UI.
+They check different things (scenario integrity, library shapes, node references,
+authoring blockers) and they disagree by design, so a clean run on one is not a
+clean run on the others. Start at the triage panel, then read which instrument
+actually spoke.
+
 **Task:** [[dev_tasks/done/library/task-323-library-lint-validator|task-323]] · [[dev_tasks/done/ui/task-393-validator-triage-panel|task-393]] · pending: [[task-443-validator-mismatch-recalibration-and-info-section|task-443]]
 
 Scenario lint, mismatches, and authoring blockers. There is **no single validator** —
@@ -169,6 +178,17 @@ correction of task-393's own claim:
 | `tools/validate_scenario.py` | offline scenario-file lint |
 | `engine/nl_editor_validation.py` | staged-op pre-Apply gate |
 | `tools/character_loadout_check.py` | separate shape gate on character `equipped`/`inventory` |
+
+## Where it lives
+
+- `engine/trigger_validator.py` (`TriggerValidator` — four validation passes: trigger edges, way authoring, mechanical items, library sync)
+- `engine/nl_editor_validation.py` (staged NL-editor op validation, pre-Apply gate)
+- `tools/lint_library.py` (10 CLI checks: `dead_interests`, `missing_slots`, `tag_case_drift`, `broken_contents`, `unauthored_consumables`, `resource_pools`, `singleton_tags`, `tag_id_charset`, `area_tag_gaps`, `dead_fears`)
+- `tools/validate_scenario.py` (offline scenario lint: areas, ways, items, characters, triggers, players)
+- `routes/triggers.py` (`GET /api/triggers/validate`, `POST /api/triggers/ignore`, `POST /api/triggers/validate-definition`, `POST /api/import/audit`)
+- `static/js/validator-panel.js` (triage UI: grouping, quick-fix, dismiss, fix-all, progress bar, inline inspector validation)
+- `tools/character_loadout_check.py` (character `equipped`/`inventory` shape validation)
+- `templates/index.html` (validator panel markup: `#validator-list`, `#validator-count`)
 
 ---
 

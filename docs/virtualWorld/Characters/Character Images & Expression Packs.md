@@ -5,6 +5,10 @@ tags: [system/characters]
 
 # Character Images & Expression Packs
 
+## What you can do
+
+Each character can carry a library of live art keyed by emotion or action — a SillyTavern-style expression pack with a profile bust used as the avatar and a full-body render used as the portrait. The avatar resolver picks the right face based on the character's current emotional state, falling back to neutral and then to a generic icon, so a character's portrait shifts with their feelings. You author these packs in the inspector's Images tab, uploading individual expression slots or splitting a sprite sheet into labeled tiles that snap onto a draggable grid.
+
 A character can carry live art keyed by **emotion** or **action** — a
 SillyTavern-style expression pack. Each key holds two renders: a **profile**
 (bust, used as the avatar) and a **full body** (portrait / graph art).
@@ -265,6 +269,22 @@ Helpers live in
   emotion keys the avatar follows
 - [[UI & Settings/Inspector Panels|Inspector Panels]] — where the editor lives
 - [[Characters/Characters Overview|Characters Overview]]
+
+## Where it lives
+
+- **`static/js/character-art.js`** — avatar/full-body resolver (`CharacterArt.avatarFor`, `fullArtFor`, `artForNodeId`, `CharacterArt.open()`)
+- **`engine/emotion.py:AXIS_TO_EXPRESSION`** — engine affect-to-expression vocabulary
+- **`static/js/inspector/helpers.ts`** — `EXPRESSION_ORDER`, `EXPRESSION_ART_ALIASES`
+- **`static/js/agent-lens.js`** — character header portrait rendering
+- **`static/js/graph/network-manager.js`** — graph node image mode (Show Images)
+- **`static/js/agent/turn-scene-view.js`** — "People here" chip thumbnails
+- **`routes/graph_ops.py`** — `handle_upload_node_image`, `handle_remove_node_image`, `_expression_slug`, `_delete_managed_image`
+- **`engine/effect_handlers/spawn.py`** — copies `expressions`, `image`, `profile_image` on character spawn
+- **`routes/library_ops.py`** — library import / refresh copies the same keys
+- **`static/js/inspector/agent-view.js`** — `_buildCharacterCard` + `_saveCharacter` (character card diff)
+- **`static/js/inspector/sprite-sheet.js`** + **`static/js/inspector/sprite-sheet-geometry.js`** — sheet splitting and grid geometry
+- **`tools/unit/test_sprite_sheet_geometry.js`** + **`tools/unit/test_character_art.js`** — geometry and resolver tests
+- **`static/images/nodes/`** — on-disk image storage
 
 <!-- connected:start -->
 ## Connected
