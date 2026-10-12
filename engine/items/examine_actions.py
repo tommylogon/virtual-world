@@ -178,8 +178,14 @@ class ExamineActionsMixin:
                     desc_parts.append(f"Their mood: {emotion_nl}")
             if not desc_parts:
                 desc_parts.append("They are wearing nothing.")
-            from engine.character_spatial import set_position_examining_character
+            from engine.character_spatial import (
+                approach_character,
+                set_position_examining_character,
+            )
             if not is_self:
+                # task-783: walk up to them before describing them, the way
+                # grab, give, steal and use-on already do.
+                approach_character(self.graph, player_manager, target_pname)
                 set_position_examining_character(self.graph, player_manager, target_pname)
             return "\n".join(desc_parts)
 
@@ -204,7 +210,11 @@ class ExamineActionsMixin:
                         parts.append(equip_narrative)
                     if not parts:
                         parts.append("They are wearing nothing.")
-                    from engine.character_spatial import set_position_examining_character
+                    from engine.character_spatial import (
+                        approach_character,
+                        set_position_examining_character,
+                    )
+                    approach_character(self.graph, player_manager, resolved)
                     set_position_examining_character(self.graph, player_manager, resolved)
                     return "\n".join(parts)
             elif candidates:
@@ -248,7 +258,14 @@ class ExamineActionsMixin:
                     break
             if item_node:
                 self._register_item_discovery(player_manager, item_node)
-                from engine.character_spatial import set_position_examining_item
+                from engine.character_spatial import (
+                    approach_item,
+                    set_position_examining_item,
+                )
+                # task-783: walk to it before describing it. `approach_item` is
+                # a no-op for anything not in the current area, so an item in
+                # hand, worn, or inside a carried container is left alone.
+                approach_item(self.graph, player_manager, target_name, item_node)
                 set_position_examining_item(self.graph, player_manager, target_name, item_node)
                 # Phase 3 — see_item save_on hook (e.g. hemophobic + blood/corpse)
                 try:
@@ -368,10 +385,10 @@ class ExamineActionsMixin:
         matched_edge, way_node, matched_handle = self.matching.resolve_exit(area_id, target_name)
         if matched_edge and way_node:
             direction = matched_handle
-            from engine.character_spatial import set_character_at_way
+            from engine.character_spatial import approach_way
             if player_manager.active_player:
                 pid = player_manager._player_node_id(player_manager.active_player)
-                set_character_at_way(self.graph, pid, way_node.id)
+                approach_way(self.graph, pid, way_node.id)
             desc = self._render_node_desc(way_node)
             if not desc:
                 desc = f"It's a {direction}."

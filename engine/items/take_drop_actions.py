@@ -620,6 +620,15 @@ class TakeDropActionsMixin:
                 f"Items you can see: {', '.join(visible_items) if visible_items else 'nothing'}. "
             )
 
+        # task-783: walk to the thing before you take it, the way `use`,
+        # `place`, `steal` and `give` already do. `approach_item` is a no-op
+        # for anything not in the current area, so an item already in hand,
+        # worn, or inside a carried container is left alone — you are already
+        # at it. A heavy or skill-gated take therefore resolves from where you
+        # are standing, not from across the room.
+        from engine.character_spatial import approach_item
+        approach_item(self.graph, player_manager, item_name, item_node)
+
         # Frightened (item source): won't touch the item they fear (trait/gate)
         if player_manager.player.has_condition("frightened"):
             from engine.conditions import frightened_block
