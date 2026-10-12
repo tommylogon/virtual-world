@@ -6,9 +6,9 @@ win this task is about, and the node-count blow-up that freezes the graph view
 and materialises its areas and ways on approach.
 
 This is the one slice of task-500 that is not owned by another task: the task's
-own header says so. Fidelity-*tier selection* is task-411 + task-418
-(`engine/attention.py`), and chunk load/evict is task-401. What is left here is
-the zone as the **materialisation** key.
+own header says so. Fidelity-tier selection is **scope-driven** (the loaded
+scope), and chunk load/evict is task-401. What is left here is the zone as the
+**materialisation** key.
 
 **Provenance is the selector.** Every compiled node already carries
 ``properties.generated.scope_id`` (`engine.generation.provenance`), so releasing

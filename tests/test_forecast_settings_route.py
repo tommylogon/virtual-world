@@ -1,4 +1,4 @@
-"""Forecast schedule authoring route (task-762).
+"""Forecast authoring route (task-762).
 
 The World Sky modal authors `forecast_schedule` over
 `GET`/`POST /api/settings/forecast`. The POST used to whitelist a fixed set of

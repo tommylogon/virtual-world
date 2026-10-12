@@ -199,7 +199,8 @@ the same damage, and no mechanic has a second implementation.
 
 ### Then — scale & knowledge (the big one)
 
-Attention (task-411), awareness channels (task-418), the relational spatial model
+Scope-driven promotion (task-710; the attention / awareness-channel model,
+task-411 / task-418, is cancelled), the relational spatial model
 (task-419), **fog of war (task-499 — the module and its tests are done, the
 *wiring* is not: nothing outside `tests/test_fog.py` imports `engine/fog.py`, no
 route serves `fog_view`, and no gameplay code writes `player.known`, so the

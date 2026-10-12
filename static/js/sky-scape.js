@@ -3,7 +3,7 @@
  * sky-scape.js — Engine-driven Sky Clock (task-228/229/234 UI, roadmap 3.3).
  *
  * Renders the sky state the ENGINE computes (game_time, game_day, moon_phase,
- * forecast schedule + override) in two places:
+ * forecast + override) in two places:
  *   - the compact top-bar widget (replaces the bare `#ui-time` clock): a single
  *     live line — time · date · moon · weather
  *   - the **World Sky panel** (modal): the animated sky STAGE from
@@ -36,7 +36,7 @@ const _SkyScape = (() => {
     // is library data (`data/library/weather`), so the live icons are fetched
     // from `/api/vocabulary/weather` and override it. The built-in map still
     // covers the first frame before the fetch resolves and the non-canonical
-    // spellings ("rain", "storm") an authored schedule may carry.
+    // spellings ("rain", "storm") an authored forecast may carry.
     const _WEATHER_ICONS = {};
     // The canonical registry ids, in registry order — kept separate from
     // `_WEATHER_ICONS`, which also holds alias spellings for chip lookup and
@@ -350,7 +350,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
 
                 <div class="vwsky-stats" id="sky-stats"></div>
                 <div class="vwsky-transport">
-                    <button class="vwsky-btn sm" id="sky-play" title="Play the day through the schedule">▶ Play day</button>
+                    <button class="vwsky-btn sm" id="sky-play" title="Play the day through the forecast">▶ Play day</button>
                     <span class="vwsky-sep"></span>
                     <button class="vwsky-btn sm sky-jump" data-hour="6">Dawn</button>
                     <button class="vwsky-btn sm sky-jump" data-hour="12">Noon</button>
@@ -361,7 +361,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
                 </div>
 
                 <div class="vwsky-tabs">
-                    <button class="vwsky-tab on" id="sky-tab-forecast" title="Author and view the forecast schedule">Forecast</button>
+                    <button class="vwsky-tab on" id="sky-tab-forecast" title="Author and view the forecast">Forecast</button>
                     <button class="vwsky-tab" id="sky-tab-regions" title="The next days, per open-sky area">Regions</button>
                 </div>
                 <div id="sky-view-forecast" class="vwsky-view">
@@ -417,9 +417,9 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
                 </div>
 
                 <div class="vwsky-card">
-                    <span class="vwsky-lab">🌦 Forecast schedule</span>
+                    <span class="vwsky-lab">🌦 Forecast</span>
                     <div class="vwsky-row" style="margin-bottom:10px;">
-                        <label class="vwsky-lab-inline">mode <select id="sky-sched-mode" class="vwsky-sel" title="schedule mode">
+                        <label class="vwsky-lab-inline">mode <select id="sky-sched-mode" class="vwsky-sel" title="forecast mode">
                             <option value="authored">authored</option>
                             <option value="deterministic">deterministic</option>
                             <option value="random">random</option>
@@ -463,7 +463,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
                             <span class="vwsky-status" id="sky-regions-status"></span>
                         </div>
                         <div id="sky-regions-grid" class="vwsky-rwrap"></div>
-                        <div class="vwsky-note">The generated per-area weather the engine would roll for each of the next <em>N</em> days, starting today. A pure projection over <code>generate_weather_field</code> - opening this tab never advances the clock. A <strong>preview</strong> badge means the world's forecast mode is not <code>generated</code>, so the live sim follows its authored schedule instead.</div>
+                        <div class="vwsky-note">The generated per-area weather the engine would roll for each of the next <em>N</em> days, starting today. A pure projection over <code>generate_weather_field</code> - opening this tab never advances the clock. A <strong>preview</strong> badge means the world's forecast mode is not <code>generated</code>, so the live sim follows its authored forecast instead.</div>
                     </div>
                 </div>
             </div>
@@ -521,7 +521,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
     const STAGE_WEATHER_MAP = { clear: 'clear', cloudy: 'overcast', rainy: 'rain', stormy: 'storm', snowy: 'snow', foggy: 'fog', windy: 'partly' };
     const MOON_INDEX = { new_moon: 0, crescent: 1, quarter: 2, gibbous: 3, full_moon: 4, waning: 5, blood_moon: 4 };
     /** Post a sky state to the stage at a given hour. Shared by "now" and by the
-     *  timeline's hover-scrub, so the hero sky is a live preview of the schedule. */
+     *  timeline's hover-scrub, so the hero sky is a live preview of the forecast. */
     function _postSky(hour, weather, syncLabel) {
         const iframe = document.getElementById('sky-atmosphere-frame');
         if (!iframe || !iframe.contentWindow)
@@ -733,7 +733,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
         if (el)
             el.textContent = `${label} · ${weather || '—'}`;
     }
-    /** "Play the day": step a preview through the schedule, sky and ribbon in step. */
+    /** "Play the day": step a preview through the forecast, sky and ribbon in step. */
     function _togglePlay() {
         if (_playTimer !== null) {
             _stopPlay();
@@ -867,7 +867,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
         if (active)
             active.style.display = _state().forecast_override ? 'inline' : 'none';
     }
-    // ── forecast schedule editor (task-762) ─────────────────────────────
+    // ── forecast editor (task-762) ─────────────────────────────
     // Author and view `forecast_schedule` over the existing GET/POST
     // /api/settings/forecast — no second engine. The timeline lays the entries
     // out over the period granularity and each row edits one entry; the columns
@@ -1018,9 +1018,9 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
         }
     }
     // ── interactive timeline (task-762) ────────────────────────────────
-    // The schedule is temporal, so time *is* the editor: entries are draggable
+    // The forecast is temporal, so time *is* the editor: entries are draggable
     // blocks over a ruled period, a playhead marks "now", and hovering the track
-    // scrubs the hero sky through the schedule live — no save, no round-trip.
+    // scrubs the hero sky through the forecast live — no save, no round-trip.
     const WEATHER_TINT = {
         clear: 'rgba(210,164,65,.26)', cloudy: 'rgba(139,148,158,.28)',
         windy: 'rgba(110,118,129,.26)', rainy: 'rgba(88,166,255,.28)',
@@ -1211,7 +1211,7 @@ html,body{min-height:0!important;height:100%!important;padding:0!important;margi
             _addEntryRow({ offset: Math.round(h * 60), weather });
         _renderTimeline(_state().forecast_schedule);
     }
-    /** Read the editor DOM back into a schedule, or report a validation error. */
+    /** Read the editor DOM back into a forecast, or report a validation error. */
     function _collectSchedule() {
         const mode = document.getElementById('sky-sched-mode')?.value || 'authored';
         const granularity = document.getElementById('sky-sched-granularity')?.value || 'hourly';

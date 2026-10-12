@@ -152,7 +152,7 @@ def register_settings_routes(app):
 
     @app.route('/api/settings/forecast', methods=['GET'])
     def get_forecast():
-        """task-227: current forecast schedule + active override + moon."""
+        """task-227: current forecast + active override + moon."""
         try:
             world = app.world
             return jsonify({
@@ -190,7 +190,7 @@ def register_settings_routes(app):
 
     @app.route('/api/settings/forecast', methods=['POST'])
     def set_forecast():
-        """task-227: replace the whole forecast schedule."""
+        """task-227: replace the whole forecast."""
         try:
             data = request.get_json()
             if not isinstance(data.get('schedule'), dict):
@@ -216,7 +216,7 @@ def register_settings_routes(app):
             app.world._weather_field = {}
             app.world._weather_field_day = None
             from routes.saveload import _push_undo_snapshot
-            _push_undo_snapshot(app, label="forecast schedule update")
+            _push_undo_snapshot(app, label="forecast update")
             return jsonify({"status": "success"})
         except Exception as e:
             logger.exception("Error in POST /api/settings/forecast")

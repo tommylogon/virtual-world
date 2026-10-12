@@ -99,10 +99,12 @@ would otherwise trip on:
   view; an unaware agent is not told about unknown areas. This reuses the
   viewer-aware room perception already in `engine/room_perception.py` and
   `player.known` (tests/test_known.py); `EDGE_KNOWN` remains abilities-only.
-- **Fidelity tiers (task-411/418).** Attendance is not a hop-count fiction: the
-  attended set derives from awareness channels (sound, co-presence, recency,
-  hooks). Fog of war is the *knowledge* dimension; attendance is the *simulation*
-  dimension — both read the same grid but neither is the other.
+- **Attention is scope-driven (task-710), not a fidelity tier.** Attendance is
+  not a hop-count fiction and not a global cap of 8: the loaded scope *is* the
+  promoted set. The earlier attended-set model built on awareness channels
+  (task-411 / task-418) is cancelled; the channel seam survives unwired in
+  `engine/awareness.py`. Fog of war is the *knowledge* dimension; attendance is
+  the *simulation* dimension — both read the same grid but neither is the other.
 
 ## Scope hierarchy: root then zone
 

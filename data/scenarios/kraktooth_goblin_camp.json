@@ -108278,7 +108278,10 @@
         "name": "james",
         "properties": {
           "x": 7417.8,
-          "y": -8523.5
+          "y": -8523.5,
+          "personality": "You are James, a weathered river fisherman. You are patient, practical, and slow to anger. You know every reach of the Raven River and which pools hold fish at which hour. You talk to the river more than to people.",
+          "description": "A lean, sun-browned man in a patched oilskin coat, waders, and a battered straw hat. A fishing rod is slung over his shoulder and a woven creel hangs at his hip.",
+          "base_description": "a composed, middle-aged man trained in clinical work; a therapist with the doctor's letters on his wall, a soft tidy sweater, folded legs, notebook and pen in hand, kind eyes and a warm, unhurried steadiness to him."
         },
         "type": "character",
         "updated": 1791636160.0986664

@@ -37,49 +37,54 @@ transcript, not a curated vault note, so it is not subject to the vault guards
 
 Checklist:
 
-- [x] Select world scale in terms[?] to traverse like [the] map → 10x10x10[?]
+- [x] Select world scale in turms to traverse like the map like 100x100 cells downt o 2x2 cells
 - [x] View biomes, place features (cities, key areas, resource, etc.)
-- [ ] Layers of sight[?] via ways and amortisation[?]
-- [ ] Overlays for resource-dist / hostile-dist / weather / temp[?] / climate, temp
+- [ ] Layers of sight via ways and consiering area levels/stories. aka if we got road at 1, road at 2 and then road at 2. we can from road 1 see up to road 2, probably not the second road on level 2. if we got multiple roads in a elevation like 1,1,-1,0,1 then we expect to see all across but not down into -1 until we are by the downlill area.
+- [ ] Overlays for resource-dist / hostile-dist / weather chance / climate, temp
 - [ ] Heightmap / topography, a CSV or JSON, a colour key to features/biomes
-- [ ] The map tool used to be [that the?] [e?][xplorers?] (illegible)
-- [x] 8-way is [b/ng?] / tiers / descriptions (elevation, etc.)
+- [ ] The map tool i used for DND, https://azgaar.github.io/
+- [x] worldpainter grid. empty is nothing a void, no area.
+- []  helpers for topology, distributoin, and biome fading. example if we place river next to forest, the helper might push theforest to the side or suggest replacing it with a bank, river edge, beach, or simular matching biome first. 
+- [] fill tool to fill a empty area with a biome. 
+- helpers for elevatin, possibly use a heightmap to import with standard blackto white grayscale values to translate into the areas floor value.
 - [x] Town: place features of towns — shops, buildings, cities, houses, lakes
-- [ ] Interior: hallways, rooms, [tiles?], windows, fires, [illegible]
-- [ ] Vehicle: a drivable item
-- [ ] Template [trans?] for plants and resources (climbing bush, apple tree, fern, etc.)
+- [ ] Interior: hallways, rooms of types, windows, floors, themes or genres, tags
+- [ ] Vehicle: a drivable item or a area that can change its way connectoins, simlation traversal.
+- [ ] Template items for  for plants and resources (berry bush, apple tree, fern, etc.)
 - [x] Biomes: beach, cliff, forest, road, mountain, hills, [lake?], swamp, hills, etc.
-- [ ] Energy conservation on u[phill]/downhill
-- [ ] Scaling?
-
-> Those waters has a low — deep woods → slope → towns → [field?] → land ...
-> dense woods | randomising the terrains ... glacial in and others... [most
-> lost?/sparse?] woods.
+- [ ] Energy consumption increased when traversal between elevatoins. on u[phill]/downhill
+- [ ] stamina?
+>                               the woods grows denser to the west
+> dense woods near a road — dense woods → sparse woods → farms
+                              |             |             |
+>a road into the deep dense woods -  road        → road         → road
+>                        |   a road next to sparse woods | a road south of farmlands
+>                           dense woods  - 
 
 ---
 
-## Page 2 — Configuration needed
+## Page 2 — Confirmations needed
 
 Checklist:
 
 - [ ] Ability descriptions in prompt
-- [ ] Backlinks / items with [count?] to say number of consumable items
-- [ ] Item size, char size, way size
-- [ ] Consider using graph edit (map) water level
-- [ ] Send character portraits to own players
-- [ ] Use [day?]/months /4/2/3 + elevation + portrait for [res?]
-- [x] Water: swim, in/out, [barrier?], water-brush
-- [x] WorldPainter tools: sewers, move, inspect, [flood?]
-- [x] Bug: "move PG" in WorldPainter unreliable
-- [ ] Character age
-- [x] Fear affects [traversal?] checks
+- [ ] Backbacks / items with content to saynumbe rof contained imtems
+- [ ] area size limits, Item sizes
+- [ ] Consider using worldgrapsh ( graph editor's) charater format for strutured character personality and apperance to allow items to afect more of a charater, and consistently make complete and compadible chratcers.
+- [ ] Send character portraits to agent promtps
+- [ ] Improve unknown character targeting, profile image, berre descriptions, stranger with numbers
+- [] Water mechanics: need swimming as a ability/trait, allow to swim in and out of water, dive down into water areas below the water surface, limited airsupply, magic to extend or water breathing traits, turn charater wet, cold, or hot based on water temp, include river currents that push charters, and drowning.
+- [x] WorldPainter tools: select, move, inspect
+- [x] Bug: "move BG" in WorldPainter unreliable
+- [ ] Character age - included in worldgrpah form
+- [x] Fear affects traversal checks
 - [ ] Scale / back-sim (consider abilities and movement capabilities)
 - beach — shrine — lake … bottom — underwater ↓ bottom
 - [ ] How to handle prices, ledger, shops
-- [ ] Quests, missions, jobs — how do we handle generated requests for others to complete?
-- [ ] Fallout to biomes (dead forest, [tundra?], frozen, burned, [stare?]), frozen cliff, snow cliff
-- [ ] Make characters not demand to stay in certain areas, like track/gather
-- [ ] UI designer bot?
+- [ ] Quests, missions, jobs — how do we handle generated requests for others to complete? obligations in MOSAIC
+- [ ] biomes seasonsa nd variants (dead forest, [tundra?], frozen, burned, [stare?]), frozen cliff, snow cliff, rockcliff
+- [ ] Make characters not want to stay in certain areas, like trashpiles, wasteareas, latrines, dirty or cold or too hot areas
+- [ ] UI designer bot? specialise agent with a UI toolkit and data?
 
 ---
 
@@ -143,7 +148,7 @@ Checklist:
 
 ## Page 5 — Mini-games and tasks
 
-> Mini games. Backgammon "[butter ship?]".
+> Mini games. backscratch "[battel ship vs the "no not there, lower yes ther eno no up and tot he side not he other side!"]".
 >
 > Real tasks: make task cards for things I want to do that [I] can use to
 > describe things I can do. Routines | habits | like to do | as to tasks with
@@ -716,7 +721,7 @@ These recur and are worth pulling out of the per-page detail:
   naming affordances (p13), templates (pp. 1, 12, 26).
 - **Crafting + skill** (pp. 22, 23) and **recipes as data**.
 - **Triggers** with a fixed event vocabulary and conditional effects (pp. 21, 25).
-- **Schedules / pursuits / GOSP** (pp. 16, 17) — already codified elsewhere in
+- **Schedules / pursuits / MOSAIC** (pp. 16, 17) — already codified elsewhere in
   the repo (`Character Pursuits.md`, task-699 and related), so listed here for
   completeness, not as new work.
 - **Biome fallout/states** (p2) and **layers beyond the current four** (p4).

@@ -2,7 +2,7 @@
 
 **Status:** design reference (data-first; the engine parts ship incrementally,
 see §6)
-**Related:** task-227 (forecast schedule), task-231 (wind), task-232 (air/wet),
+**Related:** task-227 (forecast), task-231 (wind), task-232 (air/wet),
 task-234 (GM overrides), task-496 (grid→graph compiler), task-497 (biome
 taxonomy), `docs/design/world-environment-taxonomy.md`,
 `docs/virtualWorld/Environment/Time & Weather.md`,

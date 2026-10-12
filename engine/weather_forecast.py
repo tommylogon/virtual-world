@@ -1,4 +1,4 @@
-"""Weather forecast schedule + moon phases (task-227, task-229, task-234).
+"""Weather forecast + moon phases (task-227, task-229, task-234).
 
 The forecast is a *time-aware environment overlay*, not a weather
 simulation: an authored (or state-machine) schedule that `tick_turn()`

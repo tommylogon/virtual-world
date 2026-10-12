@@ -1,12 +1,9 @@
 """Zone-driven fidelity and lazy zone materialisation (task-500).
 
-The task's own header says most of it is owned elsewhere — fidelity-tier
-selection is task-411 + task-418, chunk load/evict is task-401 — and that this
-task's "only unique delta is using *zones* as the selection key". That is what is
-built and tested here:
+The task's own header says most of it is owned elsewhere — chunk load/evict is
+task-401's — and this task's "only unique delta" is now the **zone as the
+materialisation key**. That is what is built and tested here:
 
-- a zone is the materialisation boundary, so a character's zone is readable by
-  the attention budget and outranks awareness when nothing is attending the zone;
 - a released zone keeps its scope record and loses its nodes, and materialising
   it rebuilds them;
 - the refusals. A release is destructive and mostly irreversible, so the rules
@@ -21,7 +18,6 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from engine import world_grid as wg  # noqa: E402
-from engine.attention import TIER_NAMES, TIER_NONE, AttentionBudget  # noqa: E402
 from engine.generation import provenance  # noqa: E402
 from engine.world_compile import compile_grid  # noqa: E402
 from engine.zones import (  # noqa: E402
@@ -75,90 +71,6 @@ def _zone_keyed(store, count=4, area="cell"):
                         properties={"world_scope_id": "zone_0"}))
     graph.add_edge(Edge(source="player_near", target=area, type=EDGE_IN,
                         properties={}))
-
-
-# ── the selection key ──────────────────────────────────────────────────────
-
-
-def test_a_character_in_an_unattended_zone_ranks_below_everything():
-    """The zone is the materialisation boundary, so a zone nobody is attending
-    should not hold the budget however recent its occupants are."""
-    budget = AttentionBudget(cap=1)
-    characters = {
-        "here": {"area_id": "a", "recency": 0, "world_scope_id": "zone_0"},
-        "far": {"area_id": "z", "recency": 9999, "world_scope_id": "zone_9"},
-    }
-    report = budget.select(WorldGraph(), characters=characters, humans=["here"],
-                           zones_in_play=["zone_0"])
-    assert report["attended"] == ["here"]
-
-
-def test_the_zone_key_is_off_unless_a_caller_asks_for_it():
-    """A world with no zones should not pay for the key, and a caller that
-    forgets to pass `zones` gets the old behaviour rather than an error.
-
-    Neither character is an anchor or a human, so the only thing separating them
-    is the zone key — which is the only way to show the key doing something.
-    """
-    characters = {
-        "near_zone": {"area_id": "a", "recency": 0, "world_scope_id": "zone_0"},
-        "far_zone": {"area_id": "z", "recency": 9999, "world_scope_id": "zone_9"},
-    }
-    without = AttentionBudget(cap=1).select(WorldGraph(), characters=characters)
-    assert without["attended"] == ["far_zone"], (
-        "without the zone key it is recency alone, which is correct and is why "
-        "the key is opt-in"
-    )
-
-    with_key = AttentionBudget(cap=1).select(WorldGraph(), characters=characters,
-                                             zones_in_play=["zone_0"])
-    assert with_key["attended"] == ["near_zone"]
-
-
-def test_an_unplaced_character_is_not_assumed_to_be_near():
-    budget = AttentionBudget(cap=1)
-    characters = {
-        "here": {"area_id": "a", "recency": 0, "world_scope_id": "zone_0"},
-        "loose": {"area_id": "q", "recency": 9999},
-    }
-    report = budget.select(WorldGraph(), characters=characters, zones_in_play=["zone_0"])
-    assert report["attended"] == ["here"]
-
-
-def test_the_zone_key_demotes_rather_than_promoting():
-    """What the key actually is: a demotion. It cannot make a character more
-    interesting than the awareness channels say they are."""
-    characters = {
-        "near": {"area_id": "a", "recency": 1, "world_scope_id": "zone_0"},
-        "far": {"area_id": "z", "recency": 2, "world_scope_id": "zone_1"},
-    }
-    with_key = AttentionBudget(cap=1).select(WorldGraph(), characters=characters,
-                                             zones_in_play=["zone_0"])
-    assert with_key["attended"] == ["near"]
-
-    # Both aware of the anchor's area (same room), the far one still loses,
-    # because the zone outranks awareness.
-    aware = {
-        "near": {"area_id": "a", "recency": 0, "world_scope_id": "zone_0"},
-        "far": {"area_id": "a", "recency": 9999, "world_scope_id": "zone_1"},
-    }
-    demoted = AttentionBudget(cap=1).select(WorldGraph(), characters=aware,
-                                            zones_in_play=["zone_0"])
-    assert demoted["attended"] == ["near"], (
-        "co-present in the anchor's own room and STILL not attended, because the "
-        "zone is a different zone — which is the whole claim"
-    )
-
-
-def test_a_character_in_a_zones_seed_zone_is_not_demoted():
-    budget = AttentionBudget(cap=2)
-    characters = {
-        "here": {"area_id": "a", "recency": 0, "world_scope_id": "zone_0"},
-        "same_zone": {"area_id": "b", "recency": 1, "world_scope_id": "zone_0"},
-        "other_zone": {"area_id": "z", "recency": 2, "world_scope_id": "zone_1"},
-    }
-    report = budget.select(WorldGraph(), characters=characters, zones_in_play=["zone_0"])
-    assert set(report["attended"]) == {"here", "same_zone"}
 
 
 # ── provenance is the selector ─────────────────────────────────────────────
