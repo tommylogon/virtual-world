@@ -990,6 +990,15 @@ def cmd_new(args) -> int:
     if args.goal and "what" not in payload:
         payload["what"] = args.goal
 
+    # Policy (task-797): a card must name the note it concerns, so that note can
+    # carry a real changelog of the work that touched it. Without this the
+    # task <-> feature edge is optional and the wiki has no history.
+    if not (getattr(args, "wiki", "") or str(payload.get("wiki") or "").strip()):
+        print("error: --wiki is required — name the note this card concerns, "
+              'e.g. "[[Feature Map]]" or "[[World Building/Movement|Movement]]".',
+              file=sys.stderr)
+        return 1
+
     area_dir.mkdir(parents=True, exist_ok=True)
     body = render_card(kind=args.kind, num=num, title=args.title, status=status,
                        area=args.area,
@@ -1738,6 +1747,20 @@ def cmd_validate(args) -> int:
         gap = dep_block_gap(text, stems)
         if gap:
             warnings.append(f"{e.id}: {gap} (run link-deps --write)")
+
+    # wiki: policy. A card with no `wiki:` is not tied to any note, so that note
+    # cannot show a changelog of the work that touched it. Reported as one count
+    # rather than per card: most of the tree predates the policy, and 900 lines
+    # of the same warning is noise, not signal.
+    open_no_wiki = [
+        e.id for e in entries
+        if e.kind and e.status in ("todo", "inprogress")
+        and not str(e.frontmatter().get("wiki") or "").strip()
+    ]
+    if open_no_wiki:
+        warnings.append(
+            f"{len(open_no_wiki)} open card(s) carry no `wiki:` — policy: a new "
+            'card must name the note it concerns (e.g. "[[Feature Map]]")')
 
     if getattr(args, "schema", False):
         warnings.extend(_schema_warnings(entries))
