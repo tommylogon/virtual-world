@@ -1,25 +1,19 @@
-"""feature_pages.py — one page per Feature Map row, and a guard that keeps it true.
+"""feature_pages.py — the coverage report for the Feature Ledger.
 
-The Feature Map is the denominator: the features a person can do, use or
-interact with. A row that
-points at nothing is a coverage gap the map cannot show, and a page that nothing
-links to is an island the graph hides. This tool makes "every feature has a page"
-mechanically checkable and scaffolds the missing ones.
+The Feature Ledger is the denominator: the features a person can do, use or
+interact with. A row that points at nothing is a coverage gap, and this tool
+prints exactly which rows those are.
 
-It **never overwrites prose**: `--scaffold` only creates a page that does not
-exist yet. `--check` fails on a row without a page, a page without its required
-sections, a page with no row behind it, or a page whose ``feature_id`` drifted
-from the row it claims to document.
+It is a **report, not a gate**. It used to scaffold a page per row and fail when
+one was missing; that produced 77 stub pages that looked like documentation and
+carried one link — the "coverage lie". The pages are now hand-written to the
+feature / mechanic / system standard (see `AGENTS.md`), and this tool's only job
+is to say which rows have a deep doc and which do not.
 
-    python tools/feature_pages.py --scaffold   # create missing pages (never overwrites)
-    python tools/feature_pages.py --report# row -> page -> section coverage
-    python tools/feature_pages.py --check      # fail on any gap (exit 1)
+    python tools/feature_pages.py --report   # row -> deep-doc coverage
 
-The Feature Map row stays the source of truth for the label, the "what you can
-do" sentence and the status; the page is the per-feature entry point that links
-to the deep documentation. The row's own ``Docs`` cell keeps pointing at the deep
-note (that is what "documented" means there), except for rows that had ``none`` —
-those point at their new page.
+The Ledger row stays the source of truth for the label, the "what you can do"
+sentence and the status; the deep doc is what "documented" means there.
 """
 from __future__ import annotations
 
@@ -221,30 +215,11 @@ def main() -> int:
     import argparse
 
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--scaffold", action="store_true",
-                        help="create pages for rows that have none (never overwrites)")
     parser.add_argument("--report", action="store_true",
-                        help="print the row -> page -> deep-doc table")
-    parser.add_argument("--check", action="store_true",
-                        help="fail on a row without a page, a malformed page, or an orphan page")
+                        help="print the row -> deep-doc table (report only)")
     args = parser.parse_args()
 
-    if args.scaffold:
-        created = scaffold()
-        print(f"scaffolded {created} feature page(s) into {FEATURES_DIR}")
-        return 0
-
-    if args.report:
-        report()
-        return 0
-
-    problems, features, pages = audit()
-    if problems:
-        sys.stderr.write(f"{len(problems)} feature-page problem(s):\n")
-        for line in problems:
-            sys.stderr.write(f"  - {line}\n")
-        return 1
-    print(f"Feature pages OK ({pages} pages for {len(features)} rows).")
+    report()
     return 0
 
 

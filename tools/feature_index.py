@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Guard the Feature Map: the canonical list of user-facing features, and the
-front-end contract's `@powers` declarations checked against it.
+"""Guard the Feature Ledger: the canonical list of user-facing features, and the
+front-end contract's `@docs` declarations checked against it.
 
 A **feature** is something a person does, uses or interacts with — a system or a
 surface, in a game or in the editor — deliberately *not* a module. A **mechanic**
@@ -13,10 +13,11 @@ measure documentation coverage all failed for that reason:
   is nothing controlled to check a document against;
 * note titles are 76 documents with no feature → note mapping.
 
-So the denominator is declared once, in prose, in the map:
-``docs/virtualWorld/Feature Map.md``. This tool reads it, checks every module's
-``@powers`` against the features in it, and reports both directions — the modules
-whose feature cannot be identified, and the features no module claims.
+So the denominator is declared once, in prose, in the ledger:
+``docs/virtualWorld/Feature Ledger.md`` (the guide a reader sees is
+``docs/virtualWorld/Feature Map.md``). This tool reads the ledger, checks every
+module's ``@docs`` against the features in it, and reports both directions — the
+modules whose feature cannot be identified, and the features no module claims.
 
 Usage:
     python tools/feature_index.py --check            # fail on a NEW unmapped module
@@ -36,11 +37,15 @@ from pathlib import Path
 
 ROOT = Path("static/js")
 SKIP_DIRS = {"vendor", "node_modules"}
-MAP_PATH = Path("docs/virtualWorld/Feature Map.md")
+#: The vault, for resolving a Docs cell to a file. ``ROOT`` is the module glob
+#: root (the front end), not the repo root, so note resolution needs its own.
+VAULT = Path("docs/virtualWorld")
+LEDGER_PATH = Path("docs/virtualWorld/Feature Ledger.md")
 INDEX_PATH = Path("docs/design/feature-index.md")
 BASELINE_PATH = Path("docs/design/feature-baseline.txt")
 
 POWERS_RE = re.compile(r"^\s*\*?\s*@powers\s+(.*)$")
+DOCS_RE = re.compile(r"^\s*\*?\s*@docs\s+(.*)$")
 # a numbered row of either feature table: | 12 | Search / forage | ... | wired | [[none]] |
 ROW_RE = re.compile(r"^\|\s*(\d+)\s*\|(.+)$")
 
@@ -76,12 +81,12 @@ def split_cells(row: str) -> list[str]:
 
 def parse_features() -> list[dict]:
     """Read the feature list out of the map. The map is the only declaration."""
-    if not MAP_PATH.exists():
-        sys.stderr.write(f"{MAP_PATH} missing — the feature list is the denominator.\n")
+    if not LEDGER_PATH.exists():
+        sys.stderr.write(f"{LEDGER_PATH} missing — the feature list is the denominator.\n")
         raise SystemExit(2)
     features = []
     section = ""
-    for line in MAP_PATH.read_text(encoding="utf-8").splitlines():
+    for line in LEDGER_PATH.read_text(encoding="utf-8").splitlines():
         if line.startswith("## "):
             section = line[3:].strip()
             continue
@@ -107,7 +112,15 @@ def parse_features() -> list[dict]:
     return features
 
 
-def collect_powers() -> list[tuple[str, str]]:
+def collect_headers() -> list[tuple[str, str, str]]:
+    """(module path, ``@powers`` prose, ``@docs`` target) for every module.
+
+    ``@powers`` is free-text prose. It is kept because a human reading the
+    header benefits from it, and it is **never** used as a join key — matching
+    266 distinct prose strings against feature names is a word game, not a
+    check. ``@docs`` is the machine-readable edge: a real path to a vault note,
+    or ``none``.
+    """
     out = []
     for path in sorted(ROOT.rglob("*.js")):
         if any(part in SKIP_DIRS for part in path.parts):
@@ -116,46 +129,93 @@ def collect_powers() -> list[tuple[str, str]]:
             text = path.read_text(encoding="utf-8", errors="replace")
         except OSError:
             continue
+        powers, docs = "", ""
         for line in text.splitlines()[:60]:
-            m = POWERS_RE.match(line)
-            if m:
-                out.append((str(path).replace("\\", "/"), m.group(1).strip()))
+            if not powers:
+                m = POWERS_RE.match(line)
+                if m:
+                    powers = m.group(1).strip()
+            if not docs:
+                m = DOCS_RE.match(line)
+                if m:
+                    docs = m.group(1).strip()
+            if powers and docs:
                 break
+        out.append((str(path).replace("\\", "/"), powers, docs))
     return out
 
 
-def match(powers: str, features: list[dict]) -> list[str]:
-    """Which features does this @powers text name?
+def vault_key(target: str) -> str:
+    """Normalise a note reference to a lowercase, extension-free key.
 
-    A term matches by word-prefix, so "Move" claims a module that says
-    "movement" and "Examine" claims "examining" — the headers are written as
-    gerund phrases and the map as noun phrases, and demanding an exact word match
-    would report almost every module as unmapped for a spelling difference.
-
-    Any one term is enough. A feature's terms are its distinctive words, so
-    "Take / drop / give" is claimed by a module that says "take", and a term
-    under four characters is ignored because it cannot be distinctive.
+    ``docs/virtualWorld/World Building/Movement.md`` and
+    ``[[World Building/Movement|Movement]]`` both become
+    ``world building/movement``, so a module's ``@docs`` and a ledger row's
+    Docs cell join on the same string.
     """
-    text = re.sub(r"[*_`]", "", powers.lower())
-    words = set(re.findall(r"[a-z]+", text))
-    hits = []
+    s = target.strip()
+    s = re.sub(r"^\[\[|\]\]$", "", s)
+    s = s.split("|")[0].strip()
+    s = re.sub(r"\.md$", "", s)
+    s = re.sub(r"^docs/virtualWorld/", "", s)
+    return s.strip().lower()
+
+
+def resolve_note(key: str):
+    """The vault file a key names, or None.
+
+    Tries the vault-relative path first, then falls back to a basename search,
+    because Obsidian resolves ``[[Rooms & Areas]]`` from any folder and the
+    ledger writes bare basenames.
+    """
+    if not key or key == "none":
+        return None
+    direct = VAULT / (key + ".md")
+    if direct.exists():
+        return direct
+    base = key.rsplit("/", 1)[-1] + ".md"
+    for hit in VAULT.rglob(base):
+        return hit
+    return None
+
+
+def ledger_notes(docs_cell: str) -> list[str]:
+    """The vault keys a ledger row's Docs cell names (empty for ``none``)."""
+    out = []
+    for link in re.findall(r"\[\[([^\]]+)\]\]", docs_cell):
+        key = vault_key(link)
+        if key and key != "none":
+            out.append(key)
+    return out
+
+
+def join_features(features, headers) -> dict:
+    """feature label -> [module paths], built from each module's ``@docs``.
+
+    A module claims a feature when its ``@docs`` target resolves to the same
+    vault file the ledger row points at. Both sides are resolved through
+    ``resolve_note`` because they are written differently — a module writes the
+    full path (``Characters/Memory System.md``) and a ledger cell writes the
+    bare basename (``[[Memory System]]``) — and Obsidian resolves both to the
+    same note. That is a real, checkable edge; the old free-text ``@powers``
+    word match was not.
+    """
+    by_note = {}
     for feat in features:
-        # A feature named verbatim ("Turn queue", "Use / use on") matches as a
-        # phrase. This is the join the map documents, and it is the only one
-        # that can fire for a multi-word label: the word-prefix match below
-        # splits on / & , and "and" but not on spaces, so "turn queue" could
-        # never prefix a single word.
-        label = re.sub(r"[*_`]", "", feat["label"]).lower()
-        if label and label in text:
-            hits.append(feat["label"])
-            continue
-        for term in feat["terms"]:
-            if len(term) < 4:
+        for key in ledger_notes(feat["docs"]):
+            note = resolve_note(key)
+            if note is None:
                 continue
-            if any(w.startswith(term) for w in words):
-                hits.append(feat["label"])
-                break
-    return hits
+            by_note.setdefault(str(note).replace("\\", "/").lower(), []).append(
+                feat["label"])
+    claimed = {}
+    for path, _powers, docs in headers:
+        note = resolve_note(vault_key(docs))
+        if note is None:
+            continue
+        for label in by_note.get(str(note).replace("\\", "/").lower(), []):
+            claimed.setdefault(label, []).append(path)
+    return claimed
 
 
 def main() -> int:
@@ -167,25 +227,24 @@ def main() -> int:
     args = parser.parse_args()
 
     features = parse_features()
-    modules = collect_powers()
-    mapped = {path: match(powers, features) for path, powers in modules}
-    unmapped = [p for p, _ in modules if not mapped[p]]
+    headers = collect_headers()
+    claimed = join_features(features, headers)
+    modules = [p for p, _pw, _d in headers]
+    docs_none = [p for p, _pw, d in headers if vault_key(d) in ("", "none")]
+    with_powers = [p for p, pw, _d in headers if pw]
 
-    print(f"features read from {MAP_PATH}: {len(features)}")
-    print(f"modules declaring @powers:     {len(modules)}")
-    print(f"  naming at least one feature: {len(modules) - len(unmapped)}")
-    print(f"  naming none:                 {len(unmapped)}")
+    print(f"features read from {LEDGER_PATH}: {len(features)}")
+    print(f"modules scanned:            {len(modules)}")
+    print(f"  with an @docs target:     {len(modules) - len(docs_none)}")
+    print(f"  @docs none:               {len(docs_none)}")
+    print(f"  carrying @powers prose:   {len(with_powers)}  (informational only)")
 
     if args.update_baseline:
         BASELINE_PATH.parent.mkdir(parents=True, exist_ok=True)
-        BASELINE_PATH.write_text("\n".join(unmapped) + "\n", encoding="utf-8")
-        print(f"{BASELINE_PATH}: recorded {len(unmapped)} unmapped module(s).")
+        BASELINE_PATH.write_text("\n".join(docs_none) + "\n", encoding="utf-8")
+        print(f"{BASELINE_PATH}: recorded {len(docs_none)} module(s) with @docs none.")
 
     if args.report:
-        claimed = {}
-        for path, hits in mapped.items():
-            for h in hits:
-                claimed.setdefault(h, []).append(path)
         print()
         print("%-42s %5s  %s" % ("FEATURE", "MODS", "NOTE"))
         print("-" * 96)
@@ -195,33 +254,29 @@ def main() -> int:
             print("%-42s %5d  %s" % (feat["label"][:42], len(mods), docs[:44]))
         orphans = [f["label"] for f in features if f["label"] not in claimed]
         print()
-        print("features no module names: %d" % len(orphans))
+        print("features no module points at: %d" % len(orphans))
         for o in orphans:
             print("  -", o)
         print()
-        print("modules whose feature could not be identified: %d" % len(unmapped))
-        for u in unmapped:
+        print("modules whose @docs names no feature note: %d" % len(docs_none))
+        for u in docs_none:
             print("  -", u)
 
     if args.write or not (args.check or args.update_baseline or args.report):
-        claimed = {}
-        for path, hits in mapped.items():
-            for h in hits:
-                claimed.setdefault(h, []).append(path)
         lines = [
             "# Feature index",
             "",
             "Generated by `tools/feature_index.py` — do not hand-edit.",
-            "The features are declared in prose in `docs/virtualWorld/Feature Map.md`;",
+            "The features are declared in prose in `docs/virtualWorld/Feature Ledger.md`;",
             "this file is the generated join between those features and the front-end",
-            "modules that claim them via `@powers`.",
+            "modules whose `@docs` header points at the note that documents them.",
             "",
             f"- Features: **{len(features)}**",
             f"- Modules scanned: **{len(modules)}**",
-            f"- Modules naming a feature: **{len(modules) - len(unmapped)}**",
-            f"- Modules naming none: **{len(unmapped)}**",
+            f"- Modules with an @docs target: **{len(modules) - len(docs_none)}**",
+            f"- Modules with @docs none: **{len(docs_none)}**",
             "",
-            "| # | Feature | Section | Status | Note | Modules claiming it |",
+            "| # | Feature | Section | Status | Note | Modules pointing at it |",
             "|---|---|---|---|---|---|",
         ]
         for feat in features:
@@ -238,17 +293,21 @@ def main() -> int:
         print(f"\n{INDEX_PATH}: {len(features)} features, {len(modules)} modules.")
 
     if args.check:
-        if not BASELINE_PATH.exists():
-            print(f"{BASELINE_PATH} missing — run --update-baseline once.")
-            return 2
-        known = set(BASELINE_PATH.read_text(encoding="utf-8").split())
-        new_unmapped = [u for u in unmapped if u not in known]
-        if new_unmapped:
-            print("New modules whose @powers names no feature in the Feature Map:")
-            for u in new_unmapped:
-                print("  -", u)
+        # The gate is now real: every feature's Docs note must resolve to a file
+        # in the vault. No prose matching, no baseline of "unmapped" modules —
+        # a module with `@docs none` is a legitimate state (pure infrastructure),
+        # not a failure.
+        missing = []
+        for feat in features:
+            for key in ledger_notes(feat["docs"]):
+                if resolve_note(key) is None:
+                    missing.append((feat["label"], key))
+        if missing:
+            print("Feature rows whose Docs note does not resolve:", file=sys.stderr)
+            for label, key in missing:
+                print(f"  - {label} -> {key}", file=sys.stderr)
             return 1
-        print(f"Feature check OK ({len(unmapped)} known-unmapped, no new).")
+        print(f"Feature check OK ({len(features)} rows, every Docs note resolves).")
 
     return 0
 
