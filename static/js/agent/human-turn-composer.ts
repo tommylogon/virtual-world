@@ -334,21 +334,6 @@ const HumanTurnComposerModule = (() => {
         }
     }
 
-    function renderDigest() {
-        const entries = TurnFeed.digest().slice(-4);
-        const box = q('#htc-digest');
-        if (!entries.length) { box.style.display = 'none'; return; }
-        const lines = q('#htc-digest-lines');
-        lines.textContent = '';
-        for (const entry of entries) {
-            const line = document.createElement('div');
-            line.className = 'di';
-            line.textContent = '• ' + entry.text;
-            lines.appendChild(line);
-        }
-        box.style.display = 'block';
-    }
-
     /** (Re)build the scene view + You strip + minimap for *charName*. */
     function refreshScene(charName: string) {
         const sceneHost = q('#htc-scene');
@@ -405,13 +390,6 @@ const HumanTurnComposerModule = (() => {
             <span class="htc-spacer"></span>
             <span id="htc-meta"></span>
             <button type="button" id="htc-close" title="end turn">✕</button>
-          </div>
-          <div id="htc-digest" style="display:none">
-            <div class="dt">since your turn</div>
-            <div id="htc-digest-lines"></div>
-            <div class="drow">
-              <button type="button" id="htc-digest-dismiss" class="htc-linkbtn muted" title="dismiss">✕</button>
-            </div>
           </div>
           <div class="htc-grid">
             <div id="htc-scene"></div>
@@ -523,11 +501,6 @@ const HumanTurnComposerModule = (() => {
             q('#htc-advanced-toggle').textContent = _advanced ? '▾ advanced' : '▸ advanced';
         });
 
-        q('#htc-digest-dismiss').addEventListener('click', () => {
-            TurnFeed.clearDigest();
-            q('#htc-digest').style.display = 'none';
-        });
-
         _modal.addEventListener('click', (e) => e.stopPropagation());
         _overlay.addEventListener('click', () => onOverlayDismiss());
         const closeOnEsc = (e: KeyboardEvent) => {
@@ -631,7 +604,6 @@ const HumanTurnComposerModule = (() => {
         refreshScene(charName);
         TurnFeed.render(q('#htc-feed-lines'));
         renderMeta();
-        renderDigest();
         renderPips();
         setBusy(false);
         q('#htc-flash').textContent = '';
@@ -646,7 +618,6 @@ const HumanTurnComposerModule = (() => {
         showResult(lastResult || '');
         refreshScene(charName);
         renderMeta();
-        renderDigest();
         renderPips();
         setBusy(false);
         q('#htc-do').focus();
@@ -682,7 +653,6 @@ const HumanTurnComposerModule = (() => {
             setPhase('react');
             showResults(results);
             renderMeta();
-            renderDigest();
             _overlay.style.display = 'flex';
         } else {
             _charName = charName;
@@ -691,7 +661,6 @@ const HumanTurnComposerModule = (() => {
             showResults(results);
             refreshScene(charName);
             renderMeta();
-            renderDigest();
         }
         q('#htc-speech').focus();
         return new Promise((resolve) => { _reactResolve = resolve; });

@@ -39,6 +39,64 @@ VALID_TIERS = frozenset({FREE, MINOR, MAJOR, ACTIVITY})
 #: Fixed per-turn slot allowance (task-352 decision, 2026-10-07).
 DEFAULT_BUDGET = {MAJOR: 1, MINOR: 1, FREE: 3, ACTIVITY: 1}
 
+#: A dash is a two-hop **burst** (task-784): the initiate and the finish. The
+#: initiate costs the major and needs a minor free to finish; the finish hop the
+#: actor picks costs the minor. While a burst is armed the ONLY valid action is a
+#: finish hop (or an explicit abort), so a dash cannot be abandoned into an
+#: unrelated action with the major already spent. Enforced by
+#: `routes/action_handlers.py:_slot_gate`, which every budgeted actor shares
+#: (humans and LLM agents); NPC paths that keep no budget dash as a plain hop.
+BURST_INITIATE = "dash"
+#: The verbs a dash's finish hop accepts — a movement across a way. `approach`
+#: is deliberately absent: it stops short of crossing, so it cannot complete a
+#: dash — and `wait` is the abort, not a finish.
+BURST_FINISH_VERBS = frozenset({"go", "dash", "climb", "crawl", "jump"})
+#: Verbs that abandon an unfinished dash: the character stops. Clears the armed
+#: burst without spending the minor, so a dead-end dash is never a soft-lock.
+BURST_ABORT_VERBS = frozenset({"wait", "nothing", "stop"})
+
+
+def can_initiate_dash(slots: dict) -> bool:
+    """A dash needs BOTH its major (the first hop) and a minor (the finish)."""
+    return slots.get(MAJOR, 0) > 0 and slots.get(MINOR, 0) > 0
+
+
+def apply_action_gate(slots: dict, verb: str, burst_pending: int = 0):
+    """Spend the slots *verb* costs, honouring the dash burst (task-784).
+
+    The one implementation of the action-economy rule, shared by every budgeted
+    actor. Returns ``(error, burst)``: *error* is a message to refuse the action
+    (``None`` when it may proceed), and *burst* says what the caller does with the
+    character's burst flag:
+
+      ``"clear"``  a finish hop or a wait abandoned the armed dash;
+      ``"arm"``    a dash was initiated — arm the burst once the hop **succeeds**;
+      ``"none"``   leave the flag alone.
+
+    *slots* is mutated in place. The caller arms on success only, so a dash that
+    is blocked (winded/encumbered/locked) is not left able to finish.
+    """
+    verb = (verb or "").strip().lower()
+    if burst_pending:
+        if verb in BURST_FINISH_VERBS:
+            if spend_slot(slots, MINOR) is None:
+                return "You have no minor action left to finish the dash.", "none"
+            return None, "clear"
+        if verb in BURST_ABORT_VERBS:
+            return None, "clear"
+        return ("Finish your dash first - go, dash, climb, crawl or jump - or wait.",
+                "none")
+    if verb == BURST_INITIATE:
+        if not can_initiate_dash(slots):
+            return ("A dash takes a major and a minor action; you are short.",
+                    "none")
+        spend_slot(slots, MAJOR)
+        return None, "arm"
+    tier = tier_of(verb)
+    if spend_slot(slots, tier) is None:
+        return f"You have no {tier} action left this turn.", "none"
+    return None, "none"
+
 #: The classification. Every verb dispatched by `routes/action_handlers.py` must
 #: appear here; `tests/test_action_tiers.py` derives the dispatched set from the
 #: source and fails when one is added without a tier.

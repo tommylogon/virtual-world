@@ -18,7 +18,7 @@ This is the Obsidian vault for **VirtualWorld** — a Flask + JS text-based game
 
 | Doc | What it covers |
 |---|---|
-| [[Feature Map\|Feature Map]] | **Start here for "can I do X?"** Every user-facing feature in a game and in the editor — **76 of them**, each with its status and the note that documents it. It is the denominator for documentation coverage |
+| [[Feature Map\|Feature Map]] | **Start here for "can I do X?"** Every feature — something you do, use or interact with — in a game and in the editor: **76 of them**, each with its status and the note that documents it. A *mechanic* is how a feature works. It is the denominator for documentation coverage |
 | [[Features/Features Overview\|Features Overview]] | One page per feature row: what it is, how it works, where it lives, what it connects to. The entry points; the deep docs stay the deep docs |
 
 ---

@@ -540,9 +540,39 @@ close); the `agent-engine` loop is compile-verified, not yet driven end-to-end.
 Dropped from the pre-v4 panel: the staged rack + Run, the per-action react phase, the
 raw-JSON mode, and the confirm overlay.
 
+## Landed (2026-10-12) — slice 5: soak parity
+
+The soak now spends the **same per-turn budget** as the attended tiers, in
+`engine/background_simulation.py`:
+
+- `TASK_TIERS` classifies each background task (`eat`/`drink`/`relieve`/`forage`/
+  `take`/`plan`/`prepare` major; `wash` minor; `sleep`/`recuperate`/`work`/
+  `recreate` activity). An **unclassified** task defaults to `major` — a new task
+  is budgeted, never silently free.
+- `_act` returns `(minutes, task)` so the flow loop can price it. A move is the
+  turn's first `go` (major) or a later one (minor) — `_task_tier`.
+- `process_due` initialises `turn_slots` and spends the tier per task inside its
+  `while remaining > 0` loop; an unaffordable task breaks the flow. The budget is
+  a **ceiling, not a quota**: a quiet character still stops at the first `None`
+  and spends nothing, exactly as before.
+- `take_action` stays a primitive (minutes only). `engine/timeskip._policy_step`
+  already issues one action per turn, so the declared-soak path is within budget
+  by construction.
+
+Soak characters never **dash** (`background_simulation` moves via
+`move_to_area`; the dash burst is armed only in `routes/action_handlers._slot_gate`,
+which the soak never calls), so the dash-burst rule (task-784) does not reach
+them — and a burst would clear at the turn boundary regardless.
+
+Verified: `tests/test_soak_action_economy.py` (3) plus the background/soak slice
+(160 pass). `tests/test_soak_routes.py::test_telemetry_endpoint_serves_the_space_time_data`
+times out at ~62 s on this machine — **pre-existing**, A/B'd by stashing this
+module (fails identically without the change).
+
 ## Related
 
-- `docs/virtualWorld/Simulation Model.md` — the timeframe model and the
+- `docs/virtualWorld/Simulation Model.md`
+ — the timeframe model and the
  supersession note this partially reverses.
 - task-104 (review) — `/api/action/sequence`, never built; this task supersedes it.
 - task-131 — stateful activities, the tier that already ships.

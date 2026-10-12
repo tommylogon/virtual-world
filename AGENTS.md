@@ -618,7 +618,7 @@ Notes on the gates:
 - **`feature_index.py`**: `--report` joins features to claiming modules (and shows
   unclaimed features); `--write` regenerates `docs/design/feature-index.md`;
   `--update-baseline` accepts today's debt. A feature is **not** a module:
-  `attention.py` is a mechanism, and auditing per module answers the wrong
+  `attention.py` is a mechanic, and auditing per module answers the wrong
   question. See `Feature Map.md`.
 - **`js_module_index.py`** also fails on a new `@docs` target that is a folder or
   a dead path. A folder satisfies the contract while pointing at nothing readable.

@@ -7,11 +7,23 @@ tags: [system/docs, topic/validation]
 
 # Feature Map
 
-**What this is:** the canonical list of what a person can actually *do* in VirtualWorld — in a game and in the editor — and whether a note documents it. It is the denominator for documentation coverage, and it exists because there was no way to measure that before.
+**What this is:** the canonical list of the **features** a person can do, use or interact with in VirtualWorld — in a game and in the editor — and whether a note documents it. It is the denominator for documentation coverage, and it exists because there was no way to measure that before.
+
+A **feature** is something you do, interact with or use — a system or a surface (movement, tags, the lighting system, an item, a way). A **mechanic** is how it works: the operations and rules inside a feature. The commands you issue — `go`, `take`, `attack` — are a feature's *mechanics*, not features of their own. You *do* movement; you do it *by* typing `go`. (`go` is not the feature, exactly as pressing W is not the feature of a shooter.)
+
+**A thing composes features; its behaviour is their mechanics.** A flashlight is an *item* that uses five features at once:
+
+- **item** — its mechanics are the verbs it allows (take, drop, equip, unequip, examine, use), its `weight`, and its `uses` counter (the description calls that the battery);
+- **tags** — the `light_source` and `electric` tags change the prose from "you light the flashlight" to "you turn it on", and select the light behaviour;
+- **lighting** — switching it on sets the area's light to the level defined on the item;
+- **triggers** — fired on take, drop or examine;
+- **parameters** — a `{battery}` placeholder in the prose, fed from `uses`, so the number shows in the description.
+
+Nothing on the flashlight is a fifth kind of thing. It is those features stacked, and each one's *mechanics* is how it behaves.
 
 **Why it had to be written.** Three earlier attempts to measure coverage all failed, and the failures are the reason this file is shaped the way it is:
 
-- **module filenames are not features.** `attention.py` is a mechanism; nobody "uses attention". A
+- **module filenames are not features.** `attention.py` is a mechanic; nobody "uses attention". A
   per-module audit answers a question nobody asked.
 - **`@powers` is prose, not a vocabulary.** 156 modules declare 266 *distinct* `@powers` strings. There
   is no controlled set to check a document against, so a heading noun-word pass over them returns
@@ -19,8 +31,8 @@ tags: [system/docs, topic/validation]
 - **note titles are not a map.** 76 prose notes, no feature → note mapping, so "is foraging
   documented?" could only be answered by grepping, and grepping says *mentioned*, not *documented*.
 
-So: a feature is a thing a person sees or does. The unit is the feature, deliberately, because the
-documentation is for people.
+So the unit is the feature, deliberately — the map counts the surfaces people use, not the modules
+behind them, because the documentation is for people.
 
 **How to read the columns.**
 
@@ -124,7 +136,7 @@ rest point at a note covering the area rather than the specific feature.
 | 62 | Recent edits / undo | What changed, and undoing it | wired | [[Recent Edits & Undo]] |
 | 63 | Validator & issues | Scenario lint, mismatches, authoring blockers | wired | [[Validator & Issues]] |
 | 64 | **Event stream** | The turn-by-turn log with filters and search | wired | [[Event Stream]] |
-| 65 | Export | Graph export, play-session log export | wired | [[Event Log Export]] |
+| 65 | Export | Graph export, play-session log export (Markdown/plain/JSON/JSONL) | wired | [[Event Log Export]] |
 | 66 | **Soak lab** | Automated long runs, live tuning, telemetry | wired | [[Soak Lab]] |
 | 67 | **The human turn composer** | The structured card you answer a character's turn in: reply, JSON, and a free-text box | wired | [[Turn Queue & Human Turns]] |
 | 68 | **Turn-based modes** | Sequential, random, or initiative (d20 + DEX), and simultaneous modes per room | wired | [[Turn Queue & Human Turns]] |

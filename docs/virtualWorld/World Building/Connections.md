@@ -180,7 +180,7 @@ Flow:
 3. Checks door state — locked/blocked/broken all raise ValueError.
 4. If the door is already in the target state, returns `"The {direction} is already {state}."`
 5. Updates `current_state` on the door node.
-6. Applies action cost (energy/time) if player is alive.
+6. Applies action cost (energy) if player is alive.
 7. Fires `on_open` or `on_close` triggers.
 8. Records a turn event.
 9. If the new state is `"open"` and the edge has `visible_in_direction`, appends that text.
@@ -216,7 +216,7 @@ Defined in `engine/movement.py:91-240`. The main movement function. Flow:
 10. Syncs toggleable item effects to the new room.
 11. Records turn events for leaving and entering.
 12. Triggers NPC `on_player_enter_room` behaviors in the new room.
-13. Applies movement cost (energy/time; crawl/climb scale time).
+13. Applies movement cost (energy; crawl/climb/jump do not scale it).
 14. Fires `on_enter` triggers on the door (used for auto-close, traps, etc.).
 15. If `auto_close` is enabled on the door, closes it behind the player and fires `on_close` triggers.
 
@@ -387,7 +387,7 @@ Windows are doors with `see_through: true`. They behave as a visual portal betwe
 | `current_state` | yes | Usually `"closed"` — windows don't auto-open on walk attempt |
 | `see_through` | yes | `true` — enables peek-through and light spill regardless of state |
 | `description` | yes | Shown in room exits (text only — it's replaced by `visible_in_direction` if set) |
-| `cost` | no | Energy/time cost for climbing through |
+| `cost` | no | Energy cost for climbing through |
 | `visible_in_direction` | on edge | Custom "what you see" text shown always (set on the room→door edge, not the door node itself) |
 | `auto_close` | no | Typically false for windows |
 
@@ -506,7 +506,7 @@ if self.gs.player.state != "dead":
     self.gs.apply_action("move", exit_cost, player=self.gs.player)
 ```
 
-Ghosts bypass the cost entirely (they're ethereal). The cost can include any vital stat, not just energy/time — though energy and time are the standard ones.
+Ghosts bypass the cost entirely (they're ethereal). The cost can include any vital stat, not just energy — though energy is the standard one. A crossing never costs game time (the round advances once at the end of the turn).
 
 ### Traversal Distance via Midpoint Areas (design pattern)
 
@@ -655,6 +655,6 @@ The frontend has a dedicated way inspector (`static/js/inspector/way-view.js`) f
 
 **Dev tasks** — [[dev_tasks/done/items/task-23-remove_locked_with|task]], [[dev_tasks/done/items/task-97-consolidate_locked_into_current_state|task]], [[dev_tasks/done/triggers/task-15-door_trigger_events|task]], [[dev_tasks/done/triggers/task-30-door_requires_open_trigger|task]]
 
-**Neighbouring notes** — [[Generated Scenario Review (2026-08)]], [[Graph System]], [[Grid to Graph]], [[Millbrook Falls Town Map]], [[Rooms & Areas]], [[Way Properties]]
+**Neighbouring notes** — [[Generated Scenario Review (2026-08)]], [[Graph System]], [[Grid to Graph]], [[Millbrook Falls Town Map]], [[Movement]], [[Rooms & Areas]]
 
 <!-- connected:end -->

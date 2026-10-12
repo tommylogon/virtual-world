@@ -468,6 +468,8 @@ class TickManager:
                 if getattr(_p, "turn_slots", None) is None:
                     _p.turn_slots = {}
                 _at.reset_slots(_p.turn_slots)
+                # task-784: a dash burst does not survive its turn either.
+                _p.burst_pending = 0
         except Exception as e:
             logger.warning("[tick] action slots reset: %s", e)
 

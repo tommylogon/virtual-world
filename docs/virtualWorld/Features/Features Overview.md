@@ -6,10 +6,12 @@ tags: [system/gameplay]
 
 # Features Overview
 
-**What this is:** one page per row of the [[Feature Map]] — the canonical list of what a person
-can actually *do* in VirtualWorld, in a game and in the editor. Every page here is an **entry
-point**: it says what the feature is, links the deep documentation that explains it, and says
-plainly how confident the map is. None of them replaces the deep doc.
+**What this is:** one page per row of the [[Feature Map]] — the canonical list of the **features**
+a person can do, use or interact with in VirtualWorld, in a game and in the editor. A **feature**
+is something you do, use or interact with (movement, tags, an item); a **mechanic** is how it
+works — the operations and rules inside it — and lives as the deep doc a page links to. Every page
+here is an **entry point**: it says what the feature is, links the deep documentation that
+explains it, and says plainly how confident the map is. None of them replaces the deep doc.
 
 Generated from the Feature Map on 2026-10-05 — `python tools/feature_pages.py --scaffold` creates a
 missing page, `--check` fails when a row loses its page (or when this page stops listing one).

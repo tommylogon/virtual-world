@@ -716,6 +716,6 @@ constant on-screen size, so they stay clickable when zoomed out.
 
 **Dev tasks** — [[dev_tasks/done/archive/task-82-map-view-and-directions|task]], [[dev_tasks/done/graph/task-100-graph-view-filters|task]], [[dev_tasks/done/graph/task-105-edge-refactor|task]], [[dev_tasks/done/graph/task-107-id-rename-sync-and-trigger-consistency|task]], [[dev_tasks/done/graph/task-112-cardinal-layout-position-ways|task]], [[dev_tasks/done/graph/task-35-graph_visual_alternatives|task]] … +3 more
 
-**Neighbouring notes** — [[Connections]], [[Generated Scenario Review (2026-08)]], [[Grid to Graph]], [[Millbrook Falls Town Map]], [[Rooms & Areas]], [[Way Properties]]
+**Neighbouring notes** — [[Connections]], [[Generated Scenario Review (2026-08)]], [[Grid to Graph]], [[Millbrook Falls Town Map]], [[Movement]], [[Rooms & Areas]]
 
 <!-- connected:end -->

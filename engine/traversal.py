@@ -14,7 +14,7 @@ drink, sleep, wash) already does. Risky ground rolls:
   walking into the same wall every turn.
 
 Nothing here can starve anyone: eating, drinking and sleeping are the need
-policy's job and stay automatic, and a refusal only ever costs time.
+policy's job and stay automatic, and a refusal only ever costs the turn.
 """
 
 from __future__ import annotations

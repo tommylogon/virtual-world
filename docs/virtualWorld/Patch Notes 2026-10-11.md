@@ -100,6 +100,27 @@ before shipping it. A confident lie is worse than a gap.
 
 ---
 
+## The game keeps a diary, and now you can ask it questions
+
+While you play, the world writes a running diary: every line of what a character says,
+thinks, tries and gets. You could already save that diary as a readable text file. Now you
+can also save it as **data** — the kind a computer can search, count and sort, line by
+line — as well as the readable version.
+
+One panel does it. You choose *which* slice: a range of the run's sequence numbers (or of
+in-game turns), a single character, a single place, and the file format. Before you commit,
+the panel tells you exactly what it is about to include and which of your on-screen filters
+it is honouring — so a version that quietly drops the "thinking" rows, or a character, is
+something you choose rather than something that happens to you. There is an explicit switch
+to *ignore* your filters and take everything.
+
+Two long-standing annoyances went with it. The saved text used to end every turn heading
+with a stray square bracket, and the little "scoped to" reminder at the top of the log used
+to carry the × button that clears it, pasted onto the end. Both are gone — and both were
+checked against a real run of the game, not just the code.
+
+---
+
 ## Housekeeping
 
 Four stale copies of the task list — snapshots of the same information that already lives

@@ -212,6 +212,11 @@ def test_a_walk_repeats_within_a_turn_but_a_meal_does_not():
     turn is fifteen steps — that is the whole point of `TASK_MINUTES["travel"]`
     being 1 while the other tasks are longer. `served` deliberately excludes
     travel for exactly this reason.
+
+    (task-352 slice 5 bounds the *composition* of that turn with the action
+    budget — a move is the turn's major then its minor — so a busy turn fills
+    fewer, bigger steps. The minutes model here is unchanged; the tier cap is
+    `engine/background_simulation.TASK_TIERS` / `_task_tier`.)
     """
     from engine.background_simulation import BackgroundSimulation, TASK_MINUTES
 

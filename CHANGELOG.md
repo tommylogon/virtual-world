@@ -77,11 +77,31 @@ node type is not `door`); 32 inbound links were retargeted across 26 notes with
 `doc_links.retarget_links`, so nothing dangles. The page carries a status banner
 pointing at `Ways.md` for the state model.
 
+### 📤 Event-log export: JSON/JSONL, one modal, honest filters (task-777)
+
+The event stream — the running log of what every character says, thinks and does —
+now exports to **JSON and JSONL** as well as Markdown and plain text, from one modal.
+`static/js/ui/event-log-export.js` holds a DOM→record projection
+(`{seq, tick, time, day, turn, actor, area, type, text, outcome?, payload?}`), the four
+renderers, and the modal; `ui/world-export.js` drops its duplicated walks (**738 → 411
+lines**) and delegates the three header buttons into it.
+
+The modal picks a **unit** (tick-sequence, the default, or world turn), a bounded
+**range**, an **actor** and **area**, a **format**, and a **destination**, with a live
+summary that names the active filters before you export — so an export cannot silently
+drop the LLM payloads, an actor or an area. JSON is a `schema: 1` envelope (range,
+filters, counts, events); JSONL is one record per line, `jq`-able directly. Verified on a
+real local run (`glm-4-9b-0414`, `mansion`): 85 JSONL lines, all parsing, `jq` per-actor
+counts correct, and the two heading defects the old export shipped — a stray `]` on every
+turn heading, a `×` glued to the scope banner — gone. Sequence ids are now stamped as
+`data-seq` where the row is emitted, with a label-parse fallback for saves made before
+this change. A regression test (`tools/unit/test_event_log_export.js`, 12 cases) pins the
+projection, renderers and range/scope selection.
+
 ### 🧭 Also in this checkpoint (in-flight, not part of this entry)
 
 The shared tree also carries work in progress committed as a checkpoint, not
-claimed as released: the event-stream export path (`static/js/ui/event-log-export.ts`
-plus `stream/*` and `world-export`), way-inspector edits (`way-view`, `way-authoring`,
+claimed as released: way-inspector edits (`way-view`, `way-authoring`,
 `way-view-connections`), agent/turn-composer edits, scenario and library data, and
 a large `review → done` task move. Documented separately, if at all, by whoever
 finishes it.

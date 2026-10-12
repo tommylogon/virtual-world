@@ -74,22 +74,22 @@ Live browser on port 4444 (never headless - a unit test proves the renderer, onl
    - observed: LIVE (playwright, localhost:4444). Modal opens from the ⏩ button; unit default `tick`; to-input placeholder bounded to the stream's max (5 on the persisted run); summary read `ticks 0–5 | all actors | all areas | 69 events | markdown | filters applied`. Controls present: Unit, Range, Actors (multi, from the roster), Area, Format, Destination, Ignore-filters.
 2. Export ticks 12-340 as JSONL, save to file, then query it with jq (count events per actor; select one actor's actions).
    - expected: one JSON object per line; every `seq` inside 12-340; every row carries actor/type/text; the jq queries return correct counts.
-   - observed: PARTIAL. Unit test pins one-object-per-line, metadata rows excluded, and the record fields. Live: rendering the persisted run to JSONL produced 69 lines, all `JSON.parse` clean; JSON envelope `schema:1`, `counts.events:69`. NOT demonstrated: a fresh 12–340 tick range over a multi-actor run — the persisted stream held no ticked events in that band.
+   - observed: LIVE — real local-LLM run (LM Studio `glm-4-9b-0414` on :1234, `mansion` scenario). Exported `mansion_tick_0-17_…jsonl`: 85 lines, all `JSON.parse` clean; `jq -s` gives per-actor counts `World 77 / elena vance 4 / LLM 2 / sammy lopez 1`; `jq 'select(.actor=="elena vance")'` returns her real `recall`/`phase` rows; seq bounds `{min:0,max:17}`.
 3. Set the stream toolbar's actor filter to one character, export as JSON.
    - expected: the envelope's `filters` block names the actor filter; every event's `actor` matches; the summary said so before the export.
-   - observed: PARTIAL. `applyScope` actor filter is unit-tested; the actor multi-select populates from `events._knownActors` (live: `World`, `sammy lopez`). Not exercised against a multi-actor ticked run.
+   - observed: LIVE — set the stream toolbar actor filter (`#stream-agent-filter`) to `elena vance`: the stream showed 4 visible bubbles and the exported JSON envelope read `filters.actor:"elena vance"`, `counts:{events:4,actors:1}`, and the only actor in `events` was `elena vance`.
 4. Tick "ignore stream filters", export as JSON.
    - expected: rows hidden by the kind chips are present; `filters.ignored` is true.
    - observed: LIVE. Summary flips to `filters IGNORED` on the checkbox; the projection's `ignoreFilters` path is unit-tested (a `display:none` row is skipped by default, included when set).
 5. Export the same range as Markdown and as Plain.
    - expected: same shape as today's exports (turn headings, one bullet per event, raw-LLM `<details>` payload blocks) - no regression in the existing formats.
-   - observed: LIVE renderers + unit tests. Markdown emits one `## Turn` heading per turn, one `- ` bullet per event, and a `<details>` block for a raw-LLM payload. The persisted stream had no turn cards, so 5b was demonstrated via an injected card.
+   - observed: LIVE — the same run produced 2 real turn cards; Markdown `mansion_tick_0-17_…md` emitted `## Turn 2 — elena vance · 08:02 · Day 1, Month 1, Year 1` and 9 `- ` bullets (speech/phase rows as bullets, a `<details>` block for a raw-LLM payload).
 5a. With an area filter active in the stream toolbar, export as Markdown, then reload the page and export again.
    - expected: the scope message appears as its own text (`📌 Scoped to: <area>`) with no `×` glued on, and no `⏭ up next:` bullet in either file. (Today: `data/exports/world_template_tick_613_event_log_2026-09-05T02-35-04.md:8` reads `- 📌 Scoped to: Weeping Willow Hollow×`, and the queue strip survives reload as a persisted child.)
    - observed: LIVE (injected banner into the live DOM). Projection returned `📌 Scoped to: Weeping Willow Hollow`, `×` present: false; renderer emitted no `⏭ up next:` bullet and skips `.turn-queue-strip`/`.timeline-scrubber`.
 5b. Read any turn heading in the Markdown export.
    - expected: it ends with the game time, not a stray bracket. (Today all 14 headings in that same export end `08:15 🌑]` - the time regex's `[^)]*` swallows the label's closing `]`.)
-   - observed: LIVE (injected turn card). Heading rendered `## Turn 5 — Lyrie · 08:15 · Day 3, Month 1, Year 1`; no trailing `]`. Unit test pins the same. Both `world-export.ts` heading regexes were also fixed to `[^\]|)]*`.
+   - observed: LIVE on real data — a real turn-card heading rendered `## Turn 2 — elena vance · 08:02 · Day 1, Month 1, Year 1`, with no trailing `]`. Unit test pins the same; both `world-export.ts` heading regexes were also fixed to `[^\]|)]*`.
 6. Use the file button and the clipboard button.
    - expected: both open the modal pre-set to the whole range with their destination; the resulting file and clipboard content match what those buttons produced before the change.
    - observed: LIVE. 📥 opens the modal with destination `file`; 📋 opens it with destination `clipboard`. The `WorldExport.*` surface and the three inline `onclick` handlers are unchanged (delegating stubs).

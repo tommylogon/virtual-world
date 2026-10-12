@@ -396,6 +396,14 @@ class Player:
         # because a slot does not survive a turn.
         self.turn_slots = {}
 
+        # === ACTION ECONOMY (task-352): dash burst (task-784) ===
+        # A dash is a two-hop burst: the initiate (`dash`, major) and the finish
+        # hop the player/agent picks (go/dash/climb/crawl/jump, minor). While this
+        # is set the finish is the ONLY valid action directly after a dash. Armed
+        # by the dash handler once the first hop succeeds, cleared by the finish
+        # or at the turn boundary. Runtime only — like `turn_slots`.
+        self.burst_pending = 0
+
         # === EMOTION SYSTEM ===
         # **The affect map is the state** (task-652). `emotion` and
         # `emotion_intensity` are no longer fields: they are properties *derived*

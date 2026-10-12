@@ -167,8 +167,11 @@ def test_the_whole_world_without_a_latrine_still_runs_the_turn():
     world = _world()
     p = _character(world, **VITALS)
     p.vitals["Bladder"] = 95
-    used = BackgroundSimulation(world)._act(p.name, p, set(), 60.0)
+    # task-352 slice 5: `_act` now returns (minutes, task) so the flow loop can
+    # charge the action economy.
+    used, task = BackgroundSimulation(world)._act(p.name, p, set(), 60.0)
     assert used == TASK_MINUTES["relieve"]
+    assert task == "relieve"
     assert p.vitals["Bladder"] == 0
 
 

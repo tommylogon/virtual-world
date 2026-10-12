@@ -363,7 +363,7 @@ class AgentEngine {
     /**
      * Human turn: pause the run loop and let the human compose their turn
      * through the scene-first panel (task-333). Mirrors the agent loop's
-     * think→act→react shape (task-334): compose → [dash burst] → react →
+     * think→act→react shape (task-334): compose → act → act … → react →
      * pass. Execution rides the SAME pipeline an agent uses (_speakLine /
      * ApiClient.action / _performEmote / _storeReactionMemory). Targets the
      * character via setActivePlayer for clean multi-human handoff (task-245).

@@ -1,6 +1,7 @@
 """feature_pages.py — one page per Feature Map row, and a guard that keeps it true.
 
-The Feature Map is the denominator: what a person can actually *do*. A row that
+The Feature Map is the denominator: the features a person can do, use or
+interact with. A row that
 points at nothing is a coverage gap the map cannot show, and a page that nothing
 links to is an island the graph hides. This tool makes "every feature has a page"
 mechanically checkable and scaffolds the missing ones.

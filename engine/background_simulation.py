@@ -184,6 +184,30 @@ TASK_MINUTES = {
     "sleep": 1,    # lying down — the sleeping activity occupies what follows
 }
 
+#: The action-economy tier each background task costs (task-352 slice 5). The soak
+#: and the attended tiers share ONE budget (`engine/action_tiers.py`), so a
+#: background character spends the same allowance a player does and cannot make
+#: more decisions in a turn than the budget holds. `travel` is deliberately absent:
+#: a move is the turn's first `go` (major) or a later one (minor), priced per step
+#: by `_task_tier`. This is the **composition** cap; `minutes_in_turn` still caps
+#: the total time.
+TASK_TIERS = {
+    "sleep": "activity",
+    "recuperate": "activity",
+    "work": "activity",
+    "recreate": "activity",
+    "wash": "minor",
+    "drink": "major",
+    "eat": "major",
+    "relieve": "major",
+    "forage": "major",
+    "take": "major",
+    # One step of an assigned pursuit (background_plans.advance) and the
+    # make-supplies-portable step (_prepare) both resolve as a single action.
+    "plan": "major",
+    "prepare": "major",
+}
+
 
 def minutes_in_turn(gs) -> float:
     """The timeframe one turn covers, in game minutes: what a flow must fill."""
@@ -225,6 +249,7 @@ class BackgroundSimulation:
         A character mid-activity (sleeping) or unconscious is skipped entirely, so
         a long sleep cannot leave a backlog to dump on waking.
         """
+        from engine import action_tiers as _at
         for name, p in list(self.gs.players.items()):
             # A declared soak order drives this character for its span (its
             # intent, not the generic need policy) — see engine/soak.
@@ -253,14 +278,29 @@ class BackgroundSimulation:
             if focused:
                 remaining -= 1.0  # its decision was this turn's first minute
             served = set()  # tasks already done in THIS timeframe (not travel)
+            # task-352 slice 5: the soak spends the SAME per-turn budget as the
+            # attended tiers, so a background character makes no more decisions
+            # than a player. The budget is a ceiling, not a quota — a character
+            # who is fine stops at the first `None`, exactly as before; it is the
+            # composition of a *busy* turn that the tiers now bound.
+            slots = getattr(p, "turn_slots", None)
+            if not slots:
+                p.turn_slots = slots = {}
+                _at.reset_slots(slots)
+            moves = 0
             while remaining > 0:
                 try:
-                    used = self._act(name, p, served, remaining)
+                    step = self._act(name, p, served, remaining)
                 except Exception as e:  # never let one character stall the turn
                     logger.warning("[background] %s: %s", name, e)
                     break
-                if not used:
+                if not step:
                     break  # nothing is due; the rest of the timeframe passes
+                used, task = step
+                if _at.spend_slot(slots, self._task_tier(task, moves)) is None:
+                    break  # the budget cannot pay for this; the timeframe passes
+                if task == "travel":
+                    moves += 1
                 remaining -= used
                 if p.activity or p.state == "unconscious":
                     break  # a duration took over; it owns the rest of the turn
@@ -289,6 +329,18 @@ class BackgroundSimulation:
             logger.warning("[background] social pass: %s", e)
 
     # ───────────────────────────── decisions ───────────────────────────────
+
+    @staticmethod
+    def _task_tier(task, moves):
+        """The action-economy slot a background task costs (task-352 slice 5).
+
+        A move is the turn's first ``go`` (major) or a later one (minor); every
+        other task maps through `TASK_TIERS`, defaulting to ``major`` so a new
+        task is budgeted (never silently free) until it is classified.
+        """
+        if task == "travel":
+            return "major" if moves == 0 else "minor"
+        return TASK_TIERS.get(task, "major")
 
     def _begin_task(self, p, activity_type, duration, remaining):
         """A task longer than what is left of the timeframe spans turns.
@@ -326,10 +378,12 @@ class BackgroundSimulation:
     def _act(self, name, p, served=None, remaining=None):
         """Take the character's next action in this turn's flow.
 
-        Returns the **minutes the action took**, or ``None`` if nothing was due —
-        which is the common case and ends the flow, letting the rest of the
-        timeframe pass quietly. The caller fills a timeframe with these, so an
-        action's duration is what limits how many fit in a turn.
+        Returns ``(minutes, task)`` — the minutes the action took and the task
+        that produced it — or ``None`` if nothing was due, which is the common
+        case and ends the flow, letting the rest of the timeframe pass quietly.
+        The caller fills a timeframe with these, so an action's duration limits
+        how many fit in a turn, and the task lets it charge the action economy
+        (task-352 slice 5).
 
         ``served`` is the set of tasks already done *in this timeframe*. A task
         is not repeated once done — otherwise a character whose meal did not fully
@@ -362,7 +416,7 @@ class BackgroundSimulation:
         if energy <= 15:
             self._sleep(p)
             served.add("sleep")
-            return TASK_MINUTES["sleep"]
+            return TASK_MINUTES["sleep"], "sleep"
 
         if thirst >= THIRST_THRESHOLD:
             _surface_need_recall(self.gs, p, "thirst")
@@ -377,27 +431,27 @@ class BackgroundSimulation:
                 self.gs.add_log_entry(f"[{p.name}] drinks from {p.current_area}.")
                 served.add("drink")
                 self._begin_task(p, "drinking", TASK_MINUTES["drink"], remaining)
-                return TASK_MINUTES["drink"]
+                return TASK_MINUTES["drink"], "drink"
             if "drink" not in served:
                 outcome = self._consume_here(p, DRINK_TAGS, "drink")
                 if outcome is True:
                     served.add("drink")
                     self._begin_task(p, "drinking", TASK_MINUTES["drink"], remaining)
-                    return TASK_MINUTES["drink"]
+                    return TASK_MINUTES["drink"], "drink"
                 if outcome == "failed":
                     # Searched here and missed: spend the time, then head to a
                     # different source next (served blocks a retry this frame).
                     served.add("drink")
                     self._begin_task(p, "foraging", TASK_MINUTES["forage"], remaining)
-                    return TASK_MINUTES["forage"]
+                    return TASK_MINUTES["forage"], "forage"
             if self._travel_toward(p, DRINK_TAGS, "thirst"):
-                return TASK_MINUTES["travel"]
+                return TASK_MINUTES["travel"], "travel"
             return None  # no water within reach; nothing else to try for it
 
         if energy <= ENERGY_THRESHOLD:
             self._sleep(p)
             served.add("sleep")
-            return TASK_MINUTES["sleep"]
+            return TASK_MINUTES["sleep"], "sleep"
 
         # Tired, and nowhere to be tired *in* (task-566). A painted town has beds
         # in it — the inn carries `sleeps`, so does a guest room — and before the
@@ -407,7 +461,7 @@ class BackgroundSimulation:
         if "seek_rest" not in served and energy <= REST_SEEK_ENERGY:
             if self._seek_venue(p, "rest", "tiredness"):
                 served.add("seek_rest")
-                return TASK_MINUTES["travel"]
+                return TASK_MINUTES["travel"], "travel"
             # No bed in reach: fall through and sleep where they stand, which is
             # what the branch above does. A world with no beds is not a reason to
             # leave a character awake.
@@ -420,26 +474,26 @@ class BackgroundSimulation:
                 if outcome is True:
                     served.add("eat")
                     self._begin_task(p, "eating", TASK_MINUTES["eat"], remaining)
-                    return TASK_MINUTES["eat"]
+                    return TASK_MINUTES["eat"], "eat"
                 if outcome == "failed":
                     served.add("eat")
                     self._begin_task(p, "foraging", TASK_MINUTES["forage"], remaining)
-                    return TASK_MINUTES["forage"]
+                    return TASK_MINUTES["forage"], "forage"
                 if outcome is False:
                     spawned = self._forage_spawn(p, FOOD_TAGS)
                     if spawned is not None:
                         if self._consume_here(p, FOOD_TAGS, "eat") is True:
                             served.add("eat")
                             self._begin_task(p, "eating", TASK_MINUTES["eat"], remaining)
-                            return TASK_MINUTES["eat"]
+                            return TASK_MINUTES["eat"], "eat"
                         # Found something useless (junk, an herb): spend the search
                         # time and look elsewhere next turn — the wilds are not a
                         # pantry, and survival is not guaranteed (task-471/472).
                         served.add("eat")
                         self._begin_task(p, "foraging", TASK_MINUTES["forage"], remaining)
-                        return TASK_MINUTES["forage"]
+                        return TASK_MINUTES["forage"], "forage"
             if self._travel_toward(p, FOOD_TAGS, "hunger"):
-                return TASK_MINUTES["travel"]
+                return TASK_MINUTES["travel"], "travel"
 
         if v.get("Bladder", 0) >= BLADDER_THRESHOLD:
             # Relief is permitted anywhere (task-551); privacy is a preference,
@@ -453,22 +507,22 @@ class BackgroundSimulation:
                 if decent and self._relieve(p):
                     served.add("relieve")
                     self._begin_task(p, "relieving", TASK_MINUTES["relieve"], remaining)
-                    return TASK_MINUTES["relieve"]
+                    return TASK_MINUTES["relieve"], "relieve"
                 if self._travel_to_privacy(p):
-                    return TASK_MINUTES["travel"]
+                    return TASK_MINUTES["travel"], "travel"
                 if self._relieve(p):
                     served.add("relieve")
                     self._begin_task(p, "relieving", TASK_MINUTES["relieve"], remaining)
-                    return TASK_MINUTES["relieve"]
+                    return TASK_MINUTES["relieve"], "relieve"
             return None
 
         if v.get("Hygiene", 100) <= HYGIENE_THRESHOLD:
             if "wash" not in served and self._wash(p):
                 served.add("wash")
                 self._begin_task(p, "washing", TASK_MINUTES["wash"], remaining)
-                return TASK_MINUTES["wash"]
+                return TASK_MINUTES["wash"], "wash"
             if self._travel_toward(p, BATH_TAGS, "hygiene"):
-                return TASK_MINUTES["travel"]
+                return TASK_MINUTES["travel"], "travel"
 
         # Steadying the mind. Above boredom because a low-Sanity character is a
         # danger to others rather than merely unhappy, but below every survival
@@ -477,7 +531,7 @@ class BackgroundSimulation:
             if "recuperate" not in served and self._recuperate(p):
                 served.add("recuperate")
                 self._begin_task(p, "recuperating", TASK_MINUTES["recuperate"], remaining)
-                return TASK_MINUTES["recuperate"]
+                return TASK_MINUTES["recuperate"], "recuperate"
 
         # Loneliness drives a character toward people (task-409). Company steadies
         # Social and is the precondition for the paired social pass, so a lonely
@@ -488,7 +542,7 @@ class BackgroundSimulation:
                 and "company" not in served):
             served.add("company")
             if self._seek_company(p):
-                return TASK_MINUTES["travel"]
+                return TASK_MINUTES["travel"], "travel"
 
         # An assigned pursuit (task-426) outranks generic
         # preparation. The activity is the longer-lived intention;
@@ -500,7 +554,7 @@ class BackgroundSimulation:
         if getattr(p, "plan", None) or _plans.maybe_assign(self, p):
             used = _plans.advance(self, p)
             if used:
-                return used
+                return used, "plan"
 
         # Preparation (task-426). At a service area with a moment to spare, make
         # supplies portable — fill a waterskin, pocket a ration — so a later need
@@ -510,7 +564,7 @@ class BackgroundSimulation:
             used = self._prepare(p)
             if used:
                 served.add("prepare")
-                return used
+                return used, "prepare"
 
         # What the day says to do, once every survival need is satisfied
         # (task-409). Above boredom, so a full character works at its trade
@@ -518,7 +572,7 @@ class BackgroundSimulation:
         # breaks off to eat.
         if "work" not in served and self._pursue_schedule(p):
             served.add("work")
-            return TASK_MINUTES["work"]
+            return TASK_MINUTES["work"], "work"
 
         # Boredom last: it is the only need here that nothing kills you for
         # ignoring, so it must never outrank food, water, sleep or relief.
@@ -526,9 +580,9 @@ class BackgroundSimulation:
             if "recreate" not in served and self._recreate(p):
                 served.add("recreate")
                 self._begin_task(p, "recreating", TASK_MINUTES["recreate"], remaining)
-                return TASK_MINUTES["recreate"]
+                return TASK_MINUTES["recreate"], "recreate"
             if self._travel_toward(p, RECREATION_TAGS, "entertainment"):
-                return TASK_MINUTES["travel"]
+                return TASK_MINUTES["travel"], "travel"
 
         return None  # nothing is due — the rest of the timeframe passes quietly
 
@@ -537,8 +591,14 @@ class BackgroundSimulation:
     # of the roster sweep in `process_due`. Same decisions, same clock.
 
     def take_action(self, p, served=None, remaining=1.0):
-        """One deterministic action for *p*. Returns minutes used or None."""
-        return self._act(p.name, p, served, remaining)
+        """One deterministic action for *p*. Returns minutes used or None.
+
+        A primitive: it does not spend a slot itself, so the soak policy
+        (`engine/timeskip.py:_policy_step`) and its tests can drive one action at
+        a time. The flow loop (`process_due`) is where the economy is charged.
+        """
+        step = self._act(p.name, p, served, remaining)
+        return step[0] if step else None
 
     def step_toward_area(self, p, area_name, reason="timeskip"):
         """One hop toward a named area."""

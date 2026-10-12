@@ -176,6 +176,9 @@ class WorldSerializer:
             "base_description": _props.get("base_description") or getattr(p, 'base_description', ''),
             "description": getattr(p, 'description', '') or _props.get("description", ''),
             "turn_slots": dict(getattr(p, 'turn_slots', {}) or {}),
+            # task-784: a dash burst is armed and waiting for its finish hop; the
+            # composer reads this to offer the finish (and only the finish).
+            "burst_pending": int(getattr(p, 'burst_pending', 0) or 0),
             "size": getattr(p, 'size', None),
             "species": getattr(p, 'species', None),
             "tags": getattr(p, 'tags', []),
@@ -606,6 +609,8 @@ class WorldSerializer:
             pdata.pop("description", None)
             # task-352: a slot does not survive a turn, so it is never persisted.
             pdata.pop("turn_slots", None)
+            # task-784: nor does an armed dash burst.
+            pdata.pop("burst_pending", None)
         # task-222, continued: a saved world is graph-only, so nothing here is
         # a second copy of data already carried by `graph.nodes`:
         #   - `areas` / `rooms` are projections the loader never reads

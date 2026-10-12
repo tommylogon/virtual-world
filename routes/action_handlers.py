@@ -358,17 +358,25 @@ def handle_take_action(app):
         # do not, because they are authoring/override actions, not the character's
         # turn.
         _slot_player = world.player_manager.players.get(world.player_manager.active_player)
+        _arm_dash = False
         if _slot_player is not None and data.get("enforce_slots"):
             from engine import action_tiers as _at
             _slots = getattr(_slot_player, "turn_slots", None)
             if not _slots:
                 _slot_player.turn_slots = _slots = {}
                 _at.reset_slots(_slots)
-            _verb = cmd.split(" ", 1)[0] if cmd else ""
-            _tier = _at.tier_of(_verb)
-            if _at.spend_slot(_slots, _tier) is None:
-                raise ValueError(
-                    f"You have no {_tier} action left this turn.")
+            _verb = (cmd.split(" ", 1)[0] if cmd else "").lower()
+            # task-784: one rule for every budgeted actor — a dash is a two-hop
+            # burst (initiate major + finish minor); while it is armed the finish
+            # is the only valid action; an abort (wait) clears it. See
+            # engine.action_tiers.apply_action_gate.
+            _err, _burst = _at.apply_action_gate(
+                _slots, _verb, getattr(_slot_player, "burst_pending", 0))
+            if _err:
+                raise ValueError(_err)
+            if _burst == "clear":
+                _slot_player.burst_pending = 0
+            _arm_dash = _burst == "arm"
 
         # T1: movement result handling. An intra-room positioning ("go the
         # booth table") does NOT change areas — the movement line is the whole
@@ -399,6 +407,11 @@ def handle_take_action(app):
             was_movement = True
             direction = ' '.join(tokens[1:]) if len(tokens) > 1 else cmd[5:].strip()
             _move_and_describe(lambda: world.dash_to_area(direction))
+            # task-784: arm the burst only once the hop actually happened. A block
+            # (winded/encumbered/locked) raises out of `_move_and_describe`, so the
+            # dash is left unarmed with its major already spent — the try's cost.
+            if _arm_dash and _slot_player is not None:
+                _slot_player.burst_pending = 1
 
         elif cmd.startswith("crawl "):
             was_movement = True

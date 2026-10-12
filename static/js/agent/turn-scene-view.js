@@ -171,6 +171,36 @@ window.TurnSceneView = (() => {
         }
         return menus;
     }
+    /**
+     * True while the controlled character has a dash burst armed (task-784): the
+     * dash's first hop landed and the finish is the only valid next action. Read
+     * off the live state; the server is the enforcer, this only shapes the menu.
+     */
+    function burstPending() {
+        const ws = window.worldState;
+        const d = ws && ws.data;
+        if (!d || !d.players || !d.active_player)
+            return false;
+        const p = d.players[d.active_player];
+        return !!p && Number(p.burst_pending || 0) > 0;
+    }
+    /** The controlled character's remaining action slots, or undefined. */
+    function slotsOf() {
+        const ws = window.worldState;
+        const d = ws && ws.data;
+        const p = d && d.players && d.active_player ? d.players[d.active_player] : undefined;
+        return p ? p.turn_slots : undefined;
+    }
+    /**
+     * A dash needs both its major (the hop) and a minor (the finish). With no
+     * published budget, never hide (older saves) - the server is the enforcer.
+     */
+    function canInitiateDash() {
+        const s = slotsOf();
+        if (!s)
+            return true;
+        return (s.major || 0) > 0 && (s.minor || 0) > 0;
+    }
     function buildWayMenu(way, conditions, atWayId, dark = false) {
         const grappled = (conditions || []).some((c) => String(c).toLowerCase().includes('grappl'));
         const requires = requiresGate(way);
@@ -178,6 +208,19 @@ window.TurnSceneView = (() => {
         const dirText = dark ? 'the way' : (way.direction || '');
         const shownName = dark ? 'the way' : way.name;
         const destText = (!dark && way.to) ? `${dirText} → ${way.to}` : dirText;
+        // task-784: while a dash burst is armed the finish hop is the ONLY valid
+        // action, so the menu offers exactly that (or an abort) and nothing else.
+        if (burstPending()) {
+            const finish = [];
+            if (!requires && !grappled && !['locked', 'blocked'].includes(way.state)) {
+                finish.push({ label: `Finish dash ${destText}`, run: () => draftParts({ action: 'go', item: way.direction || way.name }) });
+            }
+            else {
+                finish.push({ label: `Finish dash ${destText}`, enabled: false, reason: requires ? `requires ${requires}` : (grappled ? 'something holds you back' : way.state) });
+            }
+            finish.push({ label: 'Stop here (wait)', run: () => draftParts({ action: 'wait' }) });
+            return finish;
+        }
         const menus = [{
                 label: dark ? 'Feel along the opening' : `Examine ${way.name}`,
                 run: () => draftParts({ action: 'examine', item: way.name }),
@@ -200,6 +243,17 @@ window.TurnSceneView = (() => {
         }
         else {
             menus.push({ label: `Go ${destText}`, run: () => draftParts({ action: 'go', item: way.direction || way.name }) });
+        }
+        // task-784: a dash is the burst's first hop — offered exactly when Go is,
+        // and disabled when the minor to finish with is not there (the server
+        // refuses a dash without it, so the menu never offers one that cannot end).
+        if (!requires && !grappled && !['locked', 'blocked'].includes(way.state)) {
+            if (canInitiateDash()) {
+                menus.push({ label: `Dash ${destText}`, run: () => draftParts({ action: 'dash', item: way.direction || way.name }) });
+            }
+            else {
+                menus.push({ label: `Dash ${destText}`, enabled: false, reason: 'needs a major and a minor action' });
+            }
         }
         if (!requires && closed && !['locked', 'blocked'].includes(way.state)) {
             menus.push({ label: `Open ${shownName}`, run: () => draftParts({ action: 'open', item: way.name }) });
@@ -561,7 +615,9 @@ window.TurnSceneView = (() => {
             attachHover(chip, () => chip, () => lookLines(scene, 'exit', way));
             wayChips.appendChild(chip);
         }
-        host.appendChild(el('div', 'tsv-hint', 'hover = free look · click = what you can do with it · picks fill the draft, nothing fires until Act'));
+        host.appendChild(el('div', 'tsv-hint', burstPending()
+            ? 'Finishing your dash - pick the way you cross next, or wait to stop here.'
+            : 'hover = free look · click = what you can do with it · picks fill the draft, nothing fires until Act'));
     }
     /** Convenience wrapper: fetch + renderScene, with inline error note. */
     async function render(charName, host, handlers) {

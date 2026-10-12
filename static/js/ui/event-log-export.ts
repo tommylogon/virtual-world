@@ -17,7 +17,8 @@
  * @module ui/event-log-export — projected event-log export
  * @contributes EventLogExport: DOM→record projection, Markdown/Plain/JSON/JSONL renderers,
  *   the consolidated export modal, and filter-honest range/scope selection
- * @powers Task-777: queryable (jq-able) event-log export without the app running
+ * @powers Export — the event-log half: the DOM→record projection, the four renderers
+ *   and the export modal; queryable (jq-able) export without the app running
  * @relates reads the stream DOM; called by ui/world-export; uses WorldExport.saveFileWithDialog
  * @docs docs/virtualWorld/UI & Settings/Event Log Export.md
  */

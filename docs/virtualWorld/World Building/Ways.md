@@ -11,8 +11,7 @@ crack in a cliff face. If you want to go from A to B, you use a way. All
 traversal in VirtualWorld is a way — there are no direct area-to-area links.
 
 On the graph a way is a node joined to the two areas it connects. Its node type
-is `way`. The word "door" survives only as a legacy name in older notes and in
-some prose — it is not a node type any more.
+is `way`.
 
 For the exact property keys and which code reads each one, see
 [[Way Properties]]. This page is the *why* behind them.
@@ -60,10 +59,9 @@ it means a typo in `current_state` fails *open*, not closed.
 > open. Until that is reconciled, use `blocked` for a way nobody should pass, and
 > describe the damage in `description`.
 
-### `see_through` is a property, not a state
+### `see_through` is a property
 
-`see_through` is a boolean on the way. It is *not* one of the six states, and it
-is independent of them: it answers "does this let sight and light through",
+`see_through` is a boolean on the way. It answers "does this let sight and light through",
 while `current_state` answers "does this let you through". A window is
 
 ```
@@ -72,11 +70,9 @@ see_through: true
 ```
 
 Open that window and it is `open` + `see_through: true`; close it and it is back
-to `closed` + `see_through: true`. The property never changes with the state —
-which is exactly why it cannot be a state. Under the hood the two combine into
+to `closed` + `see_through: true`. Under the hood the two combine into
 one value for the light and sound tables (a `see_through` way is indexed as
-`see_through` *whatever* its state), and that is the only sense in which the
-word appears in the state ladder.
+`see_through`), and that is the only sense in which the word appears in the state ladder.
 
 ### Blocked and locked are the author's distinction
 
@@ -119,6 +115,9 @@ Two details worth knowing:
 
 - **`is clear` versus `is open`.** An open way under open sky reads *is clear*;
   one with a roof or a frame over it reads *is open*. Same state, different word.
+  What decides it is the **way's own** `tags`: if they include `outdoor` or
+  `exterior` (`engine/area_tags.py:OPEN_SKY_TAGS`), the word is *is clear*,
+  otherwise *is open*.
 - **The verb list changes with the state.** An open or see-through way offers
   `go through it, approach it, dash, examine or close it`; a closed one offers
   `... dash, or open it` instead, because closing what is already shut is not a
@@ -127,9 +126,18 @@ Two details worth knowing:
 A hidden way simply is not in this list until it is found. Finding one is the
 `fumble_around` action: a Perception check (DC 12) rolled **with disadvantage**,
 and on success the way joins that character's `discovered_exits` and its state
-is set to `locked` — you find it shut, not open. A guiding cane (a `sensory_aid`
-item) improves the roll, and a character with the slasher trait sees hidden ways
-without searching. A natural 1 on the search costs 1 HP.
+is set to `locked` — you find it shut, not open. A guiding cane (an item tagged
+`sensory_aid`, e.g. a white cane) adds its `sensory_bonus`, default 2, to the
+roll: this is a *tactile* search, so the tool for feeling your way helps, and
+carrying two aids stacks. A character with the slasher trait sees hidden ways
+without searching.
+
+**A fumble costs 1 HP.** Disadvantage means the *lower* of two d20 comes up 1 —
+at least one die showing a 1, roughly a one-in-ten chance — and the character
+bangs their shin on something in the dark for 1 non-lethal damage. It fires
+whether or not anything was hidden, and the action has already cost 2 time and 3
+energy. The whole search is skipped when the character can see in the dark or the
+area is lit (ambient light above 40); a blind character must always fumble.
 
 ## What a character knows — and what they only think they know
 
@@ -420,6 +428,6 @@ least three-eighths as bright.
 
 **Features** — [[way-authoring|Way authoring]] (#51)
 
-**Neighbouring notes** — [[Connections]], [[Generated Scenario Review (2026-08)]], [[Graph System]], [[Grid to Graph]], [[Millbrook Falls Town Map]], [[Rooms & Areas]]
+**Neighbouring notes** — [[Connections]], [[Generated Scenario Review (2026-08)]], [[Graph System]], [[Grid to Graph]], [[Millbrook Falls Town Map]], [[Movement]]
 
 <!-- connected:end -->

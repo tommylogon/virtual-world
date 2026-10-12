@@ -864,25 +864,25 @@ class MovementSystem:
         return f"{skill_check_msg}{move_line + arrival_suffix + auto_close_msg + drag_suffix}"
 
     def crawl_to_area(self, direction: str) -> str:
-        """Crawl through a tight/crawl-only passage (2× time)."""
+        """Crawl through a tight/crawl-only passage."""
         return self.move_to_area(direction, kind="crawl")
 
     def climb_to_area(self, direction: str) -> str:
-        """Climb through a climbable passage (1.5× time, risk)."""
+        """Climb through a climbable passage (risk of a failed Athletics check)."""
         return self.move_to_area(direction, kind="climb")
 
     def jump_to_area(self, direction: str) -> str:
-        """Jump across a gap (1× time, risk)."""
+        """Jump across a gap (risk of a failed Athletics check)."""
         return self.move_to_area(direction, kind="jump")
 
     def dash_to_area(self, direction: str) -> str:
         """Sprint through one exit — a fast ``go``.
 
-        Dash is the first hop of a burst: the agent engine follows it up
-        with an immediate second decision and chains another ``go``, so a
-        dash can cross several rooms in one turn. This method only performs
-        the single sprint (state checks + movement cost), mirroring
-        ``move_to_area`` plus a small sprinting energy surcharge.
+        Dash is the first hop of a chain: the engine follows it up with one
+        immediate second decision and chains a single ``go``, so a dash
+        crosses two areas in one turn. This method only performs the single
+        sprint (state checks + movement cost), mirroring ``move_to_area``
+        plus a small sprinting energy surcharge.
         """
         if not self.gs.current_area:
             return "You are in an empty void."

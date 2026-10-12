@@ -224,6 +224,6 @@ and fog of war as the known set. Its `Related:` header points at
 
 **Features** — [[grid-to-graph|Grid to graph]] (#48)
 
-**Neighbouring notes** — [[Connections]], [[Generated Scenario Review (2026-08)]], [[Graph System]], [[Millbrook Falls Town Map]], [[Rooms & Areas]], [[Way Properties]]
+**Neighbouring notes** — [[Connections]], [[Generated Scenario Review (2026-08)]], [[Graph System]], [[Millbrook Falls Town Map]], [[Movement]], [[Rooms & Areas]]
 
 <!-- connected:end -->

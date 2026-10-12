@@ -2,11 +2,13 @@
 """Guard the Feature Map: the canonical list of user-facing features, and the
 front-end contract's `@powers` declarations checked against it.
 
-A feature is a thing a person can do in a game or in the editor — deliberately
-*not* a module. `attention.py` is a mechanism; nobody "uses attention". The three
-earlier attempts to measure documentation coverage all failed for that reason:
+A **feature** is something a person does, uses or interacts with — a system or a
+surface, in a game or in the editor — deliberately *not* a module. A **mechanic**
+is how it works: the operations and rules inside a feature (`attention.py` is a
+mechanic, not a feature — nobody "uses attention"). The three earlier attempts to
+measure documentation coverage all failed for that reason:
 
-* module filenames are mechanisms, so a per-module audit answers the wrong question;
+* module filenames are mechanics, so a per-module audit answers the wrong question;
 * `@powers` is free-text prose (266 distinct strings across 156 modules), so there
   is nothing controlled to check a document against;
 * note titles are 76 documents with no feature → note mapping.
