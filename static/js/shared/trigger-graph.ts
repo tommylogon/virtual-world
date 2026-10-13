@@ -686,6 +686,9 @@ window.TriggerGraph = (() => {
     let _state: TriggerGraphState = { nodes: {}, wires: {}, nodeIdCounter: 0, wireIdCounter: 0 };
     let _mode = 'trigger';
     let _onSave: ((graph: any) => void) | null = null;
+    // Last blueprint name saved or loaded, so saving again defaults to it instead
+    // of re-typing (a loaded blueprint used to forget its own name entirely).
+    let _blueprintName = '';
     let _selectedNode: string | null = null;
     let _dragWire: { from: TriggerGraphEndpoint; mx: number; my: number } | null = null;
     let _dragNode: { nid: string; sx: number; sy: number; mx: number; my: number } | null = null;
@@ -2129,16 +2132,20 @@ window.TriggerGraph = (() => {
 
     async function _saveBlueprint() {
         const g = _serializeGraph();
-        let name = 'my_trigger';
+        const isBehavior = _mode === 'behavior';
+        // Default to the last name saved/loaded so a re-save does not ask from
+        // scratch; mode-specific fallback when there is none yet.
+        const defaultName = _blueprintName || (isBehavior ? 'my_behaviour' : 'my_trigger');
+        let name = defaultName;
         let desc = '';
         const dlg = (window as unknown as { Dialog?: { prompt?: (o: unknown) => Promise<Record<string, string> | null> } }).Dialog;
         if (dlg && typeof dlg.prompt === 'function') {
             // task-751: one modal for name + description, not two native prompts.
             const result = await dlg.prompt({
-                title: 'Save blueprint to library',
+                title: isBehavior ? 'Save behaviour to library' : 'Save blueprint to library',
                 fields: [
-                    { key: 'name', label: 'Name', value: 'my_trigger' },
-                    { key: 'description', label: 'Description', placeholder: 'What does this trigger do?' },
+                    { key: 'name', label: 'Name', value: defaultName },
+                    { key: 'description', label: 'Description', placeholder: isBehavior ? 'What does this behaviour do?' : 'What does this trigger do?' },
                 ],
                 confirmLabel: '💾 Save',
             });
@@ -2146,11 +2153,56 @@ window.TriggerGraph = (() => {
             name = String(result.name || '').trim() || 'untitled';
             desc = String(result.description || '');
         } else {
-            name = prompt('Blueprint name:', 'my_trigger') || 'untitled';
+            name = prompt('Name:', defaultName) || 'untitled';
             desc = prompt('Description:', '') || '';
         }
+        _blueprintName = name;
+        const slug = name.replace(/[^a-z0-9_]+/g, '_').toLowerCase() || 'untitled';
+
+        if (isBehavior) {
+            // A behaviour-mode graph is one or more reusable NPC behaviours. The
+            // engine's behaviour library (data/library/behaviours/, engine/behaviors.py,
+            // task-590) holds one flat record per file, so compile the graph with the
+            // same compiler the per-character save uses and write each record there —
+            // NOT to data/library/triggers/, where a behaviour graph is meaningless
+            // and the load/attach path expects a trigger node.
+            const compiled = TG.compileToBehaviorsWithIssues(g);
+            if (TG.reportCompileError(compiled)) return;
+            const behaviors = compiled.behaviors || [];
+            if (!behaviors.length) {
+                if (typeof toastInfo === 'function') toastInfo('Add a Behaviour node before saving.');
+                else alert('Add a Behaviour node before saving.');
+                return;
+            }
+            try {
+                for (let i = 0; i < behaviors.length; i++) {
+                    const rec = {
+                        name: i === 0 ? name : `${name} (${i + 1})`,
+                        description: desc,
+                        ...behaviors[i],
+                    };
+                    const id = i === 0 ? slug : `${slug}_${i + 1}`;
+                    const r = await fetch('/api/library/behaviours', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id, data: rec }),
+                    });
+                    const res = await r.json();
+                    if (!r.ok || res.error) throw new Error(res.error || ('HTTP ' + r.status));
+                }
+                const m = behaviors.length === 1
+                    ? `💾 Behaviour saved to the behaviours library as "${name}".`
+                    : `💾 Saved ${behaviors.length} behaviours to the behaviours library.`;
+                if (typeof toastInfo === 'function') toastInfo(m); else alert(m);
+            } catch (err) {
+                const m = 'Save failed: ' + (err as Error).message;
+                if (typeof toastError === 'function') toastError(m); else alert(m);
+            }
+            return;
+        }
+
         const bp = { name, description: desc, graph: g };
-        const id = name.replace(/[^a-z0-9_]+/g, '_').toLowerCase();
+        const id = slug;
         fetch('/api/library/triggers', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -2164,8 +2216,11 @@ window.TriggerGraph = (() => {
 
     function _exportBlueprint() {
         const g = _serializeGraph();
-        const name = prompt('Blueprint name:', 'my_trigger') || 'untitled';
+        const isBehavior = _mode === 'behavior';
+        const defaultName = _blueprintName || (isBehavior ? 'my_behaviour' : 'my_trigger');
+        const name = prompt('Name:', defaultName) || 'untitled';
         const desc = prompt('Description:', '') || '';
+        _blueprintName = name;
         const bp = { name, description: desc, graph: g };
         const blob = new Blob([JSON.stringify(bp, null, 2)], { type: 'application/json' });
         const a = document.createElement('a');
@@ -2178,6 +2233,7 @@ window.TriggerGraph = (() => {
 
     function _applyBlueprint(bp: any) {
         if (!bp.graph) throw new Error('Invalid blueprint');
+        if (typeof bp.name === 'string' && bp.name) _blueprintName = bp.name;
         _state = { nodes: {}, wires: {}, nodeIdCounter: 0, wireIdCounter: 0 };
         for (const n of (bp.graph.nodes || [])) {
             const id = n.id || `n${_state.nodeIdCounter++}`;

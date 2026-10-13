@@ -206,3 +206,26 @@ test('trigger-graph: behaviors-view reads the same catalog (no drift)', () => {
     assertEq(form.length, shared.length, 'same type count');
     assertEq(form.join(','), shared.join(','), 'same types in the same order');
 });
+
+// ─── behaviour library save routing ───
+
+test('trigger-graph: behaviour-mode Save to library writes the behaviours registry', () => {
+    // A behaviour graph used to be hardcoded to POST /api/library/triggers, so a
+    // saved behaviour landed in data/library/triggers/ where nothing reads it and
+    // the load/attach path expects a trigger node. The behaviour branch must
+    // compile to flat records and write data/library/behaviours/ (engine/behaviors.py).
+    const src = window.__readFile('static/js/shared/trigger-graph.js');
+    assertTrue(/\/api\/library\/behaviours/.test(src),
+        'behaviour save targets /api/library/behaviours');
+    assertTrue(/\/api\/library\/triggers/.test(src),
+        'trigger blueprint save keeps /api/library/triggers');
+    assertTrue(/compileToBehaviorsWithIssues\(g\)/.test(src),
+        'behaviour save compiles the graph to flat records');
+});
+
+test('trigger-graph: the blueprint name is remembered for the next save', () => {
+    const src = window.__readFile('static/js/shared/trigger-graph.js');
+    assertTrue(/let _blueprintName/.test(src), 'name state exists');
+    assertTrue(/_blueprintName = bp\.name/.test(src), 'loading a blueprint remembers its name');
+    assertTrue(/value: defaultName/.test(src), 'the name field is prefilled from it');
+});
