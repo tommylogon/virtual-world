@@ -59,6 +59,26 @@ def test_active_returns_only_the_goals_being_pursued():
     assert [g["id"] for g in norm] == ["a"]
 
 
+def test_a_dormant_goal_is_held_but_not_pursued():
+    """``dormant`` is a real status, not a typo to be corrected: a character can
+    hold an ambition they are not working right now. It must survive normalise
+    and stay out of ``active`` -- the two things that make it different from
+    ``proposed``."""
+    assert "dormant" in goals.GOAL_STATUSES
+
+    norm = goals.normalize([
+        {"id": "a", "what": "A", "status": "active"},
+        {"id": "b", "what": "B", "status": "dormant"},
+    ])
+    assert [g["status"] for g in norm] == ["active", "dormant"]
+    assert [g["id"] for g in goals.active(norm)] == ["a"]
+
+    # and it is settable, so a character can put a goal down and pick it up
+    moved, error = goals.set_status(norm, "b", "active")
+    assert error is None
+    assert goals.find(moved, "b")["status"] == "active"
+
+
 def test_a_goals_round_trip_through_a_scenario():
     """Author goals on a character, save the scenario, reload it: the goals --
     including the id derived on normalise -- come back unchanged."""

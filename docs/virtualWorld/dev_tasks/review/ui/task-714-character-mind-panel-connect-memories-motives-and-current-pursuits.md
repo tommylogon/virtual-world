@@ -1,6 +1,6 @@
 ---
 type: task
-status: inprogress
+status: review
 area: ui
 priority: medium
 related: [task-409, task-426, task-691, task-699, task-701, task-702, task-703, task-704, task-725, task-800, task-802, task-806, task-807, task-810, task-811, task-812, task-813, task-814, task-820, task-821]
@@ -71,8 +71,11 @@ Extend `InspectorMindView` (`static/js/inspector/mind-view.ts`) with blocks in t
 - **World knowledge** (done 2026-10-13) reads `.known`.
 - **Known recipes** (done 2026-10-13) reads `.crafting_known`.
 - **Disposition** (done 2026-10-13) reads `.disposition` and `.trait_behavior` - the derived weights (with their registry kind / base / range), the authored dials, the value-gated verbs, and the whisper lines (tasks 800-806).
+- **Mission** (done 2026-10-13) is the **Obligations** block (task-813, `Player.obligations`): who asked for what (`from`), what they owe (`charge`), the due tick, and the accepted/offered/done/refused status. It is the same layer, not a second one - no standalone Mission record exists or was invented. The "an accepted mission can become the pursuit" link is not stored (nothing on `active_pursuit` points back at an obligation), so it is not shown.
+- **Body** (done 2026-10-13) reads `.state`, `.conditions` (each instance's `source` / `duration` / `level`) and the **core** vitals the header renders, flagged via `VitalColor.level`. Shown only when there is something to explain (non-awake state, a condition, or a vital out of band) so it is a reason, not a second vitals panel. Optional scenario vitals (Arousal / Pleasure / Stimulation) are excluded - they sit at 0 when their system is off and would read as "low" for everyone.
+- **Emotional cause** (done 2026-10-13) - the `Feeling` block now appends the most recent memory that itself carried the current feeling. It is honest about what it is ("last felt in a memory") and is not claimed to be the trigger: a true cause needs a memory that records the event, which is task-725 (unchanged).
 
-Still to add: Mission, and the emotional-cause, death/vitals/perception surfaces. Each reads its own runtime source; no second copy and no unified Goal record invented to fill a blank.
+All the display layers are in. The one thing the panel cannot yet show is the *trigger event* behind a mood or a death, because no memory records it - that is the task-725 data gap, not a missing surface.
 
 
 ## Steps to verify
@@ -86,6 +89,10 @@ Still to add: Mission, and the emotional-cause, death/vitals/perception surfaces
 3. Set an activity, an emotion, known places and known recipes on a character, then open the 🧠 Mind panel.
    - expected: "Activity - what is underway", "Feeling - their mood", "World knowledge - places known (n)" and "Known recipes (n)" blocks render from those runtime fields; each is absent when its field is empty.
    - observed: VERIFIED 2026-10-13, live on localhost:4444. `activity {type: fishing, elapsed_minutes 12, duration_minutes 40, catch_count 2}` -> "ACTIVITY - WHAT IS UNDERWAY / fishing 12 min / of 40 min / caught 2"; `emotion {afraid 45, description}` + `emotions {afraid 45, angry 12}` -> "FEELING - THEIR MOOD / afraid (45) / ... / afraid 45 / angry 12"; `known` 4 -> "WORLD KNOWLEDGE - PLACES KNOWN (4) / Workshop, Gate, Mess Hall, River Fork"; `crafting_known` 2 -> "KNOWN RECIPES (2) / scrap_hinge, camp_stew".
+
+4. Inspect a character the body is failing, a character with an obligation and a schedule, and a character whose last memory carried a feeling.
+   - expected: the "Body - what is driving them" block names the non-awake state, each condition with its source, and the vitals out of band (and is absent when nothing is wrong); the Obligations block shows who asked and the status; the Feeling block shows "last felt in a memory: ..." from a real memory.
+   - observed: VERIFIED 2026-10-13, live on localhost:4444, kraktooth camp (27 players). `Eldenford Blacksmith` (state `frightened`; conditions `frightened` why `trait:paranoid`, `hallucinating`, `social_breakdown`; vitals `HP 20 bad / Hunger 66 warn / Thirst 77 warn / Sanity 5 bad / Social 0 bad / Entertainment 0 bad / Hygiene 0 bad`) -> the Body block rendered all of it; `Arix` (nothing wrong) -> Body absent. `Arix` (1 obligation, 1 schedule step) -> Obligations + Schedule rendered on the Mind tab. On a probe, `rat` with `emotion afraid` + a memory carrying an `afraid` feeling -> "FEELING ... last felt in a memory: "..." t1"; probe removed after.
 
 ## Files
 
@@ -104,5 +111,14 @@ Still to add: Mission, and the emotional-cause, death/vitals/perception surfaces
 - Activity, Feeling, World knowledge and Known recipes blocks done and verified live: they read `Player.activity`, `Player.emotion` / `emotions`, `Player.known` and `Player.crafting_known`; each is absent when its field is empty.
 - Disposition block done and verified live: derived weights (labelled with their registry kind / base / range), authored dials, value-gated verbs and the whisper lines (tasks 800-806).
 - `python tools/ts_convert.py check` green.
-- Remaining layers: Mission; and the emotional-cause surface, and death/vitals/perception.
+- Mission is the existing Obligations block (task-813) - same layer, not a second one. Body (`state` / `conditions` / core vitals out of band, shown only when there is something to explain) and the Feeling block's "last felt in a memory" line added and verified live on the kraktooth camp.
+- The only layer still absent is the *trigger event* behind a mood or a death: no memory records it, so the panel cannot show it. That is the task-725 data gap (engine/authoring), not a missing Mind surface - this card's display work is complete.
+
+## Progress (2026-10-13, later)
+
+- Body block (`_bodyHtml`) and the Feeling cause line landed in `mind-view.ts`, mounted on the Perception tab; `python tools/ts_convert.py check` green; verified live: the Eldenford Blacksmith's conditions and failing vitals render, Arix's quiet body is absent, and the blacksmith was the card's original death repro.
+
+## Note on the named authored cases
+
+The card asks to exercise the layers with Vekka's scouting pursuit, Grandma's 06:00 food reminder, and James's sleeping activity. Those were set at runtime in an earlier session and are **not in the saved `kraktooth_goblin_camp.json`** - the loaded world has no `active_pursuit` anywhere and Vekka has no plan/schedule. The layers were therefore verified against the authored state that *is* in the file (Arix: obligation + schedule; Cullen Rutherford: a running `activity`; the Blacksmith: conditions + failing vitals) plus transient probes. Re-authoring Vekka/Grandma/James is content work for that scenario separately.
 

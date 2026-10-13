@@ -24,6 +24,14 @@ Choose or propose a suitable **pursuit** when needs, a goal, an accepted mission
 
 Selection must read the actor's real state and knowledge. Needs, personality, memories and perceptions shape what the character wants and believes; calendar conditions, seasons, weather, daylight, moon, routes, people, items, and available actions constrain what is possible. Use the existing VirtualWorld world-time and environment sources.
 
+**This card owns `goal_alignment`** - the second term of the score formula in [[Character Pursuits]]:
+
+```
+score(action) = disposition_weights . action_features + goal_alignment(action, active_goal)
+```
+
+`goal_alignment` reads the active goal's **`achieve`** refs (task-822) and the bound pursuit's next step: does this action advance one? It is the term that connects GIMP to the pick, and nothing computes it today. **`priority` is this card's input too** - it is declared 1-is-highest in task-822, and choosing *which* of a character's active goals is the active one is this card's job. With several active goals and no ranking, the formula has no `active_goal` to align to.
+
 ## Acceptance
 
 - [ ] Selection runs on meaningful triggers—need signals, mission offer/acceptance, Activity completion or interruption, pursuit completion/invalidation, relevant perception/memory, or schedule/calendar cue—not once per simulation tick.

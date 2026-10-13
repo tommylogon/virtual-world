@@ -5,31 +5,37 @@ tags: [system/docs, system/characters]
 
 # MOSIAC Character Profiles
 
-What MOSIAC looks like when it is filled in. For every character of four shipped scenarios - **mansion**, **The Valerious Case**, **taco_bell_date** and **kraktooth_goblin_camp** - the six letters as the inputs, ten **Intentions**, and **Choice** as the disposition that weighs them.
+What MOSIAC looks like when it is filled in. For every character of four shipped scenarios - **mansion**, **The Valerious Case**, **taco_bell_date** and **kraktooth_goblin_camp** - the six letters as the inputs, ten **Intentions**, and the **disposition** that weighs them.
 
 Grounded in the characters as authored. Each profile is read off the character's real `personality` and `base_description` in `data/library/characters/` (and their node prose where the library has none), not from their names. That matters: the first pass at this exercise guessed roles from names, and several guesses were wrong - the mansion cast are not dinner guests, and tyler is not a rival ex, he is the cashier. The ten intentions below follow the character each one is grounded in.
 
 The point is not that every intention is built today. It is to see which MOSIAC pieces the content actually demands and which are missing, and how the shape differs by scenario type: a narrative night that runs on obligations and attention, versus a sandbox day that runs on schedules.
 
+> **Revised 2026-10-12 — read this before the profiles.** The letters moved. **Needs are no longer part of M**; a need is a signal, not an aspiration, so it lives in **A** (Attention, the salience filter). **M** is the standing drive. And **C is no longer the selector** — it is the set of *available* actions; the weighing moved out to the **disposition**, which ranks what C offers. So a `drive` animal is **A + C** and nothing else.
+>
+> The per-character blocks below were written against the older letters, so their **C** line reads as personality prose ("methodical and brave-but-cautious"). Read that line as the character's **disposition** — the ranking layer — which is what it is describing. The current letters are in [[Character Pursuits]] and [[MOSIAC]], which win wherever the two differ.
+
 ## The shape of a MOSIAC
 
-MOSIAC names six **concerns**: five inputs and one resolution.
+MOSIAC names six **concerns**. **M / O / S / I** are the standing context — what a character is *about*. **A** and **C** are the moment — the two lowest, most immediate letters, which is why the order reads M-O-S-I-A-C.
 
 | Letter | Concern | Reads / produces |
 |---|---|---|
-| **M** | Motivation | needs and drives - why the character moves at all |
+| **M** | Motivation | the standing drive: why they reach for a goal at all — "I want respect and power" |
 | **O** | Obligations | what the character owes: missions, promises, duties, appointments |
 | **S** | Schedule | when the world expects something: a routine, a deadline, a window |
-| **A** | Attention | what the character notices and cares about; the salience filter |
-| **I** | Intentions | what the character is committed to: goals and pursuits - **the ten live here** |
-| **C** | Choice | how needs, memory and personality weigh the intentions and bind a plan |
+| **A** | Attention | what requires attention right now — danger, interests, fear, **vitals/needs**; the salience filter |
+| **I** | Intentions | why they pursue *this* goal, and what they are committed to: goals and pursuits — **the ten live here** |
+| **C** | Choices | the actions available right now: the verbs that could reach the goal |
 
-The artifacts those concerns produce belong to the *world*, not the letters: a **plan** (the next approach - Choice's output), an **activity** (the visible doing), a **recipe** (the transformation rule the world resolves).
+The artifacts those concerns produce belong to the *world*, not the letters: a **plan** (the next approach — the disposition's pick), an **activity** (the visible doing), a **recipe** (the transformation rule the world resolves).
+
+**Who weighs them.** MOSIAC assembles; it does not pick. The **disposition** — personality, morality, memory, trauma — ranks what **C** offers. For a soak NPC that is numbers; for an LLM it is the same traits as words.
 
 **Tiers.** Not every character has intentions and obligations.
 
-- `sapient` - needs, obligations, intentions. An LLM agent or a simple NPC.
-- `drive` - urges only, no intentions: hunger, territory, fear. Animals and the undead.
+- `sapient` — obligations, intentions, and a standing drive. An LLM agent or a simple NPC.
+- `drive` — urges only, no intentions: hunger, territory, fear. Animals and the undead. **A + C and nothing else.**
 
 A boar is not pursuing a goal; it is hungry. Give it intentions and MOSIAC dresses instinct up as choice.
 
@@ -63,14 +69,16 @@ mission:
 ```
 
 ```yaml
-schedule:  {at: "06:00", every: day, suggests: prepare food}
-attention: {watches: [threats, a scream, ones own name]}
-choice:    {disposition: {bold: +0.6, caution: -0.3}, on_conflict: obligations interrupt}
+schedule:   {at: "06:00", every: day, suggests: prepare food}
+attention:  {watches: [threats, a scream, ones own name]}     # A - the salience filter, needs included
+disposition: {bold: +0.6, caution: -0.3}                      # the ranking layer, above the letters
+choice:     {available: [<verbs that could reach the goal>],  # C - what is on offer right now
+             on_conflict: obligations interrupt}
 ```
 
 ## How to read a profile
 
-Each block gives the **inputs** (M / O / S / A), the **ten intentions** each tagged with the letter it serves, and the **disposition** Choice resolves them with. `drive` characters carry no O and no S - they have urges, not commitments.
+Each block gives the **inputs** (M / O / S / A), the **ten intentions** each tagged with the letter it serves, and the **disposition** that ranks them (the line labelled **C** in each block — see the revision note above). `drive` characters carry no O and no S - they have urges, not commitments.
 
 ---
 

@@ -144,6 +144,7 @@ declare const ApiClient: {
     getWorldScopes(flat?: boolean): Promise<unknown>;
     setScopeOffset(scopeId: string, offset?: { x?: number; y?: number; reset?: boolean }): Promise<unknown>;
     updateCharacter(name: string, changes: unknown): Promise<unknown>;
+    updatePlayerMemory(name: string, entryId: string, data: unknown): Promise<unknown>;
     updateNode(nodeId: string, data: unknown): Promise<unknown>;
     duplicateNode(nodeId: string): Promise<unknown>;
 };

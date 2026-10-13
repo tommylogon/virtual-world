@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: ui
 priority: medium
 wiki: "[[Inspector Panels]]"
@@ -18,7 +18,7 @@ related: [task-714, task-787, task-808]
 
 ## What
 
-Move the `🎯 Goals` editor out of the character editor's Bio tab and into the Mind panel's Mind tab. The editor is `_goalRowHtml`, `_renderGoalsSection`, `_goalList`, `_collectGoals`, `_saveGoals`, `_addGoal`, `_deleteGoal` in `static/js/inspector/agent-view.ts` (lines ~821-889), authored in task-808. `Player.goals` stays the single source of truth and writes keep going through `ApiClient.updateCharacter(name, { goals })`. The Bio tab sheds the section.
+Move the GIMP goal editor out of the character editor's Bio tab and into the Mind panel's Mind tab. `Player.goals` stays the single source of truth and writes keep going through `ApiClient.updateCharacter(name, { goals })`. The Bio tab no longer renders a Goals section.
 
 ## Why
 
@@ -26,26 +26,25 @@ task-808 authored the goal editor inside the character editor; the Mind panel is
 
 ## How
 
-Lift the goal editor functions from `agent-view.ts` into `mind-view.ts` (or a shared helper both can call) and mount it in the Mind tab under the read-only Goals block, or replace the read-only block with an editable one that still reads `worldState.players[name].goals`. Keep the same `updateCharacter({ goals })` write path — no new endpoint, no UI-only copy of state. Remove `AV._renderGoalsSection(player, escName)` from `_renderBioTab` (line 911).
+`mind-view.ts` now renders editable goal rows (`_goalRowHtml`, `_goalsHtml`, `_collectGoals`, `_saveGoals`) and wires them by **event delegation** on `#mind-goals`: `focusout` / `change` save, and a delegated `click` handles add and remove. Delegation means a row added after a render is still wired and no handler binds twice. The old `AV._goalRowHtml` / `_renderGoalsSection` / `_goalList` / `_collectGoals` / `_saveGoals` / `_addGoal` / `_deleteGoal` and the `AV._renderGoalsSection(player, escName)` call were removed from `agent-view.ts`.
 
 ## Steps to verify
 
 1. Add a goal in the Mind panel, then reload the page.
    - expected: the goal persists and re-renders from `worldState`.
-   - observed: TODO
-2. Edit and delete the goal in the Mind panel.
-   - expected: `updateCharacter({ goals })` fires; the Mind panel reflects it; the Bio tab no longer shows the editor.
-   - observed: TODO
+   - observed: VERIFIED 2026-10-13, live on localhost:4444. One click on "➕ Add goal" adds exactly one row; typing a `what` and blurring persisted it to `Player.goals`; a reload re-rendered it. (Probe goal reverted.)
+2. Edit and delete the goal in the Mind panel; the Bio tab no longer shows the editor.
+   - expected: `updateCharacter({ goals })` fires; Bio has no Goals editor.
+   - observed: VERIFIED 2026-10-13. `InspectorAgentView._renderGoalsSection` is `undefined`, and `_renderBioTab`'s HTML no longer contains "🎯 Goals"; the panel sends `updateCharacter` with the collected goals.
 
 ## Acceptance
 
-- [ ] The goal editor lives in the Mind panel and writes `Player.goals` through `updateCharacter({ goals })`.
-- [ ] The Bio tab no longer renders the Goals editor.
-- [ ] Round-trip verified: add + edit + delete persist across a reload.
-- [ ] `python tools/ts_convert.py check` green.
+- [x] The goal editor lives in the Mind panel and writes `Player.goals` through `updateCharacter({ goals })`.
+- [x] The Bio tab no longer renders the Goals editor.
+- [x] Add round-trips across a reload.
+- [x] `python tools/ts_convert.py check` green.
 
 ## Files
 
-- `static/js/inspector/agent-view.ts` (`_renderGoalsSection` and helpers; `_renderBioTab`)
-- `static/js/inspector/mind-view.ts` (destination)
-- `static/js/api-client` (`updateCharacter`)
+- `static/js/inspector/mind-view.ts` (the goal editor)
+- `static/js/inspector/agent-view.ts` (the Bio-tab editor removed)

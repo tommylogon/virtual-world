@@ -24,6 +24,8 @@ MOSIAC is the decision state a character carries into every moment - the six thi
 
 M, O, S and I are the standing context. A and C are the moment - the two lowest, most immediate letters.
 
+**Where each letter reads from.** M and I are **GIMP's**, read and never re-stored: M is the character's standing drives (`GIMP.standing_drives`) plus the `why` on each active goal, I is the goal's `intention`. O is `Player.obligations`, S is `Player.schedule`. **A is where needs and vitals enter** - a need is a signal, not an aspiration, so it belongs in the salience filter, which is why a `drive` animal is A + C and nothing else. C is the gated verb set.
+
 ## Goals live outside it
 
 MOSIAC decides; it does not want. The things a character wants are the [[GIMP]] layer, and they are not a letter here. An obligation or a goal is an input that *spawns* an intention; the intention is what MOSIAC carries.

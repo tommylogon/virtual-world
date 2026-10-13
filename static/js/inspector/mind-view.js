@@ -205,7 +205,16 @@ const InspectorMindView = (() => {
                 <span style="color:var(--text-muted);">same entity</span>
                 <span style="color:var(--text-dim);flex:1;">${esc(String(other.text || '').slice(0, 70))}</span></div>`).join('');
         const relTags = (Array.isArray(m.tags) ? m.tags : []).filter((t) => String(t).toLowerCase().startsWith('rel:'));
-        const editBtn = `<button class="btn btn-sm" style="font-size:10px;" onclick="window.InspectorMemory&&window.InspectorMemory.editMemory('${_state ? _state.escName : ''}','${esc(m.id)}')">✏️ Edit</button>`;
+        const eName = _state ? _state.escName : '';
+        const mid = esc(m.id);
+        const isSuppressed = Array.isArray(m.suppressions) && m.suppressions.length > 0;
+        const editBtn = `<div style="display:flex;gap:4px;flex-wrap:wrap;">
+            <button class="btn btn-sm" style="font-size:10px;" onclick="window.InspectorMemory&&window.InspectorMemory.editMemory('${eName}','${mid}')">✏️ Edit</button>
+            ${isSuppressed
+            ? `<button class="btn btn-sm" style="font-size:10px;color:#4caf50;" onclick="window.InspectorMemory&&window.InspectorMemory.unblockMemory('${eName}','${mid}')" title="Unblock - make recallable again">🔓 Unblock</button>`
+            : `<button class="btn btn-sm" style="font-size:10px;color:#e0a33c;" onclick="window.InspectorMemory&&window.InspectorMemory.suppressMemory('${eName}','${mid}')" title="Suppress - hold out of recall">🚫 Suppress</button>`}
+            <button class="btn btn-sm btn-red" style="font-size:10px;" onclick="window.InspectorMemory&&window.InspectorMemory.deleteMemory('${eName}','${mid}')" title="Delete this memory">🗑 Delete</button>
+        </div>`;
         return `<div style="background:var(--bg-card);border:1px solid #1f6feb;border-radius:6px;padding:10px;">
             <div style="font-size:13px;font-weight:600;line-height:1.4;">${esc(m.text || '')}</div>
             <div style="font-size:10.5px;color:var(--text-dim);margin:4px 0 8px;">${esc(m.type || '')} · ${_badge(cat, CAT_COLORS[cat] || '#8b949e')} · tick ${esc(m.tick ?? 0)} · importance ${esc(m.importance ?? 5)} · source ${esc(m.source || 'auto')}</div>
@@ -229,6 +238,11 @@ const InspectorMindView = (() => {
                 ${contraRows}${derivedRows}${sibRows}
             </div>` : ''}
             ${relTags.length ? `<div style="font-size:10px;color:var(--f788ba, #f778ba);margin-bottom:8px;">${relTags.map((t) => _badge(String(t), '#f778ba')).join(' ')}</div>` : ''}
+            <div style="background:var(--bg-inset);border:1px solid var(--border);border-radius:5px;padding:8px 10px;margin-bottom:8px;">
+                <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Feelings - edit</div>
+                <div id="mind-mem-emotions"></div>
+                <button class="btn btn-sm mind-mem-emo-save" style="font-size:10px;margin-top:6px;">💾 Save feelings</button>
+            </div>
             ${editBtn}
         </div>`;
     }
@@ -482,36 +496,371 @@ const InspectorMindView = (() => {
         const bars = raised.map(([axis, amt]) => `<div style="display:flex;gap:6px;align-items:baseline;font-size:10px;">
             <span style="color:var(--text-dim);min-width:84px;">${esc(axis)}</span><span style="color:var(--text-muted);">${Math.round(amt)}</span>
         </div>`).join('');
+        // task-714: the cause the panel can honestly show without task-725 (the
+        // memory gap): the most recent memory that itself carried this feeling.
+        // A true triggering event needs a memory that records it - see task-725.
+        const mems = Array.isArray(p.memories) ? p.memories : [];
+        let lastFeeling = null;
+        for (const mem of mems) {
+            const labels = (Array.isArray(mem.memory_emotions) && mem.memory_emotions.length
+                ? mem.memory_emotions
+                : (mem.emotion && mem.emotion.label ? [mem.emotion] : []))
+                .map((e) => String(e.label || '').toLowerCase());
+            if (!labels.length)
+                continue;
+            if (current && !labels.includes(String(current).toLowerCase()))
+                continue;
+            if (!lastFeeling || (Number(mem.tick) || 0) > (Number(lastFeeling.tick) || 0))
+                lastFeeling = mem;
+        }
+        const cause = lastFeeling
+            ? `<div style="font-size:9.5px;color:var(--text-muted);margin-top:5px;line-height:1.45;">last felt in a memory: <span style="color:var(--text-dim);">"${esc(String(lastFeeling.text || '').slice(0, 110))}"</span> <span style="font-family:monospace;">t${esc(lastFeeling.tick ?? 0)}</span></div>`
+            : '';
         return `<div style="margin-top:14px;">
             <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Feeling - their mood</div>
             <b style="font-size:11.5px;">${head}</b>
             ${desc}
             ${bars}
+            ${cause}
         </div>`;
     }
-    function _worldKnowledgeHtml() {
+    // task-714: what is happening to the body, shown only when there is
+    // something to explain (state, a condition with its cause, or a vital out of
+    // band). Reads the same Player fields the header row reads; the point is the
+    // reason, not a second vitals panel. Engine-vs-data: a death *reason* needs a
+    // memory that records it (task-725) - this shows the state and the drivers.
+    function _bodyHtml() {
+        if (!_state)
+            return '';
+        const p = worldState.players?.[_state.charName];
+        if (!p)
+            return '';
+        const state = String(p.state || 'awake');
+        const instances = p.conditions || {};
+        const condRows = [];
+        for (const [cid, list] of Object.entries(instances)) {
+            if (cid === 'awake')
+                continue;
+            const arr = Array.isArray(list) ? list : [];
+            for (const c of arr) {
+                const bits = [];
+                if (c && c.source)
+                    bits.push(`why: ${esc(c.source)}`);
+                if (c && c.duration != null)
+                    bits.push(`left: ${esc(c.duration)}t`);
+                if (c && c.level)
+                    bits.push(`lvl ${esc(c.level)}`);
+                condRows.push(`<div style="font-size:10.5px;padding:2px 0;border-bottom:1px solid var(--border-light);"><b style="color:#e05555;">${esc(cid)}</b>${bits.length ? ` <span style="color:var(--text-muted);">${bits.join(' / ')}</span>` : ''}</div>`);
+            }
+        }
+        const VW = window;
+        const vitals = p.vitals || {};
+        // The core vitals the header row renders. Optional scenario vitals
+        // (Arousal / Pleasure / Stimulation) sit at 0 when their system is off
+        // and would read as "low" for every character, so they are not drivers.
+        const CORE = ['HP', 'Energy', 'Hunger', 'Thirst', 'Bladder', 'Temperature', 'Sanity', 'Social', 'Entertainment', 'Hygiene'];
+        const out = CORE
+            .filter((n) => vitals[n] !== undefined)
+            .map((n) => ({ n, lvl: String(VW.VitalColor?.level?.(vitals, n) || 'ok') }))
+            .filter((x) => x.lvl !== 'ok');
+        const vitalRows = out.map(({ n, lvl }) => {
+            const color = lvl === 'critical' || lvl === 'bad' ? '#e05555' : '#e0a33c';
+            return `<div style="font-size:10.5px;padding:2px 0;"><b style="color:${color};">${esc(n)} ${esc(vitals[n])}</b> <span style="color:var(--text-muted);">${esc(lvl)}</span></div>`;
+        });
+        const stateBad = state !== 'awake';
+        if (!stateBad && !condRows.length && !vitalRows.length)
+            return '';
+        return `<div style="margin-top:14px;">
+            <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Body - what is driving them</div>
+            ${stateBad ? `<div style="font-size:11px;margin-bottom:4px;">state: <b style="color:${state === 'dead' ? 'var(--red)' : 'var(--orange)'};">${esc(state)}</b></div>` : ''}
+            ${condRows.join('')}
+            ${vitalRows.join('')}
+        </div>`;
+    }
+    // ── task-787: mind surfaces moved out of the Bio / Advanced tabs ──────
+    // Same markup, same runtime sources, same handlers. One home each: the
+    // interest/fear tag editors, the recipe list, what-I-see, latest thoughts,
+    // the PlanTracker plan, the knowledge chips, the event timeline and the
+    // conversation memory all live here now, not beside the character's
+    // definition (personality, appearance, stats) or in Advanced.
+    /** DOM-safe id fragment for a character name (apostrophes break raw ids). */
+    function _safeId() {
+        return String(_state ? _state.charName : '').replace(/[^a-zA-Z0-9_-]/g, '_');
+    }
+    /** Is an AI provider configured? Mirrors agent-view's side-effect-free read. */
+    function _isAiReady() {
+        const AV = window.InspectorAgentView;
+        return !!(AV && AV._isAiConfigured && AV._isAiConfigured());
+    }
+    function _interestTagsHtml() {
+        if (!_state)
+            return '';
+        const AI = _isAiReady();
+        const suffix = AI ? '' : ' - No AI provider configured. Add an API key and model in Settings first.';
+        return `<div style="margin-top:14px;">
+            <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Interest tags - what they notice</div>
+            <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px;">Items matching these surface in the agent's prompt. Examine/take removes them from attention.</div>
+            <div id="interest-tag-multiselect-mind-${_safeId()}"></div>
+            <button class="btn btn-sm" ${AI ? '' : 'disabled'} onclick="InspectorAgentView._generateInterestTags('${_state.escName}')" style="font-size:10px;padding:2px 10px;margin-top:4px;" title="Ask the character's LLM to pick interest tags. Your hand-placed tags are kept - picks are added.${suffix}">✨ Generate from Personality</button>
+        </div>`;
+    }
+    function _fearTagsHtml() {
+        if (!_state)
+            return '';
+        const AI = _isAiReady();
+        const suffix = AI ? '' : ' - No AI provider configured. Add an API key and model in Settings first.';
+        return `<div style="margin-top:14px;">
+            <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Fear tags - what unsettles them</div>
+            <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px;">Meeting a co-located character, item, or area carrying any of these tags makes this character <code>frightened</code>. Leave empty for a character nothing unsettles.</div>
+            <div id="fear-tag-multiselect-mind-${_safeId()}"></div>
+            <button class="btn btn-sm" ${AI ? '' : 'disabled'} onclick="InspectorAgentView._generateFearTags('${_state.escName}')" style="font-size:10px;padding:2px 10px;margin-top:4px;" title="Ask the character's LLM to pick fear tags. Your hand-placed tags are kept - picks are added.${suffix}">😨 Generate from Personality</button>
+        </div>`;
+    }
+    function _whatISeeHtml() {
+        if (!_state)
+            return '';
+        const p = worldState.players?.[_state.charName];
+        if (!p)
+            return '';
+        const area = worldState.areas?.[p.current_area];
+        let body;
+        if (area) {
+            body = `<div>${area.description || ''}</div>`;
+            const items = (area.items || []).map((item) => item.name).filter(Boolean).join(', ');
+            if (items)
+                body += `<div style="margin-top:4px;color:var(--text-dim);font-size:11px;">Items: ${items}</div>`;
+            const others = Object.entries(worldState.players || {})
+                .filter(([name, q]) => name !== _state.charName && q.current_area === p.current_area);
+            if (others.length)
+                body += `<div style="margin-top:4px;color:var(--pink);font-size:11px;">Also: ${others.map(([name]) => name).join(', ')}</div>`;
+        }
+        else {
+            body = `<span style="color:var(--text-muted);">Unknown location</span>`;
+        }
+        return `<div style="margin-top:14px;">
+            <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">What I see - the room right now</div>
+            <div style="font-size:12px;padding:8px 12px;background:var(--bg-inset);border-radius:6px;border-left:3px solid #58a6ff;">${body}</div>
+        </div>`;
+    }
+    function _latestThoughtsHtml() {
+        if (!_state)
+            return '';
+        const cs = events.getCharacterState(_state.charName) || {};
+        return `<div style="margin-top:14px;">
+            <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Latest thoughts - the last turn</div>
+            <div class="decision-trace" style="font-size:11px;">
+                <div class="trace-thought">${esc(cs.lastThought || 'No recent thoughts.')}</div>
+                ${cs.lastSpeech ? `<div style="color:var(--pink);font-style:italic;margin-top:4px;">💬 "${esc(cs.lastSpeech)}"</div>` : ''}
+                ${cs.lastAction ? `<div style="color:var(--accent);font-weight:500;margin-top:4px;">⚡ ${esc(cs.lastAction)}</div>` : ''}
+                ${cs.lastActionResult ? `<div style="color:var(--orange);font-size:10px;margin-top:4px;">→ ${esc(cs.lastActionResult)}</div>` : ''}
+            </div>
+        </div>`;
+    }
+    function _planHtml() {
+        if (!_state)
+            return '';
+        const plan = (PlanTracker && PlanTracker.getPlan) ? PlanTracker.getPlan(_state.charName) : null;
+        if (!plan || !plan.length)
+            return '';
+        return `<div style="margin-top:14px;">
+            <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Plan - the current intent</div>
+            <ol style="margin:0;padding-left:20px;font-size:11px;line-height:1.7;">${plan.map((step) => `<li>${esc(step)}</li>`).join('')}</ol>
+        </div>`;
+    }
+    function _knowledgeHtml() {
         if (!_state)
             return '';
         const known = worldState.players?.[_state.charName]?.known || [];
-        if (!known.length)
-            return '';
-        const shown = known.slice(0, 12).map((k) => esc(String(k))).join(', ');
-        const more = known.length > 12 ? ` +${known.length - 12}` : '';
         return `<div style="margin-top:14px;">
-            <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">World knowledge - places known (${known.length})</div>
-            <div style="font-size:10px;color:var(--text-dim);line-height:1.5;">${shown}${more}</div>
+            <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Knowledge - known from the start (${known.length})</div>
+            <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px;">Known ways/items become visible, people are never masked, known areas reveal hidden exits.
+                <button class="btn btn-sm btn-blue" onclick="KnownBySection.openKnowledgeModal('${_state.escName}')" style="font-size:10px;margin-left:6px;" title="Select every runtime entity this character knows, grouped by category">🎛 Manage</button>
+            </div>
+            <div id="mind-knowledge-chips-${_safeId()}"></div>
         </div>`;
     }
+    // Recipes a character knows: global / skill: / item: / discovered. Mirrors
+    // engine/crafting.py learning rules via the shared agent-view helper.
     function _recipesHtml() {
         if (!_state)
             return '';
-        const recipes = worldState.players?.[_state.charName]?.crafting_known || [];
-        if (!recipes.length)
-            return '';
-        return `<div style="margin-top:14px;">
-            <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Known recipes (${recipes.length})</div>
-            <div style="font-size:10px;color:var(--text-dim);line-height:1.5;">${recipes.map((r) => esc(String(r))).join(', ')}</div>
+        const AV = window.InspectorAgentView;
+        const p = worldState.players?.[_state.charName];
+        const list = (AV && AV._knownRecipeNames && p) ? AV._knownRecipeNames(_state.charName, p) : [];
+        const head = `<div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Recipes - what they can make${list.length ? ` (${list.length})` : ''}</div>`;
+        if (!list.length) {
+            return `<div style="margin-top:14px;">${head}
+                <div style="font-size:10px;color:var(--text-dim);">None yet - create a recipe node (type: recipe) with learned_by: ["global"] (or "skill:&lt;name&gt;", "item:&lt;name&gt;", discoverable:true) to add one.</div>
+            </div>`;
+        }
+        return `<div style="margin-top:14px;">${head}
+            ${list.map((r) => `<div style="display:flex;align-items:center;gap:6px;padding:3px 0;font-size:11px;">
+                <span style="flex:1;">🧾 ${esc(r.name)}</span>
+                <button class="btn btn-sm" data-help="craft" onclick="runAction('craft ${esc(r.name)}','${_state.escName}')" style="font-size:9px;padding:2px 8px;">Craft</button>
+            </div>`).join('')}
         </div>`;
+    }
+    function _eventsTimelineHtml() {
+        if (!_state)
+            return '';
+        const cs = events.getCharacterState(_state.charName) || {};
+        const timeline = cs.detailedTimeline || [];
+        let body;
+        if (timeline.length > 0) {
+            const startIdx = Math.max(0, timeline.length - 50);
+            const blocks = [];
+            for (let i = startIdx; i < timeline.length; i++) {
+                const entry = timeline[i];
+                const phase = entry.phase || 'unknown';
+                const icons = { think: '💭', decide: '🎯', act: '⚡', action: '⚡', result: '→', react: '🔄', speech: '💬', observe: '👁️' };
+                const icon = icons[phase] || '•';
+                const label = phase.charAt(0).toUpperCase() + phase.slice(1);
+                let contentText = '';
+                if (entry.thought)
+                    contentText = entry.thought;
+                else if (entry.speech)
+                    contentText = `"${entry.speech}"`;
+                else if (entry.action)
+                    contentText = entry.action;
+                else if (entry.result)
+                    contentText = entry.result;
+                else if (entry.message)
+                    contentText = entry.message;
+                else
+                    contentText = phase;
+                blocks.push(`<div class="timeline-entry" onclick="InspectorAgentView._showTimelineDetail('${_state.escName}', ${i}, this)">
+                    <div class="timeline-entry-header">
+                        <span class="timeline-tick">[${events.tickToTime(entry.tick || 0)}]</span>
+                        <span class="timeline-phase-badge timeline-phase-${phase}">${icon} ${label}</span>
+                    </div>
+                    <div class="timeline-entry-content">${esc(contentText)}</div>
+                </div>`);
+            }
+            body = blocks.join('');
+        }
+        else {
+            body = `<div style="font-size:11px;color:var(--text-muted);padding:8px;">No timeline entries yet. The timeline captures every thought, decision, action, result, and reaction as the character experiences them.</div>`;
+        }
+        return `<div style="margin-top:14px;">
+            <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Timeline - the lived trace</div>
+            <div class="timeline-viewer" id="timeline-${_safeId()}">${body}</div>
+            <div id="timeline-detail-${_safeId()}" style="display:none;"></div>
+        </div>`;
+    }
+    function _conversationHtml() {
+        if (!_state)
+            return '';
+        const hist = (agent && agent.getDisplayHistory) ? agent.getDisplayHistory(_state.charName) : [];
+        let body;
+        if (hist.length > 0) {
+            body = hist.map((msg, i) => {
+                const role = msg.role || 'unknown';
+                const content = String(msg.content || '');
+                const roleLabel = role === 'user' ? '👤 Prompt' : '🤖 Response';
+                const roleColor = role === 'user' ? 'var(--accent)' : 'var(--purple)';
+                return `<div style="padding:6px 8px;border-bottom:1px solid var(--border-light);">
+                    <div style="font-size:9px;color:${roleColor};font-weight:600;margin-bottom:2px;">${roleLabel} #${i + 1}</div>
+                    <div style="color:var(--text-dim);font-size:10px;max-height:40px;overflow:hidden;">${esc(content)}${content.length > 250 ? '...' : ''}</div>
+                </div>`;
+            }).join('');
+        }
+        else {
+            body = `<div style="font-size:10px;color:var(--text-muted);">This character has no conversation history yet. History builds as the agent takes actions.</div>`;
+        }
+        return `<div style="margin-top:14px;">
+            <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Conversation memory (${hist.length} exchanges)</div>
+            <div style="max-height:300px;overflow-y:auto;font-size:11px;">${body}</div>
+        </div>`;
+    }
+    // ── task-729: the editing half ────────────────────────────────────────
+    // The relationship store, the emotional state and the memory editor move
+    // here so reading why a character feels and pursues is also where a
+    // designer corrects it. Same stores, same agent-view / memory-view
+    // handlers - no second source of truth.
+    /** Emotion select + intensity, writing `{ emotion: { current, intensity } }`. */
+    function _emotionEditorHtml() {
+        if (!_state)
+            return '';
+        const p = worldState.players?.[_state.charName];
+        if (!p)
+            return '';
+        const emotion = p.emotion || { current: 'neutral', intensity: 0 };
+        const icons = { happy: '😊', sad: '😢', angry: '😠', afraid: '😨', surprised: '😲', disgusted: '🤢', neutral: '😐' };
+        const opts = Object.keys(icons).map(e => `<option value="${e}"${emotion.current === e ? ' selected' : ''}>${icons[e]} ${e}</option>`).join('');
+        return `<div style="margin-top:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:var(--bg-inset);border:1px solid var(--border);border-radius:6px;padding:7px 9px;">
+            <span style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;">Set feeling</span>
+            <select id="mind-emotion" style="font-size:10px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:1px 4px;">${opts}</select>
+            <span style="font-size:10px;color:var(--text-dim);">intensity</span>
+            <input type="range" id="mind-emotion-intensity" min="0" max="1" step="0.05" value="${emotion.intensity || 0}" style="width:70px;">
+            <span id="mind-emotion-val" style="min-width:30px;font-size:10px;color:var(--text-dim);">${(emotion.intensity || 0).toFixed(2)}</span>
+        </div>`;
+    }
+    /** The authored relationship store (Player.relationships), moved out of Bio. */
+    function _relationshipsHtml() {
+        if (!_state)
+            return '';
+        const me = _state.charName;
+        const p = worldState.players?.[me];
+        if (!p)
+            return '';
+        const othersExMe = Object.entries(worldState.players || {})
+            .filter(([name]) => name !== me);
+        const rows = [];
+        for (const [otherName] of othersExMe) {
+            const rel = p.relationships?.[otherName];
+            if (!rel)
+                continue;
+            const closeness = rel.closeness ?? 0;
+            const relColor = closeness > 0 ? (closeness > 50 ? '#3fb950' : '#e3b341') : (closeness < 0 ? (closeness < -50 ? '#f85149' : '#d47766') : 'var(--text-muted)');
+            const desc = closeness <= -75 ? 'mortal enemy' : closeness <= -50 ? 'enemy' : closeness <= -25 ? 'rival' : closeness < 0 ? 'unfriendly' : closeness === 0 ? 'neutral' : closeness <= 25 ? 'acquaintance' : closeness <= 50 ? 'friend' : closeness <= 75 ? 'close friend' : 'inseparable';
+            rows.push(`<div class="relationship-item-inspector" data-other="${esc(otherName)}" style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                <span style="min-width:70px;font-size:11px;font-weight:500;">${esc(otherName)}</span>
+                <input type="range" min="-100" max="100" value="${closeness}" class="rel-slider" data-agent="${esc(me)}" data-other="${esc(otherName)}" style="flex:1;height:4px;accent-color:${relColor};">
+                <span style="font-size:10px;color:var(--text-muted);min-width:28px;text-align:right;" class="rel-val">${closeness}</span>
+                <span style="font-size:9px;color:var(--text-dim);min-width:70px;" class="rel-label">${desc}</span>
+                <input type="text" class="rel-label-input" data-agent="${esc(me)}" data-other="${esc(otherName)}" value="${esc(rel.label || '')}" placeholder="label (e.g. mom, brother)" style="width:80px;font-size:9px;padding:1px 3px;">
+                <label title="Tick if you know their name (first_sighting=false)" style="display:flex;align-items:center;gap:2px;font-size:9px;color:var(--text-dim);cursor:pointer;">
+                    <input type="checkbox" class="rel-known" data-agent="${esc(me)}" data-other="${esc(otherName)}" ${rel.first_sighting ? '' : 'checked'}> name
+                </label>
+                <span class="mind-rel-del" data-agent="${esc(me)}" data-other="${esc(otherName)}" style="cursor:pointer;color:var(--red);font-size:12px;padding:0 2px;" title="Remove relationship">✕</span>
+            </div>`);
+        }
+        const hasUnrelated = othersExMe.some(([name]) => !p.relationships?.[name]);
+        const addSel = hasUnrelated
+            ? `<select id="rel-add-select-${me.replace(/\s+/g, '_')}" style="font-size:10px;max-width:160px;margin-top:4px;">
+                <option value="">+ Add relationship...</option>
+                ${othersExMe.filter(([name]) => !p.relationships?.[name]).map(([name]) => `<option value="${esc(name)}">${esc(name)}</option>`).join('')}
+              </select>`
+            : `<div style="font-size:10px;color:var(--text-muted);margin-top:4px;">All players have a relationship entry.</div>`;
+        return `<div style="margin-bottom:16px;">
+            <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Relationships - authored store (${rows.length})</div>
+            ${rows.join('') || `<div style="font-size:10px;color:var(--text-muted);margin-bottom:4px;">no relationships authored.</div>`}
+            ${addSel}
+        </div>`;
+    }
+    /** The memory editor toolbar (add / generate / clear all / clear expired). */
+    function _memoryToolbarHtml() {
+        if (!_state)
+            return '';
+        const e = _state.escName;
+        return `<div style="display:flex;gap:4px;flex-wrap:wrap;margin:8px 0;">
+            <button class="btn btn-sm btn-blue" onclick="InspectorMemory.addMemory('${e}')" style="font-size:10px;">+ Add Memory</button>
+            <button class="btn btn-sm btn-green" onclick="InspectorMemory.generateMemory('${e}')" title="Write a first-person seed memory via the LLM" style="font-size:10px;">✨ Gen Memory</button>
+            <button class="btn btn-sm" onclick="InspectorMemory.clearExpired('${e}')" style="font-size:10px;" title="Drop expired suppressions">🧹 Clear Expired</button>
+            <button class="btn btn-sm btn-red" onclick="if(confirm('Clear all memories?')){ApiClient.clearPlayerMemories('${e}').then(()=>worldState.fetch())}" style="font-size:10px;">🗑 Clear All</button>
+        </div>`;
+    }
+    // Re-render while the panel is open whenever the world state updates, so a
+    // mutation (a memory save, a relationship add, a tag change) reflects here
+    // too - memory-view's handlers finish with worldState.fetch() + inspector
+    // _reRender(), and only the fetch reaches this modal.
+    let _subscribed = false;
+    function _ensureSubscribed() {
+        if (_subscribed)
+            return;
+        _subscribed = true;
+        worldState.on('update', () => { if (_state && _container)
+            _render(); });
     }
     function _mosiac() {
         if (!_state)
@@ -669,21 +1018,23 @@ const InspectorMindView = (() => {
                 <div>${_mosiacHtml()}${_dispositionHtml()}${_actionsHtml()}</div>
                 <div><div style="${hdr}">Goals - what they are pursuing</div>
                     <div id="mind-goals">${_goalsHtml()}</div>
-                    ${_goalHistoryHtml()}${_obligationsHtml()}${_scheduleHtml()}${_pursuitHtml()}</div>
+                    ${_goalHistoryHtml()}${_obligationsHtml()}${_scheduleHtml()}${_pursuitHtml()}${_planHtml()}${_latestThoughtsHtml()}${_interestTagsHtml()}${_fearTagsHtml()}</div>
             </div></div>`;
         const perceptionPane = `<div style="flex:1;padding:12px;overflow-y:auto;">
             <div style="${gridStyle}">
-                <div>${_activityHtml()}${_feelingHtml()}</div>
-                <div>${_worldKnowledgeHtml()}${_recipesHtml()}</div>
+                <div>${_activityHtml()}${_feelingHtml()}${_emotionEditorHtml()}${_bodyHtml()}${_whatISeeHtml()}</div>
+                <div>${_knowledgeHtml()}${_recipesHtml()}</div>
             </div></div>`;
         const memoriesPane = `<div style="flex:1;display:flex;overflow:hidden;">
             <div style="flex:1;padding:12px;overflow-y:auto;min-width:0;">
                 ${_timelineHtml(all)}
+                ${_memoryToolbarHtml()}
                 <div style="display:flex;gap:5px;flex-wrap:wrap;margin:10px 0 8px;align-items:center;">
                     ${filterBtns}
                     <input id="mind-search" placeholder="Search text…" value="${esc(_state.query)}" style="margin-left:auto;background:var(--bg-input);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:3px 8px;font-size:11px;width:160px;">
                 </div>
                 <div id="mind-list">${cards}</div>
+                ${_eventsTimelineHtml()}${_conversationHtml()}
             </div>
             <div style="width:380px;border-left:1px solid var(--border);padding:12px;overflow-y:auto;background:var(--bg-inset);">
                 <div style="${hdr}">Memory detail</div>
@@ -691,7 +1042,7 @@ const InspectorMindView = (() => {
                 <div style="margin-top:12px;" id="mind-access">${_accessibilityHtml(all)}</div>
             </div></div>`;
         const peoplePane = `<div style="flex:1;padding:12px;overflow-y:auto;">
-            <div style="max-width:560px;"><div style="${hdr}">People — derived from memories</div>
+            <div style="max-width:640px;">${_relationshipsHtml()}<div style="${hdr}">People — derived from memories</div>
                 <div id="mind-people">${_peopleHtml()}</div></div></div>`;
         const tabBody = tab === 'perception' ? perceptionPane
             : tab === 'memories' ? memoriesPane
@@ -718,6 +1069,29 @@ const InspectorMindView = (() => {
             _state.tab = el.dataset.tab || 'mind';
             _render();
         } }));
+        // task-756: per-memory emotion editing lives here, not in the memory modal.
+        const emoBox = _container.querySelector('#mind-mem-emotions');
+        if (emoBox && selected) {
+            const IM = window.InspectorMemory;
+            const initial = Array.isArray(selected.memory_emotions) && selected.memory_emotions.length
+                ? selected.memory_emotions
+                : (selected.emotion && selected.emotion.label ? [selected.emotion] : []);
+            if (IM && IM._attachEmotionSelector)
+                IM._attachEmotionSelector(emoBox, initial);
+            const saveEmo = _container.querySelector('.mind-mem-emo-save');
+            if (saveEmo)
+                saveEmo.addEventListener('click', async () => {
+                    if (!_state)
+                        return;
+                    const emotions = Array.isArray(IM?._emoSelected) ? IM._emoSelected : [];
+                    const payload = { memory_emotions: emotions };
+                    if (emotions.length)
+                        payload.emotion = emotions[0];
+                    await ApiClient.updatePlayerMemory(_state.charName, selected.id, payload);
+                    await worldState.fetch();
+                    _render();
+                });
+        }
         // task-821: the GIMP goal editor lives in the Mind panel. Delegated, so a
         // row added after a render is still wired and nothing binds twice.
         const goalsBox = _container.querySelector('#mind-goals');
@@ -739,6 +1113,55 @@ const InspectorMindView = (() => {
                     goalsBox.querySelector('.mind-goal-what')?.focus();
                 }
             });
+        }
+        // task-787: interest/fear tag multiselects and the knowledge chips, moved
+        // out of the Bio / Advanced tabs. Same stores, same handlers.
+        const TM = window.TagMultiselect;
+        const migPlayer = _state ? worldState.players?.[_state.charName] : null;
+        if (TM && migPlayer) {
+            const itBox = _container.querySelector(`#interest-tag-multiselect-mind-${_safeId()}`);
+            if (itBox)
+                new TM(itBox, {
+                    tags: Array.isArray(migPlayer.interest_tags) ? migPlayer.interest_tags : [],
+                    appliesTo: 'characters', allowNew: true, placeholder: 'e.g. magic, food, documents...',
+                    onChange: (tags) => { ApiClient.updateCharacter(_state.charName, { interest_tags: tags }).then(() => worldState.fetch()); }
+                });
+            const ftBox = _container.querySelector(`#fear-tag-multiselect-mind-${_safeId()}`);
+            if (ftBox)
+                new TM(ftBox, {
+                    tags: Array.isArray(migPlayer.fear_tags) ? migPlayer.fear_tags : [],
+                    appliesTo: 'characters', allowNew: true, placeholder: 'e.g. goblin, the dark, magic...',
+                    onChange: (tags) => { ApiClient.updateCharacter(_state.charName, { fear_tags: tags }).then(() => worldState.fetch()); }
+                });
+        }
+        const KB = window.KnownBySection;
+        const kbBox = _container.querySelector(`#mind-knowledge-chips-${_safeId()}`);
+        if (KB && kbBox && _state)
+            kbBox.appendChild(KB.buildKnownChips(_state.charName));
+        // task-729: the relationship editor reuses agent-view's binder (same
+        // selectors, same store); the emotion control writes the same
+        // `{ emotion: { current, intensity } }` payload as the header row.
+        const AV = window.InspectorAgentView;
+        if (AV && AV._bindRelationshipSliders && _state)
+            AV._bindRelationshipSliders(_container, _state.charName);
+        _container.querySelectorAll('.mind-rel-del').forEach(el => el.addEventListener('click', () => {
+            if (!_state)
+                return;
+            const other = el.dataset.other || '';
+            if (other && AV && AV._removeRelationship)
+                AV._removeRelationship(el.dataset.agent || _state.charName, other);
+        }));
+        const emoSel = _container.querySelector('#mind-emotion');
+        const emoRange = _container.querySelector('#mind-emotion-intensity');
+        const emoVal = _container.querySelector('#mind-emotion-val');
+        if (emoSel && emoRange && _state) {
+            // Save on release, not on every drag step: the worldState update the
+            // save triggers re-renders this panel, which would move the thumb.
+            emoRange.addEventListener('input', () => { if (emoVal)
+                emoVal.textContent = (parseFloat(emoRange.value) || 0).toFixed(2); });
+            const saveEmotion = () => ApiClient.updateCharacter(_state.charName, { emotion: { current: emoSel.value, intensity: parseFloat(emoRange.value) || 0 } }).then(() => worldState.fetch());
+            emoSel.addEventListener('change', saveEmotion);
+            emoRange.addEventListener('change', saveEmotion);
         }
         _container.querySelectorAll('.mind-fbtn').forEach(el => el.addEventListener('click', () => { if (_state) {
             _state.filter = el.dataset.filter || 'all';
@@ -828,6 +1251,7 @@ const InspectorMindView = (() => {
             _container = document.createElement('div');
             _container.id = 'mind-view-modal';
             document.body.appendChild(_container);
+            _ensureSubscribed();
             _state = {
                 charName,
                 escName: charName.replace(/'/g, "\\'"),

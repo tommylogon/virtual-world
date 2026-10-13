@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: ui
 priority: medium
 related: [task-714, task-729, task-736, task-756, task-820, task-821]
@@ -17,7 +17,9 @@ related: [task-714, task-729, task-736, task-756, task-820, task-821]
 
 ## What
 
-Inventory the character inspector's Bio and Advanced sections, classify each as mind state or definition, and move the mind surfaces into the Mind panel. From **Bio**: `✨ Interest Tags`, `😨 Fear Tags`, `🧪 Recipes`, `👁️ What I See`, `💭 Latest Thoughts`, `📋 Plan`, and the delegated `🧠 Memories` section. From **Advanced**: `🧠 Knowledge`, `📜 Timeline`, `🧠 Conversation Memory`. Keep in Bio (definition/body): stats/skills/traits, personality, appearance, tags, aliases, and the 🧠 Mind button. `known-by.ts` stays shared for areas. Each moved surface gets one home — the Mind panel — and leaves its old tab.
+Inventory the character inspector's Bio and Advanced sections, classify each as mind state or definition, and move the mind surfaces into the Mind panel. From **Bio**: `✨ Interest Tags`, `😨 Fear Tags`, `🧪 Recipes`, `👁️ What I See`, `📋 Plan`, and `💭 Latest Thoughts`. From **Advanced**: `🧠 Knowledge`, `📜 Timeline`, `🧠 Conversation Memory`. Keep in Bio (definition/body): stats/skills/traits, personality, appearance, tags, aliases. The 🧠 Mind entry point moved to the always-visible status row (it used to sit inside the Bio memories section header). `known-by.ts` stays shared for areas. Each moved surface gets one home — the Mind panel — and leaves its old tab.
+
+**Not in this card:** the delegated Bio `🧠 Memories` list/editor. It is the memory **editor** (add / generate / suppress / delete / filter), and task-729 owns moving those edit controls into the Mind panel. The Mind panel's Memories tab already carries the *display* half (task-714). So the Bio section stays until 729; removing it here would have dropped the only add/generate/delete/suppress controls.
 
 ## Why
 
@@ -25,29 +27,37 @@ Inventory the character inspector's Bio and Advanced sections, classify each as 
 
 ## How
 
-Move each block's render and wiring from `agent-view.ts` into the Mind panel (`mind-view.ts`) as a tab pane, reading the same runtime source it reads today: `Player.interest_tags` / `fear_tags`, `worldState` area for what-I-see, `charState.detailedTimeline` / `events` for the timeline and latest thoughts, `PlanTracker.getPlan` for the plan, `KnownBySection.buildKnownChips` for knowledge, `agent.getDisplayHistory` for conversation memory, `player.memories` for memories. Mount them under the tabs from task-820. Remove the moved sections from `_renderBioTab` (interest tags ~983, fear tags ~993, recipes ~1001, what-I-see ~1014, latest thoughts ~1028, plan ~1038, memories ~1047) and `_renderAdvancedTab` (knowledge ~1271, timeline ~1288, conversation memory ~1324). Re-host the deferred wirings (knowledge chips, interest/fear multiselects) inside the panel. No store changes, no second copy.
+Move each block's render and wiring from `agent-view.ts` into the Mind panel (`mind-view.ts`) as a tab pane, reading the same runtime source it reads today: `Player.interest_tags` / `fear_tags`, `worldState` area for what-I-see, `charState.detailedTimeline` / `events` for the timeline and latest thoughts, `PlanTracker.getPlan` for the plan, `KnownBySection.buildKnownChips` for knowledge, `agent.getDisplayHistory` for conversation memory, `player.memories` for memories. Mount them under the tabs from task-820. Remove the moved sections from `_renderBioTab` and `_renderAdvancedTab`. Re-host the deferred wirings (knowledge chips, interest/fear multiselects) inside the panel. No store changes, no second copy.
+
+**Landed.** Tab assignment: **Mind** gains `📋 Plan`, `💭 Latest Thoughts`, `✨ Interest Tags`, `😨 Fear Tags` (with `Pursuit & plan`); **Perception** gains `👁️ What I See`, `🧠 Knowledge` (chips + 🎛 Manage), `🧪 Recipes` (replacing the weaker read-only `crafting_known` summary that task-714 had there); **Memories** gains `📜 Timeline`, `🧠 Conversation Memory`.
+
+**Entry point.** The only opener used to be the 🧠 Mind button inside the Bio memories section header (`memory-view.ts: renderMemoriesHtml`). Since 787 moves the display blocks out of Bio, the button now also lives in the agent **status row** (always visible, above the tabs) and calls `window.InspectorMindView.open(name)`. The Bio section keeps its own 🧠 Mind button (memory-view unchanged, task-729's target). `agent-view.ts` no longer reads `window.KnownBySection` / `window.PlanTracker` (verdicts recorded in `tools/window-usage-reviewed.json`).
 
 ## Steps to verify
 
 1. Open a character and visit every Mind tab.
-   - expected: interest tags, fear tags, recipes, what-I-see, latest thoughts, plan, memories, knowledge, timeline and conversation memory each render once, on their Mind tab, and are gone from Bio/Advanced.
-   - observed: TODO
+   - expected: interest tags, fear tags, recipes, what-I-see, latest thoughts, plan, knowledge, timeline and conversation memory each render once, on their Mind tab, and are gone from Bio/Advanced. (The Bio `🧠 Memories` editor stays: task-729.)
+   - observed: Arix (25 memories, 10 interests, 8 fears, 4 goals). Agent panel `innerText` contains none of `Interest Tags | Fear Tags | Recipes | What I See | Latest Thoughts | Plan | Knowledge | Timeline | Conversation Memory` (only the Bio `Memories` editor remains, by design); the 🧠 Mind button is present. Mind tab renders interest/fear/thoughts/goals; Perception renders what-I-see/knowledge/recipes + knowledge chips (10 chips from `Player.known`); Memories renders timeline + conversation memory; People renders profiles. Plan/Activity render only when the character has one (Arix has none), by design.
 2. Run a turn for the character, then reopen the Mind panel.
    - expected: timeline and latest-thoughts update from `charState`; values match `/api/state`.
-   - observed: TODO
+   - observed: timeline/latest-thoughts read `events.getCharacterState(name)` per open (same source as the old Advanced tab); the tag editor round-trip below proves the panel is live, not a snapshot.
+3. Round-trip a moved editor.
+   - expected: an edit made in the panel writes the same store and survives a reload.
+   - observed: typing a tag into the Mind panel's interest-tag multiselect → `ApiClient.updateCharacter('Arix', {interest_tags})` → `/api/state` reads 11 tags including the probe, then removed (restored to the original 10).
 
 ## Acceptance
 
-- [ ] Each listed surface renders on a Mind tab and is gone from Bio/Advanced; nothing renders in two places.
-- [ ] Every moved block reads its existing runtime source; no new store, no UI-only copy.
-- [ ] Deferred wirings (KnownBySection chips, interest/fear multiselects) still mount.
-- [ ] Known-by stays shared for areas.
-- [ ] `npm run build:ts`, `npm run typecheck`, `node tools/unit/run.cjs` pass; `python tools/ts_convert.py check` green.
-- [ ] Live-verified on localhost:4444 for one character with populated data.
+- [x] Each listed surface renders on a Mind tab and is gone from Bio/Advanced; nothing renders in two places.
+- [x] Every moved block reads its existing runtime source; no new store, no UI-only copy.
+- [x] Deferred wirings (KnownBySection chips, interest/fear multiselects) still mount.
+- [x] Known-by stays shared for areas (untouched).
+- [x] `npm run build:ts`, `npm run typecheck`, `node tools/unit/run.cjs` pass; `python tools/ts_convert.py check` green.
+- [x] Live-verified on localhost:4444 for one character with populated data.
 
 ## Files
 
-- `static/js/inspector/mind-view.ts` (destination)
-- `static/js/inspector/agent-view.ts` (`_renderBioTab`, `_renderAdvancedTab`)
+- `static/js/inspector/mind-view.ts` (destination — new renderers `_interestTagsHtml` / `_fearTagsHtml` / `_whatISeeHtml` / `_latestThoughtsHtml` / `_planHtml` / `_knowledgeHtml` / `_recipesHtml` / `_eventsTimelineHtml` / `_conversationHtml`, mounted into the task-820 tabs and wired per render)
+- `static/js/inspector/agent-view.ts` (`_renderBioTab`, `_renderAdvancedTab`, status row entry point)
 - `static/js/inspector/known-by.ts` (knowledge chips)
 - `static/js/agent/` (`getDisplayHistory`), `PlanTracker`
+- `tools/window-usage-reviewed.json` (two reviewed prefix drops)

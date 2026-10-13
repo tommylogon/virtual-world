@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: ui
 priority: medium
 related: [task-42, task-691, task-714, task-820, task-821]
@@ -28,19 +28,28 @@ same-entity), per-person profiles from `GET /api/players/<name>/memories/people`
 (`engine/derive.py`), and an accessibility panel. Its own header states it
 complements `memory-view.ts` — the editor.
 
-The editing controls live elsewhere:
+The editing controls live elsewhere (as filed):
 
 - **Relationships** — `static/js/inspector/agent-view.ts`, Bio tab "Relationships"
-  section (key `lns`): per-other closeness slider, free-text label input, a
+  section: per-other closeness slider, free-text label input, a
   "knows name" checkbox, add and remove. Writes via
-  `ApiClient.updateCharacter(agent, { lns: { [other]: {...} } })`.
+  `ApiClient.updateCharacter(agent, { relationships: { [other]: {...} } })`
+  (the card's original `{ lns }` was the wrong field name).
 - **Emotional state** — `static/js/inspector/agent-view.ts`, the emotion selector
   row: a `player-emotion` select plus an `emotion-intensity-*` range, writing
   `{ emotion: { current, intensity } }` via `ApiClient.updateCharacter`.
-- **Memories** — `static/js/inspector/memory-view.ts`, Memories tab: `+ Add Memory`
+- **Memories** — `static/js/inspector/memory-view.ts`: `+ Add Memory`
   (`addMemory`), `✨ Gen Memory` (`generateMemory`), Edit (`showMemoryEditor`),
-  suppress / unblock / clearExpired, plus the multi-emotion picker
-  (`_attachEmotionSelector`), entity selector, and tag multiselect.
+  suppress / unblock / clearExpired, the filter, plus the multi-emotion picker
+  (`_attachEmotionSelector`), entity selector, and tag multiselect, rendered by
+  `renderMemoriesHtml` in the **Bio** tab (`agent-view.ts`).
+
+Note (2026-10-13): task-787 moved the eight *display* surfaces out of Bio and left
+this editor section in place, because deleting it would drop the only
+add/generate/delete/suppress controls. This card then moved it. The handlers
+finish with `worldState.fetch()` + `VW.inspector._reRender()`, which refreshes the
+*inspector*, not the Mind modal — so the relocation also re-renders the Mind panel
+on the `worldState` `update` event.
 
 ## Scope
 
@@ -48,7 +57,7 @@ Relocate those three edit surfaces into the Mind surface so reading why a charac
 feels and pursues is also where a designer corrects it. This is the **editing half**;
 the display half is task-714. Do not duplicate task-714's display work, and do not
 create a second source of truth — call the existing handlers and endpoints and keep
-`player.lns` / `player.emotion` / `player.memories` authoritative.
+`player.relationships` / `player.emotion` / `player.memories` authoritative.
 
 ## Acceptance
 
@@ -89,24 +98,41 @@ Reading *why* a character feels and pursues, and correcting it, should be the sa
 
 Re-host the existing controls and call the existing handlers; do not re-implement an endpoint or persist a UI copy.
 
-- **Relationships** — lift the per-other slider / label / knows-name rows and `_removeRelationship` from `agent-view.ts` into the Mind panel, still writing `ApiClient.updateCharacter(agent, { lns: { [other]: {...} } })`.
+- **Relationships** — lift the per-other slider / label / knows-name rows and `_removeRelationship` from `agent-view.ts` into the Mind panel, still writing `ApiClient.updateCharacter(agent, { relationships: { [other]: {...} } })`. (The card's earlier `{ lns }` was wrong — the runtime store field is `relationships`, and the Bio code already wrote it.)
 - **Emotional state** — lift the `player-emotion` select + `emotion-intensity-*` range, writing `{ emotion: { current, intensity } }` via `ApiClient.updateCharacter`.
 - **Memories** — lift `+ Add Memory` (`addMemory`), `✨ Gen Memory` (`generateMemory`), Edit (`showMemoryEditor`), suppress / unblock / clearExpired, the multi-emotion picker (`_attachEmotionSelector`), entity selector and tag multiselect from `memory-view.ts` into the Mind panel's Memories tab.
 
-Then remove the moved editors from Bio and the Memories tab so there is one home. `player.lns` / `player.emotion` / `player.memories` stay authoritative.
+Then remove the moved editors from Bio and the Memories tab so there is one home. `player.relationships` / `player.emotion` / `player.memories` stay authoritative.
+
+**Landed (2026-10-13).**
+- **Relationships** → Mind panel **People** tab, as a `Relationships - authored store` block above the derived profiles. Rows carry the same `data-agent`/`data-other` attributes, so the panel reuses `InspectorAgentView._bindRelationshipSliders(_container, name)` verbatim (same store, same `{ relationships: {...} }` payload); the remove ✕ is delegated to `_removeRelationship`. The Bio section is deleted.
+- **Emotional state** → Mind panel **Perception** tab, a `Set feeling` row under `Feeling`. Writes the same `{ emotion: { current, intensity } }`. It is **mirrored, not moved**: the header `#player-emotion` selector stays (always-available quick control). Both write the same store.
+- **Memories** → the Brain panel **Memories** tab gains a toolbar (`+ Add Memory`, `✨ Gen Memory`, `🧹 Clear Expired`, `🗑 Clear All`) and the detail pane gains `✕ Edit` / `🚫 Suppress | 🔓 Unblock` / `🗑 Delete`. All call the existing `InspectorMemory` handlers. `renderMemoriesHtml` + `filterMemories` were deleted from `memory-view.ts` (now unreachable — the Mind panel's card list is the one list).
+- **Refresh**: `mind-view` subscribes once to `worldState.on('update')` (`_ensureSubscribed`) and re-renders while open, so a mutation whose handler ends in `worldState.fetch()` (memory save, relationship add/remove, tag/emotion change) reflects in the panel. Without this the handlers only refreshed the inspector behind the modal.
 
 ## Steps to verify
 
 1. From the Mind panel, drag a relationship closeness slider, then reload.
-   - expected: `updateCharacter({ lns })` persists; the same value renders in the Mind panel and `/api/state`.
-   - observed: TODO
+   - expected: `updateCharacter({ relationships })` persists; the same value renders in the Mind panel and `/api/state`.
+   - observed: on `Kaelen Voss` (cold-start scenario), People tab: the add-select created `Lyrie` → `/api/state` `relationships.Lyrie.closeness 0`; the slider set to 60 → `…closeness 60` in `/api/state`; the delegated ✕ removed the entry (`relationships.Lyrie` gone). Row count 7 on `Arix` (goblin-camp).
 2. From the Mind panel, add a memory, generate one, and edit an existing.
    - expected: `addPlayerMemory` / `generateMemory` / `updatePlayerMemory` fire; the list and detail update; the Memories tab no longer duplicates the editor.
-   - observed: TODO
+   - observed: `+ Add Memory` opens the `memedit-modal`; content + 💾 Save → `addPlayerMemory` → `/api/state` finds the probe memory (then deleted, count back to 10). The detail pane shows Edit / Suppress / Delete for a selected card. `renderMemoriesHtml`/`filterMemories` are removed, so there is no second list.
+
+## Acceptance
+
+- [x] The Mind surface offers the three edit affordances, invoked through the existing handlers (`addMemory`, `showMemoryEditor`, `generateMemory`, the relationship controls and `_removeRelationship`, the emotion select/range). No endpoint is re-implemented and no UI-only copy of state is persisted.
+- [x] An edit made from Mind round-trips: saved, refreshed from `/api/state`, and the Mind surface re-renders the new value (via the `worldState` `update` subscription).
+- [x] Every relocated control is accounted for: relationships moved out of Bio; the memory toolbar + per-memory actions moved out of Bio (`renderMemoriesHtml` deleted); the emotion selector is intentionally mirrored (header + Mind).
+- [x] The relationships and emotional state shown by task-714 and edited here are the same runtime values (`player.relationships`, `player.emotion`), not a second copy.
+- [x] Works for LLM-driven and simple NPCs alike (the panel reads the same Player payload for any character).
+- [x] Memory-focused controls at the existing entry points keep working (`InspectorMemory.addMemory` / `editMemory` / `saveMemory` / `deleteMemory` façade in `inspector.ts` untouched); task-691's dashboard still renders.
+- [x] `npm run build:ts` and `node tools/unit/run.cjs` pass; `python tools/ts_convert.py check` is the front-end gate for the touched `.ts`.
 
 ## Files
 
-- `static/js/inspector/mind-view.ts` (destination)
-- `static/js/inspector/agent-view.ts` (relationship + emotion controls)
-- `static/js/inspector/memory-view.ts` (memory editor)
+- `static/js/inspector/mind-view.ts` (destination — `_relationshipsHtml` / `_emotionEditorHtml` / `_memoryToolbarHtml`, detail-pane actions, `_ensureSubscribed`, wiring)
+- `static/js/inspector/agent-view.ts` (relationship section + memory call removed from `_renderBioTab`)
+- `static/js/inspector/memory-view.ts` (`renderMemoriesHtml` / `filterMemories` deleted)
 - `static/js/api-client` (`updateCharacter`, `addPlayerMemory`, `updatePlayerMemory`)
+- `tools/window-usage-reviewed.json` (`InspectorMemory` drop reviewed)

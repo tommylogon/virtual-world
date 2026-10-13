@@ -13,6 +13,8 @@ This is a game-design model for what characters mean to do, how they choose a lo
 
 The vocabulary below are MOSIAC's **inputs**: Motivation is why a character moves at all (needs, drives), Obligations what they owe others (missions, promises), Schedules what the calendar expects, Attention what they notice (perception, salient events), Intentions what they are committed to (goals, pursuits). **Choice** is where they resolve — the selector that binds a plan and an action. The character decides; the world resolves the consequences.
 
+> **Revised 2026-10-12** — the sentence above is the pre-revision wording and is kept for history only. **Needs moved out of Motivation into Attention** (a need is a signal, not an aspiration), and **Choice** is now the set of *available* actions rather than the selector. The current letters are in [The architecture: MOSIAC, GIMP and the disposition](#The%20architecture:%20MOSIAC,%20GIMP%20and%20the%20disposition%20(2026-10-12)) below, which wins wherever the two differ.
+
 ## The vocabulary
 
 | Term | Game-design meaning | Example |
@@ -298,6 +300,30 @@ Goals can be **linked and blocked** by other goals, characters, events or items,
 achieved, which goals were reached and when, what was blocked, what was dropped, what
 changed over time.
 
+### `achieve` - the success predicate (2026-10-13)
+
+`blocks` is only half a mission: it says what must be true to *proceed*. The other half is
+**what must become true to finish**, and that is `achieve` - a ref list in the same
+`prefix:value` language, resolved by the same registry, in the opposite direction.
+
+- `reached(goal, resolvers)` is true iff the refs resolve true against live world state.
+- The combinator is declared per goal: `all` (default) or `achieve_any: true`. A goal whose
+  successes are alternatives is unreachable under `all`.
+- **A ref must be a fact the world can flip**, not a sentence. `event:thrazz_acknowledges_skill`
+  is unqueryable and the goal can never complete; `flag:thrazz_acknowledged` or
+  `tag:character:Thrazz:respects_zikka` is a stored fact a trigger or action can set.
+- Every prefix needs a **subject**: `tag:` on what - the holder, a named entity, the world?
+  Task-705 declares the subject per leaf. `character:X` resolves to *existence*, which is
+  permanently true and useless as a gate; co-location is `present:character:X`.
+- The flip to `reached` is written by `sync_reached` from the per-turn pass, and lands in
+  `goal_log` (task-811). It is a state change, not a projection - unlike `blocked` and
+  `progress`, which are computed on read and never persisted.
+
+`goal_alignment(action, active_goal)` - the second term of the score formula - reads these
+refs: does the action advance one, or the pursuit's next step toward one. **Owned by
+task-704**, which is also what makes `priority` load-bearing (which of a character's active
+goals is *the* active one).
+
 ### The mind is the character's, and it is not the graph
 
 Agreed 2026-10-12. Nodes are **physical entities in the world** - areas, ways, items,
@@ -370,10 +396,20 @@ The LLM is easy: hand it the character's prose and traits and let it reason. The
 brain, so the disposition has to be **numbers** - but the numbers must come from the *same*
 authored data, or the two tiers drift apart.
 
-**One dimension space, many characters.** Declare a small vocabulary of decision dimensions
+**One dimension space, many characters.** ~~Declare a small vocabulary of decision dimensions
 once - say ten: safety, sustenance, rest, social, duty, curiosity, comfort, acquisition,
 order, aggression. Every action is scored on how well it serves each dimension; every
-character carries a weight on each dimension. Then:
+character carries a weight on each dimension.~~ Then:
+
+> **Superseded 2026-10-13 by the built registry.** The "ten dimensions" above was a
+> pre-spike sketch. Task-799's answer and tasks 800-806 replaced it with
+> `engine/disposition.py`: **35 named scores across 4 decisions** (`relieve`, `social`,
+> `hunt`, `survive`), each declaring a *kind* (utility / weight / multiplier / gate /
+> threshold / salience), a `base`, a range, a `combine` (add / multiply / threshold) and a
+> `pick` (argmin / argmax / weighted-draw / threshold-then-utility). The registry is the
+> vocabulary; the ten are retired. A proposal that invents a third set of dimension names
+> (`status`, `self_improvement`) is drift, not a design - reconcile against the registry's
+> own names, machine-checked by `tools/disposition_index.py --check`.
 
 ```
 score(action) = disposition_weights . action_features + goal_alignment(action, active_goal)

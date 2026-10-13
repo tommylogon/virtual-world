@@ -1,0 +1,666 @@
+{
+  "document_title": "Zikka — GIMP Goals and MOSIAC Decision Context",
+  "version": "proposal-2-corrected-mosiac",
+  "basis": "Grounded in the supplied Zikka character record and MOSIAC/GIMP design notes. Goal contents and condition refs are proposals, not claims that every event/operator exists in the engine.",
+  "character": {
+    "id": "character:Zikka",
+    "name": "Zikka",
+    "species": "goblin",
+    "current_area": "area_training_pit",
+    "description": "Female goblin fighter; strong build, scarred, loud, always moving, worn leathers and oversized blade.",
+    "personality": "Zikka is the warchief's daughter and the tribe's best fighter. She is tired of being seen only as an heir or enforcer. She wants the tribe stronger, smarter, and more feared, and has a complicated rivalry with Vekka over who runs operations.",
+    "interest_tags": [
+      "weapon",
+      "trophy",
+      "armor"
+    ],
+    "relationship_closeness": {
+      "Vekka": 35,
+      "Thrazz": 52
+    }
+  },
+  "GIMP": {
+    "goals": [
+      {
+        "id": "prove_personal_merit",
+        "what": "Prove that my authority comes from my own strength and judgment, not my bloodline.",
+        "why": "The tribe respects my blade, but too many see me only as the warchief's daughter or his enforcer.",
+        "intention": "I will earn a meaningful victory and make the tribe acknowledge what I can do in my own right.",
+        "hoped_for": "The tribe looks to me because it trusts my judgment, not because it expects me to inherit power.",
+        "source": "self",
+        "opened_tick": null,
+        "priority": 1,
+        "visibility": "known",
+        "blocks": [
+          {
+            "ref": "flag:meaningful_challenge",
+            "note": "An ordinary sparring match will not prove much."
+          }
+        ],
+        "achieve": [
+          {
+            "ref": "flag:personal_merit_recognized",
+            "note": "Others acknowledge a consequential achievement as her own."
+          }
+        ],
+        "links": [
+          "goal:earn_operational_authority",
+          "goal:answer_thrazzs_doubt"
+        ],
+        "deadline": null,
+        "status": "active"
+      },
+      {
+        "id": "strengthen_kraktooth",
+        "what": "Make the Kraktooth tribe stronger, smarter, and harder to threaten.",
+        "why": "A tribe that relies only on brute force will eventually be outplayed, divided, or starved.",
+        "intention": "I will identify practical weaknesses and get the tribe to address them.",
+        "hoped_for": "The tribe survives serious threats because it is prepared, not merely because it boasts.",
+        "source": "self",
+        "opened_tick": null,
+        "priority": 1,
+        "visibility": "known",
+        "blocks": [
+          {
+            "ref": "flag:tribal_readiness_problem",
+            "note": "There must be a concrete weakness or opportunity to improve."
+          }
+        ],
+        "achieve": [
+          {
+            "ref": "flag:tribal_readiness_improved",
+            "note": "A meaningful weakness has been corrected and the improvement verified."
+          }
+        ],
+        "links": [
+          "goal:map_camp_weaknesses",
+          "goal:secure_food_reserves",
+          "goal:train_fighters"
+        ],
+        "deadline": null,
+        "status": "active"
+      },
+      {
+        "id": "earn_operational_authority",
+        "what": "Become someone the tribe trusts to direct important operations.",
+        "why": "Being the best fighter is not the same as being trusted to decide what the tribe does.",
+        "intention": "I will make sound calls, take responsibility for their consequences, and lead beyond a fight.",
+        "hoped_for": "Warriors come to me for direction because I have earned their confidence.",
+        "source": "self",
+        "opened_tick": null,
+        "priority": 2,
+        "visibility": "known",
+        "blocks": [
+          {
+            "ref": "flag:leadership_opportunity",
+            "note": "A consequential task or decision must allow her to demonstrate judgment."
+          }
+        ],
+        "achieve": [
+          {
+            "ref": "flag:operational_authority_recognized",
+            "note": "The tribe entrusts her with a consequential operation."
+          }
+        ],
+        "links": [
+          "goal:prove_personal_merit",
+          "goal:build_command_circle",
+          "goal:manage_vekkas_rivalry"
+        ],
+        "deadline": null,
+        "status": "active"
+      },
+      {
+        "id": "manage_vekkas_rivalry",
+        "what": "Settle how Vekka and I share or contest responsibility for field operations.",
+        "why": "Our rivalry can waste attention that should be spent making the tribe effective.",
+        "intention": "I will cooperate when it serves Kraktooth without giving up my own authority by default.",
+        "hoped_for": "We establish clear responsibilities or learn to compete without undermining the camp.",
+        "source": "self",
+        "opened_tick": null,
+        "priority": 2,
+        "visibility": "known",
+        "blocks": [
+          {
+            "ref": "present:character:Vekka",
+            "note": "The goal matters when Vekka is present or relevant to operations."
+          }
+        ],
+        "achieve_any": true,
+        "achieve": [
+          {
+            "ref": "flag:field_responsibilities_agreed",
+            "note": "Responsibilities are explicitly agreed."
+          },
+          {
+            "ref": "flag:joint_operation_succeeded",
+            "note": "A joint operation succeeds without either undermining the other."
+          }
+        ],
+        "links": [
+          "goal:earn_operational_authority",
+          "goal:build_command_circle"
+        ],
+        "deadline": null,
+        "status": "active"
+      },
+      {
+        "id": "answer_thrazzs_doubt",
+        "what": "Make Thrazz reconsider dismissing my last victory as luck.",
+        "why": "His quiet comment stung more because the tribe noticed it.",
+        "intention": "I will answer the insult with a clear demonstration rather than waste time arguing.",
+        "hoped_for": "Thrazz acknowledges my skill and the tribe stops treating my success as an accident.",
+        "source": "memory:mem_kraktooth_zikka_1",
+        "opened_tick": null,
+        "priority": 3,
+        "visibility": "private",
+        "blocks": [
+          {
+            "ref": "present:character:Thrazz",
+            "note": "A meaningful opportunity to confront or outperform him is needed."
+          }
+        ],
+        "achieve": [
+          {
+            "ref": "flag:thrazz_acknowledges_skill",
+            "note": "Thrazz directly or publicly acknowledges her skill."
+          }
+        ],
+        "links": [
+          "goal:prove_personal_merit"
+        ],
+        "deadline": null,
+        "status": "active"
+      },
+      {
+        "id": "build_command_circle",
+        "what": "Build a small circle of capable warriors who trust one another and can act without constant supervision.",
+        "why": "A strong leader who stands alone is only one person with a large blade.",
+        "intention": "I will give reliable people meaningful responsibilities and judge them by what they do.",
+        "hoped_for": "The tribe has several competent leaders rather than one fragile chain of command.",
+        "source": "self",
+        "opened_tick": null,
+        "priority": 3,
+        "visibility": "private",
+        "blocks": [
+          {
+            "ref": "flag:reliable_warriors",
+            "note": "Potential allies must be identifiable through demonstrated actions."
+          }
+        ],
+        "achieve": [
+          {
+            "ref": "flag:trusted_command_circle_formed",
+            "note": "Several warriors demonstrate reliability and accept responsibilities."
+          }
+        ],
+        "links": [
+          "goal:earn_operational_authority",
+          "goal:train_fighters"
+        ],
+        "deadline": null,
+        "status": "dormant"
+      },
+      {
+        "id": "secure_food_reserves",
+        "what": "Make the tribe's food supply more secure against shortage, theft, or a bad season.",
+        "why": "Hungry warriors become desperate, and a camp that cannot feed itself is easy to control.",
+        "intention": "I will understand what we have, find vulnerabilities, and improve how reserves are protected.",
+        "hoped_for": "The tribe can endure a lean stretch without panic or infighting.",
+        "source": "self",
+        "opened_tick": null,
+        "priority": 2,
+        "visibility": "known",
+        "blocks": [
+          {
+            "ref": "known:area:area_food_storage",
+            "note": "She needs access to inspect stores or reliable information about them."
+          }
+        ],
+        "achieve": [
+          {
+            "ref": "flag:food_reserves_secured",
+            "note": "A concrete improvement to reserve security or reliability is in place."
+          }
+        ],
+        "links": [
+          "goal:strengthen_kraktooth",
+          "goal:control_hidden_store_knowledge"
+        ],
+        "deadline": null,
+        "status": "active"
+      },
+      {
+        "id": "control_hidden_store_knowledge",
+        "what": "Decide who should know about the hidden chambers in the Food Storage.",
+        "why": "Concealed reserves could protect the tribe, but knowledge of them could also give someone leverage over everyone else.",
+        "intention": "I will verify what I found and decide how to disclose or protect it.",
+        "hoped_for": "The hidden stores become an advantage for Kraktooth rather than a weapon in someone else's hands.",
+        "source": "memory:mem_1791143031144_836",
+        "opened_tick": null,
+        "priority": 2,
+        "visibility": "secret",
+        "blocks": [
+          {
+            "ref": "known:area:area_food_storage",
+            "note": "The chambers and their contents need to be verified."
+          }
+        ],
+        "achieve": [
+          {
+            "ref": "flag:hidden_stores_policy_decided",
+            "note": "A decision about access or disclosure is enacted."
+          }
+        ],
+        "links": [
+          "goal:secure_food_reserves",
+          "goal:earn_operational_authority"
+        ],
+        "deadline": null,
+        "status": "active"
+      },
+      {
+        "id": "improve_weapon_readiness",
+        "what": "Keep my weapons and protective gear ready for a serious fight.",
+        "why": "A fighter who lets equipment fail puts herself and her warriors at risk.",
+        "intention": "I will inspect my cleaver, armour, and spare weapons and repair or replace anything unreliable.",
+        "hoped_for": "I can enter a fight confident that my equipment will not betray me.",
+        "source": "habit",
+        "opened_tick": null,
+        "priority": 4,
+        "visibility": "known",
+        "blocks": [
+          {
+            "ref": "item:zikka_cleaver",
+            "note": "The cleaver is her primary weapon and should be available to inspect."
+          }
+        ],
+        "achieve": [
+          {
+            "ref": "flag:weapon_readiness_verified",
+            "note": "Equipment is checked and critical defects are addressed."
+          }
+        ],
+        "links": [
+          "goal:strengthen_kraktooth"
+        ],
+        "deadline": null,
+        "status": "active"
+      },
+      {
+        "id": "train_fighters",
+        "what": "Make the tribe's fighters more disciplined and capable as a group.",
+        "why": "Individual strength wins duels; coordination wins fights that matter.",
+        "intention": "I will train warriors in drills that expose weaknesses and teach them to respond together.",
+        "hoped_for": "Kraktooth fighters can coordinate, follow signals, and adapt when a fight goes wrong.",
+        "source": "self",
+        "opened_tick": null,
+        "priority": 3,
+        "visibility": "known",
+        "blocks": [
+          {
+            "ref": "known:area:area_training_pit",
+            "note": "The training pit or another suitable training area must be available."
+          }
+        ],
+        "achieve": [
+          {
+            "ref": "flag:unit_training_milestone_reached",
+            "note": "A group demonstrates a measurable improvement in coordinated training."
+          }
+        ],
+        "links": [
+          "goal:strengthen_kraktooth",
+          "goal:build_command_circle"
+        ],
+        "deadline": null,
+        "status": "dormant"
+      },
+      {
+        "id": "map_camp_weaknesses",
+        "what": "Identify weak points in the camp's defence, supplies, and movement.",
+        "why": "We cannot make the tribe harder to threaten if we do not know where it is vulnerable.",
+        "intention": "I will inspect the camp as a commander, not merely as a warrior looking for someone to fight.",
+        "hoped_for": "The tribe can fix dangerous weaknesses before an enemy exploits them.",
+        "source": "self",
+        "opened_tick": null,
+        "priority": 3,
+        "visibility": "known",
+        "blocks": [
+          {
+            "ref": "flag:camp_inspection_opportunity",
+            "note": "Time and access to inspect relevant areas are required."
+          }
+        ],
+        "achieve": [
+          {
+            "ref": "flag:camp_weaknesses_documented",
+            "note": "Important vulnerabilities are recorded in a usable form."
+          }
+        ],
+        "links": [
+          "goal:strengthen_kraktooth",
+          "goal:secure_food_reserves"
+        ],
+        "deadline": null,
+        "status": "dormant"
+      },
+      {
+        "id": "investigate_external_threats",
+        "what": "Determine whether outsiders are scouting or preparing to threaten Kraktooth territory.",
+        "why": "The tribe should not be caught unprepared by a threat it could have noticed early.",
+        "intention": "I will gather evidence before deciding whether to scout, negotiate, or use force.",
+        "hoped_for": "The tribe understands the threat and responds deliberately rather than in panic.",
+        "source": "self",
+        "opened_tick": null,
+        "priority": 2,
+        "visibility": "known",
+        "blocks": [
+          {
+            "ref": "flag:outsider_signs",
+            "note": "Credible tracks, sightings, or reports must exist."
+          }
+        ],
+        "achieve": [
+          {
+            "ref": "flag:external_threat_assessed",
+            "note": "The threat is assessed enough to choose a proportionate response."
+          }
+        ],
+        "links": [
+          "goal:strengthen_kraktooth",
+          "goal:earn_operational_authority"
+        ],
+        "deadline": null,
+        "status": "dormant"
+      },
+      {
+        "id": "understand_water_source_reaction",
+        "what": "Understand why I froze or refused to move when the Water Source was in sight.",
+        "why": "A reaction I cannot explain could become a weakness someone else notices or exploits.",
+        "intention": "I will approach carefully, look for what triggers the reaction, and stop pretending it is not happening.",
+        "hoped_for": "I can make deliberate choices around the Water Source instead of being controlled by an unexplained response.",
+        "source": "memory:6265d4bb",
+        "opened_tick": null,
+        "priority": 4,
+        "visibility": "private",
+        "blocks": [
+          {
+            "ref": "known:area:Water Source",
+            "note": "The place must be reachable without forcing an unsafe or nonsensical transition."
+          }
+        ],
+        "achieve": [
+          {
+            "ref": "flag:water_source_reaction_understood",
+            "note": "The trigger is better understood or a reliable coping strategy is established."
+          }
+        ],
+        "links": [
+          "goal:prove_personal_merit"
+        ],
+        "deadline": null,
+        "status": "dormant"
+      },
+      {
+        "id": "earn_fathers_trust_as_commander",
+        "what": "Earn my father's trust as a commander in my own right.",
+        "why": "Inheritance may give me a title, but it cannot make others trust my judgment.",
+        "intention": "I will take responsibility for a consequential decision and account for its costs as well as its victories.",
+        "hoped_for": "My father sees a leader in me, not simply an heir waiting for his place.",
+        "source": "self",
+        "opened_tick": null,
+        "priority": 3,
+        "visibility": "private",
+        "blocks": [
+          {
+            "ref": "flag:consequential_command_opportunity",
+            "note": "A meaningful leadership decision must be available."
+          }
+        ],
+        "achieve": [
+          {
+            "ref": "flag:fathers_command_trust_demonstrated",
+            "note": "Her father entrusts her with meaningful command or recognizes her judgment."
+          }
+        ],
+        "links": [
+          "goal:earn_operational_authority",
+          "goal:prove_personal_merit"
+        ],
+        "deadline": null,
+        "status": "dormant"
+      },
+      {
+        "id": "choose_kind_of_leader",
+        "what": "Decide what kind of leader I want to become, beyond simply being feared.",
+        "why": "Fear can make others obey, but it cannot tell me whether my decisions are worth following.",
+        "intention": "I will judge my choices by whether they make the tribe stronger, not merely whether they make me look strong.",
+        "hoped_for": "I become a leader whose strength protects the tribe and whose judgment survives disagreement.",
+        "source": "reflection",
+        "opened_tick": null,
+        "priority": 4,
+        "visibility": "private",
+        "blocks": [
+          {
+            "ref": "flag:leadership_dilemma",
+            "note": "A real trade-off between fear, trust, and tribal welfare must arise."
+          }
+        ],
+        "achieve": [
+          {
+            "ref": "flag:leadership_principle_demonstrated",
+            "note": "She makes and follows through on a consequential choice consistent with the principle she adopts."
+          }
+        ],
+        "links": [
+          "goal:strengthen_kraktooth",
+          "goal:earn_operational_authority"
+        ],
+        "deadline": null,
+        "status": "dormant"
+      }
+    ],
+    "standing_drives": [
+      {
+        "id": "respect_and_recognition",
+        "what": "Be respected for competence, not just lineage.",
+        "evidence": [
+          "personality: tired of being seen only as an heir or enforcer",
+          "memory: Thrazz called her last win luck"
+        ],
+        "strength": "high"
+      },
+      {
+        "id": "power_and_autonomy",
+        "what": "Have real authority over decisions that affect the tribe.",
+        "evidence": [
+          "personality: complicated rivalry with Vekka over who runs operations"
+        ],
+        "strength": "high"
+      },
+      {
+        "id": "tribal_strength",
+        "what": "Make Kraktooth stronger, smarter, and more feared.",
+        "evidence": [
+          "personality: explicitly stated aspiration"
+        ],
+        "strength": "high"
+      },
+      {
+        "id": "self_protection_through_competence",
+        "what": "Avoid being caught weak, unprepared, or dependent on others.",
+        "evidence": [
+          "fighter identity and interest in weapons, trophies, and armor"
+        ],
+        "strength": "moderate"
+      }
+    ]
+  },
+  "MOSIAC": {
+    "M_motivation": {
+      "source": "GIMP.standing_drives - read, never re-stored",
+      
+      "drive_refs": [
+        "respect_and_recognition",
+        "power_and_autonomy",
+        "tribal_strength",
+        "self_protection_through_competence"
+      ],
+      "rendered": "Zikka is driven by respect, power, autonomy, and the desire to make Kraktooth formidable. She wants to be valued as a capable leader in her own right, not merely as the warchief's daughter. These are standing drives, not hunger or other momentary bodily needs."
+    },
+    "O_obligations": {
+      "source": "Player.obligations",
+      "items": [],
+      "rendered": "No explicit promises, accepted missions, duties, or appointments are present in the supplied record. Goals do not automatically become obligations."
+    },
+    "S_schedules": {
+      "source": "Player.schedule and shared world calendar",
+      "items": [],
+      "rendered": "No authored schedule entries are present in the supplied record. Zikka's current location in the Training Pit does not prove that training is scheduled."
+    },
+    "I_intentions": {
+      "source": "Active GIMP goals and their per-goal intention fields; not a separate authored copy.",
+      "active_goal_refs": [
+        "goal:prove_personal_merit",
+        "goal:strengthen_kraktooth",
+        "goal:earn_operational_authority",
+        "goal:manage_vekkas_rivalry",
+        "goal:answer_thrazzs_doubt",
+        "goal:secure_food_reserves",
+        "goal:control_hidden_store_knowledge",
+        "goal:improve_weapon_readiness"
+      ],
+      "current_pursuit": null,
+      "current_plan": null,
+      "rendered": "Her current commitments are to prove her merit, strengthen Kraktooth, earn real operational authority, manage her rivalry with Vekka, answer Thrazz's slight, secure the food stores, decide how to handle the hidden chambers, and keep her equipment ready. The supplied record does not identify an authoritative active pursuit or plan."
+    },
+    "A_attention": {
+      "source": "Live perception + memory salience + interests/fears + vitals/conditions + relevant world events.",
+      "vitals_snapshot": {
+        "Hunger": 12,
+        "Thirst": 0,
+        "Energy": 55,
+        "Social": 58,
+        "Entertainment": 80,
+        "Stimulation": 0,
+        "Pleasure": 0,
+        "Sanity": 81,
+        "HP": 95,
+        "Max_HP": 100,
+        "Hygiene": 60,
+        "Bladder": 31,
+        "Arousal": 0,
+        "Temperature": 37
+      },
+      "salient_entities": [
+        {
+          "ref": "character:Thrazz",
+          "level": "high",
+          "basis": "Importance-7 memory records his comment that her last win was luck and that the tribe noticed."
+        },
+        {
+          "ref": "character:Vekka",
+          "level": "high",
+          "basis": "Her authored personality identifies a rivalry over operational control; recorded relationship closeness is 35."
+        },
+        {
+          "ref": "area:area_food_storage",
+          "level": "high",
+          "basis": "Memory describes hidden secondary chambers that could offer tribal security or personal leverage."
+        },
+        {
+          "ref": "area:area_training_pit",
+          "level": "medium",
+          "basis": "Current area; frequent visits and memories connect it to weapons, pride, and hunger."
+        },
+        {
+          "ref": "area:Water Source",
+          "level": "medium",
+          "basis": "A threat-tagged memory records freezing/refusal to move at this location; cause is unknown."
+        }
+      ],
+      "rendered": "Thrazz's doubt remains salient to her pride. Vekka is a live rival for operational authority. The hidden chambers are both a tribal security concern and a possible source of leverage. The Water Source is associated with a remembered freeze response, but its cause is not established. Her vitals are live pressures here, not her standing motivations."
+    },
+    "C_choices": {
+      "source": "Actions/verbs currently available after capability, location, target, permission, and tier gates.",
+      "candidate_examples": [
+        {
+          "action": "train",
+          "serves": [
+            "goal:prove_personal_merit",
+            "goal:train_fighters"
+          ],
+          "decision": null,
+          "requires": "A valid training activity and target."
+        },
+        {
+          "action": "inspect_food_storage",
+          "serves": [
+            "goal:secure_food_reserves",
+            "goal:control_hidden_store_knowledge"
+          ],
+          "decision": null,
+          "requires": "Accessible Food Storage and supported inspect/observe action."
+        },
+        {
+          "action": "approach_or_challenge_thrazz",
+          "serves": [
+            "goal:answer_thrazzs_doubt",
+            "goal:prove_personal_merit"
+          ],
+          "decision": "social",
+          "requires": "Thrazz present and an available interaction or challenge."
+        },
+        {
+          "action": "speak_with_vekka",
+          "serves": [
+            "goal:manage_vekkas_rivalry",
+            "goal:earn_operational_authority"
+          ],
+          "decision": "social",
+          "requires": "Vekka available and a supported social action."
+        },
+        {
+          "action": "eat",
+          "serves": [],
+          "decision": "relieve",
+          "requires": "A real edible item and supported eat action; current Hunger is 12."
+        },
+        {
+          "action": "maintain_equipment",
+          "serves": [
+            "goal:improve_weapon_readiness"
+          ],
+          "decision": null,
+          "requires": "Supported inspection/maintenance affordance and any required materials."
+        }
+      ],
+      "rendered": "The choice set contains only actions actually available to Zikka now. Training, inspecting the stores, speaking with Vekka, or challenging Thrazz are candidates only if their targets and action contracts resolve. Eating may relieve a need, but the current vitals do not establish that it should dominate."
+    }
+  },
+  "decisions": {
+    "priority_scale": "1 is highest. Load-bearing: task-704 selects among active goals with it.",
+    "achieve_combinator": "`achieve_any: true` means any ref suffices; absent means all. Default all.",
+    "ref_vocabulary": "prefix:value, one resolver registry. `flag:<name>` is a stored fact the world sets; `present:<character>` is co-location; `known:<kind>:<id>` is knowledge/access; `item:<id>` is held; `goal:<id>` is terminal; `rel:<character>:<n>` is a relationship threshold.",
+    "resolvers_needed": {
+      "flag": "reads Player.flags / world flags - new",
+      "present": "co-location, not node existence - new",
+      "known": "reads Player.known - new",
+      "item": "world_resolvers.item (held) - exists",
+      "character": "world_resolvers.character (node exists) - exists, weak",
+      "goal": "goal_resolver - exists"
+    },
+    "status_dormant": "added to engine/goals.GOAL_STATUSES: held but not worked, distinct from proposed.",
+    "not_goal_data": "the grant (a trigger answers goal_reached, task-823), the how (the Pursuit), and the numeric weights (the disposition)."
+  },
+  "important_boundaries": [
+    "M is standing motivation from GIMP, not a needs/vitals panel. Hunger, thirst, energy, fear and danger are momentary signals that feed A (Attention).",
+    "I is the intention attached to a goal/pursuit: why pursue this particular goal. MOSIAC projects it; it does not duplicate it.",
+    "C is the currently available action set, not the ranker or the final decision. Disposition ranks eligible choices.",
+    "Goal blocks and achieve conditions use the proposed shared prefix:value reference language. Verify every ref and operator against the actual resolver registry before implementation.",
+    "The goal's status is stored. Blocked/actionable/progress and goal alignment are computed from authoritative state and are not persisted.",
+    "No obligations, schedule, current pursuit, or current plan are invented where the supplied record does not provide them.",
+    "The supplied personality string supports qualitative standing motivations, but exact numeric disposition weights should not be fabricated without authored personality traits and the score registry."
+  ]
+}

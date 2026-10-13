@@ -128,32 +128,8 @@ window.InspectorAgentView = (() => {
                 }
             });
         }
-        // Initialize TagMultiselect for interest tags
-        const interestTagContainer = document.getElementById(`interest-tag-multiselect-agent-${escName}`);
-        if (interestTagContainer && typeof TagMultiselect !== 'undefined') {
-            new TagMultiselect(interestTagContainer, {
-                tags: Array.isArray(player.interest_tags) ? player.interest_tags : [],
-                appliesTo: 'characters',
-                allowNew: true,
-                placeholder: 'e.g. magic, food, documents...',
-                onChange: (newTags) => {
-                    ApiClient.updateCharacter(agentName, { interest_tags: newTags }).then(() => worldState.fetch());
-                }
-            });
-        }
-        // Initialize TagMultiselect for fear tags
-        const fearTagContainer = document.getElementById(`fear-tag-multiselect-agent-${escName}`);
-        if (fearTagContainer && typeof TagMultiselect !== 'undefined') {
-            new TagMultiselect(fearTagContainer, {
-                tags: Array.isArray(player.fear_tags) ? player.fear_tags : [],
-                appliesTo: 'characters',
-                allowNew: true,
-                placeholder: 'e.g. goblin, the dark, magic...',
-                onChange: (newTags) => {
-                    ApiClient.updateCharacter(agentName, { fear_tags: newTags }).then(() => worldState.fetch());
-                }
-            });
-        }
+        // task-787: the interest-tag and fear-tag multiselects moved into the
+        // Mind panel, where they are wired per render.
         // Initialize Tippy tooltips
         if (typeof tippy !== 'undefined') {
             try {
@@ -344,6 +320,7 @@ window.InspectorAgentView = (() => {
             ${condBadges}
             <button class="btn btn-sm" onclick="InspectorAgentView._openConditionEditor('${escName}')" title="Add a specific condition (blind, poisoned, unconscious...) with a duration, source, or level" style="font-size:10px;">➕ Add Condition</button>
             <span style="flex:1;"></span>
+            <button class="btn btn-sm" onclick="window.InspectorMindView&&window.InspectorMindView.open('${escName}')" title="Open the character's mind - attention, fears, thoughts, plan, mood, disposition, goals, schedule, memories and knowledge" style="font-size:10px;">🧠 Mind</button>
             <span onclick="events.cycleControlMode('${escName}')" title="Click to cycle control mode: Human → LLM → NPC" style="cursor:pointer;padding:2px 8px;border-radius:4px;font-weight:600;font-size:10px;background:${modeMeta.bg};color:${modeMeta.fg};border:1px solid ${modeMeta.bd};">${modeMeta.label}</span>
         </div>`;
     };
@@ -886,42 +863,8 @@ window.InspectorAgentView = (() => {
             </div>
             <button class="btn btn-sm" data-help="auto-description" onclick="InspectorAgentView._generateDescription('${escName}')" title="Regenerate the visible description from the base description plus worn gear. It also refreshes on its own after equip/unequip or a body-state change, so a manual edit here can be overwritten by the next equipment change.">🤖 Generate from Equipment</button>
         </div>`;
-        // Relationships
-        if (area) {
-            const allOtherPlayers = Object.entries(worldState.players || {}).filter(([name]) => name !== agentName);
-            const hasUnrelated = allOtherPlayers.some(([name]) => !player.relationships?.[name]);
-            html += `<div class="inspector-section">
-                <h3 style="display:flex;justify-content:space-between;align-items:center;">
-                    <span>🤝 Relationships</span>
-                    ${hasUnrelated ? `<select id="rel-add-select-${escName.replace(/\s+/g, '_')}" style="font-size:10px;max-width:120px;">
-                        <option value="">+ Add...</option>
-                        ${allOtherPlayers.filter(([name]) => !player.relationships?.[name]).map(([name]) => `<option value="${name}">${name}</option>`).join('')}
-                    </select>` : ''}
-                </h3>`;
-            for (const [otherName] of allOtherPlayers) {
-                const relationship = player.relationships?.[otherName];
-                if (!relationship)
-                    continue;
-                const closeness = relationship.closeness ?? 0;
-                const relColor = closeness > 0 ? (closeness > 50 ? '#3fb950' : '#e3b341') : (closeness < 0 ? (closeness < -50 ? '#f85149' : '#d47766') : 'var(--text-muted)');
-                const closenessDesc = closeness <= -75 ? 'mortal enemy' : closeness <= -50 ? 'enemy' : closeness <= -25 ? 'rival' : closeness < 0 ? 'unfriendly' : closeness === 0 ? 'neutral' : closeness <= 25 ? 'acquaintance' : closeness <= 50 ? 'friend' : closeness <= 75 ? 'close friend' : 'inseparable';
-                html += `<div class="relationship-item-inspector" data-other="${otherName}">
-                    <span style="min-width:70px;font-size:11px;font-weight:500;">${otherName}</span>
-                    <input type="range" min="-100" max="100" value="${closeness}" class="rel-slider" data-agent="${agentName}" data-other="${otherName}" style="flex:1;height:4px;accent-color:${relColor};">
-                    <span style="font-size:10px;color:var(--text-muted);min-width:28px;text-align:right;" class="rel-val">${closeness}</span>
-                    <span style="font-size:9px;color:var(--text-dim);min-width:70px;" class="rel-label">${closenessDesc}</span>
-                    <input type="text" class="rel-label-input" data-agent="${agentName}" data-other="${otherName}" value="${relationship.label || ''}" placeholder="label (e.g. mom, brother)" style="width:80px;font-size:9px;padding:1px 3px;">
-                    <label title="Tick if you know their name (first_sighting=false)" style="display:flex;align-items:center;gap:2px;font-size:9px;color:var(--text-dim);cursor:pointer;">
-                        <input type="checkbox" class="rel-known" data-agent="${agentName}" data-other="${otherName}" ${relationship.first_sighting ? '' : 'checked'}> name
-                    </label>
-                    <span onclick="InspectorAgentView._removeRelationship('${agentName}','${otherName}')" style="cursor:pointer;color:var(--red);font-size:12px;padding:0 2px;" title="Remove relationship">✕</span>
-                </div>`;
-            }
-            if (allOtherPlayers.every(([name]) => player.relationships?.[name])) {
-                html += `<div style="font-size:10px;color:var(--text-muted);padding:4px 0;">All players have a relationship entry.</div>`;
-            }
-            html += `</div>`;
-        }
+        // task-729: relationships (the authored store) moved to the Mind panel's
+        // People tab; the memory list/editor moved to its Memories tab.
         // Tags
         html += `<div class="inspector-section"><h3>🏷️ Tags</h3>
             <div id="tag-multiselect-agent-${escName}"></div>
@@ -930,79 +873,11 @@ window.InspectorAgentView = (() => {
         const agentNodeId = `player_${agentName.replace(/\s+/g, '_')}`;
         const agentNode = worldState.getNode(agentNodeId);
         html += AV._deferredAliasesSection(agentNodeId, agentNode?.properties?.aliases || []);
-        // bug-514: both generators are useless without a provider, so say so on
-        // the button instead of letting the click vanish. `_isAiConfigured` is a
-        // side-effect-free read (AIGenerator.isConfigured() toasts, which must
-        // not happen on every render).
-        const aiReady = AV._isAiConfigured();
-        const aiTitleSuffix = aiReady
-            ? ''
-            : ' — No AI provider configured. Add an API key and model in Settings first.';
-        const aiDisabled = aiReady ? '' : 'disabled';
-        // Interest tags — what this character pays attention to in a room
-        html += `<div class="inspector-section"><h3>✨ Interest Tags</h3>
-            <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Items matching these surface in the agent's prompt. Examine/take removes them from attention.</div>
-            <div id="interest-tag-multiselect-agent-${escName}"></div>
-            <button class="btn btn-sm" ${aiDisabled} onclick="InspectorAgentView._generateInterestTags('${escName}')" style="font-size:10px;padding:2px 10px;margin-top:4px;" title="Ask the character's LLM to pick interest tags. It is shown the tags already in this world and the tags the library holds that the world has not used yet, and may create new ids. Your hand-placed tags are kept — picks are added.${aiTitleSuffix}">✨ Generate from Personality</button>
-        </div>`;
-        // Fear tags — same id vocabulary, opposite meaning. engine/fear.py
-        // applies `frightened` when a co-located character, item, or area
-        // presents one of these tags, so this is how a guard and a farmer end
-        // up afraid of different things without a global "hostile" flag.
-        html += `<div class="inspector-section"><h3>😨 Fear Tags</h3>
-            <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Meeting a co-located character, item, or area carrying any of these tags makes this character <code>frightened</code>. Leave empty for a character nothing unsettles.</div>
-            <div id="fear-tag-multiselect-agent-${escName}"></div>
-            <button class="btn btn-sm" ${aiDisabled} onclick="InspectorAgentView._generateFearTags('${escName}')" style="font-size:10px;padding:2px 10px;margin-top:4px;" title="Ask the character's LLM to pick fear tags. It is shown the tags already in this world and the tags the library holds that the world has not used yet, and may create new ids — but a fear only fires on something that actually carries the tag. Your hand-placed tags are kept — picks are added.${aiTitleSuffix}">😨 Generate from Personality</button>
-        </div>`;
-        // Crafting (task-2): recipes this character knows + craft buttons
-        const recipeList = AV._knownRecipeNames(agentName, player);
-        html += `<div class="inspector-section"><h3>🧪 Recipes</h3>
-            <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Recipes this character knows: global, skill-learned, item-learned, or discovered by first crafting.</div>`;
-        if (recipeList.length) {
-            html += recipeList.map((r) => `<div style="display:flex;align-items:center;gap:6px;padding:3px 0;font-size:11px;">
-                <span style="flex:1;">🧾 ${esc(r.name)}</span>
-                <button class="btn btn-sm" data-help="craft" onclick="runAction('craft ${esc(r.name)}','${escName}')" style="font-size:9px;padding:2px 8px;">Craft</button>
-            </div>`).join('');
-        }
-        else {
-            html += `<div style="font-size:10px;color:var(--text-dim);">None yet — create a recipe node (type: recipe) with learned_by: ["global"] (or "skill:&lt;name&gt;", "item:&lt;name&gt;", discoverable:true) to add one.</div>`;
-        }
-        html += `</div>`;
-        // What they see
-        html += `<div class="inspector-section"><h3>👁️ What I See</h3>
-            <div style="font-size:12px;padding:8px 12px;background:var(--bg-inset);border-radius:6px;border-left:3px solid ${color};">`;
-        if (area) {
-            html += `<div>${area.description || ''}</div>`;
-            const items = area.items?.map((item) => item.name).filter(Boolean).join(', ');
-            if (items)
-                html += `<div style="margin-top:4px;color:var(--text-dim);font-size:11px;">Items: ${items}</div>`;
-            const others = Object.entries(worldState.players || {}).filter(([name, p]) => name !== agentName && p.current_area === player.current_area);
-            if (others.length)
-                html += `<div style="margin-top:4px;color:var(--pink);font-size:11px;">Also: ${others.map(([name]) => name).join(', ')}</div>`;
-        }
-        else {
-            html += `<span style="color:var(--text-muted);">Unknown location</span>`;
-        }
-        html += `</div></div>`;
-        // Latest Thoughts
-        html += `<div class="inspector-section"><h3>💭 Latest Thoughts</h3>
-            <div class="decision-trace"><div class="trace-thought">${charState.lastThought || 'No recent thoughts.'}</div>
-            ${charState.lastSpeech ? `<div style="color:var(--pink);font-style:italic;margin-top:4px;">💬 "${charState.lastSpeech}"</div>` : ''}
-            ${charState.lastAction ? `<div style="color:var(--accent);font-weight:500;margin-top:4px;">⚡ ${charState.lastAction}</div>` : ''}
-            ${charState.lastActionResult ? `<div style="color:var(--orange);font-size:10px;margin-top:4px;">→ ${charState.lastActionResult}</div>` : ''}
-        </div></div>`;
-        // Plan (task-185: via PlanTracker — the old agent._plans read hit a replaced store)
-        const plan = window.PlanTracker?.getPlan(agentName);
-        if (plan && plan.length > 0) {
-            html += `<div class="inspector-section"><h3>📋 Plan</h3>
-                <ol style="margin:0;padding-left:20px;font-size:11px;line-height:1.7;">`;
-            for (const step of plan) {
-                html += `<li>${step}</li>`;
-            }
-            html += `</ol></div>`;
-        }
-        // Memories (delegated)
-        html += window.InspectorMemory.renderMemoriesHtml(agentName, player, escName, esc);
+        // task-787: interest tags, fear tags, recipes, what-I-see, latest
+        // thoughts and the plan moved into the Mind panel - the runtime mind no
+        // longer sits beside the character's definition. Character `tags`
+        // (above) stay here: they are authored definition.
+        // task-729: the memory list/editor moved into the Mind panel too.
         html += `</div>`; // End Bio tab
         return html;
     };
@@ -1217,84 +1092,8 @@ window.InspectorAgentView = (() => {
                 <button class="btn btn-sm btn-green" onclick="InspectorBehaviors.addBehavior('${escName}')" style="margin-top:4px;width:100%;">+ Add Behavior</button>
             </div>`;
         }
-        // Knowledge (what this character knows from the start — authored
-        // `known` registry). Chips are lit-free DOM, filled by deferred render.
-        const kbChipId = String(agentName ?? '').replace(/[^a-zA-Z0-9_-]/g, '_');
-        html += `<div class="inspector-section">
-            <h3 style="display:flex;justify-content:space-between;align-items:center;">🧠 Knowledge
-                <button class="btn btn-sm btn-blue" onclick="KnownBySection.openKnowledgeModal('${escName}')" style="font-size:10px;" title="Select every runtime entity this character knows, grouped by category">🎛 Manage</button>
-            </h3>
-            <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px;">Known from the start — hidden ways/items visible, people never masked, known areas reveal hidden exits.</div>
-            <div id="knowledge-chips-${kbChipId}"></div>
-        </div>`;
-        _deferRender(() => {
-            const container = document.getElementById('knowledge-chips-' + kbChipId);
-            if (container && window.KnownBySection) {
-                container.textContent = '';
-                container.appendChild(window.KnownBySection.buildKnownChips(agentName));
-            }
-        });
-        // Timeline
-        const timeline = charState.detailedTimeline || [];
-        html += `<div class="inspector-section"><h3>📜 Timeline <span class="section-hint">(click to expand)</span></h3>
-            <div class="timeline-viewer" id="timeline-${escName}">`;
-        if (timeline.length > 0) {
-            const startIdx = Math.max(0, timeline.length - 50);
-            for (let entryIndex = startIdx; entryIndex < timeline.length; entryIndex++) {
-                const entry = timeline[entryIndex];
-                const phase = entry.phase || 'unknown';
-                const phaseIcons = { think: '💭', decide: '🎯', act: '⚡', action: '⚡', result: '→', react: '🔄', speech: '💬', observe: '👁️' };
-                const phaseIcon = phaseIcons[phase] || '•';
-                const phaseLabel = phase.charAt(0).toUpperCase() + phase.slice(1);
-                let contentText = '';
-                if (entry.thought)
-                    contentText = entry.thought;
-                else if (entry.speech)
-                    contentText = `"${entry.speech}"`;
-                else if (entry.action)
-                    contentText = entry.action;
-                else if (entry.result)
-                    contentText = entry.result;
-                else if (entry.message)
-                    contentText = entry.message;
-                else
-                    contentText = phase;
-                html += `<div class="timeline-entry" onclick="InspectorAgentView._showTimelineDetail('${escName}', ${entryIndex}, this)">
-                    <div class="timeline-entry-header">
-                        <span class="timeline-tick">[${events.tickToTime(entry.tick || 0)}]</span>
-                        <span class="timeline-phase-badge timeline-phase-${phase}">${phaseIcon} ${phaseLabel}</span>
-                    </div>
-                    <div class="timeline-entry-content">${contentText}</div>
-                </div>`;
-            }
-        }
-        else {
-            html += `<div style="font-size:11px;color:var(--text-muted);padding:8px;">No timeline entries yet. The timeline captures every thought, decision, action, result, and reaction as the character experiences them.</div>`;
-        }
-        html += `</div>
-            <div id="timeline-detail-${escName}" style="display:none;"></div>
-        </div>`;
-        // Conversation Memory
-        const chatHistory = agent.getDisplayHistory(agentName);
-        html += `<div class="memory-section"><h3>🧠 Conversation Memory (${chatHistory.length} exchanges)</h3>
-            <div style="max-height:300px;overflow-y:auto;font-size:11px;">`;
-        if (chatHistory.length > 0) {
-            for (let msgIndex = 0; msgIndex < chatHistory.length; msgIndex++) {
-                const msg = chatHistory[msgIndex];
-                const role = msg.role || 'unknown';
-                const content = (msg.content || '');
-                const roleLabel = role === 'user' ? '👤 Prompt' : '🤖 Response';
-                const roleColor = role === 'user' ? 'var(--accent)' : 'var(--purple)';
-                html += `<div style="padding:6px 8px;border-bottom:1px solid var(--border-light);">
-                    <div style="font-size:9px;color:${roleColor};font-weight:600;margin-bottom:2px;">${roleLabel} #${msgIndex + 1}</div>
-                    <div style="color:var(--text-dim);font-size:10px;max-height:40px;overflow:hidden;">${content}${content.length > 250 ? '...' : ''}</div>
-                </div>`;
-            }
-        }
-        else {
-            html += `<div class="memory-empty">This character has no conversation history yet. History builds as the agent takes actions.</div>`;
-        }
-        html += `</div></div>`;
+        // task-787: the knowledge chips, the event timeline and conversation
+        // memory moved into the Mind panel (Perception / Memories tabs).
         // Save / Import to World
         html += `<div class="inspector-section" style="border-top:1px solid var(--border);padding-top:12px;">
             <h3>💾 Library</h3>

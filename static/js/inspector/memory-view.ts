@@ -27,135 +27,6 @@ window.InspectorMemory = (() => {
         { label: 'Jealous / Bitter', items: ['jealous','envious','frustrated','resentful','bitter'] }
     ];
 
-    // `player` is a worldState Player payload: an arbitrary record authored per
-    // character, so its memory entries are read as `any` rather than modelled.
-    M.renderMemoriesHtml = function (agentName: string, player: any, escName: string, esc: (value: unknown) => string): string {
-        let html = `<div class="inspector-section" id="memory-section-${escName}">
-            <h3>🧠 Memories <button class="btn btn-sm" style="font-size:9px;padding:1px 6px;vertical-align:middle;" onclick="window.InspectorMindView&&window.InspectorMindView.open('${escName}')" title="Open the Memory Mind dashboard (timeline, dynamics, people, connections)">🧠 Mind</button></h3>
-            <input type="text" id="mem-filter-${escName}" placeholder="Filter memories... (or cat:belief, cat:social, cat:episodic)"
-                style="width:100%;font-size:10px;padding:3px 6px;margin-bottom:4px;box-sizing:border-box;"
-                oninput="InspectorMemory.filterMemories('${escName}', this.value)">
-            <div id="memory-list-${escName}" style="max-height:300px;overflow-y:auto;margin-bottom:4px;">`;
-        const memories = player.memories || [];
-        const memIcon = (t: string): string => ({observation:'👁️',discovery:'💡',conversation:'💬',item:'📦',combat:'⚔️',exploration:'🗺️',failure:'⚠️',success:'✅',reflection:'🔄',action:'▶️',speech:'💬',thought:'🤔',reaction:'💭',location:'📍'} as Record<string, string>)[t]||'📝';
-        const impColor = (i: number): string => i >= 8 ? '#e05555' : i >= 6 ? '#e0a33c' : i >= 4 ? '#4caf50' : '#888';
-        // task-691: memory-kind chips. Category is stored on new entries and
-        // derived for old ones — the same fallback the recall block uses.
-        const catOf = (m: any): string => {
-            if (m.category) return String(m.category);
-            if (String(m.type || '') === 'reflection') return 'belief';
-            const memTags = Array.isArray(m.tags) ? m.tags.map((t: any) => String(t).toLowerCase()) : [];
-            if (memTags.some((t: string) => t.startsWith('rel:'))) return 'social';
-            return 'episodic';
-        };
-        const catColor = (c: string): string => ({episodic:'#58a6ff',semantic:'#39c5cf',belief:'#bc8cff',social:'#f778ba',procedural:'#d29922'} as Record<string, string>)[c]||'#8b949e';
-        // task-691: dynamics stats line — real fields, no decorative numbers.
-        const beliefCount = memories.filter((m: any) => ['belief','semantic'].includes(catOf(m))).length;
-        const conflictCount = memories.reduce((acc: number, m: any) => acc + (Array.isArray(m.contradicts) ? m.contradicts.length : 0), 0) / 2;
-        const confSum = memories.reduce((acc: number, m: any) => acc + (typeof m.confidence === 'number' ? m.confidence : 1), 0);
-        const avgConf = memories.length ? Math.round((confSum / memories.length) * 100) : 100;
-        if (memories.length > 0) {
-            html += `<div style="font-size:10px;color:var(--text-muted);margin-bottom:4px;" title="Live memory dynamics (task-685)">${memories.length} memories · ${beliefCount} beliefs/conclusions · ${Math.round(conflictCount)} contradictions · avg confidence ${avgConf}%</div>`;
-        }
-        if (memories.length > 0) {
-            const sorted = [...memories].reverse();
-            sorted.forEach((m: any) => {
-                const tick = m.tick ?? 0;
-                const imp = m.importance ?? 5;
-                const loc = m.location || '';
-                const tags = Array.isArray(m.tags) ? m.tags.filter(Boolean) : [];
-                const suppressions = Array.isArray(m.suppressions) ? m.suppressions : [];
-                const isSuppressed = suppressions.length > 0;
-                const salience = m.salience_override || 0;
-                const source = m.source || 'auto';
-                const tagHtml = tags.length
-                    ? `<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:4px;">${tags.map((t: any) => `<span style="font-size:9px;padding:1px 6px;border-radius:8px;background:var(--bg-input);border:1px solid var(--border);color:var(--text-muted);">#${String(t).toLowerCase()}</span>`).join('')}</div>`
-                    : '';
-                const memEmotions = Array.isArray(m.memory_emotions) && m.memory_emotions.length
-                    ? m.memory_emotions
-                    : (m.emotion && m.emotion.label ? [m.emotion] : []);
-                const emoHtml = memEmotions.length
-                    ? `<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:4px;">${memEmotions.map((e: any) => `<span style="font-size:9px;padding:1px 6px;border-radius:8px;background:var(--bg-input);border:1px solid var(--border);color:#e0a33c;">${String(e.label || '').toLowerCase()}${e.intensity ? ' · ' + e.intensity : ''}</span>`).join('')}</div>`
-                    : '';
-                const sourceLabel = source === 'manual' ? '<span style="font-size:9px;color:var(--accent);border:1px solid var(--accent);border-radius:8px;padding:0 5px;margin-left:4px;">SEED</span>' : `<span style="font-size:9px;color:var(--text-muted);border:1px solid var(--border);border-radius:8px;padding:0 5px;margin-left:4px;">src:${esc(source)}</span>`;
-                const suppressBadge = isSuppressed ? `<span style="font-size:9px;color:#e05555;border:1px solid #e05555;border-radius:8px;padding:0 5px;margin-left:4px;">🚫 SUPPRESSED</span>` : '';
-                const salienceBadge = salience > 0 ? `<span style="font-size:9px;color:#4caf50;border:1px solid #4caf50;border-radius:8px;padding:0 5px;margin-left:4px;">⚡ salience ${salience}</span>` : '';
-                // task-691: dynamics badges — category, confidence, reinforcement,
-                // contradiction links, faded availability.
-                const cat = catOf(m);
-                const activation = typeof m.activation === 'number' ? m.activation : 1;
-                const confidence = typeof m.confidence === 'number' ? m.confidence : null;
-                const reinf = Number(m.reinforcements) || 0;
-                const contraCount = Array.isArray(m.contradicts) ? m.contradicts.length : 0;
-                const catBadge = `<span style="font-size:9px;color:${catColor(cat)};border:1px solid ${catColor(cat)};border-radius:8px;padding:0 5px;margin-left:4px;" title="Memory kind">${cat}</span>`;
-                const confBadge = confidence !== null && confidence < 1 ? `<span style="font-size:9px;color:${confidence < 0.5 ? '#d29922' : '#8b949e'};border:1px solid var(--border);border-radius:8px;padding:0 5px;margin-left:4px;" title="How sure the character is">conf ${Math.round(confidence * 100)}%</span>` : '';
-                const reinfBadge = reinf > 0 ? `<span style="font-size:9px;color:#4caf50;border:1px solid #2c5e2e;border-radius:8px;padding:0 5px;margin-left:4px;" title="Reinforced by recall or re-encounter">↻ ×${reinf}</span>` : '';
-                const contraBadge = contraCount > 0 ? `<span style="font-size:9px;color:#e05555;border:1px solid #6e2c2c;border-radius:8px;padding:0 5px;margin-left:4px;" title="Conflicts with ${contraCount} other memor${contraCount === 1 ? 'y' : 'ies'} — unresolved">⚡ ${contraCount}</span>` : '';
-                const faded = !isSuppressed && activation < 0.5;
-                const opacity = isSuppressed ? 'opacity:0.5;' : (faded ? 'opacity:0.55;' : '');
-                html += `<div class="memory-entry" data-text="${esc((m.text||'').toLowerCase())}" data-tags="${esc((tags||[]).join(',').toLowerCase())}" data-cat="${esc(cat)}" style="background:var(--bg-card);border:1px solid var(--border);border-left:3px solid ${isSuppressed ? '#888' : impColor(imp)};border-radius:6px;padding:7px;margin-bottom:5px;font-size:11px;${opacity}">
-                    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;">
-                        <div style="flex:1;min-width:0;">
-                            <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
-                                <span style="color:var(--text-dim);font-size:10px;">[${events.tickToTime(tick)}]</span>
-                                <span style="font-size:10px;font-weight:600;">${memIcon(m.type)} ${m.type}</span>
-                                ${catBadge}
-                                ${confBadge}
-                                ${reinfBadge}
-                                ${contraBadge}
-                                ${sourceLabel}
-                                ${suppressBadge}
-                                ${salienceBadge}
-                                <span style="font-size:10px;color:${isSuppressed ? '#888' : impColor(imp)};font-weight:600;margin-left:auto;">⭐ ${imp}</span>
-                            </div>
-                            <div style="margin-top:3px;line-height:1.4;">${m.text || ''}</div>
-                            ${emoHtml}
-                            ${tagHtml}
-                            ${loc ? `<span style="font-size:10px;color:var(--text-muted);">📍 ${loc}</span>` : ''}
-                        </div>
-                        <div style="display:flex;gap:2px;flex-shrink:0;flex-direction:column;align-items:flex-end;">
-                            <div style="display:flex;gap:2px;">
-                                <button class="btn btn-sm" onclick="InspectorMemory.editMemory('${escName}','${m.id||''}')" style="font-size:9px;padding:1px 4px;" title="Edit">✏️</button>
-                                ${isSuppressed
-                                    ? `<button class="btn btn-sm" onclick="InspectorMemory.unblockMemory('${escName}','${m.id||''}')" style="font-size:9px;padding:1px 4px;color:#4caf50;" title="Unblock">🔓</button>`
-                                    : `<button class="btn btn-sm" onclick="InspectorMemory.suppressMemory('${escName}','${m.id||''}')" style="font-size:9px;padding:1px 4px;color:#e0a33c;" title="Suppress">🚫</button>`
-                                }
-                                <button class="btn btn-sm btn-red" onclick="InspectorMemory.deleteMemory('${escName}','${m.id||''}')" style="font-size:9px;padding:1px 4px;" title="Delete">🗑</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>`;
-            });
-        } else {
-            html += `<div style="font-size:11px;color:var(--text-muted);padding:4px 0;">No memories recorded yet.</div>`;
-        }
-        html += `</div>
-            <div style="display:flex;gap:4px;flex-wrap:wrap;">
-                <button class="btn btn-sm btn-blue" onclick="InspectorMemory.addMemory('${escName}')">+ Add Memory</button>
-                <button class="btn btn-sm btn-green" onclick="InspectorMemory.generateMemory('${escName}')" title="Write a first-person seed memory via the LLM">✨ Gen Memory</button>
-                <button class="btn btn-sm btn-red" onclick="if(confirm('Clear all memories for ${escName}?')){ApiClient.clearPlayerMemories('${escName}').then(()=>{if(VW?.inspector) VW.inspector._reRender();});}">🗑 Clear All</button>
-                <button class="btn btn-sm" onclick="InspectorMemory.clearExpired('${escName}')" style="font-size:9px;">🧹 Clear Expired</button>
-            </div>
-        </div>`;
-        return html;
-    };
-
-    M.filterMemories = function (charName: string, query: string): void {
-        const list = document.getElementById(`memory-list-${charName}`);
-        if (!list) return;
-        const q = query.toLowerCase().trim();
-        const entries = list.querySelectorAll<HTMLElement>('.memory-entry');
-        entries.forEach(el => {
-            const text = el.dataset.text || '';
-            const tags = el.dataset.tags || '';
-            const cat = el.dataset.cat || '';
-            // "cat:belief" filters by memory kind; anything else matches text/tags.
-            const match = !q
-                || (q.startsWith('cat:') ? cat === q.slice(4) : (text.includes(q) || tags.includes(q)));
-            el.style.display = match ? '' : 'none';
-        });
-    };
-
     M.addMemory = function (charName: string): void {
         M.showMemoryEditor(charName, null);
     };
@@ -308,11 +179,6 @@ window.InspectorMemory = (() => {
                 </div>
 
                 <div class="memedit-section">
-                    <div class="memedit-section-title">😊 Emotions (multiple)</div>
-                    <div class="memedit-field">
-                        <label>Attached emotions</label>
-                        <div id="mem-editor-emotions" class="memedit-entitybox"></div>
-                    </div>
                     <div class="memedit-field">
                         <label>Tags</label>
                         <div id="mem-editor-tags" style="background:var(--bg-input);border:1px solid var(--border);border-radius:6px;padding:6px;"></div>
@@ -410,15 +276,6 @@ window.InspectorMemory = (() => {
                 (contraAdd as HTMLSelectElement).value = '';
                 renderContra();
             });
-        }
-
-        // Multi-emotion picker
-        const emoEl = document.getElementById('mem-editor-emotions');
-        if (emoEl) {
-            const initial = Array.isArray(existing?.memory_emotions)
-                ? existing.memory_emotions
-                : (existing?.emotion ? [existing.emotion] : []);
-            M._attachEmotionSelector(emoEl, initial);
         }
 
         // Embedding button (existing memories only)
@@ -540,9 +397,6 @@ window.InspectorMemory = (() => {
         const location = (document.getElementById('mem-editor-location') as HTMLInputElement | null)?.value || '';
         const source = (document.getElementById('mem-editor-source') as HTMLInputElement | null)?.value || 'auto';
         const salience = parseInt((document.getElementById('mem-editor-salience') as HTMLInputElement | null)?.value as string) || 0;
-        const emotions = Array.isArray(M._emoSelected)
-            ? M._emoSelected.filter(e => e && e.label && e.label !== 'neutral')
-            : [];
         const tags = M._tagSelect ? M._tagSelect.getValue() : (M._tagSelectTags || []);
         const entity_ids = M._entitySelected ? Array.from(M._entitySelected) : [];
         // task-691 stage 2: category ('' = let the backend derive), confidence,
@@ -568,10 +422,6 @@ window.InspectorMemory = (() => {
         if (hasConfidence) payload.confidence = Math.max(0, Math.min(1, confidenceInput / 100));
         if (contradicts.length || entryId) payload.contradicts = contradicts;
         if (entity_ids.length) payload.entity_ids = entity_ids;
-        if (emotions.length) {
-            payload.memory_emotions = emotions;
-            payload.emotion = emotions[0]; // primary single, for backward compatibility
-        }
 
         const done = (data: any) => {
             M._closeMemoryEditor();
@@ -956,8 +806,6 @@ interface MemoryViewApiClient {
 
 /** `window.InspectorMemory` — the module's public surface. */
 interface MemoryViewApi {
-    renderMemoriesHtml(agentName: string, player: any, escName: string, esc: (value: unknown) => string): string;
-    filterMemories(charName: string, query: string): void;
     addMemory(charName: string): void;
     editMemory(charName: string, entryId: string): void;
     suppressMemory(charName: string, entryId: string): void;

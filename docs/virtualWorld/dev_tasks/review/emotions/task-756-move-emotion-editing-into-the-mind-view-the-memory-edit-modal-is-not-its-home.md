@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: review
 area: emotions
 priority: medium
 blocked_by: [task-691]
@@ -19,9 +19,7 @@ related: [task-714, task-757, task-820]
 
 ## What
 
-Relocate per-memory emotion editing (label + intensity) from the memory-edit
-modal into the Mind view (`inspector/mind-view.ts`), which is becoming the
-character's mind surface (task-691 stage 4) and will supersede the memory editor.
+Per-memory emotion editing (label + intensity, multiple) now lives in the Mind view's memory detail; the memory-edit modal no longer owns it. Writes the same `memory_emotions` field via `updatePlayerMemory` - no new store.
 
 ## Reconciliation (2026-10-09) — the premise was half true
 
@@ -56,30 +54,30 @@ panel owns the mind). The move is:
 
 ## Acceptance
 
-- [ ] Emotion editing (label + intensity, multiple per memory) lives in the Mind view.
-- [ ] It writes the same `memory_emotions` field via `updatePlayerMemory` — no new store.
-- [ ] The memory-edit modal no longer owns the editor (one home).
-- [ ] `build:ts`, `typecheck`, unit clean.
+- [x] Emotion editing (label + intensity, multiple per memory) lives in the Mind view.
+- [x] It writes the same `memory_emotions` field via `updatePlayerMemory` - no new store.
+- [x] The memory-edit modal no longer owns the editor (one home).
+- [x] `build:ts`, `typecheck`, unit clean (`python tools/ts_convert.py check` green).
 
 ## Files
 
-- `static/js/inspector/mind-view.ts` (destination)
-- `static/js/inspector/memory-view.ts` (current editor: `memory_emotions` picker)
-- `static/js/api-client` (`updatePlayerMemory` / `addPlayerMemory`)
+- `static/js/inspector/mind-view.ts` (the editor)
+- `static/js/inspector/memory-view.ts` (the editor removed)
+- `static/js/types/globals.d.ts` (`updatePlayerMemory` declared)
 
 ## Why
 
-TODO
+The Mind view is becoming the character's mind surface (task-820) and supersedes the memory editor. Adding the editor there while the modal still owns it would put one field in two homes - the "second source of truth for a surface" the repo warns against. So the editor moves with the surface.
 
 ## How
 
-TODO
+`mind-view.ts` renders the emotion editor in the memory detail (`#mind-mem-emotions` + a `💾 Save feelings` button). The picker is reused, not copied: `InspectorMemory._attachEmotionSelector` (already exposed) is called on the container, and Save reads `InspectorMemory._emoSelected` and calls `ApiClient.updatePlayerMemory(charName, id, { memory_emotions, emotion })` - the same field the modal used. `memory-view.ts` lost the "😊 Emotions (multiple)" section, the `_attachEmotionSelector` call, and the `memory_emotions` / `emotion` payload lines, so the modal no longer writes emotions (editing a memory's text cannot clobber them). The gen-memory flow keeps its own picker. `ApiClient.updatePlayerMemory` was added to the declared surface in `static/js/types/globals.d.ts`.
 
 ## Steps to verify
 
 1. Open a memory in the Mind panel and set two emotions with intensities.
    - expected: saved via `updatePlayerMemory` to `memory_emotions`; reopening shows the same values.
-   - observed: TODO
+   - observed: VERIFIED 2026-10-13, live on localhost:4444. Selecting a memory renders the picker in `#mind-mem-emotions`; clicking `💾 Save feelings` with `InspectorMemory._emoSelected = [{anger,8}]` called `updatePlayerMemory` with `{ memory_emotions: [{label:"anger",intensity:8}], emotion: {...} }` (no error) and the memory round-tripped with those emotions. (Probe emotions cleared.)
 2. Open the memory-edit modal.
    - expected: it is a viewer; no emotion editor remains there.
-   - observed: TODO
+   - observed: VERIFIED 2026-10-13. `InspectorMemory.showMemoryEditor(name, id)` renders a modal with no `#mem-editor-emotions` element.

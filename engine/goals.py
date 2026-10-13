@@ -34,8 +34,12 @@ from __future__ import annotations
 import re
 
 #: The lifecycle of a goal. ``proposed`` is the default for a goal that is
-#: authored or created but not yet adopted by the character.
-GOAL_STATUSES = ("proposed", "active", "reached", "blocked", "dropped")
+#: authored or created but not yet adopted by the character; ``dormant`` is a
+#: goal the character holds but is not working right now, which is a different
+#: state from "not yet adopted" and is what authored long-term ambitions load
+#: as. ``reached`` is the terminal success; ``dropped`` covers both abandonment
+#: and a missed deadline.
+GOAL_STATUSES = ("proposed", "active", "dormant", "reached", "blocked", "dropped")
 
 DEFAULT_STATUS = "proposed"
 

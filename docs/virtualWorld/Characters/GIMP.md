@@ -18,6 +18,30 @@ GIMP is the goal layer - the authored, living record of what a character wants. 
 
 Goals are set from any variety of need: hand-authored in the editor, or created at runtime by a verb or free action ("set a new goal"). They link and block - by other goals, characters, events or items - so they chain up, and the chain can be played back: what a character achieved, which goals were reached and when, what was blocked, what was dropped, what changed over time.
 
+## The record
+
+| field | means |
+|---|---|
+| `id` | stable key, derived from `what` when not given |
+| `what` | the want, one line |
+| `why` | the drive - GIMP's **M**otivation, and MOSIAC's **M** |
+| `intention` | why pursue *this* goal - GIMP's **I**ntention, and MOSIAC's **I** |
+| `hoped_for` | prose: what they expect to get. Never a grant |
+| `source` | where it came from: `self`, `habit`, `reflection`, `obligation:<id>`, `memory:<id>`, `need:<name>` |
+| `opened_tick` | since when (`null` = authored, predates the log) |
+| `priority` | how much they care against their *other* goals. **1 is highest**, and task-704 selects with it |
+| `visibility` | `known` / `private` / `secret` - the thing they are not saying |
+| `blocks[]` | gates: refs that must be true to proceed, each with a `note` |
+| `achieve[]` | the success predicate: refs that must *become* true to finish, each with a `note` |
+| `achieve_any` | `true` when the successes are alternatives; absent means all |
+| `links[]` | related goals |
+| `deadline` | tick at which an un-reached goal is dropped |
+| `status` | `proposed` / `active` / `dormant` / `reached` / `blocked` / `dropped` |
+
+`status` is the only stored state. `blocked` (derived), `progress` and "is it met" are **projections computed on read** and never persisted - the same rule `blocked_by` already follows.
+
+A ref is `prefix:value` resolved by one registry. `item:<id>` is held, `character:<id>` is existence (weak - use `present:<id>` for co-location), `goal:<id>` is terminal, `flag:<name>` is a stored fact the world sets, `known:<kind>:<id>` is knowledge or access. **Every prefix needs a subject**, and every ref must be a fact the world can flip - not a sentence.
+
 > Area: characters - source: engine/goals.py (planned)
 
 ## How it relates to MOSIAC

@@ -5,7 +5,7 @@ area: characters
 priority: medium
 wiki: "[[Character Pursuits]]"
 related: [task-704, task-800, task-801, task-802, task-803, task-805]
-blocked_by: [task-800, task-802]
+blocked_by: [task-800, task-802, task-702, task-704]
 ---
 
 # task-804: Disposition pick: argmax with a stable tie-break
@@ -14,7 +14,7 @@ blocked_by: [task-800, task-802]
 **Related:** task-704
 
 <!-- deps:start -->
-**Blocked by:** [[task-800-disposition-score-registry-declare-the-decision-score-vocabulary]], [[task-802-disposition-character-weights-from-traits-plus-live-modifiers]]
+**Blocked by:** [[task-800-disposition-score-registry-declare-the-decision-score-vocabulary]], [[task-802-disposition-character-weights-from-traits-plus-live-modifiers]], [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]], [[task-704-mosiac-selector-needs-memory-and-personality-choose-and-bind-plans]]
 **Related:** [[task-704-mosiac-selector-needs-memory-and-personality-choose-and-bind-plans]], [[task-800-disposition-score-registry-declare-the-decision-score-vocabulary]], [[task-801-disposition-action-features-verb-score-contributions]], [[task-802-disposition-character-weights-from-traits-plus-live-modifiers]], [[task-803-disposition-value-gates-traits-and-morality-as-hard-exclusions]], [[task-805-disposition-whispers-render-the-score-registry-as-words-for-the-llm]]
 <!-- deps:end -->
 
@@ -36,11 +36,15 @@ The soak needs a reproducible, explainable pick. Task-799 showed the choice is n
 
 In `engine/disposition.py`: `score_candidate` (declared base + character weight + action feature, per score), `_combine` (a product for `multiply`, so a `gate` score at 0.0 zeroes the whole candidate; a sum otherwise), `_thresholds_met`, and `resolve` dispatching on the decision's `pick`. The social pass's existing seeded draw in `engine/background_social.py` is the reference for the weighted-draw mode and is untouched; this is the generic form. Not yet wired into `engine/background_simulation.py` - the first live caller is the soak/pursuit layer, and until then the resolver is exercised by tests only.
 
+### Why the soak is not the caller (measured 2026-10-13)
+
+`BackgroundSimulation._satisfy_needs` (`engine/background_simulation.py:451-560`+) is a **hand-ordered precedence cascade** of `if` branches (energy -> hunger -> bladder -> hygiene -> sanity -> social -> plan -> preparation), each with its own `served` set and fall-through. It never builds a candidate list and never scores one, so there is nothing to hand to `resolve(decision, candidates)`. The one scored pick in it is `_travel_to_privacy` (`:745`), an argmin of `engine.relief.score_privacy` over **reachable areas** - not over verbs - and it already works and is tested. Dropping `resolve` in would mean rewriting the cascade into candidates, which changes behaviour and belongs to the plan executor ([[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]]) / selector ([[task-704-mosiac-selector-needs-memory-and-personality-choose-and-bind-plans]]) that produce those candidates. So the resolver stays unwired until then; this is a dependency, not a gap to paper over.
+
 ## Steps to verify
 
 1. Run one soak turn, then read the event stream.
    - expected: the chosen action is logged with its top contributing scores.
-   - observed: NOT DONE - the soak wiring (`engine/background_simulation.py`) is deferred; `Outcome.contributions` is the debug read and is unit-tested, but no live turn emits it yet.
+   - observed: NOT DONE - and measured 2026-10-13, the soak is not the right caller: `_satisfy_needs` is a precedence cascade, not a scored candidate list (see "Why the soak is not the caller"). `Outcome.contributions` is the debug read and is unit-tested; the first live caller is the plan executor / selector (task-702 / task-704).
 2. Repeat with the same state and seed.
    - expected: the same action both times.
    - observed: PASS - `test_weighted_draw_is_deterministic_given_a_seed` and `test_ties_break_stably_on_the_key`.
@@ -62,3 +66,7 @@ In `engine/disposition.py`: `score_candidate` (declared base + character weight 
 ## Progress (2026-10-13)
 
 - Rewritten from "argmax" to "pick modes" per task-799's finding (the three decisions resolve three ways). Blocked on task-800 (the registry declares `combine`/`pick`) and task-802 (the weights).
+
+## Progress (2026-10-13, assessment)
+
+- Re-read `_satisfy_needs` to look for a safe live caller. There is none: it is a precedence cascade, and its one scored pick (`_travel_to_privacy`) is an argmin over areas that already works. The resolver's caller is the plan executor (task-702) / selector (task-704); `blocked_by` now names them. No code change: forcing the swap would rewrite the cascade and change behaviour.
