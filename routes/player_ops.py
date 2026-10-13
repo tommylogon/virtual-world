@@ -567,6 +567,12 @@ def handle_update_player(app, name):
         player.skills = data["skills"]
     if "traits" in data:
         player.traits = data["traits"]
+    if "personality_dials" in data:
+        # task-806: the character's decision dials (trait id -> float 0..1),
+        # distinct from the prose personality above. The same normaliser the loader
+        # uses, so a bad value is dropped rather than stored raw.
+        from engine.serialization import normalize_dials
+        player.personality_dials = normalize_dials(data["personality_dials"])
     # task-605: size is a property, not a trait. None means "not authored", which
     # is what lets the engine fall back to a size_* trait. An unrecognised value
     # is rejected rather than stored, so the six tiers stay the whole model.

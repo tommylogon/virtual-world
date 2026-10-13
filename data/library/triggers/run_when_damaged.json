@@ -1,0 +1,106 @@
+{
+  "name": "run_when_damaged",
+  "description": "",
+  "graph": {
+    "nodes": [
+      {
+        "id": "n0",
+        "type": "behavior",
+        "x": 40,
+        "y": 40,
+        "props": {
+          "trigger": "on_tick",
+          "priority": 1,
+          "interval": 6
+        }
+      },
+      {
+        "id": "n1",
+        "type": "condition",
+        "x": 340,
+        "y": 110,
+        "props": {
+          "condition_type": "vital_below",
+          "operator": "lt",
+          "value": "25"
+        }
+      },
+      {
+        "id": "n2",
+        "type": "action",
+        "x": 620,
+        "y": 110,
+        "props": {
+          "action_type": "push_actor",
+          "target": "area_raven_river"
+        }
+      },
+      {
+        "id": "n3",
+        "type": "action",
+        "x": 620,
+        "y": 260,
+        "props": {
+          "action_type": "apply_condition",
+          "condition": "wounded"
+        }
+      },
+      {
+        "id": "n4",
+        "type": "action",
+        "x": 620,
+        "y": 410,
+        "props": {
+          "action_type": "message",
+          "text": "Shadow-Pelt breaks off, blood matting his dark fur, and lopes for the river."
+        }
+      }
+    ],
+    "wires": [
+      {
+        "id": "w0",
+        "from": [
+          "n0",
+          "output"
+        ],
+        "to": [
+          "n1",
+          "input"
+        ]
+      },
+      {
+        "id": "w1",
+        "from": [
+          "n1",
+          "output_yes"
+        ],
+        "to": [
+          "n2",
+          "input"
+        ]
+      },
+      {
+        "id": "w2",
+        "from": [
+          "n2",
+          "output"
+        ],
+        "to": [
+          "n3",
+          "input"
+        ]
+      },
+      {
+        "id": "w3",
+        "from": [
+          "n3",
+          "output"
+        ],
+        "to": [
+          "n4",
+          "input"
+        ]
+      }
+    ]
+  }
+}

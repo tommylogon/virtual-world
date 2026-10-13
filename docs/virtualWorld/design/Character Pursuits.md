@@ -214,9 +214,9 @@ This design refines the existing seams; it does not claim the complete system is
 
 - `engine/schedule.py` is the clock-based HH:MM routine and remains the **Schedule** layer.
 - `engine/activities.py` and `Player.activity` provide ongoing activities such as sleeping and bathing, with state effects, interruption, and visible descriptions.
-- `engine/background_plans.py` currently runs a small set of assigned, actor-bound pursuit templates (`haul`, `gather`, and `rally`) using `Player.plan` for current steps. These are partial background pursuits, not the full LLM or general NPC system.
+- `engine/background_plans.py` currently resumes a small set of assigned pursuit templates (`haul`, `gather`, and `rally`) from the character's own `Player.active_pursuit`, keeping current steps in `Player.plan`. The assignment is **character data, not a graph node** (task-818); these are partial background pursuits, not the full LLM or general NPC system.
 - `engine/pursuit_templates.py` and `data/library/pursuit_templates/` hold the current generic template slice.
-- `engine/serialization.py` promotes older saved actor-bound `type: "plan"` template assignments into the pursuit shape on load, keeping their opaque node ids.
+- `engine/serialization.py` no longer coerces legacy `type: "plan"` / `type: "pursuit"` nodes: the `pursuit` node type is retired (task-818) because a pursuit assignment is character data (`Player.active_pursuit`).
 - The active pursuit is not yet supplied as a separate structured block to LLMs. Pursuit steps do not yet start a persistent Activity such as sleeping, and the specific-bed spatial relation is not yet represented by this slice.
 - The game already has date, time, seasons, weather/forecast, moon phase, sun, and daylight groundwork. Selecting pursuits from those conditions and presenting them to the character are follow-up wiring, not new calendar work.
 
@@ -508,6 +508,67 @@ table*; the ranking layer is *who is deciding* - and it is where an LLM agent an
 NPC use the same context and the same action set but resolve them differently in quality,
 never in capability.
 
+### The disposition spike: do three unrelated decisions fit one registry? (task-799, 2026-10-13)
+
+Three decisions, chosen to be as unlike each other as possible. Each names the scores it
+turns on and the **kind** of each. Two are already in the engine; the third is proposed.
+
+**1. Where to relieve (the privacy utility).** `engine/relief.score_privacy`:
+
+    w.witness * witnesses  -  w.private * is_private  -  w.fixture * has_fixture
+
+- kinds: **utility** (three weighted terms, summed; lower is better), with per-actor
+  **weights** (exported, so task-549 can vary them per species or faction).
+- combine: additive. pick: **argmin** (`background_simulation._travel_to_privacy`).
+- no gate.
+
+**2. The social pass (who approaches, and how).** `engine/background_social.py` calls
+itself "a weighted draw over gated actions".
+
+- kinds: **weight** (each action carries dimension weights, e.g. `{Social, Entertainment}`),
+  **multiplier** (a felt emotion multiplies an existing weight,
+  `w * (1 + (AFFECT_TILT-1) * strength)`; a trait scales it, e.g. `* 0.35` or `* 2.5`),
+  **gate** (an ineligible action is dropped, `weights[name] = 0.0`).
+- combine: multiplicative modifiers on a base weight. pick: **seeded weighted draw** seeded
+  from `(actor, target, tick, action)` - not argmax.
+- asymmetric: the same action scores differently for the two ends (`rel_actor`, `rel_target`).
+
+**3. The wolf deciding to hunt (proposed).**
+
+- kinds: **threshold** (hunger must cross a line before a hunt is on the table),
+  **utility** (expected value: prey size and proximity against effort and the chance of
+  failure), **gate** (a hard exclusion: injured, or the prey would win), **salience** (a
+  pack-mate's kill raises the decision's profile).
+- combine: threshold first, then a utility. pick: hunt / stalk / wait.
+
+**The diff.**
+
+| decision | utility | weight | multiplier | gate | threshold | salience |
+|---|---|---|---|---|---|---|
+| relieve  | yes | per-actor weights |  |  |  |  |
+| social   |  | yes | yes | yes |  |  |
+| hunt     | yes |  |  | yes | yes | yes |
+
+**Union = {utility, weight, multiplier, gate, threshold, salience}.** Every score one
+decision needs is a kind another needs; nothing falls outside the set.
+
+**One registry covers all three - task-800 proceeds.**
+
+**But one *pick* does not.** The three resolve differently:
+
+- relieve: additive utility, **argmin** (deterministic).
+- social: multiplicative weights, **seeded weighted draw**.
+- hunt: **threshold, then utility**.
+
+A registry that declared a single `argmax` (task-804 as written) would fail the social pass:
+a draw is not the maximum. So the registry must declare, per decision, the **combine**
+(add / multiply / threshold) and the **pick** (**argmin / weighted-draw /
+threshold-then-utility**). Task-804 is "the pick modes", not "the pick".
+
+The worry that one linear currency cannot hold a utility, a probability and a drive at once
+is answered: a scalar cannot, but a **registry of kinds** can, because the kind decides how
+the scalar is read, not whether it exists.
+
 ### Supersedes
 
 - "**Choice** is where they resolve - the selector that binds a plan and an action" is
@@ -529,7 +590,7 @@ never in capability.
 
 **Features** — [[background-simulation|Background simulation]] (#28)
 
-**Dev tasks** — [[dev_tasks/todo/characters/bug-549-character-definition-is-blank-on-the-live-player-after-a-scenario-load|bug]], [[dev_tasks/todo/characters/task-799-disposition-spike-do-three-unrelated-soak-decisions-fit-one-score-registry|task]], [[dev_tasks/todo/characters/task-800-disposition-score-registry-declare-the-decision-score-vocabulary|task]], [[dev_tasks/todo/characters/task-802-disposition-character-weights-from-traits-plus-live-modifiers|task]], [[dev_tasks/todo/characters/task-803-disposition-value-gates-traits-and-morality-as-hard-exclusions|task]], [[dev_tasks/todo/characters/task-804-disposition-pick-argmax-with-a-stable-tie-break|task]] … +11 more
+**Dev tasks** — [[dev_tasks/todo/characters/bug-549-character-definition-is-blank-on-the-live-player-after-a-scenario-load|bug]], [[task-799-disposition-spike-do-three-unrelated-soak-decisions-fit-one-score-registry|task]], [[task-800-disposition-score-registry-declare-the-decision-score-vocabulary|task]], [[task-802-disposition-character-weights-from-traits-plus-live-modifiers|task]], [[task-803-disposition-value-gates-traits-and-morality-as-hard-exclusions|task]], [[task-804-disposition-pick-argmax-with-a-stable-tie-break|task]] … +11 more
 
 **Neighbouring notes** — [[MOSIAC Character Profiles]]
 

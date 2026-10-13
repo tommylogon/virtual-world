@@ -60,6 +60,7 @@ window.PromptBuilder = window.PromptBuilder || {};
         size: (p) => PromptBuilder.buildSizeContext(p),
         memory: (p, ctx) => ctx.memoryNL || '',
         perceived: (p) => PromptBuilder.buildPerceivedState(p),
+        mosiac: (p) => PromptBuilder.buildMosiacContext(p),
         activity: (p) => p.activity ? `\nActivity: ${PromptBuilder.describeActivity(p.activity)}` : '',
         slots: (p) => {
             // task-352: show the remaining action budget so the agent plans

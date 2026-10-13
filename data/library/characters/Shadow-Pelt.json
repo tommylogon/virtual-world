@@ -1,61 +1,162 @@
 {
-  "name": "Shadow-Pelt",
-  "personality": "You are Shadow-Pelt, worg pack leader near the Raven River. Intelligent, dangerous, and competitive. You sometimes compete with goblins for food and territory.",
-  "description": "A large dark worg with intelligent eyes and a lean build.",
+  "activity": null,
   "base_description": "Worg pack leader. Dark fur, intelligent eyes, lean and fast.",
-  "unknown_name": "",
-  "stats": {
-    "CHA": 8,
-    "CON": 13,
-    "DEX": 14,
-    "INT": 8,
-    "STR": 13,
-    "WIS": 12
-  },
-  "vitals": {
-    "Bladder": 60,
-    "Energy": 85,
-    "Entertainment": 20,
-    "HP": 90,
-    "Hunger": 65,
-    "Hygiene": 70,
-    "Max_HP": 100,
-    "Sanity": 75,
-    "Social": 30,
-    "Temperature": 37,
-    "Thirst": 50
-  },
-  "decay_rates": {
-    "Bladder": 1,
-    "Energy": 1,
-    "Entertainment": 1,
-    "Hunger": 1,
-    "Hygiene": 1,
-    "Sanity": 1,
-    "Social": 1,
-    "Thirst": 1
-  },
-  "skills": {
-    "Acrobatics": 1,
-    "Athletics": 1,
-    "Perception": 2,
-    "Persuasion": 0,
-    "Stealth": 2,
-    "Survival": 2
-  },
-  "traits": {},
-  "tags": [
-    "male",
-    "animal",
-    "worg"
+  "behaviors": [
+    {
+      "actions": [
+        {
+          "text": "A long, cold howl rolls down the river valley, and the hills answer it.",
+          "type": "message"
+        },
+        {
+          "character_id": "worg",
+          "display_name": "Pack Worg",
+          "type": "spawn_character"
+        }
+      ],
+      "conditions": [
+        {
+          "type": "time_of_day",
+          "value": "night"
+        },
+        {
+          "chance": 35,
+          "type": "random_chance"
+        }
+      ],
+      "interval": 60,
+      "priority": 6,
+      "trigger": "on_tick"
+    },
+    {
+      "actions": [
+        {
+          "text": "Shadow-Pelt ghosts along the treeline, pausing to rake his scent across a trunk.",
+          "type": "message"
+        },
+        {
+          "tag": "patrolling",
+          "type": "add_tag"
+        }
+      ],
+      "conditions": [
+        {
+          "type": "time_of_day",
+          "value": "night"
+        }
+      ],
+      "interval": 30,
+      "priority": 5,
+      "trigger": "on_tick"
+    },
+    {
+      "actions": [
+        {
+          "area": "Raven River",
+          "type": "go"
+        },
+        {
+          "amount": 50,
+          "stat": "Thirst",
+          "type": "adjust_vital"
+        }
+      ],
+      "conditions": [
+        {
+          "operator": "lt",
+          "stat": "Thirst",
+          "type": "vital_below",
+          "value": 40
+        }
+      ],
+      "interval": 8,
+      "priority": 4,
+      "trigger": "on_tick"
+    },
+    {
+      "actions": [
+        {
+          "area": "Deep Forest",
+          "type": "go"
+        },
+        {
+          "activity_type": "hunting",
+          "type": "start_activity"
+        },
+        {
+          "amount": 45,
+          "stat": "Hunger",
+          "type": "adjust_vital"
+        }
+      ],
+      "conditions": [
+        {
+          "operator": "lt",
+          "stat": "Hunger",
+          "type": "vital_below",
+          "value": 40
+        }
+      ],
+      "interval": 10,
+      "priority": 3,
+      "trigger": "on_tick"
+    },
+    {
+      "actions": [
+        {
+          "text": "Shadow-Pelt's head snaps up, a low growl rolling out of him.",
+          "type": "message"
+        },
+        {
+          "amount": 8,
+          "target": "player",
+          "type": "damage"
+        },
+        {
+          "tag": "hostile",
+          "type": "add_tag"
+        }
+      ],
+      "conditions": [
+        {
+          "type": "target_has_tag",
+          "value": [
+            "meat"
+          ]
+        }
+      ],
+      "interval": 1,
+      "priority": 2,
+      "trigger": "on_item_taken"
+    },
+    {
+      "actions": [
+        {
+          "area": "Raven River",
+          "type": "go"
+        },
+        {
+          "condition": "wounded",
+          "type": "apply_condition"
+        },
+        {
+          "text": "Shadow-Pelt breaks off, blood matting his dark fur, and lopes for the river.",
+          "type": "message"
+        }
+      ],
+      "conditions": [
+        {
+          "operator": "lt",
+          "stat": "HP",
+          "type": "vital_below",
+          "value": 25
+        }
+      ],
+      "interval": 6,
+      "priority": 1,
+      "trigger": "on_tick"
+    }
   ],
-  "interest_tags": [
-    "hunting",
-    "trap",
-    "meat",
-    "bone"
-  ],
-  "state": "awake",
   "conditions": {
     "awake": [
       {
@@ -65,22 +166,377 @@
       }
     ]
   },
-  "equipped": {},
-  "activity": null,
   "current_area": "area_raven_river",
-  "inventory": [],
+  "decay_rates": {
+    "Arousal": 1,
+    "Bladder": 0.42,
+    "Energy": 0.104,
+    "Entertainment": 0.03,
+    "Hunger": 0.0034,
+    "Hygiene": 0.02,
+    "Pleasure": 3,
+    "Sanity": 0.005,
+    "Social": 0.02,
+    "Stimulation": 2,
+    "Thirst": 0.025
+  },
+  "description": "A large dark worg with intelligent eyes and a lean build.",
   "emotion": {
     "current": "neutral",
     "description": "",
+    "expression": "neutral",
     "intensity": 0
   },
-  "memories": [],
-  "relationships": {},
-  "behaviors": [],
-  "npc_behavior": "wander",
+  "equipped": {},
+  "interest_tags": [
+    "hunting",
+    "trap",
+    "meat",
+    "bone"
+  ],
+  "inventory": [
+    {
+      "name": "swan_egg",
+      "node_id": "swan_egg",
+      "library_id": "swan_egg",
+      "properties": {
+        "actions": [
+          "examine",
+          "take",
+          "use",
+          "eat",
+          "drop"
+        ],
+        "contents": [],
+        "current_state": "normal",
+        "description": "A swan's egg, a fist of a thing, and it is a feast and a theft at the same time.",
+        "equip_slots": [],
+        "library_id": "swan_egg",
+        "light_level": "dim",
+        "tags": [
+          "food",
+          "food",
+          "egg",
+          "forage"
+        ],
+        "uses": 2,
+        "weight": 0.2,
+        "x": 6147.8,
+        "y": -9606.6
+      }
+    }
+  ],
+  "memories": [
+    {
+      "activation": 0.42,
+      "category": "episodic",
+      "confidence": 0.7,
+      "contradicts": [],
+      "embedding": null,
+      "emotion": {
+        "intensity": 5,
+        "label": "restless"
+      },
+      "emotions": null,
+      "entity_ids": [
+        "area_raven_river"
+      ],
+      "id": "mem_1790027172615_364",
+      "importance": 3,
+      "kind": "area",
+      "last_recalled_tick": null,
+      "location": "Raven River",
+      "memory_emotions": [],
+      "reflection_depth": 0,
+      "reinforcements": 0,
+      "salience_override": 0,
+      "source": "auto",
+      "source_memory_ids": [],
+      "suppressions": [],
+      "tags": [
+        "hunger",
+        "restless"
+      ],
+      "text": "You have been in the Raven River.",
+      "tick": 59,
+      "timestamp": 1791884317.7944913,
+      "type": "reaction",
+      "visits": 135
+    },
+    {
+      "activation": 0.42,
+      "category": "episodic",
+      "confidence": 0.7,
+      "contradicts": [],
+      "entity_ids": [],
+      "id": "cfe05048",
+      "importance": 3,
+      "last_recalled_tick": null,
+      "location": "Raven River",
+      "reflection_depth": 0,
+      "reinforcements": 0,
+      "salience_override": 0,
+      "source": "need_recall",
+      "source_memory_ids": [],
+      "suppressions": [],
+      "tags": [
+        "hunger",
+        "recall"
+      ],
+      "text": "While hunger, you recall: You have been in the Raven River.",
+      "tick": 4,
+      "timestamp": 1790942617.4894614,
+      "type": "observation"
+    },
+    {
+      "activation": 0.775,
+      "category": "episodic",
+      "confidence": 0.7,
+      "contradicts": [],
+      "entity_ids": [
+        "player_Krikka"
+      ],
+      "id": "361e727d",
+      "importance": 5,
+      "last_recalled_tick": null,
+      "location": "Raven River",
+      "reflection_depth": 0,
+      "reinforcements": 0,
+      "salience_override": 0,
+      "source": "background",
+      "source_memory_ids": [],
+      "suppressions": [],
+      "tags": [
+        "threat",
+        "threat:freeze",
+        "fear:Krikka"
+      ],
+      "text": "freezes, refusing to move while Krikka is in sight in Raven River",
+      "tick": 14,
+      "timestamp": 1791282895.212565,
+      "type": "threat"
+    },
+    {
+      "activation": 0.99,
+      "category": "episodic",
+      "confidence": 0.7,
+      "contradicts": [],
+      "entity_ids": [
+        "wash_spot_raven_river_1"
+      ],
+      "id": "23971ef5",
+      "importance": 3,
+      "kind": "item",
+      "last_recalled_tick": null,
+      "location": "Raven River",
+      "reflection_depth": 0,
+      "reinforcements": 0,
+      "salience_override": 0,
+      "source": "observation",
+      "source_memory_ids": [],
+      "suppressions": [],
+      "tags": [
+        "bathing",
+        "fixture",
+        "item",
+        "observed",
+        "wash"
+      ],
+      "text": "You have seen Wash Spot in the Raven River.",
+      "tick": 59,
+      "timestamp": 1791884317.7944913,
+      "type": "observation",
+      "visits": 13
+    },
+    {
+      "activation": 0.99,
+      "category": "episodic",
+      "confidence": 0.7,
+      "contradicts": [],
+      "entity_ids": [
+        "wild_berries"
+      ],
+      "id": "90af1baf",
+      "importance": 3,
+      "kind": "item",
+      "last_recalled_tick": null,
+      "location": "Raven River",
+      "reflection_depth": 0,
+      "reinforcements": 0,
+      "salience_override": 0,
+      "source": "observation",
+      "source_memory_ids": [],
+      "suppressions": [],
+      "tags": [
+        "berry",
+        "food",
+        "forage",
+        "fruit",
+        "item",
+        "observed"
+      ],
+      "text": "You have seen wild_berries in the Raven River.",
+      "tick": 59,
+      "timestamp": 1791884317.7944913,
+      "type": "observation",
+      "visits": 13
+    }
+  ],
+  "name": "Shadow-Pelt",
   "npc_action_interval": 3,
+  "npc_behavior": "wander",
   "npc_state": "idle",
-  "simple_npc": false,
+  "personality": "You are Shadow-Pelt, worg pack leader near the Raven River. Intelligent, dangerous, and competitive. You sometimes compete with goblins for food and territory.",
   "recent_hearing": [],
-  "size": "normal"
+  "relationships": {
+    "Krikka": {
+      "closeness": -1,
+      "interaction_count": 1,
+      "label": "",
+      "last_interaction_tick": 14,
+      "name": "Krikka"
+    }
+  },
+  "simple_npc": false,
+  "size": "normal",
+  "skills": {
+    "Acrobatics": 1,
+    "Athletics": 1,
+    "Perception": 2,
+    "Persuasion": 0,
+    "Stealth": 2,
+    "Survival": 2
+  },
+  "state": "awake",
+  "stats": {
+    "CHA": 8,
+    "CON": 13,
+    "DEX": 14,
+    "INT": 8,
+    "STR": 13,
+    "WIS": 12
+  },
+  "tags": [
+    "male",
+    "animal",
+    "worg",
+    "predator",
+    "pack"
+  ],
+  "traits": {
+    "dark_vision": true
+  },
+  "unknown_name": "",
+  "vitals": {
+    "Arousal": 0,
+    "Bladder": 44,
+    "Energy": 80,
+    "Entertainment": 23,
+    "HP": 90,
+    "Hunger": 39,
+    "Hygiene": 100,
+    "Max_HP": 100,
+    "Pleasure": 0,
+    "Sanity": 73,
+    "Social": 27,
+    "Stimulation": 0,
+    "Temperature": 37,
+    "Thirst": 0
+  },
+  "expressions": {
+    "amused": {
+      "profile": "/static/images/nodes/player_Shadow-Pelt-profile-amused-1791426336547.webp"
+    },
+    "angry": {
+      "profile": "/static/images/nodes/player_Shadow-Pelt-profile-angry-1791426305614.webp"
+    },
+    "bored": {
+      "profile": "/static/images/nodes/player_Shadow-Pelt-profile-bored-1791426324097.webp"
+    },
+    "concerned": {
+      "profile": "/static/images/nodes/player_Shadow-Pelt-profile-concerned-1791426338434.webp"
+    },
+    "confident": {
+      "profile": "/static/images/nodes/player_Shadow-Pelt-profile-confident-1791426339934.webp"
+    },
+    "confused": {
+      "profile": "/static/images/nodes/player_Shadow-Pelt-profile-confused-1791426312045.webp"
+    },
+    "curious": {
+      "profile": "/static/images/nodes/player_Shadow-Pelt-profile-curious-1791426319870.webp"
+    },
+    "defiant": {
+      "profile": "/static/images/nodes/player_Shadow-Pelt-profile-defiant-1791426331865.webp"
+    },
+    "determined": {
+      "profile": "/static/images/nodes/player_Shadow-Pelt-profile-determined-1791426313787.webp"
+    },
+    "disgusted": {
+      "profile": "/static/images/nodes/player_Shadow-Pelt-profile-disgusted-1791426310445.webp"
+    },
+    "embarrassed": {
+      "profile": "/static/images/nodes/player_Shadow-Pelt-profile-embarrassed-1791426321383.webp"
+    },
+    "exhausted": {
+      "profile": "/static/images/nodes/player_Shadow-Pelt-profile-exhausted-1791426315444.webp"
+    },
+    "fearful": {
+      "profile": "/static/images/nodes/player_Shadow-Pelt-profile-fearful-1791426309180.webp"
+    },
+    "frustrated": {
+      "profile": "/static/images/nodes/player_Shadow-Pelt-profile-frustrated-1791426328618.webp"
+    },
+    "happy": {
+      "profile": "/static/images/nodes/player_Shadow-Pelt-profile-happy-1791426303067.webp"
+    },
+    "hopeful": {
+      "profile": "/static/images/nodes/player_Shadow-Pelt-profile-hopeful-1791426327019.webp"
+    },
+    "nervous": {
+      "profile": "/static/images/nodes/player_Shadow-Pelt-profile-nervous-1791426341866.webp"
+    },
+    "neutral": {
+      "profile": "/static/images/nodes/player_Shadow-Pelt-profile-neutral-1791426302132.webp"
+    },
+    "playful": {
+      "profile": "/static/images/nodes/player_Shadow-Pelt-profile-playful-1791426343145.webp"
+    },
+    "proud": {
+      "profile": "/static/images/nodes/player_Shadow-Pelt-profile-proud-1791426322694.webp"
+    },
+    "relieved": {
+      "profile": "/static/images/nodes/player_Shadow-Pelt-profile-relieved-1791426330243.webp"
+    },
+    "sad": {
+      "profile": "/static/images/nodes/player_Shadow-Pelt-profile-sad-1791426304309.webp"
+    },
+    "serious": {
+      "profile": "/static/images/nodes/player_Shadow-Pelt-profile-serious-1791426344633.webp"
+    },
+    "shocked": {
+      "profile": "/static/images/nodes/player_Shadow-Pelt-profile-shocked-1791426335138.webp"
+    },
+    "sleepy": {
+      "profile": "/static/images/nodes/player_Shadow-Pelt-profile-sleepy-1791426333534.webp"
+    },
+    "smug": {
+      "profile": "/static/images/nodes/player_Shadow-Pelt-profile-smug-1791426316652.webp"
+    },
+    "surprised": {
+      "profile": "/static/images/nodes/player_Shadow-Pelt-profile-surprised-1791426307387.webp"
+    },
+    "suspicious": {
+      "profile": "/static/images/nodes/player_Shadow-Pelt-profile-suspicious-1791426325522.webp"
+    },
+    "tearful": {
+      "profile": "/static/images/nodes/player_Shadow-Pelt-profile-tearful-1791426346143.webp"
+    },
+    "thoughtful": {
+      "profile": "/static/images/nodes/player_Shadow-Pelt-profile-thoughtful-1791426347562.webp"
+    },
+    "worried": {
+      "profile": "/static/images/nodes/player_Shadow-Pelt-profile-worried-1791426318180.webp"
+    }
+  },
+  "profile_image": "/static/images/nodes/player_Shadow-Pelt-profile-neutral-1791426302132.webp"
 }

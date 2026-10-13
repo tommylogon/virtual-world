@@ -83,37 +83,94 @@ def _goals_payload(graph, player_manager, player, pname):
     return _goals.with_blockers(stored, resolvers)
 
 
-def _migrate_legacy_pursuit_nodes(graph_data):
-    """Promote task-426 plan assignments to the pursuit graph vocabulary.
+def _mosiac_payload(gs, player):
+    """A character's MOSIAC decision context (task-812) - a projection, not state.
 
-    Older saves stored these actor-bound template assignments as
-    ``type="plan"`` with a ``template`` property. Keep the opaque node id, but
-    load them into the canonical pursuit shape so an existing autosave is not
-    silently skipped by the pursuit runner.
+    Returns None if assembly fails, so a state fetch never 500s on it.
     """
-    if not isinstance(graph_data, dict):
-        return
-    nodes = graph_data.get("nodes")
-    if isinstance(nodes, dict):
-        values = nodes.values()
-    elif isinstance(nodes, list):
-        values = nodes
-    else:
-        return
-    for node in values:
-        if not isinstance(node, dict) or node.get("type") != "plan":
-            continue
-        props = node.get("properties")
-        if not isinstance(props, dict):
-            continue
-        template_id = (props.get("pursuit_template") or props.get("template")
-                       or props.get("schedule_template"))
-        if not template_id:
-            continue
-        node["type"] = "pursuit"
-        props["pursuit_template"] = template_id
-        props.pop("template", None)
-        props.pop("schedule_template", None)
+    try:
+        from engine.mosiac import assemble
+        return assemble(gs, player)
+    except Exception:
+        return None
+
+
+def _trait_behavior(player) -> list:
+    """Prose lines for the LLM prompt: trait `behavior_prompt`s + disposition whispers.
+
+    The prompt builder reads `player.trait_behavior`
+    (`static/js/agent/prompt-builder/character-state.ts`) and nothing wrote it
+    before task-805, so the trait schema-v2 behavior_prompt never reached a prompt.
+    This is the writer: each trait's own prose, then task-805's `disposition.whispers`
+    derived from the same traits, so soak and LLM share one vocabulary.
+    """
+    try:
+        from engine import disposition
+        lines = list(TraitSystem.behavior_prompts(player))
+        lines += list(disposition.whispers(player))
+    except Exception:
+        return []
+    seen: set = set()
+    out: list = []
+    for line in lines:
+        if line and line not in seen:
+            seen.add(line)
+            out.append(line)
+    return out
+
+
+def normalize_dials(raw) -> dict:
+    """Coerce a saved personality-dial map to ``{trait_id: float in 0..1}``.
+
+    An unreadable value is dropped (the dial then reads neutral), never a crash -
+    so an old save with no dials loads to `{}` and an existing character is
+    unchanged (task-806).
+    """
+    out: dict = {}
+    if isinstance(raw, dict):
+        for key, value in raw.items():
+            try:
+                out[str(key)] = max(0.0, min(1.0, float(value)))
+            except (TypeError, ValueError):
+                continue
+    return out
+
+
+def _disposition_payload(player) -> dict:
+    """The character's decision weights, for the Mind panel and debugging.
+
+    Each weight carries its registry `kind` / `base` / range alongside the value
+    (task-800), so the panel can label it without a second lookup; `dials` are the
+    authored inputs (task-806). The whispers ride on `trait_behavior` (task-805).
+    Nothing here is stored - it is a live read, rebuilt on every serialize.
+    """
+    try:
+        from engine import disposition
+        index = disposition.by_name()
+        weights = []
+        for name, value in disposition.character_weights(player).items():
+            score = index.get(name)
+            weights.append({
+                "name": name,
+                "value": value,
+                "kind": score.kind if score else "",
+                "base": score.base if score else 0.0,
+                "lo": score.lo if score else 0.0,
+                "hi": score.hi if score else 0.0,
+            })
+        return {
+            "weights": weights,
+            "dials": dict(getattr(player, "personality_dials", {}) or {}),
+            "gated": sorted(disposition.gated_verbs(player)),
+            # The soak candidate verbs and the score each contributes (task-801),
+            # so the panel can show what the character can choose and what it feeds.
+            "actions": [
+                {"verb": verb, "scores": sorted(disposition.features_of(verb).keys())}
+                for verb in disposition.SOAK_VERBS
+            ],
+        }
+    except Exception:
+        return {"weights": [], "dials": {}, "gated": [], "actions": []}
 
 
 class WorldSerializer:
@@ -191,7 +248,10 @@ class WorldSerializer:
             "grappled_by": self._grappled_by(pname),
             "state_timer": getattr(p, 'state_timer', 0),
             "traits": getattr(p, 'traits', {}),
+            "trait_behavior": _trait_behavior(p),
             "personality": _props.get("personality") or getattr(p, 'personality', ''),
+            "personality_dials": dict(getattr(p, 'personality_dials', {}) or {}),
+            "disposition": _disposition_payload(p),
             "base_description": _props.get("base_description") or getattr(p, 'base_description', ''),
             "description": getattr(p, 'description', '') or _props.get("description", ''),
             "turn_slots": dict(getattr(p, 'turn_slots', {}) or {}),
@@ -252,6 +312,7 @@ class WorldSerializer:
             "goals": _goals_payload(self.graph, self.player_manager, p, pname),
             "goal_log": [dict(e) for e in (getattr(p, 'goal_log', []) or [])],
             "obligations": [dict(o) for o in (getattr(p, 'obligations', []) or [])],
+            "mosiac": _mosiac_payload(self.legacy, p),
             "active_pursuit": getattr(p, 'active_pursuit', None),
             "plan": getattr(p, 'plan', None),
             "completed_pursuits": list(getattr(p, 'completed_pursuits', []) or []),
@@ -303,6 +364,8 @@ class WorldSerializer:
             base.pop("fear_tags", None)
             base.pop("conditions", None)
             base.pop("traits", None)
+            base.pop("personality_dials", None)
+            base.pop("disposition", None)
             base.pop("flags", None)
             base.pop("soak", None)
             base.pop("state_timer", None)
@@ -498,6 +561,7 @@ class WorldSerializer:
                     instances.append({"duration": None, "source": None, "level": 0})
                 instances[0]["duration"] = legacy_timer
         p.traits = pdata.get("traits", {})
+        p.personality_dials = normalize_dials(pdata.get("personality_dials", {}))
         p.tags = list(pdata.get("tags", []))
         p.sync_vitals_with_tags()
         p.flags = dict(pdata.get("flags", {}))
@@ -702,7 +766,6 @@ class WorldSerializer:
         # and keep every retired id resolvable through the alias index.
         aliases = {}
         if "graph" in data:
-            _migrate_legacy_pursuit_nodes(data["graph"])
             report = collapse_character_identity(data["graph"], data.get("players") or {})
             aliases = report.get("aliases") or {}
             self.graph.load_from_dict(data["graph"])

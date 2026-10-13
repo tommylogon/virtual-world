@@ -143,7 +143,7 @@ window.PromptBuilder = window.PromptBuilder || {};
 
         const ctx = { phase: 'reaction', vitalsNL, emotionNL, relationshipNL, memoryNL };
         const context = PromptBuilder.buildContextBlock(player, ctx,
-            ['perceived', 'vitals', 'encumbrance', 'emotion', 'insanity', 'trait', 'size', 'activity', 'grappled', 'slots', 'ghost', 'dead']);
+            ['perceived', 'vitals', 'encumbrance', 'emotion', 'insanity', 'trait', 'size', 'activity', 'grappled', 'slots', 'mosiac', 'ghost', 'dead']);
 
         // End-of-turn memory is OPTIONAL (memories normally come at turn START).
         const wantMemory = includeMemory && config.endOfTurnMemory === true;

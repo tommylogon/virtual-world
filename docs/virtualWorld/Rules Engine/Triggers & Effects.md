@@ -295,7 +295,25 @@ In addition to carried/equipped items, **items dropped in a room** that are `lit
 
 ## NPC Behavior Actions
 
-NPC behaviors (`_execute_behavior_actions()`, line 412) support a subset of effect types:
+NPC behaviours run actions through `_execute_behavior_actions()` (now in
+`engine/triggers/behaviors.py`; moved out of `trigger_system.py`). The executor
+has its own verbs, and **any action type it does not recognise is dispatched to
+this same effect registry** — so a behaviour and an item/way trigger share one
+vocabulary instead of two (task-739):
+
+```python
+else:
+    from engine.effects import HANDLERS
+    if action_type in HANDLERS:          # adjust_vital, apply_condition, start_activity, ...
+        outputs.extend(self._effects.execute(action_type, action, eff_ctx, game_state=game_state))
+```
+
+So a behaviour may use `adjust_vital` (`stat` + `amount`), `apply_condition`
+(`condition`), `start_activity` (`activity_type`), `spawn_character`
+(`character_id`) and every other `EFFECT_TYPES` member, with the registry's key
+names. An action type in neither vocabulary is a quiet no-op.
+
+Executor-owned verbs (a subset, for convenience):
 
 | Action Type | Description |
 |---|---|
@@ -308,6 +326,9 @@ NPC behaviors (`_execute_behavior_actions()`, line 412) support a subset of effe
 | `spawn_item` | Create item in NPC's room |
 | `teleport` | Move player or self to another room |
 | `go` | Move NPC to a room |
+
+The behaviour trigger vocabulary is separate and narrower — see
+[[NPC Behavior System]] before keying a behaviour on a trigger.
 
 ## Trigger Editor (UI)
 

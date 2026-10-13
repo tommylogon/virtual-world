@@ -53,11 +53,20 @@ def _add_item(world, area, name, tags, item_id=None):
     return node
 
 
-def _plan_node(world, label, **props):
-    props.setdefault("label", label)
-    node = Node(id=f"pursuit_{label}", type="pursuit", name=label, properties=props)
-    world.graph.add_node(node)
-    return node
+def _assign(p, label, template, **fields):
+    """Set the character-side pursuit assignment (task-818: character data, no node)."""
+    repeat = bool(fields.pop("repeat", False))
+    reason = fields.pop("reason", f"assigned {label}")
+    p.active_pursuit = {
+        "assignment_id": f"pursuit_{label}",
+        "template_id": template,
+        "label": label,
+        "reason": reason,
+        "bindings": dict(fields),
+        "step_index": 0,
+        "repeat": repeat,
+    }
+    return p.active_pursuit
 
 
 def _carried_ids(world, player_name):
@@ -78,8 +87,7 @@ def test_haul_moves_item_source_to_sink():
     _connect(client, 'Haul Source', 'Haul Sink')
     p = _bg_player(w, 'Hauler', 'Haul Source')
     scrap = _add_item(w, 'Haul Source', 'Scrap', ['scrap'])
-    _plan_node(w, 'scrap_run', pursuit_template='haul', actor='Hauler',
-               source='Haul Source', item='scrap', sink='Haul Sink')
+    _assign(p, 'scrap_run', 'haul', source='Haul Source', item='scrap', sink='Haul Sink')
 
     for _ in range(30):
         w.tick_turn()
@@ -102,8 +110,7 @@ def test_plan_survives_a_need_interruption():
     p = _bg_player(w, 'Resumer', 'R Source')
     scrap = _add_item(w, 'R Source', 'Scrap', ['scrap'])
     _add_item(w, 'R Source', 'ration', ['food'])
-    _plan_node(w, 'resume_run', pursuit_template='haul', actor='Resumer',
-               source='R Source', item='scrap', sink='R Sink')
+    _assign(p, 'resume_run', 'haul', source='R Source', item='scrap', sink='R Sink')
 
     w.tick_turn()                      # start + take
     assert p.plan is not None, "plan not started"
@@ -125,8 +132,7 @@ def test_haul_fails_cleanly_when_the_source_is_empty():
     client.post('/api/build/area', json={'name': 'E Sink'})
     _connect(client, 'E Source', 'E Sink')
     p = _bg_player(w, 'Empty', 'E Source')
-    _plan_node(w, 'empty_run', pursuit_template='haul', actor='Empty',
-               source='E Source', item='scrap', sink='E Sink')
+    _assign(p, 'empty_run', 'haul', source='E Source', item='scrap', sink='E Sink')
 
     for _ in range(5):
         w.tick_turn()
@@ -146,8 +152,7 @@ def test_plan_survives_save_load():
     _connect(client, 'S Source', 'S Sink')
     p = _bg_player(w, 'Saver', 'S Source')
     _add_item(w, 'S Source', 'Scrap', ['scrap'])
-    _plan_node(w, 'save_run', pursuit_template='haul', actor='Saver',
-               source='S Source', item='scrap', sink='S Sink')
+    _assign(p, 'save_run', 'haul', source='S Source', item='scrap', sink='S Sink')
 
     w.tick_turn()
     assert p.plan is not None
@@ -167,8 +172,7 @@ def test_gather_fetches_tagged_resource_home():
     wild.properties.setdefault('tags', []).append('wild')
     p = _bg_player(w, 'Gatherer', 'G Home')
     herb = _add_item(w, 'G Wild', 'Herb', ['herb'])
-    _plan_node(w, 'gather_run', pursuit_template='gather', actor='Gatherer',
-               source_tags=['wild'], item='herb', home='G Home')
+    _assign(p, 'gather_run', 'gather', source_tags=['wild'], item='herb', home='G Home')
 
     for _ in range(40):
         w.tick_turn()
@@ -188,8 +192,8 @@ def test_group_rally_converges_participants():
     names = ['Member0', 'Member1', 'Member2']
     for name, area in zip(names, ('Rally A', 'Rally B', 'Rally C')):
         _bg_player(w, name, area)
-    _plan_node(w, 'rally_test', pursuit_template='rally', participants=names,
-               rally_area='Rally Hub')
+    for name in names:
+        _assign(w.players[name], 'rally_test', 'rally', rally_area='Rally Hub')
 
     for _ in range(40):
         w.tick_turn()
@@ -208,8 +212,8 @@ def test_group_rally_degrades_when_one_cannot_reach():
     names = ['Reach0', 'Reach1', 'CutOff']
     for name, area in zip(names, ('D A', 'D B', 'D Cut')):
         _bg_player(w, name, area)
-    _plan_node(w, 'rally_deg', pursuit_template='rally', participants=names,
-               rally_area='D Hub')
+    for name in names:
+        _assign(w.players[name], 'rally_deg', 'rally', rally_area='D Hub')
 
     for _ in range(40):
         w.tick_turn()
@@ -218,20 +222,23 @@ def test_group_rally_degrades_when_one_cannot_reach():
     assert w.players['CutOff'].current_area == 'D Cut', "unreachable member should not arrive"
 
 
-def test_plan_selected_by_role_tag():
-    app, w, client = _app()
-    client.post('/api/build/area', json={'name': 'Role Source'})
-    client.post('/api/build/area', json={'name': 'Role Sink'})
-    _connect(client, 'Role Source', 'Role Sink')
-    p = _bg_player(w, 'Tinker', 'Role Source')
-    p.tags = list(p.tags) + ['tinkerer']
-    scrap = _add_item(w, 'Role Source', 'Scrap', ['scrap'])
-    # No actor: any character tagged 'tinkerer' claims the plan.
-    _plan_node(w, 'role_run', pursuit_template='haul', role='tinkerer',
-               source='Role Source', item='scrap', sink='Role Sink')
+def test_a_pursuit_node_is_no_longer_selected():
+    """task-818: the runner resumes character data, not graph nodes.
 
-    for _ in range(30):
+    A leftover ``pursuit``-typed node must start nothing - the node type is
+    retired, so selection reads ``Player.active_pursuit`` alone.
+    """
+    app, w, client = _app()
+    client.post('/api/build/area', json={'name': 'N Source'})
+    p = _bg_player(w, 'NoOp', 'N Source')
+    _add_item(w, 'N Source', 'Scrap', ['scrap'])
+    stale = Node(id='pursuit_stale', type='pursuit', name='stale',
+                 properties={'pursuit_template': 'haul', 'actor': 'NoOp',
+                             'source': 'N Source', 'item': 'scrap'})
+    w.graph.add_node(stale)
+
+    for _ in range(5):
         w.tick_turn()
-        if p.plan is None:
-            break
-    assert _in_area(w, scrap.id, 'Role Sink'), "role-selected plan did not run"
+
+    assert p.plan is None, "a pursuit node must no longer be selected"
+    assert p.active_pursuit is None

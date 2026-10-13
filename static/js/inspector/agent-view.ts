@@ -815,77 +815,74 @@ type AVWin = { [key: string]: any };
      * @returns {string} HTML
      */
     /**
-     * One editable goal row in the character editor (task-808). Fields save on
-     * blur, so adding or editing a goal persists to the character's record.
+     * One editable personality-dial row (task-806). A dial is a 0..1 weight; 0.5 is
+     * neutral, so moving it lifts or lowers the matching decision weight the soak
+     * reads (engine/disposition). Distinct from the prose personality above.
      */
-    AV._goalRowHtml = function(escName: string, g: any) {
+    AV._dialRowHtml = function(escName: string, traitId: string, value: any) {
         const inputStyle = 'font-size:11px;background:var(--bg-input);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 6px;';
-        const statuses = ['proposed', 'active', 'reached', 'blocked', 'dropped'];
-        const val = (s: any) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-        return `<div class="goal-row" style="border:1px solid var(--border);border-radius:6px;padding:6px;margin-bottom:6px;">
-            <div style="display:flex;gap:6px;align-items:center;">
-                <input class="goal-what" value="${val(g.what)}" placeholder="what they want" style="${inputStyle}flex:1;" onblur="InspectorAgentView._saveGoals('${escName}')">
-                <select class="goal-status" style="font-size:10px;background:var(--bg-input);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:1px 4px;" onchange="InspectorAgentView._saveGoals('${escName}')">
-                    ${statuses.map((s: string) => `<option value="${s}"${s === (g.status || 'proposed') ? ' selected' : ''}>${s}</option>`).join('')}
-                </select>
-                <span onclick="InspectorAgentView._deleteGoal('${escName}', this)" style="cursor:pointer;color:var(--red);font-size:12px;padding:2px;" title="remove goal">✕</span>
-            </div>
-            <input class="goal-motivation" value="${val(g.motivation)}" placeholder="motivation (why at all)" style="${inputStyle}width:100%;margin-top:4px;" onblur="InspectorAgentView._saveGoals('${escName}')">
-            <input class="goal-intention" value="${val(g.intention)}" placeholder="intention (why this one)" style="${inputStyle}width:100%;margin-top:4px;" onblur="InspectorAgentView._saveGoals('${escName}')">
-            <input class="goal-blocks" value="${val((g.blocks || []).join(', '))}" placeholder="blocked by (goal id or item:node_id, comma-separated)" style="${inputStyle}width:100%;margin-top:4px;" onblur="InspectorAgentView._saveGoals('${escName}')">
+        const v = (value === null || value === undefined || value === '') ? '0.5' : String(value);
+        const escAttr = (s: any) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        return `<div class="dial-row" style="display:flex;gap:6px;align-items:center;margin-bottom:4px;">
+            <input class="dial-trait" value="${escAttr(traitId)}" placeholder="trait id (e.g. cowardly)" style="${inputStyle}flex:1;" onblur="InspectorAgentView._saveDials('${escName}')">
+            <input class="dial-value" type="number" min="0" max="1" step="0.05" value="${escAttr(v)}" style="${inputStyle}width:70px;" onblur="InspectorAgentView._saveDials('${escName}')">
+            <span onclick="InspectorAgentView._deleteDial('${escName}', this)" style="cursor:pointer;color:var(--red);font-size:12px;padding:2px;" title="remove dial">✕</span>
         </div>`;
     };
 
-    AV._renderGoalsSection = function(player: any, escName: string) {
-        const goals = Array.isArray(player.goals) ? player.goals : [];
-        const listId = 'goal-list-' + escName.replace(/\s+/g, '_');
-        const body = goals.length
-            ? goals.map((g: any) => AV._goalRowHtml(escName, g)).join('')
-            : '<div class="goal-empty" style="font-size:10px;color:var(--text-muted);margin-bottom:4px;">no goals</div>';
+    AV._renderDialsSection = function(player: any, escName: string) {
+        const dials = (player.personality_dials && typeof player.personality_dials === 'object') ? player.personality_dials : {};
+        const entries = Object.entries(dials);
+        const listId = 'dial-list-' + escName.replace(/\s+/g, '_');
+        const body = entries.length
+            ? entries.map(([k, v]) => AV._dialRowHtml(escName, k, v)).join('')
+            : '<div class="dial-empty" style="font-size:10px;color:var(--text-muted);margin-bottom:4px;">no dials</div>';
         return `<div class="inspector-section">
-            <h3>🎯 Goals</h3>
+            <h3>🎚 Personality dials</h3>
+            <div class="section-hint" style="font-size:10px;color:var(--text-muted);margin-bottom:6px;">A dial is a 0..1 weight; 0.5 is neutral. Moving it lifts or lowers the matching decision weight the soak reads (engine/disposition). Use a trait id from the Traits list above.</div>
             <div id="${listId}">${body}</div>
-            <button class="btn btn-sm" onclick="InspectorAgentView._addGoal('${escName}')">➕ Add goal</button>
+            <button class="btn btn-sm" onclick="InspectorAgentView._addDial('${escName}')">➕ Add dial</button>
         </div>`;
     };
 
-    AV._goalList = function(charName: string) {
-        return document.getElementById('goal-list-' + charName.replace(/\s+/g, '_'));
+    AV._dialList = function(charName: string) {
+        return document.getElementById('dial-list-' + charName.replace(/\s+/g, '_'));
     };
 
-    AV._collectGoals = function(charName: string) {
-        const list = AV._goalList(charName);
-        if (!list) return [];
-        return Array.from(list.querySelectorAll('.goal-row')).map((row: any) => ({
-            what: (row.querySelector('.goal-what')?.value || '').trim(),
-            status: row.querySelector('.goal-status')?.value || 'proposed',
-            motivation: (row.querySelector('.goal-motivation')?.value || '').trim(),
-            intention: (row.querySelector('.goal-intention')?.value || '').trim(),
-            blocks: (row.querySelector('.goal-blocks')?.value || '').trim(),
-        })).filter((g: any) => g.what);
+    AV._collectDials = function(charName: string) {
+        const list = AV._dialList(charName);
+        const out: Record<string, number> = {};
+        if (!list) return out;
+        list.querySelectorAll('.dial-row').forEach((row: any) => {
+            const trait = (row.querySelector('.dial-trait')?.value || '').trim().toLowerCase();
+            if (!trait) return;
+            const num = Number(row.querySelector('.dial-value')?.value);
+            out[trait] = Number.isFinite(num) ? Math.max(0, Math.min(1, num)) : 0.5;
+        });
+        return out;
     };
 
-    AV._saveGoals = async function(charName: string) {
-        const goals = AV._collectGoals(charName);
-        await ApiClient.updateCharacter(charName, { goals });
+    AV._saveDials = async function(charName: string) {
+        const personality_dials = AV._collectDials(charName);
+        await ApiClient.updateCharacter(charName, { personality_dials });
         await worldState.fetch();
     };
 
-    AV._addGoal = function(charName: string) {
-        const list = AV._goalList(charName);
+    AV._addDial = function(charName: string) {
+        const list = AV._dialList(charName);
         if (!list) return;
-        const empty = list.querySelector('.goal-empty');
+        const empty = list.querySelector('.dial-empty');
         if (empty) empty.remove();
-        list.insertAdjacentHTML('beforeend', AV._goalRowHtml(charName, {}));
-        const rows = list.querySelectorAll('.goal-row');
+        list.insertAdjacentHTML('beforeend', AV._dialRowHtml(charName, '', '0.5'));
+        const rows = list.querySelectorAll('.dial-row');
         const last = rows[rows.length - 1] as HTMLElement | undefined;
         (last?.querySelector('input') as HTMLElement | null)?.focus();
     };
 
-    AV._deleteGoal = function(charName: string, el: HTMLElement) {
-        const row = el.closest('.goal-row');
+    AV._deleteDial = function(charName: string, el: HTMLElement) {
+        const row = el.closest('.dial-row');
         if (row) row.remove();
-        AV._saveGoals(charName);
+        AV._saveDials(charName);
     };
 
     AV._renderBioTab = function(agentName: string, player: any, charState: any, area: any, escName: string, isAuto: boolean, color: string) {
@@ -906,9 +903,9 @@ type AVWin = { [key: string]: any };
             <div class="field"><textarea id="inspector-personality" rows="3" style="font-size:11px;" onblur="InspectorAgentView._savePersonality('${escName}')">${player.personality || ''}</textarea></div>
         </div>`;
 
-        // Goals (GIMP, task-808): the character's own wants, authored here and
-        // read by MOSIAC (task-812) and the Mind panel (task-714).
-        html += AV._renderGoalsSection(player, escName);
+        // Personality dials (task-806): the numeric decision weights beside the
+        // prose. A dial is authored here and read by the disposition (task-802).
+        html += AV._renderDialsSection(player, escName);
 
         // Appearance
         html += `<div class="inspector-section">

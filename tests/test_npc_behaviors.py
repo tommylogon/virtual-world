@@ -140,3 +140,29 @@ def test_go_goto_blocked_by_locked_door():
     )
     assert rat.current_area == "Kitchen"
     assert "cannot" in msg.lower()
+
+
+def test_behaviour_adjust_vital_runs_through_the_effect_registry():
+    """task-739: a behaviour action outside the executor's own chain falls back to
+    the engine's effect registry, so `adjust_vital` actually moves the vital
+    instead of silently doing nothing."""
+    world = VirtualWorld()
+    wolf = Player("wolf")
+    wolf.simple_npc = True
+    wolf.current_area = "Den"
+    wolf.vitals["Hunger"] = 10
+    wolf.behaviors = [
+        {
+            "trigger": "on_tick",
+            "priority": 5,
+            "interval": 1,
+            "conditions": {},
+            "actions": [{"type": "adjust_vital", "stat": "Hunger", "amount": 45}],
+        }
+    ]
+    world.players["wolf"] = wolf
+    world.time_ticks = 1
+
+    world.npc_behaviors.process_simple_npcs("on_tick")
+
+    assert wolf.vitals["Hunger"] > 10, "adjust_vital must run via the effect registry"

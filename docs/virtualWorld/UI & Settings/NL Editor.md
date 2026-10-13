@@ -109,6 +109,12 @@ unknown item actions, non-empty bulk selector, lowercase-slug library ids,
 non-writable registries, and a **mature gate** on `mature` entries. Severity:
 `error` blocks a strict Apply, `warning` does not.
 
+A staged character `behaviors` patch is checked against the behaviour runner's
+vocabulary (`_behaviour_issues`): a `trigger` outside `NPC_BEHAVIOUR_TRIGGERS`, an
+unknown action type, or a known action with the wrong keys is an `error` — so the
+editor cannot stage a behaviour that reads the node-trigger vocabulary
+(`on_take`, `on_night`) or the wrong effect keys and would never fire (task-739).
+
 ### Selective apply
 
 Every tray row has a checkbox; `Apply Selected (n)` calls `index.js:134`

@@ -839,7 +839,14 @@ class TakeDropActionsMixin:
         if player_manager.active_player:
             for pname, p in list(player_manager.players.items()):
                 if p.simple_npc and p.state != "dead":
-                    self.world.process_simple_npcs("on_item_taken", {"target_item": item_name})
+                    # Pass the item's node, not just its name, so a behaviour
+                    # condition can inspect it — `target_has_tag` reads
+                    # `context["target_node"]`, which was never set here, so a
+                    # "defend the kill" behaviour could not match (task-739).
+                    self.world.process_simple_npcs(
+                        "on_item_taken",
+                        {"target_item": item_name, "target_node": item_node},
+                    )
 
         return result
 

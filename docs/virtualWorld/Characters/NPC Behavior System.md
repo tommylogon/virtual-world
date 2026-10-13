@@ -75,21 +75,28 @@ for behavior in sorted_behaviors:
     b_trigger = behavior.get("trigger")
     if b_trigger and b_trigger != trigger_type:
         continue
-    # Check interval
-    interval = behavior.get("interval", 1)
-    if interval > 1 and self.gs.time_ticks % interval != 0:
+    # Check interval (authored in game MINUTES; see below)
+    interval_ticks = _interval_ticks(self.gs, behavior.get("interval", 1) or 1)
+    if interval_ticks > 1 and self.gs.time_ticks % interval_ticks != 0:
         continue
     # Check conditions
     conditions = behavior.get("conditions", {})
-    if conditions and not self.triggers._evaluate_conditions(conditions, context):
+    if conditions and not self.triggers._evaluate_conditions(
+        conditions, context, game_state=self.gs
+    ):
         continue
     # Execute actions
     actions = behavior.get("actions", [])
     if actions:
-        outputs = self.triggers._execute_behavior_actions(pname, actions)
+        outputs = self.triggers._execute_behavior_actions(
+            pname, actions, game_state=self.gs
+        )
 ```
 
-(`npc_behaviors.py:58-75`)
+(`npc_behaviors.py` `process_simple_npcs`) — note both the condition evaluator and
+the action executor are passed `game_state=self.gs`; without it, scripted actions
+silently no-op. A matched behaviour that runs its actions sets `acted = True`, so
+the legacy `npc_behavior` fallback does not also fire that tick.
 
 ### Legacy NPC Behaviors
 
@@ -141,21 +148,23 @@ Default interval: 3 game minutes.
 
 Each behavior in the `behaviors[]` array is a dict:
 
-```python
+```json
 {
-    "priority": 10,           # Higher = checked first
-    "trigger": "on_tick",     # Trigger type (on_tick, on_combat, etc.)
-    "interval": 3,            # Act every N ticks (1 = every tick)
-    "conditions": {           # Conditions dict (evaluated by trigger system)
-        "state_equals": "idle",
-        "has_property": {"key": "low_hp", "value": True}
-    },
-    "actions": [              # List of action dicts
-        {"type": "message", "params": {"text": "The guard scans the area."}},
-        {"type": "move", "params": {"direction": "north"}}
+    "priority": 4,             // higher = checked first
+    "trigger": "on_tick",      // one of NPC_BEHAVIOUR_TRIGGERS
+    "interval": 8,             // authored in game MINUTES (1 = every tick)
+    "conditions": [            // a leaf, a list (AND), or an operator tree
+        {"type": "vital_below", "stat": "Thirst", "value": 40}
+    ],
+    "actions": [               // flat dicts: "type" + the keys that type reads
+        {"type": "go", "area": "Raven River"},
+        {"type": "adjust_vital", "stat": "Thirst", "amount": 50}
     ]
 }
 ```
+
+Actions are flat — no `params` wrapper — and there is no `move` action; movement
+is `go`. The trigger-graph editor round-trips exactly this shape.
 
 ### Visual authoring (task-226)
 
@@ -168,13 +177,45 @@ character's `behaviors[]` byte-identically.
 
 ### Trigger Types
 
-Defined in the trigger system. Common NPC triggers include:
-- `on_tick`: Fired every tick (interval-controlled)
-- `on_combat`: Fired when combat occurs nearby
+A behaviour's `trigger` must be one the runner is actually called with. There
+are exactly five, and they are **not** the node/item `TRIGGER_TYPES` — a
+behaviour keyed on one of those (`on_take`, `on_night`, `on_enter`) is fired by
+nobody and is silently dead. The valid set is declared once as
+`NPC_BEHAVIOUR_TRIGGERS` in `engine/nl_editor_validation.py`:
+
+- `on_tick`: every tick, interval-controlled (`tick_manager.py`)
+- `on_item_taken`: when an item is taken from the area (`take_drop_actions.py`)
+- `on_player_enter_area`: when a player enters the NPC's area (`movement.py`)
+- `on_player_leave_area`: when a player leaves the NPC's area (`movement.py`)
+- `on_speech_heard`: when speech is broadcast in the NPC's area (`speech.py`)
+
+`on_combat` and `on_player_examine` are **not** wired: `process_npcs_on_combat()`
+is still a stub, and no examine path calls the runner. Do not author a behaviour
+on them.
 
 ### Available Actions
 
-Actions are executed by the trigger system's `_execute_behavior_actions()` (`trigger_system.py:438-632`). Standard action types:
+Actions are executed by `_execute_behavior_actions()` (now in
+`engine/triggers/behaviors.py`; it was moved out of `trigger_system.py`). The
+executor has its own vocabulary of verbs, and **anything it does not recognise
+falls through to the engine's effect registry** (`engine/effects.py` `HANDLERS`)
+— the same registry an item or way trigger runs. So a behaviour and a trigger
+share one vocabulary instead of two:
+
+```python
+else:
+    # Not a behaviour-chain action: dispatch to the effect registry.
+    from engine.effects import HANDLERS
+    if action_type in HANDLERS:
+        outputs.extend(self._effects.execute(action_type, action, eff_ctx, game_state=game_state))
+```
+
+This is what makes `adjust_vital`, `apply_condition`, `start_activity`,
+`spawn_character` and `push_actor` work on a behaviour exactly as they work on a
+trigger (task-739). An action type in neither vocabulary is a quiet no-op, so a
+typo does not raise.
+
+Executor-owned action types:
 
 | Action | Fields | Description |
 |--------|--------|-------------|
@@ -188,6 +229,15 @@ Actions are executed by the trigger system's `_execute_behavior_actions()` (`tri
 | `go` | `mode`, `area`/`room`, `areas` | Move one step via ways — see modes below |
 | `teleport` | `area` | Instantly move to any area (no pathfinding) |
 
+Plus the rest of the executor chain (`attack`, `take`/`drop`/`equip`/`use`,
+`hide_in`/`unhide`, `set_emotion`, `add_memory`, `set_flag`, `add_tag`/`remove_tag`,
+`rest`/`sleep`/`meditate`, and so on) and, via the fallback, every registered
+effect type: `adjust_vital` (`stat` + `amount`), `apply_condition` (`condition`),
+`start_activity` (`activity_type`), `spawn_character` (`character_id`),
+`adjust_uses`, `set_description`, and the rest of `EFFECT_TYPES`. The effect's key
+names are the registry's, not the behaviour chain's — `adjust_vital` reads `stat`
+and `amount`, **not** `vital`/`delta`.
+
 #### `go` movement modes (task-8)
 
 | Mode | Fields | Behavior |
@@ -200,7 +250,25 @@ Patrol state persists on the player: `patrol_route[]`, `patrol_index`. Use `tele
 
 ### Condition Types
 
-Conditions are evaluated by `_evaluate_conditions()` (`trigger_system.py:337-431`). Supports logical operators and leaf types:
+Conditions are evaluated by `_evaluate_conditions()` (now in
+`engine/triggers/condition_tree.py`; the same leaf implementation item triggers
+use). The condition keys are read out of `context`, which the runner builds and a
+caller can extend with `extra_context`:
+
+```python
+context = {
+    "npc": player,                      # NPC Player object
+    "npc_state": player.npc_state,       # e.g. "idle", "scavenging"
+    "npc_area": player.current_area,     # Area name
+    "state_enter_tick": ...,             # Tick when npc_state was entered
+    "current_tick": ...,                 # Current game tick
+    "player": player_obj,                # Active human player object
+    "player_area": player_area,          # Active human player's area
+}
+```
+
+A behaviour's `conditions` may be a plain dict (single leaf), a list (implicit
+AND), or an `operator` tree:
 
 **Logical operators** (`conditions.operator`):
 - `and` — all sub-conditions must pass
@@ -214,34 +282,45 @@ Conditions are evaluated by `_evaluate_conditions()` (`trigger_system.py:337-431
 | `eq` | `target`, `value` | `context[target] == value` — checks context keys like `npc_state` |
 | `has_item` | `item`, `target` | Checks if target has item in inventory |
 | `in_area` | `area`, `target` | `context[npc_area] == area` |
-| `random_chance` | `chance` (0.0–1.0) or `value` (0–100) | Probabilistic gate |
+| `random_chance` | `chance` (0.0–1.0) or `value` (0–100) | Probabilistic gate; a `chance` above 1 is treated as a percentage |
 | `tick_since_state` | `min_ticks` | `(current_tick - state_enter_tick) >= min_ticks` |
 | `proximity` | `max_areas` | Checks if player is within N areas of NPC (0 = same room) |
+| `vital_below` / `vital_above` / `vital` | `stat` (default `HP`), `value` | Compare the NPC's own vital against a threshold |
+| `time_of_day` | `value` (`day`/`night`/…) | Passes when the world clock is in that phase |
+| `target_has_tag` | `tag`/`value` (list) | Matches the tags of `context["target_node"]` — the item just taken, or the used-on target |
 
-The context dict available to conditions:
-```python
-context = {
-    "npc": player,                      # NPC Player object
-    "npc_state": player.npc_state,       # e.g. "idle", "scavenging"
-    "npc_area": player.current_area,     # Area name
-    "state_enter_tick": ...,             # Tick when npc_state was entered
-    "current_tick": ...,                 # Current game tick
-    "player": player_obj,                # Active human player object
-    "player_area": player_area,          # Active human player's area
+`vital_below` reads `stat`, **not** `vital`; omitting it silently checks `HP`.
+`target_has_tag` reads `context["target_node"]`, which is only set when the
+caller passes it — `on_item_taken` passes the taken item's node (task-739), and
+`on_use_on`-style paths resolve the used-on target before evaluation. On a
+trigger where no target node is in play the condition cannot match.
+
+Worked example — Shadow-Pelt drinks when his thirst drops, then hunts when he is
+hungry:
+
+```json
+{
+  "trigger": "on_tick", "priority": 4, "interval": 8,
+  "conditions": [{"type": "vital_below", "stat": "Thirst", "value": 40}],
+  "actions": [
+    {"type": "go", "area": "Raven River"},
+    {"type": "adjust_vital", "stat": "Thirst", "amount": 50}
+  ]
 }
 ```
 
-### Trigger Types for Behaviors
+### Firing the runner
 
-Behaviors can be triggered by different events, passed via `process_simple_npcs(trigger_type)`:
+`process_simple_npcs(trigger_type, extra_context)` is the only entry point; the
+`trigger_type` it is passed is what a behaviour's `trigger` is matched against.
+The valid set is the five listed under [Trigger Types](#trigger-types) above.
+The runner also applies the pack signal (task-354) before the behaviour loop and
+skips dead, sleeping, unconscious or busy NPCs.
 
-| Trigger | When fired | Source |
-|---------|-----------|--------|
-| `on_tick` | Every tick (interval-controlled) | `tick_manager.py` |
-| `on_player_enter_area` | When a player enters the NPC's area | `movement.py` |
-| `on_player_leave_area` | When a player leaves the NPC's area | `movement.py` |
-| `on_item_taken` | When an item is taken from the area | `item_actions.py` |
-| `on_player_examine` | When a player examines something in the area | `narration.py` |
+The caller may pass `extra_context`, merged into the condition context:
+`on_speech_heard` adds `spoken_text` and `speaker`; `on_item_taken` adds
+`target_item` and `target_node` (the item's graph node, so `target_has_tag` can
+inspect it); and the movement triggers add `player_area`.
 
 ## npc_state State Machine
 
@@ -445,6 +524,7 @@ This is separate from the main `player.memories[]` list, which stores narrative 
 - [[dev_tasks/review/characters/task-38-npc_behavior_go_command|task-38: NPC behavior go command]]
 - [[bug_8-max-steps-counts-characters-not-turns|bug-8: Max steps counts characters not turns]]
 - [[dev_tasks/todo/characters/task-94-closeness_as_behavioral_gate|task-94: Closeness as behavioral gate]]
+- [[dev_tasks/review/graph/task-739-nl-editor-full-trigger-behaviour-authoring-conditions-effects-compiled-and-validated|task-739: one behaviour/effect vocabulary, validated]]
 
 <!-- changelog:start -->
 ## Changelog
@@ -465,14 +545,18 @@ This is separate from the main `player.memories[]` list, which stores narrative 
 - **`engine/npc_behaviors.py`** — `NPCBehaviorSystem`, `process_simple_npcs()`, `hunt()`, `slasher_hunt()`
 - **`engine/background_simulation.py`** — deterministic survival loop for background NPCs
 - **`engine/background_social.py`** — co-present social pairing pass per area
-- **`player.py:105-111`** — `simple_npc`, `npc_behavior`, `npc_action_interval`, `npc_state` fields
-- **`tick_manager.py:317-318`** — calls `process_simple_npcs()` each tick
-- **`trigger_system.py`** — `_evaluate_conditions()` and `_execute_behavior_actions()`
+- **`engine/triggers/behaviors.py`** — `_execute_behavior_actions()` (the action executor and effect-registry fallback; moved out of `trigger_system.py`)
+- **`engine/triggers/condition_tree.py`** — `_evaluate_conditions()`
+- **`engine/effects.py`** — `HANDLERS`, the effect registry a behaviour action falls back to
+- **`engine/nl_editor_validation.py`** — `NPC_BEHAVIOUR_TRIGGERS`, `_behaviour_issues` (rejects dead behaviour vocabulary at the Apply gate)
+- **`player.py`** — `simple_npc`, `npc_behavior`, `npc_action_interval`, `npc_state` fields
+- **`tick_manager.py`** — calls `process_simple_npcs()` each tick
 - **`movement.py`** — `on_player_enter_area` / `on_player_leave_area` triggers, `move_to_room()`
-- **`item_actions.py`** — `on_item_taken` trigger
-- **`narration.py`** — `on_player_examine` trigger
-- **`combat.py`** — `process_npcs_on_combat()` stub
+- **`engine/items/take_drop_actions.py`** — `on_item_taken` trigger (passes `target_node`, task-739)
+- **`engine/speech.py`** — `on_speech_heard` trigger
+- **`combat.py`** — `process_npcs_on_combat()` stub (no `on_combat` behaviour trigger is wired)
 - **`static/js/shared/trigger-graph.js`** — behavior graph editor (visual authoring)
+- **`static/js/inspector/behaviors-view.js`** — Advanced → Behaviors form
 
 <!-- connected:start -->
 ## Connected

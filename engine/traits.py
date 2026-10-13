@@ -795,6 +795,22 @@ TEMPERATURE_BANDS: Dict[str, Dict[str, float]] = {
 }
 
 
+#: Neutral dial value: an absent or unauthored dial reads this, so a character
+#: with no personality authored scores exactly average and does not move (task-806).
+DIAL_NEUTRAL = 0.5
+
+#: Trait ids that are decision **dials** - a continuous 0..1 weight the disposition
+#: reads, authored on `Player.personality_dials` (a key distinct from the prose
+#: `personality` string). A trait can be a capability, a dial, or both: this is the
+#: dial set, and the capability set is `Player.traits` itself.
+DIAL_TRAITS = frozenset({
+    "cowardly", "hostile", "patient", "impatient", "curious", "adventurous",
+    "homebody", "wanderlust", "loner", "extrovert", "chatty", "glutton",
+    "cleanfreak", "exhibitionist", "prudish", "apathetic", "open_minded",
+    "iron_will", "attention_seeker", "jittery", "paranoid",
+})
+
+
 class TraitSystem:
     """Resolves trait definitions into engine-readable effect values.
 
@@ -803,7 +819,7 @@ class TraitSystem:
         ts = TraitSystem()
         ts.has_effect(player, "dark_vision")          # True/False
         ts.get_effects(player, "action_cost_mod")     # [{"energy": -1}]
-        ts.get_vital_multipliers(player)               # {"Hunger": 2.0, ...}
+        ts.get_vital_multipliers()                     # {"Hunger": 2.0, ...}
         ts.process_tick_effects(player, tick, area_node)  # log entries
     """
 
@@ -811,6 +827,53 @@ class TraitSystem:
     def get_definition(trait_id: str) -> Optional[Dict[str, Any]]:
         """Return the trait definition dict, or None if unknown."""
         return TRAIT_DEFINITIONS.get(trait_id)
+
+    @staticmethod
+    def dial_value(player, trait_id: str) -> float:
+        """The trait's decision-dial value in [0,1], defaulting neutral (0.5).
+
+        A trait may be a **capability** (a boolean hook), a **dial** (a continuous
+        weight), or both (task-806). This reads the dial: `Player.personality_dials`
+        first - the distinct key from the prose `personality` string - then falls
+        back to a truthy capability in `Player.traits`. Absent reads 0.5, so an
+        existing character is neutral and does not move.
+        """
+        dials = getattr(player, "personality_dials", None) or {}
+        if trait_id in dials:
+            try:
+                return max(0.0, min(1.0, float(dials[trait_id])))
+            except (TypeError, ValueError):
+                return DIAL_NEUTRAL
+        traits = getattr(player, "traits", None) or {}
+        if trait_id not in traits:
+            return DIAL_NEUTRAL
+        value = traits.get(trait_id)
+        if value is True:
+            return 1.0
+        if value is False or value is None:
+            return DIAL_NEUTRAL
+        if isinstance(value, (int, float)):
+            return max(0.0, min(1.0, float(value)))
+        return 1.0   # a parameterized trait is present
+
+    @staticmethod
+    def behavior_prompts(player) -> List[str]:
+        """The `behavior_prompt` prose of each trait the player carries, in order.
+
+        The read side is `player.trait_behavior` in the prompt builder
+        (static/js/agent/prompt-builder/character-state.ts); this is the writer it
+        was always missing - nothing populated that field before task-805, so the
+        schema-v2 behavior_prompt never reached a prompt.
+        """
+        out: List[str] = []
+        for trait_id in (getattr(player, "traits", None) or {}):
+            defn = TRAIT_DEFINITIONS.get(trait_id)
+            if not defn:
+                continue
+            prompt = str(defn.get("behavior_prompt") or "").strip()
+            if prompt:
+                out.append(prompt)
+        return out
 
     @staticmethod
     def has_trait(player, trait_id: str) -> bool:

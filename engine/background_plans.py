@@ -1,33 +1,36 @@
 """Assigned character pursuits and their short-term execution (task-426).
 
-A ``pursuit`` graph node is an actor-bound assignment: who may undertake which
-reusable pursuit template, with what bindings and reason. The generic template
-lives in ``data/library/pursuit_templates`` and is separate from both the
-assignment and world-crafting recipes.
+A pursuit is **character data, not a world node** (task-818): an actor-bound
+assignment - which reusable pursuit template this character is undertaking, with
+what bindings and reason. The generic template lives in
+``data/library/pursuit_templates`` and is separate from both the assignment and
+world-crafting recipes.
 
 The assignment is persisted on ``Player.active_pursuit``. Its current grounded
 approach is kept on ``Player.plan`` and advanced **one step per action**. This
 lets the pursuit survive a need interruption: the survival ladder in ``_act``
 runs first, and the current approach resumes after the need is answered.
 
-An assignment node has this shape:
+The assignment has this shape (``Player.active_pursuit``):
 
 .. code-block:: json
    {
-     "pursuit_template": "haul",
-     "actor": "Mikka",           // display name OR node id; ids win
-     "source": "Scrap Pile",     // bound source area
-     "item": "scrap",            // item tag to move (or "item_name")
-     "sink": "Workshop",         // bound destination area
+     "assignment_id": "pursuit_mikka_scrap_run",
+     "template_id": "haul",
+     "bindings": {
+       "source": "Scrap Pile",   // bound source area
+       "item": "scrap",          // item tag to move (or "item_name")
+       "sink": "Workshop"        // bound destination area
+     },
      "label": "scrap_run",
      "reason": "Move scrap to the workshop for repairs.",
      "repeat": false
    }
 
-Selection is deterministic (pursuit nodes are considered in id order) and
-knowledge-gated: a pursuit is only started when its source is reachable from the
-character's current area. A plan never fabricates an item — if the source holds
-nothing matching, ``take`` fails and the plan is abandoned with a trace.
+The runner **resumes** the character's own assignment; it does not scan the graph
+for ``pursuit`` nodes (that node type is retired). A plan never fabricates an item
+— if the source holds nothing matching, ``take`` fails and the plan is abandoned
+with a trace.
 
 Trace vocabulary: each progressed short-term step writes
 ``why="plan:<label>"``; plan completion/failure writes ``plan:<label>:done`` or
@@ -43,17 +46,8 @@ from engine.lived_log import record
 
 logger = logging.getLogger(__name__)
 
-#: Graph node type used for an actor-bound pursuit assignment.
-PURSUIT_NODE_TYPE = "pursuit"
-
 TRAVEL_MINUTES = 1
 TAKE_MINUTES = 2
-
-#: A group goal is capped so one authored node cannot drag an unbounded crowd
-#: into a single rally. Templates are fixed-length, and a member with no plan
-#: falls back to the task-409 per-step planner — that is the "bounded with a
-#: fallback" the task asks for, not a second planner.
-MAX_PARTICIPANTS = 16
 
 #: Spatial relations an item can sit in, for "is it already here" checks.
 _SPATIAL = ("in", "on", "under", "behind", "beside", "at")
@@ -61,31 +55,31 @@ _SPATIAL = ("in", "on", "under", "behind", "beside", "at")
 
 # ───────────────────────────── building ─────────────────────────────────────
 
-def build_plan(node, pursuit=None):
-    """Build the current short-term plan for an actor-bound pursuit."""
-    props = node.properties or {}
-    template_id = str((pursuit or {}).get("template_id")
-                      or props.get("pursuit_template") or "").strip().lower()
+def build_plan(pursuit):
+    """Build the current short-term plan for a character's pursuit assignment.
+
+    *pursuit* is the character-side ``Player.active_pursuit`` dict: it carries the
+    template id, the bindings, and the reason. No graph node is involved - the
+    assignment is the character's own data.
+    """
+    if not isinstance(pursuit, dict):
+        return None
+    template_id = str(pursuit.get("template_id") or "").strip().lower()
     from engine import pursuit_templates
-    if pursuit:
-        instance = pursuit_templates.instantiate(
-            template_id, pursuit.get("bindings"))
-        if (instance and pursuit.get("template_version")
-                and instance["template_version"] != pursuit["template_version"]):
-            return None
-    else:
-        instance = pursuit_templates.bind(template_id, props)
+    instance = pursuit_templates.bind(template_id, pursuit.get("bindings"))
+    if (instance and pursuit.get("template_version")
+            and instance["template_version"] != pursuit["template_version"]):
+        return None
     if instance is None:
         return None
-    label = str((pursuit or {}).get("label") or props.get("label") or node.id)
+    label = str(pursuit.get("label") or template_id or "pursuit")
     return {
-        "node_id": node.id,
+        "assignment_id": pursuit.get("assignment_id"),
         "pursuit_template": template_id,
         "template_version": instance["template_version"],
         "label": label,
         "purpose": instance["purpose"],
-        "reason": str((pursuit or {}).get("reason")
-                      or props.get("reason") or instance["purpose"]),
+        "reason": str(pursuit.get("reason") or instance["purpose"]),
         "bindings": instance["bindings"],
         "index": 0,
         "steps": instance["steps"],
@@ -318,8 +312,8 @@ def _finish(sim, p, plan, outcome):
     if done is None:
         done = []
         p.completed_pursuits = done
-    if plan.get("node_id") and plan["node_id"] not in done:
-        done.append(plan["node_id"])
+    if plan.get("assignment_id") and plan["assignment_id"] not in done:
+        done.append(plan["assignment_id"])
     record(p, sim.gs.time_ticks, "pursuit",
            f"pursuit {plan['label']} {outcome}",
            why=f"pursuit:{plan['label']}:{outcome}",
@@ -333,7 +327,7 @@ def _finish(sim, p, plan, outcome):
 def _sync_pursuit_step(p, plan):
     """Keep the saved pursuit's progress aligned with its current plan."""
     pursuit = getattr(p, "active_pursuit", None)
-    if isinstance(pursuit, dict) and pursuit.get("assignment_id") == plan.get("node_id"):
+    if isinstance(pursuit, dict) and pursuit.get("assignment_id") == plan.get("assignment_id"):
         pursuit["step_index"] = int(plan.get("index", 0) or 0)
 
 
@@ -369,105 +363,34 @@ def advance(sim, p):
         return outcome
 
 
-# ───────────────────────────── selection ────────────────────────────────────
-
-def _is_actor(sim, p, node):
-    """Is *p* the actor of a pursuit node, one of its participants, or of its role?
-
-    ``actor``/``participants`` are the authored case (an id or display name);
-    ``role`` is the algorithmic one — any character carrying the tag may claim
-    the plan (e.g. every ``tinkerer`` runs the scrap run).
-    """
-    props = node.properties or {}
-    pid = sim.gs._player_node_id(p.name)
-    candidates = []
-    actor = props.get("actor")
-    if actor:
-        candidates.append(str(actor))
-    for member in (props.get("participants") or [])[:MAX_PARTICIPANTS]:
-        candidates.append(str(member))
-    for cand in candidates:
-        if cand == p.name or (pid and cand.lower() == str(pid).lower()):
-            return True
-    role = props.get("role")
-    if role:
-        tags = {str(t).lower() for t in (getattr(p, "tags", None) or [])}
-        if str(role).lower() in tags:
-            return True
-    return False
-
-
-def _source_reachable(sim, p, plan):
-    """Knowledge gate: the source must be reachable now, or the plan waits."""
-    from engine import traversal
-    avoid = traversal.avoid(sim.gs, p)
-    for step in plan.get("steps", []):
-        if step.get("kind") != "travel":
-            continue
-        if step.get("area"):
-            if p.current_area == step["area"]:
-                return True
-            return sim._target_step(p, None, areas={step["area"]}, avoid=avoid) is not None
-        if step.get("tags"):
-            if p.current_area in sim._areas_with(step["tags"]):
-                return True
-            return sim._target_step(p, step["tags"], avoid=avoid) is not None
-    return False
-
+# ───────────────────────────── resume ───────────────────────────────────────
 
 def maybe_assign(sim, p):
-    """Start or resume one assigned pursuit for *p*.
+    """Resume the character's own assigned pursuit, if any.
 
-    The catalog entry supplies the reusable pursuit template. The actor-bound
-    graph node supplies its reason, parameters, and participants.
-    ``Player.plan`` is only the current short-term approach.
+    The assignment is character data (``Player.active_pursuit``); this module no
+    longer scans the graph for pursuit nodes - task-818 retired that node type, so
+    a pursuit is started by whatever assigns the character (an author, a trigger,
+    a goal), not by a node the runner discovers. ``Player.plan`` is only the
+    current short-term approach, rebuilt from the assignment's template/bindings.
     """
     if p.state == "dead" or p.activity:
         return False
     pursuit = getattr(p, "active_pursuit", None)
-    if pursuit:
-        if getattr(p, "plan", None):
-            return False
-        assignment = sim.gs.graph.get_node(pursuit.get("assignment_id"))
-        if assignment is None or assignment.type != PURSUIT_NODE_TYPE:
-            return False
-        plan = build_plan(assignment, pursuit=pursuit)
-        if not plan or plan.get("pursuit_template") != pursuit.get("template_id"):
-            return False
-        plan["index"] = max(0, int(pursuit.get("step_index", 0) or 0))
-        p.plan = plan
-        return True
+    if not isinstance(pursuit, dict):
+        return False
     if getattr(p, "plan", None):
         return False
-    done = set(getattr(p, "completed_pursuits", []) or [])
-    nodes = sorted(
-        (n for n in sim.gs.graph.nodes.values() if n.type == PURSUIT_NODE_TYPE),
-        key=lambda n: n.id,
-    )
-    for node in nodes:
-        props = node.properties or {}
-        if node.id in done and not props.get("repeat"):
-            continue
-        if not _is_actor(sim, p, node):
-            continue
-        plan = build_plan(node)
-        if not plan or not _source_reachable(sim, p, plan):
-            continue
-        p.plan = plan
-        p.active_pursuit = {
-            "assignment_id": node.id,
-            "template_id": plan["pursuit_template"],
-            "template_version": plan["template_version"],
-            "label": plan["label"],
-            "reason": plan["reason"],
-            "bindings": dict(plan["bindings"]),
-            "assigned_tick": int(getattr(sim.gs, "time_ticks", 0) or 0),
-            "step_index": 0,
-            "repeat": bool(props.get("repeat")),
-        }
+    plan = build_plan(pursuit)
+    if not plan or plan.get("pursuit_template") != pursuit.get("template_id"):
+        return False
+    plan["index"] = max(0, int(pursuit.get("step_index", 0) or 0))
+    p.plan = plan
+    if plan["index"] == 0:
+        # The pursuit "starts" when its plan first runs; the trace vocabulary is
+        # unchanged (`pursuit:<label>:start`).
         record(p, sim.gs.time_ticks, "pursuit",
                f"started pursuit {plan['label']} because {plan['reason']}",
                why=f"pursuit:{plan['label']}:start",
                area=p.current_area, tags=["pursuit"])
-        return True
-    return False
+    return True

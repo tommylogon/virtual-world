@@ -3,12 +3,17 @@ type: task
 status: todo
 area: ui
 priority: medium
+related: [task-42, task-691, task-714, task-820, task-821]
 ---
 
 # task-729: Move relationship, emotional-state, and memory add/edit/generate controls into the Mind panel
 
 **Filed:** 2026-10-07
-**Related:** task-42, task-691, task-714
+**Related:** task-42, task-691, task-714, task-820, task-821
+
+<!-- deps:start -->
+**Related:** [[task-42-proper_memory_editor]], [[task-691-memory-mind-interface-dynamics-badges-connections-per-person-profiles-dashboard]], [[task-714-character-mind-panel-connect-memories-motives-and-current-pursuits]], [[task-820-mind-panel-one-tabbed-mind-surface-and-one-entry-point]], [[task-821-mind-panel-relocate-the-gimp-goal-editor-out-of-the-bio-tab]]
+<!-- deps:end -->
 
 ## What
 
@@ -69,26 +74,39 @@ create a second source of truth — call the existing handlers and endpoints and
 
 - Inline in the Mind surface, or a read/edit mode toggle (precedent: the HTC's
   hover = inspect, click = act)?
-- Keep the Memories tab editor as a second editor, or make the Mind surface the
-  sole one and retire the duplicate? This pairs with task-691's unresolved
-  question (in-inspector panel vs separate route).
+- RESOLVED 2026-10-13: the Mind surface is the sole editor; the Bio and Memories
+  tabs drop the moved controls (task-756 makes the same cut for per-memory
+  emotion). The Mind surface is a modal over the inspector panel, not a separate
+  route.
 - `lns` vs the affect map: confirm against task-652 (one emotional model) which
   store relationships and feelings are edited against before moving the controls.
 
 ## Why
 
-TODO
+Reading *why* a character feels and pursues, and correcting it, should be the same surface. Today the read half (task-714) is in the Mind panel but the write half — relationship sliders, the emotion select/range, memory add/edit/generate — is in the Bio and Memories tabs, so editing means leaving the panel you were reading. Resolved 2026-10-13: Bio survives as the character's definition/body surface, so these mind editors move out and the Mind panel becomes their sole home. No duplicate editor: task-756 makes the same cut for per-memory emotion editing.
 
 ## How
 
-TODO
+Re-host the existing controls and call the existing handlers; do not re-implement an endpoint or persist a UI copy.
+
+- **Relationships** — lift the per-other slider / label / knows-name rows and `_removeRelationship` from `agent-view.ts` into the Mind panel, still writing `ApiClient.updateCharacter(agent, { lns: { [other]: {...} } })`.
+- **Emotional state** — lift the `player-emotion` select + `emotion-intensity-*` range, writing `{ emotion: { current, intensity } }` via `ApiClient.updateCharacter`.
+- **Memories** — lift `+ Add Memory` (`addMemory`), `✨ Gen Memory` (`generateMemory`), Edit (`showMemoryEditor`), suppress / unblock / clearExpired, the multi-emotion picker (`_attachEmotionSelector`), entity selector and tag multiselect from `memory-view.ts` into the Mind panel's Memories tab.
+
+Then remove the moved editors from Bio and the Memories tab so there is one home. `player.lns` / `player.emotion` / `player.memories` stay authoritative.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
+1. From the Mind panel, drag a relationship closeness slider, then reload.
+   - expected: `updateCharacter({ lns })` persists; the same value renders in the Mind panel and `/api/state`.
+   - observed: TODO
+2. From the Mind panel, add a memory, generate one, and edit an existing.
+   - expected: `addPlayerMemory` / `generateMemory` / `updatePlayerMemory` fire; the list and detail update; the Memories tab no longer duplicates the editor.
    - observed: TODO
 
 ## Files
 
-- TODO
+- `static/js/inspector/mind-view.ts` (destination)
+- `static/js/inspector/agent-view.ts` (relationship + emotion controls)
+- `static/js/inspector/memory-view.ts` (memory editor)
+- `static/js/api-client` (`updateCharacter`, `addPlayerMemory`, `updatePlayerMemory`)

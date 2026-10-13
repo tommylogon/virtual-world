@@ -48,6 +48,34 @@ KNOWN_ITEM_ACTIONS = {
     "examine", "take", "use", "open", "close", "eat", "drink", "read",
     "light", "activate", "equip", "unequip", "throw", "break", "drop",
 }
+#: Triggers the NPC-behaviour runner (`npc_behaviors.process_simple_npcs`)
+#: actually receives from its callers. Deliberately NOT ``TRIGGER_TYPES``: those
+#: are node/item triggers, and a behaviour keyed on one of them (``on_take``,
+#: ``on_night``, ``on_enter``) is fired by nobody and silently dead.
+NPC_BEHAVIOUR_TRIGGERS = {
+    "on_tick",
+    "on_item_taken",
+    "on_player_enter_area",
+    "on_player_leave_area",
+    "on_speech_heard",
+}
+#: Behaviour actions that are not effect types — the executor's own verbs
+#: (`engine/triggers/behaviors.py`). An action type is valid if it is one of
+#: these OR a member of ``EFFECT_TYPES`` (the executor falls back to the effect
+#: registry, so the two vocabularies are one).
+NPC_BEHAVIOUR_ACTIONS = {
+    "go", "wait", "follow", "emote", "look", "examine", "speak", "set_npc_state",
+    "set_emotion", "set_flag", "add_memory", "attack", "approach", "traverse",
+    "hide_in", "hide_behind", "hide_under", "unhide", "rest", "sleep", "meditate",
+    "bathe", "sit", "stand", "stop", "wake", "relieve", "listen", "carry",
+    "inventory", "weigh", "hold", "stow", "place", "remove", "dress", "strip",
+    "swap", "adorn", "drop_all", "take_all", "lie_down", "dash", "crawl", "climb",
+    "jump", "toggle_way", "grab", "drag", "pin", "struggle", "escape", "release",
+    "toggle", "teach", "cook", "push_through", "block", "introduce", "beg",
+    "demand", "bribe", "trade", "manifest", "vanish", "possess", "wraith_form",
+    "spawn_body_item", "carve", "gulp_down", "pinch", "help", "commands", "who",
+    "time", "score", "map", "save", "quit", "version",
+}
 BULK_SELECTOR_KEYS = (
     "kind", "type", "tags", "tag", "area", "area_id", "name_contains",
     "query", "ids",
@@ -194,6 +222,90 @@ def _trigger_issues(idx: int, optype: str, props: Any) -> List[Dict[str, Any]]:
     return issues
 
 
+def _iter_condition_leaves(conditions: Any) -> List[Any]:
+    """(path, leaf) for every condition leaf in a list (AND) or condition tree."""
+    out: List[Any] = []
+
+    def walk(node: Any, path: str) -> None:
+        if isinstance(node, list):
+            for i, kid in enumerate(node):
+                walk(kid, f"{path}.{i}" if path else str(i))
+        elif isinstance(node, dict):
+            if isinstance(node.get("conditions"), list):
+                walk(node["conditions"], path)
+            else:
+                out.append((path, node))
+
+    walk(conditions, "")
+    return out
+
+
+def _behaviour_issues(index: int, optype: str, behaviours: List[Any]) -> List[Dict[str, Any]]:
+    """Validate a character's ``behaviors`` array against the runner's vocabulary.
+
+    The NL editor could author behaviours in the *node/item* trigger vocabulary
+    (``on_take``, ``on_night``) or with keys the engine never reads
+    (``adjust_vital`` with ``vital``/``delta``, ``vital_below`` with no ``stat``,
+    ``spawn_character`` with ``template``). None of those raise — they simply
+    never fire — so the editor staged silently-dead behaviours (task-739).
+    """
+    issues: List[Dict[str, Any]] = []
+    try:
+        from engine.triggers.constants import EFFECT_TYPES
+        effect_types = set(EFFECT_TYPES)
+    except Exception:
+        effect_types = set()
+    valid_actions = effect_types | NPC_BEHAVIOUR_ACTIONS
+    for bi, b in enumerate(behaviours):
+        if not isinstance(b, dict):
+            issues.append(_issue(index, optype, ERROR, f"behaviors[{bi}] must be an object."))
+            continue
+        trig = str(b.get("trigger") or "").strip()
+        if trig and trig not in NPC_BEHAVIOUR_TRIGGERS:
+            issues.append(_issue(index, optype, ERROR,
+                f"behaviors[{bi}].trigger '{trig}' is not an NPC-behaviour trigger; "
+                f"use one of {sorted(NPC_BEHAVIOUR_TRIGGERS)}."))
+        actions = b.get("actions")
+        if not isinstance(actions, list) or not actions:
+            issues.append(_issue(index, optype, ERROR,
+                                 f"behaviors[{bi}] needs a non-empty 'actions' list."))
+            continue
+        for ai, act in enumerate(actions):
+            if not isinstance(act, dict) or not str(act.get("type") or "").strip():
+                issues.append(_issue(index, optype, ERROR,
+                                     f"behaviors[{bi}].actions[{ai}] needs a 'type'."))
+                continue
+            atype = str(act.get("type")).strip()
+            if valid_actions and atype not in valid_actions:
+                issues.append(_issue(index, optype, ERROR,
+                    f"behaviors[{bi}].actions[{ai}] unknown action type '{atype}'."))
+            elif atype == "adjust_vital" and ("stat" not in act or "amount" not in act):
+                issues.append(_issue(index, optype, ERROR,
+                    f"behaviors[{bi}].actions[{ai}] 'adjust_vital' needs 'stat' and 'amount' "
+                    "(not 'vital'/'delta')."))
+            elif atype == "spawn_character" and not act.get("character_id"):
+                issues.append(_issue(index, optype, ERROR,
+                    f"behaviors[{bi}].actions[{ai}] 'spawn_character' needs 'character_id' "
+                    "(not 'template')."))
+            elif atype == "start_activity" and not act.get("activity_type"):
+                issues.append(_issue(index, optype, WARNING,
+                    f"behaviors[{bi}].actions[{ai}] 'start_activity' reads 'activity_type', "
+                    "not 'activity'."))
+            elif atype == "apply_condition" and not act.get("condition"):
+                issues.append(_issue(index, optype, ERROR,
+                    f"behaviors[{bi}].actions[{ai}] 'apply_condition' needs 'condition'."))
+        for ci, leaf in _iter_condition_leaves(b.get("conditions")):
+            ctype = str(leaf.get("type") or "").strip()
+            if ctype in ("vital_below", "vital_above", "vital") and not leaf.get("stat"):
+                issues.append(_issue(index, optype, ERROR,
+                    f"behaviors[{bi}].conditions[{ci}] '{ctype}' needs 'stat' "
+                    "(it defaults to HP otherwise)."))
+            if ctype == "random_chance" and leaf.get("chance") is None and leaf.get("value") is None:
+                issues.append(_issue(index, optype, ERROR,
+                    f"behaviors[{bi}].conditions[{ci}] 'random_chance' needs 'chance' or 'value'."))
+    return issues
+
+
 def validate_ops(
     ops: Iterable[Dict[str, Any]],
     *,
@@ -283,15 +395,7 @@ def validate_ops(
                     if not isinstance(beh, list):
                         issues.append(_issue(idx, optype, ERROR, "'behaviors' must be a list."))
                     else:
-                        for bi, b in enumerate(beh):
-                            if not isinstance(b, dict) or not isinstance(b.get("actions"), list) or not b.get("actions"):
-                                issues.append(_issue(idx, optype, ERROR,
-                                                     f"behaviors[{bi}] needs a non-empty 'actions' list."))
-                                continue
-                            for ai, act in enumerate(b["actions"]):
-                                if not isinstance(act, dict) or not str(act.get("type") or "").strip():
-                                    issues.append(_issue(idx, optype, ERROR,
-                                                         f"behaviors[{bi}].actions[{ai}] needs a 'type'."))
+                        issues.extend(_behaviour_issues(idx, optype, beh))
                 emo = patch.get("emotion")
                 if emo is not None:
                     if not isinstance(emo, dict) or not str(emo.get("name") or "").strip():

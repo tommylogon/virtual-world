@@ -112,7 +112,7 @@ window.PromptBuilder = window.PromptBuilder || {};
             ? `\n\n=== RECENTLY ===\n${_summaryLine(lastResult)}`
             : '\n\n=== START ===\nThis is your first moment in this world. What do you think, say, and do?';
         const ctx = { phase: 'reaction', vitalsNL, emotionNL, relationshipNL, memoryNL };
-        const context = PromptBuilder.buildContextBlock(player, ctx, ['perceived', 'vitals', 'encumbrance', 'emotion', 'insanity', 'trait', 'size', 'activity', 'grappled', 'slots', 'ghost', 'dead']);
+        const context = PromptBuilder.buildContextBlock(player, ctx, ['perceived', 'vitals', 'encumbrance', 'emotion', 'insanity', 'trait', 'size', 'activity', 'grappled', 'slots', 'mosiac', 'ghost', 'dead']);
         // End-of-turn memory is OPTIONAL (memories normally come at turn START).
         const wantMemory = includeMemory && config.endOfTurnMemory === true;
         const memoryInstruction = wantMemory ? PromptBuilder.MEMORY_INSTRUCTION_REACT : '';

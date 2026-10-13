@@ -91,6 +91,53 @@ def test_validator_checks_the_behaviours_shape():
     assert errors_only(validate_ops([_player_op("Beh Valid", {"behaviors": [{"actions": [{"text": "x"}]}]})], **known))
 
 
+def test_validator_rejects_dead_behaviour_vocabulary():
+    """task-739: a behaviour authored in the node/item trigger vocabulary, or with
+    keys the engine never reads, must be refused — it would stage but never fire."""
+    app = create_app({"TESTING": True})
+    _make_character(app, "Beh Vocab")
+    known = {"nodes": app.world.graph}
+
+    def errs(behaviours):
+        return bool(errors_only(validate_ops(
+            [_player_op("Beh Vocab", {"behaviors": behaviours})], **known)))
+
+    # node/item triggers the behaviour runner never receives
+    assert errs([{"trigger": "on_take", "actions": [{"type": "message", "text": "x"}]}])
+    assert errs([{"trigger": "on_night", "actions": [{"type": "message", "text": "x"}]}])
+    # adjust_vital with the wrong keys (vital/delta instead of stat/amount)
+    assert errs([{"trigger": "on_tick",
+                  "actions": [{"type": "adjust_vital", "vital": "Thirst", "delta": 5}]}])
+    # vital_below with no stat — silently defaults to HP
+    assert errs([{"trigger": "on_tick",
+                  "actions": [{"type": "message", "text": "x"}],
+                  "conditions": [{"type": "vital_below", "value": 40}]}])
+    # spawn_character with template instead of character_id
+    assert errs([{"trigger": "on_tick",
+                  "actions": [{"type": "spawn_character", "template": "worg"}]}])
+    # a typo'd action type
+    assert errs([{"trigger": "on_tick", "actions": [{"type": "explode"}]}])
+
+    # the corrected shape is valid
+    ok = [
+        {"trigger": "on_item_taken",
+         "conditions": [{"type": "target_has_tag", "value": ["meat"]}],
+         "actions": [
+             {"type": "message", "text": "snarls"},
+             {"type": "damage", "amount": 8, "target": "player"},
+             {"type": "add_tag", "tag": "hostile"},
+         ]},
+        {"trigger": "on_tick",
+         "conditions": [{"type": "vital_below", "stat": "Thirst", "value": 40, "operator": "lt"}],
+         "actions": [
+             {"type": "go", "area": "Raven River"},
+             {"type": "adjust_vital", "stat": "Thirst", "amount": 50},
+         ]},
+    ]
+    assert errors_only(validate_ops(
+        [_player_op("Beh Vocab", {"behaviors": ok})], **known)) == []
+
+
 def test_update_player_rejects_an_unknown_character():
     app = create_app({"TESTING": True})
     res = _apply(app, {"character": "Nobody Here", "patch": {"emotion": {"name": "joy", "delta": 1}}})

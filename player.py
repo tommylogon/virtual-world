@@ -195,6 +195,12 @@ class Player:
         self.id = _uuid.uuid4().hex[:8]
         # Free-form description/personality text for this character
         self.personality = ""
+        # Decision dials (task-806): trait id -> float in 0..1, defaulting to 0.5
+        # (neutral). A DISTINCT key from the prose `personality` string above: the
+        # prose is what a person is like in words, the dials are the normalized
+        # weights the disposition reads (engine/disposition.trait_weights). Absent
+        # dials read neutral, so an existing character does not move.
+        self.personality_dials = {}
         # Base physical description (naked/baseline appearance — what they look like with nothing on)
         self.base_description = ""
         # Current outward-facing description (auto-generated from base + equipment, or manually set)

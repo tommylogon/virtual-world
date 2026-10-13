@@ -48,6 +48,7 @@ interface MindPerson {
 interface MindState {
     charName: string;
     escName: string;
+    tab: string;             // mind | perception | memories | people
     filter: string;          // all | episodic | beliefs | social | procedural | contradicted | faded | person:<Name>
     query: string;
     selectedId: string;
@@ -288,23 +289,50 @@ const InspectorMindView = (() => {
         }
     }
 
+    function _goalRowHtml(g: any): string {
+        const inputStyle = 'font-size:10.5px;background:var(--bg-input);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 6px;';
+        const statuses = ['proposed', 'active', 'reached', 'blocked', 'dropped'];
+        const color = _goalStatusColor(String(g.status || 'proposed'));
+        const val = (s: any) => esc(String(s ?? ''));
+        const blocked = Array.isArray(g.blocked_by) && g.blocked_by.length
+            ? `<div style="font-size:9.5px;color:#e05555;margin-top:3px;">⛔ blocked by ${esc(g.blocked_by.join(', '))}</div>` : '';
+        return `<div class="mind-goal" style="background:var(--bg-card);border:1px solid var(--border);border-left:3px solid ${color};border-radius:6px;padding:7px 9px;margin-bottom:7px;">
+            <div style="display:flex;gap:6px;align-items:center;">
+                <input class="mind-goal-what" value="${val(g.what)}" placeholder="what they want" style="${inputStyle}flex:1;">
+                <select class="mind-goal-status" style="${inputStyle}font-size:10px;">${statuses.map(s => `<option value="${s}"${s === (g.status || 'proposed') ? ' selected' : ''}>${s}</option>`).join('')}</select>
+                <span class="mind-goal-del" title="remove goal" style="cursor:pointer;color:var(--red);font-size:12px;padding:2px;">✕</span>
+            </div>
+            <input class="mind-goal-motivation" value="${val(g.motivation)}" placeholder="motivation (why at all)" style="${inputStyle}width:100%;margin-top:4px;">
+            <input class="mind-goal-intention" value="${val(g.intention)}" placeholder="intention (why this one)" style="${inputStyle}width:100%;margin-top:4px;">
+            <input class="mind-goal-blocks" value="${val((g.blocks || []).join(', '))}" placeholder="blocked by (goal id or item:node_id, comma-separated)" style="${inputStyle}width:100%;margin-top:4px;">
+            ${blocked}
+        </div>`;
+    }
+
     function _goalsHtml(): string {
         const goals = _goals();
-        if (!goals.length) {
-            return `<div style="font-size:10.5px;color:var(--text-muted);">no goals - driven only by needs right now.</div>`;
-        }
-        return goals.map((g: any) => {
-            const status = String(g.status || 'proposed');
-            const color = _goalStatusColor(status);
-            const rows = [`<div style="display:flex;align-items:center;gap:6px;">
-                    <b style="font-size:11.5px;line-height:1.35;">${esc(g.what || '')}</b>
-                    <span style="margin-left:auto;">${_badge(status, color)}</span>
-                </div>`];
-            if (g.motivation) rows.push(`<div style="font-size:9.5px;color:var(--text-muted);margin-top:3px;line-height:1.45;">motivation: ${esc(g.motivation)}</div>`);
-            if (g.intention) rows.push(`<div style="font-size:9.5px;color:var(--text-muted);line-height:1.45;">intention: ${esc(g.intention)}</div>`);
-            if (Array.isArray(g.blocked_by) && g.blocked_by.length) rows.push(`<div style="font-size:9.5px;color:#e05555;margin-top:3px;line-height:1.45;">⛔ blocked by ${esc(g.blocked_by.join(', '))}</div>`);
-            return `<div class="mind-goal" style="background:var(--bg-card);border:1px solid var(--border);border-left:3px solid ${color};border-radius:6px;padding:7px 9px;margin-bottom:7px;">${rows.join('')}</div>`;
-        }).join('');
+        const body = goals.length
+            ? goals.map((g: any) => _goalRowHtml(g)).join('')
+            : `<div class="mind-goal-empty" style="font-size:10px;color:var(--text-muted);margin-bottom:4px;">no goals - driven only by needs right now.</div>`;
+        return `${body}<button class="btn btn-sm mind-add-goal" style="font-size:10px;">➕ Add goal</button>`;
+    }
+
+    function _collectGoals(): any[] {
+        const box = _container?.querySelector('#mind-goals');
+        if (!box) return [];
+        return Array.from(box.querySelectorAll('.mind-goal')).map((row: any) => ({
+            what: (row.querySelector('.mind-goal-what')?.value || '').trim(),
+            status: row.querySelector('.mind-goal-status')?.value || 'proposed',
+            motivation: (row.querySelector('.mind-goal-motivation')?.value || '').trim(),
+            intention: (row.querySelector('.mind-goal-intention')?.value || '').trim(),
+            blocks: (row.querySelector('.mind-goal-blocks')?.value || '').trim(),
+        })).filter((g: any) => g.what);
+    }
+
+    async function _saveGoals(): Promise<void> {
+        if (!_state) return;
+        await ApiClient.updateCharacter(_state.charName, { goals: _collectGoals() });
+        await worldState.fetch();
     }
 
     function _goalHistory(): any[] {
@@ -387,6 +415,217 @@ const InspectorMindView = (() => {
         </div>`;
     }
 
+    function _activePursuit(): any {
+        if (!_state) return null;
+        return worldState.players?.[_state.charName]?.active_pursuit || null;
+    }
+
+    function _plan(): any {
+        if (!_state) return null;
+        return worldState.players?.[_state.charName]?.plan || null;
+    }
+
+    function _stepLabel(step: any): string {
+        if (!step) return '-';
+        switch (step.kind) {
+            case 'travel': return 'travel ' + (step.area || (step.tags || []).join('/') || '');
+            case 'take': return 'take ' + ((step.spec && (step.spec.tags || []).join('/')) || step.spec?.name || '');
+            case 'drop': return 'drop ' + ((step.spec && (step.spec.tags || []).join('/')) || '');
+            case 'activity': return 'activity ' + (step.activity || '');
+            default: return String(step.kind || 'step');
+        }
+    }
+
+    // task-714: the pursuit is character data (task-818), so the panel reads
+    // Player.active_pursuit / Player.plan - what they are doing, not just why.
+    function _pursuitHtml(): string {
+        const pursuit = _activePursuit();
+        const plan = _plan();
+        if (!pursuit && !plan) {
+            return `<div style="font-size:10.5px;color:var(--text-muted);">no assigned pursuit - needs and goals only right now.</div>`;
+        }
+        const rows: string[] = [];
+        if (pursuit) {
+            rows.push(`<div style="display:flex;align-items:center;gap:6px;">
+                <b style="font-size:11.5px;line-height:1.35;">${esc(pursuit.label || pursuit.template_id || '')}</b>
+                <span style="font-size:9px;color:var(--text-muted);margin-left:auto;">${esc(pursuit.template_id || '')}</span>
+            </div>`);
+            if (pursuit.reason) rows.push(`<div style="font-size:9.5px;color:var(--text-muted);margin-top:3px;line-height:1.45;">${esc(pursuit.reason)}</div>`);
+        }
+        if (plan) {
+            const steps = Array.isArray(plan.steps) ? plan.steps : [];
+            const idx = Math.max(0, Number(plan.index || 0));
+            rows.push(`<div style="font-size:10px;color:var(--text-dim);margin-top:4px;">step ${Math.min(idx + 1, steps.length)}/${steps.length}: ${esc(_stepLabel(steps[idx]))}</div>`);
+        }
+        return `<div style="margin-top:14px;">
+            <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Pursuit &amp; plan - what they are doing</div>
+            <div style="background:var(--bg-card);border:1px solid var(--border);border-left:3px solid #58a6ff;border-radius:6px;padding:7px 9px;">${rows.join('')}</div>
+        </div>`;
+    }
+
+    function _activityHtml(): string {
+        if (!_state) return '';
+        const a: any = worldState.players?.[_state.charName]?.activity;
+        if (!a || !a.type) return '';
+        const parts: string[] = [];
+        if (a.elapsed_minutes != null) parts.push(`${Math.round(Number(a.elapsed_minutes))} min`);
+        if (a.duration_minutes != null) parts.push(`of ${Math.round(Number(a.duration_minutes))} min`);
+        if (a.catch_count != null) parts.push(`caught ${a.catch_count}`);
+        return `<div style="margin-top:14px;">
+            <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Activity - what is underway</div>
+            <div style="background:var(--bg-card);border:1px solid var(--border);border-left:3px solid #3fb950;border-radius:6px;padding:7px 9px;">
+                <b style="font-size:11.5px;">${esc(a.type)}</b>
+                ${parts.length ? `<span style="font-size:9.5px;color:var(--text-muted);margin-left:6px;">${esc(parts.join(' / '))}</span>` : ''}
+            </div>
+        </div>`;
+    }
+
+    function _feelingHtml(): string {
+        if (!_state) return '';
+        const p: any = worldState.players?.[_state.charName];
+        if (!p) return '';
+        const emo: any = p.emotion || null;
+        const axes = (p.emotions && typeof p.emotions === 'object') ? p.emotions : {};
+        const raised = Object.entries(axes)
+            .map(([axis, amt]) => [axis, Number(amt)] as [string, number])
+            .sort((a, b) => b[1] - a[1]).slice(0, 5);
+        const current = emo && emo.current && emo.current !== 'neutral' ? emo.current : '';
+        if (!current && !raised.length) return '';
+        const head = current
+            ? `${esc(current)}${emo.intensity ? ` (${Math.round(Number(emo.intensity))})` : ''}`
+            : 'neutral';
+        const desc = emo && emo.description
+            ? `<div style="font-size:9.5px;color:var(--text-muted);margin-top:3px;line-height:1.45;">${esc(emo.description)}</div>` : '';
+        const bars = raised.map(([axis, amt]) => `<div style="display:flex;gap:6px;align-items:baseline;font-size:10px;">
+            <span style="color:var(--text-dim);min-width:84px;">${esc(axis)}</span><span style="color:var(--text-muted);">${Math.round(amt)}</span>
+        </div>`).join('');
+        return `<div style="margin-top:14px;">
+            <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Feeling - their mood</div>
+            <b style="font-size:11.5px;">${head}</b>
+            ${desc}
+            ${bars}
+        </div>`;
+    }
+
+    function _worldKnowledgeHtml(): string {
+        if (!_state) return '';
+        const known = worldState.players?.[_state.charName]?.known || [];
+        if (!known.length) return '';
+        const shown = known.slice(0, 12).map((k: any) => esc(String(k))).join(', ');
+        const more = known.length > 12 ? ` +${known.length - 12}` : '';
+        return `<div style="margin-top:14px;">
+            <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">World knowledge - places known (${known.length})</div>
+            <div style="font-size:10px;color:var(--text-dim);line-height:1.5;">${shown}${more}</div>
+        </div>`;
+    }
+
+    function _recipesHtml(): string {
+        if (!_state) return '';
+        const recipes = worldState.players?.[_state.charName]?.crafting_known || [];
+        if (!recipes.length) return '';
+        return `<div style="margin-top:14px;">
+            <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Known recipes (${recipes.length})</div>
+            <div style="font-size:10px;color:var(--text-dim);line-height:1.5;">${recipes.map((r: any) => esc(String(r))).join(', ')}</div>
+        </div>`;
+    }
+
+    function _mosiac(): any {
+        if (!_state) return null;
+        return worldState.players?.[_state.charName]?.mosiac || null;
+    }
+
+    function _mosiacHtml(): string {
+        const m = _mosiac();
+        if (!m) return '';
+        const letter = (key: string, label: string, body: string) => `<div style="margin-bottom:5px;"><span style="font-family:monospace;color:#58a6ff;">${key}</span> <span style="color:var(--text-muted);font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;">${label}</span><div style="font-size:10.5px;line-height:1.4;">${body}</div></div>`;
+        const needs = (m.A || []).map((n: any) => `${esc(n.need)} ${n.value}`).join(', ') || 'nothing pressing';
+        const step = m.S && m.S.step
+            ? `${_hhmm(m.S.step.start)} ${esc(m.S.step.activity)}${m.S.step.area ? ' at ' + esc(m.S.step.area) : ''}`
+            : 'no schedule';
+        const tierCounts = Object.keys(m.C || {}).map(k => `${esc(k)} ${(m.C[k] || []).length}`).join(' / ') || 'none';
+        return `<div style="margin-bottom:12px;">
+            <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">MOSIAC - the decision context</div>
+            ${letter('M', 'motivation', esc(m.M || '-'))}
+            ${letter('I', 'intention', esc(m.I || '-'))}
+            ${letter('O', 'obligations', (m.O || []).length ? (m.O || []).map((o: any) => esc(o.charge)).join(', ') : 'none')}
+            ${letter('S', 'schedule', step)}
+            ${letter('A', 'attention', esc(needs))}
+            ${letter('C', 'choices', esc(tierCounts))}
+        </div>`;
+    }
+
+    // task-802 / 805 / 806: the derived decision weights, the authored dials and
+    // the whispered lines - the same traits the soak weighs (task-804's input).
+    function _dispositionHtml(): string {
+        if (!_state) return '';
+        const p: any = worldState.players?.[_state.charName];
+        if (!p) return '';
+        const disp: any = p.disposition || {};
+        const weights: any[] = Array.isArray(disp.weights) ? disp.weights : [];
+        const dials = disp.dials || (p.personality_dials || {});
+        const whispers: string[] = Array.isArray(p.trait_behavior) ? p.trait_behavior : [];
+        const entries = weights.slice().sort(
+            (a: any, b: any) => Math.abs(Number(b.value)) - Math.abs(Number(a.value)));
+        const dialEntries = Object.entries(dials);
+        const gated: string[] = Array.isArray(disp.gated) ? disp.gated : [];
+        if (!entries.length && !dialEntries.length && !whispers.length && !gated.length) {
+            return `<div style="font-size:10.5px;color:var(--text-muted);">no disposition signals - an unauthored character scores neutral.</div>`;
+        }
+        const weightRows = entries.map((w: any) => {
+            const v = Number(w.value);
+            const label = w.kind
+                ? `${esc(w.name)} <span style="color:var(--text-muted);">${esc(w.kind)}</span>`
+                : esc(w.name);
+            const range = `base ${w.base} range [${w.lo}, ${w.hi}]`;
+            return `<div style="display:flex;gap:6px;align-items:baseline;font-size:10px;">
+                <span style="color:var(--text-dim);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(range)}">${label}</span>
+                <span style="font-family:monospace;color:${v >= 0 ? '#58a6ff' : '#e05555'};">${v > 0 ? '+' : ''}${v.toFixed(2)}</span>
+            </div>`;
+        }).join('');
+        const dialRows = dialEntries.map(([k, v]) =>
+            `<div style="display:flex;gap:6px;align-items:baseline;font-size:10px;">
+                <span style="color:var(--text-dim);flex:1;">${esc(k)}</span>
+                <span style="font-family:monospace;color:var(--text-muted);">${Number(v).toFixed(2)}</span>
+            </div>`).join('');
+        const whisperRows = whispers.map((w: string) =>
+            `<div style="font-size:9.5px;color:var(--text-muted);line-height:1.45;margin-top:3px;">${esc(w)}</div>`).join('');
+        const gatedRow = gated.length
+            ? `<div style="font-size:9.5px;color:#e05555;margin-top:4px;line-height:1.45;">excluded by values: ${gated.map(g => esc(g)).join(', ')}</div>`
+            : '';
+        return `<div style="margin-top:14px;">
+            <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Disposition - what they weigh</div>
+            <div style="background:var(--bg-card);border:1px solid var(--border);border-left:3px solid #bc8cff;border-radius:6px;padding:7px 9px;">
+                ${weightRows}
+                ${dialRows}
+                ${gatedRow}
+                ${whisperRows}
+            </div>
+        </div>`;
+    }
+
+    // task-801 / 803: the soak candidate verbs, the score each contributes, and
+    // which the character's values exclude - the action side of the score model.
+    function _actionsHtml(): string {
+        if (!_state) return '';
+        const p: any = worldState.players?.[_state.charName];
+        const actions: any[] = (p && p.disposition && Array.isArray(p.disposition.actions)) ? p.disposition.actions : [];
+        if (!actions.length) return '';
+        const gated = new Set<string>(((p.disposition && p.disposition.gated) || []).map((g: string) => String(g).toLowerCase()));
+        const rows = actions.map((a: any) => {
+            const off = gated.has(String(a.verb).toLowerCase());
+            const scores = (a.scores || []).join(', ') || '-';
+            return `<div style="display:flex;gap:6px;align-items:baseline;font-size:10px;${off ? 'opacity:.45;text-decoration:line-through;' : ''}">
+                <span style="color:var(--text-dim);min-width:64px;">${esc(a.verb)}</span>
+                <span style="color:var(--text-muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(scores)}</span>
+            </div>`;
+        }).join('');
+        const excluded = gated.size;
+        return `<details style="margin-top:14px;">
+            <summary style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;cursor:pointer;">Actions - what they can choose (${actions.length}${excluded ? `, ${excluded} excluded` : ''})</summary>
+            <div style="margin-top:6px;">${rows}</div>
+        </details>`;
+    }
+
     function _peopleHtml(): string {
         if (!_state) return '';
         if (_state.peopleStatus === 'loading') {
@@ -431,44 +670,90 @@ const InspectorMindView = (() => {
             ? visible.slice().reverse().map((m: any) => _cardHtml(m)).join('')
             : `<div style="font-size:11px;color:var(--text-muted);padding:8px 0;">nothing matches this view.</div>`;
 
+        // task-820: one tabbed mind surface over the existing renderers.
+        const tab = _state!.tab || 'mind';
+        const hdr = 'font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;';
+        const tabs: Array<[string, string]> = [
+            ['mind', 'Mind'], ['perception', 'Perception'],
+            ['memories', 'Memories'], ['people', 'People'],
+        ];
+        const tabBar = tabs.map(([key, label]) => {
+            const active = tab === key;
+            return `<span class="mind-tab" data-tab="${key}" style="padding:5px 12px;border:1px solid ${active ? '#1f6feb' : 'transparent'};border-radius:6px 6px 0 0;font-size:11.5px;color:${active ? '#58a6ff' : 'var(--text-dim)'};background:${active ? 'var(--bg-inset)' : 'transparent'};cursor:pointer;">${label}</span>`;
+        }).join('');
+        const gridStyle = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:6px 28px;align-items:start;';
+        const mindPane = `<div style="flex:1;padding:12px;overflow-y:auto;background:var(--bg-inset);">
+            <div style="${gridStyle}">
+                <div>${_mosiacHtml()}${_dispositionHtml()}${_actionsHtml()}</div>
+                <div><div style="${hdr}">Goals - what they are pursuing</div>
+                    <div id="mind-goals">${_goalsHtml()}</div>
+                    ${_goalHistoryHtml()}${_obligationsHtml()}${_scheduleHtml()}${_pursuitHtml()}</div>
+            </div></div>`;
+        const perceptionPane = `<div style="flex:1;padding:12px;overflow-y:auto;">
+            <div style="${gridStyle}">
+                <div>${_activityHtml()}${_feelingHtml()}</div>
+                <div>${_worldKnowledgeHtml()}${_recipesHtml()}</div>
+            </div></div>`;
+        const memoriesPane = `<div style="flex:1;display:flex;overflow:hidden;">
+            <div style="flex:1;padding:12px;overflow-y:auto;min-width:0;">
+                ${_timelineHtml(all)}
+                <div style="display:flex;gap:5px;flex-wrap:wrap;margin:10px 0 8px;align-items:center;">
+                    ${filterBtns}
+                    <input id="mind-search" placeholder="Search text…" value="${esc(_state!.query)}" style="margin-left:auto;background:var(--bg-input);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:3px 8px;font-size:11px;width:160px;">
+                </div>
+                <div id="mind-list">${cards}</div>
+            </div>
+            <div style="width:380px;border-left:1px solid var(--border);padding:12px;overflow-y:auto;background:var(--bg-inset);">
+                <div style="${hdr}">Memory detail</div>
+                <div id="mind-detail">${_detailHtml(selected, all)}</div>
+                <div style="margin-top:12px;" id="mind-access">${_accessibilityHtml(all)}</div>
+            </div></div>`;
+        const peoplePane = `<div style="flex:1;padding:12px;overflow-y:auto;">
+            <div style="max-width:560px;"><div style="${hdr}">People — derived from memories</div>
+                <div id="mind-people">${_peopleHtml()}</div></div></div>`;
+        const tabBody = tab === 'perception' ? perceptionPane
+            : tab === 'memories' ? memoriesPane
+            : tab === 'people' ? peoplePane : mindPane;
+
         _container.innerHTML = `
         <div style="position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9990;" class="mind-close"></div>
         <div style="position:fixed;top:4vh;left:50%;transform:translateX(-50%);width:min(1360px,96vw);height:90vh;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;z-index:9991;display:flex;flex-direction:column;overflow:hidden;">
             <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--bg-inset);flex-wrap:wrap;">
-                <h3 style="margin:0;font-size:14px;">🧠 Memory Mind — ${esc(_state!.charName)}</h3>
+                <h3 style="margin:0;font-size:14px;">🧠 Mind — ${esc(_state!.charName)}</h3>
                 <div style="display:flex;gap:6px;flex-wrap:wrap;flex:1;">${_statsHtml(all)}</div>
                 <button class="btn btn-sm mind-refresh" style="font-size:10px;" title="Re-read the character's memories">🔄</button>
                 <button class="btn btn-sm mind-close" style="font-size:10px;">✕</button>
             </div>
-            <div style="flex:1;display:grid;grid-template-columns:250px 1fr 380px;overflow:hidden;">
-                <div style="border-right:1px solid var(--border);padding:12px;overflow-y:auto;background:var(--bg-inset);">
-                    <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">People — derived from memories</div>
-                    <div id="mind-people">${_peopleHtml()}</div>
-                    <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin:14px 0 7px;">Goals - what they are pursuing</div>
-                    <div id="mind-goals">${_goalsHtml()}</div>
-                    <div id="mind-goal-history">${_goalHistoryHtml()}</div>
-                    <div id="mind-obligations">${_obligationsHtml()}</div>
-                    <div id="mind-schedule">${_scheduleHtml()}</div>
-                </div>
-                <div style="padding:12px;overflow-y:auto;min-width:0;">
-                    ${_timelineHtml(all)}
-                    <div style="display:flex;gap:5px;flex-wrap:wrap;margin:10px 0 8px;align-items:center;">
-                        ${filterBtns}
-                        <input id="mind-search" placeholder="Search text…" value="${esc(_state!.query)}" style="margin-left:auto;background:var(--bg-input);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:3px 8px;font-size:11px;width:160px;">
-                    </div>
-                    <div id="mind-list">${cards}</div>
-                </div>
-                <div style="border-left:1px solid var(--border);padding:12px;overflow-y:auto;background:var(--bg-inset);">
-                    <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Memory detail</div>
-                    <div id="mind-detail">${_detailHtml(selected, all)}</div>
-                    <div style="margin-top:12px;" id="mind-access">${_accessibilityHtml(all)}</div>
-                </div>
+            <div style="display:flex;gap:2px;padding:6px 16px 0;border-bottom:1px solid var(--border);background:var(--bg-card);flex-wrap:wrap;">
+                ${tabBar}
+            </div>
+            <div style="flex:1;overflow:hidden;display:flex;">
+                ${tabBody}
             </div>
         </div>`;
 
         // wiring
         _container.querySelectorAll<HTMLElement>('.mind-close').forEach(el =>
             el.addEventListener('click', () => M.close()));
+        _container.querySelectorAll<HTMLElement>('.mind-tab').forEach(el =>
+            el.addEventListener('click', () => { if (_state) { _state.tab = el.dataset.tab || 'mind'; _render(); } }));
+        // task-821: the GIMP goal editor lives in the Mind panel. Delegated, so a
+        // row added after a render is still wired and nothing binds twice.
+        const goalsBox = _container.querySelector('#mind-goals');
+        if (goalsBox) {
+            goalsBox.addEventListener('focusout', () => _saveGoals());
+            goalsBox.addEventListener('change', () => _saveGoals());
+            goalsBox.addEventListener('click', (ev: any) => {
+                const del = ev.target.closest('.mind-goal-del');
+                if (del) { del.closest('.mind-goal')?.remove(); _saveGoals(); return; }
+                if (ev.target.closest('.mind-add-goal')) {
+                    const empty = goalsBox.querySelector('.mind-goal-empty');
+                    if (empty) empty.remove();
+                    goalsBox.insertAdjacentHTML('afterbegin', _goalRowHtml({}));
+                    (goalsBox.querySelector('.mind-goal-what') as HTMLElement | null)?.focus();
+                }
+            });
+        }
         _container.querySelectorAll<HTMLElement>('.mind-fbtn').forEach(el =>
             el.addEventListener('click', () => { if (_state) { _state.filter = el.dataset.filter || 'all'; _render(); } }));
         _container.querySelectorAll<HTMLElement>('.mind-card').forEach(el =>
@@ -543,6 +828,7 @@ const InspectorMindView = (() => {
             _state = {
                 charName,
                 escName: charName.replace(/'/g, "\\'"),
+                tab: 'mind',
                 filter: 'all',
                 query: '',
                 selectedId: '',

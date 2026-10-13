@@ -145,6 +145,15 @@ edge endpoints, duplicate area names, non-slug library ids, non-writable
 registries, and a mature-content gate are `error`; id casing and unknown item
 actions are `warning`.
 
+A character's `behaviors` patch is checked against the *behaviour runner's*
+vocabulary, not the node-trigger one: `_behaviour_issues` flags a `trigger`
+outside `NPC_BEHAVIOUR_TRIGGERS` (`on_tick`, `on_item_taken`,
+`on_player_enter_area`, `on_player_leave_area`, `on_speech_heard`), an action type
+in neither the executor's verbs nor `EFFECT_TYPES`, and a known action with the
+wrong keys (`adjust_vital` without `stat`/`amount`, `spawn_character` without
+`character_id`, `apply_condition` without `condition`) — all cases that would
+otherwise stage a silently-dead behaviour (task-739).
+
 ---
 
 ## Pending

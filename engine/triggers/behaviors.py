@@ -1181,6 +1181,32 @@ class BehaviorMixin:
                 elif action_type == "version":
                     outputs.append(f"[{char_name}] checks the version.")
 
+                else:
+                    # Not a behaviour-chain action: fall back to the engine's
+                    # effect registry (``engine/effects.py`` ``HANDLERS``) — the
+                    # SAME vocabulary an item/way trigger runs. This is what makes
+                    # ``adjust_vital``, ``apply_condition``, ``start_activity`` and
+                    # ``spawn_character`` work on a behaviour exactly as they work
+                    # on a trigger, instead of silently doing nothing (task-739:
+                    # one vocabulary, not a second one). Gated on membership so a
+                    # typo stays a quiet no-op rather than an "Unknown effect"
+                    # log line.
+                    try:
+                        from engine.effects import HANDLERS as _EFFECT_HANDLERS
+                    except Exception:
+                        _EFFECT_HANDLERS = {}
+                    if action_type in _EFFECT_HANDLERS:
+                        eff_ctx = {
+                            "npc": char_name,
+                            "target_name": action.get("target", ""),
+                            "game_state": game_state,
+                        }
+                        outputs.extend(
+                            self._effects.execute(
+                                action_type, action, eff_ctx, game_state=game_state
+                            )
+                        )
+
         finally:
             game_state.active_player = old_active
         return outputs

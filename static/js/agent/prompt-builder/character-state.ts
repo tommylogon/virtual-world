@@ -632,6 +632,31 @@ const foodish = areaItems.filter(it =>
         return '';
     }
 
+    function buildMosiacContext(player: any) {
+        // task-812: the SAME MOSIAC context the 🧠 Mind panel renders, as words
+        // for the model. The engine assembled it onto the player's state
+        // (`Player.mosiac`); it is never re-derived here, so the LLM and the soak
+        // read one object.
+        const m = player && player.mosiac;
+        if (!m) return '';
+        const lines: string[] = [];
+        if (m.M) lines.push(`Motivation: ${m.M}`);
+        if (m.I) lines.push(`Intention: ${m.I}`);
+        const obligations = (m.O || []).map((o: any) => `${o.charge} (${o.status})`);
+        lines.push(`Obligations: ${obligations.length ? obligations.join(', ') : 'none'}`);
+        if (m.S && m.S.step) {
+            const where = m.S.step.area ? ` at ${m.S.step.area}` : '';
+            lines.push(`Schedule: ${m.S.step.activity}${where}`);
+        } else {
+            lines.push('Schedule: none');
+        }
+        const needs = (m.A || []).map((n: any) => `${n.need} ${n.value}`);
+        lines.push(`Attention: ${needs.length ? needs.join(', ') : 'nothing pressing'}`);
+        const tiers = Object.keys(m.C || {}).map((k) => `${k} ${(m.C[k] || []).length}`);
+        if (tiers.length) lines.push(`Choices: ${tiers.join(', ')}`);
+        return '\n=== YOUR MIND (MOSIAC) ===\n' + lines.join('\n');
+    }
+
     Object.assign(window.PromptBuilder, {
         buildEmotionContext,
         buildRelationshipContext,
@@ -644,6 +669,7 @@ const foodish = areaItems.filter(it =>
         buildPerceivedState,
         describeVital,
         describeVitals,
-        buildPlanContext
+        buildPlanContext,
+        buildMosiacContext
     });
 })();

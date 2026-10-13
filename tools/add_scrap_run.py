@@ -1,7 +1,9 @@
-"""Author Mikka's scrap pursuit into kraktooth (task-426).
+"""Author Mikka's scrap pursuit into kraktooth (task-426, updated by task-818).
 
-Adds the one inert prop the run needs — a Scrap item at the Scrap Pile — and a
-``pursuit`` node declaring the haul: Scrap Pile -> take scrap -> Workshop -> drop.
+Adds the one inert prop the run needs — a Scrap item at the Scrap Pile — and the
+pursuit **assignment on Mikka herself** (``Player.active_pursuit``): Scrap Pile ->
+take scrap -> Workshop -> drop. A pursuit is character data, not a world node
+(task-818), so this writes the player block, not a graph node.
 
 Idempotent; dry-run by default, ``--write`` saves. The scrap item carries no
 food/water/recreation tag, so it cannot change which areas any survival need
@@ -21,7 +23,7 @@ SCENARIO = ROOT / "data" / "scenarios" / "kraktooth_goblin_camp.json"
 SCRAP_ID = "item_scrap"
 PURSUIT_ID = "pursuit_mikka_scrap_run"
 SCRAP_PILE = "area_scrap_pile"
-ACTOR = "player_Mikka"      # id, not display name (AGENTS: data keys by id)
+ACTOR = "Mikka"             # the players block is keyed by display name
 SOURCE = "Scrap Pile"
 SINK = "Workshop"
 LABEL = "scrap_run"
@@ -36,6 +38,7 @@ def main():
     graph = data["graph"]
     nodes = graph["nodes"]
     edges = graph["edges"]
+    players = data.get("players") or {}
     added = []
 
     if SCRAP_ID not in nodes:
@@ -56,20 +59,21 @@ def main():
                       "properties": {}})
         added.append(f"edge {SCRAP_ID} -in-> {SCRAP_PILE}")
 
-    if PURSUIT_ID not in nodes:
-        nodes[PURSUIT_ID] = {
-            "id": PURSUIT_ID, "type": "pursuit", "name": LABEL,
-            "properties": {
-                "pursuit_template": "haul",
-                "actor": ACTOR,
-                "source": SOURCE,
-                "item": "scrap",
-                "sink": SINK,
-                "label": LABEL,
-                "repeat": False,
-            },
+    mikka = players.get(ACTOR)
+    if mikka is None:
+        print(f"error: no player {ACTOR!r} in the scenario's players block")
+        return
+    if not mikka.get("active_pursuit"):
+        mikka["active_pursuit"] = {
+            "assignment_id": PURSUIT_ID,
+            "template_id": "haul",
+            "label": LABEL,
+            "reason": "Move scrap to the workshop for repairs.",
+            "bindings": {"source": SOURCE, "item": "scrap", "sink": SINK},
+            "step_index": 0,
+            "repeat": False,
         }
-        added.append(f"node {PURSUIT_ID}")
+        added.append(f"active_pursuit on {ACTOR} ({LABEL})")
 
     if not added:
         print("nothing to do — the scrap run is already authored")

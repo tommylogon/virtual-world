@@ -4,17 +4,17 @@ status: todo
 area: emotions
 priority: medium
 blocked_by: [task-691]
-related: [task-714, task-757]
+related: [task-714, task-757, task-820]
 ---
 
 # task-756: Move emotion editing into the Mind view; the memory-edit modal is not its home
 
 **Filed:** 2026-10-09
-**Related:** task-691 (Mind dashboard), task-714 (character mind panel), task-757 (dead-cluster removal)
+**Related:** task-691 (Mind dashboard), task-714 (character mind panel), task-757 (dead-cluster removal), task-820 (tabbed container)
 
 <!-- deps:start -->
 **Blocked by:** [[task-691-memory-mind-interface-dynamics-badges-connections-per-person-profiles-dashboard]]
-**Related:** [[task-714-character-mind-panel-connect-memories-motives-and-current-pursuits]], [[task-757-enable-nounusedlocals-and-clear-the-unused-symbol-backlog-three-orphaned-ui-wirings-restored]]
+**Related:** [[task-714-character-mind-panel-connect-memories-motives-and-current-pursuits]], [[task-757-enable-nounusedlocals-and-clear-the-unused-symbol-backlog-three-orphaned-ui-wirings-restored]], [[task-820-mind-panel-one-tabbed-mind-surface-and-one-entry-point]]
 <!-- deps:end -->
 
 ## What
@@ -45,8 +45,9 @@ when task-691/714 make the Mind view own the memory list, move the editor with i
 
 ## Decision needed
 
-Confirm the Mind view should take over memory *editing* (not just the read-only
-dashboard it is today) before this is built. If yes, the move is:
+RESOLVED 2026-10-13: yes — the Mind view takes over memory *editing*, not just the
+read-only dashboard (Bio survives as the character's definition surface; the Mind
+panel owns the mind). The move is:
 
 1. Lift the grouped emotion picker + intensity control from `memory-view.ts`
    (the `memory_emotions` UI) into the Mind view's memory detail panel.
@@ -76,6 +77,9 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
+1. Open a memory in the Mind panel and set two emotions with intensities.
+   - expected: saved via `updatePlayerMemory` to `memory_emotions`; reopening shows the same values.
+   - observed: TODO
+2. Open the memory-edit modal.
+   - expected: it is a viewer; no emotion editor remains there.
    - observed: TODO
