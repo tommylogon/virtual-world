@@ -165,6 +165,17 @@ class Player:
         # fallback}]. Empty means "no schedule" — pure need-driven behaviour,
         # which is what every character did before schedules existed.
         self.schedule = []
+        # Character-private goals (task-807): [{id, what, status, motivation,
+        # intention}]. Authored per scenario, or created at runtime. Never a
+        # world node: a goal is an intention, and the mind is the character's.
+        # Empty means "no goals", the state every character was in before this.
+        self.goals = []
+        # Append-only goal history (task-811): [{goal_id, what, status, tick}],
+        # recorded on every transition so a character's goals can be replayed.
+        self.goal_log = []
+        # Character-private obligations (task-813): [{id, charge, status, from,
+        # due, reward, goal_id}]. An input to the mind; accepting one spawns a goal.
+        self.obligations = []
         # Authored multi-step plan (task-426): {template, label, index, steps}
         # or None. This is the current executable approach for a pursuit; the
         # longer-lived actor-bound pursuit is stored separately below.
@@ -1362,6 +1373,9 @@ class Player:
             "active_pursuit": getattr(self, "active_pursuit", None),
             "plan": getattr(self, "plan", None),
             "completed_pursuits": list(getattr(self, "completed_pursuits", []) or []),
+            "goals": [dict(g) for g in (getattr(self, "goals", []) or [])],
+            "goal_log": [dict(e) for e in (getattr(self, "goal_log", []) or [])],
+            "obligations": [dict(o) for o in (getattr(self, "obligations", []) or [])],
         }
 
     def _relationships_to_dict(self):

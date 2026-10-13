@@ -4,17 +4,17 @@
     "type": "split",
     "children": [
       {
-        "id": "30766a947c3bf9b5",
+        "id": "072b126b81905193",
         "type": "tabs",
         "children": [
           {
-            "id": "a706becb86d4604f",
+            "id": "2060a4dbfa7c3a30",
             "type": "leaf",
             "state": {
-              "type": "graph",
+              "type": "empty",
               "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Graph view"
+              "icon": "lucide-file",
+              "title": "New tab"
             }
           }
         ]
@@ -181,8 +181,9 @@
       "bases:Create new base": false
     }
   },
-  "active": "a706becb86d4604f",
+  "active": "2060a4dbfa7c3a30",
   "lastOpenFiles": [
+    "Features/Features Overview.md",
     "dev_tasks/review/docs/task-699-mosiac-design-doc-schedules-plan-templates-and-recipe-activities-as-one-decision-layer.md",
     "dev_tasks/done/graph/bug-550-a-property-only-sync-re-seeds-node-x-y-and-snaps-a-dragged-node-back-to-its-stored-position.md",
     "dev_tasks/review/graph/bug-551-every-state-fetch-rendered-all-panels-twice-and-every-edit-fetched-state-twice.md",
@@ -208,7 +209,6 @@
     "dev_tasks/todo/characters/task-805-disposition-whispers-render-the-score-registry-as-words-for-the-llm.md",
     "dev_tasks/todo/characters/task-804-disposition-pick-argmax-with-a-stable-tie-break.md",
     "dev_tasks/todo/characters/task-803-disposition-value-gates-traits-and-morality-as-hard-exclusions.md",
-    "dev_tasks/todo/characters/task-802-disposition-character-weights-from-traits-plus-live-modifiers.md",
     "dev_tasks/done/dev",
     "Untitled.canvas",
     "dev_tasks/todo/gameplay/task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override.md.tmp.11928.1b3cb7021f85",

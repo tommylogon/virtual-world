@@ -185,8 +185,15 @@ window.GraphLayoutEngine = {
                 fixed: { x: true, y: true }
             });
         }
-        // Item/character positions near parent room (with physics)
-        const graphEdges = worldState.graph?.edges || [];
+        // Item/character positions near parent room (with physics). Read the
+        // edges the load already fetched (`graphManager._graphEdgesArr`, set
+        // before this runs) rather than `worldState.graph.edges`: on a first
+        // load the global state has not resolved yet, so it is empty here and
+        // every item/character is placed from its stale canvas x/y (bug-556).
+        const gmEdges = (typeof graphManager !== 'undefined' && graphManager)
+            ? graphManager._graphEdgesArr
+            : null;
+        const graphEdges = ((gmEdges && gmEdges.length ? gmEdges : worldState.graph?.edges) || []);
         const areaToItems = {};
         const areaToChars = {};
         for (const edge of graphEdges) {
@@ -665,7 +672,18 @@ window.GraphLayoutEngine = {
         const updates = [];
         const placed = new Set();
         const anchors = {};
-        const edges = (worldState.graph && worldState.graph.edges) || [];
+        // Where each placed node ended up, so a loose node can be placed beside
+        // whatever holds it even when the holder is itself a loose node.
+        const placedPos = {};
+        // The loaded edges (`_graphEdgesArr`, set by loadGraphData before the
+        // layout runs) — NOT `worldState.graph.edges`, which is empty on a first
+        // load before the global state resolves, leaving `heldIn`/`wayAreas`
+        // empty and stranding every item, character and way at its saved x/y
+        // (bug-556).
+        const gmEdges = (typeof graphManager !== 'undefined' && graphManager)
+            ? graphManager._graphEdgesArr
+            : null;
+        const edges = ((gmEdges && gmEdges.length ? gmEdges : (worldState.graph && worldState.graph.edges)) || []);
         // way id -> the areas it joins, so a coordinate-less way can be placed
         // from its rooms rather than from a stale saved position.
         const wayAreas = {};
@@ -687,29 +705,32 @@ window.GraphLayoutEngine = {
             const room = nodesObj[id];
             return !!room && window.GraphLayoutEngine.hasPaintedCoords((room.properties) || {});
         };
-        // Items/characters held in an area sit beside it, so the holder map is
-        // built *before* the main loop: a loose node's stale canvas `x`/`y` must
-        // not be used when its room is painted — the saved canvas frame and the
-        // cell frame disagree, which stranded the node (and its `in` edge)
-        // thousands of px from the room. Such a node is deferred to the beside
-        // pass below instead of being placed from its `x`/`y`.
-        const heldIn = {};
+        // A loose node sits beside whatever holds it. The holder is not only an
+        // area: an item can be carried by a character, left on a way, or nested
+        // in another item. Anchoring only to areas left every item a character
+        // carries at its stale canvas coords, so its `in` edge to the character
+        // fanned thousands of px across the map (the world-scope fan:
+        // player_Cullen_Rutherford ~4600px from his own torch). Build the whole
+        // holder graph; the pass below walks it from the placed roots.
+        const childrenOf = {};
         const holderOf = {};
         for (const edge of edges) {
-            // `in` (item/char in a room), `on` (item resting on a surface) and
-            // `at` (item/char at a place) all anchor a loose node to an area.
-            // Reading only `in` left `on`/`at` nodes placed from their stale
-            // canvas coords — the same frame mismatch, one relation type later
-            // (task-769).
-            if (edge.type !== 'in' && edge.type !== 'on' && edge.type !== 'at')
-                continue;
             const source = nodesObj[edge.source];
             const target = nodesObj[edge.target];
-            if (!source || !target || target.type !== 'area')
-                continue;
-            (heldIn[edge.target] = heldIn[edge.target] || []).push(edge.source);
-            if (!holderOf[edge.source])
-                holderOf[edge.source] = edge.target;
+            if (edge.type === 'in' || edge.type === 'on' || edge.type === 'at') {
+                if (!source || !target)
+                    continue;
+                (childrenOf[edge.target] = childrenOf[edge.target] || []).push(edge.source);
+                if (!holderOf[edge.source])
+                    holderOf[edge.source] = edge.target;
+            }
+            else if (edge.type === 'triggers') {
+                if (!source || !target)
+                    continue;
+                (childrenOf[edge.source] = childrenOf[edge.source] || []).push(edge.target);
+                if (!holderOf[edge.target])
+                    holderOf[edge.target] = edge.source;
+            }
         }
         for (const [id, node] of Object.entries(nodesObj)) {
             if (!nodesDS.get(id))
@@ -742,10 +763,12 @@ window.GraphLayoutEngine = {
                 // An item/character held in a painted area is part of the map too:
                 // its saved canvas `x`/`y` is a different frame, so it is placed
                 // beside its room (the pass below) rather than from the copy.
-                const holder = holderOf[id];
-                const looseHeldInPainted = (node.type === 'item' || node.type === 'character')
-                    && !!holder && isPaintedArea(holder);
-                if (!belongsToMap && !looseHeldInPainted)
+                // A loose node held by *anything* (room, character, way, item)
+                // is placed beside that holder by the pass below, never from its
+                // own stale canvas `x`/`y`.
+                const looseHeld = (node.type === 'item' || node.type === 'character' || node.type === 'logic_trigger')
+                    && !!holderOf[id];
+                if (!belongsToMap && !looseHeld)
                     p = { x: props.x, y: props.y };
             }
             if (!p)
@@ -784,31 +807,14 @@ window.GraphLayoutEngine = {
             });
             window.GraphNetwork?._posTrace?.('gridUpdates.' + (window.GraphLayoutEngine.hasPaintedCoords(props) ? 'paintedCell' : 'savedXY'), id, p.x, p.y, node.type);
             placed.add(id);
+            placedPos[id] = p;
             if (isArea)
                 anchors[id] = p;
         }
-        // Items/characters without their own coords — and those held in a painted
-        // area, whose saved canvas coords were deliberately skipped above — sit
-        // beside the area that holds them.
-        for (const [areaId, ids] of Object.entries(heldIn)) {
-            const anchor = anchors[areaId];
-            if (!anchor)
-                continue;
-            const beside = window.GraphLayoutEngine.mapBesideOffsets();
-            ids.forEach((id, index) => {
-                if (placed.has(id) || !nodesDS.get(id))
-                    return;
-                const isChar = (nodesObj[id] || {}).type === 'character';
-                const bx = anchor.x + (isChar ? beside.charX : beside.itemX) + (index % beside.perRow) * beside.step;
-                const by = anchor.y + (isChar ? beside.charY : beside.itemY)
-                    + Math.floor(index / beside.perRow) * beside.step;
-                updates.push({ id, x: bx, y: by, physics: true, fixed: { x: false, y: false } });
-                window.GraphNetwork?._posTrace?.('gridUpdates.beside', id, bx, by, 'held in ' + areaId);
-            });
-        }
         // Ways that belong to the map were skipped by the loop above;
         // place them between their rooms (task-723), in the same
-        // scaled map frame.
+        // scaled map frame. Before the child pass, so a loose node held by a
+        // way finds its holder in `placedPos`.
         for (const [wayId, areaIds] of Object.entries(wayAreas)) {
             if (placed.has(wayId) || !nodesDS.get(wayId))
                 continue;
@@ -819,6 +825,41 @@ window.GraphLayoutEngine = {
             updates.push({ id: wayId, x: pos.x, y: pos.y, physics: false, fixed: { x: true, y: true } });
             window.GraphNetwork?._posTrace?.('gridUpdates.wayBetweenRooms', wayId, pos.x, pos.y);
             placed.add(wayId);
+            placedPos[wayId] = pos;
+        }
+        // Loose nodes sit beside whatever holds them. Walked as a frontier from
+        // everything already placed (areas, ways, free nodes), so a chain — an
+        // item carried by a character who stands in a room — resolves in order
+        // rather than needing the holder to be an area.
+        {
+            const beside = window.GraphLayoutEngine.mapBesideOffsets();
+            const childIndex = {};
+            let frontier = Object.keys(placedPos);
+            while (frontier.length) {
+                const next = [];
+                for (const holderId of frontier) {
+                    const kids = childrenOf[holderId];
+                    const hp = placedPos[holderId];
+                    if (!kids || !hp)
+                        continue;
+                    for (const id of kids) {
+                        if (placed.has(id) || !nodesDS.get(id))
+                            continue;
+                        const isChar = (nodesObj[id] || {}).type === 'character';
+                        const idx = childIndex[holderId] || 0;
+                        childIndex[holderId] = idx + 1;
+                        const bx = hp.x + (isChar ? beside.charX : beside.itemX) + (idx % beside.perRow) * beside.step;
+                        const by = hp.y + (isChar ? beside.charY : beside.itemY)
+                            + Math.floor(idx / beside.perRow) * beside.step;
+                        updates.push({ id, x: bx, y: by, physics: true, fixed: { x: false, y: false } });
+                        window.GraphNetwork?._posTrace?.('gridUpdates.beside', id, bx, by, 'held in ' + holderId);
+                        placed.add(id);
+                        placedPos[id] = { x: bx, y: by };
+                        next.push(id);
+                    }
+                }
+                frontier = next;
+            }
         }
         return updates;
     },

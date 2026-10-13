@@ -814,6 +814,80 @@ type AVWin = { [key: string]: any };
      * @param {string} color - Agent color
      * @returns {string} HTML
      */
+    /**
+     * One editable goal row in the character editor (task-808). Fields save on
+     * blur, so adding or editing a goal persists to the character's record.
+     */
+    AV._goalRowHtml = function(escName: string, g: any) {
+        const inputStyle = 'font-size:11px;background:var(--bg-input);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 6px;';
+        const statuses = ['proposed', 'active', 'reached', 'blocked', 'dropped'];
+        const val = (s: any) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        return `<div class="goal-row" style="border:1px solid var(--border);border-radius:6px;padding:6px;margin-bottom:6px;">
+            <div style="display:flex;gap:6px;align-items:center;">
+                <input class="goal-what" value="${val(g.what)}" placeholder="what they want" style="${inputStyle}flex:1;" onblur="InspectorAgentView._saveGoals('${escName}')">
+                <select class="goal-status" style="font-size:10px;background:var(--bg-input);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:1px 4px;" onchange="InspectorAgentView._saveGoals('${escName}')">
+                    ${statuses.map((s: string) => `<option value="${s}"${s === (g.status || 'proposed') ? ' selected' : ''}>${s}</option>`).join('')}
+                </select>
+                <span onclick="InspectorAgentView._deleteGoal('${escName}', this)" style="cursor:pointer;color:var(--red);font-size:12px;padding:2px;" title="remove goal">✕</span>
+            </div>
+            <input class="goal-motivation" value="${val(g.motivation)}" placeholder="motivation (why at all)" style="${inputStyle}width:100%;margin-top:4px;" onblur="InspectorAgentView._saveGoals('${escName}')">
+            <input class="goal-intention" value="${val(g.intention)}" placeholder="intention (why this one)" style="${inputStyle}width:100%;margin-top:4px;" onblur="InspectorAgentView._saveGoals('${escName}')">
+            <input class="goal-blocks" value="${val((g.blocks || []).join(', '))}" placeholder="blocked by (goal id or item:node_id, comma-separated)" style="${inputStyle}width:100%;margin-top:4px;" onblur="InspectorAgentView._saveGoals('${escName}')">
+        </div>`;
+    };
+
+    AV._renderGoalsSection = function(player: any, escName: string) {
+        const goals = Array.isArray(player.goals) ? player.goals : [];
+        const listId = 'goal-list-' + escName.replace(/\s+/g, '_');
+        const body = goals.length
+            ? goals.map((g: any) => AV._goalRowHtml(escName, g)).join('')
+            : '<div class="goal-empty" style="font-size:10px;color:var(--text-muted);margin-bottom:4px;">no goals</div>';
+        return `<div class="inspector-section">
+            <h3>🎯 Goals</h3>
+            <div id="${listId}">${body}</div>
+            <button class="btn btn-sm" onclick="InspectorAgentView._addGoal('${escName}')">➕ Add goal</button>
+        </div>`;
+    };
+
+    AV._goalList = function(charName: string) {
+        return document.getElementById('goal-list-' + charName.replace(/\s+/g, '_'));
+    };
+
+    AV._collectGoals = function(charName: string) {
+        const list = AV._goalList(charName);
+        if (!list) return [];
+        return Array.from(list.querySelectorAll('.goal-row')).map((row: any) => ({
+            what: (row.querySelector('.goal-what')?.value || '').trim(),
+            status: row.querySelector('.goal-status')?.value || 'proposed',
+            motivation: (row.querySelector('.goal-motivation')?.value || '').trim(),
+            intention: (row.querySelector('.goal-intention')?.value || '').trim(),
+            blocks: (row.querySelector('.goal-blocks')?.value || '').trim(),
+        })).filter((g: any) => g.what);
+    };
+
+    AV._saveGoals = async function(charName: string) {
+        const goals = AV._collectGoals(charName);
+        await ApiClient.updateCharacter(charName, { goals });
+        await worldState.fetch();
+    };
+
+    AV._addGoal = function(charName: string) {
+        const list = AV._goalList(charName);
+        if (!list) return;
+        const empty = list.querySelector('.goal-empty');
+        if (empty) empty.remove();
+        list.insertAdjacentHTML('beforeend', AV._goalRowHtml(charName, {}));
+        const rows = list.querySelectorAll('.goal-row');
+        const last = rows[rows.length - 1] as HTMLElement | undefined;
+        (last?.querySelector('input') as HTMLElement | null)?.focus();
+    };
+
+    AV._deleteGoal = function(charName: string, el: HTMLElement) {
+        const row = el.closest('.goal-row');
+        if (row) row.remove();
+        AV._saveGoals(charName);
+    };
+
     AV._renderBioTab = function(agentName: string, player: any, charState: any, area: any, escName: string, isAuto: boolean, color: string) {
         const showTab = (tabName: string) => _activeTab === tabName ? '' : 'display:none;';
         const firstImpression = AV._computeFirstImpression(player);
@@ -831,6 +905,10 @@ type AVWin = { [key: string]: any };
             </div>
             <div class="field"><textarea id="inspector-personality" rows="3" style="font-size:11px;" onblur="InspectorAgentView._savePersonality('${escName}')">${player.personality || ''}</textarea></div>
         </div>`;
+
+        // Goals (GIMP, task-808): the character's own wants, authored here and
+        // read by MOSIAC (task-812) and the Mind panel (task-714).
+        html += AV._renderGoalsSection(player, escName);
 
         // Appearance
         html += `<div class="inspector-section">

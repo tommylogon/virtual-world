@@ -123,6 +123,9 @@ VERB_TIERS: dict[str, str] = {
     "stats": FREE,
     "status": FREE,
     "recall": FREE,   # task-736: cheap self-query; an agent won't pay a turn to think
+    "goal": FREE,     # task-809: set, complete or drop a goal in the character's mind
+    "obligation": FREE,   # task-813: answer an obligation - accept, refuse or forget
+    "schedule": FREE,     # task-814: edit your own routine - add or remove a step
     "name": FREE,     # task-447 alias
     "label": FREE,    # relationship label
     "stop": FREE,

@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: inprogress
 area: ui
 priority: medium
 related: [task-409, task-426, task-691, task-699, task-701, task-702, task-703, task-704, task-725, task-800, task-802, task-806, task-807, task-810, task-811, task-812, task-813, task-814]
@@ -58,18 +58,27 @@ Build against the runtime data provided by pursuit selection/execution (tasks 70
 
 ## Why
 
-TODO
+A character's goals, motives and pursuits are the top of the decision stack: MOSIAC reads them to decide, and the soak weights against them. Without a surface, a designer cannot see why a character acts, nor tell an authored goal from a runtime need. The Mind panel is that surface, and it must read the real runtime source (`Player.goals`) rather than keep a second UI copy.
 
 ## How
 
-TODO
+Extend `InspectorMindView` (`static/js/inspector/mind-view.ts`) with a Goals block in the left column, below People. It reads `worldState.players[name].goals`, the character's own record, serialized in the players block (task-807), and renders each goal's `what`, `status` (colour-coded), and its `motivation` / `intention` (GIMP's M and I) when present. No second copy and no unified Goal record is invented to fill a blank; an empty list reads "no goals".
+
+Still to add, layer by layer (per the acceptance list): Mission, Pursuit, Schedule, Short-term plan, Activity, plus world knowledge, known recipes, general memories, and the emotional-cause and death/vitals surfaces. Each reads its own runtime source.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Set a goal on the controlled character, then open the 🧠 Mind panel.
+   - expected: the goal appears under "Goals - what they are pursuing" with its status badge; `goal complete` / `goal drop` change the badge.
+   - observed: VERIFIED 2026-10-12, live on localhost:4445. `goal set Become chief of the camp`, then `goal complete` -> the panel's Goals block shows "Become chief of the camp" with a green `reached` badge, and `/api/state` carries the same.
 
 ## Files
 
-- TODO
+- `static/js/inspector/mind-view.ts`
+- `engine/goals.py` (the model it reads)
+- `engine/serialization.py` (the `goals` field it renders)
+
+## Progress (2026-10-12)
+
+- Goals layer done and verified live: a "Goals - what they are pursuing" block in the Mind panel, rendering `Player.goals` (task-807) with status badges and GIMP's motivation/intention. Screenshot-confirmed in the real browser on port 4445.
+- Remaining layers: Mission, Pursuit, Schedule, Short-term plan, Activity; and world knowledge, known recipes, general memories, death/vitals/perception.

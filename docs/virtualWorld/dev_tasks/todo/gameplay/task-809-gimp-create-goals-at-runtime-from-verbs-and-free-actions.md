@@ -38,10 +38,23 @@ A set_goal / complete_goal / drop_goal free action (or verb) writing the Goal mo
 
 ## Acceptance
 
-- [ ] A goal can be created, completed and dropped at runtime.
-- [ ] The action is authorable in the action tiers.
+- [x] A goal can be created, completed and dropped at runtime.
+- [x] The action is authorable in the action tiers.
+
+## Progress (2026-10-12)
+
+- `engine/goals.py`: `find`, `set_goal`, `set_status` (completing is `reached`, dropping is `dropped`).
+- `engine/action_tiers.py`: `goal` classified `free`; the browser mirror `static/js/agent/action-tiers.ts` regenerated.
+- `routes/action_handlers.py`: the `goal` verb - bare `goal` lists, `goal set <what>`, `goal complete <goal>`, `goal drop <goal>`. It reads the raw command so a runtime goal keeps the player's capitalisation (the dispatcher lower-cases `cmd`).
+- `tests/test_goals.py`: the engine helpers plus one wiring test that posts to `/api/action` and asserts the character's goals change.
+
+Not yet: the Mind panel does not show a goal (task-714), so verify step 1 cannot be observed end-to-end until 714 lands.
 
 ## Files
 
 - `engine/action_tiers.py`
 - `engine/goals.py`
+- `engine/serialization.py`
+- `routes/action_handlers.py`
+- `tests/test_goals.py`
+- `static/js/agent/action-tiers.ts`

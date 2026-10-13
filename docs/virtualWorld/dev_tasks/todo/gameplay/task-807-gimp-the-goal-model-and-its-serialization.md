@@ -39,11 +39,25 @@ A Goal record with target, status (proposed/active/reached/blocked/dropped), and
 
 ## Acceptance
 
-- [ ] A Goal round-trips through save/load.
-- [ ] A character can hold zero, one or many goals.
+- [x] A Goal round-trips through save/load.
+- [x] A character can hold zero, one or many goals.
+
+## Progress (2026-10-12) - the model and its serialization
+
+- `engine/goals.py`: `GOAL_STATUSES`, `slug`, `normalize` (drops a goal with neither an
+  id nor a `what`, derives the id from `what`, coerces an unknown status to `proposed`),
+  `active`, `describe`.
+- `Player.goals` on the character record, beside `schedule`. Serialized in the players
+  block and normalised on load (`engine/serialization.py`).
+- `tests/test_goals.py` - 5 tests, including a full scenario round-trip.
+
+Not yet, and by design of the cards: no surface reads a goal (the Mind panel is task-714),
+no scenario authors one (the editor is task-808, runtime creation is task-809), and MOSIAC
+does not consume it yet (task-812).
 
 ## Files
 
 - `engine/goals.py`
 - `engine/serialization.py`
 - `player.py`
+- `tests/test_goals.py`

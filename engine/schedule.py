@@ -97,6 +97,42 @@ def normalize(schedule):
     return out
 
 
+def add_step(schedule, start, activity=DEFAULT_ACTIVITY, *, area="", fallback=DEFAULT_ACTIVITY):
+    """Add or replace the step at *start*. Returns ``(steps, error)`` (task-814).
+
+    Restating a time replaces the step there, so a character changing its mind
+    about 08:00 edits that routine instead of stacking two.
+    """
+    minutes = parse_start(start)
+    if minutes is None:
+        return normalize(schedule), f"{start!r} is not a time (use HH:MM)."
+    act = str(activity or DEFAULT_ACTIVITY).strip().lower()
+    if act not in KNOWN_ACTIVITIES:
+        act = DEFAULT_ACTIVITY
+    fb = str(fallback or DEFAULT_ACTIVITY).strip().lower()
+    if fb not in KNOWN_ACTIVITIES:
+        fb = DEFAULT_ACTIVITY
+    step = {"start": minutes, "activity": act, "fallback": fb}
+    if str(area).strip():
+        step["area"] = str(area).strip()
+    steps = [s for s in normalize(schedule) if s["start"] != minutes]
+    steps.append(step)
+    steps.sort(key=lambda s: s["start"])
+    return steps, None
+
+
+def remove_step(schedule, start):
+    """Remove the step at *start*. Returns ``(steps, error)`` (task-814)."""
+    minutes = parse_start(start)
+    if minutes is None:
+        return normalize(schedule), f"{start!r} is not a time (use HH:MM)."
+    steps = normalize(schedule)
+    remaining = [s for s in steps if s["start"] != minutes]
+    if len(remaining) == len(steps):
+        return steps, f"No step at {start}."
+    return remaining, None
+
+
 def current_step(schedule, now_minutes):
     """The step in force at ``now_minutes`` past midnight, or None.
 

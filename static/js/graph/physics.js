@@ -172,6 +172,10 @@ window.GraphPhysics = {
             return;
         const updates = [];
         for (const id of Object.keys(body)) {
+            // `body` also carries edge entries (`edgeId:*`) in some vis builds;
+            // only real nodes belong in the node DataSet.
+            if (!nodesDS.get(id))
+                continue;
             const b = body[id];
             if (b && Number.isFinite(b.x) && Number.isFinite(b.y)) {
                 updates.push({ id, x: b.x, y: b.y });

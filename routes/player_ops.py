@@ -606,6 +606,17 @@ def handle_update_player(app, name):
         app.world.equipment.set_equipped_payload(player, data["equipped"])
     if "behaviors" in data:
         player.behaviors = data["behaviors"]
+    # task-808: goals are character-private data, authored in the editor. They
+    # live on the character record, not a node; normalise so a hand-edited form
+    # cannot put a malformed goal into the character's mind.
+    if "goals" in data:
+        from engine.goals import normalize as _normalize_goals
+        player.goals = _normalize_goals(data["goals"])
+    # task-813: obligations are character-private too; an offer is authored or
+    # arrives from the world, and the character answers it at runtime.
+    if "obligations" in data:
+        from engine.goals import normalize_obligations as _normalize_obligations
+        player.obligations = _normalize_obligations(data["obligations"])
     if "npc_state" in data:
         player.npc_state = data["npc_state"]
     if "npc_behavior" in data:

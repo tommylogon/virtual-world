@@ -298,6 +298,27 @@ Goals can be **linked and blocked** by other goals, characters, events or items,
 achieved, which goals were reached and when, what was blocked, what was dropped, what
 changed over time.
 
+### The mind is the character's, and it is not the graph
+
+Agreed 2026-10-12. Nodes are **physical entities in the world** - areas, ways, items,
+characters. Goals, pursuits, schedules, GIMP and MOSIAC are none of those: they are the
+**private data of the character**, and they live on the character's own record, per
+scenario. The only part the world holds is the library - templates of goals, pursuits and
+schedules that are **copied onto** a character for quick authoring, never referenced
+live.
+
+Consequences:
+
+- Storage follows `Player.schedule` (task-409) and `engine/schedule.py`: an authored list
+  on the character's record, normalised on load, never a node. Goals are `Player.goals`
+  (`engine/goals.py`, task-807).
+- The existing **`pursuit` node type is retired** (task-818). No scenario authors one, and
+  a pursuit is a character's intention rather than a thing in the world; it already has a
+  home in `Player.active_pursuit` / `Player.plan`. The template library
+  (`data/library/pursuit_templates/`) stays.
+- Triggers are the same case - a trigger is not a physical entity either - but that is not
+  part of this work.
+
 ### GIMP - the goal layer
 
 The four things about a want, named **GIMP** - **G**oal, **I**ntention, **M**otivation,

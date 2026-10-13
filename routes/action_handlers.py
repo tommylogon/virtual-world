@@ -1326,6 +1326,112 @@ def handle_take_action(app):
                         else:
                             add_output("You don't see anyone by that name.")
 
+        elif cmd == "goal" or cmd.startswith("goal "):
+            # task-809: goals are character-private data, created and changed at
+            # runtime from a free action. A goal is a want, never a world change,
+            # so nothing here needs a target or a check.
+            from engine import goals as _goals
+            player = world.player_manager.get_active_player_obj()
+            # `cmd` is lower-cased by the dispatcher; read the raw command so a
+            # runtime goal keeps the player's capitalisation.
+            rest = (data.get("command") or "").strip()[4:].strip()
+            if not rest:
+                add_output(_goals.describe(player.goals))
+            else:
+                sub, _, arg = rest.partition(" ")
+                sub = sub.strip().lower()
+                arg = arg.strip()
+                if sub in ("set", "add", "want"):
+                    if not arg:
+                        add_output("Usage: goal set <what you want>")
+                    else:
+                        new, error = _goals.set_goal(player.goals, arg, tick=world.time_ticks, log=player.goal_log)
+                        if error:
+                            add_output(error)
+                        else:
+                            player.goals = new
+                            add_output(f"You set a goal: {arg}.")
+                elif sub in ("complete", "done", "achieve", "reached"):
+                    new, error = _goals.set_status(player.goals, arg, "reached", tick=world.time_ticks, log=player.goal_log)
+                    if error:
+                        add_output(error)
+                    else:
+                        player.goals = new
+                        add_output(f"Goal reached: {arg}.")
+                elif sub in ("drop", "abandon", "forget"):
+                    new, error = _goals.set_status(player.goals, arg, "dropped", tick=world.time_ticks, log=player.goal_log)
+                    if error:
+                        add_output(error)
+                    else:
+                        player.goals = new
+                        add_output(f"You dropped the goal: {arg}.")
+                else:
+                    add_output("Usage: goal [set <what> | complete <goal> | drop <goal>]")
+
+        elif cmd == "schedule" or cmd.startswith("schedule "):
+            # task-814: a schedule you cannot change is a script, not a life. The
+            # character edits its own routine; the tick picks it up unchanged.
+            from engine import schedule as _schedule
+            player = world.player_manager.get_active_player_obj()
+            rest = (data.get("command") or "").strip()[len("schedule"):].strip()
+            if not rest:
+                add_output(_schedule.describe(player.schedule))
+            else:
+                sub, _, arg = rest.partition(" ")
+                sub = sub.strip().lower()
+                arg = arg.strip()
+                if sub in ("add", "set"):
+                    if not arg:
+                        add_output("Usage: schedule add HH:MM <activity> [at <area>]")
+                    else:
+                        parts = arg.split(None, 1)
+                        start = parts[0]
+                        activity = parts[1] if len(parts) > 1 else ""
+                        area = ""
+                        if " at " in activity:
+                            activity, _, area = activity.partition(" at ")
+                        steps, error = _schedule.add_step(
+                            player.schedule, start, activity.strip(), area=area.strip())
+                        if error:
+                            add_output(error)
+                        else:
+                            player.schedule = steps
+                            add_output(f"Scheduled: {_schedule.describe(steps)}")
+                elif sub in ("remove", "drop", "clear"):
+                    steps, error = _schedule.remove_step(player.schedule, arg)
+                    if error:
+                        add_output(error)
+                    else:
+                        player.schedule = steps
+                        add_output(f"Schedule now: {_schedule.describe(steps)}")
+                else:
+                    add_output("Usage: schedule [add HH:MM <activity> [at <area>] | remove HH:MM]")
+
+        elif cmd == "obligation" or cmd.startswith("obligation "):
+            # task-813: an obligation is the O of MOSIAC - an input the character
+            # answers. Accepting is what spawns a goal.
+            from engine import goals as _goals
+            player = world.player_manager.get_active_player_obj()
+            rest = (data.get("command") or "").strip()[len("obligation"):].strip()
+            if not rest:
+                add_output(_goals.describe_obligations(player.obligations))
+            else:
+                sub, _, arg = rest.partition(" ")
+                sub = sub.strip().lower()
+                arg = arg.strip()
+                if sub in ("accept", "refuse", "decline", "forget", "alter", "done", "complete"):
+                    obs, goal_list, error = _goals.respond_obligation(
+                        player.obligations, arg, sub,
+                        goals=player.goals, tick=world.time_ticks, log=player.goal_log)
+                    if error:
+                        add_output(error)
+                    else:
+                        player.obligations = obs
+                        player.goals = goal_list
+                        add_output(f"You {sub} the obligation: {arg}.")
+                else:
+                    add_output("Usage: obligation [accept|refuse|forget <charge>]")
+
         elif cmd.startswith(("bind ", "enchant ")):
             # task-242: agents author item triggers at runtime.
             # Schema: bind <item> <trigger_type>:<effect_type> [json params]

@@ -255,6 +255,119 @@ const InspectorMindView = (() => {
             <div style="font-size:9px;color:var(--text-muted);margin-top:4px;line-height:1.5;">Recall (↻) raises activation; decay lowers it every tick at a rate each memory resists differently. Every memory is kept for life — decay lowers how likely it is to be recalled, it never forgets one.</div>
         </div>`;
     }
+    function _goals() {
+        if (!_state)
+            return [];
+        return worldState.players?.[_state.charName]?.goals || [];
+    }
+    function _goalStatusColor(status) {
+        switch (status) {
+            case 'active': return '#58a6ff';
+            case 'reached': return '#4caf50';
+            case 'blocked': return '#e05555';
+            case 'dropped': return '#6e7681';
+            default: return '#d29922'; // proposed
+        }
+    }
+    function _goalsHtml() {
+        const goals = _goals();
+        if (!goals.length) {
+            return `<div style="font-size:10.5px;color:var(--text-muted);">no goals - driven only by needs right now.</div>`;
+        }
+        return goals.map((g) => {
+            const status = String(g.status || 'proposed');
+            const color = _goalStatusColor(status);
+            const rows = [`<div style="display:flex;align-items:center;gap:6px;">
+                    <b style="font-size:11.5px;line-height:1.35;">${esc(g.what || '')}</b>
+                    <span style="margin-left:auto;">${_badge(status, color)}</span>
+                </div>`];
+            if (g.motivation)
+                rows.push(`<div style="font-size:9.5px;color:var(--text-muted);margin-top:3px;line-height:1.45;">motivation: ${esc(g.motivation)}</div>`);
+            if (g.intention)
+                rows.push(`<div style="font-size:9.5px;color:var(--text-muted);line-height:1.45;">intention: ${esc(g.intention)}</div>`);
+            if (Array.isArray(g.blocked_by) && g.blocked_by.length)
+                rows.push(`<div style="font-size:9.5px;color:#e05555;margin-top:3px;line-height:1.45;">⛔ blocked by ${esc(g.blocked_by.join(', '))}</div>`);
+            return `<div class="mind-goal" style="background:var(--bg-card);border:1px solid var(--border);border-left:3px solid ${color};border-radius:6px;padding:7px 9px;margin-bottom:7px;">${rows.join('')}</div>`;
+        }).join('');
+    }
+    function _goalHistory() {
+        if (!_state)
+            return [];
+        return worldState.players?.[_state.charName]?.goal_log || [];
+    }
+    function _goalHistoryHtml() {
+        const log = _goalHistory();
+        if (!log.length)
+            return '';
+        const rows = log.slice().reverse().map((e) => {
+            const color = _goalStatusColor(String(e.status || ''));
+            return `<div style="display:flex;gap:6px;align-items:baseline;font-size:10px;padding:2px 0;border-bottom:1px solid var(--border-light);">
+                <span style="font-family:monospace;color:var(--text-muted);min-width:34px;">t${esc(e.tick)}</span>
+                ${_badge(String(e.status || ''), color)}
+                <span style="color:var(--text-dim);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(e.what || e.goal_id || '')}</span>
+            </div>`;
+        }).join('');
+        return `<div style="margin-top:14px;">
+            <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Goal history - replay</div>
+            ${rows}
+        </div>`;
+    }
+    function _obligations() {
+        if (!_state)
+            return [];
+        return worldState.players?.[_state.charName]?.obligations || [];
+    }
+    function _obligationColor(status) {
+        switch (status) {
+            case 'offered': return '#d29922';
+            case 'accepted': return '#58a6ff';
+            case 'done': return '#4caf50';
+            default: return '#6e7681'; // refused / forgotten
+        }
+    }
+    function _obligationsHtml() {
+        const obligations = _obligations();
+        if (!obligations.length)
+            return '';
+        const rows = obligations.map((o) => {
+            const color = _obligationColor(String(o.status || 'offered'));
+            const meta = [o.from ? `from ${o.from}` : '', o.due ? `due t${o.due}` : ''].filter(Boolean).join(' / ');
+            return `<div style="background:var(--bg-card);border:1px solid var(--border);border-left:3px solid ${color};border-radius:6px;padding:7px 9px;margin-bottom:7px;">
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <b style="font-size:11.5px;line-height:1.35;">${esc(o.charge || '')}</b>
+                    <span style="margin-left:auto;">${_badge(String(o.status || 'offered'), color)}</span>
+                </div>
+                ${meta ? `<div style="font-size:9.5px;color:var(--text-muted);margin-top:3px;">${esc(meta)}</div>` : ''}
+            </div>`;
+        }).join('');
+        return `<div style="margin-top:14px;">
+            <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Obligations - what they owe</div>
+            ${rows}
+        </div>`;
+    }
+    function _schedule() {
+        if (!_state)
+            return [];
+        return worldState.players?.[_state.charName]?.schedule || [];
+    }
+    function _hhmm(minutes) {
+        const m = (Number(minutes) || 0) % 1440;
+        return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
+    }
+    function _scheduleHtml() {
+        const steps = _schedule();
+        if (!steps.length)
+            return '';
+        const rows = steps.map((s) => `<div style="display:flex;gap:8px;align-items:baseline;font-size:10.5px;padding:2px 0;border-bottom:1px solid var(--border-light);">
+            <span style="font-family:monospace;color:var(--text-muted);min-width:34px;">${_hhmm(s.start)}</span>
+            <span style="color:var(--text);">${esc(s.activity || '')}</span>
+            ${s.area ? `<span style="color:var(--text-dim);">at ${esc(s.area)}</span>` : ''}
+        </div>`).join('');
+        return `<div style="margin-top:14px;">
+            <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Schedule - their day</div>
+            ${rows}
+        </div>`;
+    }
     function _peopleHtml() {
         if (!_state)
             return '';
@@ -311,6 +424,11 @@ const InspectorMindView = (() => {
                 <div style="border-right:1px solid var(--border);padding:12px;overflow-y:auto;background:var(--bg-inset);">
                     <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">People — derived from memories</div>
                     <div id="mind-people">${_peopleHtml()}</div>
+                    <div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin:14px 0 7px;">Goals - what they are pursuing</div>
+                    <div id="mind-goals">${_goalsHtml()}</div>
+                    <div id="mind-goal-history">${_goalHistoryHtml()}</div>
+                    <div id="mind-obligations">${_obligationsHtml()}</div>
+                    <div id="mind-schedule">${_scheduleHtml()}</div>
                 </div>
                 <div style="padding:12px;overflow-y:auto;min-width:0;">
                     ${_timelineHtml(all)}

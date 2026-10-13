@@ -64,6 +64,25 @@ def _region_exposure_map(player, graph):
     }
 
 
+def _goals_payload(graph, player_manager, player, pname):
+    """A character's goals with a derived ``blocked_by`` (task-810).
+
+    A projection for the payload and the UI: the stored goal keeps only its
+    authored ``blocks``. Resolution is skipped when there are no goals, so the
+    common case pays nothing.
+    """
+    from engine import goals as _goals
+    stored = getattr(player, 'goals', []) or []
+    if not stored:
+        return []
+    try:
+        holder = player_manager._player_node_id(pname)
+        resolvers = _goals.world_resolvers(graph, holder, stored)
+    except Exception:
+        resolvers = {"goal": _goals.goal_resolver(stored)}
+    return _goals.with_blockers(stored, resolvers)
+
+
 def _migrate_legacy_pursuit_nodes(graph_data):
     """Promote task-426 plan assignments to the pursuit graph vocabulary.
 
@@ -230,6 +249,9 @@ class WorldSerializer:
             "memories": getattr(p, 'memories', []),
             "memory_index": dict(getattr(p, 'memory_index', {}) or {}),
             "schedule": list(getattr(p, 'schedule', []) or []),
+            "goals": _goals_payload(self.graph, self.player_manager, p, pname),
+            "goal_log": [dict(e) for e in (getattr(p, 'goal_log', []) or [])],
+            "obligations": [dict(o) for o in (getattr(p, 'obligations', []) or [])],
             "active_pursuit": getattr(p, 'active_pursuit', None),
             "plan": getattr(p, 'plan', None),
             "completed_pursuits": list(getattr(p, 'completed_pursuits', []) or []),
@@ -265,6 +287,9 @@ class WorldSerializer:
             base.pop("behaviors", None)
             base.pop("patrol_route", None)
             base.pop("schedule", None)
+            base.pop("goals", None)
+            base.pop("goal_log", None)
+            base.pop("obligations", None)
             base.pop("spatial_position", None)
             base.pop("perceived_conditions", None)
             base.pop("region_exposed", None)
@@ -521,6 +546,13 @@ class WorldSerializer:
         # hand-edited or legacy file cannot put a malformed step into the day.
         from engine.schedule import normalize as _normalize_schedule
         p.schedule = _normalize_schedule(pdata.get("schedule"))
+        # Character-private goals (task-807). Normalised on load so a hand-edited
+        # or legacy file cannot put a malformed goal into the character's mind.
+        from engine.goals import normalize as _normalize_goals, history as _goal_history
+        p.goals = _normalize_goals(pdata.get("goals"))
+        p.goal_log = _goal_history(pdata.get("goal_log"))
+        from engine.goals import normalize_obligations as _normalize_obligations
+        p.obligations = _normalize_obligations(pdata.get("obligations"))
         pursuit_data = pdata.get("active_pursuit")
         p.active_pursuit = dict(pursuit_data) if isinstance(pursuit_data, dict) else None
         # The active pursuit is the longer-lived intention; Player.plan is its

@@ -20,11 +20,13 @@ from player import Player
 from engine.schedule import (
     DEFAULT_ACTIVITY,
     MINUTES_PER_DAY,
+    add_step,
     current_step,
     describe,
     minutes_of_day,
     normalize,
     parse_start,
+    remove_step,
 )
 
 
@@ -217,3 +219,43 @@ def test_describe_summarises_a_day():
     assert "06:00 work at Workshop" in text
     assert "22:00 sleep at Sleeping Halls" in text
     assert describe([]) == "no schedule"
+
+
+def test_add_step_places_and_replaces_a_routine():
+    steps, error = add_step([], "08:00", "patrol", area="Gate")
+    assert error is None
+    assert steps == [{"start": 480, "activity": "patrol",
+                      "fallback": DEFAULT_ACTIVITY, "area": "Gate"}]
+
+    again, error = add_step(steps, "08:00", "guard")
+    assert error is None
+    assert len(again) == 1, "restating a time must edit the routine, not stack one"
+    assert again[0]["activity"] == "guard"
+    assert "area" not in again[0]
+
+
+def test_add_step_rejects_a_bad_time():
+    steps, error = add_step([], "noon")
+    assert error and steps == []
+
+
+def test_remove_step_by_time():
+    steps = normalize([{"start": "06:00", "activity": "work"}])
+    remaining, error = remove_step(steps, "06:00")
+    assert error is None and remaining == []
+    _, missing = remove_step(steps, "09:00")
+    assert missing
+
+
+def test_the_schedule_verb_adds_and_removes_a_step():
+    app = create_app({"TESTING": True})
+    client = app.test_client()
+    name = app.world.active_player
+
+    client.post("/api/action", json={"command": "schedule add 08:00 patrol at Gate", "character": name})
+    schedule = app.world.get_player(name).schedule
+    assert schedule == [{"start": 480, "activity": "patrol",
+                         "fallback": DEFAULT_ACTIVITY, "area": "Gate"}]
+
+    client.post("/api/action", json={"command": "schedule remove 08:00", "character": name})
+    assert app.world.get_player(name).schedule == []

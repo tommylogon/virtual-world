@@ -1285,6 +1285,7 @@
             width: rect.width,
             height: rect.height,
         };
+        window.GraphNetwork?._posTrace?.('background.fitToPaintedGrid', 'bg:' + scopeId, placedRect.x, placedRect.y, 'offset=' + offset.x.toFixed(2) + ',' + offset.y.toFixed(2) + ' gap=' + gap);
         const layer = await _layerForFit(payload, scopeId);
         if (!layer || !layer.image) {
             events.log('🗺 No map to fit — add a background image, or set a reference on the scope.', 'system-msg');
@@ -1364,6 +1365,8 @@
             width: gridRect.width,
             height: gridRect.height,
         };
+        window.GraphNetwork?._posTrace?.('background.reconcileArt', 'bg:' + scopeId, placed.x, placed.y, 'gridRect=' + Math.round(gridRect.x) + ',' + Math.round(gridRect.y)
+            + ' offset=' + offset.x.toFixed(2) + ',' + offset.y.toFixed(2) + ' gap=' + gap);
         const before = JSON.stringify(layer.rect);
         _applyReferenceLayout(layer, payload, placed, scopeId);
         state._reconciledFor = signature;
@@ -1629,26 +1632,29 @@
         // filtered views. vis-network LOGS (never throws) on an unknown id, so
         // the try/catch below can't silence it; skip those ids here (bug-36).
         const live = new Set(network.body?.data?.nodes?.getIds?.() || []);
-        // In Map mode the painted grid owns every painted node's position
-        // (`cell * pitch`, `GraphLayoutEngine.scopedGridPosition`), so a saved
-        // canvas snapshot is a copy from whatever pitch it was captured at.
-        // Re-applying it after a spacing change dragged every area and way off
-        // its cell onto that stale frame (bug-543): the grid laid them out, then
-        // the world-refetch the fit-write triggers called this and moveNode'd
-        // them back to the old pitch. A painted node is not a target for a saved
-        // canvas position — the same rule `persistPositionsToWorld` already
-        // applies on the way out.
+        // In Map mode the painted grid / derived anchors own every node's
+        // position: `GraphLayoutEngine._gridUpdates` places areas at
+        // cell × pitch + scope offset, ways at their rooms' midpoint, and
+        // items/characters beside their room. Hierarchical derives positions
+        // too. A saved canvas snapshot is a copy from some other frame (pitch,
+        // un-offset seed), so re-applying it here undoes the layout. Applying it
+        // skips only nodes with a painted `cell` — areas — and so dragged every
+        // CELL-LESS node (way, item, character) back to its stale canvas coords,
+        // stranding it and stretching its edges across the map on every world
+        // refetch (bug-543 for painted nodes; bug-556 for the cell-less ones it
+        // missed). A saved canvas snapshot only means anything in Graph (free)
+        // mode, where nothing derives it.
         const gm = (typeof graphManager !== 'undefined' ? graphManager : null);
+        const gridOwns = !!gm && (gm._cardinalLayout === true || !!(gm._levelsMode && gm._levelsMode()));
+        if (gridOwns)
+            return;
+        // Graph mode: leave a painted node where the grid put it — its cell is
+        // its position; only free nodes take the saved canvas snapshot.
         let isPainted = null;
-        if (gm && gm._cardinalLayout === true) {
-            const nodesObj = gm._graphNodesObj || {};
-            const engine = typeof GraphLayoutEngine !== 'undefined' ? GraphLayoutEngine : null;
-            if (engine && typeof engine.hasPaintedCoords === 'function') {
-                isPainted = (id) => {
-                    const props = (nodesObj[id] || {}).properties || {};
-                    return !!engine.hasPaintedCoords(props);
-                };
-            }
+        const nodesObj = (gm && gm._graphNodesObj) || {};
+        const engine = typeof GraphLayoutEngine !== 'undefined' ? GraphLayoutEngine : null;
+        if (engine && typeof engine.hasPaintedCoords === 'function') {
+            isPainted = (id) => engine.hasPaintedCoords((nodesObj[id] || {}).properties || {});
         }
         for (const id of Object.keys(state.positions)) {
             const position = state.positions[id];

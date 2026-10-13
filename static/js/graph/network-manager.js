@@ -340,7 +340,21 @@ window.GraphNetwork = {
             edges: {
                 font: { multi: 'html' },
                 arrows: cfg.graphArrows !== false ? { to: { enabled: true, scaleFactor: 0.5 } } : { to: { enabled: false } },
-                width: cfg.graphEdgeWidth || 1
+                width: cfg.graphEdgeWidth || 1,
+                // Static curve geometry. vis's default `smooth.type` is
+                // `'dynamic'`, which gives every edge an invisible support node
+                // owned by the physics solver: when we reposition nodes
+                // programmatically (grid layout, DataSet update) the real nodes
+                // teleport but each edge's support node is left behind and has to
+                // crawl to the new spot — the "stretched rubber band" fan that
+                // collapses only when physics is switched on to let it catch up.
+                // `'continuous'` computes the curve from the two node positions
+                // with no support node, so the edge is correct on the same frame
+                // the node moves (visjs/vis#458, #1116). Straight attachment edges
+                // still set `smooth: false` per-edge.
+                smooth: cfg.graphEdgeSmooth === false
+                    ? { enabled: false }
+                    : { enabled: true, type: 'continuous', roundness: 0.5 }
             },
             layout: levels
                 ? {
@@ -960,21 +974,47 @@ window.GraphNetwork = {
             // cardinal path no-ops on an empty map), and the painted-grid path
             // reads only `nodesObj`, so don't gate map mode on it.
             let layoutKind = null;
-            if (!levelsOn && mapMode) {
+            // A painted scope's layout *is* its grid — every node's position is a
+            // cell. Hierarchical has nothing to build on: a painted graph is a
+            // lattice, not a tree, so vis's hierarchical layout drops all 1696
+            // nodes of deep_woods onto one 142,000px row (a flat fan of stretched
+            // edges). So a painted scope lays out on the grid whatever tab is
+            // selected; the grid also places ways (between rooms) and loose nodes
+            // (beside their room), which the hierarchical path never did.
+            const paintedScope = !!GraphLayoutEngine
+                .hasPaintedGrid?.(nodesObj);
+            if (paintedScope || (!levelsOn && mapMode)) {
                 layoutKind = GraphLayoutEngine.applyCardinalLayout(nodesObj);
             }
             // A painted grid owns every position, so the toolbar must show
             // physics as unavailable rather than offering a toggle that the
             // next reload silently undoes.
             graphManager._paintedGridLayout = layoutKind === 'grid';
+            // `buildOptions` enables vis's hierarchical layout whenever Levels
+            // is selected (line ~396). On a painted scope that layout does not
+            // get to run: it lays the whole lattice out as a tree — deep_woods's
+            // 1696 nodes onto a single 142,000px row — overriding the grid we
+            // just applied. Turn it back off so the grid is the last word.
+            if (layoutKind === 'grid' && graphManager.network && graphManager.network.setOptions) {
+                try {
+                    graphManager.network.setOptions({ layout: { hierarchical: { enabled: false } } });
+                }
+                catch (err) { /* ignore */ }
+            }
             // Items, characters and triggers sit relative to whatever holds them,
             // derived fresh each load (task-485) — never a saved snapshot, so a
-            // carried item follows its carrier. This must run in Map mode too: a
-            // painted grid places areas and ways, but items/characters have no
-            // painted coords and would otherwise pile up at the origin, fanning
-            // their edges across the map (the follow timer sleeps itself when
-            // physics is off, so there is no steady-state cost to leave it on).
-            if (window.GraphRelativeLayout) {
+            // carried item follows its carrier.
+            //
+            // SKIPPED when the painted grid already placed them. `_gridUpdates`
+            // places every cell-less node in a painted scope — held children beside
+            // their area (the `beside` pass), the rest from their own coords — so
+            // running the ring seed afterwards does not add anything and actively
+            // HURTS: it re-derives each child from its parent's position as the
+            // solver/DataSet last held it, which is a frame behind the grid move, so
+            // it yanks items/characters/ways thousands of px off the map. Physics on
+            // hid that (the spring pulled them back); physics off left the fan of
+            // stretched edges.
+            if (layoutKind !== 'grid' && window.GraphRelativeLayout) {
                 try {
                     // A fresh load re-arms the once-per-layout seed, then applies it.
                     window.GraphRelativeLayout.reseed();

@@ -59,6 +59,7 @@ window.ActionTiers = (() => {
         "get": "major",
         "give": "major",
         "go": "major",
+        "goal": "free",
         "grab": "minor",
         "guess": "free",
         "i": "free",
