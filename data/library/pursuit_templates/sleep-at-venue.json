@@ -1,0 +1,48 @@
+{
+  "id": "sleep-at-venue",
+  "version": 1,
+  "name": "Sleep at the venue",
+  "purpose": "Reach a specific bed and sleep on it, holding the undertaking across the visible sleeping Activity so a witness can say which bed is occupied.",
+  "parameters": {
+    "bed_id": {
+      "type": "item_id",
+      "required": true,
+      "description": "The exact bed node to sleep on."
+    },
+    "venue": {
+      "type": "area",
+      "required": true,
+      "description": "The area the bed is in."
+    }
+  },
+  "requirements": [
+    {
+      "type": "in_area",
+      "target": "self",
+      "area": {
+        "$binding": "venue"
+      }
+    }
+  ],
+  "steps": [
+    {
+      "kind": "travel",
+      "area": {
+        "$binding": "venue"
+      },
+      "to": "venue"
+    },
+    {
+      "kind": "activity",
+      "activity": "sleeping",
+      "target_item": {
+        "$binding": "bed_id"
+      }
+    }
+  ],
+  "tags": [
+    "rest",
+    "sleep",
+    "travel"
+  ]
+}

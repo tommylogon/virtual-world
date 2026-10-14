@@ -1,0 +1,45 @@
+{
+  "id": "meal",
+  "version": 1,
+  "name": "Make and eat a meal",
+  "purpose": "Gather food, bring it home, and eat it.",
+  "parameters": {
+    "food_spec": {
+      "type": "item_spec",
+      "required": true,
+      "description": "What the character is gathering to eat."
+    },
+    "home": {
+      "type": "area",
+      "required": true,
+      "description": "Where the character eats."
+    }
+  },
+  "requirements": [
+    {
+      "type": "in_area",
+      "target": "self",
+      "area": {
+        "$binding": "home"
+      }
+    }
+  ],
+  "steps": [
+    {
+      "kind": "travel",
+      "area": {
+        "$binding": "home"
+      },
+      "to": "home"
+    },
+    {
+      "kind": "activity",
+      "activity": "eating"
+    }
+  ],
+  "tags": [
+    "gathering",
+    "eating",
+    "survival"
+  ]
+}
