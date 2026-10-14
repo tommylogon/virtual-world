@@ -41,6 +41,15 @@ Build on the existing movement, action, condition, perception, memory, activity,
 
 `engine/background_plans.py` currently advances typed haul/gather/rally plans for background characters and can resume a multi-step plan after a need action. The actor-bound pursuit survives in `Player.active_pursuit`; its immediate steps live in `Player.plan`. The runner does not yet start ongoing Activities from pursuit steps or supply the active pursuit to an LLM prompt.
 
+## Lane status (2026-10-14)
+
+Not started. The card remains blocked by task-700 and task-701: task-700 is in
+`review`, and task-701 is now `inprogress`. The current runtime caller still
+uses `engine/background_plans.py` from the background simulation; the declared
+`engine/plan_executor.py` module does not exist, and no general all-character
+execution path was verified. Do not start this card until both dependencies
+are accepted and the call path for each actor type is established.
+
 ## Why
 
 TODO
