@@ -1,0 +1,216 @@
+{
+  "name": "Shadow-Pelt",
+  "base_description": "Worg pack leader. Dark fur, intelligent eyes, lean and fast.",
+  "description": "A large dark worg with intelligent eyes and a lean build.",
+  "personality": "You are Shadow-Pelt, worg pack leader near the Raven River. Intelligent, dangerous, and competitive. You sometimes compete with goblins for food and territory.",
+  "tags": [
+    "male",
+    "animal",
+    "worg",
+    "predator",
+    "pack"
+  ],
+  "simple_npc": true,
+  "npc_behavior": "wander",
+  "npc_action_interval": 3,
+  "size": "normal",
+  "stats": {
+    "CHA": 8,
+    "CON": 13,
+    "DEX": 14,
+    "INT": 8,
+    "STR": 13,
+    "WIS": 12
+  },
+  "skills": {
+    "Acrobatics": 1,
+    "Athletics": 1,
+    "Perception": 2,
+    "Persuasion": 0,
+    "Stealth": 2,
+    "Survival": 2
+  },
+  "traits": {
+    "dark_vision": true
+  },
+  "vitals": {
+    "Bladder": 60,
+    "Energy": 85,
+    "Entertainment": 20,
+    "HP": 90,
+    "Hunger": 65,
+    "Hygiene": 70,
+    "Max_HP": 100,
+    "Sanity": 75,
+    "Social": 30,
+    "Temperature": 37,
+    "Thirst": 50
+  },
+  "decay_rates": {
+    "Bladder": 0.42,
+    "Energy": 0.104,
+    "Entertainment": 0.03,
+    "Hunger": 0.0034,
+    "Hygiene": 0.02,
+    "Sanity": 0.005,
+    "Social": 0.02,
+    "Thirst": 0.025
+  },
+  "interest_tags": [
+    "hunting",
+    "territory",
+    "goblin_trails",
+    "meat",
+    "pelts",
+    "bones",
+    "trap",
+    "fresh"
+  ],
+  "behaviors": [
+    {
+      "trigger": "on_tick",
+      "interval": 6,
+      "priority": 1,
+      "conditions": [
+        {
+          "type": "vital_below",
+          "operator": "lt",
+          "value": "25"
+        }
+      ],
+      "actions": [
+        {
+          "type": "push_actor",
+          "target": "area_raven_river"
+        },
+        {
+          "type": "apply_condition",
+          "condition": "wounded"
+        },
+        {
+          "type": "message",
+          "text": "Shadow-Pelt breaks off, blood matting his dark fur, and lopes for the river."
+        }
+      ]
+    },
+    {
+      "trigger": "on_take",
+      "interval": 1,
+      "priority": 2,
+      "conditions": [
+        {
+          "type": "target_has_tag",
+          "tag": "meat"
+        }
+      ],
+      "actions": [
+        {
+          "type": "message",
+          "text": "Shadow-Pelt's head snaps up, a low growl rolling out of him."
+        },
+        {
+          "type": "damage",
+          "amount": 8,
+          "target": "player"
+        },
+        {
+          "type": "add_tag",
+          "tag": "hostile"
+        }
+      ]
+    },
+    {
+      "trigger": "on_tick",
+      "interval": 10,
+      "priority": 3,
+      "conditions": [
+        {
+          "type": "vital_below",
+          "operator": "lt",
+          "value": "40"
+        }
+      ],
+      "actions": [
+        {
+          "type": "push_actor",
+          "target": "area_deep_forest"
+        },
+        {
+          "type": "start_activity",
+          "activity": "hunting"
+        },
+        {
+          "type": "adjust_vital",
+          "vital": "Hunger",
+          "delta": 45
+        }
+      ]
+    },
+    {
+      "trigger": "on_tick",
+      "interval": 8,
+      "priority": 4,
+      "conditions": [
+        {
+          "type": "vital_below",
+          "operator": "lt",
+          "value": "40"
+        }
+      ],
+      "actions": [
+        {
+          "type": "push_actor",
+          "target": "area_raven_river"
+        },
+        {
+          "type": "adjust_vital",
+          "vital": "Thirst",
+          "delta": 50
+        }
+      ]
+    },
+    {
+      "trigger": "on_tick",
+      "interval": 30,
+      "priority": 5,
+      "conditions": [
+        {
+          "type": "time_of_day",
+          "value": "night"
+        }
+      ],
+      "actions": [
+        {
+          "type": "message",
+          "text": "Shadow-Pelt ghosts along the treeline, pausing to rake his scent across a trunk."
+        },
+        {
+          "type": "add_tag",
+          "tag": "patrolling"
+        }
+      ]
+    },
+    {
+      "trigger": "on_night",
+      "interval": 1,
+      "priority": 6,
+      "conditions": [
+        {
+          "type": "random_chance",
+          "chance": 35
+        }
+      ],
+      "actions": [
+        {
+          "type": "message",
+          "text": "A long, cold howl rolls down the river valley, and the hills answer it."
+        },
+        {
+          "type": "spawn_character",
+          "template": "worg",
+          "display_name": "Pack Worg"
+        }
+      ]
+    }
+  ]
+}
