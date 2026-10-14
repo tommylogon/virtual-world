@@ -180152,7 +180152,14 @@
           "first_sighting": false
         }
       },
-      "schedule": [],
+      "schedule": [
+        {
+          "activity": "eat",
+          "area": "Cooking Area",
+          "fallback": "wait",
+          "start": 360
+        }
+      ],
       "simple_npc": false,
       "simulation_mode": "active",
       "size": null,
@@ -185159,7 +185166,99 @@
       }
     },
     "Vekka": {
-      "active_pursuit": null,
+      "active_pursuit": {
+        "assigned_tick": 0,
+        "assignment_id": "pursuit_vekka_scout_north",
+        "bindings": {
+          "report_area": "Chief's Pit",
+          "scout_area": "Human Road"
+        },
+        "duration": {
+          "return_by": "tomorrow morning"
+        },
+        "goal": "Learn whether humans are using the northern road and warn Zikka.",
+        "label": "vekka_scout_north",
+        "objective": {
+          "observe_area_id": "area_human_road",
+          "report_to_character_id": "player_Zikka"
+        },
+        "progress": {
+          "report_delivered": {
+            "status": "pending",
+            "to_character_id": "player_Zikka"
+          },
+          "supplies_packed": {
+            "item_ids": [
+              "item_backpack_1790879444208_2",
+              "item_goblin_hooked_dagger_gyty",
+              "item_water_skin_t06a"
+            ],
+            "status": "pending"
+          },
+          "tracks_observed": {
+            "area_id": "area_human_road",
+            "status": "pending"
+          }
+        },
+        "reason": "I remember human tracks heading west along the Human Road. If I learn where they lead, I can warn Zikka before the camp is surprised.",
+        "repeat": false,
+        "report_condition": {
+          "checkable": false,
+          "evidence": "A recorded conversation about the human tracks.",
+          "requires_character_id": "player_Zikka"
+        },
+        "route": [
+          {
+            "area_id": "area_water_source",
+            "name": "Water Source",
+            "role": "departure"
+          },
+          {
+            "area_id": "area_human_road",
+            "name": "Human Road",
+            "role": "observe"
+          },
+          {
+            "area_id": "area_chiefs_pit",
+            "name": "Chief's Pit",
+            "role": "return"
+          }
+        ],
+        "status": "active",
+        "step_index": 0,
+        "stop_conditions": [
+          {
+            "condition": "report_delivered",
+            "to_character_id": "player_Zikka"
+          },
+          {
+            "at": "tomorrow morning",
+            "condition": "deadline_reached"
+          },
+          {
+            "condition": "Vekka chooses to replace or abandon this pursuit."
+          }
+        ],
+        "supplies": [
+          {
+            "item_id": "item_backpack_1790879444208_2",
+            "packed": false,
+            "purpose": "carry supplies"
+          },
+          {
+            "item_id": "item_goblin_hooked_dagger_gyty",
+            "packed": false,
+            "purpose": "protection"
+          },
+          {
+            "item_id": "item_water_skin_t06a",
+            "packed": false,
+            "purpose": "water"
+          }
+        ],
+        "template_id": "scout-and-report",
+        "template_version": 1
+      },
       "activity": null,
       "at_way_id": "way_passage_between_side_tunnels_and_water_source",
       "autonomy": true,
@@ -185356,7 +185455,11 @@
         "water",
         "scouting"
       ],
-      "known": [],
+      "known": [
+        "area_human_road",
+        "area_chiefs_pit",
+        "player_Zikka"
+      ],
       "lived_log_memorized_through": 0,
       "manifested": false,
       "max_carry_capacity": 100,
@@ -185519,6 +185622,37 @@
           "tick": 7,
           "timestamp": 1791282892.0309906,
           "type": "social"
+        },
+        {
+          "activation": 0.9,
+          "category": "episodic",
+          "confidence": 1,
+          "contradicts": [],
+          "embedding": null,
+          "entity_ids": [
+            "area_human_road",
+            "player_Zikka"
+          ],
+          "id": "mem_vekka_human_tracks_northern_road",
+          "importance": 8,
+          "last_recalled_tick": 0,
+          "location": "Human Road",
+          "reflection_depth": 0,
+          "reinforcements": 0,
+          "salience_override": 0,
+          "source": "manual",
+          "source_memory_ids": [],
+          "suppressions": [],
+          "tags": [
+            "human",
+            "tracks",
+            "road",
+            "scouting"
+          ],
+          "text": "I found fresh human tracks along the Human Road heading west. I know the way back to Chief's Pit. I need to learn how far they go, then tell Zikka before the camp is surprised.",
+          "tick": 0,
+          "timestamp": 0,
+          "type": "observation"
         }
       ],
       "name": "Vekka",
@@ -185528,7 +185662,35 @@
       "patrol_index": null,
       "patrol_route": null,
       "perceived_conditions": [],
-      "plan": null,
+      "plan": {
+        "index": 0,
+        "label": "vekka_prepare_scouting_supplies",
+        "reason": "Collect a real water skin and dagger before following the remembered road.",
+        "steps": [
+          {
+            "area": "Cooking Area",
+            "kind": "travel",
+            "to": "Cooking Area"
+          },
+          {
+            "kind": "take",
+            "spec": {
+              "name": "item_water_skin_t06a"
+            }
+          },
+          {
+            "area": "Armory",
+            "kind": "travel",
+            "to": "Armory"
+          },
+          {
+            "kind": "take",
+            "spec": {
+              "name": "item_goblin_hooked_dagger_gyty"
+            }
+          }
+        ]
+      },
       "region_exposed": {
         "arm_left": true,
         "arm_right": true,
@@ -186486,7 +186648,23 @@
       "patrol_index": 0,
       "patrol_route": [],
       "perceived_conditions": [],
-      "plan": null,
+      "plan": {
+        "index": 0,
+        "label": "james_sleep_at_home",
+        "reason": "James is tired and is returning home to sleep until rested.",
+        "steps": [
+          {
+            "area": "Hut Sleeping Corner",
+            "kind": "travel",
+            "to": "Hut Sleeping Corner"
+          },
+          {
+            "activity": "sleeping",
+            "kind": "activity",
+            "target_item": "item_bed_1791229267206_939"
+          }
+        ]
+      },
       "region_exposed": {
         "arm_left": true,
         "arm_right": true,
