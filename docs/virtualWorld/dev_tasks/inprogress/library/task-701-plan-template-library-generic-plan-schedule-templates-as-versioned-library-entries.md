@@ -99,10 +99,13 @@ The UI browser's declared tab type still omits `pursuit_templates`.
      The schedule's `eat` value is accepted and persisted; the current scheduler
      only starts blocking Activities for `work` and `rest`, so this entry does
      not itself force an eating Activity or emit an explicit reminder.
-     On that lane's older runtime, one simulation step left James's Activity
-     null, so it does not prove the new mechanism test is integrated there. The
-     library browser still has no `pursuit_templates` tab, and this lane's file
-     boundary excludes `static/js/**`.
+     On the current integration branch, live ticks 59–71 left James's plan at
+     index 0 and `activity` null. His `needs:hunger` travel oscillated between
+     `Road (world 15,5)` and `Road (world 16,6)`, so the survival cascade kept
+     preempting the authored sleep plan. This does not invalidate the isolated
+     sleep mechanism test, but the Kraktooth runtime path still does not reach
+     bed activity. The library browser still has no `pursuit_templates` tab,
+     and this lane's file boundary excludes `static/js/**`.
 
 ## Files
 
@@ -120,7 +123,9 @@ the pursuit. Remaining acceptance gaps are the missing pursuit-template browser
 tab, the lack of a timing selector caller, a checkable report interaction, and a
 meal template that invokes a real world recipe. The authored Kraktooth scenario
 is live-verified, but Vekka's backpack is carried by another character and her
-report condition cannot complete in the current system. The content lane's live
-James check left `activity` null after one step, so executor integration across
-that runtime is still unproven. Do not start task-702 until task-701 is accepted;
+report condition cannot complete in the current system. In the integrated live
+scenario, hunger preempted James's plan for 12 consecutive ticks and sent him
+between two road nodes; his plan index remained 0 and `activity` remained null.
+The engine's survival precedence is working, but this content does not
+demonstrate arrival at the bed. Do not start task-702 until task-701 is accepted;
 task-702 remains blocked by task-700 and task-701.

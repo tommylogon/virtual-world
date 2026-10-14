@@ -50,6 +50,18 @@ uses `engine/background_plans.py` from the background simulation; the declared
 execution path was verified. Do not start this card until both dependencies
 are accepted and the call path for each actor type is established.
 
+## Live blocker evidence (2026-10-14)
+
+On the integrated Kraktooth branch, `/api/turn/apply` advanced the simulation
+from tick 59 through tick 71. James remained at plan index 0 with no Activity;
+the `needs:hunger` branch moved him between `Road (world 15,5)` and
+`Road (world 16,6)` on successive ticks. The sleep plan did not reach its bed
+or start an Activity during this run. The isolated task-701 mechanism test
+does start sleeping on the exact bound bed when the runner is given that plan
+and route, so the live result identifies a precedence/path interaction rather
+than a failed bed binding. No executor change is made here because this card is
+still blocked by task-700 and task-701.
+
 ## Why
 
 TODO
