@@ -11,10 +11,6 @@ wiki: "[[Developer Tooling]]"
 **Filed:** 2026-10-13
 **Related:** task-810, task-814
 
-<!-- deps:start -->
-**Related:** [[task-810-gimp-the-goal-graph-links-blocks-and-chaining]], [[task-814-mosiac-schedules-a-character-can-edit-themselves]]
-<!-- deps:end -->
-
 ## What
 
 Two derived views in `tools/tasks.py` read the dependency DAG without regard to card status, and both mislead. (1) `_longest_path` (the critical path printed by `roadmap` and `graph`) walks *every* card, so a chain is printed whose tail links are already `done`/`review` -- for example `task-457 -> 446 -> 577 -> 578 -> 579`, where 579 is done and 577/578 are in review. (2) `next` and the per-card `unblocks N` count use `TERMINAL_STATUSES = {done, cancelled}`, so a card whose predecessor is in `review` reads as not startable though the work is built.
