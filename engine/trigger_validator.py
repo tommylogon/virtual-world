@@ -70,6 +70,9 @@ CONDITION_TYPES = {
     "player_has_tag",
     "sight_holds",
     "flag_equals",
+    # task-705: ownership-as-property and the authored knowledge registry.
+    "owns",
+    "known",
     "sound_above",
     "smell_detected",
 }

@@ -2929,3 +2929,101 @@ class TestTriggerEventIndex:
         graph.clear()
         assert graph.get_trigger_sources('on_tick') == []
 
+
+# ─── TestTask705Leaves ───
+
+
+class TestTask705Leaves:
+    """task-705: ``owns`` (ownership as a property) and ``known`` (the authored
+    knowledge registry) - the two leaves that were genuinely missing. The other
+    leaves the card named already existed: ``has_tag``/``target_has_tag``/
+    ``character_has_tag``/``player_has_tag`` carry their subject in the leaf name
+    plus a ``target`` param, ``flag_equals`` is the flag leaf, and
+    ``proximity``/``in_area`` are co-location. Both new leaves fail closed.
+    """
+
+    @staticmethod
+    def _gs(players, active="TestPlayer"):
+        gs = type("FakeGameState", (), {})()
+        gs.players = players
+        gs.active_player = active
+        gs.player = players.get(active)
+        from engine.player_manager import PlayerManager
+        pm = PlayerManager(None)
+        for name, player in players.items():
+            pm.players[name] = player
+        gs.player_manager = pm
+        return gs
+
+    def test_owns_reads_the_owner_property_not_inventory(self, graph, trigger_system, sample_item):
+        """`owns` is a claim, not a carry: the item is not held and not equipped,
+        yet it is hers. That is the whole difference from has_item/is_equipped."""
+        from player import Player
+        player = Player("TestPlayer")
+        sample_item.properties["owner"] = "TestPlayer"
+        gs = self._gs({"TestPlayer": player})
+
+        assert trigger_system._evaluate_trigger_condition(
+            {"type": "owns", "node_id": sample_item.id}, sample_item, game_state=gs
+        ) is True
+
+    def test_owns_is_false_for_another_players_claim(self, graph, trigger_system, sample_item):
+        from player import Player
+        player = Player("TestPlayer")
+        other = Player("Other")
+        sample_item.properties["owner"] = "Other"
+        gs = self._gs({"TestPlayer": player, "Other": other})
+
+        assert trigger_system._evaluate_trigger_condition(
+            {"type": "owns", "node_id": sample_item.id}, sample_item, game_state=gs
+        ) is False
+
+    def test_owns_fails_closed(self, graph, trigger_system, sample_item):
+        """Unowned, a node that does not exist, and no node_id at all all read
+        False - never an exception, never an invented claim."""
+        from player import Player
+        player = Player("TestPlayer")
+        gs = self._gs({"TestPlayer": player})
+
+        assert trigger_system._evaluate_trigger_condition(
+            {"type": "owns", "node_id": sample_item.id}, sample_item, game_state=gs
+        ) is False
+        assert trigger_system._evaluate_trigger_condition(
+            {"type": "owns", "node_id": "item_does_not_exist"}, sample_item, game_state=gs
+        ) is False
+        assert trigger_system._evaluate_trigger_condition(
+            {"type": "owns"}, sample_item, game_state=gs
+        ) is False
+
+    def test_known_reads_player_known(self, graph, trigger_system, sample_item):
+        from player import Player
+        player = Player("TestPlayer")
+        player.known = ["area_food_storage", "Water Source"]
+        gs = self._gs({"TestPlayer": player})
+
+        assert trigger_system._evaluate_trigger_condition(
+            {"type": "known", "value": "area_food_storage"}, sample_item, game_state=gs
+        ) is True
+        assert trigger_system._evaluate_trigger_condition(
+            {"type": "known", "value": "area_training_pit"}, sample_item, game_state=gs
+        ) is False
+
+    def test_known_fails_closed(self, graph, trigger_system, sample_item):
+        from player import Player
+        player = Player("TestPlayer")
+        gs = self._gs({"TestPlayer": player})
+
+        assert trigger_system._evaluate_trigger_condition(
+            {"type": "known", "value": "area_food_storage"}, sample_item, game_state=gs
+        ) is False
+        assert trigger_system._evaluate_trigger_condition(
+            {"type": "known"}, sample_item, game_state=gs
+        ) is False
+
+    def test_both_leaves_are_declared_for_the_validator(self):
+        """The validator rejects an undeclared type, so a leaf that evaluates but
+        is not declared is a leaf no author can use."""
+        from engine.trigger_validator import CONDITION_TYPES
+        assert "owns" in CONDITION_TYPES
+        assert "known" in CONDITION_TYPES
+

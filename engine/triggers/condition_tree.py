@@ -797,6 +797,49 @@ class ConditionTreeMixin:
                             pass
                 return actual == expected
 
+            elif condition_type == "owns":
+                # task-705: ownership as a property. Distinct from ``has_item``
+                # (carried or in inventory) and ``is_equipped`` (worn) - this is
+                # a claimed spot, a forge, a bed: something the character owns
+                # without holding it. Reads the same ``owner_of`` the goal
+                # layer's ``world_resolvers.item`` reads, so there is one answer
+                # to "whose is this" rather than two.
+                if gs is None:
+                    return False
+                player = self._resolve_condition_player(conditions.get("target", "self"), gs)
+                if not player:
+                    return False
+                needle = str(conditions.get("node_id") or conditions.get("item") or "").strip()
+                if not needle:
+                    return False
+                node = self.graph.get_node(needle)
+                if node is None:
+                    return False
+                try:
+                    from engine.items.ownership import owner_of, owner_player
+                    handle = owner_of(node)
+                    if not handle:
+                        return False
+                    return owner_player(getattr(gs, "player_manager", None), handle) is player
+                except Exception:
+                    return False
+
+            elif condition_type == "known":
+                # task-705: what the character already knows. ``Player.known`` is
+                # the authored knowledge registry; a requirement naming something
+                # the character does not know fails closed rather than inventing
+                # it - the same contract as every other leaf here.
+                if gs is None:
+                    return False
+                player = self._resolve_condition_player(conditions.get("target", "self"), gs)
+                if not player:
+                    return False
+                needle = str(conditions.get("value") or conditions.get("node_id") or "").strip().lower()
+                if not needle:
+                    return False
+                known = getattr(player, "known", None) or []
+                return any(str(k).strip().lower() == needle for k in known)
+
             elif condition_type == "sound_above":
                 try:
                     threshold = float(conditions.get("threshold", conditions.get("value", 0.5)))
