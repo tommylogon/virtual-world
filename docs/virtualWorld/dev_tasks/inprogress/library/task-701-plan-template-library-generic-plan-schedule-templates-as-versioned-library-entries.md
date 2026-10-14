@@ -94,8 +94,11 @@ The UI browser's declared tab type still omits `pursuit_templates`.
      Vekka's pursuit and plan render in Mind Layers and `/api/state`; the water
      skin and dagger IDs resolve, while the backpack is held by the Eldenford
      Merchant and the report condition is explicitly not checkable. Gribba's
-     06:00 work schedule and James's travel/sleep plan also render and appear in
+     06:00 `eat` schedule and James's travel/sleep plan also render and appear in
      `/api/state`; James's bed ID resolves to a bed in Hut Sleeping Corner.
+     The schedule's `eat` value is accepted and persisted; the current scheduler
+     only starts blocking Activities for `work` and `rest`, so this entry does
+     not itself force an eating Activity or emit an explicit reminder.
      On that lane's older runtime, one simulation step left James's Activity
      null, so it does not prove the new mechanism test is integrated there. The
      library browser still has no `pursuit_templates` tab, and this lane's file
