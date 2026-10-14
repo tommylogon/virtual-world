@@ -129,3 +129,8 @@ between two road nodes; his plan index remained 0 and `activity` remained null.
 The engine's survival precedence is working, but this content does not
 demonstrate arrival at the bed. Do not start task-702 until task-701 is accepted;
 task-702 remains blocked by task-700 and task-701.
+
+The saved scenario also has no physical route to that bed: a breadth-first walk
+over `connection` edges from James's `area_world_15_5` visits 1,962 nodes and
+cannot reach `area_fisherman_s_hut_1_1`, where the bound bed is located. Fixing
+this requires a graph connection outside the character-content lane.

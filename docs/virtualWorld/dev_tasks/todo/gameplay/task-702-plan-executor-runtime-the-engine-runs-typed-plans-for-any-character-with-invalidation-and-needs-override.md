@@ -62,6 +62,12 @@ and route, so the live result identifies a precedence/path interaction rather
 than a failed bed binding. No executor change is made here because this card is
 still blocked by task-700 and task-701.
 
+The authored destination is independently unreachable in the saved scenario:
+a breadth-first walk over `connection` edges from `area_world_15_5` visits
+1,962 nodes and cannot reach `area_fisherman_s_hut_1_1`, which contains the
+bound bed. Changing this physical route is outside the character-content and
+pursuit-library lane boundaries; the executor must not fabricate a route.
+
 ## Why
 
 TODO
