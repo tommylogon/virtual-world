@@ -283,7 +283,9 @@ def register_routes(app):
     from routes.world_grid import register_world_grid_routes
     from routes.docs import register_docs_routes
     from routes.bug_reports import register_bug_reports_routes
+    from routes.stage_chat import register_stage_chat_routes
 
+    register_stage_chat_routes(app)
     register_health_routes(app)
     register_events_routes(app)
     register_pages_routes(app)

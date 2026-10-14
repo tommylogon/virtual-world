@@ -30,6 +30,11 @@ def register_pages_routes(app):
         """Standalone analytics UI for the headless soak runner."""
         return render_template('soak.html', app_version=APP_VERSION)
 
+    @app.route('/stage-chat')
+    def stage_chat_page():
+        """Standalone stage chat UI (task-824)."""
+        return render_template('stage_chat.html', app_version=APP_VERSION)
+
     @app.route('/deepseek')
     def deepseek_template():
         return render_template('deepseek_index.html')
