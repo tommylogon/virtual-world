@@ -1,0 +1,48 @@
+{
+  "id": "scout-and-report",
+  "version": 1,
+  "name": "Scout and report",
+  "purpose": "Go to a place that needs looking at, look at it, and report what was found back to the group.",
+  "parameters": {
+    "scout_area": {
+      "type": "area",
+      "required": true,
+      "description": "The place the character is sent to look at."
+    },
+    "report_area": {
+      "type": "area",
+      "required": true,
+      "description": "The place the character returns to with the report."
+    }
+  },
+  "requirements": [
+    {
+      "type": "in_area",
+      "target": "self",
+      "area": {
+        "$binding": "report_area"
+      }
+    }
+  ],
+  "steps": [
+    {
+      "kind": "travel",
+      "area": {
+        "$binding": "scout_area"
+      },
+      "to": "scout"
+    },
+    {
+      "kind": "travel",
+      "area": {
+        "$binding": "report_area"
+      },
+      "to": "report"
+    }
+  ],
+  "tags": [
+    "scouting",
+    "travel",
+    "social"
+  ]
+}
