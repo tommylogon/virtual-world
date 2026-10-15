@@ -13,7 +13,7 @@ related: [task-824, task-299]
 **Related:** task-824 (The Commons), task-299 (in-world communication devices)
 
 <!-- deps:start -->
-**Related:** [[task-824-stage-chat-turn-based-character-perspective-chat-page]], [[task-299-long-distance-communication]]
+**Related:** [[task-824-the-commons-shared-character-minds-channels-groups-and-direct-messages]], [[task-299-long-distance-communication]]
 <!-- deps:end -->
 
 ## What
@@ -85,5 +85,5 @@ been given a modern phone without author intent.
 ## Files
 
 - The Commons authoring/configuration, presentation, and prompt integration
-- Existing Stage Chat conversation persistence, only where required
+- Existing conversation persistence for The Commons, only where required
 - Targeted tests and browser checks for theme behavior

@@ -1,15 +1,15 @@
 /**
- * @module stage-chat-state — authorized conversation state and polling
- * @contributes StageChatState: selected perspective, channels, messages, polling
- * @powers Stage Chat reactive data flow
- * @relates StageChatApi, StageChatUI
+ * @module commons-state — authorized conversation state and polling
+ * @contributes CommonsState: selected perspective, channels, messages, polling
+ * @powers The Commons reactive data flow
+ * @relates CommonsApi, CommonsUI
  * @docs docs/virtualWorld/Gameplay/The Commons.md
  */
 
 (function () {
     'use strict';
 
-    class StageChatState {
+    class CommonsState {
         static messages: any[] = [];
         static channels: any[] = [];
         static participants: Record<string, any> = {};
@@ -38,7 +38,7 @@
 
         static async sync() {
             try {
-                const data = await (window as any).StageChatApi.getState(this.perspective);
+                const data = await (window as any).CommonsApi.getState(this.perspective);
                 this.channels = data.channels || [];
                 this.participants = data.participants || {};
                 if (!this.channels.some((channel: any) => channel.id === this.selectedChannelId)) {
@@ -49,7 +49,7 @@
                     const sinceId = this.messages.length
                         ? Math.max(...this.messages.map((message: any) => Number(message.id) || 0))
                         : undefined;
-                    const result = await (window as any).StageChatApi.getMessages(
+                    const result = await (window as any).CommonsApi.getMessages(
                         this.perspective, this.selectedChannelId, sinceId
                     );
                     if (sinceId) this.messages = [...this.messages, ...(result.messages || [])];
@@ -57,7 +57,7 @@
                 }
                 this.emit();
             } catch (err) {
-                console.error('[StageChatState] Sync failed:', err);
+                console.error('[CommonsState] Sync failed:', err);
             }
         }
 
@@ -73,11 +73,11 @@
             this.selectedChannelId = channelId;
             this.messages = [];
             if (explicitRead) {
-                await (window as any).StageChatApi.readMessages(this.perspective, channelId, 'all');
-                const history = await (window as any).StageChatApi.getMessages(this.perspective, channelId);
+                await (window as any).CommonsApi.readMessages(this.perspective, channelId, 'all');
+                const history = await (window as any).CommonsApi.getMessages(this.perspective, channelId);
                 this.messages = history.messages || [];
             } else {
-                const result = await (window as any).StageChatApi.getMessages(this.perspective, channelId);
+                const result = await (window as any).CommonsApi.getMessages(this.perspective, channelId);
                 this.messages = result.messages || [];
             }
             await this.sync();
@@ -88,13 +88,13 @@
             else this.manualPaused = paused;
 
             if (this.isPaused) {
-                (window as any).StageChatAgent.pause();
+                (window as any).CommonsAgent.pause();
                 this.stopPolling();
             } else {
-                (window as any).StageChatAgent.resume();
+                (window as any).CommonsAgent.resume();
                 this.startPolling();
             }
-            (window as any).StageChatUI?.renderPauseState();
+            (window as any).CommonsUI?.renderPauseState();
         }
 
         static startPolling(intervalMs: number = 2500) {
@@ -114,5 +114,5 @@
         }
     }
 
-    (window as any).StageChatState = StageChatState;
+    (window as any).CommonsState = CommonsState;
 })();

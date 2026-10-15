@@ -58,8 +58,8 @@ class VirtualWorld:
         self.scenario_ended = False
         self._restart_requested = False
 
-        from engine.stage_chat import StageChat
-        self.stage_chat = StageChat()
+        from engine.commons import Commons
+        self.commons = Commons()
 
         # Game clock start time (08:00 by default so it's a proper time-of-day clock)
         self.clock_start_hour = 8

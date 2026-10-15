@@ -1,14 +1,14 @@
 "use strict";
 /**
- * @module stage-chat-agent — communication actions for existing Players
+ * @module commons-agent — communication actions for existing Players
  * @contributes paced read, send, and direct-message actions
- * @powers autonomous character participation in Stage Chat
- * @relates StageChatApi, StageChatState, PromptBuilder, ResponseParser
+ * @powers autonomous character participation in The Commons
+ * @relates CommonsApi, CommonsState, PromptBuilder, ResponseParser
  * @docs docs/virtualWorld/Gameplay/The Commons.md
  */
 (function () {
     'use strict';
-    class StageChatAgent {
+    class CommonsAgent {
         static timers = {};
         static deadlines = {};
         static remainingMs = {};
@@ -33,7 +33,7 @@
         }
         static start() {
             this.isRunning = true;
-            if (!window.StageChatState.isPaused)
+            if (!window.CommonsState.isPaused)
                 this.scheduleAll();
         }
         static stop() {
@@ -71,7 +71,7 @@
                 clearTimeout(oldTimer);
             delete this.timers[charName];
             delete this.deadlines[charName];
-            const state = window.StageChatState;
+            const state = window.CommonsState;
             const participant = state.participants?.[charName];
             if (!this.isRunning || state.isPaused || !participant?.active || participant.blocked) {
                 delete this.remainingMs[charName];
@@ -90,20 +90,20 @@
                     await this.actCharacter(charName);
                 }
                 finally {
-                    if (this.isRunning && !window.StageChatState.isPaused)
+                    if (this.isRunning && !window.CommonsState.isPaused)
                         this.resetTimer(charName);
                 }
             }, delayMs);
         }
         static scheduleAll() {
-            const participants = window.StageChatState.participants || {};
+            const participants = window.CommonsState.participants || {};
             for (const name of Object.keys(participants)) {
                 if (name !== 'User')
                     this.resetTimer(name);
             }
         }
         static async stepOne() {
-            const state = window.StageChatState;
+            const state = window.CommonsState;
             if (state.isPaused)
                 return;
             const participants = state.participants || {};
@@ -114,7 +114,7 @@
             await this.actCharacter(chosen);
         }
         static async actCharacter(charName) {
-            const state = window.StageChatState;
+            const state = window.CommonsState;
             if (state.isPaused)
                 return;
             const participant = state.participants?.[charName];
@@ -125,7 +125,7 @@
             const controller = new AbortController();
             this.controllers[charName] = controller;
             const signal = controller.signal;
-            const api = window.StageChatApi;
+            const api = window.CommonsApi;
             const llm = window.llmClient;
             try {
                 const [player, memories, phone] = await Promise.all([
@@ -163,13 +163,13 @@
                     streaming: false,
                     max_tokens: 360,
                     signal,
-                    label: 'stage-chat/communication',
+                    label: 'commons/communication',
                 });
                 if (state.isPaused || signal.aborted || !reply)
                     return;
                 const decision = responseParser.parseCommunication(reply);
                 if (decision.parseError) {
-                    console.warn(`[StageChatAgent] Invalid communication decision from ${charName}: ${decision.parseError}`);
+                    console.warn(`[CommonsAgent] Invalid communication decision from ${charName}: ${decision.parseError}`);
                     return;
                 }
                 let readMessages = [];
@@ -210,7 +210,7 @@
             }
             catch (error) {
                 if (!signal.aborted)
-                    console.error(`[StageChatAgent] Communication turn failed for ${charName}:`, error);
+                    console.error(`[CommonsAgent] Communication turn failed for ${charName}:`, error);
             }
             finally {
                 if (this.controllers[charName] === controller)
@@ -218,5 +218,5 @@
             }
         }
     }
-    window.StageChatAgent = StageChatAgent;
+    window.CommonsAgent = CommonsAgent;
 })();

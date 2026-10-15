@@ -1,9 +1,9 @@
 "use strict";
 /**
- * @module stage-chat-app — Bootstrap entrypoint for the Stage Chat page
+ * @module commons-app — Bootstrap entrypoint for the The Commons page
  * @contributes Initializes UI, State, Agent, and visibility listeners
- * @powers Boots Stage Chat
- * @relates StageChatUI, StageChatState, StageChatAgent
+ * @powers Boots The Commons
+ * @relates CommonsUI, CommonsState, CommonsAgent
  * @docs docs/virtualWorld/Gameplay/The Commons.md
  */
 (function () {
@@ -12,15 +12,15 @@
         const config = window.config;
         await config?._initPromise;
         window.llmClient?.configure(config?.toLLMConfig?.());
-        window.StageChatUI.init();
-        await window.StageChatState.sync();
-        window.StageChatState.startPolling(2500);
-        window.StageChatAgent.start();
+        window.CommonsUI.init();
+        await window.CommonsState.sync();
+        window.CommonsState.startPolling(2500);
+        window.CommonsAgent.start();
         // Auto-pause when tab is hidden, resume when visible
         document.addEventListener('visibilitychange', () => {
-            window.StageChatState.setPaused(document.hidden, 'visibility');
+            window.CommonsState.setPaused(document.hidden, 'visibility');
         });
         if (document.hidden)
-            window.StageChatState.setPaused(true, 'visibility');
+            window.CommonsState.setPaused(true, 'visibility');
     });
 })();

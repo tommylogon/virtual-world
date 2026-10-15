@@ -1,11 +1,12 @@
 # Patch Notes
 
-Authoring and release notes for VirtualWorld live in three places, deliberately:
+Authoring and release notes for VirtualWorld live in four places, deliberately:
 
 - **[`CHANGELOG.md`](CHANGELOG.md)** - the canonical, version-by-version history. Start here.
+- **[`docs/virtualWorld/Patch Notes 2026-10-15.md`](docs/virtualWorld/Patch%20Notes%202026-10-15.md)**
+  - the current shareable release note, written for someone who does not know the codebase.
 - **[`docs/virtualWorld/Patch Notes 2026-08-22 to 2026-09-22.md`](docs/virtualWorld/Patch%20Notes%202026-08-22%20to%202026-09-22.md)**
-  - one shareable narrative covering a whole month across both repositories, written to be
-  read cold by someone who does not know the codebase.
+  - a shareable narrative covering that month across both repositories.
 - **[`docs/virtualWorld/History.md`](docs/virtualWorld/History.md)** - the lineage and
   pre-history, back to the first commit in May 2025.
 

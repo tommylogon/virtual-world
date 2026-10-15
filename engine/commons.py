@@ -1,9 +1,9 @@
-"""Conversation state for the Stage Chat surface.
+"""Conversation state for The Commons.
 
-@module stage_chat
+@module commons
 @contributes channels, membership, ordered messages, and per-character read cursors
-@powers Stage Chat communication
-@relates VirtualWorld, routes/stage_chat.py
+@powers The Commons communication
+@relates VirtualWorld, routes/commons.py
 @docs docs/virtualWorld/Gameplay/The Commons.md
 
 Character cognition and memory remain on Player and the standard agent path.
@@ -21,7 +21,7 @@ class ChatAuthorizationError(PermissionError):
     """Raised when a perspective cannot read or post in a channel."""
 
 
-class StageChat:
+class Commons:
     def __init__(self):
         self.messages: List[Dict[str, Any]] = []
         self.participants: Dict[str, Dict[str, Any]] = {}

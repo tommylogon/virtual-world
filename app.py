@@ -138,9 +138,9 @@ def create_app(config=None):
             if method in ('POST', 'PATCH', 'DELETE') and (
                 '/api/graph/' in path or '/api/players/' in path
                 or '/api/build/' in path or '/api/world/' in path
-                # Stage Chat is saved runtime communication state (channels,
+                # The Commons is saved runtime communication state (channels,
                 # messages, membership, and read cursors), not scenario content.
-                or path.startswith('/api/stage-chat/')
+                or path.startswith('/api/commons/')
                 # Settings that persist to the scenario — clock, date, forecast,
                 # calendar, narration, ghost/mature flags — are edits too, so
                 # they must mark the scenario dirty and offer Commit. The
@@ -286,9 +286,9 @@ def register_routes(app):
     from routes.world_grid import register_world_grid_routes
     from routes.docs import register_docs_routes
     from routes.bug_reports import register_bug_reports_routes
-    from routes.stage_chat import register_stage_chat_routes
+    from routes.commons import register_commons_routes
 
-    register_stage_chat_routes(app)
+    register_commons_routes(app)
     register_health_routes(app)
     register_events_routes(app)
     register_pages_routes(app)

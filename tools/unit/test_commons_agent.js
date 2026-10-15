@@ -1,14 +1,14 @@
-function stageChatHarness(reply) {
+function commonsHarness(reply) {
     const saved = {
-        state: window.StageChatState,
-        api: window.StageChatApi,
+        state: window.CommonsState,
+        api: window.CommonsApi,
         llm: window.llmClient,
         promptBuilder: window.PromptBuilder.buildCommunicationPrompt,
     };
     const calls = [];
     let decisionPrompt = '';
     let memoryWritten = '';
-    window.StageChatState = {
+    window.CommonsState = {
         isPaused: false,
         participants: { Mira: { active: true, blocked: false } },
     };
@@ -16,7 +16,7 @@ function stageChatHarness(reply) {
         decisionPrompt = JSON.stringify({ player, memories, channels, known });
         return decisionPrompt;
     };
-    window.StageChatApi = {
+    window.CommonsApi = {
         getCharacterContext: async (name) => {
             calls.push(['character', name]);
             return { name, traits: { patient: true }, personality: 'careful', description: 'A quiet traveler.' };
@@ -61,17 +61,17 @@ function stageChatHarness(reply) {
         get prompt() { return decisionPrompt; },
         get memory() { return memoryWritten; },
         restore() {
-            window.StageChatState = saved.state;
-            window.StageChatApi = saved.api;
+            window.CommonsState = saved.state;
+            window.CommonsApi = saved.api;
             window.llmClient = saved.llm;
             window.PromptBuilder.buildCommunicationPrompt = saved.promptBuilder;
-            StageChatAgent.controllers = {};
+            CommonsAgent.controllers = {};
         },
     };
 }
 
-test('stage chat: explicit group read uses the shared Player memory endpoint and never prompts with unread text', async () => {
-    const h = stageChatHarness({
+test('the commons: explicit group read uses the shared Player memory endpoint and never prompts with unread text', async () => {
+    const h = commonsHarness({
         inner_monologue: 'I should check the group.',
         communication: {
             action: 'read_chat', channel_id: 'group-night', read_mode: 'range',
@@ -80,7 +80,7 @@ test('stage chat: explicit group read uses the shared Player memory endpoint and
         memory: { text: 'I felt relieved by the update.', importance: 6, tags: ['friendship'] },
     });
     try {
-        await StageChatAgent.actCharacter('Mira');
+        await CommonsAgent.actCharacter('Mira');
         assertTrue(h.prompt.includes('I promised to check messages from Lysa.'));
         assertTrue(h.prompt.includes('group-night'));
         assertFalse(h.prompt.includes('The door is open.'));
@@ -97,14 +97,14 @@ test('stage chat: explicit group read uses the shared Player memory endpoint and
     }
 });
 
-test('stage chat: send routes only to the selected authorized channel', async () => {
-    const h = stageChatHarness({
+test('the commons: send routes only to the selected authorized channel', async () => {
+    const h = commonsHarness({
         inner_monologue: 'I will answer the night watch.',
         communication: { action: 'send_chat', channel_id: 'group-night', text: 'I am on my way.' },
         memory: null,
     });
     try {
-        await StageChatAgent.actCharacter('Mira');
+        await CommonsAgent.actCharacter('Mira');
         assertEq(h.calls.find(call => call[0] === 'post'), [
             'post', 'Mira', 'I am on my way.', 'group-night',
         ]);
@@ -114,14 +114,14 @@ test('stage chat: send routes only to the selected authorized channel', async ()
     }
 });
 
-test('stage chat: a character can start a two-person DM and send its first message', async () => {
-    const h = stageChatHarness({
+test('the commons: a character can start a two-person DM and send its first message', async () => {
+    const h = commonsHarness({
         inner_monologue: 'This belongs between Lysa and me.',
         communication: { action: 'start_dm', recipient: 'Lysa', text: 'Are you near the gate?' },
         memory: null,
     });
     try {
-        await StageChatAgent.actCharacter('Mira');
+        await CommonsAgent.actCharacter('Mira');
         assertEq(h.calls.find(call => call[0] === 'create-channel'), [
             'create-channel', { creator: 'Mira', kind: 'dm', other: 'Lysa' },
         ]);
@@ -133,21 +133,21 @@ test('stage chat: a character can start a two-person DM and send its first messa
     }
 });
 
-test('stage chat: think action does not read, send, or create a conversation', async () => {
-    const h = stageChatHarness({
+test('the commons: think action does not read, send, or create a conversation', async () => {
+    const h = commonsHarness({
         inner_monologue: 'I will let the conversation wait.',
         communication: { action: 'think' },
         memory: null,
     });
     try {
-        await StageChatAgent.actCharacter('Mira');
+        await CommonsAgent.actCharacter('Mira');
         assertFalse(h.calls.some(call => ['read', 'post', 'create-channel', 'memory'].includes(call[0])));
     } finally {
         h.restore();
     }
 });
 
-test('stage chat: shared prompt builder uses existing Player persona and hides message bodies', () => {
+test('the commons: shared prompt builder uses existing Player persona and hides message bodies', () => {
     const prompt = PromptBuilder.buildCommunicationPrompt(
         { name: 'Mira', personality: 'careful and dry-witted', traits: { patient: true }, state: 'awake' },
         '- I promised to check the night watch.',
@@ -160,7 +160,7 @@ test('stage chat: shared prompt builder uses existing Player persona and hides m
     assertFalse(prompt.includes('The door is open.'));
 });
 
-test('stage chat: shared response parser normalizes communication and Player memory', () => {
+test('the commons: shared response parser normalizes communication and Player memory', () => {
     const parsed = ResponseParser.parseCommunication(JSON.stringify({
         inner_monologue: 'I should answer.',
         communication: {
@@ -175,7 +175,7 @@ test('stage chat: shared response parser normalizes communication and Player mem
     assertEq(parsed.memory.text, 'I kept my promise.');
 });
 
-test('stage chat: memory reflection writes to the existing Player memories endpoint', async () => {
+test('the commons: memory reflection writes to the existing Player memories endpoint', async () => {
     const realFetch = window.fetch;
     let request = null;
     window.fetch = async (url, options) => {
@@ -183,19 +183,19 @@ test('stage chat: memory reflection writes to the existing Player memories endpo
         return { ok: true, json: async () => ({ status: 'success' }) };
     };
     try {
-        await StageChatApi.storeMemory('Mira', 'I kept my promise to Lysa.', 6, ['conversation', 'chat']);
+        await CommonsApi.storeMemory('Mira', 'I kept my promise to Lysa.', 6, ['conversation', 'chat']);
         assertEq(request.url, '/api/players/Mira/memories/entry');
         const payload = JSON.parse(request.options.body);
         assertEq(payload.text, 'I kept my promise to Lysa.');
         assertEq(payload.category, 'social');
-        assertFalse(Object.hasOwn(payload, 'stage_chat'));
+        assertFalse(Object.hasOwn(payload, 'commons'));
         assertFalse(Object.hasOwn(payload, 'chat_memories'));
     } finally {
         window.fetch = realFetch;
     }
 });
 
-test('stage chat: recall uses the standard Player memory retrieval endpoint', async () => {
+test('the commons: recall uses the standard Player memory retrieval endpoint', async () => {
     const realFetch = window.fetch;
     let request = null;
     window.fetch = async (url, options) => {
@@ -203,7 +203,7 @@ test('stage chat: recall uses the standard Player memory retrieval endpoint', as
         return { ok: true, json: async () => ({ memories: [] }) };
     };
     try {
-        await StageChatApi.retrieveMemories('Mira', 'messages from Lysa');
+        await CommonsApi.retrieveMemories('Mira', 'messages from Lysa');
         assertEq(request.url, '/api/players/Mira/memories/retrieve');
         assertEq(request.options.method, 'POST');
         assertEq(JSON.parse(request.options.body), {

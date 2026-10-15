@@ -57,7 +57,7 @@ The standard memory retrieval endpoint can recall it later. The Mind panel's
 channel history remains the communication transcript; it is not a second memory
 or lived-experience store.
 
-Today, autonomous chat decisions still run through `StageChatAgent`'s
+Today, autonomous chat decisions still run through `CommonsAgent`'s
 communication-only LLM call and timer loop. It reuses the shared prompt builder,
 response parser, per-character talkativeness setting, and cooldown jitter, but
 its decision/action loop has not yet been demonstrated through the standard
@@ -68,7 +68,7 @@ character for a communication action; it is not the world turn queue.
 
 Conversation channels, memberships, messages, and read cursors use the existing
 world save/load and autosave path. A scenario can author initial public, group,
-and direct-message examples in its top-level `stage_chat` data. Runtime changes
+and direct-message examples in its top-level `commons` data. Runtime changes
 are omitted from scenario export, so edits made during play are not written
 back into that authoring data. The current interface sends text messages; there
 is no authorable presentation theme for letters, SMS, voice calls, or other
@@ -82,13 +82,13 @@ In-world phone, radio, and device behavior remains the separate scope of
 ## Where it lives
 
 - `templates/index.html` — **The Commons** game-menu entry.
-- `templates/stage_chat.html` and `static/css/stage-chat.css` — the page and its
+- `templates/commons.html` and `static/css/commons.css` — the page and its
   responsive social layout.
-- `static/js/stage-chat/` — conversation UI/state/API and
-  `StageChatAgent` character actions.
-- `engine/stage_chat.py` — channels, members, messages, authorization, and
+- `static/js/commons/` — conversation UI/state/API and
+  `CommonsAgent` character actions.
+- `engine/commons.py` — channels, members, messages, authorization, and
   per-character read cursors on the world communication model.
-- `routes/stage_chat.py` — channel and message endpoints, including server-side
+- `routes/commons.py` — channel and message endpoints, including server-side
   membership checks.
 - Existing Player memory routes and the Mind panel — durable character memories.
 - Existing world serialization and autosave — persistence for communication
@@ -99,7 +99,7 @@ In-world phone, radio, and device behavior remains the separate scope of
 - [[Characters/GIMP]] — the authored want and goal record.
 - [[Characters/MOSIAC]] — the character's runtime context and mind.
 - [[Gameplay/Turn Queue & Human Turns]] — the world simulation's turn queue,
-  separate from The Commons' communication controls.
+  separate from the communication controls on this page.
 
 <!-- changelog:start -->
 ## Changelog
@@ -108,7 +108,7 @@ In-world phone, radio, and device behavior remains the separate scope of
 
 | When | Task | Status |
 |---|---|---|
-| 2026-10-14 | [[task-824-stage-chat-turn-based-character-perspective-chat-page\|The Commons: shared character minds, channels, groups, and direct messages]] | `inprogress` |
+| 2026-10-14 | [[task-824-the-commons-shared-character-minds-channels-groups-and-direct-messages\|The Commons: shared character minds, channels, groups, and direct messages]] | `inprogress` |
 <!-- changelog:end -->
 
 <!-- connected:start -->
@@ -118,7 +118,7 @@ In-world phone, radio, and device behavior remains the separate scope of
 
 **Features** — [[the-commons|The Commons]] (#78)
 
-**Dev tasks** — [[dev_tasks/inprogress/gameplay/task-824-stage-chat-turn-based-character-perspective-chat-page|task]], [[dev_tasks/todo/gameplay/task-827-setting-aware-communication-themes-for-the-commons|task]]
+**Dev tasks** — [[dev_tasks/inprogress/gameplay/task-824-the-commons-shared-character-minds-channels-groups-and-direct-messages|task]], [[dev_tasks/todo/gameplay/task-827-setting-aware-communication-themes-for-the-commons|task]]
 
 **Neighbouring notes** — [[Character Spatial Position]], [[Per-Agent Knowledge (Fog of War)]], [[Search & Forage]], [[Turn Queue & Human Turns]]
 

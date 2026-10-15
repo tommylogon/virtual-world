@@ -19,10 +19,10 @@ private group chats, and direct messages.
 ## Where it lives
 
 - `templates/index.html` — menu entry.
-- `templates/stage_chat.html` — The Commons page.
-- `engine/stage_chat.py` and `routes/stage_chat.py` — conversation data and
+- `templates/commons.html` — The Commons page.
+- `engine/commons.py` and `routes/commons.py` — conversation data and
   authorized message operations.
-- `static/js/stage-chat/` — conversation interface and character actions.
+- `static/js/commons/` — conversation interface and character actions.
 
 ## Connected
 

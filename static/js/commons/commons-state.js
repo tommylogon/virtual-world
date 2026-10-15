@@ -1,14 +1,14 @@
 "use strict";
 /**
- * @module stage-chat-state — authorized conversation state and polling
- * @contributes StageChatState: selected perspective, channels, messages, polling
- * @powers Stage Chat reactive data flow
- * @relates StageChatApi, StageChatUI
+ * @module commons-state — authorized conversation state and polling
+ * @contributes CommonsState: selected perspective, channels, messages, polling
+ * @powers The Commons reactive data flow
+ * @relates CommonsApi, CommonsUI
  * @docs docs/virtualWorld/Gameplay/The Commons.md
  */
 (function () {
     'use strict';
-    class StageChatState {
+    class CommonsState {
         static messages = [];
         static channels = [];
         static participants = {};
@@ -38,7 +38,7 @@
         }
         static async sync() {
             try {
-                const data = await window.StageChatApi.getState(this.perspective);
+                const data = await window.CommonsApi.getState(this.perspective);
                 this.channels = data.channels || [];
                 this.participants = data.participants || {};
                 if (!this.channels.some((channel) => channel.id === this.selectedChannelId)) {
@@ -49,7 +49,7 @@
                     const sinceId = this.messages.length
                         ? Math.max(...this.messages.map((message) => Number(message.id) || 0))
                         : undefined;
-                    const result = await window.StageChatApi.getMessages(this.perspective, this.selectedChannelId, sinceId);
+                    const result = await window.CommonsApi.getMessages(this.perspective, this.selectedChannelId, sinceId);
                     if (sinceId)
                         this.messages = [...this.messages, ...(result.messages || [])];
                     else
@@ -58,7 +58,7 @@
                 this.emit();
             }
             catch (err) {
-                console.error('[StageChatState] Sync failed:', err);
+                console.error('[CommonsState] Sync failed:', err);
             }
         }
         static async selectPerspective(name) {
@@ -73,12 +73,12 @@
             this.selectedChannelId = channelId;
             this.messages = [];
             if (explicitRead) {
-                await window.StageChatApi.readMessages(this.perspective, channelId, 'all');
-                const history = await window.StageChatApi.getMessages(this.perspective, channelId);
+                await window.CommonsApi.readMessages(this.perspective, channelId, 'all');
+                const history = await window.CommonsApi.getMessages(this.perspective, channelId);
                 this.messages = history.messages || [];
             }
             else {
-                const result = await window.StageChatApi.getMessages(this.perspective, channelId);
+                const result = await window.CommonsApi.getMessages(this.perspective, channelId);
                 this.messages = result.messages || [];
             }
             await this.sync();
@@ -89,14 +89,14 @@
             else
                 this.manualPaused = paused;
             if (this.isPaused) {
-                window.StageChatAgent.pause();
+                window.CommonsAgent.pause();
                 this.stopPolling();
             }
             else {
-                window.StageChatAgent.resume();
+                window.CommonsAgent.resume();
                 this.startPolling();
             }
-            window.StageChatUI?.renderPauseState();
+            window.CommonsUI?.renderPauseState();
         }
         static startPolling(intervalMs = 2500) {
             this.stopPolling();
@@ -115,5 +115,5 @@
             }
         }
     }
-    window.StageChatState = StageChatState;
+    window.CommonsState = CommonsState;
 })();

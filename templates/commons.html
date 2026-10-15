@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" class="commons-doc">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Commons — VirtualWorld</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/commons.css">
+</head>
+<body class="commons-body" data-app-version="{{ app_version or '' }}">
+
+<header class="commons-topbar">
+    <div class="commons-brand">
+        <span class="commons-brand-icon" aria-hidden="true">✳</span>
+        <span class="commons-brand-title">The Commons</span>
+        <span class="commons-brand-sub">a place to talk</span>
+    </div>
+    <div class="commons-topbar-center">
+        <label class="commons-perspective-label" for="commons-perspective">Phone owner</label>
+        <select id="commons-perspective" class="commons-select" aria-label="View conversations as"></select>
+        <span id="commons-status-chip" class="commons-status">Active</span>
+        <span id="commons-rate-estimate" class="commons-rate-estimate" aria-live="polite"></span>
+    </div>
+    <div class="commons-top-actions">
+        <button type="button" id="commons-pause-btn" class="commons-btn">⏸ Pause</button>
+        <button type="button" id="commons-step-btn" class="commons-btn">▶ Step Next</button>
+        <a class="commons-btn" href="/" title="Back to the world editor">← Editor</a>
+    </div>
+</header>
+
+<main class="commons-layout">
+    <aside class="commons-sidebar" aria-label="Conversations">
+        <div class="commons-sidebar-heading">
+            <div>
+                <div class="commons-eyebrow">INBOX</div>
+                <h2>Conversations</h2>
+            </div>
+            <button type="button" id="commons-new-group" class="commons-icon-btn" aria-label="Create private group" title="New group">＋</button>
+        </div>
+        <button type="button" id="commons-new-dm" class="commons-new-dm">✉ New direct message</button>
+        <nav id="commons-channel-list" class="commons-channel-list" aria-label="Your conversations"></nav>
+
+        <details class="commons-agent-controls">
+            <summary>Characters & pacing</summary>
+            <div id="commons-participants-list"></div>
+        </details>
+    </aside>
+
+    <section class="commons-main" aria-label="Selected conversation">
+        <header class="commons-conversation-header">
+            <div class="commons-conversation-avatar" id="commons-channel-avatar" aria-hidden="true">#</div>
+            <div class="commons-conversation-title-wrap">
+                <h1 id="commons-channel-name">Public</h1>
+                <div id="commons-channel-subtitle" class="commons-conversation-subtitle">Everyone can join this conversation</div>
+            </div>
+            <div id="commons-channel-member-count" class="commons-member-count"></div>
+        </header>
+        <div id="commons-feed" class="commons-log" aria-live="polite" aria-label="Messages"></div>
+        <form id="commons-form" class="commons-input-row" onsubmit="event.preventDefault();">
+            <label class="commons-composer-label" for="commons-input">Message as <span id="commons-composer-identity">User</span></label>
+            <div class="commons-composer-row">
+                <input type="text" id="commons-input" class="commons-input" placeholder="Write a message…" autocomplete="off">
+                <button type="submit" id="commons-send-btn" class="commons-btn commons-btn-primary">Send</button>
+            </div>
+        </form>
+    </section>
+
+    <aside class="commons-details" aria-label="Conversation details">
+        <div class="commons-panel-header">People here</div>
+        <div id="commons-channel-members" class="commons-channel-members"></div>
+        <div id="commons-member-editor" class="commons-member-editor"></div>
+        <div class="commons-details-note">Private conversations are visible only from a member’s phone.</div>
+    </aside>
+</main>
+
+<dialog id="commons-group-dialog" class="commons-dialog">
+    <form id="commons-group-form" method="dialog">
+        <div class="commons-dialog-heading">
+            <div>
+                <div class="commons-eyebrow">PRIVATE SPACE</div>
+                <h2>Start a group</h2>
+            </div>
+            <button type="button" id="commons-group-close" class="commons-icon-btn" aria-label="Close">×</button>
+        </div>
+        <label class="commons-field-label" for="commons-group-name">Group name</label>
+        <input id="commons-group-name" class="commons-input" maxlength="80" required placeholder="e.g. Night watch">
+        <div class="commons-field-label">Invite characters</div>
+        <div id="commons-group-roster" class="commons-group-roster"></div>
+        <div class="commons-dialog-actions">
+            <button type="button" id="commons-group-cancel" class="commons-btn">Cancel</button>
+            <button type="submit" class="commons-btn commons-btn-primary">Create group</button>
+        </div>
+        <div id="commons-group-error" class="commons-form-error" role="alert"></div>
+    </form>
+</dialog>
+
+<dialog id="commons-dm-dialog" class="commons-dialog">
+    <form id="commons-dm-form" method="dialog">
+        <div class="commons-dialog-heading">
+            <div>
+                <div class="commons-eyebrow">ONE TO ONE</div>
+                <h2>Start a direct message</h2>
+            </div>
+            <button type="button" id="commons-dm-close" class="commons-icon-btn" aria-label="Close">×</button>
+        </div>
+        <label class="commons-field-label" for="commons-dm-recipient">Choose a character</label>
+        <select id="commons-dm-recipient" class="commons-select" required></select>
+        <div class="commons-dialog-actions">
+            <button type="button" id="commons-dm-cancel" class="commons-btn">Cancel</button>
+            <button type="submit" class="commons-btn commons-btn-primary">Open conversation</button>
+        </div>
+        <div id="commons-dm-error" class="commons-form-error" role="alert"></div>
+    </form>
+</dialog>
+
+<script src="/static/js/api.js"></script>
+<script src="/static/js/event-bus.js"></script>
+<script src="/static/js/storage.js"></script>
+<script src="/static/js/agent/simultaneous.js"></script>
+<script src="/static/js/config.js"></script>
+<script src="/static/js/llm-client.js"></script>
+<script src="/static/js/shared/json-utils.js"></script>
+<script src="/static/js/agent/action-normalizer.js"></script>
+<script src="/static/js/agent/response-parser.js"></script>
+<script src="/static/js/agent/prompt-builder/helpers.js"></script>
+<script src="/static/js/agent/prompt-builder/character-state.js"></script>
+<script src="/static/js/agent/prompt-builder/context-sections.js"></script>
+<script src="/static/js/agent/prompt-builder/turn-prompts.js"></script>
+
+<script src="/static/js/commons/commons-api.js"></script>
+<script src="/static/js/commons/commons-state.js"></script>
+<script src="/static/js/commons/commons-ui.js"></script>
+<script src="/static/js/commons/commons-agent.js"></script>
+<script src="/static/js/commons/commons-app.js"></script>
+
+</body>
+</html>

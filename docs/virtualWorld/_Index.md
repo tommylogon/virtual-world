@@ -18,7 +18,7 @@ This is the Obsidian vault for **VirtualWorld** — a Flask + JS text-based game
 
 | Doc | What it covers |
 |---|---|
-| [[Feature Map\|Feature Map]] | **Start here for "can I do X?"** Every feature — something you do, use or interact with — in a game and in the editor: **76 of them**, each with its status and the note that documents it. A *mechanic* is how a feature works. It is the denominator for documentation coverage |
+| [[Feature Map\|Feature Map]] | **Start here for "can I do X?"** The map has **78 rows**: 77 have an authored feature page and one row still lacks a page. Each row records status and its deep note. A *mechanic* is how a feature works. It is the denominator for documentation coverage |
 | [[Features/Features Overview\|Features Overview]] | One page per feature row: what it is, how it works, where it lives, what it connects to. The entry points; the deep docs stay the deep docs |
 
 ---
@@ -28,6 +28,7 @@ This is the Obsidian vault for **VirtualWorld** — a Flask + JS text-based game
 | Doc | What it covers |
 |-----|---------------|
 | [[History\|History]] | The whole lineage: the 2025 Aura/APSE origins, the 2026-02-21 monorepo reorg, the July 2026 build-out and modularization, the 2026-08-26 public split, and how to re-derive any of it from git |
+| [[Patch Notes 2026-10-15\|Patch Notes 2026-10-15]] | The Commons: public conversations, private groups, direct messages, existing character memories, and what remains planned |
 | [[Patch Notes 2026-08-22 to 2026-09-22\|Patch Notes]] | The last 30 days written to be shared cold: time as a timeframe, the background tier, the identity refactor, one copy of every truth, structures, and the bugs killed |
 | [[Patch Notes 2026-09-28\|Patch Notes 2026-09-28]] | Fog-of-war reveal, traits v2, production surfaces, and the doc tooling pass |
 | [[Patch Notes 2026-09-30\|Patch Notes 2026-09-30]] | Scope-tree work, soak findings, UI restructure |
@@ -75,6 +76,7 @@ This is the Obsidian vault for **VirtualWorld** — a Flask + JS text-based game
 | Doc | What it covers |
 |-----|---------------|
 | [[Gameplay/Turn Queue & Human Turns\|Turn Queue & Human Turns]] | Whose turn it is, the scene-first human turn panel, guest speech, and what the world does while it waits |
+| [[Gameplay/The Commons\|The Commons]] | Cross-distance character conversations: public posts, private groups, direct messages, memory, and persistence |
 | [[Gameplay/Character Spatial Position\|Character Spatial Position]] | Where every character is, per scope, and how that resolves on the map |
 | [[Gameplay/Search & Forage\|Search & Forage]] | Area forage tables, skill-gated draws, regrowth |
 | [[Gameplay/Per-Agent Knowledge (Fog of War)\|Per-Agent Knowledge (Fog of War)]] | Per-character known set; a map that only shows what you have found — the one deliberately `unwired` row |

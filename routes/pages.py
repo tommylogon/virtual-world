@@ -1,6 +1,6 @@
 import os
 import logging
-from flask import Flask, render_template
+from flask import Flask, redirect, render_template, url_for
 from logger import setup_logger
 from version import APP_VERSION
 
@@ -30,10 +30,15 @@ def register_pages_routes(app):
         """Standalone analytics UI for the headless soak runner."""
         return render_template('soak.html', app_version=APP_VERSION)
 
+    @app.route('/commons')
+    def commons_page():
+        """The Commons social communication page (task-824)."""
+        return render_template('commons.html', app_version=APP_VERSION)
+
     @app.route('/stage-chat')
-    def stage_chat_page():
-        """Standalone stage chat UI (task-824)."""
-        return render_template('stage_chat.html', app_version=APP_VERSION)
+    def legacy_commons_page_redirect():
+        """Redirect the former page address to The Commons."""
+        return redirect(url_for('commons_page'), code=301)
 
     @app.route('/deepseek')
     def deepseek_template():

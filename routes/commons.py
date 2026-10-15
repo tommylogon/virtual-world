@@ -1,22 +1,22 @@
-"""HTTP endpoints for Stage Chat conversations.
+"""HTTP endpoints for The Commons conversations.
 
-@module stage_chat_routes
+@module commons_routes
 @contributes conversation listing, membership, and authorized message endpoints
-@powers Stage Chat communication
-@relates engine/stage_chat.py, routes/pages.py
+@powers The Commons communication
+@relates engine/commons.py, routes/pages.py
 @docs docs/virtualWorld/Gameplay/The Commons.md
 """
 from flask import jsonify, request
 
-from engine.stage_chat import ChatAuthorizationError, PUBLIC_CHANNEL_ID
+from engine.commons import ChatAuthorizationError, PUBLIC_CHANNEL_ID
 
 
-def register_stage_chat_routes(app):
+def register_commons_routes(app):
     def _world_chat():
         world = getattr(app, "world", None)
-        chat = getattr(world, "stage_chat", None) if world else None
+        chat = getattr(world, "commons", None) if world else None
         if not world or chat is None:
-            return None, None, (jsonify({"error": "Stage chat not initialized"}), 500)
+            return None, None, (jsonify({"error": "The Commons is not initialized"}), 500)
         for char_name in (getattr(world, "players", {}) or {}):
             chat.set_participant(char_name)
         return world, chat, None
@@ -31,8 +31,8 @@ def register_stage_chat_routes(app):
             return jsonify({"error": str(error).strip("'")}), 404
         return jsonify({"error": str(error)}), 400
 
-    @app.route('/api/stage-chat/characters/<name>', methods=['GET'])
-    def stage_chat_character_context(name):
+    @app.route('/api/commons/characters/<name>', methods=['GET'])
+    def commons_character_context(name):
         world = getattr(app, 'world', None)
         player = getattr(world, 'players', {}).get(name) if world else None
         if not player:
@@ -54,8 +54,8 @@ def register_stage_chat_routes(app):
             "state": getattr(player, "state", "awake"),
         })
 
-    @app.route('/api/stage-chat/state', methods=['GET'])
-    def stage_chat_state():
+    @app.route('/api/commons/state', methods=['GET'])
+    def commons_state():
         world, chat, error = _world_chat()
         if error:
             return error
@@ -72,8 +72,8 @@ def register_stage_chat_routes(app):
             "participants": participant_data,
         })
 
-    @app.route('/api/stage-chat/channels', methods=['POST'])
-    def stage_chat_create_channel():
+    @app.route('/api/commons/channels', methods=['POST'])
+    def commons_create_channel():
         world, chat, error = _world_chat()
         if error:
             return error
@@ -99,8 +99,8 @@ def register_stage_chat_routes(app):
             return _failure(exc)
         return jsonify({"channel": channel}), 201
 
-    @app.route('/api/stage-chat/channels/<channel_id>/members', methods=['PATCH'])
-    def stage_chat_update_members(channel_id):
+    @app.route('/api/commons/channels/<channel_id>/members', methods=['PATCH'])
+    def commons_update_members(channel_id):
         world, chat, error = _world_chat()
         if error:
             return error
@@ -118,8 +118,8 @@ def register_stage_chat_routes(app):
             return _failure(exc)
         return jsonify({"channel": channel})
 
-    @app.route('/api/stage-chat/messages', methods=['GET', 'POST'])
-    def stage_chat_messages():
+    @app.route('/api/commons/messages', methods=['GET', 'POST'])
+    def commons_messages():
         world, chat, error = _world_chat()
         if error:
             return error
@@ -159,8 +159,8 @@ def register_stage_chat_routes(app):
             return _failure(exc)
         return jsonify({"message": message})
 
-    @app.route('/api/stage-chat/read', methods=['POST'])
-    def stage_chat_read():
+    @app.route('/api/commons/read', methods=['POST'])
+    def commons_read():
         world, chat, error = _world_chat()
         if error:
             return error
@@ -184,8 +184,8 @@ def register_stage_chat_routes(app):
                   .get(channel_id))
         return jsonify({"messages": messages, "last_read_message_id": cursor})
 
-    @app.route('/api/stage-chat/participants/<name>', methods=['PATCH'])
-    def stage_chat_update_participant(name):
+    @app.route('/api/commons/participants/<name>', methods=['PATCH'])
+    def commons_update_participant(name):
         world, chat, error = _world_chat()
         if error:
             return error

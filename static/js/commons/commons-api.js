@@ -1,17 +1,17 @@
 "use strict";
 /**
- * @module stage-chat-api — HTTP client for stage chat endpoints
- * @contributes StageChatApi: fetch authorized channels, read, post, and manage membership
- * @powers Stage Chat communication with the backend
- * @relates routes/stage_chat.py
+ * @module commons-api — HTTP client for The Commons endpoints
+ * @contributes CommonsApi: fetch authorized channels, read, post, and manage membership
+ * @powers The Commons communication with the backend
+ * @relates routes/commons.py
  * @docs docs/virtualWorld/Gameplay/The Commons.md
  */
 // Classic script IIFE publishing to window
 (function () {
     'use strict';
-    class StageChatApi {
+    class CommonsApi {
         static async getState(as = 'User') {
-            const res = await fetch(`/api/stage-chat/state?as=${encodeURIComponent(as)}`);
+            const res = await fetch(`/api/commons/state?as=${encodeURIComponent(as)}`);
             if (!res.ok)
                 throw new Error(`HTTP ${res.status}`);
             return await res.json();
@@ -20,13 +20,13 @@
             const params = new URLSearchParams({ as, channel_id: channelId });
             if (sinceId)
                 params.set('since_id', String(sinceId));
-            const res = await fetch(`/api/stage-chat/messages?${params}`);
+            const res = await fetch(`/api/commons/messages?${params}`);
             if (!res.ok)
                 throw new Error(`HTTP ${res.status}`);
             return await res.json();
         }
         static async getCharacterContext(name, signal) {
-            const res = await fetch(`/api/stage-chat/characters/${encodeURIComponent(name)}`, { signal });
+            const res = await fetch(`/api/commons/characters/${encodeURIComponent(name)}`, { signal });
             if (!res.ok)
                 throw new Error(`HTTP ${res.status}`);
             return await res.json();
@@ -43,7 +43,7 @@
             return await res.json();
         }
         static async createChannel(body, signal) {
-            const res = await fetch('/api/stage-chat/channels', {
+            const res = await fetch('/api/commons/channels', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body),
@@ -54,7 +54,7 @@
             return await res.json();
         }
         static async updateMembers(channelId, actor, add = [], remove = []) {
-            const res = await fetch(`/api/stage-chat/channels/${encodeURIComponent(channelId)}/members`, {
+            const res = await fetch(`/api/commons/channels/${encodeURIComponent(channelId)}/members`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ actor, add, remove }),
@@ -64,7 +64,7 @@
             return await res.json();
         }
         static async postMessage(author, text, channelId = 'public', signal) {
-            const res = await fetch('/api/stage-chat/messages', {
+            const res = await fetch('/api/commons/messages', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ author, text, channel_id: channelId }),
@@ -75,7 +75,7 @@
             return await res.json();
         }
         static async readMessages(character, channelId = 'public', mode = 'all', n = 5, from_id, to_id, signal) {
-            const res = await fetch('/api/stage-chat/read', {
+            const res = await fetch('/api/commons/read', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ character, channel_id: channelId, mode, n, from_id, to_id }),
@@ -86,7 +86,7 @@
             return await res.json();
         }
         static async updateParticipant(name, active, blocked) {
-            const res = await fetch(`/api/stage-chat/participants/${encodeURIComponent(name)}`, {
+            const res = await fetch(`/api/commons/participants/${encodeURIComponent(name)}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ active, blocked })
@@ -113,5 +113,5 @@
             return await res.json();
         }
     }
-    window.StageChatApi = StageChatApi;
+    window.CommonsApi = CommonsApi;
 })();

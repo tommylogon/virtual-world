@@ -1,15 +1,15 @@
 /**
- * @module stage-chat-agent — communication actions for existing Players
+ * @module commons-agent — communication actions for existing Players
  * @contributes paced read, send, and direct-message actions
- * @powers autonomous character participation in Stage Chat
- * @relates StageChatApi, StageChatState, PromptBuilder, ResponseParser
+ * @powers autonomous character participation in The Commons
+ * @relates CommonsApi, CommonsState, PromptBuilder, ResponseParser
  * @docs docs/virtualWorld/Gameplay/The Commons.md
  */
 
 (function () {
     'use strict';
 
-    class StageChatAgent {
+    class CommonsAgent {
         static timers: Record<string, ReturnType<typeof setTimeout>> = {};
         static deadlines: Record<string, number> = {};
         static remainingMs: Record<string, number> = {};
@@ -34,7 +34,7 @@
 
         static start() {
             this.isRunning = true;
-            if (!(window as any).StageChatState.isPaused) this.scheduleAll();
+            if (!(window as any).CommonsState.isPaused) this.scheduleAll();
         }
 
         static stop() {
@@ -72,7 +72,7 @@
             delete this.timers[charName];
             delete this.deadlines[charName];
 
-            const state = (window as any).StageChatState;
+            const state = (window as any).CommonsState;
             const participant = state.participants?.[charName];
             if (!this.isRunning || state.isPaused || !participant?.active || participant.blocked) {
                 delete this.remainingMs[charName];
@@ -91,20 +91,20 @@
                 try {
                     await this.actCharacter(charName);
                 } finally {
-                    if (this.isRunning && !(window as any).StageChatState.isPaused) this.resetTimer(charName);
+                    if (this.isRunning && !(window as any).CommonsState.isPaused) this.resetTimer(charName);
                 }
             }, delayMs);
         }
 
         static scheduleAll() {
-            const participants = (window as any).StageChatState.participants || {};
+            const participants = (window as any).CommonsState.participants || {};
             for (const name of Object.keys(participants)) {
                 if (name !== 'User') this.resetTimer(name);
             }
         }
 
         static async stepOne() {
-            const state = (window as any).StageChatState;
+            const state = (window as any).CommonsState;
             if (state.isPaused) return;
             const participants = state.participants || {};
             const available = Object.keys(participants).filter(n => n !== 'User' && participants[n].active && !participants[n].blocked);
@@ -114,7 +114,7 @@
         }
 
         static async actCharacter(charName: string) {
-            const state = (window as any).StageChatState;
+            const state = (window as any).CommonsState;
             if (state.isPaused) return;
             const participant = state.participants?.[charName];
             if (!participant || !participant.active || participant.blocked) return;
@@ -123,7 +123,7 @@
             const controller = new AbortController();
             this.controllers[charName] = controller;
             const signal = controller.signal;
-            const api = (window as any).StageChatApi;
+            const api = (window as any).CommonsApi;
             const llm = (window as any).llmClient;
 
             try {
@@ -163,13 +163,13 @@
                     streaming: false,
                     max_tokens: 360,
                     signal,
-                    label: 'stage-chat/communication',
+                    label: 'commons/communication',
                 });
                 if (state.isPaused || signal.aborted || !reply) return;
 
                 const decision = responseParser.parseCommunication(reply);
                 if (decision.parseError) {
-                    console.warn(`[StageChatAgent] Invalid communication decision from ${charName}: ${decision.parseError}`);
+                    console.warn(`[CommonsAgent] Invalid communication decision from ${charName}: ${decision.parseError}`);
                     return;
                 }
 
@@ -216,12 +216,12 @@
                     );
                 }
             } catch (error) {
-                if (!signal.aborted) console.error(`[StageChatAgent] Communication turn failed for ${charName}:`, error);
+                if (!signal.aborted) console.error(`[CommonsAgent] Communication turn failed for ${charName}:`, error);
             } finally {
                 if (this.controllers[charName] === controller) delete this.controllers[charName];
             }
         }
     }
 
-    (window as any).StageChatAgent = StageChatAgent;
+    (window as any).CommonsAgent = CommonsAgent;
 })();

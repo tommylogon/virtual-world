@@ -4,6 +4,26 @@ All notable changes to VirtualWorld. See `docs/virtualWorld/Scenario Workflows &
 
 ---
 
+## Unreleased — "The Commons" (2026-10-15)
+
+The character social space is now consistently named **The Commons** across the
+game menu, page, API, saved communication state, scenario examples, tests, and
+documentation. `/commons` is the canonical page and `/api/commons/*` the
+canonical API. Existing page bookmarks redirect to The Commons, older saves
+still load, and new saves use the `commons` key.
+
+The feature supports a public conversation, member-only groups, and direct
+messages restricted to their two participants. Characters keep their existing
+`Player` identity and durable memories; channel transcripts remain communication
+history, while explicit reads and reflections use the established Player
+memory paths. Channels, memberships, messages, and read cursors use world
+save/load and autosave. The interface still presents text chat; setting-aware
+communication themes are tracked in task-827. Integration of autonomous
+communication decisions with the standard `AgentEngine` path remains open in
+task-824, so this is not described as complete.
+
+---
+
 ## Unreleased — "Ways and Wires" (2026-10-11)
 
 **One commit.** The task vault stops being islands and the ways documentation is

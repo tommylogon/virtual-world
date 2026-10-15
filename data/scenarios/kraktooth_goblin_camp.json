@@ -1,6 +1,6 @@
 {
   "_scenario_name": "kraktooth_goblin_camp",
-  "stage_chat": {
+  "commons": {
     "messages": [
       {
         "id": 1,
