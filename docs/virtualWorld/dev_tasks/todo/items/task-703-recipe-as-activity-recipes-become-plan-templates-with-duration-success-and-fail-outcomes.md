@@ -24,14 +24,14 @@ Evolve task-2's crafting from instant graph-node transmutation to a world-recipe
 
 ## Acceptance
 
-- [ ] A world recipe is stored separately from pursuit templates. The graph-node recipe format is migrated with a documented path; task-2's engine execution (`craft_item`, condition leaves, `give_item` outputs) remains the normal dispatch underneath.
+- [ ] A world recipe is stored separately from pursuit templates. The graph-node recipe shape is retired (never nodes — see task-831 and the AGENTS.md invariant); task-2's engine execution (`craft_item`, condition leaves, `give_item` outputs) remains the normal dispatch underneath, reading the recipe registry.
 - [ ] “Make X” checks recipe requirements before starting and answers with an explicit missing list, such as “you are missing: egg.” Keep today's fail-closed behavior.
 - [ ] On success, the character starts the crafting/cooking Activity at the required area or station for the recipe's game-minute duration (the egg: 10 minutes). The Activity is visible and interruptible according to its authored rules; it binds the actual station and any required spatial relationship.
 - [ ] Completion rechecks required conditions and resolves the world recipe once. Interruption cannot create an output or quality result unless the normal action path says the transformation completed.
 - [ ] Skill checks use task-472's central dice and can produce authored quality tiers such as cooked or burned (optionally perfect).
 - [ ] Author the cooked-egg recipe end to end in the fixture world. A meal-preparation pursuit can call that recipe, and a clock schedule can prompt the pursuit at breakfast time.
 - [ ] Demonstrate the Activity, recipe outcome, and pursuit progress in the browser and event stream; another character can perceive the cook at the station.
-- [ ] Resolve task-2's review status with a pointer to this task; retire the old node format rather than maintaining a second source of truth.
+- [ ] Resolve task-2's review status with a pointer to this task; retire the old node shape rather than maintaining a second source of truth (recipes are entries per task-831, never graph nodes).
 
 ## Why
 

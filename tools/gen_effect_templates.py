@@ -70,6 +70,11 @@ LABELS = {
     "set_way_view": "Set Way View",
     "llm_respond": "LLM Respond",
     "scry": "Scry",
+    # task-829: persona growth.
+    "set_persona_field": "Set Persona Field",
+    "add_persona_id": "Add Persona Id",
+    "remove_persona_id": "Remove Persona Id",
+    "advance_age": "Advance Age",
 }
 
 #: Effects that mutate scenario state; description carries a loud warning.
@@ -156,6 +161,15 @@ DEMO_PARAMS = {
                     "fallback_message": "[template:llm_respond] The template stays silent.", "max_words": 30},
     "scry": {"target": "Taco Bell", "message": "[template:scry] The image sharpens...",
              "fail_message": "[template:scry] No 'Taco Bell' — edit the target area."},
+    # task-829: persona growth demos target the user's own sheet.
+    "set_persona_field": {"path": "appearance.eyes.color", "value": "blue", "target": "self",
+                          "message": "[template:set_persona_field] Your eyes shift colour."},
+    "add_persona_id": {"field": "interests", "id": "stargazing", "target": "self",
+                       "message": "[template:add_persona_id] A new interest takes hold."},
+    "remove_persona_id": {"field": "interests", "id": "stargazing", "target": "self",
+                          "message": "[template:remove_persona_id] The interest fades."},
+    "advance_age": {"years": 1, "target": "self",
+                   "message": "[template:advance_age] A year passes over you."},
 }
 
 

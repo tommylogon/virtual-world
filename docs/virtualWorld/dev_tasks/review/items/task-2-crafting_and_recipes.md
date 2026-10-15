@@ -22,7 +22,14 @@ Add a crafting/recipe system where items can be combined to create new items. Ex
 
 ### Recipe Format
 
-Recipes stored as a new node type or as item properties:
+> RETRACTED 2026-10-15: recipes are NEVER graph nodes. Graph nodes are
+> physical entities; knowledge lives ON things (item properties, character
+> knowledge, library data files). The `type: recipe` shape below is preserved
+> as history only — the canonical shape is task-831 (recipe entries in
+> `data/library/recipes/`, never nodes). `engine/crafting.py` still reads
+> nodes at the time of writing; that lookup is tech debt, not the pattern.
+
+Recipes stored ~~as a new node type or~~ as item properties:
 
 ```json
 {
@@ -101,16 +108,16 @@ Engine is modular. Create engine/crafting.py — constructor receives graph, pla
 
 ## Supersession pointer (amended 2026-10-05)
 
-The graph-node recipe format described here is planned for replacement by a
-world-recipe entry, as tracked by task-703. The recipe owns transformation
-requirements, process duration, skill/quality outcomes, and produced items.
-Pursuit templates from task-701 may refer to a recipe when they lead an actor
-to cook; the cooking Activity is the visible process, and the recipe owns the
-transformation rules. See task-699 for the pursuit/activity/schedule distinction.
-The engine execution layer built for this
-task (`craft_item`, condition leaves, `give_item` outputs) is expected to
-survive the data migration; the graph-node format should not remain a second
-source of truth alongside the world-recipe entry.
+The recipe-entry format (task-831) described here is the authoring basis for
+the `todo/crafting/` card family (task-831 through task-839, 101 recipes).
+The recipe owns transformation requirements, process duration, skill/quality
+outcomes, and produced items. Pursuit templates from task-701 may refer to a
+recipe when they lead an actor to cook; the cooking Activity is the visible
+process, and the recipe owns the transformation rules. See task-699 for the
+pursuit/activity/schedule distinction. The engine execution layer built for
+this task (`craft_item`, condition leaves, `give_item` outputs) is expected
+to survive the data migration; the graph-node format should not remain a
+second source of truth alongside the world-recipe entry.
 
 ## Why
 

@@ -1,61 +1,120 @@
-"""Structured appearance and personality (task-507), one slice.
+"""Structured appearance and personality (task-507, expanded 828).
 
-The task asks for optional structured fields alongside the existing prose, in
-two authoring modes — prose-only, or fully structured — with the structured
-block as the source of truth and the prose as the narrative layer rendered *once*
-from it. It is also explicit that this grows per feature and must not become the
-whole graph-editor catalog, so this module carries a **curated, mechanic-backed
-set only**: every field here has something that can read it.
+Optional structured fields alongside prose, in two modes — prose-only,
+or fully structured — with the structured block as source of truth and
+prose as the narrative layer rendered *once* from it via an explicit
+compile step.
 
-    appearance   height_cm, weight_kg, build,
-                 hair{color, length, style}, eyes{color}, skin{tone}
-    personality  likes, dislikes, fears, kinks, turn_offs   (lists of ids)
+Storage: ONE block on the character graph node
+``properties["appearance"]`` with four sections nested underneath::
 
-``media`` / ``mbti`` / ``alignment`` are deliberately absent: nothing in the
-engine can act on them, and a field nobody reads is a field that rots.
+    identity     pronouns, age, gender, species, occupation, sexuality
+    appearance   overview, height_cm, weight_kg, build, hair{}, eyes{},
+                 skin{}, face{}, body{+modifications[]}, voice{}, scent,
+                 style{}
+    personality  likes, dislikes, fears, interests, kinks, turn_ons,
+                 turn_offs, traumas, boundaries, traits, aspirations,
+                 quirks, habits, speech_pattern{}, experience
+    narrative    biography{}, secrets{}, example_dialogues[],
+                 role_in_town, arc
 
-**Where it lives: the character graph node**, not the ``Player``. Adding an
-attribute to :class:`Player` means ``player.py``, which is a hub file. The node
-is also where task-457 wants the character definition to end up, so the two
-tasks point the same way: put the structured block on the node and task-457's
-migration picks it up for free instead of it becoming a third place to look.
+``media`` / ``mbti`` / ``alignment`` are deliberately absent: nothing in
+the engine can act on them, and a field nobody reads is a field that rots.
 
-**References are ids, never display names.** ``kinks``, ``likes`` and the rest
-are lists of ids because a display name is a presentation choice: a rename would
-silently orphan every reference, and two characters may share a name. Ids are
-resolved to names only for display, at the edge.
+Growth (task-829): every field is mutable at runtime via
+``set_persona_field`` / ``add_persona_id`` / ``remove_persona_id`` /
+``advance_age`` so items and trigger effects can change lenses, hair,
+tattoos, prosthetics, kinks, traumas, fears — characters become more
+than they started.
 """
 
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 #: Node property holding the structured block. One key, not two, so "is this
 #: character structured?" is a single membership test.
 RECORD_KEY = "appearance"
 
 #: The curated appearance schema: field -> (kind, subfields).
-#: ``kind`` is "number" | "text" | "enum", and ``subfields`` only for groups.
+#: ``kind`` is "number" | "text" | "enum" | "idlist" | "proselist", and
+#: ``subfields`` only for groups.
 APPEARANCE_FIELDS: Dict[str, Any] = {
+    "overview": ("text", None),
     "height_cm": ("number", None),
     "weight_kg": ("number", None),
     "build": ("text", None),
-    "hair": ("group", ("color", "length", "style")),
-    "eyes": ("group", ("color",)),
-    "skin": ("group", ("tone",)),
+    "hair": ("group", ("color", "length", "style", "accessories")),
+    "eyes": ("group", ("color", "shape", "special")),
+    "skin": ("group", ("tone", "condition", "distinguishing_features")),
+    "face": ("group", ("shape", "features", "makeup")),
+    "body": ("group", ("chest", "waist", "hips", "legs", "butt",
+                        "modifications")),
+    "voice": ("group", ("pitch", "accent", "mannerisms")),
+    "scent": ("text", None),
+    "style": ("group", ("clothing", "accessories", "footwear")),
 }
 
-#: Personality fields, all lists of **ids**. The mechanic each one feeds is
-#: named here so a field cannot be added without saying what reads it.
+#: Identity fields: who this person is on paper. pronouns/age are the
+#: two task-733 prose gates; sexuality feeds prompt voice.
+IDENTITY_FIELDS: Dict[str, Any] = {
+    "pronouns": ("text", None),
+    "age": ("number", None),
+    "gender": ("text", None),
+    "species": ("text", None),
+    "occupation": ("text", None),
+    "sexuality": ("text", None),
+}
+
+#: Narrative fields: biography/secrets/dialogue/role. Biography and
+#: secrets project to memories/known (task-404/366); dialogues and voice
+#: feed prompt voice.
+NARRATIVE_FIELDS: Dict[str, Any] = {
+    "biography": ("group", ("early_life", "adulthood", "current_situation")),
+    "secrets": ("group", ("deepest_secret", "hidden_facts", "known_by")),
+    "example_dialogues": ("proselist", None),
+    "role_in_town": ("text", None),
+    "arc": ("text", None),
+}
+
+#: Personality fields, all lists of **ids** or prose. The mechanic each
+#: one feeds is named here so a field cannot be added without saying
+#: what reads it.
 PERSONALITY_FIELDS: Dict[str, str] = {
     "likes": "gifts and dialogue targeting",
     "dislikes": "gifts and dialogue targeting",
     "fears": "engine.fear fear_tags; the same id vocabulary",
+    "interests": "attention/interest_tags; what they notice",
     "kinks": "affect_for_stimulus -> arousal",
+    "turn_ons": "affect_for_stimulus -> arousal (WorldGraph names)",
     "turn_offs": "affect_for_stimulus -> disgust and negative arousal",
+    "traumas": "fear_tags + frightened condition; backstory wounds",
+    "boundaries": "consent gate for intimacy prompts",
+    "traits": "prose personality traits (brave, shy, …)",
+    "aspirations": "goals/plans projection",
+    "quirks": "prompt voice colour",
+    "habits": "prompt voice + background behaviour",
+    "speech_pattern": "prompt voice (style/dialect/catchphrases)",
+    "experience": "intimacy prompt context (WorldGraph experience)",
 }
 
+#: Which personality fields hold ids (slug discipline) vs free prose.
+ID_LIST_FIELDS = frozenset({
+    "likes", "dislikes", "fears", "interests", "kinks", "turn_ons",
+    "turn_offs", "traumas", "boundaries",
+})
+PROSE_LIST_FIELDS = frozenset({
+    "traits", "aspirations", "quirks", "habits",
+})
+
+#: Group subfields that hold lists of short strings (kit, features,
+#: garments) rather than a single value. A bare string wraps to one item,
+#: because a form often posts one; anything else must be a list.
+APPEARANCE_LIST_SUBS = frozenset({
+    "accessories", "distinguishing_features", "modifications",
+    "clothing", "footwear",
+})
 #: An id is a slug: lowercase, digits, underscore or dash. Deliberately strict,
 #: because the alternative is a display name sneaking in and becoming a
 #: reference that breaks on rename.
@@ -94,11 +153,106 @@ def appearance(node) -> Dict[str, Any]:
     return dict(get_record(node).get("appearance") or {})
 
 
-def personality(node) -> Dict[str, List[str]]:
-    return {k: list(v) for k, v in (get_record(node).get("personality") or {}).items()}
+def personality(node) -> Dict[str, Any]:
+    return dict(get_record(node).get("personality") or {})
+
+
+def identity(node) -> Dict[str, Any]:
+    return dict(get_record(node).get("identity") or {})
+
+
+def narrative(node) -> Dict[str, Any]:
+    return dict(get_record(node).get("narrative") or {})
 
 
 # ── writing ──
+
+def _clean_short_list(raw: Any, dotted: str) -> List[str]:
+    """A list of short free-text strings (kit, features, dialogue lines).
+
+    A bare string wraps to one item; anything else must be a list. Empty
+    strings drop out; an empty result is ``[]``, letting the caller decide
+    whether the field survives.
+    """
+    if raw is None:
+        return []
+    if isinstance(raw, str):
+        raw = [raw]
+    if not isinstance(raw, (list, tuple, set)):
+        raise StructuredError(f"{dotted} must be a list of strings")
+    out = []
+    for entry in raw:
+        entry = str(entry).strip()
+        if entry and entry not in out:
+            out.append(entry)
+    return out
+
+
+def _clean_identity(raw: Any) -> Dict[str, Any]:
+    if raw is None:
+        return {}
+    if not isinstance(raw, dict):
+        raise StructuredError("identity must be an object")
+    out: Dict[str, Any] = {}
+    for field in IDENTITY_FIELDS:
+        if field not in raw:
+            continue
+        value = raw[field]
+        if value is None or (isinstance(value, str) and not value.strip()):
+            continue
+        if field == "age":
+            try:
+                age = float(value)
+            except (TypeError, ValueError):
+                raise StructuredError(
+                    f"identity.age must be a number, got {value!r}")
+            if age < 0:
+                raise StructuredError(
+                    f"identity.age of {age:g} is not plausible")
+            out[field] = age
+            continue
+        out[field] = str(value).strip()
+    return out
+
+
+def _clean_narrative(raw: Any) -> Dict[str, Any]:
+    if raw is None:
+        return {}
+    if not isinstance(raw, dict):
+        raise StructuredError("narrative must be an object")
+    out: Dict[str, Any] = {}
+    for field, (kind, subfields) in NARRATIVE_FIELDS.items():
+        if field not in raw:
+            continue
+        value = raw[field]
+        if value is None or (isinstance(value, str) and not value.strip()):
+            continue
+        if kind == "group":
+            if not isinstance(value, dict):
+                raise StructuredError(f"narrative.{field} must be an object")
+            group = {}
+            for k, v in value.items():
+                if k not in subfields:
+                    continue
+                if k in ("hidden_facts", "known_by"):
+                    items = _clean_short_list(v, f"narrative.{field}.{k}")
+                    if items:
+                        group[k] = items
+                    continue
+                v = str(v).strip()
+                if v:
+                    group[k] = v
+            if group:
+                out[field] = group
+            continue
+        if kind == "proselist":
+            items = _clean_short_list(value, f"narrative.{field}")
+            if items:
+                out[field] = items
+            continue
+        out[field] = str(value).strip()
+    return out
+
 
 def _clean_appearance(raw: Any) -> Dict[str, Any]:
     if raw is None:
@@ -113,8 +267,19 @@ def _clean_appearance(raw: Any) -> Dict[str, Any]:
         if kind == "group":
             if not isinstance(value, dict):
                 raise StructuredError(f"appearance.{field} must be an object")
-            group = {k: str(v).strip() for k, v in value.items()
-                     if k in subfields and str(v).strip()}
+            group = {}
+            for k, v in value.items():
+                if k not in subfields:
+                    continue
+                if k in APPEARANCE_LIST_SUBS:
+                    items = _clean_short_list(
+                        v, f"appearance.{field}.{k}")
+                    if items:
+                        group[k] = items
+                    continue
+                v = str(v).strip() if not isinstance(v, list) else ""
+                if v:
+                    group[k] = v
             if group:
                 out[field] = group
             continue
@@ -137,16 +302,42 @@ def _clean_appearance(raw: Any) -> Dict[str, Any]:
     return out
 
 
-def _clean_personality(raw: Any) -> Dict[str, List[str]]:
+def _clean_personality(raw: Any) -> Dict[str, Any]:
     if raw is None:
         return {}
     if not isinstance(raw, dict):
         raise StructuredError("personality must be an object")
-    out: Dict[str, List[str]] = {}
+    out: Dict[str, Any] = {}
     for field in PERSONALITY_FIELDS:
         if field not in raw:
             continue
         value = raw[field]
+        if value is None or (isinstance(value, str) and not value.strip()):
+            continue
+        if field == "speech_pattern":
+            if not isinstance(value, dict):
+                raise StructuredError(
+                    "personality.speech_pattern must be an object")
+            group = {}
+            for k in ("style", "dialect"):
+                v = str(value.get(k, "") or "").strip()
+                if v:
+                    group[k] = v
+            phrases = _clean_short_list(
+                value.get("catchphrases"), "personality.speech_pattern.catchphrases")
+            if phrases:
+                group["catchphrases"] = phrases
+            if group:
+                out[field] = group
+            continue
+        if field == "experience":
+            out[field] = str(value).strip()
+            continue
+        if field in PROSE_LIST_FIELDS:
+            items = _clean_short_list(value, f"personality.{field}")
+            if items:
+                out[field] = items
+            continue
         if isinstance(value, str):
             value = [value]
         if not isinstance(value, (list, tuple, set)):
@@ -182,16 +373,23 @@ def validate(record: Any) -> Dict[str, Any]:
         return {}
     if not isinstance(record, dict):
         raise StructuredError("the structured block must be an object")
-    unknown = sorted(set(record) - {"appearance", "personality"})
+    unknown = sorted(set(record) - {"appearance", "personality",
+                                    "identity", "narrative"})
     if unknown:
         raise StructuredError(f"unknown top-level keys: {unknown}")
     out: Dict[str, Any] = {}
+    identity_block = _clean_identity(record.get("identity"))
     appearance_block = _clean_appearance(record.get("appearance"))
     personality_block = _clean_personality(record.get("personality"))
+    narrative_block = _clean_narrative(record.get("narrative"))
+    if identity_block:
+        out["identity"] = identity_block
     if appearance_block:
         out["appearance"] = appearance_block
     if personality_block:
         out["personality"] = personality_block
+    if narrative_block:
+        out["narrative"] = narrative_block
     return out
 
 
@@ -215,6 +413,173 @@ def clear_record(node) -> None:
     """Drop the structured block. Prose-only authoring, restored."""
     if node is not None and getattr(node, "properties", None) is not None:
         node.properties.pop(RECORD_KEY, None)
+
+
+#: Dotted paths ``set_persona_field`` may write, as section -> allowed keys.
+#: ``*`` means any declared field of the section; the whole record still
+#: passes through :func:`validate`, so this is a guardrail, not the gate.
+SETTABLE_SECTIONS = ("identity", "appearance", "personality", "narrative")
+
+
+def set_persona_field(node, path: str, value: Any) -> Dict[str, Any]:
+    """Write one dotted path inside the structured block (task-829 growth).
+
+    ``appearance.eyes.color``, ``identity.age``,
+    ``personality.speech_pattern.style`` — one handler for lenses,
+    haircuts, tattoos and prosthetics, so content needs no bespoke
+    effect each. Appending to a list uses ``add_persona_id`` instead;
+    lists here are replaced whole. Marks compiled prose stale (see
+    ``PROSE_STALE_KEY``); the explicit Compile refreshes it.
+    """
+    parts = [p for p in str(path or "").split(".") if p]
+    if len(parts) < 2 or parts[0] not in SETTABLE_SECTIONS:
+        raise StructuredError(
+            f"persona path must be '<section>.<field>...', got {path!r}")
+    record = get_record(node)
+    cursor = record
+    for part in parts[:-1]:
+        child = cursor.get(part)
+        if not isinstance(child, dict):
+            child = {}
+            cursor[part] = child
+        cursor = child
+    cursor[parts[-1]] = value
+    stored = set_record(node, record)
+    _mark_prose_stale(node)
+    return stored
+
+
+def add_persona_id(node, field: str, entry: str) -> bool:
+    """Append *entry* to a personality id-list (kinks, fears, ...).
+
+    Returns True when the list changed. Slug discipline enforced by
+    :func:`validate`; fear/interest mirroring onto the Player is the
+    effect handler's job (it owns the player), not this module's.
+    """
+    field = str(field or "").strip()
+    if field not in ID_LIST_FIELDS:
+        raise StructuredError(
+            f"add_persona_id targets id-lists {sorted(ID_LIST_FIELDS)}, "
+            f"got {field!r}")
+    record = get_record(node)
+    listed = ((record.get("personality") or {}).get(field)) or []
+    entry = str(entry or "").strip()
+    if not entry:
+        raise StructuredError("add_persona_id needs a non-empty id")
+    if entry in listed:
+        return False
+    record.setdefault("personality", {})[field] = list(listed) + [entry]
+    set_record(node, record)
+    _mark_prose_stale(node)
+    return True
+
+
+def remove_persona_id(node, field: str, entry: str) -> bool:
+    """Remove *entry* from a personality id-list. Returns True on change."""
+    field = str(field or "").strip()
+    if field not in ID_LIST_FIELDS:
+        raise StructuredError(
+            f"remove_persona_id targets id-lists {sorted(ID_LIST_FIELDS)}, "
+            f"got {field!r}")
+    record = get_record(node)
+    listed = ((record.get("personality") or {}).get(field)) or []
+    if str(entry or "").strip() not in listed:
+        return False
+    record.setdefault("personality", {})[field] = [
+        e for e in listed if e != str(entry).strip()]
+    set_record(node, record)
+    _mark_prose_stale(node)
+    return True
+
+
+def advance_age(node, years: float) -> float:
+    """Bump authored ``identity.age`` by *years*; returns the new age.
+
+    Author override until task-735's birth-tick clock lands, which derives
+    elapsed age — this stays as the manual knob.
+    """
+    try:
+        delta = float(years)
+    except (TypeError, ValueError):
+        raise StructuredError(f"advance_age needs a number, got {years!r}")
+    record = get_record(node)
+    current = (record.get("identity") or {}).get("age", 0)
+    try:
+        current = float(current)
+    except (TypeError, ValueError):
+        current = 0
+    record.setdefault("identity", {})["age"] = current + delta
+    set_record(node, record)
+    _mark_prose_stale(node)
+    return record["identity"]["age"]
+
+
+#: Node property flagging compiled prose as older than the block. Set by
+#: every mutator above, cleared when compile is applied — the Persona tab
+#: reads it to show "recompile needed". A flag, not a copy: the block is
+#: the state, the prose is the projection.
+PROSE_STALE_KEY = "persona_prose_stale"
+
+
+def _mark_prose_stale(node) -> None:
+    props = getattr(node, "properties", None)
+    if props is not None:
+        props[PROSE_STALE_KEY] = True
+
+
+def mark_prose_stale(node) -> None:
+    """Flag compiled prose as older than the block (routes + handlers)."""
+    _mark_prose_stale(node)
+
+
+def prose_is_stale(node) -> bool:
+    return bool((getattr(node, "properties", None) or {}).get(PROSE_STALE_KEY))
+
+
+#: Every structured field names its consumer (task-828 acceptance), as
+#: dotted-path -> hint. Served by GET /record so the Persona tab renders
+#: each field with its reader beside it; mbti/alignment/media are absent
+#: because nothing reads them.
+CONSUMER_HINTS: Dict[str, str] = {
+    "identity.pronouns": "narration pronouns (explicit first, tags fallback)",
+    "identity.age": "lifecycle gate (task-735 clock)",
+    "identity.gender": "prompts + address",
+    "identity.species": "compiled prose + prompts",
+    "identity.occupation": "compiled prose + background behaviour",
+    "identity.sexuality": "prompt voice + intimacy context",
+    "appearance.overview": "compiled prose",
+    "appearance.height_cm": "compiled prose (ft/in)",
+    "appearance.weight_kg": "compiled prose",
+    "appearance.build": "compiled prose + equipment fit",
+    "appearance.hair": "compiled prose (grows / cut via effects)",
+    "appearance.eyes": "compiled prose (lenses via effects)",
+    "appearance.skin": "compiled prose",
+    "appearance.face": "compiled prose",
+    "appearance.body": "compiled prose + equipment prose",
+    "appearance.voice": "prompt voice",
+    "appearance.scent": "prompt voice + compiled prose",
+    "appearance.style": "compiled prose + auto-dress context",
+    "personality.likes": "gifts + dialogue targeting",
+    "personality.dislikes": "gifts + dialogue targeting",
+    "personality.fears": "fear engine (fear_tags)",
+    "personality.interests": "attention (interest_tags)",
+    "personality.kinks": "affect (arousal)",
+    "personality.turn_ons": "affect (arousal)",
+    "personality.turn_offs": "affect (disgust, arousal down)",
+    "personality.traumas": "fear_tags + frightened condition",
+    "personality.boundaries": "consent gate for intimacy prompts",
+    "personality.traits": "personality prose",
+    "personality.aspirations": "goals / plans projection",
+    "personality.quirks": "prompt voice colour",
+    "personality.habits": "prompt voice + background behaviour",
+    "personality.speech_pattern": "prompt voice (style/dialect/catchphrases)",
+    "personality.experience": "intimacy prompt context",
+    "narrative.biography": "memories + prompt backstory",
+    "narrative.secrets": "Mind panel + known system (never compiled to prose)",
+    "narrative.example_dialogues": "prompt voice",
+    "narrative.role_in_town": "compiled prose + prompts",
+    "narrative.arc": "prompts + plans",
+}
 
 
 # ── ids → prose ──
@@ -276,9 +641,118 @@ def render_prose(node, resolve=None) -> str:
     if skin.get("tone"):
         clauses.append(f"{skin['tone']} skin")
 
+    if looks.get("overview"):
+        clauses.append(str(looks["overview"]).rstrip("."))
+    face = looks.get("face") or {}
+    face_bits = [face[k] for k in ("shape", "features", "makeup")
+                 if face.get(k)]
+    if face_bits:
+        clauses.append(_join(face_bits))
+    body = looks.get("body") or {}
+    body_bits = [body[k] for k in ("chest", "waist", "hips", "legs", "butt")
+                 if body.get(k)]
+    if body_bits:
+        clauses.append(_join(body_bits))
+    for mod in (body.get("modifications") or []):
+        clauses.append(f"bearing {mod}")
+    voice = looks.get("voice") or {}
+    voice_bits = [voice[k] for k in ("pitch", "accent", "mannerisms")
+                  if voice.get(k)]
+    if voice_bits:
+        clauses.append(f"speaking {_join(voice_bits)}")
+    if looks.get("scent"):
+        clauses.append(f"smelling of {looks['scent']}")
+    style = looks.get("style") or {}
+    kit = []
+    for k in ("clothing", "accessories", "footwear"):
+        v = style.get(k)
+        if isinstance(v, str) and v:
+            kit.append(v)
+        elif isinstance(v, (list, tuple)):
+            kit.extend([str(i) for i in v if str(i).strip()])
+    if kit:
+        clauses.append(f"dressed in {_join(kit)}")
+
     if not clauses:
         return ""
     return _join(clauses).capitalize() + "."
+
+
+def compile_persona(node, resolve=None) -> Dict[str, Any]:
+    """Project the structured block into the prose primitives the sim reads.
+
+    Explicit and total: returns ``base_description`` (identity lead +
+    appearance facts), ``description`` (base plus narrative situation when
+    present), ``personality`` (traits/quirks/habits/speech prose), plus the
+    ``interest_tags`` / ``fear_tags`` / ``traits`` projections. Callers
+    decide what to write and never clobber hand prose without ``force`` —
+    see the record routes. Pure: reads the node, writes nothing.
+    """
+    record = get_record(node)
+    ident = record.get("identity") or {}
+    pers = record.get("personality") or {}
+    narr = record.get("narrative") or {}
+
+    lead_bits = []
+    if ident.get("age") is not None:
+        try:
+            lead_bits.append(f"{float(ident['age']):g}-year-old")
+        except (TypeError, ValueError):
+            pass
+    for key in ("species", "occupation"):
+        if ident.get(key):
+            lead_bits.append(str(ident[key]))
+    lead = f"A {' '.join(lead_bits)}. " if lead_bits else ""
+    body = render_prose(node, resolve)
+    base_description = (lead + body).strip()
+
+    extra = []
+    bio = narr.get("biography") or {}
+    if bio.get("current_situation"):
+        extra.append(str(bio["current_situation"]).rstrip(".") + ".")
+    if narr.get("role_in_town"):
+        extra.append(f"Role in town: {narr['role_in_town']}.")
+    description = (base_description + " " + " ".join(extra)).strip()
+
+    prose_bits = []
+    traits = list(pers.get("traits") or [])
+    if traits:
+        prose_bits.append(_join(traits).capitalize() + ".")
+    for key in ("quirks", "habits", "aspirations"):
+        for entry in (pers.get(key) or []):
+            prose_bits.append(str(entry).rstrip(".") + ".")
+    speech = pers.get("speech_pattern") or {}
+    if isinstance(speech, dict):
+        style = " ".join(str(speech.get(k, "") or "").strip()
+                         for k in ("style", "dialect")).strip()
+        catches = speech.get("catchphrases") or []
+        if style or catches:
+            line = f"Speaks {style}".strip()
+            if catches:
+                quoted = ", ".join(f'"{c}"' for c in catches)
+                line += f", fond of {quoted}"
+            prose_bits.append(line.rstrip(".") + ".")
+    if pers.get("experience"):
+        prose_bits.append(str(pers["experience"]).rstrip(".") + ".")
+    if ident.get("sexuality"):
+        prose_bits.append(
+            f"Orientation: {str(ident['sexuality']).rstrip('.')}.")
+    dialogues = (narr.get("example_dialogues") or [])[:3]
+    if dialogues:
+        quoted = ", ".join(f'"{d}"' for d in dialogues)
+        prose_bits.append(f"Example lines: {quoted}.")
+    personality_prose = " ".join(prose_bits).strip()
+
+    return {
+        "base_description": base_description,
+        "description": description,
+        "personality": personality_prose,
+        "interest_tags": sorted(set(pers.get("interests") or ())
+                                | set(pers.get("likes") or ())),
+        "fear_tags": sorted(set(pers.get("fears") or ())
+                            | set(pers.get("traumas") or ())),
+        "traits": traits,
+    }
 
 
 def _ft_in(centimetres: float) -> str:
@@ -389,8 +863,10 @@ def schema_for_llm() -> Dict[str, Any]:
     for field, (kind, subfields) in APPEARANCE_FIELDS.items():
         if kind == "group":
             appearance_block[field] = {
-                sub: {"type": "string",
-                      "description": f"{field} {sub}"}
+                sub: ({"type": "array", "items": {"type": "string"}}
+                      if sub in APPEARANCE_LIST_SUBS
+                      else {"type": "string",
+                            "description": f"{field} {sub}"})
                 for sub in subfields
             }
         elif kind == "number":
@@ -398,18 +874,61 @@ def schema_for_llm() -> Dict[str, Any]:
         else:
             appearance_block[field] = {"type": "string"}
 
-    personality_block = {
-        field: {
-            "type": "array",
-            "items": {"type": "string", "pattern": _ID_RE.pattern},
-            "description": f"ids of {mechanic}",
-        }
-        for field, mechanic in PERSONALITY_FIELDS.items()
+    personality_block: Dict[str, Any] = {}
+    for field, mechanic in PERSONALITY_FIELDS.items():
+        if field == "speech_pattern":
+            personality_block[field] = {
+                "type": "object",
+                "description": f"ids of {mechanic}",
+                "properties": {
+                    "style": {"type": "string"},
+                    "dialect": {"type": "string"},
+                    "catchphrases": {"type": "array",
+                                     "items": {"type": "string"}},
+                },
+            }
+        elif field == "experience":
+            personality_block[field] = {"type": "string",
+                                        "description": f"ids of {mechanic}"}
+        elif field in PROSE_LIST_FIELDS:
+            personality_block[field] = {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": f"ids of {mechanic}",
+            }
+        else:
+            personality_block[field] = {
+                "type": "array",
+                "items": {"type": "string", "pattern": _ID_RE.pattern},
+                "description": f"ids of {mechanic}",
+            }
+    identity_block = {
+        field: ({"type": "number"} if field == "age" else {"type": "string"})
+        for field in IDENTITY_FIELDS
     }
+    narrative_block: Dict[str, Any] = {}
+    for field, (kind, subfields) in NARRATIVE_FIELDS.items():
+        if kind == "group":
+            narrative_block[field] = {
+                sub: ({"type": "array", "items": {"type": "string"}}
+                      if sub in ("hidden_facts", "known_by")
+                      else {"type": "string"})
+                for sub in subfields
+            }
+        elif kind == "proselist":
+            narrative_block[field] = {"type": "array",
+                                      "items": {"type": "string"}}
+        else:
+            narrative_block[field] = {"type": "string"}
     return {
         "type": "object",
         "additionalProperties": False,
         "properties": {
+            "identity": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": identity_block,
+            },
             "appearance": {
                 "type": "object",
                 "additionalProperties": False,
@@ -419,6 +938,11 @@ def schema_for_llm() -> Dict[str, Any]:
                 "type": "object",
                 "additionalProperties": False,
                 "properties": personality_block,
+            },
+            "narrative": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": narrative_block,
             },
         },
     }

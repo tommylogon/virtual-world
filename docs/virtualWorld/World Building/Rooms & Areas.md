@@ -396,7 +396,7 @@ The `MovementSystem.add_area()` method (`engine/movement.py:23-35`) is rarely ca
 
 **Features** — [[look-around|Look around]] (#1)
 
-**Dev tasks** — [[dev_tasks/done/environment/task-31-dynamic_room_descriptions|task]], [[dev_tasks/done/environment/task-33-generate_item_room_context|task]], [[dev_tasks/done/environment/task-43-relieve_adds_smell|task]], [[dev_tasks/done/environment/task-45-room_generator_room_context|task]], [[dev_tasks/todo/gameplay/task-99-room-grids-and-movement|task]]
+**Dev tasks** — [[dev_tasks/done/environment/task-31-dynamic_room_descriptions|task]], [[dev_tasks/done/environment/task-33-generate_item_room_context|task]], [[dev_tasks/done/environment/task-43-relieve_adds_smell|task]], [[dev_tasks/done/environment/task-45-room_generator_room_context|task]], [[dev_tasks/todo/gameplay/task-99-room-grids-and-movement|task]], [[dev_tasks/todo/world/task-637-area-scope-picker-never-shows-the-area-s-actual-scope|task]]
 
 **Neighbouring notes** — [[Connections]], [[Generated Scenario Review (2026-08)]], [[Graph System]], [[Grid to Graph]], [[Millbrook Falls Town Map]], [[Movement]]
 

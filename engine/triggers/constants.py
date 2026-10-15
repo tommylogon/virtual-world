@@ -120,6 +120,11 @@ EFFECT_TYPES = [
     # task-716: persistent activity and downstream movement for fishing slice.
     "start_activity",
     "push_actor",
+    # task-829: persona growth — every 828 field changes at runtime.
+    "set_persona_field",
+    "add_persona_id",
+    "remove_persona_id",
+    "advance_age",
 ]
 
 # task-242: effects agents may bind via the `bind`/`enchant` action. This is

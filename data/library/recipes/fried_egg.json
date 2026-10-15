@@ -1,0 +1,38 @@
+{
+  "id": "fried_egg",
+  "name": "Fried Egg",
+  "description": "An egg fried in butter over the fire.",
+  "ingredients": [
+    {"item": "raw_egg", "count": 1, "consumed": true},
+    {"item": "butter", "count": 1, "consumed": true},
+    {"item": "frying_pan", "count": 1, "consumed": false}
+  ],
+  "conditions": [
+    {"type": "state_equals", "target": "campfire", "value": "on"}
+  ],
+  "duration_min": 10,
+  "skill_check": {"skill": "Cooking", "dc": 10},
+  "outputs": [{"item": "fried_egg", "count": 1}],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [{"item": "fried_egg", "count": 2}],
+      "message": "Fluffy and golden — two perfect eggs."
+    },
+    "success": {
+      "outputs": [{"item": "fried_egg", "count": 1}],
+      "message": ""
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "rubbery_egg", "count": 1}],
+      "message": "Overcooked and rubbery, but edible."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "burned_egg", "count": 1}],
+      "message": "Burned beyond eating."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

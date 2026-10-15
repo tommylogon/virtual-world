@@ -1,6 +1,6 @@
 ---
 type: bug
-status: inprogress
+status: done
 area: ui
 priority: medium
 ---
@@ -64,12 +64,12 @@ This section defines the intended access point and acceptance path. It is not a 
 
 1. Open a scope with placed areas; zoom in past ~1.2× (so cells exceed 26px).
    - expected: names appear once the on-screen cell is ≥26px; stay hidden when zoomed out to a mosaic.
-   - observed: TODO
+   - observed: 2026-10-15 live on :4444, `world` scope. Scale 1.875 (41.25px): 15 fillTexts, 9 area names (Blackmarsh, Murk Lake, Deep Forest, Raven River, Human Road, Camp Entran…, Old Dwarven…, Northern Hi…, Abandoned F…). Scale 1.2 (26.4px): same 9 names. Scale 0.96 (21.1px): 6 fillTexts, 0 area names — only grid label + house glyphs. Markers always drawn.
 
 ## Acceptance
 
-- [ ] Placed-area names draw when the on-screen cell is big enough, and stay hidden when it is not.
-- [ ] The gate uses the scaled cell size, not the constant `CELL`.
+- [x] Placed-area names draw when the on-screen cell is big enough, and stay hidden when it is not.
+- [x] The gate uses the scaled cell size, not the constant `CELL`.
 
 ## Files
 

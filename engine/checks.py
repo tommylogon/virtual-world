@@ -51,6 +51,12 @@ STAT_NAMES = ("STR", "DEX", "CON", "INT", "WIS", "CHA")
 
 #: Which ability each skill keys off (D&D 5e). An unknown skill keys off nothing
 #: (modifier 0) so homebrew/soak skills keep working.
+#:
+#: Skill names are free strings, not a closed enum (crafting schema, 2026-10-15):
+#: a recipe may gate on "Cooking", "Smithing", "Woodcraft", etc. Those names
+#: simply are not in this map, so they roll d20 + skill value with no ability
+#: modifier until a setting adds them here. The 18 mapped names are the shipped
+#: defaults, not the vocabulary.
 SKILL_ABILITY = {
     "Acrobatics": "DEX", "Animal Handling": "WIS", "Arcana": "INT",
     "Athletics": "STR", "Deception": "CHA", "History": "INT",

@@ -48,12 +48,23 @@ interface MindPerson {
 interface MindState {
     charName: string;
     escName: string;
-    tab: string;             // mind | perception | memories | people
+    tab: string;             // mind | persona | perception | memories | people
     filter: string;          // all | episodic | beliefs | social | procedural | contradicted | faded | person:<Name>
     query: string;
     selectedId: string;
     people: MindPerson[];
     peopleStatus: 'loading' | 'ok' | 'error';
+    persona: PersonaState | null;
+}
+
+interface PersonaState {
+    status: 'loading' | 'ok' | 'error';
+    record: Record<string, any>;
+    schema: any;
+    hints: Record<string, string>;
+    stale: boolean;
+    preview: any;
+    msg: string;
 }
 
 let _state: MindState | null = null;
@@ -856,7 +867,15 @@ const InspectorMindView = (() => {
     function _ensureSubscribed(): void {
         if (_subscribed) return;
         _subscribed = true;
-        worldState.on('update', () => { if (_state && _container) _render(); });
+        worldState.on('update', () => {
+            if (!_state || !_container) return;
+            // Never wipe an in-progress persona edit: a background state
+            // push while typing would destroy unsaved form input.
+            const active = document.activeElement as HTMLElement | null;
+            if (_state.tab === 'persona' && active
+                && active.hasAttribute('data-persona-path')) return;
+            _render();
+        });
     }
 
     function _mosiac(): any {
@@ -981,6 +1000,243 @@ const InspectorMindView = (() => {
         }).join('');
     }
 
+    // ── persona (task-830) ─────────────────────────────────────────
+    // The full 828 schema, editable, with one explicit Compile. Reads
+    // GET /record (block + schema + consumer hints), writes PUT /record,
+    // projects via POST /record/compile (preview before clobber).
+    const _PERSONA_SECTIONS: Array<[string, string]> = [
+        ['identity', 'Identity'], ['appearance', 'Appearance'],
+        ['personality', 'Personality'], ['narrative', 'Narrative'],
+    ];
+    const _PERSONA_NUMBERS = new Set(['identity.age', 'appearance.height_cm', 'appearance.weight_kg']);
+
+    function _personaVal(path: string): unknown {
+        const rec = _state?.persona?.record || {};
+        const parts = path.split('.');
+        let cur: unknown = rec;
+        for (const p of parts) {
+            if (typeof cur !== 'object' || cur === null) return undefined;
+            cur = (cur as Record<string, unknown>)[p];
+        }
+        return cur;
+    }
+
+    function _personaFieldHtml(section: string, field: string, decl: any): string {
+        const path = `${section}.${field}`;
+        const hint = _state?.persona?.hints[path] || (decl && decl.description) || '';
+        const label = `<div style="font-size:10.5px;font-weight:600;">${esc(field)}${hint ? ` <span style="font-weight:400;color:var(--text-muted);font-size:9px;">→ ${esc(hint)}</span>` : ''}</div>`;
+        const val = _personaVal(path);
+        const inputStyle = 'width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:3px 8px;font-size:11px;box-sizing:border-box;';
+        if (!decl || decl.type === 'string' || decl.type === 'number' || !_state) {
+            const numeric = decl?.type === 'number' || _PERSONA_NUMBERS.has(path);
+            const str = val === undefined || val === null ? '' : String(val);
+            return `<div style="margin-bottom:7px;">${label}<input data-persona-path="${esc(path)}" value="${esc(str)}"${numeric ? ' inputmode="decimal"' : ''} style="${inputStyle}"></div>`;
+        }
+        if (decl.type === 'array') {
+            const lines = Array.isArray(val) ? (val as unknown[]).map((v) => String(v)).join('\n') : '';
+            return `<div style="margin-bottom:7px;">${label}<textarea data-persona-path="${esc(path)}" rows="2" style="${inputStyle}resize:vertical;font-family:inherit;">${esc(lines)}</textarea></div>`;
+        }
+        if (decl.type === 'object' && decl.properties) {
+            const subs = Object.keys(decl.properties).map((sub) => {
+                const subDecl = decl.properties[sub];
+                const subPath = `${path}.${sub}`;
+                const subVal = _personaVal(subPath);
+                if (subDecl?.type === 'array') {
+                    const lines = Array.isArray(subVal) ? (subVal as unknown[]).map((v) => String(v)).join('\n') : '';
+                    return `<div style="margin-bottom:5px;"><div style="font-size:10px;color:var(--text-muted);">${esc(sub)}</div><textarea data-persona-path="${esc(subPath)}" rows="2" style="${inputStyle}resize:vertical;font-family:inherit;">${esc(lines)}</textarea></div>`;
+                }
+                const str = subVal === undefined || subVal === null ? '' : String(subVal);
+                return `<div style="margin-bottom:5px;"><div style="font-size:10px;color:var(--text-muted);">${esc(sub)}</div><input data-persona-path="${esc(subPath)}" value="${esc(str)}" style="${inputStyle}"></div>`;
+            }).join('');
+            return `<fieldset style="border:1px solid var(--border);border-radius:6px;padding:7px 9px;margin:0 0 8px;"><legend style="font-size:10.5px;font-weight:600;padding:0 4px;">${esc(field)}${hint ? ` <span style="font-weight:400;color:var(--text-muted);font-size:9px;">→ ${esc(hint)}</span>` : ''}</legend>${subs}</fieldset>`;
+        }
+        const str = val === undefined || val === null ? '' : String(val);
+        return `<div style="margin-bottom:7px;">${label}<input data-persona-path="${esc(path)}" value="${esc(str)}" style="${inputStyle}"></div>`;
+    }
+
+    function _personaHtml(): string {
+        const p = _state?.persona;
+        if (!p || p.status === 'loading') {
+            return `<div style="font-size:11px;color:var(--text-muted);">reading the structured block…</div>`;
+        }
+        if (p.status === 'error') {
+            return `<div style="font-size:11px;color:var(--text-muted);">record unavailable. <button class="btn btn-sm" id="mind-persona-retry" style="font-size:10px;">↻ retry</button></div>`;
+        }
+        const props = (p.schema?.properties || {}) as Record<string, any>;
+        const sections = _PERSONA_SECTIONS.map(([section, label], idx) => {
+            const fields = props[section]?.properties || {};
+            const count = Object.keys(fields).length;
+            const rows = Object.keys(fields).map((f) => _personaFieldHtml(section, f, fields[f])).join('');
+            // A person, not a database form: sections fold, so the tab
+            // opens on who they are, not a 40-field wall. Identity and
+            // Appearance read at a glance; Personality and Narrative —
+            // the depths — are one click away.
+            return `<details${idx < 2 ? ' open' : ''} style="border:1px solid var(--border);border-radius:6px;margin-bottom:8px;background:var(--bg-card);">
+                <summary style="cursor:pointer;padding:8px 10px;font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;list-style:none;">${label} · ${count} fields</summary>
+                <div style="padding:2px 10px 10px;">${rows}</div>
+            </details>`;
+        }).join('');
+        const stale = p.stale
+            ? `<div style="background:#3a2a10;border:1px solid #8a6a2a;border-radius:6px;padding:7px 10px;font-size:11px;margin-bottom:10px;">⚠️ block changed since the last compile — prose is stale. press Compile to refresh.</div>`
+            : '';
+        const preview = p.preview ? `<div style="border:1px solid #1f6feb;border-radius:6px;padding:8px 10px;margin:10px 0;font-size:11px;">
+                <div style="font-weight:600;margin-bottom:6px;">Compile preview — hand prose differs</div>
+                <div style="margin-bottom:6px;"><div style="color:var(--text-muted);font-size:9.5px;">BASE NOW</div><div>${esc(p.preview.base_description?.current || '(empty)')}</div>
+                <div style="color:var(--text-muted);font-size:9.5px;margin-top:4px;">BASE COMPILED</div><div>${esc(p.preview.base_description?.compiled || '(empty)')}</div></div>
+                <div style="margin-bottom:8px;"><div style="color:var(--text-muted);font-size:9.5px;">PERSONALITY NOW</div><div>${esc(p.preview.personality?.current || '(empty)')}</div>
+                <div style="color:var(--text-muted);font-size:9.5px;margin-top:4px;">PERSONALITY COMPILED</div><div>${esc(p.preview.personality?.compiled || '(empty)')}</div></div>
+                <button class="btn btn-sm" id="mind-persona-confirm" style="font-size:10px;">✓ replace with compiled</button>
+                <button class="btn btn-sm" id="mind-persona-cancel" style="font-size:10px;">keep mine</button>
+            </div>` : '';
+        const msg = p.msg ? `<div style="font-size:10.5px;color:var(--text-muted);margin-top:8px;">${esc(p.msg)}</div>` : '';
+        return `${stale}
+            <div style="display:flex;gap:6px;margin-bottom:4px;flex-wrap:wrap;">
+                <button class="btn btn-sm" id="mind-persona-save" style="font-size:10px;">💾 save block</button>
+                <button class="btn btn-sm" id="mind-persona-compile" style="font-size:10px;" title="Project the block into base_description / personality + tags">⚙ compile</button>
+            </div>
+            ${preview}${sections}${msg}`;
+    }
+
+    function _fetchPersona(): void {
+        if (!_state) return;
+        if (!_state.persona) {
+            _state.persona = { status: 'loading', record: {}, schema: null, hints: {}, stale: false, preview: null, msg: '' };
+        } else {
+            _state.persona.status = 'loading';
+            _state.persona.msg = '';
+        }
+        fetch(`/api/players/${encodeURIComponent(_state.charName)}/record`, {
+            headers: { 'Accept': 'application/json' }
+        }).then(r => r.ok ? r.json() : Promise.reject(new Error(String(r.status))))
+            .then((data: any) => {
+                if (!_state || !_state.persona) return;
+                _state.persona = {
+                    status: 'ok', record: data.record || {},
+                    schema: data.schema || null, hints: data.hints || {},
+                    stale: !!data.prose_stale, preview: null, msg: '',
+                };
+                const el = _container?.querySelector('#mind-persona');
+                if (el) { el.innerHTML = _personaHtml(); _wirePersona(); }
+            })
+            .catch(() => {
+                if (!_state || !_state.persona) return;
+                _state.persona.status = 'error';
+                const el = _container?.querySelector('#mind-persona');
+                if (el) { el.innerHTML = _personaHtml(); _wirePersona(); }
+            });
+    }
+
+    function _collectPersona(): Record<string, any> {
+        const out: Record<string, any> = {};
+        _container?.querySelectorAll<HTMLElement>('[data-persona-path]').forEach((el) => {
+            const path = el.dataset.personaPath || '';
+            const parts = path.split('.');
+            if (parts.length < 2) return;
+            const raw = (el as HTMLInputElement).value;
+            let value: unknown = raw;
+            const sectionProps = (_state?.persona?.schema?.properties?.[parts[0]]?.properties) || {};
+            let decl = sectionProps[parts[1]];
+            if (parts.length > 2 && decl?.properties) decl = decl.properties[parts[2]];
+            if (!decl || decl.type === 'string') {
+                value = raw.trim();
+            } else if (decl.type === 'number' || _PERSONA_NUMBERS.has(parts.slice(0, 2).join('.'))) {
+                const trimmed = raw.trim();
+                value = trimmed === '' ? undefined : Number(trimmed);
+            } else if (decl.type === 'array') {
+                value = raw.split('\n').map((s) => s.trim()).filter((s) => s);
+            } else if (decl.type === 'object') {
+                value = raw.trim();
+            } else {
+                value = raw.trim();
+            }
+            if (value === undefined || value === '' || (Array.isArray(value) && !value.length)) return;
+            let cursor = out;
+            for (let i = 0; i < parts.length - 1; i++) {
+                cursor[parts[i]] = cursor[parts[i]] || {};
+                cursor = cursor[parts[i]] as Record<string, any>;
+            }
+            cursor[parts[parts.length - 1]] = value;
+        });
+        return out;
+    }
+
+    function _personaMsg(text: string): void {
+        if (_state?.persona) {
+            _state.persona.msg = text;
+            const el = _container?.querySelector('#mind-persona');
+            if (el) { el.innerHTML = _personaHtml(); _wirePersona(); }
+        }
+    }
+
+    function _savePersona(): void {
+        if (!_state) return;
+        const record = _collectPersona();
+        fetch(`/api/players/${encodeURIComponent(_state.charName)}/record`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ record, render: false }),
+        }).then(r => r.json().then((data: any) => ({ ok: r.ok, data })))
+            .then(({ ok, data }: any) => {
+                if (!ok) {
+                    _personaMsg(`save rejected: ${data.error || _shortErr(data)}`);
+                    return;
+                }
+                _fetchPersona();
+                worldState.fetch();
+            })
+            .catch((e: unknown) => _personaMsg(`save failed: ${String(e)}`));
+    }
+
+    function _shortErr(data: any): string {
+        try { return JSON.stringify(data).slice(0, 160); } catch { return 'unknown error'; }
+    }
+
+    function _compilePersona(force: boolean): void {
+        if (!_state) return;
+        fetch(`/api/players/${encodeURIComponent(_state.charName)}/record/compile`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(force ? { force: true } : {}),
+        }).then(r => r.json().then((data: any) => ({ ok: r.ok, data })))
+            .then(({ ok, data }: any) => {
+                if (!ok || !_state?.persona) {
+                    _personaMsg(`compile rejected: ${data.error || _shortErr(data)}`);
+                    return;
+                }
+                if (data.needs_confirm) {
+                    _state.persona.preview = data.preview;
+                    _state.persona.msg = '';
+                    const el = _container?.querySelector('#mind-persona');
+                    if (el) { el.innerHTML = _personaHtml(); _wirePersona(); }
+                    return;
+                }
+                _state.persona.preview = null;
+                _state.persona.msg = 'compiled — prose + tags projected.';
+                _fetchPersona();
+                worldState.fetch();
+            })
+            .catch((e: unknown) => _personaMsg(`compile failed: ${String(e)}`));
+    }
+
+    function _wirePersona(): void {
+        if (!_container) return;
+        const on = (sel: string, fn: () => void) => {
+            const el = _container?.querySelector(sel);
+            if (el) el.addEventListener('click', fn);
+        };
+        on('#mind-persona-retry', () => _fetchPersona());
+        on('#mind-persona-save', () => _savePersona());
+        on('#mind-persona-compile', () => _compilePersona(false));
+        on('#mind-persona-confirm', () => _compilePersona(true));
+        on('#mind-persona-cancel', () => {
+            if (_state?.persona) {
+                _state.persona.preview = null;
+                const el = _container?.querySelector('#mind-persona');
+                if (el) { el.innerHTML = _personaHtml(); _wirePersona(); }
+            }
+        });
+    }
+
     // ── shell ────────────────────────────────────────────────────────────
     function _render(): void {
         if (!_state || !_container) return;
@@ -1004,7 +1260,8 @@ const InspectorMindView = (() => {
         const tab = _state!.tab || 'mind';
         const hdr = 'font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;';
         const tabs: Array<[string, string]> = [
-            ['mind', 'Mind'], ['perception', 'Perception'],
+            ['mind', 'Mind'], ['persona', 'Persona'],
+            ['perception', 'Perception'],
             ['memories', 'Memories'], ['people', 'People'],
         ];
         const tabBar = tabs.map(([key, label]) => {
@@ -1043,9 +1300,12 @@ const InspectorMindView = (() => {
         const peoplePane = `<div style="flex:1;padding:12px;overflow-y:auto;">
             <div style="max-width:640px;">${_relationshipsHtml()}<div style="${hdr}">People — derived from memories</div>
                 <div id="mind-people">${_peopleHtml()}</div></div></div>`;
+        const personaPane = `<div style="flex:1;padding:12px;overflow-y:auto;">
+            <div style="max-width:720px;" id="mind-persona">${_personaHtml()}</div></div>`;
         const tabBody = tab === 'perception' ? perceptionPane
             : tab === 'memories' ? memoriesPane
-            : tab === 'people' ? peoplePane : mindPane;
+            : tab === 'people' ? peoplePane
+            : tab === 'persona' ? personaPane : mindPane;
 
         _container.innerHTML = `
         <div style="position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9990;" class="mind-close"></div>
@@ -1165,7 +1425,8 @@ const InspectorMindView = (() => {
                 _render();
             }));
         const refresh = _container.querySelector('.mind-refresh');
-        if (refresh) refresh.addEventListener('click', () => { _fetchPeople(); _render(); });
+        if (refresh) refresh.addEventListener('click', () => { _fetchPeople(); _fetchPersona(); _render(); });
+        _wirePersona();
         const search = _container.querySelector('#mind-search') as HTMLInputElement | null;
         if (search) {
             search.addEventListener('input', () => {
@@ -1229,10 +1490,12 @@ const InspectorMindView = (() => {
                 query: '',
                 selectedId: '',
                 people: [],
-                peopleStatus: 'loading'
+                peopleStatus: 'loading',
+                persona: null,
             };
             _render();
             _fetchPeople();
+            _fetchPersona();
         },
 
         close(): void {

@@ -5,7 +5,6 @@ Project guidance for automated agents working in this repo (VirtualWorld).
 ---
 
 ## Who you are: Juno
-
 You are **Juno**, the repo's resident gremlin-engineer. Voice only. The rules
 below are not negotiable and the persona never softens them.
 
@@ -401,6 +400,13 @@ Preserve these unless a task explicitly changes the architecture:
 - Reuse existing movement, action, trigger, matching, serialization and
   condition machinery rather than bypassing it.
 - A new rule must not silently invalidate unrelated existing scenarios.
+- Graph nodes are physical entities (items, characters, areas, ways). Knowledge
+  is never a node: a crafting recipe, a fact, a memory, a plan template lives
+  ON something — an item's properties (cookbook, recipe note), a character's
+  knowledge store (`crafting_known`, memory records), or a library data file
+  (`data/library/recipes/`). Never invent a `type: recipe` node, a `type: fact`
+  node, or any knowledge-as-entity. A task proposing one is wrong; correct it,
+  don't build it.
 
 ### Engine vs data vs authoring
 
@@ -893,6 +899,27 @@ errors) on the remaining gap via `validate --schema`.
 (`todo` -> `inprogress` -> `review` -> `done`), `validate` after filing or moving
 several (it also flags dangling dependency references). Before
 `inprogress` -> `review`, satisfy **Definition of done**.
+
+**Live-update the card as you work.** The card is the log, not the plan:
+- starting work: `move` to `inprogress` first, then read the card.
+- anything blocks or redirects you: write it into the card (what, why)
+  before context-switching. A card that does not mention its own
+  blocker is lying about its state.
+- stopped mid-task: record `observed` so far and `move` back to `todo`
+  with the reason on the card. `inprogress` means hands on keyboard.
+- verified a step: fill `- observed:` and check the box in the same
+  pass. Unchecked boxes with known outcomes are also lying.
+- docs with the behavior, not after the milestone: when a mechanic
+  becomes real (wired + exercised), update its vault note in the same
+  pass — feature page, `wiki:` links, consumer map. A shipped mechanic
+  with no doc update is half-shipped.
+
+**No duplication, everything usable, coherent with viwo.** One source of
+truth per concept (block is state, prose is projection — never two
+stores); `exists ≠ wired` (a schema entry, route, or tab with no caller
+and no exercised path is a draft, not a feature); every new surface
+must be reachable, read by something, and round-trippable. When in
+doubt, the simulation invariants at the top decide.
 
 **Frontmatter** is read as real YAML: lists stay lists, and a value with a colon
 must be quoted. `validate` fails on a block that does not parse. Dependency keys

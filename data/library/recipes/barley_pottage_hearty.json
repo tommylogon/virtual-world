@@ -1,0 +1,41 @@
+{
+  "id": "barley_pottage_hearty",
+  "name": "Barley Pottage (Hearty)",
+  "description": "Pottage enriched with meat — a feast-day variant of the staple pot.",
+  "variant_of": "barley_pottage",
+  "ingredients": [
+    {"item": "barley", "count": 2, "consumed": true},
+    {"item": "boiled_water", "count": 1, "consumed": true},
+    {"item": "onion", "count": 1, "consumed": true},
+    {"item": "raw_meat", "count": 1, "consumed": true},
+    {"item": "cooking_pot", "count": 1, "consumed": false}
+  ],
+  "conditions": [
+    {"type": "state_equals", "target": "campfire", "value": "on"}
+  ],
+  "duration_min": 60,
+  "skill_check": {"skill": "Cooking", "dc": 13},
+  "outputs": [{"item": "pottage", "count": 3}],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [{"item": "pottage", "count": 4}],
+      "message": "Rich and meaty — a feast in a pot."
+    },
+    "success": {
+      "outputs": [{"item": "pottage", "count": 3}],
+      "message": ""
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "thin_gruel", "count": 2}],
+      "message": "Thin despite the meat."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "scorched_pot", "count": 1}],
+      "message": "Scorched to the pot — food lost, pot kept."
+    }
+  },
+  "learned_by": ["skill:Cooking"],
+  "discoverable": true
+}

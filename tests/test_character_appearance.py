@@ -27,14 +27,19 @@ from engine import character_appearance as ca
 from engine.character_appearance import (
     AFFECT_AXES,
     APPEARANCE_FIELDS,
+    IDENTITY_FIELDS,
+    NARRATIVE_FIELDS,
     PERSONALITY_FIELDS,
     StructuredError,
     affect_for_stimulus,
     appearance,
     clear_record,
+    compile_persona,
     get_record,
+    identity,
     is_structured,
     knows_personality_id,
+    narrative,
     personality,
     render_prose,
     resolve_ids,
@@ -404,9 +409,17 @@ class TestCuratedSet:
 
     def test_the_task_named_fields_are_present(self):
         assert set(APPEARANCE_FIELDS) == {
-            "height_cm", "weight_kg", "build", "hair", "eyes", "skin"}
+            "overview", "height_cm", "weight_kg", "build", "hair", "eyes",
+            "skin", "face", "body", "voice", "scent", "style"}
         assert set(PERSONALITY_FIELDS) == {
-            "likes", "dislikes", "fears", "kinks", "turn_offs"}
+            "likes", "dislikes", "fears", "interests", "kinks", "turn_ons",
+            "turn_offs", "traumas", "boundaries", "traits", "aspirations",
+            "quirks", "habits", "speech_pattern", "experience"}
+        assert set(IDENTITY_FIELDS) == {
+            "pronouns", "age", "gender", "species", "occupation", "sexuality"}
+        assert set(NARRATIVE_FIELDS) == {
+            "biography", "secrets", "example_dialogues", "role_in_town",
+            "arc"}
 
     def test_the_excluded_catalog_fields_are_absent(self):
         """The task says grow per-feature, not dump the graph-editor catalog."""
@@ -420,11 +433,16 @@ class TestCuratedSet:
 
     def test_the_schema_covers_every_field(self):
         schema = schema_for_llm()
-        assert set(schema["properties"]) == {"appearance", "personality"}
+        assert set(schema["properties"]) == {
+            "identity", "appearance", "personality", "narrative"}
         assert set(schema["properties"]["appearance"]["properties"]) == \
             set(APPEARANCE_FIELDS)
         assert set(schema["properties"]["personality"]["properties"]) == \
             set(PERSONALITY_FIELDS)
+        assert set(schema["properties"]["identity"]["properties"]) == \
+            set(IDENTITY_FIELDS)
+        assert set(schema["properties"]["narrative"]["properties"]) == \
+            set(NARRATIVE_FIELDS)
 
     def test_the_schema_forbids_extra_keys(self):
         schema = schema_for_llm()
@@ -513,5 +531,215 @@ class TestRoutes:
         client = self._client()
         assert client.get("/api/players/Nobody/record").status_code == 404
         assert client.put("/api/players/Nobody/record",
-                          json={"record": {}}).status_code == 404
+                           json={"record": {}}).status_code == 404
         assert client.get("/api/players/Nobody/affect").status_code == 404
+
+
+# ── task-828: expanded schema + compile ──
+
+RICH = {
+    "identity": {
+        "pronouns": "she/her",
+        "age": 34,
+        "species": "human",
+        "occupation": "blacksmith",
+        "sexuality": "bisexual",
+    },
+    "appearance": {
+        "overview": "A broad-shouldered smith with soot in the creases",
+        "hair": {"color": "black", "length": "cropped", "style": "swept-back",
+                 "accessories": ["iron pin"]},
+        "eyes": {"color": "grey", "shape": "narrow"},
+        "skin": {"tone": "tan", "distinguishing_features": ["burn scar"]},
+        "body": {"modifications": ["anchor tattoo", "hook prosthetic"]},
+        "voice": {"pitch": "low", "accent": "northern"},
+        "scent": "coal-smoke",
+        "style": {"clothing": ["leather apron"], "footwear": ["steel boots"]},
+    },
+    "personality": {
+        "traits": ["Brave", "blunt"],
+        "interests": ["smithing"],
+        "fears": ["drowning"],
+        "traumas": ["mine-collapse"],
+        "likes": ["dark-ale"],
+        "quirks": ["hums while working"],
+        "speech_pattern": {"style": "terse", "catchphrases": ["mind the sparks"]},
+        "experience": "apprenticed ten years",
+    },
+    "narrative": {
+        "biography": {"current_situation": "holds the forge alone"},
+        "secrets": {"deepest_secret": "sold a cursed blade",
+                    "known_by": ["Old Maren"]},
+        "example_dialogues": ["Steel remembers."],
+        "role_in_town": "smith",
+    },
+}
+
+
+class TestExpandedSchema:
+
+    def _rich_node(self, world, name="Arix"):
+        _character(world, name)
+        node = _node(world, name)
+        set_record(node, RICH)
+        return node
+
+    def test_identity_and_narrative_validate(self):
+        cleaned = validate(RICH)
+        assert cleaned["identity"]["age"] == 34
+        assert cleaned["identity"]["pronouns"] == "she/her"
+        assert cleaned["narrative"]["role_in_town"] == "smith"
+        assert identity(_node) is not None  # reader exists
+
+    def test_prose_lists_take_free_text(self):
+        node_record = validate({"personality": {"traits": ["Brave", "soft spoken"]}})
+        assert node_record["personality"]["traits"] == ["Brave", "soft spoken"]
+
+    def test_id_lists_still_reject_display_names(self):
+        with pytest.raises(StructuredError):
+            validate({"personality": {"fears": ["Not An Id"]}})
+
+    def test_negative_age_is_rejected(self):
+        with pytest.raises(StructuredError):
+            validate({"identity": {"age": -3}})
+
+    def test_compile_projects_prose_and_tags(self):
+        world = _world()
+        node = self._rich_node(world)
+        compiled = compile_persona(node)
+        assert "34-year-old" in compiled["base_description"]
+        assert "blacksmith" in compiled["base_description"]
+        assert "anchor tattoo" in compiled["base_description"]
+        assert "smithing" in compiled["interest_tags"]
+        assert "dark-ale" in compiled["interest_tags"]
+        assert "drowning" in compiled["fear_tags"]
+        assert "mine-collapse" in compiled["fear_tags"]
+        assert "Brave" in compiled["traits"]
+        assert "mind the sparks" in compiled["personality"]
+        assert "holds the forge alone" in compiled["description"]
+        assert "bisexual" in compiled["personality"]
+        assert "Steel remembers." in compiled["personality"]
+
+    def test_compile_of_prose_only_is_empty(self):
+        world = _world()
+        _character(world)
+        compiled = compile_persona(_node(world))
+        assert compiled["base_description"] == ""
+        assert compiled["interest_tags"] == []
+        assert compiled["fear_tags"] == []
+
+    def test_explicit_pronouns_win_over_tags(self):
+        from engine.pronouns import pronouns_for
+        world = _world()
+        player = _character(world)
+        player.tags = ["male"]
+        node = self._rich_node(world)
+        assert pronouns_for(player, get_record(node))["subject"] == "she"
+        assert pronouns_for(player)["subject"] == "he"
+
+    def test_record_readers_cover_all_sections(self):
+        world = _world()
+        node = self._rich_node(world)
+        assert identity(node)["species"] == "human"
+        assert narrative(node)["role_in_town"] == "smith"
+        assert appearance(node)["scent"] == "coal-smoke"
+        assert personality(node)["traits"] == ["Brave", "blunt"]
+
+    def test_every_field_names_its_consumer(self):
+        from engine.character_appearance import CONSUMER_HINTS
+        schema = schema_for_llm()["properties"]
+        paths = set()
+        for section, block in schema.items():
+            for field in block["properties"]:
+                paths.add(f"{section}.{field}")
+        missing = sorted(p for p in paths if p not in CONSUMER_HINTS)
+        assert not missing, f"fields with no consumer hint: {missing}"
+        blob = " ".join(CONSUMER_HINTS).lower()
+        for banned in ("mbti", "alignment", "media"):
+            assert banned not in blob
+
+
+class TestCompileRoutes:
+
+    def _client(self):
+        return create_app({"TESTING": True}).test_client()
+
+    def test_compile_preview_writes_nothing(self):
+        client = self._client()
+        client.put("/api/players/Lyrie/record", json={"record": RICH})
+        response = client.post("/api/players/Lyrie/record/compile", json={})
+        assert response.status_code == 200
+        body = response.get_json()
+        assert "34-year-old" in body["compiled"]["base_description"]
+        assert "smithing" in body["compiled"]["interest_tags"]
+        # Lyrie ships library hand prose, so the default path previews.
+        assert body.get("needs_confirm") is True
+        assert "compiled" in body["preview"]["base_description"]
+        before = client.get("/api/state").get_json()["players"]["Lyrie"]
+        assert "34-year-old" not in (before.get("base_description") or "")
+
+    def test_compile_applies_to_empty_prose(self):
+        client = self._client()
+        client.put("/api/players/Lyrie/record", json={"record": RICH})
+        body = client.post("/api/players/Lyrie/record/compile",
+                           json={"force": True}).get_json()
+        assert body.get("applied") is True
+        state = client.get("/api/state").get_json()
+        lyrie = state["players"]["Lyrie"]
+        assert "34-year-old" in lyrie["base_description"]
+        assert "smithing" in lyrie["interest_tags"]
+        assert "mine-collapse" in lyrie["fear_tags"]
+
+    def test_compile_needs_confirm_over_hand_prose(self):
+        app = create_app({"TESTING": True})
+        app.world.player_manager.get_player("Lyrie").base_description = \
+            "A goblin someone described by hand."
+        client = app.test_client()
+        client.put("/api/players/Lyrie/record", json={"record": RICH})
+        body = client.post("/api/players/Lyrie/record/compile",
+                           json={}).get_json()
+        assert body.get("needs_confirm") is True
+        assert "goblin someone described" in \
+            body["preview"]["base_description"]["current"]
+        assert "applied" not in body
+        forced = client.post("/api/players/Lyrie/record/compile",
+                             json={"force": True}).get_json()
+        assert forced.get("applied") is True
+        assert "34-year-old" in forced["compiled"]["base_description"]
+
+    def test_put_compile_true_projects_tags(self):
+        client = self._client()
+        body = client.put("/api/players/Lyrie/record",
+                          json={"record": RICH, "compile": True,
+                                "force": True}).get_json()
+        assert body.get("applied") is True
+        assert "mine-collapse" in body["compiled"]["fear_tags"]
+
+    def test_compile_unknown_player_is_404(self):
+        client = self._client()
+        assert client.post("/api/players/Nobody/record/compile",
+                           json={}).status_code == 404
+
+    def test_compile_beats_node_prose_in_state(self):
+        """State reads node props first: the compile must write the node.
+
+        A library character carries authored prose on the node. Applying
+        only the Player would leave that prose shadowing the fresh
+        compile in every `/api/state` payload (caught live on Arix).
+        """
+        app = create_app({"TESTING": True})
+        world = app.world
+        node = world.graph.get_node(world._player_node_id("Lyrie"))
+        node.properties["base_description"] = "Hand prose on the node."
+        client = app.test_client()
+        client.put("/api/players/Lyrie/record", json={"record": RICH})
+        preview = client.post("/api/players/Lyrie/record/compile",
+                              json={}).get_json()
+        assert preview.get("needs_confirm") is True
+        assert "Hand prose on the node" in \
+            preview["preview"]["base_description"]["current"]
+        forced = client.post("/api/players/Lyrie/record/compile",
+                             json={"force": True}).get_json()
+        assert forced.get("applied") is True
+        state = client.get("/api/state").get_json()
+        assert "34-year-old" in state["players"]["Lyrie"]["base_description"]

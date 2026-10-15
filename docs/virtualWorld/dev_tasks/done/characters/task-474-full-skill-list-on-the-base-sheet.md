@@ -32,6 +32,10 @@ Every skill in the vocabulary lives on Player.skills so a setting or character c
 
 TODO
 
+## Skills are free strings (2026-10-15, crafting schema)
+
+Skill names are NOT a closed enum. `player.skills` is a plain dict; `skill_check` reads `skills.get(name, 0)` and `engine/checks.py` `SKILL_ABILITY` maps known names to abilities while unknown names key off no ability (modifier 0) — homebrew names work with no code change. The 18 D&D names on the base sheet are defaults, not the vocabulary. Settings and recipes may mint `Cooking`, `Smithing`, `Woodcraft`, `Leatherwork`, etc.; they default to 0 until a scenario, library character, or `teach` action grants them. Recipe authors: use the name that reads right, and note the grant source.
+
 ## How
 
 TODO

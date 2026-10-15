@@ -30,6 +30,7 @@ from engine.effect_handlers.tags import HANDLERS as TAG_HANDLERS
 from engine.effect_handlers.spells import HANDLERS as SPELL_HANDLERS
 from engine.effect_handlers.activities import HANDLERS as ACTIVITY_HANDLERS
 from engine.effect_handlers.movement import HANDLERS as MOVEMENT_HANDLERS
+from engine.effect_handlers.persona import HANDLERS as PERSONA_HANDLERS
 from engine.abilities import normalize_stat_block
 from engine.size import SIZE_TIERS, SIZE_DEFAULT
 from engine.vitals import (
@@ -54,6 +55,7 @@ HANDLERS.update(TAG_HANDLERS)
 HANDLERS.update(SPELL_HANDLERS)
 HANDLERS.update(ACTIVITY_HANDLERS)
 HANDLERS.update(MOVEMENT_HANDLERS)
+HANDLERS.update(PERSONA_HANDLERS)
 
 
 class Effects:

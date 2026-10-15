@@ -822,10 +822,14 @@ def handle_get_character_record(app, name):
     return jsonify({
         "structured": ca.is_structured(node),
         "record": ca.get_record(node),
+        "identity": ca.identity(node),
         "appearance": ca.appearance(node),
         "personality": ca.personality(node),
+        "narrative": ca.narrative(node),
         "prose": ca.render_prose(node),
+        "prose_stale": ca.prose_is_stale(node),
         "schema": ca.schema_for_llm(),
+        "hints": ca.CONSUMER_HINTS,
     })
 
 
@@ -836,6 +840,14 @@ def handle_set_character_record(app, name):
     the task's flow is "set the fields, then generate the description ONCE", and
     a caller that has just filled a whole card almost always wants the prose with
     it. Pass ``false`` to fill fields in stages.
+
+    ``{"record": {...}, "compile": true}`` (task-828) — project the whole
+    block via ``compile_persona``: ``base_description`` + ``personality``
+    prose plus ``interest_tags`` / ``fear_tags``. Hand prose is kept unless
+    ``force`` is true; without force the response carries a ``preview``
+    instead of writing. The compiled ``traits`` list is prose for display —
+    it is NOT merged into ``player.traits``, which is the mechanical
+    boolean/parameterized trait dict (e.g. ``{"allergic": "pollen"}``).
     """
     from engine import character_appearance as ca
     if name not in app.world.players:
@@ -850,6 +862,19 @@ def handle_set_character_record(app, name):
         return jsonify({"error": str(e)}), 400
 
     body = {"record": stored, "structured": bool(stored)}
+    if data.get("compile"):
+        player = app.world.players[name]
+        compiled = ca.compile_persona(node)
+        body["compiled"] = compiled
+        if _compile_would_clobber(player, compiled, node) and not data.get("force"):
+            body["preview"] = _compile_preview(player, compiled, node)
+            body["needs_confirm"] = True
+            return jsonify(body)
+        _apply_compiled(player, compiled, node)
+        body["base_description"] = player.base_description
+        body["personality_prose"] = player.personality
+        body["applied"] = True
+        return jsonify(body)
     if data.get("render", True) and stored:
         # Prose is the narrative layer and is written once, into
         # base_description, where the existing equipment/LLM description
@@ -863,6 +888,111 @@ def handle_set_character_record(app, name):
         if prose and not (player.base_description or "").strip():
             player.base_description = prose
             body["base_description"] = player.base_description
+            (getattr(node, "properties", None) or {}).pop(
+                ca.PROSE_STALE_KEY, None)
+        else:
+            # Block moved on without the prose: flag it for the Persona tab.
+            ca.mark_prose_stale(node)
+            body["prose_stale"] = True
+    elif stored:
+        # Saved without rendering: the projection lags the block.
+        ca.mark_prose_stale(node)
+        body["prose_stale"] = True
+    return jsonify(body)
+
+
+def _compile_would_clobber(player, compiled, node=None) -> bool:
+    """True when applying *compiled* would replace prose someone wrote.
+
+    Checks both homes: the Player's runtime copy and the node's authored
+    copy (state reads the node first, so node prose shadows either way).
+    """
+    props = getattr(node, "properties", None) or {} if node is not None else {}
+    for key, sources in (
+            ("base_description", [player.base_description,
+                                  props.get("base_description")]),
+            ("personality", [player.personality,
+                             props.get("personality")])):
+        new = (compiled.get(key) or "").strip()
+        for old in sources:
+            old = (old or "").strip()
+            if new and old and new != old:
+                return True
+    return False
+
+
+def _compile_preview(player, compiled, node=None) -> dict:
+    """Side-by-side current vs compiled prose, so a UI can confirm.
+
+    "Current" is what `/api/state` actually reads (node first, Player
+    second), so the preview never shows a copy the world is not using.
+    """
+    props = getattr(node, "properties", None) or {} if node is not None else {}
+    current_base = props.get("base_description") or player.base_description
+    current_pers = props.get("personality") or player.personality
+    return {
+        "base_description": {
+            "current": current_base,
+            "compiled": compiled.get("base_description", ""),
+        },
+        "personality": {
+            "current": current_pers,
+            "compiled": compiled.get("personality", ""),
+        },
+    }
+
+
+def _apply_compiled(player, compiled, node=None) -> None:
+    """Write a compile projection onto the player (prose + tag mirrors).
+
+    The node carries the authored copy too: `/api/state` reads
+    ``base_description``/``personality`` from node properties first
+    (authored definition is the persisted home; the Player is the
+    runtime projection). Writing only the Player would leave library
+    prose shadowing the fresh compile in every state payload.
+    """
+    from engine import character_appearance as ca
+    if (compiled.get("base_description") or "").strip():
+        player.base_description = compiled["base_description"]
+        if node is not None and getattr(node, "properties", None) is not None:
+            node.properties["base_description"] = compiled["base_description"]
+    if (compiled.get("personality") or "").strip():
+        player.personality = compiled["personality"]
+        if node is not None and getattr(node, "properties", None) is not None:
+            node.properties["personality"] = compiled["personality"]
+    player.interest_tags = list(compiled.get("interest_tags") or [])
+    player.fear_tags = list(compiled.get("fear_tags") or [])
+    if node is not None:
+        (getattr(node, "properties", None) or {}).pop(
+            ca.PROSE_STALE_KEY, None)
+
+
+def handle_compile_character_record(app, name):
+    """Project the stored block without writing (task-828 compile preview).
+
+    ``POST /api/players/<name>/record/compile`` with optional
+    ``{"force": true}``. Without force: returns the projection plus a
+    ``preview`` when hand prose would be replaced, and writes nothing.
+    With force: applies the projection like ``PUT record`` with
+    ``compile:true, force:true``.
+    """
+    from engine import character_appearance as ca
+    if name not in app.world.players:
+        return jsonify({"error": "No such player"}), 404
+    node = _character_node(app, name)
+    if node is None:
+        return jsonify({"error": "No character node"}), 404
+    data = request.get_json(force=True) or {}
+    player = app.world.players[name]
+    compiled = ca.compile_persona(node)
+    body = {"record": ca.get_record(node), "compiled": compiled,
+            "prose_stale": ca.prose_is_stale(node)}
+    if _compile_would_clobber(player, compiled, node) and not data.get("force"):
+        body["preview"] = _compile_preview(player, compiled, node)
+        body["needs_confirm"] = True
+        return jsonify(body)
+    _apply_compiled(player, compiled, node)
+    body["applied"] = True
     return jsonify(body)
 
 

@@ -1,13 +1,26 @@
-"""Crafting & recipe system (task-2).
+"""Crafting & recipe system (task-2; recipe-entry shape: task-831).
 
-Recipes are graph nodes of type ``recipe`` whose ``properties`` declare:
+Recipes are data entries, NEVER graph nodes. Graph nodes are physical
+entities (items, characters, areas, ways); knowledge lives ON things. The
+canonical home is ``data/library/recipes/<id>.json``; a recipe may also ride
+on an item's properties (cookbook, recipe note) or in a character's
+``crafting_known`` store. The ``type: recipe`` node lookup below
+(``recipe_nodes`` / ``_find_recipe``) is TECH DEBT retained for the existing
+tests — new code reads the registry, and new recipes are authored as entries.
+
+A recipe entry declares:
 
 .. code-block:: json
    {
-     "inputs": [{"item": "egg", "count": 1, "consumed": true},
-                 {"item": "pan", "count": 1, "consumed": false}],
+     "id": "fried_eggs",
+     "name": "Fried Eggs",
+     "ingredients": [{"item": "egg", "count": 1, "consumed": true},
+                     {"item": "pan", "count": 1, "consumed": false}],
      "conditions": [{"type": "state_equals", "target": "oven", "value": "on"}],
+     "duration_min": 10,
      "outputs": [{"item": "fried_egg", "count": 1}],
+     "outcomes": {"crit_success": {...}, "success": {...},
+                  "fail": {...}, "crit_fail": {...}},
      "skill_check": {"skill": "Cooking", "dc": 10},
      "learned_by": ["global"],
      "discoverable": true

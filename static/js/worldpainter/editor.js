@@ -2329,6 +2329,7 @@
     }
     function _drawFeatures(ctx, p) {
         ctx.save();
+        const scale = state.stage ? state.stage.scaleX() : 1;
         ctx.font = `${Math.max(9, CELL - 8)}px sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -2351,7 +2352,7 @@
             ctx.strokeRect(a.x * CELL + 2.5, a.y * CELL + 2.5, CELL - 5, CELL - 5);
             // A name is worth showing when the cell is big enough to hold one;
             // at 1x the map is a mosaic and only the marker reads.
-            if (CELL >= 26) {
+            if (CELL * scale >= 26) {
                 ctx.fillStyle = '#d9f2e5';
                 ctx.font = '9px sans-serif';
                 ctx.fillText(_ellipsize(a.name, 12), a.x * CELL + CELL / 2, a.y * CELL + CELL + 8);
