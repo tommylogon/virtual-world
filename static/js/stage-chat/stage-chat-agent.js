@@ -1,61 +1,113 @@
 "use strict";
 /**
- * @module stage-chat-agent — Agent decision loop and pacing for Stage Chat
- * @contributes StageChatAgent: character timers, phone app perspective prompt, tool execution
- * @powers Autonomous character participation in Stage Chat
- * @relates StageChatApi, StageChatState
- * @docs docs/virtualWorld/dev_tasks/todo/gameplay/task-824-stage-chat-turn-based-character-perspective-chat-page.md
+ * @module stage-chat-agent — communication actions for existing Players
+ * @contributes paced read, send, and direct-message actions
+ * @powers autonomous character participation in Stage Chat
+ * @relates StageChatApi, StageChatState, PromptBuilder, ResponseParser
+ * @docs docs/virtualWorld/Gameplay/The Commons.md
  */
 (function () {
     'use strict';
     class StageChatAgent {
         static timers = {};
-        static talkativeness = {};
+        static deadlines = {};
+        static remainingMs = {};
+        static controllers = {};
         static isRunning = false;
         static getTalkativeness(name) {
-            return this.talkativeness[name] || 25; // default 25 seconds
+            const config = window.config;
+            if (config?.getTalkativeness)
+                return config.getTalkativeness(name);
+            return window.VWSimultaneous?.TALKATIVENESS_DEFAULT_SECONDS || 25;
         }
-        static setTalkativeness(name, val) {
-            this.talkativeness[name] = Math.max(5, Math.min(120, parseInt(val) || 25));
+        static setTalkativeness(name, value, persist = false) {
+            const mode = window.VWSimultaneous;
+            const pace = mode?.normalizeTalkativeness(value) || 25;
+            const config = window.config;
+            if (config)
+                config.talkativenessByCharacter[name] = pace;
+            if (persist && config?.setTalkativeness)
+                void config.setTalkativeness(name, pace);
             this.resetTimer(name);
+            return pace;
         }
         static start() {
             this.isRunning = true;
-            this.scheduleAll();
+            if (!window.StageChatState.isPaused)
+                this.scheduleAll();
         }
         static stop() {
             this.isRunning = false;
-            for (const t of Object.values(this.timers)) {
-                clearTimeout(t);
+            this.clearScheduledTimers(false);
+            for (const controller of Object.values(this.controllers))
+                controller.abort();
+            this.controllers = {};
+        }
+        static pause() {
+            const now = Date.now();
+            for (const name of Object.keys(this.timers)) {
+                this.remainingMs[name] = Math.max(0, (this.deadlines[name] || now) - now);
+            }
+            this.clearScheduledTimers(true);
+            for (const controller of Object.values(this.controllers))
+                controller.abort();
+        }
+        static resume() {
+            if (this.isRunning)
+                this.scheduleAll();
+        }
+        static clearScheduledTimers(preserveRemaining) {
+            for (const [name, timer] of Object.entries(this.timers)) {
+                clearTimeout(timer);
+                if (!preserveRemaining)
+                    delete this.remainingMs[name];
             }
             this.timers = {};
+            this.deadlines = {};
         }
         static resetTimer(charName) {
-            if (this.timers[charName]) {
-                clearTimeout(this.timers[charName]);
-                delete this.timers[charName];
-            }
-            if (!this.isRunning)
+            const oldTimer = this.timers[charName];
+            if (oldTimer)
+                clearTimeout(oldTimer);
+            delete this.timers[charName];
+            delete this.deadlines[charName];
+            const state = window.StageChatState;
+            const participant = state.participants?.[charName];
+            if (!this.isRunning || state.isPaused || !participant?.active || participant.blocked) {
+                delete this.remainingMs[charName];
                 return;
-            const baseSec = this.getTalkativeness(charName);
-            // Add jitter (-25% to +25%)
-            const jitter = (Math.random() * 0.5 - 0.25) * baseSec;
-            const delayMs = Math.max(3000, (baseSec + jitter) * 1000);
-            this.timers[charName] = setTimeout(() => {
-                this.actCharacter(charName).finally(() => {
-                    this.resetTimer(charName);
-                });
+            }
+            const savedRemaining = this.remainingMs[charName];
+            const delayMs = Number.isFinite(savedRemaining)
+                ? Math.max(0, savedRemaining)
+                : window.VWSimultaneous.jitteredCooldownMs(this.getTalkativeness(charName));
+            delete this.remainingMs[charName];
+            this.deadlines[charName] = Date.now() + delayMs;
+            this.timers[charName] = setTimeout(async () => {
+                delete this.timers[charName];
+                delete this.deadlines[charName];
+                try {
+                    await this.actCharacter(charName);
+                }
+                finally {
+                    if (this.isRunning && !window.StageChatState.isPaused)
+                        this.resetTimer(charName);
+                }
             }, delayMs);
         }
         static scheduleAll() {
             const participants = window.StageChatState.participants || {};
             for (const name of Object.keys(participants)) {
-                this.resetTimer(name);
+                if (name !== 'User')
+                    this.resetTimer(name);
             }
         }
         static async stepOne() {
-            const participants = window.StageChatState.participants || {};
-            const available = Object.keys(participants).filter(n => participants[n].active && !participants[n].blocked);
+            const state = window.StageChatState;
+            if (state.isPaused)
+                return;
+            const participants = state.participants || {};
+            const available = Object.keys(participants).filter(n => n !== 'User' && participants[n].active && !participants[n].blocked);
             if (available.length === 0)
                 return;
             const chosen = available[Math.floor(Math.random() * available.length)];
@@ -65,96 +117,104 @@
             const state = window.StageChatState;
             if (state.isPaused)
                 return;
-            const pInfo = state.participants[charName];
-            if (!pInfo || !pInfo.active || pInfo.blocked)
+            const participant = state.participants?.[charName];
+            if (!participant || !participant.active || participant.blocked)
                 return;
+            if (this.controllers[charName])
+                return;
+            const controller = new AbortController();
+            this.controllers[charName] = controller;
+            const signal = controller.signal;
+            const api = window.StageChatApi;
+            const llm = window.llmClient;
             try {
-                // 1. Fetch character details & memory recall
-                let charBio = "";
-                try {
-                    const charRes = await fetch(`/api/players/${encodeURIComponent(charName)}`);
-                    if (charRes.ok) {
-                        const cData = await charRes.json();
-                        charBio = `You are ${charName}. Traits: ${JSON.stringify(cData.player?.traits || {})}. Description: ${cData.player?.description || ''}`;
+                const [player, memories, phone] = await Promise.all([
+                    api.getCharacterContext(charName, signal),
+                    api.retrieveMemories(charName, 'conversation friends messages group chat', signal),
+                    api.getState(charName),
+                ]);
+                if (state.isPaused || signal.aborted)
+                    return;
+                const memoryText = (memories.memories || [])
+                    .map((memory) => String(memory.text || '').trim())
+                    .filter(Boolean)
+                    .slice(0, 5)
+                    .map((line) => `- ${line}`)
+                    .join('\n') || '- No relevant memories recalled.';
+                const channels = phone.channels || [];
+                const knownCharacters = Object.keys(phone.participants || {})
+                    .filter((name) => name !== charName && name !== 'User');
+                const promptBuilder = window.PromptBuilder;
+                const responseParser = window.ResponseParser;
+                if (typeof promptBuilder?.buildCommunicationPrompt !== 'function'
+                    || typeof responseParser?.parseCommunication !== 'function') {
+                    throw new Error('Shared character prompt/parser modules are unavailable');
+                }
+                const userPrompt = promptBuilder.buildCommunicationPrompt(player, memoryText, channels, knownCharacters);
+                if (!llm || typeof llm.chat !== 'function')
+                    throw new Error('LLM client is not available');
+                const reply = await llm.chat([
+                    {
+                        role: 'system',
+                        content: 'Use the existing character identity and state in the user context. This is a phone communication turn: only choose a communication action. Do not claim messages you have not explicitly read.',
+                    },
+                    { role: 'user', content: userPrompt },
+                ], {
+                    streaming: false,
+                    max_tokens: 360,
+                    signal,
+                    label: 'stage-chat/communication',
+                });
+                if (state.isPaused || signal.aborted || !reply)
+                    return;
+                const decision = responseParser.parseCommunication(reply);
+                if (decision.parseError) {
+                    console.warn(`[StageChatAgent] Invalid communication decision from ${charName}: ${decision.parseError}`);
+                    return;
+                }
+                let readMessages = [];
+                if (decision.action === 'read_chat') {
+                    const selected = channels.find((channel) => channel.id === decision.channelId)
+                        || channels.find((channel) => channel.unread_count > 0);
+                    if (selected) {
+                        const result = await api.readMessages(charName, selected.id, decision.readMode, decision.n, decision.fromId, decision.toId, signal);
+                        readMessages = result.messages || [];
                     }
                 }
-                catch (e) {
-                    charBio = `You are ${charName}.`;
+                else if (decision.action === 'send_chat' && decision.text) {
+                    const selected = channels.find((channel) => channel.id === decision.channelId);
+                    if (selected)
+                        await api.postMessage(charName, decision.text, selected.id, signal);
                 }
-                // 2. Build phone app framing prompt
-                const systemPrompt = `You are roleplaying as ${charName}.
-You are using a chat app on your phone.
-You can choose what to do on your turn:
-1. "read_chat": Check unseen messages on your phone screen to see what was posted.
-2. "write_chat": Post a message into the chat room for others to see.
-3. "think": Do nothing, don't look at your phone, just stew or think to yourself.
-
-Respond ONLY with valid JSON in this exact structure:
-{
-  "thought": "Your private inner thoughts right now (1-3 sentences)",
-  "action": "read_chat" | "write_chat" | "think",
-  "text": "Your message if write_chat, else empty string",
-  "read_mode": "all" | "latest",
-  "subjective_memory": "A 1-2 sentence first person reflection summarizing your thoughts/feelings for your memory"
-}`;
-                const userPrompt = `${charBio}
-You have ${pInfo.unread_count || 0} unread notification(s) on your phone chat app.
-Last message ID you saw was ${pInfo.last_read_message_id === null ? 'none' : pInfo.last_read_message_id}.
-Decide what to do: look at your phone, write a message, or ignore it and think.`;
-                let responseJson = null;
-                if (window.llmClient && typeof window.llmClient.completePrompt === 'function') {
-                    const reply = await window.llmClient.completePrompt(userPrompt, { systemPrompt });
-                    try {
-                        const clean = reply.replace(/```json/g, '').replace(/```/g, '').trim();
-                        responseJson = JSON.parse(clean);
-                    }
-                    catch (e) {
-                        // fallback parse
-                    }
+                else if (decision.action === 'start_dm' && decision.recipient
+                    && knownCharacters.includes(decision.recipient) && decision.text) {
+                    const result = await api.createChannel({
+                        creator: charName,
+                        kind: 'dm',
+                        other: decision.recipient,
+                    }, signal);
+                    await api.postMessage(charName, decision.text, result.channel.id, signal);
                 }
-                // Fallback deterministic behavior if LLM is unavailable or failed parse
-                if (!responseJson || !responseJson.action) {
-                    if (pInfo.unread_count > 0 && Math.random() < 0.6) {
-                        responseJson = {
-                            thought: "I see new notifications on my screen, let me read them.",
-                            action: "read_chat",
-                            read_mode: "all",
-                            subjective_memory: "I decided to check my phone notifications."
-                        };
-                    }
-                    else if (Math.random() < 0.4) {
-                        responseJson = {
-                            thought: "I have something to say to the group.",
-                            action: "write_chat",
-                            text: `Hey everyone, ${charName} here.`,
-                            subjective_memory: "I texted the stage chat."
-                        };
-                    }
-                    else {
-                        responseJson = {
-                            thought: "I don't feel like looking at my phone right now.",
-                            action: "think",
-                            subjective_memory: "I let my thoughts drift without looking at my screen."
-                        };
-                    }
+                if (state.isPaused || signal.aborted)
+                    return;
+                const memoriesToStore = [];
+                if (readMessages.length) {
+                    const summary = readMessages.slice(-4).map((message) => `${message.author}: ${String(message.text || '').replace(/[\r\n]+/g, ' ').slice(0, 180)}`).join('; ');
+                    memoriesToStore.push(`I read the conversation: ${summary}.`);
                 }
-                // 3. Execute chosen action
-                if (responseJson.action === 'read_chat') {
-                    await window.StageChatApi.readMessages(charName, responseJson.read_mode || 'all', 3);
+                if (decision.memory?.text)
+                    memoriesToStore.push(decision.memory.text);
+                if (memoriesToStore.length) {
+                    await api.storeMemory(charName, memoriesToStore.join(' '), decision.memory?.importance || 5, decision.memory?.tags?.length ? decision.memory.tags : ['conversation', 'chat'], signal);
                 }
-                else if (responseJson.action === 'write_chat' && responseJson.text) {
-                    await window.StageChatApi.postMessage(charName, responseJson.text);
-                }
-                // 4. Log inner monologue
-                window.StageChatState.logMonologue(charName, responseJson.action, responseJson.thought);
-                // 5. Store subjective memory
-                if (responseJson.subjective_memory) {
-                    await window.StageChatApi.storeMemory(charName, responseJson.subjective_memory, 4);
-                }
-                await window.StageChatState.sync();
             }
-            catch (err) {
-                console.error(`[StageChatAgent] Error during act for ${charName}:`, err);
+            catch (error) {
+                if (!signal.aborted)
+                    console.error(`[StageChatAgent] Communication turn failed for ${charName}:`, error);
+            }
+            finally {
+                if (this.controllers[charName] === controller)
+                    delete this.controllers[charName];
             }
         }
     }

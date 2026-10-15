@@ -28,6 +28,9 @@ window.VWSimultaneous = (() => {
         SIMULTANEOUS_ROOM: 'simultaneous_room',
     });
     const ORDERED = [MODES.SEQUENTIAL, MODES.RANDOM, MODES.INITIATIVE];
+    const TALKATIVENESS_MIN_SECONDS = 5;
+    const TALKATIVENESS_MAX_SECONDS = 120;
+    const TALKATIVENESS_DEFAULT_SECONDS = 25;
     function isSimultaneous(mode) {
         return mode === MODES.SIMULTANEOUS || mode === MODES.SIMULTANEOUS_ROOM;
     }
@@ -115,6 +118,39 @@ window.VWSimultaneous = (() => {
                 c[key] -= 1;
         }
     }
+    /** Clamp an authored per-character pace to the UI's 5–120 second range. */
+    function normalizeTalkativeness(value, fallback = TALKATIVENESS_DEFAULT_SECONDS) {
+        const parsed = Number(value);
+        const base = Number.isFinite(parsed) ? parsed : fallback;
+        return Math.max(TALKATIVENESS_MIN_SECONDS, Math.min(TALKATIVENESS_MAX_SECONDS, Math.round(base)));
+    }
+    /**
+     * Return one independently jittered real-time cooldown. The random source
+     * is injectable so tests can prove both edges without sleeping.
+     */
+    function jitteredCooldownMs(seconds, random = Math.random) {
+        const pace = normalizeTalkativeness(seconds);
+        const roll = Math.max(0, Math.min(1, Number(random()) || 0));
+        return Math.round(pace * (0.75 + roll * 0.5) * 1000);
+    }
+    /**
+     * Choose the elapsed character with the earliest scheduled arrival.
+     * Roster order is only a stable tie-break for equal deadlines.
+     */
+    function firstReadyCharacter(names, deadlines, now) {
+        let selected = null;
+        let earliest = Infinity;
+        for (const name of names || []) {
+            const dueAt = Number((deadlines || {})[name]);
+            if (!Number.isFinite(dueAt) || dueAt > now)
+                continue;
+            if (dueAt < earliest) {
+                selected = name;
+                earliest = dueAt;
+            }
+        }
+        return selected;
+    }
     return {
         MODES,
         ORDERED,
@@ -126,5 +162,11 @@ window.VWSimultaneous = (() => {
         roomCooldown,
         firstReadyRoom,
         tickCountdowns,
+        TALKATIVENESS_MIN_SECONDS,
+        TALKATIVENESS_MAX_SECONDS,
+        TALKATIVENESS_DEFAULT_SECONDS,
+        normalizeTalkativeness,
+        jitteredCooldownMs,
+        firstReadyCharacter,
     };
 })();

@@ -89,6 +89,10 @@ class AgentEngine {
     declare _abortController: AbortController | null;
     declare _simCountdowns: Record<string, number>;
     declare _simRoomCountdowns: Record<string, number>;
+    declare _simDeadlines: Record<string, number>;
+    declare _paused: boolean;
+    declare _pausedAt: number | null;
+    declare _resumeAfterVisibility: boolean;
     declare _startleSeen: Record<string, Set<string>>;
     declare _startleCache: Record<string, boolean>;
     declare _startleCacheTurn: number;
@@ -118,6 +122,10 @@ class AgentEngine {
         // countdowns (global), and per-room countdowns (simultaneous_room).
         this._simCountdowns = {};
         this._simRoomCountdowns = {};
+        this._simDeadlines = {};
+        this._paused = false;
+        this._pausedAt = null;
+        this._resumeAfterVisibility = false;
         // task-166: per-character startle tracking. `_startleSeen` remembers
         // which hearing entries already startled a character (so a shout does
         // not yelp on every line forever); `_startleCache` lets the speech and
@@ -126,6 +134,8 @@ class AgentEngine {
         this._startleCache = {};
         this._startleCacheTurn = -1;
     }
+
+    get isPaused(): boolean { return this._paused; }
 
     getHistory(charName: string): AgentEngineHistory {
         if (!this.characterHistories[charName]) {
@@ -209,6 +219,9 @@ class AgentEngine {
         if (this._abortController) { this._abortController.abort(); this._abortController = null; }
         config.busy = false;
         config.running = false;
+        this._paused = false;
+        this._pausedAt = null;
+        this._resumeAfterVisibility = false;
         VW?.ui?.updateButtons();
         VW?.ui?.stopRateLimitMonitor();
         VW?.ui?.setStatus("Cancelled.", "info");
@@ -1055,6 +1068,12 @@ class AgentEngine {
         }
     }
     async start(): Promise<void> {
+        // The toolbar's Play button resumes a paused run without rebuilding its
+        // queue, resetting its step count, or discarding async deadlines.
+        if (config.running) {
+            if (this._paused) this.resume();
+            return;
+        }
         if (config.turnBased) { this.characterHistories = {};
             if (this.turnQueue.length === 0) { TurnQueue.initialize(); }
             if (this.turnQueue.length === 0) { events.log("No characters.", "error-msg"); return; }
@@ -1075,13 +1094,27 @@ class AgentEngine {
         // ("Step cancelled." firing on a fresh ▶ was the stale flag leaking).
         this._cancelRequested = false;
         (async () => { while (config.running) {
+            if (this._paused) {
+                await new Promise(resolve => setTimeout(resolve, 250));
+                continue;
+            }
+            let didAct = true;
             if (window.VWSimultaneous.isRoomMode(config.simultaneousMode)) { await this._simultaneousRoomStep(); }
+            else if (config.simultaneousMode === 'simultaneous') { didAct = await this._simultaneousStep(); }
             else if (config.simultaneousMode) { await this._simultaneousStep(); }
             else { await this.step(); }
+            if (this._paused) continue;
+            // Async mode counts completed character turns, not idle scheduler
+            // polls. A 5–120 second cooldown must not hit the max-step limit
+            // after a handful of 250 ms checks.
+            if (!didAct) {
+                await new Promise(resolve => setTimeout(resolve, 250));
+                continue;
+            }
             if (this._cancelRequested) { this.cancel(); break; }
             if (!config.turnBased && config.controllingPlayer && !config.simultaneousMode) { await TurnQueue.endTurn(); this._logActorTurnEvents(config.controllingPlayer); if (worldState.data) VW?.ui?.renderAll(worldState.data); }
             agentConfig.stepsRun++; const turnsRun = config.turnBased ? Math.floor(agentConfig.stepsRun / Math.max(1, this.turnQueue.length)) : agentConfig.stepsRun; VW?.ui?.updateMaxStepsDisplay(); if (agentConfig.maxSteps > 0 && turnsRun >= agentConfig.maxSteps) { this.stop(`⏹️ Run complete — ${agentConfig.maxSteps} turns done. Press ▶ to continue.`); break; }
-            await new Promise(resolve => setTimeout(resolve, config.simultaneousMode ? 800 : 2000));
+            await new Promise(resolve => setTimeout(resolve, config.simultaneousMode === 'simultaneous' ? 250 : (config.simultaneousMode ? 800 : 2000)));
         } })();
     }
 
@@ -1098,59 +1131,93 @@ class AgentEngine {
      * also pass with the "End round" control, which resolves them without acting
      * so a round can never hang on an idle player.
      */
-    async _simultaneousStep(): Promise<void> {
+    async _simultaneousStep(): Promise<boolean> {
         if (!worldState.data) await worldState.fetch();
         const players = worldState.data?.players || {};
         const names = Object.keys(players);
-        for (const name of names) {
-            if (this._simCountdowns[name] === undefined) {
-                this._simCountdowns[name] = window.VWSimultaneous.cooldownFor(players[name]);
-            }
-        }
-        window.VWSimultaneous.tickCountdowns(this._simCountdowns);
+        const now = Date.now();
         const alive = (name: string) => {
             const p = players[name];
             return p && (p.state !== 'dead' || config.ghostMode);
         };
-        const ready = names.filter(name => {
-            if (!alive(name)) return false;
-            if (!events.isAutonomous(name)) return false;
-            return this._simCountdowns[name] <= 0;
-        });
-        if (ready.length) {
-            const charName = ready[0];
-            this._simCountdowns[charName] = window.VWSimultaneous.cooldownFor(players[charName]);
-            const prevControlling = config.controllingPlayer;
-            config.controllingPlayer = charName;
-            try {
-                await this.step();
-            } finally {
-                config.controllingPlayer = prevControlling;
+        const participants = names.filter(alive);
+        for (const name of Object.keys(this._simDeadlines)) {
+            if (!participants.includes(name)) delete this._simDeadlines[name];
+        }
+        for (const name of names) {
+            if (alive(name) && this._simDeadlines[name] === undefined) {
+                this._simDeadlines[name] = now + window.VWSimultaneous.jitteredCooldownMs(
+                    (config as any).getTalkativeness(name)
+                );
             }
-            this.markSimResolved(charName);
-            await this._closeSimRoundIfComplete();
+        }
+        // The world state and action endpoint are shared, so dispatch one turn
+        // at a time. If several deadlines elapsed during a long turn, the
+        // earliest arrival runs first; equal deadlines retain roster order.
+        const charName = window.VWSimultaneous.firstReadyCharacter(
+            participants, this._simDeadlines, now
+        );
+        if (charName === null) return false;
+
+        this._simDeadlines[charName] = now + window.VWSimultaneous.jitteredCooldownMs(
+            (config as any).getTalkativeness(charName)
+        );
+        const prevControlling = config.controllingPlayer;
+        config.controllingPlayer = charName;
+        try {
+            if (events.isAutonomous(charName)) await this.step();
+            else await this._humanTurn(charName);
+        } finally {
+            config.controllingPlayer = prevControlling;
+        }
+        this.markSimResolved(charName);
+        await this._closeSimRoundIfComplete();
+        return true;
+    }
+
+    /** Reset one character's scheduled arrival after a pace edit. */
+    resetSimCharacterDeadline(charName: string): void {
+        if (!charName || !config.running || !config.simultaneousMode || !worldState.data?.players?.[charName]) return;
+        this._simDeadlines[charName] = Date.now() + window.VWSimultaneous.jitteredCooldownMs(
+            (config as any).getTalkativeness(charName)
+        );
+    }
+
+    resetSimDeadlines(): void {
+        this._simDeadlines = {};
+    }
+
+    /** Pause at the current turn boundary and preserve real-time cooldowns. */
+    pause(reason = 'Paused.'): void {
+        if (!config.running || this._paused) return;
+        this._paused = true;
+        this._pausedAt = Date.now();
+        VW?.ui?.showPlayPause(true, false);
+        VW?.ui?.updateButtons();
+        VW?.ui?.setStatus(reason, 'info');
+    }
+
+    resume(): void {
+        if (!config.running || !this._paused) return;
+        const pausedFor = this._pausedAt === null ? 0 : Math.max(0, Date.now() - this._pausedAt);
+        for (const name of Object.keys(this._simDeadlines)) this._simDeadlines[name] += pausedFor;
+        this._pausedAt = null;
+        this._paused = false;
+        VW?.ui?.showPlayPause(false, true);
+        VW?.ui?.updateButtons();
+        VW?.ui?.setStatus('Running...', 'info');
+    }
+
+    /** Auto-pause only a run that was active before the tab was hidden. */
+    setVisibilityPaused(hidden: boolean): void {
+        if (hidden) {
+            this._resumeAfterVisibility = !!config.running && !this._paused;
+            if (this._resumeAfterVisibility) this.pause('Tab unfocused — paused.');
             return;
         }
-        // Nobody autonomous is ready. If the human is the only thing left in the
-        // round and their own countdown has come up, prompt them — waiting here
-        // is what makes the round genuinely wait for the player (task-533).
-        if (!this._simRoundComplete()) {
-            const human = names.find((name: string) =>
-                !events.isAutonomous(name) && alive(name)
-                && this._simCountdowns[name] <= 0);
-            if (human) {
-                this._simCountdowns[human] = window.VWSimultaneous.cooldownFor(players[human]);
-                const prevControlling = config.controllingPlayer;
-                config.controllingPlayer = human;
-                try {
-                    await this._humanTurn(human);
-                } finally {
-                    config.controllingPlayer = prevControlling;
-                }
-                this.markSimResolved(human);
-                await this._closeSimRoundIfComplete();
-            }
-        }
+        const shouldResume = this._resumeAfterVisibility;
+        this._resumeAfterVisibility = false;
+        if (shouldResume) this.resume();
     }
 
     /**
@@ -1274,6 +1341,9 @@ class AgentEngine {
         return this._closeSimRoundIfComplete();
     }
     stop(reason = 'Agent stopped.'): void {
+        this._paused = false;
+        this._pausedAt = null;
+        this._resumeAfterVisibility = false;
         config.running = false; VW?.ui?.updateButtons(); events.log(reason, 'system-msg');
         VW?.ui?.setStatus("Idle.", "info"); VW?.ui?.showPlayPause(true, false);
         VW?.ui?.updateMaxStepsDisplay();
@@ -1290,6 +1360,10 @@ class AgentEngine {
         this.initiativeRolls = {};
         this._simCountdowns = {};
         this._simRoomCountdowns = {};
+        this._simDeadlines = {};
+        this._paused = false;
+        this._pausedAt = null;
+        this._resumeAfterVisibility = false;
     }
     nudge(charName: string, text: string): void {
         if (!text || !charName) return;
@@ -1480,6 +1554,12 @@ class AgentEngine {
     // the new user message, already pushed by the caller). Pruned by the
     // context window when over the token/message limit.
     async _callLLMMessages(messages: AgentEngineMessage[], stepName: string): Promise<any> {
+        // Pause is a turn-boundary gate: let the in-flight request finish, then
+        // hold any later LLM phase here until the user resumes the run.
+        while (config.running && this._paused) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        if (this._cancelRequested) return null;
         this.contextMgr.reset();
         messages.forEach((m,i) => this.contextMgr.addMessage(m, { importance: m.role==='system'?2:0, type: m.role, keepAlways: m.role==='system' }));
         const final = this.contextMgr.isOverLimit() ? this.contextMgr.prune(messages) : messages;

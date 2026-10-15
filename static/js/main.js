@@ -113,7 +113,7 @@ const mainJsTag = (strings, ...values) => Lit.html(strings, ...values);
 // ============================================
 // Simulation controls (left panel buttons)
 function startAgent() { agent.start(); }
-function stopAgent() { agent.stop(); }
+function stopAgent() { agent.pause(); }
 function agentStepOnce() { agent.stepOnce(); }
 function cancelStep() { agent.cancel(); }
 /** task-533: pass your turn in a simultaneous round and let the world advance. */
@@ -805,6 +805,9 @@ function toggleSpectator() { SaveLoadView.toggleSpectator(); }
 function populateSettingsForm() { SettingsView.populateForm(); }
 // Auto-scroll toggle
 document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('visibilitychange', () => {
+        agent.setVisibilityPaused(document.hidden);
+    });
     const scrollToggle = document.getElementById('stream-auto-scroll');
     if (scrollToggle) {
         scrollToggle.addEventListener('click', () => {
@@ -860,6 +863,7 @@ document.addEventListener('DOMContentLoaded', () => {
     await graphManager.init();
     // Initial state fetch
     await worldState.fetch(true); // lite=true for fast initial paint
+    window.VWSimultaneousControls?.init();
     agentLens.init();
     // Fetch equipment slot configuration
     await worldState.fetchEquipSlots();
@@ -883,7 +887,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // panel twice per fetch — four times per agent click, which did two
         // fetches. Keep the one subscription.
         // Update play/pause buttons
-        ui.showPlayPause(!config.running, Boolean(config.running));
+        ui.showPlayPause(!config.running || agent.isPaused, Boolean(config.running && !agent.isPaused));
+        window.VWSimultaneousControls?.render();
         // Reflect any graph change IN PLACE (task-764). This fires on every
         // state update — the spectator poll and every `world_changed` edit — so
         // it must not refetch or rebuild: syncGraphData() updates a changed node

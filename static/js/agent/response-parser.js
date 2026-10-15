@@ -134,9 +134,54 @@ window.ResponseParser = (() => {
             };
         }
     }
+    /** Parse the communication adapter using the agent's JSON repair and memory normalization. */
+    function parseCommunication(r) {
+        const empty = {
+            inner: '', action: 'think', channelId: null, recipient: null, text: '',
+            readMode: 'all', n: 5, fromId: null, toId: null, memory: null, parseError: null,
+        };
+        if (!r)
+            return empty;
+        try {
+            const repair = window.repairJSON;
+            const parsed = JSON.parse(repair(normalizeRawResponse(r)));
+            const raw = parsed.communication && typeof parsed.communication === 'object'
+                ? parsed.communication
+                : {};
+            const allowedActions = ['read_chat', 'send_chat', 'start_dm', 'think'];
+            const allowedModes = ['latest', 'all', 'range'];
+            const integerOrNull = (value) => {
+                const number = Number(value);
+                return Number.isInteger(number) && number > 0 ? number : null;
+            };
+            const count = Number(raw.n);
+            return {
+                inner: String(parsed.inner_monologue || ''),
+                action: allowedActions.includes(String(raw.action))
+                    ? String(raw.action) : 'think',
+                channelId: String(raw.channel_id || '').trim() || null,
+                recipient: String(raw.recipient || '').trim() || null,
+                text: String(raw.text || '').trim(),
+                readMode: allowedModes.includes(String(raw.read_mode))
+                    ? String(raw.read_mode) : 'all',
+                n: Number.isFinite(count) ? Math.max(1, Math.min(50, Math.trunc(count))) : 5,
+                fromId: integerOrNull(raw.from_id),
+                toId: integerOrNull(raw.to_id),
+                memory: extractMemory(parsed.memory),
+                parseError: null,
+            };
+        }
+        catch (error) {
+            return {
+                ...empty,
+                parseError: `Failed to parse LLM response as JSON: ${error instanceof Error ? error.message : String(error)}`,
+            };
+        }
+    }
     return {
         parseReaction,
         parseResultReaction,
+        parseCommunication,
         extractMemory
     };
 })();

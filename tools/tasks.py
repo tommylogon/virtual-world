@@ -129,11 +129,32 @@ EFFORTS = ("S", "M", "L")
 
 # The template body used by `new` and appended by `backfill` for a missing
 # section. Kept here so the two writers cannot drift.
+#
+# The `verify` stub is deliberately longer than a placeholder: a card is born
+# carrying the house evidence rules, because the shape of the section is what
+# an author fills in. The live step names the port, the interaction verbs, the
+# whole-container count and the scroll-to-bottom rule; the test step keeps the
+# unit test from standing in for the browser. Replace both, do not delete them.
+VERIFY_STUB = (
+    "1. TODO\n"
+    "   - expected: TODO\n"
+    "   - observed: TODO\n"
+    "2. Reproduce it live at http://localhost:4444 (set VW_PORT for a second\n"
+    "   copy). Name the interaction performed (hover / click / collapse / typed\n"
+    "   input), count the WHOLE container rather than a fragment of it, and\n"
+    "   scroll to the bottom before judging a scrollable surface.\n"
+    "   - expected: TODO\n"
+    "   - observed: TODO\n"
+    "3. Run the targeted regression test for the mechanism.\n"
+    "   - expected: TODO\n"
+    "   - observed: TODO"
+)
+
 SECTION_STUBS = {
     "what": "TODO",
     "why": "TODO",
     "how": "TODO",
-    "verify": "1. TODO\n   - expected: TODO\n   - observed: TODO",
+    "verify": VERIFY_STUB,
     "acceptance": "- [ ] TODO",
     "files": "- TODO",
 }
@@ -1670,6 +1691,12 @@ def _schema_warnings(entries: List[Entry]) -> List[str]:
     unchecked acceptance box, and when its verification still reads
     ``observed: TODO``. These become errors once the backfill has cleared the
     tree, which is why they are reported but not fatal.
+
+    The ``observed: TODO`` check covers ``review`` as well as ``done``: a card
+    claiming to be under review with nothing recorded as observed is exactly
+    the "acceptance criteria never demonstrated live" case the filing
+    discipline forbids, and it is cheaper to catch at the review gate than at
+    the done gate.
     """
     out: List[str] = []
     for e in entries:
@@ -1686,8 +1713,10 @@ def _schema_warnings(entries: List[Entry]) -> List[str]:
             secs = body_sections(text)
             if re.search(r"^\s*-\s*\[ \]", secs.get("acceptance", ""), re.MULTILINE):
                 out.append(f"{e.id} done with an unchecked acceptance box")
+        if e.status in ("review", "done"):
+            secs = body_sections(text)
             if re.search(r"observed\s*:\s*TODO", secs.get("verify", ""), re.IGNORECASE):
-                out.append(f"{e.id} done with observed: TODO")
+                out.append(f"{e.id} {e.status} with observed: TODO")
     return out
 
 
@@ -1977,7 +2006,8 @@ reported as warnings, everything else as errors (exit code 1).
   --quiet   suppress warnings, print only errors and the summary
   --schema  also warn on canonical-schema gaps: a card lacking a canonical
             section or frontmatter key, a done card with an unchecked
-            acceptance box, or a done card whose observed still reads TODO
+            acceptance box, or a review/done card whose observed still
+            reads TODO
 
   python tools/tasks.py validate
   python tools/tasks.py validate --schema

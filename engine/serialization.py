@@ -479,7 +479,12 @@ class WorldSerializer:
             "forecast_schedule": getattr(self.legacy, "forecast_schedule", None),
             "forecast_override": getattr(self.legacy, "forecast_override", None),
             "graph_background": getattr(self.legacy, "graph_background", None),
-            "delayed_events": self.legacy.delayed_events.to_dict()
+            "delayed_events": self.legacy.delayed_events.to_dict(),
+            "stage_chat": (
+                {} if lite else
+                (self.legacy.stage_chat.to_dict()
+                 if getattr(self.legacy, "stage_chat", None) is not None else {})
+            )
         }
 
     def _deserialize_player(self, pname, pdata):
@@ -676,6 +681,8 @@ class WorldSerializer:
         data.pop("turn_events", None)
         data.pop("log_revision", None)
         data.pop("delayed_events", None)
+        # Stage chat is runtime communication state, not scenario authoring data.
+        data.pop("stage_chat", None)
         for pdata in data.get("players", {}).values():
             pdata.pop("recent_hearing", None)
             # A character does not *author* their lived history, so it is runtime
@@ -902,6 +909,8 @@ class WorldSerializer:
         self.legacy._forecast_sched_obj = None
         from engine.event_queue import DelayedEventQueue
         self.legacy.delayed_events = DelayedEventQueue.from_dict(data.get("delayed_events", []))
+        if getattr(self.legacy, "stage_chat", None) is not None:
+            self.legacy.stage_chat.from_dict(data.get("stage_chat"))
 
         # Perception at load (task-403): a character knows the room it is
         # standing in from the moment it is there. Observations are otherwise

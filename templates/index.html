@@ -54,7 +54,7 @@
                 <button class="dropdown-item" onclick="closeTopMenus();ScenarioManager.open()" role="menuitem">🗂 Scenario Manager…</button>
                 <button class="dropdown-item" onclick="closeTopMenus();ScenarioHealth.open()" role="menuitem">🩺 Scenario Health…</button>
                 <button class="dropdown-item" onclick="closeTopMenus();window.location.href='/soak'" role="menuitem">🧪 Soak Lab…</button>
-                <button class="dropdown-item" onclick="closeTopMenus();window.location.href='/stage-chat'" role="menuitem">💬 Stage Chat…</button>
+                <button class="dropdown-item" onclick="closeTopMenus();window.location.href='/stage-chat'" role="menuitem">💬 The Commons…</button>
                 <button class="dropdown-item" onclick="closeTopMenus();Timeskip.openDialog()" role="menuitem" title="Wait, mingle, search, explore or fast-travel for a span of game time">⏩ Wait / Timeskip…</button>
                 <button class="dropdown-item" onclick="closeTopMenus();RoomTemplatePalette.open()" role="menuitem">🏗️ New Room from Template…</button>
                 <button class="dropdown-item" onclick="closeTopMenus();SetupChecklist.open()" role="menuitem">🚀 Setup Checklist…</button>
@@ -121,7 +121,12 @@
                 <div class="settings-group" style="border-top:1px solid var(--border-light);margin-top:6px;">
                     <div class="settings-group-title"><span class="group-icon">🎮</span> Turn Order</div>
                     <div class="toggle-row"><label class="toggle-label"><input type="checkbox" id="agent-turn-based" data-help="turn-model" onchange="config.turnBased=this.checked;if(this.checked&&window.VWSimultaneous.isSimultaneous(config.turnOrder)){config.setTurnMode('sequential');}else{config.save();}events.log(this.checked?'Turn-based enabled':'Turn-based disabled','system-msg');if(window.appEvents)appEvents.emit('state:updated',worldState?.data);"> ⏭️ Turn-Based Mode</label><span class="toggle-desc" id="agent-turn-based-desc">Characters act one at a time</span></div>
-                    <div class="settings-field"><label for="agent-turn-order" data-help="simultaneous">Turn mode</label><select id="agent-turn-order" style="width:210px;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.setTurnMode(this.value)"><option value="sequential">Sequential — one at a time</option><option value="random">Random — reshuffled each round</option><option value="initiative">Initiative — d20 + DEX</option><option value="simultaneous">Simultaneous — every character on a countdown</option><option value="simultaneous_room">Simultaneous per room — rooms independent, order within a room</option></select></div>
+                    <div class="settings-field"><label for="agent-turn-order" data-help="simultaneous">Turn mode</label><select id="agent-turn-order" style="width:210px;font-size:11px;padding:4px 6px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="config.setTurnMode(this.value)"><option value="sequential">Sequential — one at a time</option><option value="random">Random — reshuffled each round</option><option value="initiative">Initiative — d20 + DEX</option><option value="simultaneous">Simultaneous (async) — independent cooldowns</option><option value="simultaneous_room">Simultaneous per room — rooms independent, order within a room</option></select></div>
+                    <div id="sim-rate-estimate" class="sim-rate-estimate" hidden aria-live="polite"></div>
+                    <details class="sim-pacing-details">
+                        <summary>Per-character cooldowns</summary>
+                        <div id="sim-character-pacing" class="sim-character-pacing" hidden></div>
+                    </details>
                 </div>
             </div>
             <div id="left-tab-outline" class="left-tab-pane" role="tabpanel">
@@ -1336,6 +1341,7 @@
 <script src="/static/js/shared/scope-options.js"></script>
     <script src="/static/js/world-state.js"></script>
     <script src="/static/js/agent/simultaneous.js"></script>
+    <script src="/static/js/agent/simultaneous-controls.js"></script>
     <script src="/static/js/agent/sim-round.js"></script>
     <script src="/static/js/config.js"></script>
     <script src="/static/js/api.js"></script>

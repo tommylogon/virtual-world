@@ -248,6 +248,6 @@ Frontend mirror: `static/js/agent/prompt-builder/room-context.js` (`spatialPosit
 
 **Dev tasks** — [[dev_tasks/review/gameplay/task-783-approach-on-examine-and-take|task]]
 
-**Neighbouring notes** — [[Per-Agent Knowledge (Fog of War)]], [[Search & Forage]], [[Turn Queue & Human Turns]]
+**Neighbouring notes** — [[Per-Agent Knowledge (Fog of War)]], [[Search & Forage]], [[The Commons]], [[Turn Queue & Human Turns]]
 
 <!-- connected:end -->

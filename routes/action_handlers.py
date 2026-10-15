@@ -177,6 +177,9 @@ def handle_get_state(app):
             if entry is not None and entry[0] == rev:
                 return Response(entry[1], mimetype="application/json")
         state = app.world.to_dict(lite=lite)
+        # Conversation privacy is enforced by the Stage Chat endpoints. Never
+        # publish private channel state through the world-wide state payload.
+        state.pop("stage_chat", None)
         # Perf: `rooms` is an exact duplicate of `areas` (serialization.py emits
         # the same dict under both keys) and `areas_by_id` has no HTTP consumer —
         # the browser reads `worldState.areas`. Together they roughly triple the

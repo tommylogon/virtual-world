@@ -25,7 +25,7 @@ free number, so a citation of "row 51" never moves. (The original numbering ran
 in-game 1–43 and editor 44–76; `Crafting` was appended as 77 rather than
 inserted, for exactly this reason.)
 
-Counts measured from this file: **77 features — 44 in a game, 33 in the editor.**
+Counts measured from this file: **78 features — 45 in a game, 33 in the editor.**
 
 ---
 
@@ -77,6 +77,7 @@ Counts measured from this file: **77 features — 44 in a game, 33 in the editor
 | 42 | **Prompt lens** | See exactly the context an agent would be given, with no LLM call | wired | [[LLM Providers]] |
 | 43 | **Where you've been** | A map of the cells your character has actually walked, per scope | wired | [[Turn Queue & Human Turns]] |
 | 77 | **Crafting** | Make, combine, split and teach: recipes, tools and results | wired | none |
+| 78 | The Commons | Character messaging across distance: public posts, private groups and direct messages | wired | [[Gameplay/The Commons]] |
 
 ## In the editor
 

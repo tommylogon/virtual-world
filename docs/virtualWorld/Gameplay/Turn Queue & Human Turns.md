@@ -259,6 +259,8 @@ disagreement between them as a bug without checking
 
 **Features** — [[timeskip|Timeskip]] (#15), [[turn-queue|Turn queue]] (#30), [[the-human-turn|The human turn]] (#31), [[where-you-ve-been|Where you've been]] (#43), [[the-human-turn-composer|The human turn composer]] (#67), [[turn-based-modes|Turn-based modes]] (#68)
 
-**Neighbouring notes** — [[Character Spatial Position]], [[Per-Agent Knowledge (Fog of War)]], [[Search & Forage]]
+**Dev tasks** — [[dev_tasks/todo/gameplay/task-825-simultaneous-mode-v2-async-cooldown-talkativeness|task]]
+
+**Neighbouring notes** — [[Character Spatial Position]], [[Per-Agent Knowledge (Fog of War)]], [[Search & Forage]], [[The Commons]]
 
 <!-- connected:end -->

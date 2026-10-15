@@ -1,5 +1,55 @@
 {
   "_scenario_name": "kraktooth_goblin_camp",
+  "stage_chat": {
+    "messages": [
+      {
+        "id": 1,
+        "channel_id": "public",
+        "author": "Vekka",
+        "text": "Human tracks cross the north trail and turn toward the ravine.",
+        "timestamp": 0,
+        "tick": 0
+      },
+      {
+        "id": 2,
+        "channel_id": "group_camp_watch",
+        "author": "Zikka",
+        "text": "I will take first watch. Gribba, keep the fire low.",
+        "timestamp": 0,
+        "tick": 0
+      },
+      {
+        "id": 3,
+        "channel_id": "dm_vekka_zikka",
+        "author": "Vekka",
+        "text": "I found human tracks beyond camp. I wanted you to know first.",
+        "timestamp": 0,
+        "tick": 0
+      }
+    ],
+    "participants": {
+      "Vekka": { "active": true, "blocked": false, "last_read_message_ids": {} },
+      "Zikka": { "active": true, "blocked": false, "last_read_message_ids": {} },
+      "Gribba": { "active": true, "blocked": false, "last_read_message_ids": {} }
+    },
+    "channels": {
+      "group_camp_watch": {
+        "id": "group_camp_watch",
+        "kind": "group",
+        "name": "Camp Watch",
+        "members": ["Vekka", "Zikka", "Gribba"],
+        "created_by": "Vekka"
+      },
+      "dm_vekka_zikka": {
+        "id": "dm_vekka_zikka",
+        "kind": "dm",
+        "name": "Vekka · Zikka",
+        "members": ["Vekka", "Zikka"],
+        "created_by": "Vekka"
+      }
+    },
+    "next_message_id": 4
+  },
   "active_player": "Cullen Rutherford",
   "area_presence": {
     "area_animal_pens": {},

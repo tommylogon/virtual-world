@@ -4,23 +4,23 @@
  * @contributes Initializes UI, State, Agent, and visibility listeners
  * @powers Boots Stage Chat
  * @relates StageChatUI, StageChatState, StageChatAgent
- * @docs docs/virtualWorld/dev_tasks/todo/gameplay/task-824-stage-chat-turn-based-character-perspective-chat-page.md
+ * @docs docs/virtualWorld/Gameplay/The Commons.md
  */
 (function () {
     'use strict';
     document.addEventListener('DOMContentLoaded', async () => {
+        const config = window.config;
+        await config?._initPromise;
+        window.llmClient?.configure(config?.toLLMConfig?.());
         window.StageChatUI.init();
         await window.StageChatState.sync();
         window.StageChatState.startPolling(2500);
         window.StageChatAgent.start();
         // Auto-pause when tab is hidden, resume when visible
         document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                window.StageChatAgent.stop();
-            }
-            else {
-                window.StageChatAgent.start();
-            }
+            window.StageChatState.setPaused(document.hidden, 'visibility');
         });
+        if (document.hidden)
+            window.StageChatState.setPaused(true, 'visibility');
     });
 })();

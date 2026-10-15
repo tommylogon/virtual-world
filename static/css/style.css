@@ -2772,3 +2772,35 @@ label.chip-toggle.on { background: rgba(88, 166, 255, 0.12); border-color: var(-
 }
 #event-stream.story-mode .area-transition::before,
 #event-stream.story-mode .area-transition::after { background: transparent; }
+
+/* task-825: real-time simultaneous pacing controls */
+.sim-rate-estimate {
+    margin-top: 6px;
+    color: var(--text-muted, #8b949e);
+    font-size: 10px;
+    line-height: 1.35;
+}
+.sim-pacing-details { margin-top: 5px; }
+.sim-pacing-details summary {
+    cursor: pointer;
+    color: var(--text-secondary, #b1bac4);
+    font-size: 11px;
+}
+.sim-character-pacing {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 240px;
+    overflow-y: auto;
+    margin-top: 5px;
+}
+.sim-pacing-row {
+    display: grid;
+    grid-template-columns: minmax(70px, 1fr) minmax(60px, 1.2fr) 30px;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+}
+.sim-pacing-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sim-pacing-row input { width: 100%; min-width: 0; }
+.sim-pacing-row output { text-align: right; color: var(--text-muted, #8b949e); }

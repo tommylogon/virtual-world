@@ -55,6 +55,20 @@ interface ResponseParserWindowSurface {
         action?: unknown;
     }
 
+    interface ParsedCommunication {
+        inner: string;
+        action: 'read_chat' | 'send_chat' | 'start_dm' | 'think';
+        channelId: string | null;
+        recipient: string | null;
+        text: string;
+        readMode: 'latest' | 'all' | 'range';
+        n: number;
+        fromId: number | null;
+        toId: number | null;
+        memory: ExtractedMemory | null;
+        parseError: string | null;
+    }
+
     /** Extract subjective memory: {text, importance, tags} or plain string. */
     function extractMemory(m: unknown): ExtractedMemory | null {
         if (!m) return null;
@@ -162,9 +176,53 @@ interface ResponseParserWindowSurface {
         }
     }
 
+    /** Parse the communication adapter using the agent's JSON repair and memory normalization. */
+    function parseCommunication(r: unknown): ParsedCommunication {
+        const empty: ParsedCommunication = {
+            inner: '', action: 'think', channelId: null, recipient: null, text: '',
+            readMode: 'all', n: 5, fromId: null, toId: null, memory: null, parseError: null,
+        };
+        if (!r) return empty;
+        try {
+            const repair = (window as unknown as ResponseParserWindowSurface).repairJSON;
+            const parsed = JSON.parse(repair(normalizeRawResponse(r))) as Record<string, unknown>;
+            const raw = parsed.communication && typeof parsed.communication === 'object'
+                ? parsed.communication as Record<string, unknown>
+                : {};
+            const allowedActions = ['read_chat', 'send_chat', 'start_dm', 'think'];
+            const allowedModes = ['latest', 'all', 'range'];
+            const integerOrNull = (value: unknown): number | null => {
+                const number = Number(value);
+                return Number.isInteger(number) && number > 0 ? number : null;
+            };
+            const count = Number(raw.n);
+            return {
+                inner: String(parsed.inner_monologue || ''),
+                action: allowedActions.includes(String(raw.action))
+                    ? String(raw.action) as ParsedCommunication['action'] : 'think',
+                channelId: String(raw.channel_id || '').trim() || null,
+                recipient: String(raw.recipient || '').trim() || null,
+                text: String(raw.text || '').trim(),
+                readMode: allowedModes.includes(String(raw.read_mode))
+                    ? String(raw.read_mode) as ParsedCommunication['readMode'] : 'all',
+                n: Number.isFinite(count) ? Math.max(1, Math.min(50, Math.trunc(count))) : 5,
+                fromId: integerOrNull(raw.from_id),
+                toId: integerOrNull(raw.to_id),
+                memory: extractMemory(parsed.memory),
+                parseError: null,
+            };
+        } catch (error) {
+            return {
+                ...empty,
+                parseError: `Failed to parse LLM response as JSON: ${error instanceof Error ? error.message : String(error)}`,
+            };
+        }
+    }
+
     return {
         parseReaction,
         parseResultReaction,
+        parseCommunication,
         extractMemory
     };
 })();

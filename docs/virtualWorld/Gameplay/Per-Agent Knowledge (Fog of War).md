@@ -274,6 +274,6 @@ per cell, per area, or per scope — task-499 starts at area/scope.
 
 **Features** — [[per-agent-knowledge-fog-of-war|Per-agent knowledge (fog of war)]] (#29)
 
-**Neighbouring notes** — [[Character Spatial Position]], [[Search & Forage]], [[Turn Queue & Human Turns]]
+**Neighbouring notes** — [[Character Spatial Position]], [[Search & Forage]], [[The Commons]], [[Turn Queue & Human Turns]]
 
 <!-- connected:end -->

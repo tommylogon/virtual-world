@@ -23,6 +23,8 @@ const UNIT_DIR = __dirname;
 // The window object doubles as the vm global — browser semantics.
 const win = {
     console,
+    AbortController,
+    AbortSignal,
     // browser globals used by shared helpers but absent from a bare vm context
     URL, URLSearchParams,
     // stubs used by plan-tracker.js
@@ -159,6 +161,9 @@ load('static/js/agent/turn-feed.js');
 load('static/js/agent/plan-grounding.js');
 load('static/js/agent/action-tiers.js');
 load('static/js/llm-client.js');
+load('static/js/stage-chat/stage-chat-api.js');
+load('static/js/stage-chat/stage-chat-state.js');
+load('static/js/stage-chat/stage-chat-agent.js');
 load('static/js/agent/plan-tracker.js');
 load('static/js/agent/involuntary.js');
 load('static/js/character-art.js');
@@ -175,7 +180,9 @@ load('static/js/inspector/agent-view.js');
 // window.AutoDressModal at click time (not at eval time), but grouping first
 // keeps the load order matching the template's script order.
 load('static/js/inspector/auto-dress-modal.js');
+load('static/js/agent/prompt-builder/helpers.js');
 load('static/js/agent/prompt-builder/character-state.js');
+load('static/js/agent/prompt-builder/context-sections.js');
 load('static/js/agent/prompt-builder/conversation-context.js');
 // turn-prompts.js only needs window.PromptBuilder at eval time; its phase
 // builders reach for the other prompt-builder modules at call time. Loading it

@@ -108,3 +108,20 @@ test('simultaneous: tickCountdowns decrements positives only', () => {
     VWSimultaneous.tickCountdowns(countdowns);
     assertEq(countdowns, { a: 0, b: 0 });
 });
+
+test('simultaneous async: talkativeness clamps and jitter stays inside its range', () => {
+    assertEq(VWSimultaneous.normalizeTalkativeness(1), 5);
+    assertEq(VWSimultaneous.normalizeTalkativeness(180), 120);
+    assertEq(VWSimultaneous.jitteredCooldownMs(5, () => 0), 3750);
+    assertEq(VWSimultaneous.jitteredCooldownMs(120, () => 1), 150000);
+});
+
+test('simultaneous async: elapsed characters run by arrival time, with stable ties', () => {
+    const deadlines = { RosterFirst: 900, EarlierArrival: 500, SameArrival: 500, NotReady: 1200 };
+    assertEq(VWSimultaneous.firstReadyCharacter(Object.keys(deadlines), deadlines, 800), 'EarlierArrival');
+    assertEq(VWSimultaneous.firstReadyCharacter(['RosterFirst', 'EarlierArrival'], {
+        RosterFirst: 500,
+        EarlierArrival: 500,
+    }, 500), 'RosterFirst');
+    assertEq(VWSimultaneous.firstReadyCharacter(['NotReady'], deadlines, 800), null);
+});

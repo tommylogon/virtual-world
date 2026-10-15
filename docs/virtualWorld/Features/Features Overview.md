@@ -13,9 +13,10 @@ works — the operations and rules inside it — and lives as the deep doc a pag
 here is an **entry point**: it says what the feature is, links the deep documentation that
 explains it, and says plainly how confident the map is. None of them replaces the deep doc.
 
-Generated from the Feature Map on 2026-10-05 — `python tools/feature_pages.py --scaffold` creates a
-missing page, `--check` fails when a row loses its page (or when this page stops listing one).
-Status counts: `planned` 2, `unwired` 1, `wired` 73.
+Updated from the Feature Map on 2026-10-15. `python tools/feature_pages.py --report` lists each
+feature's entry page and deep documentation; it does not create or validate pages. Status counts:
+`planned` 2, `unwired` 1, `wired` 75. Crafting (row 77) is the one listed feature without an entry
+page or deep note yet.
 
 ## In a game
 
@@ -64,6 +65,8 @@ Status counts: `planned` 2, `unwired` 1, `wired` 73.
 | 41 | [[memory-pipeline\|Memory pipeline]] | `wired` | [[Memory System]] |
 | 42 | [[prompt-lens\|Prompt lens]] | `wired` | [[LLM Providers]] |
 | 43 | [[where-you-ve-been\|Where you've been]] | `wired` | [[Turn Queue & Human Turns]] |
+| 77 | Crafting | `wired` | — (no feature page yet) |
+| 78 | [[the-commons\|The Commons]] | `wired` | [[Gameplay/The Commons]] |
 
 ## In the editor
 

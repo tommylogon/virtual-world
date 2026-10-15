@@ -138,6 +138,9 @@ def create_app(config=None):
             if method in ('POST', 'PATCH', 'DELETE') and (
                 '/api/graph/' in path or '/api/players/' in path
                 or '/api/build/' in path or '/api/world/' in path
+                # Stage Chat is saved runtime communication state (channels,
+                # messages, membership, and read cursors), not scenario content.
+                or path.startswith('/api/stage-chat/')
                 # Settings that persist to the scenario — clock, date, forecast,
                 # calendar, narration, ghost/mature flags — are edits too, so
                 # they must mark the scenario dirty and offer Commit. The

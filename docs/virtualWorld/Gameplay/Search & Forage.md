@@ -291,6 +291,6 @@ reachable food calls `_forage_spawn` (`background_simulation.py:931`), which pic
 
 **Features** — [[search-forage|Search / forage]] (#12)
 
-**Neighbouring notes** — [[Character Spatial Position]], [[Per-Agent Knowledge (Fog of War)]], [[Turn Queue & Human Turns]]
+**Neighbouring notes** — [[Character Spatial Position]], [[Per-Agent Knowledge (Fog of War)]], [[The Commons]], [[Turn Queue & Human Turns]]
 
 <!-- connected:end -->

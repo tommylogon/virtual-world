@@ -746,6 +746,7 @@ constant on-screen size, so they stay clickable when zoomed out.
 
 | When | Task | Status |
 |---|---|---|
+| 2026-10-12 | [[bug-550-a-property-only-sync-re-seeds-node-x-y-and-snaps-a-dragged-node-back-to-its-stored-position\|A property-only sync re-seeds node x/y and snaps a dragged node back to its stored position]] | `done` |
 | — | [[task-outline-left-panel-tab-camera-focus\|task-outline-left-panel-tab-camera-focus]] | `done` |
 | — | [[task-82-map-view-and-directions\|task-82-map-view-and-directions]] | `done` |
 | — | [[task-46-room_tree_view\|task-46-room_tree_view]] | `done` |
@@ -764,7 +765,7 @@ constant on-screen size, so they stay clickable when zoomed out.
 
 **Features** — [[the-map|The map]] (#33), [[graph-canvas|Graph canvas]] (#44), [[map-layout|Map layout]] (#45), [[levels-layout|Levels layout]] (#46)
 
-**Dev tasks** — [[dev_tasks/done/archive/task-82-map-view-and-directions|task]], [[dev_tasks/done/graph/task-100-graph-view-filters|task]], [[dev_tasks/done/graph/task-105-edge-refactor|task]], [[dev_tasks/done/graph/task-107-id-rename-sync-and-trigger-consistency|task]], [[dev_tasks/done/graph/task-112-cardinal-layout-position-ways|task]], [[dev_tasks/done/graph/task-35-graph_visual_alternatives|task]] … +3 more
+**Dev tasks** — [[dev_tasks/done/archive/task-82-map-view-and-directions|task]], [[dev_tasks/done/graph/bug-550-a-property-only-sync-re-seeds-node-x-y-and-snaps-a-dragged-node-back-to-its-stored-position|bug]], [[dev_tasks/done/graph/task-100-graph-view-filters|task]], [[dev_tasks/done/graph/task-105-edge-refactor|task]], [[dev_tasks/done/graph/task-107-id-rename-sync-and-trigger-consistency|task]], [[dev_tasks/done/graph/task-112-cardinal-layout-position-ways|task]] … +4 more
 
 **Neighbouring notes** — [[Connections]], [[Generated Scenario Review (2026-08)]], [[Grid to Graph]], [[Millbrook Falls Town Map]], [[Movement]], [[Rooms & Areas]]
 

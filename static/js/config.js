@@ -45,6 +45,19 @@ class ConfigManagerImpl {
         this.streaming = (await storage.getConfig('streaming')) === 'true';
         this.turnBased = (await storage.getConfig('turn_based')) === 'true';
         this.turnOrder = await storage.getConfig('turn_order') || 'sequential';
+        const savedTalkativeness = await storage.getConfig('simultaneous_talkativeness');
+        try {
+            const parsed = JSON.parse(savedTalkativeness || '{}');
+            this.talkativenessByCharacter = parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+                ? Object.fromEntries(Object.entries(parsed).map(([name, value]) => [
+                    name,
+                    window.VWSimultaneous.normalizeTalkativeness(value),
+                ]))
+                : {};
+        }
+        catch (e) {
+            this.talkativenessByCharacter = {};
+        }
         this.frontendTemplate = await storage.getConfig('frontend_template') || 'index';
         this.lastProfile = await storage.getConfig('last_profile') || 'LM Studio (Local)';
         // The app runs against local LM Studio; a lingering built-in OpenAI
@@ -186,6 +199,23 @@ class ConfigManagerImpl {
     get simultaneousMode() {
         return window.VWSimultaneous.isSimultaneous(this.turnOrder) ? this.turnOrder : false;
     }
+    getTalkativeness(name) {
+        const value = this.talkativenessByCharacter?.[name];
+        return window.VWSimultaneous.normalizeTalkativeness(value);
+    }
+    async setTalkativeness(name, value) {
+        if (!name)
+            return window.VWSimultaneous.TALKATIVENESS_DEFAULT_SECONDS;
+        const mode = window.VWSimultaneous;
+        const pace = mode.normalizeTalkativeness(value);
+        if (!this.talkativenessByCharacter)
+            this.talkativenessByCharacter = {};
+        this.talkativenessByCharacter[name] = pace;
+        await storage.setConfig('simultaneous_talkativeness', JSON.stringify(this.talkativenessByCharacter));
+        const agentEngine = window.agent;
+        agentEngine?.resetSimCharacterDeadline?.(name);
+        return pace;
+    }
     /**
      * Select a turn mode from the dial. The simultaneous variants conflict with
      * the turn queue, so choosing one turns Turn-Based Mode off.
@@ -202,7 +232,10 @@ class ConfigManagerImpl {
                 turnBased.checked = false;
             events.log(this.turnOrder === 'simultaneous_room'
                 ? '🏘️ Simultaneous per room enabled (rooms resolve independently)'
-                : '🌊 Simultaneous mode enabled (experimental — chaos by design)', 'system-msg');
+                : '🌊 Simultaneous async enabled (each character follows an independent cooldown)', 'system-msg');
+            if (this.turnOrder === 'simultaneous') {
+                window.agent?.resetSimDeadlines?.();
+            }
         }
         else if (TurnQueue && this.turnBased) {
             TurnQueue.initialize();
@@ -225,7 +258,7 @@ class ConfigManagerImpl {
             sequential: 'Characters act one at a time',
             random: 'Characters act in a shuffled order, reshuffled each round',
             initiative: 'Each character rolls d20 + DEX; highest acts first',
-            simultaneous: 'Every character acts at once on a countdown',
+            simultaneous: 'Independent 5–120 second cooldowns, jittered per character',
             simultaneous_room: 'Rooms resolve independently; order within a room',
         };
         desc.textContent = DESCRIPTIONS[this.turnOrder] || `Turn mode: ${this.turnOrder}`;
