@@ -71,3 +71,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Not applicable — this task adds conceptual feature notes and Feature Map links; it does not add or change the ten already-shipped product surfaces.
+
+Current availability: the task records ten features with no note in a 58-feature map and requires a note per feature, correct folders, and zero missing-note rows. The documentation coverage is the deliverable.
+
+Why no browser UI: browser checks could demonstrate each existing feature but cannot prove the ten note links, source citations, or measured wired/unwired claims are complete.
+
+Alternative verification steps:
+1. Open Feature Map.md and check each of the ten named features: search/forage, backsim, fog-of-war knowledge, WorldPainter, grid-to-graph compile, NL editor, recent edits/undo, validator/issues, event stream, and soak lab.
+   - expected: each row links to one note in the folder that owns its subject; no row is left `none`.
+2. Follow each note and inspect its source references and wired/unwired claims against actual callers.
+   - expected: every note distinguishes implemented, wired, authored, tested, and planned behavior accurately.
+3. Run `python tools/doc_links.py --check`.
+   - expected: all ten links resolve and Feature Map reports zero features with no note.
+
+This section is not a claim that new product UI was added by this documentation task.

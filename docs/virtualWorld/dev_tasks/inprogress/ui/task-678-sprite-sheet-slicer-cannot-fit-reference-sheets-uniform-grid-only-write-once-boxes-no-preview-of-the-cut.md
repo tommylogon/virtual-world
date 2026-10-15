@@ -40,6 +40,21 @@ count describes none of that. A miscut was only visible after upload — the
 - The crop strip is rebuilt on release (not on every mousemove) so re-cropping
   every tile cannot stall the tab.
 
+## Browser UI and intended live verification
+
+Intended UI home: Character Inspector → Expression Pack → Split Sheet dialog.
+
+Current availability: The slicer currently handles uniform grids; adjustable frame/dividers and crop preview remain in progress.
+
+Live steps when available:
+
+1. Open Split Sheet and upload a sheet with a title banner and uneven panel sizes.
+   - expected: The frame moves off the banner, dividers create uneven crops, and thumbnails update live.
+
+2. Run Auto-fit, then move and resize an existing crop.
+   - expected: Auto-fit proposes editable whitespace gutters and each crop can be corrected before upload.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. Character inspector → Expression Pack → ✂️ Split sheet → upload a sheet with a

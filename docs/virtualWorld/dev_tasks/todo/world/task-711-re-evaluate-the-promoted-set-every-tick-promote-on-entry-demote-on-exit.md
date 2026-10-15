@@ -77,3 +77,23 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: select a scope in the graph editor → observe the promoted/backsim state in Agents → move a character across the scope boundary → inspect the next tick's transition and span summary.
+
+Current availability: task-710 defines the level-scoped selection rule and whole-world mode; this card adds re-evaluation each tick. Continuous promote-on-entry and demote-on-exit are acceptance criteria, not claimed as complete.
+
+Live steps when available:
+1. Select `goblin_camp`, then move a background character from an outside area into one of the scope's own areas. Inspect Agents and the event stream after the tick boundary.
+   - expected: the character is queued and promoted at one boundary, then appears in the active set.
+2. Move that character back outside the selected scope and inspect the next boundary.
+   - expected: the character is offloaded through the background transition, is no longer active, and its span boundary is stamped for later consolidation.
+3. Repeat with a character holding `soak_order`.
+   - expected: neither entry nor exit processing changes the soak-owned character's mode.
+4. Clear the scope into explicit whole-world mode and allow several ticks.
+   - expected: no per-tick scope transitions are queued and no character is demoted.
+5. Move a character across and back within one tick in a scratch case.
+   - expected: queued transitions flush once at the tick boundary; the character is not promoted and demoted inside one turn.
+
+This section is not a claim that per-tick scope re-evaluation is implemented today.

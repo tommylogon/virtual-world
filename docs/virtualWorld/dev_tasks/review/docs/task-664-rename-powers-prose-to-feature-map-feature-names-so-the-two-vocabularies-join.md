@@ -69,3 +69,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Not applicable — this task renames source-level `@powers` prose to the canonical Feature Map vocabulary and regenerates a documentation index; it does not change a user-facing screen.
+
+Current availability: the card records a vocabulary join showing 68 of 156 modules naming a feature, 88 naming none, and 32 of 58 features with no module declaration. The header rename and regenerated index are the deliverables.
+
+Why no browser UI: feature names in Python/JavaScript source headers and their many-to-many index are repository metadata, not runtime behavior.
+
+Alternative verification steps:
+1. Run `python tools/feature_index.py --report` before and after the header changes.
+   - expected: each feature-enabling module uses the exact canonical Feature Map label; `none` remains only where a module enables no user-facing feature.
+2. Run `python tools/feature_index.py --check`.
+   - expected: exit 0 with the documented two unmapped baseline modules and no new vocabulary mismatch.
+3. Regenerate `docs/design/feature-index.md` and inspect feature rows without module declarations.
+   - expected: all 58 feature names join consistently, and missing code coverage remains explicit rather than being hidden by synonyms.
+
+This section is not a claim that planned UI exists or works today.

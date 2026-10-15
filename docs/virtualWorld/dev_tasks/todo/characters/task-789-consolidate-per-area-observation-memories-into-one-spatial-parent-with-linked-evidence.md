@@ -35,3 +35,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: select a character → Mind panel → spatial observations/memories for a known area. The area summary belongs with the character's existing observations; linked subject memories remain the evidence beneath it.
+
+Current availability: the card proposes one spatial parent memory per area with linked observations. It explicitly preserves `has_seen`, novelty, and the turn minimap; the consolidated parent view is not claimed as available.
+
+Live steps when available:
+1. In a scratch area containing a named object and a distinct feature, let one character observe both, then open that character's Mind observations for the area.
+   - expected: one area-level parent summarizes the two observed elements and links to the two subject-specific evidence memories.
+2. Have the same character observe a third element in the same area and reopen the entry.
+   - expected: the existing area parent updates and links the new evidence; a second competing parent for the same area is not created.
+3. Select a second character who has not observed the area.
+   - expected: the first character's area summary and evidence do not appear in the second character's Mind panel.
+4. Use the current minimap and `has_seen`/novelty views before and after consolidation.
+   - expected: their existing exploration behavior is unchanged; consolidation adds a summary layer without replacing those sources.
+
+This section is not a claim that planned UI exists or works today.

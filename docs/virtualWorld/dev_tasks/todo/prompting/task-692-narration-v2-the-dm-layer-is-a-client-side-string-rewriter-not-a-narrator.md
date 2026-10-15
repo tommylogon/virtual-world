@@ -451,3 +451,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: game view → perform one action → inspect its event-stream row and the corresponding agent prompt/mechanical result with narration mode set to `none`, `ai`, or `player`.
+
+Current availability: the card describes narration as a client-side string rewrite and records that narrated text can replace mechanical deltas. The one-row DM presentation and first-class human narration mode are planned; no new narration behavior is claimed here.
+
+Live steps when available:
+1. Have an NPC perform one action while a human observes; inspect the event stream.
+   - expected: exactly one event row carries the correct NPC as actor, not `You`, and contains the action result without duplicate involuntary/action/result rows.
+2. Repeat with narration set to `none`.
+   - expected: the row is the same mechanical result the current simulation produces.
+3. Repeat with `ai` narration and then `player` narration; inspect both the row and the next agent prompt.
+   - expected: the row shows the chosen narration, while the prompt still contains the mechanical deltas (for example, `hunger −12`) needed for decisions.
+4. Compare the narrated row with `/api/state` deltas for the action.
+   - expected: narration never reverses or hides a mechanical change; all three modes retain the same underlying result.
+
+This section is not a claim that planned UI exists or works today.

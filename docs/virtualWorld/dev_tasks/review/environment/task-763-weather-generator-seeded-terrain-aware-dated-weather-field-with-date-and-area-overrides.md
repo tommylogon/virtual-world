@@ -135,3 +135,23 @@ Implemented, and it addresses all four preview findings:
   picks them up with no code change.
 - **Rendering the field** is task-762; this card produces and applies it, and
   exposes it on the forecast GET.
+
+## Browser UI and intended live verification
+
+Intended UI home: Forecast page → generate a dated weather horizon for a world seed → inspect the per-area schedule, then open several generated areas in the game view.
+
+Current availability: the card records a seeded, dated, per-area weather field with terrain/season conditioning and neighbor coupling. Acceptance is marked implemented; this section does not claim a fresh browser run.
+
+Live steps when available:
+1. Generate a one-month forecast for a fixed world seed and inspect the date range and two areas with different terrain tags.
+   - expected: every date has a per-area weather entry; mountain, coast, forest, and desert modifiers follow the authored terrain rules.
+2. Generate the same horizon again with the same seed and compare the schedule.
+   - expected: the field is reproducible for the same world seed and start date.
+3. Generate a third schedule with a different seed and inspect neighboring areas over successive dates.
+   - expected: the weather changes with the seed and fronts spread across neighboring areas rather than forming checkerboard noise.
+4. Change the season while keeping seed and terrain fixed.
+   - expected: winter favors cloudy/snowy/windy transitions and summer permits clear/stormy edges without deleting the terrain influence.
+5. Open Forecast and verify any date/area override against the generated base field.
+   - expected: overrides are visible and scoped to their date/area; they do not rewrite the generated schedule for unrelated cells.
+
+This section is not a claim that the forecast page has been freshly browser-verified today.

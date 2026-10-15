@@ -55,3 +55,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: game view → enter a believed heading and time budget such as `go west 2h` → inspect the character's resulting area, event stream, and Mind/known-locations view.
+
+Current availability: belief-based heading travel, generation-frontier resolution, and route knowledge learned from dialogue/items are planned. No heading-budget travel or belief upgrade is claimed as available today.
+
+Live steps when available:
+1. In a scratch world with a known westward frontier and a character who has not visited the destination, submit `go west 2h` and inspect the travel events.
+   - expected: movement spends no more than the requested time budget, follows the chosen heading through the world, and resolves the area reached rather than teleporting to a guessed node.
+2. Give the character a map or a direction through a dialogue/item interaction, then ask it to travel to that believed destination.
+   - expected: the received information updates that character's existing knowledge and upgrades only the belief it supports into a known route/area.
+3. Give the character a hazard, vital interruption, or interesting frontier find during travel.
+   - expected: the trip interrupts through task-466's existing follow-up path and reports the actual event; it does not continue past the interruption.
+4. Ask the character to recall the destination before and after receiving the map/direction.
+   - expected: before learning it, the response represents a belief with uncertainty; after learning it, recall returns the known route without using world truth the character has not learned.
+
+This section is not a claim that planned UI exists or works today.

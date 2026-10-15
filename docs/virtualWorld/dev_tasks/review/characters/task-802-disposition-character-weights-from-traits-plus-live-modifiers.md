@@ -52,3 +52,21 @@ Declared in `engine/disposition.py`, not `engine/traits.py`: the tables name reg
 - `engine/disposition.py` (the trait + live-modifier tables and readers)
 - `tools/disposition_index.py` (the trait-catalog check)
 - `tests/test_disposition.py` (the character-side tests)
+
+## Browser UI and intended live verification
+
+Intended UI home: character creation/editing → Bio → traits and Personality dials; run the character in an encounter and inspect its decision/event output and Mind state.
+
+Current availability: the card records tested trait-, emotion-, need-, relationship-, and memory-driven weight readers. Live caller wiring is separate; no browser outcome is claimed for a consumer that has not been connected.
+
+Live steps when available:
+1. Create two otherwise identical characters, one with the authored coward trait and one without; open Bio and start the same witnessed-threat scenario.
+   - expected: the authored trait changes the declared witness/safety scores and the coward character chooses the corresponding safer action; the neutral character remains neutral.
+2. Increase hunger for one character and change a relationship or remembered target for another; run the same decision fixture.
+   - expected: the corresponding need, relationship, or memory reader changes its declared score and the resulting choice follows the registered decision rule.
+3. Inspect the decision trace and character state after each run.
+   - expected: weights derive from authored traits plus live state; there are no per-character hidden weight numbers stored in a second source.
+4. Reload and repeat the same scenario seed.
+   - expected: identical character state produces the same scored choice; a changed modifier is the only reason for a changed score.
+
+This section is not a claim that all weight readers are wired to live callers today.

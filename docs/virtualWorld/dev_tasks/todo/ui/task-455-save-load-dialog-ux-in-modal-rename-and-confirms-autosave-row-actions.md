@@ -58,6 +58,26 @@ Current behavior in `static/js/ui/saveload-view.js`:
 - `templates/index.html` — modal markup if new in-modal elements are added
 - `static/css/style.css` — row/confirm styling
 
+## Browser UI and intended live verification
+
+Intended UI home: Save/Load modal → a named save row → rename/load/delete actions; the autosave row exposes load and overwrite only.
+
+Current availability: The card records native `prompt()`/`confirm()` behavior in `saveload-view.js`; the in-modal replacement controls are planned and not claimed as available.
+
+Live steps when available:
+1. Open Save/Load, rename a normal save to a unique display name, then reopen the list.
+   - expected: an in-modal text field accepts the new name, Enter saves it, Escape cancels, and the refreshed row shows the server-returned display name/filename.
+2. Try an empty name and a name already used by another save.
+   - expected: both are rejected with a visible message and the existing save rows are unchanged.
+3. Choose Load and Delete on a normal save.
+   - expected: each confirmation names the row's display name and timestamp, not its raw filename; cancelling leaves the save untouched.
+4. Inspect the autosave row and activate its available actions.
+   - expected: it offers load and overwrite, with no rename/delete action that would be lost on the next autosave.
+5. Run Delete All and cancel the confirmation sequence.
+   - expected: cancellation preserves the autosave slot and every other save.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.
+
 ## Why
 
 TODO

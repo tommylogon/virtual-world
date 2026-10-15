@@ -104,3 +104,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: enable `directed` control for a character → Human Turn Composer opens with that character's generated draft → edit/reroll individual fields or guide a regeneration → press **Act** to commit through the existing compose-then-commit flow.
+
+Current availability: this is a design-only fourth control mode. The generated draft, per-field reroll, director prompt, and delayed commit flow are not claimed to exist today.
+
+Live steps when available:
+1. Set one LLM character to `directed` and advance to its decision. Inspect the Human Turn Composer before committing.
+   - expected: the generated action, speech, inner monologue, emote, emotion, and memory are prefilled; the character has not acted in the world yet.
+2. Edit only the speech field and reroll only the emote field. Inspect the draft again.
+   - expected: the manual edit remains, the emote changes, and untouched fields keep their generated values.
+3. Use the director prompt to request a different action, then inspect the regenerated draft.
+   - expected: the draft reflects the guidance but remains uncommitted until the director presses **Act**.
+4. Press **Act** and compare the event stream, world state, and character memory with the final draft.
+   - expected: exactly the reviewed draft is committed once through the existing compose/commit path; no earlier generated draft executes.
+
+This section is not a claim that planned UI exists or works today.

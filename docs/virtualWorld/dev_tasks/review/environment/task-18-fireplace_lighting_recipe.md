@@ -97,3 +97,21 @@ TODO
 ## Acceptance
 
 - [ ] TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Living Area → select the fireplace → use `use fireplace` with kindling and a tinderbox in inventory → inspect the fireplace state, room light, and temperature.
+
+Current availability: the card specifies that kindling and a tinderbox are required, kindling is consumed, and an on fireplace warms the room. The live browser path is not recorded as verified here.
+
+Live steps when available:
+1. Load the Living Area with kindling and a tinderbox carried; use `fireplace` and inspect the room and item states.
+   - expected: the fireplace becomes `on`, kindling is consumed once, and room light/temperature increase according to the authored fireplace behavior.
+2. Repeat without kindling, then without the tinderbox.
+   - expected: each missing requirement gives a clear failure and the fireplace stays off; remaining inventory is unchanged.
+3. Save/reload while the fireplace is on and inspect the area again.
+   - expected: the on state and warmed room survive reload without consuming a second kindling item.
+4. Turn the fireplace off using its supported action.
+   - expected: the room stops receiving the fireplace's ongoing warmth/light contribution.
+
+This section is not a claim that the fireplace recipe has been freshly browser-verified today.

@@ -55,3 +55,29 @@ TODO
 ## Acceptance
 
 - [ ] TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Character Inspector → Bio → Conditions → ➕ Add Condition.
+
+Current availability: `GET /api/conditions` returned 40 entries and the Add
+Condition modal was live-opened on 2026-10-10. The card records its grouped
+selector and all fields; adding a complete multi-instance condition and reading
+it back is not recorded in that observation.
+
+Live steps when available:
+1. Open Add Condition for a disposable character and choose `poisoned`; set
+   duration to 3 ticks, source to `browser-check`, and level to 2.
+   - expected: the modal shows the selected condition and values before Add;
+     after Add, the character's condition list shows a level-2 instance with
+     that source and duration.
+2. Open Add Condition again, expand Advanced, enter a periodic override
+   `{"hp": -1}`, and add a second `poisoned` instance.
+   - expected: the editor preserves both instances and the second carries its
+     own periodic payload rather than overwriting the first.
+3. Inspect `/api/state` for that character and advance one tick.
+   - expected: the same instance payload round-trips and its periodic HP effect
+     applies once.
+
+This section defines intended access and live acceptance. It is not a claim
+that planned UI exists or works today.

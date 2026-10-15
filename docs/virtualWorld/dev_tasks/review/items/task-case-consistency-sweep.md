@@ -33,3 +33,21 @@ Follow-up to the duplicate-loses-triggers fix (see `review/items/task-duplicate-
 ## Verification
 
 - `node --check` clean on all edited JS; `pytest tests/ -q -k "not mcp and not emote"` → 752 passed, 1 skipped (11 pre-existing give-item failures unchanged); `tools/test_ui.cjs` 25/25.
+
+## Browser UI and intended live verification
+
+Intended UI home: Library Browser → duplicate an item with uppercase letters in its name → open the duplicate's Inspector and Triggers; then inspect any connected way/containment edges.
+
+Current availability: the card records case-insensitive ID generation and Inspector edge lookups as implemented, with historical UI smoke 25/25 and a 752-pass test run. A fresh browser run is not recorded here.
+
+Live steps when available:
+1. Duplicate an item and give the duplicate a mixed-case display name; open the new item Inspector.
+   - expected: the generated node ID is lowercase and every copied trigger/containment edge resolves to that node.
+2. Inspect the trigger list and then delete the duplicate.
+   - expected: no trigger disappears because of case mismatch and no orphan edge remains under the mixed-case caller ID.
+3. Open an existing mixed-case legacy item/way and inspect its edges.
+   - expected: the Inspector resolves edges case-insensitively while preserving the original display name and player IDs' deliberate case behavior.
+4. Run the project's UI smoke check after the interaction.
+   - expected: all 25 smoke interactions still pass.
+
+This section is not a claim that a fresh browser run has been performed today.

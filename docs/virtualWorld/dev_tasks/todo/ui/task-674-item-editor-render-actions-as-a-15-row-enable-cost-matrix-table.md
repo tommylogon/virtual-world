@@ -22,6 +22,24 @@ ALL_ACTIONS has 15 entries ending in 'drop' (item-view.js:38-40), but ACTION_COL
 
 - TODO
 
+## Browser UI and intended live verification
+
+Intended UI home: 📚 Library Browser or the full-surface Item Editor → Actions section. The action settings belong in a semantic table with one row for each `ALL_ACTIONS` entry.
+
+Current availability: The current item action settings are described as two stacked chip piles in a 379px column; the 15×5 matrix and responsive table are planned.
+
+Live steps when available:
+1. At 1600×1000, open an item with action settings and inspect the Actions section using visual layout and keyboard table navigation.
+   - expected: one table has 15 action rows—examine, take, use, open, close, eat, drink, read, light, activate, equip, unequip, throw, break, drop—and columns for enabled, Energy, Hunger, Thirst, HP, and skill/DC; row/column headers are announced as headers.
+2. Toggle Take and inspect Drop, then toggle Equip and inspect Unequip.
+   - expected: the inverse-action coupling is visible in the table, and the existing save-on-change behavior persists each toggle/cost.
+3. Expand the triggers disclosure below the matrix.
+   - expected: triggers remain a separate disclosure and do not become action rows.
+4. Resize below 1200px and repeat keyboard navigation through the table.
+   - expected: labels remain textual (colour is not the only cue), all costs and enable states remain reachable, and the table does not overflow the editor viewport.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.
+
 ## Why
 
 TODO

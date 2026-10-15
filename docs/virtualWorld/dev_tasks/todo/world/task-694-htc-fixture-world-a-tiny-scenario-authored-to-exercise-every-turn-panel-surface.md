@@ -52,3 +52,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: load the dedicated HTC fixture through the task-693 harness → open the Human Turn panel on the human-controlled character's slot → exercise the scene, people, ways, item, and grapple surfaces from this one world.
+
+Current availability: the card requires a once-authored 10–20-area fixture with painted cells/scopes, duplicate names/nicknames, a hidden false-wall way, locked/blocked ways, a scripted NPC, preconceived human knowledge, a flavor trigger, and a grapple-ready prop. The fixture is not claimed as authored here.
+
+Live steps when available:
+1. Start the fixture with the harness and open the human's turn panel.
+   - expected: the minimap lattice draws from every area's `cell` and `world_scope_id`; the panel opens on the human slot with no scenario-integrity errors.
+2. Inspect the two same-name characters in one area and the shared nickname across areas; open the person chooser.
+   - expected: each character remains separately selectable by its unique node ID and the chooser resolves the right person despite duplicate labels/nicknames.
+3. Read WAYS OUT at the false wall and inspect the locked door and blocked way through the panel.
+   - expected: the undiscovered hidden way stays absent; the locked and blocked ways expose only the actions/knowledge their states allow.
+4. Trigger the scripted NPC's enter damage/noise behavior, use the flavor-trigger item, and grapple with the prop.
+   - expected: each event is visible once in the event stream with the correct actor/target; the NPC behavior and grapple use the normal action surfaces.
+
+This section is not a claim that the fixture has been authored or that every turn-panel surface is covered today.

@@ -53,6 +53,21 @@ TODO
 
 TODO
 
+## Browser UI and intended live verification
+
+Intended UI home: Character Inspector → Mind → Memories.
+
+Current availability: The ordinary memory list exists; the lived-log-to-first-person phrasing bridge is still in progress.
+
+Live steps when available:
+
+1. Create a meaningful lived entry in a scratch scenario, advance or skip a turn, and inspect the character’s Memories list.
+   - expected: The entry appears once as a first-person memory in the ordinary Player memory list, with entity links.
+
+2. Advance the same entry through another turn and reopen Memories.
+   - expected: No duplicate memory appears; existing social, threat, need, act, and move writers remain unchanged.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. TODO

@@ -70,3 +70,21 @@ In `engine/disposition.py`: `score_candidate` (declared base + character weight 
 ## Progress (2026-10-13, assessment)
 
 - Re-read `_satisfy_needs` to look for a safe live caller. There is none: it is a precedence cascade, and its one scored pick (`_travel_to_privacy`) is an argmin over areas that already works. The resolver's caller is the plan executor (task-702) / selector (task-704); `blocked_by` now names them. No code change: forcing the swap would rewrite the cascade and change behaviour.
+
+## Browser UI and intended live verification
+
+Intended UI home: run the three registered decision consumers (relief, hunt/survive, and a weighted choice) in the game/soak view; inspect the selected action and its contribution trace.
+
+Current availability: the resolver has deterministic seeded selection and `Outcome.contributions`; the card explicitly defers wiring to `engine/background_simulation.py` until tasks 702/704. No live-caller integration is claimed.
+
+Live steps when available:
+1. Repeat one relief decision with the same state and seed; inspect the result and contribution detail.
+   - expected: argmin/argmax chooses the same action and reports the highest-magnitude contributing scores first.
+2. Run hunt/survive decisions with the required threshold below and above its boundary.
+   - expected: threshold-then-utility excludes the below-threshold action and ranks eligible actions by the registered utility.
+3. Run a weighted-draw decision with a fixed seed and sorted candidate keys.
+   - expected: the same seed/state chooses the same candidate; changing candidate insertion order alone does not change the result.
+4. Inspect the event/soak trace after background simulation invokes the resolver.
+   - expected: the live outcome matches the registry-declared combine/pick mode and includes its contributions; no alternate pick implementation makes a conflicting choice.
+
+This section is not a claim that the resolver is wired to a live caller today.

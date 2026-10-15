@@ -55,6 +55,21 @@ placement.
   and `loadGraphData` route through it. This guards the handful of nodes no
   relation can place.
 
+## Browser UI and intended live verification
+
+Intended UI home: Graph editor scope selector, layout selector, and Physics toggle.
+
+Current availability: Offline measurements removed the long-edge fan in one path; live confirmation and persisted-coordinate handling remain open.
+
+Live steps when available:
+
+1. Load a representative scope with physics off and inspect item/way placement and long edges.
+   - expected: Items sit by owning areas and uncelled ways sit between endpoints without a coordinate-frame fan.
+
+2. Toggle physics, switch Graph/Map layouts, and change scopes; then return to the original scope.
+   - expected: Positions remain in one coordinate frame and do not jump or recreate long edges.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. Load a scope with physics **off**; count long edges / look for a fan.

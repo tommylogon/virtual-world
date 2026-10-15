@@ -38,9 +38,9 @@ Mechanism: make weather types a library registry exactly like biomes, so add/edi
 3. The gate catches a broken record.
    - expected: missing fields, an id/filename mismatch, or an unreachable type are reported.
    - observed: `python tools/weather_library_check.py --report` reports 7 records, 0 errors, 1 warning (`snowy: unreachable - no transition enters it`); exit 0.
-4. The front-end reads the registry (pending).
-   - expected: `sky-scape.ts` `WEATHER_CHIP` renders from the served vocabulary, built-in map as fallback.
-   - observed: TODO - still hardcoded.
+4. The front-end reads the registry.
+   - expected: `sky-scape.ts` renders registry icons from the served vocabulary and uses the built-in map only as its pre-fetch/spelling fallback.
+   - observed: Recorded live in the acceptance evidence below: the widget rendered `☁️ overcast`, `/api/vocabulary/weather` returned 200, and the registry weather IDs appeared in World Sky's override dropdown. Source now calls `fetch('/api/vocabulary/weather')` and applies returned icons over `WEATHER_CHIP`.
 
 ## Acceptance
 
@@ -62,4 +62,22 @@ Mechanism: make weather types a library registry exactly like biomes, so add/edi
 - `tools/weather_library_check.py` (new) - the guard; wired into `package.json` (`weather:check`, `precommit`)
 - `tests/test_weather_types.py` (new), `tests/test_weather_narration.py` (modified) - alias + registry tests
 - `AGENTS.md` (modified) - gate-table row for `data/library/weather/`
-- `static/js/sky-scape.ts` (pending) - `WEATHER_CHIP` still hardcoded
+- `static/js/sky-scape.ts` - fetches registry icons, retaining `WEATHER_CHIP` as a fallback
+
+## Browser UI and intended live verification
+
+Intended UI home: 📚 Library Browser → Vocabulary for weather-record authoring; Game menu → World Sky → Forecast and Override for choosing a weather type and seeing its icon.
+
+Current availability: The engine registry and `/api/vocabulary/weather` are implemented. The task records a live World Sky dropdown/icon check. The Library Browser's recorded evidence does not establish that authors can select `weather` there, so verify that authoring path before treating library CRUD acceptance as demonstrated.
+
+Live steps when available:
+1. Open 📚 Library Browser → Vocabulary and inspect the vocabulary type selector.
+   - expected: `weather` is selectable; selecting it lists the registry entries, and selecting `blizzard` opens its editable weather record rather than a placeable world node.
+2. Edit the `blizzard` record's display name, icon, and description, save it, then reopen it.
+   - expected: the saved values remain on the same `data/library/weather/blizzard.json` record; validation rejects a record without its required `icon` field.
+3. Open World Sky → Override and inspect the weather dropdown; select `blizzard`, then clear the override.
+   - expected: registry IDs appear once (aliases are not duplicate choices), the selected value is reflected in the sky readout with its registry icon, and clearing the override removes the active indicator.
+4. Return to the Vocabulary tab and delete a disposable test weather entry.
+   - expected: it disappears from the vocabulary list and no world node is created by browsing or editing it.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.

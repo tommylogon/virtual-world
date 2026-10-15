@@ -65,6 +65,21 @@ Deferred (still open):
   localStorage).
 - Live verification.
 
+## Browser UI and intended live verification
+
+Intended UI home: Graph editor toolbar → Physics toggle and graph layout/settings controls.
+
+Current availability: The centralized policy and toolbar wiring are in place; first-load live behavior and the deferred map-settling option remain open.
+
+Live steps when available:
+
+1. Turn Physics off, hard-refresh, and inspect button state and graph motion.
+   - expected: The saved preference is honored on first load and the button matches actual solver state.
+
+2. Switch layouts, pin a node, and change overlays while observing Physics.
+   - expected: All controls agree with one physics policy; pin/overlay changes do not unexpectedly restart physics.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. Hard-refresh; toggle the toolbar Physics button off, hard-refresh again —

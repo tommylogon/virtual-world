@@ -95,6 +95,33 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Open Save/Load, create one named save, and note the pinned `autosave.json`
+   row. Click Delete All and confirm; refresh the save list.
+   - expected: the named save is gone, `autosave.json` remains visible, and
+     the confirmation states the number of user saves and that autosave is kept.
+   - observed (2026-10-02): the client API deleted the named save in one bulk
+     request and returned `kept: ["autosave.json"]`; the save list retained it.
+2. Repeat with the Delete All confirmation cancelled.
+   - expected: both the named save and autosave remain.
+   - observed: the UI-cancel path is not recorded in the existing live evidence.
+
+## Browser UI and intended live verification
+
+Intended UI home: Game menu → Save/Load → Delete All.
+
+Current availability: The bulk endpoint and client API were exercised live on
+2026-10-02; a click-through of the modal confirmation and cancel path is not
+recorded in that evidence.
+
+Live steps when available:
+1. Open Save/Load, create a named save, confirm the pinned autosave row is
+   present, then click Delete All and read the confirmation before accepting.
+   - expected: confirmation names the number of user saves and explicitly says
+     autosave will be kept.
+2. Accept, let the save list refresh, and inspect the remaining rows.
+   - expected: the named save is removed and `autosave.json` remains.
+3. Create another named save, open Delete All, cancel, and reopen the list.
+   - expected: both saves remain; cancelling performs no delete request.
+
+This section defines intended access and live acceptance. It is not a claim
+that planned UI exists or works today.

@@ -66,3 +66,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Character Inspector → Mind → Memory Editor → open a memory pair linked as contradicts; remove the link from either entry and inspect both.
+
+Current availability: the task adds write-time contradiction linking for shared entities and asymmetric assertions, without resolving which memory is objectively true. The visible, removable link flow is an acceptance criterion and is not claimed complete here.
+
+Live steps when available:
+1. Tell a character that a named person lives in a specific area, then tell the same character that the person does not live there. Open both memories in Mind.
+   - expected: the two entries link to each other because they share the entity and negate each other; both confidences follow the authored reduction rule.
+2. Add a third memory about a different entity and a second memory about the same entity without negation.
+   - expected: neither unrelated nor non-contradictory pair gains a contradicts link.
+3. Remove the link from one memory in the editor and reopen the other.
+   - expected: the reciprocal link is removed symmetrically; no deletion of either memory occurs.
+4. Ask the character which claim is true.
+   - expected: the system surfaces the conflict as fallible memories and does not silently rewrite either into objective truth.
+
+This section is not a claim that contradiction links are visible and editable today.

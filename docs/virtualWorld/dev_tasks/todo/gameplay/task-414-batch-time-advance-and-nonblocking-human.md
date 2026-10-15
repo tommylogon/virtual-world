@@ -135,3 +135,20 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: the game view's clock, event stream, and Human Turn panel while a batch is requested through `POST /api/world/advance`. This card specifies a server batch endpoint, not a new player-facing time-advance button.
+
+Current availability: the card proposes bounded server-side tick batching and a non-blocking policy for present humans. A browser control for batch advance is not specified; the observable game state remains the existing clock, plans, events, and human-turn surface.
+
+Live steps when available:
+1. Load a scratch scenario with a visible clock, one background character, one attended character with a multi-tick plan, and a present human. Record the clock and current plan states.
+2. In the browser DevTools console, submit `POST /api/world/advance` with a small bounded `ticks` value, then inspect the response, `/api/state`, clock, and event stream.
+   - expected: the clock advances by exactly the requested in-game minutes, the response summary is bounded, and both background and attended characters process those ticks.
+3. Repeat with the human present and the configured wait/timeout policy active.
+   - expected: the batch completes according to that policy without waiting for the human indefinitely; turn ordering and `turn_number`/`tick_turn` semantics remain unchanged.
+4. Set the attended character's plan to cross a decision boundary during the batch and inspect LLM/plan events.
+   - expected: the current plan continues without an LLM call on every tick; the next decision is requested only at the boundary.
+
+This section is not a claim that planned UI exists or works today.

@@ -113,3 +113,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: create or assemble a scenario with each offline generator → load that generated scenario in the graph/game view → select generated ways and traverse them.
+
+Current availability: `build_scenario.py`, `assemble_scenario.py`, `sync_scenario_to_library.py`, and `generate_scenario.py` are recorded as writing generated way prose; `fix_scenario_authoring.py` has a near-variant the cleanup does not match. This generation-side cleanup is not claimed as complete.
+
+Live steps when available:
+1. Generate one scenario through each of the four named tools, then load each result in the app and inspect a generated way's properties.
+   - expected: no generated way contains `You pass through ...` or `A glimpse of ... beyond.`; a missing pass message/orientation appears as an informational authoring warning.
+2. Open a generated way in the Inspector and traverse it from each connected area.
+   - expected: the engine fallback produces a readable passage line in both directions without persisting invented prose on the way.
+3. Run `clear_way_fix_fields` on the generated scenarios, then inspect the same way before and after.
+   - expected: the cleanup would remove zero generated fields and leaves separately authored prose untouched.
+4. Generate through `fix_scenario_authoring.py` and repeat the way check.
+   - expected: its `You pass through the {noun}.` near-variant and the generator's `You pass from ...` variant are also absent.
+
+This section is not a claim that the generators are free of minted way prose today.

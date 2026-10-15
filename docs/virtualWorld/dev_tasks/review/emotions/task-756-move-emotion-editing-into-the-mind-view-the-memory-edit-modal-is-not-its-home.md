@@ -65,6 +65,22 @@ panel owns the mind). The move is:
 - `static/js/inspector/memory-view.ts` (the editor removed)
 - `static/js/types/globals.d.ts` (`updatePlayerMemory` declared)
 
+## Browser UI and intended live verification
+
+Intended UI home: Character Inspector → Mind → select a memory → its detail panel → “Save feelings”. The legacy memory-edit modal is a read-only viewer for emotions.
+
+Current availability: Both locations were live-checked on localhost:4444 on 2026-10-13: Mind saved `memory_emotions` through `updatePlayerMemory`, and the memory modal rendered without `#mem-editor-emotions`.
+
+Live steps when available:
+1. Select a character with a memory, open Mind, select that memory, choose anger at intensity 8, and click “Save feelings”.
+   - expected: the memory's detail shows anger at 8 after saving, and the same value remains after closing and reopening the detail.
+2. Open the memory-edit modal for that same memory.
+   - expected: the modal does not offer an emotion picker or an emotion save control, so there is one editing home for `memory_emotions`.
+3. Change the memory text in its existing editor and save, then return to Mind.
+   - expected: the text edit leaves the saved emotion value unchanged.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.
+
 ## Why
 
 The Mind view is becoming the character's mind surface (task-820) and supersedes the memory editor. Adding the editor there while the modal still owns it would put one field in two homes - the "second source of truth for a surface" the repo warns against. So the editor moves with the surface.

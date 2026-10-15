@@ -37,10 +37,10 @@ The goal carries only the *hope* in prose (`hoped_for`). It carries **no** `gran
 
 1. Author a goal `become_chief` whose `achieve` can be met, plus a trigger on `goal_reached` for that goal that nests `item_chiefs_staff` to the actor. Satisfy it, run a turn.
    - expected: the goal is `reached`; the staff node exists with a containment edge to the actor; a second character can take it.
-   - observed: TODO
+   - observed: Not run. This task is blocked by task-822; the event and trigger fixture are not implemented.
 2. Remove the trigger and repeat.
    - expected: the goal still completes; nothing is granted. The consequence is the world's, not the goal's.
-   - observed: TODO
+   - observed: Not run. This task is blocked by task-822; the event and trigger fixture are not implemented.
 
 ## Acceptance
 
@@ -56,3 +56,19 @@ The goal carries only the *hope* in prose (`hoped_for`). It carries **no** `gran
 - `engine/background_simulation.py` / the tick event path
 - (content) a trigger on `goal_reached` in the exercising scenario
 - `tests/test_goals.py` or a trigger-wiring test
+
+## Browser UI and intended live verification
+
+Intended UI home: Select the goal owner → Inspector → Bio → 🧠 Mind to read goal status; inspect the owner's Inventory and the world graph to observe an item granted by the ordinary trigger.
+
+Current availability: The event-on-reached behavior is planned and blocked by task-822. The intended test item `item_chiefs_staff` is not present in `data/`; a filename scan covered all 2,000 files in `data/library/items/` and found no staff/chief item. The scratch scenario must author a real item node before this browser check; do not treat that ID as already available. This card does not add reward fields to goals or a new grant UI.
+
+Live steps when available:
+1. In a scratch scenario, author a real chief's staff item node (the planned id is `item_chiefs_staff`), give one character an achievable `become_chief` goal, and add an ordinary `goal_reached` trigger filtered to that goal that nests that node to the actor.
+   - expected: after the goal becomes `reached`, Mind shows that status, the staff appears as a real item in the character's Inventory, and the world state contains its normal containment relationship.
+2. Remove only the trigger, reset the scratch scenario, and satisfy the same goal again.
+   - expected: the goal still becomes `reached`, but no staff node or inventory item is created.
+3. Have a second character attempt to take the granted staff through the ordinary item action.
+   - expected: normal ownership, containment, and action rules decide the result; the goal record itself contains no `grants` or reward table.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.

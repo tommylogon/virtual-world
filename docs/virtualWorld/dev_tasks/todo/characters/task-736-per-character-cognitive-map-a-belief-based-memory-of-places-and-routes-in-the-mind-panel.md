@@ -93,10 +93,59 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. In a scratch scenario, select two characters who start in the same area.
+   Record each character's `visited_areas`, `discovered_exits`, and
+   `known_way_aspects` from `/api/state`, then open the first character's Mind
+   panel.
+   - expected: its map contains only that character's remembered areas and
+     known routes; areas present only in the world graph are absent.
+2. Move the first character through one connected area and way it did not know,
+   then reopen Mind and compare the map with the updated character state.
+   - expected: the newly visited area and learned way appear for that character
+     only; the second character's map is unchanged.
+3. Select two areas the first character knows and request the route using the
+   character's existing `recall` interaction.
+   - expected: a path is shown only when the character knows a connecting way;
+     an unknown route returns an honest negative instead of a path from the
+     world's full graph.
+4. Compare the character record before and after opening the map.
+   - expected: rendering does not add a cognitive-map field or otherwise write
+     a second persisted store; the view is derived from the existing spatial
+     memory fields.
 
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: select a character → open the existing Mind panel →
+**World knowledge / known-locations map**. The map belongs inside that
+character's Mind view, beside the existing memory and knowledge content; it is
+not a world-graph overlay or a separate character record.
+
+Current availability: per-character spatial memory and the turn-panel minimap
+renderer exist. The Mind-panel cognitive map described here is planned; this
+card does not claim that it currently renders there.
+
+Live steps when available:
+1. Load a scratch scenario with two characters in the same starting area and
+   at least two connected areas. Open Character A's Mind panel and inspect the
+   known-locations map before either character moves.
+   - expected: only areas and routes present in A's existing spatial-memory
+     fields appear; an unvisited destination from the world graph is absent.
+2. Move A across one way into the next area, then reopen the same Mind panel.
+   - expected: the newly visited area and traversed route appear in A's map.
+3. Select Character B, who did not move, and inspect the map.
+   - expected: B's map does not gain A's visit or route.
+4. Use `recall` for a route A has traversed and for a world route A has never
+   learned; compare each answer with the map and `/api/state` spatial-memory
+   fields.
+   - expected: the learned route is returned; the unknown route is not
+     inferred from ground-truth graph edges. Opening the map creates no new
+     persisted cognitive-map field.
+
+These steps describe the intended Mind-panel access and acceptance. The map is
+planned and has not been represented as available today.
+
+This section is not a claim that planned UI exists or works today.

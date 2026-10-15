@@ -57,3 +57,21 @@ static/js/graph-manager.ts
 static/js/graph/toolbar.ts
 static/js/graph/layout-engine.ts
 tools/unit/test_scope_options.js
+
+## Browser UI and intended live verification
+
+Intended UI home: Graph workspace with the scope picker visible; node selection starts from Outline, Agents/Initiative, or Ctrl+K. Each entry point should switch to the node's owning scope before focusing it.
+
+Current availability: The card records that selection from Agents switched to the camp scope and exposed a stale picker label, then a code fix made `setScopeFilter` own the picker update. Ctrl+K, Outline, scope-less fallback, and post-layout focus are still explicitly unverified in the card.
+
+Live steps when available:
+1. Load `kraktooth_goblin_camp`, set the scope picker to World, then use Ctrl+K to select a known camp character.
+   - expected: the picker changes to the owning camp scope, the graph loads that subgraph, and the selected character is centered after layout settles.
+2. Repeat from Outline and from the Agents/Initiative list while the picker is set to another scope.
+   - expected: each entry point selects the same node, updates the picker label to its owning scope, and keeps the graph scoped instead of widening to the whole world.
+3. Select a free-floating inventory item with no declared scope or spatial parent.
+   - expected: the selected scope stays unchanged and the documented fit-view fallback runs.
+4. Wait for the scope graph to settle, then inspect the selected node's final screen position.
+   - expected: focus lands on its settled position rather than the transient pre-layout location.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.

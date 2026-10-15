@@ -43,3 +43,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Natural Language editor → submit the multi-step request → review the assistant's proposed operation and tool-call/activity trace before the turn ends.
+
+Current availability: the card records a live `labs` turn where the assistant narrated that it would place Zoe and add memories but emitted no tool call; Zoe remained unattached. This reproduction is recorded in the card, not re-run in this update.
+
+Live steps when available:
+1. In `labs`, submit `add zoe to area 18`, answer the clarification with `your choice`, then request creation and attachment as the card describes. Inspect the NL transcript and tool-call trace after each turn.
+   - expected: if a turn says it will perform an operation, the corresponding tool call appears in that same assistant response; the created Zoe is attached to the selected area.
+2. Continue with `add 50 memories to zoe` and confirm the action.
+   - expected: the memory operation is called and the resulting record count changes by the requested amount; narration alone cannot close the turn successfully.
+3. Cause one tool-call failure in a scratch scenario.
+   - expected: the UI reports the failed operation and leaves the request visibly incomplete/retryable; it does not present the narrated plan as executed.
+4. Compare the transcript, tool trace, graph attachment, and `/api/state` memories.
+   - expected: each visible claim corresponds to an operation and resulting world state.
+
+This section is not a claim that planned UI exists or works today.

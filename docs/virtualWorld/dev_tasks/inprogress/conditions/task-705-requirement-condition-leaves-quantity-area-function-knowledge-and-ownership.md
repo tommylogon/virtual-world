@@ -60,3 +60,20 @@ Extend the shared condition-leaf vocabulary so pursuit templates and world recip
 - `tests/test_trigger_system.py::TestTask705Leaves` - 6 tests: `owns` reads the owner property rather than inventory, is false for another player's claim, and fails closed on unowned/missing-node/missing-node_id; `known` reads `Player.known` and fails closed; both are declared for the validator.
 - 236 passed across `test_trigger_system.py`, `test_trigger_validator.py`, `test_goals.py`.
 - **Remaining:** `area_has_function` (blocked on task-566's function index) and `knows_about` (needs a memory-query design). The card stays open for those two.
+
+## Browser UI and intended live verification
+
+Intended UI home: Not applicable — this card has no browser-facing behavior.
+
+Current availability: Some leaves are implemented; area_has_function and knows_about remain blocked as recorded in the card.
+
+Live steps when available:
+
+Why no browser UI: This changes shared condition evaluation and adds no player-facing control; real plan/recipe fixtures and engine callers exercise the leaves.
+
+Alternative verification steps:
+
+1. Run the targeted condition-leaf tests and their micro-scenario, then exercise an unsupported leaf.
+   - expected: The caller reads the intended subject/value, the declared branch runs, and unknown leaves fail closed; blocked leaves remain unaccepted.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.

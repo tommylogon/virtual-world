@@ -58,3 +58,19 @@ In `mind-view.ts`, `_render()` now builds a `.mind-tab` strip (Mind / Perception
 
 - `static/js/inspector/mind-view.ts` (the tab shell)
 - `static/js/inspector/memory-view.ts` (the entry button - unchanged)
+
+## Browser UI and intended live verification
+
+Intended UI home: Select a character → inspector status row → 🧠 Mind. The single tabbed surface contains Mind, Perception, Memories, and People; use its own tab strip to move between them.
+
+Current availability: The card records the four-tab Mind panel live-verified on localhost:4444. Its note says the entry button is in Bio, but task-787 later records a status-row button as well as the retained Bio Memories button; this card's “one entry point” claim needs reconciliation against that later UI state.
+
+Live steps when available:
+1. Open a character with populated data from the status-row 🧠 Mind button and count the visible tab controls.
+   - expected: exactly four tabs—Mind, Perception, Memories, People—and one pane is visible at a time.
+2. Visit each tab, select a memory, apply a memory filter, and resize the window narrow.
+   - expected: each data group appears only on its assigned tab; memory list/detail/accessibility continue to work; the tab strip wraps and content stays readable.
+3. Open Mind from the retained Bio Memories button, if that entry control is still present.
+   - expected: it opens the same tabbed surface and selected character, rather than a second dashboard; document whether this retained control means there are multiple openers despite one shared surface.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.

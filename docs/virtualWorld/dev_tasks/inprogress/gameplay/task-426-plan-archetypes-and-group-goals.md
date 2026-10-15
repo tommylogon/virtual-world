@@ -201,6 +201,24 @@ TODO
 
 TODO
 
+## Browser UI and intended live verification
+
+Intended UI home: Character Inspector → Mind → Pursuit/Plan, alongside the live event stream.
+
+Current availability: Template binding exists; generic execution, interruption recovery, and group behavior remain incomplete.
+
+Live steps when available:
+
+1. Load Mikka’s authored haul example, select Mikka, and advance normal simulation turns while watching Mind and the event stream.
+   - expected: The same pursuit identity persists as the plan proceeds through travel, take, travel, and drop.
+
+2. Interrupt the pursuit with a need, then remove its required item and continue.
+   - expected: The plan resumes after the need and replans when its precondition fails; the event stream identifies the pursuit.
+
+3. Run the group-goal fixture and inspect participating characters.
+   - expected: Members converge on the rally area and group behavior is visible without a second scheduler.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. TODO

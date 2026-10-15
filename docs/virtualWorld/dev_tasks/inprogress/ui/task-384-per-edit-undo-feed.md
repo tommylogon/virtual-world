@@ -41,6 +41,21 @@ visible by name and revertible by name.
 - External / MCP edits arrive through the same `world_changed` path.
 - No new storage.
 
+## Browser UI and intended live verification
+
+Intended UI home: World editor → per-edit Undo/Changes feed.
+
+Current availability: The per-edit feed and restore path are still in progress.
+
+Live steps when available:
+
+1. Make several GUI edits and one supported API/MCP edit, then inspect the feed.
+   - expected: Each mutation appears once with a useful label, including external changes from the shared world-changed event.
+
+2. Restore one feed entry and inspect the world.
+   - expected: The selected snapshot is restored through existing undo machinery without new state storage.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. Make several edits in the GUI.

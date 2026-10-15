@@ -68,6 +68,22 @@ TODO
 
 TODO
 
+## Browser UI and intended live verification
+
+Intended UI home: Not applicable — this card has no browser-facing behavior.
+
+Current availability: Tag renames and the collision are resolved; character/item identifier files remain assigned to the separate library lane.
+
+Live steps when available:
+
+Why no browser UI: This renames registry identifiers and updates references without changing display names or adding browser behavior; the risk is data integrity.
+
+Alternative verification steps:
+
+1. Run the tag-id lint and scan library, scenario, and save references for renamed identifiers.
+   - expected: Remaining tag IDs satisfy snake_case, references resolve with zero stale identifiers, and display names remain unchanged.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. TODO

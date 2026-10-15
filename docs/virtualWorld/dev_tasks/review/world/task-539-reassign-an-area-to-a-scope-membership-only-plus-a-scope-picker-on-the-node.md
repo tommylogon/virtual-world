@@ -84,19 +84,48 @@ the world left as it was found.
   A multi-selection can now be moved into an *existing* scope (see below), but
   making a new child scope out of a selection is still task-535.
 
-## What
-
-TODO
-
-## How
-
-TODO
-
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. On a scratch copy, assign `area_training_pit` to goblin camp in the area
+   Inspector and reopen the area's Scope section.
+   - expected: goblin camp remains selected and the area appears in the camp's
+     own-level view.
+   - observed: verified live 2026-09-27; the area appeared in the camp view.
+2. Select **— no scope —** and reopen the Inspector.
+   - expected: no scope is selected and the area leaves the camp's own-level
+     view.
+   - observed: verified live 2026-09-27; the area was removed from that view.
+
+## Browser UI and intended live verification
+
+Intended UI home: area-node Inspector → 🗺️ Scope, beside the map placement.
+
+Current availability: implemented and verified live on 2026-09-27; no fresh
+browser run is claimed here.
+
+Live steps when available:
+
+To recheck on a scratch copy, open the area node Inspector and use its **🗺️
+Scope** section.
+
+1. Select `area_training_pit` and check the selected scope against
+   `properties.world_scope_id` in `/api/state`.
+   - expected: the Inspector shows the area's current scope.
+2. Select **goblin camp** (`deep_woods_2`) in the Scope dropdown and wait for
+   the Inspector to refresh.
+   - expected: the area is included in the camp's own-level view, and the
+     selected scope remains goblin camp after reopening the Inspector.
+3. Select **— no scope —**.
+   - expected: the area is removed from the camp's own-level view and the
+     dropdown shows no scope after reopening the Inspector.
+4. Compare the node's scope property and both scope membership lists.
+   - expected: the visible selection and membership data agree. The 2026-09-27
+     live check recorded the expected result; this is a repeatable recheck, not
+     a claim of a new live run.
+
+These steps define intended access and live acceptance. They are not a claim
+that a fresh browser check was performed today; current availability records
+the last verified browser run (2026-09-27).
 
 ## Files
 

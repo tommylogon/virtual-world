@@ -48,3 +48,19 @@ task-808 authored the goal editor inside the character editor; the Mind panel is
 
 - `static/js/inspector/mind-view.ts` (the goal editor)
 - `static/js/inspector/agent-view.ts` (the Bio-tab editor removed)
+
+## Browser UI and intended live verification
+
+Intended UI home: Character Inspector → 🧠 Mind → Mind tab → Goals. Bio retains personality, appearance, stats/skills/traits, tags, and aliases, but no goal editor.
+
+Current availability: The card records a live add/edit/reload/delete pass on localhost:4444 on 2026-10-13; the probe goal was reverted after verification.
+
+Live steps when available:
+1. Select a character, open Mind → Mind, click “➕ Add goal”, enter a goal and motivation, and blur the field.
+   - expected: one row is added, and the updated `Player.goals` appears in `/api/state` after the normal state refresh.
+2. Edit the goal's text and status, reload the page, then delete the goal.
+   - expected: the edits survive reload; deletion removes that row; the personality field does not change.
+3. Open the character's Bio tab and inspect the full tab contents.
+   - expected: there is no Bio Goals editor, and the shared player record remains the only source of the goal.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.

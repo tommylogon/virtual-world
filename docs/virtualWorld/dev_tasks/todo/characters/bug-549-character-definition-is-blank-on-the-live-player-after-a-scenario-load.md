@@ -59,3 +59,39 @@ Confirm the graph is deserialized before `_deserialize_player` runs, so the node
 ## Note: a related data loss, repaired 2026-10-12
 
 A scenario can also *lose* the definition on save: `to_scenario_dict` strips the players block, relying on the node. Where a character's node never carried it (never migrated off the players block), the strip discards it permanently. Found this session: mansion (9) and world_template (3) had it in neither place, and kraktooth's `player_james` in neither. All 13 were restored onto their nodes from `data/library/characters/` (the authored source) and the `/api/state` payload now carries them. Three kraktooth characters - Cullen Rutherford, Eldenford Blacksmith, Eldenford Elder - have no library entry at all, so their prose lives only on the node and cannot be restored from the library.
+
+## Browser UI and intended live verification
+
+Intended UI home: load a scenario in the game, select one character in the
+graph, and inspect its Bio/personality view and a live character prompt or
+turn. The graph node's character definition is authoritative; the Player is a
+runtime projection and must receive the same prose after scenario loading.
+
+Current availability: this card records a scenario-load bug where definition
+fields remain on the character node but the loaded Player is blank. It also
+records that loading a savegame masks the issue. No fresh browser reproduction
+is recorded here.
+
+Live steps when available:
+1. Load a scenario containing a character node with non-empty `personality`,
+   `base_description`, and `description` properties. Select the character and
+   inspect the Bio view and `/api/state` player entry.
+   - expected: the loaded Player has personality and base description from the
+     node; its generated description follows the documented Player-vs-node
+     precedence.
+2. Start one live character turn or open the prompt preview for that character.
+   - expected: the prompt contains the authored personality and appearance
+     rather than blank definition fields.
+3. Load a legacy fixture with those values only in the players block, then
+   repeat the Bio and prompt checks.
+   - expected: legacy prose still populates the Player when the node fields are
+     absent.
+4. Save, reload the scenario, and inspect the graph node and Player values.
+   - expected: the node remains the single persisted definition home and the
+     loaded Player is hydrated from it; no duplicate players-block copy is
+     required.
+
+These steps describe the visible consequence of scenario deserialization; the
+card's core acceptance remains the node-to-Player load path.
+
+This section is not a claim that planned UI exists or works today.

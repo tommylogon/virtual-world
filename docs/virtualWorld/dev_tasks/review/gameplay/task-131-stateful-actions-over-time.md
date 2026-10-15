@@ -158,9 +158,49 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Load a scratch scenario with an actor and a real bed in the same area; enter
+   `sleep 3 on <bed>` in the Game command input, then advance one turn cycle.
+   - expected: the event stream and area people list identify the character as
+     sleeping in that bed, and the activity advances by one tick.
+   - observed (2026-08-07): the card records a live `sleep → tick` check; the
+     integrated browser E2E remains pending.
+2. While the character sleeps, attempt to move through a connected way; then
+   wake the character and repeat the movement.
+   - expected: movement is blocked while sleeping; after `wake <name>` the
+     activity clears and the character can act.
+   - observed (2026-08-07): the card records `sleep → blocked movement → wake`
+     live; the browser E2E is still pending.
+3. Start an agent turn while another character is sleeping and inspect that
+   character's prompt/context after the cycle.
+   - expected: the sleeping character is skipped as busy and the activity is
+     visible in the room/prompt context for other agents.
+   - observed: the card explicitly leaves this agent-turn browser check pending.
+
+## Browser UI and intended live verification
+
+Intended UI home: Game command input → event stream and area people list; the
+character's activity is visible to other characters in the same room.
+
+Current availability: `Player.activity`, command handling, tick progression,
+activity gating, room/event output, and agent busy checks are implemented. The
+card records a live sleep/tick/blocked-movement/wake sequence from 2026-08-07;
+the agent-turn skip and prompt visibility still need browser verification.
+
+Live steps when available:
+1. With a real bed node in the actor's area, enter `sleep 3 on <bed>` and
+   advance one full turn cycle; inspect the event stream and room's people list.
+   - expected: both surfaces name the sleeping actor and bed; state shows the
+     same `target_item`, and elapsed activity time advances by one tick.
+2. Try `go <connected way>` while asleep, then enter `wake <actor>` and retry.
+   - expected: the first move is refused by the activity gate; waking clears
+     the activity and the second move uses the normal movement route.
+3. Let the sleeping actor's scheduled AgentEngine slot arrive, then inspect
+   the next agent's room context.
+   - expected: the sleeper does not act, and their sleeping activity is visible
+     to the other character in the room.
+
+This section defines intended access and live acceptance. It is not a claim
+that planned UI exists or works today.
 
 ## Acceptance
 

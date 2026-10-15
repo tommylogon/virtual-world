@@ -54,3 +54,21 @@ One layer for soak and LLM: the soak gets the numbers, the LLM gets the whispers
 - `engine/serialization.py` (`_trait_behavior` + the payload field)
 - `tests/test_disposition.py`
 - `static/js/agent/prompt-builder/character-state.ts` (reader only - unchanged; it already consumed the missing field)
+
+## Browser UI and intended live verification
+
+Intended UI home: load a character → Human Turn/Agent Lens prompt context → inspect the generated disposition/trait prose and the matching raw LLM input.
+
+Current availability: the card records live payload verification for 22/27 players and tests for score whispers and carried-trait `behavior_prompt` prose. The UI should expose the same prompt context the LLM receives; no new editor is claimed.
+
+Live steps when available:
+1. Select a character with a trait in `TRAIT_MODIFIERS` and inspect its Agent Lens prompt context and Raw LLM capture.
+   - expected: the character receives the matching `WHISPERS` line in words, not only a numeric score.
+2. Select a character carrying a trait with `behavior_prompt` and inspect the same two surfaces.
+   - expected: the trait's authored behavior prose appears once in the LLM context and agrees with the carried trait in `/api/state`.
+3. Give the character a pressing need and a remembered target, then reopen the prompt context.
+   - expected: the whisper includes those live modifiers only when present and uses the same score vocabulary as the soak registry.
+4. Compare the visible Agent Lens and captured raw prompt.
+   - expected: both contain the same disposition text; the UI does not fabricate additional personality traits.
+
+This section is not a claim that every character payload is freshly verified today.

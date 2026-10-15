@@ -382,6 +382,21 @@ nothing") and does not trigger the deterministic fallback. The distinction from
 
 TODO
 
+## Browser UI and intended live verification
+
+Intended UI home: Character Inspector → Bio/Interests → Auto-Dress from Interests and its help text.
+
+Current availability: The deterministic behavior has a live reproduction; the card is resolving whether selection becomes LLM-driven or its deterministic contract is made explicit.
+
+Live steps when available:
+
+1. Select a character with authored interests, inspect Auto-Dress help, run the action, and inspect equipped items.
+   - expected: Gear selection follows the control’s stated contract and the help text accurately describes the decision path.
+
+2. Repeat with no wearable-tag overlap and with weather needs.
+   - expected: Empty-match behavior is explicit and weather/slot/worn-gear rules remain observable.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. TODO

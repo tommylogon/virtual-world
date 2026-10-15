@@ -169,3 +169,21 @@ the field is only a preview.
   `weather_field` on the GET (task-763); `GET /api/settings/forecast/outlook`.
 - `tests/test_forecast_settings_route.py` — route round-trip.
 - `tests/test_forecast_outlook.py` — the outlook projection.
+
+## Browser UI and intended live verification
+
+Intended UI home: Game menu → World Sky → Forecast tab for schedule editing; World Sky → Regions tab for the per-area outlook. Keep the sky stage, Time & date, Override, Forecast, and Regions controls on this one modal.
+
+Current availability: The card records live verification of the schedule editor, weather override, scroll behavior, and Regions table, including a 470-row result and an unchanged clock when switching tabs.
+
+Live steps when available:
+1. Open World Sky → Forecast, change one entry's weather and humidity, click “Save schedule”, then close and reopen the modal.
+   - expected: the edited row is still present with the chosen weather and humidity; the status shows saved and the stage/top-bar weather agree.
+2. Set a weather override, then clear it.
+   - expected: the top-bar `● override active` indicator appears while set and disappears when cleared; the weather label follows the selected value.
+3. Open Regions and enter `Farm` in its filter.
+   - expected: the table narrows to the Farm area, the badge identifies live field versus preview mode, and the world clock remains unchanged while the tab is open.
+4. Scroll the modal to its bottom in a short viewport, then return to Forecast.
+   - expected: the last Regions rows are reachable and the forecast controls remain usable.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.

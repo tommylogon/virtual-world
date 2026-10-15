@@ -61,3 +61,23 @@ Route improveWithAI through DiffModal.show(current, incoming, sections, {directi
 - `static/js/inspector/area-view.ts`
 - `static/js/shared/diff-modal.ts`
 - `docs/design/full-entity-editors.md`
+
+## Browser UI and intended live verification
+
+Intended UI home: Select an item, way, or area → inspector → its “Improve with AI” action → shared before/after Diff modal. The world must remain unchanged until the author accepts selected sections.
+
+Current availability: The card records that `improveWithAI` currently calls `updateNode` immediately and plans to reuse `DiffModal.show`; the preview-first flow is not claimed as implemented.
+
+Live steps when available:
+1. With an LLM configured, open an item with a description and click “Improve with AI”.
+   - expected: the shared diff modal shows proposed fields before and after; cancel closes it with no change to `/api/state`.
+2. Reopen the proposal, keep only the description section, drop the other sections, and click Update.
+   - expected: only the description changes; dropped sections remain byte-for-byte at their prior values.
+3. Lock the item's tags, run Improve again, and inspect the proposal.
+   - expected: tags are absent from the diff and unchanged after applying other sections.
+4. Apply one accepted section and use toolbar Undo once.
+   - expected: the whole accepted apply is one `updateNode` write and one undo restores all pre-apply values.
+5. Repeat with one way and one area.
+   - expected: all three inspector types use the same Diff modal and preserve each type's locked-field rules.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.

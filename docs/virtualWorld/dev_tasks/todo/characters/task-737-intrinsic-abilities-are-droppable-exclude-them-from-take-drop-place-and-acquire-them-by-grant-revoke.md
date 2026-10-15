@@ -90,3 +90,38 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: in a scratch scenario, interact with an intrinsic ability
+through the normal character action/command surface, and manage its physical
+carrier through Inventory/Equipment. The ability itself is not a ground item;
+the spellbook, chip, or implant is.
+
+Current availability: the card reports that an intrinsic ability can currently
+be dropped and taken. The proposed carrier grant/revoke interaction is not
+claimed as implemented.
+
+Live steps when available:
+1. Give a character one intrinsic ability and one physical carrier item that
+   grants it. Open Inventory and inspect both records.
+   - expected: the carrier is listed as a physical item; the intrinsic ability
+     is not presented as a carried object.
+2. Attempt `take`, `drop`, `place`, `put`, `stow`, `give`, and `steal` against
+   the intrinsic ability through the normal command/action surface.
+   - expected: each physical-possession verb returns a clear non-physical
+     refusal and does not create an item on the ground or in another
+     character's inventory.
+3. Equip/install the carrier, then remove it. Inspect the character's abilities
+   and the carrier's equipment state after each operation.
+   - expected: installing grants the intrinsic ability; removal revokes it;
+     the carrier remains the physical object whose ownership changes.
+4. Examine the character from another character before and after carrier
+   removal.
+   - expected: the intrinsic ability does not leak into another character's
+     appearance or carried-item list.
+
+These steps define the intended action and Inventory/Equipment behavior; they
+do not claim carrier-based grant/revoke exists today.
+
+This section is not a claim that planned UI exists or works today.

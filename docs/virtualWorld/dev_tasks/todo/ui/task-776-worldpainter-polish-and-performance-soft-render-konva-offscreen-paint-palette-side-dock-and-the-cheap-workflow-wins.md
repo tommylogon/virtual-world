@@ -112,3 +112,23 @@ the client side; the layout half is the single most visible UX complaint.
 - `static/js/worldpainter/grid-model.ts` — memo helpers
 - `tools/unit/test_worldpainter.js`
 - a scoped CSS block for the painter
+
+## Browser UI and intended live verification
+
+Intended UI home: WorldPainter → select a scope → canvas, right-side palette dock, Generate toolbar cluster, actionable checklist, and fixed status bar.
+
+Current availability: The card lists independent paint-performance, palette-layout, and workflow changes. They are planned; the retained Konva stage and offscreen cache are not claimed as implemented.
+
+Live steps when available:
+1. Select a scope, paint one cell, and watch the status line and pointer position while the canvas is visible.
+   - expected: only the affected Konva layer, estimate, status, and open inspector refresh; the stage stays mounted, scroll does not jump, and input-to-paint latency is measured against bug-545's backend cost.
+2. Open the palette and resize the painter window.
+   - expected: the canvas keeps its previous dimensions, the palette has its own scroll, the toolbar wraps without hiding Generate, and the value-detail sentence remains readable.
+3. Click a checklist row for a different layer/value, then paint once.
+   - expected: the row arms the listed tool, layer, and value; the next stroke paints with exactly that selection.
+4. Change zoom, layer, palette filter, and active tool; switch scopes and return.
+   - expected: per-scope UI choices restore, recent values remain available, and the fixed status bar remains visible.
+5. Zoom and pan repeatedly over a large painted area while monitoring frame time.
+   - expected: the offscreen paint cache composites without rerasterizing the full reference image, and pointer movement is limited to one animation-frame update.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.

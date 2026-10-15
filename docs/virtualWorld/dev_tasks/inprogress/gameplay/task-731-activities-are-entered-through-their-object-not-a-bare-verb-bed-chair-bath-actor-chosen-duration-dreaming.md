@@ -135,6 +135,24 @@ TODO
 
 TODO
 
+## Browser UI and intended live verification
+
+Intended UI home: Game scene interaction with real bed/chair/bath items; Character Inspector → Mind → Activity.
+
+Current availability: Activity records and Mind surfaces exist; object-based entry and duration handling remain in progress.
+
+Live steps when available:
+
+1. Load a scratch room with a real bed, select a character, and use the bed through the normal item interaction.
+   - expected: Sleeping starts with that bed as target_item and the scene reports the activity on the bed.
+
+2. Use the bed for six hours, then repeat without a duration and inspect Mind.
+   - expected: The first activity carries the requested duration; the second ends at the existing rested condition.
+
+3. Try resting with no furniture and attempt fishing without a rod.
+   - expected: The fallback permits rest; fishing remains available through the rod rather than a bare fish verb.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. TODO

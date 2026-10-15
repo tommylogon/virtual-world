@@ -108,3 +108,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: load a scene with an unacquainted stranger → inspect the Human Turn scene/room context and the character's generated plan in the event stream or raw LLM view.
+
+Current availability: the card reports that planning facts use real `players_in_area[].name` values while the prompt shows masked handles. The mismatch and real-name leak are reported; no fresh browser reproduction is recorded in this card.
+
+Live steps when available:
+1. In a scratch scene, put the controlled character beside a stranger it has not met. Inspect the visible room context and the exact handles shown to the character.
+   - expected: the prompt context uses the same anonymous handle as the visible scene; the stranger's real name is absent.
+2. Ask the character to approach the visible stranger using the handle from the scene.
+   - expected: grounding accepts the visible target and executes the plan; it does not reject the target or reveal a hidden real name in the result.
+3. Inspect raw LLM capture, grounding facts, event stream, and `/api/state` after the plan.
+   - expected: the planner and grounder share the prompt-visible identifier, while authoritative graph resolution still targets the correct opaque node ID.
+4. Repeat after the character has learned the stranger's name.
+   - expected: the real name is available only after recognition/knowledge permits it; the masked-stranger path remains private.
+
+This section is not a claim that planned UI exists or works today.

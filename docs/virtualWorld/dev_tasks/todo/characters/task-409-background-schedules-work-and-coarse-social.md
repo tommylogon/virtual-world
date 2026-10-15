@@ -1,21 +1,19 @@
 ---
 type: task
-status: todo - out of date, need to re-measure and re-author
+status: todo
 area: characters
 priority: high
-related: [task-702, task-704, task-699, task-814]
-blocked_by: [task-399, task-408]
+related: [task-403, task-417, task-423, task-699, task-702, task-704, task-814]
 ---
 
 # task-409: Background schedules, daily reflection, and coarse social behaviour
 
 **Filed:** 2026-09-19  
-**Depends on:** task-399 (background runner), task-408 (clean scenario data).  
-**Spec:** task-399 §"Background runner (v1)"; `docs/design/reversibility-contract.md`.
+**Prerequisites:** task-399 and task-408 are complete.
+**Design:** [[Character Pursuits]], [[MOSIAC]], and [[GIMP]].
 
 <!-- deps:start -->
-**Blocked by:** [[task-399-background-character-simulation-and-reactivation]], [[task-408-goblin-scenario-node-dedup-and-data-integrity]]
-**Related:** [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]], [[task-704-mosiac-selector-needs-memory-and-personality-choose-and-bind-plans]], [[task-699-mosiac-design-doc-schedules-plan-templates-and-recipe-activities-as-one-decision-layer]], [[task-814-mosiac-schedules-a-character-can-edit-themselves]]
+**Related:** [[task-403-unified-agent-memory-and-knowledge]], [[task-417-co-presence-gate-for-coarse-meetings]], [[task-423-background-social-interactions]], [[task-699-mosiac-design-doc-schedules-plan-templates-and-recipe-activities-as-one-decision-layer]], [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]], [[task-704-mosiac-selector-needs-memory-and-personality-choose-and-bind-plans]], [[task-814-mosiac-schedules-a-character-can-edit-themselves]]
 <!-- deps:end -->
 
 ## Progress (slice 1)
@@ -208,119 +206,155 @@ Fixes landed this pass (all committed, all separate from the Social question):
   Social avg 0.7 → 20.2 over 3 days; it does not solve the week-long equilibrium
   above, but it is the coarse-social half of slice 1 and is orthogonal to chores.
 
+## Current scope (2026-10-15)
+
+The old deterministic “goal-directed planner” in this card is superseded by the
+MOSIAC/GIMP design and tasks 702/704. Keep the work here on the existing
+calendar schedule and the still-missing capped background reflection. Do not
+build another planner or selector.
+
 ## What
 
-Background characters behave like **supercharged simple NPCs**: a deterministic,
-action-oriented planner pursues their goals every tick, with **one local LLM
-reflection call per character per in-game day** to check direction and set what
-to reach toward.
+Finish the background schedule slice by remeasuring its authored scenario data
+under the current timeframe-and-flow simulation, then decide whether that data
+can ship. Complete the optional daily reflection only through existing Player
+goals and memories.
 
-## Division of labour (decided)
+The clock schedule model, schedule traversal, and coarse social pass already
+exist. The co-presence meeting and coarse social work is covered by tasks 417
+and 423; it is not open work in this card.
 
-- **Deterministic backend (non-LLM)** does the action planning and execution:
-  schedule steps, work, travel, consume, coarse meetings — goal-directed, no
-  LLM, seeded and reproducible.
-- **Local LLM, ≤1 call/character/in-game day** answers a reflection prompt:
-  *"Am I doing what I should? What do I want to reach toward?"* and proposes
-  goals/adjustments. It runs through the local LM Studio provider only, never
-  decides an individual action, and its output is written as goals/plan/memory
-  so the deterministic planner is what acts.
+## Ownership and runtime boundaries
 
-This keeps cost proportional to population × game-days, not ticks, and keeps
-behaviour auditable.
+- The clock schedule is Player.schedule and engine/schedule.py. Schedule entries
+  can make an activity or pursuit timely; they are not pursuits or activities.
+- The hand-ordered background needs cascade in
+  engine/background_simulation.py::_satisfy_needs remains the needs policy.
+  Never replace it with a scored candidate list or the MOSIAC selector.
+- Task 704 owns selecting/binding a suitable plan; task 702 owns executing that
+  plan. This task must not add a parallel goal planner, action executor, clock,
+  or character-private store.
+- GIMP goals, motivations, and intentions are private Player data. MOSIAC
+  assembles runtime context from those goals, obligations, schedules, attention,
+  and available choices; the disposition chooses among them.
+- A reflection may update an existing GIMP goal through the existing goal
+  mutation path and may write an ordinary memory through Player.memories /
+  AgentMind. It must not directly choose or execute an action. Do not add a
+  reflection log or memory database as another source of truth.
 
 ## How
 
-1. **Schedule model.** Authored per character
-   (`{start, activity, destination_scope_or_area, fallback, vital_policy}`),
-   serialized, with `fallback: wait`. The due scheduler advances schedule steps
-   as well as needs.
-2. **Goal-directed planner (deterministic).** Given schedule + goals + needs +
-   traits + relationships, pick the next step (work/wait/travel/consume/social)
-   and execute coarsely, reusing existing movement/item rules where exact
-   resolution is needed.
-3. **Daily reflection (local LLM, capped).** Once per in-game day per background
-   character, one call to the local model over a bounded context (goals,
-   relationships, recent trace). Output updates goals/plan; it never chooses the
-   immediate action. Hard cap enforced and logged; failures fall back to the
-   existing goal unchanged.
-4. **Coarse meetings.** Deterministic from relationships + traits + vitals +
-   seeded RNG; apply symmetric relationship deltas; never fabricate items.
-   **Amended by task-417:** the pairing pass runs **per area over co-present
-   characters**. As written here the rule has no spatial constraint and would
-   pair characters in different areas. task-417 is authoritative for this step.
-   Deltas are written through `apply_relationship_delta` (task-420).
-5. **Deferral rules.** Combat, ambiguous theft/trade, a blocked/locked route, a
-   trigger needing precise surroundings, or an encounter marked
-   `requires_active` stop and request scope activation.
+1. Re-run the schedule-on/off comparison using the current tick/timeframe model,
+   current scenario data, a fixed starting state, and the same measured game
+   duration. Record the exact scenario, seed, timeframe, and vital/activity
+   results. The 2026-09 measurements below were made under the retired
+   action-credit model and are historical only.
+2. If the schedule data is acceptable under current behavior, author it through
+   the existing scenario/character data path. If not, keep it unshipped and
+   update this card with the measured blocker and the smallest supported next
+   change. Do not invent a fix from the retired 96-actions-per-day arithmetic.
+3. Implement the daily reflection as an optional local-provider call capped at
+   one per background character per in-game day. Its bounded input may include
+   the character's existing GIMP goals, relationships, and recent trace. Its
+   output must be validated and applied through existing goal and memory APIs.
+   With no local model, the simulation continues unchanged.
+4. Keep normal needs, movement, activities, schedule timing, and plan execution
+   on their existing paths. Record which runtime caller reaches each new branch.
 
 ## Acceptance
 
-- A fixed seed replays a schedule/plan span identically **with reflection
-  disabled**.
-- At most one reflection LLM call per character per in-game day, local provider
-  only; with no local model configured the sim runs unchanged.
-- Reflection writes goals/plan/memory and never a direct action.
-- Meetings produce symmetric relationship deltas on both sides.
-- Deferred outcomes never invent facts; they surface as activation requests.
-- Save/load preserves schedules, goals, `next_due_tick`, and seeded RNG state.
-- Background characters visibly move through distinct day activities over a
-  multi-day soak (not just eat/drink/sleep loops).
+- Current-model schedule-on/off evidence is recorded; any schedule data that
+  ships improves or preserves the chosen vital and activity measures, and the
+  decision is explained. Old measurements are not treated as current evidence.
+- A fixed seed with reflection disabled reproduces the same schedule/plan
+  behavior.
+- The reflection call is capped at one per character per in-game day, uses only
+  the configured local provider, and leaves the simulation unchanged when no
+  local model is configured.
+- Reflection changes only existing Player GIMP goals and/or ordinary
+  Player.memories through their existing mutation paths. It never selects an
+  immediate action, writes a duplicate mind, or bypasses normal action
+  validation.
+- Schedule and any supported reflection changes survive save/load in the
+  existing Player record.
+- The completed coarse-social behavior from tasks 417 and 423 is preserved.
 
-## Non-goals
+## Browser UI and intended live verification
 
-- A general economy, relationship simulation, or full offscreen combat.
-- Replacing the existing foreground LLM loop.
+Intended UI home: Character Inspector → 🧠 Mind → **Schedule — their day**,
+Goals section, and Memories tab.
+
+Current availability: schedule, goal, and memory readouts exist in Mind;
+schedule rollout and daily reflection still need the current acceptance work
+described here.
+
+Live steps when available:
+
+The schedule belongs in the character Inspector's existing **🧠 Mind** panel,
+under **Schedule — their day**. Goals and motivations remain in the existing
+Goals section; any authored memory remains in the existing **Memories** tab.
+Do not add a second schedule or mind screen. If a code change adds or changes
+schedule/reflection state, it must be visible in these existing character
+surfaces; API or test output alone does not satisfy UI acceptance.
+
+1. Open a scratch scenario with a background character whose schedule is
+   authored, then select that character in the graph and open **🧠 Mind**.
+   - expected: the character's actual schedule entries appear under
+     **Schedule — their day**, with the authored time, activity, and area.
+2. Advance the game clock through one scheduled transition using the normal
+   game controls. Reopen/refresh the character's Mind panel and inspect the
+   character in the graph/room.
+   - expected: the visible schedule remains the authored routine and the
+     character's observed location/activity agrees with the schedule and
+     current simulation rules.
+3. When reflection is enabled in a local test setup, inspect the same character's
+   Goals section and Memories tab after the reflection day.
+   - expected: any accepted change appears in the existing GIMP goal or normal
+     memory UI; no second panel or hidden state store is required to find it.
+4. Compare the panel with the same character's values in /api/state.
+   - expected: the panel displays the Player-owned values, not a graph-node copy.
+
+These are intended access and live acceptance steps, not a claim that planned
+behavior works today. No new browser run is recorded for this updated card.
 
 ## Steps to verify
 
-- Extend `tests/test_background_simulation.py`: seed determinism (reflection
-  off), reflection cap, goal-planner selection, deferral, symmetric
-  relationships, schedule serialization.
-- A multi-day soak report showing distinct activities per character.
+1. Run targeted mechanism coverage in tests/test_schedule.py and
+   tests/test_background_simulation.py for schedule clock lookup and branch,
+   reflection call cap/provider, validation path, deterministic no-model
+   behavior, and Player save/load.
+   - expected: the asserted value read and branch taken match the current
+     schedule/reflection contract.
+   - observed: not run for the updated scope.
+2. Produce the current-model schedule-on/off soak report.
+   - expected: report names the scenario, seed, timeframe, game duration, and
+     vital/activity results.
+   - observed: not run; old measurements used the retired model.
+3. Follow the browser path in Browser UI and intended live verification when
+   the relevant behavior is available.
+   - expected: existing Mind sections show the character's Player-owned
+     schedule, GIMP goals, and any reflection memory.
+   - observed: not run for this updated scope.
 
-## Dependency reality (2026-09-24)
+## Completed prerequisites and related work
 
-- **`Depends on: task-399` is satisfied** (background runner + promotion seam,
-  `engine/background_simulation.py`, `engine/promotion.py`); `task-408` is only
-  partly done (consolidation + folder compiler landed; dedupe/`high_metabolism`
-  open).
-- **Most of this task already shipped**: the clock-schedule model/planner
-  (`engine/schedule.py`), schedule traversal
-  (`engine/background_simulation.py:838-868 _pursue_schedule`) and the coarse
-  social pass (`engine/background_social.py:717 run_social_pass`) are live.
-  Section 4 ("coarse meetings") was amended and completed by task-417/task-423.
-- **Only the capped daily reflection LLM call (≤1/char/day) is genuinely
-  missing** — no reflection code exists in `engine/`.
-- The plan's action-budget arithmetic is superseded by the timeframe-and-flow
-  model (`docs/virtualWorld/Simulation Model.md`); options now collapse to
-  "background characters use bundled activities authored as data". Crafting
-  recipes and actor schedules may share data-authoring conventions while keeping
-  separate meanings and responsibilities.
+- task 399 (background runner) and task 408 (scenario data integrity) are done.
+- The schedule model and traversal already exist in engine/schedule.py and
+  engine/background_simulation.py.
+- Coarse meetings are scoped to co-present characters by task 417; broader
+  background social behavior is recorded in task 423.
+- Current plan selection/execution work belongs to tasks 704/702.
 
-## Pursuit terminology correction (2026-10-05)
+## Historical measurement
 
-This task's `engine/schedule.py` and `Player.schedule` refer to the **calendar
-schedule**: HH:MM routine entries that can make an activity or pursuit timely.
-They are not the reusable pursuit templates and do not represent an ongoing
-Activity such as sleeping or cooking. See [[Character Pursuits]] for the shared
-design vocabulary.
-
-The pursuit work is tracked in task-699 and tasks 701–705: the template library,
-grounded short-term plans, their executor, world recipes, requirement checks,
-and character choice. The separate `Player.activity` / ActivitySystem handles
-observable actions over time. Historical references in this task to “schedule
-pursuit” mean the existing clock routine; new work should use the clarified
-terms.
-
-This task's remaining scope (daily reflection, coarse social, and the
-ship-the-data decision) can connect to pursuit execution without redefining the
-clock scheduler or creating a second time system.
-
-## Why
-
-TODO
+The original 2026-09 schedule comparison and failed co-location/committed-journey
+experiments remain above as historical evidence. They used the retired
+action-credit model. Re-measure before relying on those numbers or changing
+scenario data.
 
 ## Files
 
-- TODO
+- Existing background schedule and reflection implementation, if changes are
+  needed
+- Scenario/character schedule content only after current-model measurement
+- tests/test_schedule.py and tests/test_background_simulation.py

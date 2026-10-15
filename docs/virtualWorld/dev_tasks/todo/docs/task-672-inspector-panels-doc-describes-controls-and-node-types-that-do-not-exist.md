@@ -35,3 +35,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: select an area, item, way, and character in the graph → inspect the right-hand Inspector and compare the visible tabs/actions with `UI & Settings/Inspector Panels.md`.
+
+Current availability: the card records measured discrepancies: the character Inspector has 4 tabs (`Inventory`, `Bio`, `Images`, `Advanced`), the item Inspector exposes 15 actions, and the documentation dispatch example names obsolete `room`/`door` node types. The corrected page should match the live surfaces.
+
+Live steps when available:
+1. Open a character Inspector and count the visible tabs across the whole Inspector; open each tab and scroll to its bottom.
+   - expected: the doc lists the actual four tabs and describes their controls without truncating the panel to a partial viewport.
+2. Open an item Inspector and enumerate the available actions by interacting with its action menu; count all visible actions.
+   - expected: the doc lists all 15 current item actions and their real names.
+3. Select area, way, item, and character nodes; inspect the Inspector and the graph node `type` values in `/api/state`.
+   - expected: the doc's dispatch example uses the graph's actual node types and matches the renderer reached for each node.
+4. Re-read the corrected page while repeating the interactions above.
+   - expected: every described tab/action/type corresponds to a visible control or returned node value; no obsolete `room` or `door` renderer is presented as current.
+
+This section is not a claim that the documentation is corrected or freshly browser-verified today.

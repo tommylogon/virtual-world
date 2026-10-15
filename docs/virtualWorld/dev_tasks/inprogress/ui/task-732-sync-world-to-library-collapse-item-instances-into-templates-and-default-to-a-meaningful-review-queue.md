@@ -100,6 +100,21 @@ TODO
 
 TODO
 
+## Browser UI and intended live verification
+
+Intended UI home: Build → Library → Sync World to Library review queue.
+
+Current availability: Item-instance grouping is in place; filtering, review/apply, per-entity diff, and undo remain open.
+
+Live steps when available:
+
+1. Open Sync World to Library with multiple instances of one template and inspect the default queue.
+   - expected: Instances collapse into one row; unchanged and generated entities are hidden by default.
+
+2. Show excluded entities, review a diff, apply a batch, then undo it.
+   - expected: Excluded rows are inspectable, the diff is reviewable, and the last batch can be reversed.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. TODO

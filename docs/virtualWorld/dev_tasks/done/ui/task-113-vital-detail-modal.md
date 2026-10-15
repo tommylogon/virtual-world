@@ -102,9 +102,44 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Select a character, click its Hunger vital bar, and read the Vital Detail
+   modal's current value, max, percentage, decay rate, time to empty, and
+   conditions list.
+   - expected: the modal identifies Hunger and shows values for that character;
+     a zero rate reads “No decay”.
+   - observed: the task records these frontend controls as implemented; a live
+     click-through is not recorded here.
+2. Edit Hunger and its decay rate, save, reopen the modal, and press Escape.
+   - expected: both values persist after reopen and Escape closes the modal.
+3. Add the `magic` tag to a disposable character, open the inspector, and
+   click Mana in the Arcane group.
+   - expected: Mana appears only while the character has the magic tag and its
+     detail modal shows the current value and decay information.
+
+## Browser UI and intended live verification
+
+Intended UI home: Character Inspector → Bio → Vitals; click a vital bar to
+open Vital Detail.
+
+Current availability: The card records the modal, editing controls, conditions
+list, time-to-empty calculation, and magic-tag Mana group as implemented. It
+does not record a browser run of these interactions.
+
+Live steps when available:
+1. Click Hunger on a character with non-zero decay and a condition that affects
+   Hunger; inspect the full Vital Detail modal.
+   - expected: current/max/percentage, decay rate, time to empty, and the
+     affecting condition are visible together.
+2. Change the value and decay rate, save, reopen the modal, then close with
+   Escape.
+   - expected: saved values survive reopening and Escape closes the modal.
+3. Add or remove the `magic` tag on a disposable character and compare the
+   inspector before and after a state refresh.
+   - expected: Mana appears in Arcane only while the magic tag is present;
+     clicking it opens the same detail modal.
+
+This section defines intended access and live acceptance. It is not a claim
+that planned UI exists or works today.
 
 ## Acceptance
 

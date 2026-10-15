@@ -159,6 +159,24 @@ capture overhead is negligible (IndexedDB writes are async and fire-and-forget).
 - `static/css/llm-inspector.css` (new) — syntax highlighting, layout
 - `templates/index.html` or command palette — entry point for the inspector
 
+## Browser UI and intended live verification
+
+Intended UI home: Command palette → “Raw LLM inspector” → select an exchange to inspect its request and response. The command-palette entry is the intended launcher for this task; it is not present until implemented.
+
+Current availability: The existing UI shows extracted assistant output. The full HTTP exchange inspector, persistence, and secret redaction are planned and not claimed as available.
+
+Live steps when available:
+1. Enable `showRawLLM`, open the command palette, choose “Raw LLM inspector”, and make a successful non-streaming request.
+   - expected: the selected entry shows method/URL, request headers and full JSON body, response status/body, usage and reasoning tokens, and tool calls; authorization values are redacted.
+2. Repeat with a streaming request and inspect the exchange after completion.
+   - expected: the inspector retains the complete request and the final streamed response, not just the extracted assistant text.
+3. Cause provider responses 429 and 500, then open each failed exchange.
+   - expected: status and provider error body are visible; secret headers remain redacted.
+4. Reload the page, reopen the inspector, and toggle it closed and open while the event stream is active.
+   - expected: captured exchanges survive reload and the event stream/dataset collector continue to work.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.
+
 ## Steps to verify
 
 - Make an LLM call with `showRawLLM` enabled

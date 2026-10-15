@@ -53,9 +53,39 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Open a world item with tags and at least one trigger in the Item Inspector,
+   then open the matching template in Library Browser.
+   - expected: both editors show the same tag picker, current-state control,
+     trigger summary, and Edit/Remove actions; the inspector also keeps its
+     world-only move and physics controls.
+   - observed: the card's 2026-07-30 implementation record says the two
+     trigger-card renderers now match; no browser comparison is recorded.
+2. Edit an existing trigger in Library Browser, save it, and reopen the entry.
+   - expected: the same trigger editor opens with the prior condition/effect
+     values and the saved card updates in place.
+
+## Browser UI and intended live verification
+
+Intended UI home: Graph → select an item → Item Inspector; Library menu →
+Library Browser → Items → select the matching template.
+
+Current availability: The card records both editors as implemented with
+matching tag, state, trigger, container, AI Improve, and library-sync surfaces.
+The feature comparison was recorded from code on 2026-07-30; a fresh visual
+comparison is not recorded.
+
+Live steps when available:
+1. Open the same item as a world node and as a library template; compare its
+   tags, state, trigger cards, and container contents.
+   - expected: shared fields and trigger summaries use the same controls and
+     labels; world-only move/physics controls remain only in the inspector.
+2. In Library Browser, edit an existing trigger, save, reopen the item, and
+   use Remove on a second trigger.
+   - expected: Edit reopens the configured trigger and Remove deletes only the
+     selected trigger; the inspector still offers the same trigger editor.
+
+This section defines intended access and live acceptance. It is not a claim
+that planned UI exists or works today.
 
 ## Acceptance
 

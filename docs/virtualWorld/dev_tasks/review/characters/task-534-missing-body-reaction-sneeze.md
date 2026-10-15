@@ -123,10 +123,48 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Run `node tools/unit/run.cjs` and
+   `python -m pytest tests/test_condition_catalog.py`.
+   - expected: sneeze speech/emote injection remains pronoun-rendered and
+     non-mature; the condition catalog still loads the entry.
+   - observed (card record, 2026-10-08): 624 JavaScript unit tests and 92
+     condition/catalog tests passed.
+2. In the browser, add `sneeze` to an attended agent through Bio → Add
+   Condition, let AgentEngine emit that agent's speech or emote, and read the
+   event stream. Do not use a background/simple NPC or a manual action for this
+   check; `Involuntary` is called from `agent-engine` when it frames agent
+   speech/emotes.
+   - expected: a speech line remains intact with a sneeze interruption when
+     the 0.55 speech roll fires; an emitted emote receives one of the sneeze
+     emote suffixes.
+   - observed: the unit/catalog results above are recorded; no browser E2E is
+     recorded for the agent-engine caller path.
 
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Character Inspector → Bio → Conditions editor; Game command
+input → `speak <line>` → event stream for the character's reaction.
+
+Current availability: The `sneeze` condition and speech/emote reactions are
+implemented and the card records unit and catalog checks. No scenario content
+automatically applies `sneeze`; the browser check must add that condition to a
+disposable character explicitly.
+
+Live steps when available:
+1. Add the `sneeze` condition to a disposable character in the Conditions
+   editor, then have that character speak one line with the existing `speak`
+   action; inspect the event stream.
+   - expected: the spoken line remains present and a sneeze interruption or
+     sneeze emote is rendered in the character's voice.
+2. Remove `sneeze` and have the same character speak again; repeat with the
+   `itch` and `goosebumps` conditions as controls.
+   - expected: without `sneeze`, no sneeze reaction is emitted; each control
+     still produces its own existing reaction. The browser flow does not imply
+     that a dust/allergen driver exists.
+
+This section defines intended access and live acceptance. It is not a claim
+that planned UI exists or works today.

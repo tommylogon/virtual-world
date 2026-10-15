@@ -45,3 +45,33 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Character Inspector → Bio → Appearance description and
+Conditions; run the scenario with `auto_generate_descriptions` and
+`mature_content` set in its test configuration.
+
+Current availability: Condition editing and the appearance-description field
+exist. The engine regenerates on condition changes when enabled; this card's
+recorded verification is unit-level, not a browser run.
+
+Live steps when available:
+1. In a scratch world with `auto_generate_descriptions` and
+   `mature_content` enabled, select a character, record the current appearance
+   description, add the `blushing` condition in the Conditions editor, then
+   read the description again.
+   - expected: the text includes the authored visible phrase that the
+     character's cheeks are flushed.
+2. Remove `blushing` or let its duration expire, then inspect the description
+   after the condition change and after the next tick.
+   - expected: the flushed phrase is removed and the tick does not regenerate
+     the same unchanged description again.
+3. Disable `auto_generate_descriptions`, apply `blushing` in a fresh test
+   world, and compare the description; then turn `mature_content` off and
+   repeat with the mature body-state block.
+   - expected: the auto-generation-off world does not rewrite the description;
+     the mature-state phrase is absent when the mature-content gate is off.
+
+This section defines intended access and live acceptance. It is not a claim
+that planned UI exists or works today.

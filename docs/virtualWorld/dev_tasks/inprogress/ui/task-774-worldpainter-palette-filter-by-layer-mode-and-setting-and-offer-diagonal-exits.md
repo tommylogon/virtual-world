@@ -45,6 +45,21 @@ incomplete: a cell can be passable on a diagonal.
   a view over the same derived vocabulary route `handle_painter_vocabulary`
   (`routes/world_grid_ops.py`).
 
+## Browser UI and intended live verification
+
+Intended UI home: Build → WorldPainter → palette filters and cell Inspector exits row.
+
+Current availability: Layer/mode/setting filters and diagonal exit reporting are still in progress.
+
+Live steps when available:
+
+1. Switch among world, settlement, and interior modes and inspect palette sections for each layer.
+   - expected: Only entries valid for the active layer and map mode are offered.
+
+2. Apply a setting filter and inspect a cell with diagonal neighbors.
+   - expected: Out-of-setting entries are hidden and exits include diagonal and cardinal neighbors.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. World layer, world mode.

@@ -55,3 +55,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: WorldPainter → terrain/road paint palette; after painting a cell, inspect it with the cell inspector. The palette answers what an entry is and does; the cell inspector answers which exits touch that cell.
+
+Current availability: The task records a live pass on localhost:4465: bridge and road detail text was visible, and the cell at (14,8) showed `N: empty · E: empty · S: road · W: road`.
+
+Live steps when available:
+1. Open WorldPainter, choose the road layer, and select Bridge; then select Road without opening another panel.
+   - expected: the palette shows each entry's colour swatch, description, kind, terrain crossings, and arrival phrase; the bridge text distinguishes an elevated span from a worn track.
+2. Filter the palette by a name fragment and then by an ID fragment.
+   - expected: only entries whose name or ID matches remain, and their swatches and descriptions stay attached to the correct option.
+3. Paint or select cell (14,8), open its cell inspector, and read the `exits` row.
+   - expected: N and E read empty, S and W read road; a solid neighbour reads as a wall and the map boundary as an edge.
+4. Switch from road to biome layer and inspect a biome entry.
+   - expected: its prose and surface come from the compiler vocabulary record, matching the palette content rather than a second UI-only definition.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.

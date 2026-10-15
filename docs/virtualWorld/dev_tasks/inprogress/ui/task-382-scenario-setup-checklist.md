@@ -42,6 +42,21 @@ sequence and makes "what is left to build" visible at a glance.
 - Show the panel when the scenario is empty (or on demand). Derived only; no
   new storage.
 
+## Browser UI and intended live verification
+
+Intended UI home: Scenario Manager → create-scenario flow → setup checklist.
+
+Current availability: The checklist and its world-derived step states are still in progress.
+
+Live steps when available:
+
+1. Create a new scratch scenario and inspect the setup checklist before adding content.
+   - expected: The checklist appears with incomplete steps derived from the empty world.
+
+2. Add and place an area, then use the action on each remaining checklist row.
+   - expected: Relevant steps update from world state and each row opens its existing authoring tool without duplicate stored checklist state.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. Create a new scenario.

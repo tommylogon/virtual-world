@@ -170,6 +170,21 @@ TODO
 
 TODO
 
+## Browser UI and intended live verification
+
+Intended UI home: Build → Library → WorldPainter vocabulary categories for biomes, interior plans, and resource loot tables.
+
+Current availability: Shared derivation exists; the WorldPainter-facing category and CRUD flow remain open.
+
+Live steps when available:
+
+1. Open the WorldPainter library categories and create, edit, and remove one biome, interior plan, and resource loot table in a scratch library.
+   - expected: Each entry appears in the correct category through the existing library machinery.
+
+2. Return to WorldPainter and inspect the vocabulary available to its controls.
+   - expected: The authoring view uses the same source records as the compiler, with no duplicate registry.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. TODO

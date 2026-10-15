@@ -61,3 +61,19 @@ Move each block's render and wiring from `agent-view.ts` into the Mind panel (`m
 - `static/js/inspector/known-by.ts` (knowledge chips)
 - `static/js/agent/` (`getDisplayHistory`), `PlanTracker`
 - `tools/window-usage-reviewed.json` (two reviewed prefix drops)
+
+## Browser UI and intended live verification
+
+Intended UI home: Select a populated character → the always-visible 🧠 Mind button in the inspector status row → Mind, Perception, Memories, and People tabs. Bio keeps definition/body fields and the memory editor owned by task-729.
+
+Current availability: The card records a live pass on localhost:4444 with Arix's populated Mind tabs and confirms the moved sections are absent from Bio/Advanced. Task 729 owns the remaining memory-editor controls.
+
+Live steps when available:
+1. Open Arix's inspector and count/inspect its top-level tabs, then open 🧠 Mind from the status row and visit Mind, Perception, Memories, and People.
+   - expected: Goals/plan/interest/fear/thoughts are on Mind; what-I-see/knowledge/recipes are on Perception; timeline/conversation memory are on Memories; profiles are on People; no moved block appears twice.
+2. Scroll the entire Mind panel to the bottom and return to the top; then close it and open it again from the Bio Memories section's retained Mind button.
+   - expected: both documented entry controls open the same tabbed Mind view; all four tabs remain reachable and the Bio memory editor remains available for task-729.
+3. Add one temporary interest tag and inspect the world state, then remove it.
+   - expected: the tag round-trips through `Player.interest_tags`, the panel reflects the refreshed value, and removing the probe restores the original count.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.

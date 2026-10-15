@@ -91,6 +91,38 @@ they should not age at the same rate. The model unifies the *shape*; the
 - [ ] A targeted test proves a semantic record survives a decay pass that trims
       an episodic one.
 
+## Browser UI and intended live verification
+
+Intended UI home: select a character → Mind panel → Knowledge and Memories.
+Known facts, recipes, places, and known ways should appear as one record model
+with a visible kind; derived exploration indexes remain internal projections.
+
+Current availability: the card describes separate knowledge and episodic
+memory stores and proposes unified records with distinct lifecycles. The
+unified Mind-panel record view is not claimed as implemented today.
+
+Live steps when available:
+1. In a scratch scenario, teach a character one fact about an area, one recipe,
+   and add one recent episodic event memory. Open the character's Mind panel.
+   - expected: the three entries are readable through the same record view and
+     show semantic, procedural, and episodic kinds respectively.
+2. Advance enough simulation time for the episodic memory's activation to
+   decay, then reopen Mind and inspect all three entries.
+   - expected: the episodic record follows its decay rule; semantic knowledge
+     remains stable and the recipe follows its procedural-use lifecycle.
+3. Use the learned recipe and ask the character to recall the area fact.
+   - expected: rehearsal affects the procedural record as specified, and the
+     semantic fact remains available without being promoted into a new store.
+4. Inspect `/api/state` and reload the scenario.
+   - expected: learned knowledge round-trips; `discovered_exits`,
+     `visited_areas`, and `discovered_items` remain derived indexes rather than
+     new persisted stores.
+
+These steps define the intended Mind-panel view and lifecycle checks. The
+unified record model remains planned.
+
+This section is not a claim that planned UI exists or works today.
+
 ## Why
 
 TODO

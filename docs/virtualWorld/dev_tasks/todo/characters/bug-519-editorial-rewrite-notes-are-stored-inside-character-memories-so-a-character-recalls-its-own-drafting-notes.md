@@ -12,7 +12,26 @@ priority: high
 
 ## What
 
-Reject second-person editorial commentary at the memory-admission boundary so a memory can only contain first-person experience.
+Clean the authored Miki memory in `data/scenarios/mansion.json`. The measured
+problem is content: one manually authored memory contains a real first-person
+experience followed by editorial rewrite notes. Preserve the lived memory and
+remove the drafting commentary from the saved scenario.
+
+This is authoring/data cleanup, not evidence that the general memory-admission
+or recall mechanism is broken. Do not add a broad filter that rejects legitimate
+memory text, or patch the memory store while leaving this saved value in place.
+
+## Steps to verify
+
+1. Inspect and clean the exact saved Mansion scenario memory, preserving the
+   first-person paragraph and removing only the editorial rewrite notes.
+   - expected: the saved record contains the clean experience once, with other
+     memories unchanged unless another specific error is found.
+   - observed: not run; cleanup remains open.
+2. Follow the browser path below using a scratch copy of Mansion.
+   - expected: the ordinary Mind/Memory UI shows the same cleaned record after
+     reload.
+   - observed: not run; this card records the acceptance path.
 
 ## Acceptance
 
@@ -20,22 +39,17 @@ Reject second-person editorial commentary at the memory-admission boundary so a 
   `players.miki.memories[]` in `data/scenarios/mansion.json` and assert
   one `text` contains both the memory and a second paragraph of
   reviewer-facing commentary. It does today.
-- A memory entering the store is rejected or stripped when it contains
-  second-person editorial register ("shorter, punchier", "the original
-  had", "reads like", "typo soup", "keeps the ... moment"). Assert with
-  a fixture using the exact residue above.
-- Assert the *first-person memory itself survives* — this must not
-  become a filter that silently drops the good half.
-- Assert a character cannot later recall the residue: the
-  `=== I REMEMBER ===` block (`memory-context.ts`) contains no
-  editorial text.
-- Establish **how it got in** before fixing: the memory is
-  `source: manual`, which `memory-view.ts` sets on inspector-authored
-  memories — so either the authoring UI accepted pasted LLM revision
-  notes, or a rewrite step wrote through that path. Name the writer.
-  Do not patch the store and leave the writer in place.
-- Check whether `miki`'s other manual memories are clean before
-  declaring the scope; only one of seven was visibly affected.
+- The exact saved memory in `players.miki.memories[]` contains only the
+  original first-person experience after cleanup; the editorial paragraph is
+  gone.
+- Preserve the first-person paragraph exactly, and leave Miki's other memories
+  unchanged unless inspection finds another specific authoring error.
+- Confirm the clean value loads through the existing Player memory store and
+  does not appear as editorial commentary in the character's ordinary memory
+  UI or prompt recall.
+- Record the source as `manual` and the likely authoring path (Inspector memory
+  editor or rewrite/import workflow) as a follow-up if it can be identified.
+  Do not infer a broken admission mechanism from `source: manual` alone.
 
 ## Measured 2026-10-04, in saved state (not an export artifact)
 
@@ -68,7 +82,7 @@ notes as a lived recollection.
 but the mechanism has not been isolated, so the other three are
 uncleared rather than clean.
 
-## Why this is not a rendering bug
+## Why this is not a rendering or admission bug
 
 The stored `text` contains `\n\n` and both paragraphs. Verified by
 loading the JSON directly, so the export is faithfully showing what the
@@ -77,24 +91,52 @@ world holds.
 ## Relation to task-692
 
 Surfaced while reading a full run export for the narration v2 work.
-Not narration's defect — filed separately because it is a memory-integrity
-bug and the fix belongs at the memory-admission boundary, not in the
-director pass.
-
-## Why
-
-TODO
+Not narration's defect — filed separately as a content issue. The recorded fix
+is to clean the authored scenario value, not to change the memory-admission
+boundary or the director pass.
 
 ## How
 
-TODO
+Edit the saved Mansion scenario's affected memory, preserving the original
+first-person paragraph and deleting only the editorial rewrite paragraph.
+Inspect Miki's other manual memories before deciding whether the cleanup scope
+extends beyond this one entry. Do not add a runtime text classifier.
 
-## Steps to verify
+## Browser UI and intended live verification
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+Intended UI home: Character Inspector → 🧠 Mind → Memories; use the existing
+memory detail and Edit action if editing the scratch runtime copy.
+
+Current availability: the Mind/Memory UI exists; the saved Mansion data has not
+been cleaned.
+
+Live steps when available:
+
+Use the existing Character Inspector **🧠 Mind → Memories** surface. The
+affected item should be a normal memory in that list and its selected detail
+should show the cleaned text. Do not create a separate backstory/memory screen.
+
+1. Load a scratch copy of the Mansion scenario from **Scenario Manager** and
+   select Miki in the graph.
+2. Open **🧠 Mind → Memories**, locate the memory by its first-person opening,
+   and select it. If the Inspector's existing **Edit** action is used, save the
+   cleaned value to the scratch copy only.
+   - expected: the detail contains the original first-person paragraph and no
+     reviewer-facing rewrite notes.
+3. Reload the scratch scenario and select the same memory again.
+   - expected: the corrected scenario value persists and the memory appears
+     once; other Miki memories remain as before.
+4. Compare the selected memory with `players.miki.memories[]` in `/api/state`.
+   Then inspect a later Miki prompt/recall when available.
+   - expected: both surfaces contain the same clean text, with no editorial
+     paragraph in the recall block.
+
+These steps define intended access and live acceptance; they are not a claim
+that the saved value is already clean. No browser run is recorded for this
+updated card.
 
 ## Files
 
-- TODO
+- `data/scenarios/mansion.json` (Miki's affected authored memory)
+- No engine or memory-store changes unless a separate, reproduced runtime
+  defect is found

@@ -35,6 +35,21 @@ physics-off in Graph mode. Remaining: the 105 compiler-minted ways carry no
 (`layout-engine` way midpoints) before they can be honored too. Visual result
 needs the user's eye.
 
+## Browser UI and intended live verification
+
+Intended UI home: Graph editor layout selector across Graph, Map, and Hierarchical modes.
+
+Current availability: A mechanical pin count is recorded; visual confirmation across all layouts remains open.
+
+Live steps when available:
+
+1. Record a painted area and way cell position, then switch through Graph, Map, and Hierarchical layouts.
+   - expected: Painted areas and ways remain at authored cells and do not drift under physics.
+
+2. Observe a character and item while changing layouts and physics.
+   - expected: Characters and items remain simulated; the pin rule applies only to painted nodes.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. Open the graph on a painted world in Graph mode.

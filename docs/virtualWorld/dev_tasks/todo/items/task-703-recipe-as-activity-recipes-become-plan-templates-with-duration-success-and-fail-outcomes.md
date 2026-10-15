@@ -50,3 +50,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: game view → request **Make X** → inspect the missing-requirements result or the character's cooking Activity at the required station → inspect the produced item and event stream.
+
+Current availability: the card separates a Pursuit (reason/place), cooking Activity (visible timed process), and world recipe (requirements and transformation). Recipe templates and timed Activity execution are not claimed as implemented by this card.
+
+Live steps when available:
+1. In a scratch world, use the authored egg recipe without one required ingredient and submit `Make X`.
+   - expected: the action fails closed and lists the exact missing ingredient (for example, “you are missing: egg”); it does not consume ingredients or create output.
+2. Supply all ingredients and required equipment, place the character at the authored cooking station, and request the same recipe.
+   - expected: the character starts the recipe's timed cooking Activity at that station; the Activity is visible and can be interrupted according to its authored rule.
+3. Advance the world through the recipe duration and inspect the event stream, inventory, and activity status.
+   - expected: the normal `craft_item`/condition/`give_item` dispatch produces the authored result once at completion; no instant graph-node transmutation bypasses the Activity.
+4. Repeat with a failed condition or interrupted Activity.
+   - expected: the recipe's fail outcome applies, required ingredients are not silently duplicated, and the Pursuit does not own the recipe's resolution rules.
+
+This section is not a claim that planned UI exists or works today.

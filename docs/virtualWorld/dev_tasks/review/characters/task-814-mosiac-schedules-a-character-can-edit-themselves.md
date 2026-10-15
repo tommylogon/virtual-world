@@ -55,3 +55,19 @@ A schedule you cannot change is a script, not a life. Self-editing is what makes
 - The `schedule` verb (free): bare describes, `add` / `remove` edit.
 - Mind panel: a "Schedule - their day" block.
 - `tests/test_schedule.py`: add/replace, bad-time rejection, remove, and a wiring test through the dispatcher.
+
+## Browser UI and intended live verification
+
+Intended UI home: Select a character → Inspector → Mind → “Schedule - their day”; edit through that character's command input with the `schedule` verb.
+
+Current availability: The schedule block and `schedule add` / `schedule remove` commands were live-verified on localhost:4444 on 2026-10-12, as recorded above.
+
+Live steps when available:
+1. Select a character, open Mind, enter `schedule add 08:00 patrol at Gate`, then `schedule add 12:00 eat at Mess` in the command input.
+   - expected: the “Schedule - their day” block shows both entries in time order: 08:00 patrol at Gate, then 12:00 eat at Mess.
+2. Enter `schedule remove 08:00` and inspect Mind again.
+   - expected: the 08:00 patrol entry disappears while the 12:00 eat entry remains.
+3. Save and reload the scenario, then reopen the same character's Mind panel.
+   - expected: the remaining 12:00 schedule entry persists on that character.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.

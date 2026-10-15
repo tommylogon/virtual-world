@@ -888,3 +888,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Library Browser → Lyrie's character/spellbook → inspect the 12 authored spell items → use an implementable spell from Inventory/action controls → inspect the target, memory, and event result.
+
+Current availability: the card contains 12 proposed spell-item specifications, some using existing effects and some proposing new trigger/effect types. Their library authoring and runtime behavior are not claimed complete by this card.
+
+Live steps when available:
+1. Open each Lyrie spell item in the Library Browser and compare its JSON-facing details with its linked life memory or enduring situation.
+   - expected: every spell is a valid library item and its purpose reflects Lyrie's kind/chaotic personality; unsupported mechanics are marked as proposals rather than silently treated as working.
+2. Import an existing-effect spell into Lyrie's inventory and use it on its intended target.
+   - expected: the authored trigger resolves using current engine effects and produces the specified result once.
+3. Attempt one spell that requires a new effect type not yet implemented.
+   - expected: the UI/authoring validator identifies the unsupported effect and does not report a successful spell result.
+4. Save/reload and inspect Lyrie's spellbook and memories.
+   - expected: authored items persist and the related character memory remains the source context; no spell creates a separate character-memory store.
+
+This section is not a claim that all 12 spell mechanics are implemented today.

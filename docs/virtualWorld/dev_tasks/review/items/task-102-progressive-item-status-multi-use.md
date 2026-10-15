@@ -87,3 +87,21 @@ TODO
 ## Acceptance
 
 - [ ] TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: select the generator/repairable item → use the normal `repair` action repeatedly → inspect its status/progress after each successful use and the final activation event.
+
+Current availability: stacked `on_use` triggers can compose this behavior, but the card proposes first-class progress feedback. The UI feedback is not claimed as implemented.
+
+Live steps when available:
+1. Load the generator requiring 15 successful repairs and inspect its starting status.
+   - expected: the UI shows the required count and current count (0/15) without implying the generator is active.
+2. Perform 14 successful repairs, reopening the item/status detail after each or after the batch.
+   - expected: progress advances exactly once per successful repair; the generator remains inactive at 14/15.
+3. Attempt one failed/invalid repair, then perform the fifteenth successful repair.
+   - expected: the failed attempt does not increment progress; the fifteenth successful repair activates the generator once and shows completion feedback.
+4. Save/reload and inspect the item again.
+   - expected: progress and activation state round-trip without replaying already-counted triggers.
+
+This section is not a claim that first-class progressive item feedback exists today.

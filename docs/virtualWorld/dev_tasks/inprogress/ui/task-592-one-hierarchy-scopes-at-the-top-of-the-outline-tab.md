@@ -127,6 +127,21 @@ TODO
 
 TODO
 
+## Browser UI and intended live verification
+
+Intended UI home: World editor → Outline tab, showing world → scope → area.
+
+Current availability: The unified scope/area tree is still in progress.
+
+Live steps when available:
+
+1. Open Outline and inspect a world with multiple scopes and areas.
+   - expected: Scope rows show state/counts, with only their member areas nested below.
+
+2. Select a scope row, then select a scope with no areas.
+   - expected: The graph loads the selected scope and the empty scope has an explicit empty/not-built state.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. TODO

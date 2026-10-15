@@ -108,3 +108,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: open the app in six browser tabs on one host; use the Network panel to count live connections and the DevTools console to time `fetch('/api/state')` while another tab edits the world.
+
+Current availability: the card reports a per-tab SSE stream plus an unconditional 1.5-second full-state poll. A multiplexed transport and incremental delta are planned; no multi-client scalability improvement is claimed.
+
+Live steps when available:
+1. Open six tabs to the same scenario and record socket/EventSource counts and a timed in-page `/api/state` fetch in each tab.
+   - expected: there is one shared transport per tab rather than separate streams per concern; every timed state fetch remains responsive under the six-tab load.
+2. Edit a node from one tab and inspect the other tabs' visible graph and network activity.
+   - expected: each tab receives the incremental change without a second full-state poll or duplicate event stream.
+3. Simulate a slow subscriber until its queue fills; inspect the affected tab and transport events.
+   - expected: it receives an explicit resync signal and catches up instead of silently missing the update.
+4. Exceed the documented subscriber cap in a scratch run.
+   - expected: the app reports a clear connection-limit error and remains responsive; it does not pin a thread or starve existing tabs.
+
+This section is not a claim that the transport replacement is implemented today.

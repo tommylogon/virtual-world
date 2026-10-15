@@ -118,3 +118,29 @@ TODO
 ## Acceptance
 
 - [ ] TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Graph → hover an area-to-way edge; select an area → Inspector
+→ Exits; select a way → Inspector → Passage; left-panel Agent Lens → Exits.
+
+Current availability: The card records the labels, exit badges, edge tooltip,
+parameter resolver, and room-context hints as implemented. It still lists the
+edge-hover, ladder badge, resolved-parameter, and Agent Lens browser checks as
+pending.
+
+Live steps when available:
+1. Hover the Living Room-to-swinging-door edge in Graph view.
+   - expected: the tooltip names source area, command, destination, way state,
+     movement requirement, tags, and the open-view text.
+2. In the area Inspector, set the Ladder's `requires` to `climb` and inspect
+   the Ladder exit row; in the way Inspector set description to
+   `{param:light} glow` and `parameters.light` to `warm red`.
+   - expected: the exit row shows a 🧗 climb badge, and the preview resolves
+     the phrase to “warm red glow” without hiding the raw field.
+3. Select the area in Agent Lens and expand Exits.
+   - expected: movement hints and resolved parameter text agree with the
+     Inspector and runtime room-context output.
+
+This section defines intended access and live acceptance. It is not a claim
+that planned UI exists or works today.

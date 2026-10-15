@@ -106,10 +106,44 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. In a scratch scenario, place a tired character one hop from a sleeping venue
+   and farther from a second venue; advance a background tick and read the
+   event stream and map movement.
+   - expected: the character selects the reachable venue using the documented
+     nearest-first order and walks one hop along the graph.
+   - observed: this card records the `REST_SEEK_ENERGY` branch, nearest-first
+     tie rules, and route compatibility as checked; it does not record a fresh
+     browser run.
+2. Remove all venue tags and advance the same character again.
+   - expected: no venue-seeking event or route is produced, and the existing
+     need cascade continues.
+   - observed: the card records the empty-world fallback as checked; no new
+     live evidence was collected for this backfill.
 
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Game view → map and event stream for the active scenario.
+
+Current availability: Venue lookup and the `REST_SEEK_ENERGY` decision branch
+are implemented and covered by this card's recorded engine evidence. The
+following is the intended live scenario check; this card does not record a
+fresh browser run.
+
+Live steps when available:
+1. Load an authoring fixture with a tired character, a reachable area tagged
+   `sleeps`, and a second connected area tagged as a less-preferred sleeping
+   place. Set the character's Energy to 55 or below, then advance one complete
+   background-simulation tick while watching the event stream and map.
+   - expected: the event stream explains the chosen destination with a line
+     such as “<character> walks to <venue> — is looking for a bed”, and movement
+     follows the connected route instead of teleporting.
+2. Repeat with no area offering a venue tag, using the same character needs.
+   - expected: no venue-seeking line or forced route appears; the ordinary
+     need-precedence behavior remains in effect.
+
+This section defines intended access and live acceptance. It is not a claim
+that planned UI exists or works today.

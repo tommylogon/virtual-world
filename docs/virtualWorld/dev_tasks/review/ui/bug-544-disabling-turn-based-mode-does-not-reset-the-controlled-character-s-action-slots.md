@@ -127,3 +127,21 @@ runner, so a pure seam or a browser assertion is needed.
 - `static/js/agent/prompt-builder/room-context.ts` — `turnSlots()`.
 - `engine/tick_manager.py`, `engine/action_tiers.py` — slot reset (unchanged; verified correct).
 - `routes/action_handlers.py` — `_slot_gate` (the lazy fill; unchanged).
+
+## Browser UI and intended live verification
+
+Intended UI home: Agent controls → “⏭️ Turn-Based Mode” checkbox (`#agent-turn-based`) → controlled character's human-turn panel → action-pip strip and command/action result in the event stream.
+
+Current availability: The user report says non-turn-based mode leaves the character unable to act; the candidate tick/slot-reset path was not independently reproduced because the server was down during triage. The pips and engine verdict may read different values, so compare both.
+
+Live steps when available:
+1. Turn turn-based mode off, select the controlled character, clear the event stream, and step once.
+   - expected: the pips show 1 major, 1 minor, and 3 free actions; a valid action is accepted and its result appears in the stream.
+2. Exhaust an action slot, step again with turn-based mode still off, and try the same action.
+   - expected: the controlled character's slots refill and the action succeeds without switching to turn-based mode.
+3. Enable turn-based mode, take the same action, and advance through the turn boundary.
+   - expected: slot pips reset at the boundary; the pips and any engine refusal describe the same remaining allowance.
+4. Watch the browser Network panel and `/api/state` for the controlled character's `turn_slots` before and after each step.
+   - expected: the UI pips match the state used by `_slot_gate` after the state refresh.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.

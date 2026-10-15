@@ -65,6 +65,21 @@ TODO
 
 TODO
 
+## Browser UI and intended live verification
+
+Intended UI home: Graph editor → Map mode, with a way connected to two endpoint areas.
+
+Current availability: Way-position calculation is still being implemented for compiler-minted and hand-authored ways.
+
+Live steps when available:
+
+1. Open a map scope containing a way whose endpoint areas have known coordinates.
+   - expected: The way mark is placed sensibly in the gap and remains attached to its own node.
+
+2. Change endpoint spacing and repeat for both way origins.
+   - expected: Position follows the gap; areas do not move and only the way’s x/y changes.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. TODO

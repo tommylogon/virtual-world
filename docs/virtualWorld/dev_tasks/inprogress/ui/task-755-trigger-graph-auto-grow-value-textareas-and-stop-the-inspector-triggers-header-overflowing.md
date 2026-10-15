@@ -44,6 +44,21 @@ TODO
 
 TODO
 
+## Browser UI and intended live verification
+
+Intended UI home: Trigger Graph value fields and Character/Area Inspector → Triggers section header.
+
+Current availability: Textarea growth and wrapped inspector controls are partly implemented; remaining live acceptance is open.
+
+Live steps when available:
+
+1. Open Trigger Graph, type a multiline value, then reopen a node with a long saved value.
+   - expected: The textarea grows to its content on input and render without an internal scrollbar.
+
+2. Narrow the Inspector and inspect the Triggers header.
+   - expected: Buttons wrap within the panel instead of clipping or forcing horizontal overflow.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. TODO

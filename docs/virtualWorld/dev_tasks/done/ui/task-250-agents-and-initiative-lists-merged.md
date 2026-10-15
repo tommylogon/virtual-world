@@ -74,3 +74,29 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Left panel → Agents list; Turn-Based Mode and Turn Order
+controls directly below the list.
+
+Current availability: The merged roster and mode controls are recorded as
+implemented and live-verified on 2026-08-16. The separate Initiative tab was
+removed; turn-modal, event-stream, and full-round views remain their own
+surfaces.
+
+Live steps when available:
+1. Enable Turn-Based Mode, select Initiative, and inspect every row in Agents.
+   - expected: rows follow the initiative queue and show position, current/
+     pending/done state, initiative roll, and round; clicking an NPC row
+     selects it and opens its inspector.
+2. Disable Turn-Based Mode and inspect the same list and controls.
+   - expected: the roster returns to alphabetical order, turn markers and
+     re-roll are hidden, and the non-turn-based hint appears.
+3. Advance one actor and compare the row marker with the turn modal header and
+   the event stream's `up next` strip.
+   - expected: the same current actor leads all three views; none of those
+     separate turn surfaces is replaced by the roster.
+
+This section defines intended access and live acceptance. It is not a claim
+that planned UI exists or works today.

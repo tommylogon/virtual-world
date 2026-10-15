@@ -92,3 +92,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Outline/Scopes → select the unmade `apartment_3b` scope in Pines → its Generate action and recipe preview. The preview is the confirmation surface before generation changes the world.
+
+Current availability: The card describes task-398's deterministic recipe but no Generate control or preview is claimed as implemented.
+
+Live steps when available:
+1. Load Pines, select the unmade `apartment_3b` scope, and open its generation preview.
+   - expected: Generate is offered; the preview lists the recipe's three areas, items, and missing tag candidates before any node is written.
+2. Generate the scope once, then inspect the graph and select Hallway 3.
+   - expected: the same three areas as `tests/test_apartment_recipe.py` exist, with the recipe's ways and items, and Hallway 3 has a walkable connection into each generated area.
+3. Confirm generation a second time and compare node, way, and item IDs with the first result.
+   - expected: no duplicate areas, ways, or items appear.
+4. Edit one generated item's description, reload Pines, and request generation again.
+   - expected: the manual edit survives reload and the second generation does not overwrite it; a made scope no longer offers Generate.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.

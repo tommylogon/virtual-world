@@ -134,3 +134,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: load a mansion scenario → select consumables and lights in Inventory/Inspector → use/eat/drink them through their normal item actions → inspect the event stream and resulting vitals/light.
+
+Current availability: legacy `effect_stat`/`effect_amount`/`effect_target` props are still the migration source recorded by this card. Trigger-based replacements and engine support removal are not claimed as complete.
+
+Live steps when available:
+1. Load `mansion2.json`; choose five inventory items that previously used the legacy stat-effect props. Use each through its normal action and inspect the affected character vitals.
+   - expected: all five restore/apply the same authored vital effects via `on_use`/`on_eat`/`on_drink` triggers; no legacy prop is needed at runtime.
+2. Turn a `hand_lamp` on and off, then inspect its light level and event output.
+   - expected: the light still works through its native light behavior after the legacy item-effect path is removed.
+3. Load an old save that still contains the legacy props and reopen the items.
+   - expected: the migration/scrub path loads cleanly, preserves intended effects, and produces no 500 or silent data loss.
+4. Inspect the item details and `/api/state` after actions.
+   - expected: the trigger record is the single operational effect source and the obsolete props are absent from loaded production data.
+
+This section is not a claim that the migration is complete or live-verified today.

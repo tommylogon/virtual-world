@@ -89,6 +89,21 @@ That integration must preserve the current channel privacy and memory behavior.
   memory, and destination routing, plus a minimal wired scenario. Verify the
   actual page and its channel flows live before moving this card to review.
 
+## Browser UI and intended live verification
+
+Intended UI home: The Commons page for public/group/direct conversations; Character Inspector → Mind → Memories for persistent experience.
+
+Current availability: Public, private-group, and direct channels, persistence, and Player memory storage exist; autonomous character decisions through the standard agent path remain open.
+
+Live steps when available:
+
+1. Open The Commons, select a character, and post to a public conversation, a member group, and a one-to-one conversation.
+   - expected: Messages appear only in their addressed conversations; group membership and DM participants are visible.
+
+2. Try a private group as a non-member, then inspect the participating character’s Mind → Memories after a read/reflection.
+   - expected: The non-member is denied; experience appears in the existing Player memory list with no parallel chat persona or memory store.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. Trace one Commons character action through the normal agent and Player

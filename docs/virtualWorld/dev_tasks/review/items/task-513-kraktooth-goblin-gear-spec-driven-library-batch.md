@@ -109,3 +109,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: run the gear-spec generator/checker → open Library Browser and search the six goblin gear templates → import them using Character Inspector loadouts.
+
+Current availability: the card defines a spec-driven library batch consumed by task-519. The data generation, linting, and loadout attachment are not claimed complete by this task.
+
+Live steps when available:
+1. Open the Library Browser and inspect every unique gear item from the six-goblin matrix.
+   - expected: each matrix item appears once or is explicitly documented as deferred; wearables expose valid equip slots and weapons expose damage/type.
+2. Import the selected items into a scratch Kraktooth cast and open each goblin's Inventory/Paperdoll.
+   - expected: the authored gear is carried/equipped by the intended character and preserves its category-specific properties.
+3. Rerun the generator in check mode and inspect the library list for near-duplicates.
+   - expected: `--check` is clean, no duplicate templates appear, and the partial-armor mapping follows the documented decision.
+4. Save/reload and reopen the six loadouts.
+   - expected: item and character links resolve without duplicate/orphan items.
+
+This section is not a claim that the gear spec batch is complete today.

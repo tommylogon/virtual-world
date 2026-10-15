@@ -92,3 +92,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Forecast editor → set wind magnitude and compass `wind_direction` → load the affected area and inspect its environment description and `/api/state`.
+
+Current availability: the card proposes direction alongside existing wind magnitude and requires a from/to convention and save/load support. Directional wind behavior is not claimed as implemented.
+
+Live steps when available:
+1. Set wind magnitude to a nonzero value and direction to north in the Forecast editor; inspect the area's report.
+   - expected: the area reports the documented direction convention and magnitude; the UI does not infer direction from magnitude alone.
+2. Change only the direction to south and repeat.
+   - expected: direction changes while magnitude, `WIND_HEAT_MULT`, and drying behavior remain unchanged.
+3. Save/reload the scenario and inspect the forecast entry and area report.
+   - expected: `wind_direction` round-trips with the forecast and remains distinct from the wind-state enum.
+4. Remove `wind_direction` from a legacy fixture and inspect it.
+   - expected: legacy behavior is unchanged and no direction is fabricated.
+
+This section is not a claim that directional wind is implemented today.

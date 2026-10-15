@@ -66,3 +66,21 @@ TODO
 1. TODO
    - expected: TODO
    - observed: TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Game menu → Save/Load modal → open the save list with many large saves present; inspect rendered rows and request timing/network activity.
+
+Current availability: the card records that `GET /api/save-games` parses every full save file on each modal open. The metadata index/cache and invalidation behavior are planned; no performance improvement is claimed as shipped.
+
+Live steps when available:
+1. Prepare N large saves, open Save/Load, and capture the `/api/save-games` request duration and bytes read using the browser Network panel/server trace.
+   - expected: list latency and bytes read stay bounded by metadata/index size rather than total save-body size; autosave remains pinned at the top with the same stats line.
+2. Add, overwrite, rename, and delete a save from the modal, reopening the list after each operation.
+   - expected: the corresponding row and metadata update immediately; no stale index entry remains.
+3. Edit a save file out of band and reopen Save/Load.
+   - expected: the index detects the changed file and refreshes that row's metadata.
+4. Include one malformed save and one malformed index entry.
+   - expected: the list still renders a safe row or explicit error state and the endpoint does not return 500.
+
+This section is not a claim that the metadata index or its cache is implemented today.

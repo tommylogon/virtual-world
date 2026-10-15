@@ -166,3 +166,21 @@ When an item has many uses and you want to divide it:
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Character Inventory → inspect a multi-use consumable's remaining uses and weight → combine or split identical stacks using the inventory actions.
+
+Current availability: the card proposes weight that falls with remaining uses and stackable/splittable instances. The card does not claim those inventory controls or derived weights are implemented.
+
+Live steps when available:
+1. Put a bread item with four authored uses into a character's inventory and record its initial weight and total carried weight.
+   - expected: the inventory shows the item's remaining uses and weight using the authored per-item rule.
+2. Consume one use and reopen Inventory.
+   - expected: remaining uses drop by one and item/carried weight drops by the documented proportional amount; the item remains until its uses are exhausted.
+3. Add a second matching bread and combine the two stacks, then split one unit back out.
+   - expected: total quantity, remaining uses, and weight are conserved across combine/split; no extra item node or duplicated uses are created.
+4. Save/reload and compare the two inventories.
+   - expected: stack quantities and remaining-use weights round-trip exactly.
+
+This section is not a claim that use-based weight and stack controls are implemented today.

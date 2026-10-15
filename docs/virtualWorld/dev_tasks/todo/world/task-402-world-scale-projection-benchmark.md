@@ -72,3 +72,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: run the task's checked-in large-world benchmark command, open its generated scenario in the graph editor, select one scope, and inspect `/api/state`/scope responses in the browser Network panel.
+
+Current availability: the task requires a repeatable command and checked-in baseline report but deliberately sets no universal performance threshold before host budget is chosen. The command and baseline are not claimed as present.
+
+Live steps when available:
+1. Run the benchmark command recorded by this task and open the generated world at whole-world and scoped settings.
+   - expected: the report records world node/edge counts, requested-scope counts, response bytes, and elapsed measurements for the same fixture.
+2. In the browser, select one small scope and inspect the graph request/response and visible node count.
+   - expected: payload size is bounded to that requested scope; the response does not accidentally contain the whole-world graph.
+3. Repeat the same command and browser request without changing the fixture.
+   - expected: the checked-in baseline is reproducible within recorded host conditions and names the measurements rather than asserting an arbitrary universal speed target.
+4. Compare the browser's visible graph with the report's scope node/edge counts.
+   - expected: the displayed subgraph and response counts match the selected scope.
+
+This section is not a claim that the benchmark command or baseline report exists today.

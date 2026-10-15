@@ -80,3 +80,22 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: select a character → Character Inspector/Bio for age and pronouns; after a long timeskip, reopen Mind/Bio and inspect life stage, pregnancy, birth, and any age-related death events.
+
+Current availability: age/life-stage transitions, fertility, gestation, birth, and old-age death are proposed for long-horizon simulation. Age and pronouns are not claimed as a complete lifecycle mechanic by this card.
+
+Live steps when available:
+1. Create a scratch character just before an authored life-stage threshold and record age, birth tick, pronouns, and current life stage in Bio and `/api/state`.
+2. Advance simulation time across the threshold using a timeskip, then reopen Bio and inspect the event stream and prompt context.
+   - expected: age advances from elapsed simulation time and the life stage changes at the documented threshold; pronouns and age are available to prose/prompt generation.
+3. Run a controlled fertility/gestation sequence across the authored duration.
+   - expected: pregnancy and birth are visible as events and the child is a real character node with a valid location and private Player state.
+4. Advance an elderly character through the old-age mortality check.
+   - expected: death can occur through the documented age rule and appears in the character's existing life/memory surfaces.
+5. Inspect saved state size across the long run.
+   - expected: lifecycle tracking uses bounded existing character state and does not create an unbounded per-character event store.
+
+This section is not a claim that the lifecycle system is implemented today.

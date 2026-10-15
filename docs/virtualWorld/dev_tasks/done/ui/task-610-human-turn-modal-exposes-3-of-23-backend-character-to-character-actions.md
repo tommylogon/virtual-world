@@ -129,6 +129,29 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. In the Human Turn Composer, click a person chip with mature content disabled.
+   - expected: person-directed actions are available; menu items requiring unknown target data are not offered.
+   - observed: live on localhost:4463 (2026-10-02): 10 menu entries with mature content off; Give and Teach submenus showed Dagger/Bread and Swordsmanship; the menu drafted Whisper to Tester with the recipient carried.
+2. Enable mature content and open Intimacy…; then disable it again.
+   - expected: all eight intimacy actions appear only while mature content is enabled.
+   - observed: live: hidden when off and shown when on; submenu contained Kiss, Caress, Lick, Suck, Bite, Pinch, Blow, Tickle.
+3. Use the area chip for room speech and the person menu for a directed whisper.
+   - expected: Say/Shout/Scream are area-directed; Whisper to Tester sets both whisper volume and target.
+   - observed: live composer preview carried `volume: whisper` and `target: Tester`; say preview cleared the target.
+## Browser UI and intended live verification
+
+Intended UI home: Human Turn Composer → click a person chip → that person's verb menu; click an area chip for room-level Say/Shout/Scream; use the composer to inspect the drafted action before committing it.
+
+Current availability: The card records a live pass on localhost:4463 (2026-10-02): the person menu had 10 entries with mature content off, Give and Teach submenus resolved carried/known entries, and Intimacy exposed eight verbs only when mature content was on.
+
+Live steps when available:
+1. Open the Human Turn Composer, click a person chip, and count/read every visible menu control with mature content disabled.
+   - expected: Talk to, Whisper to, Examine, Attack, Grab, Lead, Wake, Release, Give… and Teach… are offered when their prerequisites exist; no Intimacy menu appears.
+2. Select “Whisper to Tester” and inspect the composer preview; then choose a carried dagger from Give… and a known skill from Teach…
+   - expected: the whisper preview carries both `volume: whisper` and target `Tester`; the drafts are `give Dagger to Tester` and `teach skill:Swordsmanship to Tester`.
+3. Enable mature content and reopen the person's menu.
+   - expected: Intimacy… appears with Kiss, Caress, Lick, Suck, Bite, Pinch, Blow, and Tickle; turning mature content off hides it again.
+4. Click an area chip and inspect Say, Shout, and Scream, then return to the person menu.
+   - expected: room-volume speech remains on the area; directed whisper remains tied to its person recipient.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.

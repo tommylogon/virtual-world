@@ -277,9 +277,41 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Select a simple NPC, open Inspector → Advanced → Behaviors, and open the
+   🧩 Graph editor; load its existing behaviors and save without changing them.
+   - expected: the compiled behavior array round-trips byte-for-byte and the
+     State Summary lists the `set_npc_state` transitions.
+   - observed: the card records a byte-identical save round-trip and a state
+     summary trace; blueprint save/load and dry-run remain deferred.
+2. Drag the higher-priority behavior below the next behavior and save.
+   - expected: the graph order changes the derived priority order, and reopening
+     the editor preserves that order.
+   - observed: the card records a drag-reorder check that flips priority order.
+
+## Browser UI and intended live verification
+
+Intended UI home: Character Inspector → Advanced → Behaviors → 🧩 Graph; the
+same graph button is also in the behavior edit modal.
+
+Current availability: Behavior/condition/action/state nodes, state summary,
+drag ordering, and serialization are recorded as implemented. Blueprint
+save/load and dry-run are explicitly deferred. The card does not record a
+fresh click-through of the full editor.
+
+Live steps when available:
+1. Open the graph editor for a simple NPC with two behaviors, expand the state
+   summary, then save and reopen the graph.
+   - expected: both behaviors and their `set_npc_state` transitions remain;
+     the state summary names the same transitions after reload.
+2. Drag the higher-priority behavior below the second branch, save, and reopen.
+   - expected: the vertical order and serialized priority order both change;
+     trigger-mode graph editing remains unaffected.
+3. Edit a condition node's type and an action node's parameter, then save.
+   - expected: reopening shows the same condition/action values in graph form
+     and the behavior JSON remains accepted by the existing form editor.
+
+This section defines intended access and live acceptance. It is not a claim
+that planned UI exists or works today.
 
 ## Acceptance
 

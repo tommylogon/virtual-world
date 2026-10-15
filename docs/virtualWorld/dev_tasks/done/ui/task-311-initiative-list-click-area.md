@@ -57,3 +57,24 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Left panel → Agents list → click the agent's location label.
+
+Current availability: The location text is recorded as a clickable
+`agent-location` span that calls `_selectRoom()` and stops row-click
+propagation. The card records a live click on Cooking Area that opened its Area
+Inspector.
+
+Live steps when available:
+1. In the Agents list, click the location label `Cooking Area` beside an
+   agent; observe the graph focus and right Inspector.
+   - expected: Cooking Area is selected in the graph and its Area Inspector
+     opens; the agent row itself does not select a different character.
+2. Click the location label again after selecting another agent row.
+   - expected: the room navigation follows the clicked label and does not
+     consume the agent-row click behavior.
+
+This section defines intended access and live acceptance. It is not a claim
+that planned UI exists or works today.

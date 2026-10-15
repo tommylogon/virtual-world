@@ -165,3 +165,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: agent's Human Turn/game action surface → choose a writable paper item and writing tool → inscribe a line → have a different character examine/read the paper.
+
+Current availability: the card specifies a writable item, a writing tool, persistent node properties, and an authored pen+paper pair. This section does not claim the inscription interaction is implemented.
+
+Live steps when available:
+1. Give the acting character the authored pen and paper and ask the agent to inscribe `Meet me by the old bridge`.
+   - expected: the writing action stores that exact text, author identity, and simulation tick on the paper node's properties.
+2. Save/reload the scenario and have a different character examine and read the paper.
+   - expected: the second character sees the text, author, and tick; the inscription survives serialization.
+3. Attempt to write on a non-writable item and attempt to use a non-writing tool.
+   - expected: both fail gracefully with a specific reason and no property change.
+4. Use the ordinary `use pen on paper` action without an inscription payload.
+   - expected: ordinary item use does not silently inscribe; task-363 behavior remains distinct.
+
+This section is not a claim that inscription is implemented today.

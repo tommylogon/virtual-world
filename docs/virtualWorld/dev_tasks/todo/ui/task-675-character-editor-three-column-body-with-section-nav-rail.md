@@ -18,6 +18,24 @@ Phase 3 of docs/design/full-entity-editors.md. The Bio tab is 3346px of content 
 
 - TODO
 
+## Browser UI and intended live verification
+
+Intended UI home: Character full-surface editor → Bio tab, opened from the inspector's expand control or a canvas-node double-click. Its header has segmented Inventory/Bio/Images/Advanced tabs; Bio has a sticky section-navigation rail and three content columns.
+
+Current availability: The card measured the existing Bio content at 3,346px across 15 sections in a 960px viewport. This layout is planned; the frame prerequisite is task-673.
+
+Live steps when available:
+1. At 1600×1000, open the full character editor and select Bio.
+   - expected: Identity/persona, Mechanics, and Knowledge are distinct columns; Appearance preview sits beside its source description; Relationships has its own row; the rail links only to sections currently rendered.
+2. Use each rail link to jump to Relationships, then scroll that section independently.
+   - expected: the active section is reachable without losing the other columns' scroll positions or hiding its heading under the sticky header.
+3. Resize to 900–1200px, then below the confirmed responsive breakpoint.
+   - expected: three columns drop to two at the stated range and then reflow without horizontal clipping; Inventory and Images remain single-column.
+4. Edit a character field from the peek, open the full editor, edit it there, then return to the peek.
+   - expected: both views read the same character data and neither displays a stale copy.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.
+
 ## Why
 
 TODO

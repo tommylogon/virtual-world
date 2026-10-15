@@ -50,3 +50,21 @@ Combat already reduces *weapon* uses on a hit (engine/combat.py:115-117), but ar
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: equip armor in Character Inventory/Paperdoll → take a controlled hit in combat → inspect the armor's remaining uses/durability and the combat log.
+
+Current availability: the card proposes consuming equipment uses when its wearer takes a hit. No durability-on-hit behavior is claimed as implemented.
+
+Live steps when available:
+1. Equip one armor item with a known `uses` count, record the count, then have the wearer receive a hit with a known damage result.
+   - expected: the armor's uses decrease by the documented amount and the combat log identifies the armor interaction; the wearer takes damage after the existing defense rules.
+2. Repeat with an attack that misses.
+   - expected: a missed attack does not consume a use if the design ties wear to an actual hit.
+3. Continue until the item reaches zero uses and inspect Inventory/Paperdoll.
+   - expected: the item follows the generic `uses` depletion behavior and no separate durability counter is introduced.
+4. Save/reload and inspect the armor and wearer.
+   - expected: remaining uses and equipment state persist without duplicating the item.
+
+This section is not a claim that armor wear on hit is implemented today.

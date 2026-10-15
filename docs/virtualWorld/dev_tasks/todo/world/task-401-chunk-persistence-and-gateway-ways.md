@@ -130,3 +130,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: WorldPainter/Graph scope selector → load two adjacent chunks → inspect their gateway ways and loaded node sets → move an agent/item across the gateway → unload and reload each chunk.
+
+Current availability: the task is an umbrella dependent on four sub-tasks; its acceptance requires gateway movement, save/load persistence, scoped editor responses, and bounded node/edge counts. The combined chunk-persistence workflow is not claimed as complete.
+
+Live steps when available:
+1. Select two adjacent chunks and record each scope's areas, ways, items, and residents in the graph and `/api/state`.
+   - expected: the editor response contains only the requested scope and its explicit gateway boundary, not the full world graph.
+2. Move one agent and one item across the gateway, then unload and reload both chunks.
+   - expected: each entity has exactly one authoritative location after each load; gateway links remain usable across the seam.
+3. Save and reload the world with a due event scheduled on one chunk.
+   - expected: both gateway links and the due event survive the round trip and the event fires once.
+4. Compare loaded node/edge counts with the requested-scope benchmark report.
+   - expected: the browser graph and report agree on the bounded scope payload; no unrelated child scope is silently loaded.
+
+This section is not a claim that the chunk-persistence umbrella is complete today.

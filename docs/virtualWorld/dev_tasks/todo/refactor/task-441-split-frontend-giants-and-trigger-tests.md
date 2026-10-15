@@ -128,3 +128,19 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: the existing browser surfaces served by `templates/index.html`; this is a cohesion refactor, so each split must preserve the exact controls and behavior where they currently render.
+
+Current availability: the task describes oversized frontend modules and one oversized trigger test module. Module extraction is planned; no surface change is intended.
+
+Live steps when available:
+1. Open the affected UI before and after each one-file split and exercise its existing controls from the task's host module.
+   - expected: controls remain in the same location, trigger the same action, and produce the same visible result; no orphaned or duplicate module behavior appears.
+2. For any browser-global module, inspect the loaded script/module registration after page load.
+   - expected: the new module is loaded through the existing entry point only when required; `templates/index.html` gains no unnecessary script entry.
+3. Run `python tools/ts_convert.py check` and `node tools/unit/run.cjs` after the extraction; run each newly split trigger test module standalone as the card specifies.
+   - expected: the front-end gate passes, new test modules run independently, and the total trigger test count is unchanged.
+
+This section is not a claim that the refactor is complete or browser-verified today.

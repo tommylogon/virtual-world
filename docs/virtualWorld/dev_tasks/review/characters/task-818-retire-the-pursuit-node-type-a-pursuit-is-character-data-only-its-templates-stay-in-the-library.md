@@ -55,3 +55,17 @@ Nodes are physical entities in the world (areas, ways, items, characters). A pur
 - `tests/test_background_plans.py` (character-side path + the ignored-node regression)
 - `tools/add_scrap_run.py` (authors `Player.active_pursuit`, not a node)
 - `docs/virtualWorld/design/Character Pursuits.md` (the seam description)
+
+## Browser UI and intended live verification
+
+Intended UI home: Select a character in the world, then open Inspector → Mind → Pursuit & plan. The graph remains the physical-world view; it is not the home for a character's pursuit.
+
+Current availability: Character-side assignment and plan rendering are implemented. This card records engine and serialization tests, but no browser check for this retirement is recorded here.
+
+Live steps when available:
+1. Load `kraktooth_goblin_camp`, select Vekka, open Mind, and scroll to Pursuit & plan.
+   - expected: Vekka's active pursuit is shown from her character record with its plan; the panel does not require a pursuit graph node.
+2. Open `/api/state` in the same running app and inspect `graph.nodes` and `players.Vekka`.
+   - expected: Vekka's `active_pursuit` is in the player record and no graph node has `type: "pursuit"`.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.

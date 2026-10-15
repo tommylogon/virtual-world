@@ -71,3 +71,21 @@ TODO
 1. TODO
    - expected: TODO
    - observed: TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Game menu → Save/Load modal; Scenario Manager import/export controls; Settings controls for spectator/time/clock. Each existing control must remain reachable after the module split.
+
+Current availability: the card identifies the current mixed `saveload-view.js` responsibilities and requires behavior preservation except for bug-40 badges. The code extraction is planned; no changed UI architecture is claimed.
+
+Live steps when available:
+1. Open Save/Load and inspect the autosave, one named save, and one malformed save row; click the save, rename, and delete controls on scratch data.
+   - expected: autosave stays pinned, stats render, and 💾/✏️/🗑 actions keep their current behavior; badges render as badges rather than literal HTML.
+2. Use Scenario Manager to import a scenario and inspect its preview before saving.
+   - expected: upload, preview, and save remain reachable and do not appear as save-row actions.
+3. Open Settings and toggle spectator mode and change time-per-tick/clock start.
+   - expected: these settings remain reachable in their existing location after moving out of the Save/Load module.
+4. Reopen Save/Load after each operation and inspect the modal for duplicate controls or a missing script entry.
+   - expected: one save list is rendered through `renderSaveRow`; no `templates/index.html` script entry is added unless a new module requires it.
+
+This section is not a claim that the refactor is complete or live-verified today.

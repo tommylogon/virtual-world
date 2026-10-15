@@ -106,9 +106,40 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Open Settings → ⚙️ Engine Config and read `sound.way_see_through`.
+   - expected: the row is grouped under Sound and starts from the server's
+     current value (default 0.75 when no override is saved).
+2. Change that value to 0.65 and click 💾 Apply; reopen Engine Config and then
+   call `GET /api/settings/engine_config`.
+   - expected: the input and endpoint both report 0.65, and the save toast
+     confirms the value was applied without restarting.
+3. Click ↩️ Reset to defaults and reload the settings tab.
+   - expected: `sound.way_see_through` returns to 0.75 and other tunables
+     return to their declared defaults.
+   - observed: this card records tests for live engine reads and reset; no
+     browser run of the settings tab is recorded.
+
+## Browser UI and intended live verification
+
+Intended UI home: Settings modal → ⚙️ Engine Config → Sound / Heat / Light.
+
+Current availability: The schema-driven editor, Apply, and Reset to defaults
+are implemented. The Settings tab is loaded on click from the modal; the task
+records backend tests but marks browser E2E pending.
+
+Live steps when available:
+1. Open Settings → Engine Config and locate `sound.way_see_through` under Sound.
+   - expected: its current server value is shown in the numeric field.
+2. Change it from 0.75 to 0.65 and click Apply; inspect the toast and reopen
+   the tab.
+   - expected: the value reads 0.65 after the reload and the engine uses the
+     changed setting without a server restart.
+3. Click Reset to defaults.
+   - expected: the field returns to 0.75 and other values return to their
+     schema defaults.
+
+This section defines intended access and live acceptance. It is not a claim
+that planned UI exists or works today.
 
 ## Acceptance
 

@@ -121,3 +121,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: 📚 Library Browser → Items tab. The item list and editor share a resizable split; type chips, quality presets, multi-select bulk actions, and the existing placement flow belong on this surface.
+
+Current availability: The task's 2026-10-02 count measured 1,999 items; the React mockup is a design artifact, not application code. The items-pane overhaul remains planned.
+
+Live steps when available:
+1. Open the Items tab with the current 1,999-item library, resize the split, then search for a known item by display name and ID.
+   - expected: the list remains responsive while scrolling/filtering, the row result and detail editor stay synchronized, and neither pane is clipped at a narrow window width.
+2. Use the type chips to filter to food, then select “No triggers”.
+   - expected: counts update against the filtered 1,999-item library and the no-trigger filter is reachable in one click.
+3. Select several items and use one bulk action; then open an item and inspect its quality controls.
+   - expected: the multi-select bar names the selected count, the quality presets apply to the intended items, and the editor shows the selected record.
+4. Place one library item into a scratch world and return to the Library Browser.
+   - expected: the existing placement workflow still resolves the chosen item and the library record itself is not mutated by placement.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.

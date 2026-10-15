@@ -110,3 +110,23 @@ suggest them all and show me the diff". That is exactly the job task-506 needs.
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Library Browser → check several item rows → selection action bar → **Suggest triggers (N)** or **Suggest (AI) (N)** → per-item diff → Apply. Selection reuses the library's existing checked-item state.
+
+Current availability: the card describes the single-item “⚡ Suggest” flow and proposes batch selection, progress, diff review, and explicit replacement. Batch trigger generation is not claimed as available today.
+
+Live steps when available:
+1. In Library Browser, select three items: one without triggers, one with `on_eat`, and one with another authored trigger. Inspect the selection bar and run the offline heuristic.
+   - expected: the bar reports three selected; the diff proposes triggers for the empty item and skips/counts the two already-authored items by default.
+2. Review every before/after row without applying.
+   - expected: no library entry changes before Apply; each suggested trigger is associated with the correct item.
+3. Apply, close and reopen the Library Browser, then run the heuristic on the same selection again.
+   - expected: the applied data persists and the rerun creates no duplicate triggers.
+4. Repeat with AI unavailable and then with AI enabled; watch progress while the browser remains responsive.
+   - expected: unavailable AI offers the heuristic path; enabled AI reports per-selection progress and its result appears in the same review diff before write.
+5. Select an item with existing depletion triggers and inspect its proposed diff.
+   - expected: task-508's depletion decision is preserved; replacement requires an explicit opt-in.
+
+This section is not a claim that planned UI exists or works today.

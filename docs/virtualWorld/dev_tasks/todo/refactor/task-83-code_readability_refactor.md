@@ -84,3 +84,21 @@ TODO
 ## Acceptance
 
 - [ ] TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Not applicable — renaming cryptic local variables and adding intent comments is code readability work with no intended player-facing behavior change.
+
+Current availability: the task lists short names such as `tn`, `ep`, `ef`, `rn`, `dn`, `sn`, `nid`, and `v`; the cleanup is not claimed as complete.
+
+Why no browser UI: a browser cannot establish whether a local variable name communicates its purpose or whether a comment matches the actual operation. Review the changed functions in their call-site context.
+
+Alternative verification steps:
+1. For each changed function, read its inputs, outputs, and callers before and after the rename.
+   - expected: descriptive names map one-to-one to the same values and no control flow or behavior changes.
+2. Inspect the diff for comments added to genuinely non-obvious logic.
+   - expected: comments explain intent or invariants and do not restate the code or assert behavior the function does not provide.
+3. Run the focused tests for the touched module.
+   - expected: existing behavior remains unchanged; no test is loosened to accommodate a naming-only refactor.
+
+This section is not a claim that planned UI exists or works today.

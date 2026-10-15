@@ -141,9 +141,46 @@ function getSlotBonuses(nodeProperties) {
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Open a character's Inventory tab, click a filled Torso slot, and read the
+   slot detail modal from the innermost item through the outermost item.
+   - expected: each layer shows its item, depth, bonus summary, and slot total;
+     the header reports used/max capacity.
+   - observed: the 2026-07-31 implementation record lists these controls; no
+     live browser observation is recorded here.
+2. Move an inner layer up, unequip a different inner item, equip a replacement,
+   and reopen the slot modal after each refresh.
+   - expected: the selected item changes position or is removed without
+     removing a neighboring layer; the paperdoll and modal show the updated
+     stack.
+3. Click an item name, then repeat for `hand_left`, `hand_right`, and the
+   unlimited Accessories slot.
+   - expected: item names open their item inspector and each slot uses its own
+     capacity/action rules.
+
+## Browser UI and intended live verification
+
+Intended UI home: Character Inspector → Inventory → Paperdoll → click a filled
+equipment slot.
+
+Current availability: The card records `showSlotModal()` with layer order,
+bonus totals, capacity, unequip/reorder/equip actions, and clickable item names
+as implemented on 2026-07-31. It does not record a browser run.
+
+Live steps when available:
+1. Open a character with at least three layers in Torso, click Torso, and read
+   each layer and the total row.
+   - expected: order runs skin-to-outer layer, each bonus is attributed to its
+     item, and the modal shows the slot's total and `X / Y equipped`.
+2. Move the second layer down, unequip the innermost item, then equip another
+   torso item from the filtered picker.
+   - expected: only the chosen layer changes; the refreshed paperdoll and modal
+     agree on the new stack.
+3. Repeat the slot click on left hand, right hand, and Accessories.
+   - expected: hand slots remain separate and Accessories reports unlimited
+     capacity.
+
+This section defines intended access and live acceptance. It is not a claim
+that planned UI exists or works today.
 
 ## Acceptance
 

@@ -38,6 +38,21 @@ TODO
 
 TODO
 
+## Browser UI and intended live verification
+
+Intended UI home: Graph editor → Issues tab → natural-language editor for a selected world issue.
+
+Current availability: The issue-list read tool and staged natural-language fix path are still being added.
+
+Live steps when available:
+
+1. Open Issues for a scratch world and ask the NL editor to fix one listed issue.
+   - expected: The editor proposes a staged change tied to that issue and does not silently mutate the live world.
+
+2. Review and apply the staged change, then re-run validation from Issues.
+   - expected: The issue disappears or reflects its accurate remaining state in the visible issue list.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. TODO

@@ -123,3 +123,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Library Browser → choose one of the six goblin character templates → import into a scenario → inspect Character Inspector/Inventory and equipment slots.
+
+Current availability: the card requires library inventory references to materialize losslessly, equipped slot assignment, and starting gear for six goblins. The scenario authoring and loadout validation remain the acceptance criteria; this section does not claim all six are currently wired.
+
+Live steps when available:
+1. Import each goblin template into a scratch scenario and inspect its Inventory and equipped slots.
+   - expected: every library ID creates one item node preserving `equip_slots`, damage/type, defense, insulation, light, triggers, and contents; no duplicate or orphan appears.
+2. Save and reload the scenario, then reopen the six characters' equipment views.
+   - expected: each intended starting item remains carried and assigned only to a valid slot; carried-plus-equipped agrees with the task-450 invariant.
+3. Compare the loaded item nodes with their library templates in the Library Browser.
+   - expected: materialization preserves all listed item properties and trigger/containment behavior, not only display names.
+4. Run the scenario/library validation command after the imports.
+   - expected: all six loadouts resolve and no missing library IDs or duplicate instances are reported.
+
+This section is not a claim that all six starting loadouts are complete today.

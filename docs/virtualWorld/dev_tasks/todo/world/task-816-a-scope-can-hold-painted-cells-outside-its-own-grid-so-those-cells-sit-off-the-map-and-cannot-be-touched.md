@@ -45,3 +45,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: WorldPainter → select the `world` scope → inspect its grid boundary and painted cells, especially the eleven recorded areas at y=7/y=8 and the off-grid farm/lake cells.
+
+Current availability: the card measured a 20×7 world grid containing cells through y=8 and lists eleven out-of-bounds areas. The fix choice—grow the grid, reject placement, or another documented policy—is still open; no behavior is claimed as corrected.
+
+Live steps when available:
+1. Load `data/scenarios/kraktooth_goblin_camp.json`, open WorldPainter, and select the `world` scope. Scroll/zoom until all grid rows and boundary cells are visible.
+   - expected: every area held by the scope is visible and selectable; no painted cell lies beyond the displayed grid boundary.
+2. Inspect `area_world_11_7` through `area_world_19_7`, `area_world_16_8`, `area_world_17_8`, `area_abandoned_farm`, and `area_murk_lake` in the scope map.
+   - expected: each recorded cell is either inside the corrected grid or is rejected/relocated according to the explicit resolution chosen for this task.
+3. Attempt to paint a cell just beyond each grid edge and save/reload the scenario.
+   - expected: the UI prevents out-of-grid placement or expands the grid before the cell is accepted; no inaccessible off-map area is silently saved.
+4. Open each affected area in the graph and Inspector after reload.
+   - expected: map placement, scope membership, and graph cell coordinates agree.
+
+This section is not a claim that the off-grid cells have been repaired today.

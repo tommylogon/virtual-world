@@ -18,6 +18,24 @@ Phase 1 of docs/design/full-entity-editors.md. Add an EntityEditor that mounts a
 
 - TODO
 
+## Browser UI and intended live verification
+
+Intended UI home: Select a character, item, or area in the graph → contextual inspector peek → expand control in the inspector header. Double-clicking a canvas node is the second full-editor entry point; clicking once keeps opening the contextual peek.
+
+Current availability: The task defines a new `#entity-editor` separate from `#inspector-panel`; the full-surface frame and entry points are planned, with no mount/unmount browser pass recorded.
+
+Live steps when available:
+1. At desktop width, select one character, one item, and one area in turn; for each, open the peek and activate its expand control.
+   - expected: a full-viewport editor mounts for the selected entity using the existing view module; `#inspector-panel` remains the peek and is not overwritten by Lit rendering.
+2. Close each editor with its close control, Escape, and backdrop; reopen it from the same peek.
+   - expected: the editor unmounts cleanly, focus returns to the element that opened it, and reopening does not duplicate event handlers or corrupt the view.
+3. Double-click each of the three canvas node types, then single-click one node.
+   - expected: double-click opens the matching full editor; single-click still opens the contextual peek by default.
+4. Open the editor, focus its header name, edit it, and close/reopen.
+   - expected: focus begins at the name, the saved/in-flight indicator reflects the edit, and the name change round-trips without changing the entity layout or persistence model.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.
+
 ## Why
 
 TODO

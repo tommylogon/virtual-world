@@ -87,3 +87,21 @@ been given a modern phone without author intent.
 - The Commons authoring/configuration, presentation, and prompt integration
 - Existing conversation persistence for The Commons, only where required
 - Targeted tests and browser checks for theme behavior
+
+## Browser UI and intended live verification
+
+Intended UI home: Game menu → The Commons → scenario communication settings for the theme selector; then the Commons public feed, a private group, and a direct conversation. Keep the theme control with the existing world/scenario authoring surface rather than adding another character or conversation store.
+
+Current availability: Theme selection is planned and no theme field or theme control is claimed by this card as implemented. Task 824 supplies the shared Commons channels; task 299 owns physical communication-device mechanics.
+
+Live steps when available:
+1. In one test scenario, choose a letters/notices theme, open The Commons, and publish one public message, one member-only group message, and one direct message.
+   - expected: all three channels use letter/notice wording and presentation while retaining their existing channel IDs, member lists, and character identities.
+2. Change only the scenario theme to SMS/instant messaging and reopen those same three conversations.
+   - expected: the presentation and character communication prompt use the new medium, but the channel IDs, group membership, DM participants, unread counts, and read cursors are unchanged.
+3. Read one message in each channel, save and reload the scenario, then inspect the same conversations.
+   - expected: the selected theme, messages, membership, unread state, and explicit read cursors round-trip through the existing persistence path; no second memory or conversation history appears.
+4. Select a voice-call theme and inspect its prompt and transcript without adding a device.
+   - expected: it is clearly presented as transcript framing only unless task 299's device/activity path is explicitly invoked; the UI does not imply that a physical call or distance rule occurred.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.

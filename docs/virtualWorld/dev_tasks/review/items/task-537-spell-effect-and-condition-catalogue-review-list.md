@@ -456,3 +456,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Not applicable — this card is an effect/condition review list whose purpose is to confirm or deny proposals before implementation; it is not itself a game mechanic or spell menu.
+
+Current availability: the list records 73 entries reviewed on 2026-09-27, 23 with a recorded verdict, and corrections to mistaken “missing” labels. This is a design inventory, not a promise that all listed effects exist.
+
+Why no browser UI: a game interaction would test existing effects but cannot establish which speculative catalogue entries are approved, denied, or qualified. The deliverable is the reviewer's recorded verdicts and their source evidence.
+
+Alternative verification steps:
+1. Read each catalogue entry and inspect its `[M]`, `[P]`, or `[A]` label and `Verdict` field.
+   - expected: every confirmed/denied/maybe decision preserves its rationale; blank checkboxes are not converted into implementation requests.
+2. Recheck the named corrections: `set_vital`/`modify_vital_max`, existing blind/deaf/petrified condition composition, and the removed `elemental_accumulate` proposal.
+   - expected: entries match the current engine vocabulary and do not conflate `Player.stats` with vitals.
+3. Link only confirmed missing mechanics to implementation tasks.
+   - expected: existing composable effects are not duplicated as new engine types, and unreviewed entries remain explicitly unapproved.
+
+This section is not a claim that the catalogue's proposed effects exist or have been implemented.

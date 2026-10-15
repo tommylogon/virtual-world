@@ -98,6 +98,21 @@ Built the reusable module and piloted it; the 48-site bulk migration remains.
 
 TODO
 
+## Browser UI and intended live verification
+
+Intended UI home: Shared in-app dialog at existing alert/confirm/prompt call sites; use blueprint save as the representative path.
+
+Current availability: The reusable dialog and blueprint flow exist; many native popup call sites remain to migrate.
+
+Live steps when available:
+
+1. Open blueprint save and test confirm, cancel, Escape, Enter, and backdrop behavior.
+   - expected: One themed dialog collects fields, traps focus, returns the documented promise result, and preserves cancellation.
+
+2. Trigger a representative migrated alert/confirm and inspect focus after closing.
+   - expected: No browser-native popup appears and focus returns to the invoking control.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. TODO

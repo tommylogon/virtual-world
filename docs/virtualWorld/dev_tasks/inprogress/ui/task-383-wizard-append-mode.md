@@ -39,6 +39,21 @@ needs.
 - Undo-safe: push a labeled snapshot before the merge.
 - No new storage format.
 
+## Browser UI and intended live verification
+
+Intended UI home: World authoring wizard → Apply step → Append/Replace choice and per-room review.
+
+Current availability: Append mode and its review/apply flow are still in progress.
+
+Live steps when available:
+
+1. Build a small scratch world, draft rooms in the wizard, and choose Append at Apply.
+   - expected: Each draft room can be reviewed before any change is applied.
+
+2. Accept two rooms, reject one, apply, and inspect the existing world.
+   - expected: Only accepted rooms are added; existing nodes remain and the operation is undo-safe.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. Build a small world; open the wizard; draft a scenario; choose Append.

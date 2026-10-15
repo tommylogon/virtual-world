@@ -53,3 +53,28 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Graph or Agents list → select a character → Character
+Inspector tab row.
+
+Current availability: This card's 2026-10-10 observation records
+Inventory/Bio/Advanced. The current source now renders a fourth Images tab
+(`TABS = ['Inventory', 'Bio', 'Images', 'Advanced']`, added by later image
+work); recheck the live row before treating the older three-tab observation as
+current. The original separation remains: skills are inside Bio; graph physics
+and behaviors are inside Advanced.
+
+Live steps when available:
+1. Open a character and read the full Inspector tab row; open Inventory, Bio,
+   Images, and Advanced in turn.
+   - expected: Inventory contains paperdoll then carried items; Bio contains
+     stats/skills/traits and character details; Images contains expression
+     tools; Advanced contains behaviors and graph physics.
+2. Scroll to the bottom of Bio and Advanced and expand their sections.
+   - expected: stats and skills are not a separate tab; behaviors and graph
+     physics are not placed in the Inventory/Bio content.
+
+This section defines intended access and live acceptance. It is not a claim
+that planned UI exists or works today.

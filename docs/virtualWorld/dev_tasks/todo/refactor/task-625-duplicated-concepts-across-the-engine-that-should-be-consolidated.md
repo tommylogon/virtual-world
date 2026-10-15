@@ -71,3 +71,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Not applicable — this is an investigation and consolidation task across engine concepts; the card does not specify one user-facing feature or screen to change.
+
+Current availability: the task reports duplicated concepts with differing behavior and requires each duplicate to be traced before selecting an authoritative representation. No consolidation is claimed as implemented.
+
+Why no browser UI: a browser interaction cannot identify all duplicate stores or prove which runtime caller reads each one; that requires tracing sources, writers, and consumers first.
+
+Alternative verification steps:
+1. For each concept selected by the task, record the authored source, runtime writer, every reader/caller, and the serialized home before changing it.
+   - expected: the inventory distinguishes true mirrors/projections from competing sources of truth and identifies the exact behavior mismatch.
+2. After consolidating one concept, inspect the affected module callers and save/load representation.
+   - expected: one authoritative value remains, derived projections are rebuilt from it, and existing scenario/save data still resolves through the documented migration path.
+3. Run the focused regression tests for that concept and compare a small before/after scenario result.
+   - expected: the duplicate behavior is gone while unrelated mechanics retain their measured output.
+
+This section is not a claim that planned consolidation is complete today.

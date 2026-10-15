@@ -64,3 +64,22 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: select a character → Mind → Memories → compare one high-importance emotional memory with one low-importance plain memory before and after simulation time advances.
+
+Current availability: the card proposes activation decay based on per-memory resistance, category, source, and `memory.decay_per_tick`; the tick path/config wiring is part of acceptance and is not claimed complete here.
+
+Live steps when available:
+1. Load two memories that differ only as specified: importance-9 emotional versus importance-3 plain. Record activation in `/api/state` and open both in Mind.
+2. Advance the same number of ticks for both entries and inspect the updated details.
+   - expected: the important memory's activation remains strictly higher; the plain memory reaches the removal/retention rule first, according to this card's chosen floor policy.
+3. Repeat with `preconceived`, `background`, and `auto` sources.
+   - expected: preconceived activation never falls; background decays at half the auto rate.
+4. Set `memory.decay_per_tick` to zero, advance ticks, and reopen Mind.
+   - expected: no memory loses activation; the configured zero is read by the live tick decay pass.
+5. Compare the tick result with `/api/state` and the tick/event summary.
+   - expected: the removed count consumed by the tick manager matches actual removals.
+
+This section is not a claim that the non-uniform decay path is wired today.

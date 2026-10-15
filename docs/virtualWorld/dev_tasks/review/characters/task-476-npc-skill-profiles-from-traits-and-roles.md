@@ -74,10 +74,47 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Run `python -m pytest tests/test_roles.py`, then inspect the two fixed-roll
+   comparisons in the test output: `role:trapper` versus roleless on Survival,
+   and `role:guard` versus `role:cook` on Perception.
+   - expected: both role sources appear in the one modifier breakdown and the
+     role-tagged character wins the authored comparison.
+   - observed (card record, 2026-09-24): 15 role tests passed; the cast-level
+     role-tag authoring pass remains deferred.
+2. In the intended browser flow, load a disposable scenario with those same
+   role tags and issue `find Survival` and the Perception check from the Game
+   command input.
+   - expected: the event stream shows the `role` modifier for tagged
+     characters and no role modifier for the roleless child.
+   - observed: no browser E2E is recorded; the fixed-roll mechanism is covered
+     by the targeted test above.
 
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Character Inspector → Bio → Skills for authored skill values;
+Game command input → `find Survival` → event stream for the role-aware check.
+
+Current availability: The role modifier pipeline is implemented and the card
+records 15 passing `tests/test_roles.py` cases. Cast role tags have not been
+authored as part of this task, so use a disposable fixture with explicit
+`role:trapper` / `role:guard` tags; do not infer that the shipped cast exercises
+the rule.
+
+Live steps when available:
+1. Load a scratch scenario with a role-tagged trapper and a roleless child in
+   the same forage area. Run `find Survival` for each and inspect the event
+   stream's check breakdown.
+   - expected: the trapper's breakdown includes the `role` modifier; the
+     roleless character has no role modifier, and both use the same forage
+     action path.
+2. Load a second scratch pair tagged `role:guard` and `role:cook`, then run
+   `search` for each so both make the existing Perception check.
+   - expected: the breakdown names `role` as the modifier source and the guard
+     receives the authored Perception bias; no roleless character changes.
+
+This section defines intended access and live acceptance. It is not a claim
+that planned UI exists or works today.

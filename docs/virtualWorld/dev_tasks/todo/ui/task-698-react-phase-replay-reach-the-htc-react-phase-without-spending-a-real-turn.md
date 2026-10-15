@@ -48,3 +48,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: A dev-only Human Turn Composer preview action that opens the react phase with supplied character/result text, marked as a preview so normal play cannot invoke it accidentally.
+
+Current availability: No react-phase replay affordance is claimed as implemented. The user-supplied screenshot was the only evidence available during the 2026-10-04 verification session because a real action spends a turn.
+
+Live steps when available:
+1. Record `/api/state` and the current turn number; open the dev-only react preview for a named character with a supplied movement/result string.
+   - expected: the HTC displays the react phase without calling `/api/action`, ending a turn, advancing the clock, or writing a memory.
+2. Close the preview with its close control and compare state with the before snapshot.
+   - expected: dismissal is client-only; turn, world state, and memory count are unchanged.
+3. Use the preview with the crowded mansion result from task-679, then inspect its separated prose and hidden way tail.
+   - expected: the real task-679 browser assertions run without spending an action or altering the normal `compose → Act → react` path.
+4. Confirm the entry point is absent in normal play and available only in the e2e/dev harness.
+   - expected: players cannot accidentally trigger the supplied-result preview during an ordinary turn.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.

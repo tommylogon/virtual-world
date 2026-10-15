@@ -53,3 +53,24 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Graph toolbar → menu → Show on canvas → Floors selector.
+
+Current availability: The floor picker is implemented and was live-verified on
+a world with floors `0` and `-1`; its current accessible values are derived
+from area nodes' integer `properties.floor` values.
+
+Live steps when available:
+1. Open a multi-storey world, open the graph toolbar menu, and choose All
+   storeys; note the rendered node count. Then choose floor `0` and floor `-1`.
+   - expected: All shows 51 nodes in the recorded fixture; floor `0` shows only
+     ground-floor areas and their children; floor `-1` shows the cellar area
+     and its four children.
+2. While floor `-1` is selected, toggle Item nodes and Trigger nodes separately.
+   - expected: the floor filter composes with both visibility toggles and never
+     shows children of areas on another floor.
+
+This section defines intended access and live acceptance. It is not a claim
+that planned UI exists or works today.

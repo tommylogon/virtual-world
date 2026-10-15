@@ -36,3 +36,24 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Game menu → Settings → scenario time/date controls; top-bar
+scenario chip for the dirty-state result.
+
+Current availability: The endpoint behavior was measured live on 2026-10-10.
+The click-through from Settings to the top-bar dirty chip is not recorded.
+
+Live steps when available:
+1. Load a clean committed scenario, open Settings, change the date, and save
+   the setting; read the scenario chip at the top of the game view.
+   - expected: the chip changes from clean to dirty because date is persisted
+     in the scenario.
+2. Revert or recommit the scenario, post an app-global engine-config change
+   from Settings, and read the chip again.
+   - expected: the chip stays clean because `engine_config` is not scenario
+     content.
+
+This section defines intended access and live acceptance. It is not a claim
+that planned UI exists or works today.

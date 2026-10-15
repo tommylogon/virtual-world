@@ -18,6 +18,24 @@ Phase 4 of docs/design/full-entity-editors.md. The area editor has 14 sections i
 
 - TODO
 
+## Browser UI and intended live verification
+
+Intended UI home: Select an area → inspector peek → expand to the full-surface Area Editor. Its Properties column owns authored settings; its Place column keeps the mini-map beside exits, occupants, visible items, and the area event log.
+
+Current availability: The card records 14 area sections in a 379px column and no map; the split view is planned and depends on the task-673 frame being browser-verified. The below-900px layout target is still undecided.
+
+Live steps when available:
+1. Open a populated area in the full-surface editor at 1200px or wider.
+   - expected: left Properties shows name/description/tags/aliases, environment, presets, floor, scope, and physics; right Place shows that area's map and ways, exits, agents present, visible items, and a read-only scroll-locked event log.
+2. Select an exit on the mini-map and compare it with the Exits list; inspect the existing “Visible items in <area>” choice.
+   - expected: the selected map way and exit row identify the same connected area, and visible items correspond to the selected area rather than the whole scope.
+3. Change the area light or temperature setting and save; inspect the Properties controls again.
+   - expected: text/number/select controls display the saved values; the UI does not present the existing environment fields as sliders unless real range inputs were added.
+4. Test the confirmed width breakpoint and record the result below it.
+   - expected: both columns remain usable at the agreed width; do not accept a stacked layout until the under-900px target is decided.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.
+
 ## Why
 
 TODO

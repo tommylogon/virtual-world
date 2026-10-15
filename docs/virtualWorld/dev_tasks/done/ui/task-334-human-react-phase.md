@@ -67,9 +67,47 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. In a turn-based scenario, submit a human action from the Human Turn panel
+   and inspect the next phase and result text.
+   - expected: the panel advances Compose → Act → “② react to the result”; it
+     shows the action result before offering speech/emote/memory controls.
+   - observed (task-333 record, 2026-08-24): phase state, result area, skip-react,
+     and changing close controls are recorded as implemented; no browser E2E is
+     recorded for this card.
+2. React with one line of speech and one emote, then pass; inspect Event Stream
+   as another character and open the actor's Memories in the Inspector.
+   - expected: both reactions are witnessed through normal speech/emote events
+     and one deterministic action/result memory plus the manual memory are in
+     the character's existing memory store.
+3. Repeat with `dash` and inspect the phase before react.
+   - expected: one burst action is offered in the new area before react; a
+     non-dash action has no burst phase.
+
+## Browser UI and intended live verification
+
+Intended UI home: Human Turn panel → Act result → “② react to the result”
+phase; Event Stream and Character Inspector → Mind → Memories show the effects.
+
+Current availability: Compose/Act/react/pass, dash burst, automatic memory,
+manual memory, and witnessed react events are implemented according to this
+card's record. Digest and interjection lanes remain explicitly deferred. The
+integrated browser flow is not recorded as tested.
+
+Live steps when available:
+1. Submit a human action, then read the result in the panel before entering a
+   reaction; add speech, an emote, and a manual memory, then pass.
+   - expected: phase order is Compose → Act → React → pass and every reaction
+     is visibly tied to the just-returned result.
+2. Inspect the event stream as a second character and open the actor's Mind →
+   Memories after the turn.
+   - expected: speech/emote are witnessed normally and the deterministic memory
+     plus manual entry are stored in that same Player memory list.
+3. Repeat with dash and with a normal action.
+   - expected: only dash exposes one burst action in the destination area
+     before react.
+
+This section defines intended access and live acceptance. It is not a claim
+that planned UI exists or works today.
 
 ## Acceptance
 

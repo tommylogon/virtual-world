@@ -162,3 +162,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Character Inspector → Mind → Memories → inspect a low-activation entry after repeated time advances, then search/recall that same memory.
+
+Current availability: the task's rule is that decay changes activation only and never deletes; removal requires an actor, explicit trigger, or deliberate reflection consolidation. The all-path retention behavior remains the review target.
+
+Live steps when available:
+1. Record a memory's ID, actor, trigger, activation, and source in Mind and `/api/state`; advance until activation is at or below `ACTIVATION_FLOOR`.
+   - expected: activation falls but the memory remains in the roster and remains findable by its ID/query.
+2. Run the normal tick decay path and inspect the tick manager's removed count.
+   - expected: decay reports zero removals and calls no removal path.
+3. Deliberately remove a separate memory through an authored trigger or reflection consolidation.
+   - expected: only this explicit action removes it and the event/history shows the actor/trigger responsible.
+4. Reopen Mind and compare the retained faded entry with the deliberately removed entry.
+   - expected: the faded memory remains inspectable; the explicit deletion is absent according to the documented retention policy.
+
+This section is not a claim that the decay-only retention rule is verified live today.

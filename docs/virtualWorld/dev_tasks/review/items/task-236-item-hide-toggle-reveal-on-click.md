@@ -54,3 +54,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Graph toolbar → turn **Show items** off → click an area, character, or container node → click empty space → switch **Show items** back on.
+
+Current availability: the card records the implementation of temporary reveal behavior and is pending live browser E2E. This section describes the exact interaction still to verify.
+
+Live steps when available:
+1. With **Show items** off, click an area containing one `in` item and one `on` item.
+   - expected: those directly placed items appear and unrelated items remain hidden.
+2. Click a character carrying and equipping items, then click an item container.
+   - expected: character click reveals its `carrying`/`equipped` items; container click reveals only contents connected by ownership/placement edges.
+3. Click empty graph space, then click a different node.
+   - expected: empty space hides the temporary reveal; selecting another node swaps the revealed set to that node's items.
+4. Turn **Show items** on and inspect the graph.
+   - expected: temporary reveals clear and all item nodes appear through the normal show-items mode.
+
+This section is not a claim that the live browser E2E is complete today.

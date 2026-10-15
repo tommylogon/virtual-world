@@ -110,3 +110,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: open the world map/graph at the `world` scope → inspect area labels at map zoom and open the Area Inspector for similarly named areas and the repeated Bridge entries.
+
+Current availability: the card records coordinate-based area names and seven repeated “Bridge” names, and notes the user confirmed this is the wrong naming choice. A corrected naming pass is not claimed as complete.
+
+Live steps when available:
+1. Load the corrected scenario and zoom the world graph until labels for the affected areas are visible together.
+   - expected: each label is a meaningful in-world place name, not a `(world N,M)` coordinate, and the seven Bridge locations are distinguishable without opening each node.
+2. Select each affected area and compare its Inspector name, ID, description, and neighboring ways.
+   - expected: each name identifies the correct area and its exits still connect to the same opaque node IDs; renaming does not alter geography.
+3. Search the world graph for “Bridge” and inspect every result.
+   - expected: repeated bridge structures have distinct contextual names and do not resolve to the same area by display-name matching.
+4. Save and reload the scenario and reopen the map.
+   - expected: names remain stable, readable, and attached to the same node IDs.
+
+This section is not a claim that the affected area names have been corrected today.

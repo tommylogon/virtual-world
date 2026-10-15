@@ -3,262 +3,155 @@ type: task
 status: todo
 area: characters
 priority: high
-blocked_by: [task-324, task-403]
+related: [task-403, task-457, bug-519]
+wiki: "[[Memory System]]"
 ---
 
-# task-404: Character life experience generator
+# task-404: Character life experience authoring and import
 
 **Filed:** 2026-09-17  
-**Depends on:** task-403 (unified memory/knowledge system), task-324
-(domain tags)
+**Reframed:** 2026-10-15
 
 <!-- deps:start -->
-**Blocked by:** [[task-324-domain-tag-schema-and-area-furniture-pass]], [[task-403-unified-agent-memory-and-knowledge]]
+**Related:** [[task-403-unified-agent-memory-and-knowledge]], [[task-457-character-nodes-are-the-canonical-character-record-human-agent-simple-npc]], [[bug-519-editorial-rewrite-notes-are-stored-inside-character-memories-so-a-character-recalls-its-own-drafting-notes]]
 <!-- deps:end -->
 
 ## What
 
-Generate substantial life experience for characters — events, outcomes, fears,
-hopes, dreams, wants, likes, dislikes, trauma, and everything that makes people feel real — beyond what a personality summary can convey.
+Give a character a substantial, emotionally grounded past that can influence
+their existing memories and behavior. This is an offline authoring/import
+workflow. It does not simulate a second life beside VirtualWorld or add another
+place to store memories.
 
-Aura/Diary (`F:\AI\Aura\Diary`) is the closest reference implementation and should inform the design, but the goal is a VirtualWorld-native system, not a
-Neo4j integration.
+## Source of truth and boundaries
 
-## What Aura/Diary teaches us
+- Runtime memories remain on `Player.memories`. Scenario-authored starting
+  memories enter through `preconceived_knowledge.memories` and the existing
+  `AgentMind.load_preconceived()` path from task-403.
+- Character wants belong to the existing GIMP goal records. MOSIAC reads those
+  records as runtime context; it is not another motivation store. See
+  [[Character Pursuits]] and [[GIMP]].
+- Authored personality and character description remain on the character node;
+  private memories, goals, and runtime state remain on Player, following
+  task-457's ownership boundary.
+- Event tables and a seeded generator may be authoring inputs. Do not persist a
+  parallel `LifeExperience` collection, `diary_entries`, emotional-state
+  snapshot, fear/hope/trauma store, or external graph in the running game.
+- Generate first-person experience records using fields the existing memory
+  loader supports. Any location or entity reference must resolve to an actual
+  world node. Convert other desired effects only through an existing GIMP,
+  memory, relationship, or character-definition field; omit unsupported data
+  instead of inventing a second model.
 
-From `readme.md` and `diary_core.py`:
+## Aura/Diary reference checked 2026-10-15
 
-- Day-by-day simulation with LLM-driven choices and tiered outcomes
-- 169+ events across life stages, milestones, and random events
-- Emotional dimensions: happiness, anxiety, loneliness, energy,
-  social_battery, confidence
-- Relationships with quality/decay over time
-- Location history (`LIVED_AT`)
-- First-person diary entries via `memory_utils.generate_memory`
-- RAG-based semantic memory retrieval from past events
-- Event outcomes range from critical success to critical failure
-- Memories incorporate emotional impact, not just factual recall
+The local reference checkout at `F:\AI\Aura\Diary` was at commit `a551328`
+(2026-10-11, “offline simulation mode, event forge API, and decision-loop
+fixes”). That update added offline event generation/review, stable event IDs
+and chains, duplicate checks, age-aware choices, outcome tiers, seeded runs,
+and JSON export. Its export
+`Diary/exports/anna_anjou_20261011_191821.json` contains 77 events, 2
+relationships, 1 location, 8 milestones, and 77 emotional-trajectory entries.
+Event records include `event_id`, `date`, `age_days`, `raw_memory`,
+`emotional_impact`, `choice_made`, `outcome_text`, `involved_persons`, and
+`location_id`.
 
-The valuable patterns to import:
-1. **Events as structured choices**, not prose generation — each event has
-   options with defined outcome ranges
-2. **Emotional impact as first-class data**, not flavor text
-3. **Memory as first-person reflection**, not third-person summary
-4. **Traits that evolve** from experiences, not static character card data
-5. **Relationship history** as a series of recorded interactions, not a number
-
-## What NOT to import
-
-- Neo4j dependency — VirtualWorld uses JSON files and in-memory graph
-- The Diary simulation loop running inside VirtualWorld runtime
-- Two-way sync between Diary and VirtualWorld state
-- Real-time backstory generation during gameplay
-
-## VirtualWorld-native life experience system
-
-### Data model
-
-Add to `engine/agent_memory.py` (task-403):
-
-```python
-class LifeExperience:
-    """One recorded life event for a character."""
-    def __init__(self, event_id, age_days, event_type, description,
-                 choices, outcome, emotional_impact, location, tags,
-                 participants, memory_text, source="generated"):
-        self.event_id = event_id
-        self.age_days = age_days
-        self.event_type = event_type  # milestone, random, relationship, trauma, achievement
-        self.description = description
-        self.choices = choices        # [{text, weight, risk}]
-        self.outcome = outcome        # {result, success, emotional_impact}
-        self.location = location
-        self.tags = tags              # ["childhood", "injury", "school"]
-        self.participants = participants  # ["mother", "best_friend"]
-        self.memory_text = memory_text  # first-person inner monologue
-        self.source = source          # "generated", "preconceived", "background"
-```
-
-### Event tables
-
-Create `data/life_events/` with JSON tables, modeled on Aura/Diary's
-`events.json` but lighter:
-
-```
-data/life_events/
-  milestones.json      # guaranteed events by age (first steps, puberty, etc.)
-  childhood.json       # ages 0-12
-  adolescence.json     # ages 13-17
-  adulthood.json       # ages 18+
-  trauma_events.json   # cross-age, high-impact negative events
-  achievement_events.json  # cross-age, high-impact positive events
-  relationship_events.json # meeting, bonding, conflict, loss
-```
-
-Each event entry:
-```json
-{
-  "id": "childhood_fell_from_tree",
-  "event_type": "accident",
-  "age_min": 5,
-  "age_max": 12,
-  "prerequisites": [],
-  "choices": [
-    {"text": "Cry and run to parent", "risk": "low", "outcome_tables": ["comforted", "scolded"]},
-    {"text": "Brush it off and keep playing", "risk": "medium", "outcome_tables": ["infection", "proud"]}
-  ],
-  "emotional_impact": {"anxiety": [0, 5], "confidence": [-3, 0]},
-  "tags": ["childhood", "injury", "outdoors"],
-  "location_contexts": ["home", "park", "schoolyard"]
-}
-```
-
-### Generator script
-
-Create `tools/generate_backstory.py` — a standalone script that:
-
-1. Reads a character template or creates one from scratch
-2. Rolls through ages 0 to current_age using milestone tables + random events
-3. For each event, selects options based on character traits (risk tolerance,
-   personality modifiers)
-4. Resolves outcomes using seeded RNG + trait modifiers
-5. Generates first-person memory text via LLM (or template fallback if no LLM)
-6. Writes the result as a VirtualWorld preconceived-knowledge payload to
-   `data/backstories/<name>.json`
-
-Output format (consumed by task-403's `AgentMind.load_preconceived`):
-```json
-{
-  "name": "miki",
-  "backstory_source": "life_experience_generator",
-  "emotional_state": {
-    "base_happiness": 45, "base_anxiety": 60, "base_loneliness": 30,
-    "base_energy": 50, "base_social_battery": 40, "base_confidence": 35
-  },
-  "memories": [
-    {
-      "text": "I remember falling off the oak tree in our backyard when I was 8. I scraped my knee badly and cried until Mom came running. She cleaned it up and told me I was brave, but I wasn't brave — I was scared and hurting. That's when I learned that brave doesn't mean not being afraid.",
-      "tags": ["childhood", "injury", "mother", "outdoors"],
-      "importance": 7,
-      "salience": 8,
-      "location": "childhood_home_backyard",
-      "tick": 0,
-      "source": "preconceived",
-      "emotional_impact": {"anxiety": 5, "confidence": -2},
-      "age_days": 2920,
-      "participants": ["mother"]
-    }
-  ],
-  "known_areas": ["childhood_home", "elementary_school", "high_school", "first_apartment"],
-  "known_items": ["item_moms_locket", "item_childhood_diary"],
-  "relationships": [
-    {
-      "name": "mother",
-      "type": "family",
-      "quality": 75,
-      "history": ["nurturing", "strict", "supportive", "protective"],
-      "key_events": ["childhood_fell_from_tree", "high_school_graduation"]
-    }
-  ],
-  "fears": ["heights", "abandonment", "failure"],
-  "hopes": ["become_asmr_artist", "find_stable_relationship", "overcome_anxiety"],
-  "trauma": [
-    {
-      "event_id": "childhood_fell_from_tree",
-      "severity": 3,
-      "trigger": "heights",
-      "description": "Fell 3 meters from an oak tree, scraped knee badly"
-    }
-  ],
-  "diary_entries": [
-    {
-      "age_days": 2920,
-      "entry": "Today I fell out of the oak tree again. Third time this month. Mom says I need to be more careful but the branches look so climbable. I don't want to tell her I was showing off for Jake from next door. My knee hurts but I think he was impressed. Worth it? Maybe.",
-      "emotional_state": {"anxiety": 40, "happiness": 55, "confidence": 30},
-      "location": "childhood_home_backyard",
-      "tags": ["childhood", "injury", "crush"]
-    }
-  ],
-  "personality_deltas": {
-    "clingy": +2,
-    "anxious": +1,
-    "creative": +1
-  },
-  "traits": ["clingy", "anxious", "creative", "awkward"]
-}
-```
-
-### LLM integration
-
-The generator calls the same LLM provider VirtualWorld already uses. The prompt
-asks for a first-person memory of the event, grounded in the character's
-personality and the event's emotional impact. No new LLM plumbing is needed.
-
-If no LLM is available, the generator falls back to template-based memories:
-"I was [age] when [event]. I felt [emotion]. [One-sentence reflection.]"
-
-### Determinism
-
-All RNG is seeded from character name + event id + age. The same character
-generated twice produces identical memories, relationships, and emotional
-state. This is required for save/load consistency and for the editor to show
-stable backstories.
-
-### Scenario authoring workflow
-
-1. Option A: Author a character template with `backstory_generation` block:
-   ```json
-   {
-     "name": "goblin_scout",
-     "backstory_generation": {
-       "current_age": 22,
-       "events": ["childhood_fell_from_tree", "adolescence_bullied"],
-       "custom_memories": ["The camp food cache is in the pantry behind the kitchen."]
-     }
-   }
-   ```
-2. Option B: Run `python tools/generate_backstory.py --template goblin_scout.json`
-   → outputs `data/backstories/goblin_scout.json`
-3. In scenario player/character entry: `"backstory": "data/backstories/goblin_scout.json"`
-4. At scenario load, `AgentMind.load_preconceived()` reads and injects
-
-## Files
-
-- `data/life_events/*.json` (new event tables)
-- `tools/generate_backstory.py` (new generator script)
-- `engine/agent_memory.py` — add `LifeExperience`, `diary_entries`, `fears`,
-  `hopes`, `trauma`, `personality_deltas` fields
-- `engine/tick_manager.py` — apply `personality_deltas` at load
-- `docs/virtualWorld/Systems/Memory System.md` — document the authoring workflow
-
-## Steps to verify
-
-- Generate backstory for Miki using `tools/generate_backstory.py`
-- Load Pines scenario with her backstory attached
-- Verify her first active prompt references a childhood memory with emotional
-  weight, not just personality summary
-- Verify fears/hopes/trauma affect behavior: a goblin with `fears: ["fire"]`
-  avoids fire sources; one with `trauma: [{trigger: "heights"}]` refuses to
-  cross high bridges
-- Generate twice with same seed → identical output
-- Save/load round-trip: life experience data survives serialization
-- Run without LLM → template fallback produces valid memories
-
-## Non-goals
-
-- Running Aura/Diary inside VirtualWorld runtime
-- Real-time backstory generation during gameplay
-- Two-way sync between an external graph and VirtualWorld state
-- Full Neo4j event graph import
-
-## Why
-
-TODO
+Reuse the useful authoring ideas: structured event choices, reproducible
+outcomes, emotional grounding, and first-person memories. Treat this checkout
+and export as reference data, not a runtime dependency or a second source of
+truth. Before importing an event, review it as character-authored content and
+resolve every referenced person and location against VirtualWorld's existing
+scenario.
 
 ## How
 
-TODO
+1. Define a small event vocabulary and a deterministic seed contract for an
+   offline generator or importer.
+2. Emit a VirtualWorld scenario-player `preconceived_knowledge` block whose
+   memories use the existing memory fields. Preserve the lived experience in
+   first-person text; keep event-selection metadata in the authoring input
+   unless an existing memory field can represent it.
+3. For an Aura/Diary export, map only verified fields. Unresolved names and
+   locations must be reported for author review, not converted into invented
+   nodes or relationships.
+4. Load the resulting scenario through the existing task-403 bootstrap. Do not
+   add a new loader, memory index, persona, or biography panel.
 
 ## Acceptance
 
-- [ ] TODO
+- Generating twice with the same inputs and seed yields the same authored
+  memory payload.
+- Generated/imported experiences are first-person memories stored in the
+  existing Player memory collection after scenario load; loading twice does
+  not duplicate them.
+- Memory locations and entity references either resolve to real scenario node
+  IDs or are omitted with a clear authoring error.
+- A character's wants are represented only through existing GIMP goals when
+  explicitly authored; the generator does not create a separate hopes/fears/
+  motivation store or let MOSIAC decide actions.
+- Existing character node properties and Player-owned private state continue
+  to follow task-457's ownership boundary.
+- The Diary importer reports unsupported or unresolved fields and does not
+  silently drop, fabricate, or persist a second representation of an event.
+
+## Steps to verify
+
+1. Load generated/imported memories through the existing task-403 scenario path.
+   - expected: records land in the character's existing Player memory store
+     without duplicates.
+   - observed: not run; implementation remains open.
+2. Follow the intended browser path below when the generator/importer is
+   available in a scenario.
+   - expected: generated experience is visible and usable through the existing
+     Mind/Memory surface.
+   - observed: not run; this card records the acceptance path.
+
+## Browser UI and intended live verification
+
+Intended UI home: Character Inspector → 🧠 Mind → Memories; any authored GIMP
+goal appears in the existing Goals section.
+
+Current availability: the Mind and Memories surfaces exist; this generator and
+import workflow are not implemented.
+
+Live steps when available:
+
+The author-facing home for generated experience is the existing character
+Inspector's **🧠 Mind** panel, **Memories** tab. Show each memory through the
+same memory list and detail view as other Player memories. If an authored goal
+is also present, it belongs in the existing Mind tab's Goals section. Do not
+add a separate backstory, persona, or memory screen. Missing visibility in this
+panel is an acceptance failure even if the JSON or API payload is correct.
+
+1. Open the generated test scenario from **Scenario Manager** and select the
+   character in the graph.
+2. Open **🧠 Mind → Memories**; locate a generated/imported experience, select
+   it, and inspect its full text and memory details.
+   - expected: first-person experience appears in the ordinary memory UI; any
+     authored goal appears in the existing Goals section.
+3. Reload the scenario and inspect the same character again.
+   - expected: the memory remains visible once, with no duplicate on reload.
+4. Inspect `/api/state` for the same character's Player memories and compare the
+   selected record with the panel. Then trigger a normal character decision in
+   the scenario.
+   - expected: the existing memory/prompt path can use the experience; no new
+     memory collection or world node was created.
+
+These are required UI acceptance steps for the implementation. This section
+defines intended access and live acceptance; it is not a claim that planned UI
+exists or works today. No browser run is recorded for this card.
+
+## Non-goals
+
+- Running Aura/Diary or its graph database inside VirtualWorld.
+- Real-time backstory simulation during play.
+- Creating a second memory, emotion, goal, or persona store.
+- Inferring world facts from prose or adding nodes for unresolved references.
+
+## Files
+
+- `tools/` authoring/import workflow (new, if needed)
+- Event authoring data for the generator (new, if needed)
+- Existing scenario player data using `preconceived_knowledge.memories`
+- `tests/` only for the generator/importer mechanism and its task-403 payload
+  contract

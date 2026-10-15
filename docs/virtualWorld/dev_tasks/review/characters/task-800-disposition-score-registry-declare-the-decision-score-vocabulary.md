@@ -55,3 +55,21 @@ Create engine/disposition.py owning the registry as a single declaration, in the
 - `engine/disposition.py` (new — the registry)
 - `tools/disposition_index.py` (new — the gate)
 - `tests/test_disposition.py` (new — the mechanism test)
+
+## Browser UI and intended live verification
+
+Intended UI home: Not applicable — this card declares the engine's decision-score vocabulary and static checks; the registry itself has no browser authoring surface.
+
+Current availability: the card records 24 declared scores, six score kinds, per-decision combine/pick modes, a `check_registry` guard, and passing `tests/test_disposition.py` evidence. The browser does not expose the registry directly.
+
+Why no browser UI: completeness and base/range agreement are properties of the source registry and its readers; a rendered game outcome cannot show every declared score or detect a missing declaration.
+
+Alternative verification steps:
+1. Run `python -m pytest tests/test_disposition.py` and inspect the registry test output.
+   - expected: `check_registry` validates all declared score kinds, bases, ranges, and per-decision modes; the test fails if a referenced score is undeclared.
+2. Change a test-only score reference to an undeclared name and run the same focused test.
+   - expected: the guard reports the exact unknown score and fails; restoring the declared name passes.
+3. Compare declared bases with the source constants named in the card (privacy and background-social weights).
+   - expected: every registry base matches its engine constant, with no second hand-maintained base value.
+
+This section is not a claim that planned registry UI exists or works today.

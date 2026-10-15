@@ -46,3 +46,29 @@ TODO
 ## Acceptance
 
 - [ ] TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Game view → Event Stream → expand an agent turn card; use
+Manual Response mode to provide a malformed response for the parse-error path.
+
+Current availability: Raw request/response bubbles and parse-error expansion
+are implemented in the stream modules. This card says the later task-340
+browser E2E owns the live stream check; no independent browser observation is
+recorded here.
+
+Live steps when available:
+1. Run an agent turn with the raw LLM display enabled and expand its turn card.
+   - expected: the raw request/response bubbles appear inside that turn card
+     before the parsed action/result content; stream filters still include the
+     nested bubbles.
+2. In Manual Response mode, return malformed JSON for one agent call, then
+   click the parse-error bubble's raw-response control.
+   - expected: the parse failure is visible in the stream, the malformed text
+     can be inspected, and the affected turn remains identifiable.
+3. Use the stream's parse-error filter and export the error streak.
+   - expected: the same failed turn remains discoverable in the filtered view
+     and the exported streak includes its raw response evidence.
+
+This section defines intended access and live acceptance. It is not a claim
+that planned UI exists or works today.

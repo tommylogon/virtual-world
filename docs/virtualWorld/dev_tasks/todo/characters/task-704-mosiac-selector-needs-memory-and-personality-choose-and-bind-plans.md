@@ -58,10 +58,32 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. In a micro-scenario, give the same goblin two competing active goals, a hungry/lonely need state, and two library-backed pursuit candidates; run selection once with a relevant memory and known route.
+   - expected: the selected binding names only known, reachable targets, includes a readable reason tied to the active goal's `achieve` refs, and does not create an item, route, permission, or skill.
+   - observed: Not run. The selector is not implemented; this card is blocked by tasks 701, 702, and 705.
+2. Keep the character and candidates the same, then change the stronger personal reason and repeat the selection cycle with one candidate declined.
+   - expected: the character can decline without a retry penalty or same-cycle re-proposal; the other character's response is unchanged.
+   - observed: Not run. The selector is not implemented; this card is blocked by tasks 701, 702, and 705.
+3. Repeat the fixture with both an LLM agent and a simple background NPC, then change the calendar cue and falsify the remembered route premise.
+   - expected: both use the same pursuit template and world-action semantics; the LLM can adapt or decline, while the simple NPC uses the deterministic rule; the stale premise causes reselection rather than an invented destination.
+   - observed: Not run. The selector is not implemented; this card is blocked by tasks 701, 702, and 705.
 
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Select the actor → Inspector → Bio → 🧠 Mind → Goals and Pursuit & plan. The visible world and its normal action surface show whether the selected plan actually moves, gathers, or starts an Activity.
+
+Current availability: The MOSIAC selector is planned and blocked by tasks 701, 702, and 705. The saved Mind surface can display goals and character-side pursuits, but it does not yet demonstrate this selector choosing or declining candidates.
+
+Live steps when available:
+1. Load the hungry/lonely goblin micro-scenario, select that goblin, open Mind, and record the two active goals and the candidate reasons; advance the selector trigger once.
+   - expected: the selected pursuit and reason appear under Pursuit & plan, and its bound target is visible to that character in the world.
+2. Change the fixture so the same goblin has the stronger personal reason, then trigger selection again and inspect the other goblin in the same scenario.
+   - expected: the first goblin can decline the suggested pursuit without a retry penalty, and the other actor's plan remains their own choice.
+3. Let the accepted pursuit execute through its next step, then inspect the actor and Mind again after changing the remembered route premise.
+   - expected: the actor's actual position/Activity and Mind's plan agree; a falsified premise leads to a grounded new choice without erasing the longer pursuit automatically.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.

@@ -55,9 +55,19 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. After the runtime exists, load the paired-radio scratch scenario described
+   in Browser UI and intended live verification; send Alice's message to Bob,
+   then reply from Bob's disconnected area.
+   - expected: delivery is directed to the paired endpoint and the reply
+     returns over that connection; characters on another channel receive
+     nothing.
+   - observed: not run — this card is design-only and has no runtime path yet.
+2. Repeat with speakerphone disabled and enabled, then with the radio part
+   depleted.
+   - expected: local room audio follows the speakerphone setting and a depleted
+     device cannot relay; no device-specific power field is introduced.
+   - observed: not run — this is a future acceptance recipe, not current
+     behavior.
 
 ## Acceptance
 
@@ -66,3 +76,33 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Game view → selected character's command input and the
+resulting event stream; device-specific actions should be presented through the
+existing item/action interaction.
+
+Current availability: Design only. The task's notes settle device composition
+and directed relay behavior, but no long-distance communication runtime or live
+browser flow is implemented yet.
+
+Live steps when available:
+1. Load a scratch scenario with Alice and Bob in disconnected areas. Give each
+   a working radio device with matching channel parts, and give Cara a radio on
+   a different channel. Select Alice and use the action offered for her radio
+   to address Bob, then send “meet at the east gate”.
+   - expected: Alice's local room hears only the physical utterance; Bob gets
+     the directed message while Cara gets none.
+2. Reply as Bob from the other area, then repeat with the radio's speakerphone
+   state enabled and disabled.
+   - expected: Alice receives Bob's reply over the same directed connection;
+     local bystanders hear the relayed room audio only when speakerphone is
+     explicitly enabled.
+3. Leave the paired device depleted or remove its communication part and
+   attempt the same send again.
+   - expected: the item/action system reports the unavailable device state and
+     does not deliver a remote message.
+
+This section defines intended access and live acceptance. It is not a claim
+that planned UI exists or works today.

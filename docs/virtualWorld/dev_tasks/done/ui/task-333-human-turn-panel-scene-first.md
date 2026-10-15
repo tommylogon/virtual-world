@@ -411,9 +411,57 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Enable turn-based mode, set the controlled character, and wait until that
+   character reaches its queued slot; open the Human Turn panel.
+   - expected: the panel is a scene / one-box / character-strip layout, not an
+     LLM persona prompt or old seven-field grid; it is absent outside that
+     character's slot.
+   - observed: the task records Phase 1 and full redesign implementation; a
+     browser E2E of the completed panel remains pending.
+2. Hover the Hall's bed chip, then click it and choose the sleep action; read
+   the draft before clicking Act.
+   - expected: hover is free look with “free look · no turn cost”; click opens
+     valid actions and only fills the draft; no action runs before Act.
+3. Confirm Act, inspect the result, complete the react phase, and inspect the
+   character's memory in the Inspector.
+   - expected: result precedes react; speech/emote/memory are attached to that
+     result, then the turn passes and the deterministic memory is in the same
+     character memory store.
+4. While another character owns the queued slot, try the controlled panel and
+   separately use the always-available command-line override.
+   - expected: the Human Turn panel stays gated to its slot; the command-line
+     override remains usable without consuming the queued slot.
+
+## Browser UI and intended live verification
+
+Intended UI home: Game view → Human Turn panel when the controlled character
+owns the queue slot; scene entities occupy the top, one-box input the middle,
+and the character strip the bottom.
+
+Current availability: The scene snapshot, chip previews/menus, one-box
+composer, character strip, react phase, and deterministic memory path are
+recorded as implemented. The task still says browser E2E of the full panel is
+pending; this recipe does not claim that it was run.
+
+Live steps when available:
+1. Enter the controlled character's queued slot, hover a person/item/way chip,
+   then click it and choose an action; inspect the draft and confirmation.
+   - expected: hover is free look, click fills the draft, and no server action
+     occurs until the user confirms Act.
+2. Act, read the result, then use the react speech/emote/memory controls and
+   pass the turn; inspect Event Stream and the same character's Mind → Memories.
+   - expected: react is bound to the result, witnessed speech/emote is visible
+     to observers, and the deterministic memory is stored in `Player.memories[]`.
+3. Test one dash through a connected way and one normal action.
+   - expected: dash grants exactly one burst action in the destination area;
+     normal actions proceed directly to react.
+4. View the game while a different character owns the queued slot and use the
+   command-line override once.
+   - expected: the panel stays hidden outside the controlled slot and the
+     override remains available without consuming that slot.
+
+This section defines intended access and live acceptance. It is not a claim
+that planned UI exists or works today.
 
 ## Acceptance
 

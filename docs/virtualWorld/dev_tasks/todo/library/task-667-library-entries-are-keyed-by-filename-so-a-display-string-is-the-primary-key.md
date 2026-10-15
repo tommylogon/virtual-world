@@ -144,3 +144,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Library Browser → open a template → edit its display name → save → select it from the matching type's template picker. The human-readable filename remains a label; import resolution uses the stable surrogate key with legacy filename fallback.
+
+Current availability: the task reports filenames/display strings acting as primary keys. Stable per-entry surrogate IDs and dual-form resolution are planned; the rename/import behavior below is not claimed as available today.
+
+Live steps when available:
+1. Create a library entry and record its generated `item_id`/type-specific key and filename. Rename the display label in the Library Browser and reopen the entry.
+   - expected: the stable key is unchanged and the updated display label is shown.
+2. Import that entry into a scenario and inspect the node's `linked_template_id`; then load a legacy scenario whose link contains the old filename.
+   - expected: new imports use the stable key; the legacy filename still resolves to the same entry.
+3. Create two entries with the same display name in the same type and use the template picker.
+   - expected: each entry remains individually addressable and selectable by its stable key; the display name is not used as identity.
+4. Save and reload the scenario and compare the links and library entries.
+   - expected: links resolve in the documented order (explicit ID, link, per-type guess) without duplicate or orphaned templates.
+
+This section is not a claim that planned UI exists or works today.

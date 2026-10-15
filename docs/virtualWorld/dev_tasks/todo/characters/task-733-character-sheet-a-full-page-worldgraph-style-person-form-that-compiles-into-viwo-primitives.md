@@ -119,10 +119,61 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Create a scratch character from the character sheet and enter distinct
+   values for pronouns, age, appearance, personality, interests, fears, traits,
+   and skills. Save and reopen the character.
+   - expected: the form restores the authored values and projects them into the
+     existing ViWo fields listed in the projection table; it does not create a
+     parallel unconsumed WorldGraph blob.
+2. Inspect the character's saved definition and runtime prompt after reload.
+   - expected: personality and appearance are present in the prompt, while
+     interest/fear tags, traits, skills, and memories remain in their existing
+     consumers. `mbti`, `alignment`, and `media` are not added as fields.
+3. Load a free-form-only character that has no structured sheet data.
+   - expected: its existing prose still loads and drives the prompt without
+     requiring a visit to the sheet or a migration.
+4. Edit one appearance field and one personality field, save, and reload.
+   - expected: only the corresponding projected primitives change; unrelated
+     authored fields and runtime memory remain intact.
 
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: select a character → Character Inspector → Bio → open the
+full-page **Character Sheet** authoring form. This is the proposed entry point
+for one coherent authoring surface; it writes to the existing character
+definition and the primitives the simulation already consumes.
+
+Current availability: the full-page structured sheet is planned. Existing
+character Bio and advanced fields are separate surfaces; this card does not
+claim the WorldGraph-style form or projection workflow is available today.
+
+Live steps when available:
+1. Open a character's Bio in the Inspector and open **Character Sheet**. Enter
+   `they` for pronouns, `31` for age, a distinctive appearance detail, one
+   personality habit, one interest tag, one fear tag, one trait, and one skill.
+   Save the character and close the sheet.
+   - expected: the save succeeds and the Inspector shows the character's
+     updated authored definition.
+2. Reopen the sheet and reload the scenario. Compare the restored form values
+   with the character node's `properties` and the projected fields in
+   `/api/state`.
+   - expected: the same values survive reload in `personality`,
+     `base_description`/`description`, `interest_tags`, `fear_tags`, `traits`,
+     and `skills`; no duplicate sheet-only record is persisted.
+3. Open the character's prompt preview or run a character turn and inspect the
+   generated prompt context.
+   - expected: the distinctive personality and appearance are available to the
+     prompt. The character's existing prose-only authoring still works for a
+     second character with no sheet data.
+4. Inspect the sheet's available fields.
+   - expected: every offered field has a ViWo consumer; `mbti`, `alignment`,
+     and `media` are not presented as persisted character mechanics.
+
+These steps define the intended authoring path and round-trip behavior; the
+full-page sheet remains planned.
+
+This section is not a claim that planned UI exists or works today.

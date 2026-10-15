@@ -107,3 +107,19 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Event stream → the action-result row inside the active turn card. It must use the actor carried by that result row, then apply the existing `tf-you` / `tf-other` grouping.
+
+Current availability: The card records the wrong attribution as a reported bug, but has no implementation or live observation yet. No fix or current behavior is claimed here.
+
+Live steps when available:
+1. Start a turn-based session with one human-controlled character and one NPC, then make the NPC perform an action that emits a result row.
+   - expected: the result row names the NPC, does not say `You`, and appears in the other-actor grouping.
+2. Make the human-controlled character perform the same action.
+   - expected: the result row says `You` and appears in the player grouping.
+3. Rename the active player during the session and cause another NPC result.
+   - expected: attribution still follows the result's carried actor field; it does not change because a display-name comparison to `activePlayer` changed.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.

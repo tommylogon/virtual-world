@@ -64,3 +64,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Not applicable — this card changes the front-end module contract and feature-index tooling; it does not add product UI.
+
+Current availability: the card records the 58-feature Feature Map, `tools/feature_index.py`, bidirectional report, regenerated feature index, and a gate against folder-only `@docs` targets. No browser surface is intended.
+
+Why no browser UI: the contract is checked from module headers and the feature vocabulary. A browser interaction cannot detect a new module whose `@powers` names no Feature Map entry.
+
+Alternative verification steps:
+1. Run `python tools/feature_index.py --report` and inspect both join directions.
+   - expected: module `@powers` phrases resolve to Feature Map feature names; unclaimed features and unmapped modules are reported explicitly.
+2. Point a scratch `@docs` declaration at a folder and a scratch `@powers` declaration at a nonexistent feature; run `python tools/feature_index.py --check`.
+   - expected: the guard rejects both invalid targets with the responsible module path.
+3. Regenerate `docs/design/feature-index.md` and rerun the check.
+   - expected: the generated index matches the current Feature Map and check exits 0 with only the recorded baseline debt.
+
+This section is not a claim that planned tooling is exposed through the app.

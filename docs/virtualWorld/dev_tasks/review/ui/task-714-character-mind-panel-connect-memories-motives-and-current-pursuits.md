@@ -101,6 +101,24 @@ All the display layers are in. The one thing the panel cannot yet show is the *t
 - `engine/background_plans.py` (the source of `active_pursuit` / `plan`, task-818)
 - `engine/serialization.py` (the `goals` / `active_pursuit` / `plan` fields it renders)
 
+## Browser UI and intended live verification
+
+Intended UI home: Select a character in the world → Inspector → Bio → 🧠 Mind. Inspect the complete Mind surface from its first block through the bottom, including memory filters, timeline, and detail.
+
+Current availability: The task records live checks for Goals, Pursuit & plan, Activity, Feeling, World knowledge, Known recipes, Body, Obligations, and Schedule. The saved `kraktooth_goblin_camp` scenario has 27 player records: Vekka has an active scouting pursuit, Gribba has a 06:00 `eat` schedule at Cooking Area, and lowercase `james` has a travel-then-sleep plan targeting `item_bed_1791229267206_939`. The acceptance says “Grandma,” but no player is named Grandma in that scenario; reconcile whether Gribba is the intended character before claiming that exact exhibit is satisfied. James has a plan in the saved data; the task's “sleeping Activity” still needs a live check.
+
+Live steps when available:
+1. Load `kraktooth_goblin_camp`, select Vekka, open Bio → Mind, and scroll the entire view from top to bottom.
+   - expected: the Pursuit & plan block shows `vekka_scout_north`, the remembered human-tracks reason, and the current plan step; the lower memory timeline and filters remain reachable.
+2. Select Gribba and inspect “Schedule - their day”.
+   - expected: the 06:00 `eat` reminder at Cooking Area appears. If the acceptance's “Grandma” refers to another character, do not count this as satisfying it until the saved fixture identifies that character.
+3. Select lowercase `james` and inspect Pursuit & plan and Activity.
+   - expected: the plan shows travel to Hut Sleeping Corner followed by sleeping on `item_bed_1791229267206_939`; if the activity is not active yet, the UI reports the plan without fabricating an ongoing sleep activity.
+4. Select a character with no authored goal or pursuit, then after a turn or interruption reopen Mind for the same character.
+   - expected: empty states are explicit, and displayed values refresh from current player state without stale data or a second UI copy.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.
+
 ## Progress (2026-10-12)
 
 - Goals layer done and verified live: a "Goals - what they are pursuing" block in the Mind panel, rendering `Player.goals` (task-807) with status badges and GIMP's motivation/intention. Screenshot-confirmed in the real browser on port 4445.

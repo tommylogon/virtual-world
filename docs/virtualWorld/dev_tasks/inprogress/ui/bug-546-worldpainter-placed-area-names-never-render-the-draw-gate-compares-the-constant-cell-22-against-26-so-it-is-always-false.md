@@ -45,6 +45,21 @@ if (onScreen >= 26) { … }
 Keep the marker itself always drawn; only the name is gated. Check other call
 sites that intend "big enough to label" for the same constant-vs-scaled mistake.
 
+## Browser UI and intended live verification
+
+Intended UI home: Build → WorldPainter → painted scope in Map mode, with placed-area labels visible.
+
+Current availability: The label gate compares a constant cell value; scaled on-screen-size behavior remains to be verified after the fix.
+
+Live steps when available:
+
+1. Open a scope with placed areas and zoom until a cell is at least 26 screen pixels.
+   - expected: Area names appear when the scaled cell reaches the label threshold.
+
+2. Zoom back to mosaic scale.
+   - expected: Names hide below threshold while area markers remain drawn.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. Open a scope with placed areas; zoom in past ~1.2× (so cells exceed 26px).

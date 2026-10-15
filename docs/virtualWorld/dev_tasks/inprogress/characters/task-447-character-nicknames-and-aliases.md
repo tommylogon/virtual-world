@@ -122,6 +122,21 @@ TODO
 
 TODO
 
+## Browser UI and intended live verification
+
+Intended UI home: Character Inspector → Bio → Aliases; then the normal character command/target interface.
+
+Current availability: Alias editing, persistence, and resolution have live evidence in this card; agent vocabulary and visible alias presentation remain open.
+
+Live steps when available:
+
+1. Select Violet Halloway, add alias ‘Vi’ in Bio, save, reload, and reopen the character.
+   - expected: The alias remains visible after reload.
+
+2. Use the normal interaction UI to look at, approach, and talk to ‘Vi’, then try a shared alias.
+   - expected: ‘Vi’ resolves to Violet; a shared alias offers an explicit ambiguity choice, and known aliases appear in the HTC and agent people context.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. TODO

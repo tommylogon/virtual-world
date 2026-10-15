@@ -125,3 +125,29 @@ TODO
 ## Acceptance
 
 - [ ] TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Game command input → attack action → event stream; inspect
+the target character's resulting state through `/api/state` until a body-state
+readout is part of the character inspector.
+
+Current availability: The combat route accepts an aimed body region and the
+unit tests cover injury thresholds and exposed/covered regions. The card still
+marks browser end-to-end verification pending; the inspector is not claimed to
+render the per-region injury record.
+
+Live steps when available:
+1. Load a scratch scenario with an attacker and target in the same area, no
+   head-covering item on the target, and a weapon that can deal at least 5
+   damage. Enter `attack <target> on the head` in the command input and inspect
+   the event stream and `/api/state`.
+   - expected: the hit output names the head and injury; the target's
+     `body_state.head` contains a region injury while HP reflects the hit.
+2. Equip a head-covering item on the same target and repeat with a hit that
+   deals at least 5 damage.
+   - expected: HP still reflects damage, but the covered head does not receive
+     a skin injury.
+
+This section defines intended access and live acceptance. It is not a claim
+that planned UI exists or works today.

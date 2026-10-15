@@ -102,3 +102,21 @@ A goal that reads "become chief" plus a bare `character:Croak-Mother` is a boole
 - `engine/background_simulation.py` (the per-turn `sync_reached` call)
 - `static/js/inspector/mind-view.ts` (render `note`, target, priority, visibility)
 - `tests/test_goals.py`
+
+## Browser UI and intended live verification
+
+Intended UI home: select a character → Mind panel → Goals. Show each goal's want, motivation, intention, status, and reason-carrying `blocks`/`achieve` refs in the character's private mind view; do not add a world-graph goal node.
+
+Current availability: this card expands the GIMP goal record and adds automatic `reached` evaluation from world facts. The expanded goal editor/detail and automatic status transition are planned; no new UI or storage model is claimed as present.
+
+Live steps when available:
+1. In a scratch scenario, create an active goal with an `item:<existing-node-id>` achieve ref and a note. Open the character's Mind → Goals view.
+   - expected: the goal shows its want, why, intention, source, status, and the exact item ref with its note; the referenced item exists in this scenario.
+2. Check the item is not held, then have the character take that exact item through the normal game action flow.
+   - expected: the goal stays active before the take and changes to reached after the world fact becomes true; the goal log records the transition without requiring a separate goal-completion verb.
+3. Save and reload, then reopen the same goal.
+   - expected: all authored fields and the reason note round-trip, while `progress` reflects the live world predicate rather than a second stored truth.
+4. Remove the item or use a second goal whose predicate remains false.
+   - expected: an unmet predicate does not show reached; malformed or missing refs do not silently pass.
+
+This section is not a claim that planned UI exists or works today.

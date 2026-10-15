@@ -171,6 +171,24 @@ TODO
 
 TODO
 
+## Browser UI and intended live verification
+
+Intended UI home: WorldPainter for river/habitat authoring; game turn surface for fishing/traversal; Character Inspector → Mind for Activity and Pursuit state.
+
+Current availability: The Abandoned Farms region, hut, and fisherman equipment are authored; the river, current hazards, and persistent fishing Activity remain incomplete.
+
+Live steps when available:
+
+1. Open the existing Kraktooth scenario in WorldPainter and inspect the Abandoned Farms/Raven River region and habitat cells.
+   - expected: River places and habitat layers are addressable and use the authored WorldPainter content.
+
+2. In play, select James, use his rod on eligible water, advance turns, and inspect Mind.
+   - expected: Fishing appears as a persistent Activity bound to the real rod and water place; catch progress uses habitat data.
+
+3. Enter a current-bearing reach and inspect movement and condition feedback.
+   - expected: The authored outcome uses normal traversal once, without a duplicate check.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. TODO

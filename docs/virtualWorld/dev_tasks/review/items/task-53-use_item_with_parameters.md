@@ -173,3 +173,21 @@ TODO
 ## Acceptance
 
 - [ ] TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: select the pen and paper in Inventory/Inspector → submit the parameterized action `use pen on paper "i wrote this"` → read the paper as a second character.
+
+Current availability: the card describes item-to-item use parameters and a writing example. The general parameterized use contract is not claimed complete by this card.
+
+Live steps when available:
+1. With a writable paper and pen, enter the exact parameterized use command.
+   - expected: the target paper stores `i wrote this` as its inscription and the action result identifies the paper as the modified target.
+2. Repeat using a non-writable target and then an incompatible tool.
+   - expected: each request is rejected with a specific explanation and neither item changes.
+3. Use a different parameter value containing spaces and punctuation.
+   - expected: the full parameter is preserved exactly; it is not split, lowercased, or dropped by target matching.
+4. Save/reload and inspect the paper and action history.
+   - expected: the parameterized result persists; ordinary `use X on Y` without a parameter retains its existing behavior.
+
+This section is not a claim that parameterized item use is implemented today.

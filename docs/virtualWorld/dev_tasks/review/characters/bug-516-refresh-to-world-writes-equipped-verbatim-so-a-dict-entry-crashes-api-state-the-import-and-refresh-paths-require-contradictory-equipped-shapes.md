@@ -72,3 +72,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Library Browser → import a character with an equipped library item → refresh that character from the template → open Character Inspector/Inventory and `/api/state`.
+
+Current availability: the card records contradictory `equipped` shapes between character import and refresh, with a dict entry capable of crashing `/api/state`. The one-shape import/refresh contract and safe malformed-data handling are the review criteria; no new UI is intended.
+
+Live steps when available:
+1. Import a character template whose `equipped` field uses the documented shape, then inspect the character's Inventory and equipped slot.
+   - expected: the library item materializes once, keeps its properties, and appears in the correct slot.
+2. Refresh the same character from its template and reopen `/api/state`.
+   - expected: refresh uses the same resolver as import or leaves runtime equipment untouched; `/api/state` returns successfully and does not write a raw incompatible template object into `player.equipped`.
+3. Repeat with a malformed equipped entry and with no equipped field.
+   - expected: the API does not 500; invalid entries are handled by the documented validation path and valid inventory remains intact.
+4. Save and reload, then check the carried-plus-equipped invariant.
+   - expected: one item node represents each item; it is not duplicated or orphaned after refresh.
+
+This section is not a claim that the fix has been freshly browser-verified today.

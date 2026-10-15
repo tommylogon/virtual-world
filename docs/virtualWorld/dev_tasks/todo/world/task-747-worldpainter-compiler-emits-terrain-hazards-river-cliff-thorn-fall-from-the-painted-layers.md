@@ -58,3 +58,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: WorldPainter → paint water, bridge, elevation/cliff, and thorn-biome layers → compile the painted world → inspect generated ways/areas in the graph and traverse them in the game view.
+
+Current availability: the card reports that `world_compile` emits no hazard descriptors. Terrain hazard authoring and runtime expansion are planned; no hazard behavior is claimed as implemented.
+
+Live steps when available:
+1. Paint a water crossing without a bridge and compile. Inspect the generated way in the graph and then move a character across it.
+   - expected: the generated way carries the river hazard descriptor and movement resolves the authored hazard rather than silently treating it as an ordinary safe way.
+2. Paint a jump-required crossing over water, compile, and attempt the crossing with a character lacking the required ability.
+   - expected: the jump check branches to the authored fall-into-water outcome; the action does not bypass the check.
+3. Paint a `_climb_step` with a positive and negative storey delta, then traverse each generated way.
+   - expected: the descriptor uses the direction/storey gradient and the selected check consequence; the task-525 hard refusal remains only where the author did not specify a hazard consequence.
+4. Paint a thorn biome and test movement through it; also test the large storey-drop severity case.
+   - expected: thorn effects and severity follow `hazards.json`; an 89-storey fall uses the authored lethal tier, not a fixed minor penalty.
+
+This section is not a claim that planned UI exists or works today.

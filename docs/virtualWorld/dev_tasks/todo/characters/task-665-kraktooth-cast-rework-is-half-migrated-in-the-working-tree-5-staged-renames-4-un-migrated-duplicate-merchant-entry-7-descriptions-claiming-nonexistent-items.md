@@ -129,3 +129,19 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: load `kraktooth_goblin_camp.json` → select each renamed character in the graph → inspect Bio and Inventory; use the Library Browser to check the merchant template entries.
+
+Current availability: the card records staged renames, four unmigrated cast entries, a duplicate merchant template, and descriptions naming items characters do not own. No fresh live scenario check is recorded here.
+
+Live steps when available:
+1. Load the scenario and inspect each renamed character's display name, node ID, relationships, equipment, and description in the character Inspector.
+   - expected: internal character `name` matches the intended renamed file/name; every described item is actually owned or equipped; relationship targets resolve to the intended existing character after task-619's key decision.
+2. Open the Library Browser and search for the Eldenford Merchant and Pell Ardin entries.
+   - expected: exactly one canonical merchant entry appears; if promoted, it is `Pell Ardin.json`, not a duplicate display-name entry.
+3. Save and reload the scenario, then inspect the same characters and inventories.
+   - expected: the chosen cast names, equipment, and relationships persist without stale aliases or duplicate merchant records.
+
+This section is not a claim that the rework is complete or live-verified today.

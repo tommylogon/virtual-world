@@ -110,6 +110,33 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Open the Area inspector for `area_abandoned_hunter's_cabin` at the default
+   319px panel width; read the name and node-ID input values and measure their
+   widths in the live DOM.
+   - expected: the full area name and 28-character ID are readable; neither
+     input is squeezed to a one-character sliver.
+   - observed (2026-10-02): name input 212px, node-ID input 177px, full values
+     visible; action buttons wrapped below the header.
+2. Repeat at a wider panel width, then use the sync-ID and close buttons.
+   - expected: header controls remain visible and clickable, with buttons on
+     the same row when there is sufficient width.
+   - observed: wider-panel and all-renderer checks remain to be recorded.
+
+## Browser UI and intended live verification
+
+Intended UI home: Graph → select a node → Inspector header.
+
+Current availability: The Area inspector was measured live on 2026-10-02. The
+card still requires a pass over all five renderers and the wider-panel case.
+
+Live steps when available:
+1. At the default inspector width, open an area whose name and ID are both
+   longer than 20 characters; read both inputs and click the close button.
+   - expected: the complete name and ID remain readable and close is clickable.
+2. Repeat for item, way, agent, and world-lore inspectors; widen the panel and
+   click Sync ID from name on a node whose name differs from its ID.
+   - expected: all five headers keep the ID readable; the sync button updates
+     only the ID and the action buttons fit on one row when space permits.
+
+This section defines intended access and live acceptance. It is not a claim
+that planned UI exists or works today.

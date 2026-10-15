@@ -98,3 +98,20 @@ Send that portrait along, but only to models that can actually read an image.
 - `static/js/inspector/agent-view.ts`, `static/js/shared/ai-generator.ts` — generator call sites
 - `static/js/character-art.ts` — the existing owner of profile/full render lookup
 
+## Browser UI and intended live verification
+
+Intended UI home: select a character with `properties.expressions.<emotion>.profile` art → run a character turn through the existing game/agent surface → inspect the Raw LLM capture in the Event Stream.
+
+Current availability: the card records 782 profile images and text-only LLM requests. Per-model image capability, image payloads, caching, and image-informed output are planned; no image transfer is claimed as available.
+
+Live steps when available:
+1. Configure a vision-capable model and enable its image capability. Select a character with a known profile image and run one generation.
+   - expected: Raw LLM capture shows the profile as a base64 `image_url` part in a user message; the system prompt remains text.
+2. Repeat with a text-only model, with the capability disabled, and with a character with no art.
+   - expected: each request body is unchanged from the current text-only payload and contains no image part.
+3. Run two generations using the same image and inspect the request trace/cache diagnostics.
+   - expected: the image is read/encoded once per path and reused; each request still contains the correct image content part.
+4. Compare the vision-model response with the text-only response for an image-specific authored detail visible in the profile but absent from prose.
+   - expected: only the vision-capable enabled request can ground the response in that image detail.
+
+This section is not a claim that planned UI exists or works today.

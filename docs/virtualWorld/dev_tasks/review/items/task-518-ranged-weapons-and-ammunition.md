@@ -103,3 +103,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: equip Vekka's compact hunting bow → keep arrows in Inventory → attack a visible target from range → inspect combat log and arrow count.
+
+Current availability: the card says the existing “ranged” item is a scripted one-shot, not a weapon. Bow damage through central combat resolution and ammunition consumption are not claimed as implemented.
+
+Live steps when available:
+1. Equip Vekka's hunting bow with one arrow stack and attack a target within authored range.
+   - expected: the combat log shows the bow attack's damage through existing combat resolution and exactly one arrow is consumed.
+2. Repeat with no arrows.
+   - expected: the action returns a clear no-ammunition result; no damage event is applied and no arrow count becomes negative.
+3. Fire the last arrow from a stack, then reload/reopen Inventory.
+   - expected: quantity/use depletion follows task-504's chosen representation and the empty stack is removed or shown empty according to its contract.
+4. Compare the crossbow item with the documented decision.
+   - expected: it is either explicitly deferred or authored as a real ranged weapon; it is not silently treated as the scripted one-shot.
+
+This section is not a claim that ranged weapons and ammunition are implemented today.

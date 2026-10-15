@@ -149,3 +149,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: enable turn-based play and compare the Turn Order panel, the event-stream “up next” strip, and the `/api/state` resolved-order value for the same timeframe. All views must project the engine-resolved order rather than compute separate queues.
+
+Current availability: the card reports that scenario `turn_order` is dead data and that the client queue is name-based. An engine-owned resolved order, ID-backed queue, and mode agreement are planned; this card does not claim those changes are live.
+
+Live steps when available:
+1. Load a seeded scenario with three uniquely identified characters, enable sequential mode, and inspect Turn Order and the event-stream `up next` strip before the first action.
+   - expected: both surfaces list the same character IDs in the same order as the server-resolved timeframe value.
+2. Reverse the character roster in the scenario and run the same seed in simultaneous mode.
+   - expected: observable resolution is unchanged by roster order; simultaneous processing does not inherit an arbitrary roster ordering.
+3. Run the same seed and scenario twice in each supported mode, then compare the resolved order and outcomes.
+   - expected: each repeat is deterministic and the UI order is the exact order consumed by the world.
+4. Give two characters the same display name and inspect the queue and event attribution.
+   - expected: each slot remains distinguishable by opaque character ID; no resolution relies on names.
+
+This section is not a claim that planned UI exists or works today.

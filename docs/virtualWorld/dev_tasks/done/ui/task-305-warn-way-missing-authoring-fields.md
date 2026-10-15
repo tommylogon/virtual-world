@@ -62,3 +62,30 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Left panel → World Issues → select a way-authoring warning;
+the selected way opens in the Inspector.
+
+Current availability: `/api/triggers/validate` returns the four way-authoring
+warning codes, and the left panel surfaces them with jump-to-node. The card's
+2026-10-10 live result includes genuine gaps on `way_bathroom_door` and
+`way_ice_bridge`.
+
+Live steps when available:
+1. Open World Issues and select the `way_bathroom_door` warning for missing
+   description; inspect the selected node in the Way Inspector.
+   - expected: the warning identifies the missing field and the graph/Inspector
+     focus moves to that exact way.
+2. Enter its appearance description and refresh World Issues; inspect the
+   remaining warnings for that way and for `way_ice_bridge`.
+   - expected: only the description warning is removed; independent missing
+     pass-message/cardinal/view warnings remain until their own fields are
+     authored.
+3. Inspect reverse way→area edges on the same examples.
+   - expected: command-only return edges do not produce false cardinal or
+     view-direction warnings.
+
+This section defines intended access and live acceptance. It is not a claim
+that planned UI exists or works today.

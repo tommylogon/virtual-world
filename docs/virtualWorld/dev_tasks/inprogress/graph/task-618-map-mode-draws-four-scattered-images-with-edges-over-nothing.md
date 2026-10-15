@@ -90,6 +90,21 @@ TODO
 
 TODO
 
+## Browser UI and intended live verification
+
+Intended UI home: Graph editor → Map mode, with the world scope, reference images, and connection edges visible.
+
+Current availability: A partial way-coordinate fix is recorded; whole-world scope-less nodes and cross-scope edges remain open.
+
+Live steps when available:
+
+1. Load Kraktooth, choose Map mode, select world scope, and show reference art and connection edges.
+   - expected: Painted ways sit on cells or between connected areas; edges follow a shared coordinate frame.
+
+2. Inspect cross-scope gateways and compare them with scoped node positions.
+   - expected: Only genuine gateways span scopes; other long edges do not cross empty space due to stale coordinates.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. TODO

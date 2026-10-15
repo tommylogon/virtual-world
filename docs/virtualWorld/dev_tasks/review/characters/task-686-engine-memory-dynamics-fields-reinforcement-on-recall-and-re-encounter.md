@@ -75,3 +75,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Character Inspector → Mind → Memories; open one entry's detail after automatic recall, deliberate retrieval, and a repeated event.
+
+Current availability: the card adds optional dynamics fields and reinforcement/deduplication. Its wiring criteria name `/memories/retrieve` and `Player.add_memory`; this section does not claim the memory view currently explains or exposes all dynamics fields.
+
+Live steps when available:
+1. Record one memory's category, reinforcement count, activation, and importance in `/api/state`; retrieve it through the character's normal `recall` interaction.
+   - expected: the same stored memory's reinforcement count increments and the Mind entry reflects the updated dynamics; no duplicate is appended.
+2. Record a near-verbatim version of that memory days later through a witnessed event.
+   - expected: the writer returns `deduped: true`, reinforces the original entry once, and keeps its source/entity links.
+3. Open an old save whose memories have no dynamics fields.
+   - expected: Mind still renders them; defaults are derived lazily and the save is not rewritten with fabricated user-authored values.
+4. Compare the entry before and after save/reload.
+   - expected: category and dynamics round-trip consistently and `effective_importance` follows the stored fields.
+
+This section is not a claim that every recall/re-encounter path is wired today.

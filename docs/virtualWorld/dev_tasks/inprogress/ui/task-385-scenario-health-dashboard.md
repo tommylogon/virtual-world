@@ -36,6 +36,21 @@ Scenario Manager (task-374) and the import audit (task-375).
 - Render a table: file, counts by severity; click a row for the issue details.
 - Reuse the validator; no live-world mutation; no new storage.
 
+## Browser UI and intended live verification
+
+Intended UI home: Scenario Manager → Scenario Health dashboard and issue details.
+
+Current availability: The dashboard is in progress; audit is intended to use throwaway scenario loads.
+
+Live steps when available:
+
+1. Open the dashboard and inspect scenarios and severity counts.
+   - expected: Every scenario file is listed with validator counts.
+
+2. Audit a known-bad scratch file, open its issue details, then return to the live world.
+   - expected: Counts match validation, details are selectable, and the live world is unchanged.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. Open the dashboard.

@@ -40,3 +40,21 @@ Secondary effect: `remove_node` cleans edges under the exact id, so deleting the
 ## Files Changed
 
 - `static/js/graph/node-operations.js` — lowercase generated ids in `duplicateNode` + `_copyEdges`
+
+## Browser UI and intended live verification
+
+Intended UI home: Graph context menu → 📋 Duplicate an item → enter an uppercase name → open the duplicate's Item Inspector → inspect Triggers and graph edges.
+
+Current availability: the card records a Playwright reproduction and fix for mixed-case new IDs, with four trigger edges, one containment edge, and zero orphaned edges. The recorded verification is historical; no fresh browser run is claimed here.
+
+Live steps when available:
+1. Duplicate an item with four trigger edges and name it `Coffee Grinder Dup Case Test`.
+   - expected: the created node ID is lowercase; its Inspector shows all four triggers and containment edge.
+2. Inspect `/api/graph/edges` for sources matching the new ID and compare with the graph.
+   - expected: all copied edges use the canonical lowercase node ID and orphan count is zero.
+3. Repeat with a lowercase name, then delete both scratch duplicates from the UI.
+   - expected: lowercase duplication behaves the same, and deletion removes the duplicate's edges without touching the original item.
+4. Check a duplicated character separately.
+   - expected: player IDs retain their deliberate case-preserving behavior; this item-ID fix does not lowercase character identity.
+
+This section is not a claim that the historical Playwright repro has been rerun today.

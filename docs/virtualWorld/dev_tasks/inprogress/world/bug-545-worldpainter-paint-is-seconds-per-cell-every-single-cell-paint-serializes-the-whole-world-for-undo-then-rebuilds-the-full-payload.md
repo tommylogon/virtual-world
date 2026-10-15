@@ -63,6 +63,21 @@ Ranked; confirm dominance with a timing measurement before/after each.
    the full `render()` from the perceived latency (pairs with the render-split
    work).
 
+## Browser UI and intended live verification
+
+Intended UI home: Build → WorldPainter → paint a cell in a large scope; observe canvas feedback and undo.
+
+Current availability: Single-cell paint latency is measured in seconds; delta-based undo and the cheaper payload path remain open.
+
+Live steps when available:
+
+1. In a scratch copy of the large Kraktooth scope, paint one cell and time until the canvas updates.
+   - expected: The cell appears in under one second and only the intended cell changes.
+
+2. Paint a 20-cell stroke and undo it once while measuring the operation.
+   - expected: One stroke is one request/undo entry and undo restores all cells without a full-world snapshot per cell.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. Time one single-cell paint in a large scope (kraktooth world).

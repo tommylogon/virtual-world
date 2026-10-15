@@ -128,3 +128,29 @@ Optional: warn if serialized `areas.exits` cache drifts from graph (until task-2
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Graph → select a way → Inspector → Passage tab; Agent Lens
+shows the resulting exits from each connected area.
+
+Current availability: The card records the unified Passage tab, `saveWayPassage`
+batch, field labels, warnings, and preview as implemented. Its browser checklist
+is still open for the Living Room/Kitchen, Ladder, and Jump-way cases; do not
+read the `done` folder as evidence those checks passed.
+
+Live steps when available:
+1. Select the swinging door between Living Room and Kitchen and open Passage.
+   Edit each side's command and open-view text, then save once.
+   - expected: both sides remain visible in one form and one save updates the
+     shared way plus both area→way edges.
+2. Select a Ladder with different up/down commands and a Jump way requiring
+   `jump`; read the shared and per-side rows.
+   - expected: each side keeps its own command, and `requires: jump` is shown
+     on the shared passage row.
+3. Select Living Room and Kitchen in turn and expand Agent Lens → Exits.
+   - expected: both previews show the saved, direction-specific exit lines;
+     no second area-inspector edit is required.
+
+This section defines intended access and live acceptance. It is not a claim
+that planned UI exists or works today.

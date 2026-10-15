@@ -96,3 +96,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Graph editor → scope filter → choose `world` or `goblin_camp` → Agents list/promotion view. The displayed promoted set must be the exact level-scoped set the simulation processes.
+
+Current availability: live measurements recorded by this card are `world`: 14 characters in and 12 out; `goblin_camp`: 12 in and 14 out. The required own-area-only promotion rule and explicit whole-world mode are still acceptance criteria, not newly claimed behavior.
+
+Live steps when available:
+1. Load the measured world and select `world` in the graph scope filter. Read the promoted/backsim counts in the Agents list and compare the IDs with `/api/state`.
+   - expected: exactly the characters in the 62 areas owned by `world` are promoted (14 in); camp residents remain backsim (12 out); child scopes are not recursively included.
+2. Select `goblin_camp` and inspect the promoted set again.
+   - expected: 12 camp characters are promoted and the 14 world characters are out, matching the areas owned by the selected scope.
+3. Clear the scope filter to explicit whole-world mode and inspect the roster and engine state.
+   - expected: all characters are promoted, none are demoted, and they remain active until a human timeskip; an absent/null filter is not confused with this explicit request.
+4. Reload the scenario and compare the selected mode with the resolved active set.
+   - expected: UI and server agree on character IDs; child-scope residents do not leak into a parent selection.
+
+This section is not a claim that planned UI exists or works today.

@@ -193,3 +193,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Item Library/Inspector → edit armor's `defense`/`damage_reduction` expression → equip it → receive a controlled hit and inspect the combat log.
+
+Current availability: the card decides on flat reduction using the existing damage expression parser, including dice expressions; it explicitly rejects a percentage interpretation. The authoring/result path is not claimed as complete here.
+
+Live steps when available:
+1. Set an armor item's reduction expression to `20`, equip it, and receive a hit with damage greater than 20.
+   - expected: exactly 20 flat damage is subtracted, preserving existing numeric-item behavior.
+2. Change the expression to `d8` and repeat multiple controlled hits.
+   - expected: the parser rolls 1d8 per hit; the roll appears in the combat breakdown and is not summed once at equipment aggregation.
+3. Use a second armor item with a different expression and inspect total protection.
+   - expected: all reduction sites use the same expression result path; values are not interpreted as a percentage.
+4. Load an existing item with legacy `defense` and inspect its behavior.
+   - expected: it still resolves through the alias without changing existing scenario behavior.
+
+This section is not a claim that the expression editor and combat breakdown are live-verified today.

@@ -78,3 +78,28 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Graph → select a world item → Item Inspector → 📚 Save to
+Library.
+
+Current availability: The resolver fix is implemented. A click after loading the
+updated client opened the library diff modal and issued library reads on
+2026-10-10; the acceptance box for a completed save and trigger preservation is
+still unchecked, so those outcomes are not claimed as verified.
+
+Live steps when available:
+1. Reload the app, select a world item that has at least one trigger edge, open
+   its Item Inspector, and click 📚 Save to Library; inspect the event stream,
+   console, and network requests.
+   - expected: `saveWorldItem` runs, the diff modal or save result opens, the
+     library API is reached, and no missing-external warning appears.
+2. Review the proposed library entry's trigger list, accept the save, then open
+   the same library entry in Library Browser.
+   - expected: the saved item contains the source trigger list and can be read
+     back; the item inspector reports the save result instead of silently doing
+     nothing.
+
+This section defines intended access and live acceptance. It is not a claim
+that planned UI exists or works today.

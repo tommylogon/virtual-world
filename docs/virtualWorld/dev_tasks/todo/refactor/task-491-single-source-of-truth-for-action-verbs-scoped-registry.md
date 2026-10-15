@@ -89,3 +89,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: game command line/autocomplete, Human Turn action buttons, and the NL editor's available-action list. These surfaces must all derive their verb options from the scoped registry and obey the same mature-content gate.
+
+Current availability: the card records verb definitions duplicated across engine dispatch, trigger UI, agent normalization, prompt prose, and autocomplete. A single registry and drift guard are planned; no consolidation is claimed as implemented.
+
+Live steps when available:
+1. In the same scenario, open command autocomplete, the Human Turn action controls, and the NL editor action list; record the verbs each surface offers.
+   - expected: every offered verb is present in the scoped registry with matching aliases and target schema; no surface adds or omits a valid verb unexpectedly.
+2. Enable mature content and inspect the mature action list; disable it and repeat.
+   - expected: mature verbs appear only when the shared gate allows them, consistently across all three surfaces and the generated LLM prompt list.
+3. Invoke one movement verb and one item-scoped verb from the UI and command line.
+   - expected: dispatch, UI affordance, autocomplete, and target validation agree on verb scope and cost; behavior remains unchanged from the pre-registry contract.
+4. Introduce a test-only verb on one surface without registering it and run the drift guard.
+   - expected: the guard names the exact surface and verb that diverged.
+
+This section is not a claim that the planned registry exists or is wired today.

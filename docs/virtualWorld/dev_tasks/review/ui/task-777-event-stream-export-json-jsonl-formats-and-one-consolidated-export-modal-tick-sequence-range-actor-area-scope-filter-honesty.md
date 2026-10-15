@@ -114,3 +114,23 @@ Live browser on port 4444 (never headless - a unit test proves the renderer, onl
 - `static/js/ui/world-export.ts` (delegates the three entry points; the duplicated walks move out)
 - `templates/index.html` (script tag for the new module; button titles)
 - `docs/virtualWorld/UI & Settings/Event Log Export.md` (after verification)
+
+## Browser UI and intended live verification
+
+Intended UI home: The event-stream header's file, clipboard, and range-export buttons; each opens the same Event Log Export modal with a different preset.
+
+Current availability: The task records a live browser run with a 69-event default summary, JSONL export of 85 parsed rows, actor-filtered JSON with four rows, and unchanged Markdown/Plain formats.
+
+Live steps when available:
+1. Open the range-export button and inspect unit, from/to, actors, area, format, destination, and ignore-filters controls.
+   - expected: Tick sequence is the default range unit, bounds come from the stream, and the summary names active filters plus the export count.
+2. Export ticks 0–17 as JSONL to a file and parse each line as JSON.
+   - expected: every line parses; `seq` stays inside 0–17; each event has actor/type/text; raw LLM rows retain their structured payload.
+3. Filter the stream to `elena vance` and export as JSON.
+   - expected: the summary names that actor, the envelope says `filters.actor: "elena vance"`, and every exported event has that actor.
+4. Apply an area filter, export Markdown, reload, and export again.
+   - expected: the scoped-to banner exports without its clear `×`; the live `up next` queue strip is excluded from both files.
+5. Open the file and clipboard header buttons after using the range modal.
+   - expected: both still open the same modal, preset whole-log range and destination, and leave existing Markdown and Plain output intact.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.

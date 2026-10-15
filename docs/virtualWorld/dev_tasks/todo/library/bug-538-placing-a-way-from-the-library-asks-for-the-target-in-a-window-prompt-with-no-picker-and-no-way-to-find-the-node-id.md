@@ -29,9 +29,52 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Open the Library Browser, choose a way template, and invoke its action to
+   place/connect it in the current world. Record the current native prompt and
+   the selected source and destination areas.
+   - expected today: the reported path asks for typed target IDs; capture the
+     exact prompt and whether the way is added after valid IDs are entered.
+2. After the picker is implemented, repeat from the same template using the
+   source and destination areas by their displayed names, without looking up
+   node IDs.
+   - expected: a searchable target picker lists current graph areas and allows
+     selecting one by name or clicking it in the graph; no browser
+     `window.prompt()` is shown.
+3. Place the way, inspect the graph and the new way's properties, then reload
+   the scenario.
+   - expected: the selected endpoints are connected by the placed way and the
+     connection remains after reload; cancelling the picker creates no edge.
+
+## Browser UI and intended live verification
+
+Intended UI home: Library Browser → select a way template → **Place in world**
+→ choose the source and destination from a searchable graph-node picker or by
+clicking the graph. This extends the existing item-placement flow; it does not
+send the author to a raw node-ID prompt.
+
+Current availability: the card reports that way placement asks for typed
+target names/IDs through native prompts. Task-751 replaces native popups but
+does not provide the target-selection affordance required here. The current
+browser reproduction has not been repeated in this turn.
+
+Live steps when available:
+1. Open Library Browser, choose an existing way template, and invoke **Place in
+   world**. Inspect the complete visible dialog and count its controls before
+   choosing a target.
+   - expected after this task: a searchable list of existing areas and/or a
+     graph-selection mode is visible; there is no free-text node-ID prompt.
+2. Search for and select two existing areas by their displayed names, finish
+   placement, and inspect the graph endpoints.
+   - expected: the new way connects exactly the two selected area node IDs;
+     the author never had to discover or type those IDs.
+3. Repeat and cancel before selecting the second endpoint.
+   - expected: cancellation leaves the graph unchanged and creates no partial
+     way.
+
+These steps define the intended authoring path and result; they do not claim
+the picker exists today.
+
+This section is not a claim that planned UI exists or works today.
 
 ## Acceptance
 

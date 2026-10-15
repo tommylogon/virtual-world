@@ -151,3 +151,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: select a character → Character Inspector/Bio and Mind → compare displayed location, tags/traits, personality, and description with the character's graph node and `/api/state` Player projection.
+
+Current availability: the card identifies three location representations and duplicate tags/traits, plus a node-vs-Player read-path disagreement for personality/description. It is an investigation/design task; this section does not choose a new source of truth ahead of that decision.
+
+Live steps when available:
+1. Open the same character in the Inspector and Mind after entering a different area; compare the displayed location with its graph `in` edge and Player location fields.
+   - expected: all views resolve to one authoritative location and any other value is a derived projection, not a conflicting persisted field.
+2. Inspect the character's tags/traits in Bio and compare node properties with `/api/state`.
+   - expected: the UI reads the chosen authoritative authored definition; a mirror is clearly derived and cannot be independently edited into conflict.
+3. Compare personality/description in the Inspector and the prompt preview for an LLM turn.
+   - expected: the UI and prompt show the same authoritative character definition after save/reload.
+4. Save, reload, and repeat all three comparisons.
+   - expected: one persisted home remains for each concept; the graph node and Player projections agree without losing runtime character state.
+
+This section is not a claim that the source-of-truth decisions are complete today.

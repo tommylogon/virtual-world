@@ -85,3 +85,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Graph workspace → `#graph-scope-filter` scope picker and its loaded graph. On a fetch error, keep the chosen scope visible and report the failure instead of promoting the whole world.
+
+Current availability: The card records that `loadGraphData()` catches any scope-fetch error, clears the filter, and falls back to the whole world. The fix is planned; no live recovery behavior is claimed.
+
+Live steps when available:
+1. Select one named scope in the graph picker and confirm its subgraph is visible; record the current visible node count and promoted-character set.
+   - expected: the picker shows the selected scope, and the graph displays only that scope's nodes.
+2. Use DevTools request blocking or a local test proxy to make that scope's subgraph request return 503, then retry the load.
+   - expected: the picker keeps the selected scope, the visible graph does not widen to Whole world, the promoted set stays the same, and an error is shown.
+3. Repeat with a deliberately unknown scope that returns 404.
+   - expected: only this stale-scope case follows the documented fallback and tells the user the selected scope no longer exists.
+4. Restore the request and reload the selected scope.
+   - expected: the scope subgraph replaces the error state without duplicate world nodes or a hidden filter reset.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.

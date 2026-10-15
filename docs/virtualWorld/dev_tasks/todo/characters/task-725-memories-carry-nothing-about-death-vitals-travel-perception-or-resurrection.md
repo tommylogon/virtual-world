@@ -121,10 +121,57 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Load the Eldenford blacksmith fixture and open the blacksmith's Mind panel
+   before the test event. Record the existing memories and `lived_log` entries.
+2. Let the blacksmith die from a known vital decline, then inspect the Mind
+   panel and `/api/state` memory list.
+   - expected: a first-person memory names the cause and relevant vital change;
+     values agree with the event record and do not require a fidelity setting.
+3. Resurrect the same character and reopen Mind.
+   - expected: a distinct first-person resurrection memory appears for the
+     same character; the old death memory remains available.
+4. Move the character through two areas and have it observe one event in each.
+   Ask Mind/recall where it has been and what it noticed.
+   - expected: the account refers only to recorded travel and perception
+     events, with no invented area, direction, vital, or observation.
+5. Repeat with a background-simulation character and a live-agent character.
+   - expected: both paths produce the same categories of authored memory in
+     the existing memory projection.
 
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: load the authored life-event fixture → let the character
+experience the event in simulation → select the character → Mind panel →
+Memories. The view reuses the existing `memories` and `lived_log` bridge; it is
+not a new memory store.
+
+Current availability: the card records a live Eldenford blacksmith death with
+no corresponding Mind account. Death, resurrection, vitals-driven memories,
+travel, and perception coverage are planned here; no new event-memory UI is
+claimed as available.
+
+Live steps when available:
+1. Open the Eldenford blacksmith's Mind panel before the event, then let that
+   character die from the recorded vital decline.
+   - expected: Mind shows a first-person death memory naming the cause and the
+     relevant vital change; those details match the event record.
+2. Resurrect the blacksmith and reopen the same Mind panel.
+   - expected: a separate resurrection memory appears and the death memory is
+     still present.
+3. Move the character across two areas and expose it to one observable event
+   in each. Ask Mind/recall where it has been and what it noticed.
+   - expected: the answer names only recorded travel and perceptions; no area,
+     direction, vital change, or observation is invented.
+4. Repeat once for a background-simulation character and once for a live-agent
+   character, comparing their Mind entries with `/api/state` and `lived_log`.
+   - expected: both execution paths produce the same supported memory
+     categories using the existing memory projection.
+
+These steps define the intended Mind-panel evidence. They do not claim the
+additional event memories are implemented today.
+
+This section is not a claim that planned UI exists or works today.

@@ -130,3 +130,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: scenario date/season setting → Environment/Weather view → inspect area temperature and weather narration over a day/night boundary.
+
+Current availability: the card says season is read in the sky widget but not the engine and depends on task-553's temperature curve. Engine season input and weather prose are not claimed as wired.
+
+Live steps when available:
+1. Load the same exterior area and forecast under winter and summer scenario dates; inspect engine temperature in `/api/state` and the area description.
+   - expected: winter and summer feed distinct season values to the engine and the temperature curve/narration reflects each one.
+2. Advance the clock across the configured 05:00 dawn and 19:00 evening boundaries.
+   - expected: season-aware description follows the clock and agrees with the date/season control; the sky widget is not the sole reader.
+3. Ask the character to `guess time` and inspect the moon description in the same scenes.
+   - expected: existing guess-time and moon behavior remain unchanged while season reaches engine weather logic.
+4. Save/reload each seasonal fixture.
+   - expected: the selected season survives and the engine reads it after reload.
+
+This section is not a claim that engine season behavior is implemented today.

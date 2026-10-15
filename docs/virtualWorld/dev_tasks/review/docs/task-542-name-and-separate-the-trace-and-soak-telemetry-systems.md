@@ -190,3 +190,23 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Not applicable — this task separates debugging trace and soak telemetry storage/format; no player-facing UI is specified.
+
+Current availability: the card records the `trace_log` → `lived_log` migration, backward-compatible loader, tick naming, and a new format note. The migration is not claimed complete here.
+
+Why no browser UI: the acceptance is save compatibility and telemetry ownership, which must be checked against serialized data and the trace reader rather than a rendered game panel.
+
+Alternative verification steps:
+1. Load a legacy save containing `trace_log` through the trace loader and inspect the resulting runtime log.
+   - expected: the old key is accepted and mapped to the intended `lived_log` representation without dropping entries.
+2. Save a new run and inspect the serialized keys and tick fields.
+   - expected: new output uses the canonical key and `tick`; no second duplicate trace store is written.
+3. Run the focused trace/serialization regression tests added with this change and compare one new run's debug trace with its soak-owned telemetry.
+   - expected: old saves load, the debugging trace respects its retention window, and soak telemetry belongs to the run rather than the world save.
+4. Read the new trace-format note and run `python tools/doc_links.py --check`.
+   - expected: the document names the new system and all links resolve.
+
+This section is not a claim that planned migration behavior is implemented today.

@@ -164,3 +164,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Character Inventory/Paperdoll → inspect carried-weight display against the character's effective capacity → take/drop items across the authored encumbrance thresholds.
+
+Current availability: the card records a hard 100 kg base capacity with `carry_capacity_mod` and take refusal, but no load display or graduated encumbrance penalties. Those feedback surfaces are not claimed as implemented.
+
+Live steps when available:
+1. Open Inventory for a character with an effective capacity of 100 kg and note the displayed load and remaining capacity.
+   - expected: the UI shows current weight, capacity, and load percentage from the same inventory source used by `_check_player_capacity`.
+2. Take items until crossing each documented encumbrance threshold; attempt a movement action at each tier.
+   - expected: the displayed tier and movement/handling penalty change at the authored thresholds; no penalty is applied before its threshold.
+3. Reach capacity and attempt one more take, then drop an item.
+   - expected: the over-capacity take is refused with the existing clear message; dropping immediately updates load and restores any tier that no longer applies.
+4. Compare Inventory totals with `/api/state` and `carry_capacity_mod`.
+   - expected: the UI, action gate, and API agree on current load and effective limit.
+
+This section is not a claim that the load display and encumbrance tiers exist today.

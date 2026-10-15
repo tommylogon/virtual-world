@@ -66,3 +66,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Human Turn Composer → compose an action → Act → react-phase result block. The event stream remains a separate output surface and is outside this rendering change.
+
+Current availability: The card records a live mansion react phase with movement, room prose, way enumeration, character looks, and `[!]` status lines combined in one result string. The display fix is planned; task-698's replay affordance is the safe repeatable verification path.
+
+Live steps when available:
+1. In the e2e/dev preview, open react phase with a supplied result containing movement, room prose, three visible ways, another character's look paragraph, and an `[!]` status line.
+   - expected: movement, prose, and status are separate readable blocks; the raw way enumeration and full look paragraph are collapsed or omitted from the visible summary.
+2. Inspect the result height and activate its expand/raw-text affordance.
+   - expected: the composer remains on-screen in a crowded room, and the complete unmodified result text remains reachable.
+3. Compare the result block with the scene's Ways out and People/Things chips; inspect the event stream separately.
+   - expected: the summary does not duplicate the way list or full character look; the event stream still renders its own full result as before.
+4. Repeat on a real compose → Act → react turn in a room with at least three characters once safe replay is available.
+   - expected: the visible result has the same separated/clamped layout without changing `lastResult`, auto-memory, or event-stream behavior.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.

@@ -66,10 +66,43 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. In a live scenario, open the character's Memory Mind dashboard, re-encounter
+   a known person, and inspect the recalled memory and derived person profile.
+   - expected: the existing memory's reinforcement count rises and the profile
+     reflects the recorded relationship evidence.
+   - observed (2026-10-04): the card records reinforcement `↻ ×1`, one linked
+     contradiction pair, structured reflection memories, and Anna's derived
+     profile (`rival`, trust −28) in the dashboard.
+2. Open a character with a contradictory pair and inspect both memory details.
+   - expected: the two records remain in `Player.memories[]` and show a linked
+     contradiction without one overwriting the other.
+   - observed: the same live session recorded `⚡ 1 pair`; no fresh browser run
+     was collected for this backfill.
 
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Character Inspector → Bio → 🧠 Mind → Memories / Memory Mind.
+
+Current availability: The Memory Mind dashboard and the dynamics described in
+this card were live-demonstrated on 2026-10-04. This records the card's existing
+evidence; it is not a fresh browser check in this backfill.
+
+Live steps when available:
+1. Load a scenario with a character who has one reinforced memory and a linked
+   contradiction; select that character, open Bio, scroll to the Memories
+   section, and click 🧠 Mind.
+   - expected: the dashboard shows the character's memory timeline, the
+     reinforcement count on the recalled memory, and the contradiction link
+     between the two records.
+2. Run the scenario action that re-encounters the remembered person or event,
+   reopen the same memory details, then open the character's derived profile.
+   - expected: the same memory record's reinforcement count has increased and
+     the profile reflects the relationship evidence; no second memory store is
+     needed to explain either view.
+
+This section defines intended access and live acceptance. It is not a claim
+that planned UI exists or works today.

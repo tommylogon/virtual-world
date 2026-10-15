@@ -97,6 +97,10 @@ CANONICAL_SECTIONS = (
      ("problem", "motivation", "rationale", "background", "current state", "impact")),
     ("how", "How",
      ("implementation", "approach", "design", "fix", "changes", "plan", "solution")),
+    ("browser_ui", "Browser UI and intended live verification",
+     ("browser ui requirement and live steps", "browser verification steps",
+      "browser verification", "browser live verification",
+      "intended browser ui", "ui and live verification")),
     ("verify", "Steps to verify",
      ("verification", "testing", "tests", "test plan", "how to verify",
       "live verification", "how to test")),
@@ -105,12 +109,17 @@ CANONICAL_SECTIONS = (
      ("files affected", "files changed", "files touched", "affected files")),
 )
 
+# The `## Browser UI and intended live verification` section names the UI home,
+# current availability, and the live path when the UI is available. It describes
+# intended access and testability; it must not imply a planned UI already works.
+# A genuinely headless task states why browser UI is N/A and gives an observable
+# alternative verification path.
+#
 # The `## Steps to verify` section carries the expected and observed outcome:
 #   1. <action>
 #      - expected: ...
 #      - observed: ...
-# `backfill` seeds those lines and `validate --strict` requires them on a done
-# card, but it never invents the observed value.
+# `backfill` seeds those lines; validation never invents the observed value.
 SECTION_TITLE_BY_KEY = {key: title for key, title, _ in CANONICAL_SECTIONS}
 SECTION_KEY_BY_HEADING = {}
 for _key, _title, _aliases in CANONICAL_SECTIONS:
@@ -130,19 +139,36 @@ EFFORTS = ("S", "M", "L")
 # The template body used by `new` and appended by `backfill` for a missing
 # section. Kept here so the two writers cannot drift.
 #
-# The `verify` stub is deliberately longer than a placeholder: a card is born
-# carrying the house evidence rules, because the shape of the section is what
-# an author fills in. The live step names the port, the interaction verbs, the
-# whole-container count and the scroll-to-bottom rule; the test step keeps the
-# unit test from standing in for the browser. Replace both, do not delete them.
+# The stubs make the intended browser surface and its future live acceptance
+# path explicit. They distinguish a planned UI from a UI that exists and has
+# actually been checked. Replace the placeholders; do not delete the sections.
+BROWSER_UI_STUB = (
+    "Intended UI home: TODO — name the page, panel, tab, or control where this "
+    "behavior belongs. If no browser UI is appropriate, write 'Not applicable' "
+    "here, explain why below, and give an observable alternative.\n\n"
+    "Current availability: TODO — for example, planned/not implemented, "
+    "present but not live-checked, or live-checked with date and evidence.\n\n"
+    "Live steps when available:\n"
+    "1. TODO — describe how to reach the surface and the interaction to perform.\n"
+    "   - expected: TODO — describe what the user can see or do.\n\n"
+    "Why no browser UI: (only when Intended UI home is Not applicable) TODO — "
+    "explain why browser interaction is not appropriate.\n\n"
+    "Alternative verification steps: (only when Intended UI home is Not "
+    "applicable)\n"
+    "1. TODO — describe an observable alternative.\n"
+    "   - expected: TODO — describe the result.\n\n"
+    "This section defines intended access and live acceptance. It is not a claim "
+    "that planned UI exists or works today. Current availability says what is "
+    "implemented and verified now; the numbered steps say how to reach and test "
+    "the intended surface once it is available."
+)
 VERIFY_STUB = (
-    "1. TODO\n"
+    "1. Follow the intended live path in Browser UI and intended live "
+    "verification when that surface is available.\n"
     "   - expected: TODO\n"
     "   - observed: TODO\n"
-    "2. Reproduce it live at http://localhost:4444 (set VW_PORT for a second\n"
-    "   copy). Name the interaction performed (hover / click / collapse / typed\n"
-    "   input), count the WHOLE container rather than a fragment of it, and\n"
-    "   scroll to the bottom before judging a scrollable surface.\n"
+    "2. Record the browser surface and interaction actually used (for example: "
+    "navigate, click, hover, type, expand, or scroll to the bottom).\n"
     "   - expected: TODO\n"
     "   - observed: TODO\n"
     "3. Run the targeted regression test for the mechanism.\n"
@@ -154,6 +180,7 @@ SECTION_STUBS = {
     "what": "TODO",
     "why": "TODO",
     "how": "TODO",
+    "browser_ui": BROWSER_UI_STUB,
     "verify": VERIFY_STUB,
     "acceptance": "- [ ] TODO",
     "files": "- TODO",
@@ -196,6 +223,68 @@ def missing_sections(text: str):
     """Canonical keys the body has no section for, in canonical order."""
     present = body_sections(text)
     return [key for key, _t, _a in CANONICAL_SECTIONS if key not in present]
+
+
+def browser_ui_issue(text: str) -> str:
+    """Return why the browser-UI intent/verification section is incomplete.
+
+    This deliberately validates the *planned access path*, not whether the UI
+    already exists. Availability is stated by the card author; numbered steps
+    describe how to reach and check the surface once it is available. A task
+    with no appropriate browser surface must explain why and provide an
+    observable alternative.
+    """
+    section = body_sections(text).get("browser_ui", "")
+    if not section.strip():
+        return "missing Browser UI and intended live verification section"
+
+    def field(label: str) -> str:
+        match = re.search(
+            rf"(?im)^[ \t]*(?:[-*][ \t]*)?{re.escape(label)}[ \t]*:[ \t]*([^\r\n]*)",
+            section,
+        )
+        return match.group(1).strip() if match else ""
+
+    def has_field(label: str) -> bool:
+        return bool(re.search(
+            rf"(?im)^[ \t]*(?:[-*][ \t]*)?{re.escape(label)}[ \t]*:",
+            section,
+        ))
+
+    def placeholder(value: str) -> bool:
+        return not value or bool(re.search(r"(?i)\b(?:TODO|TBD)\b", value))
+
+    home = field("Intended UI home")
+    availability = field("Current availability")
+    if placeholder(home):
+        return "Intended UI home is missing or left as a placeholder"
+    if placeholder(availability):
+        return "Current availability is missing or left as a placeholder"
+    # Markdown wrapping can split a phrase across lines in a task card.
+    if not re.search(r"(?i)\bnot\s+a\s+claim\b", section):
+        return "must distinguish intended UI from a claim that it works today"
+
+    no_browser_ui = bool(re.match(r"(?i)^(?:not applicable|n/a|no browser ui|none)\b", home))
+    steps = re.findall(r"(?m)^[ \t]*\d+[.)][ \t]+([^\r\n]+)", section)
+    usable_steps = [step for step in steps if not placeholder(step.strip())]
+    if not usable_steps:
+        return "needs at least one numbered, non-placeholder verification step"
+
+    expected_values = re.findall(
+        r"(?im)^[ \t]*[-*][ \t]*expected[ \t]*:[ \t]*([^\r\n]*)", section)
+    if not any(not placeholder(value.strip()) for value in expected_values):
+        return "verification steps need a non-placeholder expected observable result"
+
+    if no_browser_ui:
+        reason = field("Why no browser UI")
+        if placeholder(reason):
+            return "a no-browser-UI exception needs a reason"
+        if not has_field("Alternative verification steps"):
+            return "a no-browser-UI exception needs alternative verification steps"
+    else:
+        if not has_field("Live steps when available"):
+            return "Live steps when available field is missing"
+    return ""
 
 
 def default_root() -> Path:
@@ -1706,6 +1795,11 @@ def _schema_warnings(entries: List[Entry]) -> List[str]:
         miss = missing_sections(text)
         if miss:
             out.append(f"{e.id} ({e.status}) missing section(s): {', '.join(miss)}")
+        sections = body_sections(text)
+        if "browser_ui" in sections:
+            ui_issue = browser_ui_issue(text)
+            if ui_issue:
+                out.append(f"{e.id} ({e.status}) browser UI intent: {ui_issue}")
         needs = _frontmatter_needs(text)
         if needs:
             out.append(f"{e.id} ({e.status}) missing frontmatter: {', '.join(needs)}")
@@ -1742,6 +1836,9 @@ def cmd_validate(args) -> int:
                 errors.append(f"duplicate id {kind}-{num}: {where}")
 
     # Filename / folder sanity
+    browser_ui_statuses = {"todo", "inprogress", "review", "done"}
+    browser_ui_root = Path(args.root).resolve()
+    browser_gaps = []
     known_ids = {f"{k}-{n}" for (k, n) in seen}
     for e in entries:
         if e.path.name.startswith(("task-", "bug-")) and not e.kind:
@@ -1760,6 +1857,26 @@ def cmd_validate(args) -> int:
 
         # Referenced ids. Prose lines and frontmatter lists both count.
         text = try_read_text(e.path)
+        try:
+            folder_status = e.path.resolve().relative_to(browser_ui_root).parts[0]
+        except (ValueError, IndexError):
+            folder_status = ""
+        frontmatter = e.frontmatter()
+        declared_status = _norm(str(frontmatter.get("status") or ""))
+        declared_type = _norm(str(frontmatter.get("type") or ""))
+        is_task_card = bool(e.kind) or declared_type in {"task", "bug"} or bool(
+            re.match(r"^(?:task|bug)-", e.path.name, re.IGNORECASE))
+        browser_ui_eligible = (
+            is_task_card
+            and (folder_status in browser_ui_statuses or e.status in browser_ui_statuses)
+            and folder_status != "cancelled"
+            and e.status not in {"cancelled", "superseded"}
+            and declared_status not in {"cancelled", "superseded"}
+        )
+        if browser_ui_eligible:
+            ui_issue = browser_ui_issue(text)
+            if ui_issue:
+                browser_gaps.append((e.id or e.path.stem, ui_issue))
         lines = text.splitlines()
         for key in ("related", "blocks", "blocked_by", "supersedes", "parent",
                     "children", "depends_on"):
@@ -1790,6 +1907,17 @@ def cmd_validate(args) -> int:
         warnings.append(
             f"{len(open_no_wiki)} open card(s) carry no `wiki:` — policy: a new "
             'card must name the note it concerns (e.g. "[[Feature Map]]")')
+
+    # Browser acceptance is required for all non-cancelled, non-superseded task
+    # cards in todo/inprogress/review/done, including legacy done-folder cards
+    # whose filenames do not parse into an id. Keep gaps aggregated in normal
+    # output; --schema lists the affected cards individually.
+    if browser_gaps:
+        examples = ", ".join(f"{task_id}: {issue}" for task_id, issue in browser_gaps[:4])
+        suffix = "" if len(browser_gaps) <= 4 else f" (+{len(browser_gaps) - 4} more)"
+        warnings.append(
+            f"{len(browser_gaps)} non-cancelled card(s) have missing/incomplete browser UI intent: "
+            f"{examples}{suffix}; run validate --schema for per-card details")
 
     if getattr(args, "schema", False):
         warnings.extend(_schema_warnings(entries))
@@ -1902,7 +2030,7 @@ Commands:
     roadmap   generate the roadmap view from folders + horizon
     graph     dependency edges, cycles and the critical path
     next      rank the open cards that can start now
-    backfill  report the canonical-schema gap (What/Why/How/Verify/Files)
+    backfill  report the canonical-schema gap (including browser UI intent)
     help      show this guide, or `help <command>` for one command
 
 Run with no command for an interactive menu (type `q` to quit).
@@ -1979,7 +2107,7 @@ body byte-for-byte. With --section it replaces that canonical section in place.
 
   --area --priority --horizon --effort --goal --wiki
   --related --blocks --blocked-by --depends-on --supersedes --parent --children
-  --section   one of: what why how verify acceptance files
+  --section   one of: what why how browser_ui verify acceptance files
   --value     the new section body (or --value-file to read it from a file)
 
   python tools/tasks.py set --id 447 --priority high --horizon now
@@ -1999,14 +2127,16 @@ combine with AND.
 validate [--quiet] [--schema]
 
 Check the whole tree: duplicate ids, filenames that do not parse, files outside
-a status folder, frontmatter/folder status mismatches, and dangling
-Related/Blocks/Depends-on references. Historical terminal duplicates are
-reported as warnings, everything else as errors (exit code 1).
+a status folder, frontmatter/folder status mismatches, dangling references,
+and missing/incomplete browser UI intent on non-cancelled cards, including done.
+Browser UI intent
+describes the intended UI home and live acceptance path; it does not claim the
+UI is implemented or testable today.
 
   --quiet   suppress warnings, print only errors and the summary
-  --schema  also warn on canonical-schema gaps: a card lacking a canonical
-            section or frontmatter key, a done card with an unchecked
-            acceptance box, or a review/done card whose observed still
+  --schema  also list per-card canonical-schema gaps: missing sections or
+            frontmatter, incomplete browser UI intent, unchecked done
+            acceptance, or review/done verification whose observed still
             reads TODO
 
   python tools/tasks.py validate
@@ -2128,10 +2258,10 @@ backfill [--status S...] [--json] [--content] [--write] [--card N]
          [--kind task|bug] [--force] [--canonical-order] [--limit N]
 
 Report the canonical-schema gap across the tree (dry run): per card, the synonym
-headings to rename (## Files Affected -> ## Files), the canonical sections it
-lacks, and the frontmatter keys it lacks. A card is canonical when its body
-carries What / Why / How / Steps to verify / Acceptance / Files, where Steps to
-verify holds the expected and observed outcome.
+headings to rename, the canonical sections it lacks (including Browser UI and
+intended live verification), and the frontmatter keys it lacks. The browser
+section records intended access and future live steps separately from whether
+the UI is available today. Steps to verify holds expected and observed results.
 
   --status          limit to these statuses (default: all)
   --json            machine-readable plan
@@ -2362,7 +2492,7 @@ def build_parser() -> argparse.ArgumentParser:
     v = sub.add_parser("validate", help="check ids, filenames, folders and refs")
     v.add_argument("--quiet", action="store_true")
     v.add_argument("--schema", action="store_true",
-                   help="also warn on canonical-schema gaps (sections/frontmatter)")
+                   help="also list per-card canonical-schema gaps (including browser UI intent)")
     v.set_defaults(func=cmd_validate)
 
     ix = sub.add_parser("index", help="rebuild or clear the derived frontmatter cache")

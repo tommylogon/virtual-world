@@ -591,6 +591,21 @@ TODO
 
 TODO
 
+## Browser UI and intended live verification
+
+Intended UI home: Turn-based play surface: controlled-character action input and turn modal/action feedback.
+
+Current availability: The turn UI exists; action-tier rules and tier-specific refusal feedback remain in progress.
+
+Live steps when available:
+
+1. In a turn-based scratch scenario, use approach, open, and examine in one turn, then try a second examine.
+   - expected: The first actions use their declared slots; the second major action is refused with a message naming its tier.
+
+2. Repeat with time_per_tick_minutes set to 1 and 15.
+   - expected: The action-slot allowance is identical at both tick lengths.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. TODO

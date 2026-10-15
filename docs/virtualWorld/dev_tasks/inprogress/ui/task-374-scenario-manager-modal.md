@@ -46,6 +46,24 @@ surface over the scenario library.
   touches the live world.
 - No new storage format.
 
+## Browser UI and intended live verification
+
+Intended UI home: Scenario Manager modal.
+
+Current availability: Scenario management and audit acceptance are in progress; this section defines the intended modal path.
+
+Live steps when available:
+
+1. Open Scenario Manager and inspect the scenario list and stats/age.
+   - expected: Every scenario file appears with its current stats and age.
+
+2. Audit a known-invalid scratch scenario and open another scenario with preview.
+   - expected: Audit shows validator issues without changing the live world; preview opens the selected scenario.
+
+3. Rename, duplicate, and delete only scratch scenarios.
+   - expected: Each operation has a clear result and leaves unrelated scenarios unchanged.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. Open the Scenario Manager.

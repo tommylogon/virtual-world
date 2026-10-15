@@ -74,3 +74,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: run a character turn or deliberate `recall` request → inspect the raw prompt/agent context and the character's Mind memory list for the retrieved memories and structured groups.
+
+Current availability: the card proposes one multi-signal `/memories/retrieve` scorer, filters for suppressed/superseded entries, and structured character-model groups. The unified retrieval/prompt view is not claimed as complete.
+
+Live steps when available:
+1. Give a character one same-entity episodic memory and one higher-importance unrelated memory; request recall of that entity.
+   - expected: the same-entity memory ranks first, while suppressed, superseded, and textless entries never appear.
+2. Load a recent memory at tick 5000 and inspect the ordered results.
+   - expected: its recency contribution is non-negative; old tick arithmetic does not push it below zero.
+3. Open the agent prompt context for a live character turn.
+   - expected: the flat list and all four structured groups refer to the same memory IDs; a matching belief appears in the top three slots when present.
+4. Inspect an entity-targeted query and its entity IDs in the retrieval response.
+   - expected: relationship/history evidence for that entity can outrank unrelated importance, and no hidden character name is introduced beyond what the character knows.
+
+This section is not a claim that unified retrieval is wired through every prompt path today.

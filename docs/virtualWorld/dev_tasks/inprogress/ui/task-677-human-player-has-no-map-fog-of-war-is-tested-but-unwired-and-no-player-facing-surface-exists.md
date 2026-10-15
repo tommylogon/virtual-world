@@ -204,6 +204,21 @@ note above).
 - `POST /api/players/<name>/map/visited` seeds the map by writing the same
   observation row an arrival writes.
 
+## Browser UI and intended live verification
+
+Intended UI home: Human turn composer → scene column → player map panel and visited-scope selector.
+
+Current availability: No player-facing map is available yet; the visited-cell map is the intended surface for this task.
+
+Live steps when available:
+
+1. After walking across two scopes, open the turn composer map and select each visited scope.
+   - expected: Only visited cells are drawn, the current cell is marked, and only visited scopes are selectable.
+
+2. Hover a cell and inspect a known blocked way.
+   - expected: The cell exposes last-seen/content/presence/way state and the learned blocked way has its appropriate marker.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. Walk a route across two scopes, then screenshot the map.

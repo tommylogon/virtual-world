@@ -95,3 +95,21 @@ adds the async timer path alongside it.
 - TODO: turn-queue.js or new async-timer module
 - TODO: per-character talkativeness state/config
 - TODO: UI for talkativeness slider and pause control
+
+## Browser UI and intended live verification
+
+Intended UI home: turn-mode selector → **Simultaneous** → per-character talkativeness controls and global pause/resume; observe each firing in the event stream and the rate/cost indicator.
+
+Current availability: the card proposes replacing batch-at-once simultaneous turns with independent asynchronous cooldowns. Per-character cooldowns, talkativeness, auto-pause, and rate/cost display are planned; the current simultaneous mode is not described as having these controls.
+
+Live steps when available:
+1. Choose simultaneous mode and set two characters to visibly different talkativeness values, one near 5 seconds and one near 2 minutes. Start the simulation and inspect timestamps in the event stream.
+   - expected: each character fires on its own jittered cooldown range rather than both firing in one shared batch; the higher talkativeness character fires more often.
+2. Pause globally, wait longer than both cooldowns, then resume.
+   - expected: no character acts while paused; resumed timers continue without duplicate or simultaneous catch-up actions.
+3. Move focus to another browser tab and return.
+   - expected: the simulation auto-pauses on unfocus and remains paused until the user resumes it.
+4. Observe the rate/cost indicator while both characters run.
+   - expected: it reflects the actual firing rate and model usage; concurrent actions resolve in arrival order without lost or duplicated events.
+
+This section is not a claim that planned UI exists or works today.

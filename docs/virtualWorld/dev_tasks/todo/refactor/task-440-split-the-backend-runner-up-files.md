@@ -74,3 +74,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Not applicable — this is a one-file-at-a-time Python module extraction with an explicit no-behavior-change contract; no new browser surface is intended.
+
+Current availability: the task requires smaller host modules while keeping public imports/APIs stable. The extraction sequence is not claimed as complete.
+
+Why no browser UI: a screen interaction cannot establish that backend module boundaries changed without changing the public API or behavior; the proof belongs to imports, focused regression tests, and the measured source diff.
+
+Alternative verification steps:
+1. Before and after each extraction, record the host file's line count and inspect the new module's exported functions and imports.
+   - expected: the host's line count is materially lower, the extracted concern has one owner, and public import paths remain stable.
+2. Run the focused test module(s) that exercise the extracted behavior after each one-file split.
+   - expected: the same behavior passes after extraction; any changed `mock.patch` target is recorded explicitly.
+3. Import the application package and the extracted module in a clean process.
+   - expected: imports have no cycle or import-time side effect and the package still exposes the stable public API.
+
+This section is not a claim that planned UI exists or works today.

@@ -35,3 +35,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: select a `way` in the graph → Way Inspector → set `current_state` to `broken` → try passage actions and inspect area description, light, and sound across the way.
+
+Current availability: the card records that `broken` is offered in the Inspector and blocks open/close, but movement still allows traversal and barrier lookup falls back to open. This incomplete state is not claimed as fixed.
+
+Live steps when available:
+1. In a scratch world, set a connected way to `broken` in its Inspector and attempt `go`/crossing from both connected areas.
+   - expected: either the way is explicitly removed from the state selector, or the broken state consistently blocks passage according to the chosen design; it cannot look broken and still be traversable.
+2. Stand on each side and examine the exit line.
+   - expected: both directions describe the same broken passage state; no side presents it as open.
+3. Put a light source and a sound source on one side and observe from the other.
+   - expected: broken-state light and sound behavior follow the barrier tables, not `UNKNOWN_STATE_FALLBACK` open.
+4. Save and reload the scenario, then inspect the way state and repeat traversal.
+   - expected: the selected policy survives serialization and remains consistent across passage, light, and sound.
+
+This section is not a claim that broken-way behavior is implemented consistently today.

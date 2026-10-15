@@ -64,3 +64,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: put Elena's EMF reader in inventory → use/examine it from an area with nearby characters, items, ways, and areas → inspect the returned detection list and event stream.
+
+Current availability: the card says the EMF reader currently returns a static examine message. Proximity-based detection is not claimed as implemented.
+
+Live steps when available:
+1. Place one character, one item, and one way within the authored detection radius; place a second item outside it. Use the EMF reader.
+   - expected: the result identifies only entities inside the range and reports their correct kinds/locations; the outside item is absent.
+2. Move the inside character outside the radius and use the reader again.
+   - expected: the character disappears from the result while the remaining nearby entities stay listed.
+3. Move the reader user to a different connected area and repeat.
+   - expected: detection uses graph proximity from the current location, not a stale cached list or display-name guess.
+4. Compare the UI result with the graph node IDs and the reader's authored range.
+   - expected: every reported entity resolves to the matching node and the static examine sentence is replaced by observed proximity output.
+
+This section is not a claim that proximity detection is implemented today.

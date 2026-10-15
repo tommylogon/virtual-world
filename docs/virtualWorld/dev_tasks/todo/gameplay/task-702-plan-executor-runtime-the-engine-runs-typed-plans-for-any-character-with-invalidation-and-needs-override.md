@@ -78,10 +78,34 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. In the fisherman micro-scenario, select James, open Inspector → Mind, and advance game time with the authored route from his current area to the named bed.
+   - expected: the plan advances from travel to the Activity step, `Player.activity` becomes sleeping on the exact bed node, the Activity advances by game minutes, and the longer pursuit remains assigned.
+   - observed: Not run for this executor. The card is blocked by tasks 700 and 701; the recorded live scenario route cannot reach the authored hut, so it cannot demonstrate the intended path yet.
+2. While James travels, have another character speak to him, then move the target item or make the route invalid before the next step.
+   - expected: the interruption leaves the pursuit available for James to continue or adapt; the invalid step returns to character choice and never executes against the stale target.
+   - observed: Not run. The executor is not started and its dependencies are not accepted.
+3. Repeat the sleep pursuit for an LLM agent, a simple NPC, and a background character using the same plan data; let hunger become urgent during one run.
+   - expected: all three use the shared movement/action/Activity machinery, the existing need policy can preempt the plan, and each result remains visible in Mind and the world.
+   - observed: Not run. The executor is not started and its dependencies are not accepted.
 
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Select James in the live world → Inspector → Bio → 🧠 Mind → Pursuit & plan / Activity; observe his current area and the named bed in the world view while the plan runs.
+
+Current availability: The card's current-slice note says typed haul/gather/rally plans can advance for background characters, but this general executor is not started and is blocked by tasks 700 and 701. Its saved fisherman destination is unreachable from `area_world_15_5` in the current fixture; do not use that route as proof of execution.
+
+Live steps when available:
+1. Load the corrected fisherman micro-scenario, select James, open Mind, and start the sleep pursuit from his actual starting area.
+   - expected: the visible plan names the next grounded travel step, James moves along existing connection edges, and the plan index advances without a teleport or fabricated route.
+2. Continue until the named bed is reached and inspect Mind's Activity block and the bed in the world view.
+   - expected: the Activity is sleeping on the exact bed node, has its real duration/effects, and other characters can observe that James occupies that bed.
+3. Interrupt travel with a conversation, then invalidate a separate plan target and advance once more.
+   - expected: the conversation is a choice point; the invalid target is rechecked and rejected; the pursuit remains available unless James chooses to abandon it.
+4. Repeat with an urgent hunger signal during travel.
+   - expected: the existing survival-need precedence can interrupt the plan, and Mind reflects the resumed or replaced short-term plan while retaining the pursuit where appropriate.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.

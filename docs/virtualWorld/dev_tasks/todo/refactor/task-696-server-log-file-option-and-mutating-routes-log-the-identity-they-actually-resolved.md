@@ -50,3 +50,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: game view → perform a mutating character/world action → inspect the configured server log file and the response's resolved target identity. The browser action is the trigger; the log is the verification surface.
+
+Current availability: the card records a name-resolution mismatch where a request for `zombie__c4d808` was logged/responded as `zombie`, with only one generic server trace. `VW_LOG`/`--log-file` and resolved-identity logging are not claimed as implemented.
+
+Live steps when available:
+1. Start the app with `VW_LOG=<scratch-log-path>` and open the scenario in the browser. Perform one action against a character whose node ID differs from its display name.
+   - expected: the request succeeds against the intended node and the log records both the supplied identifier and the exact resolved opaque ID.
+2. Repeat through a route that resolves an alias/name and through a route with an invalid target.
+   - expected: each mutating route logs the identity it actually resolved; an invalid target is reported as unresolved and is not logged as a different character.
+3. Read the configured log file while the server runs without relying on the launching terminal; restart with `--log-file` and repeat.
+   - expected: both configuration paths write the same structured request/result evidence without duplicating root handlers.
+4. Compare the browser response, `/api/state`, and log entry.
+   - expected: supplied name, resolved character ID, action result, and world state agree.
+
+This section is not a claim that the log-file option or route identity logging is implemented today.

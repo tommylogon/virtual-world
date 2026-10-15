@@ -83,10 +83,30 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
-
+1. Render a synthetic five-scope tree into the graph scope picker.
+   - expected: depth-1+ scopes appear in real nested optgroups; a shallower sibling closes the deeper branch; multiple roots stay separate.
+   - observed: live browser DOM and screenshot show Root → Zones → Zone A → Sub-zones → Sub-zone A1/A2, then Zone B; the second root remains separate.
+2. Inspect all option text and test zero, undefined, and null scope lists.
+   - expected: no non-breaking-space indentation; each scope is reachable once; empty inputs do not throw.
+   - observed: eight scope-options unit tests pass, and the browser on a zero-scope world correctly offered only “Whole world”.
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Graph workspace → scope picker → nested scope options. The picker uses real option groups; it is not a second scope tree or a whitespace-indented list.
+
+Current availability: The card records a browser pass using a synthetic five-scope tree because the loaded world had zero scopes; the picker correctly offered only “Whole world” for that world.
+
+Live steps when available:
+1. Open the scope picker with a synthetic tree containing two roots, a depth-1 child, two depth-2 children, then a shallower sibling.
+   - expected: “Root” and each other root appear at the top level; `Zone A` is inside a real `optgroup`, its two sub-zones are nested under their own group, and the later `Zone B` closes the deeper branch.
+2. Inspect each option's text and parent element in the open picker.
+   - expected: no option begins with non-breaking-space indentation; each scope appears once in its correct group.
+3. Replace the scope list with empty, undefined, and null inputs.
+   - expected: the picker remains usable and offers “Whole world” without throwing.
+4. Load a world with no scopes and open the picker.
+   - expected: only “Whole world” is available; no synthetic scope is presented as world data.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.

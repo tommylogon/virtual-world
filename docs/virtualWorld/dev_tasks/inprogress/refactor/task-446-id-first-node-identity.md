@@ -154,6 +154,21 @@ TODO
 
 TODO
 
+## Browser UI and intended live verification
+
+Intended UI home: Scenario character authoring/selection and Character Inspector → Bio, with the normal target-selection prompt during play.
+
+Current availability: The id-first record boundary is still being integrated; existing character surfaces must keep same-named records distinct.
+
+Live steps when available:
+
+1. In a scratch scenario, create two characters with the same display name, save, reload, and select each from the graph/character list.
+   - expected: Each selection opens the intended character record and keeps separate Player state across reload.
+
+2. Target one same-named character through normal interaction and inspect the response.
+   - expected: Stable identity resolves the target or the UI asks for a choice; it never silently merges names.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. TODO

@@ -60,3 +60,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: game play → request a timeskip → inspect the bounded progress/result summary and resulting character event/activity records. Vendor leisure and frontier exploration must remain visible as resolved outcomes, not silent background changes.
+
+Current availability: long timeskips beyond 1,440 minutes are recorded as implemented in day-sized chunks. Vendor leisure and generation-frontier preference are still open; frontier preference is blocked on task-398.
+
+Live steps when available:
+1. Request a timeskip of more than 1,440 minutes but no more than one week and inspect progress and the final summary.
+   - expected: the request runs in day-sized chunks, returns a bounded summary, and does not hold one synchronous advance for the full week.
+2. Give a character leisure intent and a reachable vendor with a valid item; request a timeskip that includes leisure.
+   - expected: buying from the vendor is a valid resolved outcome, visible in the character's inventory and the event summary.
+3. After task-398 provides a generation frontier, request exploration from a character with frontier preference.
+   - expected: the exploration choice targets the generated frontier when eligible and records the destination; it does not invent a frontier before one exists.
+4. Compare the result with character inventory, location, and event history after reload.
+   - expected: resolved purchases/travel persist once and match the timeskip summary.
+
+This section is not a claim that the remaining timeskip outcomes are implemented today.

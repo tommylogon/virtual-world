@@ -170,3 +170,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Area Inspector/graph editor → choose a tagged area → run the existing item-population editor action → review spawned furniture/items and their containment edges.
+
+Current availability: the card records the population engine and editor button as implemented, while noting only 23/58 library areas have domain tags and no display-furniture role tags/placement rules were authored at the time of that check. The current content coverage must be remeasured before claiming every area populates.
+
+Live steps when available:
+1. Select a tagged clothing-store area with a wardrobe/rack and run the population action once; inspect the preview/result before saving.
+   - expected: matching domain tags connect area → furniture → item; wardrobe/cabinet items use `in`, while racks/shelves/tables use `on`/`beside` as their role requires.
+2. Apply and inspect the graph edges and spawned item properties.
+   - expected: each item is placed once under the matching furniture, and materialized tags/equip slots/contents are preserved.
+3. Run population a second time on the same area.
+   - expected: the operation is idempotent or follows its documented density rule; no duplicate clutter is added without an authoring reason.
+4. Select an area with no matching furniture/domain chain and run population.
+   - expected: it reports no eligible placement rather than putting items at an arbitrary location.
+
+This section is not a claim that all library areas have authored population content today.

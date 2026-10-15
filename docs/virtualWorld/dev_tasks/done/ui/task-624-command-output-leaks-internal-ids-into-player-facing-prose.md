@@ -74,10 +74,31 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
-
+1. In `kraktooth_goblin_camp`, follow the north and south paths that lead toward Road and read each event-stream line.
+   - expected: movement prose says “toward Road” and “you're in Road”, without grid coordinates.
+   - observed: live in the painted world across seven commands; zero coordinate leaks.
+2. Inspect labels containing coordinate pairs and legitimate parentheses.
+   - expected: `Road (world 10,4)` and `Sparse Forest (Eldenford interior 10,3)` display without coordinates, while `Bathroom (Kraktooth, level 2)`, `The Outhouse (West)`, and `Cellar (Below Kitchen)` remain unchanged.
+   - observed: the card records all six before/after examples, including `toward Road (world 9,4).` becoming `toward Road`.
+3. Inspect `/api/state.current_area` for the same location.
+   - expected: the data record remains unchanged; this task fixes presentation, not stored names.
+   - observed: recorded as `Road (world 9,3)`; the data migration belongs to task-638.
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Load `kraktooth_goblin_camp`, use the command input for movement, and read the resulting line in the event stream; the at-rest way labels and their hover text are the companion wayfinding surface.
+
+Current availability: The card records seven live commands in the painted world with zero coordinate leaks. It records that `Road (world 10,4)` and `Sparse Forest (Eldenford interior 10,3)` lose coordinate suffixes while semantic names such as `Bathroom (Kraktooth, level 2)` remain intact.
+
+Live steps when available:
+1. From the camp, use the north and south paths that lead toward Road and inspect each event-stream result.
+   - expected: the line says “You follow the path north/south toward Road — you're in Road.”; no `(world N,M)` or `(Eldenford interior N,M)` suffix reaches player-facing prose.
+2. Open the way label at rest, then hover that same way.
+   - expected: the at-rest label and hover resolve the display name consistently; the node's stored name in `/api/state` is not silently migrated by this presentation fix.
+3. Inspect legitimate parenthetical names in the same scenario, including `Bathroom (Kraktooth, level 2)` and `The Outhouse (West)`.
+   - expected: descriptive parentheses remain; only a trailing coordinate pair is removed.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.

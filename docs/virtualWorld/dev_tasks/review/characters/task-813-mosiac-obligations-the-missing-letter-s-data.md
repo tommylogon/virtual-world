@@ -61,3 +61,19 @@ A `Player.obligations` list (character-private, beside `goals`): each record is 
 - The `obligation` verb (free): bare lists, `accept|refuse|forget <charge>` answers.
 - Mind panel: an "Obligations - what they owe" section.
 - `tests/test_goals.py`: accept spawns a goal, refuse spawns none, expiry by tick, a scenario round-trip, and a wiring test through the dispatcher.
+
+## Browser UI and intended live verification
+
+Intended UI home: Select the character → Inspector → Mind → “Obligations - what they owe”; answer through the character command input with the `obligation` verb.
+
+Current availability: The obligation block and `obligation accept` / `obligation refuse` commands were live-verified on localhost:4444 on 2026-10-12, as recorded above.
+
+Live steps when available:
+1. Select a character with the offered `deliver_the_sealed_letter` obligation, open Mind, and enter `obligation accept deliver_the_sealed_letter`.
+   - expected: the obligation changes to `accepted`, has a `goal_id`, and the spawned active goal appears in the same character's Mind panel.
+2. For a separate offered `burn_the_warrant` obligation, enter `obligation refuse burn_the_warrant` and inspect Mind.
+   - expected: the obligation shows `refused` and the character's goal count does not increase.
+3. Save and reload, then reopen Mind for the character.
+   - expected: obligation status and the accepted obligation's linked goal are read back from the character record.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.

@@ -76,3 +76,35 @@ Leave historical task cards and slugs (task-227, task-234, task-228, task-762) a
 - `data/scenarios/*.json` (7), `world_template.json`, `tests/fixtures/world.json`
 - `tests/test_forecast_settings_route.py` (36), `tests/test_forecast_outlook.py` (31, 78, 79, 90, 119), `tests/test_weather_generator.py` (135), `tests/test_forecast_modes.py`, `tests/test_wind_direction.py`
 - `docs/virtualWorld/Environment/Weather System.md`, `Weather Guide.md`, `Time & Weather.md`
+
+## Browser UI and intended live verification
+
+Intended UI home: Settings → Environment/Weather → Forecast editor. The UI
+continues to show the user-facing label **Forecast**; the rename changes the
+underlying state/API identifiers and must preserve old saved weather.
+
+Current availability: the user-facing label pass is already recorded as done.
+The identifier rename for state, POST body, Python class, and sky-scape editor
+IDs is still the scope of this card; this section does not claim the rename is
+complete.
+
+Live steps when available:
+1. Open the Forecast editor, change one forecast entry, and save it. Read
+   `/api/state` and the browser request body for `POST /api/settings/forecast`.
+   - expected: the editor still says Forecast; state stores the value under
+     `forecast` and the request body sends `forecast`, not `schedule`.
+2. Load a fixture written with the legacy `forecast_schedule` key, then open
+   the Forecast editor and inspect the active weather.
+   - expected: the old forecast is restored and displayed; the next save writes
+     only the canonical `forecast` key.
+3. Load a fixture using the new `forecast` key and repeat the edit/save flow.
+   - expected: the forecast round-trips identically and remains visible after a
+     page reload.
+4. Inspect the editor's control IDs and invoke its add/remove/edit controls.
+   - expected: the DOM identifiers use the Forecast naming, each control still
+     edits the intended entry, and there is no second Schedule-labelled field.
+
+These steps define live compatibility and editor behavior. The identifier
+rename remains planned until the state and request checks pass.
+
+This section is not a claim that planned UI exists or works today.

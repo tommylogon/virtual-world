@@ -235,7 +235,7 @@ def test_body_sections_folds_synonyms():
 
 def test_missing_sections_lists_canonical_order():
     text = "# t\n\n## What\n\nw\n\n## Acceptance\n\n- [ ] x\n"
-    assert tasks.missing_sections(text) == ["why", "how", "verify", "files"]
+    assert tasks.missing_sections(text) == ["why", "how", "browser_ui", "verify", "files"]
 
 
 def test_section_synonyms_reports_only_non_canonical_headings():
@@ -262,13 +262,20 @@ def test_new_json_payload_writes_canonical_card(tmp_path):
     assert tasks.body_sections(text)["what"].strip() == "w"
     assert "- [ ] a1" in text and "- [ ] a2" in text
     assert "`f.py`" in text
+    assert "## Browser UI and intended live verification" in text
+    assert "Intended UI home: TODO" in text
+    assert "Current availability: TODO" in text
+    assert "Live steps when available" in text
+    assert "not a claim that planned UI exists or works today" in text
     assert "## Steps to verify" in text
 
 
 def test_new_json_at_file_is_bom_tolerant(tmp_path):
     root = tmp_path / "dev_tasks"
     payload = tmp_path / "payload.json"
-    payload.write_text('{"what": "w"}', encoding="utf-8-sig")
+    # --wiki has been mandatory since task-797; keep this test focused on BOM
+    # tolerant JSON loading while satisfying the current card contract.
+    payload.write_text('{"what": "w", "wiki": "[[Feature Map]]"}', encoding="utf-8-sig")
     args = tasks.argparse.Namespace(
         root=root, area="ui", title="BOM", kind="task", priority="medium",
         status="todo", related="", goal="", json="@" + str(payload),
@@ -388,6 +395,8 @@ def test_merge_card_no_frontmatter_and_no_updates_adds_no_fence():
     out = tasks.merge_card("# t\n\n## What\n\nw\n", {})
     assert not out.startswith("---")
     assert "## What" in out and "## Acceptance" in out
+    assert "## Browser UI and intended live verification" in out
+    assert "Intended UI home: TODO" in out
 
 
 # ── set ──────────────────────────────────────────────────────────────────
@@ -681,5 +690,90 @@ def test_validate_without_schema_flag_emits_no_schema_warnings(tmp_path, capsys)
     assert tasks.cmd_validate(
         tasks.argparse.Namespace(root=root, quiet=False, schema=False)) == 0
     assert "missing section" not in capsys.readouterr().out
+
+
+def test_validate_warns_when_non_cancelled_card_lacks_browser_ui_intent(tmp_path, capsys):
+    root = tmp_path / "dev_tasks"
+    _write(root / "todo" / "ui" / "task-1-thin.md",
+           "---\nstatus: todo\n---\n\n# task-1: Thin\n")
+    assert tasks.cmd_validate(
+        tasks.argparse.Namespace(root=root, quiet=False, schema=False)) == 0
+    out = capsys.readouterr().out
+    assert "non-cancelled card(s) have missing/incomplete browser UI intent" in out
+    assert "task-1: missing Browser UI and intended live verification section" in out
+
+
+def test_validate_includes_legacy_done_folder_cards_in_browser_ui_intent_check(tmp_path, capsys):
+    root = tmp_path / "dev_tasks"
+    _write(root / "done" / "ui" / "finished-with-legacy-name.md",
+           "---\ntype: task\nstatus: done\n---\n\n# Finished\n")
+    _write(root / "done" / "ui" / "task-4-superseded.md",
+           "---\ntype: task\nstatus: superseded\n---\n\n# Superseded\n")
+    _write(root / "done" / "ui" / "audit-notes.md",
+           "---\ntype: doc\nstatus: done\n---\n\n# Notes\n")
+    _write(root / "cancelled" / "ui" / "task-5-cancelled.md",
+           "---\ntype: task\nstatus: cancelled\n---\n\n# Cancelled\n")
+    assert tasks.cmd_validate(
+        tasks.argparse.Namespace(root=root, quiet=False, schema=False)) == 0
+    out = capsys.readouterr().out
+    assert "non-cancelled card(s) have missing/incomplete browser UI intent" in out
+    assert "1 non-cancelled card(s) have missing/incomplete browser UI intent" in out
+    assert "finished-with-legacy-name.md: missing Browser UI and intended live verification section" in out
+    assert "task-4: missing Browser UI" not in out
+    assert "task-5: missing Browser UI" not in out
+
+
+def test_validate_warns_when_browser_ui_section_is_still_a_template(tmp_path, capsys):
+    root = tmp_path / "dev_tasks"
+    _write(root / "todo" / "ui" / "task-2-template.md",
+           "---\nstatus: todo\n---\n\n# task-2: Template\n\n"
+           "## Browser UI and intended live verification\n\n"
+           + tasks.BROWSER_UI_STUB + "\n")
+    assert tasks.cmd_validate(
+        tasks.argparse.Namespace(root=root, quiet=False, schema=False)) == 0
+    out = capsys.readouterr().out
+    assert "task-2: Intended UI home is missing or left as a placeholder" in out
+
+
+def test_browser_ui_intent_accepts_future_surface_and_headless_exception():
+    future_ui = """## Browser UI and intended live verification
+Intended UI home: Character Inspector → Mind → Memories.
+Current availability: panel exists; generator is planned and not implemented.
+Live steps when available:
+1. Load the fixture, open Mind → Memories, and select the seeded memory.
+   - expected: the same Player memory is visible in the ordinary memory list.
+
+This section defines intended access and live acceptance. It is not a
+claim that planned UI exists or works today.
+"""
+    assert tasks.browser_ui_issue(future_ui) == ""
+
+    headless = """## Browser UI and intended live verification
+Intended UI home: Not applicable — this task changes a command-line importer.
+Current availability: no browser-facing behavior is added by this task.
+Live steps when available: Not applicable.
+Why no browser UI: authors run the importer outside the game editor.
+Alternative verification steps:
+1. Run the importer against a fixture and inspect its JSON output.
+   - expected: output follows the existing scenario memory schema.
+
+This section defines intended access and live acceptance. It is not a claim
+that planned UI exists or works today.
+"""
+    assert tasks.browser_ui_issue(headless) == ""
+
+
+def test_browser_ui_intent_rejects_template_placeholders():
+    template = """## Browser UI and intended live verification
+Intended UI home: Character Inspector → Mind.
+Current availability: planned, not implemented.
+Live steps when available:
+1. TODO — open the intended surface.
+   - expected: TODO
+
+This section defines intended access and live acceptance. It is not a claim
+that planned UI exists or works today.
+"""
+    assert "non-placeholder" in tasks.browser_ui_issue(template)
 
 

@@ -63,3 +63,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Graph editor → select the intended area/way/item/resident subgraph → **Capture Structure** → review the boundary and `{areas, ways, items, residents}` summary → Apply to the Structures library.
+
+Current availability: the backend structure endpoints exist, but the card reports no capture surface and an empty `data/library/structures/` registry. The graph-editor authoring affordance and first committed template are not claimed as available.
+
+Live steps when available:
+1. In a scratch world, select two connected areas, their connecting way, one contained item, and one resident; invoke **Capture Structure**.
+   - expected: a preview shows exactly those selected residents and internal edges, names the boundary connections, and writes no file before Apply.
+2. Apply the capture, open the Library Browser's Structures catalog, and preview the new template.
+   - expected: one `data/library/structures/<id>.json` entry appears and its preview matches the captured areas, ways, items, and residents.
+3. Materialize the template twice into the same world and inspect both instances in the graph.
+   - expected: both instances retain internal wiring but have distinct IDs and names; the original graph remains intact.
+4. Delete the template from the library UI, then inspect the two materialized instances.
+   - expected: only the template file is removed; both world instances remain unchanged.
+
+This section is not a claim that planned UI exists or works today.

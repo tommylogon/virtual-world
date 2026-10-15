@@ -148,6 +148,21 @@ TODO
 
 TODO
 
+## Browser UI and intended live verification
+
+Intended UI home: Graph editor → Map mode and its spacing control.
+
+Current availability: Scale-aware marks and compact-dot behavior are partly implemented; visual acceptance remains open.
+
+Live steps when available:
+
+1. Open a small painted scope in Map mode and reduce spacing below the compact-dot threshold.
+   - expected: Areas switch to compact marks sized to their cells without overlap.
+
+2. Increase spacing through the control and inspect the same scope.
+   - expected: Marks transition back to cards and remain legible at tight and wide pitches.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. TODO

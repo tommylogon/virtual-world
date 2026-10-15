@@ -54,9 +54,38 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Load a scratch scenario where one item has both `carrying` and `equipped`
+   edges to a character; select that character and expand Agent Lens → `Room
+   context (observe / decide)`.
+   - expected: the same item node appears once in the `Carrying` list.
+   - observed: the task records ID-based deduplication in `worldState.getInventory()`;
+     visual verification is still pending.
+2. Add a second, distinct item node with the same display name and refresh the
+   preview.
+   - expected: both distinct item nodes remain represented; only the duplicate
+     edge for one node is collapsed.
+
+## Browser UI and intended live verification
+
+Intended UI home: Graph → select a character → Agent Lens → inventory/context
+preview; Character Inspector → Inventory for the visible item list.
+
+Current availability: `worldState.getInventory()` deduplicates by source item
+ID before returning names. The card explicitly leaves visual verification
+pending; the UI should still preserve two different item IDs that share a name.
+
+Live steps when available:
+1. Load a disposable scenario with one item connected to the character by both
+   `carrying` and `equipped`; select the character and inspect Agent Lens →
+   `Room context (observe / decide)` and Inspector → Inventory.
+   - expected: that item appears once in each list.
+2. Add a second item node with the same display name but a different ID, refresh
+   the state, and inspect the same two surfaces again.
+   - expected: two same-named physical items remain visible, while the
+     carried-and-equipped item remains a single entry.
+
+This section defines intended access and live acceptance. It is not a claim
+that planned UI exists or works today.
 
 ## Acceptance
 

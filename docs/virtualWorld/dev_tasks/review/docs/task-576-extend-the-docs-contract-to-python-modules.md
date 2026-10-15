@@ -109,3 +109,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Not applicable — this card establishes `@module`/`@contributes`/`@docs` headers and a source-to-documentation index for Python modules; no product screen changes.
+
+Current availability: the card records Python module headers, missing-path/folder-target failures, generated Python rows/Lang column, and a passing `python tools/js_module_index.py --check`. The header contract itself is verified in repository tooling.
+
+Why no browser UI: the acceptance is whether source modules name real documentation notes and the index contains their declarations; a player browser cannot inspect this contract.
+
+Alternative verification steps:
+1. Remove a required `@docs` header from a scratch Python module and run `python tools/js_module_index.py --check`.
+   - expected: the guard fails with that module path; restoring a real note target or justified `none` declaration restores the check.
+2. Point a scratch header at a directory/nonexistent note and rerun the check.
+   - expected: the folder/dead target is rejected.
+3. Regenerate `docs/design/js-module-index.md` and inspect the Python rows and `Lang` column.
+   - expected: all pre-existing JS rows remain, Python modules appear with their declared note, and the generated index matches the source headers.
+
+This section is not a claim that planned tooling is exposed in the browser.

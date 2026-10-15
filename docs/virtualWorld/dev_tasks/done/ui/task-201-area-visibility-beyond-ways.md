@@ -79,10 +79,47 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Run `python -m pytest tests/test_beyond_visibility.py` for the recorded
+   backend visibility cases.
+   - expected: open and see-through ways reveal only configured, present,
+     non-hidden items and the requested target-area characters.
+   - observed (2026-08-13): the card records 7 passing tests; browser E2E is
+     still pending.
+2. Follow the Connections and Agent Lens steps below in the browser after both
+   UI pieces are available.
+   - expected: the per-direction controls save on the source edge and the Lens
+     preview matches the runtime visibility rules.
+   - observed: not recorded; the card's own browser acceptance remains open.
 
 ## Acceptance
 
 - [ ] TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Graph → select a way → Inspector → Connections; left-panel
+Agent Lens → preview the source area's exits and people.
+
+Current availability: The card records the backend visibility rules and agent
+room-context work as implemented. Its own notes say the per-direction editor
+controls and Lens preview toggles depend on task-219 and browser E2E is pending;
+the `done` folder is not evidence those UI steps passed.
+
+Live steps when available:
+1. In a scratch scenario, select the Kitchen-to-Hall way and open Connections.
+   Enable `allow_see_characters` for that direction and select one named item
+   present in the Hall under `visible_items`; save the passage.
+   - expected: the authored values belong to Kitchen → way, not the reverse
+     edge, and the target item is selected by its name.
+2. Open the Kitchen view in Agent Lens with the way open, then repeat with the
+   way closed and `see_through` enabled; include an unselected item and a
+   hidden item in the Hall as controls.
+   - expected: Hall characters and only the selected present item appear in the
+     prompt's exit view when visible; the unselected and hidden items never do.
+3. Turn off `allow_see_characters`, clear `visible_items`, and refresh the
+   preview without saving any further world edit.
+   - expected: dynamic people/items disappear while static
+     `visible_in_direction` prose remains.
+
+This section defines intended access and live acceptance. It is not a claim
+that planned UI exists or works today.

@@ -83,3 +83,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: equip items with signed `evasion` and `damage_reduction` → resolve an attack → inspect the combat log and equipment detail.
+
+Current availability: the card records the signed evasion/damage-reduction split as decided and tested, including a legacy `defense` alias. The live UI should expose both axes distinctly without changing existing items.
+
+Live steps when available:
+1. Equip plate with negative evasion and nonzero damage reduction; have an attacker make a controlled attack.
+   - expected: negative evasion makes the wearer easier to hit while damage reduction lowers damage after a hit; these effects are reported separately.
+2. Equip a positive-evasion item and repeat with the same attack inputs.
+   - expected: positive evasion makes the target harder to hit and is applied on the attack side.
+3. Compare two armor pieces and the aggregate character defense in Inventory/Paperdoll.
+   - expected: evasion sums across worn pieces and damage reduction is aggregated independently; omitted evasion reads as zero.
+4. Load an old item using `defense` and inspect the result.
+   - expected: legacy defense maps to canonical damage reduction without changing the old item's behavior.
+
+This section is not a claim that the live equipment display exposes both axes today.

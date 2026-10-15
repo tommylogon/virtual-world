@@ -136,3 +136,21 @@ Then remove the moved editors from Bio and the Memories tab so there is one home
 - `static/js/inspector/memory-view.ts` (`renderMemoriesHtml` / `filterMemories` deleted)
 - `static/js/api-client` (`updateCharacter`, `addPlayerMemory`, `updatePlayerMemory`)
 - `tools/window-usage-reviewed.json` (`InspectorMemory` drop reviewed)
+
+## Browser UI and intended live verification
+
+Intended UI home: Character Inspector → 🧠 Mind. Relationships live on People, the current feeling editor lives on Perception, and add/edit/generate/suppress memory controls live on Memories. The status-row emotion selector is an intentional quick control over the same `Player.emotion` value.
+
+Current availability: The card records live round-trips for relationship add/edit/remove and memory add/edit on localhost:4444. It also records that emotion editing is mirrored in the status row; both controls write the same player field.
+
+Live steps when available:
+1. Open Mind → People for Arix, add Lyrie, set closeness to 60, and remove the relationship.
+   - expected: `/api/state` shows `relationships.Lyrie.closeness` as 60 after the edit and no `relationships.Lyrie` after removal; no second relationship record appears in the inspector.
+2. Open Mind → Perception, change the current emotion and intensity, then use the status-row quick selector.
+   - expected: both controls show the same selected feeling and intensity from `Player.emotion`; changing either updates that same field.
+3. Open Mind → Memories, add a memory, generate one, edit its text, and use the detail actions to suppress and unblock it.
+   - expected: the existing memory handlers update the selected character's `Player.memories`; the card list and detail refresh in the Mind panel, and no duplicate memory list remains in Bio.
+4. After each save, switch to another Mind tab and back.
+   - expected: the panel re-renders from current world state and retains the saved value without a page reload.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.

@@ -70,3 +70,21 @@ TODO
 ## How
 
 TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Select a character → click Hunger or Energy in the vitals readout → Vital Detail modal; raw inputs are under its collapsed Advanced disclosure.
+
+Current availability: The card records live checks on localhost:4463 and 4444: Hunger 47/100 is described as a drive that fills toward 100; Energy drains toward 0; Advanced is collapsed until clicked; the “TIME TO EMPTY” label is absent.
+
+Live steps when available:
+1. Open the Hunger detail for Arix and read the prose, rate, and direction before opening Advanced.
+   - expected: it shows the current value, “a drive”, “Fills toward 100”, the urgent threshold, and the time to the top; no raw numeric editor is open by default.
+2. Open Energy detail and compare its direction; then inspect a zero-rate vital.
+   - expected: Energy says it drains toward 0 and time-to-empty; a zero-rate vital says it is stable rather than showing a misleading countdown.
+3. Expand Advanced, change the raw value/rate, and save; reopen the modal.
+   - expected: numeric controls are available only in the disclosure, the override distinguishes “none — using base” from a real override, and the readout refreshes from the API's `polarity`.
+4. Open Temperature detail.
+   - expected: its temperature-band block remains and no meaningless decay editor is offered.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.

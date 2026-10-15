@@ -81,3 +81,39 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: author a trigger on the existing trigger/behavior surface,
+then invoke it from the game action that satisfies its condition. Observe the
+message in the event stream and the target's removal from the area, character
+list, and graph. Despawn is an effect on the existing character record, not a
+new world node type.
+
+Current availability: this effect is planned. Companion teardown currently
+has a private path; no general trigger-authored despawn effect is claimed as
+available.
+
+Live steps when available:
+1. In a scratch scenario, create a trigger whose condition can be activated by
+   the player and whose effects are `message` followed by
+   `despawn_character` for a named target. Trigger it once.
+   - expected: the message appears, then the target disappears from the area
+     description, character roster, graph, player-manager lookup, and its `in`
+     edge is removed; the active player remains valid.
+2. Trigger the same effect with an unknown target ID, then with the already
+   despawned ID.
+   - expected: each attempt reports the missing target and removes nothing
+     else; the simulation remains usable.
+3. Repeat with a companion dismissal that currently uses the private teardown.
+   - expected: companion removal goes through the shared effect path and has
+     the same complete teardown result.
+4. Inspect `/api/state` after each trigger and compare roster, graph nodes,
+   edges, and active-player ID.
+   - expected: all views agree that the target is absent and no dangling
+     character lookup remains.
+
+These steps define the trigger-driven game interaction. The general effect is
+planned and has not been claimed as available today.
+
+This section is not a claim that planned UI exists or works today.

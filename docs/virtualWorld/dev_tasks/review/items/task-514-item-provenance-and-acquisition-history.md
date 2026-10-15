@@ -78,3 +78,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: take or acquire an item → examine it in Inventory/Inspector → use it during an agent turn and inspect the prompt's bounded provenance context.
+
+Current availability: the card proposes per-instance acquisition provenance for library-authorable items, with spawn/loot/steal recording and examine/prompt display. This history is not claimed as implemented.
+
+Live steps when available:
+1. Acquire Mikka's wrench through the authored stolen-from-wagon path and inspect the instance in Inventory.
+   - expected: the wrench records the acquisition source on its instance, not on the shared library template.
+2. Have another character examine the wrench.
+   - expected: examine shows acquisition history, author/source, and tick in readable bounded form.
+3. Run an LLM turn with the wrench in context and inspect Raw LLM capture.
+   - expected: the prompt includes a bounded provenance summary for that instance without copying the full library record.
+4. Acquire a second wrench through another path and compare both records.
+   - expected: each instance retains its own history and stack identity is not merged or overwritten unexpectedly.
+
+This section is not a claim that acquisition provenance is implemented today.

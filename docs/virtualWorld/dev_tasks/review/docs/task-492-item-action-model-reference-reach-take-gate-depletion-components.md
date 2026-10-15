@@ -61,3 +61,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Not applicable — this card's deliverable is the canonical technical reference for item actions, reach, depletion, containers, and component contracts; it does not add a player-facing screen.
+
+Current availability: the page documents the `take` capability gate, `item_reach`, depletion branches, containment nesting, and the planned part/component contract. Its link check is recorded as passing; “registered in docs index” has no separate index per the card.
+
+Why no browser UI: browser actions can demonstrate examples but cannot replace or exhaustively verify the technical rules/reference page this card owns.
+
+Alternative verification steps:
+1. Read the completed item/action reference and trace each listed rule to the cited engine function and example.
+   - expected: actions-as-capability-gate, reach, all depletion branches, nesting, and component contract each have a current source and a concrete author/player consequence.
+2. Follow the page's item/way wikilinks and run `python tools/doc_links.py --check`.
+   - expected: every link resolves; the page does not claim an unimplemented component operation as shipped.
+3. Compare the depletion examples with the item/action behavior notes after code changes.
+   - expected: generic use, carried/area light, armor, and food branches remain distinct and accurately described.
+
+This section is not a claim that a new browser UI exists or is needed for this documentation task.

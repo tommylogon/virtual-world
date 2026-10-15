@@ -43,6 +43,21 @@ changes-since-source panel (task-373): those answer "what changed", this answers
 - Session-scoped: clear on load/reset; never persisted (no new storage format —
   the audit's guardrail). No server change.
 
+## Browser UI and intended live verification
+
+Intended UI home: Graph editor side rail → Recently Edited nodes.
+
+Current availability: The session-scoped recently edited rail is still being implemented.
+
+Live steps when available:
+
+1. Edit an area, item, and way in succession and inspect Recently Edited.
+   - expected: The rail lists touched nodes newest first, once per stable node ID.
+
+2. Edit a listed node again, click its row, then load another scenario.
+   - expected: The row moves to the top, focuses the node and opens its inspector; the rail clears at the scenario boundary.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. Edit several different nodes (rename an area, change an item property, edit a way).

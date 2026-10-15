@@ -62,3 +62,21 @@ A trait may be a capability, a dial, or both - `DIAL_TRAITS` is the dial set; `P
 - `routes/player_ops.py` (`personality_dials` accepted on update)
 - `static/js/inspector/agent-view.ts` (the dials editor)
 - `tests/test_disposition.py`
+
+## Browser UI and intended live verification
+
+Intended UI home: Character Inspector → Bio → **🎚 Personality dials**; save the character, run its decision, and inspect the resulting weight/choice in the behavior panel or event trace.
+
+Current availability: the card records the Bio editor writing `personality_dials` through `POST /api/players/<name>`, with neutral defaults for existing characters and live author → weight → panel evidence. This section does not claim a new storage home beyond that field.
+
+Live steps when available:
+1. Open Bio for a character, change one Personality dial, save, and reopen the tab.
+   - expected: the dial retains its authored value in `personality_dials`; prose `personality` and capability `traits` remain unchanged.
+2. Run the same decision with the dial at neutral and at an extreme value; inspect the behavior/decision panel.
+   - expected: `disposition._dial` reads the dial first and the corresponding decision score/choice moves predictably.
+3. Load an existing character with no dial record.
+   - expected: the editor shows neutral values and the character continues to load without migration errors.
+4. Compare `traits`, `personality_dials`, and the prose personality in `/api/state` after save/reload.
+   - expected: capabilities, decision dials, and personality prose remain separate and each has one source.
+
+This section is not a claim that every dial has been browser-verified today.

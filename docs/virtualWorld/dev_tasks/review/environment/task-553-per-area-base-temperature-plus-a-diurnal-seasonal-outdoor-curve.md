@@ -137,3 +137,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Area Inspector → Environment → `base_temperature` and active Forecast view; compare an exterior area with an interior area across daytime, night, and seasonal changes.
+
+Current availability: the card proposes separating authored per-area climate baseline from the simulated forecast delta, with a diurnal/seasonal curve. The base field/curve behavior is not claimed as implemented.
+
+Live steps when available:
+1. Set two exterior areas to different `env.base_temperature` values and inspect their current temperatures before forecast deltas.
+   - expected: the authored baselines remain distinct and are visible in the Area Inspector/API.
+2. Advance from midday to night and compare each area's temperature.
+   - expected: the diurnal curve changes each area's baseline by its hour-dependent delta; it does not overwrite all exterior areas with `21.0 + temperature_mod`.
+3. Change the scenario season while holding the forecast entry fixed and repeat.
+   - expected: the seasonal curve adjusts the result while preserving each area's distinct baseline.
+4. Compare an interior area with an exterior area.
+   - expected: outdoor temperature curves do not apply to interiors unless their environment explicitly opts in.
+
+This section is not a claim that the per-area base/curve is implemented today.

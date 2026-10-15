@@ -50,3 +50,23 @@ New `tools/stream_read.cjs` (or similar) following `tools/log_lint.cjs` conventi
 
 - `tools/stream_read.cjs` (new)
 - `docs/virtualWorld/UI & Settings/Event Log Export.md` (reader usage, after verification)
+
+## Browser UI and intended live verification
+
+Intended UI home: Not applicable — the deliverable is a standalone Node CLI that reads an exported JSON/JSONL file without the app or browser.
+
+Current availability: The event-record format is owned by task-777; this reader depends on task-777 and is not claimed as implemented.
+
+Live steps when available: Not applicable.
+
+Why no browser UI: The acceptance explicitly requires querying an exported run with no server and no app; a browser step would add a dependency the tool is meant to remove.
+
+Alternative verification steps:
+1. Export a real task-777 JSONL run, then run `node tools/stream_read.cjs <export.jsonl> --from 0 --to 17 --json` with the app stopped.
+   - expected: the command exits successfully and emits only JSON for events in tick-sequence range 0–17.
+2. Run the CLI's per-actor summary on that same file and compare its counts with `jq -s 'group_by(.actor) | map({actor:.[0].actor,count:length})' <export.jsonl>`.
+   - expected: each actor count matches the independent `jq` result.
+3. Filter by one actor and area, then compare the output with a direct `jq` selection on the same fields.
+   - expected: only records matching actor, area, type, and sequence range appear; invalid file/flag input returns a non-zero exit code.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.

@@ -113,6 +113,21 @@ Trade-off accepted and recorded: the pitch does not scale with the scope, so a 1
 
 Files: static/js/graph/layout-engine.ts (AUTO_MAP_PITCH, autoMapSpacing), tools/unit/test_graph_layout_engine.js.
 
+## Browser UI and intended live verification
+
+Intended UI home: Graph editor → Map mode → world-scope spacing control and reference image.
+
+Current availability: The operator accepted 800 px/cell on 2026-10-12; image alignment and remaining pitch behavior still need verification.
+
+Live steps when available:
+
+1. Load Kraktooth in Map mode, select world scope, and inspect automatic Tune spacing.
+   - expected: Automatic pitch is 800 px/cell unless the measured mark envelope requires a larger no-overlap floor.
+
+2. Inspect the reference image against the painted grid and compare marks at a changed pitch.
+   - expected: The image fills the grid rectangle; mark sizes remain fixed and the map stays comfortably spaced.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. Load the kraktooth goblin camp scenario in Map mode and select the world scope.

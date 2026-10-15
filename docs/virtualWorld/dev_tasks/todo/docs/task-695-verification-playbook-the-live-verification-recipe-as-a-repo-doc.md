@@ -51,3 +51,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Not applicable — this task creates a repository verification guide, not a new product surface. The guide's examples direct future agents to existing browser controls and state surfaces.
+
+Current availability: the acceptance names `docs/design/verification-playbook.md` and lists the required safe-interaction and state-ownership guidance. The guide is not claimed as written by this card.
+
+Why no browser UI: the deliverable is a document that teaches how to inspect the application; the document itself is checked as repository content, not opened from the game UI.
+
+Alternative verification steps:
+1. Read the completed playbook and check that it distinguishes `VW.agent` client turn-queue state from server world state and explains why a second browser tab is safe.
+   - expected: those exact ownership boundaries and the no-commit/no-world-mutation condition are stated.
+2. Follow its safe-interaction list in a scratch browser tab: hover a chip, click it to draft, open a menu, inspect `#player-room`, and call `HumanTurnComposer.request(name)`.
+   - expected: the documented outcome matches each interaction; hovering is free-look, clicking a chip drafts only, and nothing acts before Act.
+3. Run `npm run precommit` after updating the vault note and AGENTS pointer.
+   - expected: vault guards pass and the playbook is linked from the project guidance.
+
+This section is not a claim that planned UI exists or works today.

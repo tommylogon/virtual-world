@@ -41,3 +41,20 @@ TODO
 ## Files
 
 engine/weather_forecast.py (roll_state + __init__ seed); tests/test_forecast_modes.py
+
+## Browser UI and intended live verification
+
+Intended UI home: Settings → Weather/Forecast editor → set mode to `deterministic` → advance forecast ticks → inspect the sky and current forecast state.
+
+Current availability: the card records that deterministic mode always chooses the first non-zero transition, and every default row puts `clear` first; observed sequences from clear and foggy both become clear repeatedly. The corrected selection rule is not claimed as implemented.
+
+Live steps when available:
+1. Load a scratch scenario in deterministic mode with current weather `foggy` and a nonzero transition weight to at least two non-clear states. Inspect the current forecast and sky.
+2. Advance one forecast tick at a time and record six successive weather states.
+   - expected: the sequence follows the documented deterministic weighting rule; it does not jump to `clear` solely because that key is first in a dict.
+3. Repeat from `clear` and from `foggy` with the same table.
+   - expected: identical inputs produce identical sequences, and clear is selected only when its rule/weight actually wins.
+4. Save/reload between ticks and continue the sequence.
+   - expected: deterministic state survives reload and does not restart as permanently clear.
+
+This section is not a claim that the deterministic forecast bug is fixed today.

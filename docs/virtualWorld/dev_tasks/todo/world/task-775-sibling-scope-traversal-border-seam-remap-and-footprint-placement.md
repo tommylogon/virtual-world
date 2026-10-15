@@ -117,3 +117,23 @@ implementation.
 - `engine/world_grid.py`, `routes/world_grid_ops.py` — footprint placement, seam adjacency.
 - `engine/world_index.py` (task-583) — gateway ways across the seam.
 - `engine/promotion.py` — fidelity reconciliation (if boundaries auto-switch scope).
+
+## Browser UI and intended live verification
+
+Intended UI home: WorldPainter → choose two adjacent sibling scopes → inspect their shared border cells and child-scope footprints → compile and traverse the generated gateway ways in the game view.
+
+Current availability: the card defines seam mapping, passable edge cells, unequal grid resolutions, and multi-cell footprints, but the strict-vs-forgiving rule is still undecided. These traversal and placement rules are not claimed as implemented.
+
+Live steps when available:
+1. Paint a child feature with a footprint spanning multiple parent cells; inspect the parent grid before applying it.
+   - expected: every occupied parent cell is visible and the child scope is represented once with the selected footprint.
+2. Create sibling scopes at unequal resolutions and inspect each facing border cell.
+   - expected: proportional position mapping pairs corresponding cells; a gateway is generated only where both facing cells are passable.
+3. Attempt traversal across each generated border gateway from both scopes.
+   - expected: traversal crosses directly into the sibling chunk and does not return through the world scope; impassable seams remain closed.
+4. Paint a border that leads nowhere and inspect the WorldPainter warning and game result.
+   - expected: the painter flags the dead end explicitly and the game treats it as a dead end, not a silently dropped connection.
+5. Repeat around a settlement gate.
+   - expected: the settlement-gate rule from task-401 remains separate from wilderness sibling traversal; variable cell size within one scope remains unsupported.
+
+This section is not a claim that sibling-scope traversal or footprints are implemented today.

@@ -35,3 +35,23 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: trigger/behavior authoring surface → define one hazard check with success/fail outcomes and a forced movement → place the character on that way/area in the game view → inspect the event stream and resulting location.
+
+Current availability: the card identifies that `skill_check` is a condition that can roll twice and that `push_actor` can re-enter `on_enter`, causing a cascade. The one-roll hazard effect and sweep guard are planned; no new hazard authoring control is claimed.
+
+Live steps when available:
+1. Author a hazard that checks once and pushes the actor on failure. Trigger it with a character whose check result is controlled by the fixture.
+   - expected: the event records exactly one roll, then the selected success or failure branch; the failure branch moves the actor along the chosen way.
+2. Inspect the event stream and character location after the forced movement re-enters the destination's `on_enter` trigger.
+   - expected: the sweep guard prevents a second roll within the same sweep and prevents a push cascade; the actor's final position matches the one forced move.
+3. Repeat with a successful check.
+   - expected: the success branch runs once and no forced move occurs.
+4. Repeat the failure after the guard's expiry tick.
+   - expected: a later independent entry may roll again; the guard is per-character and expires as authored rather than permanently suppressing hazards.
+5. Inspect refusal/traversal notes for a blocked forced route.
+   - expected: `traversal.note_refusal` records the actual refusal and the character is not teleported through an invalid way.
+
+This section is not a claim that the planned hazard effect exists or works today.

@@ -77,3 +77,23 @@ Depends on task-777's projection: `projectStreamRows()` becomes the single write
 - `static/js/ui/event-log-export.ts` (projection shared with persistence, from task-777)
 - `static/js/event-stream.ts` (restore path, `_lineSeq`, roster)
 - `docs/virtualWorld/UI & Settings/Event Stream.md` (persistence model, after verification)
+
+## Browser UI and intended live verification
+
+Intended UI home: Game event stream → stream filters and turn-card controls → the existing header export buttons. Persistence is invisible to the player until reload, then the same event stream is restored from records.
+
+Current availability: The card records IndexedDB rows as `{ id, html }`, with a 2,000-row persisted cap and a 5,000-row DOM cap. Structured persistence is planned and depends on task-777's event record projection.
+
+Live steps when available:
+1. Run a session with multiple actors, a collapsed turn card, an area filter, story mode, and one raw-LLM chip; export the same range as JSONL.
+   - expected: the export contains the current event records with sequence continuity and raw-LLM payloads.
+2. Reload the page and inspect the event stream, actor filter, area filter, story mode, and collapsed card; export the same range again.
+   - expected: row order and sequence IDs match the pre-reload export, the turn card remains collapsed, the actor roster is restored, and the raw-LLM payload is still inspectable.
+3. Load an event log persisted by the old HTML-row format.
+   - expected: it is explicitly migrated or dropped with a visible/logged reason; no half-rendered row appears through `unsafeHTML`.
+4. Continue a test session past 2,000 persisted rows and inspect the export summary.
+   - expected: the documented storage cap is applied deliberately and the export names the retained range/cap instead of silently truncating it.
+5. Switch worlds and restore the original one.
+   - expected: bug-46's per-world drop behavior remains intact; one world's records do not appear in the other.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.

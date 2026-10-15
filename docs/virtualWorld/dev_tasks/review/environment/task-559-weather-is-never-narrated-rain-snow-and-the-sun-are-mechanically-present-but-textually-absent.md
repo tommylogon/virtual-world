@@ -176,3 +176,23 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: game view → read area description outdoors and indoors under each weather state; inspect the Forecast's wind and the area description at dawn/dusk.
+
+Current availability: this card adds words for weather state already present in the environment and explicitly adds no new state/module. The weather prose behavior is not claimed as freshly browser-verified.
+
+Live steps when available:
+1. Stand outside in each value of `WEATHER_STATES` and read the area description.
+   - expected: every state has a corresponding sentence; rainy says it is raining and stormy describes the stronger conditions.
+2. Move indoors under the same forecast and read the room description.
+   - expected: outdoor weather prose is absent indoors.
+3. Set nonzero forecast wind and read the exterior description.
+   - expected: wind direction/magnitude are narrated from forecast data; `noise: "windy"` is not required as a substitute.
+4. Advance across dawn/dusk and read the description around 05:00 and 19:00.
+   - expected: the sun's presence is described at those boundaries, while `guess time` and moon description remain unchanged.
+5. Compare the `WEATHER_STATES` list with the narration map.
+   - expected: the UI has one source for state-to-description coverage; no state silently falls through.
+
+This section is not a claim that all weather prose has been freshly browser-verified today.

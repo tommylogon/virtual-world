@@ -34,6 +34,21 @@ TODO
 
 TODO
 
+## Browser UI and intended live verification
+
+Intended UI home: Graph canvas duplicate action for an area or item, with the existing Area/Item Inspector for the selected result.
+
+Current availability: Duplication is reported to work, but item duplication takes over 20 seconds on the goblin camp and gives little immediate feedback.
+
+Live steps when available:
+
+1. In a scratch copy, select an area with contents and duplicate it; repeat for an item with contents.
+   - expected: A distinct copy is created with intended contents and triggers, without recursively cloning parent edges.
+
+2. Undo the duplication and watch the graph/event feedback during the operation.
+   - expected: One undo restores the prior state and the user receives visible progress/result feedback rather than a silent long wait.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. TODO

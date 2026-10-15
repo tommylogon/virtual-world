@@ -65,3 +65,39 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: author faction/group relations and fear tags on the
+characters' existing definition surfaces, then run the scratch encounter from
+the game view and inspect the event stream and character Mind state. Hostility
+and fear remain separate criteria in the simulation.
+
+Current availability: the card documents the existing mansion slasher hunt and
+the current `hostile` trait's limited consumers. Group-scoped hostility and
+same-group fear exemption are planned; this card does not claim those rules are
+live.
+
+Live steps when available:
+1. Load a scratch encounter with two zombies in `faction:lich_a`, one zombie in
+   `faction:lich_b`, and one goblin with `fear_tags: [undead]`. Start the sim
+   and inspect the event stream after a hunt tick.
+   - expected: each lich-a zombie ignores the other lich-a member but may
+     target lich-b; the target decision follows the group relation, not a
+     blanket `is_slasher` exclusion.
+2. Let the goblin encounter a zombie whose hostility relation does not target
+   the goblin. Observe the goblin's action and event.
+   - expected: the goblin flees, hides, or shouts due to its own `undead` fear
+     tag, independently of whether the zombie targets it.
+3. Add a same-group undead fear source and repeat the encounter.
+   - expected: the goblin/undead same-group exemption follows the separately
+     configured fear-group rule; it does not change hostility targets.
+4. Inspect authored character values and the event stream after the run.
+   - expected: faction hostility, fear-group membership, and `fear_tags` are
+     read from their intended sources; the old `hostile` trait is either wired
+     to the relation or absent as a competing half-rule.
+
+These steps describe the intended encounter and observable branches. They do
+not claim faction-scoped hostility is implemented today.
+
+This section is not a claim that planned UI exists or works today.

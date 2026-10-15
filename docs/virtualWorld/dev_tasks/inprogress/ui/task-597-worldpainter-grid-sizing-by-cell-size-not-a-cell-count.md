@@ -90,6 +90,21 @@ per-scope and assumes nothing about scope size.
   `pruneGrid` already are. The `px / cell` unit is derived client-side and need
   not persist — the stored shape stays `{w, h}`.
 
+## Browser UI and intended live verification
+
+Intended UI home: Build → WorldPainter → grid controls for a scope with a reference image.
+
+Current availability: The px/cell sizing control and live redraw behavior are still in progress.
+
+Live steps when available:
+
+1. Open an empty scope with a reference image and move the px/cell slider.
+   - expected: The grid redraws live; larger px/cell yields fewer/larger cells and preserves image aspect.
+
+2. Reach the sample counts with the slider and inspect generated/ungenerated state.
+   - expected: Target counts are reachable without typing width and the control enables only in the intended state.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. Open an empty scope with a reference image; move the `px / cell` slider.

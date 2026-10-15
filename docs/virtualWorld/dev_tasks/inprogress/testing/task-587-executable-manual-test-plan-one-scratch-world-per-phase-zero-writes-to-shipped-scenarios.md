@@ -144,6 +144,22 @@ TODO
 
 TODO
 
+## Browser UI and intended live verification
+
+Intended UI home: Not applicable — this card has no browser-facing behavior.
+
+Current availability: The plan and scratch-world gate exist; the first run is partial and remaining phases are explicitly unexecuted.
+
+Live steps when available:
+
+Why no browser UI: This authors and gates a manual test-plan document; it adds no game UI. The plan itself describes browser journeys for covered features.
+
+Alternative verification steps:
+
+1. Run the plan gate against a clean scratch run and inspect entries for phase, action, expectation, may-write, and evidence.
+   - expected: Every step declares its write boundary; the gate accepts a clean scratch-only run without implying every phase ran.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. TODO

@@ -106,3 +106,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Library Browser → open a base template → choose its named variant (for example `closed door` or `open door`) → place/sync it into a scenario → inspect the node's override fields.
+
+Current availability: the card proposes named template variants and per-node override tracking on top of task-289's template links. Variant selection and override-aware sync are not claimed as available today.
+
+Live steps when available:
+1. Open the base `Task 3 - main area` template and select `closed door`; preview it before placing.
+   - expected: the preview shows the closed-door variant's declared fields and identifies its base template; no scenario node is written before Apply.
+2. Place the closed variant, customize one field on the node, then sync the base template.
+   - expected: non-overridden fields refresh from the template; the explicitly overridden field remains unchanged.
+3. Switch to the `open door` variant and inspect the resulting preview and placed node.
+   - expected: the variant-specific state changes to open while shared base fields remain inherited.
+4. Reopen the scenario after save/reload and inspect the selected template/variant and overrides.
+   - expected: variant identity and the node's override declaration round-trip independently; no customized value is silently overwritten.
+
+This section is not a claim that planned UI exists or works today.

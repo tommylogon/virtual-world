@@ -50,6 +50,34 @@ TODO
 
 - [ ] TODO
 
+## Browser UI and intended live verification
+
+Intended UI home: Area Inspector header → 📚 Save to Library; Graph → right-click
+an area → 📚 Save to Library; then Library Browser → Areas.
+
+Current availability: The inspector button and graph context-menu action both
+call `saveAreaByName()` and open DiffModal. The card records a live check that
+Animal Pens displayed the inspector button; registry write and create/update
+choice are not recorded as live results.
+
+Live steps when available:
+1. Open Animal Pens in the area Inspector and click 📚 Save to Library; read
+   the DiffModal sections for description, environment, tags, exits, placed
+   items, and triggers.
+   - expected: the proposed entry contains only that area's authored bundle
+     and offers Skip / Update / Create New.
+2. Choose Create New, then open Library Browser → Areas and select the new
+   entry; repeat from Graph's area context menu on the same area.
+   - expected: the new area entry can be read back with the fields just
+     reviewed, and both entry points produce the same payload.
+3. Save an area with an existing library name and choose Update, then choose
+   Skip in a second attempt.
+   - expected: Update replaces that named entry; Skip leaves its stored data
+     unchanged.
+
+This section defines intended access and live acceptance. It is not a claim
+that planned UI exists or works today.
+
 ## Files
 
 - TODO

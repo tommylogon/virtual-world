@@ -70,10 +70,53 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Run `python -m pytest tests/test_skill_progress.py` and review the cases for
+   pack idempotence, zero proficiency, successful-use thresholds, failed-use
+   handling, caps, opt-in, and stat adjustment.
+   - expected: progress advances only on successful checks with growth enabled;
+     proficiency 0 adds no modifier and invalid stat adjustments are ignored.
+   - observed (card record, 2026-09-24): 17 focused skill-progress tests
+     passed; the task's setting-authorship follow-up remains.
+2. In a disposable scenario with `skill_growth` enabled, use `find Survival`
+   until one character reaches the configured threshold; then inspect Bio →
+   Skills and the event stream.
+   - expected: the skill value rises once, the improvement is logged, and the
+     progress counter resets; a failed check does not advance it.
+   - observed: no browser run is recorded; the mechanism is currently verified
+     by the focused test module.
 
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Character Inspector → Bio → Skills for the skill value;
+Game command input → `find Survival` → event stream for the roll and growth
+message.
+
+Current availability: Skill progression and proficiency are implemented and
+covered by `tests/test_skill_progress.py`. The inspector currently displays
+numeric skills, but this card does not claim that it displays `proficiency` or
+the per-skill progress counter. Use a disposable scenario with
+`skill_growth: true` and a low test threshold; the default path remains
+unchanged when growth is off.
+
+Live steps when available:
+1. Load that fixture with one character below the Survival cap and an area
+   where `find Survival` succeeds. Record the displayed Survival value, run
+   successful `find Survival` checks until the configured threshold is reached,
+   then reopen the character's Skills section.
+   - expected: the character's Survival value increases once, the event stream
+     reports the growth, and the progress counter resets at the raise.
+2. Repeat one failed `find Survival` check, then load the same fixture with
+   `skill_growth` disabled and run a successful check.
+   - expected: a failed check does not advance progress; with growth disabled,
+     neither the skill value nor progress changes.
+3. Inspect the roll breakdown for a character with proficiency 0 and one with
+   a non-zero proficiency value.
+   - expected: zero proficiency adds no modifier; the other character shows a
+     separate `proficiency` source in the same check breakdown.
+
+This section defines intended access and live acceptance. It is not a claim
+that planned UI exists or works today.

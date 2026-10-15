@@ -128,3 +128,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: load a pre-migration save → select the character → Human Turn scene/turn composer and Mind known-route view. These surfaces should read existing character memory/spatial knowledge rather than a second `visited_areas` or `discovered_items` store.
+
+Current availability: the card's acceptance calls for legacy-save compatibility, first-entry `adventurous` behavior, seen-item prompt context, and a one-week survival comparison. The retirement of those stores is not claimed as complete.
+
+Live steps when available:
+1. Load a legacy save containing both `visited_areas` and `discovered_items`, then open the character's known-route/Mind view.
+   - expected: the load succeeds and areas actually entered produce a non-empty known-route block; legacy values are read without restoring duplicate authoritative stores.
+2. Enter one area with an `adventurous` character, leave, and re-enter it; inspect the event/reward output.
+   - expected: the first entry pays the trait reward and the repeat does not.
+3. Open the Human Turn composer for a character who has seen an item and inspect the prompt's known-item context.
+   - expected: the previously seen item remains available to the prompt, or the card documents the replacement source used.
+4. Run the one-week survival comparison at 1 and 15 minutes per tick and inspect entertainment and survival state.
+   - expected: both runs preserve the recorded survival behavior and Entertainment remains above zero and settles.
+
+This section is not a claim that planned store retirement is complete today.

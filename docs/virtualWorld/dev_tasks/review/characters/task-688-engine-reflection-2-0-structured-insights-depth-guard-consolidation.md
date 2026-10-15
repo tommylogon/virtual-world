@@ -75,3 +75,23 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Character Inspector → Mind → Memories → **Reflect** → inspect structured insights and consolidated source links.
+
+Current availability: the task describes structured reflection, a depth guard, and episode consolidation while preserving legacy string payloads. The complete structured flow is not claimed as available today.
+
+Live steps when available:
+1. Open a character with high-importance or reinforced memories and invoke Reflect.
+   - expected: the request includes only entries meeting the candidate rule and depth zero; the result shows belief, sources, confidence, emotion, behavior, and relationship fields.
+2. Open a returned insight in Mind and inspect its source memories and derived relationship view.
+   - expected: depth is one, all `about[]` source IDs resolve, and the relationship delta appears in the character profile derived from that memory.
+3. Attempt a reflection whose inputs are all depth one, first without and then with force.
+   - expected: the first request is rejected with the expected 4xx and writes nothing; the forced request is accepted with explicit depth.
+4. Consolidate three same-entity low-importance episodes and inspect the trace memory.
+   - expected: one trace links all source IDs and the source memories follow the documented consolidation behavior.
+5. Load a legacy string-list response through the old entry point.
+   - expected: it still renders/stores legacy string insights without breaking existing callers.
+
+This section is not a claim that the structured reflection UI is fully wired today.

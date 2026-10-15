@@ -35,3 +35,19 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Human Turn scene/room context and the Agent Lens **Room context (observe / decide)** view; the room-context text and blind/dark warnings should render as normal Unicode in both the character-facing prompt context and visible panel.
+
+Current availability: the card identifies mojibake in the body of `static/js/agent/prompt-builder/room-context.js`, including em-dash markers and damaged emoji in blind/pitch-black warnings. The file's current browser output has not been rechecked in this turn.
+
+Live steps when available:
+1. Load a scene containing a blind character in a dark area and open its Room context in the Agent Lens; also inspect the Human Turn scene context for that character.
+   - expected: the warning text contains readable punctuation and symbols, not the literal `â€` sequence or replacement characters.
+2. Compare the visible context and the captured prompt text for the same scene.
+   - expected: both carry the same correctly decoded warning and room details; encoding repair does not alter masking or sensory facts.
+3. Switch to a lit scene and to a sighted character, then reopen the same views.
+   - expected: irrelevant blind/pitch-black warnings are absent and ordinary room context remains unchanged.
+
+This section is not a claim that the corrected strings have been browser-verified today.

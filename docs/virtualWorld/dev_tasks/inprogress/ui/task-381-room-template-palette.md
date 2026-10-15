@@ -41,6 +41,21 @@ time.
   area templates come from `data/library/areas/`.
 - No new storage format.
 
+## Browser UI and intended live verification
+
+Intended UI home: Build → New Room from Template palette and the resulting Area Inspector.
+
+Current availability: The room-template palette and starter entries are still being completed.
+
+Live steps when available:
+
+1. Open New Room from Template and inspect available library areas, including starters.
+   - expected: The palette lists real area templates through the existing library pipeline.
+
+2. Choose a template, place the room on the grid, and inspect it.
+   - expected: The area carries the template description, environment, and contents at the chosen cell.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. Open New Room from Template.

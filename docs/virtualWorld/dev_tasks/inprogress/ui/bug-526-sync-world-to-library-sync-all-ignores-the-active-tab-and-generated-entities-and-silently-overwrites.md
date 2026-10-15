@@ -70,6 +70,21 @@ Still open: a confirmation before overwriting existing library entries (a custom
 modal is needed — native `confirm` is against convention), and stamping the
 `source: "worldpainter"` marker on generated items/ways at generation time.
 
+## Browser UI and intended live verification
+
+Intended UI home: Build → Library → Sync World to Library, using the active category and review/apply flow.
+
+Current availability: Item grouping is partly implemented; active-tab scoping, generated-entity handling, and overwrite confirmation remain open.
+
+Live steps when available:
+
+1. Open Sync World to Library on Items and preview a batch.
+   - expected: Only items are included; generated entities are excluded by default and instances collapse to one review row.
+
+2. Toggle excluded rows, inspect a diff, and attempt an overwrite.
+   - expected: The diff is reviewable and overwrite requires confirmation; apply/undo reports the batch result.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 - expected: Sync All scopes to the active tab and skips generated entities, AND asks before overwriting.

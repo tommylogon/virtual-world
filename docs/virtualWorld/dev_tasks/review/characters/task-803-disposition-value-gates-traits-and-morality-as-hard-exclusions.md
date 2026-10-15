@@ -53,3 +53,21 @@ Declared in `engine/disposition.py`. `_flags` reads truthy keys from `player.tra
 
 - `engine/disposition.py` (the `VALUE_GATES` table and the filter)
 - `tests/test_disposition.py` (the gate tests)
+
+## Browser UI and intended live verification
+
+Intended UI home: character Bio traits/morals → Human Turn action choices or character decision trace → inspect the actions still offered after hard gates.
+
+Current availability: the task records `filter_actions` as pure subtraction and tested that a gate cannot enable an action denied by capability. A live caller/UI filter is not claimed unless the character action path consumes these gates.
+
+Live steps when available:
+1. Give a character the `honest` flag and a valid opportunity to steal; open its available-action list and run the decision.
+   - expected: theft is absent from the choices, not merely scored lower; no steal action is emitted.
+2. Give a nonviolent character a valid attack target and a loyal character a betrayal option.
+   - expected: attack and betraying an ally are removed by their respective gates; unrelated permitted actions remain.
+3. Test the authored `prudish` trait with a flirt action while a separate capability gate denies another action.
+   - expected: `flirt` is removed by the trait gate; the disposition layer never adds the capability-denied action back.
+4. Inspect the resolved choices in the agent prompt/action UI and compare them with the event stream.
+   - expected: the LLM is offered only the filtered actions and cannot execute a gated verb through a different surface.
+
+This section is not a claim that the gates are wired to every live action surface today.

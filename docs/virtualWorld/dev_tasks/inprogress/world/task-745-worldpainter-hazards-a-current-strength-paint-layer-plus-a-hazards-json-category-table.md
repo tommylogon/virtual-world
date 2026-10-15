@@ -63,6 +63,21 @@ TODO
 
 TODO
 
+## Browser UI and intended live verification
+
+Intended UI home: Build → WorldPainter → current/strength paint layer and cell Inspector; game traversal for the resulting hazard.
+
+Current availability: The hazard registry and engine reader are present; the current paint layer and authored current behavior remain open.
+
+Live steps when available:
+
+1. Open a painted river scope, select the current layer, and paint direction/strength on a current-bearing cell.
+   - expected: The cell Inspector shows the flow direction and strength consumed by the hazard definition.
+
+2. Play a scratch traversal across that reach at low and high strength.
+   - expected: The authored check and outcome apply through existing traversal without a second hazard table.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. TODO

@@ -22,6 +22,21 @@ TODO
 
 TODO
 
+## Browser UI and intended live verification
+
+Intended UI home: Graph editor → Graph mode with a multi-area painted scope.
+
+Current availability: Content-node placement relative to owning areas is still open.
+
+Live steps when available:
+
+1. Open a painted scope in Graph mode and inspect characters, items, triggers, and uncelled ways around their areas.
+   - expected: Content nodes form local groups rather than collapsing into a central pile.
+
+2. Enable physics briefly and then disable it.
+   - expected: The graph stays readable, edges remain local, and authored area positions stay fixed.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. TODO

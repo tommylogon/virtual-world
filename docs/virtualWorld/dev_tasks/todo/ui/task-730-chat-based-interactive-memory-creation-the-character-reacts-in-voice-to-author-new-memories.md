@@ -88,3 +88,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Select a character → Inspector → 🧠 Mind → Memories → “✨ Gen Memory” / interactive memory authoring. Keep the accepted record in that character's existing `Player.memories` list.
+
+Current availability: The task describes replacing the one-shot theme-to-JSON draft with a character-driven conversation. Iteration, accept/cancel controls, and persistence behavior are planned and not claimed as implemented.
+
+Live steps when available:
+1. Open Mind → Memories for two characters with clearly different authored personalities and existing memory sets; start the same proposed experience for each.
+   - expected: each character responds in their own voice and grounds its response in their existing memories/relationships; the two responses differ in a way supported by those records.
+2. For one character, send a follow-up that changes the draft, then inspect any linked prior memories and accept the final turn.
+   - expected: the changed draft is visible before acceptance, entity references link to existing memories, and exactly one new memory is added with tags and `memory_emotions` through `addPlayerMemory`.
+3. Start another draft and cancel it; inspect `/api/state` memory count before and after.
+   - expected: cancellation writes zero memories and does not change the existing memory list.
+4. Repeat with no LLM configured.
+   - expected: the panel reports a visible configuration error instead of silently doing nothing.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.

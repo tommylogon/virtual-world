@@ -116,6 +116,21 @@ TODO
 
 TODO
 
+## Browser UI and intended live verification
+
+Intended UI home: Soak Lab → space-time view.
+
+Current availability: The swimlane and condition-ribbon visualization is still being implemented.
+
+Live steps when available:
+
+1. Open a recorded soak run in the space-time view and inspect area lanes and character timelines.
+   - expected: Each character’s presence occupies the correct area lane and time interval.
+
+2. Inspect two co-present characters and a condition change.
+   - expected: Their intervals overlap in time and condition ribbons mark the corresponding periods.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. TODO

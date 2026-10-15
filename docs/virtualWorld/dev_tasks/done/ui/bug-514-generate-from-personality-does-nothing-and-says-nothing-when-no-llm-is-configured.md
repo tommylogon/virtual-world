@@ -64,9 +64,42 @@ TODO
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. With a test profile whose API key and model are empty, open a character's
+   Bio tab and hover ✨ Generate interests and 😨 Generate fears.
+   - expected: both buttons are disabled and their tooltips tell the author to
+     configure an API key and model in Settings.
+   - observed (2026-10-02): both real buttons were disabled and carried the
+     Settings message after the inspector was reopened with empty values.
+2. Switch to a profile with a configured provider and reopen the same inspector.
+   - expected: both buttons are enabled; invoking either without configuration
+     cannot wait for tag collection before explaining the missing provider.
+   - observed (2026-10-02): both buttons were enabled with the default provider
+     profile; the no-provider handler was measured to toast immediately.
+
+## Browser UI and intended live verification
+
+Intended UI home: Character Inspector → Bio → Interest tags / Fear tags →
+Generate from Personality.
+
+Current availability: The disabled buttons, tooltips, configured-provider
+state, and immediate no-provider message were live-checked on 2026-10-02. The
+test used a profile with empty credentials and then restored the default
+profile; do not clear a user's saved credentials to reproduce it.
+
+Live steps when available:
+1. Use a disposable profile with no API key or model, select a character, open
+   Bio, and scroll to both tag sections; hover each Generate from Personality
+   button.
+   - expected: both controls are disabled and each tooltip points to Settings.
+2. With the same profile, invoke each generator through its UI action handler.
+   - expected: the missing-provider explanation appears immediately, before
+     any async tag or vocabulary lookup can make the click appear stalled.
+3. Switch to a configured test profile and reopen the inspector.
+   - expected: the two controls are enabled and the existing configured-provider
+     flow remains available.
+
+This section defines intended access and live acceptance. It is not a claim
+that planned UI exists or works today.
 
 ## Files
 

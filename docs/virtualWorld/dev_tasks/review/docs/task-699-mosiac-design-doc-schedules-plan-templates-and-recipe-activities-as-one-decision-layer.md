@@ -57,3 +57,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Not applicable — this card changes the design manual at `docs/virtualWorld/design/Character Pursuits.md`; it does not add a browser interaction.
+
+Current availability: The design note exists. Runtime behavior is tracked by the linked implementation cards and is not asserted by this documentation card.
+
+Live steps when available: Not applicable.
+
+Why no browser UI: The deliverable is a written design reference, not a player or authoring surface.
+
+Alternative verification steps:
+1. Open `docs/virtualWorld/design/Character Pursuits.md` and follow its sections for Goal, Mission, Pursuit, Schedule, Plan, Activity, and Recipe.
+   - expected: each term has a distinct definition, and the text explains how LLM agents and background simulation use the same vocabulary.
+2. Read the Vekka scouting and James sleep examples in that note.
+   - expected: Vekka's motive, supplies, route, return/report condition and interruption remain distinct from her short-term plan; James travels home before sleeping on a named bed, and the world recipe is separate from the Activity.
+
+This section defines intended access and live acceptance. It is not a claim that planned UI exists or works today. Current availability says what is implemented and verified now; the numbered steps say how to reach and test the intended surface once it is available.

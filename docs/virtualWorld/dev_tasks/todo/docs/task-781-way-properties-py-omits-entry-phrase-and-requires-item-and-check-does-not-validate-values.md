@@ -35,3 +35,21 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Not applicable — this task verifies the complete way-property vocabulary and its generated index/checker. A single Inspector view cannot prove that the declared property set is exhaustive or that every value tuple matches engine readers.
+
+Current availability: the card identifies omitted `entry_phrase` and `requires_item`, and a drifted `current_state` list (`broken` listed, `hidden` omitted, `see_through` misclassified). The declaration/checker correction is planned.
+
+Why no browser UI: the acceptance is exhaustive agreement between `tools/way_properties.py`, engine readers, allowed values, and generated reference output; this is a tooling contract rather than a browser behavior change.
+
+Alternative verification steps:
+1. Run `python tools/way_property_index.py --report` and inspect the complete property count and declarations from `tools/way_properties.py`.
+   - expected: `entry_phrase` and `requires_item` are included; `hidden` is represented in the correct state set; `broken` and `see_through` are classified according to their engine semantics.
+2. Run `python tools/way_property_index.py --check` after changing a declared value tuple without updating its generated page/check data.
+   - expected: the check fails on that exact drift, then passes after the declaration and generated index agree.
+3. Search the Way Inspector property editor for one example each of `entry_phrase`, `requires_item`, and a hidden state after the source contract is corrected.
+   - expected: authoring controls expose the declared values the engine reads; the editor does not offer an undeclared substitute.
+
+This section is not a claim that planned tooling checks are implemented or passing today.

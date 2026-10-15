@@ -89,6 +89,21 @@ TODO
 
 TODO
 
+## Browser UI and intended live verification
+
+Intended UI home: Graph editor → Map mode, using the map spacing control and visible item/way placement.
+
+Current availability: Pitch-based drawing changes are in progress; full map behavior at multiple pitches needs browser verification.
+
+Live steps when available:
+
+1. Load a painted scope in Map mode and inspect area, way, and item marks at default pitch, then increase spacing.
+   - expected: Mark sizes, fonts, item offsets/rings, and solver spacing scale as intended; items remain beside holder areas.
+
+2. Return to default pitch and compare the view.
+   - expected: Default appearance is preserved and item/way rings do not collapse into their areas.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. TODO

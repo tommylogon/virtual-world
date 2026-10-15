@@ -132,3 +132,21 @@ bit-for-bit unchanged.
 - `engine/foraging.py` — `find_or_spawn` adds the depth to the search DC.
 - `engine/area_description.py` — `weather_description` narrates the depth.
 - `tests/test_snow_accumulation.py` — mechanism, wiring and reader tests.
+
+## Browser UI and intended live verification
+
+Intended UI home: exterior area with snowfall → inspect area surface/environment → move and forage in the game view → advance to clearing weather and inspect snow depth.
+
+Current availability: the card marks snow accumulation, hourly melt, movement energy, forage DC, and save/load persistence as implemented. It records state/mechanism evidence; a fresh live browser run is not claimed here.
+
+Live steps when available:
+1. Load an exterior area under snowy weather and inspect its environment properties before and after one simulation hour.
+   - expected: snow depth accumulates on that area and is stored in its `environment` properties.
+2. Change the forecast to clear and advance one hour at a time.
+   - expected: depth decays at `SNOW_MELT_CM_PER_HOUR`; the snow key remains until depth reaches zero.
+3. Move through shallow and deep snow and forage in the same area.
+   - expected: deep snow adds `snow_movement_energy` and snow adds `snow_forage_dc_penalty` to the corresponding actions.
+4. Save/reload mid-snowfall and inspect the surface and state.
+   - expected: depth and resulting movement/forage effects persist after reload.
+
+This section is not a claim that the full snow loop has been freshly browser-verified today.

@@ -101,3 +101,23 @@ so a Python module can declare a reasoned absence without failing the guard.
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: Not applicable — the feature is an HTTP documentation-resolver API, not a rendered author/player screen. Its JSON is directly inspectable at `/api/docs/resolve` in a browser address bar or API client.
+
+Current availability: the card records module/node lookup, one-time cached indexing, exclusion of `dev_tasks/`, traversal protection, and fixture plus real-repo smoke tests. The route is not claimed as a browser UI.
+
+Why no browser UI: the API returns resolver metadata rather than a user interface; opening the URL directly can verify its response but does not create a product screen.
+
+Alternative verification steps:
+1. Open `/api/docs/resolve?module=engine/tick_manager.py` in the browser.
+   - expected: JSON resolves to the Turn Queue & Human Turns note with a valid rendered-body path.
+2. Open `/api/docs/resolve?node=way_4f2a` for an existing node with a docs field.
+   - expected: the node's documentation resolves from the permitted node docs source.
+3. Request a path under `dev_tasks/` and traversal examples such as `../../etc/passwd`.
+   - expected: the response is byte-identical to a plain miss and does not reveal whether a dev-task path exists.
+4. Repeat a valid lookup and inspect the index build counter.
+   - expected: the documentation corpus is indexed once and reused; a repeated request does not rescan it.
+
+This section is not a claim that the resolver is a user-facing browser page.

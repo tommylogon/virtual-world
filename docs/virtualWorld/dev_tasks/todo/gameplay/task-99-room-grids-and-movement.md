@@ -120,3 +120,21 @@ TODO
 ## Acceptance
 
 - [ ] TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: select an area → open its local grid/map view → move a character between cells and inspect item placement and NPC path movement within that area.
+
+Current availability: areas are currently dimensionless graph nodes according to this card. The 2D room grid, within-area movement costs, positioned items, and NPC pathfinding are planned; this section does not claim a grid UI exists today.
+
+Live steps when available:
+1. Open a scratch area's grid, place a character and an item in distinct cells, then move the character toward the item.
+   - expected: the character changes cell along a valid path and its movement cost reflects the crossed cells; the item remains at its authored position.
+2. Place an obstacle between the character and target, then request movement again.
+   - expected: pathfinding routes around the obstacle when a route exists and refuses movement when the grid truly blocks all routes.
+3. Give an NPC a destination in the same area and let its normal movement run.
+   - expected: the NPC follows the same grid path/cost rules as the controlled character; area-level graph location remains the same until it exits through a way.
+4. Reload the scenario and inspect the grid and item positions.
+   - expected: authored cell placement persists; runtime movement state follows its documented save behavior.
+
+This section is not a claim that planned UI exists or works today.

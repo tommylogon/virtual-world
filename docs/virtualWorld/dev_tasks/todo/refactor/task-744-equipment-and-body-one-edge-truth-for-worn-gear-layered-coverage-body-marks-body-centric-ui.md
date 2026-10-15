@@ -72,3 +72,22 @@ TODO
 ## Files
 
 - TODO
+
+## Browser UI and intended live verification
+
+Intended UI home: select a character → Character Inspector → body-centric equipment view. Inspect each worn item against body regions, layer/coverage, and body marks; the view should project one edge-backed equipment truth.
+
+Current availability: the card's first deliverable is a design plan. It measures `player.equipped` as a runtime view that is also persisted and can mint `EDGE_CONNECTION` edges on load, creating duplicate representations. The body-centric view and store consolidation are not claimed as implemented.
+
+Live steps when available:
+These steps apply after the design slices land:
+1. Open a character with layered worn gear and inspect every body region and worn item in the body view.
+   - expected: coverage/under-layer order and body marks are visible; each worn relationship maps to the authoritative equipment edge once.
+2. Equip, remove, and layer one item through the Inspector; save and reload.
+   - expected: the UI updates from the edge-backed state, and reload creates no duplicate `equipped` record or `EDGE_CONNECTION` edge.
+3. Inspect the same character through Inventory and the body view.
+   - expected: both views agree on item ownership and worn state without keeping conflicting persisted copies.
+4. Add a body mark and inspect the affected region.
+   - expected: the mark is attached to the correct body region and does not alter item containment or equipment edges.
+
+This section is not a claim that the planned body-centric UI exists or works today.

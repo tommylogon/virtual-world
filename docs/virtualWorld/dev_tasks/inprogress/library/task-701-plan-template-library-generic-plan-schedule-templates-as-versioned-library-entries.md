@@ -65,6 +65,21 @@ fields, bindings, and Activity references. Added `meal`, `scout-and-report`, and
 library writer and pursuit-template loader preserve arbitrary authored fields.
 The UI browser's declared tab type still omits `pursuit_templates`.
 
+## Browser UI and intended live verification
+
+Intended UI home: Build → Library → Pursuit Templates in the existing editor; Character Inspector → Mind → Pursuit for the copied instance.
+
+Current availability: The registry and seven entries bind actor-specific values; the library tab is missing and generic execution/selection is incomplete.
+
+Live steps when available:
+
+1. Open the Library editor’s Pursuit Templates category and inspect a reusable scout or sleep entry.
+   - expected: The existing editor exposes the versioned, character-agnostic template and its authored fields.
+
+2. Bind it to a character, then inspect that character’s Mind → Pursuit.
+   - expected: The character-side instance carries its own reason and world references; it does not reference the source template as live state.
+
+This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
 1. Run `python -m pytest tests/test_pursuit_templates.py`.
