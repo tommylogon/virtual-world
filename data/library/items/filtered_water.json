@@ -1,0 +1,47 @@
+{
+  "name": "filtered_water",
+  "description": "Cloth-filtered water, clear to the eye. Still flagged unsafe - boil it.",
+  "actions": "examine,take,use,drink,drop",
+  "uses": 1,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "drink",
+    "water",
+    "unsafe_water"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_drink"
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "",
+            "success_message": "Looks clean. Probably mostly is."
+          }
+        },
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Thirst",
+            "amount": -30,
+            "target": "self"
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "Looks clean. Probably mostly is.",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

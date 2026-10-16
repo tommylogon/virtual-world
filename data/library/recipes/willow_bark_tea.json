@@ -1,0 +1,36 @@
+{
+  "id": "willow_bark_tea",
+  "name": "Willow-Bark Tea",
+  "description": "Brew willow bark against pain.",
+  "ingredients": [
+    {"item": "boiled_water", "count": 1, "consumed": true},
+    {"item": "willow_bark", "count": 1, "consumed": true},
+    {"item": "cup", "count": 1, "consumed": false}
+  ],
+  "conditions": [],
+  "duration_min": 10,
+  "skill_check": {"skill": "Medicine", "dc": 10},
+  "outputs": [{"item": "willow_tea", "count": 1}],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [{"item": "willow_tea", "count": 2}],
+      "message": "Strong brew — the ache genuinely dulls."
+    },
+    "success": {
+      "outputs": [{"item": "willow_tea", "count": 1}],
+      "message": ""
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "weak_tea", "count": 1}],
+      "message": "Too weak to help, too warm to waste."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "bitter_sludge", "count": 1}],
+      "message": "Boiled to pure bitterness."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

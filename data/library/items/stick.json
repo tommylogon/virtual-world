@@ -1,0 +1,18 @@
+{
+  "name": "stick",
+  "description": "A straight dry stick, about torch-length.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 1,
+  "tags": [
+    "wood",
+    "fuel"
+  ],
+  "triggers": [],
+  "contents": []
+}

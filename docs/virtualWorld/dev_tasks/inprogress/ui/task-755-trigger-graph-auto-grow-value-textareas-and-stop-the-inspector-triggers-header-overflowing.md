@@ -20,6 +20,17 @@ Trigger-graph value textareas are fixed rows=2 and scroll instead of growing wit
 - [x] A textarea with an existing long value is sized on open and on every node re-render.
 - [x] The inspector triggers header's five buttons wrap instead of clipping on a narrow panel (`flex-wrap` on the header and button row).
 - [ ] Live: open the trigger graph, type a multi-line message, confirm the box grows; narrow the inspector and confirm the header buttons wrap.
+  (2026-10-16 live on :4444: `_autoGrow` measured on a real
+  `textarea.tg-field` — 36px scrolling → 52px grown, no scrollbar;
+  node render calls `_sizeTextareas` after every render
+  (`trigger-graph.js:1632`); typing grows via the delegated canvas
+  `input` listener (same proven function). Header wrap is
+  source-verified (`flex-wrap` on header + button row,
+  `trigger-helpers.js:152/154`) but has no narrow-panel screenshot
+  yet. Retraction note: an early "unsized textarea" sighting was my
+  own synthetic-test litter (a canvas-child textarea without
+  `data-key`), not app UI — removed, and the real node path sizes
+  on render.)
 
 ## Notes
 

@@ -1,0 +1,30 @@
+{
+  "name": "Missing",
+  "description": "A body part that is gone — lost, severed, or never there. A hook or peg leg goes in appearance modifications; this is the mechanical fact of absence.",
+  "blocks_actions": false,
+  "blocks_movement": false,
+  "blocks_speech": false,
+  "auto_fail_checks": [],
+  "auto_fail_saves": [],
+  "attack_mod": 0,
+  "defense_mod": 0,
+  "speed_mult": 1.0,
+  "movement_mode": null,
+  "drops_held_items": false,
+  "periodic": {},
+  "ends_on": [
+    "cure"
+  ],
+  "known": true,
+  "symptoms": {
+    "1": "The {body_part} is missing."
+  },
+  "stack": "noop",
+  "default_duration": null,
+  "excludes": [],
+  "order": 14,
+  "perception_skip": false,
+  "check_advantage": [],
+  "check_disadvantage": [],
+  "tags": []
+}

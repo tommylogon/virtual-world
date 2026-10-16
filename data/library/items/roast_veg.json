@@ -1,0 +1,46 @@
+{
+  "name": "roast_veg",
+  "description": "Coal-roasted roots with crisped edges and fat.",
+  "actions": "examine,take,use,eat,drop",
+  "uses": 2,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "food",
+    "cooked"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_eat"
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "",
+            "success_message": "Sweet, smoky, soft inside."
+          }
+        },
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Hunger",
+            "amount": -20,
+            "target": "self"
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "Sweet, smoky, soft inside.",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

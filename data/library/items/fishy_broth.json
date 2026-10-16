@@ -1,0 +1,47 @@
+{
+  "name": "fishy_broth",
+  "description": "A thin broth that tastes mostly of pond.",
+  "actions": "examine,take,use,eat,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "food",
+    "fish",
+    "cooked"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_eat"
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "",
+            "success_message": "Fishy, but warm."
+          }
+        },
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Hunger",
+            "amount": -12,
+            "target": "self"
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "Fishy, but warm.",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

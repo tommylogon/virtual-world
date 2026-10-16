@@ -1,0 +1,20 @@
+{
+  "name": "clay_oven",
+  "description": "A domed clay oven, wood-fired and slow to heat. Too heavy to move.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 200,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "station",
+    "furniture",
+    "fire",
+    "heavy"
+  ],
+  "triggers": [],
+  "contents": []
+}

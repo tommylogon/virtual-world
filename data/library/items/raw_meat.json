@@ -1,0 +1,46 @@
+{
+  "name": "raw_meat",
+  "description": "A cut of raw meat, bloody and fresh. Better cooked than not.",
+  "actions": "examine,take,use,eat,drop",
+  "uses": 1,
+  "weight": 0.8,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "food",
+    "meat"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_eat"
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "",
+            "success_message": "Chewy, bloody, regrettable — but food."
+          }
+        },
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Hunger",
+            "amount": -8,
+            "target": "self"
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "Chewy, bloody, regrettable — but food.",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

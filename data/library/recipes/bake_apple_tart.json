@@ -1,0 +1,39 @@
+{
+  "id": "bake_apple_tart",
+  "name": "Bake Apple Tart",
+  "description": "Apples and honey in dough, baked in the clay oven.",
+  "ingredients": [
+    {"item": "dough", "count": 1, "consumed": true},
+    {"item": "apple", "count": 2, "consumed": true},
+    {"item": "honey", "count": 1, "consumed": true},
+    {"item": "clay_oven", "count": 1, "consumed": false}
+  ],
+  "conditions": [
+    {"type": "state_equals", "target": "campfire", "value": "on"}
+  ],
+  "duration_min": 30,
+  "skill_check": {"skill": "Cooking", "dc": 13},
+  "outputs": [{"item": "apple_tart", "count": 1}],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [{"item": "apple_tart", "count": 2}],
+      "message": "Golden lattice, bubbling centers — double."
+    },
+    "success": {
+      "outputs": [{"item": "apple_tart", "count": 1}],
+      "message": ""
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "apple_tart", "count": 1}],
+      "message": "Soggy bottom, but tart."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "burned_tart", "count": 1}],
+      "message": "Blackened beyond rescue."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

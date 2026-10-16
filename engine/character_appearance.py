@@ -608,10 +608,12 @@ def render_prose(node, resolve=None) -> str:
     deliberately plain and factual — the LLM's voice owns the prose, this only
     has to get the facts onto the page in a readable order.
     """
-    looks = appearance(node)
-    if not looks:
-        return ""
-    looks = dict(looks)
+    return render_record_prose(get_record(node), resolve)
+
+
+def render_record_prose(record: Dict[str, Any], resolve=None) -> str:
+    """Render a validated block's appearance as prose (no node needed)."""
+    looks = dict((record or {}).get("appearance") or {})
     if resolve:
         for group in ("hair", "eyes", "skin"):
             block = looks.get(group)
@@ -688,7 +690,16 @@ def compile_persona(node, resolve=None) -> Dict[str, Any]:
     decide what to write and never clobber hand prose without ``force`` —
     see the record routes. Pure: reads the node, writes nothing.
     """
-    record = get_record(node)
+    return compile_record(get_record(node), resolve)
+
+
+def compile_record(record: Dict[str, Any], resolve=None) -> Dict[str, Any]:
+    """Project a validated block (not necessarily stored) into primitives.
+
+    The dry-run seam: the import flow and the Persona tab's live preview
+    compile a candidate block without touching the node.
+    """
+    record = dict(record or {})
     ident = record.get("identity") or {}
     pers = record.get("personality") or {}
     narr = record.get("narrative") or {}
@@ -703,7 +714,7 @@ def compile_persona(node, resolve=None) -> Dict[str, Any]:
         if ident.get(key):
             lead_bits.append(str(ident[key]))
     lead = f"A {' '.join(lead_bits)}. " if lead_bits else ""
-    body = render_prose(node, resolve)
+    body = render_record_prose(record, resolve)
     base_description = (lead + body).strip()
 
     extra = []
@@ -863,11 +874,14 @@ def schema_for_llm() -> Dict[str, Any]:
     for field, (kind, subfields) in APPEARANCE_FIELDS.items():
         if kind == "group":
             appearance_block[field] = {
-                sub: ({"type": "array", "items": {"type": "string"}}
-                      if sub in APPEARANCE_LIST_SUBS
-                      else {"type": "string",
-                            "description": f"{field} {sub}"})
-                for sub in subfields
+                "type": "object",
+                "properties": {
+                    sub: ({"type": "array", "items": {"type": "string"}}
+                          if sub in APPEARANCE_LIST_SUBS
+                          else {"type": "string",
+                                "description": f"{field} {sub}"})
+                    for sub in subfields
+                },
             }
         elif kind == "number":
             appearance_block[field] = {"type": "number"}
@@ -910,10 +924,13 @@ def schema_for_llm() -> Dict[str, Any]:
     for field, (kind, subfields) in NARRATIVE_FIELDS.items():
         if kind == "group":
             narrative_block[field] = {
-                sub: ({"type": "array", "items": {"type": "string"}}
-                      if sub in ("hidden_facts", "known_by")
-                      else {"type": "string"})
-                for sub in subfields
+                "type": "object",
+                "properties": {
+                    sub: ({"type": "array", "items": {"type": "string"}}
+                          if sub in ("hidden_facts", "known_by")
+                          else {"type": "string"})
+                    for sub in subfields
+                },
             }
         elif kind == "proselist":
             narrative_block[field] = {"type": "array",

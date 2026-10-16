@@ -1,0 +1,17 @@
+{
+  "name": "spoiled_mash",
+  "description": "Herbs gone wrong — sour, grey, useless for healing.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "waste"
+  ],
+  "triggers": [],
+  "contents": []
+}

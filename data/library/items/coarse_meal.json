@@ -1,0 +1,18 @@
+{
+  "name": "coarse_meal",
+  "description": "Coarsely ground meal, gritty between the fingers. Bakes rough but honest.",
+  "actions": "examine,take,drop",
+  "uses": 3,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "grain",
+    "meal"
+  ],
+  "triggers": [],
+  "contents": []
+}

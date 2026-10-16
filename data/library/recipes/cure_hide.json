@@ -1,0 +1,37 @@
+{
+  "id": "cure_hide",
+  "name": "Cure Hide",
+  "description": "Salt and ash-cure a raw hide on the rack.",
+  "ingredients": [
+    {"item": "raw_hide", "count": 1, "consumed": true},
+    {"item": "salt", "count": 2, "consumed": true},
+    {"item": "wood_ash", "count": 1, "consumed": true},
+    {"item": "hide_rack", "count": 1, "consumed": false}
+  ],
+  "conditions": [],
+  "duration_min": 1440,
+  "skill_check": {"skill": "Leatherwork", "dc": 11},
+  "outputs": [{"item": "cured_hide", "count": 1}],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [{"item": "cured_hide", "count": 2}],
+      "message": "Supple cure — stretched to two."
+    },
+    "success": {
+      "outputs": [{"item": "cured_hide", "count": 1}],
+      "message": ""
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "stiff_hide", "count": 1}],
+      "message": "Stiff but craftable — worse cuts."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "rotted_hide", "count": 1}],
+      "message": "Rotted on the rack — lost."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

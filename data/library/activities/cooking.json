@@ -1,0 +1,20 @@
+{
+  "id": "cooking",
+  "name": "cooking",
+  "description": "Cooking",
+  "condition": "busy",
+  "regen": {},
+  "blocks_turns": true,
+  "interruptible": true,
+  "preposition": "at",
+  "completion": [
+    {
+      "type": "duration_elapsed"
+    }
+  ],
+  "on_complete": [
+    {
+      "type": "finish_craft"
+    }
+  ]
+}

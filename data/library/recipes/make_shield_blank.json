@@ -1,0 +1,36 @@
+{
+  "id": "make_shield_blank",
+  "name": "Shield Blank",
+  "description": "Join oak planks into a shield blank with cord.",
+  "ingredients": [
+    {"item": "oak_plank", "count": 2, "consumed": true},
+    {"item": "rope", "count": 1, "consumed": true},
+    {"item": "workbench", "count": 1, "consumed": false}
+  ],
+  "conditions": [],
+  "duration_min": 90,
+  "skill_check": {"skill": "Woodcraft", "dc": 11},
+  "outputs": [{"item": "shield_blank", "count": 1}],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [{"item": "shield_blank", "count": 1}],
+      "message": "Tight seams, light and strong."
+    },
+    "success": {
+      "outputs": [{"item": "shield_blank", "count": 1}],
+      "message": ""
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "heavy_shield", "count": 1}],
+      "message": "Overbuilt and heavy — slow, but protective."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "split_blank", "count": 1}],
+      "message": "Split planks — firewood."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

@@ -244,6 +244,66 @@ window.PromptBuilder = window.PromptBuilder || {};
      * @param slots - remaining turn_slots; when present, verbs the budget cannot pay for are dropped
      * @returns The block ('' if nothing would be listed — never happens)
      */
+    /**
+     * task-840: craftable-now recipe suggestions. Reads the known-recipes
+     * cache (filled from GET /api/players/<n>/recipes, refreshed in the
+     * background); matches ingredients against carried + area items the
+     * same lenient way the backend does. Guidance only.
+     */
+    const _recipeCache: Record<string, { at: number; list: Array<Record<string, any>> }> = {};
+
+    function knownRecipes(charName: string): Array<Record<string, any>> {
+        return (_recipeCache[charName] && _recipeCache[charName].list) || [];
+    }
+
+    function refreshKnownRecipes(charName: string): void {
+        const cached = _recipeCache[charName];
+        if (cached && Date.now() - cached.at < 60000) return;
+        _recipeCache[charName] = { at: Date.now(), list: cached ? cached.list : [] };
+        fetch(`/api/players/${encodeURIComponent(charName)}/recipes`, {
+            headers: { 'Accept': 'application/json' }
+        }).then(r => r.ok ? r.json() : Promise.reject(new Error(String(r.status))))
+            .then((data: any) => {
+                _recipeCache[charName] = { at: Date.now(), list: data.recipes || [] };
+            })
+            .catch(() => { /* guidance is best-effort; stale list stands */ });
+    }
+
+    function craftableLines(charName: string, player: PlayerLike, currentArea: AreaLike | null): string[] {
+        refreshKnownRecipes(charName);
+        const known = knownRecipes(charName);
+        if (!known.length) return [];
+        const have = new Set<string>();
+        for (const item of carriedItemNodes(charName)) {
+            have.add(String(item.name || '').toLowerCase());
+        }
+        try {
+            const areaNode = currentArea?.name ? worldState.getNodeByIdentifier(currentArea.name) : null;
+            const areaId = areaNode ? areaNode.id : null;
+            for (const edge of (worldState.graph?.edges || [])) {
+                if (areaId && edge.target === areaId && edge.type !== 'carrying' && edge.type !== 'equipped') {
+                    const node = worldState.getNode(edge.source);
+                    if (node && node.type === 'item') {
+                        have.add(String(node.name || '').toLowerCase());
+                    }
+                }
+            }
+        } catch { /* area scan is best-effort */ }
+        const out: string[] = [];
+        for (const recipe of known) {
+            const ingredients = Array.isArray(recipe.ingredients) ? recipe.ingredients : [];
+            const missing = ingredients.filter((ing: any) => {
+                const needle = String(ing.item || '').toLowerCase();
+                return needle && ![...have].some((h) => h.includes(needle) || needle.includes(h));
+            });
+            if (missing.length) continue;
+            const mins = Number(recipe.duration_min || 0);
+            out.push(`make ${recipe.name} — cook ${String(recipe.name).toLowerCase()}${mins > 0 ? ` (${mins} min)` : ''}`);
+            if (out.length >= 5) break;
+        }
+        return out;
+    }
+
     function buildAvailableActionsBlock(state: WorldStateData, charName: string,
                                         player: PlayerLike, currentArea: AreaLike | null,
                                         slots?: Record<string, number> | null): string {
@@ -310,6 +370,11 @@ window.PromptBuilder = window.PromptBuilder || {};
         keep('look', 'look — look around');
         keep('inventory', 'inventory — check your inventory');
         keep('stats', 'stats — check your stats');
+        // task-840: craftable-now recipes as guidance (backend resolves
+        // leniently, so this only suggests — never gates).
+        for (const line of craftableLines(charName, player, currentArea)) {
+            keep('make', line);
+        }
         // The turn's exit. Never hidden: with no slots left this is the only way
         // to end the turn, and hiding it would strand the character.
         lines.push('wait — wait or hold still');

@@ -1,0 +1,19 @@
+{
+  "name": "salt_barrel",
+  "description": "A barrel of layering salt for pork and fish. Stays where it is.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 90,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "station",
+    "container",
+    "heavy"
+  ],
+  "triggers": [],
+  "contents": []
+}

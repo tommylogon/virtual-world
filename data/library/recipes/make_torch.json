@@ -1,0 +1,36 @@
+{
+  "id": "make_torch",
+  "name": "Make Torch",
+  "description": "Wrap a stick with cloth and tallow for an unlit torch.",
+  "ingredients": [
+    {"item": "stick", "count": 1, "consumed": true},
+    {"item": "cloth_scrap", "count": 1, "consumed": true},
+    {"item": "tallow", "count": 1, "consumed": true}
+  ],
+  "conditions": [],
+  "duration_min": 10,
+  "skill_check": {"skill": "Survival", "dc": 8},
+  "outputs": [{"item": "torch", "count": 1}],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [{"item": "torch", "count": 2}],
+      "message": "Two tight, even wraps — both will light clean."
+    },
+    "success": {
+      "outputs": [{"item": "torch", "count": 1}],
+      "message": ""
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "soggy_torch", "count": 1}],
+      "message": "Too much tallow, wrapped too loose — it will never light."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [],
+      "message": "The wrap slides off into the dirt — wasted materials."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

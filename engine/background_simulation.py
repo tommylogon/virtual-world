@@ -375,6 +375,43 @@ class BackgroundSimulation:
             "visible": True,
         }
 
+    def _cook_meal(self, p):
+        """Start a cooking Activity the camp can afford (task-840 Q3).
+
+        Hungry, no ready food, but a known timed recipe whose inputs are
+        reachable: open the same cooking Activity a human's `Make X`
+        opens, with this character swapped in as the actor. Returns
+        ``(minutes, "cook")`` or None. Instant (untimed) recipes are
+        skipped — ready food already ate above; cooking here is the
+        timed path. Never emits verbs: the Activity is the action.
+        """
+        try:
+            known = self.gs.crafting.known_recipes(p.name)
+        except Exception:
+            return None
+        active = getattr(self.gs, "active_player", None)
+        for recipe in known:
+            try:
+                minutes = int(recipe.get("duration_min", 0) or 0)
+            except (TypeError, ValueError):
+                continue
+            if minutes <= 0:
+                continue
+            try:
+                self.gs.active_player = p.name
+                self.gs.crafting.start_cooking(self.gs, recipe["name"])
+            except Exception:
+                # Unaffordable, unknown, gated — next recipe, or nothing.
+                continue
+            finally:
+                try:
+                    self.gs.active_player = active
+                except Exception:
+                    pass
+            if getattr(p, "activity", None):
+                return minutes, "cook"
+        return None
+
     def _act(self, name, p, served=None, remaining=None):
         """Take the character's next action in this turn's flow.
 
@@ -492,6 +529,14 @@ class BackgroundSimulation:
                         served.add("eat")
                         self._begin_task(p, "foraging", TASK_MINUTES["forage"], remaining)
                         return TASK_MINUTES["forage"], "forage"
+            # Hungry with ingredients but no ready food: cook instead of
+            # wandering. The same start_cooking dispatch the turn modal
+            # uses — one path for humans, agents and backsim (task-840).
+            if "cook" not in served:
+                cooked = self._cook_meal(p)
+                if cooked is not None:
+                    served.add("cook")
+                    return cooked
             if self._travel_toward(p, FOOD_TAGS, "hunger"):
                 return TASK_MINUTES["travel"], "travel"
 

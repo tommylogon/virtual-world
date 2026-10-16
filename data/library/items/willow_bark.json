@@ -1,0 +1,19 @@
+{
+  "name": "willow_bark",
+  "description": "Strips of willow bark. Chewed or brewed against pain.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "herb",
+    "medicinal",
+    "bark"
+  ],
+  "triggers": [],
+  "contents": []
+}

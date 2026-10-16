@@ -195,11 +195,15 @@ class ActivitySystem:
         elif condition:
             player.remove_condition(condition)
 
-        # Data-driven on-complete actions
+        # Data-driven on-complete actions. finish_craft resolves only
+        # on finished: an interrupted cook must never consume or spawn.
+        # (auto_dress keeps its historical behavior on every ending.)
         on_complete = definition.get("on_complete") or []
         complete_outputs = []
         for action in on_complete:
             action_type = action.get("type")
+            if action_type == "finish_craft" and reason != "finished":
+                continue
             if action_type == "auto_dress":
                 try:
                     dressed = self.dress_from_pile(player_name)
@@ -207,10 +211,26 @@ class ActivitySystem:
                         complete_outputs.append(dressed)
                 except ValueError:
                     pass
+            elif action_type == "finish_craft":
+                # Task-840: the recipe ref rides the (already cleared)
+                # activity dict, passed explicitly — player.activity is
+                # None by this point in end_activity.
+                try:
+                    finished = self.world.crafting.complete_cooking(
+                        self.world, player_name,
+                        recipe_ref=(activity or {}).get("recipe_id"))
+                    if finished:
+                        complete_outputs.append(finished)
+                except ValueError as e:
+                    complete_outputs.append(str(e))
 
         label = reason if reason != "finished" else f"finished {activity_description(activity)}"
         self._turn_event(player_name, "activity_end", f"{label}.")
-        return label
+        # On-complete outputs used to die here (collected, never
+        # returned): the craft result and the auto-dress line now
+        # reach the actor.
+        parts = [label] + [str(o) for o in complete_outputs if str(o).strip()]
+        return "\n".join(parts)
 
     def interrupt_activity(self, player_name: str) -> Optional[str]:
         """End an activity abruptly (character does something else)."""
@@ -270,8 +290,11 @@ class ActivitySystem:
         # Generic completion checks
         for condition in definition.get("completion") or []:
             if self._check_completion(activity, condition, player):
-                self.end_activity(player_name, reason="finished")
-                outputs.append(f"You finish {activity_type}.")
+                done = self.end_activity(player_name, reason="finished")
+                if done and done != f"finished {activity_description(activity)}":
+                    outputs.append(done)
+                else:
+                    outputs.append(f"You finish {activity_type}.")
                 return "\n".join(outputs) if outputs else None
 
         return "\n".join(outputs) if outputs else None

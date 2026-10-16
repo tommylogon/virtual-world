@@ -1,0 +1,39 @@
+{
+  "id": "scrambled_eggs_herbs",
+  "name": "Scrambled Eggs with Herbs",
+  "description": "Scramble eggs with herbs and butter in a pan.",
+  "ingredients": [
+    {"item": "raw_egg", "count": 2, "consumed": true},
+    {"item": "herb_bunch", "count": 1, "consumed": true},
+    {"item": "butter", "count": 1, "consumed": true},
+    {"item": "frying_pan", "count": 1, "consumed": false}
+  ],
+  "conditions": [
+    {"type": "state_equals", "target": "campfire", "value": "on"}
+  ],
+  "duration_min": 10,
+  "skill_check": {"skill": "Cooking", "dc": 11},
+  "outputs": [{"item": "herbed_eggs", "count": 1}],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [{"item": "herbed_eggs", "count": 2}],
+      "message": "Fluffy, fragrant, doubled."
+    },
+    "success": {
+      "outputs": [{"item": "herbed_eggs", "count": 1}],
+      "message": ""
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "plain_scramble", "count": 1}],
+      "message": "Herbs burned off — plain scramble, no bonus."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "burned_egg", "count": 1}],
+      "message": "Scorched scramble. The pan needs soaking."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

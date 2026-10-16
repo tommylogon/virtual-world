@@ -1,0 +1,18 @@
+{
+  "name": "leaky_bucket",
+  "description": "A bucket with a fatal gap between staves. Holds dry goods only.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 1.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "container",
+    "wood"
+  ],
+  "triggers": [],
+  "contents": []
+}

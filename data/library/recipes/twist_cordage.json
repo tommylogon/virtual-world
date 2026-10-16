@@ -1,0 +1,34 @@
+{
+  "id": "twist_cordage",
+  "name": "Cordage from Fibre",
+  "description": "Twist plant fibre into cordage by hand and thigh.",
+  "ingredients": [
+    {"item": "flax_fibre", "count": 3, "consumed": true}
+  ],
+  "conditions": [],
+  "duration_min": 30,
+  "skill_check": {"skill": "Survival", "dc": 9},
+  "outputs": [{"item": "rope", "count": 1}],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [{"item": "rope", "count": 2}],
+      "message": "Strong even twist — double length."
+    },
+    "success": {
+      "outputs": [{"item": "rope", "count": 1}],
+      "message": ""
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "frayed_cord", "count": 1}],
+      "message": "Frayed and uneven, but cord."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "tangled_waste", "count": 1}],
+      "message": "Tangled past saving."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

@@ -1,0 +1,46 @@
+{
+  "name": "honey",
+  "description": "A comb dripping with honey. Sweetens anything, ferments into more.",
+  "actions": "examine,take,use,eat,drop",
+  "uses": 2,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "food",
+    "sweet"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_eat"
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "",
+            "success_message": "Sticky fingers, happy mouth."
+          }
+        },
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Hunger",
+            "amount": -10,
+            "target": "self"
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "Sticky fingers, happy mouth.",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

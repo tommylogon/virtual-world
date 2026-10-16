@@ -1,0 +1,19 @@
+{
+  "name": "weak_bow",
+  "description": "A bow with uneven limbs. Half the range, all the effort.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 1.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 3,
+  "tags": [
+    "weapon",
+    "bow",
+    "wood"
+  ],
+  "triggers": [],
+  "contents": []
+}

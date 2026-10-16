@@ -1,0 +1,35 @@
+{
+  "id": "honeyed_bread_slice",
+  "name": "Honeyed Bread",
+  "description": "Drizzle honey over bread. Civilization in one bite.",
+  "ingredients": [
+    {"item": "bread", "count": 1, "consumed": true},
+    {"item": "honey", "count": 1, "consumed": true}
+  ],
+  "conditions": [],
+  "duration_min": 5,
+  "skill_check": {"skill": "Cooking", "dc": 7},
+  "outputs": [{"item": "honeyed_bread", "count": 1}],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [{"item": "honeyed_bread", "count": 2}],
+      "message": "Honey in every crumb — double."
+    },
+    "success": {
+      "outputs": [{"item": "honeyed_bread", "count": 1}],
+      "message": ""
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "honeyed_bread", "count": 1}],
+      "message": "Half the honey on your fingers — still counts."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [],
+      "message": "Soggy mess. The ants will feast tonight."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

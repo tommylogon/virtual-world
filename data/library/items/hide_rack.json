@@ -1,0 +1,19 @@
+{
+  "name": "hide_rack",
+  "description": "A stretching rack for curing hides. Too bulky to carry.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 40,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "station",
+    "tool",
+    "heavy"
+  ],
+  "triggers": [],
+  "contents": []
+}

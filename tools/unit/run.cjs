@@ -215,6 +215,9 @@ load('static/js/ui/event-log-export.js');
 // listeners, so the registry it exports is intact for the guard test.
 load('static/js/ui/help-center.js');
 load('static/js/worldpainter/grid-model.js');
+// Pure card/prose pre-parse + prompt builder for the Persona import
+// (task-843): no DOM, no network — loads cleanly in this sandbox.
+load('static/js/character-import.js');
 
 // ── discover + run test files ──
 const testFiles = fs.readdirSync(UNIT_DIR).filter(f => /^test_.*\.js$/.test(f)).sort();

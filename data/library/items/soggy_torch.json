@@ -1,0 +1,17 @@
+{
+  "name": "soggy_torch",
+  "description": "A torch soaked through. It will not take a flame until dried.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.6,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "waste"
+  ],
+  "triggers": [],
+  "contents": []
+}

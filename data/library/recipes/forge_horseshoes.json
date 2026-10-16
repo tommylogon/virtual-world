@@ -1,0 +1,40 @@
+{
+  "id": "forge_horseshoes",
+  "name": "Forge Horseshoes",
+  "description": "Forge a set of four horseshoes.",
+  "ingredients": [
+    {"item": "iron_ingot", "count": 1, "consumed": true},
+    {"item": "charcoal", "count": 2, "consumed": true},
+    {"item": "forge", "count": 1, "consumed": false},
+    {"item": "anvil", "count": 1, "consumed": false},
+    {"item": "hammer", "count": 1, "consumed": false}
+  ],
+  "conditions": [
+    {"type": "state_equals", "target": "forge", "value": "on"}
+  ],
+  "duration_min": 45,
+  "skill_check": {"skill": "Smithing", "dc": 11},
+  "outputs": [{"item": "horseshoes", "count": 1}],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [{"item": "horseshoes", "count": 1}],
+      "message": "Four shoes, fullered and true."
+    },
+    "success": {
+      "outputs": [{"item": "horseshoes", "count": 1}],
+      "message": ""
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "loose_shoes", "count": 1}],
+      "message": "Two fit, two do not — half effect."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "slag", "count": 1}],
+      "message": "Burned the heat — slag."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

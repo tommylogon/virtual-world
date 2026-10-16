@@ -645,6 +645,15 @@ class TestExpandedSchema:
         assert appearance(node)["scent"] == "coal-smoke"
         assert personality(node)["traits"] == ["Brave", "blunt"]
 
+    def test_group_fields_declare_object_type(self):
+        """The tab renders groups from decl.type/properties; a group
+        without the type renders as String(object) (caught live)."""
+        schema = schema_for_llm()["properties"]
+        for section in ("appearance", "narrative"):
+            for field, decl in schema[section]["properties"].items():
+                if isinstance(decl, dict) and "properties" in decl:
+                    assert decl.get("type") == "object", f"{section}.{field}"
+
     def test_every_field_names_its_consumer(self):
         from engine.character_appearance import CONSUMER_HINTS
         schema = schema_for_llm()["properties"]
@@ -719,6 +728,24 @@ class TestCompileRoutes:
         client = self._client()
         assert client.post("/api/players/Nobody/record/compile",
                            json={}).status_code == 404
+
+    def test_compile_dry_run_compiles_without_storing(self):
+        client = self._client()
+        body = client.post("/api/players/Lyrie/record/compile",
+                           json={"record": RICH}).get_json()
+        assert "34-year-old" in body["compiled"]["base_description"]
+        assert "smithing" in body["compiled"]["interest_tags"]
+        assert body.get("applied") is not True
+        assert client.get("/api/players/Lyrie/record").get_json() \
+            ["record"] == {}
+
+    def test_compile_dry_run_rejects_bad_fields(self):
+        client = self._client()
+        response = client.post(
+            "/api/players/Lyrie/record/compile",
+            json={"record": {"personality": {"fears": ["Not An Id"]}}})
+        assert response.status_code == 400
+        assert "ids" in response.get_json()["error"]
 
     def test_compile_beats_node_prose_in_state(self):
         """State reads node props first: the compile must write the node.

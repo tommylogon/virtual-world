@@ -1,0 +1,18 @@
+{
+  "name": "quarterstaff",
+  "description": "A balanced hardwood quarterstaff. Humble, honest, effective.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 1.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 1,
+  "damage": 4,
+  "tags": [
+    "weapon",
+    "wood"
+  ],
+  "triggers": [],
+  "contents": []
+}

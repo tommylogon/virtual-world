@@ -1,0 +1,37 @@
+{
+  "id": "brew_antiseptic",
+  "name": "Antiseptic Wash",
+  "description": "Brew willow bark and honey into a wound wash.",
+  "ingredients": [
+    {"item": "boiled_water", "count": 1, "consumed": true},
+    {"item": "willow_bark", "count": 1, "consumed": true},
+    {"item": "honey", "count": 1, "consumed": true},
+    {"item": "cup", "count": 1, "consumed": false}
+  ],
+  "conditions": [],
+  "duration_min": 10,
+  "skill_check": {"skill": "Medicine", "dc": 12},
+  "outputs": [{"item": "antiseptic_wash", "count": 1}],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [{"item": "antiseptic_wash", "count": 2}],
+      "message": "Clear and strong — double."
+    },
+    "success": {
+      "outputs": [{"item": "antiseptic_wash", "count": 1}],
+      "message": ""
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "weak_wash", "count": 1}],
+      "message": "Weak wash — half strength."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "spoiled_mash", "count": 1}],
+      "message": "Spoiled in the brewing — useless."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

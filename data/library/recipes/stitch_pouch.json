@@ -1,0 +1,37 @@
+{
+  "id": "stitch_pouch",
+  "name": "Stitch Pouch",
+  "description": "Stitch a leather pouch with awl, needle, and waxed thread.",
+  "ingredients": [
+    {"item": "leather_hide", "count": 1, "consumed": true},
+    {"item": "waxed_thread", "count": 1, "consumed": true},
+    {"item": "awl", "count": 1, "consumed": false},
+    {"item": "needle", "count": 1, "consumed": false}
+  ],
+  "conditions": [],
+  "duration_min": 30,
+  "skill_check": {"skill": "Leatherwork", "dc": 10},
+  "outputs": [{"item": "leather_pouch", "count": 1}],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [{"item": "leather_pouch", "count": 1}],
+      "message": "Tight waterproof seams — a pouch for life."
+    },
+    "success": {
+      "outputs": [{"item": "leather_pouch", "count": 1}],
+      "message": ""
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "small_pouch", "count": 1}],
+      "message": "Small and tight — half capacity."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "leather_scraps", "count": 1}],
+      "message": "Ruined hide — kept as scraps."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

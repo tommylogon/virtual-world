@@ -1,0 +1,17 @@
+{
+  "name": "rotted_hide",
+  "description": "A hide gone to rot. Nothing takes dye or thread now.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 2.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "waste"
+  ],
+  "triggers": [],
+  "contents": []
+}

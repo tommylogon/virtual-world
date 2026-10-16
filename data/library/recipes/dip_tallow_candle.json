@@ -1,0 +1,37 @@
+{
+  "id": "dip_tallow_candle",
+  "name": "Dip Tallow Candle",
+  "description": "Dip wicks in low-heat tallow until candles build up.",
+  "ingredients": [
+    {"item": "tallow", "count": 2, "consumed": true},
+    {"item": "wick", "count": 1, "consumed": true}
+  ],
+  "conditions": [
+    {"type": "state_equals", "target": "campfire", "value": "on"}
+  ],
+  "duration_min": 20,
+  "skill_check": {"skill": "Survival", "dc": 8},
+  "outputs": [{"item": "candle", "count": 2}],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [{"item": "candle", "count": 3}],
+      "message": "Straight, even dips — three good candles."
+    },
+    "success": {
+      "outputs": [{"item": "candle", "count": 2}],
+      "message": ""
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "lumpy_candle", "count": 1}],
+      "message": "Lumpy and crooked, but it burns."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [],
+      "message": "Tallow everywhere except on the wick — all lost, wick kept."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

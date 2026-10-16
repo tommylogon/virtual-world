@@ -1,0 +1,46 @@
+{
+  "name": "trail_stew",
+  "description": "A big-pot trail stew: meat, barley, roots. Feeds the whole party.",
+  "actions": "examine,take,use,eat,drop",
+  "uses": 4,
+  "weight": 1.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "food",
+    "cooked"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_eat"
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "",
+            "success_message": "A bowl that ends arguments."
+          }
+        },
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Hunger",
+            "amount": -30,
+            "target": "self"
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "A bowl that ends arguments.",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

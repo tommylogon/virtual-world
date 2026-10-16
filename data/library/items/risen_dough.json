@@ -1,0 +1,18 @@
+{
+  "name": "risen_dough",
+  "description": "Dough risen high and domed, smelling faintly of yeast. Ready for the oven.",
+  "actions": "examine,take,drop",
+  "uses": 2,
+  "weight": 0.6,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "grain",
+    "dough"
+  ],
+  "triggers": [],
+  "contents": []
+}

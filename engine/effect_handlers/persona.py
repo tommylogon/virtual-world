@@ -156,16 +156,28 @@ def handle_remove_persona_id(self, params, context, item_node=None,
 
 def handle_advance_age(self, params, context, item_node=None,
                        game_state=None):
-    """params: {"years": 5, "target": "self", "message": "..."}"""
+    """params: {"years": 5, "target": "self", "message": "..."}
+
+    Moves the lifecycle birth tick earlier (the clock agrees) as well as
+    the authored display age, so the sheet never disagrees with time.
+    """
     if "years" not in params:
         return []
-    _, node = _target_pair(self, game_state, params, context)
+    player, node = _target_pair(self, game_state, params, context)
     if node is None:
         return []
     try:
         ca.advance_age(node, params.get("years"))
     except ca.StructuredError:
         return []
+    if player is not None and game_state is not None:
+        # The clock agrees: move the birth tick earlier so derived age
+        # and display age stay the same number.
+        try:
+            from engine import lifecycle as _lifecycle
+            _lifecycle.shift_birth_tick(player, game_state, params.get("years"))
+        except Exception:
+            pass
     message = params.get("message")
     return [message] if message else []
 

@@ -205,11 +205,25 @@ const TurnYouStrip = (() => {
         }
         const activity = you.activity;
         if (activity && activity.type) {
-            const dur = activity.duration_ticks ? ` · ${activity.elapsed_ticks || 0}/${activity.duration_ticks}m` : '';
+            // Task-842: minute-based activities (cooking) show remaining
+            // time, not tick counts; the ✕ drafts stop for interruptible
+            // work (wake only wakes sleepers).
+            let dur = '';
+            if (activity.duration_ticks) {
+                dur = ` · ${activity.elapsed_ticks || 0}/${activity.duration_ticks}m`;
+            } else if (activity.duration_minutes) {
+                const left = Math.max(0, Math.ceil(
+                    (Number(activity.duration_minutes) || 0) -
+                    (Number(activity.elapsed_minutes) || 0)));
+                dur = ` · ${left}m left`;
+            }
+            const what = activity.type === 'cooking' && activity.recipe_id
+                ? `cooking ${String(activity.recipe_id).replace(/_/g, ' ')}` : activity.type;
             const chip = el('button', 'tys-inv tys-activity',
-                            `⏸ ${activity.type}${dur} ✕`);
+                            `⏸ ${what}${dur} ✕`);
             chip.title = 'active activity — the turn queue skips you while it lasts';
-            chip.addEventListener('click', () => handlers.onDraft({ action: 'wake', item: '', target: '' }));
+            const stopAction = activity.type === 'cooking' ? 'stop' : 'wake';
+            chip.addEventListener('click', () => handlers.onDraft({ action: stopAction, item: '', target: '' }));
             row1.appendChild(chip);
         }
         const loadChipEl = loadChip(you);
@@ -339,6 +353,9 @@ interface SceneYou {
         type?: string;
         duration_ticks?: number;
         elapsed_ticks?: number;
+        duration_minutes?: number;
+        elapsed_minutes?: number;
+        recipe_id?: string;
     };
     carry_load?: { ratio?: number } | null;
     carrying?: CarryItem[];

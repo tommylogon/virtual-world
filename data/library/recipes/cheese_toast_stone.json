@@ -1,0 +1,38 @@
+{
+  "id": "cheese_toast_stone",
+  "name": "Cheese Toast",
+  "description": "Bread and cheese toasted on a hot hearth stone.",
+  "ingredients": [
+    {"item": "bread", "count": 1, "consumed": true},
+    {"item": "cheese", "count": 1, "consumed": true},
+    {"item": "hearth_stone", "count": 1, "consumed": false}
+  ],
+  "conditions": [
+    {"type": "state_equals", "target": "campfire", "value": "on"}
+  ],
+  "duration_min": 5,
+  "skill_check": {"skill": "Cooking", "dc": 7},
+  "outputs": [{"item": "cheese_toast", "count": 1}],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [{"item": "cheese_toast", "count": 2}],
+      "message": "Golden and bubbling — double."
+    },
+    "success": {
+      "outputs": [{"item": "cheese_toast", "count": 1}],
+      "message": ""
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "warm_bread_cheese", "count": 1}],
+      "message": "Warm, not toasted — half the joy."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "burned_toast", "count": 1}],
+      "message": "Blackened. Charcoal with ambitions."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

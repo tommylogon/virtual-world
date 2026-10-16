@@ -1,0 +1,17 @@
+{
+  "name": "spoiled_fish",
+  "description": "Fish gone soft and stinking. For the midden, not the mouth.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "waste"
+  ],
+  "triggers": [],
+  "contents": []
+}

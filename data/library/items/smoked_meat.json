@@ -1,0 +1,47 @@
+{
+  "name": "smoked_meat",
+  "description": "Dark smoked meat that keeps for months. Trail gold.",
+  "actions": "examine,take,use,eat,drop",
+  "uses": 4,
+  "weight": 0.8,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "food",
+    "meat",
+    "preserved"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_eat"
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "",
+            "success_message": "Smoky, salty, sustaining."
+          }
+        },
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Hunger",
+            "amount": -30,
+            "target": "self"
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "Smoky, salty, sustaining.",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

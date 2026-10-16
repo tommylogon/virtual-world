@@ -1,0 +1,18 @@
+{
+  "name": "scorched_cauldron",
+  "description": "A cauldron with dinner welded to its bottom. Food lost, pot kept.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 6.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "waste",
+    "cookware"
+  ],
+  "triggers": [],
+  "contents": []
+}

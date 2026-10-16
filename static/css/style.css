@@ -1434,6 +1434,38 @@ body {
 .paperdoll-slot[data-area="back"] { grid-area: back; }
 .paperdoll-slot[data-area="feet"] { grid-area: feet; }
 
+/* Navigate mode (task-848): the same doll as a reader, not an equipper. */
+.paperdoll[data-mode="navigate"] {
+    grid-template-columns: 84px 84px 84px;
+    grid-template-rows: repeat(6, 84px);
+}
+.paperdoll[data-mode="navigate"] .paperdoll-slot {
+    cursor: pointer;
+    background: linear-gradient(160deg, var(--bg-card), var(--bg-inset));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+}
+.paperdoll[data-mode="navigate"] .paperdoll-slot:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(88,166,255,.25);
+}
+.paperdoll[data-mode="navigate"] .paperdoll-slot.pd-sel {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(88,166,255,.45), 0 4px 16px rgba(88,166,255,.3);
+}
+.paperdoll[data-mode="navigate"] .paperdoll-slot.pd-hot {
+    background: linear-gradient(160deg, rgba(224,163,60,.22), var(--bg-inset));
+    border-color: #8a6a2a;
+}
+.paperdoll[data-mode="navigate"] .paperdoll-slot.pd-hurt {
+    border-color: var(--red);
+    box-shadow: 0 0 10px rgba(224,82,82,.4);
+}
+.paperdoll[data-mode="navigate"] .paperdoll-slot svg {
+    width: 30px;
+    height: 30px;
+}
+
 .paperdoll-accessory {
     margin-top: 4px;
     display: flex;

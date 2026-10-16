@@ -81,22 +81,38 @@ This section defines the intended access point and acceptance path. It is not a 
 ## Steps to verify
 
 1. Time one single-cell paint in a large scope (kraktooth world).
-   - expected: the change appears in well under a second.
-   - observed: TODO
+    - expected: the change appears in well under a second.
+    - observed: 2026-10-16 LIVE on :4444 (world scope, 629 areas):
+      paint `14 ms` (was `2016 ms` before the autosave skip),
+      slim ack confirmed, undo `success`. ~144x end to end.
 2. Measure the three costs separately: `world.to_dict()` time, `preflight` time,
    payload build/ship time.
-   - expected: the snapshot and/or preflight dominates, not the paint itself.
-   - observed: TODO
+    - expected: the snapshot and/or preflight dominates, not the paint itself.
+    - observed: 2026-10-15 — `to_dict 0.20 s` dominated; `preflight`
+      `0.02 s` cold / `0.00 s` warm; `_grid_payload` `0.02 s`. 2026-10-16
+      live: autosave write `~1.7 s` dominated everything else combined.
+      Final ranking: autosave write > undo snapshot > payload ≈ preflight.
 3. Push a 20-cell stroke (one `paint_batch`) and compare to 20 single paints.
-   - expected: one request, one snapshot, no linear blow-up.
-   - observed: TODO
+    - expected: one request, one snapshot, no linear blow-up.
+    - observed: 2026-10-15 — one request, one *delta* entry
+      (`test_paint_batch_is_one_undo_entry`); 20 singles are 20
+      requests by design (each its own cell) but each is now bytes.
 
 ## Acceptance
 
-- [ ] A single-cell paint no longer serializes the whole world for undo.
+- [x] A single-cell paint no longer serializes the whole world for undo.
+  (Delta entries; `test_paint_pushes_a_delta_not_a_snapshot`.)
 - [ ] A paint no longer invalidates the biome record cache (or the cache split is made explicit and the per-paint re-read is gone).
-- [ ] One stroke is one undo entry and one request; time-to-appear is sub-second on a large scope.
-- [ ] A timing measurement (before/after) is recorded on the card.
+  (Measured `0.02 s`: kept deliberately for task-716 correctness —
+  the re-read is cheap, not gone. Revisit only with a split cache.)
+- [x] One stroke is one undo entry and one request; time-to-appear is sub-second on a large scope.
+  (Batch: one delta. Single: `slim=1` ack + optimistic local patch,
+  no full `render()`; backend `0.007 s`, live `14 ms` on the world
+  scope with slim ack confirmed; live undo `success`.)
+- [x] A timing measurement (before/after) is recorded on the card.
+  (`to_dict 0.20 s` → delta bytes; paint `~0.25 s` → `0.007 s`
+  route-level → `14 ms` live; the live path also caught and fixed
+  the autosave write that cost `~1.7 s` per paint.)
 
 ## Files
 

@@ -1,0 +1,47 @@
+{
+  "name": "weak_mead",
+  "description": "Honey water that gave up halfway to mead.",
+  "actions": "examine,take,use,drink,drop",
+  "uses": 2,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "drink",
+    "alcohol",
+    "honey"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_drink"
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "",
+            "success_message": "Sweetish. The bees would be disappointed."
+          }
+        },
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Thirst",
+            "amount": -20,
+            "target": "self"
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "Sweetish. The bees would be disappointed.",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

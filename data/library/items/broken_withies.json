@@ -1,0 +1,18 @@
+{
+  "name": "broken_withies",
+  "description": "Snapped withies, good for nothing but the fire.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "waste",
+    "wood"
+  ],
+  "triggers": [],
+  "contents": []
+}

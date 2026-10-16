@@ -1268,3 +1268,80 @@ def test_a_refused_promote_leaves_nothing_to_undo(tmp_path):
     assert app.world.world_scopes["wild"].get("area_placements") in (None, {})
     assert app.world.graph.get_node("area_village") is not None
 
+
+def _painted_app(tmp_path):
+    app = _app(tmp_path)
+    client = app.test_client()
+    client.post("/api/world/scopes/the_pines/grid",
+                json={"w": 3, "h": 3, "mode": "town"})
+    return app, client
+
+
+def _paint_cell(client, **kw):
+    body = {"layer": "biome", "x": 1, "y": 2, "value": "forest"}
+    body.update(kw)
+    return client.post("/api/world/scopes/the_pines/grid/paint", json=body)
+
+
+def _cell(app):
+    layers = (app.world.world_scopes["the_pines"].get("layers") or {})
+    return (layers.get("biome") or {}).get("1,2")
+
+
+def test_paint_pushes_a_delta_not_a_snapshot(tmp_path):
+    """Bug-545: one cell must not cost a 15 MB world serialization."""
+    from routes import saveload as sl
+    app, client = _painted_app(tmp_path)
+    base = len(app._undo_stack)
+    assert _paint_cell(client).status_code == 200
+    assert len(app._undo_stack) == base + 1
+    entry = app._undo_stack[-1]
+    assert sl._is_delta(entry)
+    assert entry["cells"] == [{"layer": "biome", "x": 1, "y": 2,
+                               "previous": None, "value": "forest"}]
+
+
+def test_paint_undo_redo_round_trips_cells(tmp_path):
+    app, client = _painted_app(tmp_path)
+    assert _paint_cell(client).status_code == 200
+    assert _cell(app) == "forest"
+    assert client.post("/api/undo", json={}).status_code == 200
+    assert _cell(app) is None
+    assert client.post("/api/redo", json={}).status_code == 200
+    assert _cell(app) == "forest"
+
+
+def test_paint_batch_is_one_undo_entry(tmp_path):
+    app, client = _painted_app(tmp_path)
+    base = len(app._undo_stack)
+    response = client.post("/api/world/scopes/the_pines/grid/paint_batch",
+                           json={"edits": [
+                               {"layer": "biome", "x": 0, "y": 0,
+                                "value": "forest"},
+                               {"layer": "biome", "x": 1, "y": 1,
+                                "value": "field"}]})
+    assert response.status_code == 200
+    assert len(app._undo_stack) == base + 1
+    assert client.post("/api/undo", json={}).status_code == 200
+    layers = (app.world.world_scopes["the_pines"].get("layers") or {})
+    assert (layers.get("biome") or {}) == {}
+
+
+def test_failed_paint_pushes_no_undo_entry(tmp_path):
+    app, client = _painted_app(tmp_path)
+    base = len(app._undo_stack)
+    assert _paint_cell(client, layer="nope").status_code == 400
+    assert _paint_cell(client, x=9).status_code == 400
+    assert len(app._undo_stack) == base
+
+
+def test_paint_slim_ack_carries_no_payload(tmp_path):
+    app, client = _painted_app(tmp_path)
+    body = client.post(
+        "/api/world/scopes/the_pines/grid/paint",
+        json={"layer": "biome", "x": 1, "y": 2, "value": "forest",
+              "slim": 1}).get_json()
+    assert body["status"] == "painted"
+    assert "layers" not in body
+    assert _cell(app) == "forest"
+

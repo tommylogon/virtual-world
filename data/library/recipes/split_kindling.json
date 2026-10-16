@@ -1,0 +1,35 @@
+{
+  "id": "split_kindling",
+  "name": "Split Kindling",
+  "description": "Split a branch into kindling with a hatchet.",
+  "ingredients": [
+    {"item": "branch", "count": 1, "consumed": true},
+    {"item": "hatchet", "count": 1, "consumed": false}
+  ],
+  "conditions": [],
+  "duration_min": 5,
+  "skill_check": {"skill": "Survival", "dc": 8},
+  "outputs": [{"item": "kindling", "count": 3}],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [{"item": "kindling", "count": 4}],
+      "message": "Clean splits — extra kindling."
+    },
+    "success": {
+      "outputs": [{"item": "kindling", "count": 3}],
+      "message": ""
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "kindling", "count": 1}, {"item": "wood_scraps", "count": 1}],
+      "message": "Ragged work — one good stick and scraps."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [],
+      "message": "The branch splits wild and the pieces scatter — nothing usable."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

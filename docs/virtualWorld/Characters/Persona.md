@@ -13,14 +13,26 @@ Every character has a structured block on their node (`properties["appearance"]`
 
 ## What you see
 
-Mind → Persona tab. Folds, not a wall: Identity and Appearance open (who they are, what you'd notice meeting them), Personality and Narrative one click away (the depths). Every field carries its reader beside it — `fears → fear engine`, `voice → prompt voice` — so an author always knows what a field *does*.
+Mind → Persona tab. Folds, not a wall: Identity and Appearance open (who they are, what you'd notice meeting them), Personality and Narrative one click away (the depths). A badge header names them (pronouns · age · species · occupation); short fields sit in a two-column grid; tag fields are chips (fears red-ish, interests teal); intimacy fields fold separately and secrets stay blurred until clicked. Every field carries its reader as a ⓘ tooltip — never inline clutter.
 
-Two buttons, one promise:
+Two buttons ride a sticky bar with a dirty dot, so the payoff is always visible:
 
 - **Save block** stores the sheet. Nothing else moves.
 - **Compile** projects it into `base_description` / `personality` + interest/fear tags. Empty prose fills silently; hand prose gets a side-by-side preview and a choice — replace or keep mine. Compile never clobbers quietly.
 
-When the block moves on without the prose (a lens changed an eye, a year passed), the tab says so: *"block changed since the last compile — prose is stale."*
+A Codex entry fold shows the compiled prose live as you type — a dry-run that stores and broadcasts nothing. When the block moves on without the prose (a lens changed an eye, a year passed), the tab says so: *"block changed since the last compile — prose is stale."*
+
+The Appearance fold opens with the 🩺 body doll: the equipment paperdoll
+figure in navigate mode (one template, two readers — Inventory equips
+through it, Persona reads through it). Clicking a slot shows that
+bodypart's live status (sensitivity, injury, coverage — the same data as
+the 🩺 modal) beside what the sheet says about it (linked fields,
+markings), with a ⤴ jump to each real input — plus a sensitivity slider
+per region, writing the authorable baseline (`PUT /body`). Hurt slots
+glow red, hot ones warm, the selection rings blue. Areas with no schema
+field say so honestly instead of inventing one. Injury is never editable
+here: wounds are sim state owned by combat and medicine, and a form must
+not bypass them.
 
 ## How it works
 
@@ -40,7 +52,9 @@ Nothing here is decoration. A Persona field must be **reachable** (editable in t
 - `engine/effect_handlers/persona.py` — the four growth effects
 - `engine/pronouns.py` — explicit `identity.pronouns` first, tags fallback
 - `routes/player_ops.py` — `GET`/`PUT /record`, `POST /record/compile`
-- `static/js/inspector/mind-view.ts` — the Persona tab
+ - `static/js/inspector/mind-view.ts` — the Persona tab
+   (`InspectorPaperdoll.AREA_TO_REGIONS` in `paperdoll-view.ts` is the
+   region map the body navigator reads — one map, two readers)
 - Tests: `tests/test_character_appearance.py`, `tests/test_persona_growth.py`
 
 ## See also

@@ -1,0 +1,19 @@
+{
+  "name": "iron_knife",
+  "description": "A ground iron knife with a honest edge. Cuts rope, meat, and trouble.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 3,
+  "tags": [
+    "tool",
+    "knife",
+    "iron"
+  ],
+  "triggers": [],
+  "contents": []
+}

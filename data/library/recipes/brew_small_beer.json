@@ -1,0 +1,37 @@
+{
+  "id": "brew_small_beer",
+  "name": "Brew Small Beer",
+  "description": "Ferment barley, water, and honey into small beer over days.",
+  "ingredients": [
+    {"item": "barley", "count": 3, "consumed": true},
+    {"item": "boiled_water", "count": 2, "consumed": true},
+    {"item": "honey", "count": 1, "consumed": true},
+    {"item": "brew_barrel", "count": 1, "consumed": false}
+  ],
+  "conditions": [],
+  "duration_min": 4320,
+  "skill_check": {"skill": "Cooking", "dc": 12},
+  "outputs": [{"item": "small_beer", "count": 2}],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [{"item": "small_beer", "count": 3}],
+      "message": "A notably good batch — the barrel gives extra."
+    },
+    "success": {
+      "outputs": [{"item": "small_beer", "count": 2}],
+      "message": ""
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "weak_beer", "count": 1}],
+      "message": "Thin and flat, but safer than water."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "vinegar_barrel", "count": 1}],
+      "message": "Gone fully to vinegar. Barrel kept, drink lost."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

@@ -1,0 +1,18 @@
+{
+  "name": "loose_shoes",
+  "description": "Horseshoes that almost fit — two of four sit right.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 1.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "iron"
+  ],
+  "triggers": [],
+  "contents": []
+}

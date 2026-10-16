@@ -1,0 +1,37 @@
+{
+  "id": "bake_wheat_bread",
+  "name": "Wheat Bread",
+  "description": "Bake wheat risen dough into a proper loaf.",
+  "ingredients": [
+    {"item": "risen_dough", "count": 2, "consumed": true},
+    {"item": "clay_oven", "count": 1, "consumed": false}
+  ],
+  "conditions": [
+    {"type": "state_equals", "target": "campfire", "value": "on"}
+  ],
+  "duration_min": 40,
+  "skill_check": {"skill": "Cooking", "dc": 12},
+  "outputs": [{"item": "bread", "count": 1}],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [{"item": "bread", "count": 2}],
+      "message": "High, golden, singing crust."
+    },
+    "success": {
+      "outputs": [{"item": "bread", "count": 1}],
+      "message": ""
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "bread", "count": 1}],
+      "message": "Small and pale, but bread."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "burned_loaf", "count": 1}],
+      "message": "Burned through."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

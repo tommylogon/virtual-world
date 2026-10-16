@@ -1,0 +1,19 @@
+{
+  "name": "shortbow",
+  "description": "A short yew bow, tillered true. Quick in close woods.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 1.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 5,
+  "tags": [
+    "weapon",
+    "bow",
+    "wood"
+  ],
+  "triggers": [],
+  "contents": []
+}

@@ -1,0 +1,19 @@
+{
+  "name": "pickle_crock",
+  "description": "A heavy crock for pickling. Too heavy to carry far.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 60,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "station",
+    "container",
+    "heavy"
+  ],
+  "triggers": [],
+  "contents": []
+}

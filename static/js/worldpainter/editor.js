@@ -2454,6 +2454,27 @@
         }
         try {
             if (cells.length === 1) {
+                // Slim ack + optimistic patch (bug-545): the server returns
+                // `{ok}` without rebuilding the payload, and the one cell
+                // lands in the local layer map immediately. A failure falls
+                // back to a full render so a rejected paint never lingers.
+                const ack = await _post(`/${encodeURIComponent(p.scope.id)}/grid/paint`, { layer, x: cells[0].x, y: cells[0].y, value, slim: 1 });
+                // A slim ack carries no `layers` (old servers answer full
+                // payloads, which fall through to the render below).
+                if (ack && layer && !('layers' in ack) && state.payload && state.payload.layers) {
+                    const key = GM().cellKey(cells[0].x, cells[0].y);
+                    const map = state.payload.layers[layer] || (state.payload.layers[layer] = {});
+                    if (value === null || value === undefined || value === '')
+                        delete map[key];
+                    else
+                        map[key] = value;
+                    _notify(true);
+                    _redrawDecor();
+                    return;
+                }
+                // Old server (or unexpected shape): fall back to the payload.
+                if (ack && ('layers' in ack))
+                    state.payload = ack;
                 state.payload = await _post(`/${encodeURIComponent(p.scope.id)}/grid/paint`, { layer, x: cells[0].x, y: cells[0].y, value });
             }
             else {

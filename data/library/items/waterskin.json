@@ -1,0 +1,18 @@
+{
+  "name": "waterskin",
+  "description": "A leather waterskin, stoppered and empty. Holds about four good drinks.",
+  "actions": "examine,take,drop",
+  "uses": 4,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "container",
+    "leather"
+  ],
+  "triggers": [],
+  "contents": []
+}

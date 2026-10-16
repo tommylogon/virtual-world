@@ -1,0 +1,17 @@
+{
+  "name": "green_stick",
+  "description": "A living green stick, springy and hard to break. Fire-hardens well.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 1,
+  "tags": [
+    "wood"
+  ],
+  "triggers": [],
+  "contents": []
+}

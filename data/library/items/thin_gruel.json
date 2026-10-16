@@ -1,0 +1,46 @@
+{
+  "name": "thin_gruel",
+  "description": "A thin, watery barley gruel. Warm, which is most of its virtue.",
+  "actions": "examine,take,use,eat,drop",
+  "uses": 2,
+  "weight": 0.6,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "food",
+    "grain"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_eat"
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "",
+            "success_message": "Mostly hot water with ambitions."
+          }
+        },
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Hunger",
+            "amount": -12,
+            "target": "self"
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "Mostly hot water with ambitions.",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

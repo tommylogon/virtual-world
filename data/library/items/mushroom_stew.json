@@ -1,0 +1,46 @@
+{
+  "name": "mushroom_stew",
+  "description": "A creamy mushroom stew with butter and salt. Woodland luxury.",
+  "actions": "examine,take,use,eat,drop",
+  "uses": 2,
+  "weight": 0.7,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "food",
+    "cooked"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_eat"
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "",
+            "success_message": "Earthy, buttery, perfect."
+          }
+        },
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Hunger",
+            "amount": -30,
+            "target": "self"
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "Earthy, buttery, perfect.",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

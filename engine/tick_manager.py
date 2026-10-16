@@ -438,6 +438,14 @@ class TickManager:
         This only advances time - it does NOT apply baseline stat decay.
         Baseline decay now happens on turn change via tick_turn()."""
         self.player_manager.time_ticks += ticks
+        # task-735: aging follows the clock (stages, old-age death).
+        # Cheap per call (per-player early-outs); runs on every advance
+        # so timeskips age as honestly as single ticks.
+        try:
+            from engine import lifecycle as _lifecycle
+            _lifecycle.on_clock(self.gs)
+        except Exception:
+            pass
 
     def get_current_time(self):
         """Return the current in-game time as a clock (HH:MM:SS).

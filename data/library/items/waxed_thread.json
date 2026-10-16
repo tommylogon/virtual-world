@@ -1,0 +1,18 @@
+{
+  "name": "waxed_thread",
+  "description": "Thread run through beeswax. Strong, waterproof stitching.",
+  "actions": "examine,take,drop",
+  "uses": 2,
+  "weight": 0.05,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "sewing"
+  ],
+  "triggers": [],
+  "contents": []
+}

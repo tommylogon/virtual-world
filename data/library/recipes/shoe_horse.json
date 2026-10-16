@@ -1,0 +1,36 @@
+{
+  "id": "shoe_horse",
+  "name": "Shoe Horse",
+  "description": "Nail a set of shoes onto a standing horse.",
+  "ingredients": [
+    {"item": "horseshoes", "count": 1, "consumed": true},
+    {"item": "nails", "count": 4, "consumed": true},
+    {"item": "hammer", "count": 1, "consumed": false}
+  ],
+  "conditions": [],
+  "duration_min": 30,
+  "skill_check": {"skill": "Smithing", "dc": 9},
+  "outputs": [],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [],
+      "message": "Four shoes, full set, standing square — speed bonus earned. (The bonus lives on the horse character; craft resolves the consumed shoes and nails here.)"
+    },
+    "success": {
+      "outputs": [],
+      "message": "Shod and sound. (Horse state belongs to the character/NPC layer.)"
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [],
+      "message": "Shod loose — half bonus, refit soon."
+    },
+    "crit_fail": {
+      "consume_inputs": false,
+      "outputs": [],
+      "message": "Thrown shoe — kept, retry. Nothing else lost."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

@@ -1,0 +1,37 @@
+{
+  "id": "render_tallow",
+  "name": "Render Tallow",
+  "description": "Melt animal fat down to clean tallow over a fire.",
+  "ingredients": [
+    {"item": "animal_fat", "count": 2, "consumed": true},
+    {"item": "cooking_pot", "count": 1, "consumed": false}
+  ],
+  "conditions": [
+    {"type": "state_equals", "target": "campfire", "value": "on"}
+  ],
+  "duration_min": 30,
+  "skill_check": {"skill": "Cooking", "dc": 9},
+  "outputs": [{"item": "tallow", "count": 1}],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [{"item": "tallow", "count": 2}],
+      "message": "Clear golden tallow, not a scrap wasted."
+    },
+    "success": {
+      "outputs": [{"item": "tallow", "count": 1}],
+      "message": ""
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "tallow", "count": 1}],
+      "message": "Scorched at the edges but usable."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "burned_grease", "count": 1}],
+      "message": "Burned past saving — a pot of stinking grease."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

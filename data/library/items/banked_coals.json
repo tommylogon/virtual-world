@@ -1,0 +1,18 @@
+{
+  "name": "banked_coals",
+  "description": "Coals banked under ash, holding their heat till morning.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "fuel",
+    "fire"
+  ],
+  "triggers": [],
+  "contents": []
+}

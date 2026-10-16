@@ -47,7 +47,7 @@ const EDITOR_IDS = {
     characters: 'lib-char-editor', areas: 'lib-area-editor',
     traits: 'lib-trait-editor', conditions: 'lib-cond-editor',
     behaviours: 'lib-beh-editor', tags: 'lib-tag-editor',
-    ways: 'lib-way-editor',
+    ways: 'lib-way-editor', recipes: 'lib-recipe-editor',
 };
 function fuzzyRatio(a, b) {
     if (!a || !b)
@@ -97,10 +97,11 @@ class LibraryBrowser {
             behaviours: {},
             tags: {},
             ways: {},
+            recipes: {},
             vocabulary: {}
         };
-        this.selectedId = { items: null, characters: null, areas: null, traits: null, conditions: null, behaviours: null, tags: null, ways: null, vocabulary: null };
-        this._editingNew = { characters: false, areas: false, traits: false, conditions: false, behaviours: false, tags: false, ways: false };
+        this.selectedId = { items: null, characters: null, areas: null, traits: null, conditions: null, behaviours: null, tags: null, ways: null, recipes: null, vocabulary: null };
+        this._editingNew = { characters: false, areas: false, traits: false, conditions: false, behaviours: false, tags: false, ways: false, recipes: false };
         this._tagMS = null;
     }
     // ── Open / Close / Tab Switching ─────────────────────────────────
@@ -274,7 +275,7 @@ class LibraryBrowser {
         root.appendChild(split);
     }
     async refreshAll() {
-        const types = ['items', 'characters', 'areas', 'ways', 'traits', 'conditions', 'behaviours', 'tags'];
+        const types = ['items', 'characters', 'areas', 'ways', 'traits', 'conditions', 'behaviours', 'tags', 'recipes'];
         const results = await Promise.all(types.map(t => LibraryApi.getLibraryType(t).catch(() => ({}))));
         types.forEach((t, i) => { this.data[t] = results[i]; });
     }
@@ -295,17 +296,17 @@ class LibraryBrowser {
         const idMap = {
             items: 'item-lib-list', characters: 'lib-char-list', areas: 'lib-area-list',
             traits: 'lib-trait-list', conditions: 'lib-cond-list', behaviours: 'lib-beh-list',
-            tags: 'lib-tag-list', ways: 'lib-way-list'
+            tags: 'lib-tag-list', ways: 'lib-way-list', recipes: 'lib-recipe-list'
         };
         const countMap = {
             items: 'lib-item-count', characters: 'lib-char-count', areas: 'lib-area-count',
             traits: 'lib-trait-count', conditions: 'lib-cond-count', behaviours: 'lib-beh-count',
-            tags: 'lib-tag-count', ways: 'lib-way-count'
+            tags: 'lib-tag-count', ways: 'lib-way-count', recipes: 'lib-recipe-count'
         };
         const searchMap = {
             items: 'item-lib-search', characters: 'lib-char-search', areas: 'lib-area-search',
             traits: 'lib-trait-search', conditions: 'lib-cond-search', behaviours: 'lib-beh-search',
-            tags: 'lib-tag-search', ways: 'lib-way-search'
+            tags: 'lib-tag-search', ways: 'lib-way-search', recipes: 'lib-recipe-search'
         };
         const listEl = document.getElementById(idMap[type]);
         const countEl = document.getElementById(countMap[type]);
@@ -355,7 +356,7 @@ class LibraryBrowser {
             window.Lit.render(libraryBrowserHtmlTag `<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:12px;">No ${type} found.</div>`, listEl);
             return;
         }
-        const typeIcons = { items: '📦', characters: '🧍', areas: '🏠', ways: '🚪', traits: '🏷️', conditions: '💊', behaviours: '🤖', tags: '🏷️' };
+        const typeIcons = { items: '📦', characters: '🧍', areas: '🏠', ways: '🚪', traits: '🏷️', conditions: '💊', behaviours: '🤖', tags: '🏷️', recipes: '🧾' };
         const icon = typeIcons[type] || '📄';
         const rows = filtered.map(([id, entry]) => {
             const sel = id === selected;
@@ -363,18 +364,55 @@ class LibraryBrowser {
             const desc = entry.description || '';
             const itemClass = 'agent-item' + (sel ? ' selected' : '');
             const itemStyle = `cursor:pointer;padding:5px 10px;border-left:3px solid var(--accent);${sel ? 'background:var(--bg-inset);' : ''}`;
+            // Task-842: recipe rows carry the outcome ladder (crit →
+            // success → fail → crit-fail, fail items named) plus
+            // inventory checkmarks per ingredient (✓ in library).
+            const extra = type === 'recipes' ? this._recipeRowExtra(entry) : '';
             return libraryBrowserHtmlTag `
                 <div class=${itemClass} @click=${() => VW.libraryBrowser.selectEntry(type, id)} style=${itemStyle}>
                     <span style="font-size:14px;margin-right:4px;">${icon}</span>
                     <div style="flex:1;min-width:0;">
                         <div class="agent-name" style="font-size:12px;font-weight:600;">${name}</div>
                         <div style="font-size:10px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${desc}</div>
+                        ${extra}
                     </div>
                 </div>`;
         });
         window.Lit.render(libraryBrowserHtmlTag `${rows}`, listEl);
     }
     // ── New Entry ────────────────────────────────────────────────────
+    /**
+     * Task-842: one-line outcome ladder + ingredient checkmarks for a
+     * recipe row. Checkmarks read the loaded items registry (✓ known
+     * id, ✗ missing) — browse-time signal only; the gate is authoritative.
+     */
+    _recipeRowExtra(entry) {
+        const items = (this.data && this.data.items) || {};
+        const known = new Set();
+        for (const [key, val] of Object.entries(items)) {
+            known.add(key.toLowerCase());
+            const nm = val?.name;
+            if (typeof nm === 'string')
+                known.add(nm.toLowerCase());
+        }
+        const ingredients = Array.isArray(entry.ingredients) ? entry.ingredients : [];
+        const ing = ingredients.map((inp) => {
+            const item = String(inp.item || '');
+            const ok = known.has(item.toLowerCase());
+            return `<span title="${ok ? 'in library' : 'missing from library'}" style="color:${ok ? '#3fb950' : '#f85149'};">${ok ? '✓' : '✗'}${item || '?'}</span>`;
+        }).join(' ');
+        const outcomes = (entry.outcomes || {});
+        const tierItem = (tier) => {
+            const outs = (outcomes[tier] || {}).outputs;
+            const list = Array.isArray(outs) ? outs : [];
+            return list.map((o) => String(o.item || '')).filter(Boolean).join('+') || '—';
+        };
+        const skill = (entry.skill_check || {});
+        const ladder = `★${tierItem('crit_success')} → ✓${tierItem('success')} → ✗${tierItem('fail')} → ✗✗${tierItem('crit_fail')}`;
+        const meta = `${skill.skill ? `${skill.skill} ${skill.dc ?? 10}` : ''}${entry.duration_min ? ` · ${entry.duration_min}m` : ''}`;
+        return libraryBrowserHtmlTag `<div style="font-size:9.5px;color:var(--text-muted);margin-top:2px;">${ladder}${meta ? ` · ${meta}` : ''}</div>
+            <div style="font-size:9.5px;margin-top:1px;">${ing}</div>`;
+    }
     newEntry(type) {
         this.selectedId[type] = '__new__';
         this._editingNew[type] = true;
@@ -501,6 +539,20 @@ class LibraryBrowser {
                     { key: 'applies_to', label: 'Applies To (comma-separated)', type: 'text', default: 'items' },
                     { key: 'examples', label: 'Examples (comma-separated)', type: 'text', default: '' },
                 ]
+            },
+            recipes: {
+                fields: [
+                    { key: 'name', label: 'Name', type: 'text', default: '' },
+                    { key: 'description', label: 'Description', type: 'textarea', default: '' },
+                    { key: 'ingredients', label: 'Ingredients (JSON)', type: 'json', default: [] },
+                    { key: 'conditions', label: 'Conditions (JSON)', type: 'json', default: [] },
+                    { key: 'duration_min', label: 'Duration (minutes)', type: 'number', default: 10 },
+                    { key: 'skill_check', label: 'Skill Check (JSON)', type: 'json', default: {} },
+                    { key: 'outputs', label: 'Success Outputs (JSON)', type: 'json', default: [] },
+                    { key: 'outcomes', label: 'Outcomes (JSON, four tiers)', type: 'json', default: {} },
+                    { key: 'learned_by', label: 'Learned By (JSON)', type: 'json', default: ['global'] },
+                    { key: 'discoverable', label: 'Discoverable', type: 'checkbox', default: true },
+                ]
             }
         };
     }
@@ -514,7 +566,7 @@ class LibraryBrowser {
         const config = configs[type];
         if (!config)
             return;
-        const typeIcons = { items: '📦', characters: '🧍', areas: '🏠', ways: '🚪', traits: '🏷️', conditions: '💊', behaviours: '🤖', tags: '🏷️' };
+        const typeIcons = { items: '📦', characters: '🧍', areas: '🏠', ways: '🚪', traits: '🏷️', conditions: '💊', behaviours: '🤖', tags: '🏷️', recipes: '🧾' };
         const icon = typeIcons[type] || '📄';
         const fieldsHtml = config.fields.map((f) => {
             const val = data[f.key] !== undefined ? data[f.key] : f.default;
@@ -598,8 +650,8 @@ class LibraryBrowser {
         const editor = document.getElementById(editorId);
         if (!editor)
             return;
-        const icons = { characters: '🧍', areas: '🏠', ways: '🚪', traits: '🏷️', conditions: '💊', behaviours: '🤖', tags: '🏷️' };
-        const labels = { characters: 'character', areas: 'area', ways: 'way', traits: 'trait', conditions: 'condition', behaviours: 'behaviour', tags: 'tag' };
+        const icons = { characters: '🧍', areas: '🏠', ways: '🚪', traits: '🏷️', conditions: '💊', behaviours: '🤖', tags: '🏷️', recipes: '🧾' };
+        const labels = { characters: 'character', areas: 'area', ways: 'way', traits: 'trait', conditions: 'condition', behaviours: 'behaviour', tags: 'tag', recipes: 'recipe' };
         window.Lit.render(libraryBrowserHtmlTag `
             <div class="inspector-empty" style="min-height:200px;">
                 <div class="inspector-empty-icon">${icons[type] || '📄'}</div>

@@ -1,0 +1,46 @@
+{
+  "name": "meat_stew",
+  "description": "A thick meat stew with roots and salt. A bowl that sticks to the ribs.",
+  "actions": "examine,take,use,eat,drop",
+  "uses": 2,
+  "weight": 0.8,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "food",
+    "cooked"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_eat"
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "",
+            "success_message": "Rich, hot, gone too soon."
+          }
+        },
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Hunger",
+            "amount": -35,
+            "target": "self"
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "Rich, hot, gone too soon.",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

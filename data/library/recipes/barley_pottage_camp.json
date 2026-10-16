@@ -1,0 +1,39 @@
+{
+  "id": "barley_pottage_camp",
+  "name": "Barley Pottage (Camp)",
+  "description": "The camp staple: barley, water, onion, fire, patience.",
+  "ingredients": [
+    {"item": "barley", "count": 2, "consumed": true},
+    {"item": "boiled_water", "count": 1, "consumed": true},
+    {"item": "onion", "count": 1, "consumed": true},
+    {"item": "cooking_pot", "count": 1, "consumed": false}
+  ],
+  "conditions": [
+    {"type": "state_equals", "target": "campfire", "value": "on"}
+  ],
+  "duration_min": 40,
+  "skill_check": {"skill": "Cooking", "dc": 12},
+  "outputs": [{"item": "pottage", "count": 2}],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [{"item": "pottage", "count": 3}],
+      "message": "Thick enough to stand a spoon in."
+    },
+    "success": {
+      "outputs": [{"item": "pottage", "count": 2}],
+      "message": ""
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "thin_gruel", "count": 2}],
+      "message": "Watery, but warm and filling-ish."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "scorched_pot", "count": 1}],
+      "message": "Left too long — food lost, pot kept."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

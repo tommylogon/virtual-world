@@ -44,29 +44,94 @@ whole node otherwise. Outputs are hydrated from the item library via the
 ``item`` values are library ids.
 """
 
+import json
+import os
+import random as _random
+import re
+
+#: Tier names the check degree maps to. ``strong_success`` is a success
+#: degree (margin >= 5), not a fifth outcome — it shares the success
+#: outputs. ``auto_fail`` (a condition prevents the attempt) fails.
+TIER_MAP = {
+    "crit_fail": "crit_fail",
+    "crit_success": "crit_success",
+    "fail": "fail",
+    "auto_fail": "fail",
+    "success": "success",
+    "strong_success": "success",
+}
+
+OUTCOME_TIERS = ("crit_success", "success", "fail", "crit_fail")
+
+
+def _default_recipe_dir() -> str:
+    here = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(os.path.dirname(here), "data", "library", "recipes")
+
+
+def load_registry(directory=None) -> dict:
+    """Read every ``<id>.json`` recipe entry into ``{id: entry}``.
+
+    Lightweight by design: presence and shape (dict with ``id``) only.
+    The full contract lives in ``tools/recipe_check.py`` — the engine
+    reads what the gate has already approved, and skips what it cannot
+    parse rather than refusing to craft anything.
+    """
+    directory = directory or _default_recipe_dir()
+    out = {}
+    try:
+        names = sorted(os.listdir(directory))
+    except OSError:
+        return out
+    for name in names:
+        if not name.endswith(".json"):
+            continue
+        try:
+            with open(os.path.join(directory, name), encoding="utf-8") as f:
+                entry = json.load(f)
+        except (OSError, ValueError):
+            continue
+        if isinstance(entry, dict) and entry.get("id"):
+            out[str(entry["id"])] = entry
+    return out
+
 
 class CraftingSystem:
-    def __init__(self, graph, player_manager, trigger_system, effects, game_state=None):
+    def __init__(self, graph, player_manager, trigger_system, effects, game_state=None, recipe_dir=None):
         self.graph = graph
         self.player_manager = player_manager
         self.trigger_system = trigger_system
         self.effects = effects
         self.world = game_state
+        self.recipe_dir = recipe_dir
+        #: Injectable dice for tests: ``roll_fn() -> int`` (a d20 face).
+        #: ``None`` rolls for real. Threaded into the tier check only.
+        self.roll_fn = None
 
     # ────────────────────────── lookup ──────────────────────────
 
+    def _registry(self) -> dict:
+        return load_registry(self.recipe_dir)
+
     def recipe_nodes(self):
-        return [n for n in self.graph.nodes.values() if n.type == "recipe"]
+        """Retired (task-831): recipes are registry entries, never nodes."""
+        return []
 
     def _find_recipe(self, recipe_name):
-        needle = str(recipe_name).lower()
-        for node in self.recipe_nodes():
-            if needle in node.name.lower() or needle in node.id.lower():
-                return node
+        def norm(text):
+            return "_".join(
+                re.sub(r"[^a-z0-9]+", " ", str(text).lower()).split())
+        needle = norm(recipe_name)
+        for entry in self._registry().values():
+            if not isinstance(entry, dict):
+                continue
+            if needle in norm(entry.get("name", "")) or \
+                    needle in norm(entry.get("id", "")):
+                return entry
         return None
 
-    def _recipe_learned(self, player, recipe_node) -> bool:
-        props = recipe_node.properties or {}
+    def _recipe_learned(self, player, entry) -> bool:
+        props = entry if isinstance(entry, dict) else {}
         learned_by = props.get("learned_by", [])
         if isinstance(learned_by, str):
             learned_by = [learned_by]
@@ -83,26 +148,103 @@ class CraftingSystem:
                 if isinstance(player_skills, dict) and int(player_skills.get(skill_name, 0) or 0) >= 1:
                     return True
             if rule.startswith("item:"):
-                item_needle = rule[5:].strip().lower()
-                player_id_getter = getattr(self.player_manager, "get_player_node_id", None) or getattr(self.player_manager, "_player_node_id", None)
-                if player_id_getter is None:
-                    return False
-                player_id = player_id_getter(player.name)
-                from graph import EDGE_CARRYING, EDGE_EQUIPPED
-                for edge in self.graph.get_edges_for_target(player_id, (EDGE_CARRYING, EDGE_EQUIPPED)):
-                    n = self.graph.get_node(edge.source)
-                    if n and (item_needle in n.name.lower() or item_needle in n.id.lower()):
-                        return True
-        return recipe_node.id in (player.crafting_known or [])
+                if self._carries_item(player, rule[5:].strip()):
+                    return True
+        return str(entry.get("id", "")) in (player.crafting_known or []) or \
+            str(entry.get("name", "")) in (player.crafting_known or [])
+
+    def _carries_item(self, player, needle: str) -> bool:
+        """Whether *player* carries/equips an item matching *needle*."""
+        needle = str(needle or "").strip().lower()
+        if not needle:
+            return False
+        player_id_getter = getattr(self.player_manager, "get_player_node_id", None) or getattr(self.player_manager, "_player_node_id", None)
+        if player_id_getter is None:
+            return False
+        player_id = player_id_getter(player.name)
+        from graph import EDGE_CARRYING, EDGE_EQUIPPED
+        for edge in self.graph.get_edges_for_target(player_id, (EDGE_CARRYING, EDGE_EQUIPPED)):
+            n = self.graph.get_node(edge.source)
+            if n and (needle in n.name.lower() or needle in n.id.lower()):
+                return True
+        return False
+
+    def _recipe_source(self, player, entry) -> str | None:
+        """Why *player* knows *entry*: global/skill/cookbook/taught/discovered.
+
+        First matching rule wins. A name in ``crafting_known`` reads as
+        "discovered" for discoverable recipes (learned by doing) and
+        "taught" otherwise (someone must have taught it).
+        """
+        learned_by = entry.get("learned_by", []) if isinstance(entry, dict) else []
+        if isinstance(learned_by, str):
+            learned_by = [learned_by]
+        for rule in learned_by:
+            if str(rule).strip() == "global":
+                return "global"
+        for rule in learned_by:
+            rule = str(rule).strip()
+            if rule.startswith("skill:"):
+                skill_name = rule[6:].strip()
+                known = player.crafting_known or []
+                if skill_name in known:
+                    return "skill"
+                player_skills = getattr(player, "skills", {}) or {}
+                if isinstance(player_skills, dict) and int(player_skills.get(skill_name, 0) or 0) >= 1:
+                    return "skill"
+        for rule in learned_by:
+            rule = str(rule).strip()
+            if rule.startswith("item:") and self._carries_item(player, rule[5:].strip()):
+                return "cookbook"
+        known = player.crafting_known or []
+        if str(entry.get("id", "")) in known or str(entry.get("name", "")) in known:
+            return "discovered" if entry.get("discoverable") else "taught"
+        return None
+
+    def known_recipes(self, player_name: str) -> list:
+        """One projection per character (task-841): id, name, source,
+        skill, dc, duration. No new stores — registry + knowledge read."""
+        player = self.player_manager.players.get(player_name)
+        if not player:
+            return []
+        out = []
+        for entry in self._registry().values():
+            if not isinstance(entry, dict):
+                continue
+            source = self._recipe_source(player, entry)
+            if source is None:
+                continue
+            skill = entry.get("skill_check", {}) or {}
+            out.append({
+                "id": entry.get("id", ""),
+                "name": entry.get("name", entry.get("id", "")),
+                "source": source,
+                "skill": skill.get("skill"),
+                "dc": int(skill.get("dc", 10)),
+                "duration_min": int(entry.get("duration_min", 0) or 0),
+                # Ingredient names for prompt guidance (the prompt
+                # builder matches these against carried/area items;
+                # the backend re-resolves leniently, so this is
+                # guidance, never enforcement).
+                "ingredients": [
+                    {"item": str(i.get("item", "")),
+                     "count": int(i.get("count", 1) or 1)}
+                    for i in (entry.get("ingredients",
+                                        entry.get("inputs", [])) or [])
+                    if isinstance(i, dict) and str(i.get("item", "")).strip()
+                ],
+            })
+        out.sort(key=lambda r: str(r["name"]).lower())
+        return out
 
     def _recipe_known_names(self, player_name) -> list:
         player = self.player_manager.players.get(player_name)
         if not player:
             return []
         out = []
-        for node in self.recipe_nodes():
-            if self._recipe_learned(player, node):
-                out.append(node.name)
+        for entry in self._registry().values():
+            if isinstance(entry, dict) and self._recipe_learned(player, entry):
+                out.append(entry.get("name", entry.get("id", "")))
         return out
 
     # ────────────────────────── craft ──────────────────────────
@@ -237,33 +379,51 @@ class CraftingSystem:
             student.skills = student_skills
             return f"You spend a while going over the basics with {student_name} — they gain a bit of {skill_name}."
 
-        recipe_node = self._find_recipe(subject)
-        if recipe_node is None:
+        recipe = self._find_recipe(subject)
+        if recipe is None:
             raise ValueError(f"You don't know any recipe called '{subject}'.")
-        if not self._recipe_learned(teacher, recipe_node):
-            raise ValueError(f"You don't know how to make '{recipe_node.name}'.")
+        if not self._recipe_learned(teacher, recipe):
+            raise ValueError(f"You don't know how to make '{recipe.get('name', subject)}'.")
         known = list(getattr(student, 'crafting_known', []) or [])
-        if recipe_node.name in known:
-            return f"{student_name} already knows how to make {recipe_node.name}."
-        known.append(recipe_node.name)
+        if recipe.get("name") in known:
+            return f"{student_name} already knows how to make {recipe.get('name')}."
+        known.append(recipe.get("name", subject))
         student.crafting_known = known
-        return f"You walk {student_name} through it — they now know how to make {recipe_node.name}."
+        return f"You walk {student_name} through it — they now know how to make {recipe.get('name')}."
 
-    def craft(self, player_manager, recipe_name: str) -> str:
-        recipe_node = self._find_recipe(recipe_name)
-        if recipe_node is None:
+    def resolve_craft_tier(self, entry: dict, player) -> tuple:
+        """Roll a recipe's check and map the degree to a tier (task-840 Q5).
+
+        The seam a future minigame replaces: staged rolls feed the same
+        four tiers. Returns ``(tier, check_message)``; one roll through
+        the shared pipeline, so tier and success agree by construction.
+        """
+        return self._resolve_tier(player, entry)
+
+    def check_craft(self, player_manager, recipe_name: str) -> dict:
+        """Fail-closed requirement check (task-840): find, learned,
+        inputs present, conditions met. Raises naming the gap; rolls
+        nothing, consumes nothing, spawns nothing."""
+        entry = self._find_recipe(recipe_name)
+        if entry is None:
             raise ValueError(f"You don't know any recipe for '{recipe_name}'.")
         player = player_manager.players.get(player_manager.active_player)
         if not player:
             raise ValueError("No active character.")
-        if not self._recipe_learned(player, recipe_node):
-            raise ValueError(f"You don't know how to craft '{recipe_node.name}'.")
+        if not self._recipe_learned(player, entry):
+            raise ValueError(f"You don't know how to craft '{entry.get('name', recipe_name)}'.")
+        recipe_label = entry.get("name", recipe_name)
+        self._verify_inputs(player_manager, entry, recipe_label)
+        for cond in entry.get("conditions", []) or []:
+            if not self._condition_passes(cond, player):
+                raise ValueError(f"The conditions to craft '{recipe_label}' aren't met.")
+        return entry
 
-        props = recipe_node.properties or {}
-        inputs = props.get("inputs", [])
+    def _verify_inputs(self, player_manager, entry: dict, recipe_label: str) -> list:
+        """Return the entry's inputs, raising on the first gap."""
+        inputs = entry.get("ingredients", entry.get("inputs", []))
         if isinstance(inputs, str):
             raise ValueError("Recipe inputs must be a JSON list.")
-        # check inputs exist
         for inp in inputs:
             needed = inp.get("item", "") if isinstance(inp, dict) else str(inp)
             count = int(inp.get("count", 1)) if isinstance(inp, dict) else 1
@@ -271,49 +431,165 @@ class CraftingSystem:
             total = sum(max(1, int(n.properties.get("uses", -1) or 0)) for n in nodes) if nodes else 0
             if not nodes or (count > 1 and total < count):
                 raise ValueError(f"You need {count} {needed} and don't have them.")
-        # extra gates
-        for cond in props.get("conditions", []) or []:
+        return inputs
+
+    def start_cooking(self, player_manager, recipe_name: str) -> str:
+        """Begin a timed cooking Activity (task-840 Q2), or resolve
+        instantly when the recipe has no duration. Check-first: a
+        missing list fails closed before anything starts."""
+        entry = self.check_craft(player_manager, recipe_name)
+        minutes = entry.get("duration_min", 0) or 0
+        try:
+            minutes = int(minutes)
+        except (TypeError, ValueError):
+            minutes = 0
+        if minutes <= 0:
+            return self.craft(player_manager, recipe_name)
+        player = player_manager.players.get(player_manager.active_player)
+        recipe_label = entry.get("name", recipe_name)
+        self.world.activities.start_activity(
+            player.name, "cooking", duration_minutes=float(minutes),
+            recipe_id=entry.get("id", recipe_name))
+        return (f"You start cooking {recipe_label.lower()} "
+                f"({minutes} min) — interruption ends it with nothing "
+                f"consumed and the pot waiting.")
+
+    def complete_cooking(self, player_manager, player_name: str,
+                           recipe_ref: str = "") -> str:
+        """Finish a cooking Activity: recheck, tier-roll, consume, spawn.
+
+        Called by the Activity completion path (``finish_craft``). A
+        missing recipe, eaten inputs, or an unlit fire since fail
+        closed with nothing consumed and nothing spawned.
+        """
+        player = player_manager.players.get(player_name)
+        if not player:
+            return "No cook to finish for."
+        if not recipe_ref:
+            activity = getattr(player, "activity", None) or {}
+            recipe_ref = activity.get("recipe_id") or ""
+        entry = self._find_recipe(recipe_ref) if recipe_ref else None
+        if entry is None:
+            return "The recipe is gone — nothing to finish."
+        recipe_label = entry.get("name", recipe_ref)
+        try:
+            self._verify_inputs(player_manager, entry, recipe_label)
+        except ValueError as e:
+            return f"{e} The pot waits."
+        for cond in entry.get("conditions", []) or []:
             if not self._condition_passes(cond, player):
-                raise ValueError(f"The conditions to craft '{recipe_node.name}' aren't met.")
-        # skill check
-        skill_cfg = props.get("skill_check", {}) or {}
-        if skill_cfg.get("skill"):
-            skill = skill_cfg["skill"]
-            dc = int(skill_cfg.get("dc", 10))
-            success, _, message = player_manager.skill_check(skill, dc)
-            if not success:
-                return f"You try to craft the {recipe_node.name}, but fumble. {message}"
+                return (f"The conditions to craft '{recipe_label}' aren't "
+                        f"met anymore. The pot waits.")
+        tier, check_message = self.resolve_craft_tier(entry, player)
+        return self._finish(player_manager, player, entry, recipe_label,
+                            tier, check_message)
 
-        # consume inputs (consumed flag)
-        for inp in inputs:
-            consumed = inp.get("consumed", True) if isinstance(inp, dict) else True
-            count = int(inp.get("count", 1)) if isinstance(inp, dict) else 1
-            if not consumed:
-                continue
-            nodes = self._input_nodes(player_manager, inp.get("item", "") if isinstance(inp, dict) else str(inp))
-            for node in nodes[:max(1, count)]:
-                self._consume_input(player_manager, node, count)
+    def _finish(self, player_manager, player, entry: dict,
+                recipe_label: str, tier: str, check_message: str) -> str:
+        """Consume per the tier flag, spawn the tier outputs, report."""
+        outcomes = entry.get("outcomes", {}) or {}
+        outcome = outcomes.get(tier, {}) or {}
+        if tier in ("fail", "crit_fail"):
+            consume = bool(outcome.get("consume_inputs", True))
+        else:
+            consume = True
+        # The tier's own outputs win; absent means the top-level success
+        # default (back-compat with pre-outcome recipes). An explicit
+        # empty list stays empty (pot boiled dry — nothing spawns).
+        if tier in outcomes and "outputs" in outcome:
+            tier_outputs = outcome.get("outputs") or []
+        else:
+            tier_outputs = entry.get("outputs", []) or []
+        inputs = entry.get("ingredients", entry.get("inputs", [])) or []
 
-        # outputs
-        outputs = props.get("outputs", []) or []
+        # consume inputs (consumed flag, gated by the tier's consume flag)
+        if consume:
+            for inp in inputs:
+                consumed = inp.get("consumed", True) if isinstance(inp, dict) else True
+                count = int(inp.get("count", 1)) if isinstance(inp, dict) else 1
+                if not consumed:
+                    continue
+                nodes = self._input_nodes(player_manager, inp.get("item", "") if isinstance(inp, dict) else str(inp))
+                for node in nodes[:max(1, count)]:
+                    self._consume_input(player_manager, node, count)
+
+        # outputs for the tier that actually happened
+        outputs = self._resolve_outputs({"outputs": tier_outputs})
         msgs = self._spawn_outputs(player_manager, outputs)
 
         # discovery
-        if props.get("discoverable"):
+        if entry.get("discoverable"):
             known = player.crafting_known or []
-            if recipe_node.name not in known:
-                known.append(recipe_node.name)
+            if recipe_label not in known:
+                known.append(recipe_label)
             player.crafting_known = known
 
-        result = f"You craft {recipe_node.name.lower()}!"
+        tier_message = (outcome.get("message") or "").strip()
+        if tier in ("fail", "crit_fail"):
+            result = f"You try to craft the {recipe_label.lower()}, but fumble."
+            if tier_message:
+                result += f" {tier_message}"
+            if check_message:
+                result += f" {check_message}"
+        else:
+            result = f"You craft {recipe_label.lower()}!"
+            if tier == "crit_success" and tier_message:
+                result += f" {tier_message}"
         for m in msgs:
             text = str(m).strip()
             if text:
                 result += f"\n{text}"
-        area_name = player_manager.current_area.name if player_manager.current_area else None
-        player_manager.record_turn_event(
-            player_manager.active_player, "craft",
-            f"crafted {recipe_node.name}",
-            area_name=area_name,
-        )
+        area = getattr(player, "current_area", None)
+        area_name = getattr(area, "name", area) if area else None
+        try:
+            player_manager.record_turn_event(
+                getattr(player, "name", player_manager.active_player),
+                "craft", f"crafted {recipe_label} ({tier})",
+                area_name=area_name,
+            )
+        except Exception:
+            pass
         return result
+
+    def craft(self, player_manager, recipe_name: str) -> str:
+        entry = self.check_craft(player_manager, recipe_name)
+        player = player_manager.players.get(player_manager.active_player)
+        recipe_label = entry.get("name", recipe_name)
+        tier, check_message = self.resolve_craft_tier(entry, player)
+        return self._finish(player_manager, player, entry, recipe_label,
+                            tier, check_message)
+
+    def _resolve_outputs(self, outcome: dict) -> list:
+        """The outputs for one outcome tier, honouring per-entry weights.
+
+        Entries may carry ``weight`` (crit-fail lotteries); default weight
+        is 1 and a single entry stays deterministic — recipes stay
+        learnable unless the author opts into variance.
+        """
+        outputs = (outcome or {}).get("outputs", []) or []
+        weighted = [(o, float(o.get("weight", 1) or 0))
+                    for o in outputs if isinstance(o, dict)]
+        if not weighted:
+            return [o for o in outputs if isinstance(o, dict)]
+        picks = [o for o, w in weighted if w > 0]
+        if len(picks) <= 1:
+            return picks
+        return [_random.choices(picks, weights=[w for _, w in weighted if w > 0])[0]]
+
+    def _resolve_tier(self, player, entry) -> tuple:
+        """Roll the recipe's skill check once and map the degree to a tier.
+
+        One roll through the shared ``checks.resolve`` pipeline (same
+        modifiers, conditions and advantage as every other check), so the
+        tier and the success agree by construction. ``roll_fn`` injects
+        dice for tests. Returns ``(tier, message)``.
+        """
+        from engine import checks
+        skill_cfg = entry.get("skill_check", {}) or {}
+        if not skill_cfg.get("skill"):
+            return "success", ""
+        result = checks.resolve(
+            player, kind=str(skill_cfg["skill"]),
+            dc=int(skill_cfg.get("dc", 10)), roll_fn=self.roll_fn)
+        return TIER_MAP.get(result.tier, "fail"), result.message
+

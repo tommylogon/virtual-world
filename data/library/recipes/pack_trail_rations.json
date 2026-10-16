@@ -1,0 +1,38 @@
+{
+  "id": "pack_trail_rations",
+  "name": "Pack Trail Rations",
+  "description": "Bundle preserved food in cloth for the trail.",
+  "ingredients": [
+    {"item": "jerky", "count": 1, "consumed": true},
+    {"item": "hard_cheese", "count": 1, "consumed": true},
+    {"item": "oatcake", "count": 1, "consumed": true},
+    {"item": "dried_apple", "count": 1, "consumed": true},
+    {"item": "cloth_scrap", "count": 1, "consumed": true}
+  ],
+  "conditions": [],
+  "duration_min": 10,
+  "skill_check": {"skill": "Survival", "dc": 8},
+  "outputs": [{"item": "trail_rations", "count": 1}],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [{"item": "trail_rations", "count": 2}],
+      "message": "Packed tight and balanced — double."
+    },
+    "success": {
+      "outputs": [{"item": "trail_rations", "count": 1}],
+      "message": ""
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "trail_rations", "count": 1}],
+      "message": "Lopsided packet, same food."
+    },
+    "crit_fail": {
+      "consume_inputs": false,
+      "outputs": [],
+      "message": "Spilled across the camp — gathered back one by one, nothing packed."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

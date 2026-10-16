@@ -1,0 +1,17 @@
+{
+  "name": "weak_wash",
+  "description": "A weak antiseptic wash. Half strength, half help.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "medicinal"
+  ],
+  "triggers": [],
+  "contents": []
+}

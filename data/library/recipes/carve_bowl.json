@@ -1,0 +1,36 @@
+{
+  "id": "carve_bowl",
+  "name": "Carve Bowl",
+  "description": "Hollow a seasoned log into a bowl with adze and knife.",
+  "ingredients": [
+    {"item": "seasoned_log", "count": 1, "consumed": true},
+    {"item": "adze", "count": 1, "consumed": false},
+    {"item": "carving_knife", "count": 1, "consumed": false}
+  ],
+  "conditions": [],
+  "duration_min": 60,
+  "skill_check": {"skill": "Woodcraft", "dc": 11},
+  "outputs": [{"item": "wooden_bowl", "count": 1}],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [{"item": "wooden_bowl", "count": 1}],
+      "message": "Thin-walled and true — a bowl to hand down."
+    },
+    "success": {
+      "outputs": [{"item": "wooden_bowl", "count": 1}],
+      "message": ""
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "leaky_bowl", "count": 1}],
+      "message": "Hollowed through in one spot — dry goods only."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "split_blank", "count": 1}],
+      "message": "Split log — firewood."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

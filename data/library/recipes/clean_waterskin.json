@@ -1,0 +1,36 @@
+{
+  "id": "clean_waterskin",
+  "name": "Clean Waterskin (Mold)",
+  "description": "Scour a musty skin with ash and boiled water.",
+  "ingredients": [
+    {"item": "waterskin", "count": 1, "consumed": false},
+    {"item": "wood_ash", "count": 1, "consumed": true},
+    {"item": "boiled_water", "count": 1, "consumed": true}
+  ],
+  "conditions": [],
+  "duration_min": 15,
+  "skill_check": {"skill": "Survival", "dc": 9},
+  "outputs": [],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [],
+      "message": "Sweet as new leather. (Clean state belongs to the task-703 executor; the skin is kept.)"
+    },
+    "success": {
+      "outputs": [],
+      "message": "Must gone — the skin is clean and kept."
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [],
+      "message": "Still musty, but usable. Ash and water spent."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "leather_scraps", "count": 1}],
+      "message": "Scrubbed through — ruined skin, kept as scraps."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

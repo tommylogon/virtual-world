@@ -134,6 +134,14 @@ def create_app(config=None):
     def autosave_after_mutation(response):
         method = request.method
         path = request.path
+        # Bug-545: paint strokes are the highest-frequency mutating calls
+        # in the app (one per cell). They still bump _edit_seq (dirty dot)
+        # and push their own delta undo entries, but they skip the 15 MB
+        # pretty-printed autosave — that write per cell is what made
+        # painting seconds-per-cell. Durability for strokes is already
+        # best-effort (the undo stack is in-memory); explicit commit
+        # still persists everything.
+        _paint_burst = path.endswith(('/grid/paint', '/grid/paint_batch'))
         if response.status_code and response.status_code < 400:
             if method in ('POST', 'PATCH', 'DELETE') and (
                 '/api/graph/' in path or '/api/players/' in path
@@ -196,7 +204,7 @@ def create_app(config=None):
                         _push_undo_snapshot(app, label=label)
                 except Exception:
                     pass  # never let history bookkeeping break a mutation
-                if not app.config.get('TESTING'):
+                if not app.config.get('TESTING') and not _paint_burst:
                     save_autosave(app.world)
         # Broadcast a live world-change so the GUI (and any MCP / SSE client) can
         # refetch state in real time — including edits made by external agents
@@ -213,7 +221,14 @@ def create_app(config=None):
         if (method in ('POST', 'PATCH', 'DELETE', 'PUT')
                 and path.startswith('/api/')
                 and not path.startswith('/api/soak')
-                and not path.startswith('/api/bugs')):
+                and not path.startswith('/api/bugs')
+                # Read-only POSTs that change nothing (compile dry-run
+                # for the Persona tab's live preview) opt out via
+                # ``g.no_broadcast``: broadcasting would make every
+                # client refetch 2.48 MB of state for a preview that
+                # stored nothing — and worse, the re-render wipes the
+                # very form being previewed.
+                and not g.get('no_broadcast')):
             editor = request.headers.get('X-WV-Editor', 'app')
             from engine.world_events import hub
             hub.publish({

@@ -464,6 +464,23 @@ def handle_set_scope_grid(app, scope_id):
     return jsonify({"status": "saved", **_grid_payload(manifest, scope_id, app.world.graph)})
 
 
+def _snapshot_paint(app, record, scope_id: str, edits, label: str) -> None:
+    """One cheap undo delta for a paint: previous values, not the world.
+
+    Bug-545: a paint used to cost a full ``world.to_dict()`` (0.20 s +
+    15 MB per cell on kraktooth) pushed per cell. A delta is bytes, and
+    undo applies it to the live world instead of replacing it.
+    """
+    from routes.saveload import _push_undo_delta
+    cells = [{"layer": e["layer"], "x": int(e["x"]), "y": int(e["y"]),
+              "previous": world_grid.painter_at(record, e["layer"],
+                                                int(e["x"]), int(e["y"])),
+              "value": e.get("value")}
+             for e in edits]
+    _push_undo_delta(app, {"kind": "paint", "scope_id": scope_id,
+                           "cells": cells, "label": label})
+
+
 def handle_paint_cell(app, scope_id):
     """POST /api/world/scopes/<scope_id>/grid/paint — set one cell on a layer.
 
@@ -479,13 +496,25 @@ def handle_paint_cell(app, scope_id):
         x, y = int(data.get("x")), int(data.get("y"))
     except (TypeError, ValueError):
         return _error("x and y are required integers")
+    value = data.get("value")
+    if layer not in world_grid.PAINT_LAYERS:
+        return _error(f"unknown paint layer {layer!r}; "
+                      f"expected {world_grid.PAINT_LAYERS}")
+    if not world_grid.has_grid(record):
+        return _error("scope has no grid")
+    if not world_grid.in_bounds(record, x, y):
+        return _error(f"cell ({x},{y}) is outside the grid")
 
-    try:
-        _snapshot(app, label=f"paint {layer} on {record.get('name', scope_id)}")
-        world_grid.paint(record, layer, x, y, data.get("value"))
-    except ValueError as exc:
-        return _error(str(exc))
+    _snapshot_paint(app, record, scope_id,
+                    [{"layer": layer, "x": x, "y": y, "value": value}],
+                    label=f"paint {layer} on {record.get('name', scope_id)}")
+    world_grid.paint(record, layer, x, y, value)
     _commit(app, manifest)
+    if data.get("slim") or request.args.get("slim") == "1":
+        # The editor already holds the payload and patches one cell
+        # locally (optimistic): no 1,182-byte-plus rebuild per cell.
+        return jsonify({"status": "painted", "layer": layer, "x": x, "y": y,
+                        "value": value})
     return jsonify({"status": "painted", "layer": layer, "x": x, "y": y,
                     "value": data.get("value"),
                     **_grid_payload(manifest, scope_id, app.world.graph)})
@@ -1069,8 +1098,21 @@ def handle_paint_batch(app, scope_id):
     if len(edits) > 20000:
         return _error("too many edits in one request (max 20000)")
     record = manifest[scope_id]
+    for edit in edits:
+        if not isinstance(edit, dict) or \
+                edit.get("layer") not in world_grid.PAINT_LAYERS:
+            return _error("each edit needs a known layer")
+        try:
+            ex, ey = int(edit.get("x")), int(edit.get("y"))
+        except (TypeError, ValueError):
+            return _error("each edit needs integer x and y")
+        if not world_grid.has_grid(record) or \
+                not world_grid.in_bounds(record, ex, ey):
+            return _error(f"cell ({edit.get('x')},{edit.get('y')}) "
+                          f"is outside the grid")
     try:
-        _snapshot(app, label=f"paint route on {record.get('name', scope_id)}")
+        _snapshot_paint(app, record, scope_id, edits,
+                        label=f"paint route on {record.get('name', scope_id)}")
         count = world_grid.paint_many(record, edits)
     except ValueError as exc:
         return _error(str(exc))

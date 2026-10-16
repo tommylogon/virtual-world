@@ -1,0 +1,37 @@
+{
+  "id": "parch_grain",
+  "name": "Parched Grain",
+  "description": "Toast barley in a pan for trail-ready grain.",
+  "ingredients": [
+    {"item": "barley", "count": 3, "consumed": true},
+    {"item": "frying_pan", "count": 1, "consumed": false}
+  ],
+  "conditions": [
+    {"type": "state_equals", "target": "campfire", "value": "on"}
+  ],
+  "duration_min": 15,
+  "skill_check": {"skill": "Cooking", "dc": 9},
+  "outputs": [{"item": "parched_grain", "count": 1}],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [{"item": "parched_grain", "count": 2}],
+      "message": "Evenly toasted, nutty — double."
+    },
+    "success": {
+      "outputs": [{"item": "parched_grain", "count": 1}],
+      "message": ""
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "parched_grain", "count": 1}],
+      "message": "Uneven, but trail-ready."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "burned_grain", "count": 1}],
+      "message": "Burned bitter kernels."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

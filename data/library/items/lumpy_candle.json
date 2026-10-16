@@ -1,0 +1,17 @@
+{
+  "name": "lumpy_candle",
+  "description": "A lumpy, uneven candle. Burns, but dimly and fast.",
+  "actions": "examine,take,drop",
+  "uses": 3,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": 20,
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "light"
+  ],
+  "triggers": [],
+  "contents": []
+}

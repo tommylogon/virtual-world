@@ -281,6 +281,13 @@ class Player:
         # Crafting (task-2): recipe names this character has discovered
         # (discoverable recipes after the first successful craft).
         self.crafting_known = []
+        # Lifecycle (task-735): birth_tick (sim tick of birth, None until
+        # known), life_stage cache (child/adolescent/adult/elder) and the
+        # last game-year the old-age roll ran. See engine/lifecycle.py —
+        # the clock owns these, the sheet only displays them.
+        self.birth_tick = None
+        self.life_stage = None
+        self.last_mortality_year = None
         # Traits: mapping trait_id -> parameter value.
         # Boolean traits use True. Parameterized traits use a string (e.g. {"allergic": "pollen"}).
         # Example: {"dark_vision": True, "hardy": True, "glutton": True}
@@ -1360,6 +1367,8 @@ class Player:
             "tags": list(self.tags),
             "interest_tags": list(self.interest_tags),
             "fear_tags": list(self.fear_tags),
+            "birth_tick": getattr(self, 'birth_tick', None),
+            "life_stage": getattr(self, 'life_stage', None),
             "carcass_item": getattr(self, 'carcass_item', None),
             "flags": dict(getattr(self, "flags", {})),
             "hidden": bool(getattr(self, "hidden", False)),

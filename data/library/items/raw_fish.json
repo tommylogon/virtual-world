@@ -1,0 +1,47 @@
+{
+  "name": "raw_fish",
+  "description": "A whole raw fish, slippery and staring.",
+  "actions": "examine,take,use,eat,drop",
+  "uses": 1,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "food",
+    "fish",
+    "raw"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_eat"
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "",
+            "success_message": "Sushi without the ceremony. Your stomach objects."
+          }
+        },
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Hunger",
+            "amount": -8,
+            "target": "self"
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "Sushi without the ceremony. Your stomach objects.",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

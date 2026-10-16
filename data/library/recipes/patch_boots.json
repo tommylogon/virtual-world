@@ -1,0 +1,37 @@
+{
+  "id": "patch_boots",
+  "name": "Patch Boots",
+  "description": "Patch worn boots with scraps and waxed thread.",
+  "ingredients": [
+    {"item": "worn_boots", "count": 1, "consumed": false},
+    {"item": "leather_scraps", "count": 2, "consumed": true},
+    {"item": "waxed_thread", "count": 1, "consumed": true},
+    {"item": "awl", "count": 1, "consumed": false}
+  ],
+  "conditions": [],
+  "duration_min": 20,
+  "skill_check": {"skill": "Leatherwork", "dc": 9},
+  "outputs": [],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [],
+      "message": "Better than new — resoled and restitched. (Condition improvement is narrative until equipment states exist.)"
+    },
+    "success": {
+      "outputs": [],
+      "message": "Patched and wearable. (The repair itself is the outcome — no upgrade stat exists to write.)"
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [],
+      "message": "Patched but ugly — half durability, holds for now."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "leather_scraps", "count": 1}],
+      "message": "Cut the worst parts out as scraps — the boots survive, barely. (Boots-destroyed needs per-input outcome flags; kept inputs are never eaten.)"
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

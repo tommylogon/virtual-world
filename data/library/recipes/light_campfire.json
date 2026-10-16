@@ -1,0 +1,36 @@
+{
+  "id": "light_campfire",
+  "name": "Light Campfire",
+  "description": "Coax kindling and firewood alight with a tinderbox.",
+  "ingredients": [
+    {"item": "kindling", "count": 1, "consumed": true},
+    {"item": "firewood", "count": 1, "consumed": true},
+    {"item": "tinderbox", "count": 1, "consumed": false}
+  ],
+  "conditions": [],
+  "duration_min": 10,
+  "skill_check": {"skill": "Survival", "dc": 8},
+  "outputs": [],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [],
+      "message": "The fire catches at the first spark and settles into a strong burn. (The campfire node is now lit — a state write the task-703 executor performs; craft resolves the consumed fuel here.)"
+    },
+    "success": {
+      "outputs": [],
+      "message": "The campfire catches and steadies. (Campfire lit — state write belongs to the task-703 executor.)"
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [],
+      "message": "Smoke, sputter, nothing. The kindling is spent and the fire stays unlit."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [],
+      "message": "A flare-up kisses your fingers — singed and smarting (minor burn), fire unlit. (Condition application belongs to the task-703 executor.)"
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

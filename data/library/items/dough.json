@@ -1,0 +1,18 @@
+{
+  "name": "dough",
+  "description": "A smooth ball of mixed dough, ready to rise or bake.",
+  "actions": "examine,take,drop",
+  "uses": 2,
+  "weight": 0.6,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "grain",
+    "dough"
+  ],
+  "triggers": [],
+  "contents": []
+}

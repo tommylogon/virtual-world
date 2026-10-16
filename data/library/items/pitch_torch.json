@@ -1,0 +1,18 @@
+{
+  "name": "pitch_torch",
+  "description": "A resin-pitched trail torch. Burns long and bright.",
+  "actions": "examine,take,drop",
+  "uses": 6,
+  "weight": 0.6,
+  "current_state": "normal",
+  "light_level": 40,
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "light",
+    "tool"
+  ],
+  "triggers": [],
+  "contents": []
+}

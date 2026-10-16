@@ -20,7 +20,9 @@ from .player_ops import (
     handle_get_character_record,
     handle_set_character_record,
     handle_compile_character_record,
+    handle_character_recipes,
     handle_clear_character_record,
+    handle_set_body_baseline,
     handle_character_affect,
     handle_get_vital,
     handle_update_vital,
@@ -108,9 +110,17 @@ def register_players_routes(app):
     def api_compile_character_record(name):
         return handle_compile_character_record(app, name)
 
+    @app.route('/api/players/<name>/recipes', methods=['GET'])
+    def api_character_recipes(name):
+        return handle_character_recipes(app, name)
+
     @app.route('/api/players/<name>/record', methods=['DELETE'])
     def api_clear_character_record(name):
         return handle_clear_character_record(app, name)
+
+    @app.route('/api/players/<name>/body', methods=['PUT'])
+    def api_set_body_baseline(name):
+        return handle_set_body_baseline(app, name)
 
     @app.route('/api/players/<name>/affect', methods=['GET', 'POST'])
     def api_character_affect(name):

@@ -131,6 +131,9 @@ window.InspectorPaperdoll = (() => {
         back: ['back'],
         feet: ['foot_left', 'foot_right'],
     };
+    // task-847: the Mind/Persona body navigator reuses this map instead
+    // of declaring its own region vocabulary. One map, two readers.
+    P.AREA_TO_REGIONS = AREA_TO_REGIONS;
     /**
      * Character-wide equipment totals (one place, no duplication): the same
      * aggregation rules the engine uses (equipment_bonuses.aggregate_bonuses) —
@@ -256,63 +259,10 @@ window.InspectorPaperdoll = (() => {
             <div style="width:100%;height:8px;background:var(--bg-inset);border-radius:4px;overflow:hidden;margin-bottom:6px;">
                 <div style="width:${carryPercent}%;height:100%;background:${carryColor};border-radius:4px;transition:width 0.2s;"></div>
             </div>
-            <div class="paperdoll">`;
-        const nameForNode = (id) => (worldState.getNode(id)?.name || id);
-        const playerConditions = player.conditions || {};
-        const regionName = (regionId) => (player.body_region_names?.[regionId] || regionId.replace(/_/g, ' '));
-        const regionStatus = (regionId) => {
-            const bs = player.body_state?.[regionId] || {};
-            const injuredInstances = (playerConditions.injured || []).filter((i) => i.body_part === regionId);
-            const bleedingInstances = (playerConditions.bleeding || []).filter((i) => i.body_part === regionId);
-            const exposed = player.region_exposed?.[regionId] !== false;
-            return {
-                sensitivity: parseFloat(bs.sensitivity) ?? 0,
-                injured: injuredInstances,
-                bleeding: bleedingInstances,
-                exposed,
-            };
-        };
-        for (const gs of GRID_SLOTS) {
-            const rawStack = equipped[gs.slot] || [];
-            const realIds = rawStack.filter((i) => i && !String(i).startsWith('__'));
-            const filled = realIds.length > 0;
-            const names = realIds.map(nameForNode);
-            const outerName = filled ? names[names.length - 1] : null;
-            const innerNames = filled ? names.slice(0, -1) : [];
-            const slotClick = filled ? `InspectorPaperdoll.showSlotModal('${escName}','${gs.slot}')` : '';
-            const regions = AREA_TO_REGIONS[gs.area] || [];
-            const regionData = regions.map(r => ({ id: r, ...regionStatus(r) }));
-            const regionBadges = regionData.filter(r => r.injured.length > 0 || r.bleeding.length > 0);
-            const regionBadgeHtml = regionBadges.length > 0
-                ? `<div class="paperdoll-body-badge" title="${esc(regionBadges.map(r => (r.bleeding.length ? '🩸' : '🤕') + ' ' + regionName(r.id)).join(', '))}">${regionBadges.length > 1 ? regionBadges.length : (regionBadges[0].bleeding.length ? '🩸' : '🤕')}</div>`
-                : '';
-            html += `<div class="paperdoll-slot${filled ? ' filled' : ''}" data-area="${gs.area}"${filled ? ` onclick="${slotClick}" oncontextmenu="InspectorPaperdoll.showPaperdollContextMenu(event,'${escName}','${gs.slot}')"` : ''}>
-                <div class="paperdoll-slot-label">${SLOT_LABELS[gs.slot] || gs.slot}</div>
-                ${iconHtml(gs.slot, filled)}
-                <div class="paperdoll-body-btn" onclick="event.stopPropagation();InspectorPaperdoll.showBodyRegionModal('${escName}','${gs.area}')" title="Inspect body regions">🩺</div>
-                ${regionBadgeHtml}`;
-            if (filled) {
-                html += `<div class="paperdoll-slot-item">${esc(outerName)}</div>`;
-                if (innerNames.length > 0) {
-                    const visibleInner = innerNames.slice(-2);
-                    const hiddenCount = innerNames.length - visibleInner.length;
-                    visibleInner.forEach((name) => {
-                        html += `<div style="font-size:7px;color:var(--text-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:85%;line-height:1.3;">↳ ${esc(name)}</div>`;
-                    });
-                    const innerData = JSON.stringify(realIds.slice(0, -1)).replace(/'/g, '&#39;');
-                    const badgeText = hiddenCount > 0 ? `+${hiddenCount} more` : '📋 layers';
-                    html += `<div class="paperdoll-slot-stack-badge" onclick="event.stopPropagation();InspectorPaperdoll.showStackPopup(this,'${escName}','${gs.slot}')" data-inner='${innerData}'>${badgeText}</div>`;
-                }
-            }
-            else {
-                html += `<div class="paperdoll-slot-empty">—</div>`;
-            }
-            html += `<div class="paperdoll-slot-actions">
-                <button class="btn btn-sm btn-blue" onclick="InspectorPaperdoll.showEquipPicker('${escName}','${gs.slot}')" title="Equip ${SLOT_LABELS[gs.slot]}">+</button>
-                ${filled ? `<button class="btn btn-sm" onclick="runAction('unequip ${gs.slot}', '${escName}')" title="Unequip">✕</button>` : ''}
-            </div></div>`;
-        }
-        html += `</div>`; // end paperdoll
+            `;
+        html += P.renderPaperdollFigureHtml(agentName, player, esc, escName, { mode: 'equip' });
+        // (figure grid renders here via renderPaperdollFigureHtml — one
+        // template, two readers; defined below at module scope.)
         // Accessory slots
         const accStack = equipped.accessory || [];
         const accItems = accStack.filter((i) => i && !String(i).startsWith('__'));
@@ -339,6 +289,103 @@ window.InspectorPaperdoll = (() => {
         }
         html += `</div>`;
         return html;
+    };
+    /**
+     * The doll figure: the slot grid both modes share (task-848). One
+     * template, two readers — Inventory equips through it, Persona reads
+     * through it. Equip output is unchanged; navigate mode swaps actions
+     * for selection (slots dispatch, never equip).
+     * @param {string} agentName - Character name
+     * @param {object} player - Player data from worldState
+     * @param {function} esc - HTML escaping function for attribute values
+     * @param {string} escName - HTML-escaped agent name (single quotes escaped)
+     * @param {object} opts - {mode: 'equip'|'navigate', selectedArea?: string}
+     * @returns {string} HTML for the figure grid
+     */
+    P.renderPaperdollFigureHtml = function (agentName, player, esc, escName, opts) {
+        const mode = opts?.mode === 'navigate' ? 'navigate' : 'equip';
+        const selected = opts?.selectedArea || null;
+        const equipped = player.equipped || {};
+        const nameForNode = (id) => (worldState.getNode(id)?.name || id);
+        const playerConditions = player.conditions || {};
+        const regionName = (regionId) => (player.body_region_names?.[regionId] || regionId.replace(/_/g, ' '));
+        const regionStatus = (regionId) => {
+            const bs = player.body_state?.[regionId] || {};
+            const injuredInstances = (playerConditions.injured || []).filter((i) => i.body_part === regionId);
+            const bleedingInstances = (playerConditions.bleeding || []).filter((i) => i.body_part === regionId);
+            const missingInstances = (playerConditions.missing || []).filter((i) => i.body_part === regionId);
+            const exposed = player.region_exposed?.[regionId] !== false;
+            return {
+                sensitivity: parseFloat(bs.sensitivity) ?? 0,
+                injured: injuredInstances,
+                bleeding: bleedingInstances,
+                missing: missingInstances,
+                exposed,
+            };
+        };
+        let html = `<div class="paperdoll" data-mode="${mode}">`;
+        for (const gs of GRID_SLOTS) {
+            const rawStack = equipped[gs.slot] || [];
+            const realIds = rawStack.filter((i) => i && !String(i).startsWith('__'));
+            const filled = realIds.length > 0;
+            const regions = AREA_TO_REGIONS[gs.area] || [];
+            const regionData = regions.map(r => ({ id: r, ...regionStatus(r) }));
+            const regionBadges = regionData.filter(r => r.injured.length > 0 || r.bleeding.length > 0 || r.missing.length > 0);
+            const glyphOf = (r) => r.bleeding.length ? '🩸' : (r.missing.length ? '✖' : '🤕');
+            const regionBadgeHtml = regionBadges.length > 0
+                ? `<div class="paperdoll-body-badge" title="${esc(regionBadges.map(r => glyphOf(r) + ' ' + regionName(r.id)).join(', '))}">${regionBadges.length > 1 ? regionBadges.length : glyphOf(regionBadges[0])}</div>`
+                : '';
+            const hurt = regionData.some(r => r.injured.length > 0 || r.bleeding.length > 0 || r.missing.length > 0);
+            const hot = regionData.some(r => (r.sensitivity || 0) >= 0.75);
+            const statusCls = `${hurt ? ' pd-hurt' : ''}${hot ? ' pd-hot' : ''}${selected === gs.area ? ' pd-sel' : ''}`;
+            if (mode === 'navigate') {
+                html += `<div class="paperdoll-slot${statusCls}" data-area="${gs.area}" onclick="InspectorPaperdoll.navigateToArea('${escName}','${gs.area}')" title="${esc(regions.map(regionName).join(', '))}">`
+                    + `<div class="paperdoll-slot-label">${SLOT_LABELS[gs.slot] || gs.slot}</div>`
+                    + `${iconHtml(gs.slot, filled)}${regionBadgeHtml}</div>`;
+                continue;
+            }
+            const names = realIds.map(nameForNode);
+            const outerName = filled ? names[names.length - 1] : null;
+            const innerNames = filled ? names.slice(0, -1) : [];
+            const slotClick = filled ? `InspectorPaperdoll.showSlotModal('${escName}','${gs.slot}')` : '';
+            html += `<div class="paperdoll-slot${filled ? ' filled' : ''}" data-area="${gs.area}"${filled ? ` onclick="${slotClick}" oncontextmenu="InspectorPaperdoll.showPaperdollContextMenu(event,'${escName}','${gs.slot}')"` : ''}>
+                <div class="paperdoll-slot-label">${SLOT_LABELS[gs.slot] || gs.slot}</div>
+                ${iconHtml(gs.slot, filled)}
+                <div class="paperdoll-body-btn" onclick="event.stopPropagation();InspectorPaperdoll.showBodyRegionModal('${escName}','${gs.area}')" title="Inspect body regions">🩺</div>
+                ${regionBadgeHtml}`;
+            if (filled) {
+                html += `<div class="paperdoll-slot-item">${esc(outerName)}</div>`;
+                if (innerNames.length > 0) {
+                    const visibleInner = innerNames.slice(-2);
+                    const hiddenCount = innerNames.length - visibleInner.length;
+                    visibleInner.forEach((name) => {
+                        html += `<div style="font-size:7px;color:var(--text-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:85%;line-height:1.3;">↳ ${esc(name)}</div>`;
+                    });
+                    const innerData = JSON.stringify(realIds.slice(0, -1)).replace(/'/g, '&#39;');
+                    const badgeText = hiddenCount > 0 ? `+${hiddenCount} more` : '📋 layers';
+                    html += `<div class="paperdoll-slot-stack-badge" onclick="event.stopPropagation();InspectorPaperdoll.showStackPopup(this,'${escName}','${gs.slot}')" data-inner='${innerData}'>${badgeText}</div>`;
+                }
+            }
+            else {
+                html += `<div class="paperdoll-slot-empty">—</div>`;
+            }
+            html += `<div class="paperdoll-slot-actions">
+                <button class="btn btn-sm btn-blue" onclick="InspectorPaperdoll.showEquipPicker('${escName}','${gs.slot}')" title="Equip ${SLOT_LABELS[gs.slot]}">+</button>
+                ${filled ? `<button class="btn btn-sm" onclick="runAction('unequip ${gs.slot}', '${escName}')" title="Unequip">✕</button>` : ''}
+            </div></div>`;
+        }
+        html += `</div>`;
+        return html;
+    };
+    /**
+     * Navigate-mode selection (task-848). The doll never edits: it names
+     * an area, and the hosting surface (Persona) decides what that means.
+     * Hosts assign `InspectorPaperdoll.onNavigate'.
+     */
+    P.onNavigate = null;
+    P.navigateToArea = function (charName, area) {
+        if (typeof P.onNavigate === 'function')
+            P.onNavigate(charName, area);
     };
     /**
      * Show a popup with inner layers for a stacked equipment slot
@@ -526,12 +573,15 @@ window.InspectorPaperdoll = (() => {
             const bs = bodyState[regionId] || {};
             const injuredInstances = (playerConditions.injured || []).filter((i) => i.body_part === regionId);
             const bleedingInstances = (playerConditions.bleeding || []).filter((i) => i.body_part === regionId);
+            const missingInstances = (playerConditions.missing || []).filter((i) => i.body_part === regionId);
             const exposed = player.region_exposed?.[regionId] !== false;
             const sensitivity = bs.sensitivity !== undefined ? parseFloat(bs.sensitivity).toFixed(2) : '—';
             const injuryLevel = bs.injury ?? (injuredInstances.length ? Math.max(...injuredInstances.map((i) => i.level || 1)) : null);
             const statusChips = [];
             if (injuredInstances.length)
                 statusChips.push(`<span style="color:var(--yellow);">🤕 Injured Lv${Math.max(...injuredInstances.map((i) => i.level || 1))}</span>`);
+            if (missingInstances.length)
+                statusChips.push(`<span style="color:var(--red);">✖ Missing</span>`);
             if (bleedingInstances.length)
                 statusChips.push(`<span style="color:var(--red);">🩸 Bleeding</span>`);
             if (!exposed)

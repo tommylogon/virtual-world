@@ -1,0 +1,36 @@
+{
+  "id": "salt_pork_cure",
+  "name": "Salt Pork",
+  "description": "Pack pork in salt in the barrel for a day.",
+  "ingredients": [
+    {"item": "raw_meat", "count": 2, "consumed": true},
+    {"item": "salt", "count": 3, "consumed": true},
+    {"item": "salt_barrel", "count": 1, "consumed": false}
+  ],
+  "conditions": [],
+  "duration_min": 1440,
+  "skill_check": {"skill": "Survival", "dc": 11},
+  "outputs": [{"item": "salt_pork", "count": 1}],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [{"item": "salt_pork", "count": 2}],
+      "message": "Perfect cure — double."
+    },
+    "success": {
+      "outputs": [{"item": "salt_pork", "count": 1}],
+      "message": ""
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "salt_pork", "count": 1}],
+      "message": "Very salty, but keeping."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "spoiled_meat", "count": 1}],
+      "message": "Salt missed a pocket — spoiled."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

@@ -1,0 +1,18 @@
+{
+  "name": "vinegar",
+  "description": "Sharp vinegar for pickling and preserving.",
+  "actions": "examine,take,drop",
+  "uses": 2,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "material",
+    "spice"
+  ],
+  "triggers": [],
+  "contents": []
+}

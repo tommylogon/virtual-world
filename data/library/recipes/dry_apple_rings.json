@@ -1,0 +1,35 @@
+{
+  "id": "dry_apple_rings",
+  "name": "Dry Apple Rings",
+  "description": "Slice apples thin and dry them on the rack in sun and air.",
+  "ingredients": [
+    {"item": "apple", "count": 3, "consumed": true},
+    {"item": "drying_rack", "count": 1, "consumed": false}
+  ],
+  "conditions": [],
+  "duration_min": 480,
+  "skill_check": {"skill": "Survival", "dc": 9},
+  "outputs": [{"item": "dried_apple", "count": 1}],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [{"item": "dried_apple", "count": 2}],
+      "message": "Chewy-sweet rings, perfectly dried."
+    },
+    "success": {
+      "outputs": [{"item": "dried_apple", "count": 1}],
+      "message": ""
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "dried_apple", "count": 1}],
+      "message": "Leathery and tough, but keeping."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "moldy_apple", "count": 1}],
+      "message": "Dried too slow — mold took them."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

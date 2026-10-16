@@ -1,0 +1,35 @@
+{
+  "id": "salt_water_barrel",
+  "name": "Salt the Water Barrel",
+  "description": "Salt stored water so it keeps twice as long.",
+  "ingredients": [
+    {"item": "salt", "count": 2, "consumed": true},
+    {"item": "water_barrel", "count": 1, "consumed": false}
+  ],
+  "conditions": [],
+  "duration_min": 5,
+  "skill_check": {"skill": "Survival", "dc": 8},
+  "outputs": [],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [],
+      "message": "Perfectly dosed — the barrel will keep twice as long. (The keep-longer parameter is a state write the task-703 executor performs; craft resolves the spent salt here.)"
+    },
+    "success": {
+      "outputs": [],
+      "message": "Salted and sealed — keeps twice as long. (Duration parameter belongs to the task-703 executor.)"
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [],
+      "message": "Salt scattered, nothing gained."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [],
+      "message": "Salt clumped and spoiled in the damp — lost."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

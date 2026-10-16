@@ -1,0 +1,35 @@
+{
+  "id": "press_apple_cider",
+  "name": "Press Apple Cider",
+  "description": "Crush apples in the screw press for fresh cider.",
+  "ingredients": [
+    {"item": "apple", "count": 4, "consumed": true},
+    {"item": "cider_press", "count": 1, "consumed": false}
+  ],
+  "conditions": [],
+  "duration_min": 30,
+  "skill_check": {"skill": "Cooking", "dc": 9},
+  "outputs": [{"item": "apple_cider", "count": 1}],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [{"item": "apple_cider", "count": 2}],
+      "message": "Every drop pressed — double yield."
+    },
+    "success": {
+      "outputs": [{"item": "apple_cider", "count": 1}],
+      "message": ""
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "cloudy_cider", "count": 1}],
+      "message": "Cloudy and sharp, but honest cider."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "pomace", "count": 1}],
+      "message": "Pressed to dry pulp — pig feed, no drink."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

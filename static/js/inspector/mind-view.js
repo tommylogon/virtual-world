@@ -684,21 +684,56 @@ const InspectorMindView = (() => {
     function _recipesHtml() {
         if (!_state)
             return '';
-        const AV = window.InspectorAgentView;
-        const p = worldState.players?.[_state.charName];
-        const list = (AV && AV._knownRecipeNames && p) ? AV._knownRecipeNames(_state.charName, p) : [];
-        const head = `<div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Recipes - what they can make${list.length ? ` (${list.length})` : ''}</div>`;
-        if (!list.length) {
-            return `<div style="margin-top:14px;">${head}
-                <div style="font-size:10px;color:var(--text-dim);">None yet - create a recipe node (type: recipe) with learned_by: ["global"] (or "skill:&lt;name&gt;", "item:&lt;name&gt;", discoverable:true) to add one.</div>
-            </div>`;
-        }
-        return `<div style="margin-top:14px;">${head}
-            ${list.map((r) => `<div style="display:flex;align-items:center;gap:6px;padding:3px 0;font-size:11px;">
-                <span style="flex:1;">🧾 ${esc(r.name)}</span>
-                <button class="btn btn-sm" data-help="craft" onclick="runAction('craft ${esc(r.name)}','${_state.escName}')" style="font-size:9px;padding:2px 8px;">Craft</button>
-            </div>`).join('')}
-        </div>`;
+        // Task-841: known recipes are procedural knowledge — rendered
+        // from the backend projection (registry + knowledge), never
+        // executed here. Filled by _fetchRecipes below.
+        return `<div style="margin-top:14px;" id="mind-recipes"><div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Recipes - what they can make</div>
+            <div style="font-size:10px;color:var(--text-dim);">reading the known list…</div></div>`;
+    }
+    function _fetchRecipes() {
+        if (!_state)
+            return;
+        fetch(`/api/players/${encodeURIComponent(_state.charName)}/recipes`, {
+            headers: { 'Accept': 'application/json' }
+        }).then(r => r.ok ? r.json() : Promise.reject(new Error(String(r.status))))
+            .then((data) => {
+            const live = _container?.querySelector('#mind-recipes');
+            if (!live || !_state)
+                return;
+            const list = data.recipes || [];
+            const player = worldState.players?.[_state.charName];
+            // autonomy False = a human drives this character; only they
+            // get the Make button. Everyone else is read-only.
+            const controlled = player && player.autonomy === false;
+            const head = `<div style="font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">Recipes - what they can make${list.length ? ` (${list.length})` : ''}</div>`;
+            if (!list.length) {
+                live.innerHTML = `${head}<div style="font-size:10px;color:var(--text-dim);">None yet — teach them (Skill lessons, recipe notes) or raise the gating skill.</div>`;
+                return;
+            }
+            const srcColor = {
+                global: 'var(--text-dim)', taught: '#58a6ff', discovered: '#3fb950',
+                cookbook: '#d29922', skill: '#bc8cff',
+            };
+            live.innerHTML = `${head}${list.map((r) => {
+                const meta = [
+                    r.skill ? `${esc(r.skill)} ${r.dc ?? 10}` : '',
+                    r.duration_min ? `${r.duration_min}m` : '',
+                ].filter((s) => s).join(' · ');
+                return `<div style="display:flex;align-items:center;gap:6px;padding:3px 0;font-size:11px;">
+                        <span style="flex:1;"><a href="#" data-recipe-lib="${esc(r.id)}" style="color:var(--text);text-decoration:underline dotted;" title="Browse in the library (read-only here)">🧾 ${esc(r.name)}</a> <span style="font-size:9px;color:${srcColor[r.source] || 'var(--text-dim)'};">${esc(r.source)}</span>${meta ? ` <span style="font-size:9px;color:var(--text-muted);">${esc(meta)}</span>` : ''}</span>
+                        ${controlled ? `<button class="btn btn-sm" onclick="runAction('Make ${esc(r.name)}','${_state.escName}')" style="font-size:9px;padding:2px 8px;" title="Same as typing Make ${esc(r.name)} in the turn box">Make</button>` : ''}
+                    </div>`;
+            }).join('')}`;
+            live.querySelectorAll('[data-recipe-lib]').forEach((a) => {
+                a.addEventListener('click', (ev) => {
+                    ev.preventDefault();
+                    const lib = window.VW?.libraryBrowser;
+                    if (lib && typeof lib.open === 'function')
+                        lib.open('recipes');
+                });
+            });
+        })
+            .catch(() => { });
     }
     function _eventsTimelineHtml() {
         if (!_state)
@@ -863,10 +898,13 @@ const InspectorMindView = (() => {
             if (!_state || !_container)
                 return;
             // Never wipe an in-progress persona edit: a background state
-            // push while typing would destroy unsaved form input.
+            // push while typing would destroy unsaved form input. Any
+            // focused field counts — including chip inputs, which carry
+            // no data-path until their pill is committed.
             const active = document.activeElement;
             if (_state.tab === 'persona' && active
-                && active.hasAttribute('data-persona-path'))
+                && active.closest('#mind-persona')
+                && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA'))
                 return;
             _render();
         });
@@ -1011,20 +1049,65 @@ const InspectorMindView = (() => {
         }
         return cur;
     }
+    const _PERSONA_INTIMACY = new Set(['personality.kinks', 'personality.turn_ons',
+        'personality.turn_offs', 'personality.boundaries', 'personality.experience']);
+    const _PERSONA_TONES = {
+        fears: 'danger', traumas: 'danger', turn_offs: 'danger',
+        interests: 'info', likes: 'info',
+    };
+    function _personaCss() {
+        return `<style>
+        #mind-persona .pf-bar{position:sticky;top:0;z-index:5;display:flex;gap:6px;align-items:center;flex-wrap:wrap;background:var(--bg-card);padding:8px 2px;border-bottom:1px solid var(--border);margin-bottom:8px;}
+        #mind-persona .pf-name{font-family:Georgia,'Times New Roman',serif;font-size:17px;font-weight:600;margin-right:auto;}
+        #mind-persona .pf-badges{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;}
+        #mind-persona .pf-badge{font-size:11px;background:var(--bg-input);border:1px solid var(--border);border-radius:999px;padding:2px 10px;color:var(--text-dim);}
+        #mind-persona .pf-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px;}
+        #mind-persona .pf-span{grid-column:1/-1;}
+        #mind-persona .pf-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;}
+        #mind-persona .pf-hint{cursor:help;font-size:10px;}
+        #mind-persona .pf-in{width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:6px 9px;font-size:13px;box-sizing:border-box;box-shadow:inset 0 1px 2px rgba(0,0,0,.25);}
+        #mind-persona .pf-in:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(88,166,255,.18);}
+        #mind-persona textarea.pf-in{resize:vertical;font-family:inherit;}
+        #mind-persona fieldset.pf-group{border:1px solid var(--border);border-radius:6px;padding:7px 9px;margin:0;}
+        #mind-persona fieldset.pf-group>legend{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);padding:0 4px;}
+        #mind-persona .pf-sub{font-size:11px;color:var(--text-muted);margin-bottom:2px;}
+        #mind-persona .pf-chips{display:flex;flex-wrap:wrap;gap:5px;background:var(--bg-input);border:1px solid var(--border);border-radius:6px;padding:5px 7px;box-shadow:inset 0 1px 2px rgba(0,0,0,.25);}
+        #mind-persona .pf-chips:focus-within{border-color:var(--accent);box-shadow:0 0 0 2px rgba(88,166,255,.18);}
+        #mind-persona .pf-chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;background:var(--bg-card);border:1px solid var(--border);border-radius:999px;padding:2px 6px 2px 10px;}
+        #mind-persona .pf-chip.danger{border-color:#8a3a42;color:#e08a92;}
+        #mind-persona .pf-chip.info{border-color:#2a6a7a;color:#7ad0e0;}
+        #mind-persona .pf-chip b{cursor:pointer;font-weight:700;color:var(--text-muted);}
+        #mind-persona .pf-chip b:hover{color:var(--text);}
+        #mind-persona .pf-chip-new{flex:1;min-width:90px;background:transparent;border:none;color:var(--text);font-size:12px;outline:none;}
+        #mind-persona details.pf-fold{border:1px solid var(--border);border-radius:6px;margin-bottom:8px;background:var(--bg-card);}
+        #mind-persona details.pf-fold>summary{cursor:pointer;padding:8px 10px;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;list-style:none;}
+        #mind-persona details.pf-intimacy{border-style:dashed;margin-top:8px;}
+        #mind-persona .pf-locked{filter:blur(4px);cursor:pointer;user-select:none;}
+        #mind-persona .pf-lock-note{font-size:11px;color:var(--text-muted);margin-bottom:4px;cursor:pointer;}
+        #mind-persona .pf-codex{background:var(--bg-inset);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:12px;line-height:1.5;}
+        #mind-persona .pf-dirty{color:#e0a33c;font-size:12px;display:none;}
+        </style>`;
+    }
+    function _personaChipBox(path, values, tone) {
+        const chips = values.map((v) => `<span class="pf-chip${tone ? ` ${tone}` : ''}">${esc(v)}<b data-chip-x="${esc(path)}" data-chip-v="${esc(v)}">×</b></span>`).join('');
+        const joined = esc(values.join('\n')).replace(/\n/g, '&#10;');
+        return `<div class="pf-chips">${chips}<input class="pf-chip-new" data-chip-new="${esc(path)}" placeholder="add…" style="flex:1;min-width:90px;background:transparent;border:none;color:var(--text);font-size:12px;outline:none;"><input type="hidden" data-persona-path="${esc(path)}" value="${joined}"></div>`;
+    }
     function _personaFieldHtml(section, field, decl) {
         const path = `${section}.${field}`;
         const hint = _state?.persona?.hints[path] || (decl && decl.description) || '';
-        const label = `<div style="font-size:10.5px;font-weight:600;">${esc(field)}${hint ? ` <span style="font-weight:400;color:var(--text-muted);font-size:9px;">→ ${esc(hint)}</span>` : ''}</div>`;
+        const hintIco = hint ? ` <span class="pf-hint" title="${esc(hint)}">ⓘ</span>` : '';
+        const label = `<div class="pf-label"><span>${esc(field)}</span>${hintIco}</div>`;
         const val = _personaVal(path);
-        const inputStyle = 'width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:3px 8px;font-size:11px;box-sizing:border-box;';
+        const tone = _PERSONA_TONES[field] || '';
         if (!decl || decl.type === 'string' || decl.type === 'number' || !_state) {
             const numeric = decl?.type === 'number' || _PERSONA_NUMBERS.has(path);
             const str = val === undefined || val === null ? '' : String(val);
-            return `<div style="margin-bottom:7px;">${label}<input data-persona-path="${esc(path)}" value="${esc(str)}"${numeric ? ' inputmode="decimal"' : ''} style="${inputStyle}"></div>`;
+            return { html: `<div>${label}<input class="pf-in" data-persona-path="${esc(path)}" value="${esc(str)}"${numeric ? ' inputmode="decimal"' : ''}></div>`, wide: false };
         }
         if (decl.type === 'array') {
-            const lines = Array.isArray(val) ? val.map((v) => String(v)).join('\n') : '';
-            return `<div style="margin-bottom:7px;">${label}<textarea data-persona-path="${esc(path)}" rows="2" style="${inputStyle}resize:vertical;font-family:inherit;">${esc(lines)}</textarea></div>`;
+            const values = Array.isArray(val) ? val.map((v) => String(v)) : [];
+            return { html: `<div class="pf-span">${label}${_personaChipBox(path, values, tone)}</div>`, wide: true };
         }
         if (decl.type === 'object' && decl.properties) {
             const subs = Object.keys(decl.properties).map((sub) => {
@@ -1032,16 +1115,202 @@ const InspectorMindView = (() => {
                 const subPath = `${path}.${sub}`;
                 const subVal = _personaVal(subPath);
                 if (subDecl?.type === 'array') {
-                    const lines = Array.isArray(subVal) ? subVal.map((v) => String(v)).join('\n') : '';
-                    return `<div style="margin-bottom:5px;"><div style="font-size:10px;color:var(--text-muted);">${esc(sub)}</div><textarea data-persona-path="${esc(subPath)}" rows="2" style="${inputStyle}resize:vertical;font-family:inherit;">${esc(lines)}</textarea></div>`;
+                    const values = Array.isArray(subVal) ? subVal.map((v) => String(v)) : [];
+                    return `<div style="margin-bottom:5px;"><div class="pf-sub">${esc(sub)}</div>${_personaChipBox(subPath, values, tone)}</div>`;
                 }
                 const str = subVal === undefined || subVal === null ? '' : String(subVal);
-                return `<div style="margin-bottom:5px;"><div style="font-size:10px;color:var(--text-muted);">${esc(sub)}</div><input data-persona-path="${esc(subPath)}" value="${esc(str)}" style="${inputStyle}"></div>`;
+                return `<div style="margin-bottom:5px;"><div class="pf-sub">${esc(sub)}</div><input class="pf-in" data-persona-path="${esc(subPath)}" value="${esc(str)}"></div>`;
             }).join('');
-            return `<fieldset style="border:1px solid var(--border);border-radius:6px;padding:7px 9px;margin:0 0 8px;"><legend style="font-size:10.5px;font-weight:600;padding:0 4px;">${esc(field)}${hint ? ` <span style="font-weight:400;color:var(--text-muted);font-size:9px;">→ ${esc(hint)}</span>` : ''}</legend>${subs}</fieldset>`;
+            const locked = path === 'narrative.secrets'
+                ? `<div class="pf-lock-note" data-lock="${esc(path)}">🔒 sealed — never compiled to prose. click to reveal.</div><div class="pf-locked" data-lockbody="${esc(path)}">${subs}</div>`
+                : subs;
+            return { html: `<div class="pf-span"><fieldset class="pf-group"><legend>${esc(field)}${hintIco}</legend>${locked}</fieldset></div>`, wide: true };
         }
         const str = val === undefined || val === null ? '' : String(val);
-        return `<div style="margin-bottom:7px;">${label}<input data-persona-path="${esc(path)}" value="${esc(str)}" style="${inputStyle}"></div>`;
+        return { html: `<div>${label}<input class="pf-in" data-persona-path="${esc(path)}" value="${esc(str)}"></div>`, wide: false };
+    }
+    // ── persona body navigator (task-847) ─────────────────────────
+    // The paperdoll's AREA_TO_REGIONS, read — never re-declared. Clicking
+    // an area shows live region status (same data as the 🩺 modal) plus the
+    // linked schema values as a descriptive summary. The schema inputs
+    // below stay the only editors; summary lines jump to their field.
+    const _REGION_SCHEMA_MAP = {
+        head: ['appearance.hair.color', 'appearance.hair.length',
+            'appearance.hair.style', 'appearance.eyes.color',
+            'appearance.face.shape', 'appearance.face.features'],
+        torso: ['appearance.body.chest'],
+        waist: ['appearance.body.waist', 'appearance.body.hips',
+            'appearance.body.butt'],
+        legs: ['appearance.body.legs'],
+        feet: ['appearance.style.footwear'],
+    };
+    function _schemaLineSummary(path) {
+        const val = _personaVal(path);
+        if (val === undefined || val === null || String(val).trim() === '')
+            return '';
+        if (Array.isArray(val)) {
+            const items = val.map((v) => String(v)).filter((s) => s.trim() !== '');
+            if (!items.length)
+                return '';
+            return items.map((s) => `· ${esc(s)}`).join('<br>');
+        }
+        return esc(String(val));
+    }
+    function _bodyNavSideHtml(area) {
+        const pd = window.InspectorPaperdoll;
+        const regions = ((pd?.AREA_TO_REGIONS || {})[area] || []);
+        const player = (worldState.players || {})[_state?.charName || ''];
+        const bodyState = player?.body_state || {};
+        const playerConditions = player?.conditions || {};
+        const regionName = (regionId) => (player?.body_region_names?.[regionId] || regionId.replace(/_/g, ' '));
+        const rows = regions.map((regionId) => {
+            const bs = bodyState[regionId] || {};
+            const injured = (playerConditions.injured || [])
+                .filter((i) => i.body_part === regionId);
+            const bleeding = (playerConditions.bleeding || [])
+                .filter((i) => i.body_part === regionId);
+            const missing = (playerConditions.missing || [])
+                .filter((i) => i.body_part === regionId);
+            const exposed = player?.region_exposed?.[regionId] !== false;
+            const sensNum = bs.sensitivity !== undefined ? parseFloat(bs.sensitivity) : NaN;
+            const sens = Number.isFinite(sensNum) ? sensNum.toFixed(2) : '—';
+            const chips = [];
+            if (injured.length)
+                chips.push(`<span style="color:var(--yellow);">🤕 Lv${Math.max(...injured.map((i) => i.level || 1))}</span>`);
+            if (bleeding.length)
+                chips.push(`<span style="color:var(--red);">🩸 bleeding</span>`);
+            if (missing.length)
+                chips.push(`<span style="color:var(--red);">✖ missing</span>`);
+            if (!exposed)
+                chips.push(`<span style="color:var(--text-dim);">🛡️ covered</span>`);
+            if (!chips.length)
+                chips.push(`<span style="color:var(--text-dim);">healthy</span>`);
+            const slider = Number.isFinite(sensNum)
+                ? `<input type="range" min="0" max="100" value="${Math.round(sensNum * 100)}" data-sens-region="${esc(regionId)}" title="sensitivity baseline — writes on release" style="width:90px;vertical-align:middle;accent-color:var(--accent);">`
+                : '';
+            return `<div style="margin-bottom:6px;"><span style="font-size:12px;text-transform:capitalize;">${esc(regionName(regionId))}</span> `
+                + `<span style="font-size:10px;color:var(--text-muted);">sens ${sens}</span> ${slider} `
+                + `<span style="font-size:10px;">${chips.join(' · ')}</span></div>`;
+        }).join('');
+        const linked = (_REGION_SCHEMA_MAP[area] || [])
+            .map((path) => {
+            const leaf = path.split('.').slice(-1)[0];
+            const summary = _schemaLineSummary(path);
+            const body = summary
+                ? summary
+                : `<span style="color:var(--text-muted);">— empty, fill it below</span>`;
+            return `<div style="margin-bottom:5px;"><span style="font-size:11px;color:var(--text-muted);">${esc(leaf)}</span> `
+                + `<span data-persona-jump="${esc(path)}" title="jump to field" style="cursor:pointer;color:var(--accent);font-size:12px;">⤴</span><br>${body}</div>`;
+        }).join('');
+        const mods = (_personaVal('appearance.body.modifications') || []);
+        const modHtml = Array.isArray(mods) && mods.length
+            ? `<div style="margin-top:6px;font-size:11px;color:var(--text-muted);">markings: ${mods.map((m) => esc(String(m))).join(' · ')}</div>`
+            : '';
+        const descBlock = linked || modHtml
+            ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">${linked}${modHtml}</div>`
+            : `<div style="margin-top:8px;font-size:11px;color:var(--text-muted);">no schema field maps to this area — live status only.</div>`;
+        return `${rows}${descBlock}`;
+    }
+    function _bodyNavHtml() {
+        const pd = window.InspectorPaperdoll;
+        const map = pd?.AREA_TO_REGIONS || {};
+        const areas = Object.keys(map).filter((a) => (map[a] || []).length > 0);
+        if (!areas.length || typeof pd?.renderPaperdollFigureHtml !== 'function')
+            return '';
+        const sel = _state?.persona?.bodyNav || null;
+        const player = (worldState.players || {})[_state?.charName || ''];
+        const doll = pd.renderPaperdollFigureHtml(_state?.charName || '', player || {}, esc, _state?.escName || '', { mode: 'navigate', selectedArea: sel });
+        const side = sel
+            ? _bodyNavSideHtml(sel)
+            : `<div style="font-size:11px;color:var(--text-muted);">pick a bodypart on the doll — live status, what the sheet says, and its sensitivity baseline.</div>`;
+        return `<div class="pf-span" style="background:var(--bg-inset);border:1px solid var(--border);border-radius:6px;padding:8px 10px;margin-bottom:8px;">
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:6px;">🩺 body — click the doll to read</div>
+            <div id="mind-persona-doll">${doll}</div>
+            <div id="mind-persona-bodynav" style="margin-top:8px;">${side}</div>
+        </div>`;
+    }
+    function _wireBodyNav(pane) {
+        const pd = window.InspectorPaperdoll;
+        if (pd) {
+            pd.onNavigate = (charName, area) => {
+                if (!_state?.persona || charName !== _state.charName)
+                    return;
+                _state.persona.bodyNav = area;
+                _refreshBodyNav(pane);
+            };
+        }
+        _wireBodyNavJumps(pane);
+        _wireBodyNavSliders(pane);
+    }
+    function _refreshBodyNav(pane) {
+        if (!_state?.persona)
+            return;
+        const pd = window.InspectorPaperdoll;
+        const sel = _state.persona.bodyNav || null;
+        const doll = pane.querySelector('#mind-persona-doll');
+        if (doll && pd?.renderPaperdollFigureHtml) {
+            const player = (worldState.players || {})[_state?.charName || ''];
+            doll.innerHTML = pd.renderPaperdollFigureHtml(_state?.charName || '', player || {}, esc, _state?.escName || '', { mode: 'navigate', selectedArea: sel });
+        }
+        const nav = pane.querySelector('#mind-persona-bodynav');
+        if (nav) {
+            nav.innerHTML = sel ? _bodyNavSideHtml(sel) : '';
+            _wireBodyNavJumps(pane);
+            _wireBodyNavSliders(pane);
+        }
+    }
+    function _wireBodyNavSliders(pane) {
+        pane.querySelectorAll('[data-sens-region]').forEach((el) => {
+            el.addEventListener('change', () => {
+                const region = el.dataset.sensRegion || '';
+                const value = parseInt(el.value, 10) || 0;
+                if (!_state || !region)
+                    return;
+                fetch(`/api/players/${encodeURIComponent(_state.charName)}/body`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sensitivity: { [region]: value / 100 } }),
+                }).then(r => r.ok ? r.json() : Promise.reject(new Error(String(r.status))))
+                    .then(() => {
+                    const player = (worldState.players || {})[_state?.charName || ''];
+                    if (player) {
+                        player.body_state = player.body_state || {};
+                        player.body_state[region] = player.body_state[region] || {};
+                        player.body_state[region].sensitivity = value / 100;
+                    }
+                    _refreshBodyNav(pane);
+                }).catch(() => { });
+            });
+        });
+    }
+    function _wireBodyNavJumps(pane) {
+        pane.querySelectorAll('[data-persona-jump]').forEach((el) => {
+            el.addEventListener('click', () => {
+                const path = el.dataset.personaJump || '';
+                const target = pane.querySelector(`[data-persona-path="${path}"]`)
+                    || pane.querySelector(`[data-persona-path^="${path}."]`);
+                if (target) {
+                    target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+                    const box = target.closest('.pf-chips') || target;
+                    box.style.boxShadow = '0 0 0 2px rgba(88,166,255,.5)';
+                    setTimeout(() => { box.style.boxShadow = ''; }, 1200);
+                }
+            });
+        });
+    }
+    function _personaBadges() {
+        const rec = _state?.persona?.record || {};
+        const ident = (rec.identity || {});
+        const picks = [
+            ['pronouns', ident.pronouns], ['age', ident.age],
+            ['species', ident.species], ['occupation', ident.occupation],
+        ];
+        const chips = picks
+            .filter(([, v]) => v !== undefined && v !== null && String(v).trim() !== '')
+            .map(([k, v]) => `<span class="pf-badge">${esc(k)} · ${esc(String(v))}</span>`).join('');
+        if (!chips)
+            return '';
+        return `<div class="pf-badges">${chips}</div>`;
     }
     function _personaHtml() {
         const p = _state?.persona;
@@ -1052,17 +1321,36 @@ const InspectorMindView = (() => {
             return `<div style="font-size:11px;color:var(--text-muted);">record unavailable. <button class="btn btn-sm" id="mind-persona-retry" style="font-size:10px;">↻ retry</button></div>`;
         }
         const props = (p.schema?.properties || {});
-        const sections = _PERSONA_SECTIONS.map(([section, label], idx) => {
+        const openSet = new Set(p.openSections || []);
+        const sections = _PERSONA_SECTIONS.map(([section, label]) => {
             const fields = props[section]?.properties || {};
-            const count = Object.keys(fields).length;
-            const rows = Object.keys(fields).map((f) => _personaFieldHtml(section, f, fields[f])).join('');
-            // A person, not a database form: sections fold, so the tab
-            // opens on who they are, not a 40-field wall. Identity and
-            // Appearance read at a glance; Personality and Narrative —
-            // the depths — are one click away.
-            return `<details${idx < 2 ? ' open' : ''} style="border:1px solid var(--border);border-radius:6px;margin-bottom:8px;background:var(--bg-card);">
-                <summary style="cursor:pointer;padding:8px 10px;font-size:9.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;list-style:none;">${label} · ${count} fields</summary>
-                <div style="padding:2px 10px 10px;">${rows}</div>
+            const names = Object.keys(fields);
+            const renderable = (f) => {
+                const r = _personaFieldHtml(section, f, fields[f]);
+                return r.wide ? `<div class="pf-span">${r.html}</div>` : r.html;
+            };
+            let inner;
+            if (section === 'personality') {
+                const plain = names.filter((f) => !_PERSONA_INTIMACY.has(`${section}.${f}`));
+                const intimate = names.filter((f) => _PERSONA_INTIMACY.has(`${section}.${f}`));
+                inner = `<div class="pf-grid">${plain.map(renderable).join('')}</div>`;
+                if (intimate.length) {
+                    const iOpen = openSet.has('Intimacy') ? ' open' : '';
+                    inner += `<details class="pf-fold pf-intimacy" data-fold="Intimacy"${iOpen}><summary>Intimacy · ${intimate.length} fields</summary><div style="padding:2px 10px 10px;"><div class="pf-grid">${intimate.map(renderable).join('')}</div></div></details>`;
+                }
+            }
+            else {
+                inner = `<div class="pf-grid">${names.map(renderable).join('')}</div>`;
+            }
+            if (section === 'appearance') {
+                inner = `<div class="pf-grid">${_bodyNavHtml()}${names.map(renderable).join('')}</div>`;
+            }
+            const count = names.length;
+            // Folds, not a wall: who they are reads at a glance, the
+            // depths are one click away. Open state survives re-renders.
+            return `<details class="pf-fold" data-fold="${esc(label)}"${openSet.has(label) ? ' open' : ''}>
+                <summary>${label} · ${count} fields</summary>
+                <div style="padding:2px 10px 10px;">${inner}</div>
             </details>`;
         }).join('');
         const stale = p.stale
@@ -1070,26 +1358,35 @@ const InspectorMindView = (() => {
             : '';
         const preview = p.preview ? `<div style="border:1px solid #1f6feb;border-radius:6px;padding:8px 10px;margin:10px 0;font-size:11px;">
                 <div style="font-weight:600;margin-bottom:6px;">Compile preview — hand prose differs</div>
-                <div style="margin-bottom:6px;"><div style="color:var(--text-muted);font-size:9.5px;">BASE NOW</div><div>${esc(p.preview.base_description?.current || '(empty)')}</div>
-                <div style="color:var(--text-muted);font-size:9.5px;margin-top:4px;">BASE COMPILED</div><div>${esc(p.preview.base_description?.compiled || '(empty)')}</div></div>
-                <div style="margin-bottom:8px;"><div style="color:var(--text-muted);font-size:9.5px;">PERSONALITY NOW</div><div>${esc(p.preview.personality?.current || '(empty)')}</div>
-                <div style="color:var(--text-muted);font-size:9.5px;margin-top:4px;">PERSONALITY COMPILED</div><div>${esc(p.preview.personality?.compiled || '(empty)')}</div></div>
-                <button class="btn btn-sm" id="mind-persona-confirm" style="font-size:10px;">✓ replace with compiled</button>
-                <button class="btn btn-sm" id="mind-persona-cancel" style="font-size:10px;">keep mine</button>
+                <div style="margin-bottom:6px;"><div style="color:var(--text-muted);font-size:11px;">BASE NOW</div><div>${esc(p.preview.base_description?.current || '(empty)')}</div>
+                <div style="color:var(--text-muted);font-size:11px;margin-top:4px;">BASE COMPILED</div><div>${esc(p.preview.base_description?.compiled || '(empty)')}</div></div>
+                <div style="margin-bottom:8px;"><div style="color:var(--text-muted);font-size:11px;">PERSONALITY NOW</div><div>${esc(p.preview.personality?.current || '(empty)')}</div>
+                <div style="color:var(--text-muted);font-size:11px;margin-top:4px;">PERSONALITY COMPILED</div><div>${esc(p.preview.personality?.compiled || '(empty)')}</div></div>
+                <button class="btn btn-sm" id="mind-persona-confirm" style="font-size:11px;">✓ replace with compiled</button>
+                <button class="btn btn-sm" id="mind-persona-cancel" style="font-size:11px;">keep mine</button>
             </div>` : '';
-        const msg = p.msg ? `<div style="font-size:10.5px;color:var(--text-muted);margin-top:8px;">${esc(p.msg)}</div>` : '';
-        return `${stale}
-            <div style="display:flex;gap:6px;margin-bottom:4px;flex-wrap:wrap;">
-                <button class="btn btn-sm" id="mind-persona-save" style="font-size:10px;">💾 save block</button>
-                <button class="btn btn-sm" id="mind-persona-compile" style="font-size:10px;" title="Project the block into base_description / personality + tags">⚙ compile</button>
+        const msg = p.msg ? `<div style="font-size:11px;color:var(--text-muted);margin-top:8px;">${esc(p.msg)}</div>` : '';
+        const name = _state ? _state.charName : '';
+        return `${_personaCss()}
+            <div class="pf-bar">
+                <span class="pf-name">${esc(name)}</span>
+                <span class="pf-dirty" id="mind-persona-dirty">● unsaved</span>
+                <button class="btn btn-sm" id="mind-persona-import" style="font-size:11px;" title="Import a card (.json) or prose (.md/.txt) and convert it to this sheet">📥 import</button>
+                <input type="file" id="mind-persona-file" accept=".json,.md,.txt" style="display:none;">
+                <button class="btn btn-sm" id="mind-persona-save" style="font-size:11px;">💾 save block</button>
+                <button class="btn btn-sm" id="mind-persona-compile" style="font-size:11px;" title="Project the block into base_description / personality + tags">⚙ compile</button>
             </div>
-            ${preview}${sections}${msg}`;
+            ${_personaBadges()}
+            <details class="pf-fold" data-fold="Codex"${openSet.has('Codex') ? ' open' : ''}><summary>Codex entry — live preview</summary>
+                <div style="padding:2px 10px 10px;"><div class="pf-codex" id="mind-persona-codex">open the fold and type — the compiled entry appears here without storing anything.</div></div>
+            </details>
+            ${stale}${preview}${sections}${msg}`;
     }
     function _fetchPersona() {
         if (!_state)
             return;
         if (!_state.persona) {
-            _state.persona = { status: 'loading', record: {}, schema: null, hints: {}, stale: false, preview: null, msg: '' };
+            _state.persona = { status: 'loading', record: {}, schema: null, hints: {}, stale: false, preview: null, msg: '', openSections: ['Identity', 'Appearance'] };
         }
         else {
             _state.persona.status = 'loading';
@@ -1101,10 +1398,12 @@ const InspectorMindView = (() => {
             .then((data) => {
             if (!_state || !_state.persona)
                 return;
+            const keepOpen = _state.persona.openSections || ['Identity', 'Appearance'];
             _state.persona = {
                 status: 'ok', record: data.record || {},
                 schema: data.schema || null, hints: data.hints || {},
                 stale: !!data.prose_stale, preview: null, msg: '',
+                openSections: keepOpen,
             };
             const el = _container?.querySelector('#mind-persona');
             if (el) {
@@ -1230,6 +1529,131 @@ const InspectorMindView = (() => {
         })
             .catch((e) => _personaMsg(`compile failed: ${String(e)}`));
     }
+    let _codexTimer = null;
+    function _personaDirty() {
+        const dot = _container?.querySelector('#mind-persona-dirty');
+        if (dot)
+            dot.style.display = 'inline';
+    }
+    function _chipValues(box) {
+        const hidden = box.querySelector('input[type="hidden"]');
+        const raw = hidden ? hidden.value : '';
+        return raw.split('\n').map((s) => s.trim()).filter((s) => s);
+    }
+    function _chipPaint(box, values, keepFocus) {
+        const hidden = box.querySelector('input[type="hidden"]');
+        const input = box.querySelector('.pf-chip-new');
+        const path = input?.dataset.chipNew || hidden?.dataset.personaPath || '';
+        const tone = (Object.keys(_PERSONA_TONES).find((k) => path.endsWith('.' + k)) || '');
+        const cls = tone && _PERSONA_TONES[tone] ? ` ${_PERSONA_TONES[tone]}` : '';
+        box.querySelectorAll('.pf-chip').forEach((c) => c.remove());
+        for (const v of values) {
+            const chip = document.createElement('span');
+            chip.className = `pf-chip${cls}`;
+            chip.textContent = v;
+            const x = document.createElement('b');
+            x.textContent = '×';
+            x.setAttribute('data-chip-x', path);
+            x.setAttribute('data-chip-v', v);
+            chip.appendChild(x);
+            box.insertBefore(chip, input);
+        }
+        if (hidden)
+            hidden.value = values.join('\n');
+        if (keepFocus && input)
+            input.focus();
+        _personaDirty();
+        _scheduleCodex();
+    }
+    function _scheduleCodex() {
+        if (_codexTimer)
+            window.clearTimeout(_codexTimer);
+        _codexTimer = window.setTimeout(() => { _codexTimer = null; _previewCodex(); }, 800);
+    }
+    function _previewCodex() {
+        if (!_state?.persona || !_container)
+            return;
+        const box = _container.querySelector('#mind-persona-codex');
+        if (!box || !box.closest('details')?.open)
+            return;
+        const record = _collectPersona();
+        if (!Object.keys(record).length) {
+            box.innerHTML = `<span style="color:var(--text-muted);">empty sheet — nothing to project.</span>`;
+            return;
+        }
+        fetch(`/api/players/${encodeURIComponent(_state.charName)}/record/compile`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ record }),
+        }).then(r => r.json().then((data) => ({ ok: r.ok, data })))
+            .then(({ ok, data }) => {
+            const live = _container?.querySelector('#mind-persona-codex');
+            if (!live)
+                return;
+            if (!ok) {
+                live.innerHTML = `<span style="color:#e08a92;">cannot project: ${esc(data.error || 'rejected')}</span>`;
+                return;
+            }
+            const c = data.compiled || {};
+            live.innerHTML = `${c.base_description ? `<div style="margin-bottom:6px;">${esc(c.base_description)}</div>` : ''}
+                    ${c.personality ? `<div style="color:var(--text-dim);">${esc(c.personality)}</div>` : ''}
+                    ${(c.interest_tags?.length || c.fear_tags?.length) ? `<div style="margin-top:6px;font-size:11px;color:var(--text-muted);">drawn to ${(c.interest_tags || []).map(esc).join(', ') || '—'} · fears ${(c.fear_tags || []).map(esc).join(', ') || '—'}</div>` : ''}`;
+        })
+            .catch(() => { });
+    }
+    function _importPersonaFile(file) {
+        if (!_state?.persona)
+            return;
+        const CI = window.CharacterImport;
+        const llm = window.llmClient;
+        if (!CI) {
+            _personaMsg('importer not loaded — rebuild the frontend.');
+            return;
+        }
+        if (!llm || typeof llm.chat !== 'function') {
+            _personaMsg('no model connected — configure one in Settings first.');
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => {
+            void (async () => {
+                try {
+                    const parsed = CI.parseInputFile(String(reader.result ?? ''), file.name);
+                    const schema = _state?.persona?.schema;
+                    if (!schema) {
+                        _personaMsg('schema not loaded — retry the tab.');
+                        return;
+                    }
+                    _personaMsg(`converting ${parsed.kind} “${file.name}”…`);
+                    const answer = await llm.chat(CI.buildConvertPrompt(parsed.sourceText, schema), { label: 'persona/import-convert', temperature: 0.2, max_tokens: 4000 });
+                    const text = typeof answer === 'string' ? answer
+                        : (answer?.content || answer?.message || '');
+                    const converted = CI.extractJsonBlock(text);
+                    if (!_state?.persona)
+                        return;
+                    // The form IS the preview: load the conversion for
+                    // review, store nothing. Save validates server-side.
+                    _state.persona.record = converted;
+                    _state.persona.preview = null;
+                    const notes = [...(parsed.warnings || [])];
+                    if (parsed.deterministic?.lorebook?.length) {
+                        notes.push(`${parsed.deterministic.lorebook.length} lorebook entries belong in memories, not here`);
+                    }
+                    _state.persona.msg = `imported ${parsed.kind} — review, then save.${notes.length ? ' ' + notes.join(' ') : ''}`;
+                    const el = _container?.querySelector('#mind-persona');
+                    if (el) {
+                        el.innerHTML = _personaHtml();
+                        _wirePersona();
+                    }
+                }
+                catch (e) {
+                    _personaMsg(`import failed: ${e instanceof Error ? e.message : String(e)} — nothing stored.`);
+                }
+            })();
+        };
+        reader.onerror = () => _personaMsg('could not read that file.');
+        reader.readAsText(file);
+    }
     function _wirePersona() {
         if (!_container)
             return;
@@ -1240,6 +1664,21 @@ const InspectorMindView = (() => {
         };
         on('#mind-persona-retry', () => _fetchPersona());
         on('#mind-persona-save', () => _savePersona());
+        on('#mind-persona-import', () => {
+            const picker = _container?.querySelector('#mind-persona-file');
+            if (picker)
+                picker.click();
+        });
+        const picker = _container?.querySelector('#mind-persona-file');
+        if (picker && !picker._wired) {
+            picker._wired = true;
+            picker.addEventListener('change', () => {
+                const file = picker.files && picker.files[0];
+                picker.value = '';
+                if (file)
+                    _importPersonaFile(file);
+            });
+        }
         on('#mind-persona-compile', () => _compilePersona(false));
         on('#mind-persona-confirm', () => _compilePersona(true));
         on('#mind-persona-cancel', () => {
@@ -1252,6 +1691,68 @@ const InspectorMindView = (() => {
                 }
             }
         });
+        const pane = _container.querySelector('#mind-persona');
+        pane?.querySelectorAll('[data-lock]').forEach((el) => {
+            el.addEventListener('click', () => {
+                const path = el.dataset.lock || '';
+                const body = pane.querySelector(`[data-lockbody="${path}"]`);
+                if (body) {
+                    const locked = body.classList.toggle('pf-locked');
+                    el.textContent = locked
+                        ? '🔒 sealed — never compiled to prose. click to reveal.'
+                        : '🔓 revealed — still never compiled to prose.';
+                }
+            });
+        });
+        pane?.querySelectorAll('[data-chip-x]').forEach((el) => {
+            el.addEventListener('click', () => {
+                const box = el.closest('.pf-chips');
+                if (!box)
+                    return;
+                const v = el.dataset.chipV || '';
+                _chipPaint(box, _chipValues(box).filter((x) => x !== v), true);
+            });
+        });
+        pane?.querySelectorAll('.pf-chip-new').forEach((el) => {
+            el.addEventListener('keydown', (ev) => {
+                if (ev.key !== 'Enter' && ev.key !== ',')
+                    return;
+                ev.preventDefault();
+                const box = el.closest('.pf-chips');
+                if (!box)
+                    return;
+                const v = el.value.trim().replace(/,+$/, '');
+                el.value = '';
+                if (!v)
+                    return;
+                const cur = _chipValues(box);
+                if (!cur.includes(v))
+                    cur.push(v);
+                _chipPaint(box, cur, true);
+            });
+        });
+        pane?.addEventListener('input', () => { _personaDirty(); _scheduleCodex(); });
+        if (pane)
+            _wireBodyNav(pane);
+        pane?.querySelectorAll('details').forEach((d) => {
+            d.addEventListener('toggle', () => {
+                const key = d.dataset.fold;
+                if (key && _state?.persona) {
+                    const set = new Set(_state.persona.openSections || []);
+                    if (d.open)
+                        set.add(key);
+                    else
+                        set.delete(key);
+                    _state.persona.openSections = [...set];
+                }
+                if (d.open
+                    && d.querySelector('#mind-persona-codex'))
+                    _previewCodex();
+            });
+        });
+        if (pane?.querySelector('[data-fold="Codex"]')?.open) {
+            _previewCodex();
+        }
     }
     // ── shell ────────────────────────────────────────────────────────────
     function _render() {
@@ -1463,8 +1964,10 @@ const InspectorMindView = (() => {
         }));
         const refresh = _container.querySelector('.mind-refresh');
         if (refresh)
-            refresh.addEventListener('click', () => { _fetchPeople(); _fetchPersona(); _render(); });
+            refresh.addEventListener('click', () => { _fetchPeople(); _fetchPersona(); _fetchRecipes(); _render(); });
         _wirePersona();
+        if (_container.querySelector('#mind-recipes'))
+            _fetchRecipes();
         const search = _container.querySelector('#mind-search');
         if (search) {
             search.addEventListener('input', () => {

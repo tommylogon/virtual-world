@@ -1,0 +1,46 @@
+{
+  "name": "mushroom",
+  "description": "A plump woodland mushroom. Edible-looking, probably.",
+  "actions": "examine,take,use,eat,drop",
+  "uses": 1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "food",
+    "forage"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_eat"
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "",
+            "success_message": "Earthy. You feel fine. Probably."
+          }
+        },
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Hunger",
+            "amount": -8,
+            "target": "self"
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "Earthy. You feel fine. Probably.",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

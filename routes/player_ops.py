@@ -1,5 +1,5 @@
 import logging
-from flask import request, jsonify
+from flask import request, jsonify, g
 from player import Player, PERIODIC_CONDITIONS, CONDITION_DEFINITIONS
 from graph import Node, Edge, EDGE_CARRYING, EDGE_CONNECTION
 from engine.equipment_bonuses import effective_temperature, aggregate_bonuses
@@ -819,6 +819,13 @@ def handle_get_character_record(app, name):
     if name not in app.world.players:
         return jsonify({"error": "No such player"}), 404
     node = _character_node(app, name)
+    player = app.world.players[name]
+    try:
+        from engine import lifecycle as _lifecycle
+        lifecycle_status = _lifecycle.status(player, app.world, node)
+    except Exception:
+        lifecycle_status = {"age": None, "life_stage": None,
+                            "lifespan": None, "birth_tick_known": False}
     return jsonify({
         "structured": ca.is_structured(node),
         "record": ca.get_record(node),
@@ -828,6 +835,7 @@ def handle_get_character_record(app, name):
         "narrative": ca.narrative(node),
         "prose": ca.render_prose(node),
         "prose_stale": ca.prose_is_stale(node),
+        "lifecycle": lifecycle_status,
         "schema": ca.schema_for_llm(),
         "hints": ca.CONSUMER_HINTS,
     })
@@ -975,6 +983,10 @@ def handle_compile_character_record(app, name):
     ``preview`` when hand prose would be replaced, and writes nothing.
     With force: applies the projection like ``PUT record`` with
     ``compile:true, force:true``.
+
+    With ``{"record": {...}}``: dry-run — validates and compiles the
+    GIVEN block without storing anything (the Persona tab's live Codex
+    preview compiles the unsaved form). Failures 400 naming the field.
     """
     from engine import character_appearance as ca
     if name not in app.world.players:
@@ -984,6 +996,14 @@ def handle_compile_character_record(app, name):
         return jsonify({"error": "No character node"}), 404
     data = request.get_json(force=True) or {}
     player = app.world.players[name]
+    if data.get("record") is not None:
+        # Dry-run: validate + project, store nothing, broadcast nothing.
+        g.no_broadcast = True
+        try:
+            cleaned = ca.validate(data.get("record"))
+        except ca.StructuredError as e:
+            return jsonify({"error": str(e)}), 400
+        return jsonify({"compiled": ca.compile_record(cleaned)})
     compiled = ca.compile_persona(node)
     body = {"record": ca.get_record(node), "compiled": compiled,
             "prose_stale": ca.prose_is_stale(node)}
@@ -996,6 +1016,103 @@ def handle_compile_character_record(app, name):
     return jsonify(body)
 
 
+def handle_character_recipes(app, name):
+    """Known recipes for the Mind panel (task-841 procedural knowledge).
+
+    One projection per character — id, name, source (global / taught /
+    discovered / cookbook / skill), skill, DC, duration. Reads the
+    registry plus knowledge; stores nothing.
+    """
+    if name not in app.world.players:
+        return jsonify({"error": "No such player"}), 404
+    return jsonify({"recipes": app.world.crafting.known_recipes(name)})
+
+
+def handle_set_body_baseline(app, name):
+    """Author body baselines and starting wounds (task-848, task-851).
+
+    ``{"sensitivity": {region: 0..1}}`` — writes
+    ``player.body_state[region]["sensitivity"]``, the same value
+    ``pleasure_actions`` already reads.
+    ``{"injuries": [{region, level 1..3, bleeding=false}]}`` — seeds the
+    same ``injured``/``bleeding`` instances combat makes (same call, same
+    mechanics: speed, symptoms, healing). ``source`` defaults to
+    ``"authored"``.
+    ``{"missing": [region]}`` — seeds the ``missing`` condition:
+    the mechanical fact of absence. A hook or peg leg itself is an
+    appearance modification, not a condition.
+    Region ids are validated against the ``body_parts`` catalog; anything
+    unknown or out of range is a 400.
+    """
+    from engine import body_parts as bp
+    if name not in app.world.players:
+        return jsonify({"error": "No such player"}), 404
+    data = request.get_json(force=True) or {}
+    player = app.world.players[name]
+    out = {}
+    sens = data.get("sensitivity") or {}
+    if not isinstance(sens, dict):
+        return jsonify({"error": "sensitivity must be a {region: 0..1} map"}), 400
+    state = getattr(player, "body_state", None) or {}
+    for region, value in sens.items():
+        if region not in bp.BODY_REGIONS:
+            return jsonify({"error": f"Unknown body region: {region}"}), 400
+        try:
+            number = float(value)
+        except (TypeError, ValueError):
+            return jsonify({"error": f"sensitivity for {region} must be a number"}), 400
+        if not 0.0 <= number <= 1.0:
+            return jsonify({"error": f"sensitivity for {region} must be 0..1"}), 400
+        entry = state.get(region)
+        if not isinstance(entry, dict):
+            entry = {}
+            state[region] = entry
+        entry["sensitivity"] = number
+    player.body_state = state
+    if sens:
+        out["sensitivity"] = {r: (state.get(r) or {}).get("sensitivity") for r in sens}
+    injuries = data.get("injuries") or []
+    if not isinstance(injuries, list):
+        return jsonify({"error": "injuries must be a list of {region, level, bleeding}"}), 400
+    seeded = []
+    for wound in injuries:
+        if not isinstance(wound, dict):
+            return jsonify({"error": "each injury must be {region, level, bleeding}"}), 400
+        region = wound.get("region")
+        if region not in bp.BODY_REGIONS:
+            return jsonify({"error": f"Unknown body region: {region}"}), 400
+        try:
+            level = int(wound.get("level", 1))
+        except (TypeError, ValueError):
+            return jsonify({"error": f"injury level for {region} must be 1..3"}), 400
+        if level not in (1, 2, 3):
+            return jsonify({"error": f"injury level for {region} must be 1..3"}), 400
+        source = wound.get("source") or "authored"
+        player.add_condition("injured", source=source, level=level,
+                             overrides={"body_part": region})
+        note = f"{region} injured (level {level})"
+        if wound.get("bleeding"):
+            player.add_condition("bleeding", source=source, level=level,
+                                 overrides={"body_part": region})
+            note += "; bleeding"
+        seeded.append(note)
+    if seeded:
+        out["injuries"] = seeded
+    missing = data.get("missing") or []
+    if not isinstance(missing, list):
+        return jsonify({"error": "missing must be a list of regions"}), 400
+    marked = []
+    for region in missing:
+        if region not in bp.BODY_REGIONS:
+            return jsonify({"error": f"Unknown body region: {region}"}), 400
+        player.add_condition("missing", source=data.get("source") or "authored",
+                             level=1, overrides={"body_part": region})
+        marked.append(region)
+    if marked:
+        out["missing"] = marked
+    return jsonify(out)
+
+
 def handle_clear_character_record(app, name):
     """Drop the structured block, restoring prose-only authoring."""
     from engine import character_appearance as ca
@@ -1005,6 +1122,13 @@ def handle_clear_character_record(app, name):
     if node is None:
         return jsonify({"error": "No character node"}), 404
     ca.clear_record(node)
+    # The lifecycle clock reads the block to resolve birth; without the
+    # block the character is ageless again — clear the derived clock
+    # state too, or prose-only keeps reporting an age.
+    player = app.world.players[name]
+    player.birth_tick = None
+    player.life_stage = None
+    player.last_mortality_year = None
     return jsonify({"record": {}, "structured": False})
 
 

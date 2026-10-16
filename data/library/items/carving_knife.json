@@ -1,0 +1,18 @@
+{
+  "name": "carving_knife",
+  "description": "A short sharp knife for spoons, bowls, and whittling.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.3,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 2,
+  "tags": [
+    "tool",
+    "knife"
+  ],
+  "triggers": [],
+  "contents": []
+}

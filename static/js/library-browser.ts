@@ -61,7 +61,7 @@ function itemLibRef(): { data: Record<string, LibraryEntry>; open(): void } | un
 // item-library/placement.js. A local `const` alias here both redeclared it
 // (TS2451) and gave item-library.ts a narrower type than the real API.
 
-type LibraryTab = 'items' | 'characters' | 'areas' | 'ways' | 'traits' | 'conditions' | 'behaviours' | 'tags' | 'vocabulary';
+type LibraryTab = 'items' | 'characters' | 'areas' | 'ways' | 'traits' | 'conditions' | 'behaviours' | 'tags' | 'recipes' | 'vocabulary';
 
 interface LibraryEntry {
     id?: string;
@@ -113,7 +113,7 @@ const EDITOR_IDS: Record<string, string> = {
     characters: 'lib-char-editor', areas: 'lib-area-editor',
     traits: 'lib-trait-editor', conditions: 'lib-cond-editor',
     behaviours: 'lib-beh-editor', tags: 'lib-tag-editor',
-    ways: 'lib-way-editor',
+    ways: 'lib-way-editor', recipes: 'lib-recipe-editor',
 };
 
 function fuzzyRatio(a: string, b: string): number {
@@ -160,10 +160,11 @@ class LibraryBrowser {
             behaviours: {},
             tags: {},
             ways: {},
+            recipes: {},
             vocabulary: {}
         };
-        this.selectedId = { items: null, characters: null, areas: null, traits: null, conditions: null, behaviours: null, tags: null, ways: null, vocabulary: null };
-        this._editingNew = { characters: false, areas: false, traits: false, conditions: false, behaviours: false, tags: false, ways: false };
+        this.selectedId = { items: null, characters: null, areas: null, traits: null, conditions: null, behaviours: null, tags: null, ways: null, recipes: null, vocabulary: null };
+        this._editingNew = { characters: false, areas: false, traits: false, conditions: false, behaviours: false, tags: false, ways: false, recipes: false };
         this._tagMS = null;
     }
 
@@ -328,7 +329,7 @@ class LibraryBrowser {
     }
 
     async refreshAll() {
-        const types: LibraryTab[] = ['items', 'characters', 'areas', 'ways', 'traits', 'conditions', 'behaviours', 'tags'];
+        const types: LibraryTab[] = ['items', 'characters', 'areas', 'ways', 'traits', 'conditions', 'behaviours', 'tags', 'recipes'];
         const results = await Promise.all(types.map(t =>
             LibraryApi.getLibraryType(t).catch(() => ({}))
         ));
@@ -355,17 +356,17 @@ class LibraryBrowser {
         const idMap = {
             items: 'item-lib-list', characters: 'lib-char-list', areas: 'lib-area-list',
             traits: 'lib-trait-list', conditions: 'lib-cond-list', behaviours: 'lib-beh-list',
-            tags: 'lib-tag-list', ways: 'lib-way-list'
+            tags: 'lib-tag-list', ways: 'lib-way-list', recipes: 'lib-recipe-list'
         };
         const countMap = {
             items: 'lib-item-count', characters: 'lib-char-count', areas: 'lib-area-count',
             traits: 'lib-trait-count', conditions: 'lib-cond-count', behaviours: 'lib-beh-count',
-            tags: 'lib-tag-count', ways: 'lib-way-count'
+            tags: 'lib-tag-count', ways: 'lib-way-count', recipes: 'lib-recipe-count'
         };
         const searchMap = {
             items: 'item-lib-search', characters: 'lib-char-search', areas: 'lib-area-search',
             traits: 'lib-trait-search', conditions: 'lib-cond-search', behaviours: 'lib-beh-search',
-            tags: 'lib-tag-search', ways: 'lib-way-search'
+            tags: 'lib-tag-search', ways: 'lib-way-search', recipes: 'lib-recipe-search'
         };
 
         const listEl = document.getElementById(idMap[type as keyof typeof idMap]);
@@ -413,7 +414,7 @@ class LibraryBrowser {
             return;
         }
 
-        const typeIcons: Record<string, string> = { items: '📦', characters: '🧍', areas: '🏠', ways: '🚪', traits: '🏷️', conditions: '💊', behaviours: '🤖', tags: '🏷️' };
+        const typeIcons: Record<string, string> = { items: '📦', characters: '🧍', areas: '🏠', ways: '🚪', traits: '🏷️', conditions: '💊', behaviours: '🤖', tags: '🏷️', recipes: '🧾' };
         const icon = typeIcons[type] || '📄';
 
         const rows = filtered.map(([id, entry]: [string, LibraryEntry]) => {
@@ -422,12 +423,17 @@ class LibraryBrowser {
             const desc = entry.description || '';
             const itemClass = 'agent-item' + (sel ? ' selected' : '');
             const itemStyle = `cursor:pointer;padding:5px 10px;border-left:3px solid var(--accent);${sel ? 'background:var(--bg-inset);' : ''}`;
+            // Task-842: recipe rows carry the outcome ladder (crit →
+            // success → fail → crit-fail, fail items named) plus
+            // inventory checkmarks per ingredient (✓ in library).
+            const extra = type === 'recipes' ? this._recipeRowExtra(entry as unknown as Record<string, unknown>) : '';
             return libraryBrowserHtmlTag`
                 <div class=${itemClass} @click=${() => (VW as unknown as { libraryBrowser: LibraryBrowser }).libraryBrowser.selectEntry(type, id)} style=${itemStyle}>
                     <span style="font-size:14px;margin-right:4px;">${icon}</span>
                     <div style="flex:1;min-width:0;">
                         <div class="agent-name" style="font-size:12px;font-weight:600;">${name}</div>
                         <div style="font-size:10px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${desc}</div>
+                        ${extra}
                     </div>
                 </div>`;
         });
@@ -435,6 +441,38 @@ class LibraryBrowser {
     }
 
     // ── New Entry ────────────────────────────────────────────────────
+
+    /**
+     * Task-842: one-line outcome ladder + ingredient checkmarks for a
+     * recipe row. Checkmarks read the loaded items registry (✓ known
+     * id, ✗ missing) — browse-time signal only; the gate is authoritative.
+     */
+    _recipeRowExtra(entry: Record<string, unknown>): unknown {
+        const items = (this.data && (this.data as Record<string, unknown>).items) || {};
+        const known = new Set<string>();
+        for (const [key, val] of Object.entries(items as Record<string, unknown>)) {
+            known.add(key.toLowerCase());
+            const nm = (val as Record<string, unknown>)?.name;
+            if (typeof nm === 'string') known.add(nm.toLowerCase());
+        }
+        const ingredients = Array.isArray(entry.ingredients) ? entry.ingredients : [];
+        const ing = (ingredients as Array<Record<string, unknown>>).map((inp) => {
+            const item = String(inp.item || '');
+            const ok = known.has(item.toLowerCase());
+            return `<span title="${ok ? 'in library' : 'missing from library'}" style="color:${ok ? '#3fb950' : '#f85149'};">${ok ? '✓' : '✗'}${item || '?'}</span>`;
+        }).join(' ');
+        const outcomes = (entry.outcomes || {}) as Record<string, unknown>;
+        const tierItem = (tier: string) => {
+            const outs = ((outcomes[tier] || {}) as Record<string, unknown>).outputs;
+            const list = Array.isArray(outs) ? outs : [];
+            return list.map((o) => String((o as Record<string, unknown>).item || '')).filter(Boolean).join('+') || '—';
+        };
+        const skill = (entry.skill_check || {}) as Record<string, unknown>;
+        const ladder = `★${tierItem('crit_success')} → ✓${tierItem('success')} → ✗${tierItem('fail')} → ✗✗${tierItem('crit_fail')}`;
+        const meta = `${skill.skill ? `${skill.skill} ${skill.dc ?? 10}` : ''}${entry.duration_min ? ` · ${entry.duration_min}m` : ''}`;
+        return libraryBrowserHtmlTag`<div style="font-size:9.5px;color:var(--text-muted);margin-top:2px;">${ladder}${meta ? ` · ${meta}` : ''}</div>
+            <div style="font-size:9.5px;margin-top:1px;">${ing}</div>`;
+    }
 
     newEntry(type: LibraryTab) {
         this.selectedId[type] = '__new__';
@@ -565,6 +603,20 @@ class LibraryBrowser {
                     { key: 'applies_to', label: 'Applies To (comma-separated)', type: 'text', default: 'items' },
                     { key: 'examples', label: 'Examples (comma-separated)', type: 'text', default: '' },
                 ]
+            },
+            recipes: {
+                fields: [
+                    { key: 'name', label: 'Name', type: 'text', default: '' },
+                    { key: 'description', label: 'Description', type: 'textarea', default: '' },
+                    { key: 'ingredients', label: 'Ingredients (JSON)', type: 'json', default: [] },
+                    { key: 'conditions', label: 'Conditions (JSON)', type: 'json', default: [] },
+                    { key: 'duration_min', label: 'Duration (minutes)', type: 'number', default: 10 },
+                    { key: 'skill_check', label: 'Skill Check (JSON)', type: 'json', default: {} },
+                    { key: 'outputs', label: 'Success Outputs (JSON)', type: 'json', default: [] },
+                    { key: 'outcomes', label: 'Outcomes (JSON, four tiers)', type: 'json', default: {} },
+                    { key: 'learned_by', label: 'Learned By (JSON)', type: 'json', default: ['global'] },
+                    { key: 'discoverable', label: 'Discoverable', type: 'checkbox', default: true },
+                ]
             }
         };
     }
@@ -580,7 +632,7 @@ class LibraryBrowser {
         const config = configs[type];
         if (!config) return;
 
-        const typeIcons: Record<string, string> = { items: '📦', characters: '🧍', areas: '🏠', ways: '🚪', traits: '🏷️', conditions: '💊', behaviours: '🤖', tags: '🏷️' };
+        const typeIcons: Record<string, string> = { items: '📦', characters: '🧍', areas: '🏠', ways: '🚪', traits: '🏷️', conditions: '💊', behaviours: '🤖', tags: '🏷️', recipes: '🧾' };
         const icon = typeIcons[type] || '📄';
 
         const fieldsHtml = config.fields.map((f: EditorField) => {
@@ -655,8 +707,8 @@ class LibraryBrowser {
         const editorId = (EDITOR_IDS as Record<string, string>)[type];
         const editor = document.getElementById(editorId);
         if (!editor) return;
-        const icons: Record<string, string> = { characters: '🧍', areas: '🏠', ways: '🚪', traits: '🏷️', conditions: '💊', behaviours: '🤖', tags: '🏷️' };
-        const labels: Record<string, string> = { characters: 'character', areas: 'area', ways: 'way', traits: 'trait', conditions: 'condition', behaviours: 'behaviour', tags: 'tag' };
+        const icons: Record<string, string> = { characters: '🧍', areas: '🏠', ways: '🚪', traits: '🏷️', conditions: '💊', behaviours: '🤖', tags: '🏷️', recipes: '🧾' };
+        const labels: Record<string, string> = { characters: 'character', areas: 'area', ways: 'way', traits: 'trait', conditions: 'condition', behaviours: 'behaviour', tags: 'tag', recipes: 'recipe' };
         window.Lit.render(libraryBrowserHtmlTag`
             <div class="inspector-empty" style="min-height:200px;">
                 <div class="inspector-empty-icon">${icons[type] || '📄'}</div>

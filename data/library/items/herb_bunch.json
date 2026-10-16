@@ -1,0 +1,18 @@
+{
+  "name": "herb_bunch",
+  "description": "A tied bunch of mixed tea herbs: mint, chamomile, something floral.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "herb",
+    "medicinal"
+  ],
+  "triggers": [],
+  "contents": []
+}

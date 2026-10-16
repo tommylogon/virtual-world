@@ -1,0 +1,40 @@
+{
+  "id": "forge_axe_head",
+  "name": "Forge Axe Head",
+  "description": "Forge a heavy axe head from two ingots.",
+  "ingredients": [
+    {"item": "iron_ingot", "count": 2, "consumed": true},
+    {"item": "charcoal", "count": 3, "consumed": true},
+    {"item": "forge", "count": 1, "consumed": false},
+    {"item": "anvil", "count": 1, "consumed": false},
+    {"item": "hammer", "count": 1, "consumed": false}
+  ],
+  "conditions": [
+    {"type": "state_equals", "target": "forge", "value": "on"}
+  ],
+  "duration_min": 90,
+  "skill_check": {"skill": "Smithing", "dc": 14},
+  "outputs": [{"item": "axe_head", "count": 1}],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [{"item": "axe_head", "count": 1}],
+      "message": "Keen, balanced, beautiful."
+    },
+    "success": {
+      "outputs": [{"item": "axe_head", "count": 1}],
+      "message": ""
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "soft_axe_head", "count": 1}],
+      "message": "Gone soft in the quench — half damage."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "slag", "count": 1}],
+      "message": "Slag. The anvil, at least, is kept."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

@@ -1,0 +1,46 @@
+{
+  "name": "cheese",
+  "description": "A firm wedge of farmhouse cheese. Sharp and keeping.",
+  "actions": "examine,take,use,eat,drop",
+  "uses": 2,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "food",
+    "dairy"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_eat"
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "",
+            "success_message": "Sharp, salty, satisfying."
+          }
+        },
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Hunger",
+            "amount": -15,
+            "target": "self"
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "Sharp, salty, satisfying.",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

@@ -33,6 +33,61 @@ def _push_undo_snapshot(app, label="world edit"):
     app._redo_stack.clear()
 
 
+def _push_undo_delta(app, entry: dict) -> None:
+    """Push a cheap reversible delta (a paint stroke) instead of a snapshot.
+
+    ``entry`` is ``{"kind": "paint", "scope_id": ..., "cells":
+    [{layer, x, y, previous, value}], "label": ...}`` — bytes, not the
+    15 MB ``world.to_dict()`` a paint used to cost per cell (bug-545:
+    0.20 s + 15 MB per cell on kraktooth). Undo applies ``previous``,
+    redo re-applies ``value``; neither replaces the world, so undoing
+    paint never un-runs ticks that happened since.
+    """
+    app._undo_stack.append(dict(entry))
+    if len(app._undo_stack) > _MAX_UNDO_DEPTH:
+        app._undo_stack.pop(0)
+    app._redo_stack.clear()
+
+
+def _is_delta(entry) -> bool:
+    return isinstance(entry, dict) and entry.get("kind") == "paint"
+
+
+def _apply_paint_delta(app, entry: dict, direction: str) -> int:
+    """Apply a paint delta to the live world; returns cells applied.
+
+    ``direction`` is ``"undo"`` (write ``previous``) or ``"redo"`` (write
+    ``value``). Operates on the live manifest — no world replace, so ticks
+    that ran since the paint stand. A cell that no longer fits (grid
+    shrunk since) is skipped; the rest still apply.
+    """
+    from engine import world_grid
+    scopes = getattr(app.world, "world_scopes", None) or {}
+    record = scopes.get(entry.get("scope_id"))
+    if record is None:
+        return 0
+    key = "previous" if direction == "undo" else "value"
+    applied = 0
+    for cell in entry.get("cells") or []:
+        try:
+            world_grid.paint(record, cell["layer"], int(cell["x"]),
+                             int(cell["y"]), cell.get(key))
+        except (ValueError, TypeError, KeyError):
+            continue
+        applied += 1
+    app.world.world_scopes = scopes
+    try:
+        from engine import biomes as biomes_mod
+        biomes_mod.clear_cache()
+    except Exception:
+        pass
+    return applied
+
+
+def _delta_label(entry: dict) -> str:
+    return str(entry.get("label") or "world edit")
+
+
 def _unpack_stack_entry(entry):
     """(state, source, label) triples, backward-compatible with old pairs."""
     if len(entry) == 3:
@@ -251,6 +306,13 @@ def register_saveload_routes(app):
                 if not app._undo_stack:
                     break
                 entry = app._undo_stack.pop()
+                if _is_delta(entry):
+                    app._redo_stack.append(entry)
+                    if len(app._redo_stack) > _MAX_UNDO_DEPTH:
+                        app._redo_stack.pop(0)
+                    _apply_paint_delta(app, entry, "undo")
+                    applied += 1
+                    continue
                 state, source, label = _unpack_stack_entry(entry)
                 # Push current state onto the redo stack
                 app._redo_stack.append(_snapshot(app.world) + (label,))
@@ -272,6 +334,9 @@ def register_saveload_routes(app):
         try:
             entries = []
             for entry in reversed(app._undo_stack):
+                if _is_delta(entry):
+                    entries.append({"label": _delta_label(entry)})
+                    continue
                 _s, _src, label = _unpack_stack_entry(entry)
                 entries.append({"label": label})
             return jsonify({"entries": entries})
@@ -286,6 +351,13 @@ def register_saveload_routes(app):
             if not app._redo_stack:
                 return jsonify({"error": "Nothing to redo"}), 400
             entry = app._redo_stack.pop()
+            if _is_delta(entry):
+                app._undo_stack.append(entry)
+                if len(app._undo_stack) > _MAX_UNDO_DEPTH:
+                    app._undo_stack.pop(0)
+                _apply_paint_delta(app, entry, "redo")
+                logger.info("Redo: re-applied paint delta")
+                return jsonify({"status": "success"})
             state, source, label = _unpack_stack_entry(entry)
             app._undo_stack.append(_snapshot(app.world) + (label,))
             if len(app._undo_stack) > _MAX_UNDO_DEPTH:

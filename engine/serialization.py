@@ -273,6 +273,9 @@ class WorldSerializer:
             "manifested": bool(getattr(p, 'manifested', False)),
             "known": list(getattr(p, 'known', []) or []),
             "crafting_known": list(getattr(p, 'crafting_known', []) or []),
+            "birth_tick": getattr(p, 'birth_tick', None),
+            "life_stage": getattr(p, 'life_stage', None),
+            "last_mortality_year": getattr(p, 'last_mortality_year', None),
             "discovered_exits": list(getattr(p, 'discovered_exits', []) or []),
             "interest_tags": getattr(p, 'interest_tags', []),
             "fear_tags": getattr(p, 'fear_tags', []),
@@ -359,6 +362,9 @@ class WorldSerializer:
             base.pop("discovered_items", None)
             base.pop("known", None)
             base.pop("crafting_known", None)
+            base.pop("birth_tick", None)
+            base.pop("life_stage", None)
+            base.pop("last_mortality_year", None)
             base.pop("discovered_exits", None)
             base.pop("interest_tags", None)
             base.pop("fear_tags", None)
@@ -574,6 +580,11 @@ class WorldSerializer:
         p.manifested = bool(pdata.get("manifested", False))
         p.known = list(pdata.get("known", []) or [])
         p.crafting_known = list(pdata.get("crafting_known", []) or [])
+        # task-735: lifecycle clock survives save/load; absent in old
+        # saves means ageless until an authored age resolves it.
+        p.birth_tick = pdata.get("birth_tick")
+        p.life_stage = pdata.get("life_stage")
+        p.last_mortality_year = pdata.get("last_mortality_year")
         p.discovered_exits = {
             tuple(x) for x in (pdata.get("discovered_exits", []) or []) if isinstance(x, (list, tuple)) and len(x) == 2
         }

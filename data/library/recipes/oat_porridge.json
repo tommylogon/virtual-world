@@ -1,0 +1,39 @@
+{
+  "id": "oat_porridge",
+  "name": "Oat Porridge",
+  "description": "Slow oats with water and honey into morning porridge.",
+  "ingredients": [
+    {"item": "oats", "count": 2, "consumed": true},
+    {"item": "boiled_water", "count": 1, "consumed": true},
+    {"item": "honey", "count": 1, "consumed": true},
+    {"item": "cooking_pot", "count": 1, "consumed": false}
+  ],
+  "conditions": [
+    {"type": "state_equals", "target": "campfire", "value": "on"}
+  ],
+  "duration_min": 15,
+  "skill_check": {"skill": "Cooking", "dc": 8},
+  "outputs": [{"item": "porridge", "count": 1}],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [{"item": "porridge", "count": 2}],
+      "message": "Creamy and sweet — a double pot."
+    },
+    "success": {
+      "outputs": [{"item": "porridge", "count": 1}],
+      "message": ""
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "thin_gruel", "count": 1}],
+      "message": "Too much water — gruel, not porridge."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "scorched_pot", "count": 1}],
+      "message": "Stuck and scorched — pot kept, food lost."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

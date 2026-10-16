@@ -1,0 +1,18 @@
+{
+  "name": "cup",
+  "description": "A plain wooden cup, stained by a hundred brews.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.2,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "container",
+    "wood"
+  ],
+  "triggers": [],
+  "contents": []
+}

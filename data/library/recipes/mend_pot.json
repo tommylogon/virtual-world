@@ -1,0 +1,40 @@
+{
+  "id": "mend_pot",
+  "name": "Mend Pot",
+  "description": "Patch a cracked pot with scrap iron over low heat.",
+  "ingredients": [
+    {"item": "cracked_pot", "count": 1, "consumed": true},
+    {"item": "scrap_iron", "count": 1, "consumed": true},
+    {"item": "charcoal", "count": 1, "consumed": true},
+    {"item": "forge", "count": 1, "consumed": false},
+    {"item": "hammer", "count": 1, "consumed": false}
+  ],
+  "conditions": [
+    {"type": "state_equals", "target": "forge", "value": "on"}
+  ],
+  "duration_min": 30,
+  "skill_check": {"skill": "Smithing", "dc": 10},
+  "outputs": [{"item": "cooking_pot", "count": 1}],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [{"item": "cooking_pot", "count": 1}],
+      "message": "Better than new — the patch outlasts the pot."
+    },
+    "success": {
+      "outputs": [{"item": "cooking_pot", "count": 1}],
+      "message": ""
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "patched_pot", "count": 1}],
+      "message": "Patched, half uses — cooks with watching."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "scrap_iron", "count": 1}],
+      "message": "Ruined pot — back to scrap."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

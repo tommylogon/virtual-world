@@ -1,0 +1,47 @@
+{
+  "name": "salt_pork",
+  "description": "Salt-cured pork that keeps a year. Soak before cooking.",
+  "actions": "examine,take,use,eat,drop",
+  "uses": 4,
+  "weight": 1.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "food",
+    "meat",
+    "preserved"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_eat"
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "",
+            "success_message": "Salt, pork, survival."
+          }
+        },
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Hunger",
+            "amount": -25,
+            "target": "self"
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "Salt, pork, survival.",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

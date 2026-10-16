@@ -1,0 +1,19 @@
+{
+  "name": "drafty_shelter",
+  "description": "A lean-to with more gaps than roof. Half cover, full drafts.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 25,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "shelter",
+    "furniture",
+    "heavy"
+  ],
+  "triggers": [],
+  "contents": []
+}

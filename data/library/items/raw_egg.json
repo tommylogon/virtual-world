@@ -1,0 +1,46 @@
+{
+  "name": "raw_egg",
+  "description": "A plain egg, speckled and still warm from the nest. Edible raw if you must.",
+  "actions": "examine,take,use,eat,drop",
+  "uses": 1,
+  "weight": 0.1,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "food",
+    "egg"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_eat"
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "",
+            "success_message": "You swallow the raw egg. Slimy, but food."
+          }
+        },
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Hunger",
+            "amount": -5,
+            "target": "self"
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "You swallow the raw egg. Slimy, but food.",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

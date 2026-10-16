@@ -1,0 +1,19 @@
+{
+  "name": "dull_knife",
+  "description": "An iron knife gone dull. It bruises more than it cuts.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.4,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 1,
+  "tags": [
+    "tool",
+    "knife",
+    "iron"
+  ],
+  "triggers": [],
+  "contents": []
+}

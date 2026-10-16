@@ -1276,6 +1276,13 @@ class VirtualWorld:
             + int(getattr(self, "clock_start_minute", 0))
         per_tick = abs(float(getattr(self, "time_per_tick_minutes", 1)) or 1)
         self.time_ticks = max(0, int(round((desired_total - start) / per_tick)))
+        # task-735: a date jump is time travel — the clock agrees
+        # (stages, old-age death), same as any other advance.
+        try:
+            from engine import lifecycle as _lifecycle
+            _lifecycle.on_clock(self)
+        except Exception:
+            pass
         return True
 
     # ─────────────────── Weather forecast (task-227/229) ───────────────────

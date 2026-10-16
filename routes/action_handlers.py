@@ -859,7 +859,16 @@ def handle_take_action(app):
             if not recipe_name:
                 add_output("Craft what? Use: craft <recipe name>")
             else:
-                add_output(world.craft_item(recipe_name))
+                # Task-840: timed recipes start a cooking Activity (same
+                # verb, three doors); untimed resolve instantly.
+                entry = world.crafting._find_recipe(recipe_name)
+                if entry is not None and int(entry.get("duration_min", 0) or 0) > 0:
+                    try:
+                        add_output(world.crafting.start_cooking(world, recipe_name))
+                    except ValueError as e:
+                        add_output(str(e))
+                else:
+                    add_output(world.craft_item(recipe_name))
         elif cmd.startswith("teach "):
             # task-197: teach <recipe | skill:NAME> to <character>
             rest = cmd[6:].strip()

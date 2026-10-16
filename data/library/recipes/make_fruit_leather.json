@@ -1,0 +1,38 @@
+{
+  "id": "make_fruit_leather",
+  "name": "Fruit Leather",
+  "description": "Dry wild berries with honey over low heat into chewy sheets.",
+  "ingredients": [
+    {"item": "wild_berries", "count": 3, "consumed": true},
+    {"item": "honey", "count": 1, "consumed": true},
+    {"item": "drying_rack", "count": 1, "consumed": false}
+  ],
+  "conditions": [
+    {"type": "state_equals", "target": "campfire", "value": "on"}
+  ],
+  "duration_min": 240,
+  "skill_check": {"skill": "Cooking", "dc": 10},
+  "outputs": [{"item": "fruit_leather", "count": 1}],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [{"item": "fruit_leather", "count": 2}],
+      "message": "Glass-smooth sheets — double."
+    },
+    "success": {
+      "outputs": [{"item": "fruit_leather", "count": 1}],
+      "message": ""
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "fruit_leather", "count": 1}],
+      "message": "Sticky, but keeping."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "burned_grease", "count": 1}],
+      "message": "Burned to bitter paste."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

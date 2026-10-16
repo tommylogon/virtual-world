@@ -1,0 +1,47 @@
+{
+  "name": "roast_meat",
+  "description": "Slow spit-roasted meat with salt crust. Worth the wait.",
+  "actions": "examine,take,use,eat,drop",
+  "uses": 2,
+  "weight": 0.9,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "food",
+    "meat",
+    "cooked"
+  ],
+  "triggers": [
+    {
+      "trigger_type": [
+        "on_eat"
+      ],
+      "effects": [
+        {
+          "type": "message",
+          "params": {
+            "message": "",
+            "success_message": "Crackling skin, pink middle, perfect."
+          }
+        },
+        {
+          "type": "adjust_vital",
+          "params": {
+            "stat": "Hunger",
+            "amount": -35,
+            "target": "self"
+          }
+        }
+      ],
+      "conditions": {},
+      "target_name": "",
+      "target_state": "",
+      "success_message": "Crackling skin, pink middle, perfect.",
+      "fail_message": ""
+    }
+  ],
+  "contents": []
+}

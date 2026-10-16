@@ -1,0 +1,37 @@
+{
+  "id": "ash_bucket",
+  "name": "Ash Bucket",
+  "description": "Cooper oak planks with an iron hoop into a bucket.",
+  "ingredients": [
+    {"item": "oak_plank", "count": 3, "consumed": true},
+    {"item": "iron_hoop", "count": 1, "consumed": true},
+    {"item": "workbench", "count": 1, "consumed": false},
+    {"item": "hammer", "count": 1, "consumed": false}
+  ],
+  "conditions": [],
+  "duration_min": 60,
+  "skill_check": {"skill": "Woodcraft", "dc": 12},
+  "outputs": [{"item": "wooden_bucket", "count": 1}],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [{"item": "wooden_bucket", "count": 1}],
+      "message": "Watertight first fill — a bucket for decades."
+    },
+    "success": {
+      "outputs": [{"item": "wooden_bucket", "count": 1}],
+      "message": ""
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "leaky_bucket", "count": 1}],
+      "message": "Gappy staves — dry goods only."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "split_blank", "count": 1}],
+      "message": "Split planks — firewood."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

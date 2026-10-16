@@ -1,0 +1,18 @@
+{
+  "name": "yew_stave",
+  "description": "A seasoned yew stave, heartwood and sapwood in perfect balance. Bow stock.",
+  "actions": "examine,take,drop",
+  "uses": 1,
+  "weight": 1.0,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "wood",
+    "material"
+  ],
+  "triggers": [],
+  "contents": []
+}

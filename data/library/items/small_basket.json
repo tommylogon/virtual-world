@@ -1,0 +1,18 @@
+{
+  "name": "small_basket",
+  "description": "A small, tight basket. Half the capacity of a proper one.",
+  "actions": "examine,take,drop",
+  "uses": -1,
+  "weight": 0.5,
+  "current_state": "normal",
+  "light_level": "dim",
+  "equip_slots": [],
+  "defense": 0,
+  "damage": 0,
+  "tags": [
+    "container",
+    "wood"
+  ],
+  "triggers": [],
+  "contents": []
+}

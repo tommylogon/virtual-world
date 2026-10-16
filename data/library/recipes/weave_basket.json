@@ -1,0 +1,35 @@
+{
+  "id": "weave_basket",
+  "name": "Weave Basket",
+  "description": "Weave withies into a carrying basket.",
+  "ingredients": [
+    {"item": "withy", "count": 6, "consumed": true},
+    {"item": "knife", "count": 1, "consumed": false}
+  ],
+  "conditions": [],
+  "duration_min": 45,
+  "skill_check": {"skill": "Woodcraft", "dc": 10},
+  "outputs": [{"item": "withy_basket", "count": 1}],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [{"item": "withy_basket", "count": 1}],
+      "message": "Tight, even weave — a basket for years."
+    },
+    "success": {
+      "outputs": [{"item": "withy_basket", "count": 1}],
+      "message": ""
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "small_basket", "count": 1}],
+      "message": "Small and tight — half capacity."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "broken_withies", "count": 1}],
+      "message": "Broken withies — firewood."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

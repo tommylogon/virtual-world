@@ -1,0 +1,41 @@
+{
+  "id": "trail_stew_pot",
+  "name": "Trail Stew (Big Pot)",
+  "description": "A cauldron of everything: meat, barley, roots. Feeds the party.",
+  "ingredients": [
+    {"item": "raw_meat", "count": 1, "consumed": true},
+    {"item": "barley", "count": 2, "consumed": true},
+    {"item": "carrot", "count": 1, "consumed": true},
+    {"item": "onion", "count": 1, "consumed": true},
+    {"item": "salt", "count": 1, "consumed": true},
+    {"item": "iron_cauldron", "count": 1, "consumed": false}
+  ],
+  "conditions": [
+    {"type": "state_equals", "target": "campfire", "value": "on"}
+  ],
+  "duration_min": 90,
+  "skill_check": {"skill": "Cooking", "dc": 14},
+  "outputs": [{"item": "trail_stew", "count": 4}],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [{"item": "trail_stew", "count": 5}],
+      "message": "Legendary pot — full servings plus seconds."
+    },
+    "success": {
+      "outputs": [{"item": "trail_stew", "count": 4}],
+      "message": ""
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "trail_stew", "count": 2}],
+      "message": "Thin in places — half rations."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "scorched_cauldron", "count": 1}],
+      "message": "A cauldron of charcoal. Food lost, pot kept."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

@@ -603,6 +603,7 @@
                     <span class="lib-tab" data-tab="behaviours" onclick="VW.libraryBrowser.switchTab('behaviours')">🤖 Behaviours</span>
                     <span class="lib-tab" data-tab="tags" onclick="VW.libraryBrowser.switchTab('tags')">🏷️ Tags</span>
                     <span class="lib-tab" data-tab="ways" onclick="VW.libraryBrowser.switchTab('ways')">🚪 Ways</span>
+                    <span class="lib-tab" data-tab="recipes" onclick="VW.libraryBrowser.switchTab('recipes')">🧾 Recipes</span>
                     <span class="lib-tab" data-tab="vocabulary" onclick="VW.libraryBrowser.switchTab('vocabulary')">🌿 Vocabulary</span>
                 </div>
                 <button class="modal-close" onclick="closeLibraryBrowser()">&times;</button>
@@ -789,7 +790,28 @@
                         <button class="btn btn-secondary btn-sm" onclick="closeLibraryBrowser()">Close</button>
                     </div>
                 </div>
-                <div class="lib-tab-pane" id="lib-pane-vocabulary">
+                                <!-- RECIPES TAB (browse + author; never executes) -->
+                <div class="lib-tab-pane" id="lib-pane-recipes">
+                    <div style="display:flex;gap:16px;min-height:300px;padding:16px 20px;">
+                        <div style="flex:1;border-right:1px solid var(--border);padding-right:12px;min-width:0;">
+                            <div style="display:flex;gap:4px;margin-bottom:6px;align-items:center;">
+                                <div style="position:relative;flex:1;">
+                                    <span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none;">&#x1f50d;</span>
+                                    <input type="text" id="lib-recipe-search" placeholder="Search recipes..." style="width:100%;font-size:11px;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:4px 8px 4px 24px;" oninput="VW.libraryBrowser.filterList('recipes')">
+                                </div>
+                                <button class="btn btn-sm btn-blue" onclick="VW.libraryBrowser.newEntry('recipes')">+ New</button>
+                            </div>
+                            <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px;" id="lib-recipe-count"></div>
+                            <div id="lib-recipe-list" style="max-height:300px;overflow-y:auto;font-size:12px;"></div>
+                        </div>
+                        <div id="lib-recipe-editor" style="flex:1;min-width:240px;overflow-x:hidden;"></div>
+                    </div>
+                    <div style="display:flex;gap:6px;padding:8px 20px;border-top:1px solid var(--border);">
+                        <button class="btn btn-sm" onclick="VW.libraryBrowser.saveEntry('recipes')">Save to Library</button>
+                        <button class="btn btn-secondary btn-sm" onclick="closeLibraryBrowser()">Close</button>
+                    </div>
+                </div>
+<div class="lib-tab-pane" id="lib-pane-vocabulary">
                     <div id="lib-vocab-root" style="padding:12px 20px;min-height:320px;"></div>
                 </div>
             </div>
@@ -1443,6 +1465,7 @@
     <script src="/static/js/inspector/paperdoll-view.js"></script>
     <script src="/static/js/inspector/memory-view.js"></script>
     <script src="/static/js/inspector/mind-view.js"></script>
+    <script src="/static/js/character-import.js"></script>
     <script src="/static/js/inspector/behaviors-view.js"></script>
     <script src="/static/js/inspector/lore-view.js"></script>
     <script src="/static/js/inspector/agent-view.js"></script>

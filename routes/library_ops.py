@@ -24,7 +24,7 @@ from routes.helpers import load_registry, save_registry, delete_registry_entry, 
 
 logger = logging.getLogger(__name__)
 
-REGISTRY_TYPES = ['items', 'characters', 'areas', 'ways', 'traits', 'conditions', 'behaviours', 'tags', 'triggers', 'structures', 'pursuit_templates']
+REGISTRY_TYPES = ['items', 'characters', 'areas', 'ways', 'traits', 'conditions', 'behaviours', 'tags', 'triggers', 'structures', 'pursuit_templates', 'recipes']
 
 # task-398: RELATION_EDGE_TYPES now comes from engine/library_nodes.py, which is
 # the one definition shared with the generation recipes. routes/graph_ops.py
@@ -683,6 +683,19 @@ def write_library_entry(app, registry_type, entry_id, entry_data):
     filename = f"{registry_type}.json"
     registry = load_registry(app.config['DATA_DIR'], filename)
     registry[str(entry_id)] = _strip_presentation_properties(entry_data)
+    if registry_type == "recipes":
+        # Task-831/842: the schema gate runs on save, naming the exact
+        # bad field — a broken recipe never reaches the registry.
+        import sys as _sys
+        _tools = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "tools")
+        if _tools not in _sys.path:
+            _sys.path.insert(0, _tools)
+        import recipe_check as _recipe_check
+        _items = _recipe_check.library_items(app.config.get('DATA_DIR'))
+        _tags = _recipe_check.library_tags(app.config.get('DATA_DIR'))
+        _errors = _recipe_check.check_entry(registry[str(entry_id)], str(entry_id), _items, _tags)
+        if _errors:
+            raise ValueError("; ".join(_errors))
     save_registry(app.config['DATA_DIR'], filename, registry)
     _reload_condition_catalog(app, registry_type)
     stored = registry.get(str(entry_id), {})

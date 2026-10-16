@@ -1,0 +1,37 @@
+{
+  "id": "lash_pack_frame",
+  "name": "Pack Frame",
+  "description": "Lash branches and straps into a pack frame.",
+  "ingredients": [
+    {"item": "branch", "count": 2, "consumed": true},
+    {"item": "rope", "count": 2, "consumed": true},
+    {"item": "leather_strap", "count": 1, "consumed": true},
+    {"item": "knife", "count": 1, "consumed": false}
+  ],
+  "conditions": [],
+  "duration_min": 45,
+  "skill_check": {"skill": "Survival", "dc": 10},
+  "outputs": [{"item": "pack_frame", "count": 1}],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [{"item": "pack_frame", "count": 1}],
+      "message": "True angles, tight lashings — carries like a dream. (Carry bonus is a task-703-level effect hook; the frame is the prerequisite.)"
+    },
+    "success": {
+      "outputs": [{"item": "pack_frame", "count": 1}],
+      "message": ""
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "creaky_frame", "count": 1}],
+      "message": "Creaky and burden-heavy — no bonus, just burden."
+    },
+    "crit_fail": {
+      "consume_inputs": false,
+      "outputs": [],
+      "message": "Broken frame — materials kept, lesson learned."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

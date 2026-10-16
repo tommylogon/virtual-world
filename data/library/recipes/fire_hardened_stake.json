@@ -1,0 +1,36 @@
+{
+  "id": "fire_hardened_stake",
+  "name": "Fire-Hardened Stake",
+  "description": "Harden a green stick's point in campfire coals.",
+  "ingredients": [
+    {"item": "green_stick", "count": 1, "consumed": true}
+  ],
+  "conditions": [
+    {"type": "state_equals", "target": "campfire", "value": "on"}
+  ],
+  "duration_min": 15,
+  "skill_check": {"skill": "Survival", "dc": 9},
+  "outputs": [{"item": "sharpened_stake", "count": 1}],
+  "outcomes": {
+    "crit_success": {
+      "outputs": [{"item": "sharpened_stake", "count": 2}],
+      "message": "Two points from one stick — split it first, harden both."
+    },
+    "success": {
+      "outputs": [{"item": "sharpened_stake", "count": 1}],
+      "message": ""
+    },
+    "fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "sharpened_stake", "count": 1}],
+      "message": "Soft in the middle — half damage, but pointed."
+    },
+    "crit_fail": {
+      "consume_inputs": true,
+      "outputs": [{"item": "burned_stick", "count": 1}],
+      "message": "Left it in the coals too long — a useless stub."
+    }
+  },
+  "learned_by": ["global"],
+  "discoverable": true
+}

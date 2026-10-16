@@ -28,6 +28,8 @@ Skills are not fixed to these six — characters can have any skill name. Exampl
 - `"Investigation": 3` (Jake, intuitive pattern-seeker)
 - `"Investigation": 2` (Miki, investigator)
 
+Free strings are also what crafting recipes gate on (`Cooking`, `Smithing`, `Woodcraft` — task-831): an unmapped name simply rolls d20 + skill value with no ability modifier until a setting maps it in `SKILL_ABILITY`. Default 0 until a scenario grants the skill.
+
 Values typically range 0-5 but there is no upper limit enforced.
 
 ## Skill Checks
