@@ -55,6 +55,7 @@ class VirtualWorld:
         self.time_per_tick_minutes = 1
         self._scenario_source = None
         self._scenario_name = ""
+        self._scope_store_id = None
         self.scenario_ended = False
         self._restart_requested = False
 

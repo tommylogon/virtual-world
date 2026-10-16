@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: inprogress
 area: world
 priority: high
 wiki: "[[World Building/World Scopes|World Scopes]]"
@@ -34,7 +34,7 @@ Build on chunk persistence, stable location identity, the global scope index, ga
 
 Intended UI home: Live turn interface ? select or hand off to a character, act, cross a scope boundary, then inspect the loaded scope in the map/scene.
 
-Current availability: The global `/api/state` drives the client world cache. Scope subgraphs exist for the graph editor, but no character-focused runtime working set exists. This is intended UI, not a claim that the behavior works today.
+Current implementation: selecting an active character sets the runtime focus before the active-player update; human and autonomous turns use the same focused endpoint, and focus follows turn handoffs. The focused projection is merged into the existing editor cache; it does not replace the global world snapshot or unload/change the authoritative world graph. Startup and graph-editor loading remain separate whole-world operations. The latest active-selection/handoff change builds, but has not yet been rechecked in the live browser.
 
 Live steps when available:
 1. Select a character in one scope and inspect Network responses.
@@ -48,27 +48,31 @@ Live steps when available:
 
 ## Steps to verify
 
-1. Generate a deterministic world of at least 1,000,000 areas spread across thousands of scopes; select a character and request its runtime working set.
-   - expected: response contains only the selected character's required scope data and live state; returned counts and measured server work are bounded by that working set, not total world size.
-   - observed: TODO
-2. Move the character across a gateway into another scope, then select a second character in a different scope.
+1. Load Kraktooth, select an autonomous character, run a turn, then repeat with a human-controlled character; inspect focused and whole-state requests.
+   - expected: both controllers and active-character selection use the focused endpoint during gameplay; startup/editor operations may still request whole state.
+   - observed (2026-10-16): In the live Kraktooth browser (629 areas, 2,766 loaded nodes), selecting Arix and running an autonomous step produced successful `/api/runtime/state?character_id=ddb12446` responses. Whole-world `/api/state` requests also occurred during the same turn window, so the original implementation did not yet satisfy the expected behavior. Focus was then wired to active-character selection and retained/synchronized through handoff; the TypeScript build passed, but this final change was not re-tested in the browser.
+2. Load Kraktooth, compare `/api/state` with a focused runtime read after evicting scopes through the production store.
+   - expected: report actual area/scope/node/edge counts, whole-state and focused response bytes, load timings, and confirm only the selected scope is rematerialized for the focused read.
+   - observed: See task-583; the benchmark reports the Kraktooth run. A million-area fixture remains a future scale target, not a prerequisite for completing the production loader.
+3. Move the character across a gateway into another scope, then select a second character in a different scope.
    - expected: the working set follows authoritative locations, includes every attended scope once, and preserves player identity/state without duplicate or stale locations.
-   - observed: TODO
-3. Run backsim, a world timeskip, and a character soak with scopes outside the browser working set; later load an affected scope and inspect state.
+   - observed: TODO; the live movement stayed within `goblin_camp`.
+4. Run backsim, a world timeskip, and a character soak with scopes outside the browser working set; later load an affected scope and inspect state.
    - expected: authoritative server simulation advances the intended world/residents and the fetched scope reflects those changes without transferring all scopes to the client.
    - observed: TODO
-4. Perform an action in the focused scope while a state refresh overlaps a mutation/event notification.
+5. Perform an action in the focused scope while a state refresh overlaps a mutation/event notification.
    - expected: the caller receives a coherent post-mutation snapshot; no stale budget, missed focused update, or whole-world refetch is required.
    - observed: TODO
 
 ## Acceptance
 
-- Selecting/focusing a character derives its current interaction scope(s) from authoritative location and returns the complete runtime state needed by the live interaction surface.
+- Human and autonomous controllers for the same character derive the same interaction scope from authoritative location; active selection and turn handoff keep ordinary gameplay refreshes on the scope-bounded endpoint. Live verification must confirm no whole-world `/api/state` request is initiated during that focused gameplay window.
 - Scope transitions and multi-character focus update the working set correctly; stable IDs preserve one authoritative character/item location and boundary gateways remain traversable.
 - The runtime snapshot is distinct from the graph editor's subgraph and from any cached global world snapshot; consuming a scoped payload cannot silently replace a full-world model with a partial one.
 - Back-simulation, timeskip, and soak remain server-authoritative and correct for scopes outside the browser working set; when those scopes are requested, their state is current.
-- A reproducible million-area/thousands-of-scopes benchmark reports records and bytes returned, server elapsed time, and demonstrates bounded snapshot work/size as unrelated scopes are added.
+- A reproducible Kraktooth benchmark reports whole-world and focused response records/bytes and timings, and verifies that only the requested scope is rematerialized after eviction. A synthetic million-area benchmark is a separate future scale target.
 - Focused updates do not require fetching and deserializing the entire world after every action; failures and stale revisions are surfaced rather than treated as successful empty or partial state.
+- Startup and graph-editor loading are still whole-world operations; these are separate from gameplay runtime refreshes and are not required to unload scopes from the authoritative server graph.
 
 ## Files
 

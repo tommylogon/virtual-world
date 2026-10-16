@@ -46,6 +46,23 @@ def test_reindex_derives_ownership_location_and_gateways():
     assert gateway["target_scope_id"] == "inn"
 
 
+def test_scope_reverse_indexes_track_ownership_changes_and_round_trip():
+    index = GlobalScopeIndex()
+    index.own_area("area_a", "town")
+    index.own_area("area_b", "town")
+    index.own_area("area_b", "inn")
+    index.set_node_owner("way_a", "town")
+
+    assert index.areas_in_scope("town") == ["area_a"]
+    assert index.areas_in_scope("inn") == ["area_b"]
+    assert index.nodes_in_scope("town") == ["way_a"]
+
+    restored = GlobalScopeIndex.from_dict(index.to_dict())
+    assert restored.areas_in_scope("town") == ["area_a"]
+    assert restored.areas_in_scope("inn") == ["area_b"]
+    assert restored.nodes_in_scope("town") == ["way_a"]
+
+
 def test_index_round_trips_through_dict():
     _graph, index = _indexed_graph()
     index.schedule({"fire_tick": 10, "target_node_id": "item_lamp"})

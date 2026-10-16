@@ -151,9 +151,10 @@ window.TurnQueue = (() => {
      * when a full turn-based cycle wraps — and it is ALSO used directly in
      * non-turn-based mode where each stepped character counts as one turn
      * (task-241), so time advances and new-turn effects play there too.
-     * The world state is refetched between applyTurn() and clearTurnEvents()
-     * so fresh turn_events (simple-NPC behavior output) survive to be
-     * displayed before the backend wipes them.
+     * The state is refreshed between applyTurn() and clearTurnEvents() so
+     * fresh turn_events (simple-NPC behavior output) survive to be displayed.
+     * During a focused character turn, use its scope projection rather than
+     * serializing the complete world.
      */
     async function endTurn() {
         const agent = _getAgent();
@@ -168,7 +169,8 @@ window.TurnQueue = (() => {
             console.error('Turn decay failed:', err);
         }
         try {
-            await worldState.fetch();
+            if (worldState._runtimeFocus?.length) await worldState.fetchRuntime();
+            else await worldState.fetch();
         } catch (err) {
             console.error('World state fetch after turn failed:', err);
         }
@@ -202,6 +204,7 @@ window.TurnQueue = (() => {
         // original stored null. Widening the assignment would change what
         // config.controllingPlayer holds, so the assertion is erased at emit.
         config.controllingPlayer = getCurrentCharacter() as string;
+        worldState.setRuntimeFocusForCharacter(config.controllingPlayer);
     }
 
     /** True when *name* currently has a soak order (per the last state fetch). */
@@ -323,6 +326,7 @@ window.TurnQueue = (() => {
         }
         agent.currentTurnIndex = 0;
         config.controllingPlayer = agent.turnQueue[0];
+        worldState.setRuntimeFocusForCharacter(config.controllingPlayer);
     }
 
     return {

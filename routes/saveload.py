@@ -101,6 +101,8 @@ def _restore_snapshot(app, state, source):
     new_world.load_from_dict(state)
     new_world.set_scenario_source(source)
     new_world.time_per_tick_minutes = getattr(app.world, 'time_per_tick_minutes', 5)
+    from engine.world.store import configure_scope_store
+    configure_scope_store(new_world, app.config['DATA_DIR'])
     app.world = new_world
     # Persist the restored state so a restart doesn't lose it (skip in tests)
     if not app.config.get('TESTING'):
@@ -126,6 +128,8 @@ def _adopt_loaded_world(app, data, *, autosave=True):
     world._scenario_source = None
     world._scenario_name = data.get('_scenario_name') or data.get('name') or ''
     world._commit_seq = getattr(world, '_edit_seq', 0)
+    from engine.world.store import configure_scope_store
+    configure_scope_store(world, app.config['DATA_DIR'])
     if autosave and not app.config.get('TESTING'):
         save_autosave(world)
     return world
@@ -205,6 +209,8 @@ def register_saveload_routes(app):
                 app.world.set_scenario_source(scenario_path)
                 app.world._scenario_name = scenario_name
                 app.world._commit_seq = getattr(app.world, '_edit_seq', 0)
+                from engine.world.store import configure_scope_store
+                configure_scope_store(app.world, app.config['DATA_DIR'])
                 logger.info(f"Saved loaded scenario to {scenario_path}")
             else:
                 # Ephemeral load (no persist flag): the world is replaced in
@@ -281,6 +287,8 @@ def register_saveload_routes(app):
             new_world.legacy_compat.game_log = list(new_world.game_logger.game_log)
 
             app.world = new_world
+            from engine.world.store import configure_scope_store
+            configure_scope_store(new_world, app.config['DATA_DIR'])
             # Delete autosave so restart is truly clean and next server start doesn't load stale state
             from .helpers import AUTOSAVE_PATH
             if os.path.exists(AUTOSAVE_PATH):

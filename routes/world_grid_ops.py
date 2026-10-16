@@ -697,6 +697,7 @@ def handle_scope_areas(app, scope_id):
             props.pop("x", None)
             props.pop("y", None)
         node.properties = props
+        graph.refresh_node_scope(area_id)
         outcomes[area_id] = "assigned" if target else "removed"
         if released:
             outcomes[f"{area_id}:cell"] = "released"
@@ -774,6 +775,7 @@ def handle_place_area(app, scope_id):
     new_props["x"] = x * world_compile.CELL_CANVAS_UNITS
     new_props["y"] = y * world_compile.CELL_CANVAS_UNITS
     node.properties = new_props
+    graph.refresh_node_scope(area_id)
     if occupant and occupant != area_id and on_overlap == "displace":
         displaced = graph.get_node(occupant)
         if displaced is not None:

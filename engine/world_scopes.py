@@ -52,24 +52,27 @@ def root_scope_ids(manifest: Dict[str, dict]) -> List[str]:
 
 def direct_child_ids(manifest: Dict[str, dict], scope_id: str) -> List[str]:
     """Declared children plus any record whose ``parent_id`` is this scope."""
-    out: List[str] = []
-    seen = set()
-
-    def add(sid: str):
-        if sid in manifest and sid not in seen:
-            seen.add(sid)
-            out.append(sid)
-
-    for sid in manifest.get(scope_id, {}).get("children", []):
-        add(sid)
-    for sid, rec in manifest.items():
-        if rec.get("parent_id") == scope_id:
-            add(sid)
-    return out
+    return _scope_children_index(manifest).get(str(scope_id), [])
 
 
-def area_ids_in_scope(manifest: Dict[str, dict], graph, scope_id: str,
-                      _seen: Optional[set] = None) -> set:
+def _scope_children_index(manifest: Dict[str, dict]) -> Dict[str, List[str]]:
+    children: Dict[str, List[str]] = {}
+    for scope_id, record in manifest.items():
+        bucket = children.setdefault(str(scope_id), [])
+        for child_id in (record or {}).get("children", []):
+            child_id = str(child_id)
+            if child_id in manifest and child_id not in bucket:
+                bucket.append(child_id)
+    for scope_id, record in manifest.items():
+        parent_id = (record or {}).get("parent_id")
+        if parent_id:
+            bucket = children.setdefault(str(parent_id), [])
+            if str(scope_id) not in bucket:
+                bucket.append(str(scope_id))
+    return children
+
+
+def area_ids_in_scope(manifest: Dict[str, dict], graph, scope_id: str) -> set:
     """Leaf area ids belonging to a scope, including descendants.
 
     **Membership is read from the areas' own ``world_scope_id`` stamp, and from
@@ -94,14 +97,17 @@ def area_ids_in_scope(manifest: Dict[str, dict], graph, scope_id: str,
     node is not in the graph. Such an area cannot be drawn, projected, walked to
     or found, so there is nothing a caller could do with it.
     """
-    _seen = _seen or set()
-    if scope_id in _seen:
-        return set()
-    _seen.add(scope_id)
-
-    areas = own_area_ids(graph, scope_id)
-    for child in direct_child_ids(manifest, scope_id):
-        areas |= area_ids_in_scope(manifest, graph, child, _seen)
+    children = _scope_children_index(manifest)
+    areas = set()
+    seen = set()
+    pending = [str(scope_id)]
+    while pending:
+        current = pending.pop()
+        if current in seen:
+            continue
+        seen.add(current)
+        areas.update(own_area_ids(graph, current))
+        pending.extend(children.get(current, ()))
     return areas
 
 
@@ -112,9 +118,10 @@ def own_area_ids(graph, scope_id: str) -> set:
     shows its own painted cells — a placed child is a single feature cell, not
     its whole interior. Use :func:`area_ids_in_scope` when the subtree is wanted.
     """
-    return {node_id for node_id, node in graph.nodes.items()
-            if getattr(node, "type", "") == "area"
-            and (getattr(node, "properties", {}) or {}).get("world_scope_id") == scope_id}
+    return {
+        node_id for node_id in graph.nodes_owned_by(scope_id)
+        if getattr(graph.get_node(node_id), "type", "") == "area"
+    }
 
 
 def assign_area_membership(manifest: Dict[str, dict], area_id: str,
@@ -166,11 +173,6 @@ def assign_area_membership(manifest: Dict[str, dict], area_id: str,
     return "assigned" if new_scope else "removed"
 
 
-def _area_name_to_id(graph) -> Dict[str, str]:
-    return {node.name: node_id for node_id, node in graph.nodes.items()
-            if getattr(node, "type", "") == "area"}
-
-
 def _items_in_area(graph, area_id: str) -> List[str]:
     out = []
     for edge in graph.get_edges_for_target(area_id):
@@ -203,10 +205,18 @@ def spatial_item_nodes(graph, container_id) -> List:
 
 def characters_in_areas(graph, players, area_ids: Iterable[str]) -> int:
     area_ids = set(area_ids)
-    name_to_id = _area_name_to_id(graph)
+    name_to_id = {}
+    for area_id in area_ids:
+        node = graph.get_node(area_id)
+        if node is not None:
+            name_to_id[node.name] = area_id
     count = 0
     for player in (players or {}).values():
-        if name_to_id.get(getattr(player, "current_area", None)) in area_ids:
+        node_id = getattr(player, "node_id", None)
+        location_id = graph.area_of(node_id) if node_id else None
+        if location_id is None:
+            location_id = name_to_id.get(getattr(player, "current_area", None))
+        if location_id in area_ids:
             count += 1
     return count
 
@@ -268,10 +278,19 @@ def way_endpoints(node, name_to_id: Dict[str, str], graph=None):
 def boundary_ways(graph, area_ids: Iterable[str]) -> List[dict]:
     """Ways with one endpoint inside the scope and one outside."""
     area_ids = set(area_ids)
-    name_to_id = _area_name_to_id(graph)
-
+    name_to_id = {
+        str(getattr(graph.get_node(area_id), "name", "")): area_id
+        for area_id in area_ids
+    }
+    candidates = set(graph.ways_for_endpoints(area_ids | set(name_to_id)))
+    for area_id in area_ids:
+        for edge in graph.get_edges_for_source(area_id, EDGE_CONNECTION):
+            node = graph.get_node(edge.target)
+            if getattr(node, "type", "") == "way":
+                candidates.add(node.id)
     out = []
-    for node_id, node in graph.nodes.items():
+    for node_id in candidates:
+        node = graph.get_node(node_id)
         if getattr(node, "type", "") != "way":
             continue
         a, b = way_endpoints(node, name_to_id, graph)
@@ -623,6 +642,7 @@ def promote_to_scope(manifest: Dict[str, dict], graph, *, scope_id: str,
         assign_area_membership(manifest, area_id, scope_id, old or None)
         if isinstance(props, dict):
             props["world_scope_id"] = scope_id
+            graph.refresh_node_scope(area_id)
             # The painted cell belonged to the scope that owned the area; inside
             # the new scope the position is hand-authored canvas space, so the
             # painted marker goes — otherwise the layout engine would read engine
@@ -671,6 +691,7 @@ def promote_to_scope(manifest: Dict[str, dict], graph, *, scope_id: str,
                     # next Ungenerate.
                     "authored": True,
                 })
+            graph.refresh_node_scope(way_id)
             for source, target, direction in (
                     (place_area_id, way_id, inward),
                     (way_id, entry, inward),
@@ -809,11 +830,29 @@ def project_subgraph(manifest: Dict[str, dict], graph, players, scope_id: str,
     Only edges with both endpoints included are emitted, so no edge ever
     dangles to a node the browser never received.
     """
+    scope_ids = {str(scope_id)}
     if descendants:
-        area_ids = area_ids_in_scope(manifest, graph, scope_id)
-    else:
-        area_ids = own_area_ids(graph, scope_id)
-    name_to_id = _area_name_to_id(graph)
+        children_by_parent = _scope_children_index(manifest)
+        pending = [str(scope_id)]
+        scope_ids.clear()
+        while pending:
+            current = pending.pop()
+            if current in scope_ids:
+                continue
+            scope_ids.add(current)
+            pending.extend(children_by_parent.get(current, ()))
+
+    owned_ids = set()
+    for owned_scope_id in scope_ids:
+        owned_ids.update(graph.nodes_owned_by(owned_scope_id))
+    area_ids = {
+        node_id for node_id in owned_ids
+        if getattr(graph.get_node(node_id), "type", "") == "area"
+    }
+    name_to_id = {
+        str(getattr(graph.get_node(area_id), "name", "")): area_id
+        for area_id in area_ids
+    }
     included: set = set()
     nodes: Dict[str, dict] = {}
 
@@ -823,25 +862,46 @@ def project_subgraph(manifest: Dict[str, dict], graph, players, scope_id: str,
         included.add(node.id)
         nodes[node.id] = node.to_dict()
 
-    for node in graph.nodes.values():
-        if getattr(node, "type", "") == "area" and node.id in area_ids:
-            add(node)
+    for area_id in area_ids:
+        add(graph.get_node(area_id))
 
-    for node in graph.nodes.values():
-        if getattr(node, "type", "") != "way":
-            continue
+    way_ids = {
+        node_id for node_id in owned_ids
+        if getattr(graph.get_node(node_id), "type", "") == "way"
+    }
+    area_refs = set(area_ids)
+    area_refs.update(
+        str(getattr(graph.get_node(area_id), "name", ""))
+        for area_id in area_ids
+    )
+    way_ids.update(graph.ways_for_endpoints(area_refs))
+    for area_id in area_ids:
+        for edge in graph.get_edges_for_source(area_id, EDGE_CONNECTION):
+            target = graph.get_node(edge.target)
+            if getattr(target, "type", "") == "way":
+                way_ids.add(target.id)
+    for way_id in way_ids:
+        node = graph.get_node(way_id)
         a, b = way_endpoints(node, name_to_id, graph)
         if a in area_ids and b in area_ids:
             add(node)
 
-    for node in graph.nodes.values():
-        ntype = getattr(node, "type", "")
-        if ntype in ("character", "player") or (include_items and ntype == "item"):
-            for edge in graph.get_edges_for_source(node.id):
-                if getattr(edge, "type", "") in SPATIAL_TYPES and edge.target in area_ids:
-                    add(node)
-                    break
+    for area_id in area_ids:
+        for edge in graph.get_edges_for_target(area_id):
+            if edge.type not in SPATIAL_TYPES:
+                continue
+            node = graph.get_node(edge.source)
+            ntype = getattr(node, "type", "")
+            if ntype in ("character", "player") or (
+                    include_items and ntype == "item"):
+                add(node)
 
-    edges = [e.to_dict() for e in graph.edges
-             if e.source in included and e.target in included]
+    seen_edges = set()
+    edges = []
+    for node_id in sorted(included):
+        for edge in graph.get_edges_for_source(node_id):
+            edge_key = id(edge)
+            if edge_key not in seen_edges and edge.target in included:
+                seen_edges.add(edge_key)
+                edges.append(edge.to_dict())
     return {"nodes": nodes, "edges": edges}

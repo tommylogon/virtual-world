@@ -7,7 +7,7 @@ tags: [system/world]
 
 ## What you can do
 
-A world scope is a named, addressable region (like "Millbrook Falls > Downtown District > The Pines Apartment Complex > Floor 2") that organizes the world into a hierarchy. Scopes are the unit of loading, projection, and generation. You can navigate the scope tree in the UI, create new scopes, paint grids within them (biomes, roads, floors, climate), place child scopes or hand-authored areas on cells, and generate content from a painted grid or a recipe. As a player, you move through scopes seamlessly — they determine what's loaded and visible without you managing them directly.
+A world scope is a named, addressable region (like "Millbrook Falls > Downtown District > The Pines Apartment Complex > Floor 2") that organizes the world into a hierarchy. Scopes are the unit of loading, projection, and generation. You can navigate the scope tree in the UI, create new scopes, paint grids within them (biomes, roads, floors, climate), place child scopes or hand-authored areas on cells, and generate content from a painted grid or a recipe. Runtime loading can materialize a character's owning scope and gateway destinations from stored chunks; automatic eviction and a player-facing residency control are not implemented.
 
 ## Where it lives
 
@@ -120,6 +120,22 @@ and it removes only **generated** nodes — hand-authored nodes are left alone
 rather than guessed at, while a hand-*placed* area keeps its area and loses the
 cell.
 
+## Runtime loading
+
+The graph remains authoritative for loaded nodes. `GlobalScopeIndex` keeps the
+ownership, location, gateway and scheduled-work records needed to find scopes
+that are currently evicted. The app registers a `WorldChunkStore` for its active
+world; `GlobalScopeIndex.unload()` saves the scope's owned graph slice before
+evicting it, and a later character runtime read or gateway crossing can load
+that slice back into the graph. Scope-less characters and unique items stay
+canonical; their indexed location edges are restored when their area returns.
+
+The focused runtime endpoint is `GET /api/runtime/state?character_id=<id>`.
+It loads the selected character's existing owning scope when needed and returns
+that interaction scope, rather than changing the graph editor's global cache.
+It does not mean back-simulation, timeskip or soak are limited to the focused
+scope; those remain server-side world simulation.
+
 ## Unmade scopes
 
 A scope with a grid but no materialised areas is **unmade**: declared, addressable,
@@ -169,21 +185,22 @@ backend endpoint is there; nothing in the UI calls it yet.
 | `POST /api/world/scopes/<id>/grid/generate` | run the recipe (see above) |
 | `POST /api/world/scopes/<id>/grid/ungenerate` | revert to unmade |
 | `POST /api/world/scopes/<id>/rename`, `/offset`, `/delete` | identity and placement |
+| `GET /api/runtime/state?character_id=<id>` | focused runtime snapshot; loads the owning scope when evicted |
 
 Registrars: `routes/world_grid.py` (URLs only) and `routes/world_grid_ops.py`
 (the logic). Editor side: `static/js/graph/scope-tree.js`.
 
 ## Not done
 
-- **Chunking.** A scope is not yet independently loadable and evictable. That is
-  task-401, split into [task-581](../dev_tasks/todo/refactor/task-581-stable-area-ids-and-one-authoritative-location-for-characters-and-items.md)
-  (one authoritative location), [task-582](../dev_tasks/todo/world/task-582-chunk-load-unload-and-merge-apis-on-worldgraph.md)
-  (load/unload/merge), [task-583](../dev_tasks/todo/world/task-583-global-scope-index-gateway-ways-and-load-before-you-move.md)
-  (global index, gateways, load-before-you-move) and
-  [task-584](../dev_tasks/todo/world/task-584-cross-chunk-ownership-rules-for-carried-items-triggers-and-delayed-events.md)
-  (cross-chunk ownership).
-- **Performance.** task-402 measures whether a scope projection is actually cheap
-  at scale. Nothing here claims a million-node world yet.
+- **Residency policy and editor control.** Scope slices can be persisted,
+  evicted and loaded on demand, but no automatic memory-pressure policy or
+  editor control chooses which scopes to evict. The remaining indexed-scan and
+  cross-chunk work is tracked by
+  [task-583](../dev_tasks/inprogress/world/task-583-global-scope-index-gateway-ways-and-load-before-you-move.md)
+  and [task-584](../dev_tasks/todo/world/task-584-cross-chunk-ownership-rules-for-carried-items-triggers-and-delayed-events.md).
+- **Performance.** A local Kraktooth loader benchmark is recorded in task-583.
+  It is a practical fixture measurement, not a claim of million-area performance;
+  task-402 remains the separate scale-projection benchmark.
 
 ## Related
 
@@ -201,6 +218,8 @@ Registrars: `routes/world_grid.py` (URLs only) and `routes/world_grid_ops.py`
 - `static/js/graph/scope-tree.js` — editor scope tree UI
 - `engine/world_grid.py` — `PAINT_LAYERS`, `CLIMATE_BASE_C`, grid record structure
 - `engine/biomes.py` — taxonomy (`data/worldpainter/biomes.json`), `cell_kind`, `forage_skill_bonus`
+- `engine/world/index.py` / `engine/world/store.py` — resident scope index and durable chunk loader
+- `routes/runtime_ops.py` — character-focused runtime snapshot
 
 <!-- changelog:start -->
 ## Changelog
@@ -210,6 +229,7 @@ Registrars: `routes/world_grid.py` (URLs only) and `routes/world_grid_ops.py`
 | When | Task | Status |
 |---|---|---|
 | 2026-10-12 | [[task-815-selecting-a-node-from-the-outline-agent-list-or-ctrl-k-switches-the-graph-to-its-owning-scope\|Selecting a node from the outline, agent list or Ctrl+K switches the graph to its owning scope]] | `review` |
+| 2026-09-28 | [[task-583-global-scope-index-gateway-ways-and-load-before-you-move\|Global scope index, gateway ways and load-before-you-move]] | `inprogress` |
 <!-- changelog:end -->
 
 <!-- connected:start -->
@@ -219,7 +239,7 @@ Registrars: `routes/world_grid.py` (URLs only) and `routes/world_grid_ops.py`
 
 **Features** — [[scopes|Scopes]] (#49)
 
-**Dev tasks** — [[dev_tasks/review/ui/task-815-selecting-a-node-from-the-outline-agent-list-or-ctrl-k-switches-the-graph-to-its-owning-scope|task]]
+**Dev tasks** — [[task-583-global-scope-index-gateway-ways-and-load-before-you-move|task]], [[dev_tasks/review/ui/task-815-selecting-a-node-from-the-outline-agent-list-or-ctrl-k-switches-the-graph-to-its-owning-scope|task]], [[task-855-character-focused-runtime-state-scales-by-scope-not-world-size|task]]
 
 **Neighbouring notes** — [[Connections]], [[Generated Scenario Review (2026-08)]], [[Graph System]], [[Grid to Graph]], [[Millbrook Falls Town Map]], [[Movement]]
 

@@ -12,6 +12,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from graph import EDGE_CONNECTION, EDGE_IN, Edge, Node
 from player import Player
 from virtual_world_engine import VirtualWorld
+from engine.world.store import configure_scope_store
 
 TOWN = "town"
 INN = "inn"
@@ -127,6 +128,29 @@ def test_save_load_preserves_gateway_links_and_due_events():
     due = [e for e in reloaded.world_index.scheduled()
            if e.get("target_node_id") == INN_AREA]
     assert due and due[0]["fire_tick"] == 42, "due events must not be lost"
+
+
+def test_production_store_survives_unload_and_world_restart(tmp_path):
+    world = _world()
+    world.move_to_area("enter the inn")
+    world._scenario_source = str(tmp_path / "scenario.json")
+    store = configure_scope_store(world, tmp_path)
+    world.world_index.unload(world.graph, TOWN)
+    world.world_index.unload(world.graph, INN)
+
+    assert len(list(store.root.glob("*.json"))) == 2
+    snapshot = world.to_dict()
+
+    restarted = VirtualWorld()
+    restarted.load_from_dict(snapshot)
+    restarted.scope_store = configure_scope_store(restarted, tmp_path)
+    assert restarted.scope_store.root == store.root
+    assert restarted.world_index.ensure_scope_loaded(TOWN, restarted.graph)
+    assert restarted.world_index.ensure_scope_loaded(INN, restarted.graph)
+    assert restarted.graph.get_node(INN_AREA) is not None
+    assert restarted.graph.area_of(_player_node(restarted)) == INN_AREA
+    assert restarted.world_index.gateway(GATE)["target_area_id"] == INN_AREA
+    assert "_scope_store_id" not in world.to_scenario_dict()
 
 
 def test_gateways_are_not_dead_ui_shortcuts():

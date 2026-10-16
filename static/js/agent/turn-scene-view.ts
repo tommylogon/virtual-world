@@ -181,21 +181,30 @@ interface TurnSceneViewWindowSurface { TurnSceneView: unknown }
      */
     function burstPending(): boolean {
         const ws = (window as unknown as {
-            worldState?: { data?: { active_player?: string; players?: Record<string, { burst_pending?: number }> } };
+            worldState?: {
+                data?: { active_player?: string; players?: Record<string, { burst_pending?: number }> };
+                runtimeData?: { active_player?: string; players?: Record<string, { burst_pending?: number }> };
+                runtimePlayer?: (name: string) => { burst_pending?: number } | null;
+            };
         }).worldState;
-        const d = ws && ws.data;
+        const d = ws && (ws.runtimeData || ws.data);
         if (!d || !d.players || !d.active_player) return false;
-        const p = d.players[d.active_player];
+        const p = ws?.runtimePlayer?.(d.active_player) || d.players[d.active_player];
         return !!p && Number(p.burst_pending || 0) > 0;
     }
 
     /** The controlled character's remaining action slots, or undefined. */
     function slotsOf(): Record<string, number> | undefined {
         const ws = (window as unknown as {
-            worldState?: { data?: { active_player?: string; players?: Record<string, { turn_slots?: Record<string, number> }> } };
+            worldState?: {
+                data?: { active_player?: string; players?: Record<string, { turn_slots?: Record<string, number> }> };
+                runtimeData?: { active_player?: string; players?: Record<string, { turn_slots?: Record<string, number> }> };
+                runtimePlayer?: (name: string) => { turn_slots?: Record<string, number> } | null;
+            };
         }).worldState;
-        const d = ws && ws.data;
-        const p = d && d.players && d.active_player ? d.players[d.active_player] : undefined;
+        const d = ws && (ws.runtimeData || ws.data);
+        const p = d && d.players && d.active_player
+            ? (ws?.runtimePlayer?.(d.active_player) || d.players[d.active_player]) : undefined;
         return p ? p.turn_slots : undefined;
     }
 
@@ -285,7 +294,8 @@ interface TurnSceneViewWindowSurface { TurnSceneView: unknown }
         // Prefer the world's own toggle (the engine gate); the client config
         // mirrors it and is used only as a fallback before state loads.
         const mature = !!(
-            (window.worldState && worldState.data && worldState.data.mature_content)
+            (window.worldState && (worldState.runtimeData || worldState.data)
+                && (worldState.runtimeData || worldState.data).mature_content)
             || ((window as unknown as { config?: { matureContent?: boolean } }).config?.matureContent)
         );
         const who = person.display_name;
@@ -520,8 +530,12 @@ interface TurnSceneViewWindowSurface { TurnSceneView: unknown }
      * when the world tick or the character's area changes.
      */
     async function fetch(charName: string): Promise<Scene> {
-        const currentTick = (typeof worldState !== 'undefined' && worldState.tick) || 0;
-        const currentArea = (typeof worldState !== 'undefined' && worldState.players?.[charName]?.current_area) || '';
+        const focusedPlayer = (typeof worldState !== 'undefined' && worldState.runtimePlayer)
+            ? worldState.runtimePlayer(charName) : null;
+        const currentTick = (typeof worldState !== 'undefined' && worldState.runtimeData?.time_ticks)
+            ?? (typeof worldState !== 'undefined' && worldState.tick) ?? 0;
+        const currentArea = (focusedPlayer?.current_area
+            || (typeof worldState !== 'undefined' && worldState.players?.[charName]?.current_area)) || '';
         const cached = _sceneCache[charName];
 
         if (cached && cached.tick === currentTick && cached.area === currentArea) {

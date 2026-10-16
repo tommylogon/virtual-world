@@ -77,7 +77,10 @@ class AgentEngine {
     getDisplayHistory(charName) { return this.getHistory(charName).slice(1); }
     /** Current graph area node id for a character (entity link for memories). */
     _currentAreaEntityId(charName) {
-        const area = worldState.data?.players?.[charName]?.current_area;
+        const player = worldState.runtimePlayer(charName);
+        if (player?.current_area_id)
+            return player.current_area_id;
+        const area = player?.current_area;
         if (!area)
             return '';
         return `area_${String(area).toLowerCase().replace(/\s+/g, '_')}`;
@@ -236,17 +239,15 @@ class AgentEngine {
             else {
                 events.log(`[${player.name}] ${ActionNormalizer.volVerb(spokenVolume)}: "${speech}"`, "msg-speech");
             }
-            worldState.fetch();
         }
         catch (err) {
             events.log(`[${player.name}] ${ActionNormalizer.volVerb(spokenVolume)}: "${speech}"`, "msg-speech");
-            worldState.fetch();
         }
     }
     async _performEmote(charName, emote) {
         try {
             // task-166: involuntary emote tail (a hiccup, a yelp, a shiver).
-            const player = worldState.players?.[charName];
+            const player = worldState.runtimePlayer(charName);
             const startled = this._detectStartle(charName, player);
             const injected = window.Involuntary?.emote ? window.Involuntary.emote(emote, player, { startled }) : null;
             if (injected)
@@ -265,9 +266,9 @@ class AgentEngine {
         if (!memory?.text)
             return;
         const entityId = this._currentAreaEntityId(charName);
-        const tick = worldState.data?.time_ticks || 0;
+        const tick = worldState.runtimeData?.time_ticks ?? worldState.data?.time_ticks ?? 0;
         const normalized = memory.text.trim().toLowerCase();
-        const player = worldState.players?.[charName];
+        const player = worldState.runtimePlayer(charName);
         const duplicate = (player?.memories || []).some((existing) => {
             const sameText = (existing.text || '').trim().toLowerCase() === normalized;
             const sameTick = Math.abs((existing.tick || 0) - tick) <= 1;
@@ -330,98 +331,122 @@ class AgentEngine {
      * character via setActivePlayer for clean multi-human handoff (task-245).
      */
     async _humanTurn(charName) {
-        await agentApi.setActivePlayer(charName);
-        await worldState.fetch();
-        const state = worldState.data;
-        const player = state?.players?.[charName];
-        if (!state || !player) {
+        let player = worldState.players?.[charName];
+        if (!player) {
+            await worldState.fetch();
+            player = worldState.players?.[charName];
+        }
+        if (!player?.id) {
             events.log(`⚠️ Human character "${charName}" not found.`, 'error-msg');
             return this._endTurnEarly(null);
         }
-        if (state.scenario_ended) {
-            events.log("🏁 Scenario ended via trigger.", "system-msg");
-            if (state._restart_requested) {
-                events.log("🔄 Restarting scenario...", "system-msg");
-                await agentApi.resetWorld();
-                await worldState.fetch();
-                events.log("✅ Scenario restarted.", "system-msg");
-                VW?.ui?.renderAll?.(worldState.data);
+        worldState.setRuntimeFocus([player.id]);
+        try {
+            await agentApi.setActivePlayer(charName);
+            await worldState.fetchRuntime();
+            const state = worldState.runtimeData;
+            player = state?.players?.[charName] || player;
+            if (!state || !state.players?.[charName]) {
+                events.log(`⚠️ Focused runtime state omitted "${charName}".`, 'error-msg');
+                return this._endTurnEarly(null);
+            }
+            if (state.scenario_ended) {
+                events.log("🏁 Scenario ended via trigger.", "system-msg");
+                if (state._restart_requested) {
+                    events.log("🔄 Restarting scenario...", "system-msg");
+                    await agentApi.resetWorld();
+                    events.log("✅ Scenario restarted.", "system-msg");
+                    return;
+                }
+                this.stop();
                 return;
             }
-            this.stop();
-            return;
-        }
-        let reply = await HumanTurnComposer.request(charName, { first: true });
-        if (config.running && config.turnBased && this.turnQueue.length === 0) {
-            this.stop();
-            return;
-        }
-        const results = [];
-        // task-352: the human turn is a CONTINUOUS loop in one panel — act, the
-        // world answers, act again, until the player Ends or the budget empties.
-        // Stop on the first failed action. The turn ends with ONE applyTurn
-        // (TurnQueue.advance below), never one per step.
-        while (reply && !reply.endTurn && reply.step) {
-            const step = reply.step;
-            const res = await this._executeHumanReply(charName, player, step);
-            if (res.text)
-                results.push(res.text);
-            if (step.memory?.text)
-                this._storeReactionMemory(charName, step.memory);
-            // Deterministic auto-memory: one instant, LLM-free line per action.
-            const areaName = worldState.players?.[charName]?.current_area || '';
-            const memoryBits = [
-                step.action ? `did ${step.action}` : '',
-                step.speech ? `said "${step.speech}"` : '',
-            ].filter(Boolean).join(' and ');
-            if (memoryBits) {
-                this._storeReactionMemory(charName, {
-                    text: `${memoryBits} (${areaName}, tick ${worldState.tick})`,
-                    importance: 4,
-                });
+            let reply = await HumanTurnComposer.request(charName, { first: true });
+            if (config.running && config.turnBased && this.turnQueue.length === 0) {
+                this.stop();
+                return;
             }
-            if (res.success === false)
-                break;
-            await worldState.fetch();
-            // bug-544: break only on a PUBLISHED budget that is exhausted. An
-            // empty `turn_slots` (`{}`) is the "not started" sentinel the engine
-            // lazily fills; treating it as spent ended the human turn after one
-            // step and refused the next action.
-            const slots = worldState.players?.[charName]?.turn_slots;
-            const spentOut = !!slots && Object.keys(slots).length > 0
-                && !Object.values(slots).some((n) => n > 0);
-            if (spentOut)
-                break;
-            reply = await HumanTurnComposer.request(charName, { lastResult: res.text });
-        }
-        const endedByPlayer = !!(reply && reply.endTurn);
-        if (!results.length) {
-            events.log(`🔜 ${charName} passed ${_possessivePronoun(charName)} turn.`, 'system-msg');
-        }
-        else if (!endedByPlayer) {
-            // task-334 lane 1: one closing react beat — the player's answer to
-            // what actually happened, and where outcome-grounded memory lands.
-            const reaction = await HumanTurnComposer.react(charName, results);
-            if (reaction && !reaction.endTurn) {
-                if (reaction.speech) {
-                    await this._speakLine(charName, player, reaction.speech, reaction.volume, reaction.target);
+            const results = [];
+            // task-352: the human turn is a CONTINUOUS loop in one panel — act, the
+            // world answers, act again, until the player Ends or the budget empties.
+            // Stop on the first failed action. The turn ends with ONE applyTurn
+            // (TurnQueue.advance below), never one per step.
+            while (reply && !reply.endTurn && reply.step) {
+                const currentPlayer = worldState.runtimePlayer(charName) || player;
+                const step = reply.step;
+                const res = await this._executeHumanReply(charName, currentPlayer, step);
+                if (res.text)
+                    results.push(res.text);
+                await worldState.fetchRuntime();
+                const currentArea = worldState.runtimePlayer(charName)?.current_area;
+                if (currentArea)
+                    agentConfig.lastRoom[charName] = currentArea;
+                if (step.memory?.text)
+                    this._storeReactionMemory(charName, step.memory);
+                // Deterministic auto-memory: one instant, LLM-free line per action.
+                const areaName = worldState.runtimePlayer(charName)?.current_area || '';
+                const memoryBits = [
+                    step.action ? `did ${step.action}` : '',
+                    step.speech ? `said "${step.speech}"` : '',
+                ].filter(Boolean).join(' and ');
+                if (memoryBits) {
+                    this._storeReactionMemory(charName, {
+                        text: `${memoryBits} (${areaName}, tick ${worldState.runtimeData?.time_ticks ?? worldState.tick})`,
+                        importance: 4,
+                    });
                 }
-                if (reaction.emote) {
-                    await this._performEmote(charName, reaction.emote);
-                }
-                if (reaction.memory?.text) {
-                    this._storeReactionMemory(charName, reaction.memory);
+                if (res.success === false)
+                    break;
+                // bug-544: break only on a PUBLISHED budget that is exhausted. An
+                // empty `turn_slots` (`{}`) is the "not started" sentinel the engine
+                // lazily fills; treating it as spent ended the human turn after one
+                // step and refused the next action.
+                const slots = worldState.runtimePlayer(charName)?.turn_slots;
+                const spentOut = !!slots && Object.keys(slots).length > 0
+                    && !Object.values(slots).some((n) => n > 0);
+                if (spentOut)
+                    break;
+                reply = await HumanTurnComposer.request(charName, { lastResult: res.text });
+            }
+            const endedByPlayer = !!(reply && reply.endTurn);
+            if (!results.length) {
+                events.log(`🔜 ${charName} passed ${_possessivePronoun(charName)} turn.`, 'system-msg');
+            }
+            else if (!endedByPlayer) {
+                // task-334 lane 1: one closing react beat — the player's answer to
+                // what actually happened, and where outcome-grounded memory lands.
+                const reaction = await HumanTurnComposer.react(charName, results);
+                if (reaction && !reaction.endTurn) {
+                    const currentPlayer = worldState.runtimePlayer(charName) || player;
+                    if (reaction.speech) {
+                        await this._speakLine(charName, currentPlayer, reaction.speech, reaction.volume, reaction.target);
+                    }
+                    if (reaction.emote) {
+                        await this._performEmote(charName, reaction.emote);
+                    }
+                    if (reaction.memory?.text) {
+                        this._storeReactionMemory(charName, reaction.memory);
+                    }
                 }
             }
+            HumanTurnComposer.closeTurn();
+            // Turn handoff is a turn-based concept (task-333 browser-test fix):
+            // outside turn-based mode the human keeps control — no roster
+            // rotation, the run loop just continues from here.
+            if (config.running && config.turnBased && this.turnQueue.length > 0) {
+                await TurnQueue.advance();
+            }
+            // Keep the focused client cache current after the tick without
+            // serializing and transferring the unrelated world.
+            await worldState.fetchRuntime();
         }
-        HumanTurnComposer.closeTurn();
-        // Turn handoff is a turn-based concept (task-333 browser-test fix):
-        // outside turn-based mode the human keeps control — no roster
-        // rotation, the run loop just continues from here.
-        if (config.running && config.turnBased && this.turnQueue.length > 0) {
-            await TurnQueue.advance();
-            if (worldState.data)
-                VW?.ui?.renderAll(worldState.data);
+        catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            events.log(`Focused runtime state failed: ${message}`, 'error-msg');
+            throw error;
+        }
+        finally {
+            worldState.setRuntimeFocusForCharacter(config.controllingPlayer || charName);
         }
     }
     /**
@@ -480,17 +505,12 @@ class AgentEngine {
                     }
                     agentConfig.lastActionResult[charName] = output;
                     events.trackAction(charName, '', null, reply.action, output);
-                    const area = worldState.players?.[charName]?.current_area;
-                    if (area)
-                        agentConfig.lastRoom[charName] = area;
                     resultText = output;
                 }
-                worldState.fetch(); // SSE handler refetches on world_changed, this is redundant
             }
             catch (err) {
                 const errMsg = err instanceof Error ? err.message : String(err);
                 events.log(`Action error: ${errMsg}`, 'error-msg');
-                worldState.fetch(); // SSE handler refetches on world_changed, this is redundant
                 resultText = errMsg;
                 success = false;
             }
@@ -571,6 +591,7 @@ class AgentEngine {
         if (!agentConfig.lastActionResult[charName])
             agentConfig.lastActionResult[charName] = '';
         VW?.ui?.setStatus("Thinking...", "info");
+        worldState.setRuntimeFocusForCharacter(charName);
         try {
             if (!config.apiKey && !config.apiBase?.includes('localhost') && !config.apiBase?.includes('127.0.0.1')) {
                 events.log("No API key.", "error-msg");
@@ -1043,7 +1064,8 @@ class AgentEngine {
                     events.trackAction(charName, inner, speech, 'wait', 'waits.');
                 }
                 else if (finalAction) {
-                    agentApi.action(finalAction, charName, { enforceSlots: true }).then(async (data) => {
+                    try {
+                        const data = await agentApi.action(finalAction, charName, { enforceSlots: true });
                         const output = data?.output || data?.error || '';
                         if (data?.system_messages) {
                             data.system_messages.forEach((systemMessage) => events.log(systemMessage, 'system-msg'));
@@ -1055,24 +1077,29 @@ class AgentEngine {
                         const area = worldState.players?.[charName]?.current_area;
                         if (area)
                             agentConfig.lastRoom[charName] = area;
-                        worldState.fetch();
+                        await worldState.fetch();
                         if (reactionEmote && data?.success !== false) {
                             await this._performEmote(charName, reactionEmote);
                         }
-                    }).catch(err => { events.log(`Action error: ${err instanceof Error ? err.message : String(err)}`, 'error-msg'); worldState.fetch(); });
+                    }
+                    catch (err) {
+                        events.log(`Action error: ${err instanceof Error ? err.message : String(err)}`, 'error-msg');
+                        await worldState.fetch();
+                    }
                 }
+            }
+            if (config.running && config.turnBased && this.turnQueue.length > 0) {
+                await TurnQueue.advance();
+                if (worldState.data)
+                    VW?.ui?.renderAll(worldState.data);
             }
         }
         finally {
+            worldState.setRuntimeFocusForCharacter(config.controllingPlayer || charName);
             config.busy = false;
             VW?.ui?.updateButtons();
             VW?.ui?.syncRateLimitDisplay();
             VW?.ui?.setStatus(config.running ? "Waiting..." : "Idle.", "info");
-        }
-        if (config.running && config.turnBased && this.turnQueue.length > 0) {
-            await TurnQueue.advance();
-            if (worldState.data)
-                VW?.ui?.renderAll(worldState.data);
         }
     }
     async stepOnce() {
@@ -1092,21 +1119,29 @@ class AgentEngine {
                 config.controllingPlayer = worldState.data?.active_player || null;
             }
         }
-        await this.step();
-        if (config.turnBased && this.turnQueue.length > 0) {
-            await TurnQueue.advance();
-            config.controllingPlayer = TurnQueue.getCurrentCharacter();
-            if (worldState.data)
-                VW?.ui?.renderAll(worldState.data);
+        const steppedCharacter = config.controllingPlayer;
+        worldState.setRuntimeFocusForCharacter(steppedCharacter);
+        try {
+            await this.step();
+            if (config.turnBased && this.turnQueue.length > 0) {
+                await TurnQueue.advance();
+                config.controllingPlayer = TurnQueue.getCurrentCharacter();
+                worldState.setRuntimeFocusForCharacter(config.controllingPlayer);
+                if (worldState.data)
+                    VW?.ui?.renderAll(worldState.data);
+            }
+            else if (!config.turnBased && config.controllingPlayer) {
+                // No turn-based mode: the stepped character's turn is one full
+                // turn — end it so the clock advances and new-turn effects run
+                // (behave like turn-based with a single-character queue).
+                await TurnQueue.endTurn();
+                this._logActorTurnEvents(config.controllingPlayer);
+                if (worldState.data)
+                    VW?.ui?.renderAll(worldState.data);
+            }
         }
-        else if (!config.turnBased && config.controllingPlayer) {
-            // No turn-based mode: the stepped character's turn is one full
-            // turn — end it so the clock advances and new-turn effects run
-            // (behave like turn-based with a single-character queue).
-            await TurnQueue.endTurn();
-            this._logActorTurnEvents(config.controllingPlayer);
-            if (worldState.data)
-                VW?.ui?.renderAll(worldState.data);
+        finally {
+            worldState.setRuntimeFocusForCharacter(config.controllingPlayer || steppedCharacter);
         }
     }
     async start() {
@@ -1247,6 +1282,7 @@ class AgentEngine {
         }
         finally {
             config.controllingPlayer = prevControlling;
+            worldState.setRuntimeFocusForCharacter(prevControlling);
         }
         this.markSimResolved(charName);
         await this._closeSimRoundIfComplete();
@@ -1336,6 +1372,7 @@ class AgentEngine {
             }
             finally {
                 config.controllingPlayer = prevHuman;
+                worldState.setRuntimeFocusForCharacter(prevHuman);
             }
             this.markSimResolved(human);
             await this._closeSimRoundIfComplete();
@@ -1355,6 +1392,7 @@ class AgentEngine {
         }
         finally {
             config.controllingPlayer = prevControlling;
+            worldState.setRuntimeFocusForCharacter(prevControlling);
         }
         await this._closeSimRoundIfComplete();
     }
