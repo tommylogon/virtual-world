@@ -2,7 +2,7 @@
 type: task
 status: todo
 area: refactor
-priority: low
+priority: medium
 ---
 
 # task-456: Split saveload-view concerns and extract the save-row template
@@ -12,31 +12,7 @@ priority: low
 
 ## What
 
-`static/js/ui/saveload-view.js` is 648 lines and mixes four unrelated concerns:
-
-1. **Savegame CRUD** — `saveGame`, `saveGameToSlot`, `doRenameSave`,
-   `loadGameList`, `doLoadGame`, `doDeleteSave`, `confirmDeleteAllSaves`.
-2. **Scenario import/export** — `downloadWorld`, `uploadWorld`, `inspectImport`,
-   `openImportPreview`, `saveScenarioToFile`, `persistScenarioName`,
-   `initScenarioNameEditor`.
-3. **World settings toggles** — `toggleSpectator`, `updateTimePerTick`,
-   `updateClockStart`, `restartScenario` — these are not save/load at all.
-4. **The list template** — a single large Lit expression with per-row inline styles
-   and `window.SaveLoadView` global refs.
-
-Two concrete extractions:
-
-- Move the settings toggles (3) to their own module (e.g. a world/settings view).
-  `restartScenario` may belong with the world toolbar rather than either.
-- Extract `renderSaveRow(save)` as a small sub-template returning a Lit template,
-  using CSS classes instead of the inline style string. This is also the natural home
-  for bug-40's badge fix and for task-455's row interactions, so land those together
-  if the timing allows.
-
-Follow the repo module conventions: keep the `@module`/`@contributes` header current
-(`python tools/js_module_index.py --write`), add the `<script>` tag in
-`templates/index.html` for any new module, and check `tools/unit/run.cjs`'s module list
-if portable logic is introduced.
+`static/js/ui/saveload-view.js` is 648 lines and mixes four unrelated concerns: savegame CRUD (`saveGame`, `saveGameToSlot`, `doRenameSave`, `loadGameList`, `doLoadGame`, `doDeleteSave`, `confirmDeleteAllSaves`); scenario import/export (`downloadWorld`, `uploadWorld`, `inspectImport`, `openImportPreview`, `saveScenarioToFile`, `persistScenarioName`, `initScenarioNameEditor`); world settings toggles (`toggleSpectator`, `updateTimePerTick`, `updateClockStart`, `restartScenario`) — which are not save/load at all; and the list template, a single large Lit expression with per-row inline styles and `window.SaveLoadView` global refs. Two concrete extractions: move the settings toggles to their own module (a world/settings view; `restartScenario` may belong with the world toolbar), and extract `renderSaveRow(save)` as a small sub-template returning a Lit template using CSS classes instead of the inline style string — the natural home for bug-40's badge fix and task-455's row interactions, so land those together. Follow the repo module conventions: keep the `@module`/`@contributes` header current (`python tools/js_module_index.py --write`), add the `<script>` tag in `templates/index.html` for any new module, and check `tools/unit/run.cjs`'s module list if portable logic is introduced.
 
 ## Acceptance
 
@@ -60,7 +36,7 @@ if portable logic is introduced.
 
 ## Why
 
-TODO
+`static/js/ui/saveload-view.js` is 648 lines and mixes four unrelated concerns, and the mix is the problem: savegame CRUD and scenario import/export belong together as save/load, but the world settings toggles (`toggleSpectator`, `updateTimePerTick`, `updateClockStart`, `restartScenario`) are not save/load at all, and the list template is a single large Lit expression with per-row inline styles and `window.SaveLoadView` global refs. Splitting by concern means the Save/Load modal stops being a grab-bag and the settings stop living inside the save module, so each surface has one owner and an agent editing one does not pull the whole 648-line file into context. The `renderSaveRow` extraction is the reusable bit: a small sub-template returning a Lit template using CSS classes instead of concatenated HTML strings, which is also the natural home for bug-40's badge fix and task-455's row interactions — land those together rather than as two more inline-style patches. Behaviour is unchanged apart from the bug-40 badge fix: autosave pinned top, stats line, 💾/✏️/🗑 buttons.
 
 ## How
 

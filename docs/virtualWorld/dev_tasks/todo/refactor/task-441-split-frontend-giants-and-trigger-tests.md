@@ -15,11 +15,7 @@ different problem — see "Why this is not a de-duplication task").
 
 ## What
 
-Extract focused modules from the oversized front-end files, and split the single trigger
-test module so failures isolate cleanly. **One file per commit, no behaviour change.**
-
-This is a **cohesion** job, not a duplication job. A file that is cohesive at 900 lines
-stays at 900 lines; a file is split only when it holds more than one concern.
+Oversized front-end hosts hold more than one concern, so a change in one panel forces reading and risking the whole file. Linecount is the detector; cohesion is the criterion — a file that is cohesive at 900 lines stays at 900 lines, and a file is split only when it holds more than one concern. Remeasured 2026-10-16 with a ≥1500-line scan of `static/js/**/*.ts` (skip emitted `.js` siblings): 12 hosts, topped by `worldpainter/editor.ts` (3,927, still the largest file in the repo), `shared/trigger-graph.ts` (3,029), `inspector/agent-view.ts` (2,778), `graph/graph-background.ts` (2,294), `shared/trigger-editor.ts` (2,184), `graph/network-manager.ts` (2,150, +473 — still regrowing after task-314 wave 1), and `inspector/mind-view.ts` (2,031, NEW entrant). Agent sessions that touch Persona/Mind, WorldPainter, or the trigger editor currently pay the full-host tax in context — `mind-view.ts` alone is ~130k characters — so splitting Persona/Mind (task-852) stops requiring the whole Mind host in context. Test target: `tests/test_trigger_system.py` is 3,029 lines (+580) and still one mega-module, split by subsystem (evaluation, effects, conditions, scheduling). This is cohesion work, not de-duplication: `jscpd` over `.ts` sources found 69 exact clones, 570 lines (1.14%), 61 of 69 intra-file, the largest cross-file block 12 lines. The real duplicated-concept work is the backend dual-store class (task-625) — do not merge the two jobs.
 
 ## Measured targets (2026-10-16 remeasure, `.ts` sources)
 

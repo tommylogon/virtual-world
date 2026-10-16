@@ -2,7 +2,7 @@
 type: task
 status: todo
 area: refactor
-priority: low
+priority: high
 ---
 
 # task-724: Player state is stored in multiple homes: location (3x) and tags/traits (2x)
@@ -12,7 +12,7 @@ priority: low
 
 ## What
 
-Investigate and consolidate the redundant homes for a character's state: location stored as player.current_area (name) + player.current_area_id + graph 'in' edge, tags/traits present on both the Player object and the character node's properties, and `personality`/`description` present only on the node while the LLM prompt and Mind read them off the Player. Do NOT merge the Player model with the character node - that split is intended (task-463). Coordinate with task-446 (id-first identity), which moves these keys.
+A character's state is stored in more than one home and the read paths do not all agree. Measured on `kraktooth_goblin_camp.json`: location has three representations — `player.current_area` (name), `player.current_area_id`, and the graph `in` edge — all consistent today, but the `in` edge alone suffices as the positional source and the two Player fields are redundant copies. `tags` and `traits` exist on both the Player object and the character node's properties (the key overlap was measured; the values were not diffed, so drift is unknown). `personality`/`description`/`base_description` are authored on the node only — the players block correctly omits them — but the LLM prompt (`room-context.ts:143,606`) and the Mind/Bio surfaces read them off the Player, so they were silently absent from every prompt. That half is fixed: the live `/api/state` now publishes them from the node (Player first for `description`), `to_scenario_dict` strips them from the players block, and an inspector edit mirrors to the node in `handle_update_player`. Remaining open: the three location homes and the two tags/traits homes. Do not merge the Player model with the character node — that split is intended (task-463). Coordinate with task-446 (id-first identity), which moves these keys.
 
 ## Measured evidence (2026-10-06)
 

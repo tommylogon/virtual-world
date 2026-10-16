@@ -2,7 +2,7 @@
 type: task
 status: todo
 area: refactor
-priority: medium
+priority: high
 wiki: "[[AI & Narration/Agent Engine]]"
 ---
 
@@ -13,7 +13,7 @@ wiki: "[[AI & Narration/Agent Engine]]"
 
 ## What
 
-Consolidate the action-verb definitions that currently drift across engine/triggers/ui.py:_get_available_actions, static/js/agent/action-normalizer.js VALID_VERBS/MATURE_VERBS, static/js/agent/prompt-builder/contextual-actions.js BRACKET_ORDER, static/js/agent/prompt-builder/system-prompt.js prose, routes/action_handlers.py dispatch, and engine/autocomplete.py. One scoped registry (id, aliases, scope command/item/meta/social/movement/mature, target_schema, cost_key, mature_gate, bracket_order) that the dispatcher, UI buttons, agent normalizer, bracket builder, prompt prose and autocomplete all read. Generate the LLM verb list instead of hand-maintaining prose; add a drift guard test.
+Action verbs are declared in six places and drift independently: `engine/triggers/ui.py:_get_available_actions` (per-item buttons), `action-normalizer.js` `VALID_VERBS` (79 entries, 78 unique — `grab` duplicated) plus `MATURE_VERBS` (8) and a local `MOVE_VERBS` (5), `contextual-actions.js` `BRACKET_ORDER` (13), hand-written prose in `system-prompt.js`, the ~1,100-line if/elif prefix chain in `action_handlers.py` (~70 verb prefixes), and the grouped if/elif in `engine/autocomplete.py`. `normalizeStructuredAction` consumes `use_on`, `consume` and `quaff` which are not in `VALID_VERBS`, so aliases are needed. One scoped registry — `VerbSpec(id, aliases, scope, target_schema, cost_key, mature_gate, bracket_order)` — that the dispatcher, trigger UI, agent normalizer, bracket builder, prompt prose and autocomplete all read, with the LLM verb list generated from it and a drift guard test that fails when a surface declares a verb the registry does not.
 
 ## Acceptance
 
@@ -75,11 +75,17 @@ The surface counts, so the registry can be built without guessing:
 
 ## Why
 
-TODO
+Action verbs are declared in six places — `engine/triggers/ui.py:_get_available_actions`, `action-normalizer.js` `VALID_VERBS`/`MATURE_VERBS`, `contextual-actions.js` `BRACKET_ORDER`, hand-written prose in `system-prompt.js`, the ~1,100-line if/elif prefix chain in `action_handlers.py`, and the grouped if/elif in `engine/autocomplete.py`. Each one drifts on its own: a verb renamed in the dispatcher silently disappears from the UI, a mature verb added to one list leaks through another, and bracket order re-sorts itself between the command line and the Human Turn buttons. A drift guard test is the only thing that can notice, and it can only notice if there is one source to diverge from. Agents and editors pay for it too: the LLM verb list is hand-maintained prose, so an agent can be offered a verb the world will not accept, and an editor fixing one surface has to find and update five.
 
 ## How
 
-TODO
+1. Build `engine/action_verbs.py` — one declaration: `VerbSpec(id, aliases, scope, target_schema, cost_key, mature_gate, bracket_order)` with `all_verbs()`, `mature_verbs()`, `verbs_for_scope()`, `bracket_order()`, `llm_manifest()`. Seed from the 2026-10-02 counts: 79 VALID_VERBS (78 unique, `grab` duplicated), 8 MATURE_VERBS, 5 MOVE_VERBS, 13 BRACKET_ORDER; `use_on`/`consume`/`quaff` become aliases.
+2. `tools/action_verbs_index.py` writes `static/js/agent/action-verbs.generated.js` (`window.ActionVerbs`); `--check` fails when stale (mirrors `way_property_index.py`). Needs a `@module`/`@contributes`/`@docs` header, an `@powers` string matching a `Feature Map.md` feature, and a `<script>` tag in `templates/index.html` **before** `action-normalizer.js`.
+3. Rewire `action-normalizer.js`, `contextual-actions.js`, `system-prompt.js`, `engine/autocomplete.py` and `engine/triggers/ui.py` to read the registry.
+4. Drift guard `tests/test_action_verbs.py`: parse the JS surfaces and the dispatcher prefixes; fail on any verb/alias absent from the registry, and on a registry `bracket_order` verb missing from `BRACKET_ORDER`.
+5. Dispatcher: leave the mapping chain, gate recognition on the registry, and assert (test) every dispatch prefix is a registry verb. A full data-driven dispatch is a separate, larger refactor.
+
+**Dedup / reuse / quality / experience (added 2026-10-16).** The point is not a new table — it is that the command line, the Human Turn buttons, the NL editor action list, the agent normalizer, the prompt prose and autocomplete all derive from **one** declaration, so a verb added once appears everywhere and a mature verb gated once is gated everywhere. Reuse the existing mature-gate source of truth (`engine/pleasure_actions.py` `INTIMACY_VERBS`) rather than inventing a second mature concept. Visual quality: keep bracket order and button ordering identical so the UI does not shuffle between surfaces. Agent experience: the generated LLM verb list comes from the registry, so an agent never sees a verb a surface would reject. Editor experience: the drift guard names the exact surface + verb that diverged instead of a silent mismatch. Player experience: unchanged — every verb the command surface accepts today still resolves.
 
 ## Steps to verify
 

@@ -13,7 +13,7 @@ wiki: "[[Library System/Library System Overview]]"
 
 ## What
 
-TODO
+Name-resolution drift is this repo's most common bug class, and today's import bug (bug-521) produced exactly one server-side trace — a generic warning — while the updateCharacter response echoed `"player":"zombie"` for a call targeting `zombie__c4d808`. So a resolver that silently rewrites its target is invisible at the moment it happens. The fix is logging only, and the file option is off by default, so nothing about behaviour changes: `VW_LOG=<path>` (or `--log-file`) routes the root logger to a file so an agent without the launching terminal can read server evidence; every mutating route logs the resolved identity at INFO when input name and stored key differ (`set_player_area('zombie__c4d808' -> key 'zombie', area 'Old Dwarven Ruins')`); responses that echo an identity echo the RESOLVED one, not the input; and the import/refresh paths in `routes/library_ops.py` log the pre/post key when `_unique_key` suffixes a duplicate. Reuse the existing resolver rather than adding a second one — the log records what the resolver actually returned, so a future drift guard has a source of truth to check against.
 
 ## Acceptance
 

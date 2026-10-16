@@ -2,7 +2,7 @@
 type: task
 status: todo
 area: refactor
-priority: medium
+priority: high
 ---
 
 # task-454: Save list must not parse every save file on each modal open
@@ -12,14 +12,7 @@ priority: medium
 
 ## What
 
-Make `GET /api/save-games` cheap regardless of how big the saved worlds get.
-
-`list_save_games` (`routes/saveload.py:248-283`) walks `saves/` and **fully
-`json.load`s every file** to read `_save_metadata` and to count
-`len(data['players'])` / `len(data['areas'])`. That is an O(total bytes) parse of the
-whole saves directory on every modal open. The list already carries saves in the
-hundreds of KB; `task-401`/`task-402` are explicitly moving toward large worlds where
-one save is megabytes and the directory holds many.
+`GET /api/save-games` walks `saves/` and fully `json.load`s every file on each modal open to read `_save_metadata` and count `len(data['players'])` / `len(data['areas'])` — an O(total bytes) parse of the whole saves directory every time you open Save/Load. The list already carries saves in the hundreds of KB; task-401/task-402 are moving toward megabyte worlds with many of them. Preferred fix: a metadata index keyed by filename (option 1) plus storing `players`/`areas` counts in `_save_metadata` at save time (option 2), verified against `mtime`+`size`, falling back to a parse only when the index is missing or stale. A stale or corrupt entry must self-heal and never crash the list.
 
 ## Options
 
@@ -55,11 +48,16 @@ or corrupt entry must self-heal, never crash the list.
 
 ## Why
 
-TODO
+Opening Save/Load is one of the most common things a player does, and today it pays for the size of every save on disk rather than for the screen it is drawing. The cost is invisible until it is not: a directory of large saves turns a modal open into a wait, and it gets worse as worlds grow because the work is O(total bytes), not O(rows). Editors and agents hit the same endpoint on every scenario switch. A metadata index keyed by filename, verified against `mtime`+`size`, makes the list bounded by metadata size and self-heals: a save written by another process or checked out from git is detected and refreshed, and a malformed save or index entry degrades to a safe row instead of a 500. Reuse the save-time path that already writes `_save_metadata` — extend it rather than add a second writer — so the index and the file cannot drift. Player experience: the same list, same stats, autosave pinned at the top, just fast. Editor experience: adding, overwriting, renaming or deleting a save updates its row immediately, with no stale index entry left behind.
 
 ## How
 
-TODO
+1. In `routes/helpers.py`, write the index at save/autosave time alongside the existing `_save_metadata` write — one writer, so the index and the file cannot drift. Index entry per save: filename, name, scenario, timestamps, tick/turn/player, version, schema_version, players, areas, size, mtime.
+2. In `list_save_games` (`routes/saveload.py:248-283`), read the index first; verify each entry against `mtime`+`size`, and only parse the full file when an entry is missing, stale or corrupt. A malformed save renders a safe row and never 500s.
+3. Invalidation: adding/overwriting/renaming/deleting a save updates or removes its index entry; an out-of-band edit (external agent, git checkout) is detected by mtime/size mismatch and refreshed on the next open.
+4. Verify with a benchmark or log that ties to task-402: opening the modal with N large saves does not read the full body of every file.
+
+**Dedup / reuse / quality / experience (added 2026-10-16).** Reuse the save-time path that already writes `_save_metadata` rather than adding a second writer that can drift from it — the index is an extension of metadata the file already carries, not a parallel store. Quality: the rendered list is unchanged for existing saves (same stats, autosave pinned at the top), so this is a performance change with zero behavioural delta. Agent/editor experience: the endpoint stays cheap no matter how big scenarios get, so scenario switching and save management stop scaling with world size. Player experience: Save/Load opens instantly instead of parsing every save on disk, with the same rows and the same autosave-at-top behaviour.
 
 ## Steps to verify
 

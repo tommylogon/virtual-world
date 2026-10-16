@@ -2,7 +2,7 @@
 type: task
 status: todo
 area: refactor
-priority: low
+priority: medium
 ---
 
 # task-440: Split the backend runner-up files
@@ -79,11 +79,7 @@ family first — clearest operation-family seams.
 
 ## Why
 
-Backend hosts above ~1.5k lines hold multiple operation families in one module.
-Callers and tests then depend on an opaque file, and agent sessions that touch
-one route family pull the whole host into context. Remeasure 2026-10-16 shows
-the original 2026-09-21 list understates the problem: `world_compile.py` alone
-is 2724 lines and was untracked.
+Backend hosts above ~1.5k lines hold multiple operation families in one module, so callers and tests depend on an opaque file — and an agent session that touches one route family pulls the whole host into context. Remeasured 2026-10-16, the original 2026-09-21 list understates it: `world_compile.py` is 2,724 lines and was untracked; `routes/graph_ops.py` is 2,016 (+661); `virtual_world_engine.py` (1,926), `routes/player_ops.py` (1,668), `engine/background_simulation.py` (1,668), `routes/action_handlers.py` (1,632, +331), `routes/library_ops.py` (1,628, +544), `engine/tick_manager.py` (1,595, +494) are all new entrants. Prefer `world_compile.py`, `graph_ops.py` and the `routes/*_ops.py` family first — clearest operation-family seams. A cohesive ~900-line file may stay; this is not a linecount chase.
 
 ## Steps to verify
 
