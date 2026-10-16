@@ -57,9 +57,11 @@ interface ResponseParserWindowSurface {
 
     interface ParsedCommunication {
         inner: string;
-        action: 'read_chat' | 'send_chat' | 'start_dm' | 'think';
+        action: 'read_chat' | 'send_chat' | 'start_dm' | 'start_group' | 'think';
         channelId: string | null;
         recipient: string | null;
+        groupName: string | null;
+        recipients: string[];
         text: string;
         readMode: 'latest' | 'all' | 'range';
         n: number;
@@ -180,6 +182,7 @@ interface ResponseParserWindowSurface {
     function parseCommunication(r: unknown): ParsedCommunication {
         const empty: ParsedCommunication = {
             inner: '', action: 'think', channelId: null, recipient: null, text: '',
+            groupName: null, recipients: [],
             readMode: 'all', n: 5, fromId: null, toId: null, memory: null, parseError: null,
         };
         if (!r) return empty;
@@ -189,7 +192,7 @@ interface ResponseParserWindowSurface {
             const raw = parsed.communication && typeof parsed.communication === 'object'
                 ? parsed.communication as Record<string, unknown>
                 : {};
-            const allowedActions = ['read_chat', 'send_chat', 'start_dm', 'think'];
+            const allowedActions = ['read_chat', 'send_chat', 'start_dm', 'start_group', 'think'];
             const allowedModes = ['latest', 'all', 'range'];
             const integerOrNull = (value: unknown): number | null => {
                 const number = Number(value);
@@ -202,6 +205,10 @@ interface ResponseParserWindowSurface {
                     ? String(raw.action) as ParsedCommunication['action'] : 'think',
                 channelId: String(raw.channel_id || '').trim() || null,
                 recipient: String(raw.recipient || '').trim() || null,
+                groupName: String(raw.group_name || '').trim() || null,
+                recipients: Array.isArray(raw.recipients)
+                    ? [...new Set(raw.recipients.map((name: unknown) => String(name || '').trim()).filter(Boolean))]
+                    : [],
                 text: String(raw.text || '').trim(),
                 readMode: allowedModes.includes(String(raw.read_mode))
                     ? String(raw.read_mode) as ParsedCommunication['readMode'] : 'all',

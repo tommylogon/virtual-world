@@ -60,6 +60,7 @@ class VirtualWorld:
 
         from engine.commons import Commons
         self.commons = Commons()
+        self.commons_theme = "live_social"
 
         # Game clock start time (08:00 by default so it's a proper time-of-day clock)
         self.clock_start_hour = 8

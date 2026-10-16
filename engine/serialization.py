@@ -485,6 +485,7 @@ class WorldSerializer:
             "forecast_schedule": getattr(self.legacy, "forecast_schedule", None),
             "forecast_override": getattr(self.legacy, "forecast_override", None),
             "graph_background": getattr(self.legacy, "graph_background", None),
+            "commons_theme": getattr(self.legacy, "commons_theme", "live_social"),
             "delayed_events": self.legacy.delayed_events.to_dict(),
             "commons": (
                 {} if lite else
@@ -918,6 +919,11 @@ class WorldSerializer:
             self.legacy.forecast_schedule = data["forecast_schedule"]
         self.legacy.forecast_override = data.get("forecast_override")
         self.legacy._forecast_sched_obj = None
+        from engine.commons import COMMONS_THEMES
+        theme = data.get("commons_theme", "live_social")
+        self.legacy.commons_theme = (
+            theme if isinstance(theme, str) and theme in COMMONS_THEMES else "live_social"
+        )
         from engine.event_queue import DelayedEventQueue
         self.legacy.delayed_events = DelayedEventQueue.from_dict(data.get("delayed_events", []))
         if getattr(self.legacy, "commons", None) is not None:

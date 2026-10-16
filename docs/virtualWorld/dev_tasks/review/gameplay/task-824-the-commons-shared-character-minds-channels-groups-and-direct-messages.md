@@ -1,19 +1,21 @@
 ---
 type: task
-status: inprogress
+status: review
 area: gameplay
 priority: medium
 wiki: "[[Gameplay/The Commons]]"
 related: [task-714, task-727, task-820, task-825, task-827]
+children: [task-854]
 ---
 
 # task-824: The Commons: shared character minds, channels, groups, and direct messages
 
 **Filed:** 2026-10-14
-**Status:** in progress (scope revised 2026-10-15)
+**Status:** in review (scope revised 2026-10-16)
 **Related:** task-825 (shared async pacing and talkativeness)
 
 <!-- deps:start -->
+**Children:** [[task-854-integrate-the-commons-with-world-actions-and-items]]
 **Related:** [[task-714-character-mind-panel-connect-memories-motives-and-current-pursuits]], [[task-727-lived-log-to-memory-bridge-phrase-lived-entries-into-first-person-memories]], [[task-820-mind-panel-one-tabbed-mind-surface-and-one-entry-point]], [[task-825-simultaneous-mode-v2-async-cooldown-talkativeness]], [[task-827-setting-aware-communication-themes-for-the-commons]]
 <!-- deps:end -->
 
@@ -27,8 +29,10 @@ message history, member lists, and a composer that names the destination.
 
 The Commons owns communication state: conversations, memberships, messages, and
 per-character read cursors. Character identity, personality, cognition, and
-memories remain on the existing `Player` and standard agent path. Do not create a
-second character, persona, mind, or memory store for chat.
+memories remain on the existing `Player`. Do not create a second character,
+persona, mind, or memory store for chat. Integrating Commons actions with the
+standard world-turn loop and item/world interactions is separate follow-up work
+tracked by task-854.
 
 ## Why
 
@@ -38,19 +42,22 @@ channels with per-character read state, server-side authorization, persistence,
 scenario-authored examples, and the existing Player memory path. Those parts
 are verified in the steps below.
 
-The remaining acceptance gap is the autonomous character decision/action seam.
-`CommonsAgent` still makes its communication decision with a direct LLM call
-and applies the selected channel action itself. It reuses shared prompt and
-response modules and the existing Player memory routes, but no communication
-action has been demonstrated through the standard `AgentEngine` turn path.
-That integration must preserve the current channel privacy and memory behavior.
+This task covers The Commons as a standalone communication surface: its channel
+model, authorization, explicit reads, existing Player memory path, pacing
+controls, and responsive UI. `CommonsAgent` currently makes communication
+decisions through its own loop while reusing shared prompt/response modules and
+Player memory routes.
+
+> **Follow-up:** Standard world-turn and item/world integration is not part of
+> this task. It has been split into child task
+> [[task-854-integrate-the-commons-with-world-actions-and-items]].
 
 ## How
 
-- Trace the standard character turn from `Player` through prompt construction,
-  memory recall, decision, response parsing, and memory storage. Integrate chat
-  reading and sending at that seam; do not maintain a second chat persona or
-  parallel decision loop.
+- Use the existing Player identity and shared prompt/response modules for
+  Commons decisions; do not create a second chat persona, mind, or memory store.
+- Keep standard world-turn and item/world integration outside this task; see
+  child task-854.
 - Keep conversation data in the communication layer. Before adding a new
   channel abstraction, check for an existing conversation/message model that
   can represent the behavior. If none fits, extend The Commons with public,
@@ -93,7 +100,10 @@ That integration must preserve the current channel privacy and memory behavior.
 
 Intended UI home: The Commons page for public/group/direct conversations; Character Inspector → Mind → Memories for persistent experience.
 
-Current availability: Public, private-group, and direct channels, persistence, and Player memory storage exist; autonomous character decisions through the standard agent path remain open.
+Current availability: Public, private-group, and direct channels, persistence,
+Player memory storage, and the standalone Commons communication loop exist.
+Integration with standard world turns and item/world interactions is tracked
+separately in child task-854.
 
 Live steps when available:
 
@@ -106,15 +116,17 @@ Live steps when available:
 This section defines the intended access point and acceptance path. It is not a claim that the UI or complete behavior exists or works today; Current availability records the present state, and these steps describe how to verify the intended behavior when it is available.
 ## Steps to verify
 
-1. Trace one Commons character action through the normal agent and Player
+1. Trace an explicit Commons read/reflection through the existing Player
    memory path.
-   - expected: the existing Player identity, cognition, and memory are used;
-     a read/reflection appears in that character's existing Mind → Memories
-     list and is available to standard memory retrieval; there is no parallel
-     chat persona or memory store. Verify against `worldState.players[name].memories`
-     and the existing `/api/players/<name>/memories/retrieve` route. Keep the
-     channel transcript in The Commons and do not mistake the Mind panel's
-     transient timeline or AgentEngine display history for durable memory.
+   - expected: the existing Player identity and memory are used; a
+     read/reflection appears in that character's existing Mind → Memories list
+     and is available to standard memory retrieval; there is no parallel chat
+     persona or memory store. Verify against
+     `worldState.players[name].memories` and the existing
+     `/api/players/<name>/memories/retrieve` route. Keep the channel transcript
+     in The Commons and do not mistake the Mind panel's transient timeline or
+     AgentEngine display history for durable memory. This does not require
+     Commons decisions to run through the standard world-turn loop.
    - observed: VERIFIED 2026-10-15 in both the game and isolated `TESTING=True` app. The live Vekka Mind → Memories tab showed 8 entries and the saved test-world Lyrie Mind → Memories tab showed 13 entries, including `I read Lyrie's night-watch message and decided to check the north gate. The Commons memory-path verification.` The Mind renderer reads `worldState.players[name].memories`; Commons recall and reflection call the existing `/api/players/<name>/memories/retrieve` and `/api/players/<name>/memories/entry` routes. `test_commons_memory_uses_existing_player_memories_collection`, `the commons: memory reflection writes to the existing Player memories endpoint`, and `the commons: recall uses the standard Player memory retrieval endpoint` verify the same collection and routes. No feature-specific memory field was added. The Mind panel's timeline and conversation display remain separate views, not replacement storage.
 2. Open `/commons`, inspect the full responsive interface, and interact with
    the public conversation, a private group, and a DM. Use the in-memory test
@@ -157,15 +169,22 @@ This section defines the intended access point and acceptance path. It is not a 
      successful The Commons write also reaches the existing autosave hook.
    - observed: VERIFIED 2026-10-15. `test_saved_world_round_trips_chat_communication_but_scenario_export_drops_runtime_chat` checks channels, memberships, messages, and per-character cursors round-trip through `VirtualWorld.to_dict()` / `load_from_dict()`, while scenario export omits runtime chat. `test_commons_messages_and_read_cursors_use_standard_autosave` asserts both a post and explicit read call the existing `save_autosave` hook and persist cursor id 1. `test_kraktooth_scenario_authors_public_group_and_dm_conversations` loads the authored Kraktooth scenario and verifies its public post, `Camp Watch` group, Vekka–Zikka DM, and existing character membership. Live on `/commons`, Vekka saw all three channels and the seeded group/DM text; Rag-Tail saw only Public. Scenario source can seed initial The Commons data, but runtime changes are not exported back into scenarios.
 
-## Remaining before review
+## Out of scope / follow-up
 
-- **Blocker: standard agent decision/action seam is not integrated.** `templates/commons.html` loads the shared `config`, `llm-client`, PromptBuilder, and ResponseParser modules, then `CommonsAgent`; it does not bootstrap `AgentEngine`, `WorldState`, or the standard event-stream/context-window dependencies. `CommonsAgent.actCharacter()` therefore calls `llmClient.chat()` directly with a communication-only prompt/parser and applies the channel action itself. The normal `AgentEngine.step()` expects a world-action turn and its `_callLLMMessages()` uses shared mutable context/abort state, while The Commons can have multiple per-character timers in flight. Simply loading or calling the engine singleton would bypass required initialization and make overlapping calls unsafe. Keep the existing Player/memory behavior; integrate through a shared, concurrency-safe decision/action seam and prove the selected communication branch before moving this card to review.
-- Related task-825 is still `todo`; The Commons reads its shared per-character talkativeness config and cooldown jitter helper, but the parent async-turn task itself has not been verified or moved to review.
+- Standard `AgentEngine` world-turn integration and item/world interactions are
+  tracked separately by child task-854. That task must investigate the correct
+  shared, concurrency-safe seam without weakening channel privacy or
+  duplicating Player identity, communication state, or memory.
+- Task-825 tracks broader simultaneous async pacing behavior. This Commons card
+  verifies only that the Commons uses the shared per-character talkativeness
+  setting and cooldown jitter helper; it does not claim task-825 is complete.
 
 ## Acceptance
 
-- [ ] The Commons uses existing `Player` identity, personality, and standard
-  agent decision / response path; no parallel chat mind or persona exists.
+- [x] The Commons uses existing `Player` identity and shared prompt/response
+  modules; it creates no parallel chat mind or persona. Standard world-turn
+  decision/action integration is explicitly out of scope and tracked in child
+  task-854.
 - [x] Chat recall and reflection use the existing Player memory system; no
   separate memory store exists.
 - [x] Public conversation supports posts and per-character explicit read state.
@@ -195,7 +214,7 @@ This section defines the intended access point and acceptance path. It is not a 
 - `app.py` (route Commons mutations through the existing autosave hook)
 - Existing world serialization/save-load path, only where required for
   communication state
-- `static/js/commons/**` (shared agent integration and social UI)
+- `static/js/commons/**` (Commons communication loop and social UI)
 - `templates/commons.html` and `static/css/commons.css`
 - `tests/test_commons.py` and targeted frontend tests
 - An existing scenario with real characters and authored channel examples

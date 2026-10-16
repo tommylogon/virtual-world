@@ -8,10 +8,25 @@
 """
 from flask import jsonify, request
 
-from engine.commons import ChatAuthorizationError, PUBLIC_CHANNEL_ID
+from engine.commons import (
+    COMMONS_THEMES,
+    DEFAULT_COMMONS_THEME,
+    ChatAuthorizationError,
+    PUBLIC_CHANNEL_ID,
+)
 
 
 def register_commons_routes(app):
+    def _theme(world):
+        theme = getattr(world, "commons_theme", DEFAULT_COMMONS_THEME)
+        return theme if isinstance(theme, str) and theme in COMMONS_THEMES else DEFAULT_COMMONS_THEME
+
+    def _channel_allowed(theme, channel):
+        return theme != "town_board" or channel.get("kind") != "group"
+
+    def _unavailable_group():
+        return jsonify({"error": "Group conversations are unavailable in town-board mode"}), 403
+
     def _world_chat():
         world = getattr(app, "world", None)
         chat = getattr(world, "commons", None) if world else None
@@ -62,15 +77,41 @@ def register_commons_routes(app):
         perspective = request.args.get("as", "User")
         if not _known_member(world, perspective):
             return jsonify({"error": "Character not found"}), 404
+        player = (getattr(world, "players", {}) or {}).get(perspective)
+        known_characters = [
+            name for name, other in (getattr(world, "players", {}) or {}).items()
+            if name != perspective and name != "User"
+            and player is not None and hasattr(player, "knows_name")
+            and player.knows_name(name)
+        ]
         participant_data = {
             name: {"active": bool(row.get("active", True)), "blocked": bool(row.get("blocked", False))}
             for name, row in chat.participants.items()
         }
         return jsonify({
             "perspective": perspective,
-            "channels": chat.list_channels(perspective),
+            "channels": [
+                channel for channel in chat.list_channels(perspective)
+                if _channel_allowed(_theme(world), channel)
+            ],
             "participants": participant_data,
+            "known_characters": known_characters,
+            "theme": _theme(world),
         })
+
+    @app.route('/api/commons/theme', methods=['POST'])
+    def commons_set_theme():
+        world = getattr(app, "world", None)
+        if world is None:
+            return jsonify({"error": "The Commons is not initialized"}), 500
+        data = request.get_json() or {}
+        theme = data.get("theme")
+        if not isinstance(theme, str) or theme not in COMMONS_THEMES:
+            return jsonify({
+                "error": f"Invalid Commons theme: {theme}. Must be one of {sorted(COMMONS_THEMES)}"
+            }), 400
+        world.commons_theme = theme
+        return jsonify({"theme": theme})
 
     @app.route('/api/commons/channels', methods=['POST'])
     def commons_create_channel():
@@ -82,6 +123,8 @@ def register_commons_routes(app):
         if not _known_member(world, creator):
             return jsonify({"error": "Creator not found"}), 404
         kind = str(data.get("kind") or "").strip().lower()
+        if kind == "group" and _theme(world) == "town_board":
+            return _unavailable_group()
         try:
             if kind == "group":
                 members = data.get("members") or []
@@ -108,6 +151,10 @@ def register_commons_routes(app):
         actor = str(data.get("actor") or "").strip()
         if not _known_member(world, actor):
             return jsonify({"error": "Actor not found"}), 404
+        if _theme(world) == "town_board":
+            channel = chat.channels.get(channel_id)
+            if channel and not _channel_allowed(_theme(world), channel):
+                return _unavailable_group()
         add, remove = data.get("add") or [], data.get("remove") or []
         if (not isinstance(add, list) or not isinstance(remove, list)
                 or any(not _known_member(world, str(name)) for name in add + remove)):
@@ -129,6 +176,9 @@ def register_commons_routes(app):
             if not _known_member(world, perspective):
                 return jsonify({"error": "Character not found"}), 404
             try:
+                channel = chat.channels.get(channel_id)
+                if channel and not _channel_allowed(_theme(world), channel):
+                    return _unavailable_group()
                 chat.require_access(perspective, channel_id)
             except (KeyError, ChatAuthorizationError) as exc:
                 return _failure(exc)
@@ -148,6 +198,9 @@ def register_commons_routes(app):
             return jsonify({"error": "Author not found"}), 404
         if not text:
             return jsonify({"error": "Empty message text"}), 400
+        channel = chat.channels.get(channel_id)
+        if channel and not _channel_allowed(_theme(world), channel):
+            return _unavailable_group()
         try:
             message = chat.post_message(
                 author=author,
@@ -169,6 +222,9 @@ def register_commons_routes(app):
         if not _known_member(world, character):
             return jsonify({"error": "Character not found"}), 404
         channel_id = str(data.get("channel_id") or PUBLIC_CHANNEL_ID)
+        channel = chat.channels.get(channel_id)
+        if channel and not _channel_allowed(_theme(world), channel):
+            return _unavailable_group()
         try:
             messages = chat.read_messages(
                 character=character,
