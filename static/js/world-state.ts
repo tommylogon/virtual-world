@@ -20,7 +20,7 @@ class WorldState {
     declare _equipSlots: Record<string, any> | null;
     /** In-flight /api/state fetch, so concurrent requests coalesce into one. */
     declare _inflight: Promise<any> | null;
-    /** A fetch was requested while one was in flight; run one more after it. */
+    /** A fetch was requested while one was in flight; run one more before resolving callers. */
     declare _refetchRequested: boolean;
 
     constructor() {
@@ -87,18 +87,28 @@ class WorldState {
         // state AND the call site often fetches again — two full /api/state
         // downloads for a single edit (14 MB on a large world). While one fetch
         // is in flight a second request joins it; if a change landed during it,
-        // exactly one trailing fetch runs so nothing is dropped.
+        // callers wait for one trailing fetch rather than reading stale state.
         if (this._inflight) {
             this._refetchRequested = true;
             return this._inflight;
         }
-        this._inflight = this._fetchNow(lite);
+        let fetchedFullState = !lite;
+        this._inflight = (async () => {
+            let state: any;
+            let fetchLite = lite;
+            do {
+                this._refetchRequested = false;
+                state = await this._fetchNow(fetchLite);
+                if (!fetchLite) fetchedFullState = true;
+                fetchLite = false;
+            } while (this._refetchRequested);
+            return state;
+        })();
         try {
             return await this._inflight;
         } finally {
             this._inflight = null;
-            if (this._refetchRequested) {
-                this._refetchRequested = false;
+            if (!fetchedFullState) {
                 void this.fetch(false);
             }
         }
@@ -118,11 +128,6 @@ class WorldState {
             this._emit('update', state);
             const bus = (window as unknown as { appEvents?: { emit(event: string, data?: unknown): void } }).appEvents;
             if (bus) bus.emit('state:updated', state);
-            // After a lite payload, fetch the full state in the background
-            // so the UI gets the complete picture without blocking the initial paint.
-            if (lite) {
-                this.fetch(false).catch(() => { /* full fetch failed; lite data is still usable */ });
-            }
             return state;
         } catch (e) {
             console.error('State fetch failed:', e);

@@ -74,3 +74,19 @@ def test_a_dash_without_the_minor_is_refused():
     assert p.current_area == "Dash A", "a refused dash must not move the character"
     assert p.burst_pending == 0
     assert p.turn_slots["major"] == 1, "a refused dash must not spend the major"
+
+
+def test_successful_go_spends_only_the_major_slot():
+    from engine import action_tiers as at
+    app, w, p = _setup()
+    p.turn_slots = dict(at.DEFAULT_BUDGET)
+    client = app.test_client()
+
+    result = _post(client, "go north")
+
+    assert result.get("success") is not False, result
+    assert p.current_area == "Dash B", p.current_area
+    expected = {"major": 0, "minor": 1, "free": 3, "activity": 1}
+    assert p.turn_slots == expected, p.turn_slots
+    state = client.get("/api/state").get_json()
+    assert state["players"]["Dasher"]["turn_slots"] == expected
