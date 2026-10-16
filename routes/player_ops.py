@@ -9,6 +9,27 @@ from engine.vitals import ceiling, clamp_to_ceiling, polarity as vital_polarity
 logger = logging.getLogger(__name__)
 
 
+def _log_resolved_identity(app, route, supplied, *, resolved_key=None,
+                           resolved_id=None, extra=""):
+    """Log the identity a mutating route actually resolved (task-696).
+
+    Name-resolution drift is this repo's most common bug class, and today's
+    import bug produced exactly one generic warning while the response echoed
+    `"player":"zombie"` for a call targeting `zombie__c4d808`. A resolver that
+    silently rewrites its target must be visible at the moment it happens.
+    """
+    pm = getattr(app.world, "player_manager", None) or app.world
+    if resolved_key is None:
+        resolved_key = pm.relationship_key(supplied) if hasattr(pm, "relationship_key") else supplied
+    if resolved_id is None:
+        getter = getattr(pm, "get_player_node_id", None)
+        resolved_id = getter(supplied) if getter else None
+    suffix = f" {extra}" if extra else ""
+    logger.info(
+        "%s supplied=%r resolved_key=%r resolved_id=%r%s",
+        route, supplied, resolved_key, resolved_id, suffix)
+
+
 def handle_get_players(app):
     return jsonify({
         "players": [
@@ -393,6 +414,8 @@ def handle_create_player(app):
     player.interest_tags = data.get('interest_tags', player.interest_tags)
     player.sync_vitals_with_tags()
     app.world.add_player(player)
+    _log_resolved_identity(app, 'create_player', name,
+                           resolved_key=name, resolved_id=app.world._player_node_id(name))
     return jsonify({"status": "success", "player": name})
 
 
@@ -403,7 +426,11 @@ def handle_set_active_player(app):
         return jsonify({"error": "Missing 'name'"}), 400
     try:
         app.world.set_active_player(name)
-        return jsonify({"status": "success", "active": app.world.active_player})
+        resolved = app.world.player_manager.relationship_key(name)
+        _log_resolved_identity(app, 'set_active_player', name,
+                               resolved_key=resolved,
+                               resolved_id=app.world._player_node_id(resolved))
+        return jsonify({"status": "success", "active": resolved})
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 
@@ -417,11 +444,14 @@ def handle_delete_player(app, name):
     if len(app.world.players) <= 1:
         return jsonify({"error": "Cannot delete the last remaining player"}), 400
 
-    pnode_id = app.world._player_node_id(name)
+    resolved = app.world.player_manager.relationship_key(name)
+    pnode_id = app.world._player_node_id(resolved)
+    _log_resolved_identity(app, 'delete_player', name,
+                           resolved_key=resolved, resolved_id=pnode_id)
     app.world.graph.remove_node(pnode_id)
 
-    del app.world.players[name]
-    if app.world.active_player == name:
+    del app.world.players[resolved]
+    if app.world.active_player == resolved:
         try:
             app.world.active_player = next(iter(app.world.players.keys()))
         except StopIteration:
@@ -429,7 +459,7 @@ def handle_delete_player(app, name):
 
     return jsonify({
         "status": "deleted",
-        "deleted": name,
+        "deleted": resolved,
         "players": [
             getattr(p, "name", k) for k, p in app.world.players.items()
         ],
@@ -447,10 +477,14 @@ def handle_kill_player(app, name):
     player = app.world.players[name]
     # task-538: the single death path, so a scripted kill is the same event a
     # killing blow is — body, dropped items, lived-log record and all.
-    killed = app.world.kill_player(name, "killed by external force")
-    app.world.add_log_entry(f"[System] {name} has been killed.")
+    resolved = app.world.player_manager.relationship_key(name)
+    _log_resolved_identity(app, 'kill_player', name,
+                           resolved_key=resolved,
+                           resolved_id=app.world._player_node_id(resolved))
+    killed = app.world.kill_player(resolved, "killed by external force")
+    app.world.add_log_entry(f"[System] {resolved} has been killed.")
 
-    return jsonify({"status": "killed", "player": name, "newly_dead": killed})
+    return jsonify({"status": "killed", "player": resolved, "newly_dead": killed})
 
 
 def handle_move_player(app, name):
@@ -464,8 +498,10 @@ def handle_move_player(app, name):
     if name not in app.world.players:
         return jsonify({"error": f"Player '{name}' not found"}), 404
 
+    _log_resolved_identity(app, 'move_player', name, extra=f"area={area_name}")
     app.world._set_player_area(name, area_name)
-    return jsonify({"status": "moved", "player": name, "area": area_name})
+    resolved = app.world.player_manager.relationship_key(name)
+    return jsonify({"status": "moved", "player": resolved, "area": area_name})
 
 
 def handle_player_speak(app, name):
@@ -488,9 +524,13 @@ def handle_player_speak(app, name):
     if not target_area:
         return jsonify({"error": "Could not determine target area"}), 400
 
+    _log_resolved_identity(
+        app, 'player_speak', name, extra=f"area={target_area.name}")
     app.world.broadcast_speech(name, text, area_name=target_area.name)
+    resolved = app.world.player_manager.relationship_key(name)
 
-    return jsonify({"status": "broadcast", "speaker": name, "text": text, "area": target_area.name})
+    return jsonify({"status": "broadcast", "speaker": resolved,
+                    "text": text, "area": target_area.name})
 
 
 def handle_update_player(app, name):
@@ -528,6 +568,10 @@ def handle_update_player(app, name):
         if app.world.active_player == old_name:
             app.world.active_player = new_name
 
+        _log_resolved_identity(
+            app, 'update_player', old_name,
+            resolved_key=new_name, resolved_id=new_node_id,
+            extra="renamed")
         return jsonify({"status": "updated", "player": new_name, "renamed": True})
 
     if "state" in data:
@@ -1379,6 +1423,11 @@ def handle_update_vital(app, name, vital_name):
     if "decay_rate" in data:
         player.decay_rates[vital_name] = float(data["decay_rate"])
 
+    resolved = app.world.player_manager.relationship_key(name)
+    _log_resolved_identity(
+        app, 'update_vital', name, resolved_key=resolved,
+        resolved_id=app.world._player_node_id(resolved),
+        extra=f"vital={vital_name} value={player.vitals[vital_name]}")
     return jsonify({"status": "updated", "name": vital_name, "value": player.vitals[vital_name], "max": max_val, "decay_rate": player.decay_rates.get(vital_name, app.world.baseline_decay.get(vital_name, 0))})
 
 

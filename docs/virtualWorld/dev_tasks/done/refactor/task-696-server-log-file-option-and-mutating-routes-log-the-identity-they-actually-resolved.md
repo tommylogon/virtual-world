@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: done
 area: refactor
 priority: medium
 wiki: "[[Library System/Library System Overview]]"
@@ -36,21 +36,58 @@ class; the logs should show it at the moment it happens.
 
 ## Why
 
-TODO
+Name-resolution drift is this repo's most common bug class. The resolver rewrites
+its target silently (`zombie` -> `zombie__c4d808`), so the only evidence was a
+generic warning and a response echoing the wrong name. Logging is the smallest
+coherent change that makes the rewrite visible without changing behaviour; the
+file option is off by default so nothing about the simulation moves.
 
 ## How
 
-TODO
+- `app.py`: `_LogFileHandler` marker subclass + `_attach_log_file(path)`, which
+  finds and replaces any prior instance on the root logger so re-attaching is
+  idempotent. Wired into `__main__` via `--log-file` and the `VW_LOG` env var.
+- `routes/player_ops.py`: `_log_resolved_identity(app, route, supplied, ...)` is
+  the single helper; every mutating route calls it and echoes the resolved key
+  in its response, not the input.
+- `routes/library_ops.py`: `import_character` logs the pre/post key when
+  `_unique_key` suffixes a duplicate.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Boot with `VW_LOG=<path>` (running scratch server `bgp_1466dac35001af08VXchVqCYVD`,
+   port 4444, autosave world — already up, logging to `vwlog2.txt`).
+   - expected: `Server logging to <path>` appears in the log.
+   - observed: `2026-10-16 22:35:55,690 INFO __main__: Server logging to
+     C:\Users\Tommy\AppData\Local\Temp\kilo\vwlog2.txt`
+2. Exercise a duplicate-name character (three `zombie` entries live) through
+   every mutating route.
+   - expected: each route logs supplied vs resolved key/id; the response echoes
+     the resolved key.
+   - observed:
+     - `move_player` -> `supplied='zombie' resolved_key='zombie'
+       resolved_id='player_zombie' area=Old Dwarven Ruins`; response
+       `"player":"zombie"`.
+     - `player_speak` -> `supplied='zombie' resolved_key='zombie'
+       resolved_id='player_zombie' area=Old Dwarven Ruins`; response
+       `"speaker":"zombie"`.
+     - `update_vital` (PATCH HP=42) -> `supplied='zombie' resolved_key='zombie'
+       resolved_id='player_zombie' vital=HP value=42`.
+     - `set_active_player` -> `supplied='zombie' resolved_key='zombie'
+       resolved_id='player_zombie'`; response `"active":"zombie"`.
+3. Import a library character whose name is already held.
+   - expected: `_unique_key` suffix is logged as `(uniqued)`.
+   - observed: `import_character supplied='zombie' resolved_key='zombie__97e239'
+     resolved_id='97e2396b' (uniqued)`; response `"player":"zombie__97e239"`.
+4. Confirm no behaviour changed: every call returned 200 with the same shape
+   as before the change; no route logic was altered, only logging and the
+   response echo.
 
 ## Files
 
-- TODO
+- `app.py` — `--log-file` / `VW_LOG` support.
+- `routes/player_ops.py` — `_log_resolved_identity` + 8 call sites.
+- `routes/library_ops.py` — `import_character` pre/post key log.
 
 ## Browser UI and intended live verification
 

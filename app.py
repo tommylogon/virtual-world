@@ -15,6 +15,34 @@ from routes.helpers import save_autosave, load_autosave_if_exists
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
+class _LogFileHandler(logging.FileHandler):
+    """A marker subclass so re-attaching can find and replace it."""
+
+
+def _attach_log_file(path):
+    """Route the root logger to a file (task-696).
+
+    `VW_LOG=<path>` or `--log-file <path>` lets an agent without the
+    launching terminal read server evidence. Off by default; never
+    replaces the console handler, only adds one.
+    """
+    if not path:
+        return
+    root = logging.getLogger()
+    for h in list(root.handlers):
+        if isinstance(h, _LogFileHandler):
+            root.removeHandler(h)
+    handler = _LogFileHandler(path)
+    handler.setFormatter(logging.Formatter(
+        '%(asctime)s %(levelname)s %(name)s: %(message)s'))
+    root.addHandler(handler)
+    logger.info("Server logging to %s", path)
+
+
+class _LogFileHandler(logging.FileHandler):
+    """A marker subclass so re-attaching can find and replace it."""
+
 def create_app(config=None):
     """Application factory pattern – allows multiple instances and easier testing."""
     app = Flask(__name__)
@@ -335,6 +363,13 @@ def register_routes(app):
 
 # For running directly (development)
 if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser(description='VirtualWorld server')
+    parser.add_argument('--log-file', dest='log_file', default=None,
+                        help='Route the root logger to this file (task-696). '
+                             'Also honoured via the VW_LOG environment variable.')
+    args = parser.parse_args()
+    _attach_log_file(args.log_file or os.environ.get('VW_LOG'))
     app = create_app()
     # VW_PORT lets parallel worktrees each run their own server for live
     # verification without colliding on 4444. Defaults to 4444 unchanged.

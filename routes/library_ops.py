@@ -935,7 +935,15 @@ def handle_library_import_character(app, char_id):
     # comes in with current_area None.
     pm = getattr(app.world, "player_manager", None)
     if pm is not None and getattr(player, "id", None):
+        pre_key = player_name
         player_name = pm._players_by_id.get(player.id, player_name)
+        # task-696: `_unique_key` suffixes a duplicate ("zombie" ->
+        # "zombie__c4d808"), which is exactly the drift bug-521 was blind to.
+        # Log the pre/post key so a future drift guard has a source of truth.
+        logger.info(
+            "import_character supplied=%r resolved_key=%r resolved_id=%r%s",
+            pre_key, player_name, getattr(player, "id", None),
+            " (uniqued)" if pre_key != player_name else "")
 
     # Expression pack: carry the library character's art onto its node.
     try:
