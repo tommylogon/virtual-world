@@ -1,6 +1,6 @@
 ---
 type: task
-status: inprogress
+status: todo
 area: ui
 priority: medium
 related: [task-397, task-398, task-528, task-531, task-574]
@@ -151,3 +151,7 @@ This section defines the intended access point and acceptance path. It is not a 
 ## Files
 
 - TODO
+
+## Audit note (2026-10-16)
+
+Moved from inprogress back to todo: it was not being worked. No uncommitted changes in the working tree or in any of the eight git worktrees touch this card's files, and nobody is editing it. 0 of 7 acceptance boxes checked; the latest commit that mentions it is d4d8f324 (2026-10-02), a blocker note saying it collides with the task-580 scope-tree work.

@@ -4,6 +4,7 @@ status: inprogress
 area: conditions
 priority: medium
 related: [task-566, task-504, task-472, task-699, task-701, task-702]
+wiki: "[[UI & Settings/Validator & Issues]]"
 ---
 
 # task-705: Requirement condition leaves: quantity, area-function, knowledge and ownership

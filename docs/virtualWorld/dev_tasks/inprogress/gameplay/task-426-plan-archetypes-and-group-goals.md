@@ -5,6 +5,7 @@ related: [task-704, task-701, task-807, task-810]
 area: gameplay
 priority: medium
 blocked_by: [task-403, task-409, task-417]
+wiki: "[[Characters/Background Simulation]]"
 ---
 
 # task-426: Pursuit templates and group goals (hunt, raid, gather, haul)

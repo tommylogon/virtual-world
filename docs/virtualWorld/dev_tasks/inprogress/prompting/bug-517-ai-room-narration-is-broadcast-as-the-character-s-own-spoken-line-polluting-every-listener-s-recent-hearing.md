@@ -1,6 +1,6 @@
 ---
 type: bug
-status: todo
+status: inprogress
 area: prompting
 priority: high
 ---

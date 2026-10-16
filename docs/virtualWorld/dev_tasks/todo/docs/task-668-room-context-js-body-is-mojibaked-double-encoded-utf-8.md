@@ -3,6 +3,7 @@ type: task
 status: todo
 area: docs
 priority: medium
+wiki: "[[World Building/Rooms & Areas]]"
 ---
 
 # task-668: room-context.js body is mojibaked (double-encoded UTF-8)

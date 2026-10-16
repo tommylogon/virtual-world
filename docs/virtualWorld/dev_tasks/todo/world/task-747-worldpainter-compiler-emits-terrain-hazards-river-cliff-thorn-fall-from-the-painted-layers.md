@@ -4,6 +4,7 @@ status: todo
 area: world
 priority: medium
 blocked_by: [task-746, task-745]
+wiki: "[[World Building/WorldPainter]]"
 ---
 
 # task-747: WorldPainter compiler emits terrain hazards (river, cliff, thorn, fall) from the painted layers

@@ -4,6 +4,7 @@ status: todo
 area: ui
 priority: medium
 related: [task-333, task-334]
+wiki: "[[Gameplay/Turn Queue & Human Turns]]"
 ---
 
 # task-679: React-phase result is one wall of text ending in a raw way listing

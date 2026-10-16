@@ -1,7 +1,7 @@
 ---
 area: items
 wiki: "[[Items & Inventory/Items Overview]]"
-status: review
+status: done
 type: task
 priority: medium
 ---

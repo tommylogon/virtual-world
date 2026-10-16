@@ -498,14 +498,41 @@ interface TurnSceneViewWindowSurface { TurnSceneView: unknown }
         if (_menuCleanup) { _menuCleanup(); _menuCleanup = null; }
     }
 
+    // Scene cache to avoid redundant fetches. Keyed by character name.
+    // Invalidated when tick changes or area changes.
+    const _sceneCache: Record<string, { scene: Scene; tick: number; area: string }> = {};
+
+    /**
+     * Invalidate the scene cache for a character (call when forcing a refresh).
+     */
+    function invalidateCache(charName?: string): void {
+        if (charName) {
+            delete _sceneCache[charName];
+        } else {
+            // Clear all caches
+            Object.keys(_sceneCache).forEach(k => delete _sceneCache[k]);
+        }
+    }
+
     /**
      * Fetch the raw scene payload (the composer also uses it for the
-     * autocomplete datalist and meta line).
+     * autocomplete datalist and meta line). Cached per character, invalidated
+     * when the world tick or the character's area changes.
      */
     async function fetch(charName: string): Promise<Scene> {
+        const currentTick = (typeof worldState !== 'undefined' && worldState.tick) || 0;
+        const currentArea = (typeof worldState !== 'undefined' && worldState.players?.[charName]?.current_area) || '';
+        const cached = _sceneCache[charName];
+
+        if (cached && cached.tick === currentTick && cached.area === currentArea) {
+            return cached.scene;
+        }
+
         // NOTE: ApiClient is a top-level class (global binding, not a
         // window property) — reference it bare, like the rest of the app.
-        return (ApiClient as unknown as { getScene(charName: string): Promise<Scene> }).getScene(charName);
+        const scene = await (ApiClient as unknown as { getScene(charName: string): Promise<Scene> }).getScene(charName);
+        _sceneCache[charName] = { scene, tick: currentTick, area: currentArea };
+        return scene;
     }
 
     /** Render a fetched scene payload into *host*. */
@@ -657,7 +684,7 @@ interface TurnSceneViewWindowSurface { TurnSceneView: unknown }
         openMenu(x, y, title, buttons, onDraft, null);
     }
 
-    return { render, renderScene, fetch, menu, lookLines, attachHover, closeMenu };
+    return { render, renderScene, fetch, menu, lookLines, attachHover, closeMenu, invalidateCache };
 })();
 
 // ────────────────────────── local types ──────────────────────────

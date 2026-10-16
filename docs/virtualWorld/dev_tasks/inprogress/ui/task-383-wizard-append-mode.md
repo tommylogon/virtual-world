@@ -3,6 +3,7 @@ type: task
 status: inprogress
 area: ui
 priority: medium
+wiki: "[[ScenarioCreationGuide]]"
 ---
 
 # task-383: wizard-append-mode
@@ -76,6 +77,10 @@ This section defines the intended access point and acceptance path. It is not a 
 
 ## Files
 
-- `static/js/scenario-wizard.ts` (and the review-card UI).
+- `static/js/ui/scenario-wizard.ts` (and the review-card UI).
 - `routes/` — a merge / append path distinct from `/api/load`.
 - `tests/`.
+
+## Audit note (2026-10-16)
+
+Moved from inprogress back to todo: it was not being worked. No uncommitted changes in the working tree or in any of the eight git worktrees touch this card's files, and nobody is editing it. The card itself says 'Not started (card complete; no implementation yet)'; 0 of its acceptance boxes are checked and no commit references it. The Files section names static/js/scenario-wizard.ts, which does not exist; the wizard is static/js/ui/scenario-wizard.ts.

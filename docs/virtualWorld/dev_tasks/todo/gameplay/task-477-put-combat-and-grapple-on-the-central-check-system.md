@@ -3,6 +3,7 @@ type: task
 status: todo
 area: gameplay
 priority: medium
+wiki: "[[Rules Engine/Combat System]]"
 ---
 
 # task-477: Put combat and grapple on the central check system

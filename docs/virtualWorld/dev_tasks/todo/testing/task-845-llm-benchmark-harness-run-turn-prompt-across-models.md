@@ -3,6 +3,7 @@ type: task
 status: todo
 area: testing
 priority: medium
+wiki: "[[AI & Narration/Agent Engine]]"
 ---
 
 # task-845: LLM benchmark harness: run a single character's turn prompt across all models of a selected provider (primarily LM Studio), with metrics + hallucination detection + dashboard

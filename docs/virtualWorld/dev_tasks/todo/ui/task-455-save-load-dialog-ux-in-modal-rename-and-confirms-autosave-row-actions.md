@@ -3,6 +3,7 @@ type: task
 status: todo
 area: ui
 priority: medium
+wiki: "[[UI & Settings/Settings & Configuration]]"
 ---
 
 # task-455: Save-load dialog UX: in-modal rename and confirms, autosave row actions

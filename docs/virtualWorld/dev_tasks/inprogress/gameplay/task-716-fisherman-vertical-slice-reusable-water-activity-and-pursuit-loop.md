@@ -3,6 +3,7 @@ type: task
 status: inprogress
 area: gameplay
 priority: high
+wiki: "[[design/Character Pursuits]]"
 ---
 
 # task-716: Fisherman — step-by-step authoring and implementation checklist

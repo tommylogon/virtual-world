@@ -2,7 +2,7 @@
 area: items
 wiki: "[[UI & Settings/Inspector Panels|Inspector]]"
 type: task
-status: review
+status: done
 priority: medium
 ---
 

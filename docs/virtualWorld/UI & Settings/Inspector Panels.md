@@ -265,7 +265,7 @@ Changes are saved immediately on edit via `ApiClient.updateNode()`, `ApiClient.u
 - [[dev_tasks/review/characters/task-17-editable_characters|task-17: Editable characters]]
 - [[dev_tasks/done/emotions/task-24-traits_conditions_emotions_editor|task-24: Traits conditions emotions editor]]
 - [[dev_tasks/review/ui/task-36-inspector_game_time|task-36: Inspector game time]]
-- [[dev_tasks/review/characters/task-42-proper_memory_editor|task-42: Proper memory editor]]
+- [[task-42-proper_memory_editor|task-42: Proper memory editor]]
 - [[dev_tasks/review/ui/task-41-prevent_double_step_click|task-41: Prevent double step click]]
 - [[bug_1-trigger-editor-effOpts-undefined|bug_1: Trigger editor effOpts undefined]]
 - [[dev_tasks/done/bugs/bug_2-choices-equip-slots-white-bg|bug_2: Choices equip slots white bg]]
@@ -317,7 +317,7 @@ Changes are saved immediately on edit via `ApiClient.updateNode()`, `ApiClient.u
 
 **Features** — [[node-inspectors|Node inspectors]] (#50), [[world-lore|World lore]] (#71)
 
-**Dev tasks** — [[dev_tasks/done/bugs/bug_2-choices-equip-slots-white-bg|bug_2]], [[dev_tasks/done/items/task-252-auto-create-base-trigger-on-action|task]], [[dev_tasks/done/items/task-292-auto-add-inverse-actions|task]], [[dev_tasks/done/refactor/task-216-lit-html-inspector-conversion|task]], [[dev_tasks/done/ui/task-36-inspector_game_time|task]], [[dev_tasks/done/ui/task-41-prevent_double_step_click|task]] … +4 more
+**Dev tasks** — [[dev_tasks/done/bugs/bug_2-choices-equip-slots-white-bg|bug_2]], [[dev_tasks/done/items/task-252-auto-create-base-trigger-on-action|task]], [[task-292-auto-add-inverse-actions|task]], [[dev_tasks/done/refactor/task-216-lit-html-inspector-conversion|task]], [[dev_tasks/done/ui/task-36-inspector_game_time|task]], [[dev_tasks/done/ui/task-41-prevent_double_step_click|task]] … +4 more
 
 **Neighbouring notes** — [[Engine Config]], [[Event Log Export]], [[Event Stream]], [[NL Editor]], [[Recent Edits & Undo]], [[Rendering & UI Modules]]
 

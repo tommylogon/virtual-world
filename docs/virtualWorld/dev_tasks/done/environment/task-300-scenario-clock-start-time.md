@@ -1,7 +1,7 @@
 ---
 area: environment
 type: task
-status: review
+status: done
 priority: medium
 ---
 

@@ -1,7 +1,7 @@
 ---
 area: gameplay
 type: task
-status: review
+status: done
 priority: medium
 ---
 

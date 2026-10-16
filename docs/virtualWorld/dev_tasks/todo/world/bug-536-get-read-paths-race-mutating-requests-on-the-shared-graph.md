@@ -3,6 +3,7 @@ type: bug
 status: todo
 area: world
 priority: medium
+wiki: "[[UI & Settings/Validator & Issues]]"
 ---
 
 # bug-536: GET read paths race mutating requests on the shared graph

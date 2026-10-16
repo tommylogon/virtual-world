@@ -508,14 +508,38 @@ window.TurnSceneView = (() => {
             _menuCleanup = null;
         }
     }
+    // Scene cache to avoid redundant fetches. Keyed by character name.
+    // Invalidated when tick changes or area changes.
+    const _sceneCache = {};
+    /**
+     * Invalidate the scene cache for a character (call when forcing a refresh).
+     */
+    function invalidateCache(charName) {
+        if (charName) {
+            delete _sceneCache[charName];
+        }
+        else {
+            // Clear all caches
+            Object.keys(_sceneCache).forEach(k => delete _sceneCache[k]);
+        }
+    }
     /**
      * Fetch the raw scene payload (the composer also uses it for the
-     * autocomplete datalist and meta line).
+     * autocomplete datalist and meta line). Cached per character, invalidated
+     * when the world tick or the character's area changes.
      */
     async function fetch(charName) {
+        const currentTick = (typeof worldState !== 'undefined' && worldState.tick) || 0;
+        const currentArea = (typeof worldState !== 'undefined' && worldState.players?.[charName]?.current_area) || '';
+        const cached = _sceneCache[charName];
+        if (cached && cached.tick === currentTick && cached.area === currentArea) {
+            return cached.scene;
+        }
         // NOTE: ApiClient is a top-level class (global binding, not a
         // window property) — reference it bare, like the rest of the app.
-        return ApiClient.getScene(charName);
+        const scene = await ApiClient.getScene(charName);
+        _sceneCache[charName] = { scene, tick: currentTick, area: currentArea };
+        return scene;
     }
     /** Render a fetched scene payload into *host*. */
     function renderScene(host, scene, handlers) {
@@ -645,5 +669,5 @@ window.TurnSceneView = (() => {
     function menu(x, y, title, buttons, onDraft) {
         openMenu(x, y, title, buttons, onDraft, null);
     }
-    return { render, renderScene, fetch, menu, lookLines, attachHover, closeMenu };
+    return { render, renderScene, fetch, menu, lookLines, attachHover, closeMenu, invalidateCache };
 })();

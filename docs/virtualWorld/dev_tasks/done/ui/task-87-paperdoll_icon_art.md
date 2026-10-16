@@ -2,7 +2,7 @@
 area: ui
 wiki: "[[Items & Inventory/Equipment & Paperdoll]]"
 type: task
-status: review
+status: done
 priority: medium
 ---
 

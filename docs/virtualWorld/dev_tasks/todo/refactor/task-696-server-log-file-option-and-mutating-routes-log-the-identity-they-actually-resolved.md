@@ -3,6 +3,7 @@ type: task
 status: todo
 area: refactor
 priority: medium
+wiki: "[[Library System/Library System Overview]]"
 ---
 
 # task-696: Server log file option, and mutating routes log the identity they actually resolved

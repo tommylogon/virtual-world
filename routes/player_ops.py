@@ -838,6 +838,7 @@ def handle_get_character_record(app, name):
         "lifecycle": lifecycle_status,
         "schema": ca.schema_for_llm(),
         "hints": ca.CONSUMER_HINTS,
+        "suggestions": ca.identity_suggestions(),
     })
 
 

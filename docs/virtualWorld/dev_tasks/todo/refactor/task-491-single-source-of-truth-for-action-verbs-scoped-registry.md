@@ -3,6 +3,7 @@ type: task
 status: todo
 area: refactor
 priority: medium
+wiki: "[[AI & Narration/Agent Engine]]"
 ---
 
 # task-491: Single source of truth for action verbs (scoped registry)

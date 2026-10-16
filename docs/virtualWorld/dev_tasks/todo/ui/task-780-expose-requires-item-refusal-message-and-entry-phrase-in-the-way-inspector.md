@@ -3,6 +3,7 @@ type: task
 status: todo
 area: ui
 priority: medium
+wiki: "[[World Building/Ways]]"
 ---
 
 # task-780: Expose requires_item, refusal_message and entry_phrase in the way inspector

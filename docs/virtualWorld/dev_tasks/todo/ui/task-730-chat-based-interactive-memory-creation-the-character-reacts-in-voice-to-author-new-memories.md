@@ -3,6 +3,7 @@ type: task
 status: todo
 area: ui
 priority: medium
+wiki: "[[AI & Narration/Memory System]]"
 ---
 
 # task-730: Chat-based interactive memory creation: the character reacts in voice to author new memories

@@ -3,6 +3,7 @@ type: bug
 status: todo
 area: world
 priority: medium
+wiki: "[[World Building/Ways]]"
 ---
 
 # bug-547: broken way state is half-implemented

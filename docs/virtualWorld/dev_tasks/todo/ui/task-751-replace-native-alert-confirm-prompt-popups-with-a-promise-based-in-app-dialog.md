@@ -1,6 +1,6 @@
 ---
 type: task
-status: inprogress
+status: todo
 area: ui
 priority: medium
 ---
@@ -122,3 +122,7 @@ This section defines the intended access point and acceptance path. It is not a 
 ## Files
 
 - TODO
+
+## Audit note (2026-10-16)
+
+Moved from inprogress back to todo: it was not being worked. No uncommitted changes in the working tree or in any of the eight git worktrees touch this card's files, and nobody is editing it. 4 of 5 acceptance boxes checked. static/js/shared/dialog.ts and the blueprint pilot are committed (c5034257, 2026-10-09). The open box is the bulk migration of about 48 native alert/confirm/prompt call sites, and nothing has touched it since.

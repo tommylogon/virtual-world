@@ -4,6 +4,7 @@ status: todo
 area: library
 priority: high
 related: [task-446, task-619, task-665, task-660]
+wiki: "[[Library System/Library System Overview]]"
 ---
 
 # task-667: Library entries are keyed by filename, so a display string is the primary key

@@ -3,6 +3,7 @@ type: task
 status: inprogress
 area: world
 priority: medium
+wiki: "[[World Building/WorldPainter]]"
 ---
 
 # task-745: WorldPainter hazards: a current/strength paint layer plus a hazards.json category table

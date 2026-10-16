@@ -669,6 +669,10 @@ const HumanTurnComposerModule = (() => {
     /** The engine calls this once the turn (and react) is done. */
     function closeTurn() {
         hidePanel();
+        // Invalidate the scene cache so the next turn fetches fresh data.
+        if (htcGlobals.TurnSceneView && typeof htcGlobals.TurnSceneView.invalidateCache === 'function') {
+            htcGlobals.TurnSceneView.invalidateCache();
+        }
     }
 
     return { request, react, closeTurn };
@@ -682,6 +686,7 @@ const htcGlobals = window as unknown as {
         menu(x: number, y: number, title: string, buttons: unknown[], onPick: (parts: any) => void): void;
         fetch(charName: string): Promise<any>;
         renderScene(host: HTMLElement, scene: any, opts: Record<string, unknown>): void;
+        invalidateCache?(charName?: string): void;
     };
     TurnYouStrip?: { render(host: HTMLElement, you: any, handlers: Record<string, unknown>): void };
     TurnMinimap?: { mount(host: HTMLElement, charName: string): Promise<void> };

@@ -165,7 +165,7 @@ the agent decide phase and the human-turn reply path. It was previously logged a
 
 ## Related
 
-- [[dev_tasks/review/ui/task-340-event-stream-v2|task-340: Event stream v2]]
+- [[task-340-event-stream-v2|task-340: Event stream v2]]
 - [[dev_tasks/todo/testing/task-347-export-log-lint-guards|task-347: Export log lint guards]]
 
 <!-- connected:start -->

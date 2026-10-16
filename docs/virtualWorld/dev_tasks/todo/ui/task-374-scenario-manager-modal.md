@@ -1,8 +1,9 @@
 ---
 type: task
-status: inprogress
+status: todo
 area: ui
 priority: medium
+wiki: "[[Scenario Workflows & UI Audit]]"
 ---
 
 # task-374: scenario-manager-modal
@@ -96,3 +97,20 @@ This section defines the intended access point and acceptance path. It is not a 
 - `static/js/ui/` — the modal (new).
 - `templates/index.html`.
 - `tests/`.
+
+## Audit note (2026-10-16)
+
+Moved from inprogress back to todo: it was not being worked. No uncommitted changes in the working tree or in any of the eight git worktrees touch this card's files, and nobody is editing it. The card itself says 'Not started (card complete; no implementation yet)'; 0 of its acceptance boxes are checked and no commit references it. static/js/ui/scenario-manager.ts already exists (last commit 2026-10-02); check what it covers before building a second manager.
+
+## What already exists (2026-10-16)
+
+`static/js/ui/scenario-manager.ts` (`ScenarioManager`, opened from Game > Scenario Manager, `templates/index.html:54`) already implements most of this card, so "Not started" on the card is wrong. Read from source on 2026-10-16; it was not exercised live.
+
+- Lists every scenario from `GET /api/scenarios` with area count, character count, file size and age. Also has a name/path search and Modified / Health / Characters / Areas filters (task-598 and task-641, both done). Acceptance 1 is met in source.
+- Open loads the scenario through `POST /api/load` with `persist=true` and tells the user Undo restores the previous world. There is no preview step; the task-369 import preview is not reused here. Gap.
+- Audit posts the scenario file to `POST /api/import/audit` and reports the issue count by severity as a toast and a console line. Issue details are not shown in the UI. Whether the audit route is free of side effects on the live world was not checked.
+- Duplicate, Rename and Delete are wired to `POST /api/scenarios/<name>/duplicate`, `POST .../rename` and `DELETE /api/scenarios/<name>` (`routes/saveload.py:869-916`). Rename uses native `prompt()` and Delete uses native `confirm()`, which task-751 plans to replace.
+- Clone the current world into a new scenario is not in this module; Duplicate copies an existing file only. Other modules were not searched for a save-as path, so check before building one.
+- No new storage format: met.
+
+Related: `static/js/ui/scenario-health.ts` (task-385) lists the same files from the same endpoint, so two surfaces already sit over `/api/scenarios`.

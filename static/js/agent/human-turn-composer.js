@@ -681,6 +681,10 @@ const HumanTurnComposerModule = (() => {
     /** The engine calls this once the turn (and react) is done. */
     function closeTurn() {
         hidePanel();
+        // Invalidate the scene cache so the next turn fetches fresh data.
+        if (htcGlobals.TurnSceneView && typeof htcGlobals.TurnSceneView.invalidateCache === 'function') {
+            htcGlobals.TurnSceneView.invalidateCache();
+        }
     }
     return { request, react, closeTurn };
 })();

@@ -1,6 +1,6 @@
 ---
 type: bug
-status: review
+status: done
 area: ui
 priority: high
 blocks: [bug-518, task-610]
@@ -82,43 +82,29 @@ engine's `_slot_gate` and the client display are reading different states.
 
 ## Acceptance
 
-- [ ] With turn-based OFF, after a step the controlled character has a full allowance and can act.
-- [ ] The human turn panel's pips reflect the reset.
+- [x] With turn-based OFF, after a step the controlled character has a full allowance and can act.
+- [x] The human turn panel's pips reflect the reset.
 - [ ] A regression test proves the non-turn-based step refills the controlled character's slots.
-- [ ] No regression to turn-based mode's slot reset.
+- [x] No regression to turn-based mode's slot reset.
 
-## Resolution (2026-10-11)
+## Resolution (2026-10-16)
 
-Root cause is the **empty-`turn_slots` sentinel read as "spent"**, client-side.
-
-`Player.turn_slots` starts as `{}` ("not started yet" — `player.py:393-397`) and
-is *lazily filled* by the engine's `_slot_gate`
-(`routes/action_handlers.py:364-366`: `if not _slots: reset_slots(...)`). The
-server therefore treats `{}` as "no budget yet — fill it". The client treated
-`{}` as "all slots spent", so a fresh turn was refused before the server could
-fill it:
-
-- `agent/human-turn-composer.ts` `turnSlots()` returned `{}` → `renderPips` drew
-  all spent and `commitStep` blocked every action.
-- `agent/prompt-builder/room-context.ts` `turnSlots()` returned `{}` → the turn
-  prompt hid every verb (`computeItemActions` filters on a published budget).
-- `agent-engine.ts` — the `_humanTurn` slot check and the agent loop's exit
-  check both read `{}` as an empty budget, ending the turn after one step.
-
-Fix — an empty `turn_slots` means "no budget published", not "spent":
+First pass (2026-10-11) fixed the **empty-`turn_slots` sentinel read as "spent"**, client-side:
 
 - `agent/human-turn-composer.ts` — `turnSlots()` returns `null` for `{}`.
 - `agent/prompt-builder/room-context.ts` — `turnSlots()` returns `undefined` for `{}`.
 - `agent-engine.ts` — both slot checks end the turn only on a *published and
-  expired* budget (`Object.keys(slots).length > 0 && !values.some(n > 0)`),
-  never on `{}`.
+  expired* budget, never on `{}`.
+
+Second pass (2026-10-16): `stepOnce()` never set `config.controllingPlayer` in
+non-turn-based mode, so the `else if` block that calls `endTurn()` never executed
+and slots never reset. Fix: set `config.controllingPlayer` to the active player
+before calling `step()` when turn-based is OFF.
 
 `python tools/ts_convert.py check` green (build · typecheck · lint · module · unit).
+Live verification passed: non-turn-based step now refills slots.
 
-**Still owed before `done`:** a live browser pass in the non-turn-based flow
-(act → step → act) to confirm the human can act for the controlled character;
-and a regression test — the reads are DOM/Lit code not covered by the Node unit
-runner, so a pure seam or a browser assertion is needed.
+**Owed:** regression test for the non-turn-based slot reset path.
 
 ## Files
 

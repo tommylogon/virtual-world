@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo
+status: inprogress
 area: characters
 priority: high
 related: [task-316, task-446, bug-549]
