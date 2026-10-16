@@ -4,12 +4,17 @@ status: todo
 area: ui
 priority: medium
 wiki: "[[UI & Settings/Settings & Configuration]]"
+blocked_by: [task-751]
 ---
 
 # task-455: Save-load dialog UX: in-modal rename and confirms, autosave row actions
 
 **Filed:** 2026-09-22
 **Related:** task-369, bug-40, bug-42
+
+<!-- deps:start -->
+**Blocked by:** [[task-751-replace-native-alert-confirm-prompt-popups-with-a-promise-based-in-app-dialog]]
+<!-- deps:end -->
 
 ## What
 

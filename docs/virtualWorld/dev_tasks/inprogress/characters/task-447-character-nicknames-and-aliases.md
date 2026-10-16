@@ -3,7 +3,7 @@ type: task
 status: inprogress
 area: characters
 priority: medium
-blocked_by: [task-457]
+blocked_by: [bug-523]
 ---
 
 # task-447: Character nicknames / aliases (authoring + resolution)
@@ -13,7 +13,7 @@ blocked_by: [task-457]
 `engine/matching.py` (character alias tier), `engine/serialization.py`
 
 <!-- deps:start -->
-**Blocked by:** [[task-457-character-nodes-are-the-canonical-character-record-human-agent-simple-npc]]
+**Blocked by:** [[bug-523-plan-grounding-facts-use-unmasked-real-names-leaking-strangers-and-rejecting-targets-the-room-showed]]
 <!-- deps:end -->
 
 ## Why

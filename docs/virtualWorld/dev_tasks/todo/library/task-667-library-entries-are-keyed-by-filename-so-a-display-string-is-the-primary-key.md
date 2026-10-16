@@ -5,6 +5,7 @@ area: library
 priority: high
 related: [task-446, task-619, task-665, task-660]
 wiki: "[[Library System/Library System Overview]]"
+blocked_by: [task-619]
 ---
 
 # task-667: Library entries are keyed by filename, so a display string is the primary key
@@ -13,6 +14,7 @@ wiki: "[[Library System/Library System Overview]]"
 **Related:** task-446 (in progress), task-619, task-665, task-660
 
 <!-- deps:start -->
+**Blocked by:** [[task-619-relationships-stored-in-two-shapes-in-one-field-keyed-by-display-name]]
 **Related:** [[task-446-id-first-node-identity]], [[task-619-relationships-stored-in-two-shapes-in-one-field-keyed-by-display-name]], [[task-665-kraktooth-cast-rework-is-half-migrated-in-the-working-tree-5-staged-renames-4-un-migrated-duplicate-merchant-entry-7-descriptions-claiming-nonexistent-items]], [[task-660-auto-dress-from-interests-is-deterministic-tag-matching-not-llm-driven-button-and-help-text-imply-otherwise]]
 <!-- deps:end -->
 

@@ -4,6 +4,7 @@ status: todo
 area: library
 priority: medium
 related: [task-751]
+blocked_by: [task-751]
 ---
 
 # bug-538: Placing a way from the Library asks for the target in a window.prompt, with no picker and no way to find the node id
@@ -12,6 +13,7 @@ related: [task-751]
 **Related:** 
 
 <!-- deps:start -->
+**Blocked by:** [[task-751-replace-native-alert-confirm-prompt-popups-with-a-promise-based-in-app-dialog]]
 **Related:** [[task-751-replace-native-alert-confirm-prompt-popups-with-a-promise-based-in-app-dialog]]
 <!-- deps:end -->
 

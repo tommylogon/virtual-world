@@ -3,12 +3,17 @@ type: task
 status: inprogress
 area: library
 priority: medium
+blocked_by: [task-667]
 ---
 
 # task-646: Rename space-separated registry ids (52 total) and resolve the hidden door collision
 
 **Filed:** 2026-09-30
 **Related:** [task-601]
+
+<!-- deps:start -->
+**Blocked by:** [[task-667-library-entries-are-keyed-by-filename-so-a-display-string-is-the-primary-key]]
+<!-- deps:end -->
 
 ## What
 

@@ -3,7 +3,7 @@ type: task
 status: todo
 area: testing
 priority: medium
-blocked_by: [task-397, task-401]
+blocked_by: [task-401]
 ---
 
 # task-402: Large-world projection and indexing benchmark
@@ -12,7 +12,7 @@ blocked_by: [task-397, task-401]
 **Depends on:** task-397. Extend after task-401 when real chunk loading exists.
 
 <!-- deps:start -->
-**Blocked by:** [[task-397-world-scope-hierarchy-and-projection]], [[task-401-chunk-persistence-and-gateway-ways]]
+**Blocked by:** [[task-401-chunk-persistence-and-gateway-ways]]
 <!-- deps:end -->
 
 ## What

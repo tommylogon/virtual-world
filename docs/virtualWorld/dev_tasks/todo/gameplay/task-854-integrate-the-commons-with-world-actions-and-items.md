@@ -5,6 +5,7 @@ area: gameplay
 priority: medium
 wiki: "[[Gameplay/The Commons]]"
 parent: task-824
+blocked_by: [task-824]
 ---
 
 # task-854: Integrate The Commons with world actions and items
@@ -15,6 +16,7 @@ parent: task-824
 **Parent:** task-824
 
 <!-- deps:start -->
+**Blocked by:** [[task-824-the-commons-shared-character-minds-channels-groups-and-direct-messages]]
 **Parent:** [[task-824-the-commons-shared-character-minds-channels-groups-and-direct-messages]]
 <!-- deps:end -->
 

@@ -5,7 +5,7 @@ area: world
 priority: high
 wiki: "[[World Building/World Scopes|World Scopes]]"
 related: [task-401, task-402, task-715, bug-545, bug-536]
-blocked_by: [task-581, task-582, task-583, task-584]
+blocked_by: [bug-536, bug-545, task-715]
 ---
 
 # task-855: Character-focused runtime state scales by scope, not world size
@@ -14,7 +14,7 @@ blocked_by: [task-581, task-582, task-583, task-584]
 **Related:** task-401, task-402, task-715, bug-545, bug-536
 
 <!-- deps:start -->
-**Blocked by:** [[task-581-stable-area-ids-and-one-authoritative-location-for-characters-and-items]], [[task-582-chunk-load-unload-and-merge-apis-on-worldgraph]], [[task-583-global-scope-index-gateway-ways-and-load-before-you-move]], [[task-584-cross-chunk-ownership-rules-for-carried-items-triggers-and-delayed-events]]
+**Blocked by:** [[bug-536-get-read-paths-race-mutating-requests-on-the-shared-graph]], [[bug-545-worldpainter-paint-is-seconds-per-cell-every-single-cell-paint-serializes-the-whole-world-for-undo-then-rebuilds-the-full-payload]], [[task-715-live-update-transport-will-not-scale-to-multiple-clients-sse-per-tab-1-5s-full-state-poll]]
 **Related:** [[task-401-chunk-persistence-and-gateway-ways]], [[task-402-world-scale-projection-benchmark]], [[task-715-live-update-transport-will-not-scale-to-multiple-clients-sse-per-tab-1-5s-full-state-poll]], [[bug-545-worldpainter-paint-is-seconds-per-cell-every-single-cell-paint-serializes-the-whole-world-for-undo-then-rebuilds-the-full-payload]], [[bug-536-get-read-paths-race-mutating-requests-on-the-shared-graph]]
 <!-- deps:end -->
 

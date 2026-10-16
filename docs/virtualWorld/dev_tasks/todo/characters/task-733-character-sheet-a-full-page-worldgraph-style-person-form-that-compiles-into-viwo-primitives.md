@@ -3,12 +3,17 @@ type: task
 status: todo
 area: characters
 priority: medium
+blocked_by: [task-457]
 ---
 
 # task-733: Character sheet: a full-page WorldGraph-style person form that compiles into ViWo primitives
 
 **Filed:** 2026-10-08
 **Related:** task-507, task-673, task-675, task-690, task-724, task-404, task-447
+
+<!-- deps:start -->
+**Blocked by:** [[task-457-character-nodes-are-the-canonical-character-record-human-agent-simple-npc]]
+<!-- deps:end -->
 
 ## What
 

@@ -5,6 +5,7 @@ area: characters
 priority: high
 related: [task-403, task-417, task-423, task-699, task-702, task-704, task-814]
 wiki: "[[Characters/Background Simulation]]"
+blocked_by: [task-701]
 ---
 
 # task-409: Background schedules, daily reflection, and coarse social behaviour
@@ -14,6 +15,7 @@ wiki: "[[Characters/Background Simulation]]"
 **Design:** [[Character Pursuits]], [[MOSIAC]], and [[GIMP]].
 
 <!-- deps:start -->
+**Blocked by:** [[task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries]]
 **Related:** [[task-403-unified-agent-memory-and-knowledge]], [[task-417-co-presence-gate-for-coarse-meetings]], [[task-423-background-social-interactions]], [[task-699-mosiac-design-doc-schedules-plan-templates-and-recipe-activities-as-one-decision-layer]], [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]], [[task-704-mosiac-selector-needs-memory-and-personality-choose-and-bind-plans]], [[task-814-mosiac-schedules-a-character-can-edit-themselves]]
 <!-- deps:end -->
 

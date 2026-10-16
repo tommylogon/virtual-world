@@ -3,7 +3,7 @@ type: task
 status: todo
 area: world
 priority: medium
-blocked_by: [task-746, task-745]
+blocked_by: [task-746]
 wiki: "[[World Building/WorldPainter]]"
 ---
 
@@ -13,7 +13,7 @@ wiki: "[[World Building/WorldPainter]]"
 **Related:** task-496 task-525 task-529 task-745
 
 <!-- deps:start -->
-**Blocked by:** [[task-746-a-single-roll-hazard-effect-one-check-branch-forced-move-and-a-sweep-guard-against-cascades]], [[task-745-worldpainter-hazards-a-current-strength-paint-layer-plus-a-hazards-json-category-table]]
+**Blocked by:** [[task-746-a-single-roll-hazard-effect-one-check-branch-forced-move-and-a-sweep-guard-against-cascades]]
 <!-- deps:end -->
 
 ## What

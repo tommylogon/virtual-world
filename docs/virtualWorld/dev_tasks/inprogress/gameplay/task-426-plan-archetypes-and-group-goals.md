@@ -4,7 +4,7 @@ status: inprogress
 related: [task-704, task-701, task-807, task-810]
 area: gameplay
 priority: medium
-blocked_by: [task-403, task-409, task-417]
+blocked_by: [task-701]
 wiki: "[[Characters/Background Simulation]]"
 ---
 
@@ -17,7 +17,7 @@ wiki: "[[Characters/Background Simulation]]"
 **Relates:** task-425 (novelty), task-410 (sources to gather from).
 
 <!-- deps:start -->
-**Blocked by:** [[task-403-unified-agent-memory-and-knowledge]], [[task-409-background-schedules-work-and-coarse-social]], [[task-417-co-presence-gate-for-coarse-meetings]]
+**Blocked by:** [[task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries]]
 **Related:** [[task-704-mosiac-selector-needs-memory-and-personality-choose-and-bind-plans]], [[task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries]], [[task-807-gimp-the-goal-model-and-its-serialization]], [[task-810-gimp-the-goal-graph-links-blocks-and-chaining]]
 <!-- deps:end -->
 

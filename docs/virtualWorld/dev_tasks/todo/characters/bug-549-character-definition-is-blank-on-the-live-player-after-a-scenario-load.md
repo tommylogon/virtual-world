@@ -4,12 +4,17 @@ status: todo
 area: characters
 priority: high
 wiki: "[[Character Pursuits]]"
+blocked_by: [task-457]
 ---
 
 # bug-549: Character definition is blank on the live Player after a scenario load
 
 **Filed:** 2026-10-12
 **Related:**
+
+<!-- deps:start -->
+**Blocked by:** [[task-457-character-nodes-are-the-canonical-character-record-human-agent-simple-npc]]
+<!-- deps:end -->
 
 ## What
 

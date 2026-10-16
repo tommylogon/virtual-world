@@ -4,6 +4,7 @@ status: inprogress
 area: graph
 priority: high
 related: [task-526, task-548, task-527, bug-528, bug-529, task-618, task-723]
+blocked_by: [task-526, task-548, bug-528, task-618, task-723]
 ---
 
 # task-748: Map spacing refactor: derive pitch from the marks, fix mark sizes, stretch the image to the grid
@@ -12,6 +13,7 @@ related: [task-526, task-548, task-527, bug-528, bug-529, task-618, task-723]
 **Related:** task-526 task-548 task-527 bug-528 bug-529 task-618 task-723
 
 <!-- deps:start -->
+**Blocked by:** [[task-526-map-rendering-scale-dots-vs-cards-at-low-spacing-auto-spacing]], [[task-548-map-drawing-scales-with-the-pitch-node-sizes-item-offsets-item-rings-and-the-solver-spring]], [[bug-528-map-label-lod-gates-on-raw-zoom-scale-so-names-stay-hidden-on-a-high-pitch-map]], [[task-618-map-mode-draws-four-scattered-images-with-edges-over-nothing]], [[task-723-calculate-way-node-coordinates-between-areas-in-map-mode]]
 **Related:** [[task-526-map-rendering-scale-dots-vs-cards-at-low-spacing-auto-spacing]], [[task-548-map-drawing-scales-with-the-pitch-node-sizes-item-offsets-item-rings-and-the-solver-spring]], [[task-527-graph-steady-state-performance-on-a-large-painted-map-profile-fix]], [[bug-528-map-label-lod-gates-on-raw-zoom-scale-so-names-stay-hidden-on-a-high-pitch-map]], [[bug-529-worldpainter-compiled-ways-carry-no-tags-so-every-generated-way-reads-tags-none]], [[task-618-map-mode-draws-four-scattered-images-with-edges-over-nothing]], [[task-723-calculate-way-node-coordinates-between-areas-in-map-mode]]
 <!-- deps:end -->
 
