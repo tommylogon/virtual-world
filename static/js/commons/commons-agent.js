@@ -142,21 +142,25 @@
                     .map((line) => `- ${line}`)
                     .join('\n') || '- No relevant memories recalled.';
                 const channels = phone.channels || [];
-                const knownCharacters = Object.keys(phone.participants || {})
-                    .filter((name) => name !== charName && name !== 'User');
+                const theme = phone.theme === 'town_board' ? 'town_board' : 'live_social';
+                const knownCharacters = Array.isArray(phone.known_characters)
+                    ? phone.known_characters.filter((name) => typeof name === 'string' && name !== charName && name !== 'User')
+                    : [];
                 const promptBuilder = window.PromptBuilder;
                 const responseParser = window.ResponseParser;
                 if (typeof promptBuilder?.buildCommunicationPrompt !== 'function'
                     || typeof responseParser?.parseCommunication !== 'function') {
                     throw new Error('Shared character prompt/parser modules are unavailable');
                 }
-                const userPrompt = promptBuilder.buildCommunicationPrompt(player, memoryText, channels, knownCharacters);
+                const userPrompt = promptBuilder.buildCommunicationPrompt(player, memoryText, channels, knownCharacters, theme);
                 if (!llm || typeof llm.chat !== 'function')
                     throw new Error('LLM client is not available');
                 const reply = await llm.chat([
                     {
                         role: 'system',
-                        content: 'Use the existing character identity and state in the user context. This is a phone communication turn: only choose a communication action. Do not claim messages you have not explicitly read.',
+                        content: theme === 'town_board'
+                            ? 'Use the existing character identity and state in the user context. This is a town-board and private-letter turn within The Commons: only choose a communication action. Do not invent physical delivery or claim messages you have not explicitly read.'
+                            : 'Use the existing character identity and state in the user context. This is a phone communication turn: only choose a communication action. Do not claim messages you have not explicitly read.',
                     },
                     { role: 'user', content: userPrompt },
                 ], {
@@ -192,6 +196,18 @@
                         creator: charName,
                         kind: 'dm',
                         other: decision.recipient,
+                    }, signal);
+                    await api.postMessage(charName, decision.text, result.channel.id, signal);
+                }
+                else if (decision.action === 'start_group' && decision.groupName
+                    && theme !== 'town_board'
+                    && decision.recipients.length > 0 && decision.text
+                    && decision.recipients.every((name) => name !== charName && knownCharacters.includes(name))) {
+                    const result = await api.createChannel({
+                        creator: charName,
+                        kind: 'group',
+                        name: decision.groupName,
+                        members: [charName, ...decision.recipients],
                     }, signal);
                     await api.postMessage(charName, decision.text, result.channel.id, signal);
                 }

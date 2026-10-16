@@ -18,11 +18,14 @@ shared transcript; it does not create another character or memory store.
 
 The Commons saves its conversations, memberships, messages, and read state with
 the world. It starts paused, so opening it does not begin autonomous character
-turns. The current presentation is text chat. Setting-specific styles such as
-letters, radio messages, or voice calls are planned separately in
-[[dev_tasks/todo/gameplay/task-827-setting-aware-communication-themes-for-the-commons|task-827]].
-The remaining autonomous decision/action integration is tracked in
-[[dev_tasks/inprogress/gameplay/task-824-the-commons-shared-character-minds-channels-groups-and-direct-messages|task-824]].
+turns. Scenarios can choose Live social or Town board & letters; the latter
+presents public notices and private letters while disabling group chats. Both
+are immediate Commons communication, not simulated physical delivery. Agent
+group creation and setting-aware presentation are tracked in
+[[task-853-let-agents-create-private-groups-and-invite-chosen-characters|task-853]]
+and [[task-827-setting-aware-communication-themes-for-the-commons|task-827]].
+Standard world-turn and item/world integration is separate follow-up work in
+[[task-854-integrate-the-commons-with-world-actions-and-items|task-854]].
 
 The Commons is the new name for the feature formerly called “Stage Chat.”
 

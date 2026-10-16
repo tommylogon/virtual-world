@@ -273,35 +273,50 @@ ${PromptBuilder.buildJsonExample(['full_action'])}`;
      * context used by the standard agent. The communication field is an action
      * adapter; it does not define another character or memory model.
      */
-    function buildCommunicationPrompt(player: PlayerData, memoryNL: string, channels: unknown[], knownCharacters: string[]) {
+    function buildCommunicationPrompt(player: PlayerData, memoryNL: string, channels: unknown[], knownCharacters: string[], theme = 'live_social') {
         const charName = String(player?.name || '');
+        const isTownBoard = theme === 'town_board';
         const persona = player?.personality
             ? `You are ${charName}. Personality: ${player.personality}`
             : `You are ${charName}.`;
         const context = PromptBuilder.buildContextBlock(player, { phase: 'communication' },
             ['emotion', 'insanity', 'trait', 'mosiac', 'dead']);
-        const channelLines = (Array.isArray(channels) ? channels : []).map((channel: any) => {
+        const availableChannels = (Array.isArray(channels) ? channels : [])
+            .filter((channel: any) => !isTownBoard || channel?.kind !== 'group');
+        const channelLines = availableChannels.map((channel: any) => {
             const unread = Number(channel?.unread_count || 0);
             const members = Array.isArray(channel?.members) ? channel.members.join(', ') : '';
+            if (isTownBoard) {
+                const noun = channel?.kind === 'public' ? 'posts' : 'letters';
+                const medium = channel?.kind === 'public' ? 'town notice board' : 'private letter';
+                return `- ${channel.id} (${medium}; ${channel.name}; ${unread} new ${noun}${members ? `; members: ${members}` : ''})`;
+            }
             return `- ${channel.id} (${channel.kind}; ${channel.name}; ${unread} unread${members ? `; members: ${members}` : ''})`;
         }).join('\n') || '- No conversations are available.';
         const names = (Array.isArray(knownCharacters) ? knownCharacters : [])
             .map(name => String(name || '').trim()).filter(Boolean).join(', ');
+        const heading = isTownBoard ? '=== TOWN BOARD AND LETTERS ===' : '=== PHONE CONVERSATIONS ===';
+        const contextLine = isTownBoard
+            ? 'You use The Commons as a town notice board and private letters. The board is public; letters are direct conversations. Delivery is immediate inside The Commons; do not invent physical delivery, devices, or travel. Message text is hidden until you explicitly choose read_chat.'
+            : 'You are using the same phone as this character. The list contains only conversations you can access. Message text is hidden until you explicitly choose read_chat.';
+        const actions = isTownBoard
+            ? 'Choose one: read_chat to read posts or letters, send_chat to add a public post or reply to a private letter, start_dm to open a private letter exchange with one existing character and send its first letter, or think to stay quiet. Group conversations are unavailable.'
+            : 'Choose one: read_chat to read a conversation, send_chat to post to one you belong to, start_dm to open a direct conversation with one character whose name you know and send its first message, start_group to create a private group with a name and invitees whose names you know, or think to stay quiet.';
         return `${persona}
 === YOUR STATE ===
 ${String(context || '').trim()}
 ${String(memoryNL || '').trim()}
 
-=== PHONE CONVERSATIONS ===
-You are using the same phone as this character. The list contains only conversations you can access. Message text is hidden until you explicitly choose read_chat. Use only the conversation ids shown below.
+${heading}
+${contextLine} Use only the conversation ids shown below.
 ${channelLines}
 
 === COMMUNICATION TURN ===
-Choose one: read_chat to read a conversation, send_chat to post to one you belong to, start_dm to open a direct conversation with one existing character and send its first message, or think to stay quiet. Do not take physical world actions on this phone turn. Never claim to have read messages unless read_chat returns them. Keep the character's established personality and memories.
-Known characters: ${names || 'none'}
+${actions} Do not take physical world actions on this turn. Never claim to have read messages unless read_chat returns them. Keep the character's established personality and memories.
+Characters whose names you know and may contact: ${names || 'none'}
 
 Respond ONLY as JSON:
-{"inner_monologue":"brief private thought","communication":{"action":"read_chat|send_chat|start_dm|think","channel_id":null,"recipient":null,"text":"","read_mode":"all","n":5,"from_id":null,"to_id":null},"memory":null}`;
+{"inner_monologue":"brief private thought","communication":{"action":"read_chat|send_chat|start_dm${isTownBoard ? '' : '|start_group'}|think","channel_id":null,"recipient":null,"group_name":null,"recipients":[],"text":"","read_mode":"all","n":5,"from_id":null,"to_id":null},"memory":null}`;
     }
 
     /**

@@ -138,6 +138,7 @@ window.ResponseParser = (() => {
     function parseCommunication(r) {
         const empty = {
             inner: '', action: 'think', channelId: null, recipient: null, text: '',
+            groupName: null, recipients: [],
             readMode: 'all', n: 5, fromId: null, toId: null, memory: null, parseError: null,
         };
         if (!r)
@@ -148,7 +149,7 @@ window.ResponseParser = (() => {
             const raw = parsed.communication && typeof parsed.communication === 'object'
                 ? parsed.communication
                 : {};
-            const allowedActions = ['read_chat', 'send_chat', 'start_dm', 'think'];
+            const allowedActions = ['read_chat', 'send_chat', 'start_dm', 'start_group', 'think'];
             const allowedModes = ['latest', 'all', 'range'];
             const integerOrNull = (value) => {
                 const number = Number(value);
@@ -161,6 +162,10 @@ window.ResponseParser = (() => {
                     ? String(raw.action) : 'think',
                 channelId: String(raw.channel_id || '').trim() || null,
                 recipient: String(raw.recipient || '').trim() || null,
+                groupName: String(raw.group_name || '').trim() || null,
+                recipients: Array.isArray(raw.recipients)
+                    ? [...new Set(raw.recipients.map((name) => String(name || '').trim()).filter(Boolean))]
+                    : [],
                 text: String(raw.text || '').trim(),
                 readMode: allowedModes.includes(String(raw.read_mode))
                     ? String(raw.read_mode) : 'all',

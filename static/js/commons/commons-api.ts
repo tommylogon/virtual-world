@@ -17,6 +17,16 @@
             return await res.json();
         }
 
+        static async setTheme(theme: string) {
+            const res = await fetch('/api/commons/theme', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ theme }),
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return await res.json();
+        }
+
         static async getMessages(as: string, channelId: string, sinceId?: number) {
             const params = new URLSearchParams({ as, channel_id: channelId });
             if (sinceId) params.set('since_id', String(sinceId));

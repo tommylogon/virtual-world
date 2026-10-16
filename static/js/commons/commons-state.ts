@@ -21,6 +21,7 @@
         static pollingTimer: any = null;
         static perspective = 'User';
         static selectedChannelId = 'public';
+        static theme = 'live_social';
 
         static get isPaused(): boolean {
             return this.manualPaused || this.visibilityPaused;
@@ -41,6 +42,7 @@
                 const data = await (window as any).CommonsApi.getState(this.perspective);
                 this.channels = data.channels || [];
                 this.participants = data.participants || {};
+                this.theme = data.theme === 'town_board' ? 'town_board' : 'live_social';
                 if (!this.channels.some((channel: any) => channel.id === this.selectedChannelId)) {
                     this.selectedChannelId = this.channels[0]?.id || '';
                     this.messages = [];
@@ -65,6 +67,11 @@
             this.perspective = name || 'User';
             this.messages = [];
             this.selectedChannelId = 'public';
+            await this.sync();
+        }
+
+        static async selectTheme(theme: string) {
+            await (window as any).CommonsApi.setTheme(theme);
             await this.sync();
         }
 
