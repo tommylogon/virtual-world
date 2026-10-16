@@ -329,6 +329,7 @@ class UIController {
     selectAgent(name) {
         if (!worldState.players?.[name])
             return;
+        worldState.setRuntimeFocusForCharacter(name);
         // Open the inspector from the state we ALREADY hold. This used to await
         // `setActivePlayer` and then a full `worldState.fetch()` before showing
         // anything, so on a large world (kraktooth: 2763 nodes, ~14 MB

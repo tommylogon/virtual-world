@@ -223,6 +223,28 @@ class WorldSerializer:
                 continue
             node.properties["actions"] = normalize_item_actions(raw)
 
+    def _serialize_area(self, area_id):
+        node = self.graph.get_node(area_id)
+        if node is None or node.type != "area":
+            return None
+        env = node.properties.get("environment", {})
+        ambient = self.player_manager.lighting.get_ambient_light(node.id, env)
+        return {
+            "id": node.id,
+            "name": node.name,
+            "description": node.properties.get("description", ""),
+            "environment": env,
+            "ambient_light": ambient,
+            "light_description": self.player_manager.lighting.light_to_level(ambient),
+            "exits": self.player_manager.build_exits_for_area(node.id),
+            "exits_authoring": self.player_manager.build_exits_for_area(
+                node.id, include_hidden=True),
+            "items": [],
+            "floor": node.properties.get("floor", 0),
+            "surface": node.properties.get("surface", ""),
+            "properties": node.properties,
+        }
+
     def _serialize_player(self, pname, p, lite=False):
         # Character *definition* (personality, appearance prose) lives on the
         # character node's `properties` — the single persisted home. The Player
@@ -406,27 +428,7 @@ class WorldSerializer:
             # consumer that can address an area by id should read this map.
             for node in self.graph.nodes.values():
                 if node.type == "area":
-                    env = node.properties.get("environment", {})
-                    ambient = self.player_manager.lighting.get_ambient_light(node.id, env)
-                    record = {
-                        "id": node.id,
-                        "name": node.name,
-                        "description": node.properties.get("description", ""),
-                        "environment": env,
-                        "ambient_light": ambient,
-                        "light_description": self.player_manager.lighting.light_to_level(ambient),
-                        # Pass the id: exits are the graph's (task-439 resolves it),
-                        # and a duplicate display name cannot pick the wrong area.
-                        "exits": self.player_manager.build_exits_for_area(node.id),
-                        "exits_authoring": self.player_manager.build_exits_for_area(node.id, include_hidden=True),
-                        "items": [],
-                        # `floor` is the area's STOREY index (0 ground, 1 up, -1 down,
-                        # unbounded); `surface` is the ground material. They are two
-                        # different facts — see engine/world_grid.PAINT_LAYERS.
-                        "floor": node.properties.get("floor", 0),
-                        "surface": node.properties.get("surface", ""),
-                        "properties": node.properties
-                    }
+                    record = self._serialize_area(node.id)
                     areas_by_id[node.id] = record
                     # The name-keyed map stays because the live frontend reads
                     # worldState.areas[<area name>] / [player.current_area] (40+
@@ -470,6 +472,9 @@ class WorldSerializer:
             # frontend's _scenarioIdentity() — which gates the local
             # background-map cache — always sees null.
             "_scenario_name": getattr(self.legacy, "_scenario_name", None),
+            # Stable local storage identity keeps evicted scope chunks
+            # addressable when a savegame is adopted without its scenario path.
+            "_scope_store_id": getattr(self.legacy, "_scope_store_id", None),
             "world_lore": [] if lite else self.legacy.world_lore,
             # task-397: hierarchy manifest (authored), not a projection. Optional.
             "world_scopes": {} if lite else (getattr(self.legacy, "world_scopes", {}) or {}),
@@ -747,6 +752,7 @@ class WorldSerializer:
         # The scope index is derived from the authored graph + manifest, so a
         # scenario re-derives it on load rather than carrying a second copy.
         data.pop("world_index", None)
+        data.pop("_scope_store_id", None)
         data.pop("ways", None)
         data.pop("item_registry", None)
         # Omit an empty name rather than writing "": the load path tests
@@ -832,6 +838,7 @@ class WorldSerializer:
             or getattr(self.legacy, "_scenario_name", None)
             or ""
         )
+        self.legacy._scope_store_id = data.get("_scope_store_id") or None
         self.legacy.ghost_mode = data.get("ghost_mode", False)
         self.legacy.mature_content = data.get("mature_content", False)
         self.legacy.speech_log.clear()

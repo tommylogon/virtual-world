@@ -225,8 +225,8 @@ const HumanTurnComposerModule = (() => {
     }
     // ── turn budget ──────────────────────────────────────────────────
     function turnSlots() {
-        const players = worldState.players;
-        const slots = players && _charName ? players[_charName]?.turn_slots : null;
+        const player = _charName ? worldState.runtimePlayer(_charName) : null;
+        const slots = player?.turn_slots;
         if (!slots || typeof slots !== 'object')
             return null;
         // bug-544: `Player.turn_slots` starts as `{}` ("not started yet" —

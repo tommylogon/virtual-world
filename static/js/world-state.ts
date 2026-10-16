@@ -12,6 +12,17 @@
 class WorldState {
     /** Raw payload from /api/state; null until the first successful fetch. */
     declare data: any;
+    /** Separate, character-focused projection; never replaces the global/editor state. */
+    declare runtimeData: any;
+    /** Character IDs whose runtime projections should refresh on world_changed. */
+    declare _runtimeFocus: string[];
+    /** In-flight focused snapshot request. */
+    declare _runtimeInflight: Promise<any> | null;
+    /** A focused refresh was requested while one was in flight. */
+    declare _runtimeRefetchRequested: boolean;
+    /** Latest requested identity set and focus generation for stale-response rejection. */
+    declare _runtimeRequestIds: string[];
+    declare _runtimeGeneration: number;
     /** event name -> subscriber callbacks. */
     declare _listeners: Record<string, Array<(data?: any) => void>>;
     /** Spectator-mode poll handle; null when not polling. */
@@ -25,6 +36,12 @@ class WorldState {
 
     constructor() {
         this.data = null; // raw state from /api/state
+        this.runtimeData = null;
+        this._runtimeFocus = [];
+        this._runtimeInflight = null;
+        this._runtimeRefetchRequested = false;
+        this._runtimeRequestIds = [];
+        this._runtimeGeneration = 0;
         this._listeners = {};
         this._pollTimer = null;
         this._equipSlots = null;
@@ -82,6 +99,11 @@ class WorldState {
      *               when it arrives.
      */
     async fetch(lite = false) {
+        // While a live character turn owns runtime focus, every state refresh
+        // must use that character's current scope. Do not let secondary callers
+        // (or an SSE-triggered refresh) fall back to the whole-world endpoint.
+        if (this._runtimeFocus.length) return this.fetchRuntime();
+
         // Coalesce concurrent fetches into one. app.py broadcasts `world_changed`
         // for EVERY mutating /api/ call, so the SSE (connectLiveEdits) refetches
         // state AND the call site often fetches again — two full /api/state
@@ -112,6 +134,123 @@ class WorldState {
                 void this.fetch(false);
             }
         }
+    }
+
+    /** Set the live-turn working set; an empty list restores global refreshes. */
+    setRuntimeFocus(characterIds: string[]) {
+        const ids = [...new Set(characterIds.filter(Boolean))].sort();
+        if (ids.length === this._runtimeFocus.length
+                && ids.every((id, index) => id === this._runtimeFocus[index])) return;
+        this._runtimeFocus = ids;
+        this._runtimeGeneration += 1;
+        this.runtimeData = null;
+    }
+
+    setRuntimeFocusForCharacter(name?: string | null) {
+        const id = name ? this.players?.[name]?.id : null;
+        this.setRuntimeFocus(id ? [id] : []);
+    }
+
+    /** Fetch a character-scoped projection without mutating the global cache. */
+    async fetchRuntime(characterIds: string[] = this._runtimeFocus) {
+        const ids = [...new Set(characterIds.filter(Boolean))].sort();
+        if (!ids.length) throw new Error('A focused runtime snapshot requires a character ID.');
+        this._runtimeRequestIds = ids;
+        if (this._runtimeInflight) {
+            this._runtimeRefetchRequested = true;
+            return this._runtimeInflight;
+        }
+        this._runtimeInflight = (async () => {
+            let state: any;
+            do {
+                this._runtimeRefetchRequested = false;
+                const requestIds = this._runtimeRequestIds;
+                const generation = this._runtimeGeneration;
+                const query = requestIds.map(id => `character_id=${encodeURIComponent(id)}`).join('&');
+                const response = await fetch(`/api/runtime/state?${query}`);
+                state = await response.json();
+                if (!response.ok || state?.snapshot_type !== 'character_runtime') {
+                    throw new Error(state?.error || `Runtime state request failed (${response.status}).`);
+                }
+                if (generation === this._runtimeGeneration) {
+                    this.runtimeData = state;
+                    this.applyRuntimeSnapshot(state);
+                    this._emit('runtime:update', state);
+                    const bus = (window as unknown as { appEvents?: { emit(event: string, data?: unknown): void } }).appEvents;
+                    if (bus) bus.emit('runtime:updated', state);
+                }
+            } while (this._runtimeRefetchRequested);
+            return state;
+        })();
+        try {
+            return await this._runtimeInflight;
+        } finally {
+            this._runtimeInflight = null;
+        }
+    }
+
+    runtimePlayer(name: string) {
+        if (this._runtimeFocus.length) {
+            return this.runtimeData?.players?.[name] || null;
+        }
+        return this.runtimeData?.players?.[name] || this.data?.players?.[name] || null;
+    }
+
+    /** Patch the global/editor cache with the focused projection without refetching the world. */
+    applyRuntimeSnapshot(snapshot: any) {
+        const global = this.data;
+        if (!global || snapshot?.snapshot_type !== 'character_runtime') return false;
+
+        const graph = global.graph || (global.graph = { nodes: {}, edges: [] });
+        graph.nodes ||= {};
+        graph.edges ||= [];
+        const runtimeNodes = snapshot.graph?.nodes || {};
+        const runtimeNodeIds = new Set(Object.keys(runtimeNodes));
+        const playerNodeIds = new Set(Object.values(snapshot.player_node_ids || {}) as string[]);
+        Object.assign(graph.nodes, runtimeNodes);
+
+        const edgeKey = (edge: any) => JSON.stringify([
+            edge.source, edge.target, edge.type, edge.properties || {}
+        ]);
+        const edges = new Map<string, any>();
+        for (const edge of graph.edges) {
+            const replaceScopedEdge = runtimeNodeIds.has(edge.source)
+                && runtimeNodeIds.has(edge.target);
+            const replacePlayerLocation = playerNodeIds.has(edge.source) && edge.type === 'in';
+            if (!replaceScopedEdge && !replacePlayerLocation) edges.set(edgeKey(edge), edge);
+        }
+        for (const edge of snapshot.graph?.edges || []) edges.set(edgeKey(edge), edge);
+        graph.edges = [...edges.values()];
+
+        global.players ||= {};
+        Object.assign(global.players, snapshot.players || {});
+        global.areas_by_id ||= {};
+        global.areas ||= {};
+        for (const [areaId, area] of Object.entries(snapshot.areas_by_id || {}) as Array<[string, any]>) {
+            const previous = global.areas_by_id[areaId];
+            if (previous?.name && global.areas[previous.name]?.id === areaId) {
+                delete global.areas[previous.name];
+            }
+            global.areas_by_id[areaId] = area;
+            if (area?.name) global.areas[area.name] = area;
+        }
+
+        for (const key of [
+            'active_player', 'game_time', 'time_ticks', 'time_per_tick_minutes',
+            'turn_number', 'game_day', 'game_month', 'game_year', 'mature_content',
+            'scenario_ended', '_restart_requested'
+        ]) {
+            if (Object.prototype.hasOwnProperty.call(snapshot, key)) global[key] = snapshot[key];
+        }
+        if (Object.prototype.hasOwnProperty.call(snapshot, 'turn_events')) {
+            global.turn_events = snapshot.turn_events;
+        }
+
+        this._syncTurnEvents(snapshot);
+        this._emit('update', global);
+        const bus = (window as unknown as { appEvents?: { emit(event: string, data?: unknown): void } }).appEvents;
+        if (bus) bus.emit('state:updated', global);
+        return true;
     }
 
     async _fetchNow(lite: boolean) {
@@ -402,7 +541,18 @@ class WorldState {
   if (typeof EventSource === 'undefined') return;
   let es = null;
   function refresh() {
-    if (window.worldState) window.worldState.fetch();
+    if (!window.worldState) return;
+    if (window.worldState._runtimeFocus?.length) {
+      void window.worldState.fetchRuntime().catch((error: unknown) => {
+        const message = error instanceof Error ? error.message : String(error);
+        console.error('Focused runtime state refresh failed:', error);
+        if (typeof events !== 'undefined') {
+          events.log(`Focused runtime state refresh failed: ${message}`, 'error-msg');
+        }
+      });
+      return;
+    }
+    void window.worldState.fetch();
   }
   try {
     es = new EventSource('/api/events');

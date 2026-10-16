@@ -116,6 +116,27 @@ def test_project_subgraph_keeps_only_scope_members():
                              "type": "in", "properties": {}}]
 
 
+def test_project_subgraph_uses_scope_and_edge_indexes():
+    class NonIterableNodes(dict):
+        def __iter__(self):
+            raise AssertionError("scope projection iterated the whole node set")
+
+        def items(self):
+            raise AssertionError("scope projection iterated the whole node set")
+
+        def values(self):
+            raise AssertionError("scope projection iterated the whole node set")
+
+    graph = _graph()
+    graph.nodes = NonIterableNodes(graph.nodes)
+    out = world_scopes.project_subgraph(
+        world_scopes.normalise_manifest(MANIFEST), graph, _players(), "apartment_3b")
+
+    assert set(out["nodes"]) == {"area_3b_living", "item_sofa"}
+    assert out["edges"] == [{"source": "item_sofa", "target": "area_3b_living",
+                             "type": "in", "properties": {}}]
+
+
 def test_own_area_ids_ignores_descendants():
     g = _graph()
     assert world_scopes.own_area_ids(g, "pines_floor_3") == {"area_hall3"}
@@ -478,4 +499,3 @@ def test_promote_entry_defaults_to_the_first_selected_area_by_id():
         area_ids=["area_barn", "area_eldenford_village"])
     # Deterministic, and not "top-left-most" as the compiler picks.
     assert res["entry_area_id"] == "area_barn"
-

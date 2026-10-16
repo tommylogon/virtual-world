@@ -60,18 +60,22 @@ class GlobalScopeIndex:
     def __init__(self):
         self._scope_parent: Dict[str, Optional[str]] = {}
         self._area_owner: Dict[str, str] = {}
+        self._areas_by_scope: Dict[str, set] = {}
         # Every node's owning scope, not just areas — so a due event aimed at a
         # trigger in an evicted scope can find which scope to load (task-584).
         self._node_owner: Dict[str, str] = {}
+        self._nodes_by_scope: Dict[str, set] = {}
         self._character_location: Dict[str, str] = {}
         self._item_location: Dict[str, str] = {}
         self._gateways: Dict[str, dict] = {}
         self._scheduled: List[dict] = []
         self._loader: Optional[Callable[[str], Optional[dict]]] = None
+        self._scope_saver: Optional[Callable[[str, dict], None]] = None
 
     # ── construction ───────────────────────────────────────────────────
 
-    def register_loader(self, loader: Callable[[str], Optional[dict]]):
+    def register_loader(self, loader: Callable[[str], Optional[dict]],
+                        saver: Optional[Callable[[str, dict], None]] = None):
         """Register ``loader(scope_id) -> {nodes, edges} | None``.
 
         The loader is how a gateway materialises its destination scope. It may
@@ -79,6 +83,7 @@ class GlobalScopeIndex:
         which callers treat as "the destination is not reachable".
         """
         self._loader = loader
+        self._scope_saver = saver
 
     def reindex(self, graph, manifest: Optional[dict] = None) -> "GlobalScopeIndex":
         """Rebuild the index from a (fully loaded) graph and its manifest.
@@ -88,7 +93,9 @@ class GlobalScopeIndex:
         """
         self._scope_parent = {}
         self._area_owner = {}
+        self._areas_by_scope = {}
         self._node_owner = {}
+        self._nodes_by_scope = {}
         self._character_location = {}
         self._item_location = {}
         self._gateways = {}
@@ -113,10 +120,12 @@ class GlobalScopeIndex:
             node_type = getattr(node, "type", "")
             props = getattr(node, "properties", {}) or {}
             owner = _node_scope(node)
-            if owner:
-                self._node_owner[node.id] = owner
-            if node_type == "area" and owner:
-                self._area_owner[node.id] = owner
+            self.set_node_owner(node.id, owner)
+            if node_type == "area":
+                if owner:
+                    self.own_area(node.id, owner)
+                else:
+                    self.release_area(node.id)
             elif node_type == "way":
                 target_area = _first(props, _TARGET_AREA_KEYS)
                 target_scope = _first(props, _TARGET_SCOPE_KEYS)
@@ -148,11 +157,42 @@ class GlobalScopeIndex:
     def scope_parent(self, scope_id: str):
         return self._scope_parent.get(str(scope_id))
 
+    def set_node_owner(self, node_id: str, scope_id: Optional[str]):
+        node_id = str(node_id)
+        previous = self._node_owner.pop(node_id, None)
+        if previous is not None:
+            owned = self._nodes_by_scope.get(previous)
+            if owned is not None:
+                owned.discard(node_id)
+                if not owned:
+                    self._nodes_by_scope.pop(previous, None)
+        if scope_id:
+            owner = str(scope_id)
+            self._node_owner[node_id] = owner
+            self._nodes_by_scope.setdefault(owner, set()).add(node_id)
+
     def own_area(self, area_id: str, scope_id: str):
-        self._area_owner[str(area_id)] = str(scope_id)
+        area_id = str(area_id)
+        owner = str(scope_id)
+        previous = self._area_owner.get(area_id)
+        if previous is not None and previous != owner:
+            owned = self._areas_by_scope.get(previous)
+            if owned is not None:
+                owned.discard(area_id)
+                if not owned:
+                    self._areas_by_scope.pop(previous, None)
+        self._area_owner[area_id] = owner
+        self._areas_by_scope.setdefault(owner, set()).add(area_id)
 
     def release_area(self, area_id: str):
-        self._area_owner.pop(str(area_id), None)
+        area_id = str(area_id)
+        previous = self._area_owner.pop(area_id, None)
+        if previous is not None:
+            owned = self._areas_by_scope.get(previous)
+            if owned is not None:
+                owned.discard(area_id)
+                if not owned:
+                    self._areas_by_scope.pop(previous, None)
 
     def scope_for_area(self, area_id: str) -> Optional[str]:
         return self._area_owner.get(str(area_id))
@@ -162,8 +202,10 @@ class GlobalScopeIndex:
         return self._node_owner.get(str(node_id))
 
     def areas_in_scope(self, scope_id: str) -> List[str]:
-        scope_id = str(scope_id)
-        return sorted(a for a, s in self._area_owner.items() if s == scope_id)
+        return sorted(self._areas_by_scope.get(str(scope_id), ()))
+
+    def nodes_in_scope(self, scope_id: str) -> List[str]:
+        return sorted(self._nodes_by_scope.get(str(scope_id), ()))
 
     # ── location (id-keyed, the authoritative record) ───────────────────
 
@@ -224,6 +266,8 @@ class GlobalScopeIndex:
         recorded = {eid: aid for eid, aid in
                     {**self._character_location, **self._item_location}.items()
                     if aid in doomed}
+        if self._scope_saver is not None and graph.is_scope_loaded(scope_id):
+            self._scope_saver(scope_id, graph.slice_scope(scope_id))
         result = graph.unload_scope(scope_id)
         result["recorded_locations"] = recorded
         return result
@@ -333,8 +377,12 @@ class GlobalScopeIndex:
         index._scope_parent = dict(data.get("scope_parent") or {})
         index._area_owner = {str(k): str(v)
                              for k, v in (data.get("area_owner") or {}).items()}
+        for area_id, owner in index._area_owner.items():
+            index._areas_by_scope.setdefault(owner, set()).add(area_id)
         index._node_owner = {str(k): str(v)
                              for k, v in (data.get("node_owner") or {}).items()}
+        for node_id, owner in index._node_owner.items():
+            index._nodes_by_scope.setdefault(owner, set()).add(node_id)
         index._character_location = {str(k): str(v)
                                      for k, v in (data.get("character_location") or {}).items()}
         index._item_location = {str(k): str(v)

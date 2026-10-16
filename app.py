@@ -93,6 +93,9 @@ def create_app(config=None):
     elif not load_autosave_if_exists(world):
         logger.info("No autosave found — using template")
 
+    from engine.world.store import configure_scope_store
+    configure_scope_store(world, app.config['DATA_DIR'])
+
     # Attach world to app for easy access in routes
     app.world = world
 
@@ -294,6 +297,7 @@ def register_routes(app):
     from routes.scene import register_scene_routes
     from routes.search import register_search_routes
     from routes.events import register_events_routes
+    from routes.runtime import register_runtime_routes
     from routes.structures import register_structures_routes
     from routes.soak import register_soak_routes
     from routes.population import register_population_routes
@@ -306,6 +310,7 @@ def register_routes(app):
     register_commons_routes(app)
     register_health_routes(app)
     register_events_routes(app)
+    register_runtime_routes(app)
     register_pages_routes(app)
     register_action_routes(app)
     register_players_routes(app)

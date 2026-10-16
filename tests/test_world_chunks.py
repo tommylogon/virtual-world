@@ -58,6 +58,58 @@ def test_scope_owners_groups_by_owner():
     assert owners["beta"] == ["area_beta_0_0"]
 
 
+def test_scope_owner_index_tracks_node_replacement_and_targeted_refresh():
+    graph = WorldGraph()
+    graph.merge_scope("alpha", _alpha())
+    area = graph.get_node("area_alpha_0_0")
+    area.properties["world_scope_id"] = "beta"
+    graph.refresh_node_scope(area.id)
+
+    assert "area_alpha_0_0" not in graph.nodes_owned_by("alpha")
+    assert "area_alpha_0_0" in graph.nodes_owned_by("beta")
+
+    graph.replace_node(_area(area.id, "alpha"))
+    assert "area_alpha_0_0" in graph.nodes_owned_by("alpha")
+    assert "area_alpha_0_0" not in graph.nodes_owned_by("beta")
+
+
+def test_property_way_endpoint_index_tracks_replacement_and_refresh():
+    graph = WorldGraph()
+    way = Node(id="way_path", type="way", name="Path",
+               properties={"area_from_id": "area_a", "area_to": "Area B"})
+    graph.add_node(way)
+    assert graph.ways_for_endpoints(["area_a", "Area B"]) == ["way_path"]
+
+    way.properties["area_from_id"] = "area_c"
+    graph.refresh_node_scope(way.id)
+    assert graph.ways_for_endpoints(["area_a"]) == []
+    assert graph.ways_for_endpoints(["area_c"]) == ["way_path"]
+
+
+def test_scope_slice_uses_scope_index_and_local_edges():
+    graph = WorldGraph()
+    graph.merge_scope("alpha", _alpha())
+    graph.merge_scope("beta", _beta())
+    original_nodes = graph.nodes
+
+    class NonIterableNodes(dict):
+        def __iter__(self):
+            raise AssertionError("scope slice iterated every graph node")
+
+        def items(self):
+            raise AssertionError("scope slice iterated every graph node")
+
+        def values(self):
+            raise AssertionError("scope slice iterated every graph node")
+
+    graph.nodes = NonIterableNodes(original_nodes)
+    assert graph.nodes_owned_by("alpha") == [
+        "area_alpha_0_0", "area_alpha_1_0", "way_alpha"]
+    assert set(graph.slice_scope("alpha")["nodes"]) == {
+        "area_alpha_0_0", "area_alpha_1_0", "way_alpha"}
+    assert len(graph.slice_scope("alpha")["edges"]) == 2
+
+
 def test_loading_the_same_scope_twice_is_refused():
     graph = WorldGraph()
     graph.merge_scope("alpha", _alpha())

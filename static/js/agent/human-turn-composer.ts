@@ -228,8 +228,8 @@ const HumanTurnComposerModule = (() => {
     // ── turn budget ──────────────────────────────────────────────────
 
     function turnSlots(): Record<string, number> | null {
-        const players = (worldState as unknown as { players?: Record<string, { turn_slots?: Record<string, number> }> }).players;
-        const slots = players && _charName ? players[_charName]?.turn_slots : null;
+        const player = _charName ? worldState.runtimePlayer(_charName) : null;
+        const slots = player?.turn_slots;
         if (!slots || typeof slots !== 'object') return null;
         // bug-544: `Player.turn_slots` starts as `{}` ("not started yet" —
         // player.py), and the engine's `_slot_gate` lazily fills an empty budget.

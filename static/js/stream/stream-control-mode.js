@@ -79,6 +79,7 @@ class StreamControlMode {
         let simpleNpc = false;
         let autonomy = true;
         let makeActive = false;
+        const previousActive = config.controllingPlayer;
         if (next === 'human') {
             autonomy = false;
             makeActive = true;
@@ -86,17 +87,22 @@ class StreamControlMode {
         else if (next === 'npc') {
             simpleNpc = true;
         }
+        if (makeActive) {
+            config.controllingPlayer = charName;
+            worldState.setRuntimeFocusForCharacter(charName);
+        }
         ApiClient.updateCharacter(charName, { simple_npc: simpleNpc, autonomy: autonomy }).then(async () => {
             this._autonomy[charName] = autonomy;
-            if (makeActive) {
-                config.controllingPlayer = charName;
-            }
             // Refetch + re-render for ALL modes so the mode badge actually updates.
             const freshState = await worldState.fetch();
             if (freshState && worldState.data)
                 VW?.ui?.renderAll?.(freshState);
             events.log(`${charName} → ${label}`, 'system-msg');
         }).catch(err => {
+            if (makeActive && config.controllingPlayer === charName) {
+                config.controllingPlayer = previousActive;
+                worldState.setRuntimeFocusForCharacter(previousActive);
+            }
             events.log(`Failed to switch ${charName}: ${err instanceof Error ? err.message : String(err)}`, 'error-msg');
         });
     }

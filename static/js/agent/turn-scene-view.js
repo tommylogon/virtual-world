@@ -178,17 +178,18 @@ window.TurnSceneView = (() => {
      */
     function burstPending() {
         const ws = window.worldState;
-        const d = ws && ws.data;
+        const d = ws && (ws.runtimeData || ws.data);
         if (!d || !d.players || !d.active_player)
             return false;
-        const p = d.players[d.active_player];
+        const p = ws?.runtimePlayer?.(d.active_player) || d.players[d.active_player];
         return !!p && Number(p.burst_pending || 0) > 0;
     }
     /** The controlled character's remaining action slots, or undefined. */
     function slotsOf() {
         const ws = window.worldState;
-        const d = ws && ws.data;
-        const p = d && d.players && d.active_player ? d.players[d.active_player] : undefined;
+        const d = ws && (ws.runtimeData || ws.data);
+        const p = d && d.players && d.active_player
+            ? (ws?.runtimePlayer?.(d.active_player) || d.players[d.active_player]) : undefined;
         return p ? p.turn_slots : undefined;
     }
     /**
@@ -281,7 +282,8 @@ window.TurnSceneView = (() => {
         const abilities = you.known_abilities || [];
         // Prefer the world's own toggle (the engine gate); the client config
         // mirrors it and is used only as a fallback before state loads.
-        const mature = !!((window.worldState && worldState.data && worldState.data.mature_content)
+        const mature = !!((window.worldState && (worldState.runtimeData || worldState.data)
+            && (worldState.runtimeData || worldState.data).mature_content)
             || (window.config?.matureContent));
         const who = person.display_name;
         // Speaking to someone is two different things, so the menu offers both:
@@ -529,8 +531,12 @@ window.TurnSceneView = (() => {
      * when the world tick or the character's area changes.
      */
     async function fetch(charName) {
-        const currentTick = (typeof worldState !== 'undefined' && worldState.tick) || 0;
-        const currentArea = (typeof worldState !== 'undefined' && worldState.players?.[charName]?.current_area) || '';
+        const focusedPlayer = (typeof worldState !== 'undefined' && worldState.runtimePlayer)
+            ? worldState.runtimePlayer(charName) : null;
+        const currentTick = (typeof worldState !== 'undefined' && worldState.runtimeData?.time_ticks)
+            ?? (typeof worldState !== 'undefined' && worldState.tick) ?? 0;
+        const currentArea = (focusedPlayer?.current_area
+            || (typeof worldState !== 'undefined' && worldState.players?.[charName]?.current_area)) || '';
         const cached = _sceneCache[charName];
         if (cached && cached.tick === currentTick && cached.area === currentArea) {
             return cached.scene;

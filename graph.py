@@ -60,6 +60,14 @@ class WorldGraph:
         # character collapse into one node, authored references still mention
         # the retired id; resolving it here keeps them from dangling.
         self._id_aliases: Dict[str, str] = {}
+        # Scope owner → node ids, with a reverse map for targeted owner changes.
+        # Scope slices should not scan every node in a large world.
+        self._nodes_by_scope: Dict[str, set] = {}
+        self._scope_by_node: Dict[str, str] = {}
+        # Property-only ways can still be part of a scope projection. Index both
+        # endpoint ids and legacy display-name references without scanning ways.
+        self._ways_by_endpoint: Dict[str, set] = {}
+        self._way_endpoints_by_node: Dict[str, set] = {}
         # task-407: edges indexed by lowercased endpoint so lookups never scan
         # the whole edge list (and never call .lower() per edge).
         self._edges_by_source: Dict[str, List[Edge]] = {}
@@ -159,6 +167,56 @@ class WorldGraph:
     def get_revision(self) -> int:
         return self._revision
 
+    def _set_node_scope_index(self, node: Node, scope_id: Optional[str]):
+        previous = self._scope_by_node.pop(node.id, None)
+        if previous is not None:
+            owned = self._nodes_by_scope.get(previous)
+            if owned is not None:
+                owned.discard(node.id)
+                if not owned:
+                    self._nodes_by_scope.pop(previous, None)
+        if scope_id:
+            scope_id = str(scope_id)
+            self._scope_by_node[node.id] = scope_id
+            self._nodes_by_scope.setdefault(scope_id, set()).add(node.id)
+
+    def _set_way_endpoint_index(self, node: Node):
+        for endpoint in self._way_endpoints_by_node.pop(node.id, set()):
+            way_ids = self._ways_by_endpoint.get(endpoint)
+            if way_ids is not None:
+                way_ids.discard(node.id)
+                if not way_ids:
+                    self._ways_by_endpoint.pop(endpoint, None)
+        if node.type != "way":
+            return
+        props = getattr(node, "properties", {}) or {}
+        endpoints = {
+            str(props[key]) for key in
+            ("area_from_id", "area_to_id", "area_from", "area_to")
+            if props.get(key)
+        }
+        indexed_endpoints = endpoints | {endpoint.lower() for endpoint in endpoints}
+        self._way_endpoints_by_node[node.id] = indexed_endpoints
+        for endpoint in indexed_endpoints:
+            self._ways_by_endpoint.setdefault(endpoint, set()).add(node.id)
+
+    def refresh_node_scope(self, node_id: str):
+        """Refresh derived scope/way indexes after an in-place properties edit."""
+        node = self.get_node(node_id)
+        if node is not None:
+            self._set_node_scope_index(node, self._declared_scope(node))
+            self._set_way_endpoint_index(node)
+
+    def ways_for_endpoints(self, endpoints) -> List[str]:
+        """Return ways indexed by any supplied area id/name reference."""
+        matches = set()
+        for endpoint in endpoints:
+            if endpoint:
+                value = str(endpoint)
+                matches.update(self._ways_by_endpoint.get(value, ()))
+                matches.update(self._ways_by_endpoint.get(value.lower(), ()))
+        return sorted(matches)
+
     def add_node(self, node: Node):
         """Add a node. If node ID already exists, append a random suffix."""
         # Legacy type migration: door → way (ways are the canonical node type)
@@ -177,6 +235,8 @@ class WorldGraph:
                 raise ValueError(f"Area node '{node.id}' already exists.")
         self.nodes[node.id] = node
         self._id_index[node.id.lower()] = node.id
+        self._set_node_scope_index(node, self._declared_scope(node))
+        self._set_way_endpoint_index(node)
         self._revision += 1
 
     def replace_node(self, node: Node):
@@ -196,6 +256,8 @@ class WorldGraph:
         existing.name = node.name
         existing.properties = dict(node.properties)
         existing.updated = time.time()
+        self._set_node_scope_index(existing, self._declared_scope(existing))
+        self._set_way_endpoint_index(existing)
         self._revision += 1
 
     def remove_node(self, node_id: str):
@@ -203,7 +265,10 @@ class WorldGraph:
         stored_id = self._resolve_id(node_id)
         if stored_id is None:
             return
-        self.nodes.pop(stored_id, None)
+        node = self.nodes.pop(stored_id, None)
+        if node is not None:
+            self._set_node_scope_index(node, None)
+            self._set_way_endpoint_index(node)
         self._id_index.pop(stored_id.lower(), None)
         for alias, target in list(self._id_aliases.items()):
             if target.lower() == stored_id.lower():
@@ -495,6 +560,10 @@ class WorldGraph:
         self.edges.clear()
         self._id_index.clear()
         self._id_aliases.clear()
+        self._nodes_by_scope.clear()
+        self._scope_by_node.clear()
+        self._ways_by_endpoint.clear()
+        self._way_endpoints_by_node.clear()
         self._edges_by_source.clear()
         self._edges_by_target.clear()
         self._spatial_edges.clear()
@@ -506,6 +575,10 @@ class WorldGraph:
         self.nodes.clear()
         self.edges.clear()
         self._id_aliases.clear()
+        self._nodes_by_scope.clear()
+        self._scope_by_node.clear()
+        self._ways_by_endpoint.clear()
+        self._way_endpoints_by_node.clear()
         for node_id, ndata in data.get("nodes", {}).items():
             self.nodes[node_id] = Node(**ndata)
         for edata in data.get("edges", []):
@@ -518,6 +591,9 @@ class WorldGraph:
         self.normalize_in_edge_directions()
         self.normalize_item_hold_state()
         self._rebuild_indexes()
+        for node in self.nodes.values():
+            self._set_node_scope_index(node, self._declared_scope(node))
+            self._set_way_endpoint_index(node)
 
     # ── task-582: scope/chunk load, unload and merge ───────────────────
     #
@@ -554,18 +630,11 @@ class WorldGraph:
 
     def scope_owners(self) -> Dict[str, List[str]]:
         """scope id → sorted node ids it owns (task-582/583)."""
-        owners: Dict[str, List[str]] = {}
-        for node_id, node in self.nodes.items():
-            scope = self._declared_scope(node)
-            if scope:
-                owners.setdefault(scope, []).append(node_id)
-        return {scope: sorted(ids) for scope, ids in owners.items()}
+        return {scope: sorted(ids) for scope, ids in self._nodes_by_scope.items()}
 
     def nodes_owned_by(self, scope_id: str) -> List[str]:
         """Node ids owned by *scope_id* (task-582)."""
-        scope_id = str(scope_id)
-        return sorted(nid for nid, node in self.nodes.items()
-                      if self._declared_scope(node) == scope_id)
+        return sorted(self._nodes_by_scope.get(str(scope_id), ()))
 
     def is_scope_loaded(self, scope_id: str) -> bool:
         """True when at least one node owned by *scope_id* is in the graph.
@@ -655,7 +724,10 @@ class WorldGraph:
             if e.type == EDGE_TRIGGERS and str(e.source).lower() in doomed_lower
         }
         for node_id in doomed:
-            self.nodes.pop(node_id, None)
+            node = self.nodes.pop(node_id, None)
+            if node is not None:
+                self._set_node_scope_index(node, None)
+                self._set_way_endpoint_index(node)
             self._id_index.pop(str(node_id).lower(), None)
         for alias, target in list(self._id_aliases.items()):
             if target.lower() in doomed_lower:
@@ -688,8 +760,15 @@ class WorldGraph:
         """
         included = set(self.nodes_owned_by(scope_id))
         nodes = {nid: self.nodes[nid].to_dict() for nid in sorted(included)}
-        edges = [e.to_dict() for e in self.edges
-                 if e.source in included and e.target in included]
+        self._ensure_indexes()
+        seen_edges = set()
+        edges = []
+        for node_id in sorted(included):
+            for edge in self._edges_by_source.get(node_id.lower(), ()):
+                edge_key = id(edge)
+                if edge_key not in seen_edges and edge.target in included:
+                    seen_edges.add(edge_key)
+                    edges.append(edge.to_dict())
         return {"scope_id": str(scope_id), "nodes": nodes, "edges": edges}
 
     # ── task-581: one authoritative location record per entity ──────────
