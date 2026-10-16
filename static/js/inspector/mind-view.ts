@@ -1068,8 +1068,6 @@ const InspectorMindView = (() => {
 
     function _personaCss(): string {
         return `<style>
-        #mind-persona .pf-bar{position:sticky;top:0;z-index:5;display:flex;gap:6px;align-items:center;flex-wrap:wrap;background:var(--bg-card);padding:8px 2px;border-bottom:1px solid var(--border);margin-bottom:8px;}
-        #mind-persona .pf-name{font-family:Georgia,'Times New Roman',serif;font-size:17px;font-weight:600;margin-right:auto;}
         #mind-persona .pf-badges{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;}
         #mind-persona .pf-badge{font-size:11px;background:var(--bg-input);border:1px solid var(--border);border-radius:999px;padding:2px 10px;color:var(--text-dim);}
         #mind-persona .pf-span{grid-column:1/-1;}
@@ -1347,7 +1345,8 @@ const InspectorMindView = (() => {
         const name = _state ? _state.charName : '';
         const p = _state?.persona;
         const player = (worldState.players || {})[name];
-        const prose = (player?.description || '') as string;
+        const prose = ((player?.base_description || '') as string)
+            || ((player?.personality || '') as string);
         const oneLiner = prose ? esc(prose.split('\n')[0].slice(0, 160)) : '';
         const dirty = `<span class="pf-dirty" id="mind-persona-dirty">● unsaved</span>`;
         const stale = p?.stale

@@ -1057,11 +1057,8 @@ const InspectorMindView = (() => {
     };
     function _personaCss() {
         return `<style>
-        #mind-persona .pf-bar{position:sticky;top:0;z-index:5;display:flex;gap:6px;align-items:center;flex-wrap:wrap;background:var(--bg-card);padding:8px 2px;border-bottom:1px solid var(--border);margin-bottom:8px;}
-        #mind-persona .pf-name{font-family:Georgia,'Times New Roman',serif;font-size:17px;font-weight:600;margin-right:auto;}
         #mind-persona .pf-badges{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;}
         #mind-persona .pf-badge{font-size:11px;background:var(--bg-input);border:1px solid var(--border);border-radius:999px;padding:2px 10px;color:var(--text-dim);}
-        #mind-persona .pf-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px;}
         #mind-persona .pf-span{grid-column:1/-1;}
         #mind-persona .pf-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;}
         #mind-persona .pf-hint{cursor:help;font-size:10px;}
@@ -1080,12 +1077,24 @@ const InspectorMindView = (() => {
         #mind-persona .pf-chip b:hover{color:var(--text);}
         #mind-persona .pf-chip-new{flex:1;min-width:90px;background:transparent;border:none;color:var(--text);font-size:12px;outline:none;}
         #mind-persona details.pf-fold{border:1px solid var(--border);border-radius:6px;margin-bottom:8px;background:var(--bg-card);}
-        #mind-persona details.pf-fold>summary{cursor:pointer;padding:8px 10px;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;list-style:none;}
         #mind-persona details.pf-intimacy{border-style:dashed;margin-top:8px;}
         #mind-persona .pf-locked{filter:blur(4px);cursor:pointer;user-select:none;}
         #mind-persona .pf-lock-note{font-size:11px;color:var(--text-muted);margin-bottom:4px;cursor:pointer;}
         #mind-persona .pf-codex{background:var(--bg-inset);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:12px;line-height:1.5;}
         #mind-persona .pf-dirty{color:#e0a33c;font-size:12px;display:none;}
+        #mind-persona .pf-head{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;padding:4px 2px 12px;margin-bottom:12px;border-bottom:1px solid var(--border);}
+        #mind-persona .pf-head-main{min-width:240px;flex:1;}
+        #mind-persona .pf-head-name{font-family:Georgia,'Times New Roman',serif;font-size:26px;font-weight:600;line-height:1.2;}
+        #mind-persona .pf-head-prose{font-size:13px;color:var(--text-dim);font-style:italic;margin:4px 0 8px;max-width:640px;}
+        #mind-persona .pf-head-side{display:flex;flex-direction:column;gap:8px;align-items:flex-end;}
+        #mind-persona .pf-states{display:flex;gap:8px;align-items:center;font-size:12px;}
+        #mind-persona .pf-state-ok{color:var(--green);}
+        #mind-persona .pf-state-stale{color:#e0a33c;}
+        #mind-persona .pf-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
+        #mind-persona .pf-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;}
+        @media (max-width:760px){#mind-persona .pf-grid{grid-template-columns:1fr;}}
+        #mind-persona details.pf-fold{border:1px solid var(--border);border-radius:8px;margin-bottom:12px;background:var(--bg-card);}
+        #mind-persona details.pf-fold>summary{cursor:pointer;padding:10px 14px;font-size:12px;font-weight:600;color:var(--text);letter-spacing:.02em;list-style:none;}
         </style>`;
     }
     function _personaChipBox(path, values, tone) {
@@ -1312,6 +1321,37 @@ const InspectorMindView = (() => {
             return '';
         return `<div class="pf-badges">${chips}</div>`;
     }
+    // task-852 P1: a real character header — name, who-they-are line,
+    // badges, and the state chips (saved / unsaved / stale), with the
+    // actions riding alongside instead of floating above a form.
+    function _personaHeaderHtml() {
+        const name = _state ? _state.charName : '';
+        const p = _state?.persona;
+        const player = (worldState.players || {})[name];
+        const prose = (player?.base_description || '')
+            || (player?.personality || '');
+        const oneLiner = prose ? esc(prose.split('\n')[0].slice(0, 160)) : '';
+        const dirty = `<span class="pf-dirty" id="mind-persona-dirty">● unsaved</span>`;
+        const stale = p?.stale
+            ? `<span class="pf-state pf-state-stale">⚠ uncompiled changes</span>`
+            : `<span class="pf-state pf-state-ok">✓ saved</span>`;
+        return `<div class="pf-head">
+            <div class="pf-head-main">
+                <div class="pf-head-name">${esc(name)}</div>
+                ${oneLiner ? `<div class="pf-head-prose">${oneLiner}</div>` : ''}
+                ${_personaBadges()}
+            </div>
+            <div class="pf-head-side">
+                <div class="pf-states">${dirty}${stale}</div>
+                <div class="pf-actions">
+                    <button class="btn btn-sm" id="mind-persona-import" style="font-size:11px;" title="Import a card (.json) or prose (.md/.txt) and convert it to this sheet">📥 import</button>
+                    <input type="file" id="mind-persona-file" accept=".json,.md,.txt" style="display:none;">
+                    <button class="btn btn-sm" id="mind-persona-save" style="font-size:11px;">💾 save block</button>
+                    <button class="btn btn-sm btn-blue" id="mind-persona-compile" style="font-size:11px;" title="Project the block into base_description / personality + tags">⚙ compile</button>
+                </div>
+            </div>
+        </div>`;
+    }
     function _personaHtml() {
         const p = _state?.persona;
         if (!p || p.status === 'loading') {
@@ -1366,17 +1406,8 @@ const InspectorMindView = (() => {
                 <button class="btn btn-sm" id="mind-persona-cancel" style="font-size:11px;">keep mine</button>
             </div>` : '';
         const msg = p.msg ? `<div style="font-size:11px;color:var(--text-muted);margin-top:8px;">${esc(p.msg)}</div>` : '';
-        const name = _state ? _state.charName : '';
         return `${_personaCss()}
-            <div class="pf-bar">
-                <span class="pf-name">${esc(name)}</span>
-                <span class="pf-dirty" id="mind-persona-dirty">● unsaved</span>
-                <button class="btn btn-sm" id="mind-persona-import" style="font-size:11px;" title="Import a card (.json) or prose (.md/.txt) and convert it to this sheet">📥 import</button>
-                <input type="file" id="mind-persona-file" accept=".json,.md,.txt" style="display:none;">
-                <button class="btn btn-sm" id="mind-persona-save" style="font-size:11px;">💾 save block</button>
-                <button class="btn btn-sm" id="mind-persona-compile" style="font-size:11px;" title="Project the block into base_description / personality + tags">⚙ compile</button>
-            </div>
-            ${_personaBadges()}
+            ${_personaHeaderHtml()}
             <details class="pf-fold" data-fold="Codex"${openSet.has('Codex') ? ' open' : ''}><summary>Codex entry — live preview</summary>
                 <div style="padding:2px 10px 10px;"><div class="pf-codex" id="mind-persona-codex">open the fold and type — the compiled entry appears here without storing anything.</div></div>
             </details>
@@ -1817,8 +1848,8 @@ const InspectorMindView = (() => {
         const peoplePane = `<div style="flex:1;padding:12px;overflow-y:auto;">
             <div style="max-width:640px;">${_relationshipsHtml()}<div style="${hdr}">People — derived from memories</div>
                 <div id="mind-people">${_peopleHtml()}</div></div></div>`;
-        const personaPane = `<div style="flex:1;padding:12px;overflow-y:auto;">
-            <div style="max-width:720px;" id="mind-persona">${_personaHtml()}</div></div>`;
+        const personaPane = `<div style="flex:1;padding:16px 20px;overflow-y:auto;">
+            <div id="mind-persona">${_personaHtml()}</div></div>`;
         const tabBody = tab === 'perception' ? perceptionPane
             : tab === 'memories' ? memoriesPane
                 : tab === 'people' ? peoplePane

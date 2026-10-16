@@ -111,7 +111,7 @@ compile"), Codex live-preview fold (dry-run, stores/broadcasts nothing).
 | Persona tab / doll / navigator | `static/js/inspector/mind-view.ts`, `static/js/inspector/paperdoll-view.ts`, `static/css/style.css` |
 | Simulation | `engine/body_parts.py`, `engine/pleasure_actions.py`, `engine/combat.py`, `engine/lifecycle.py`, `engine/equipment.py` |
 | Tests | `tests/test_character_appearance.py`, `tests/test_persona_growth.py`, `tests/test_body_parts.py`, `tests/test_pleasure_system.py`, `tests/test_body_baseline.py`, `tests/test_lifecycle.py` |
-| Docs/cards | `docs/virtualWorld/Characters/Persona.md`, tasks 735, 828, 829, 830, 843, 844, 846, 847, 848 |
+| Docs/cards | `docs/virtualWorld/Characters/Persona.md`, tasks 735, 828, 829, 830, 843, 844, 846, 847, 848, 849, 850, 851, 852 |
 
 ## 9. Planned / open
 
@@ -120,9 +120,38 @@ compile"), Codex live-preview fold (dry-run, stores/broadcasts nothing).
 - **task-850**: identity additions — mbti (reader: prompt voice), alignment (reader:
   disposition weights or prompts, to be named before shipping), birthday (calendar
   semantics; drives display vs age resolution, to be decided — unstarted).
-- **task-851**: authorable starting injuries / missing parts / prosthetics (seed same
-  condition instances; hook = mods; severed-limb representation — unstarted).
 - **task-846**: pregnancy & birth mechanics (split from 735; unstarted).
+- **task-852** (PERSONA UI PLAN, the big one — parked at inprogress): P1 workspace +
+  header started (full-width pane, header, badges, state chips live on :4444;
+  dirty/stale toggling + polish NOT done). P2-P5 unstarted (doll nav front/back,
+  region-linked markings, body-state integration, personality/narrative polish).
+  Blueprint doc lives in the task card. Do not mix 846/850 into this card.
+- **851 remainder**: missing-limb travel/movement integration (filed on card).
 - **848 remainder**: live slider write after restart; filled-slot equip path re-verify when someone is geared.
 - **Deliberately unbuilt**: inline schema-text editing in the side panel (would duplicate
   editors; jumps suffice pending a sync design).
+
+## 10. Session state — where the work is parked (2026-10-16)
+
+In **review** (all verified + gates green where applicable):
+735, 546, 828, 829, 830, 843, 844, 831, 832, 833, 834, 835, 836, 837, 838, 839, 840,
+841, 842, 847, 848, 851.
+
+**Inprogress / partially wired:**
+- **852** (workspace redesign — P1 partial, see §9)
+- **bug-545** (paint perf cache — box deliberately open)
+- **755** (narrow-panel autogrow screenshot open)
+
+**Needs a server restart to feel live** (backend-only; nothing restarts under an
+unsaved world): `PUT /body` (sensitivity + seeded injuries + missing), `set_game_date`
+lifecycle hook, DELETE-clears-clock, autosave-skip, save-validation.
+
+**Authorable body state now covers:** sensitivity per region (0..1, validated),
+seeded injuries (`injuries[]`, same instances combat makes), missing anatomy
+(`missing[]` → `missing` condition, ✖ in UI).
+
+**Testing status:** 237 green across crafting/lifecycle/persona/activity/background
+(+113 body/pleasure/equipment, +8 baseline, +105 body-parts suite). ts gate green
+(175 files). recipe gate 105 clean. Known pre-existing (not ours): jessica.json
+`cha` spelling in test_abilities, 15 scenario-tag baseline drifts, broken
+`[[Developer Tooling]]` in task-819.
