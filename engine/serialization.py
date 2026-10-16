@@ -862,6 +862,18 @@ class WorldSerializer:
             pnode_id = self.player_manager.player_node_id(pname)
             if not self.graph.get_node(pnode_id):
                 self.graph.add_node(Node(id=pnode_id, type="character", name=pname))
+            # task-549: the character *definition* lives on the node (the
+            # single persisted home); hydrate the live Player from it, falling
+            # back to the players block for legacy saves. Without this the
+            # loaded Player is blank even though the node carries the prose.
+            _node = self.graph.get_node(pnode_id)
+            _props = _node.properties if _node is not None else {}
+            _pdata = data.get("players", {}).get(pname, {}) or {}
+            p.personality = _props.get("personality") or _pdata.get("personality", "") or p.personality
+            p.base_description = _props.get("base_description") or _pdata.get("base_description", "") or p.base_description
+            # `description` is the Player's own generated/current appearance,
+            # so the players block wins and the node is the fallback.
+            p.description = _pdata.get("description", "") or _props.get("description", "") or p.description
             # task-581: the character's `in` edge is the authoritative location
             # record; the saved `current_area` display name is a resolution layer
             # over it. Prefer the edge, so a hand-edit to the string that

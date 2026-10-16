@@ -1,6 +1,6 @@
 ---
 type: bug
-status: todo
+status: done
 area: characters
 priority: high
 wiki: "[[Character Pursuits]]"
@@ -49,10 +49,10 @@ Confirm the graph is deserialized before `_deserialize_player` runs, so the node
 
 ## Acceptance
 
-- [ ] After `load_from_dict` of a scenario, `Player.personality` / `base_description` are non-empty for a character whose node has them.
-- [ ] A legacy (players-block-only) scenario still loads the definition.
-- [ ] The auto-dress payload (`engine/dressing.py`) carries personality.
-- [ ] `tests/test_serialization.py` green; no scenario round-trip regression.
+- [x] After load_from_dict of a scenario, Player.personality / ase_description are non-empty for a character whose node has them.
+- [x] A legacy (players-block-only) scenario still loads the definition.
+- [x] The auto-dress payload (engine/dressing.py) carries personality.
+- [x] 	ests/test_serialization.py green; no scenario round-trip regression.
 
 ## Files
 
