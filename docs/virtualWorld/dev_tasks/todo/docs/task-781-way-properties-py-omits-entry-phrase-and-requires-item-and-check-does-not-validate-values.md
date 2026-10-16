@@ -3,6 +3,7 @@ type: task
 status: todo
 area: docs
 priority: medium
+wiki: "[[World Building/Ways]]"
 ---
 
 # task-781: way_properties.py omits entry_phrase and requires_item, and --check does not validate values

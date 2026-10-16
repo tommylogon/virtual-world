@@ -17,26 +17,40 @@ Extract focused modules from the backend files that outgrew single-file ergonomi
 **One file per commit, no behaviour change** — extraction only, public imports and APIs
 stable, suite green after each.
 
-## Measured targets (2026-09-21)
+## Measured targets (2026-10-16 remeasure)
 
-| File | Lines | Suggested seam |
-|------|------:|----------------|
-| `routes/graph_ops.py` | 1355 | second pass: split by operation family (node CRUD / edges / batch / import-export) |
-| `routes/action_handlers.py` | 1301 | second pass: split by verb family |
-| `engine/tick_manager.py` | 1101 | extract the tick phases (vitals / environment propagation / triggers / activities) from the orchestrator |
-| `engine/movement.py` | 1098 | split traversal rules from area/way construction |
-| `engine/traits.py` | 1096 | split the definition catalog from event dispatch |
-| `routes/library_ops.py` | 1084 | second pass |
-| `engine/matching.py` | 697 | lower priority — resolve only if it keeps growing |
-| `engine/equipment.py` | 754 | lower priority |
-| `engine/trigger_validator.py` | 821 | lower priority (also touched by task-393) |
+Remeasured 2026-10-16 (`engine/`, `routes/`, plus the two root runners). Δ vs the
+2026-09-21 card figures where comparable. **New entrants** were absent from the
+original list and now sit above several of the tracked targets.
 
-Also carried over from task-314's wave reports: `triggers/testing.py` duplicates the
-template-context block from `triggers/execution.py` — de-duplicate while splitting.
+| File | Lines | Δ / note | Suggested seam |
+|------|------:|----------|----------------|
+| `engine/world_compile.py` | 2724 | **NEW** — repo's largest Python module | compile phases / layer emitters / way-property writers — find real boundaries before cutting |
+| `routes/graph_ops.py` | 2016 | +661 | second pass: node CRUD / edges / batch / import-export |
+| `virtual_world_engine.py` | 1926 | **NEW** (root runner) | only if a clean phase or facade seam exists; do not churn for linecount |
+| `routes/player_ops.py` | 1668 | **NEW** | split by operation family (state / inventory / memory / update) |
+| `engine/background_simulation.py` | 1668 | **NEW** | schedule / social / ambient ticks from the orchestrator |
+| `routes/action_handlers.py` | 1632 | +331 | second pass: split by verb family |
+| `routes/library_ops.py` | 1628 | +544 | second pass |
+| `engine/tick_manager.py` | 1595 | +494 | extract tick phases (vitals / environment / triggers / activities) from the orchestrator |
+| `player.py` | 1450 | **NEW** (root model) | only if a clean concern separates; Player already projects from node props — do not invent a second store |
+| `engine/background_social.py` | 1389 | **NEW** | keep paired with `background_simulation` decisions |
+| `engine/traits.py` | 1247 | +151 | definition catalog vs event dispatch |
+| `engine/movement.py` | 1197 | +99 | traversal rules vs area/way construction |
+| `engine/equipment.py` | 1144 | +390 | was lower priority; now above 1k — inventory/equip rules vs coverage/body |
+| `engine/player_conditions.py` | 969 | +128 | was "tracked not to split"; re-evaluate if it keeps growing |
+| `engine/serialization.py` | 940 | +431 | already imports `serialization_template` + `serialization_legacy`; prefer extending that split over a new cut |
+| `engine/trigger_validator.py` | 930 | +109 | lower priority (also touched by task-393 family) |
+| `engine/matching.py` | 924 | +227 | lower priority — resolve only if it keeps growing |
 
-**Tracked but not to split:** `engine/serialization.py` (509) already imports
-`serialization_template` + `serialization_legacy`; `engine/player_conditions.py` (841)
-was already extracted from `player.py`.
+Also carried over from task-314's wave reports: `triggers/testing.py` (205) still
+shares template-context shape with `triggers/execution.py` (629) — de-duplicate
+while splitting if that seam is touched.
+
+**Still not a linecount chase:** a cohesive ~900-line file may stay. New entrants
+are listed because they outgrew the old list, not because every one must be cut
+this wave. Prefer `world_compile.py`, `graph_ops.py`, and the `routes/*_ops.py`
+family first — clearest operation-family seams.
 
 ## How
 
@@ -46,7 +60,9 @@ was already extracted from `player.py`.
    API re-exports up to the host module.
 3. **Record what moved** in the task file as a table (module → lines → what moved), the
    shape task-314's wave-1 table used.
-4. Verify per extraction: `python -m pytest tests/ -q -k "not mcp and not emote"`.
+4. Verify per extraction with a **targeted** selection (never the full suite by default;
+   never `-q`): e.g. `python -m pytest tests/test_<touched>.py` plus any module that
+   patches the moved symbol.
 
 ## Acceptance
 
@@ -63,17 +79,31 @@ was already extracted from `player.py`.
 
 ## Why
 
-TODO
+Backend hosts above ~1.5k lines hold multiple operation families in one module.
+Callers and tests then depend on an opaque file, and agent sessions that touch
+one route family pull the whole host into context. Remeasure 2026-10-16 shows
+the original 2026-09-21 list understates the problem: `world_compile.py` alone
+is 2724 lines and was untracked.
 
 ## Steps to verify
 
-1. TODO
-   - expected: TODO
-   - observed: TODO
+1. Remeasure host and new module after each one-file extraction.
+   - expected: host line count materially lower; extracted concern has one owner;
+     public import paths stable.
+   - observed: 2026-10-16 remeasure recorded above; no extraction landed this pass.
+2. Run the focused test module(s) that exercise the extracted behaviour (no `-q`).
+   - expected: same behaviour passes; any changed `mock.patch` target is recorded.
+   - observed: not run this update (measurement-only card refresh).
+3. Import the package and the extracted module in a clean process.
+   - expected: no cycle / import-time side effect; stable public API still exposed.
+   - observed: not applicable until an extraction lands.
 
 ## Files
 
-- TODO
+- `engine/world_compile.py`, `tick_manager.py`, `movement.py`, `traits.py`, `equipment.py`, `background_simulation.py`, `background_social.py`, `matching.py`, `trigger_validator.py`, `serialization.py`, `player_conditions.py`
+- `routes/graph_ops.py`, `player_ops.py`, `action_handlers.py`, `library_ops.py`
+- `virtual_world_engine.py`, `player.py` (only if a clean seam is proven)
+- new extracted modules under `engine/` / `routes/` as recorded per split
 
 ## Browser UI and intended live verification
 

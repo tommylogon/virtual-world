@@ -1,8 +1,9 @@
 ---
 type: bug
-status: inprogress
+status: todo
 area: ui
 priority: high
+wiki: "[[Library System/Library 2.0 - Unified Library Design]]"
 ---
 
 # bug-526: Sync World to Library 'Sync All' ignores the active tab and generated entities, and silently overwrites
@@ -101,3 +102,7 @@ TODO
 ## Files
 
 - TODO
+
+## Audit note (2026-10-16)
+
+Moved from inprogress back to todo: it was not being worked. No uncommitted changes in the working tree or in any of the eight git worktrees touch this card's files, and nobody is editing it. 0 of 4 acceptance boxes checked; the only commits that mention it are a8450e5e and an earlier one, the latest on 2026-10-10. Item grouping is partly in place via task-732; tab scoping, generated-entity handling and overwrite confirmation remain open.

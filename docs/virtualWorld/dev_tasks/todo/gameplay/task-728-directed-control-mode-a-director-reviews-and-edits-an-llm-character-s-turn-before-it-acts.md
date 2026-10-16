@@ -3,6 +3,7 @@ type: task
 status: todo
 area: gameplay
 priority: medium
+wiki: "[[Gameplay/Turn Queue & Human Turns]]"
 ---
 
 # task-728: Directed control mode: a director reviews and edits an LLM character's turn before it acts

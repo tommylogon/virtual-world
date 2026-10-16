@@ -81,3 +81,7 @@ This section defines the intended access point and acceptance path. It is not a 
 - `static/js/ui/` — the checklist panel (new).
 - `templates/index.html`.
 - Reuses the scenario-wizard / WorldPainter / create-modal entry points.
+
+## Audit note (2026-10-16)
+
+Moved from inprogress back to todo: it was not being worked. No uncommitted changes in the working tree or in any of the eight git worktrees touch this card's files, and nobody is editing it. The card itself says 'Not started (card complete; no implementation yet)'; 0 of its acceptance boxes are checked and no commit references it. 

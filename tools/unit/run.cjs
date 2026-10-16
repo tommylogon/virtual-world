@@ -171,6 +171,9 @@ load('static/js/inspector/sprite-sheet-geometry.js');
 load('static/js/inspector/sprite-sheet.js');
 load('static/js/inspector/doc-panel.js');
 load('static/js/inspector/helpers.js');
+// paperdoll-view.js only touches worldState/Lit at call time; its face filter
+// (areasForFacing) and navigate render are driven by tools/unit/test_paperdoll_facing.js.
+load('static/js/inspector/paperdoll-view.js');
 // agent-view.js reads InspectorHelpers.esc at eval time, so helpers.js must
 // come first. Its generators are plain async functions over injectable globals
 // (llmClient / ApiClient / worldState), which is what the tag-generation tests

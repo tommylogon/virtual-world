@@ -4,6 +4,7 @@ status: todo
 area: characters
 priority: medium
 related: [task-735]
+wiki: "[[Characters/Persona]]"
 ---
 
 # task-846: Pregnancy, gestation, and birth

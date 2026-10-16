@@ -1,6 +1,6 @@
 ---
 type: task
-status: inprogress
+status: todo
 area: ui
 priority: low
 ---
@@ -140,3 +140,7 @@ This section defines the intended access point and acceptance path. It is not a 
 ## Files
 
 - TODO
+
+## Audit note (2026-10-16)
+
+Moved from inprogress back to todo: it was not being worked. No uncommitted changes in the working tree or in any of the eight git worktrees touch this card's files, and nobody is editing it. 2 of 10 acceptance boxes checked (condition ribbons, unit runner green); the only commits that mention it are 67ec7274 (2026-09-27) and one other.

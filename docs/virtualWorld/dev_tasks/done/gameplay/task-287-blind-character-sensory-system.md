@@ -1,7 +1,7 @@
 ---
 id: 287
 title: Blind Character Sensory System (blindness = pitch-black, not "pretend")
-status: review
+status: done
 priority: high
 created: 2026-08-17
 tags: [gameplay, conditions, blind, prompt, movement, sensory]

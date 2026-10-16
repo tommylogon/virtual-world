@@ -527,11 +527,11 @@ class AgentEngine {
                     if (area) agentConfig.lastRoom[charName] = area;
                     resultText = output;
                 }
-                worldState.fetch();
+                worldState.fetch(); // SSE handler refetches on world_changed, this is redundant
             } catch (err) {
                 const errMsg = err instanceof Error ? err.message : String(err);
                 events.log(`Action error: ${errMsg}`, 'error-msg');
-                worldState.fetch();
+                 worldState.fetch(); // SSE handler refetches on world_changed, this is redundant
                 resultText = errMsg;
                 success = false;
             }
@@ -1052,6 +1052,12 @@ class AgentEngine {
         if (config.turnBased && this.turnQueue.length === 0) TurnQueue.initialize();
         if (config.turnBased && this.turnQueue.length > 0) {
             config.controllingPlayer = TurnQueue.getCurrentCharacter();
+        } else if (!config.turnBased) {
+            // bug-544: in non-turn-based mode, ensure controllingPlayer is set
+            // to the active player so the turn-end block executes and slots reset.
+            if (!config.controllingPlayer) {
+                config.controllingPlayer = worldState.data?.active_player || null;
+            }
         }
         await this.step();
         if (config.turnBased && this.turnQueue.length > 0) {

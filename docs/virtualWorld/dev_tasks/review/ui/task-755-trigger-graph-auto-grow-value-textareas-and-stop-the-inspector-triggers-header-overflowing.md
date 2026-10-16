@@ -1,6 +1,6 @@
 ---
 type: task
-status: inprogress
+status: review
 area: ui
 priority: low
 ---
@@ -19,7 +19,7 @@ Trigger-graph value textareas are fixed rows=2 and scroll instead of growing wit
 - [x] A trigger-graph value textarea grows to fit its content as it is typed (no inner scrollbar for a long message/instructions).
 - [x] A textarea with an existing long value is sized on open and on every node re-render.
 - [x] The inspector triggers header's five buttons wrap instead of clipping on a narrow panel (`flex-wrap` on the header and button row).
-- [ ] Live: open the trigger graph, type a multi-line message, confirm the box grows; narrow the inspector and confirm the header buttons wrap.
+- [x] Live: open the trigger graph, type a multi-line message, confirm the box grows; narrow the inspector and confirm the header buttons wrap.
   (2026-10-16 live on :4444: `_autoGrow` measured on a real
   `textarea.tg-field` — 36px scrolling → 52px grown, no scrollbar;
   node render calls `_sizeTextareas` after every render
@@ -31,6 +31,14 @@ Trigger-graph value textareas are fixed rows=2 and scroll instead of growing wit
   own synthetic-test litter (a canvas-child textarea without
   `data-key`), not app UI — removed, and the real node path sizes
   on render.)
+
+  Observed 2026-10-16 (Playwright, headless Chromium, http://localhost:4444, item `belt_leather`
+  via `VW.inspector.showNode`): the Triggers header holds 5 buttons. At the default inspector
+  width (379px) they sit on 2 rows, none clipped. With `#inspector-panel` forced to 260px they sit
+  on 2 rows, none outside the panel, header `scrollWidth` equals its width (228). Control: forcing
+  `flex-wrap:nowrap` on the header and button row at 260px gives 1 row, `scrollWidth` 415 against
+  228 and 3 buttons outside the panel (Suggest, Suggest (AI), Add), so the check does detect
+  clipping. Limit: the panel width was set by style, not by dragging the real resizer.
 
 ## Notes
 
@@ -79,3 +87,7 @@ This section defines the intended access point and acceptance path. It is not a 
 ## Files
 
 - TODO
+
+## Audit note (2026-10-16)
+
+Moved from inprogress back to todo: it was not being worked. No uncommitted changes in the working tree or in any of the eight git worktrees touch this card's files, and nobody is editing it. 3 of 4 acceptance boxes checked. The textarea auto-grow (_autoGrow in static/js/shared/trigger-graph.ts) and the header flex-wrap in static/js/inspector/trigger-helpers.ts are in the committed tree. Only the narrow-panel live check of the header wrap is open; nobody is working it.

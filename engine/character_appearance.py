@@ -67,6 +67,34 @@ IDENTITY_FIELDS: Dict[str, Any] = {
     "sexuality": ("text", None),
 }
 
+#: Suggested values for identity text fields, offered by the Persona tab as a
+#: pick-list next to the free-text input (task-852). The stored value stays a
+#: plain string: validation never checks it against these. Only fields with a
+#: declared vocabulary appear here; ``species`` is added from
+#: ``engine.species.SPECIES_PROFILES`` by ``identity_suggestions`` so that
+#: table stays the one species list. ``occupation`` has no declared
+#: vocabulary and is deliberately absent.
+#:
+#: ``pronouns`` lists only sets ``engine.pronouns`` can resolve (first token
+#: before "/", see ``_EXPLICIT``); a test pins that. "it/its" and "any" are
+#: left out until that module can act on them.
+IDENTITY_SUGGESTIONS: Dict[str, tuple] = {
+    "pronouns": ("she/her", "he/him", "they/them", "she/they", "he/they"),
+    "gender": ("woman", "man", "non-binary", "genderqueer", "agender",
+               "genderfluid", "trans woman", "trans man"),
+    "sexuality": ("straight", "gay", "lesbian", "bisexual", "pansexual",
+                  "asexual", "queer", "demisexual"),
+}
+
+
+def identity_suggestions() -> Dict[str, List[str]]:
+    """Field -> suggested values, for the Persona tab's pick-lists."""
+    from engine.species import SPECIES_PROFILES
+    out: Dict[str, List[str]] = {
+        field: list(values) for field, values in IDENTITY_SUGGESTIONS.items()}
+    out["species"] = sorted(SPECIES_PROFILES)
+    return out
+
 #: Narrative fields: biography/secrets/dialogue/role. Biography and
 #: secrets project to memories/known (task-404/366); dialogues and voice
 #: feed prompt voice.
@@ -656,7 +684,20 @@ def render_record_prose(record: Dict[str, Any], resolve=None) -> str:
     if body_bits:
         clauses.append(_join(body_bits))
     for mod in (body.get("modifications") or []):
-        clauses.append(f"bearing {mod}")
+        # task-852 P3: region-linked marks are stored as "area::text" in the
+        # same modifications[] list. Strip the area for prose; keep legacy
+        # unprefixed strings unchanged.
+        text = str(mod)
+        if "::" in text:
+            area, _, text = text.partition("::")
+            area_label = area.replace("_", " ").strip()
+            if text.strip():
+                clauses.append(
+                    f"bearing {text.strip()} on the {area_label}"
+                    if area_label else f"bearing {text.strip()}"
+                )
+        elif text.strip():
+            clauses.append(f"bearing {text.strip()}")
     voice = looks.get("voice") or {}
     voice_bits = [voice[k] for k in ("pitch", "accent", "mannerisms")
                   if voice.get(k)]

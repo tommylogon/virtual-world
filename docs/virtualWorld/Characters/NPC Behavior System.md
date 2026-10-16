@@ -520,10 +520,10 @@ This is separate from the main `player.memories[]` list, which stores narrative 
 ## Related tasks
 
 - [[dev_tasks/todo/characters/task-8-npc_behavior_movement|task-8: NPC behavior movement]]
-- [[dev_tasks/todo/characters/task-92-needs_driven_autonomous_replanning|task-92: Needs-driven autonomous replanning]]
+- [[task-92-needs_driven_autonomous_replanning|task-92: Needs-driven autonomous replanning]]
 - [[dev_tasks/review/characters/task-38-npc_behavior_go_command|task-38: NPC behavior go command]]
 - [[bug_8-max-steps-counts-characters-not-turns|bug-8: Max steps counts characters not turns]]
-- [[dev_tasks/todo/characters/task-94-closeness_as_behavioral_gate|task-94: Closeness as behavioral gate]]
+- [[task-94-closeness_as_behavioral_gate|task-94: Closeness as behavioral gate]]
 - [[dev_tasks/review/graph/task-739-nl-editor-full-trigger-behaviour-authoring-conditions-effects-compiled-and-validated|task-739: one behaviour/effect vocabulary, validated]]
 
 <!-- changelog:start -->
@@ -565,7 +565,7 @@ This is separate from the main `player.memories[]` list, which stores narrative 
 
 **Features** — [[talk-speak|Talk / speak]] (#7), [[whisper-shout|Whisper / shout]] (#8), [[npc-behaviour|NPC behaviour]] (#27), [[taking-an-agent-over|Taking an agent over]] (#40)
 
-**Dev tasks** — [[dev_tasks/done/bugs/bug_8-max-steps-counts-characters-not-turns|bug_8]], [[dev_tasks/done/characters/task-147-threat-aware-autonomous-replanning|task]], [[dev_tasks/done/characters/task-38-npc_behavior_go_command|task]], [[dev_tasks/done/characters/task-8-npc_behavior_movement|task]], [[dev_tasks/done/characters/task-92-needs_driven_autonomous_replanning|task]], [[dev_tasks/done/characters/task-94-closeness_as_behavioral_gate|task]]
+**Dev tasks** — [[dev_tasks/done/bugs/bug_8-max-steps-counts-characters-not-turns|bug_8]], [[dev_tasks/done/characters/task-147-threat-aware-autonomous-replanning|task]], [[dev_tasks/done/characters/task-38-npc_behavior_go_command|task]], [[dev_tasks/done/characters/task-8-npc_behavior_movement|task]], [[task-92-needs_driven_autonomous_replanning|task]], [[task-94-closeness_as_behavioral_gate|task]]
 
 **Neighbouring notes** — [[Activities & States]], [[Background Simulation]], [[Character Images & Expression Packs]], [[Characters Overview]], [[Emotion & Affect System]], [[GIMP]]
 

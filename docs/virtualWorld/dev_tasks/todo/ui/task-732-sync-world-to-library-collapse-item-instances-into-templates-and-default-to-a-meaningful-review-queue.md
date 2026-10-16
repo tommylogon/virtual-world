@@ -1,8 +1,9 @@
 ---
 type: task
-status: inprogress
+status: todo
 area: ui
 priority: high
+wiki: "[[Library System/Library 2.0 - Unified Library Design]]"
 ---
 
 # task-732: Sync World to Library: collapse item instances into templates and default to a meaningful review queue
@@ -124,3 +125,7 @@ This section defines the intended access point and acceptance path. It is not a 
 ## Files
 
 - TODO
+
+## Audit note (2026-10-16)
+
+Moved from inprogress back to todo: it was not being worked. No uncommitted changes in the working tree or in any of the eight git worktrees touch this card's files, and nobody is editing it. 1 of 6 acceptance boxes checked (item-instance grouping); the only commit that mentions it is 6617072e (2026-10-08), a working-tree checkpoint.

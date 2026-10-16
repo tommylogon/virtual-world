@@ -1,6 +1,6 @@
 ---
 type: task
-status: todo - out of date, need to re-measure and re-author
+status: todo
 area: characters
 priority: high
 ---
@@ -37,6 +37,8 @@ a decision about whether the two-key state (1 id-keyed entry already present) is
 a partial migration that is half done or a legitimate second representation.
 
 The relationship field holds two record shapes and is keyed by display name rather than id, so a rename orphans the relationship.
+
+Status note (previously free text in the status field): this card is out of date and needs its measurements redone and its goal re-authored before work starts.
 
 ## Acceptance
 

@@ -1,6 +1,6 @@
 ---
 type: bug
-status: review
+status: inprogress
 area: graph
 priority: medium
 wiki: "[[graph-canvas]]"

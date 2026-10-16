@@ -1,6 +1,6 @@
 ---
 type: task
-status: inprogress
+status: todo
 area: ui
 priority: medium
 ---
@@ -136,3 +136,7 @@ This section defines the intended access point and acceptance path. It is not a 
 - `static/js/worldpainter/grid-model.ts` — `pxPerCell → {w, h}` (generalise `gridForImageAspect`), clamps.
 - `tools/unit/test_worldpainter.js` — the new derivation.
 - `engine/world_grid.py`, `routes/world_grid_ops.py` — the grid-set route keeps its `{w, h}` shape (the px unit is derived client-side).
+
+## Audit note (2026-10-16)
+
+Moved from inprogress back to todo: it was not being worked. No uncommitted changes in the working tree or in any of the eight git worktrees touch this card's files, and nobody is editing it. 0 of 7 acceptance boxes checked; the latest commit that mentions it is 3e9e1017 (2026-10-02), a combined worldpainter commit.

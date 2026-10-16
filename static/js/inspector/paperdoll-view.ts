@@ -125,6 +125,23 @@
     // of declaring its own region vocabulary. One map, two readers.
     P.AREA_TO_REGIONS = AREA_TO_REGIONS;
 
+    // task-852 P2: which face of the doll shows an area. The same slot grid,
+    // filtered - no second layout, no second region catalog. An area that is
+    // absent here shows on both faces. Navigate mode only; equip mode always
+    // shows every slot. The Persona tab reads areasForFacing() too, so the
+    // doll and the keyboard/selection logic cannot disagree.
+    const AREA_FACE: Record<string, 'front' | 'back'> = {
+        back: 'back',
+        waist: 'front',
+        lhand: 'front', rhand: 'front', hand_l: 'front', hand_r: 'front',
+    };
+    P.areasForFacing = function(facing: string | null | undefined): string[] {
+        const face = facing === 'back' ? 'back' : 'front';
+        return GRID_SLOTS.map((gs) => gs.area).filter((area) =>
+            (AREA_TO_REGIONS[area] || []).length > 0
+            && (!AREA_FACE[area] || AREA_FACE[area] === face));
+    };
+
     /**
      * Character-wide equipment totals (one place, no duplication): the same
      * aggregation rules the engine uses (equipment_bonuses.aggregate_bonuses) —
@@ -277,12 +294,14 @@
      * @param {object} player - Player data from worldState
      * @param {function} esc - HTML escaping function for attribute values
      * @param {string} escName - HTML-escaped agent name (single quotes escaped)
-     * @param {object} opts - {mode: 'equip'|'navigate', selectedArea?: string}
+     * @param {object} opts - {mode: 'equip'|'navigate', selectedArea?: string, facing?: 'front'|'back'}
      * @returns {string} HTML for the figure grid
      */
-    P.renderPaperdollFigureHtml = function(agentName: string, player: any, esc: EscFn, escName: string, opts?: { mode?: string; selectedArea?: string | null }) {
+    P.renderPaperdollFigureHtml = function(agentName: string, player: any, esc: EscFn, escName: string, opts?: { mode?: string; selectedArea?: string | null; facing?: string | null }) {
         const mode = opts?.mode === 'navigate' ? 'navigate' : 'equip';
         const selected = opts?.selectedArea || null;
+        // task-852 P2: front/back filter uses the same slots — no second artwork.
+        const facing = (mode === 'navigate' && opts?.facing === 'back') ? 'back' : 'front';
         const equipped = player.equipped || {};
         const nameForNode = (id: string) => (worldState.getNode(id)?.name || id);
         const playerConditions = player.conditions || {};
@@ -301,8 +320,11 @@
                 exposed,
             };
         };
-        let html = `<div class="paperdoll" data-mode="${mode}">`;
+        let html = `<div class="paperdoll" data-mode="${mode}" data-facing="${facing}"${mode === 'navigate' ? ` role="group" aria-label="body, ${facing} view"` : ''}>`;
         for (const gs of GRID_SLOTS) {
+            // One face at a time (AREA_FACE): the grid template for that face
+            // has no cell for a hidden area, so it must not be rendered.
+            if (mode === 'navigate' && AREA_FACE[gs.area] && AREA_FACE[gs.area] !== facing) continue;
             const rawStack = equipped[gs.slot] || [];
             const realIds = (rawStack as string[]).filter((i: string) => i && !String(i).startsWith('__'));
             const filled = realIds.length > 0;
@@ -318,7 +340,7 @@
             const hot = regionData.some(r => (r.sensitivity || 0) >= 0.75);
             const statusCls = `${hurt ? ' pd-hurt' : ''}${hot ? ' pd-hot' : ''}${selected === gs.area ? ' pd-sel' : ''}`;
             if (mode === 'navigate') {
-                html += `<div class="paperdoll-slot${statusCls}" data-area="${gs.area}" onclick="InspectorPaperdoll.navigateToArea('${escName}','${gs.area}')" title="${esc(regions.map(regionName).join(', '))}">`
+                html += `<div class="paperdoll-slot${statusCls}" data-area="${gs.area}" role="button" aria-pressed="${selected === gs.area}" aria-label="${esc(regions.map(regionName).join(', '))}" onclick="InspectorPaperdoll.navigateToArea('${escName}','${gs.area}')" title="${esc(regions.map(regionName).join(', '))}">`
                     + `<div class="paperdoll-slot-label">${SLOT_LABELS[gs.slot] || gs.slot}</div>`
                     + `${iconHtml(gs.slot, filled)}${regionBadgeHtml}</div>`;
                 continue;

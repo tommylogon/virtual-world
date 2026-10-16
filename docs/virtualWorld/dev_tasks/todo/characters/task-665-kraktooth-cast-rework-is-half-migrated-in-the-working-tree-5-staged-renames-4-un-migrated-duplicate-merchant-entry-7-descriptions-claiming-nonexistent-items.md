@@ -3,6 +3,7 @@ type: task
 status: todo
 area: characters
 priority: high
+wiki: "[[Library System/Library System Overview]]"
 ---
 
 # task-665: Kraktooth cast rework is half-migrated in the working tree: 5 staged renames, 4 un-migrated, duplicate Merchant entry, 7 descriptions claiming nonexistent items

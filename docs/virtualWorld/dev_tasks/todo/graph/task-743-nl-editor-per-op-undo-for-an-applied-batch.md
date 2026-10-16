@@ -3,6 +3,7 @@ type: task
 status: todo
 area: graph
 priority: medium
+wiki: "[[World Building/Graph System]]"
 ---
 
 # task-743: NL editor: per-op undo for an applied batch

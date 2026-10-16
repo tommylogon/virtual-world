@@ -1,6 +1,6 @@
 ---
 type: task
-status: inprogress
+status: todo
 area: ui
 priority: medium
 ---
@@ -84,3 +84,7 @@ This section defines the intended access point and acceptance path. It is not a 
 - `static/js/worldpainter/grid-model.ts` — `paletteSections` / `filterPalette`.
 - `static/js/worldpainter/editor.ts` — `_palettePanel`; cell inspector exits row.
 - `routes/world_grid_ops.py` — vocabulary route (genre / setting field if needed).
+
+## Audit note (2026-10-16)
+
+Moved from inprogress back to todo: it was not being worked. No uncommitted changes in the working tree or in any of the eight git worktrees touch this card's files, and nobody is editing it. 0 of 4 acceptance boxes checked; no commit references it.

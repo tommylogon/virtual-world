@@ -2,7 +2,7 @@
 area: characters
 wiki: "[[Characters/NPC Behavior System]]"
 type: task
-status: review
+status: done
 priority: medium
 ---
 

@@ -3,6 +3,7 @@ type: bug
 status: todo
 area: prompting
 priority: high
+wiki: "[[AI & Narration/Agent Engine]]"
 ---
 
 # bug-523: Plan grounding facts use unmasked real names, leaking strangers and rejecting targets the room showed

@@ -1,8 +1,9 @@
 ---
 type: task
-status: inprogress
+status: todo
 area: ui
 priority: high
+wiki: "[[Characters/Character Images & Expression Packs]]"
 ---
 
 # task-678: Sprite sheet slicer cannot fit reference sheets: uniform grid only, write-once boxes, no preview of the cut
@@ -86,3 +87,7 @@ This section defines the intended access point and acceptance path. It is not a 
 - `static/js/inspector/sprite-sheet-geometry.ts`
 - `tools/unit/test_sprite_sheet_geometry.js`
 - `docs/virtualWorld/Characters/Character Images & Expression Packs.md`
+
+## Audit note (2026-10-16)
+
+Moved from inprogress back to todo: it was not being worked. No uncommitted changes in the working tree or in any of the eight git worktrees touch this card's files, and nobody is editing it. 0 of 6 acceptance boxes checked; no commit references it. The slicer files were last committed 2026-10-09 and 2026-10-10 as part of other work.

@@ -4,6 +4,7 @@ status: todo
 area: characters
 priority: high
 related: [task-403, task-417, task-423, task-699, task-702, task-704, task-814]
+wiki: "[[Characters/Background Simulation]]"
 ---
 
 # task-409: Background schedules, daily reflection, and coarse social behaviour

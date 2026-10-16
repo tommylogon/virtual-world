@@ -4,6 +4,7 @@ status: inprogress
 area: library
 priority: high
 related: [task-694, task-2, task-409, task-426, task-699, task-807]
+wiki: "[[design/Character Pursuits]]"
 ---
 
 # task-701: Pursuit template library: reusable undertakings as versioned entries

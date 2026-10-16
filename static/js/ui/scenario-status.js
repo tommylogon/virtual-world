@@ -56,7 +56,7 @@ const ScenarioStatus = (() => {
         commit.textContent = '💾 Commit';
         commit.style.cssText = 'font-size:10px;padding:1px 8px;';
         commit.dataset.role = 'scenario-commit';
-        commit.onclick = () => commitScenario();
+        commit.onclick = (e) => { e.stopPropagation(); commitScenario(); };
         node.appendChild(commit);
         // (Restart lives in the toolbar — one Restart button; the chip only
         // shows status + Commit.)

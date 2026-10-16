@@ -620,6 +620,22 @@ class TestExpandedSchema:
         assert "bisexual" in compiled["personality"]
         assert "Steel remembers." in compiled["personality"]
 
+    def test_compile_region_linked_markings(self):
+        # task-852 P3: "area::text" in modifications[] projects to readable prose.
+        world = _world()
+        _character(world, "Marked")
+        node = _node(world, "Marked")
+        set_record(node, {
+            "appearance": {
+                "body": {"modifications": ["torso::anchor tattoo", "legacy scar"]},
+            },
+        })
+        compiled = compile_persona(node)
+        prose = compiled["base_description"].lower()  # sentence-initial clause is capitalised
+        assert "bearing anchor tattoo on the torso" in prose
+        assert "bearing legacy scar" in prose
+        assert "torso::" not in prose
+
     def test_compile_of_prose_only_is_empty(self):
         world = _world()
         _character(world)
@@ -770,3 +786,48 @@ class TestCompileRoutes:
         assert forced.get("applied") is True
         state = client.get("/api/state").get_json()
         assert "34-year-old" in state["players"]["Lyrie"]["base_description"]
+
+
+# -- identity pick-lists (task-852) --
+
+class TestIdentitySuggestions:
+    """The Persona tab offers a pick-list next to each identity text input.
+
+    The list is a suggestion only: the stored value stays a free string.
+    """
+
+    def _client(self):
+        return create_app({"TESTING": True}).test_client()
+
+    def test_every_pronoun_suggestion_is_one_the_engine_resolves(self):
+        # An option the narration side cannot act on would be a readerless
+        # choice: engine.pronouns falls back to tags/neutral for it.
+        from engine.pronouns import _explicit_pronouns
+        for option in ca.identity_suggestions()["pronouns"]:
+            assert _explicit_pronouns({"identity": {"pronouns": option}}) \
+                is not None, option
+
+    def test_suggestions_only_name_identity_text_fields(self):
+        sug = ca.identity_suggestions()
+        assert set(sug) <= set(IDENTITY_FIELDS)
+        assert "age" not in sug and "occupation" not in sug
+        for field, values in sug.items():
+            assert values, field
+            assert len(values) == len(set(values)), field
+
+    def test_species_suggestions_come_from_the_species_table(self):
+        from engine.species import SPECIES_PROFILES
+        assert ca.identity_suggestions()["species"] == sorted(SPECIES_PROFILES)
+
+    def test_get_record_serves_the_suggestions(self):
+        body = self._client().get("/api/players/Lyrie/record").get_json()
+        assert body["suggestions"] == ca.identity_suggestions()
+
+    def test_value_outside_the_list_is_stored_unchanged(self):
+        client = self._client()
+        custom = {"identity": {"pronouns": "xe/xem", "gender": "demiboy",
+                               "sexuality": "omnisexual"}}
+        assert client.put("/api/players/Lyrie/record",
+                          json={"record": custom}).status_code == 200
+        stored = client.get("/api/players/Lyrie/record").get_json()["record"]
+        assert stored["identity"] == custom["identity"]

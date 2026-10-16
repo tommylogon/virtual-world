@@ -1076,26 +1076,68 @@ const InspectorMindView = (() => {
         #mind-persona .pf-chip b{cursor:pointer;font-weight:700;color:var(--text-muted);}
         #mind-persona .pf-chip b:hover{color:var(--text);}
         #mind-persona .pf-chip-new{flex:1;min-width:90px;background:transparent;border:none;color:var(--text);font-size:12px;outline:none;}
-        #mind-persona details.pf-fold{border:1px solid var(--border);border-radius:6px;margin-bottom:8px;background:var(--bg-card);}
         #mind-persona details.pf-intimacy{border-style:dashed;margin-top:8px;}
         #mind-persona .pf-locked{filter:blur(4px);cursor:pointer;user-select:none;}
         #mind-persona .pf-lock-note{font-size:11px;color:var(--text-muted);margin-bottom:4px;cursor:pointer;}
         #mind-persona .pf-codex{background:var(--bg-inset);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:12px;line-height:1.5;}
-        #mind-persona .pf-dirty{color:#e0a33c;font-size:12px;display:none;}
         #mind-persona .pf-head{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;padding:4px 2px 12px;margin-bottom:12px;border-bottom:1px solid var(--border);}
         #mind-persona .pf-head-main{min-width:240px;flex:1;}
         #mind-persona .pf-head-name{font-family:Georgia,'Times New Roman',serif;font-size:26px;font-weight:600;line-height:1.2;}
-        #mind-persona .pf-head-prose{font-size:13px;color:var(--text-dim);font-style:italic;margin:4px 0 8px;max-width:640px;}
+        #mind-persona .pf-head-prose{font-size:13px;color:var(--text-dim);font-style:italic;margin:4px 0 8px;max-width:min(640px,100%);}
         #mind-persona .pf-head-side{display:flex;flex-direction:column;gap:8px;align-items:flex-end;}
-        #mind-persona .pf-states{display:flex;gap:8px;align-items:center;font-size:12px;}
+        #mind-persona .pf-states{display:flex;gap:8px;align-items:center;font-size:12px;flex-wrap:wrap;justify-content:flex-end;}
+        #mind-persona .pf-state{display:inline-flex;align-items:center;gap:4px;border:1px solid currentColor;border-radius:999px;padding:2px 10px;font-size:11px;font-weight:600;white-space:nowrap;background:var(--bg-input);}
         #mind-persona .pf-state-ok{color:var(--green);}
+        #mind-persona .pf-state-dirty{color:#e0a33c;}
         #mind-persona .pf-state-stale{color:#e0a33c;}
         #mind-persona .pf-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
+        #mind-persona .pf-workspace{display:grid;grid-template-columns:minmax(280px,340px) minmax(0,1fr);gap:18px 22px;align-items:start;}
+        @media (max-width:920px){#mind-persona .pf-workspace{grid-template-columns:1fr;}#mind-persona .pf-doll-col{position:static;}}
+        @media (max-width:640px){#mind-persona .pf-head{gap:10px;}#mind-persona .pf-head-main{min-width:0;flex-basis:100%;}#mind-persona .pf-head-name{font-size:21px;}#mind-persona .pf-head-side{align-items:flex-start;width:100%;}#mind-persona .pf-states,#mind-persona .pf-actions{justify-content:flex-start;}}
+        #mind-persona .pf-doll-col{position:sticky;top:8px;background:var(--bg-inset);border:1px solid var(--border);border-radius:10px;padding:10px 12px;}
+        #mind-persona .pf-facing{display:flex;gap:4px;margin-bottom:8px;}
+        #mind-persona .pf-facing button{font-size:11px;padding:3px 10px;}
+        #mind-persona .pf-facing button.on{border-color:var(--accent);color:var(--accent);}
+        #mind-persona .pf-mark-list{display:flex;flex-direction:column;gap:4px;margin-top:6px;}
+        #mind-persona .pf-mark-row{display:flex;align-items:center;gap:6px;font-size:12px;}
+        #mind-persona .pf-mark-row b{cursor:pointer;color:var(--text-muted);}
         #mind-persona .pf-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;}
         @media (max-width:760px){#mind-persona .pf-grid{grid-template-columns:1fr;}}
         #mind-persona details.pf-fold{border:1px solid var(--border);border-radius:8px;margin-bottom:12px;background:var(--bg-card);}
         #mind-persona details.pf-fold>summary{cursor:pointer;padding:10px 14px;font-size:12px;font-weight:600;color:var(--text);letter-spacing:.02em;list-style:none;}
+        #mind-persona details.pf-fold.pf-intimacy{border-style:dashed;}
+        #mind-persona #mind-persona-doll:focus{outline:none;}
+        #mind-persona #mind-persona-doll:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:8px;}
         </style>`;
+    }
+    // task-852 P3: markings live in appearance.body.modifications[] as
+    // "area::text". Same array, no second store. Unprefixed = unassigned.
+    const _MARK_SEP = '::';
+    function _parseMark(raw) {
+        const s = String(raw || '');
+        const i = s.indexOf(_MARK_SEP);
+        if (i <= 0)
+            return { area: null, text: s };
+        return { area: s.slice(0, i), text: s.slice(i + _MARK_SEP.length) };
+    }
+    function _formatMark(area, text) {
+        return `${area}${_MARK_SEP}${text}`;
+    }
+    function _allMarks() {
+        const mods = _personaVal('appearance.body.modifications');
+        return Array.isArray(mods) ? mods.map((m) => String(m)).filter((s) => s.trim()) : [];
+    }
+    function _setAllMarks(values) {
+        if (!_state?.persona)
+            return;
+        const rec = _state.persona.record || {};
+        const appearance = (rec.appearance = rec.appearance || {});
+        const body = (appearance.body = appearance.body || {});
+        body.modifications = values;
+        const hidden = _container?.querySelector('input[type="hidden"][data-persona-path="appearance.body.modifications"]');
+        if (hidden)
+            hidden.value = values.join('\n');
+        _personaDirty();
     }
     function _personaChipBox(path, values, tone) {
         const chips = values.map((v) => `<span class="pf-chip${tone ? ` ${tone}` : ''}">${esc(v)}<b data-chip-x="${esc(path)}" data-chip-v="${esc(v)}">×</b></span>`).join('');
@@ -1112,14 +1154,29 @@ const InspectorMindView = (() => {
         if (!decl || decl.type === 'string' || decl.type === 'number' || !_state) {
             const numeric = decl?.type === 'number' || _PERSONA_NUMBERS.has(path);
             const str = val === undefined || val === null ? '' : String(val);
-            return { html: `<div>${label}<input class="pf-in" data-persona-path="${esc(path)}" value="${esc(str)}"${numeric ? ' inputmode="decimal"' : ''}></div>`, wide: false };
+            // Identity text fields stay free-form; a native datalist adds a
+            // pick-list from the engine's vocabulary. Picking fires `input`
+            // on the field, so the dirty chip and form-sync work unchanged.
+            const opts = section === 'identity' && !numeric
+                ? (_state?.persona?.suggestions?.[field] || []) : [];
+            const listId = opts.length ? `pf-dl-${section}-${field}` : '';
+            const listAttrs = listId ? ` list="${esc(listId)}" autocomplete="off" placeholder="type or pick"` : '';
+            const datalist = listId
+                ? `<datalist id="${esc(listId)}">${opts.map((o) => `<option value="${esc(o)}"></option>`).join('')}</datalist>`
+                : '';
+            return { html: `<div>${label}<input class="pf-in" data-persona-path="${esc(path)}" value="${esc(str)}"${numeric ? ' inputmode="decimal"' : ''}${listAttrs}>${datalist}</div>`, wide: false };
         }
         if (decl.type === 'array') {
             const values = Array.isArray(val) ? val.map((v) => String(v)) : [];
             return { html: `<div class="pf-span">${label}${_personaChipBox(path, values, tone)}</div>`, wide: true };
         }
         if (decl.type === 'object' && decl.properties) {
+            // modifications[] is authored on the doll side panel (task-852 P3) —
+            // keep a hidden input so collect/save still round-trips, no second editor.
+            const skipSubs = path === 'appearance.body' ? new Set(['modifications']) : null;
             const subs = Object.keys(decl.properties).map((sub) => {
+                if (skipSubs?.has(sub))
+                    return '';
                 const subDecl = decl.properties[sub];
                 const subPath = `${path}.${sub}`;
                 const subVal = _personaVal(subPath);
@@ -1130,10 +1187,17 @@ const InspectorMindView = (() => {
                 const str = subVal === undefined || subVal === null ? '' : String(subVal);
                 return `<div style="margin-bottom:5px;"><div class="pf-sub">${esc(sub)}</div><input class="pf-in" data-persona-path="${esc(subPath)}" value="${esc(str)}"></div>`;
             }).join('');
+            const markHidden = path === 'appearance.body'
+                ? (() => {
+                    const values = _allMarks();
+                    const joined = esc(values.join('\n')).replace(/\n/g, '&#10;');
+                    return `<input type="hidden" data-persona-path="appearance.body.modifications" value="${joined}">`;
+                })()
+                : '';
             const locked = path === 'narrative.secrets'
                 ? `<div class="pf-lock-note" data-lock="${esc(path)}">🔒 sealed — never compiled to prose. click to reveal.</div><div class="pf-locked" data-lockbody="${esc(path)}">${subs}</div>`
                 : subs;
-            return { html: `<div class="pf-span"><fieldset class="pf-group"><legend>${esc(field)}${hintIco}</legend>${locked}</fieldset></div>`, wide: true };
+            return { html: `<div class="pf-span"><fieldset class="pf-group"><legend>${esc(field)}${hintIco}</legend>${locked}${markHidden}</fieldset></div>`, wide: true };
         }
         const str = val === undefined || val === null ? '' : String(val);
         return { html: `<div>${label}<input class="pf-in" data-persona-path="${esc(path)}" value="${esc(str)}"></div>`, wide: false };
@@ -1211,14 +1275,23 @@ const InspectorMindView = (() => {
             return `<div style="margin-bottom:5px;"><span style="font-size:11px;color:var(--text-muted);">${esc(leaf)}</span> `
                 + `<span data-persona-jump="${esc(path)}" title="jump to field" style="cursor:pointer;color:var(--accent);font-size:12px;">⤴</span><br>${body}</div>`;
         }).join('');
-        const mods = (_personaVal('appearance.body.modifications') || []);
-        const modHtml = Array.isArray(mods) && mods.length
-            ? `<div style="margin-top:6px;font-size:11px;color:var(--text-muted);">markings: ${mods.map((m) => esc(String(m))).join(' · ')}</div>`
-            : '';
-        const descBlock = linked || modHtml
-            ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">${linked}${modHtml}</div>`
-            : `<div style="margin-top:8px;font-size:11px;color:var(--text-muted);">no schema field maps to this area — live status only.</div>`;
-        return `${rows}${descBlock}`;
+        const areaMarks = _allMarks()
+            .map((raw) => ({ raw, ..._parseMark(raw) }))
+            .filter((m) => m.area === area && m.text.trim());
+        const markRows = areaMarks.map((m) => `<div class="pf-mark-row"><span>${esc(m.text)}</span>`
+            + `<b data-mark-x="${esc(m.raw)}" title="remove">×</b></div>`).join('');
+        const markEditor = `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">markings on ${esc(area)}</div>
+            <div class="pf-mark-list" id="mind-persona-marks">${markRows || '<div style="font-size:11px;color:var(--text-muted);">none yet</div>'}</div>
+            <div style="display:flex;gap:6px;margin-top:6px;">
+                <input class="pf-in" id="mind-persona-mark-new" placeholder="scar, tattoo, piercing…" style="flex:1;font-size:12px;padding:4px 8px;">
+                <button class="btn btn-sm" id="mind-persona-mark-add" style="font-size:11px;" type="button">add</button>
+            </div>
+        </div>`;
+        const descBlock = linked
+            ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">${linked}</div>`
+            : `<div style="margin-top:8px;font-size:11px;color:var(--text-muted);">no schema field maps to this area — live status + markings only.</div>`;
+        return `${rows}${descBlock}${markEditor}`;
     }
     function _bodyNavHtml() {
         const pd = window.InspectorPaperdoll;
@@ -1227,15 +1300,25 @@ const InspectorMindView = (() => {
         if (!areas.length || typeof pd?.renderPaperdollFigureHtml !== 'function')
             return '';
         const sel = _state?.persona?.bodyNav || null;
+        const facing = _state?.persona?.dollFacing === 'back' ? 'back' : 'front';
         const player = (worldState.players || {})[_state?.charName || ''];
-        const doll = pd.renderPaperdollFigureHtml(_state?.charName || '', player || {}, esc, _state?.escName || '', { mode: 'navigate', selectedArea: sel });
+        const doll = pd.renderPaperdollFigureHtml(_state?.charName || '', player || {}, esc, _state?.escName || '', { mode: 'navigate', selectedArea: sel, facing });
         const side = sel
             ? _bodyNavSideHtml(sel)
-            : `<div style="font-size:11px;color:var(--text-muted);">pick a bodypart on the doll — live status, what the sheet says, and its sensitivity baseline.</div>`;
-        return `<div class="pf-span" style="background:var(--bg-inset);border:1px solid var(--border);border-radius:6px;padding:8px 10px;margin-bottom:8px;">
-            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:6px;">🩺 body — click the doll to read</div>
-            <div id="mind-persona-doll">${doll}</div>
+            : `<div style="font-size:11px;color:var(--text-muted);">pick a bodypart on the doll — live status, sheet summary, sensitivity, markings. Arrows move · F/B flip · Esc clears.</div>`;
+        const unassigned = _allMarks().filter((raw) => !_parseMark(raw).area);
+        const orphan = unassigned.length
+            ? `<div style="margin-top:8px;font-size:11px;color:var(--text-muted);">unassigned markings (pick a region, then re-add): ${unassigned.map((m) => esc(_parseMark(m).text || m)).join(' · ')}</div>`
+            : '';
+        return `<div>
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:6px;">🩺 body</div>
+            <div class="pf-facing" role="group" aria-label="doll facing">
+                <button type="button" class="btn btn-sm${facing === 'front' ? ' on' : ''}" data-doll-facing="front" title="front view (F)">front</button>
+                <button type="button" class="btn btn-sm${facing === 'back' ? ' on' : ''}" data-doll-facing="back" title="back view (B)">back</button>
+            </div>
+            <div id="mind-persona-doll" tabindex="0" aria-label="body doll" title="arrows move the selection, F / B flip the doll, Esc clears">${doll}</div>
             <div id="mind-persona-bodynav" style="margin-top:8px;">${side}</div>
+            ${orphan}
         </div>`;
     }
     function _wireBodyNav(pane) {
@@ -1248,25 +1331,157 @@ const InspectorMindView = (() => {
                 _refreshBodyNav(pane);
             };
         }
+        pane.querySelectorAll('[data-doll-facing]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                _setDollFacing(pane, btn.dataset.dollFacing === 'back' ? 'back' : 'front');
+            });
+        });
+        const doll = pane.querySelector('#mind-persona-doll');
+        if (doll && !doll._navKeys) {
+            doll._navKeys = true;
+            doll.addEventListener('keydown', (ev) => {
+                if (!_state?.persona || ev.altKey || ev.ctrlKey || ev.metaKey)
+                    return;
+                if (ev.key === 'f' || ev.key === 'F' || ev.key === 'b' || ev.key === 'B') {
+                    ev.preventDefault();
+                    _setDollFacing(pane, (ev.key === 'b' || ev.key === 'B') ? 'back' : 'front');
+                    return;
+                }
+                if (ev.key === 'Escape') {
+                    if (!_state.persona.bodyNav)
+                        return;
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    _state.persona.bodyNav = null;
+                    _refreshBodyNav(pane);
+                    return;
+                }
+                const dir = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down' }[ev.key];
+                if (!dir)
+                    return;
+                ev.preventDefault();
+                const next = _navNeighbour(pane, dir);
+                if (next && next !== _state.persona.bodyNav) {
+                    _state.persona.bodyNav = next;
+                    _refreshBodyNav(pane);
+                }
+            });
+        }
         _wireBodyNavJumps(pane);
         _wireBodyNavSliders(pane);
+        _wireBodyNavMarks(pane);
     }
     function _refreshBodyNav(pane) {
         if (!_state?.persona)
             return;
         const pd = window.InspectorPaperdoll;
         const sel = _state.persona.bodyNav || null;
+        const facing = _state.persona.dollFacing === 'back' ? 'back' : 'front';
         const doll = pane.querySelector('#mind-persona-doll');
         if (doll && pd?.renderPaperdollFigureHtml) {
             const player = (worldState.players || {})[_state?.charName || ''];
-            doll.innerHTML = pd.renderPaperdollFigureHtml(_state?.charName || '', player || {}, esc, _state?.escName || '', { mode: 'navigate', selectedArea: sel });
+            doll.innerHTML = pd.renderPaperdollFigureHtml(_state?.charName || '', player || {}, esc, _state?.escName || '', { mode: 'navigate', selectedArea: sel, facing });
         }
+        pane.querySelectorAll('[data-doll-facing]').forEach((btn) => {
+            const face = btn.dataset.dollFacing;
+            btn.classList.toggle('on', face === facing);
+        });
         const nav = pane.querySelector('#mind-persona-bodynav');
         if (nav) {
-            nav.innerHTML = sel ? _bodyNavSideHtml(sel) : '';
+            nav.innerHTML = sel
+                ? _bodyNavSideHtml(sel)
+                : `<div style="font-size:11px;color:var(--text-muted);">pick a bodypart on the doll — live status, sheet summary, sensitivity, markings. Arrows move · F/B flip · Esc clears.</div>`;
             _wireBodyNavJumps(pane);
             _wireBodyNavSliders(pane);
+            _wireBodyNavMarks(pane);
         }
+    }
+    // The faces' area lists are declared once, in paperdoll-view (AREA_FACE).
+    function _navAreas() {
+        const pd = window.InspectorPaperdoll;
+        const facing = _state?.persona?.dollFacing === 'back' ? 'back' : 'front';
+        return typeof pd?.areasForFacing === 'function' ? pd.areasForFacing(facing) : [];
+    }
+    // Flip the doll. A selection that is not on the new face moves to the
+    // first area of that face rather than pointing at a slot nobody can see.
+    function _setDollFacing(pane, face) {
+        if (!_state?.persona)
+            return;
+        _state.persona.dollFacing = face;
+        const areas = _navAreas();
+        const sel = _state.persona.bodyNav;
+        if (sel && !areas.includes(sel))
+            _state.persona.bodyNav = areas[0] || null;
+        _refreshBodyNav(pane);
+    }
+    // Arrow keys move to the nearest visible slot in that direction, read from
+    // the rendered grid, so the key map follows whichever face template is on
+    // screen and no layout is declared a second time.
+    function _navNeighbour(pane, dir) {
+        const slots = Array.from(pane.querySelectorAll('#mind-persona-doll .paperdoll-slot[data-area]'));
+        if (!slots.length)
+            return null;
+        const sel = _state?.persona?.bodyNav || null;
+        const cur = slots.find((el) => el.dataset.area === sel);
+        if (!cur)
+            return slots[0].dataset.area || null;
+        const mid = (el) => {
+            const r = el.getBoundingClientRect();
+            return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+        };
+        const c = mid(cur);
+        let best = null;
+        let bestScore = Infinity;
+        for (const el of slots) {
+            if (el === cur)
+                continue;
+            const o = mid(el);
+            const dx = o.x - c.x;
+            const dy = o.y - c.y;
+            const ahead = dir === 'right' ? dx : dir === 'left' ? -dx : dir === 'down' ? dy : -dy;
+            if (ahead <= 4)
+                continue;
+            const off = (dir === 'left' || dir === 'right') ? Math.abs(dy) : Math.abs(dx);
+            const score = ahead + off * 2;
+            if (score < bestScore) {
+                bestScore = score;
+                best = el.dataset.area || null;
+            }
+        }
+        return best;
+    }
+    function _wireBodyNavMarks(pane) {
+        const add = () => {
+            const area = _state?.persona?.bodyNav;
+            const input = pane.querySelector('#mind-persona-mark-new');
+            if (!area || !input)
+                return;
+            const text = input.value.trim();
+            if (!text)
+                return;
+            input.value = '';
+            const next = _allMarks().filter((raw) => {
+                const p = _parseMark(raw);
+                return !(p.area === area && p.text === text);
+            });
+            next.push(_formatMark(area, text));
+            _setAllMarks(next);
+            _refreshBodyNav(pane);
+        };
+        pane.querySelector('#mind-persona-mark-add')?.addEventListener('click', add);
+        pane.querySelector('#mind-persona-mark-new')?.addEventListener('keydown', (ev) => {
+            if (ev.key === 'Enter') {
+                ev.preventDefault();
+                add();
+            }
+        });
+        pane.querySelectorAll('[data-mark-x]').forEach((el) => {
+            el.addEventListener('click', () => {
+                const raw = el.dataset.markX || '';
+                _setAllMarks(_allMarks().filter((m) => m !== raw));
+                _refreshBodyNav(pane);
+            });
+        });
     }
     function _wireBodyNavSliders(pane) {
         pane.querySelectorAll('[data-sens-region]').forEach((el) => {
@@ -1321,20 +1536,37 @@ const InspectorMindView = (() => {
             return '';
         return `<div class="pf-badges">${chips}</div>`;
     }
-    // task-852 P1: a real character header — name, who-they-are line,
-    // badges, and the state chips (saved / unsaved / stale), with the
-    // actions riding alongside instead of floating above a form.
+    // task-852 P1: character header — name, one-liner, badges, state chips
+    // (✓ saved / ● unsaved / ⚠ uncompiled), actions on the right.
+    function _personaStatesHtml() {
+        const p = _state?.persona;
+        if (!p)
+            return '';
+        // Both flags already exist: `dirty` is set by an edit to a sheet field and
+        // cleared by the post-save re-read; `stale` is the server's
+        // persona_prose_stale node flag (prose_stale from GET /record). Compile
+        // reads the SAVED block, so an unsaved edit is also uncompiled.
+        const bits = [];
+        if (p.dirty) {
+            bits.push(`<span class="pf-state pf-state-dirty" title="Edits on this sheet are not stored yet. Press save block.">\u25cf unsaved</span>`);
+        }
+        else {
+            bits.push(`<span class="pf-state pf-state-ok" title="The sheet matches the stored block.">\u2713 saved</span>`);
+        }
+        if (p.dirty || p.stale) {
+            const why = p.dirty
+                ? 'The sheet changed since the last compile. Save the block first: compile reads the saved block.'
+                : 'The block changed since the last compile, so the compiled prose is stale. Press compile to refresh.';
+            bits.push(`<span class="pf-state pf-state-stale" title="${esc(why)}">\u26a0 uncompiled</span>`);
+        }
+        return bits.join('');
+    }
     function _personaHeaderHtml() {
         const name = _state ? _state.charName : '';
-        const p = _state?.persona;
         const player = (worldState.players || {})[name];
-        const prose = (player?.base_description || '')
-            || (player?.personality || '');
+        // One-liner is authored identity prose, never equipment projection.
+        const prose = (player?.base_description || '');
         const oneLiner = prose ? esc(prose.split('\n')[0].slice(0, 160)) : '';
-        const dirty = `<span class="pf-dirty" id="mind-persona-dirty">● unsaved</span>`;
-        const stale = p?.stale
-            ? `<span class="pf-state pf-state-stale">⚠ uncompiled changes</span>`
-            : `<span class="pf-state pf-state-ok">✓ saved</span>`;
         return `<div class="pf-head">
             <div class="pf-head-main">
                 <div class="pf-head-name">${esc(name)}</div>
@@ -1342,7 +1574,7 @@ const InspectorMindView = (() => {
                 ${_personaBadges()}
             </div>
             <div class="pf-head-side">
-                <div class="pf-states">${dirty}${stale}</div>
+                <div class="pf-states" id="mind-persona-states" role="status" aria-live="polite">${_personaStatesHtml()}</div>
                 <div class="pf-actions">
                     <button class="btn btn-sm" id="mind-persona-import" style="font-size:11px;" title="Import a card (.json) or prose (.md/.txt) and convert it to this sheet">📥 import</button>
                     <input type="file" id="mind-persona-file" accept=".json,.md,.txt" style="display:none;">
@@ -1365,6 +1597,16 @@ const InspectorMindView = (() => {
         const sections = _PERSONA_SECTIONS.map(([section, label]) => {
             const fields = props[section]?.properties || {};
             const names = Object.keys(fields);
+            const filled = names.filter((f) => {
+                const v = _personaVal(`${section}.${f}`);
+                if (v === undefined || v === null || v === '')
+                    return false;
+                if (Array.isArray(v))
+                    return v.length > 0;
+                if (typeof v === 'object')
+                    return Object.keys(v).length > 0;
+                return true;
+            }).length;
             const renderable = (f) => {
                 const r = _personaFieldHtml(section, f, fields[f]);
                 return r.wide ? `<div class="pf-span">${r.html}</div>` : r.html;
@@ -1380,22 +1622,17 @@ const InspectorMindView = (() => {
                 }
             }
             else {
+                // Doll lives in the left workspace column — appearance fold is fields only.
                 inner = `<div class="pf-grid">${names.map(renderable).join('')}</div>`;
-            }
-            if (section === 'appearance') {
-                inner = `<div class="pf-grid">${_bodyNavHtml()}${names.map(renderable).join('')}</div>`;
             }
             const count = names.length;
             // Folds, not a wall: who they are reads at a glance, the
             // depths are one click away. Open state survives re-renders.
             return `<details class="pf-fold" data-fold="${esc(label)}"${openSet.has(label) ? ' open' : ''}>
-                <summary>${label} · ${count} fields</summary>
+                <summary>${label} · ${filled}/${count} filled</summary>
                 <div style="padding:2px 10px 10px;">${inner}</div>
             </details>`;
         }).join('');
-        const stale = p.stale
-            ? `<div style="background:#3a2a10;border:1px solid #8a6a2a;border-radius:6px;padding:7px 10px;font-size:11px;margin-bottom:10px;">⚠️ block changed since the last compile — prose is stale. press Compile to refresh.</div>`
-            : '';
         const preview = p.preview ? `<div style="border:1px solid #1f6feb;border-radius:6px;padding:8px 10px;margin:10px 0;font-size:11px;">
                 <div style="font-weight:600;margin-bottom:6px;">Compile preview — hand prose differs</div>
                 <div style="margin-bottom:6px;"><div style="color:var(--text-muted);font-size:11px;">BASE NOW</div><div>${esc(p.preview.base_description?.current || '(empty)')}</div>
@@ -1411,13 +1648,41 @@ const InspectorMindView = (() => {
             <details class="pf-fold" data-fold="Codex"${openSet.has('Codex') ? ' open' : ''}><summary>Codex entry — live preview</summary>
                 <div style="padding:2px 10px 10px;"><div class="pf-codex" id="mind-persona-codex">open the fold and type — the compiled entry appears here without storing anything.</div></div>
             </details>
-            ${stale}${preview}${sections}${msg}`;
+            ${preview}
+            <div class="pf-workspace">
+                <div class="pf-doll-col">${_bodyNavHtml()}</div>
+                <div class="pf-sheet-col">${sections}${msg}</div>
+            </div>`;
+    }
+    // A dirty sheet lives only in the DOM (inputs write nowhere else). Any
+    // rebuild of the pane or the whole modal must read the form back into the
+    // record first, or the edits vanish while the chip still says unsaved.
+    function _syncPersonaFromForm() {
+        const p = _state?.persona;
+        if (!p || !p.dirty || p.status !== 'ok')
+            return;
+        if (!_container?.querySelector('#mind-persona [data-persona-path]'))
+            return;
+        p.record = _collectPersona();
+    }
+    function _personaRepaint(syncForm = true) {
+        if (syncForm)
+            _syncPersonaFromForm();
+        const el = _container?.querySelector('#mind-persona');
+        if (el) {
+            el.innerHTML = _personaHtml();
+            _wirePersona();
+        }
     }
     function _fetchPersona() {
         if (!_state)
             return;
         if (!_state.persona) {
-            _state.persona = { status: 'loading', record: {}, schema: null, hints: {}, stale: false, preview: null, msg: '', openSections: ['Identity', 'Appearance'] };
+            _state.persona = {
+                status: 'loading', record: {}, schema: null, hints: {},
+                stale: false, dirty: false, preview: null, msg: '',
+                openSections: ['Identity', 'Appearance'], dollFacing: 'front',
+            };
         }
         else {
             _state.persona.status = 'loading';
@@ -1430,27 +1695,22 @@ const InspectorMindView = (() => {
             if (!_state || !_state.persona)
                 return;
             const keepOpen = _state.persona.openSections || ['Identity', 'Appearance'];
+            const keepNav = _state.persona.bodyNav;
+            const keepFacing = _state.persona.dollFacing || 'front';
             _state.persona = {
                 status: 'ok', record: data.record || {},
                 schema: data.schema || null, hints: data.hints || {},
-                stale: !!data.prose_stale, preview: null, msg: '',
-                openSections: keepOpen,
+                suggestions: data.suggestions || {},
+                stale: !!data.prose_stale, dirty: false, preview: null, msg: '',
+                openSections: keepOpen, bodyNav: keepNav, dollFacing: keepFacing,
             };
-            const el = _container?.querySelector('#mind-persona');
-            if (el) {
-                el.innerHTML = _personaHtml();
-                _wirePersona();
-            }
+            _personaRepaint();
         })
             .catch(() => {
             if (!_state || !_state.persona)
                 return;
             _state.persona.status = 'error';
-            const el = _container?.querySelector('#mind-persona');
-            if (el) {
-                el.innerHTML = _personaHtml();
-                _wirePersona();
-            }
+            _personaRepaint();
         });
     }
     function _collectPersona() {
@@ -1496,11 +1756,7 @@ const InspectorMindView = (() => {
     function _personaMsg(text) {
         if (_state?.persona) {
             _state.persona.msg = text;
-            const el = _container?.querySelector('#mind-persona');
-            if (el) {
-                el.innerHTML = _personaHtml();
-                _wirePersona();
-            }
+            _personaRepaint();
         }
     }
     function _savePersona() {
@@ -1533,6 +1789,10 @@ const InspectorMindView = (() => {
     function _compilePersona(force) {
         if (!_state)
             return;
+        if (!force && _state.persona?.dirty) {
+            _personaMsg('unsaved edits: save the block first. Compile reads the saved block, not the sheet.');
+            return;
+        }
         fetch(`/api/players/${encodeURIComponent(_state.charName)}/record/compile`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1546,11 +1806,7 @@ const InspectorMindView = (() => {
             if (data.needs_confirm) {
                 _state.persona.preview = data.preview;
                 _state.persona.msg = '';
-                const el = _container?.querySelector('#mind-persona');
-                if (el) {
-                    el.innerHTML = _personaHtml();
-                    _wirePersona();
-                }
+                _personaRepaint();
                 return;
             }
             _state.persona.preview = null;
@@ -1562,9 +1818,11 @@ const InspectorMindView = (() => {
     }
     let _codexTimer = null;
     function _personaDirty() {
-        const dot = _container?.querySelector('#mind-persona-dirty');
-        if (dot)
-            dot.style.display = 'inline';
+        if (_state?.persona)
+            _state.persona.dirty = true;
+        const box = _container?.querySelector('#mind-persona-states');
+        if (box)
+            box.innerHTML = _personaStatesHtml();
     }
     function _chipValues(box) {
         const hidden = box.querySelector('input[type="hidden"]');
@@ -1666,16 +1924,13 @@ const InspectorMindView = (() => {
                     // review, store nothing. Save validates server-side.
                     _state.persona.record = converted;
                     _state.persona.preview = null;
+                    _state.persona.dirty = true;
                     const notes = [...(parsed.warnings || [])];
                     if (parsed.deterministic?.lorebook?.length) {
                         notes.push(`${parsed.deterministic.lorebook.length} lorebook entries belong in memories, not here`);
                     }
                     _state.persona.msg = `imported ${parsed.kind} — review, then save.${notes.length ? ' ' + notes.join(' ') : ''}`;
-                    const el = _container?.querySelector('#mind-persona');
-                    if (el) {
-                        el.innerHTML = _personaHtml();
-                        _wirePersona();
-                    }
+                    _personaRepaint(false);
                 }
                 catch (e) {
                     _personaMsg(`import failed: ${e instanceof Error ? e.message : String(e)} — nothing stored.`);
@@ -1715,11 +1970,7 @@ const InspectorMindView = (() => {
         on('#mind-persona-cancel', () => {
             if (_state?.persona) {
                 _state.persona.preview = null;
-                const el = _container?.querySelector('#mind-persona');
-                if (el) {
-                    el.innerHTML = _personaHtml();
-                    _wirePersona();
-                }
+                _personaRepaint();
             }
         });
         const pane = _container.querySelector('#mind-persona');
@@ -1762,7 +2013,20 @@ const InspectorMindView = (() => {
                 _chipPaint(box, cur, true);
             });
         });
-        pane?.addEventListener('input', () => { _personaDirty(); _scheduleCodex(); });
+        // Only sheet fields mark the block dirty. The chip draft box, the mark
+        // draft box and the sensitivity sliders carry no data-persona-path
+        // (sliders persist on their own through PUT /body).
+        const paneFlag = pane;
+        if (pane && paneFlag && !paneFlag._pfInput) {
+            paneFlag._pfInput = true;
+            pane.addEventListener('input', (ev) => {
+                const t = ev.target;
+                if (!t || !t.closest('[data-persona-path]'))
+                    return;
+                _personaDirty();
+                _scheduleCodex();
+            });
+        }
         if (pane)
             _wireBodyNav(pane);
         pane?.querySelectorAll('details').forEach((d) => {
@@ -1789,6 +2053,8 @@ const InspectorMindView = (() => {
     function _render() {
         if (!_state || !_container)
             return;
+        _syncPersonaFromForm();
+        const dollHadFocus = document.activeElement?.id === 'mind-persona-doll';
         const all = _memories();
         const visible = _visible(all);
         const selected = all.find((m) => m.id === _state.selectedId) || null;
@@ -1997,6 +2263,9 @@ const InspectorMindView = (() => {
         if (refresh)
             refresh.addEventListener('click', () => { _fetchPeople(); _fetchPersona(); _fetchRecipes(); _render(); });
         _wirePersona();
+        // A rebuild drops focus; keep keyboard navigation alive on the doll.
+        if (dollHadFocus)
+            _container.querySelector('#mind-persona-doll')?.focus({ preventScroll: true });
         if (_container.querySelector('#mind-recipes'))
             _fetchRecipes();
         const search = _container.querySelector('#mind-search');

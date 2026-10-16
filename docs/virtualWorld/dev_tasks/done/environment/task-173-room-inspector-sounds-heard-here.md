@@ -1,7 +1,7 @@
 ---
 id: 173
 title: Room Inspector Sounds Heard Here
-status: review
+status: done
 priority: low
 created: 2026-08-03
 tags: [environment, sound, ui]

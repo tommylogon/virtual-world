@@ -1439,6 +1439,26 @@ body {
     grid-template-columns: 84px 84px 84px;
     grid-template-rows: repeat(6, 84px);
 }
+/* task-852 P2: back face recenters the back slot — same template, no art. */
+.paperdoll[data-mode="navigate"][data-facing="back"] {
+    grid-template-areas:
+        ".       head    ."
+        ".       neck    ."
+        "larm    back    rarm"
+        ".       torso   ."
+        ".       legs    ."
+        ".       feet    .";
+    grid-template-rows: repeat(6, 84px);
+}
+.paperdoll[data-mode="navigate"][data-facing="front"] {
+    grid-template-areas:
+        ".       head    ."
+        ".       neck    ."
+        "larm    torso   rarm"
+        "lhand   waist   rhand"
+        "hand_l  legs    hand_r"
+        ".       feet    .";
+}
 .paperdoll[data-mode="navigate"] .paperdoll-slot {
     cursor: pointer;
     background: linear-gradient(160deg, var(--bg-card), var(--bg-inset));

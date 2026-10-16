@@ -2,7 +2,7 @@
 area: characters
 wiki: "[[AI & Narration/Memory System]]"
 type: task
-status: review
+status: done
 priority: medium
 ---
 

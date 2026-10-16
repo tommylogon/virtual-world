@@ -1,19 +1,14 @@
 ---
 type: task
-status: inprogress
+status: todo
 area: ui
 priority: medium
-blocked_by: [task-651]
 ---
 
 # task-677: Human player has no map: fog of war is tested but unwired and no player-facing surface exists
 
 **Filed:** 2026-10-03
 **Related:** task-499,task-676
-
-<!-- deps:start -->
-**Blocked by:** [[task-651-painter-grid-payload-omits-the-floor-and-climate-layers-when-they-are-empty]]
-<!-- deps:end -->
 
 ## What
 
@@ -164,6 +159,7 @@ task. "Cells you have been" needs no reveal state to exist.
   in data today is `way_task_18_-_ladder` in `labs.json`.
   Depends on `task-651` — the painter grid payload omits the floor layer when
   empty, so a floor control built on it can silently read nothing.
+  (task-651 is done as of 2026-10-16; the dependency no longer blocks this card.)
 - **Wiring `engine/fog.py`.** Separate task; see the scope note above for why
   this task must not reach it.
 - **Remembering "who was there" on every arrival.** `observation.py:96-105`
@@ -241,3 +237,7 @@ This section defines the intended access point and acceptance path. It is not a 
 - `engine/observation.py`, `player.py` — `record_observation(..., kind="area")` (the producer).
 - `docs/virtualWorld/Feature Map.md` — a row for the player map.
 - `tests/` — the visited-seeding tests plus a producer test.
+
+## Audit note (2026-10-16)
+
+Moved from inprogress back to todo: it was not being worked. No uncommitted changes in the working tree or in any of the eight git worktrees touch this card's files, and nobody is editing it. 3 of 9 acceptance boxes checked; no commit references it. Its blocked_by task-651 is now done, so that blocker is cleared.
