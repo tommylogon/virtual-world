@@ -1104,7 +1104,7 @@ def test_the_parent_first_order_still_emits_the_in_ways():
     generation.apply_patch(g, m, world_compile.compile_grid(m, "town"))
     # The interior is placed but not generated, so there is nothing to go into and
     # nothing to refuse: a shut door here would be a lie about the world.
-    assert not [nid for nid in g.nodes if nid.startswith("way_enter_")]
+    assert not [node_id for node_id in g.nodes if node_id.startswith("way_enter_")]
     sides = m["town"]["placements"]["inn"]["sides"]
     assert {s["area_id"] for s in sides} == {"area_town_0_0", "area_town_2_0"}
 
@@ -1201,9 +1201,9 @@ def test_ungenerate_removes_a_building_door():
     g = WorldGraph()
     generation.apply_patch(g, m, world_compile.compile_grid(m, "town"))
     generation.apply_patch(g, m, world_compile.compile_grid(m, "inn"))
-    assert [nid for nid in g.nodes if nid.startswith("way_enter_")]
+    assert [node_id for node_id in g.nodes if node_id.startswith("way_enter_")]
     world_scopes.ungenerate_scope(m, g, "inn")
-    assert not [nid for nid in g.nodes if nid.startswith("way_enter_")]
+    assert not [node_id for node_id in g.nodes if node_id.startswith("way_enter_")]
 
 
 # ───────────────────────── child-scope gateways ──────────────────────────
@@ -1322,7 +1322,7 @@ def test_regenerating_the_parent_does_not_duplicate_the_gateway():
     generation.apply_patch(g, m, world_compile.compile_grid(m, "town"))
     generation.apply_patch(g, m, world_compile.compile_grid(m, "town"),
                            allow_regenerate=True)
-    gw_ids = [nid for nid in g.nodes if nid.startswith("way_gateway_")]
+    gw_ids = [node_id for node_id in g.nodes if node_id.startswith("way_gateway_")]
     assert gw_ids == ["way_gateway_town_inn"]
 
 
@@ -1372,7 +1372,7 @@ def test_ungenerate_deletes_a_zone_but_keeps_its_grid():
 
     result = world_scopes.ungenerate_scope(m, g, "inn")
     assert result["deleted_nodes"] >= 1
-    assert not [nid for nid in g.nodes if nid.startswith("area_inn_")]
+    assert not [node_id for node_id in g.nodes if node_id.startswith("area_inn_")]
     # The parent's gateway into the zone dies with it, but the parent's own
     # nodes and its placement link (which points at the parent's area) stay.
     assert g.get_node("way_gateway_town_inn") is None

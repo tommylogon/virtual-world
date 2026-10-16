@@ -35,29 +35,31 @@ def repair(path: Path) -> int:
                 for e in edges if e.get("type") == "connection"}
 
     added = 0
-    for nid, node in list(nodes.items()):
+    # Each way needs both directions of its area links (area->way for the
+    # exit builder, way->area for the destination name).
+    for way_id, node in list(nodes.items()):
         if node.get("type") != "way":
             continue
         area_ids = set()
         for e in edges:
             if e.get("type") != "connection":
                 continue
-            if e.get("target") == nid and (nodes.get(e.get("source")) or {}).get("type") == "area":
+            if e.get("target") == way_id and (nodes.get(e.get("source")) or {}).get("type") == "area":
                 area_ids.add(e["source"])
-            if e.get("source") == nid and (nodes.get(e.get("target")) or {}).get("type") == "area":
+            if e.get("source") == way_id and (nodes.get(e.get("target")) or {}).get("type") == "area":
                 area_ids.add(e["target"])
         for aid in sorted(area_ids):
             # area -> way  (the side the exit builder reads)
-            if (aid, nid) not in existing:
-                edges.append({"source": aid, "target": nid,
+            if (aid, way_id) not in existing:
+                edges.append({"source": aid, "target": way_id,
                               "type": "connection", "properties": {}})
-                existing.add((aid, nid))
+                existing.add((aid, way_id))
                 added += 1
             # way -> area  (needed for the builder to name the destination)
-            if (nid, aid) not in existing:
-                edges.append({"source": nid, "target": aid,
+            if (way_id, aid) not in existing:
+                edges.append({"source": way_id, "target": aid,
                               "type": "connection", "properties": {}})
-                existing.add((nid, aid))
+                existing.add((way_id, aid))
                 added += 1
 
     if added:
@@ -81,7 +83,7 @@ def connect_areas(path: Path, a_name, a_dir, b_name, b_dir, way_name):
     nodes = graph["nodes"]
     edges = graph["edges"]
 
-    by_name = {n.get("name"): nid for nid, n in nodes.items() if n.get("type") == "area"}
+    by_name = {n.get("name"): node_id for node_id, n in nodes.items() if n.get("type") == "area"}
     if a_name not in by_name or b_name not in by_name:
         raise SystemExit(f"Unknown area(s): {a_name!r} / {b_name!r}")
 

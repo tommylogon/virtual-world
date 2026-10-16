@@ -53,9 +53,10 @@ def _wire_trigger(graph, item, label, tt, msg=None):
         "success_message": "",
         "fail_message": "",
     }
-    tn = Node(id=f"trig_{item.id}_{label}", type="logic_trigger", name=label, properties=props)
-    graph.add_node(tn)
-    graph.add_edge(Edge(source=item.id, target=tn.id, type=EDGE_TRIGGERS, properties=props))
+    # Helper trigger node wired to the item under test.
+    trigger_node = Node(id=f"trig_{item.id}_{label}", type="logic_trigger", name=label, properties=props)
+    graph.add_node(trigger_node)
+    graph.add_edge(Edge(source=item.id, target=trigger_node.id, type=EDGE_TRIGGERS, properties=props))
 
 
 def _make_player_manager(graph, trigger_system, carried=None, active_player="test"):

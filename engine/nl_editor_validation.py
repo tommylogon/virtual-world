@@ -137,11 +137,11 @@ def _node_index(nodes: Any) -> Dict[str, Dict[str, Any]]:
     raw = getattr(nodes, "nodes", nodes) or {}
     if not isinstance(raw, dict):
         return index
-    for nid, node in raw.items():
+    for node_id, node in raw.items():
         if isinstance(node, dict):
-            index[str(nid).lower()] = {"type": node.get("type"), "name": node.get("name")}
+            index[str(node_id).lower()] = {"type": node.get("type"), "name": node.get("name")}
         else:
-            index[str(nid).lower()] = {
+            index[str(node_id).lower()] = {
                 "type": getattr(node, "type", None),
                 "name": getattr(node, "name", None),
             }
@@ -327,7 +327,7 @@ def validate_ops(
     # Live ids evolve as the batch replays: creates add, deletes remove.
     known_ids: Set[str] = set(index_map)
     area_names: Dict[str, str] = {
-        nid: str(meta.get("name") or "") for nid, meta in index_map.items()
+        node_id: str(meta.get("name") or "") for node_id, meta in index_map.items()
         if meta.get("type") == "area"
     }
     character_names = {
@@ -442,23 +442,23 @@ def validate_ops(
             node = payload.get("node") if isinstance(payload.get("node"), dict) else payload
             node_type = str(node.get("type") or node.get("kind") or "")
             name = node.get("name")
-            nid = str(node.get("id") or "").lower()
+            node_id = str(node.get("id") or "").lower()
             if not node_type or not name:
                 issues.append(_issue(idx, optype, ERROR, "create_node needs 'type' and 'name'."))
             elif node_type not in KNOWN_TYPES:
                 issues.append(_issue(idx, optype, ERROR, f"Unknown node type '{node_type}'."))
-            if nid:
-                if nid in known_ids:
-                    issues.append(_issue(idx, optype, ERROR, f"Node id '{nid}' already exists."))
-                known_ids.add(nid)
+            if node_id:
+                if node_id in known_ids:
+                    issues.append(_issue(idx, optype, ERROR, f"Node id '{node_id}' already exists."))
+                known_ids.add(node_id)
                 issues.extend(_id_warning(idx, optype, node.get("id")))
                 if node_type == "area":
                     duplicate = next((other for other, n in area_names.items()
-                                      if n and n.lower() == str(name).lower() and other != nid), None)
+                                      if n and n.lower() == str(name).lower() and other != node_id), None)
                     if duplicate:
                         issues.append(_issue(idx, optype, WARNING,
                                              f"Another area is already named '{name}' ({duplicate})."))
-                    area_names[nid] = str(name or "")
+                    area_names[node_id] = str(name or "")
             if node_type == "logic_trigger":
                 props = node.get("properties") if isinstance(node.get("properties"), dict) else node
                 issues.extend(_trigger_issues(idx, optype, props))
@@ -469,23 +469,23 @@ def validate_ops(
             # carries a `node` shim so ghosts/diffs read it like create_node.
             node = payload.get("node") if isinstance(payload.get("node"), dict) else payload
             name = node.get("name")
-            nid = str(node.get("id") or "").lower()
+            node_id = str(node.get("id") or "").lower()
             if not name:
                 issues.append(_issue(idx, optype, ERROR, "create_character needs 'name'."))
-            if nid:
-                if nid in known_ids:
+            if node_id:
+                if node_id in known_ids:
                     issues.append(_issue(idx, optype, ERROR,
                                          f"A character node '{node.get('id')}' already exists."))
-                known_ids.add(nid)
+                known_ids.add(node_id)
             # `player_<Name>` ids are mixed case by convention (Player.node_id_for),
             # so the slug warning used for node ids does not apply here.
 
         elif optype == "update_node":
-            nid = payload.get("node_id")
-            if not nid:
+            node_id = payload.get("node_id")
+            if not node_id:
                 issues.append(_issue(idx, optype, ERROR, "update_node needs 'node_id'."))
-            elif not exists(nid):
-                issues.append(_issue(idx, optype, ERROR, f"Node '{nid}' not found."))
+            elif not exists(node_id):
+                issues.append(_issue(idx, optype, ERROR, f"Node '{node_id}' not found."))
             patch = payload.get("patch")
             if not isinstance(patch, dict) or not patch:
                 issues.append(_issue(idx, optype, ERROR, "update_node needs a non-empty 'patch'."))
@@ -493,8 +493,8 @@ def validate_ops(
                 issues.extend(_trait_issues(idx, optype, patch, traits))
                 issues.extend(_action_issues(idx, optype, patch, actions))
                 issues.extend(_id_warning(idx, optype, payload.get("node_id")))
-                if str(nid).lower() in index_map and \
-                        index_map[str(nid).lower()].get("type") == "logic_trigger":
+                if str(node_id).lower() in index_map and \
+                        index_map[str(node_id).lower()].get("type") == "logic_trigger":
                     issues.extend(_trigger_issues(idx, optype, patch))
 
         elif optype == "update_matching_nodes":
@@ -523,13 +523,13 @@ def validate_ops(
                     issues.append(_issue(idx, optype, ERROR, f"{optype} endpoint '{payload.get(key)}' not found."))
 
         elif optype == "delete_node":
-            nid = payload.get("node_id")
-            if not nid:
+            node_id = payload.get("node_id")
+            if not node_id:
                 issues.append(_issue(idx, optype, ERROR, "delete_node needs 'node_id'."))
-            elif not exists(nid):
-                issues.append(_issue(idx, optype, ERROR, f"delete_node: node '{nid}' not found."))
+            elif not exists(node_id):
+                issues.append(_issue(idx, optype, ERROR, f"delete_node: node '{node_id}' not found."))
             else:
-                known_ids.discard(str(nid).lower())
+                known_ids.discard(str(node_id).lower())
 
         elif optype == "connect_areas":
             for key in ("way_id", "area_a_id", "area_b_id"):

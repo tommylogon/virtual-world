@@ -168,9 +168,9 @@
                     String(e.source).toLowerCase() === String(nodeId).toLowerCase() &&
                     e.type === 'triggers'
                 ).map((e: GraphEdgeRef) => e.target as string).filter((tid: string) => {
-                    const tn = nodes[tid];
-                    if (!tn || tn.type !== 'logic_trigger') return false;
-                    const props = tn.properties || {};
+                    const triggerNode = nodes[tid];
+                    if (!triggerNode || triggerNode.type !== 'logic_trigger') return false;
+                    const props = triggerNode.properties || {};
                     return !(props.effects && props.effects.length) && !(props.conditions && Object.keys(props.conditions).length);
                 });
                 if (!empties.length) { this.refresh(); return; }

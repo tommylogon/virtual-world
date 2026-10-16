@@ -71,7 +71,7 @@ test('node size scales the drawn shapes and the guard radii, never the fonts', (
     const marksBlock = nm.slice(marksAt, marksAt + 1600);
     assertTrue(marksBlock.includes('GraphNetwork.nodeSizeScale()'), '_markSizes applies the slider');
     assertTrue(marksBlock.includes('LE.markSize('), 'shapes are cell fractions');
-    assertTrue(marksBlock.includes('LE.markCardPad() * ns'), 'card padding is a cell fraction × slider');
+    assertTrue(marksBlock.includes('LE.markCardPad() * sizeScale'), 'card padding is a cell fraction × slider');
     assertTrue(marksBlock.includes('const font = LE.markFontPx();') && !marksBlock.includes('markFontPx() *'),
         'the font is NOT multiplied by the slider');
     // The image-node branch scales too.

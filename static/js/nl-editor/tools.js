@@ -58,14 +58,14 @@ window.NLEditorTools = (() => {
         getNode(nodeId) {
             if (!nodeId)
                 return null;
-            const nid = String(nodeId).toLowerCase();
+            const normId = String(nodeId).toLowerCase();
             const deletions = this.staging.getStagedDeletions();
-            if (deletions.has(nid))
+            if (deletions.has(normId))
                 return null;
             const creations = this.staging.getStagedCreations();
-            const stagedId = creations[nid]
-                ? nid
-                : Object.keys(creations).find(k => (creations[k].name || '').toLowerCase() === nid);
+            const stagedId = creations[normId]
+                ? normId
+                : Object.keys(creations).find(k => (creations[k].name || '').toLowerCase() === normId);
             if (stagedId) {
                 const node = { ...creations[stagedId] };
                 const updates = this.staging.getStagedUpdates();
@@ -80,7 +80,7 @@ window.NLEditorTools = (() => {
             // Display names are not storage keys (AGENTS.md): resolve a name to
             // its node at the read boundary, so `get_node {"node_id":"Thrazz"}`
             // resolves instead of failing on the raw name.
-            let liveNode = typeof worldState !== 'undefined' && worldState?.getNode ? worldState.getNode(nid) : null;
+            let liveNode = typeof worldState !== 'undefined' && worldState?.getNode ? worldState.getNode(normId) : null;
             if (!liveNode && typeof worldState !== 'undefined' && typeof worldState?.getNodeByIdentifier === 'function') {
                 liveNode = worldState.getNodeByIdentifier(nodeId) || null;
             }
@@ -131,8 +131,8 @@ window.NLEditorTools = (() => {
             // 2. Search live nodes
             const liveNodes = typeof worldState !== 'undefined' && worldState?.graph?.nodes ? worldState.graph.nodes : {};
             for (const [id, rawNode] of Object.entries(liveNodes)) {
-                const nid = id.toLowerCase();
-                if (seenIds.has(nid) || deletions.has(nid))
+                const normId = id.toLowerCase();
+                if (seenIds.has(normId) || deletions.has(normId))
                     continue;
                 const nodeType = (rawNode.type || '').toLowerCase();
                 if (filterKind && nodeType !== filterKind)
@@ -143,8 +143,8 @@ window.NLEditorTools = (() => {
                 const nodeTags = (view.properties?.tags || []).map(t => String(t).toLowerCase());
                 if (tagList && tagList.length && !tagList.some(t => nodeTags.includes(t)))
                     continue;
-                if (!q || nid.includes(q) || name.includes(q) || desc.includes(q)) {
-                    seenIds.add(nid);
+                if (!q || normId.includes(q) || name.includes(q) || desc.includes(q)) {
+                    seenIds.add(normId);
                     results.push({
                         id: rawNode.id,
                         name: rawNode.name,
@@ -166,8 +166,8 @@ window.NLEditorTools = (() => {
             const counts = { area: 0, character: 0, item: 0, way: 0, logic_trigger: 0 };
             const areaEntries = [];
             for (const [id, node] of Object.entries(allNodes)) {
-                const nid = id.toLowerCase();
-                if (deletions.has(nid))
+                const normId = id.toLowerCase();
+                if (deletions.has(normId))
                     continue;
                 const type = node.type || 'item';
                 if (counts[type] !== undefined)
@@ -318,10 +318,10 @@ window.NLEditorTools = (() => {
             }
             const results = [];
             for (const [id, rawNode] of Object.entries(all)) {
-                const nid = id.toLowerCase();
-                if (deletions.has(nid))
+                const normId = id.toLowerCase();
+                if (deletions.has(normId))
                     continue;
-                if (explicit && !explicit.has(nid) && !explicit.has(String(rawNode.id || '').toLowerCase()))
+                if (explicit && !explicit.has(normId) && !explicit.has(String(rawNode.id || '').toLowerCase()))
                     continue;
                 if (kind && String(rawNode.type || '').toLowerCase() !== kind)
                     continue;
@@ -332,9 +332,9 @@ window.NLEditorTools = (() => {
                     : !tags.some(t => nodeTags.includes(t))))
                     continue;
                 const name = String(rawNode.name || '').toLowerCase();
-                if (nameContains && !name.includes(nameContains) && !nid.includes(nameContains))
+                if (nameContains && !name.includes(nameContains) && !normId.includes(nameContains))
                     continue;
-                if (areaId && !this._isInArea(nid, areaId))
+                if (areaId && !this._isInArea(normId, areaId))
                     continue;
                 results.push({
                     id: rawNode.id || id,
@@ -347,9 +347,9 @@ window.NLEditorTools = (() => {
             results.sort((a, b) => String(a.id).localeCompare(String(b.id)));
             return results;
         }
-        /** True when node *nid* has an `in` edge to *areaId* (live or staged). */
-        _isInArea(nid, areaId) {
-            const key = String(nid).toLowerCase();
+        /** True when node *normId* has an `in` edge to *areaId* (live or staged). */
+        _isInArea(normId, areaId) {
+            const key = String(normId).toLowerCase();
             const target = String(areaId).toLowerCase();
             const liveEdges = (typeof worldState !== 'undefined' && worldState?.graph?.edges) || [];
             for (const edge of liveEdges) {

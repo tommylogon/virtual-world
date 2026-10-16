@@ -11,9 +11,9 @@
 
     async function request(url: string, options?: RequestInit): Promise<any> {
         const resp = await fetch(url, options);
-        const ct = resp.headers.get('content-type') || '';
+        const contentType = resp.headers.get('content-type') || '';
         let body: any = null;
-        if (ct.includes('application/json')) {
+        if (contentType.includes('application/json')) {
             body = await resp.json().catch(() => null);
         } else {
             body = await resp.text();

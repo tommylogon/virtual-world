@@ -994,9 +994,10 @@ var triggerEditorApi = {
                     eff.params.duration = parseInt(ad);
             }
             else if (effType === 'clear_area_status') {
-                const ct = row.querySelector('.eff-astat-clrtarget')?.value;
-                if (ct)
-                    eff.params.target = ct;
+                // Target area for the clear-status effect (blank = current area).
+                const clearTarget = row.querySelector('.eff-astat-clrtarget')?.value;
+                if (clearTarget)
+                    eff.params.target = clearTarget;
                 eff.params.status_type = row.querySelector('.eff-astat-clrtype')?.value || 'on_fire';
             }
             else if (effType === 'set_wet') {
@@ -1131,7 +1132,8 @@ var triggerEditorApi = {
     },
     _buildConditionRowEl(existingCond) {
         const ctype = existingCond?.type || 'skill_check';
-        const cv = existingCond?.value || '';
+        // Current condition value; arrays (has_items) render comma-joined.
+        const condValue = existingCond?.value || '';
         const cStat = existingCond?.stat || 'HP';
         const cOp = existingCond?.operator || 'lt';
         const cSkill = existingCond?.skill || existingCond?.stat || 'Athletics';
@@ -1141,7 +1143,7 @@ var triggerEditorApi = {
         const cMode = existingCond?.mode || 'contains';
         const cPhrase = existingCond?.phrase || existingCond?.value || '';
         const isItems = ctype === 'has_items';
-        const dispVal = isItems ? (Array.isArray(cv) ? cv.join(', ') : cv) : cv;
+        const dispVal = isItems ? (Array.isArray(condValue) ? condValue.join(', ') : condValue) : condValue;
         const SHOWS = (types) => types.includes(ctype) ? 'block' : 'none';
         const OPTS = ['lt', 'le', 'eq', 'ge', 'gt'].map(o => triggerEditorTag `<option value=${o} ?selected=${cOp === o}>${o}</option>`);
         const row = document.createElement('div');
@@ -1154,15 +1156,15 @@ var triggerEditorApi = {
                 <div class="cond-field" data-cond="uses_reached,uses_above,random_chance,has_item,has_items,has_trait,has_tag,state_equals,speech_matches,time_of_day,weather" style="display:${SHOWS(['uses_reached', 'uses_above', 'random_chance', 'has_item', 'has_items', 'has_trait', 'has_tag', 'state_equals', 'speech_matches', 'time_of_day', 'weather'])};">
                     <div data-subcond="uses_reached,uses_above,random_chance,has_item,has_items,has_trait,speech_matches,time_of_day,weather" style="display:${ctype === 'has_tag' ? 'none' : 'block'};">
                     ${ctype === 'has_item'
-            ? triggerEditorTag `<label style="font-size:9px;">Item Name</label><div class="eff-select" data-kind="items" data-input-class="cond-value" data-value=${cv} data-placeholder="key, torch..." data-free="true" style="width:100%;font-size:11px;"></div>`
+            ? triggerEditorTag `<label style="font-size:9px;">Item Name</label><div class="eff-select" data-kind="items" data-input-class="cond-value" data-value=${condValue} data-placeholder="key, torch..." data-free="true" style="width:100%;font-size:11px;"></div>`
             : ctype === 'has_trait'
-                ? triggerEditorTag `<label style="font-size:9px;">Trait ID</label><div class="eff-select" data-kind="traits" data-input-class="cond-value" data-value=${cv} data-placeholder="dark_vision, hardy..." data-free="true" style="width:100%;font-size:11px;"></div>`
+                ? triggerEditorTag `<label style="font-size:9px;">Trait ID</label><div class="eff-select" data-kind="traits" data-input-class="cond-value" data-value=${condValue} data-placeholder="dark_vision, hardy..." data-free="true" style="width:100%;font-size:11px;"></div>`
                 : ctype === 'random_chance'
                     ? triggerEditorTag `<label style="font-size:9px;">Chance %</label><input type="number" class="cond-value" .value=${dispVal} min="0" max="100" placeholder="0-100" style="width:100%;font-size:11px;">`
                     : ctype === 'time_of_day'
-                        ? triggerEditorTag `<label style="font-size:9px;">Clock time (HH:MM)</label><input type="time" class="cond-value" .value=${cv} style="width:100%;font-size:11px;">`
+                        ? triggerEditorTag `<label style="font-size:9px;">Clock time (HH:MM)</label><input type="time" class="cond-value" .value=${condValue} style="width:100%;font-size:11px;">`
                         : ctype === 'weather'
-                            ? triggerEditorTag `<label style="font-size:9px;">Weather</label><input type="text" class="cond-value" .value=${cv} list="eff-weather-list" placeholder="rain, clear, fog, storm..." style="width:100%;font-size:11px;">`
+                            ? triggerEditorTag `<label style="font-size:9px;">Weather</label><input type="text" class="cond-value" .value=${condValue} list="eff-weather-list" placeholder="rain, clear, fog, storm..." style="width:100%;font-size:11px;">`
                             : ctype === 'speech_matches'
                                 ? triggerEditorTag `<label style="font-size:9px;">Phrase</label><input type="text" class="cond-value" .value=${cPhrase} placeholder="e.g. hello, help..." style="width:100%;font-size:11px;">`
                                 : triggerEditorTag `<label style="font-size:9px;">${ctype === 'has_items' ? 'Comma-separated items' : 'Value'}</label><input type="text" class="cond-value" .value=${dispVal} style="width:100%;font-size:11px;">`}
@@ -1183,7 +1185,7 @@ var triggerEditorApi = {
                             <select class="cond-operator" style="width:100%;font-size:10px;">${OPTS}</select>
                         </div>
                         <div style="flex:1;"><label style="font-size:9px;">Value</label>
-                            <input type="number" class="cond-value" .value=${cv} step="any" style="width:100%;font-size:11px;">
+                            <input type="number" class="cond-value" .value=${condValue} step="any" style="width:100%;font-size:11px;">
                         </div>
                     </div>
                 </div>
@@ -1199,7 +1201,7 @@ var triggerEditorApi = {
                     <label style="font-size:9px;">Target Node</label>
                     <div class="eff-select" data-kind="nodes" data-input-class="cond-node" data-value=${existingCond?.node || cTarget} data-placeholder="node_id or name" style="width:100%;font-size:11px;"></div>
                     <label style="font-size:9px;">State</label>
-                    <div class="eff-select" data-kind="states" data-input-class="cond-state" data-value=${existingCond?.state || cv} data-placeholder="on, off, open, lit..." data-free="true" style="width:100%;font-size:11px;"></div>
+                    <div class="eff-select" data-kind="states" data-input-class="cond-state" data-value=${existingCond?.state || condValue} data-placeholder="on, off, open, lit..." data-free="true" style="width:100%;font-size:11px;"></div>
                 </div>
                 <div class="cond-field" data-cond="speech_matches" style="display:${SHOWS(['speech_matches'])};">
                     <label style="font-size:9px;">Match Mode</label>
@@ -1612,43 +1614,43 @@ var triggerEditorApi = {
     },
     _buildEffectRowHtml(existingEff, idx) {
         const effType = existingEff?.type || 'message';
-        const ep = existingEff?.params || {};
-        const failFx = triggerEditorApi._parseSaveBranchEffect(ep.on_fail);
-        const successFx = triggerEditorApi._parseSaveBranchEffect(ep.on_success);
-        const saveMode = ep.skill ? 'skill' : 'stat';
-        const saveCheck = ep.stat || ep.skill || 'WIS';
-        const advFailJson = (ep.on_fail?.length > 1 || (ep.on_fail?.length && failFx.type === 'none'))
-            ? JSON.stringify(ep.on_fail, null, 2) : '';
-        const advSuccessJson = (ep.on_success?.length > 1 || (ep.on_success?.length && successFx.type === 'none'))
-            ? JSON.stringify(ep.on_success, null, 2) : '';
+        const effParams = existingEff?.params || {};
+        const failFx = triggerEditorApi._parseSaveBranchEffect(effParams.on_fail);
+        const successFx = triggerEditorApi._parseSaveBranchEffect(effParams.on_success);
+        const saveMode = effParams.skill ? 'skill' : 'stat';
+        const saveCheck = effParams.stat || effParams.skill || 'WIS';
+        const advFailJson = (effParams.on_fail?.length > 1 || (effParams.on_fail?.length && failFx.type === 'none'))
+            ? JSON.stringify(effParams.on_fail, null, 2) : '';
+        const advSuccessJson = (effParams.on_success?.length > 1 || (effParams.on_success?.length && successFx.type === 'none'))
+            ? JSON.stringify(effParams.on_success, null, 2) : '';
         return `
             <div class="eff-row" data-idx="${idx}" style="background:var(--bg-inset);border-radius:6px;padding:6px;margin-bottom:4px;border-left:3px solid var(--orange);position:relative;">
                 <label style="font-size:9px;font-weight:600;">Effect type</label>
                 <div class="eff-select" data-kind="effect-types" data-input-class="eff-type" data-value="${window.escapeForHtmlAttribute(effType)}" data-placeholder="Search effect type..." style="width:100%;margin-bottom:4px;"></div>
                 <div class="eff-params" style="display:${effType === 'message' ? 'none' : 'block'};">
                     <div class="eff-param" data-effect="damage,heal" style="display:${['damage', 'heal'].includes(effType) ? 'block' : 'none'};">
-                        <label style="font-size:10px;">Amount</label><input type="number" class="eff-amount" value="${ep.amount || 5}" style="width:100%;">
+                        <label style="font-size:10px;">Amount</label><input type="number" class="eff-amount" value="${effParams.amount || 5}" style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="damage" style="display:${effType === 'damage' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Target</label>
                         <select class="eff-dmg-target" style="width:100%;">
-                            <option value="self" ${ep.target === 'self' ? 'selected' : ''}>Self</option>
-                            <option value="other" ${ep.target === 'other' ? 'selected' : ''}>Other</option>
+                            <option value="self" ${effParams.target === 'self' ? 'selected' : ''}>Self</option>
+                            <option value="other" ${effParams.target === 'other' ? 'selected' : ''}>Other</option>
                         </select>
                     </div>
                     <div class="eff-param" data-effect="adjust_vital" style="display:${effType === 'adjust_vital' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Stat</label>
-                        <div class="eff-select" data-kind="vitals" data-input-class="eff-vital-stat" data-value="${window.escapeForHtmlAttribute(ep.stat || 'HP')}" data-placeholder="HP, Energy, Bladder..." data-free="true" style="width:100%;"></div>
+                        <div class="eff-select" data-kind="vitals" data-input-class="eff-vital-stat" data-value="${window.escapeForHtmlAttribute(effParams.stat || 'HP')}" data-placeholder="HP, Energy, Bladder..." data-free="true" style="width:100%;"></div>
                     </div>
                     <div class="eff-param" data-effect="adjust_vital" style="display:${effType === 'adjust_vital' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Amount (+/-)</label>
-                        <input type="number" class="eff-vital-amount" value="${ep.amount || 0}" style="width:100%;">
+                        <input type="number" class="eff-vital-amount" value="${effParams.amount || 0}" style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="adjust_vital" style="display:${effType === 'adjust_vital' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Target</label>
                         <select class="eff-vital-target" style="width:100%;">
-                            <option value="self" ${ep.target === 'self' ? 'selected' : ''}>Self</option>
-                            <option value="other" ${ep.target === 'other' ? 'selected' : ''}>Other</option>
+                            <option value="self" ${effParams.target === 'self' ? 'selected' : ''}>Self</option>
+                            <option value="other" ${effParams.target === 'other' ? 'selected' : ''}>Other</option>
                         </select>
                     </div>
                     <div class="eff-param" data-effect="save" style="display:${effType === 'save' ? 'block' : 'none'};border-top:1px solid var(--border);padding-top:6px;margin-top:4px;">
@@ -1668,7 +1670,7 @@ var triggerEditorApi = {
                             <div class="eff-select" data-kind="skills" data-input-class="eff-save-skill" data-value="${window.escapeForHtmlAttribute(saveMode === 'skill' ? saveCheck : 'Athletics')}" data-placeholder="Athletics, Perception..." data-free="true" style="width:100%;"></div>
                         </div>
                         <label style="font-size:9px;">DC</label>
-                        <input type="number" class="eff-save-dc" value="${ep.dc || 12}" min="1" max="30" style="width:100%;margin-bottom:6px;">
+                        <input type="number" class="eff-save-dc" value="${effParams.dc || 12}" min="1" max="30" style="width:100%;margin-bottom:6px;">
                         <label style="font-size:10px;font-weight:600;margin-top:4px;display:block;">On success</label>
                         <select class="eff-save-success-type" style="width:100%;font-size:10px;margin-bottom:4px;" onchange="TriggerEditor._toggleSaveBranch(this.closest('.eff-row'), 'success')">
                             ${['none', 'message', 'apply_condition', 'damage'].map(t => `<option value="${t}" ${successFx.type === t ? 'selected' : ''}>${t.replace(/_/g, ' ')}</option>`).join('')}
@@ -1709,334 +1711,334 @@ var triggerEditorApi = {
                     </div>
                     <div class="eff-param" data-effect="add_tag,remove_tag" style="display:${['add_tag', 'remove_tag'].includes(effType) ? 'block' : 'none'};">
                         <label style="font-size:10px;">Target Node</label>
-                        <div class="eff-select" data-kind="nodes" data-input-class="eff-tag-node" data-value="${window.escapeForHtmlAttribute(ep.node_id || 'self')}" data-placeholder="self or node_id" style="width:100%;"></div>
+                        <div class="eff-select" data-kind="nodes" data-input-class="eff-tag-node" data-value="${window.escapeForHtmlAttribute(effParams.node_id || 'self')}" data-placeholder="self or node_id" style="width:100%;"></div>
                     </div>
                     <div class="eff-param" data-effect="add_tag,remove_tag" style="display:${['add_tag', 'remove_tag'].includes(effType) ? 'block' : 'none'};">
                         <label style="font-size:10px;">Tag</label>
-                        <div class="eff-select" data-kind="tags" data-input-class="eff-tag-name" data-value="${window.escapeForHtmlAttribute(ep.tag || '')}" data-placeholder="flammable, container..." data-free="true" style="width:100%;"></div>
+                        <div class="eff-select" data-kind="tags" data-input-class="eff-tag-name" data-value="${window.escapeForHtmlAttribute(effParams.tag || '')}" data-placeholder="flammable, container..." data-free="true" style="width:100%;"></div>
                     </div>
                     <div class="eff-param" data-effect="add_tag,remove_tag" style="display:${['add_tag', 'remove_tag'].includes(effType) ? 'block' : 'none'};">
                         <label style="font-size:10px;">Message (optional)</label>
-                        <input type="text" class="eff-tag-msg" value="${window.escapeForHtmlAttribute(ep.message || '')}" style="width:100%;">
+                        <input type="text" class="eff-tag-msg" value="${window.escapeForHtmlAttribute(effParams.message || '')}" style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="spawn_item" style="display:${effType === 'spawn_item' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Item ID</label>
-                        <div class="eff-select" data-kind="items" data-input-class="eff-spawn-id" data-value="${window.escapeForHtmlAttribute(ep.item_id || '')}" data-placeholder="item_key" data-free="true" style="width:100%;"></div>
+                        <div class="eff-select" data-kind="items" data-input-class="eff-spawn-id" data-value="${window.escapeForHtmlAttribute(effParams.item_id || '')}" data-placeholder="item_key" data-free="true" style="width:100%;"></div>
                     </div>
                     <div class="eff-param" data-effect="spawn_item" style="display:${effType === 'spawn_item' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Display Name</label>
-                        <input type="text" class="eff-spawn-name" value="${window.escapeForHtmlAttribute(ep.display_name || '')}" style="width:100%;">
+                        <input type="text" class="eff-spawn-name" value="${window.escapeForHtmlAttribute(effParams.display_name || '')}" style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="spawn_item" style="display:${effType === 'spawn_item' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Place into</label>
                         <select class="eff-spawn-into" style="width:100%;font-size:11px;">
-                            <option value="area" ${(!ep.into || ep.into === 'area') ? 'selected' : ''}>Current area</option>
-                            <option value="container" ${ep.into === 'container' ? 'selected' : ''}>This container (self)</option>
+                            <option value="area" ${(!effParams.into || effParams.into === 'area') ? 'selected' : ''}>Current area</option>
+                            <option value="container" ${effParams.into === 'container' ? 'selected' : ''}>This container (self)</option>
                         </select>
                     </div>
                     <div class="eff-param" data-effect="spawn_item" style="display:${effType === 'spawn_item' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Capture</label>
                         <select class="eff-spawn-capture" style="width:100%;font-size:11px;">
-                            <option value="" ${!ep.capture ? 'selected' : ''}>— none —</option>
-                            <option value="speech" ${ep.capture === 'speech' ? 'selected' : ''}>Recent speech (recorder)</option>
-                            <option value="sight" ${ep.capture === 'sight' ? 'selected' : ''}>Recent sights (camera)</option>
+                            <option value="" ${!effParams.capture ? 'selected' : ''}>— none —</option>
+                            <option value="speech" ${effParams.capture === 'speech' ? 'selected' : ''}>Recent speech (recorder)</option>
+                            <option value="sight" ${effParams.capture === 'sight' ? 'selected' : ''}>Recent sights (camera)</option>
                         </select>
                     </div>
                     <div class="eff-param" data-effect="spawn_character" style="display:${effType === 'spawn_character' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Character ID</label>
-                        <div class="eff-select" data-kind="chars" data-input-class="eff-spawn-char-id" data-value="${window.escapeForHtmlAttribute(ep.character_id || '')}" data-placeholder="character_id (library file name)" data-free="true" style="width:100%;"></div>
+                        <div class="eff-select" data-kind="chars" data-input-class="eff-spawn-char-id" data-value="${window.escapeForHtmlAttribute(effParams.character_id || '')}" data-placeholder="character_id (library file name)" data-free="true" style="width:100%;"></div>
                     </div>
                     <div class="eff-param" data-effect="spawn_character" style="display:${effType === 'spawn_character' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Display Name (optional override)</label>
-                        <input type="text" class="eff-spawn-char-name" value="${window.escapeForHtmlAttribute(ep.display_name || '')}" style="width:100%;">
+                        <input type="text" class="eff-spawn-char-name" value="${window.escapeForHtmlAttribute(effParams.display_name || '')}" style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="spawn_character" style="display:${effType === 'spawn_character' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Area (optional, blank = current area)</label>
-                        <div class="eff-select" data-kind="areas" data-input-class="eff-spawn-char-area" data-value="${window.escapeForHtmlAttribute(ep.area || '')}" data-placeholder="Search areas..." data-free="true" style="width:100%;"></div>
+                        <div class="eff-select" data-kind="areas" data-input-class="eff-spawn-char-area" data-value="${window.escapeForHtmlAttribute(effParams.area || '')}" data-placeholder="Search areas..." data-free="true" style="width:100%;"></div>
                     </div>
                     <div class="eff-param" data-effect="spawn_character" style="display:${effType === 'spawn_character' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Message (optional, supports {character_name})</label>
-                        <input type="text" class="eff-spawn-char-msg" value="${window.escapeForHtmlAttribute(ep.message || '')}" placeholder="{character_name} arrives!" style="width:100%;">
+                        <input type="text" class="eff-spawn-char-msg" value="${window.escapeForHtmlAttribute(effParams.message || '')}" placeholder="{character_name} arrives!" style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="give_item" style="display:${effType === 'give_item' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Item ID to Give</label>
-                        <div class="eff-select" data-kind="items" data-input-class="eff-give-id" data-value="${window.escapeForHtmlAttribute(ep.item_id || '')}" data-placeholder="item_key" data-free="true" style="width:100%;"></div>
+                        <div class="eff-select" data-kind="items" data-input-class="eff-give-id" data-value="${window.escapeForHtmlAttribute(effParams.item_id || '')}" data-placeholder="item_key" data-free="true" style="width:100%;"></div>
                     </div>
                     <div class="eff-param" data-effect="give_item" style="display:${effType === 'give_item' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Target</label>
-                        <div class="eff-select" data-kind="chars" data-input-class="eff-give-target" data-value="${window.escapeForHtmlAttribute(ep.target || 'self')}" data-placeholder="self, target, or character name" style="width:100%;"></div>
+                        <div class="eff-select" data-kind="chars" data-input-class="eff-give-target" data-value="${window.escapeForHtmlAttribute(effParams.target || 'self')}" data-placeholder="self, target, or character name" style="width:100%;"></div>
                     </div>
                     <div class="eff-param" data-effect="give_item" style="display:${effType === 'give_item' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Message (optional)</label>
-                        <input type="text" class="eff-give-msg" value="${window.escapeForHtmlAttribute(ep.message || '')}" placeholder="supports {target_name}" style="width:100%;">
+                        <input type="text" class="eff-give-msg" value="${window.escapeForHtmlAttribute(effParams.message || '')}" placeholder="supports {target_name}" style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="remove_item" style="display:${effType === 'remove_item' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Item ID to Remove</label>
-                        <div class="eff-select" data-kind="items" data-input-class="eff-remove-id" data-value="${window.escapeForHtmlAttribute(ep.item_id || '')}" data-placeholder="item_key" data-free="true" style="width:100%;"></div>
+                        <div class="eff-select" data-kind="items" data-input-class="eff-remove-id" data-value="${window.escapeForHtmlAttribute(effParams.item_id || '')}" data-placeholder="item_key" data-free="true" style="width:100%;"></div>
                     </div>
                     <div class="eff-param" data-effect="set_state" style="display:${effType === 'set_state' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Node ID</label>
-                        <div class="eff-select" data-kind="nodes" data-input-class="eff-state-node" data-value="${window.escapeForHtmlAttribute(ep.node_id || 'self')}" data-placeholder="self or node_id" style="width:100%;"></div>
+                        <div class="eff-select" data-kind="nodes" data-input-class="eff-state-node" data-value="${window.escapeForHtmlAttribute(effParams.node_id || 'self')}" data-placeholder="self or node_id" style="width:100%;"></div>
                     </div>
                     <div class="eff-param" data-effect="set_state" style="display:${effType === 'set_state' ? 'block' : 'none'};">
                         <label style="font-size:10px;">New State</label>
-                        <div class="eff-select" data-kind="states" data-input-class="eff-state-val" data-value="${window.escapeForHtmlAttribute(ep.state || 'on')}" data-placeholder="on, off, open..." data-free="true" style="width:100%;"></div>
+                        <div class="eff-select" data-kind="states" data-input-class="eff-state-val" data-value="${window.escapeForHtmlAttribute(effParams.state || 'on')}" data-placeholder="on, off, open..." data-free="true" style="width:100%;"></div>
                     </div>
                     <div class="eff-param" data-effect="set_hidden,adjust_uses" style="display:${['set_hidden', 'adjust_uses'].includes(effType) ? 'block' : 'none'};">
                         <label style="font-size:10px;">Node ID</label>
-                        <div class="eff-select" data-kind="nodes" data-input-class="eff-hidden-node" data-value="${window.escapeForHtmlAttribute(ep.node_id || 'self')}" data-placeholder="self or node_id" style="width:100%;"></div>
+                        <div class="eff-select" data-kind="nodes" data-input-class="eff-hidden-node" data-value="${window.escapeForHtmlAttribute(effParams.node_id || 'self')}" data-placeholder="self or node_id" style="width:100%;"></div>
                     </div>
                     <div class="eff-param" data-effect="adjust_uses" style="display:${effType === 'adjust_uses' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Delta (+/-)</label>
-                        <input type="number" class="eff-uses-delta" value="${ep.delta || -1}" style="width:100%;">
+                        <input type="number" class="eff-uses-delta" value="${effParams.delta || -1}" style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="set_parameter,adjust_parameter" style="display:${['set_parameter', 'adjust_parameter'].includes(effType) ? 'block' : 'none'};">
                         <label style="font-size:10px;">Node ID</label>
-                        <div class="eff-select" data-kind="nodes" data-input-class="eff-param-node" data-value="${window.escapeForHtmlAttribute(ep.node_id || 'self')}" data-placeholder="self or node_id" style="width:100%;"></div>
+                        <div class="eff-select" data-kind="nodes" data-input-class="eff-param-node" data-value="${window.escapeForHtmlAttribute(effParams.node_id || 'self')}" data-placeholder="self or node_id" style="width:100%;"></div>
                     </div>
                     <div class="eff-param" data-effect="set_parameter,adjust_parameter" style="display:${['set_parameter', 'adjust_parameter'].includes(effType) ? 'block' : 'none'};">
                         <label style="font-size:10px;">Parameter Key</label>
-                        <input type="text" class="eff-param-key" value="${window.escapeForHtmlAttribute(ep.key || '')}" placeholder="e.g. light" style="width:100%;">
+                        <input type="text" class="eff-param-key" value="${window.escapeForHtmlAttribute(effParams.key || '')}" placeholder="e.g. light" style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="set_parameter" style="display:${effType === 'set_parameter' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Value</label>
-                        <input type="text" class="eff-param-value" value="${window.escapeForHtmlAttribute(ep.value ?? '')}" placeholder="e.g. green" style="width:100%;">
+                        <input type="text" class="eff-param-value" value="${window.escapeForHtmlAttribute(effParams.value ?? '')}" placeholder="e.g. green" style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="adjust_parameter" style="display:${effType === 'adjust_parameter' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Delta (+/-)</label>
-                        <input type="number" class="eff-param-delta" value="${ep.delta || 0}" style="width:100%;">
+                        <input type="number" class="eff-param-delta" value="${effParams.delta || 0}" style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="rename" style="display:${effType === 'rename' ? 'block' : 'none'};">    
                         <label style="font-size:10px;">New Name</label>
-                        <input type="text" class="eff-rename" value="${window.escapeForHtmlAttribute(ep.name || '')}" placeholder="Empty Bottle" style="width:100%;">
+                        <input type="text" class="eff-rename" value="${window.escapeForHtmlAttribute(effParams.name || '')}" placeholder="Empty Bottle" style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="teleport" style="display:${effType === 'teleport' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Target Area</label>
-                        <div class="eff-select" data-kind="areas" data-input-class="eff-teleport" data-value="${window.escapeForHtmlAttribute(ep.area || '')}" data-placeholder="Search areas..." style="width:100%;"></div>
+                        <div class="eff-select" data-kind="areas" data-input-class="eff-teleport" data-value="${window.escapeForHtmlAttribute(effParams.area || '')}" data-placeholder="Search areas..." style="width:100%;"></div>
                     </div>
                     <div class="eff-param" data-effect="unlock_way" style="display:${effType === 'unlock_way' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Way ID</label>
-                        <div class="eff-select" data-kind="ways" data-input-class="eff-unlock" data-value="${window.escapeForHtmlAttribute(ep.way_id || '')}" data-placeholder="Search ways..." style="width:100%;"></div>
+                        <div class="eff-select" data-kind="ways" data-input-class="eff-unlock" data-value="${window.escapeForHtmlAttribute(effParams.way_id || '')}" data-placeholder="Search ways..." style="width:100%;"></div>
                     </div>
                     <div class="eff-param" data-effect="set_description,append_description" style="display:${['set_description', 'append_description'].includes(effType) ? 'block' : 'none'};">
                         <label style="font-size:10px;">Target Node</label>
-                        <input type="text" class="eff-setdesc-target" value="${window.escapeForHtmlAttribute(ep.target || '')}" style="width:100%;">
+                        <input type="text" class="eff-setdesc-target" value="${window.escapeForHtmlAttribute(effParams.target || '')}" style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="set_description" style="display:${effType === 'set_description' ? 'block' : 'none'};">
                         <label style="font-size:10px;">New Description</label>
-                        <input type="text" class="eff-setdesc-value" value="${window.escapeForHtmlAttribute(ep.value || ep.description || '')}" style="width:100%;">
+                        <input type="text" class="eff-setdesc-value" value="${window.escapeForHtmlAttribute(effParams.value || effParams.description || '')}" style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="append_description" style="display:${effType === 'append_description' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Text to Append</label>
-                        <input type="text" class="eff-appenddesc-text" value="${window.escapeForHtmlAttribute(ep.text || '')}" style="width:100%;">
+                        <input type="text" class="eff-appenddesc-text" value="${window.escapeForHtmlAttribute(effParams.text || '')}" style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="schedule_trigger" style="display:${effType === 'schedule_trigger' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Delay (ticks)</label>
-                        <input type="number" class="eff-schedule-delay" value="${ep.delay_ticks || 3}" min="1" style="width:100%;">
+                        <input type="number" class="eff-schedule-delay" value="${effParams.delay_ticks || 3}" min="1" style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="schedule_trigger" style="display:${effType === 'schedule_trigger' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Target (name or node ID, blank = this item)</label>
-                        <input type="text" class="eff-schedule-target" value="${window.escapeForHtmlAttribute(ep.target || '')}" placeholder="cursed_ring" style="width:100%;">
+                        <input type="text" class="eff-schedule-target" value="${window.escapeForHtmlAttribute(effParams.target || '')}" placeholder="cursed_ring" style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="schedule_trigger" style="display:${effType === 'schedule_trigger' ? 'block' : 'none'};">
                         <div style="font-size:9px;color:var(--text-muted);margin-top:2px;">Fires the target's <b>on_delayed</b> trigger. Add an <b>on_delayed</b> trigger to that item to say what happens.</div>
                     </div>
                     <div class="eff-param" data-effect="set_environment" style="display:${effType === 'set_environment' ? 'block' : 'none'};border-top:1px solid var(--border);padding-top:6px;margin-top:4px;">
                         <label style="font-size:10px;">Target Area/Node (leave blank = current)</label>
-                        <div class="eff-select" data-kind="nodes" data-input-class="eff-env-node" data-value="${window.escapeForHtmlAttribute(ep.target_node || '')}" data-placeholder="area_id or blank" data-free="true" style="width:100%;font-size:10px;"></div>
+                        <div class="eff-select" data-kind="nodes" data-input-class="eff-env-node" data-value="${window.escapeForHtmlAttribute(effParams.target_node || '')}" data-placeholder="area_id or blank" data-free="true" style="width:100%;font-size:10px;"></div>
                         <label style="font-size:10px;">Light</label>
                         <select class="eff-env-light" style="width:100%;">
                             <option value="">— Keep —</option>
-                            <option value="pitch_black" ${ep.light === 'pitch_black' ? 'selected' : ''}>Pitch Black</option>
-                            <option value="dim" ${ep.light === 'dim' ? 'selected' : ''}>Dim</option>
-                            <option value="normal" ${ep.light === 'normal' ? 'selected' : ''}>Normal</option>
-                            <option value="bright" ${ep.light === 'bright' ? 'selected' : ''}>Bright</option>
-                            <option value="blinding" ${ep.light === 'blinding' ? 'selected' : ''}>Blinding</option>
+                            <option value="pitch_black" ${effParams.light === 'pitch_black' ? 'selected' : ''}>Pitch Black</option>
+                            <option value="dim" ${effParams.light === 'dim' ? 'selected' : ''}>Dim</option>
+                            <option value="normal" ${effParams.light === 'normal' ? 'selected' : ''}>Normal</option>
+                            <option value="bright" ${effParams.light === 'bright' ? 'selected' : ''}>Bright</option>
+                            <option value="blinding" ${effParams.light === 'blinding' ? 'selected' : ''}>Blinding</option>
                         </select>
                         <label style="font-size:10px;">Temp °C</label>
-                        <input type="number" class="eff-env-temp" value="${ep.temperature !== undefined ? ep.temperature : ''}" min="-50" max="100" placeholder="e.g. 25" style="width:100%;">
+                        <input type="number" class="eff-env-temp" value="${effParams.temperature !== undefined ? effParams.temperature : ''}" min="-50" max="100" placeholder="e.g. 25" style="width:100%;">
                         <label style="font-size:10px;">Air</label>
                         <select class="eff-env-air" style="width:100%;">
                             <option value="">— Keep —</option>
-                            <option value="fresh" ${ep.air === 'fresh' ? 'selected' : ''}>Fresh</option>
-                            <option value="stale" ${ep.air === 'stale' ? 'selected' : ''}>Stale</option>
-                            <option value="humid" ${ep.air === 'humid' ? 'selected' : ''}>Humid</option>
-                            <option value="toxic" ${ep.air === 'toxic' ? 'selected' : ''}>Toxic</option>
-                            <option value="smoky" ${ep.air === 'smoky' ? 'selected' : ''}>Smoky</option>
-                            <option value="fragrant" ${ep.air === 'fragrant' ? 'selected' : ''}>Fragrant</option>
+                            <option value="fresh" ${effParams.air === 'fresh' ? 'selected' : ''}>Fresh</option>
+                            <option value="stale" ${effParams.air === 'stale' ? 'selected' : ''}>Stale</option>
+                            <option value="humid" ${effParams.air === 'humid' ? 'selected' : ''}>Humid</option>
+                            <option value="toxic" ${effParams.air === 'toxic' ? 'selected' : ''}>Toxic</option>
+                            <option value="smoky" ${effParams.air === 'smoky' ? 'selected' : ''}>Smoky</option>
+                            <option value="fragrant" ${effParams.air === 'fragrant' ? 'selected' : ''}>Fragrant</option>
                         </select>
                         <label style="font-size:10px;">Smell</label>
-                        <input type="text" class="eff-env-smell" value="${window.escapeForHtmlAttribute(ep.smell || '')}" placeholder="musty, floral..." style="width:100%;">
+                        <input type="text" class="eff-env-smell" value="${window.escapeForHtmlAttribute(effParams.smell || '')}" placeholder="musty, floral..." style="width:100%;">
                         <label style="font-size:10px;">Noise</label>
                         <select class="eff-env-noise" style="width:100%;">
                             <option value="">— Keep —</option>
-                            <option value="quiet" ${ep.noise === 'quiet' ? 'selected' : ''}>Quiet</option>
-                            <option value="dripping" ${ep.noise === 'dripping' ? 'selected' : ''}>Dripping</option>
-                            <option value="humming" ${ep.noise === 'humming' ? 'selected' : ''}>Humming</option>
-                            <option value="windy" ${ep.noise === 'windy' ? 'selected' : ''}>Windy</option>
-                            <option value="loud" ${ep.noise === 'loud' ? 'selected' : ''}>Loud</option>
-                            <option value="chaotic" ${ep.noise === 'chaotic' ? 'selected' : ''}>Chaotic</option>
-                            <option value="silent" ${ep.noise === 'silent' ? 'selected' : ''}>Silent</option>
+                            <option value="quiet" ${effParams.noise === 'quiet' ? 'selected' : ''}>Quiet</option>
+                            <option value="dripping" ${effParams.noise === 'dripping' ? 'selected' : ''}>Dripping</option>
+                            <option value="humming" ${effParams.noise === 'humming' ? 'selected' : ''}>Humming</option>
+                            <option value="windy" ${effParams.noise === 'windy' ? 'selected' : ''}>Windy</option>
+                            <option value="loud" ${effParams.noise === 'loud' ? 'selected' : ''}>Loud</option>
+                            <option value="chaotic" ${effParams.noise === 'chaotic' ? 'selected' : ''}>Chaotic</option>
+                            <option value="silent" ${effParams.noise === 'silent' ? 'selected' : ''}>Silent</option>
                         </select>
                     </div>
                     <div class="eff-param" data-effect="adjust_environment" style="display:${effType === 'adjust_environment' ? 'block' : 'none'};border-top:1px solid var(--border);padding-top:6px;margin-top:4px;">
                         <label style="font-size:10px;">Temperature (+/-)</label>
-                        <input type="number" class="eff-adj-temp" value="${ep.temperature !== undefined ? ep.temperature : 0}" placeholder="5 or -3" style="width:100%;">
+                        <input type="number" class="eff-adj-temp" value="${effParams.temperature !== undefined ? effParams.temperature : 0}" placeholder="5 or -3" style="width:100%;">
                         <label style="font-size:10px;">Light (+/-)</label>
-                        <input type="number" class="eff-adj-light" value="${ep.light !== undefined ? ep.light : 0}" placeholder="10 or -20" style="width:100%;">
+                        <input type="number" class="eff-adj-light" value="${effParams.light !== undefined ? effParams.light : 0}" placeholder="10 or -20" style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="llm_respond" style="display:${effType === 'llm_respond' ? 'block' : 'none'};border-top:1px solid var(--border);padding-top:6px;margin-top:4px;">
                         <label style="font-size:10px;">Instructions (persona prompt)</label>
-                        <textarea class="eff-llm-instructions" rows="3" placeholder="You are a grumpy magic mirror. Stay in character. Be brief." style="width:100%;font-size:11px;">${window.escapeForHtmlAttribute(ep.instructions || '')}</textarea>
+                        <textarea class="eff-llm-instructions" rows="3" placeholder="You are a grumpy magic mirror. Stay in character. Be brief." style="width:100%;font-size:11px;">${window.escapeForHtmlAttribute(effParams.instructions || '')}</textarea>
                         <label style="font-size:10px;">Fallback message (no key / failure / empty reply)</label>
-                        <input type="text" class="eff-llm-fallback" value="${window.escapeForHtmlAttribute(ep.fallback_message || '')}" placeholder="The mirror remains silent." style="width:100%;font-size:11px;">
+                        <input type="text" class="eff-llm-fallback" value="${window.escapeForHtmlAttribute(effParams.fallback_message || '')}" placeholder="The mirror remains silent." style="width:100%;font-size:11px;">
                         <label style="font-size:10px;">Max words</label>
-                        <input type="number" class="eff-llm-maxwords" value="${ep.max_words || 40}" min="5" max="200" style="width:100%;font-size:11px;">
+                        <input type="number" class="eff-llm-maxwords" value="${effParams.max_words || 40}" min="5" max="200" style="width:100%;font-size:11px;">
                         <label style="font-size:10px;">Cooldown seconds (per node; empty = 30)</label>
-                        <input type="number" class="eff-llm-cooldown" value="${ep.cooldown !== undefined ? ep.cooldown : ''}" min="0" style="width:100%;font-size:11px;">
+                        <input type="number" class="eff-llm-cooldown" value="${effParams.cooldown !== undefined ? effParams.cooldown : ''}" min="0" style="width:100%;font-size:11px;">
                         <label style="font-size:10px;">Speaker name (empty = the node's name)</label>
-                        <input type="text" class="eff-llm-name" value="${window.escapeForHtmlAttribute(ep.name || '')}" placeholder="e.g. The Magic Mirror" style="width:100%;font-size:11px;">
+                        <input type="text" class="eff-llm-name" value="${window.escapeForHtmlAttribute(effParams.name || '')}" placeholder="e.g. The Magic Mirror" style="width:100%;font-size:11px;">
                         <div style="font-size:9px;color:var(--text-muted);">The browser generates the line (API keys live client-side) and broadcasts it as area speech. Agent characters in earshot hear it.</div>
                     </div>
                     <div class="eff-param" data-effect="scry" style="display:${effType === 'scry' ? 'block' : 'none'};border-top:1px solid var(--border);padding-top:6px;margin-top:4px;">
                         <label style="font-size:10px;">Target area (name)</label>
-                        <div class="eff-select" data-kind="areas" data-input-class="eff-scry-target" data-value="${window.escapeForHtmlAttribute(ep.target || '')}" data-placeholder="Kitchen, Taco Bell..." data-free="true" style="width:100%;"></div>
+                        <div class="eff-select" data-kind="areas" data-input-class="eff-scry-target" data-value="${window.escapeForHtmlAttribute(effParams.target || '')}" data-placeholder="Kitchen, Taco Bell..." data-free="true" style="width:100%;"></div>
                         <label style="font-size:10px;">Lead-in message</label>
-                        <input type="text" class="eff-scry-msg" value="${window.escapeForHtmlAttribute(ep.message || '')}" placeholder="You peer into the distance..." style="width:100%;font-size:11px;">
+                        <input type="text" class="eff-scry-msg" value="${window.escapeForHtmlAttribute(effParams.message || '')}" placeholder="You peer into the distance..." style="width:100%;font-size:11px;">
                         <label style="font-size:10px;">Fail message (target missing)</label>
-                        <input type="text" class="eff-scry-fail" value="${window.escapeForHtmlAttribute(ep.fail_message || '')}" placeholder="The vision shows nothing." style="width:100%;font-size:11px;">
+                        <input type="text" class="eff-scry-fail" value="${window.escapeForHtmlAttribute(effParams.fail_message || '')}" placeholder="The vision shows nothing." style="width:100%;font-size:11px;">
                         <div style="font-size:9px;color:var(--text-muted);">Shows the target area's description, ambient light and exits — frozen narrative, no agent-prompt changes.</div>
                     </div>
                     <div class="eff-param" data-effect="apply_trait,remove_trait" style="display:${['apply_trait', 'remove_trait'].includes(effType) ? 'block' : 'none'};">
                         <label style="font-size:10px;">Trait ID</label>
-                        <div class="eff-select" data-kind="traits" data-input-class="eff-trait-id" data-value="${window.escapeForHtmlAttribute(ep.trait || '')}" data-placeholder="dark_vision, hardy, allergic..." data-free="true" style="width:100%;"></div>
+                        <div class="eff-select" data-kind="traits" data-input-class="eff-trait-id" data-value="${window.escapeForHtmlAttribute(effParams.trait || '')}" data-placeholder="dark_vision, hardy, allergic..." data-free="true" style="width:100%;"></div>
                     </div>
                     <div class="eff-param" data-effect="apply_trait,remove_trait" style="display:${['apply_trait', 'remove_trait'].includes(effType) ? 'block' : 'none'};">
                         <label style="font-size:10px;">Target</label>
-                        <div class="eff-select" data-kind="chars" data-input-class="eff-trait-target" data-value="${window.escapeForHtmlAttribute(ep.target || 'self')}" data-placeholder="self or character name" data-free="true" style="width:100%;"></div>
+                        <div class="eff-select" data-kind="chars" data-input-class="eff-trait-target" data-value="${window.escapeForHtmlAttribute(effParams.target || 'self')}" data-placeholder="self or character name" data-free="true" style="width:100%;"></div>
                     </div>
                     <div class="eff-param" data-effect="apply_trait" style="display:${effType === 'apply_trait' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Param Value</label>
-                        <input type="text" class="eff-trait-param" value="${ep.param !== undefined ? window.escapeForHtmlAttribute(String(ep.param)) : 'true'}" placeholder="true or value (e.g. pollen)" style="width:100%;">
+                        <input type="text" class="eff-trait-param" value="${effParams.param !== undefined ? window.escapeForHtmlAttribute(String(effParams.param)) : 'true'}" placeholder="true or value (e.g. pollen)" style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="apply_condition" style="display:${effType === 'apply_condition' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Condition</label>
-                        <div class="eff-select" data-kind="conditions" data-input-class="eff-condition-id" data-value="${window.escapeForHtmlAttribute(ep.condition || '')}" data-placeholder="poisoned, blind, exhausted, charmed..." data-free="true" style="width:100%;"></div>
+                        <div class="eff-select" data-kind="conditions" data-input-class="eff-condition-id" data-value="${window.escapeForHtmlAttribute(effParams.condition || '')}" data-placeholder="poisoned, blind, exhausted, charmed..." data-free="true" style="width:100%;"></div>
                     </div>
                     <div class="eff-param" data-effect="apply_condition,remove_condition" style="display:${['apply_condition', 'remove_condition'].includes(effType) ? 'block' : 'none'};">
                         <label style="font-size:10px;">Target</label>
                         <select class="eff-condition-target-by" style="width:100%;font-size:10px;" onchange="const row=this.closest('.eff-row'); const inp=row.querySelector('.eff-condition-target'); const show=this.value && this.value!=='self' && this.value!=='all_in_area'; inp.style.display=show?'block':'none'; inp.placeholder={name:'Character or node name',tag:'Tag',trait:'Trait id',type:'item / character / way / area'}[this.value]||'self or character name'; if(this.value==='self') inp.value='';">
-                            <option value="self" ${!ep.target_by && (ep.target === 'self' || !ep.target) ? 'selected' : ''}>Self (actor)</option>
-                            <option value="all_in_area" ${ep.target_by === 'all_in_area' ? 'selected' : ''}>All characters in area</option>
-                            <option value="name" ${ep.target_by === 'name' ? 'selected' : ''}>By name</option>
-                            <option value="tag" ${ep.target_by === 'tag' ? 'selected' : ''}>By tag</option>
-                            <option value="trait" ${ep.target_by === 'trait' ? 'selected' : ''}>By trait</option>
-                            <option value="type" ${ep.target_by === 'type' ? 'selected' : ''}>By type</option>
+                            <option value="self" ${!effParams.target_by && (effParams.target === 'self' || !effParams.target) ? 'selected' : ''}>Self (actor)</option>
+                            <option value="all_in_area" ${effParams.target_by === 'all_in_area' ? 'selected' : ''}>All characters in area</option>
+                            <option value="name" ${effParams.target_by === 'name' ? 'selected' : ''}>By name</option>
+                            <option value="tag" ${effParams.target_by === 'tag' ? 'selected' : ''}>By tag</option>
+                            <option value="trait" ${effParams.target_by === 'trait' ? 'selected' : ''}>By trait</option>
+                            <option value="type" ${effParams.target_by === 'type' ? 'selected' : ''}>By type</option>
                         </select>
-                        <input type="text" class="eff-condition-target" value="${window.escapeForHtmlAttribute(ep.target_by ? (ep.target_value || '') : (ep.target === 'self' ? '' : (ep.target || '')))}" list="eff-char-list" placeholder="self or character name" style="width:100%;font-size:10px;margin-top:2px;display:${(!ep.target_by && ep.target && ep.target !== 'self') || (ep.target_by && ep.target_by !== 'all_in_area') ? 'block' : 'none'};">
+                        <input type="text" class="eff-condition-target" value="${window.escapeForHtmlAttribute(effParams.target_by ? (effParams.target_value || '') : (effParams.target === 'self' ? '' : (effParams.target || '')))}" list="eff-char-list" placeholder="self or character name" style="width:100%;font-size:10px;margin-top:2px;display:${(!effParams.target_by && effParams.target && effParams.target !== 'self') || (effParams.target_by && effParams.target_by !== 'all_in_area') ? 'block' : 'none'};">
                     </div>
                     <div class="eff-param" data-effect="apply_condition" style="display:${effType === 'apply_condition' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Duration (ticks, blank = catalog default)</label>
-                        <input type="number" class="eff-condition-duration" value="${ep.duration !== undefined ? ep.duration : ''}" placeholder="10" style="width:100%;">
+                        <input type="number" class="eff-condition-duration" value="${effParams.duration !== undefined ? effParams.duration : ''}" placeholder="10" style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="apply_condition" style="display:${effType === 'apply_condition' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Source (shown on the condition card)</label>
-                        <input type="text" class="eff-condition-source" value="${window.escapeForHtmlAttribute(ep.source || '')}" placeholder="poisoned wine, viper..." style="width:100%;">
+                        <input type="text" class="eff-condition-source" value="${window.escapeForHtmlAttribute(effParams.source || '')}" placeholder="poisoned wine, viper..." style="width:100%;">
                     </div>
                     <div class="eff-param" data-effect="apply_condition" style="display:${effType === 'apply_condition' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Per-tick drain (blank = catalog default; set 0 to disable that vital)</label>
                         <div class="eff-condition-periodic-form" style="display:grid;grid-template-columns:1fr 1fr;gap:2px 8px;margin-top:2px;">
                             ${['HP', 'Energy', 'Hunger', 'Thirst', 'Hygiene', 'Social', 'Bladder', 'Sanity', 'Entertainment', 'Temperature'].map(v => `<label style="display:flex;align-items:center;gap:4px;font-size:9px;justify-content:space-between;">
                                     <span style="flex:1;">${v}</span>
-                                    <input type="number" step="any" class="eff-periodic-${v}" value="${ep.periodic?.[v] !== undefined ? ep.periodic[v] : 0}" style="width:52px;font-size:10px;">
+                                    <input type="number" step="any" class="eff-periodic-${v}" value="${effParams.periodic?.[v] !== undefined ? effParams.periodic[v] : 0}" style="width:52px;font-size:10px;">
                                 </label>`).join('')}
                         </div>
                         <div style="font-size:9px;color:var(--text-muted);margin-top:2px;">Leave all at 0 to use the condition's catalog default.</div>
                     </div>
                     <div class="eff-param" data-effect="apply_condition" style="display:${effType === 'apply_condition' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Symptoms — progression by ticks left (e.g. {"8":"a queasy twist...","4":"cold sweat...","1":"everything spins"}; blank = catalog)</label>
-                        <textarea class="eff-condition-symptoms" rows="3" placeholder='{"8": "A queasy twist in your stomach.", "4": "Cold sweat beads on your forehead.", "1": "Everything spins."}' style="width:100%;font-size:11px;">${ep.symptoms ? window.escapeForHtmlAttribute(JSON.stringify(ep.symptoms, null, 1)) : ''}</textarea>
+                        <textarea class="eff-condition-symptoms" rows="3" placeholder='{"8": "A queasy twist in your stomach.", "4": "Cold sweat beads on your forehead.", "1": "Everything spins."}' style="width:100%;font-size:11px;">${effParams.symptoms ? window.escapeForHtmlAttribute(JSON.stringify(effParams.symptoms, null, 1)) : ''}</textarea>
                         <div style="font-size:9px;color:var(--text-muted);">Keyed by ticks remaining — the highest threshold ≤ current time wins. Use "level" keys instead for leveled conditions (exhausted).</div>
                     </div>
                     <div class="eff-param" data-effect="apply_condition" style="display:${effType === 'apply_condition' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Extra conditions — applied alongside (e.g. [{"condition":"blind","duration":3}]); blank = none</label>
-                        <textarea class="eff-condition-extras" rows="2" placeholder='[{"condition": "blind", "duration": 3}, {"condition": "exhausted", "level": 1}]' style="width:100%;font-size:11px;">${ep.extra_conditions ? window.escapeForHtmlAttribute(JSON.stringify(ep.extra_conditions)) : ''}</textarea>
+                        <textarea class="eff-condition-extras" rows="2" placeholder='[{"condition": "blind", "duration": 3}, {"condition": "exhausted", "level": 1}]' style="width:100%;font-size:11px;">${effParams.extra_conditions ? window.escapeForHtmlAttribute(JSON.stringify(effParams.extra_conditions)) : ''}</textarea>
                     </div>
                     <div class="eff-param" data-effect="set_time" style="display:${effType === 'set_time' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Time (HH:MM or 24h hour)</label>
-                        <input type="text" class="eff-settime-time" value="${window.escapeForHtmlAttribute(ep.time || (ep.hour !== undefined ? String(ep.hour) : ''))}" placeholder="14:30" style="width:100%;font-size:11px;">
+                        <input type="text" class="eff-settime-time" value="${window.escapeForHtmlAttribute(effParams.time || (effParams.hour !== undefined ? String(effParams.hour) : ''))}" placeholder="14:30" style="width:100%;font-size:11px;">
                     </div>
                     <div class="eff-param" data-effect="set_date" style="display:${effType === 'set_date' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Day / Month / Year</label>
                         <div style="display:flex;gap:4px;">
-                            <input type="number" class="eff-setdate-day" value="${ep.day ?? ''}" placeholder="day" style="width:33%;font-size:11px;">
-                            <input type="number" class="eff-setdate-month" value="${ep.month ?? ''}" placeholder="month" style="width:33%;font-size:11px;">
-                            <input type="number" class="eff-setdate-year" value="${ep.year ?? ''}" placeholder="year" style="width:33%;font-size:11px;">
+                            <input type="number" class="eff-setdate-day" value="${effParams.day ?? ''}" placeholder="day" style="width:33%;font-size:11px;">
+                            <input type="number" class="eff-setdate-month" value="${effParams.month ?? ''}" placeholder="month" style="width:33%;font-size:11px;">
+                            <input type="number" class="eff-setdate-year" value="${effParams.year ?? ''}" placeholder="year" style="width:33%;font-size:11px;">
                         </div>
                     </div>
                     <div class="eff-param" data-effect="set_weather" style="display:${effType === 'set_weather' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Weather</label>
                         <select class="eff-setweather" style="width:100%;font-size:11px;">
-                            ${['clear', 'cloudy', 'windy', 'rainy', 'stormy', 'foggy', 'snowy'].map(w => `<option value="${w}" ${ep.weather === w ? 'selected' : ''}>${w}</option>`).join('')}
+                            ${['clear', 'cloudy', 'windy', 'rainy', 'stormy', 'foggy', 'snowy'].map(w => `<option value="${w}" ${effParams.weather === w ? 'selected' : ''}>${w}</option>`).join('')}
                         </select>
                         <label style="font-size:10px;">Duration (ticks, blank = until changed)</label>
-                        <input type="number" class="eff-setweather-dur" value="${ep.duration_ticks ?? ''}" style="width:100%;font-size:11px;">
+                        <input type="number" class="eff-setweather-dur" value="${effParams.duration_ticks ?? ''}" style="width:100%;font-size:11px;">
                     </div>
                     <div class="eff-param" data-effect="forecast_override" style="display:${effType === 'forecast_override' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Weather</label>
                         <select class="eff-fcast-weather" style="width:100%;font-size:11px;">
-                            <option value="" ${!ep.weather ? 'selected' : ''}>— keep —</option>
-                            ${['clear', 'cloudy', 'windy', 'rainy', 'stormy', 'foggy', 'snowy'].map(w => `<option value="${w}" ${ep.weather === w ? 'selected' : ''}>${w}</option>`).join('')}
+                            <option value="" ${!effParams.weather ? 'selected' : ''}>— keep —</option>
+                            ${['clear', 'cloudy', 'windy', 'rainy', 'stormy', 'foggy', 'snowy'].map(w => `<option value="${w}" ${effParams.weather === w ? 'selected' : ''}>${w}</option>`).join('')}
                         </select>
                         <label style="font-size:10px;">Wind</label>
                         <select class="eff-fcast-wind" style="width:100%;font-size:11px;">
-                            <option value="" ${!ep.wind ? 'selected' : ''}>— keep —</option>
-                            ${['none', 'breeze', 'wind', 'gale', 'storm', 'hurricane'].map(w => `<option value="${w}" ${ep.wind === w ? 'selected' : ''}>${w}</option>`).join('')}
+                            <option value="" ${!effParams.wind ? 'selected' : ''}>— keep —</option>
+                            ${['none', 'breeze', 'wind', 'gale', 'storm', 'hurricane'].map(w => `<option value="${w}" ${effParams.wind === w ? 'selected' : ''}>${w}</option>`).join('')}
                         </select>
                         <label style="font-size:10px;">Temperature mod (+/- °C)</label>
-                        <input type="number" class="eff-fcast-temp" value="${ep.temperature_mod ?? ''}" style="width:100%;font-size:11px;">
+                        <input type="number" class="eff-fcast-temp" value="${effParams.temperature_mod ?? ''}" style="width:100%;font-size:11px;">
                         <label style="font-size:10px;">Duration (ticks; blank = until cleared)</label>
-                        <input type="number" class="eff-fcast-dur" value="${ep.duration_ticks ?? ''}" style="width:100%;font-size:11px;">
+                        <input type="number" class="eff-fcast-dur" value="${effParams.duration_ticks ?? ''}" style="width:100%;font-size:11px;">
                         <label style="font-size:10px;">Target (blank = global, or area id)</label>
-                        <input type="text" class="eff-fcast-target" value="${window.escapeForHtmlAttribute(ep.target || '')}" placeholder="global / area id" style="width:100%;font-size:11px;">
-                        <label style="font-size:9px;display:flex;align-items:center;gap:4px;margin-top:2px;"><input type="checkbox" class="eff-fcast-blood" ?checked=${ep.blood_moon === true}> Blood moon</label>
+                        <input type="text" class="eff-fcast-target" value="${window.escapeForHtmlAttribute(effParams.target || '')}" placeholder="global / area id" style="width:100%;font-size:11px;">
+                        <label style="font-size:9px;display:flex;align-items:center;gap:4px;margin-top:2px;"><input type="checkbox" class="eff-fcast-blood" ?checked=${effParams.blood_moon === true}> Blood moon</label>
                     </div>
                     <div class="eff-param" data-effect="adjust_forecast" style="display:${effType === 'adjust_forecast' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Temperature mod delta</label>
-                        <input type="number" class="eff-fcast-tdelta" value="${ep.temperature_mod_delta ?? ''}" style="width:100%;font-size:11px;">
+                        <input type="number" class="eff-fcast-tdelta" value="${effParams.temperature_mod_delta ?? ''}" style="width:100%;font-size:11px;">
                         <label style="font-size:10px;">Light mod delta</label>
-                        <input type="number" class="eff-fcast-ldelta" value="${ep.light_mod_delta ?? ''}" style="width:100%;font-size:11px;">
+                        <input type="number" class="eff-fcast-ldelta" value="${effParams.light_mod_delta ?? ''}" style="width:100%;font-size:11px;">
                         <label style="font-size:10px;">Duration (ticks)</label>
-                        <input type="number" class="eff-fcast-adur" value="${ep.duration_ticks ?? ''}" style="width:100%;font-size:11px;">
+                        <input type="number" class="eff-fcast-adur" value="${effParams.duration_ticks ?? ''}" style="width:100%;font-size:11px;">
                     </div>
                     <div class="eff-param" data-effect="apply_area_status" style="display:${effType === 'apply_area_status' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Area (blank = current)</label>
-                        <input type="text" class="eff-astat-target" value="${window.escapeForHtmlAttribute(ep.target || '')}" style="width:100%;font-size:11px;">
+                        <input type="text" class="eff-astat-target" value="${window.escapeForHtmlAttribute(effParams.target || '')}" style="width:100%;font-size:11px;">
                         <label style="font-size:10px;">Status type</label>
                         <select class="eff-astat-type" style="width:100%;font-size:11px;">
-                            ${['on_fire', 'flooded', 'poison_gas', 'smoke', 'blessed', 'darkness_magic'].map(s => `<option value="${s}" ${ep.status_type === s ? 'selected' : ''}>${s}</option>`).join('')}
+                            ${['on_fire', 'flooded', 'poison_gas', 'smoke', 'blessed', 'darkness_magic'].map(s => `<option value="${s}" ${effParams.status_type === s ? 'selected' : ''}>${s}</option>`).join('')}
                         </select>
                         <label style="font-size:10px;">Severity (1-5)</label>
-                        <input type="number" class="eff-astat-sev" value="${ep.severity ?? 1}" min="1" max="5" style="width:100%;font-size:11px;">
+                        <input type="number" class="eff-astat-sev" value="${effParams.severity ?? 1}" min="1" max="5" style="width:100%;font-size:11px;">
                         <label style="font-size:10px;">Duration (ticks, blank = until cleared)</label>
-                        <input type="number" class="eff-astat-dur" value="${ep.duration ?? ''}" style="width:100%;font-size:11px;">
+                        <input type="number" class="eff-astat-dur" value="${effParams.duration ?? ''}" style="width:100%;font-size:11px;">
                     </div>
                     <div class="eff-param" data-effect="clear_area_status" style="display:${effType === 'clear_area_status' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Area (blank = current)</label>
-                        <input type="text" class="eff-astat-clrtarget" value="${window.escapeForHtmlAttribute(ep.target || '')}" style="width:100%;font-size:11px;">
+                        <input type="text" class="eff-astat-clrtarget" value="${window.escapeForHtmlAttribute(effParams.target || '')}" style="width:100%;font-size:11px;">
                         <label style="font-size:10px;">Status type</label>
                         <select class="eff-astat-clrtype" style="width:100%;font-size:11px;">
-                            ${['on_fire', 'flooded', 'poison_gas', 'smoke', 'blessed', 'darkness_magic'].map(s => `<option value="${s}" ${ep.status_type === s ? 'selected' : ''}>${s}</option>`).join('')}
+                            ${['on_fire', 'flooded', 'poison_gas', 'smoke', 'blessed', 'darkness_magic'].map(s => `<option value="${s}" ${effParams.status_type === s ? 'selected' : ''}>${s}</option>`).join('')}
                         </select>
                     </div>
                     <div class="eff-param" data-effect="set_wet" style="display:${effType === 'set_wet' ? 'block' : 'none'};">
                         <label style="font-size:10px;">Wet</label>
                         <select class="eff-setwet-val" style="width:100%;font-size:11px;">
-                            <option value="true" ${ep.wet !== false ? 'selected' : ''}>Soak (wet)</option>
-                            <option value="false" ${ep.wet === false ? 'selected' : ''}>Dry out</option>
+                            <option value="true" ${effParams.wet !== false ? 'selected' : ''}>Soak (wet)</option>
+                            <option value="false" ${effParams.wet === false ? 'selected' : ''}>Dry out</option>
                         </select>
                         <label style="font-size:10px;">Item node (blank = equipped gear)</label>
-                        <input type="text" class="eff-setwet-node" value="${window.escapeForHtmlAttribute(ep.node_id || '')}" placeholder="actor's equipment" style="width:100%;font-size:11px;">
+                        <input type="text" class="eff-setwet-node" value="${window.escapeForHtmlAttribute(effParams.node_id || '')}" placeholder="actor's equipment" style="width:100%;font-size:11px;">
                     </div>
                 </div>
                 <span onclick="this.closest('.eff-row').remove()" style="position:absolute;top:4px;right:4px;cursor:pointer;color:var(--red);font-size:12px;">✕</span>

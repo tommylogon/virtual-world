@@ -200,7 +200,7 @@ Game state (areas, players, items, etc.) is persisted via:
 ## Related tasks
 
 - [[task-86-ux_ui_improvements|task-86: UX/UI improvements]]
-- [[dev_tasks/todo/refactor/task-83-code_readability_refactor|task-83: Code readability refactor]]
+- [[task-83-code_readability_refactor|task-83: Code readability refactor]]
 
 ## Where it lives
 

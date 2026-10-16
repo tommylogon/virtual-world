@@ -1147,13 +1147,13 @@ class LibraryBrowser {
         for (const edge of graphEdges as Array<Record<string, any>>) {
             if (edge.source !== areaNodeId) continue;
             if (edge.type !== 'triggers') continue;
-            const ep = edge.properties || {};
-            const effects = ep.effects?.length > 0
-                ? ep.effects
-                : (ep.effect_type ? [{ type: ep.effect_type, params: ep.effect_params || {} }] : []);
-            let conditions: any = ep.conditions || {};
+            const edgeProps = edge.properties || {};
+            const effects = edgeProps.effects?.length > 0
+                ? edgeProps.effects
+                : (edgeProps.effect_type ? [{ type: edgeProps.effect_type, params: edgeProps.effect_params || {} }] : []);
+            let conditions: any = edgeProps.conditions || {};
             if (Array.isArray(conditions) || !conditions.operator) {
-                const logic = ep.conditions_logic || 'and';
+                const logic = edgeProps.conditions_logic || 'and';
                 if (Array.isArray(conditions) && conditions.length > 0) {
                     conditions = { operator: logic, conditions };
                 } else {
@@ -1161,13 +1161,13 @@ class LibraryBrowser {
                 }
             }
             triggers.push({
-                trigger_type: ep.trigger_type || 'on_enter',
+                trigger_type: edgeProps.trigger_type || 'on_enter',
                 effects,
-                target_name: ep.target_name || '',
-                target_state: ep.target_state || '',
+                target_name: edgeProps.target_name || '',
+                target_state: edgeProps.target_state || '',
                 conditions,
-                success_message: ep.success_message || '',
-                fail_message: ep.fail_message || ''
+                success_message: edgeProps.success_message || '',
+                fail_message: edgeProps.fail_message || ''
             });
         }
 

@@ -85,7 +85,8 @@ class WorldGraph:
     # ── Case-insensitive id helpers ────────────────────────────────────
 
     def _rebuild_id_index(self):
-        self._id_index = {nid.lower(): nid for nid in self.nodes}
+        # Lowercase id -> stored key, so lookups survive renames in casing.
+        self._id_index = {node_id.lower(): node_id for node_id in self.nodes}
 
     def _resolve_id(self, node_id: str) -> Optional[str]:
         """Resolve *node_id* to the stored key, case-insensitively."""
@@ -714,7 +715,7 @@ class WorldGraph:
         doomed = set(self.nodes_owned_by(scope_id))
         if not doomed:
             return {"scope_id": scope_id, "removed": [], "edges_removed": 0}
-        doomed_lower = {nid.lower() for nid in doomed}
+        doomed_lower = {node_id.lower() for node_id in doomed}
         # task-584: a trigger node has no independent life — it is owned by
         # whatever triggers it. Remember which triggers this scope's nodes
         # referenced, so one left with no referrer is cleaned up rather than
@@ -759,7 +760,7 @@ class WorldGraph:
         index (task-583).
         """
         included = set(self.nodes_owned_by(scope_id))
-        nodes = {nid: self.nodes[nid].to_dict() for nid in sorted(included)}
+        nodes = {node_id: self.nodes[node_id].to_dict() for node_id in sorted(included)}
         self._ensure_indexes()
         seen_edges = set()
         edges = []

@@ -11,9 +11,9 @@
     'use strict';
     async function request(url, options) {
         const resp = await fetch(url, options);
-        const ct = resp.headers.get('content-type') || '';
+        const contentType = resp.headers.get('content-type') || '';
         let body = null;
-        if (ct.includes('application/json')) {
+        if (contentType.includes('application/json')) {
             body = await resp.json().catch(() => null);
         }
         else {

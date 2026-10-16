@@ -474,24 +474,24 @@ function _firstSentence(text: unknown, maxLines: number): string {
      * pitch-scaled: the pitch is derived *from* these now (task-748).
      */
     _markSizes() {
-        const ns = GraphNetwork.nodeSizeScale();
+        const sizeScale = GraphNetwork.nodeSizeScale();
         const inMap = !!graphManager && graphManager._cardinalLayout === true;
         const LE: any = typeof GraphLayoutEngine !== 'undefined' ? GraphLayoutEngine : null;
         if (inMap && LE && LE.markSize && LE.markFontPx && LE.markCardPad) {
             const font = LE.markFontPx();
-            const pad = LE.markCardPad() * ns;
+            const pad = LE.markCardPad() * sizeScale;
             return {
                 areaFont: font, areaPad: pad, areaPadY: pad,
-                itemFont: font * 0.8, itemSize: LE.markSize('item') * ns,
-                wayFont: font * 0.8, waySize: LE.markSize('way') * ns,
-                charFont: font, charSize: LE.markSize('character') * ns,
+                itemFont: font * 0.8, itemSize: LE.markSize('item') * sizeScale,
+                wayFont: font * 0.8, waySize: LE.markSize('way') * sizeScale,
+                charFont: font, charSize: LE.markSize('character') * sizeScale,
             };
         }
         return {
-            areaFont: 14, areaPad: 27 * ns, areaPadY: 21 * ns,
-            itemFont: 12, itemSize: 18 * ns,
-            wayFont: 14, waySize: 14 * ns,
-            charFont: 14, charSize: 24 * ns,
+            areaFont: 14, areaPad: 27 * sizeScale, areaPadY: 21 * sizeScale,
+            itemFont: 12, itemSize: 18 * sizeScale,
+            wayFont: 14, waySize: 14 * sizeScale,
+            charFont: 14, charSize: 24 * sizeScale,
         };
     },
 

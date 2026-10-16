@@ -558,11 +558,11 @@ const _SpriteSheet = (() => {
             const th = Math.max(1, Math.round(it.h * scale));
             const cell = document.createElement('div');
             cell.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:3px;';
-            const cv = document.createElement('canvas');
-            cv.width = tw;
-            cv.height = th;
-            cv.style.cssText = `width:${tw}px;height:${th}px;border:1px solid ${it.skip ? 'var(--border)' : 'var(--accent)'};border-radius:3px;${it.skip ? 'opacity:0.4;' : ''}`;
-            const ctx = cv.getContext('2d');
+            const thumbCanvas = document.createElement('canvas');
+            thumbCanvas.width = tw;
+            thumbCanvas.height = th;
+            thumbCanvas.style.cssText = `width:${tw}px;height:${th}px;border:1px solid ${it.skip ? 'var(--border)' : 'var(--accent)'};border-radius:3px;${it.skip ? 'opacity:0.4;' : ''}`;
+            const ctx = thumbCanvas.getContext('2d');
             if (ctx)
                 ctx.drawImage(src, it.x, it.y, it.w, it.h, 0, 0, tw, th);
             const cap = document.createElement('div');
@@ -572,7 +572,7 @@ const _SpriteSheet = (() => {
             const n = document.createElement('div');
             n.textContent = `#${i + 1}`;
             n.style.cssText = 'font-size:9px;color:var(--text-dim);';
-            cell.appendChild(cv);
+            cell.appendChild(thumbCanvas);
             cell.appendChild(cap);
             cell.appendChild(n);
             cell.title = cap.title;

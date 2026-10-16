@@ -33,7 +33,7 @@ def test_camp_triggers_are_wired_to_their_owner():
     data = _load_camp()
     nodes = data["graph"]["nodes"]
     edges = data["graph"]["edges"]
-    logic = {nid for nid, n in nodes.items() if n.get("type") == "logic_trigger"}
+    logic = {node_id for node_id, n in nodes.items() if n.get("type") == "logic_trigger"}
     assert logic, "expected the camp to have triggers"
 
     incoming = {e["target"] for e in edges if e.get("type") == "triggers"}
@@ -70,7 +70,7 @@ def test_camp_discovery_triggers_are_once():
     data = _load_camp()
     nodes = data["graph"]["nodes"]
     once_triggers = [
-        nid for nid, n in nodes.items()
+        node_id for node_id, n in nodes.items()
         if n.get("type") == "logic_trigger" and n.get("properties", {}).get("once")
     ]
     # The four discovery triggers (examine/search/enter) must stay fire-once —

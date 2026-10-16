@@ -206,23 +206,23 @@
 
         // ── Other Graph Nodes (items not in rooms, triggers, etc.) ──
         var printedDoorIds: Record<string, boolean> = {};
-        for (var pi = 0; pi < doorNodes.length; pi++) {
-            printedDoorIds[doorNodes[pi][0]] = true;
+        for (var doorIdx = 0; doorIdx < doorNodes.length; doorIdx++) {
+            printedDoorIds[doorNodes[doorIdx][0]] = true;
         }
         var otherNodes: Array<[string, any]> = [];
-        for (var ni in world.graph?.nodes || {}) {
-            if (!world.graph.nodes.hasOwnProperty(ni)) continue;
-            var node = world.graph.nodes[ni];
-            if (node.type !== 'area' && node.type !== 'character' && !printedDoorIds[ni]) {
-                otherNodes.push([ni, node]);
+        for (var nodeKey in world.graph?.nodes || {}) {
+            if (!world.graph.nodes.hasOwnProperty(nodeKey)) continue;
+            var node = world.graph.nodes[nodeKey];
+            if (node.type !== 'area' && node.type !== 'character' && !printedDoorIds[nodeKey]) {
+                otherNodes.push([nodeKey, node]);
             }
         }
         if (otherNodes.length) {
             text += '\n═══════════════════════════════════════\n';
             text += 'OTHER NODES\n';
             text += '═══════════════════════════════════════\n';
-            for (var oi = 0; oi < otherNodes.length; oi++) {
-                var otherEntry = otherNodes[oi];
+            for (var otherIdx = 0; otherIdx < otherNodes.length; otherIdx++) {
+                var otherEntry = otherNodes[otherIdx];
                 var otherNode = otherEntry[1];
                 var otherProps = otherNode.properties || {};
                 var nodeState = otherProps.current_state || '';

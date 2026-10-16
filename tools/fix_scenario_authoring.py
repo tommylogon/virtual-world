@@ -69,7 +69,7 @@ def _first_sentence(text: str, limit: int = 130) -> str:
 
 
 def fix_ways(nodes: dict, edges: list, changes: List[str]) -> None:
-    ways = {nid: n for nid, n in nodes.items() if n.get("type") == "way"}
+    ways = {node_id: n for node_id, n in nodes.items() if n.get("type") == "way"}
     for way_id, way in ways.items():
         props = way.setdefault("properties", {})
         if not str(props.get("description") or "").strip():
@@ -156,7 +156,7 @@ def _has_same_message(effects: list, text: str) -> bool:
 
 
 def fix_triggers(nodes: dict, edges: list, changes: List[str]) -> None:
-    logic_ids = {nid for nid, n in nodes.items() if n.get("type") == "logic_trigger"}
+    logic_ids = {node_id for node_id, n in nodes.items() if n.get("type") == "logic_trigger"}
     rewritten: List[dict] = []
     by_pair = set()
     for edge in edges:

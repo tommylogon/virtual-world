@@ -60,14 +60,14 @@ def _area_keys(nodes: dict):
     graph tooling often references the node id. Accept either so the validator
     matches runtime behaviour instead of only one authoring style.
     """
-    ids = {nid for nid, n in nodes.items() if n.get("type") == "area"}
-    names = {n.get("name") for nid, n in nodes.items()
+    ids = {node_id for node_id, n in nodes.items() if n.get("type") == "area"}
+    names = {n.get("name") for node_id, n in nodes.items()
              if n.get("type") == "area" and n.get("name")}
     return ids, names
 
 
 def validate_ways(nodes: dict, edges: list, issues: list):
-    ways = {nid: n for nid, n in nodes.items() if n.get("type") == "way"}
+    ways = {node_id: n for node_id, n in nodes.items() if n.get("type") == "way"}
     area_ids, area_names = _area_keys(nodes)
     for way_id, node in ways.items():
         props = node.get("properties", {})

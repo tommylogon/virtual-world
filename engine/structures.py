@@ -249,10 +249,11 @@ def collect_structure(
                             item_ids.add(held.id)
 
     nodes: Dict[str, Any] = {}
-    for nid in collected:
-        if any(res["anchor_id"] == nid for res in resident_entries):
+    # Anchors travel as residents, so skip them here to avoid double-emit.
+    for node_id in collected:
+        if any(res["anchor_id"] == node_id for res in resident_entries):
             continue  # anchors travel as residents, not as raw nodes
-        node = graph.get_node(nid)
+        node = graph.get_node(node_id)
         if not node:
             continue
         node_dict = node.to_dict()
@@ -260,7 +261,7 @@ def collect_structure(
         if isinstance(props, dict):
             for key in _RUNTIME_PROP_KEYS:
                 props.pop(key, None)
-        nodes[nid] = node_dict
+        nodes[node_id] = node_dict
 
     edges: List[Any] = []
     for edge in graph.edges:

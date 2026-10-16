@@ -2,7 +2,7 @@
 area: refactor
 wiki: "[[UI & Settings/Inspector Panels]]"
 type: task
-status: todo
+status: inprogress
 priority: medium
 ---
 

@@ -354,8 +354,8 @@
     markEnvelopePitch() {
         const px = window.GraphLayoutEngine.MAP_MARK_PX as Record<string, number>;
         const network = (window as unknown as { GraphNetwork?: { nodeSizeScale?: () => number } }).GraphNetwork;
-        const ns = (network && typeof network.nodeSizeScale === 'function') ? network.nodeSizeScale() : 1;
-        return Math.round((px.areaEdge + px.way) * ns + window.GraphLayoutEngine.MARK_ENVELOPE_GAP * ns);
+        const nodeScale = (network && typeof network.nodeSizeScale === 'function') ? network.nodeSizeScale() : 1;
+        return Math.round((px.areaEdge + px.way) * nodeScale + window.GraphLayoutEngine.MARK_ENVELOPE_GAP * nodeScale);
     },
 
     /** Mark diameter in px (fixed; the node-size multiplier is applied by the caller). */

@@ -216,9 +216,9 @@ def handle_duplicate_node(app):
         children_of.setdefault(_e.target, []).append(
             (_e.source, _e.type, dict(_e.properties or {})))
 
-    def clone_node(src, nid, name):
+    def clone_node(src, new_id, name):
         props = _copy.deepcopy(src.properties or {})
-        clone = Node(id=nid, type=src.type, name=name, properties=props)
+        clone = Node(id=new_id, type=src.type, name=name, properties=props)
         graph.add_node(clone)
         state["count"] += 1
         return clone
@@ -599,7 +599,8 @@ def handle_move_item_node(app, node_id):
         if found:
             extra.append(f"node '{node_id}' exists but is type '{found.type}' (name '{found.name}')")
         else:
-            item_ids = sorted(nid for nid, n in app.world.graph.nodes.items()
+            # Suggest close item ids when the target is missing (rename-safe lookup).
+            item_ids = sorted(node_id for node_id, n in app.world.graph.nodes.items()
                               if n.type == 'item')
             close = difflib.get_close_matches(node_id.lower(), item_ids, n=3, cutoff=0.4)
             if close:
@@ -937,15 +938,16 @@ def _select_nodes(graph, selector):
         wanted = {str(i).lower() for i in explicit}
 
     out = []
-    for nid in sorted(graph.nodes):
-        node = graph.nodes[nid]
-        if wanted is not None and nid.lower() not in wanted and str(node.id).lower() not in wanted:
+    # Iterate canonical node ids; `wanted` holds lowercase ids for exact match.
+    for node_id in sorted(graph.nodes):
+        node = graph.nodes[node_id]
+        if wanted is not None and node_id.lower() not in wanted and str(node.id).lower() not in wanted:
             continue
         if kind and node.type != kind:
             continue
         if not _node_has_tags(node, tags, require_all):
             continue
-        if name_contains and name_contains not in str(node.name or '').lower() and name_contains not in nid.lower():
+        if name_contains and name_contains not in str(node.name or '').lower() and name_contains not in node_id.lower():
             continue
         if area_id is not None:
             if not any(
@@ -994,12 +996,13 @@ def _apply_batch_op(app, optype, p):
         name = node.get('name')
         if not node_type or not name:
             return {"error": "Missing 'type' or 'name'"}
-        nid = (node.get('id') or f"{node_type}_{name.replace(' ', '_')}").lower()
-        if graph.get_node(nid):
-            return {"error": f"Node with id '{nid}' already exists"}
-        graph.add_node(Node(id=nid, type=node_type, name=name,
+        # Mint the canonical node id from the authored id or type+name slug.
+        new_id = (node.get('id') or f"{node_type}_{name.replace(' ', '_')}").lower()
+        if graph.get_node(new_id):
+            return {"error": f"Node with id '{new_id}' already exists"}
+        graph.add_node(Node(id=new_id, type=node_type, name=name,
                             properties=node.get('properties') or {}))
-        return {"id": nid}
+        return {"id": new_id}
 
     if optype == 'create_character':
         # bug-527: a character is Player-backed. Register a Player (which mints
@@ -1261,17 +1264,18 @@ def _apply_batch_op(app, optype, p):
             for edge in graph.edges:
                 if edge.type != EDGE_CONNECTION or edge.target != node.id:
                     continue
-                ep = edge.properties
+                # Scrub stale derived props so only authored data survives.
+                edge_props = edge.properties
                 changed = False
-                if str(ep.get('visible_in_direction') or '').strip() == f"A glimpse of {edge.source} beyond.":
-                    ep.pop('visible_in_direction', None)
+                if str(edge_props.get('visible_in_direction') or '').strip() == f"A glimpse of {edge.source} beyond.":
+                    edge_props.pop('visible_in_direction', None)
                     changed = True
-                direction = str(ep.get('direction') or '').strip().lower()
-                if str(ep.get('cardinal') or '').strip() == 'north' and direction not in CARDINALS:
-                    ep.pop('cardinal', None)
+                direction = str(edge_props.get('direction') or '').strip().lower()
+                if str(edge_props.get('cardinal') or '').strip() == 'north' and direction not in CARDINALS:
+                    edge_props.pop('cardinal', None)
                     changed = True
                 if changed:
-                    edge.properties = ep
+                    edge.properties = edge_props
                     touched_edges += 1
         return {"status": "success", "ways": touched_ways, "edges": touched_edges, "count": touched_ways + touched_edges}
 

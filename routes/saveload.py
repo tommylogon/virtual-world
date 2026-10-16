@@ -569,10 +569,10 @@ def register_saveload_routes(app):
         def area_index(d):
             idx = {}
             nodes = (d.get('graph') or {}).get('nodes') or {}
-            for nd in nodes.values():
-                if isinstance(nd, dict) and nd.get('type') == 'area' and nd.get('name'):
-                    props = nd.get('properties')
-                    idx[str(nd['name'])] = props if isinstance(props, dict) else {}
+            for node in nodes.values():
+                if isinstance(node, dict) and node.get('type') == 'area' and node.get('name'):
+                    props = node.get('properties')
+                    idx[str(node['name'])] = props if isinstance(props, dict) else {}
             if idx:
                 return idx
             for name, a in (d.get('areas') or {}).items():
@@ -615,13 +615,13 @@ def register_saveload_routes(app):
         def graph_nodes(d):
             nodes = {}
             g = d.get('graph') or {}
-            for nid, nd in (g.get('nodes') or {}).items():
-                if not isinstance(nd, dict) or nd.get('type') not in ('item', 'way'):
+            for node_id, node in (g.get('nodes') or {}).items():
+                if not isinstance(node, dict) or node.get('type') not in ('item', 'way'):
                     continue
-                props = nd.get('properties')
+                props = node.get('properties')
                 if not isinstance(props, dict):
                     props = {}
-                nodes[nid] = (nd.get('name') or nid,
+                nodes[node_id] = (node.get('name') or node_id,
                               str(props.get('current_state', '')),
                               str(props.get('description', '')))
             return nodes
@@ -632,20 +632,20 @@ def register_saveload_routes(app):
         src_way_ids = set()
         cur_item_ids = set()
         cur_way_ids = set()
-        for nid, nd in (src.get('graph') or {}).get('nodes', {}).items():
-            if not isinstance(nd, dict):
+        for node_id, node in (src.get('graph') or {}).get('nodes', {}).items():
+            if not isinstance(node, dict):
                 continue
-            if nd.get('type') == 'item':
-                src_item_ids.add(nid)
-            elif nd.get('type') == 'way':
-                src_way_ids.add(nid)
-        for nid, nd in (cur.get('graph') or {}).get('nodes', {}).items():
-            if not isinstance(nd, dict):
+            if node.get('type') == 'item':
+                src_item_ids.add(node_id)
+            elif node.get('type') == 'way':
+                src_way_ids.add(node_id)
+        for node_id, node in (cur.get('graph') or {}).get('nodes', {}).items():
+            if not isinstance(node, dict):
                 continue
-            if nd.get('type') == 'item':
-                cur_item_ids.add(nid)
-            elif nd.get('type') == 'way':
-                cur_way_ids.add(nid)
+            if node.get('type') == 'item':
+                cur_item_ids.add(node_id)
+            elif node.get('type') == 'way':
+                cur_way_ids.add(node_id)
 
         added_items = sorted(cur_item_ids - src_item_ids)
         added_ways = sorted(cur_way_ids - src_way_ids)
@@ -733,11 +733,11 @@ def register_saveload_routes(app):
                     _merge_area_into_source(src, cur, name)
             if 'items' in commit_groups or 'ways' in commit_groups:
                 g_cur = cur.get('graph') or {}
-                for nid, nd in (g_cur.get('nodes') or {}).items():
-                    if nd.get('type') == 'item' and 'items' in commit_groups:
-                        _merge_node_into_source(src, cur, nid, 'item')
-                    elif nd.get('type') == 'way' and 'ways' in commit_groups:
-                        _merge_node_into_source(src, cur, nid, 'way')
+                for node_id, node in (g_cur.get('nodes') or {}).items():
+                    if node.get('type') == 'item' and 'items' in commit_groups:
+                        _merge_node_into_source(src, cur, node_id, 'item')
+                    elif node.get('type') == 'way' and 'ways' in commit_groups:
+                        _merge_node_into_source(src, cur, node_id, 'way')
             if 'players' in commit_groups:
                 src['players'] = cur.get('players') or {}
                 src['active_player'] = cur.get('active_player')
@@ -754,24 +754,24 @@ def register_saveload_routes(app):
             if 'items' in discard_groups or 'ways' in discard_groups:
                 # Remove live nodes of that type, then re-add from source.
                 live_nodes = world.graph.nodes
-                for nid, nd in list(live_nodes.items()):
-                    if 'items' in discard_groups and nd.type == 'item':
-                        world.graph.remove_node(nid)
-                    elif 'ways' in discard_groups and nd.type == 'way':
-                        world.graph.remove_node(nid)
-                for nid, nd in src_nodes.items():
-                    if 'items' in discard_groups and nd.get('type') == 'item':
-                        world.graph.add_node(Node(id=nid, type='item', name=nd.get('name', nid),
-                                                  properties=dict(nd.get('properties') or {})))
-                    elif 'ways' in discard_groups and nd.get('type') == 'way':
-                        world.graph.add_node(Node(id=nid, type='way', name=nd.get('name', nid),
-                                                  properties=dict(nd.get('properties') or {})))
+                for node_id, node in list(live_nodes.items()):
+                    if 'items' in discard_groups and node.type == 'item':
+                        world.graph.remove_node(node_id)
+                    elif 'ways' in discard_groups and node.type == 'way':
+                        world.graph.remove_node(node_id)
+                for node_id, node in src_nodes.items():
+                    if 'items' in discard_groups and node.get('type') == 'item':
+                        world.graph.add_node(Node(id=node_id, type='item', name=node.get('name', node_id),
+                                                  properties=dict(node.get('properties') or {})))
+                    elif 'ways' in discard_groups and node.get('type') == 'way':
+                        world.graph.add_node(Node(id=node_id, type='way', name=node.get('name', node_id),
+                                                  properties=dict(node.get('properties') or {})))
             if 'areas' in discard_groups:
                 # Restore description/environment/tags from source onto the
                 # LIVE area nodes (keep the nodes — no remove/add churn, so
                 # placement edges and current runtime state survive).
                 src_areas = src.get('areas') or {}
-                for nid, node in list(world.graph.nodes.items()):
+                for node_id, node in list(world.graph.nodes.items()):
                     if node.type != 'area':
                         continue
                     name_key = node.name

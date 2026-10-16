@@ -101,10 +101,10 @@ def build_scenario_from_components(
     nodes = scenario.setdefault("graph", {}).setdefault("nodes", {})
     edges = scenario.setdefault("graph", {}).setdefault("edges", [])
 
-    existing_areas = {nid for nid, n in nodes.items() if n.get("type") == "area"}
-    existing_items = {nid for nid, n in nodes.items() if n.get("type") == "item"}
-    existing_characters = {nid for nid, n in nodes.items() if n.get("type") == "character"}
-    existing_ways = {nid for nid, n in nodes.items() if n.get("type") == "way"}
+    existing_areas = {node_id for node_id, n in nodes.items() if n.get("type") == "area"}
+    existing_items = {node_id for node_id, n in nodes.items() if n.get("type") == "item"}
+    existing_characters = {node_id for node_id, n in nodes.items() if n.get("type") == "character"}
+    existing_ways = {node_id for node_id, n in nodes.items() if n.get("type") == "way"}
 
     # Supplement areas from library only if under target or missing
     if target_areas and len(existing_areas) < target_areas:
@@ -177,7 +177,7 @@ def build_scenario_from_components(
                 if "container" in [t.lower() for t in props["tags"]]:
                     props.setdefault("max_weight_capacity", 10)
                 nodes[item_id] = {"id": item_id, "type": "item", "name": item_name, "properties": props}
-                area_candidates = [nid for nid in nodes if nodes[nid].get("type") == "area"]
+                area_candidates = [node_id for node_id in nodes if nodes[node_id].get("type") == "area"]
                 if area_candidates:
                     edges.append({"source": item_id, "target": area_candidates[0], "type": "in", "properties": {}})
                 placed += 1
@@ -196,7 +196,7 @@ def build_scenario_from_components(
                 char_id = canonical_character_node_id(char_name)
                 if char_id in nodes:
                     continue
-                area_candidates = [nid for nid in nodes if nodes[nid].get("type") == "area"]
+                area_candidates = [node_id for node_id in nodes if nodes[node_id].get("type") == "area"]
                 current_area = area_candidates[0] if area_candidates else ""
                 props = {
                     "description": entry.get("description", ""),
@@ -289,7 +289,7 @@ def validate_areas(nodes: dict, issues: list):
 
 
 def validate_ways(nodes: dict, edges: list, issues: list):
-    ways = {nid: n for nid, n in nodes.items() if n.get("type") == "way"}
+    ways = {node_id: n for node_id, n in nodes.items() if n.get("type") == "way"}
     for way_id, node in ways.items():
         props = node.get("properties", {})
         if not props.get("pass_message"):
@@ -335,7 +335,7 @@ def validate_characters(nodes: dict, issues: list):
 
 
 def validate_players(players: dict, nodes: dict, issues: list):
-    area_ids = {nid for nid, n in nodes.items() if n.get("type") == "area"}
+    area_ids = {node_id for node_id, n in nodes.items() if n.get("type") == "area"}
     for player_name, player in players.items():
         current_area = player.get("current_area")
         if current_area and current_area not in area_ids:

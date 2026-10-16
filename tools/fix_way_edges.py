@@ -36,10 +36,11 @@ def build_index(nodes_dict):
     """Return (canonical, names) maps from a nodes dict."""
     canonical = {}
     names = {}
-    for nid, node in nodes_dict.items():
-        canonical.setdefault(nid.lower(), nid)
-        node_name = (node or {}).get("name") or nid
-        names.setdefault(str(node_name).lower(), nid)
+    # Canonical id (lowercased) plus a name lookup for fuzzy references.
+    for node_id, node in nodes_dict.items():
+        canonical.setdefault(node_id.lower(), node_id)
+        node_name = (node or {}).get("name") or node_id
+        names.setdefault(str(node_name).lower(), node_id)
     return canonical, names
 
 

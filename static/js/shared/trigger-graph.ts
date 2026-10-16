@@ -206,14 +206,14 @@ window.TriggerGraph = (() => {
                 { id: 'output_no', side: 'bottom', label: '✗', color: '#f85149' }
             ],
             fields: (p) => {
-                const ct = p.condition_type || 'area_temp';
-                const showVal = ['area_temp','vital','uses_reached','uses_above','random_chance','state_equals','has_trait','has_tag','time_of_day','weather'].includes(ct);
-                const showSkill = ['skill_check','save_throw'].includes(ct);
-                const showComp = ['area_temp','vital','vital_above','vital_below'].includes(ct);
-                const showStat = ['vital','vital_above','vital_below'].includes(ct);
-                const showItem = ct === 'is_equipped';
-                const showState = ct === 'state_equals';
-                const showTarget = ['save_throw','has_trait','has_tag','vital','vital_above','vital_below','is_equipped','area_temp'].includes(ct);
+                const condType = p.condition_type || 'area_temp';
+                const showVal = ['area_temp','vital','uses_reached','uses_above','random_chance','state_equals','has_trait','has_tag','time_of_day','weather'].includes(condType);
+                const showSkill = ['skill_check','save_throw'].includes(condType);
+                const showComp = ['area_temp','vital','vital_above','vital_below'].includes(condType);
+                const showStat = ['vital','vital_above','vital_below'].includes(condType);
+                const showItem = condType === 'is_equipped';
+                const showState = condType === 'state_equals';
+                const showTarget = ['save_throw','has_trait','has_tag','vital','vital_above','vital_below','is_equipped','area_temp'].includes(condType);
                 return `
                 <div class="tg-field-row"><label>Type</label>
                     <select class="tg-field" data-key="condition_type" onchange="TriggerGraph._onFieldChange(this);TriggerGraph._rerenderNode('${'NODEID'}')">${[
@@ -222,54 +222,54 @@ window.TriggerGraph = (() => {
                         ['📦 Item', ['has_item','has_items','is_equipped','uses_reached','uses_above','item_relationship']],
                         ['🌍 Area / Environment', ['area_temp','temperature_below','temperature_above','in_area','proximity','weather','area_has_status']],
                         ['🧠 NPC (behaviors)', ['npc_emotion_is','npc_is_hidden','character_has_tag']],
-                    ].map(([g, list]: (string | string[])[]) => `<optgroup label="${g}">${(list as string[]).map(t => `<option value="${t}" ${ct===t?'selected':''}>${t.replace(/_/g,' ')}</option>`).join('')}</optgroup>`).join('')}</select>
+                    ].map(([g, list]: (string | string[])[]) => `<optgroup label="${g}">${(list as string[]).map(t => `<option value="${t}" ${condType===t?'selected':''}>${t.replace(/_/g,' ')}</option>`).join('')}</optgroup>`).join('')}</select>
                 </div>
-                <div class="tg-cond-eq" style="display:${ct==='eq'?'':'none'}">
+                <div class="tg-cond-eq" style="display:${condType==='eq'?'':'none'}">
                     <div class="tg-field-row"><label>Target Key</label><input class="tg-field" data-key="target" value="${p.target||'npc_state'}" placeholder="npc_state, npc_area..." onchange="TriggerGraph._onFieldChange(this)"></div>
                     <div class="tg-field-row"><label>Value</label><input class="tg-field" data-key="value" value="${p.value||''}" list="${(p.target||'npc_state')==='npc_state'?'tg-npc-states':''}" onchange="TriggerGraph._onFieldChange(this)"></div>
                 </div>
-                <div class="tg-cond-inarea" style="display:${ct==='in_area'?'':'none'}">
+                <div class="tg-cond-inarea" style="display:${condType==='in_area'?'':'none'}">
                     <div class="tg-field-row"><label>Area</label><input class="tg-field" data-key="area" value="${p.area||''}" placeholder="area_name" list="tg-areas" onchange="TriggerGraph._onFieldChange(this)"></div>
                     <div class="tg-field-row"><label>Target</label>
                         <select class="tg-field" data-key="target" onchange="TriggerGraph._onFieldChange(this)"><option value="npc" ${(p.target||'npc')==='npc'?'selected':''}>NPC</option><option value="player" ${p.target==='player'?'selected':''}>Player</option></select>
                     </div>
                 </div>
-                <div class="tg-cond-ticks" style="display:${ct==='tick_since_state'?'':'none'}">
+                <div class="tg-cond-ticks" style="display:${condType==='tick_since_state'?'':'none'}">
                     <div class="tg-field-row"><label>Min Ticks</label><input class="tg-field" data-key="min_ticks" type="number" value="${p.min_ticks ?? 0}" onchange="TriggerGraph._onFieldChange(this)"></div>
                 </div>
-                <div class="tg-cond-prox" style="display:${ct==='proximity'?'':'none'}">
+                <div class="tg-cond-prox" style="display:${condType==='proximity'?'':'none'}">
                     <div class="tg-field-row"><label>Max Areas</label><input class="tg-field" data-key="max_areas" type="number" value="${p.max_areas ?? 0}" placeholder="0 = same area" onchange="TriggerGraph._onFieldChange(this)"></div>
                 </div>
-                <div class="tg-cond-areastat" style="display:${ct==='area_has_status'?'':'none'}">
+                <div class="tg-cond-areastat" style="display:${condType==='area_has_status'?'':'none'}">
                     <div class="tg-field-row"><label>Status</label><select class="tg-field" data-key="status_type" onchange="TriggerGraph._onFieldChange(this)">${['on_fire','flooded','poison_gas','smoke','blessed','darkness_magic'].map(s => `<option value="${s}" ${p.status_type===s?'selected':''}>${s}</option>`).join('')}</select></div>
                     <div class="tg-field-row"><label>Area (blank = current)</label><input class="tg-field" data-key="target" value="${p.target||''}" onchange="TriggerGraph._onFieldChange(this)"></div>
                 </div>
-                <div class="tg-cond-itemrel" style="display:${ct==='item_relationship'?'':'none'}">
+                <div class="tg-cond-itemrel" style="display:${condType==='item_relationship'?'':'none'}">
                     <div class="tg-field-row"><label>Relation</label>
                         <select class="tg-field" data-key="relation" onchange="TriggerGraph._onFieldChange(this)">${['in','on','under','behind','beside','at'].map(r => `<option value="${r}" ${(p.relation||'in')===r?'selected':''}>${r}</option>`).join('')}</select>
                     </div>
                     <div class="tg-field-row"><label>Target Node</label><input class="tg-field" data-key="target" value="${p.target||''}" placeholder="node_id (item is IN/ON this)" onchange="TriggerGraph._onFieldChange(this)"></div>
                 </div>
-                <div class="tg-cond-emotion" style="display:${ct==='npc_emotion_is'?'':'none'}">
+                <div class="tg-cond-emotion" style="display:${condType==='npc_emotion_is'?'':'none'}">
                     <div class="tg-field-row"><label>Emotion</label><input class="tg-field" data-key="emotion" value="${p.emotion||''}" placeholder="curious, angry, fearful..." onchange="TriggerGraph._onFieldChange(this)"></div>
                     <div class="tg-field-row"><label>Operator</label>
                         <select class="tg-field" data-key="operator" onchange="TriggerGraph._onFieldChange(this)">${['eq','gt','gte','lt','lte'].map(o => `<option value="${o}" ${(p.operator||'eq')===o?'selected':''}>${o}</option>`).join('')}</select>
                     </div>
                     <div class="tg-field-row"><label>Value</label><input class="tg-field" data-key="value" value="${p.value!==undefined&&p.value!==''?p.value:''}" placeholder="0-1 intensity" onchange="TriggerGraph._onFieldChange(this)"></div>
                 </div>
-                <div class="tg-cond-hidden" style="display:${ct==='npc_is_hidden'?'':'none'}">
+                <div class="tg-cond-hidden" style="display:${condType==='npc_is_hidden'?'':'none'}">
                     <div class="tg-field-row"><label>Hidden</label>
                         <select class="tg-field" data-key="value" onchange="TriggerGraph._onFieldChange(this)"><option value="true" ${(p.value===true||p.value==='true')?'selected':''}>True</option><option value="false" ${(!p.value||p.value==='false')?'selected':''}>False</option></select>
                     </div>
                 </div>
-                <div class="tg-cond-chartag" style="display:${ct==='character_has_tag'?'':'none'}">
+                <div class="tg-cond-chartag" style="display:${condType==='character_has_tag'?'':'none'}">
                     <div class="tg-field-row"><label>Tag</label><input class="tg-field" data-key="tag" value="${p.tag||''}" placeholder="hostile, stealthy..." onchange="TriggerGraph._onFieldChange(this)"></div>
                     <div class="tg-field-row"><label>Target</label>
                         <select class="tg-field" data-key="target" onchange="TriggerGraph._onFieldChange(this)"><option value="self" ${(p.target||'self')==='self'?'selected':''}>Self (NPC)</option><option value="player" ${p.target==='player'?'selected':''}>Player</option><option value="triggering" ${p.target==='triggering'?'selected':''}>Triggering character</option></select>
                     </div>
                 </div>
                 <div class="tg-cond-val" style="display:${showVal?'':'none'}">
-                    <div class="tg-field-row"><label>Value</label><input class="tg-field" data-key="value" value="${p.value||''}" list="${ct==='has_trait'?'tg-traits':ct==='has_tag'?'tg-tags':ct==='weather'?'tg-weather':''}" onchange="TriggerGraph._onFieldChange(this)"></div>
+                    <div class="tg-field-row"><label>Value</label><input class="tg-field" data-key="value" value="${p.value||''}" list="${condType==='has_trait'?'tg-traits':condType==='has_tag'?'tg-tags':condType==='weather'?'tg-weather':''}" onchange="TriggerGraph._onFieldChange(this)"></div>
                 </div>
                 <div class="tg-cond-comp" style="display:${showComp?'':'none'}">
                     <div class="tg-field-row"><label>Comparator</label>
@@ -283,8 +283,8 @@ window.TriggerGraph = (() => {
                     <div class="tg-field-row"><label>Item</label><input class="tg-field" data-key="item" value="${p.item||''}" placeholder="torch, key..." list="tg-items" onchange="TriggerGraph._onFieldChange(this)"></div>
                 </div>
                 <div class="tg-cond-skill" style="display:${showSkill?'':'none'}">
-                    <div class="tg-field-row"><label>${ct==='save_throw'?'Stat / Skill':'Skill'}</label><input class="tg-field" data-key="skill" value="${p.skill||(ct==='save_throw'?'DEX':'Athletics')}" list="tg-skills" onchange="TriggerGraph._onFieldChange(this)"></div>
-                    <div class="tg-field-row"><label>DC</label><input class="tg-field" data-key="dc" type="number" value="${p.dc||(ct==='save_throw'?12:10)}" onchange="TriggerGraph._onFieldChange(this)"></div>
+                    <div class="tg-field-row"><label>${condType==='save_throw'?'Stat / Skill':'Skill'}</label><input class="tg-field" data-key="skill" value="${p.skill||(condType==='save_throw'?'DEX':'Athletics')}" list="tg-skills" onchange="TriggerGraph._onFieldChange(this)"></div>
+                    <div class="tg-field-row"><label>DC</label><input class="tg-field" data-key="dc" type="number" value="${p.dc||(condType==='save_throw'?12:10)}" onchange="TriggerGraph._onFieldChange(this)"></div>
                 </div>
                 <div class="tg-cond-state" style="display:${showState?'':'none'}">
                     <div class="tg-field-row"><label>Node</label><input class="tg-field" data-key="node" value="${p.node||p.target||''}" placeholder="node_id" onchange="TriggerGraph._onFieldChange(this)"></div>
@@ -691,7 +691,7 @@ window.TriggerGraph = (() => {
     let _blueprintName = '';
     let _selectedNode: string | null = null;
     let _dragWire: { from: TriggerGraphEndpoint; mx: number; my: number } | null = null;
-    let _dragNode: { nid: string; sx: number; sy: number; mx: number; my: number } | null = null;
+    let _dragNode: { nodeId: string; sx: number; sy: number; mx: number; my: number } | null = null;
     let _nextZ = 1;
     let _contextMenu: HTMLDivElement | null = null;
     let _contextSearch = '';
@@ -777,9 +777,10 @@ window.TriggerGraph = (() => {
         const t = triggerDef || {};
         const nodes = [];
         const wires = [];
-        let nodeId = 0;
+        // Minted graph ids (n0, n1, ...) for freshly drawn nodes.
+        let nextNodeSeq = 0;
         const types = Array.isArray(t.trigger_type) ? t.trigger_type : [t.trigger_type || 'on_use'];
-        const tnode = `n${nodeId++}`;
+        const tnode = `n${nextNodeSeq++}`;
         const triggerProps = {
             trigger_type: types,
             target_tag: t.target_name || t.target_tag || '',
@@ -809,7 +810,7 @@ window.TriggerGraph = (() => {
         // group's `child` socket, so they never bleed into the outer chain.
         const layoutEntry = (entry: any, from: TriggerGraphEndpoint, x: number, y: number): TriggerGraphEndpoint => {
             if (entry && typeof entry === 'object' && !Array.isArray(entry) && entry.operator) {
-                const gnode = `n${nodeId++}`;
+                const gnode = `n${nextNodeSeq++}`;
                 nodes.push({ id: gnode, type: 'group', x, y, props: { operator: entry.operator } });
                 wires.push({ id: `w${wires.length}`, from, to: [gnode, 'input'] });
                 let childFrom: TriggerGraphEndpoint = [gnode, 'child'];
@@ -818,7 +819,7 @@ window.TriggerGraph = (() => {
                 });
                 return [gnode, 'output_yes'];
             }
-            const cnode = `n${nodeId++}`;
+            const cnode = `n${nextNodeSeq++}`;
             nodes.push({ id: cnode, type: 'condition', x, y, props: _conditionToGraphProps(entry) });
             wires.push({ id: `w${wires.length}`, from, to: [cnode, 'input'] });
             return [cnode, 'output_yes'];
@@ -835,7 +836,7 @@ window.TriggerGraph = (() => {
 
         for (let i = 0; i < effects.length; i++) {
             const eff = effects[i];
-            const enode = `n${nodeId++}`;
+            const enode = `n${nextNodeSeq++}`;
             nodes.push({
                 id: enode, type: 'effect',
                 x: 50 + (topEntries.length ? 220 : 0),
@@ -851,7 +852,7 @@ window.TriggerGraph = (() => {
         // A fail message is the engine's only NO-branch effect; draw it on the
         // last condition's NO socket so it round-trips (task-501).
         if (t.fail_message && lastCond) {
-            const fnode = `n${nodeId++}`;
+            const fnode = `n${nextNodeSeq++}`;
             nodes.push({
                 id: fnode, type: 'effect', x: 330, y: 180 + topEntries.length * 120,
                 props: { effect_type: 'message', message: t.fail_message },
@@ -1055,8 +1056,8 @@ window.TriggerGraph = (() => {
     TG._onFieldChange = function(el: any) {
         const nodeDiv = el.closest('.tg-node');
         if (!nodeDiv) return;
-        const nid = nodeDiv.dataset.nodeId;
-        const node = _state.nodes[nid];
+        const nodeId = nodeDiv.dataset.nodeId;
+        const node = _state.nodes[nodeId];
         if (!node) return;
         if ([...el.classList].some(c => c.startsWith('tg-periodic-'))) {
             // Periodic drain form: collect non-zero vitals into props.periodic.
@@ -1086,16 +1087,16 @@ window.TriggerGraph = (() => {
     TG._onTriggerTypeChange = function(select: any) {
         const nodeDiv = select.closest('.tg-node');
         if (!nodeDiv) return;
-        const nid = nodeDiv.dataset.nodeId;
-        const node = _state.nodes[nid];
+        const nodeId = nodeDiv.dataset.nodeId;
+        const node = _state.nodes[nodeId];
         if (!node) return;
-        TG._rerenderNode(nid);
+        TG._rerenderNode(nodeId);
     };
 
-    TG._rerenderNode = function(nid: string) {
-        const node = _state.nodes[nid];
+    TG._rerenderNode = function(nodeId: string) {
+        const node = _state.nodes[nodeId];
         if (!node) return;
-        const oldEl = document.querySelector(`.tg-node[data-node-id="${nid}"]`);
+        const oldEl = document.querySelector(`.tg-node[data-node-id="${nodeId}"]`);
         if (oldEl) oldEl.remove();
         if (!_worldEl()) return;
         _renderNode(node);
@@ -1414,10 +1415,10 @@ window.TriggerGraph = (() => {
     function _fitView(animate = true) {
         const c = _canvasEl();
         if (!c) return;
-        const ns = Object.values(_state.nodes);
-        if (!ns.length) { _vp = { x: 0, y: 0, k: 1 }; _applyViewport(animate); return; }
+        const graphNodes = Object.values(_state.nodes);
+        if (!graphNodes.length) { _vp = { x: 0, y: 0, k: 1 }; _applyViewport(animate); return; }
         let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-        for (const n of ns) {
+        for (const n of graphNodes) {
             const el = document.querySelector(`.tg-node[data-node-id="${n.id}"]`) as HTMLElement | null;
             const w = el ? el.offsetWidth : (n.w || 260);
             const h = el ? el.offsetHeight : 160;
@@ -1503,16 +1504,16 @@ window.TriggerGraph = (() => {
 
     // Selection is a class toggle — rebuilding all node DOM on every click ate
     // focus, scroll positions and most of the frame budget.
-    function _setSelected(nid: string | null) {
-        if (_selectedNode === nid) return;
+    function _setSelected(nodeId: string | null) {
+        if (_selectedNode === nodeId) return;
         const prev = _selectedNode;
-        _selectedNode = nid;
+        _selectedNode = nodeId;
         if (prev) {
             const prevEl = document.querySelector(`.tg-node[data-node-id="${prev}"]`);
             if (prevEl) prevEl.classList.remove('tg-sel');
         }
-        if (nid) {
-            const el = document.querySelector(`.tg-node[data-node-id="${nid}"]`);
+        if (nodeId) {
+            const el = document.querySelector(`.tg-node[data-node-id="${nodeId}"]`);
             if (el) el.classList.add('tg-sel');
         }
     }
@@ -1760,15 +1761,15 @@ window.TriggerGraph = (() => {
     }
 
     function _drawWire(svg: HTMLElement, wire: any) {
-        const fp = _getSocketWorldPos(wire.from[0], wire.from[1]);
-        const tp = _getSocketWorldPos(wire.to[0], wire.to[1]);
-        if (!fp || !tp) return;
+        const fromPos = _getSocketWorldPos(wire.from[0], wire.from[1]);
+        const toPos = _getSocketWorldPos(wire.to[0], wire.to[1]);
+        if (!fromPos || !toPos) return;
         const fromNode = _state.nodes[wire.from[0]];
         const sockDef = fromNode && NODE_DEFS[fromNode.type]?.sockets.find(s => s.id === wire.from[1]);
-        const dx = Math.max(30, Math.abs(tp.x - fp.x) * 0.5);
+        const dx = Math.max(30, Math.abs(toPos.x - fromPos.x) * 0.5);
         const color = sockDef?.color || '#58a6ff';
         const selected = _selectedWire === wire.id;
-        const d = `M${fp.x},${fp.y} C${fp.x+dx},${fp.y} ${tp.x-dx},${tp.y} ${tp.x},${tp.y}`;
+        const d = `M${fromPos.x},${fromPos.y} C${fromPos.x+dx},${fromPos.y} ${toPos.x-dx},${toPos.y} ${toPos.x},${toPos.y}`;
         const markerId = `tg-arrow-${color.replace('#', '')}`;
         const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
         path.setAttribute('d', d);
@@ -1841,11 +1842,11 @@ window.TriggerGraph = (() => {
     }
 
     function _drawTempWire(svg: HTMLElement) {
-        const fp = _getSocketWorldPos(_dragWire!.from[0], _dragWire!.from[1]);
-        if (!fp) return;
-        const dx = Math.max(30, Math.abs(_dragWire!.mx - fp.x) * 0.5);
+        const fromPos = _getSocketWorldPos(_dragWire!.from[0], _dragWire!.from[1]);
+        if (!fromPos) return;
+        const dx = Math.max(30, Math.abs(_dragWire!.mx - fromPos.x) * 0.5);
         const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        path.setAttribute('d', `M${fp.x},${fp.y} C${fp.x+dx},${fp.y} ${_dragWire!.mx-dx},${_dragWire!.my} ${_dragWire!.mx},${_dragWire!.my}`);
+        path.setAttribute('d', `M${fromPos.x},${fromPos.y} C${fromPos.x+dx},${fromPos.y} ${_dragWire!.mx-dx},${_dragWire!.my} ${_dragWire!.mx},${_dragWire!.my}`);
         path.setAttribute('stroke', '#e3b341');
         path.setAttribute('stroke-width', '2');
         path.setAttribute('fill', 'none');
@@ -1869,18 +1870,18 @@ window.TriggerGraph = (() => {
         _beginGesture();
     }
 
-    function _startWireDrag(nid: string, sid: string, e: MouseEvent) {
+    function _startWireDrag(nodeId: string, sid: string, e: MouseEvent) {
         const p = _screenToWorld(e.clientX, e.clientY);
-        _dragWire = { from: [nid, sid], mx: p.x, my: p.y };
+        _dragWire = { from: [nodeId, sid], mx: p.x, my: p.y };
         e.preventDefault();
         e.stopPropagation();
         _beginGesture();
     }
 
-    function _startNodeDrag(nid: string, e: MouseEvent) {
-        const n = _state.nodes[nid];
+    function _startNodeDrag(nodeId: string, e: MouseEvent) {
+        const n = _state.nodes[nodeId];
         if (!n) return;
-        _dragNode = { nid, sx: n.x, sy: n.y, mx: e.clientX, my: e.clientY };
+        _dragNode = { nodeId, sx: n.x, sy: n.y, mx: e.clientX, my: e.clientY };
         const el = e.currentTarget as HTMLElement | null;
         if (el) (el.style as any).zIndex = _nextZ++;
         e.preventDefault();
@@ -1922,12 +1923,12 @@ window.TriggerGraph = (() => {
             return;
         }
         if (_dragNode) {
-            const n = _state.nodes[_dragNode.nid];
+            const n = _state.nodes[_dragNode.nodeId];
             if (n) {
                 // Screen delta → world delta, so the node tracks the cursor 1:1 at any zoom.
                 n.x = _dragNode.sx + (e.clientX - _dragNode.mx) / _vp.k;
                 n.y = _dragNode.sy + (e.clientY - _dragNode.my) / _vp.k;
-                const el = document.querySelector(`.tg-node[data-node-id="${_dragNode.nid}"]`) as HTMLElement | null;
+                const el = document.querySelector(`.tg-node[data-node-id="${_dragNode.nodeId}"]`) as HTMLElement | null;
                 if (el) { el.style.left = n.x + 'px'; el.style.top = n.y + 'px'; }
                 _rerenderWires();
             }
@@ -2470,37 +2471,37 @@ window.TriggerGraph = (() => {
      *  with no warning. The engine's behavior model is a flat action list
      *  (`for action in actions:` in engine/triggers/behaviors.py), so fan-out is
      *  natively supported — dropping it was an editor bug, not a model limit. */
-    function _outWires(wires: any[], nid: string, ...sockets: string[]): any[] {
-        return wires.filter((w) => w.from[0] === nid && sockets.includes(w.from[1]));
+    function _outWires(wires: any[], nodeId: string, ...sockets: string[]): any[] {
+        return wires.filter((w) => w.from[0] === nodeId && sockets.includes(w.from[1]));
     }
 
     /** Trace behavior node graph into conditions + flat actions.
      *  ``problems`` accumulates refusals (task-503): the behavior model has no
      *  else, so a NO branch carrying anything is unrepresentable and must not be
      *  dropped silently. */
-    function _traceBehavior(nid: string, wires: any[], nodes: any[], problems?: string[], seen?: Set<string>): { conditions: any[]; actions: any[] } {
+    function _traceBehavior(nodeId: string, wires: any[], nodes: any[], problems?: string[], seen?: Set<string>): { conditions: any[]; actions: any[] } {
         if (!problems) problems = [];
         // Cycle guard: a hand-drawn loop would otherwise recurse until the stack
         // blows. Creation now rejects cycles, but a blueprint or an older save can
         // still contain one.
         if (!seen) seen = new Set<string>();
-        if (seen.has(nid)) {
+        if (seen.has(nodeId)) {
             problems.push('Cycle detected in the graph; the loop was not followed.');
             return { conditions: [], actions: [] };
         }
-        seen.add(nid);
-        const node = nodes.find(n => n.id === nid);
+        seen.add(nodeId);
+        const node = nodes.find(n => n.id === nodeId);
         if (!node) return { conditions: [], actions: [] };
         if (node.type === 'condition') {
             const conds = [_buildConditionFromNode(node)];
             const label = conds[0]?.type || 'condition';
             // Fan-out: every YES wire is followed, each on its own seen-set so
             // sibling branches cannot suppress one another.
-            const yesBranches = _outWires(wires, nid, 'output_yes')
+            const yesBranches = _outWires(wires, nodeId, 'output_yes')
                 .map((w) => _traceBehavior(w.to[0], wires, nodes, problems, new Set(seen)));
             const conditions = yesBranches.flatMap((b) => [conds, ...b.conditions]);
             const actions = yesBranches.flatMap((b) => b.actions);
-            const noBranches = _outWires(wires, nid, 'output_no')
+            const noBranches = _outWires(wires, nodeId, 'output_no')
                 .map((w) => _traceBehavior(w.to[0], wires, nodes, problems, new Set(seen)));
             for (const no of noBranches) {
                 if (no.actions.length || no.conditions.length) {
@@ -2510,10 +2511,10 @@ window.TriggerGraph = (() => {
             return { conditions, actions };
         }
         if (node.type === 'group') {
-            const groupCond = _traceGroupCondition(nid, wires, nodes);
-            const branches = _outWires(wires, nid, 'output_yes', 'output')
+            const groupCond = _traceGroupCondition(nodeId, wires, nodes);
+            const branches = _outWires(wires, nodeId, 'output_yes', 'output')
                 .map((w) => _traceBehavior(w.to[0], wires, nodes, problems, new Set(seen)));
-            const noBranches = _outWires(wires, nid, 'output_no')
+            const noBranches = _outWires(wires, nodeId, 'output_no')
                 .map((w) => _traceBehavior(w.to[0], wires, nodes, problems, new Set(seen)));
             for (const no of noBranches) {
                 if (no.actions.length || no.conditions.length) {
@@ -2527,7 +2528,7 @@ window.TriggerGraph = (() => {
         }
         if (node.type === 'action' || node.type === 'state') {
             const act = _buildActionFromNode(node);
-            const next = _outWires(wires, nid, 'output', 'right')
+            const next = _outWires(wires, nodeId, 'output', 'right')
                 .map((w) => _traceBehavior(w.to[0], wires, nodes, problems, new Set(seen)));
             return {
                 conditions: next.flatMap((b) => b.conditions),
@@ -2592,7 +2593,8 @@ window.TriggerGraph = (() => {
         const sorted = [...list].sort((a: any, b: any) => (b.priority ?? 1) - (a.priority ?? 1));
         const nodes: any[] = [];
         const wires: any[] = [];
-        let nodeId = 0;
+        // Minted graph ids (n0, n1, ...) for freshly drawn nodes.
+        let nextNodeSeq = 0;
         const COLS = Math.min(3, Math.max(1, Math.ceil(Math.sqrt(sorted.length))));
         // CHAIN_DY 150 clears the tallest nodes (action cards with 2-row textareas).
         const CELL_W = 920, BASE_H = 70, CHAIN_DY = 150, ROW_GAP = 50;
@@ -2613,20 +2615,20 @@ window.TriggerGraph = (() => {
             col++;
             rowH = Math.max(rowH, blockH);
 
-            const bnode = `n${nodeId++}`;
+            const bnode = `n${nextNodeSeq++}`;
             nodes.push({
                 id: bnode, type: 'behavior', x: bx, y: by,
                 props: { trigger: b.trigger || 'on_tick', priority: b.priority ?? 1, interval: b.interval ?? 1 }
             });
             let from: string[] = [bnode, 'output'];
             conditions.forEach((c: any, ci: number) => {
-                const cnode = `n${nodeId++}`;
+                const cnode = `n${nextNodeSeq++}`;
                 nodes.push({ id: cnode, type: 'condition', x: bx + 300, y: by + BASE_H + ci * CHAIN_DY, props: _conditionToGraphProps(c) });
                 wires.push({ id: `w${wires.length}`, from, to: [cnode, 'input'] });
                 from = [cnode, 'output_yes'];
             });
             actions.forEach((act: any, ai: number) => {
-                const anode = `n${nodeId++}`;
+                const anode = `n${nextNodeSeq++}`;
                 const isState = act.type === 'set_npc_state';
                 nodes.push({
                     id: anode, type: isState ? 'state' : 'action',
@@ -2902,12 +2904,12 @@ window.TriggerGraph = (() => {
     /** Trace a group node's children into an engine logical tree. Children are
      *  the chain hanging off the group's `child` socket; each contributes either
      *  a leaf condition or a nested group. `seen` guards against wire cycles. */
-    function _traceGroupCondition(nid: string, wires: any[], nodes: any[], seen?: Set<string>): any {
+    function _traceGroupCondition(nodeId: string, wires: any[], nodes: any[], seen?: Set<string>): any {
         if (!seen) seen = new Set();
-        const node = nodes.find((n: any) => n.id === nid);
+        const node = nodes.find((n: any) => n.id === nodeId);
         const op = (node && node.props && node.props.operator) || 'and';
         const children: any[] = [];
-        const cw = wires.find((w: any) => w.from[0] === nid && w.from[1] === 'child');
+        const cw = wires.find((w: any) => w.from[0] === nodeId && w.from[1] === 'child');
         let cur = cw ? cw.to[0] : null;
         while (cur && !seen.has(cur)) {
             seen.add(cur);
@@ -2922,22 +2924,22 @@ window.TriggerGraph = (() => {
         return { operator: op, conditions: children };
     }
 
-    function _traceGraph(nid: string, wires: any[], nodes: any[], seen?: Set<string>): { effects: any[]; conditions: any[]; fail_message: string; problems: string[] } {
+    function _traceGraph(nodeId: string, wires: any[], nodes: any[], seen?: Set<string>): { effects: any[]; conditions: any[]; fail_message: string; problems: string[] } {
         const empty: { effects: any[]; conditions: any[]; fail_message: string; problems: string[] } = { effects: [], conditions: [], fail_message: '', problems: [] };
         // Cycle guard: creation rejects cycles, but a hand-edited or imported
         // blueprint can still contain one, and this tracer is recursive.
         if (!seen) seen = new Set<string>();
-        if (seen.has(nid)) {
+        if (seen.has(nodeId)) {
             return { ...empty, problems: ['Cycle detected in the graph; the loop was not followed.'] };
         }
-        seen.add(nid);
-        const node = nodes.find((n: any) => n.id === nid);
+        seen.add(nodeId);
+        const node = nodes.find((n: any) => n.id === nodeId);
         if (!node) return empty;
         if (node.type === 'condition') {
             const conds = [_buildConditionFromNode(node)];
             const label = conds[0]?.type || 'condition';
             // task-388 defect #9: follow every YES wire, not only the first.
-            const yesOuts = _outWires(wires, nid, 'output_yes');
+            const yesOuts = _outWires(wires, nodeId, 'output_yes');
             const yesBranches = yesOuts.map((w) => _traceGraph(w.to[0], wires, nodes, new Set(seen)));
             const ye = {
                 effects: yesBranches.flatMap((b) => b.effects),
@@ -2947,7 +2949,7 @@ window.TriggerGraph = (() => {
             };
             let failMessage = '';
             let problems = [...ye.problems];
-            const noOuts = _outWires(wires, nid, 'output_no');
+            const noOuts = _outWires(wires, nodeId, 'output_no');
             if (noOuts.length) {
                 // The engine models a NO branch as at most one message, so each
                 // NO wire is checked on its own and the extras are refused
@@ -2977,11 +2979,11 @@ window.TriggerGraph = (() => {
             };
         }
         if (node.type === 'group') {
-            const groupCond = _traceGroupCondition(nid, wires, nodes);
+            const groupCond = _traceGroupCondition(nodeId, wires, nodes);
             const label = groupCond.operator;
             // A group's NO branch carries at most a single message, exactly like
             // a condition's (task-501 semantics kept for groups).
-            const noOuts = _outWires(wires, nid, 'output_no');
+            const noOuts = _outWires(wires, nodeId, 'output_no');
             let failMessage = '';
             let problems: string[] = [];
             if (noOuts.length) {
@@ -3001,7 +3003,7 @@ window.TriggerGraph = (() => {
                 }
             }
             // task-388 defect #9: fan out over every YES/forward wire.
-            const yesOuts = _outWires(wires, nid, 'output_yes');
+            const yesOuts = _outWires(wires, nodeId, 'output_yes');
             const yesBranches = yesOuts.map((w) => _traceGraph(w.to[0], wires, nodes, new Set(seen)));
             return {
                 effects: yesBranches.flatMap((b) => b.effects),
@@ -3013,7 +3015,7 @@ window.TriggerGraph = (() => {
         if (node.type === 'effect') {
             const eff = { type: node.props.effect_type || 'message', params: _normalizeEffectParams(node.props.effect_type || 'message', node.props) };
             // task-388 defect #9: one effect may feed several downstream effects.
-            const next = _outWires(wires, nid, 'output', 'right')
+            const next = _outWires(wires, nodeId, 'output', 'right')
                 .map((w) => _traceGraph(w.to[0], wires, nodes, new Set(seen)));
             return {
                 effects: [eff, ...next.flatMap((b) => b.effects)],

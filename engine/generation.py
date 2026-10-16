@@ -132,9 +132,9 @@ class GenerationReport:
             "notes": list(self.notes),
             "unresolved_tags": dict(self.unresolved_tags),
             "preserved_properties": {
-                nid: dict(props) for nid, props in self.preserved_properties.items()
+                node_id: dict(props) for node_id, props in self.preserved_properties.items()
             },
-            "conflicts": {nid: list(keys) for nid, keys in self.conflicts.items()},
+            "conflicts": {node_id: list(keys) for node_id, keys in self.conflicts.items()},
         }
 
 
