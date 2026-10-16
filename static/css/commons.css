@@ -81,6 +81,7 @@ html.commons-doc body {
 .commons-eyebrow { color: #9994a4; font-size: 9px; font-weight: 750; letter-spacing: 1.15px; }
 .commons-sidebar-heading h2, .commons-dialog-heading h2 { margin: 4px 0 0; color: #302d38; font-size: 17px; font-weight: 700; letter-spacing: -.3px; }
 .commons-icon-btn { display: inline-grid; place-items: center; width: 32px; height: 32px; padding: 0; color: #6353cc; background: #f0edff; border: 0; border-radius: 10px; font-size: 22px; cursor: pointer; }
+.commons-icon-btn[hidden] { display: none; }
 .commons-icon-btn:hover { background: #e5e0ff; }
 .commons-new-dm { margin: 0 14px 12px; padding: 9px 12px; color: #6254c9; background: #f0edff; border: 0; border-radius: 8px; text-align: left; font: inherit; font-size: 12px; font-weight: 650; cursor: pointer; }
 .commons-new-dm:hover { background: #e7e2ff; }
@@ -200,4 +201,200 @@ html.commons-doc body {
     .commons-member-count { display: none; }
     .commons-input-row { padding: 10px 12px 14px; }
     .commons-details { border-top: 1px solid #e9e6e2; }
+}
+
+/* The Commons uses the same dark-first palette as the world editor. */
+html.commons-doc,
+html.commons-doc body {
+    background: #0d1117;
+    color: #e6edf3;
+}
+
+.commons-topbar,
+.commons-main,
+.commons-input-row {
+    background: #161b22;
+    border-color: #30363d;
+}
+
+.commons-sidebar,
+.commons-details {
+    background: #11161d;
+    border-color: #30363d;
+}
+
+.commons-brand-title,
+.commons-sidebar-heading h2,
+.commons-dialog-heading h2,
+.commons-channel-name,
+.participant-name,
+.commons-conversation-header h1,
+.commons-feed-empty h3 {
+    color: #e6edf3;
+}
+
+.commons-brand-sub,
+.commons-perspective-label,
+.commons-rate-estimate,
+.commons-agent-controls summary,
+.participant-controls,
+.commons-conversation-subtitle,
+.commons-member-count,
+.chat-msg-author,
+.commons-composer-label,
+.commons-panel-header,
+.commons-member-chip,
+.commons-member-edit-title,
+.commons-field-label {
+    color: #a1aab5;
+}
+
+.commons-select,
+.commons-btn,
+.commons-input,
+.commons-dialog {
+    color: #e6edf3;
+    background: #21262d;
+    border-color: #30363d;
+}
+
+.commons-btn:hover {
+    color: #c9b8ff;
+    background: #29223d;
+    border-color: #6e5bb5;
+}
+
+.commons-btn-primary,
+.commons-btn-primary:hover,
+.commons-small-btn {
+    color: #fff;
+    background: #6c59dc;
+    border-color: #6c59dc;
+}
+
+.commons-icon-btn,
+.commons-new-dm,
+.commons-channel-icon,
+.commons-conversation-avatar,
+.commons-empty-orb {
+    color: #c9b8ff;
+    background: #29223d;
+}
+
+.commons-icon-btn:hover,
+.commons-new-dm:hover {
+    background: #382d54;
+}
+
+.commons-channel-row:hover {
+    background: #1c2128;
+}
+
+.commons-channel-row.selected {
+    background: #29223d;
+}
+
+.commons-channel-preview,
+.commons-empty-note,
+.participant-presence,
+.commons-conversation-subtitle,
+.commons-member-count,
+.chat-msg time,
+.commons-feed-empty,
+.commons-feed-empty p,
+.commons-composer-label,
+.commons-details-note {
+    color: #8b949e;
+}
+
+.commons-channel-icon.dm,
+.avatar-1 {
+    color: #75c9ae !important;
+    background: #172b27 !important;
+}
+
+.commons-channel-icon.public,
+.avatar-2 {
+    color: #e6a571 !important;
+    background: #352519 !important;
+}
+
+.avatar-3 {
+    color: #e49ab4 !important;
+    background: #351f2a !important;
+}
+
+.avatar-4 {
+    color: #8db9e5 !important;
+    background: #1e2b39 !important;
+}
+
+.avatar-5 {
+    color: #d8c275 !important;
+    background: #302c1d !important;
+}
+
+.commons-channel-icon,
+.chat-msg-avatar,
+.commons-member-avatar {
+    color: #c9b8ff;
+    background: #29223d;
+}
+
+.commons-unread-badge {
+    background: #6c59dc;
+}
+
+.commons-agent-controls,
+.commons-agent-controls[open] summary,
+.participant-item,
+.commons-conversation-header,
+.commons-panel-header,
+.commons-input-row,
+.commons-details {
+    border-color: #30363d;
+}
+
+.commons-log {
+    background: linear-gradient(180deg, #0d1117 0%, #11161d 100%);
+}
+
+.chat-msg-text,
+.commons-details-note,
+.commons-roster-option {
+    color: #c9d1d9;
+    background: #21262d;
+}
+
+.chat-msg.own .chat-msg-text {
+    color: #fff;
+    background: #6c59dc;
+}
+
+.commons-input:focus,
+.commons-select:focus {
+    border-color: #9f91ed;
+    box-shadow: 0 0 0 3px rgba(159, 145, 237, .18);
+}
+
+.commons-dialog {
+    border-color: #3b4048;
+    box-shadow: 0 20px 80px rgba(0, 0, 0, .55);
+}
+
+.commons-dialog::backdrop {
+    background: rgba(0, 0, 0, .65);
+}
+
+.commons-roster-option {
+    background: #1c2128;
+}
+
+.commons-status {
+    color: #7ee0a0;
+    background: #173322;
+}
+
+.participant-presence.online {
+    color: #7ee0a0;
 }

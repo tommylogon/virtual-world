@@ -1,5 +1,52 @@
 {
   "current_area": "Raven River",
+  "commons_theme": "town_board",
+  "commons": {
+    "channels": {
+      "group_kraktooth_watch": {
+        "id": "group_kraktooth_watch",
+        "kind": "group",
+        "name": "Camp watch",
+        "members": ["Vekka", "Zikka", "Gribba"],
+        "created_by": "Vekka"
+      },
+      "dm_vekka_gribba": {
+        "id": "dm_vekka_gribba",
+        "kind": "dm",
+        "name": "Gribba · Vekka",
+        "members": ["Gribba", "Vekka"],
+        "created_by": "Vekka"
+      }
+    },
+    "messages": [
+      {
+        "id": 1,
+        "channel_id": "public",
+        "author": "Zikka",
+        "text": "Human tracks cross the north trail and turn toward the ravine.",
+        "timestamp": 1792108800,
+        "tick": 0
+      },
+      {
+        "id": 2,
+        "channel_id": "group_kraktooth_watch",
+        "author": "Vekka",
+        "text": "I will take first watch. Gribba, keep the fire low.",
+        "timestamp": 1792108800,
+        "tick": 0
+      },
+      {
+        "id": 3,
+        "channel_id": "dm_vekka_gribba",
+        "author": "Vekka",
+        "text": "I found human tracks beyond camp. I wanted you to know first.",
+        "timestamp": 1792108800,
+        "tick": 0
+      }
+    ],
+    "participants": {},
+    "next_message_id": 4
+  },
   "players_in_area": [
     {
       "name": "Shadow-Pelt",

@@ -1,4 +1,4 @@
-function commonsHarness(reply) {
+function commonsHarness(reply, knownCharacters = ['Lysa'], theme = 'live_social') {
     const saved = {
         state: window.CommonsState,
         api: window.CommonsApi,
@@ -32,7 +32,9 @@ function commonsHarness(reply) {
                     { id: 'public', kind: 'public', name: 'Public', unread_count: 0, members: [] },
                     { id: 'group-night', kind: 'group', name: 'Night watch', unread_count: 2, members: ['Mira', 'Lysa'] },
                 ],
-                participants: { Mira: {}, Lysa: {}, User: { active: false } },
+                participants: { Mira: {}, Lysa: {}, Joren: {}, User: { active: false } },
+                known_characters: knownCharacters,
+                theme,
             };
         },
         readMessages: async (...args) => {
@@ -42,7 +44,13 @@ function commonsHarness(reply) {
         postMessage: async (...args) => calls.push(['post', ...args.slice(0, 3)]),
         createChannel: async (body) => {
             calls.push(['create-channel', body]);
-            return { channel: { id: 'dm-mira-lysa', kind: 'dm', members: ['Mira', 'Lysa'] } };
+            return {
+                channel: {
+                    id: body.kind === 'group' ? 'group-mira-watch' : 'dm-mira-lysa',
+                    kind: body.kind,
+                    members: body.members || ['Mira', body.other],
+                },
+            };
         },
         storeMemory: async (name, text) => {
             calls.push(['memory', name]);
@@ -133,6 +141,104 @@ test('the commons: a character can start a two-person DM and send its first mess
     }
 });
 
+test('the commons: a character can create a group with named invitees and send its first message', async () => {
+    const h = commonsHarness({
+        inner_monologue: 'I should bring Lysa and Joren together.',
+        communication: {
+            action: 'start_group',
+            group_name: 'North gate watch',
+            recipients: ['Lysa', 'Joren'],
+            text: 'Meet by the north gate.',
+        },
+        memory: null,
+    }, ['Lysa', 'Joren']);
+    try {
+        await CommonsAgent.actCharacter('Mira');
+        assertTrue(h.prompt.includes('"known":["Lysa","Joren"]'));
+        assertEq(h.calls.find(call => call[0] === 'create-channel'), [
+            'create-channel', {
+                creator: 'Mira', kind: 'group', name: 'North gate watch',
+                members: ['Mira', 'Lysa', 'Joren'],
+            },
+        ]);
+        assertEq(h.calls.find(call => call[0] === 'post'), [
+            'post', 'Mira', 'Meet by the north gate.', 'group-mira-watch',
+        ]);
+    } finally {
+        h.restore();
+    }
+});
+
+test('the commons: an agent cannot start a group with an invitee whose name it does not know', async () => {
+    const h = commonsHarness({
+        inner_monologue: 'I should not be able to invite a stranger.',
+        communication: {
+            action: 'start_group',
+            group_name: 'Private plans',
+            recipients: ['Lysa', 'Stranger'],
+            text: 'Meet privately.',
+        },
+        memory: null,
+    });
+    try {
+        await CommonsAgent.actCharacter('Mira');
+        assertTrue(h.prompt.includes('"known":["Lysa"]'));
+        assertFalse(h.calls.some(call => ['create-channel', 'post'].includes(call[0])));
+    } finally {
+        h.restore();
+    }
+});
+
+test('the commons: an agent cannot start a DM with a character whose name it does not know', async () => {
+    const h = commonsHarness({
+        inner_monologue: 'I do not know this person.',
+        communication: { action: 'start_dm', recipient: 'Stranger', text: 'Hello.' },
+        memory: null,
+    });
+    try {
+        await CommonsAgent.actCharacter('Mira');
+        assertFalse(h.calls.some(call => ['create-channel', 'post'].includes(call[0])));
+    } finally {
+        h.restore();
+    }
+});
+
+test('the commons: an agent cannot create a group without a name, invitee, and opening message', async () => {
+    const h = commonsHarness({
+        inner_monologue: 'This group request is incomplete.',
+        communication: {
+            action: 'start_group',
+            group_name: 'Incomplete group',
+            recipients: ['Lysa'],
+            text: '',
+        },
+        memory: null,
+    });
+    try {
+        await CommonsAgent.actCharacter('Mira');
+        assertFalse(h.calls.some(call => ['create-channel', 'post'].includes(call[0])));
+    } finally {
+        h.restore();
+    }
+});
+
+test('the commons: town-board mode ignores group creation decisions', async () => {
+    const h = commonsHarness({
+        inner_monologue: 'A group is not available in this mode.',
+        communication: {
+            action: 'start_group', group_name: 'Private plans',
+            recipients: ['Lysa'], text: 'Meet at dusk.',
+        },
+        memory: null,
+    }, ['Lysa'], 'town_board');
+    try {
+        await CommonsAgent.actCharacter('Mira');
+        assertFalse(h.calls.some(call => ['create-channel', 'post'].includes(call[0])));
+    } finally {
+        h.restore();
+    }
+});
+
 test('the commons: think action does not read, send, or create a conversation', async () => {
     const h = commonsHarness({
         inner_monologue: 'I will let the conversation wait.',
@@ -157,7 +263,31 @@ test('the commons: shared prompt builder uses existing Player persona and hides 
     assertTrue(prompt.includes('Personality: careful and dry-witted'));
     assertTrue(prompt.includes('group-night'));
     assertTrue(prompt.includes('I promised to check the night watch.'));
+    assertTrue(prompt.includes('start_group'));
+    assertTrue(prompt.includes('whose names you know'));
+    assertTrue(prompt.includes('Characters whose names you know and may contact: Lysa'));
     assertFalse(prompt.includes('The door is open.'));
+});
+
+test('the commons: town-board prompt reports new posts and letters, not unread chats or groups', () => {
+    const prompt = PromptBuilder.buildCommunicationPrompt(
+        { name: 'Mira', personality: 'careful and dry-witted', traits: { patient: true }, state: 'awake' },
+        '- I promised to check the board.',
+        [
+            { id: 'public', kind: 'public', name: 'Public', unread_count: 2, members: [] },
+            { id: 'dm-lysa', kind: 'dm', name: 'Mira · Lysa', unread_count: 3, members: ['Mira', 'Lysa'] },
+            { id: 'group-night', kind: 'group', name: 'Night watch', unread_count: 5, members: ['Mira', 'Lysa'] },
+        ],
+        ['Lysa'],
+        'town_board'
+    );
+    assertTrue(prompt.includes('TOWN BOARD AND LETTERS'));
+    assertTrue(prompt.includes('2 new posts'));
+    assertTrue(prompt.includes('3 new letters'));
+    assertTrue(prompt.includes('Delivery is immediate'));
+    assertFalse(prompt.includes('group-night'));
+    assertFalse(prompt.includes('start_group'));
+    assertFalse(prompt.includes('5 unread'));
 });
 
 test('the commons: shared response parser normalizes communication and Player memory', () => {
@@ -173,6 +303,16 @@ test('the commons: shared response parser normalizes communication and Player me
     assertEq(parsed.channelId, 'group-night');
     assertEq(parsed.n, 50);
     assertEq(parsed.memory.text, 'I kept my promise.');
+
+    const group = ResponseParser.parseCommunication(JSON.stringify({
+        communication: {
+            action: 'start_group', group_name: 'North gate watch',
+            recipients: ['Lysa', 'Lysa', ' Joren '], text: 'Meet here.',
+        },
+    }));
+    assertEq(group.action, 'start_group');
+    assertEq(group.groupName, 'North gate watch');
+    assertEq(group.recipients, ['Lysa', 'Joren']);
 });
 
 test('the commons: memory reflection writes to the existing Player memories endpoint', async () => {
@@ -210,6 +350,24 @@ test('the commons: recall uses the standard Player memory retrieval endpoint', a
             query: 'messages from Lysa',
             max_results: 5,
             reinforce: true,
+        });
+
+        test('the commons: communication mode selection uses its world settings endpoint', async () => {
+            const realFetch = window.fetch;
+            let request = null;
+            window.fetch = async (url, options) => {
+                request = { url, options };
+                return { ok: true, json: async () => ({ theme: 'town_board' }) };
+            };
+            try {
+                const result = await CommonsApi.setTheme('town_board');
+                assertEq(request.url, '/api/commons/theme');
+                assertEq(request.options.method, 'POST');
+                assertEq(JSON.parse(request.options.body), { theme: 'town_board' });
+                assertEq(result.theme, 'town_board');
+            } finally {
+                window.fetch = realFetch;
+            }
         });
     } finally {
         window.fetch = realFetch;

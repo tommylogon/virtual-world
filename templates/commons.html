@@ -13,10 +13,15 @@
     <div class="commons-brand">
         <span class="commons-brand-icon" aria-hidden="true">✳</span>
         <span class="commons-brand-title">The Commons</span>
-        <span class="commons-brand-sub">a place to talk</span>
+        <span class="commons-brand-sub" id="commons-brand-sub">a place to talk</span>
     </div>
     <div class="commons-topbar-center">
-        <label class="commons-perspective-label" for="commons-perspective">Phone owner</label>
+        <label class="commons-perspective-label" for="commons-theme">Communication mode</label>
+        <select id="commons-theme" class="commons-select" aria-label="Communication mode">
+            <option value="live_social">Live social</option>
+            <option value="town_board">Town board &amp; letters</option>
+        </select>
+        <label class="commons-perspective-label" for="commons-perspective" id="commons-perspective-label">Phone owner</label>
         <select id="commons-perspective" class="commons-select" aria-label="View conversations as"></select>
         <span id="commons-status-chip" class="commons-status">Active</span>
         <span id="commons-rate-estimate" class="commons-rate-estimate" aria-live="polite"></span>
@@ -32,8 +37,8 @@
     <aside class="commons-sidebar" aria-label="Conversations">
         <div class="commons-sidebar-heading">
             <div>
-                <div class="commons-eyebrow">INBOX</div>
-                <h2>Conversations</h2>
+                <div class="commons-eyebrow" id="commons-inbox-eyebrow">INBOX</div>
+                <h2 id="commons-inbox-heading">Conversations</h2>
             </div>
             <button type="button" id="commons-new-group" class="commons-icon-btn" aria-label="Create private group" title="New group">＋</button>
         </div>
@@ -57,7 +62,7 @@
         </header>
         <div id="commons-feed" class="commons-log" aria-live="polite" aria-label="Messages"></div>
         <form id="commons-form" class="commons-input-row" onsubmit="event.preventDefault();">
-            <label class="commons-composer-label" for="commons-input">Message as <span id="commons-composer-identity">User</span></label>
+            <label class="commons-composer-label" for="commons-input"><span id="commons-composer-verb">Message as</span> <span id="commons-composer-identity">User</span></label>
             <div class="commons-composer-row">
                 <input type="text" id="commons-input" class="commons-input" placeholder="Write a message…" autocomplete="off">
                 <button type="submit" id="commons-send-btn" class="commons-btn commons-btn-primary">Send</button>
@@ -69,7 +74,7 @@
         <div class="commons-panel-header">People here</div>
         <div id="commons-channel-members" class="commons-channel-members"></div>
         <div id="commons-member-editor" class="commons-member-editor"></div>
-        <div class="commons-details-note">Private conversations are visible only from a member’s phone.</div>
+        <div class="commons-details-note" id="commons-details-note">Private conversations are visible only from a member’s phone.</div>
     </aside>
 </main>
 
@@ -98,16 +103,16 @@
     <form id="commons-dm-form" method="dialog">
         <div class="commons-dialog-heading">
             <div>
-                <div class="commons-eyebrow">ONE TO ONE</div>
-                <h2>Start a direct message</h2>
+                <div class="commons-eyebrow" id="commons-dm-eyebrow">ONE TO ONE</div>
+                <h2 id="commons-dm-heading">Start a direct message</h2>
             </div>
             <button type="button" id="commons-dm-close" class="commons-icon-btn" aria-label="Close">×</button>
         </div>
-        <label class="commons-field-label" for="commons-dm-recipient">Choose a character</label>
+        <label class="commons-field-label" for="commons-dm-recipient" id="commons-dm-recipient-label">Choose a character</label>
         <select id="commons-dm-recipient" class="commons-select" required></select>
         <div class="commons-dialog-actions">
             <button type="button" id="commons-dm-cancel" class="commons-btn">Cancel</button>
-            <button type="submit" class="commons-btn commons-btn-primary">Open conversation</button>
+            <button type="submit" id="commons-dm-submit" class="commons-btn commons-btn-primary">Open conversation</button>
         </div>
         <div id="commons-dm-error" class="commons-form-error" role="alert"></div>
     </form>

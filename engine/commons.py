@@ -15,6 +15,8 @@ from typing import Any, Dict, List, Optional
 
 
 PUBLIC_CHANNEL_ID = "public"
+DEFAULT_COMMONS_THEME = "live_social"
+COMMONS_THEMES = frozenset((DEFAULT_COMMONS_THEME, "town_board"))
 
 
 class ChatAuthorizationError(PermissionError):

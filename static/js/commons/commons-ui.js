@@ -15,6 +15,7 @@
             const participantList = document.getElementById('commons-participants-list');
             const channelList = document.getElementById('commons-channel-list');
             const perspective = document.getElementById('commons-perspective');
+            const themeSelect = document.getElementById('commons-theme');
             const groupDialog = document.getElementById('commons-group-dialog');
             const dmDialog = document.getElementById('commons-dm-dialog');
             form?.addEventListener('submit', async (event) => {
@@ -44,6 +45,16 @@
             });
             perspective?.addEventListener('change', () => {
                 void window.CommonsState.selectPerspective(perspective.value);
+            });
+            themeSelect?.addEventListener('change', async () => {
+                const state = window.CommonsState;
+                try {
+                    await state.selectTheme(themeSelect.value);
+                }
+                catch (error) {
+                    console.error('Failed to change Commons communication mode:', error);
+                    themeSelect.value = state.theme;
+                }
             });
             channelList?.addEventListener('click', (event) => {
                 const button = event.target.closest('[data-channel-id]');
@@ -111,6 +122,7 @@
             window.CommonsState.subscribe(() => this.render());
         }
         static render() {
+            this.renderTheme();
             this.renderPerspective();
             this.renderChannels();
             this.renderConversation();
@@ -118,6 +130,39 @@
             this.renderParticipants();
             this.renderRateEstimate();
             this.renderPauseState();
+        }
+        static renderTheme() {
+            const state = window.CommonsState;
+            const townBoard = state.theme === 'town_board';
+            const themeSelect = document.getElementById('commons-theme');
+            if (themeSelect)
+                themeSelect.value = townBoard ? 'town_board' : 'live_social';
+            const setText = (id, text) => {
+                const element = document.getElementById(id);
+                if (element)
+                    element.textContent = text;
+            };
+            setText('commons-brand-sub', townBoard ? 'town board & private letters' : 'a place to talk');
+            setText('commons-perspective-label', townBoard ? 'Reading as' : 'Phone owner');
+            setText('commons-inbox-eyebrow', townBoard ? 'TOWN BOARD' : 'INBOX');
+            setText('commons-inbox-heading', townBoard ? 'Posts & letters' : 'Conversations');
+            setText('commons-composer-verb', townBoard ? 'Write as' : 'Message as');
+            setText('commons-dm-eyebrow', townBoard ? 'PRIVATE LETTER' : 'ONE TO ONE');
+            setText('commons-dm-heading', townBoard ? 'Write a private letter' : 'Start a direct message');
+            setText('commons-dm-recipient-label', townBoard ? 'Choose a recipient' : 'Choose a character');
+            setText('commons-dm-submit', townBoard ? 'Open letter' : 'Open conversation');
+            setText('commons-details-note', townBoard
+                ? 'Private letters are visible only to their two writers.'
+                : 'Private conversations are visible only from a member’s phone.');
+            const groupButton = document.getElementById('commons-new-group');
+            if (groupButton)
+                groupButton.hidden = townBoard;
+            const dmButton = document.getElementById('commons-new-dm');
+            if (dmButton)
+                dmButton.textContent = townBoard ? '✉ Write a private letter' : '✉ New direct message';
+            const perspective = document.getElementById('commons-perspective');
+            if (perspective)
+                perspective.setAttribute('aria-label', townBoard ? 'Read as character' : 'View conversations as');
         }
         static renderPerspective() {
             const select = document.getElementById('commons-perspective');
@@ -142,15 +187,24 @@
             const state = window.CommonsState;
             const channels = state.channels || [];
             list.innerHTML = channels.map((channel) => {
-                const icon = channel.kind === 'public' ? '#' : channel.kind === 'group' ? '◉' : '↗';
+                const townBoard = state.theme === 'town_board';
+                const icon = channel.kind === 'public'
+                    ? (townBoard ? '▤' : '#')
+                    : channel.kind === 'group' ? '◉' : (townBoard ? '✉' : '↗');
                 const unread = Number(channel.unread_count || 0);
+                const channelLabel = townBoard
+                    ? (channel.kind === 'public' ? 'Town board' : channel.name)
+                    : channel.name;
                 const people = channel.kind === 'public'
-                    ? 'Open conversation'
+                    ? (townBoard ? 'Public notices' : 'Open conversation')
                     : `${(channel.members || []).filter((name) => name !== state.perspective).join(', ')}`;
+                const unreadLabel = channel.kind === 'public' && townBoard ? 'new posts'
+                    : channel.kind === 'dm' && townBoard ? 'new letters' : 'unread';
                 return `<button type="button" class="commons-channel-row ${channel.id === state.selectedChannelId ? 'selected' : ''}"
-                    data-channel-id="${escapeHtml(channel.id)}" aria-current="${channel.id === state.selectedChannelId ? 'true' : 'false'}">
+                    data-channel-id="${escapeHtml(channel.id)}" aria-current="${channel.id === state.selectedChannelId ? 'true' : 'false'}"
+                    aria-label="${escapeHtml(`${channelLabel}${unread ? `, ${unread} ${unreadLabel}` : ''}`)}">
                     <span class="commons-channel-icon ${escapeHtml(channel.kind)}">${icon}</span>
-                    <span class="commons-channel-copy"><span class="commons-channel-name">${escapeHtml(channel.name)}</span>
+                    <span class="commons-channel-copy"><span class="commons-channel-name">${escapeHtml(channelLabel)}</span>
                     <span class="commons-channel-preview">${escapeHtml(people || channel.kind)}</span></span>
                     ${unread ? `<span class="commons-unread-badge">${unread > 99 ? '99+' : unread}</span>` : ''}
                 </button>`;
@@ -167,6 +221,8 @@
             const editor = document.getElementById('commons-member-editor');
             const send = document.getElementById('commons-send-btn');
             const input = document.getElementById('commons-input');
+            const townBoard = state.theme === 'town_board';
+            const feed = document.getElementById('commons-feed');
             if (!channel) {
                 if (title)
                     title.textContent = 'No conversation selected';
@@ -184,28 +240,45 @@
                     send.disabled = true;
                 if (input)
                     input.disabled = true;
+                if (feed)
+                    feed.setAttribute('aria-label', townBoard ? 'Posts and letters' : 'Messages');
                 return;
             }
             const members = channel.kind === 'public'
                 ? Object.keys(state.participants || {})
                 : (channel.members || []);
-            const subtitleText = channel.kind === 'public' ? 'Open conversation · anyone can join'
+            const subtitleText = channel.kind === 'public'
+                ? (townBoard ? 'Public notice board · everyone can read and post' : 'Open conversation · anyone can join')
                 : channel.kind === 'group' ? `Private group · ${members.length} members`
-                    : 'Direct message · just the two of you';
+                    : (townBoard ? 'Private letters · just the two of you' : 'Direct message · just the two of you');
             if (title)
-                title.textContent = channel.name;
+                title.textContent = townBoard && channel.kind === 'public' ? 'Town notice board' : channel.name;
             if (subtitle)
                 subtitle.textContent = subtitleText;
             if (avatar)
-                avatar.textContent = channel.kind === 'public' ? '#' : channel.kind === 'group' ? '◉' : '↗';
+                avatar.textContent = channel.kind === 'public'
+                    ? (townBoard ? '▤' : '#')
+                    : channel.kind === 'group' ? '◉' : (townBoard ? '✉' : '↗');
             if (count)
                 count.textContent = `${members.length} ${members.length === 1 ? 'person' : 'people'}`;
+            if (feed)
+                feed.setAttribute('aria-label', townBoard
+                    ? (channel.kind === 'public' ? 'Town-board posts' : 'Private letters')
+                    : 'Messages');
+            if (send)
+                send.textContent = townBoard
+                    ? (channel.kind === 'public' ? 'Post notice' : 'Send letter')
+                    : 'Send';
+            if (input)
+                input.placeholder = townBoard
+                    ? (channel.kind === 'public' ? 'Write a public notice…' : 'Write a private letter…')
+                    : 'Write a message…';
             if (membersList) {
                 membersList.innerHTML = members.map((name, index) => `<span class="commons-member-chip"><span class="commons-member-avatar avatar-${index % 6}">${escapeHtml(initials(name))}</span>${escapeHtml(name)}</span>`).join('') || '<div class="commons-empty-note">No members listed.</div>';
             }
             this.renderMemberEditor(channel);
             const allowed = channel.kind === 'public' || members.includes(state.perspective);
-            // Pause controls autonomous character turns. The phone owner can
+            // Pause controls autonomous character turns. The selected character can
             // still use the composer while those turns are paused.
             if (send)
                 send.disabled = !allowed;
@@ -243,7 +316,9 @@
                     <div class="chat-msg-content"><div class="chat-msg-meta"><span class="chat-msg-author">${escapeHtml(message.author)}</span><time>${time}</time></div>
                     <div class="chat-msg-text">${escapeHtml(message.text)}</div></div>
                 </article>`;
-            }).join('') || `<div class="commons-feed-empty"><div class="commons-empty-orb">✳</div><h3>It starts here</h3><p>Send a note, ask a question, or let the conversation find its way.</p></div>`;
+            }).join('') || (window.CommonsState.theme === 'town_board'
+                ? `<div class="commons-feed-empty"><div class="commons-empty-orb">✳</div><h3>It starts here</h3><p>Leave a notice or write a private letter.</p></div>`
+                : `<div class="commons-feed-empty"><div class="commons-empty-orb">✳</div><h3>It starts here</h3><p>Send a note, ask a question, or let the conversation find its way.</p></div>`);
             if (wasNearBottom)
                 feed.scrollTop = feed.scrollHeight;
         }
@@ -293,6 +368,8 @@
                 error.textContent = '';
         }
         static async createGroup(dialog) {
+            if (window.CommonsState.theme === 'town_board')
+                return;
             const state = window.CommonsState;
             const name = document.getElementById('commons-group-name')?.value.trim() || '';
             const selected = [...document.querySelectorAll('#commons-group-roster input:checked')]

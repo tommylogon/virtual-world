@@ -9,6 +9,7 @@ from routes.action_handlers import handle_get_state
 from routes.memories import register_memories_routes
 from routes.commons import register_commons_routes
 from routes.pages import register_pages_routes
+from player import Player
 from virtual_world_engine import VirtualWorld
 
 
@@ -136,6 +137,78 @@ def test_routes_filter_channels_by_perspective_and_reject_private_reads_and_send
     assert [message["text"] for message in allowed_read.get_json()["messages"]] == ["Private detail."]
 
 
+def test_town_board_theme_allows_posts_and_letters_but_disables_group_conversations():
+    app = _commons_app()
+    client = app.test_client()
+    chat = app.world.commons
+    group = chat.create_group("Mira", "Night watch", ["Mira", "Lysa"])
+    chat.post_message("Mira", "Keep watch.", channel_id=group["id"])
+
+    changed = client.post("/api/commons/theme", json={"theme": "town_board"})
+    state = client.get("/api/commons/state?as=Mira").get_json()
+    denied_create = client.post("/api/commons/channels", json={
+        "creator": "Mira", "kind": "group", "name": "Secret plans", "members": ["Mira", "Lysa"],
+    })
+    denied_read = client.post("/api/commons/read", json={
+        "character": "Mira", "channel_id": group["id"], "mode": "all",
+    })
+    denied_send = client.post("/api/commons/messages", json={
+        "author": "Mira", "channel_id": group["id"], "text": "Still unavailable.",
+    })
+    dm = client.post("/api/commons/channels", json={
+        "creator": "Mira", "kind": "dm", "other": "Lysa",
+    })
+
+    assert changed.status_code == 200
+    assert changed.get_json()["theme"] == "town_board"
+    assert state["theme"] == "town_board"
+    assert {channel["kind"] for channel in state["channels"]} == {"public"}
+    assert denied_create.status_code == 403
+    assert denied_read.status_code == 403
+    assert denied_send.status_code == 403
+    assert dm.status_code == 201
+    assert dm.get_json()["channel"]["kind"] == "dm"
+    assert chat.channels[group["id"]]["members"] == ["Mira", "Lysa"]
+
+    switched_back = client.post("/api/commons/theme", json={"theme": "live_social"})
+    restored_channels = client.get("/api/commons/state?as=Mira").get_json()["channels"]
+    assert switched_back.status_code == 200
+    assert {channel["kind"] for channel in restored_channels} == {"public", "group", "dm"}
+
+
+def test_commons_theme_route_rejects_unknown_or_non_string_modes():
+    app = _commons_app()
+    client = app.test_client()
+
+    assert client.post("/api/commons/theme", json={"theme": "letters"}).status_code == 400
+    assert client.post("/api/commons/theme", json={"theme": []}).status_code == 400
+
+
+def test_commons_state_lists_only_characters_whose_names_the_perspective_knows():
+    mira = Player("Mira")
+    mira.relationships = {
+        "Lysa": {"first_sighting": False},
+        "Stranger": {"first_sighting": True},
+    }
+    app = Flask(__name__)
+    app.config["TESTING"] = True
+    app.world = SimpleNamespace(
+        players={
+            "Mira": mira,
+            "Lysa": Player("Lysa"),
+            "Stranger": Player("Stranger"),
+        },
+        commons=Commons(),
+        time_ticks=0,
+    )
+    register_commons_routes(app)
+
+    response = app.test_client().get("/api/commons/state?as=Mira")
+
+    assert response.status_code == 200
+    assert response.get_json()["known_characters"] == ["Lysa"]
+
+
 def test_former_page_url_redirects_to_commons():
     template_root = Path(__file__).resolve().parents[1] / "templates"
     app = Flask(__name__, template_folder=str(template_root))
@@ -205,6 +278,7 @@ def test_world_state_payload_does_not_publish_private_commons_channels():
 
 def test_saved_world_round_trips_chat_communication_but_scenario_export_drops_runtime_chat():
     world = VirtualWorld()
+    world.commons_theme = "town_board"
     group = world.commons.create_group("Mira", "Night watch", ["Mira", "Lysa"])
     world.commons.post_message("Mira", "I will take first watch.", channel_id=group["id"])
     world.commons.read_messages("Lysa", mode="all", channel_id=group["id"])
@@ -217,7 +291,10 @@ def test_saved_world_round_trips_chat_communication_but_scenario_export_drops_ru
     assert restored.commons.channels[group["id"]]["members"] == ["Mira", "Lysa"]
     assert restored.commons.read_messages("Mira", mode="all", channel_id=group["id"])[0]["text"] == "I will take first watch."
     assert restored.commons.participants["Lysa"]["last_read_message_ids"][group["id"]] == 1
-    assert "commons" not in world.to_scenario_dict()
+    scenario = world.to_scenario_dict()
+    assert "commons" not in scenario
+    assert scenario["commons_theme"] == "town_board"
+    assert restored.commons_theme == "town_board"
 
 
 def test_legacy_saved_communication_key_migrates_to_commons():
