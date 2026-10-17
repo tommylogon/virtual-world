@@ -63,6 +63,7 @@ window.CommandPalette = (() => {
     };
     const ACTIONS = [
         { icon: '⏩', label: 'Timeskip… (wait / mingle / search / explore / travel)', run: () => window.Timeskip?.openDialog() },
+        { icon: '🌍', label: 'Advance World… (everyone soaks, no character acts - prompt for minutes)', run: () => window.Timeskip?.advanceWorld() },
         { icon: '✨', label: 'Natural-Language Editor (Cmd+L / Ctrl+L)', run: () => window.NLEditor?.openPanel() },
         { icon: '💾', label: 'Save Game', run: () => mainActions.saveGame() },
         { icon: '📂', label: 'Load Game…', run: () => { document.getElementById('load-game-modal').style.display = 'flex'; mainActions.loadGameList(); } },

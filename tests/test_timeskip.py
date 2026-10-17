@@ -536,6 +536,33 @@ def test_a_character_skip_reports_character_mode():
     assert res.mode == "character"
 
 
+def test_the_world_flag_forces_a_world_advance_with_an_active_character():
+    """The Ctrl+K "Advance World" command: world mode without clearing the actor.
+
+    World mode used to need `active_player is None`, which nothing clears, so the
+    dialog could never reach it. `world: true` is the explicit request for a
+    no-subject advance while an actor exists. `_hero` declares every other
+    character an NPC, so without the flag this route runs a blocking *character*
+    skip instead - which is what the first request below proves.
+    """
+    from app import create_app
+    app = create_app({"TESTING": True})
+    app.world.time_per_tick_minutes = 1
+    hero = _safe(_hero(app.world))
+    assert app.world.get_active_player_obj() is hero
+    client = app.test_client()
+
+    plain = client.post("/api/world/timeskip", json={"minutes": 3}).get_json()
+    assert plain["mode"] == "character", "precondition: no flag means character mode"
+
+    resp = client.post("/api/world/timeskip", json={"minutes": 3, "world": True})
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["mode"] == "world", "the flag must force the no-subject advance"
+    assert data["elapsed_minutes"] == 3 and data["ticks"] == 3
+    assert hero.soak_order is None, "a world advance declares no order"
+
+
 # ───────────── one human: the whole cast soaks for the span (task-670) ─────
 
 def test_a_character_skip_soaks_the_rest_of_the_cast_while_it_runs():

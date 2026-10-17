@@ -3,8 +3,8 @@
  * timeskip — the wait/mingle/search/explore/travel dialog (task-464).
  *
  * @module ui/timeskip — intent + duration dialog over POST /api/world/timeskip
- * @contributes Timeskip.openDialog/closeDialog/run + a best-effort summary render
- * @powers the "⏩ Wait / Timeskip…" menu item
+ * @contributes Timeskip.openDialog/closeDialog/run/advanceWorld + a best-effort summary render
+ * @powers the "⏩ Wait / Timeskip…" menu item and the Ctrl+K "Advance World" command
  * @relates posts via ApiClient and refreshes window.worldState afterwards
  * @docs Simulation Model.md
  *
@@ -246,10 +246,69 @@ window.Timeskip = (() => {
                 button.disabled = false;
         }
     }
+    /**
+     * Minutes from the in-app prompt dialog, or null if cancelled or invalid.
+     * Uses `VW.dialog` (shared/dialog.ts) rather than a native `window.prompt`,
+     * which would ignore the app's theme and focus handling.
+     */
+    async function _askMinutes() {
+        const dialog = window.VW && window.VW.dialog;
+        if (!dialog || typeof dialog.prompt !== 'function') {
+            toastError('Advance world: the dialog helper is not loaded.');
+            return null;
+        }
+        const out = await dialog.prompt({
+            title: 'Advance World',
+            message: 'Everyone soaks and the clock runs. No character acts.',
+            confirmLabel: 'Advance',
+            fields: [{ key: 'minutes', label: 'Minutes', value: '60', type: 'number' }],
+        });
+        if (!out)
+            return null; // cancelled
+        const minutes = Math.round(Number(out.minutes));
+        if (!Number.isFinite(minutes) || minutes < 1) {
+            toastError('Advance world: give a positive number of minutes.');
+            return null;
+        }
+        return minutes;
+    }
+    /**
+     * One-click world advance (the Ctrl+K "Advance World" command).
+     *
+     * Prompts for a span, then posts `world: true`, which forces
+     * `engine.timeskip.advance_world`: no subject, no policy, no interrupts.
+     * Every character soaks and the clock simply runs. This is the only way to
+     * reach world mode while an active character exists - `openDialog`/`run`
+     * pick it only when there is no active character, and nothing clears one.
+     */
+    async function advanceWorld() {
+        const minutes = await _askMinutes();
+        if (minutes === null)
+            return;
+        try {
+            const data = await ApiClient
+                .post('/api/world/timeskip', { minutes, world: true });
+            if (!data || data.error || data.ok === false) {
+                toastError('Advance world failed: ' + ((data && (data.error || data.reason)) || 'unknown error'));
+                return;
+            }
+            toastInfo(`Advanced the world ${data.elapsed_minutes} min (${data.ticks} ticks) to ${data.clock_after || 'now'}.`);
+            if (window.worldState && typeof worldState.fetch === 'function') {
+                try {
+                    await worldState.fetch();
+                }
+                catch (e) { /* non-fatal */ }
+            }
+        }
+        catch (e) {
+            toastError('Advance world failed: ' + (e instanceof Error ? e.message : String(e)));
+        }
+    }
     return {
         openDialog,
         closeDialog,
         run,
+        advanceWorld,
         // Pure logic exposed for tools/unit/run.cjs. Not a product API.
         _internals: { presetMinutes, buildPayload: _buildPayload, summarize: _summarize },
     };
