@@ -872,7 +872,7 @@ class VirtualWorld:
     def wait(self, minutes=None):
         return self.activities.start_activity(
             self.active_player, "waiting", None,
-            self._activity_duration_ticks(minutes) if minutes else None,
+            self._activity_duration_ticks(minutes or 1),
         )
 
     def meditate(self, minutes=None):
