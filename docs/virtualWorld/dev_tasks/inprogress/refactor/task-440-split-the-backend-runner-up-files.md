@@ -25,7 +25,7 @@ original list and now sit above several of the tracked targets.
 
 | File | Lines | Δ / note | Suggested seam |
 |------|------:|----------|----------------|
-| `engine/world_compile.py` | 2724 | **NEW** — repo's largest Python module | compile phases / layer emitters / way-property writers — find real boundaries before cutting |
+| `engine/world_compile.py` | 2552 | −172 (extraction #7) | region/merge helpers + preflight constants extracted to `world_compile_regions.py`; stable, blocking, directions, regions seams done |
 | `routes/graph_ops.py` | 2016 | +661 | second pass: node CRUD / edges / batch / import-export |
 | `virtual_world_engine.py` | 1926 | **NEW** (root runner) | only if a clean phase or facade seam exists; do not churn for linecount |
 | `routes/player_ops.py` | 1668 | **NEW** | split by operation family (state / inventory / memory / update) |
@@ -98,11 +98,15 @@ Backend hosts above ~1.5k lines hold multiple operation families in one module, 
      public import paths stable.
    - observed: 2026-10-16 remeasure recorded above; no extraction landed this pass.
 2. Run the focused test module(s) that exercise the extracted behaviour (no `-q`).
-    - expected: same behaviour passes; any changed `mock.patch` target is recorded.
-    - observed: 2026-10-16 extraction #3 — `engine/serialization_helpers.py` (162 lines) from `engine/serialization.py` (965 → 836, −129). Moved the stateless payload helpers (`_body_region_catalog`, `_VITAL_KEY_ALIASES`, `canonical_vitals`, `_region_exposure_map`, `_goals_payload`, `_mosiac_payload`, `_trait_behavior`, `normalize_dials`, `_disposition_payload`) into the new module; `WorldSerializer` and the loader facade stay in `serialization.py`. Re-exported from `serialization.py` so `from engine.serialization import X` and internal bare-name call sites keep working; `TraitSystem`/`TRAIT_DEFINITIONS` import dropped from `serialization.py` (now imported lazily inside `_trait_behavior`). No `mock.patch` targets moved. `tests/test_disposition.py` + `tests/test_traits.py` 116/116 pass; `import app` clean.
+     - expected: same behaviour passes; any changed `mock.patch` target is recorded.
+     - observed: 2026-10-16 extraction #3 — `engine/serialization_helpers.py` (162 lines) from `engine/serialization.py` (965 → 836, −129). Moved the stateless payload helpers (`_body_region_catalog`, `_VITAL_KEY_ALIASES`, `canonical_vitals`, `_region_exposure_map`, `_goals_payload`, `_mosiac_payload`, `_trait_behavior`, `normalize_dials`, `_disposition_payload`) into the new module; `WorldSerializer` and the loader facade stay in `serialization.py`. Re-exported from `serialization.py` so `from engine.serialization import X` and internal bare-name call sites keep working; `TraitSystem`/`TRAIT_DEFINITIONS` import dropped from `serialization.py` (now imported lazily inside `_trait_behavior`). No `mock.patch` targets moved. `tests/test_disposition.py` + `tests/test_traits.py` 116/116 pass; `import app` clean.
+     - observed: 2026-10-16 extraction #4 — `engine/world_compile_stable.py` (43 lines) from `engine/world_compile.py`. Deterministic primitives extracted; re-exported. `tests/test_world_compile.py` 112/112 pass; `import app` clean.
+     - observed: 2026-10-16 extraction #5 — `engine/world_compile_directions.py` (51 lines) from `engine/world_compile.py`. Direction constants/helpers extracted; re-exported. `tests/test_world_compile.py` 112/112 pass; `import app` clean.
+     - observed: 2026-10-16 extraction #6 — `engine/world_compile_blocking.py` (55 lines) from `engine/world_compile.py` (committed 4ac63acc). Way-blocking helpers extracted: `BLOCKED_WAY_PERCENT`, `BLOCKERS_BY_TERRAIN`, `DEFAULT_BLOCKER`, `_blocker_for`, `_is_blocked_way`, `_reachable_areas`, `_apply_way_blocking`; re-exported. Combined verification `tests/test_disposition.py tests/test_traits.py tests/test_trigger_system.py tests/test_world_compile.py` 387/387 pass; `import app` clean.
+     - observed: 2026-10-17 extraction #7 — `engine/world_compile_regions.py` (202 lines) from `engine/world_compile.py`. Region/merge helpers extracted: `_region_authored_name`, `_regions`, `_region_climate`, `_region_components`, `_merge_always_cells`, `_merge_never_cells`, plus the preflight constants `BLOCK`, `WARN`, `_WAYS_PER_AREA_UPPER`, `DEFAULT_MAX_STOREY_STEP` that the region helpers depend on. Re-exported from `world_compile.py` so internal call sites keep working. `tests/test_world_compile.py` 112/112 pass; combined set 387/387 pass; `import app` clean. Host `engine/world_compile.py` 2724 → 2552 (−172).
 3. Import the package and the extracted module in a clean process.
-   - expected: no cycle / import-time side effect; stable public API still exposed.
-   - observed: not applicable until an extraction lands.
+    - expected: no cycle / import-time side effect; stable public API still exposed.
+    - observed: 2026-10-17 — `import app` clean after extraction #7; `engine.world_compile_regions` imports cleanly in isolation and re-exports resolve through `world_compile.py` with no cycle.
 
 ## Files
 

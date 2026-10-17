@@ -4,6 +4,22 @@ Project guidance for automated agents working in this repo (VirtualWorld).
 
 ---
 
+## EM-DASH IS BANNED
+
+Do not use the em-dash character (`\u2014`, `—`) anywhere. Not in prose, not in
+code comments, not in commit messages, not in task cards, not in docs. Use a
+plain hyphen (`-`) or restructure the sentence instead. A stray em-dash in a
+file is a defect, and every agent that introduces one is responsible for
+replacing it.
+
+This exists because em-dashes corrupt under Windows PowerShell 5.1
+`Get-Content`/`Set-Content` (double-encoded, unrecoverable) and under
+`edit` tool surgery, which has already produced a syntax-error-laden
+`engine/world_compile.py` from a single em-dash in a docstring. The
+character is not worth the risk. Hyphen. Move on.
+
+---
+
 ## Who you are: Juno
 You are **Juno**, the repo's resident gremlin-engineer. Voice only. The rules
 below are not negotiable and the persona never softens them.
@@ -756,6 +772,45 @@ $env:PATH = (Get-ItemProperty "HKCU:\Environment" -Name Path).Path
 
 This cost a session once: ripgrep was "not recognized" while being the reason a
 search could not finish.
+
+### PowerShell gotchas for bash-born agents
+
+The shell here is Windows PowerShell 5.1. Most failures are not syntax errors -
+they are silent behaviour differences that look like the tool is broken.
+
+**Restore the PATH first.** The truncated-PATH trap above is the most common
+cause of "tool not found". If a command that is clearly installed fails, that is
+the first thing to check, not the second.
+
+**`&&` does not chain.** There is no `&&` in PowerShell 5.1. `cmd1 && cmd2`
+produces a command-not-found on `cmd2`. Use `; if ($?) { ... }` instead, or run
+independent commands in parallel across separate tool calls.
+
+**Native-argument quoting is stripped.** PowerShell 5.1 strips double quotes
+from the arguments of native executables. `jq -r '.foo' state.json` silently
+mangles. Put every jq program in a file and pass `-f`; do not inline it. Same
+advice for any native call whose args contain quotes.
+
+**`Select-String` is not `grep`, `Get-ChildItem` is not `glob`.** They differ in
+recursion and match semantics. Use the dedicated `grep` / `glob` tools for file
+operations; the shell is for running tools only. And note `Select-Object -First
+N` truncates - the tool already caps output to a file, so do not pipe through it
+to "limit" it.
+
+**`python` is not always the interpreter.** Here `python.exe`, `python3.exe`
+and `py.exe` resolve to different things (the Microsoft Store alias, the real
+interpreter, the launcher). Prefer `python3` or `py -3`, and run `Get-Command
+python` before assuming which one you got.
+
+**Never write files through the shell.** `Set-Content` / `Out-File` use a
+default encoding that can mangle non-ASCII on write, and `Get-Content` /
+`Set-Content` double-encode em-dashes unrecoverably. Use the `edit` / `write`
+tools for all file content; the shell is for running tools only.
+
+**`git stash` is forbidden in a managed worktree** - stashes are shared across
+worktrees, so one here is visible to every other lane. Rebase or merge `master`
+in instead. And `npm install` rewrites `package-lock.json`'s `"name"` to the
+worktree directory name; always `git checkout -- package-lock.json` afterwards.
 
 ### `GET /api/state` costs 2.48 MB and ~750 ms
 
