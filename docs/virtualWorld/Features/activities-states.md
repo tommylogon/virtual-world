@@ -18,6 +18,24 @@ tags: [status/wired, surface/in-game, system/characters]
 
 _Not recorded yet — add the code paths when you next touch this feature._
 
+## Bare-command defaults
+
+A bare activity command (no number) gets a bounded default **except where the
+activity has a natural wake condition**. Recorded so the next reader does not
+"fix" the ones that are open-ended on purpose.
+
+| Verb | Bare default | Why |
+|------|-------------|-----|
+| `rest` | 10 minutes | task-339: an unbounded rest let miki rest into the void |
+| `wait` | 1 tick | a wait has no wake condition; open-ended meant forever |
+| `sleep` | open-ended | wakes when Energy is full — the condition *is* the duration |
+| `meditate` | open-ended | same as sleep; no natural end |
+
+The route dispatch is `routes/action_handlers.py`; the engine methods are
+`VirtualWorld.rest` / `wait` / `sleep` / `meditate` in `virtual_world_engine.py`.
+`_activity_duration_ticks` converts minutes to ticks; a `None` duration means
+"no timer, wake on the activity's own condition".
+
 ## Connected
 
 - Feature Map: [[Feature Map|row 26]] (In a game)
