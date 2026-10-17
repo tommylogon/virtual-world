@@ -1,4 +1,5 @@
 ---
+related: [task-131, task-363]
 area: gameplay
 wiki: "[[Items & Inventory/Items Overview]]"
 type: task
@@ -11,6 +12,10 @@ priority: medium
 **Status**: todo
 **Priority**: Low
 **Filed**: 2026-07-24
+
+<!-- deps:start -->
+**Related:** [[task-131-stateful-actions-over-time]], [[task-363-command-parser-multiwindow-targets]]
+<!-- deps:end -->
 
 ## What
 

@@ -54,6 +54,41 @@ class EvaluationMixin:
         return None
 
     @staticmethod
+    def _resolve_named_character(needle, game_state: Optional[Any] = None):
+        """Resolve a *named other character* for co-location checks.
+
+        Accepts the players-dict key or the character's name (the same
+        matching ``_resolve_save_target`` uses), plus the graph node id form
+        (``player_Zikka``) that authored assignments carry, by trying again
+        without the ``player_`` prefix. Fails closed: an unresolvable
+        reference is no character, never "anyone".
+        """
+        if not game_state or needle is None:
+            return None
+        needle = str(needle).strip()
+        if not needle:
+            return None
+        players = getattr(game_state, "players", None) or {}
+        player = players.get(needle)
+        if player is None:
+            low = needle.lower()
+            player = next(
+                (p for key, p in players.items()
+                 if str(getattr(p, "name", key)).lower() == low),
+                None,
+            )
+        if player is None and low.startswith("player_"):
+            stem = needle[len("player_"):]
+            player = players.get(stem)
+            if player is None:
+                player = next(
+                    (p for key, p in players.items()
+                     if str(getattr(p, "name", key)).lower() == stem.lower()),
+                    None,
+                )
+        return player
+
+    @staticmethod
     def _compare(value, threshold, operator: str) -> bool:
         """Compare *value* against *threshold* with an operator string.
 

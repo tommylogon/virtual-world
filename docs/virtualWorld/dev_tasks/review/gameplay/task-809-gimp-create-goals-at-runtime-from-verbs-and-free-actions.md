@@ -4,7 +4,7 @@ status: review
 area: gameplay
 priority: medium
 wiki: "[[Character Pursuits]]"
-related: [task-702, task-691, task-714]
+related: [task-702, task-691, task-714, task-810, task-811, task-812]
 blocked_by: [task-807]
 ---
 
@@ -15,7 +15,7 @@ blocked_by: [task-807]
 
 <!-- deps:start -->
 **Blocked by:** [[task-807-gimp-the-goal-model-and-its-serialization]]
-**Related:** [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]], [[task-691-memory-mind-interface-dynamics-badges-connections-per-person-profiles-dashboard]], [[task-714-character-mind-panel-connect-memories-motives-and-current-pursuits]]
+**Related:** [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]], [[task-691-memory-mind-interface-dynamics-badges-connections-per-person-profiles-dashboard]], [[task-714-character-mind-panel-connect-memories-motives-and-current-pursuits]], [[task-810-gimp-the-goal-graph-links-blocks-and-chaining]], [[task-811-gimp-achievement-log-and-goal-replay]], [[task-812-mosiac-per-character-context-assembly-m-o-s-i-a-c]]
 <!-- deps:end -->
 
 ## What

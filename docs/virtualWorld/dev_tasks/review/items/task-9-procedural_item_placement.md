@@ -4,6 +4,7 @@ wiki: "[[Items & Inventory/Items Overview]]"
 type: task
 status: review
 priority: medium
+related: [task-513, task-3, task-408]
 ---
 
 # Procedural Item Placement: Tag-Chain Area Population Engine
@@ -16,6 +17,10 @@ Implementation). Consumed by task-398 (deterministic structure generation) and d
 by task-438 (NL-editor region decomposition, which needs `engine/population.py`).
 
 ---
+
+<!-- deps:start -->
+**Related:** [[task-513-kraktooth-goblin-gear-spec-driven-library-batch]], [[task-3-equipment_system]], [[task-408-goblin-scenario-node-dedup-and-data-integrity]]
+<!-- deps:end -->
 
 ## What
 

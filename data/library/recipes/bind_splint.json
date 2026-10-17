@@ -3,35 +3,81 @@
   "name": "Bind Splint",
   "description": "Bind sticks and cloth into a limb splint.",
   "ingredients": [
-    {"item": "stick", "count": 2, "consumed": true},
-    {"item": "cloth_scrap", "count": 1, "consumed": true},
-    {"item": "rope", "count": 1, "consumed": true},
-    {"item": "knife", "count": 1, "consumed": false}
+    {
+      "item": "stick",
+      "count": 2,
+      "consumed": true
+    },
+    {
+      "item": "cloth_scrap",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "rope",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "knife",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [],
   "duration_min": 10,
-  "skill_check": {"skill": "Medicine", "dc": 10},
-  "outputs": [{"item": "splint", "count": 1}],
+  "skill_check": {
+    "skill": "Medicine",
+    "dc": 10
+  },
+  "outputs": [
+    {
+      "item": "splint",
+      "count": 1
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "splint", "count": 1}],
+      "outputs": [
+        {
+          "item": "splint",
+          "count": 1
+        }
+      ],
       "message": "Straight, tight, true — a splint to trust."
     },
     "success": {
-      "outputs": [{"item": "splint", "count": 1}],
+      "outputs": [
+        {
+          "item": "splint",
+          "count": 1
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "loose_splint", "count": 1}],
+      "outputs": [
+        {
+          "item": "loose_splint",
+          "count": 1
+        }
+      ],
       "message": "Loose binding — half the support."
     },
     "crit_fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "broken_withies", "count": 1}],
+      "outputs": [
+        {
+          "item": "broken_withies",
+          "count": 1
+        }
+      ],
       "message": "Snapped a stick binding it — start over."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

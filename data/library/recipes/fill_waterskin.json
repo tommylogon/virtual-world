@@ -3,24 +3,51 @@
   "name": "Fill Waterskin",
   "description": "Fill a waterskin at a well or stream. The water is what it is.",
   "ingredients": [
-    {"item": "waterskin", "count": 1, "consumed": false}
+    {
+      "item": "waterskin",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [],
   "duration_min": 5,
-  "skill_check": {"skill": "Survival", "dc": 6},
-  "outputs": [{"item": "muddy_water", "count": 2}],
+  "skill_check": {
+    "skill": "Survival",
+    "dc": 6
+  },
+  "outputs": [
+    {
+      "item": "muddy_water",
+      "count": 2
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "muddy_water", "count": 2}],
+      "outputs": [
+        {
+          "item": "muddy_water",
+          "count": 2
+        }
+      ],
       "message": "Clear reach, clean fill. (Still stream water — settle it.)"
     },
     "success": {
-      "outputs": [{"item": "muddy_water", "count": 2}],
+      "outputs": [
+        {
+          "item": "muddy_water",
+          "count": 2
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": false,
-      "outputs": [{"item": "muddy_water", "count": 1}],
+      "outputs": [
+        {
+          "item": "muddy_water",
+          "count": 1
+        }
+      ],
       "message": "Half fill, half spilled. Skin kept."
     },
     "crit_fail": {
@@ -29,6 +56,8 @@
       "message": "The skin slips — water everywhere, skin kept, nothing carried."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

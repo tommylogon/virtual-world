@@ -3,12 +3,17 @@ type: task
 status: done
 area: characters
 priority: medium
+related: ['task-828', 'task-733']
 ---
 
 # task-507: Structured appearance & personality fields for characters (optional, LLM-fillable)
 
 **Filed:** 2026-09-24
 **Related:** task-96, task-505
+
+<!-- deps:start -->
+**Related:** [[task-828-expanded-persona-appearance-schema-on-character-node-with-compile-into-prose]], [[task-733-character-sheet-a-full-page-worldgraph-style-person-form-that-compiles-into-viwo-primitives]]
+<!-- deps:end -->
 
 ## What
 

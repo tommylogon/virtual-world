@@ -4,9 +4,14 @@ wiki: "[[AI & Narration/Memory System]]"
 type: task
 status: done
 priority: medium
+related: ["'task-346'", "'task-403'", 'task-346', 'task-403']
 ---
 
 # Task 178: Unify Character Memory Into One Backend System
+
+<!-- deps:start -->
+**Related:** [[task-346-memory-write-dedup-same-tick-type-varied]], [[task-403-unified-agent-memory-and-knowledge]]
+<!-- deps:end -->
 
 ## Status
 

@@ -3,12 +3,17 @@ type: task
 status: done
 area: characters
 priority: high
+related: ['task-605', 'task-606']
 ---
 
 # task-653: Per-area max occupancy computed from occupant size, with entities that take no space
 
 **Filed:** 2026-09-30
 **Related:** 
+
+<!-- deps:start -->
+**Related:** [[task-605-make-size-a-real-character-property-tied-to-the-graph-editor-character-form]], [[task-606-author-scale-correct-ability-scores-per-size-tier-so-a-leviathan-is-not-str-9]]
+<!-- deps:end -->
 
 ## What
 

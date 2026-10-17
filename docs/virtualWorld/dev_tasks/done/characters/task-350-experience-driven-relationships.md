@@ -3,9 +3,14 @@ type: task
 status: done
 area: characters
 priority: high
+related: ["'task-349'", "'task-420'", 'task-349', 'task-420']
 ---
 
 # task-350: Experience-driven relationships
+
+<!-- deps:start -->
+**Related:** [[task-349-relationship-system-fixes]], [[task-420-unified-relationship-delta-path]]
+<!-- deps:end -->
 
 ## Outcome (verified 2026-09-21)
 

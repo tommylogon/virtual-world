@@ -536,8 +536,12 @@ def timing_matches(entry: dict, world) -> bool:
     sun-position source; ``sun: up/down`` uses the same daylight interval as its
     ``on_day`` trigger. A template with no ``timing`` block is always timely.
 
-    This is a *prompt* input for selection (task-704), not a gate the executor
-    enforces: a character already mid-pursuit is not stopped by dusk.
+    Call sites, stated once: the background resume path gates the START of the
+    undertaking on this (``background_plans.maybe_assign``, task-701), and the
+    MOSIAC selector will consult it when choosing among candidates (task-704).
+    A character already mid-pursuit is not stopped by dusk: an open window
+    closes without interrupting anyone, and a closed one only makes the next
+    start or resume wait for it to reopen.
     """
     timing = entry.get("timing") if isinstance(entry, dict) else None
     if not isinstance(timing, dict) or not timing:

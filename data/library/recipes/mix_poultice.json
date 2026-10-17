@@ -3,34 +3,76 @@
   "name": "Herbal Poultice",
   "description": "Mash herbs and honey into a healing poultice on cloth.",
   "ingredients": [
-    {"item": "herb_bunch", "count": 1, "consumed": true},
-    {"item": "honey", "count": 1, "consumed": true},
-    {"item": "cloth_scrap", "count": 1, "consumed": true}
+    {
+      "item": "herb_bunch",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "honey",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "cloth_scrap",
+      "count": 1,
+      "consumed": true
+    }
   ],
   "conditions": [],
   "duration_min": 15,
-  "skill_check": {"skill": "Medicine", "dc": 11},
-  "outputs": [{"item": "poultice", "count": 1}],
+  "skill_check": {
+    "skill": "Medicine",
+    "dc": 11
+  },
+  "outputs": [
+    {
+      "item": "poultice",
+      "count": 1
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "poultice", "count": 2}],
+      "outputs": [
+        {
+          "item": "poultice",
+          "count": 2
+        }
+      ],
       "message": "Potent mix — double."
     },
     "success": {
-      "outputs": [{"item": "poultice", "count": 1}],
+      "outputs": [
+        {
+          "item": "poultice",
+          "count": 1
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "weak_mash", "count": 1}],
+      "outputs": [
+        {
+          "item": "weak_mash",
+          "count": 1
+        }
+      ],
       "message": "Weak mash — half the healing."
     },
     "crit_fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "spoiled_mash", "count": 1}],
+      "outputs": [
+        {
+          "item": "spoiled_mash",
+          "count": 1
+        }
+      ],
       "message": "Spoiled mash — useless for healing."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

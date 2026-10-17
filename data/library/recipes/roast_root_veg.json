@@ -3,36 +3,82 @@
   "name": "Roast Root Veg",
   "description": "Roots buried in coals with dripping fat.",
   "ingredients": [
-    {"item": "carrot", "count": 2, "consumed": true},
-    {"item": "potato", "count": 1, "consumed": true},
-    {"item": "animal_fat", "count": 1, "consumed": true}
+    {
+      "item": "carrot",
+      "count": 2,
+      "consumed": true
+    },
+    {
+      "item": "potato",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "animal_fat",
+      "count": 1,
+      "consumed": true
+    }
   ],
   "conditions": [
-    {"type": "state_equals", "target": "campfire", "value": "on"}
+    {
+      "type": "state_equals",
+      "target": "campfire",
+      "value": "on"
+    }
   ],
   "duration_min": 30,
-  "skill_check": {"skill": "Cooking", "dc": 9},
-  "outputs": [{"item": "roast_veg", "count": 2}],
+  "skill_check": {
+    "skill": "Cooking",
+    "dc": 9
+  },
+  "outputs": [
+    {
+      "item": "roast_veg",
+      "count": 2
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "roast_veg", "count": 3}],
+      "outputs": [
+        {
+          "item": "roast_veg",
+          "count": 3
+        }
+      ],
       "message": "Caramelized edges, fluffy middles — extra."
     },
     "success": {
-      "outputs": [{"item": "roast_veg", "count": 2}],
+      "outputs": [
+        {
+          "item": "roast_veg",
+          "count": 2
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "roast_veg", "count": 1}],
+      "outputs": [
+        {
+          "item": "roast_veg",
+          "count": 1
+        }
+      ],
       "message": "Half raw, half done — one good portion."
     },
     "crit_fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "charred_veg", "count": 1}],
+      "outputs": [
+        {
+          "item": "charred_veg",
+          "count": 1
+        }
+      ],
       "message": "Coal-roasted to actual coal."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

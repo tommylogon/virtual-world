@@ -4,6 +4,7 @@ wiki: "[[Rules Engine/Triggers & Effects]]"
 type: task
 status: review
 priority: medium
+related: ['task-203', 'task-297', 'task-306', 'task-503']
 ---
 
 # Stateful Continuous Triggers (While State = X → Effect)
@@ -13,6 +14,10 @@ priority: medium
 **Status**: In Review — implemented (code-verified 2026-08-11). `on_state_enter`/`on_state_exit` trigger types (`engine/trigger_system.py:40-41/1759/2002`, fired on state change at `engine/effects.py:478-487`); `on_tick` + `state_equals` pattern documented in Audit below.
 
 ---
+
+<!-- deps:start -->
+**Related:** [[task-203-set-adjust-parameters]], [[task-297-vitals-readout-trigger-condition-message]], [[task-306-warn-empty-triggers]], [[task-503-behavior-mode-compile-honesty-stop-dropping-no-branch-actions]]
+<!-- deps:end -->
 
 ## What
 

@@ -3,6 +3,7 @@ type: task
 status: review
 area: items
 priority: medium
+related: [task-391, task-534, task-604, task-607]
 ---
 
 # task-537: Spell effect and condition catalogue — review list
@@ -10,6 +11,10 @@ priority: medium
 **Filed:** 2026-09-27
 **Related:** task-391 (Lyrie's spellbook), task-534 (missing body reactions)
 **Purpose:** a review list, not an implementation task.
+
+<!-- deps:start -->
+**Related:** [[task-391-lyrie-spell-items]], [[task-534-missing-body-reaction-sneeze]], [[task-604-split-defense-into-two-anti-correlated-axes-damage-reduction-and-evasion]], [[task-607-damage-reduction-must-be-percentage-not-flat-subtraction]]
+<!-- deps:end -->
 
 ## What this is
 

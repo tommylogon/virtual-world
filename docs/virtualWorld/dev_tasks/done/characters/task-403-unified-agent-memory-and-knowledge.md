@@ -3,6 +3,7 @@ type: task
 status: done
 area: characters
 priority: high
+related: ["'task-178'", "'task-346'", 'task-178', 'task-346']
 ---
 
 # task-403: Unified agent memory and knowledge system
@@ -10,6 +11,10 @@ priority: high
 **Filed:** 2026-09-17  
 **Depends on:** task-324 (domain tags feed population queries), task-399
 (background simulation needs memory consolidation)
+
+<!-- deps:start -->
+**Related:** [[task-178-unify-memory-systems]], [[task-346-memory-write-dedup-same-tick-type-varied]]
+<!-- deps:end -->
 
 ## Progress
 

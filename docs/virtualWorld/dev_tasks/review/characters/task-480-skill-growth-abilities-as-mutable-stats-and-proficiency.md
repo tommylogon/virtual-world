@@ -3,12 +3,17 @@ type: task
 status: review
 area: characters
 priority: low
+related: ["'task-476'", "'task-519'", 'task-476', 'task-519']
 ---
 
 # task-480: Skill growth, abilities as mutable stats, and proficiency
 
 **Filed:** 2026-09-23
 **Related:** task-472, task-474
+
+<!-- deps:start -->
+**Related:** [[task-476-npc-skill-profiles-from-traits-and-roles]], [[task-519-character-starting-loadouts-from-the-item-library]]
+<!-- deps:end -->
 
 ## What
 

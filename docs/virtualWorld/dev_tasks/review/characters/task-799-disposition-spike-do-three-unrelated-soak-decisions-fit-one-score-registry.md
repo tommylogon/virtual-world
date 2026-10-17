@@ -4,7 +4,7 @@ status: review
 area: characters
 priority: high
 wiki: "[[Character Pursuits]]"
-related: [task-704]
+related: ["'task-704'", "'task-800'", "'task-802'", "'task-803'", "'task-804'", "'task-805'", "'task-806'", 'task-800', 'task-802', 'task-803', 'task-804', 'task-805', 'task-806']
 ---
 
 # task-799: Disposition spike: do three unrelated soak decisions fit one score registry
@@ -13,7 +13,7 @@ related: [task-704]
 **Related:** task-704
 
 <!-- deps:start -->
-**Related:** [[task-704-mosiac-selector-needs-memory-and-personality-choose-and-bind-plans]]
+**Related:** [[task-704-mosiac-selector-needs-memory-and-personality-choose-and-bind-plans]], [[task-800-disposition-score-registry-declare-the-decision-score-vocabulary]], [[task-802-disposition-character-weights-from-traits-plus-live-modifiers]], [[task-803-disposition-value-gates-traits-and-morality-as-hard-exclusions]], [[task-804-disposition-pick-argmax-with-a-stable-tie-break]], [[task-805-disposition-whispers-render-the-score-registry-as-words-for-the-llm]], [[task-806-split-traits-capabilities-from-personality-decision-dials]]
 <!-- deps:end -->
 
 ## What

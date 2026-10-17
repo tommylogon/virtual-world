@@ -3,25 +3,60 @@
   "name": "Chop Firewood",
   "description": "Split a log into burnable firewood with an axe.",
   "ingredients": [
-    {"item": "log", "count": 1, "consumed": true},
-    {"item": "axe", "count": 1, "consumed": false}
+    {
+      "item": "log",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "axe",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [],
   "duration_min": 15,
-  "skill_check": {"skill": "Survival", "dc": 9},
-  "outputs": [{"item": "firewood", "count": 1}],
+  "skill_check": {
+    "skill": "Survival",
+    "dc": 9
+  },
+  "outputs": [
+    {
+      "item": "firewood",
+      "count": 1
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "firewood", "count": 1}, {"item": "kindling", "count": 2}],
+      "outputs": [
+        {
+          "item": "firewood",
+          "count": 1
+        },
+        {
+          "item": "kindling",
+          "count": 2
+        }
+      ],
       "message": "Every split lands true — plus kindling from the trimmings."
     },
     "success": {
-      "outputs": [{"item": "firewood", "count": 1}],
+      "outputs": [
+        {
+          "item": "firewood",
+          "count": 1
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "firewood", "count": 1}],
+      "outputs": [
+        {
+          "item": "firewood",
+          "count": 1
+        }
+      ],
       "message": "Slow work and short billets, but it burns."
     },
     "crit_fail": {
@@ -30,6 +65,8 @@
       "message": "The axe jams deep — log kept, time lost, axe freed with effort."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

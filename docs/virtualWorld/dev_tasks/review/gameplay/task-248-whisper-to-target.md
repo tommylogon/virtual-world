@@ -1,4 +1,5 @@
 ---
+related: [task-247, task-321]
 type: task
 status: review
 area: gameplay
@@ -9,6 +10,10 @@ priority: medium
 
 **Status:** In Review — implemented 2026-08-21, moved from todo/
 **Source:** `dev_tasks/developer ideas.md` (whisper to target)
+
+<!-- deps:start -->
+**Related:** [[task-247-singing]], [[task-321-conversation-response-instinct]]
+<!-- deps:end -->
 
 ## Implemented (2026-08-21)
 

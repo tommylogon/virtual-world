@@ -3,11 +3,16 @@ type: task
 status: done
 area: characters
 priority: medium
+related: ["'task-178'", "'task-403'", 'task-178', 'task-403']
 ---
 
 # task-346 — Dedup same-tick near-verbatim memory writes
 
 **Status**: Done — implemented 2026-08-27.
+
+<!-- deps:start -->
+**Related:** [[task-178-unify-memory-systems]], [[task-403-unified-agent-memory-and-knowledge]]
+<!-- deps:end -->
 
 ## Found
 

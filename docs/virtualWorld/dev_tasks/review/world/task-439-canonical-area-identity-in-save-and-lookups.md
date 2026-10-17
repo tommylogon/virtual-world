@@ -3,6 +3,7 @@ type: task
 status: review
 area: world
 priority: high
+related: ['task-401', 'task-397', 'task-581', 'task-407', 'task-393', 'task-222', 'task-323']
 ---
 
 # task-439: Canonical area identity in the save and in area lookups
@@ -18,6 +19,10 @@ compiler is expected to own ids. **task-401 is the real remaining dependent** â€
 the save layer is still display-name-keyed (`engine/serialization.py` writes
 `rooms_serialized[node.name]`), and 401 needs `current_area` as an id.
 **Related:** task-407 (graph edge indexing + case normalization), task-393 (validator triage), task-222 (serialize exits graph-only), `engine/serialization.py`, `docs/virtualWorld/World Building/Rooms & Areas.md`
+
+<!-- deps:start -->
+**Related:** [[task-401-chunk-persistence-and-gateway-ways]], [[task-397-world-scope-hierarchy-and-projection]], [[task-581-stable-area-ids-and-one-authoritative-location-for-characters-and-items]], [[task-407-graph-edge-indexing-case-normalization-and-exits-cache]], [[task-393-validator-triage-panel]], [[task-222-serialize-exits-graph-only]], [[task-323-library-lint-validator]]
+<!-- deps:end -->
 
 ## What
 

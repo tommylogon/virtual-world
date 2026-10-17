@@ -1,4 +1,5 @@
 ---
+related: [task-508, task-155]
 area: gameplay
 type: task
 status: review
@@ -12,6 +13,10 @@ priority: medium
 **Status**: Todo
 
 ---
+
+<!-- deps:start -->
+**Related:** [[task-508-consume-depletion-contract-engine-auto-decrement-vs-item-authored-fix-the-trigger-suggester-ai-assumption]], [[task-155-item-uses-affect-weight]]
+<!-- deps:end -->
 
 ## Why
 

@@ -3,12 +3,17 @@ type: task
 status: review
 area: items
 priority: medium
+related: [task-54, task-362, task-504]
 ---
 
 # task-518: Ranged weapons and ammunition
 
 **Filed:** 2026-09-24
 **Related:** task-54, task-362, task-427
+
+<!-- deps:start -->
+**Related:** [[task-54-weapon_system]], [[task-362-resistance-weapon-rework]], [[task-504-item-quantity-property-and-pooled-resource-nodes]]
+<!-- deps:end -->
 
 ## What
 

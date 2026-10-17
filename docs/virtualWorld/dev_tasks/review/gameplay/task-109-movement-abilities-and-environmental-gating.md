@@ -1,4 +1,5 @@
 ---
+related: [task-230]
 area: gameplay
 wiki: "[[Items & Inventory/Items Overview]]"
 blocked_by: [task-110]
@@ -18,6 +19,7 @@ priority: medium
 
 <!-- deps:start -->
 **Blocked by:** [[task-110-see-through-windows]]
+**Related:** [[task-230-outdoor-lighting-time-of-day]]
 <!-- deps:end -->
 
 ## What

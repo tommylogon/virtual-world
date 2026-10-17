@@ -3,12 +3,17 @@ type: task
 status: todo
 area: characters
 priority: high
+related: ['"\'task-349\'"', '"\'task-350\'"', '"\'task-420\'"', "'task-349'", "'task-350'", "'task-420'", 'task-734']
 ---
 
 # task-619: Relationships are keyed by display name, not node id
 
 **Filed:** 2026-09-30
 **Related:** 
+
+<!-- deps:start -->
+**Related:** [[task-349-relationship-system-fixes]], [[task-350-experience-driven-relationships]], [[task-420-unified-relationship-delta-path]], [[task-734-knowledge-is-memory-fold-known-recipes-known-places-into-one-prose-data-record-with-episodic-vs-semantic-kinds]]
+<!-- deps:end -->
 
 ## What
 

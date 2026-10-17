@@ -3,12 +3,17 @@ type: task
 status: review
 area: library
 priority: high
+related: ['task-660', 'task-206', 'task-213', 'task-462', 'bug-512', 'task-291']
 ---
 
 # task-750: Migrate the mature boolean to a mature content tag, registered and scanned across node types
 
 **Filed:** 2026-10-09
 **Related:** task-660 (auto-dress mature gate), task-206 (mature_content toggle), task-213/462 (mature traits/conditions hiding)
+
+<!-- deps:start -->
+**Related:** [[task-660-auto-dress-from-interests-is-deterministic-tag-matching-not-llm-driven-button-and-help-text-imply-otherwise]], [[task-206-mature-content-toggle]], [[task-213-mature-traits]], [[task-462-conditions-single-source-of-truth-data-driven-json-catalog]], [[bug-512-api-tags-validate-returns-nonsense-fuzzy-suggestions-for-unknown-tags]], [[task-291-unified-library-api-and-data-driven-catalogs]]
+<!-- deps:end -->
 
 ## What
 

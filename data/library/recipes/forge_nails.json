@@ -3,38 +3,92 @@
   "name": "Forge Nails",
   "description": "Draw out an ingot into nails at the forge.",
   "ingredients": [
-    {"item": "iron_ingot", "count": 1, "consumed": true},
-    {"item": "charcoal", "count": 1, "consumed": true},
-    {"item": "forge", "count": 1, "consumed": false},
-    {"item": "anvil", "count": 1, "consumed": false},
-    {"item": "hammer", "count": 1, "consumed": false}
+    {
+      "item": "iron_ingot",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "charcoal",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "forge",
+      "count": 1,
+      "consumed": false
+    },
+    {
+      "item": "anvil",
+      "count": 1,
+      "consumed": false
+    },
+    {
+      "item": "hammer",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [
-    {"type": "state_equals", "target": "forge", "value": "on"}
+    {
+      "type": "state_equals",
+      "target": "forge",
+      "value": "on"
+    }
   ],
   "duration_min": 30,
-  "skill_check": {"skill": "Smithing", "dc": 10},
-  "outputs": [{"item": "nails", "count": 1}],
+  "skill_check": {
+    "skill": "Smithing",
+    "dc": 10
+  },
+  "outputs": [
+    {
+      "item": "nails",
+      "count": 1
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "nails", "count": 2}],
+      "outputs": [
+        {
+          "item": "nails",
+          "count": 2
+        }
+      ],
       "message": "A fistful and then some — double."
     },
     "success": {
-      "outputs": [{"item": "nails", "count": 1}],
+      "outputs": [
+        {
+          "item": "nails",
+          "count": 1
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "bent_nails", "count": 1}],
+      "outputs": [
+        {
+          "item": "bent_nails",
+          "count": 1
+        }
+      ],
       "message": "Half bent — usable carefully."
     },
     "crit_fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "slag_sliver", "count": 1}],
+      "outputs": [
+        {
+          "item": "slag_sliver",
+          "count": 1
+        }
+      ],
       "message": "Burned to a sliver with bright in it."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

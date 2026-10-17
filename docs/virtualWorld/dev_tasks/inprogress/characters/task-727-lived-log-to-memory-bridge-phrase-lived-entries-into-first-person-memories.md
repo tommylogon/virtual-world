@@ -3,12 +3,17 @@ type: task
 status: inprogress
 area: characters
 priority: high
+related: ["'task-447'", "'task-457'", 'task-447', 'task-457']
 ---
 
 # task-727: Lived log to memory bridge: phrase lived entries into first-person memories
 
 **Filed:** 2026-10-06
 **Related:** task-725, task-714, task-412, task-399
+
+<!-- deps:start -->
+**Related:** [[task-447-character-nicknames-and-aliases]], [[task-457-character-nodes-are-the-canonical-character-record-human-agent-simple-npc]]
+<!-- deps:end -->
 
 ## What
 

@@ -3,20 +3,46 @@
   "name": "Settle Muddy Water",
   "description": "Let silt settle out in a pail. Patience, not skill.",
   "ingredients": [
-    {"item": "muddy_water", "count": 1, "consumed": true},
-    {"item": "wooden_pail", "count": 1, "consumed": false}
+    {
+      "item": "muddy_water",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "wooden_pail",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [],
   "duration_min": 30,
-  "skill_check": {"skill": "Survival", "dc": 7},
-  "outputs": [{"item": "settled_water", "count": 1}],
+  "skill_check": {
+    "skill": "Survival",
+    "dc": 7
+  },
+  "outputs": [
+    {
+      "item": "settled_water",
+      "count": 1
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "settled_water", "count": 2}],
+      "outputs": [
+        {
+          "item": "settled_water",
+          "count": 2
+        }
+      ],
       "message": "Decanted clean off the silt — double yield."
     },
     "success": {
-      "outputs": [{"item": "settled_water", "count": 1}],
+      "outputs": [
+        {
+          "item": "settled_water",
+          "count": 1
+        }
+      ],
       "message": ""
     },
     "fail": {
@@ -30,6 +56,8 @@
       "message": "Knocked the pail over. Water lost."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

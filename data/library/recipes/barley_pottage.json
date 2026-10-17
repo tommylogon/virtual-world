@@ -3,37 +3,87 @@
   "name": "Barley Pottage",
   "description": "Thick barley stew with onion — the medieval staple pot.",
   "ingredients": [
-    {"item": "barley", "count": 2, "consumed": true},
-    {"item": "boiled_water", "count": 1, "consumed": true},
-    {"item": "onion", "count": 1, "consumed": true},
-    {"item": "cooking_pot", "count": 1, "consumed": false}
+    {
+      "item": "barley",
+      "count": 2,
+      "consumed": true
+    },
+    {
+      "item": "boiled_water",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "onion",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "cooking_pot",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [
-    {"type": "state_equals", "target": "campfire", "value": "on"}
+    {
+      "type": "state_equals",
+      "target": "campfire",
+      "value": "on"
+    }
   ],
   "duration_min": 40,
-  "skill_check": {"skill": "Cooking", "dc": 12},
-  "outputs": [{"item": "pottage", "count": 2}],
+  "skill_check": {
+    "skill": "Cooking",
+    "dc": 12
+  },
+  "outputs": [
+    {
+      "item": "pottage",
+      "count": 2
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "pottage", "count": 3}],
+      "outputs": [
+        {
+          "item": "pottage",
+          "count": 3
+        }
+      ],
       "message": "Hearty and thick — feeds the whole table."
     },
     "success": {
-      "outputs": [{"item": "pottage", "count": 2}],
+      "outputs": [
+        {
+          "item": "pottage",
+          "count": 2
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "thin_gruel", "count": 2}],
+      "outputs": [
+        {
+          "item": "thin_gruel",
+          "count": 2
+        }
+      ],
       "message": "Thin and watery, but warm."
     },
     "crit_fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "scorched_pot", "count": 1}],
+      "outputs": [
+        {
+          "item": "scorched_pot",
+          "count": 1
+        }
+      ],
       "message": "Scorched to the pot — food lost, pot kept."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

@@ -3,7 +3,7 @@ area: gameplay
 wiki: "[[World Building/Rooms & Areas]]"
 type: task
 status: todo
-priority: medium
+priority: low
 ---
 
 # Task 99: Area Grids — Movement Costs, Size/Shape, and Pathfinding

@@ -3,25 +3,60 @@
   "name": "Signal Fire Stack",
   "description": "Stack firewood and green boughs into a signal pyre on high ground.",
   "ingredients": [
-    {"item": "firewood", "count": 4, "consumed": true},
-    {"item": "green_bough", "count": 2, "consumed": true}
+    {
+      "item": "firewood",
+      "count": 4,
+      "consumed": true
+    },
+    {
+      "item": "green_bough",
+      "count": 2,
+      "consumed": true
+    }
   ],
   "conditions": [],
   "duration_min": 20,
-  "skill_check": {"skill": "Survival", "dc": 9},
-  "outputs": [{"item": "signal_pyre", "count": 1, "place_in_area": true}],
+  "skill_check": {
+    "skill": "Survival",
+    "dc": 9
+  },
+  "outputs": [
+    {
+      "item": "signal_pyre",
+      "count": 1,
+      "place_in_area": true
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "signal_pyre", "count": 1, "place_in_area": true}],
+      "outputs": [
+        {
+          "item": "signal_pyre",
+          "count": 1,
+          "place_in_area": true
+        }
+      ],
       "message": "Perfect cone — smoke by day, flame by night. (Placement is the task-703 executor's job; the pyre spawns carried until then.)"
     },
     "success": {
-      "outputs": [{"item": "signal_pyre", "count": 1, "place_in_area": true}],
+      "outputs": [
+        {
+          "item": "signal_pyre",
+          "count": 1,
+          "place_in_area": true
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "damp_pyre", "count": 1, "place_in_area": true}],
+      "outputs": [
+        {
+          "item": "damp_pyre",
+          "count": 1,
+          "place_in_area": true
+        }
+      ],
       "message": "Damp-laid — slow to light, but stacked."
     },
     "crit_fail": {
@@ -30,6 +65,8 @@
       "message": "Scattered stack — restack it, nothing lost."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

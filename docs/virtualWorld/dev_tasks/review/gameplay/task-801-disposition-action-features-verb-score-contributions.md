@@ -4,7 +4,7 @@ status: review
 area: gameplay
 priority: medium
 wiki: "[[Character Pursuits]]"
-related: [task-704, task-691, task-714, task-800, task-802, task-803, task-804]
+related: [task-704, task-691, task-714, task-800, task-802, task-803, task-804, task-812]
 blocked_by: [task-800]
 ---
 
@@ -15,7 +15,7 @@ blocked_by: [task-800]
 
 <!-- deps:start -->
 **Blocked by:** [[task-800-disposition-score-registry-declare-the-decision-score-vocabulary]]
-**Related:** [[task-704-mosiac-selector-needs-memory-and-personality-choose-and-bind-plans]], [[task-691-memory-mind-interface-dynamics-badges-connections-per-person-profiles-dashboard]], [[task-714-character-mind-panel-connect-memories-motives-and-current-pursuits]], [[task-800-disposition-score-registry-declare-the-decision-score-vocabulary]], [[task-802-disposition-character-weights-from-traits-plus-live-modifiers]], [[task-803-disposition-value-gates-traits-and-morality-as-hard-exclusions]], [[task-804-disposition-pick-argmax-with-a-stable-tie-break]]
+**Related:** [[task-704-mosiac-selector-needs-memory-and-personality-choose-and-bind-plans]], [[task-691-memory-mind-interface-dynamics-badges-connections-per-person-profiles-dashboard]], [[task-714-character-mind-panel-connect-memories-motives-and-current-pursuits]], [[task-800-disposition-score-registry-declare-the-decision-score-vocabulary]], [[task-802-disposition-character-weights-from-traits-plus-live-modifiers]], [[task-803-disposition-value-gates-traits-and-morality-as-hard-exclusions]], [[task-804-disposition-pick-argmax-with-a-stable-tie-break]], [[task-812-mosiac-per-character-context-assembly-m-o-s-i-a-c]]
 <!-- deps:end -->
 
 ## What

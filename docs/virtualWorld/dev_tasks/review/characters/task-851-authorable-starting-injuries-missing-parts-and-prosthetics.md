@@ -3,6 +3,7 @@ type: task
 status: review
 area: characters
 priority: medium
+related: ["'task-253'", 'task-253']
 wiki: "[[Characters/Persona]]"
 ---
 
@@ -10,6 +11,10 @@ wiki: "[[Characters/Persona]]"
 
 **Filed:** 2026-10-16
 **Related:** 
+
+<!-- deps:start -->
+**Related:** [[task-253-body-part-targeted-injuries]]
+<!-- deps:end -->
 
 ## What
 

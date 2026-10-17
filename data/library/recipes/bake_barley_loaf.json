@@ -3,35 +3,77 @@
   "name": "Barley Loaf",
   "description": "Bake risen dough into a barley loaf in the clay oven.",
   "ingredients": [
-    {"item": "risen_dough", "count": 2, "consumed": true},
-    {"item": "clay_oven", "count": 1, "consumed": false}
+    {
+      "item": "risen_dough",
+      "count": 2,
+      "consumed": true
+    },
+    {
+      "item": "clay_oven",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [
-    {"type": "state_equals", "target": "campfire", "value": "on"}
+    {
+      "type": "state_equals",
+      "target": "campfire",
+      "value": "on"
+    }
   ],
   "duration_min": 40,
-  "skill_check": {"skill": "Cooking", "dc": 11},
-  "outputs": [{"item": "barley_loaf", "count": 1}],
+  "skill_check": {
+    "skill": "Cooking",
+    "dc": 11
+  },
+  "outputs": [
+    {
+      "item": "barley_loaf",
+      "count": 1
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "barley_loaf", "count": 2}],
+      "outputs": [
+        {
+          "item": "barley_loaf",
+          "count": 2
+        }
+      ],
       "message": "Two crackling loaves."
     },
     "success": {
-      "outputs": [{"item": "barley_loaf", "count": 1}],
+      "outputs": [
+        {
+          "item": "barley_loaf",
+          "count": 1
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "barley_loaf", "count": 1}],
+      "outputs": [
+        {
+          "item": "barley_loaf",
+          "count": 1
+        }
+      ],
       "message": "Small and dense — half joy, full food."
     },
     "crit_fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "burned_loaf", "count": 1}],
+      "outputs": [
+        {
+          "item": "burned_loaf",
+          "count": 1
+        }
+      ],
       "message": "Doorstop, not dinner."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

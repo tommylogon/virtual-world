@@ -3,6 +3,7 @@ type: task
 status: done
 area: ui
 priority: medium
+related: ['task-714', 'task-729', 'task-730', 'task-785', 'task-787', 'task-788', 'task-820', 'task-821', 'task-830']
 parent: task-685
 ---
 
@@ -14,6 +15,7 @@ parent: task-685
 
 <!-- deps:start -->
 **Parent:** [[task-685-memory-dynamics-memories-that-reinforce-fade-contradict-and-change-the-character]]
+**Related:** [[task-714-character-mind-panel-connect-memories-motives-and-current-pursuits]], [[task-729-move-relationship-emotional-state-and-memory-add-edit-generate-controls-into-the-mind-panel]], [[task-730-chat-based-interactive-memory-creation-the-character-reacts-in-voice-to-author-new-memories]], [[task-785-mind-panel-click-a-memory-to-inspect-its-underlying-record-and-evidence]], [[task-787-mind-panel-migrate-the-remaining-mind-surfaces-out-of-the-bio-and-advanced-tabs]], [[task-788-mind-panel-fullscreen-mode]], [[task-820-mind-panel-one-tabbed-mind-surface-and-one-entry-point]], [[task-821-mind-panel-relocate-the-gimp-goal-editor-out-of-the-bio-tab]], [[task-830-mind-panel-persona-tab-for-advanced-appearance-personality-schema-with-compile-button]]
 <!-- deps:end -->
 
 ## What

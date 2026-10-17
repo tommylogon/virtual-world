@@ -1,4 +1,5 @@
 ---
+related: [task-437, task-465, task-131]
 area: gameplay
 wiki: "[[Rules Engine/Triggers & Effects]]"
 type: task
@@ -11,6 +12,10 @@ priority: medium
 **Status**: todo
 **Priority**: Low
 **Filed**: 2026-07-24
+
+<!-- deps:start -->
+**Related:** [[task-437-turn-order-source-of-truth-and-modes]], [[task-465-turn-mode-dial-fold-simultaneous-into-the-mode-dropdown-add-simultaneous-per-room]], [[task-131-stateful-actions-over-time]]
+<!-- deps:end -->
 
 ## What
 

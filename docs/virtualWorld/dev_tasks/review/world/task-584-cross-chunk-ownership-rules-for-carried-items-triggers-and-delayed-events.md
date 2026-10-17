@@ -3,12 +3,17 @@ type: task
 status: review
 area: world
 priority: medium
+related: ['task-401', 'task-581', 'task-583', 'task-582']
 ---
 
 # task-584: Cross-chunk ownership rules for carried items, triggers and delayed events
 
 **Filed:** 2026-09-28
 **Related:** task-401, task-581, task-583
+
+<!-- deps:start -->
+**Related:** [[task-401-chunk-persistence-and-gateway-ways]], [[task-581-stable-area-ids-and-one-authoritative-location-for-characters-and-items]], [[task-583-global-scope-index-gateway-ways-and-load-before-you-move]], [[task-582-chunk-load-unload-and-merge-apis-on-worldgraph]]
+<!-- deps:end -->
 
 ## What
 

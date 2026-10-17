@@ -3,6 +3,7 @@ type: task
 status: review
 area: world
 priority: high
+related: ['task-397', 'task-398', 'task-399', 'task-495', 'task-496', 'task-580', 'task-585', 'task-9', 'task-323', 'task-324']
 blocked_by: [task-9, task-323, task-324, task-397, task-398, task-399]
 ---
 
@@ -14,6 +15,7 @@ tag-aware furnishing.
 
 <!-- deps:start -->
 **Blocked by:** [[task-9-procedural_item_placement]], [[task-323-library-lint-validator]], [[task-324-domain-tag-schema-and-area-furniture-pass]], [[task-397-world-scope-hierarchy-and-projection]], [[task-398-deterministic-structure-generation]], [[task-399-background-character-simulation-and-reactivation]]
+**Related:** [[task-397-world-scope-hierarchy-and-projection]], [[task-398-deterministic-structure-generation]], [[task-399-background-character-simulation-and-reactivation]], [[task-495-worldpainter-recursive-scope-grids-and-3-mode-editor]], [[task-496-worldpainter-grid-to-graph-compiler-cells-to-areas-and-ways]], [[task-580-unmade-scope-generate-affordance-and-generation-preview]], [[task-585-allow-regenerate-overwrites-a-hand-edit-on-a-generated-node]], [[task-9-procedural_item_placement]], [[task-323-library-lint-validator]], [[task-324-domain-tag-schema-and-area-furniture-pass]]
 <!-- deps:end -->
 
 ## What

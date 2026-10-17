@@ -3,16 +3,39 @@
   "name": "Temper Tool",
   "description": "Re-harden a dulled tool in forge heat and quench.",
   "ingredients": [
-    {"item": "dull_tool", "count": 1, "consumed": false},
-    {"item": "charcoal", "count": 1, "consumed": true},
-    {"item": "forge", "count": 1, "consumed": false},
-    {"item": "quench_barrel", "count": 1, "consumed": false}
+    {
+      "item": "dull_tool",
+      "count": 1,
+      "consumed": false
+    },
+    {
+      "item": "charcoal",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "forge",
+      "count": 1,
+      "consumed": false
+    },
+    {
+      "item": "quench_barrel",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [
-    {"type": "state_equals", "target": "forge", "value": "on"}
+    {
+      "type": "state_equals",
+      "target": "forge",
+      "value": "on"
+    }
   ],
   "duration_min": 20,
-  "skill_check": {"skill": "Smithing", "dc": 12},
+  "skill_check": {
+    "skill": "Smithing",
+    "dc": 12
+  },
   "outputs": [],
   "outcomes": {
     "crit_success": {
@@ -25,15 +48,27 @@
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "brittle_tool", "count": 1}],
+      "outputs": [
+        {
+          "item": "brittle_tool",
+          "count": 1
+        }
+      ],
       "message": "Quenched too hard — brittle, half uses."
     },
     "crit_fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "cracked_tool", "count": 1}],
+      "outputs": [
+        {
+          "item": "cracked_tool",
+          "count": 1
+        }
+      ],
       "message": "Cracked in the quench — scrap it for the iron."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

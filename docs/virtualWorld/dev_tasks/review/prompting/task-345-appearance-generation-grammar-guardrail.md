@@ -1,4 +1,5 @@
 ---
+related: [task-328]
 type: task
 status: review
 area: prompting
@@ -20,6 +21,10 @@ silent repair LLM pass; if still flagged → safe client-side merge fallback, ne
 persist broken text). Note: the backend `_update_equipment_description` prompt
 (equipment.py:558) is currently log-only — the LLM call was removed in a prior
 refactor; the true generation path is this browser-side call.
+
+<!-- deps:start -->
+**Related:** [[task-328-neutralize-sanity-flavor-text]]
+<!-- deps:end -->
 
 ## Found
 

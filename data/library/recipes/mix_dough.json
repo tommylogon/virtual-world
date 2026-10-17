@@ -3,27 +3,66 @@
   "name": "Mix Dough",
   "description": "Work flour, water, and salt into dough.",
   "ingredients": [
-    {"item": "coarse_meal", "count": 2, "consumed": true},
-    {"item": "boiled_water", "count": 1, "consumed": true},
-    {"item": "salt", "count": 1, "consumed": true},
-    {"item": "wooden_bowl", "count": 1, "consumed": false}
+    {
+      "item": "coarse_meal",
+      "count": 2,
+      "consumed": true
+    },
+    {
+      "item": "boiled_water",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "salt",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "wooden_bowl",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [],
   "duration_min": 15,
-  "skill_check": {"skill": "Cooking", "dc": 8},
-  "outputs": [{"item": "dough", "count": 2}],
+  "skill_check": {
+    "skill": "Cooking",
+    "dc": 8
+  },
+  "outputs": [
+    {
+      "item": "dough",
+      "count": 2
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "dough", "count": 3}],
+      "outputs": [
+        {
+          "item": "dough",
+          "count": 3
+        }
+      ],
       "message": "Silky and elastic — extra dough."
     },
     "success": {
-      "outputs": [{"item": "dough", "count": 2}],
+      "outputs": [
+        {
+          "item": "dough",
+          "count": 2
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "sticky_dough", "count": 1}],
+      "outputs": [
+        {
+          "item": "sticky_dough",
+          "count": 1
+        }
+      ],
       "message": "Too wet — sticky but workable."
     },
     "crit_fail": {
@@ -32,6 +71,8 @@
       "message": "Soupy mess. Start over."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

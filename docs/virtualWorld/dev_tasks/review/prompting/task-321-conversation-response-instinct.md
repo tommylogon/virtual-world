@@ -1,4 +1,5 @@
 ---
+related: [task-293, task-327]
 id: 321
 title: Conversation Response Instinct (salience + inclination + anti-repeat)
 status: review
@@ -12,6 +13,10 @@ area: prompting
 # task-321: Conversation Response Instinct
 
 **Status** — In Review — implemented + verified 2026-08-21 (node --check clean, live browser test against running server using real Lyrie state, pytest baseline unchanged). Moved from todo/ 2026-08-21.
+
+<!-- deps:start -->
+**Related:** [[task-293-contextual-available-actions]], [[task-327-vitals-threshold-context-awareness]]
+<!-- deps:end -->
 
 ## What
 

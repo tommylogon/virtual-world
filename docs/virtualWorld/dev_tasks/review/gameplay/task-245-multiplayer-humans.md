@@ -1,4 +1,5 @@
 ---
+related: [task-244]
 type: task
 status: review
 area: gameplay
@@ -9,6 +10,10 @@ priority: medium
 
 **Status:** In Review — local multi-human MVP implemented 2026-08-16.
 **Source:** `dev_tasks/developer ideas.md` (multiplayer humans online or local)
+
+<!-- deps:start -->
+**Related:** [[task-244-human-player-turn-parameters]]
+<!-- deps:end -->
 
 ## Local MVP implementation (2026-08-16)
 

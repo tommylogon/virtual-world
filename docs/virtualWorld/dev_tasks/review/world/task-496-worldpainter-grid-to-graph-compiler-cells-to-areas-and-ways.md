@@ -3,6 +3,7 @@ type: task
 status: review
 area: world
 priority: high
+related: ['task-495', 'task-398', 'task-400', 'task-520', 'task-528', 'task-529', 'task-525', 'bug-529', 'bug-530', 'task-535', 'task-758']
 ---
 
 # task-496: WorldPainter: grid-to-graph compiler (cells to areas and ways)
@@ -13,6 +14,10 @@ priority: high
 `docs/design/world-environment-taxonomy.md`
 
 **Overlaps task-398.** task-398 already owns the deterministic generation contract (the `GenerationPatch` shape, provenance, apply-once, "a manual edit survives a second run"). This task is the *painted-grid recipe* — wilderness/road/biome tiles + region-merge — that should emit a `GenerationPatch` through 398's contract rather than a parallel generator. Decide whether to fold it into 398 or keep it as the grid recipe.
+
+<!-- deps:start -->
+**Related:** [[task-495-worldpainter-recursive-scope-grids-and-3-mode-editor]], [[task-398-deterministic-structure-generation]], [[task-400-pines-world-scale-vertical-slice]], [[task-520-worldpainter-scale-canvas-grid-surface-route-tool-batch-paint]], [[task-528-assign-selected-areas-to-a-scope-promote-a-selection-to-a-placed-feature]], [[task-529-feature-entry-direction-phrases-narrative-move-verbs-on-entry-edges]], [[task-525-elevation-floor-delta-gates-traversal-climb-required-past-n-floors]], [[bug-529-worldpainter-compiled-ways-carry-no-tags-so-every-generated-way-reads-tags-none]], [[bug-530-compiled-open-outdoor-ways-miss-prevent-close-so-a-road-into-the-forest-can-be-hand-closed]], [[task-535-promote-a-graph-selection-into-a-new-child-scope-with-a-gateway]], [[task-758-biome-records-add-climate-and-neighbour-fields-for-the-palette]]
+<!-- deps:end -->
 
 ## What
 

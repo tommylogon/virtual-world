@@ -3,12 +3,17 @@ type: task
 status: review
 area: triggers
 priority: medium
+related: ['task-99', 'task-331', 'task-167']
 ---
 
 # Task-330: Trigger Effect — LLM-Generated Response
 
 **Status**: Todo — blocked 2026-08-30: engine-side LLM provider was removed (task-99, backend LLM modules). Trigger effects fire server-side; llm_respond needs a server LLM path (provider route or browser round-trip callback). Composition design (on_speech + speech_matches gate) stays valid — implement once the LLM host question is settled.
 **Filed**: 2026-08-23
+
+<!-- deps:start -->
+**Related:** [[task-99-room-grids-and-movement]], [[task-331-behavior-action-llm-response]], [[task-167-speech-phrase-triggers]]
+<!-- deps:end -->
 
 ## What
 

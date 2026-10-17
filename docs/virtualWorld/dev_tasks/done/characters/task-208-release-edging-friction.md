@@ -3,6 +3,7 @@ area: characters
 status: done
 type: task
 priority: medium
+related: ["'task-207'", "'task-209'", "'task-210'", "'task-211'", "'task-212'", "'task-213'", "'task-215'", 'task-207', 'task-209', 'task-210', 'task-211', 'task-212', 'task-213', 'task-215']
 ---
 
 # Release Event, Edging & Clothing Friction
@@ -12,6 +13,10 @@ priority: medium
 **Status**: Done — shipped in v1.4.0
 
 ---
+
+<!-- deps:start -->
+**Related:** [[task-207-body-state-and-vitals]], [[task-209-physiological-state-conditions]], [[task-210-description-enrichment]], [[task-211-intimacy-verbs-actions]], [[task-212-verb-multipliers]], [[task-213-mature-traits]], [[task-215-environmental-clothing-effects]]
+<!-- deps:end -->
 
 ## Why
 

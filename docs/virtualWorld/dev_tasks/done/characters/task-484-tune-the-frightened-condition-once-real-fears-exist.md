@@ -3,12 +3,17 @@ type: task
 status: done
 area: characters
 priority: medium
+related: ['task-469', 'task-552']
 ---
 
 # task-484: Tune the frightened condition once real fears exist
 
 **Filed:** 2026-09-23
 **Related:** task-469; task-472; task-552
+
+<!-- deps:start -->
+**Related:** [[task-469-fear-tags-per-character-fears-drive-frightened-interrupts]], [[task-552-fear-response-humans-should-fear-goblins]]
+<!-- deps:end -->
 
 ## Blocked on task-552, with the calibration data (2026-09-27)
 

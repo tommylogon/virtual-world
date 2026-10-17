@@ -3,7 +3,7 @@ type: task
 status: todo
 area: characters
 priority: medium
-related: [task-426, task-409, task-685, task-699, task-701, task-702]
+related: ['"\'task-409\'"', '"\'task-426\'"', '"\'task-685\'"', '"\'task-699\'"', '"\'task-701\'"', '"\'task-702\'"', '"\'task-822\'"', '"\'task-849\'"', "'task-822'", "'task-849'", 'task-822', 'task-849']
 blocked_by: [task-701, task-702, task-705]
 ---
 
@@ -15,7 +15,7 @@ blocked_by: [task-701, task-702, task-705]
 
 <!-- deps:start -->
 **Blocked by:** [[task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries]], [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]], [[task-705-requirement-condition-leaves-quantity-area-function-knowledge-and-ownership]]
-**Related:** [[task-426-plan-archetypes-and-group-goals]], [[task-409-background-schedules-work-and-coarse-social]], [[task-685-memory-dynamics-memories-that-reinforce-fade-contradict-and-change-the-character]], [[task-699-mosiac-design-doc-schedules-plan-templates-and-recipe-activities-as-one-decision-layer]], [[task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries]], [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]]
+**Related:** [[task-409-background-schedules-work-and-coarse-social]], [[task-426-plan-archetypes-and-group-goals]], [[task-685-memory-dynamics-memories-that-reinforce-fade-contradict-and-change-the-character]], [[task-699-mosiac-design-doc-schedules-plan-templates-and-recipe-activities-as-one-decision-layer]], [[task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries]], [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]], [[task-822-gimp-goal-data-reason-carrying-refs-achievement-predicates-and-auto-reached]], [[task-849-narrative-authoring-should-feed-memories-and-goals-not-duplicate-them]]
 <!-- deps:end -->
 
 ## What

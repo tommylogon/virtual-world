@@ -3,12 +3,17 @@ type: bug
 status: review
 area: world
 priority: medium
+related: ['task-522', 'task-223', 'task-496', 'task-529']
 ---
 
 # bug-530: Compiled open outdoor ways miss prevent_close so a road into the forest can be hand-closed
 
 **Filed:** 2026-10-08
 **Related:** task-522 task-223
+
+<!-- deps:start -->
+**Related:** [[task-522-way-blocking-pass-outdoor-ways-can-t-be-hand-closed-seed-picked-blocked-subset-with-blocker-prose]], [[task-223-way-prevent-close-open-passages]], [[task-496-worldpainter-grid-to-graph-compiler-cells-to-areas-and-ways]], [[task-529-feature-entry-direction-phrases-narrative-move-verbs-on-entry-edges]]
+<!-- deps:end -->
 
 ## What
 

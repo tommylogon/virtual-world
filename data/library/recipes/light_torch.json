@@ -3,13 +3,24 @@
   "name": "Light Torch",
   "description": "Touch a torch to a lit campfire until it catches.",
   "ingredients": [
-    {"item": "torch", "count": 1, "consumed": false}
+    {
+      "item": "torch",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [
-    {"type": "state_equals", "target": "campfire", "value": "on"}
+    {
+      "type": "state_equals",
+      "target": "campfire",
+      "value": "on"
+    }
   ],
   "duration_min": 2,
-  "skill_check": {"skill": "Survival", "dc": 6},
+  "skill_check": {
+    "skill": "Survival",
+    "dc": 6
+  },
   "outputs": [],
   "outcomes": {
     "crit_success": {
@@ -31,6 +42,8 @@
       "message": "Fumbled into the mud — torch kept but unlit and filthy."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

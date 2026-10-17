@@ -3,35 +3,77 @@
   "name": "Flatbread",
   "description": "Slap dough on a hot hearth stone.",
   "ingredients": [
-    {"item": "dough", "count": 1, "consumed": true},
-    {"item": "hearth_stone", "count": 1, "consumed": false}
+    {
+      "item": "dough",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "hearth_stone",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [
-    {"type": "state_equals", "target": "campfire", "value": "on"}
+    {
+      "type": "state_equals",
+      "target": "campfire",
+      "value": "on"
+    }
   ],
   "duration_min": 5,
-  "skill_check": {"skill": "Cooking", "dc": 8},
-  "outputs": [{"item": "flatbread", "count": 2}],
+  "skill_check": {
+    "skill": "Cooking",
+    "dc": 8
+  },
+  "outputs": [
+    {
+      "item": "flatbread",
+      "count": 2
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "flatbread", "count": 3}],
+      "outputs": [
+        {
+          "item": "flatbread",
+          "count": 3
+        }
+      ],
       "message": "Puffed and blistered — extra."
     },
     "success": {
-      "outputs": [{"item": "flatbread", "count": 2}],
+      "outputs": [
+        {
+          "item": "flatbread",
+          "count": 2
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "flatbread", "count": 1}],
+      "outputs": [
+        {
+          "item": "flatbread",
+          "count": 1
+        }
+      ],
       "message": "One good one from the batch."
     },
     "crit_fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "burned_flatbread", "count": 1}],
+      "outputs": [
+        {
+          "item": "burned_flatbread",
+          "count": 1
+        }
+      ],
       "message": "Blackened frisbee."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

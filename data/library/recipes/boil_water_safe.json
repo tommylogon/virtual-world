@@ -3,27 +3,62 @@
   "name": "Boil Water Safe",
   "description": "Rolling boil for safe drinking water.",
   "ingredients": [
-    {"item": "filtered_water", "count": 1, "consumed": true},
-    {"item": "cooking_pot", "count": 1, "consumed": false}
+    {
+      "item": "filtered_water",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "cooking_pot",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [
-    {"type": "state_equals", "target": "campfire", "value": "on"}
+    {
+      "type": "state_equals",
+      "target": "campfire",
+      "value": "on"
+    }
   ],
   "duration_min": 10,
-  "skill_check": {"skill": "Survival", "dc": 8},
-  "outputs": [{"item": "boiled_water", "count": 1}],
+  "skill_check": {
+    "skill": "Survival",
+    "dc": 8
+  },
+  "outputs": [
+    {
+      "item": "boiled_water",
+      "count": 1
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "boiled_water", "count": 2}],
+      "outputs": [
+        {
+          "item": "boiled_water",
+          "count": 2
+        }
+      ],
       "message": "A full rolling boil — plenty, and the unsafe flag is gone."
     },
     "success": {
-      "outputs": [{"item": "boiled_water", "count": 1}],
+      "outputs": [
+        {
+          "item": "boiled_water",
+          "count": 1
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "warm_water", "count": 1}],
+      "outputs": [
+        {
+          "item": "warm_water",
+          "count": 1
+        }
+      ],
       "message": "Lukewarm. Drinkable, not safe."
     },
     "crit_fail": {
@@ -32,6 +67,8 @@
       "message": "Pot boiled dry — water lost, pot kept."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

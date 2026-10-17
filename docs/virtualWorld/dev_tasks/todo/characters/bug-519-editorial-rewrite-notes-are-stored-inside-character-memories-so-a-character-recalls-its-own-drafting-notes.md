@@ -2,7 +2,7 @@
 type: bug
 status: todo
 area: characters
-priority: high
+priority: Low
 ---
 
 # bug-519: Editorial rewrite notes are stored inside character memories, so a character recalls its own drafting notes

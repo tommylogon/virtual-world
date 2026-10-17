@@ -3,12 +3,17 @@ type: task
 status: review
 area: characters
 priority: high
+related: ["'task-476'", "'task-480'", 'task-476', 'task-480']
 ---
 
 # task-519: Character starting loadouts from the item library
 
 **Filed:** 2026-09-24
 **Related:** task-17, task-55, task-408, task-450, bug-516
+
+<!-- deps:start -->
+**Related:** [[task-476-npc-skill-profiles-from-traits-and-roles]], [[task-480-skill-growth-abilities-as-mutable-stats-and-proficiency]]
+<!-- deps:end -->
 
 ## Later finding — implement with bug-516 (2026-10-01)
 

@@ -1,4 +1,5 @@
 ---
+related: [task-2, task-131]
 area: gameplay
 type: task
 status: review
@@ -12,6 +13,10 @@ priority: medium
 **Status**: Todo
 
 ---
+
+<!-- deps:start -->
+**Related:** [[task-2-crafting_and_recipes]], [[task-131-stateful-actions-over-time]]
+<!-- deps:end -->
 
 ## Why
 

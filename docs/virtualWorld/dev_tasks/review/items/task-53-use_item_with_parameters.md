@@ -4,6 +4,7 @@ wiki: "[[Items & Inventory/Items Overview]]"
 type: task
 status: review
 priority: medium
+related: [task-433, task-363]
 ---
 
 # Use Item with Parameters (Text/Message Passing)
@@ -15,6 +16,10 @@ current code 2026-09-21).
 **Residual work**: [[dev_tasks/todo/items/task-433-character-inscription-persistent-notes|task-433]]
 
 ---
+
+<!-- deps:start -->
+**Related:** [[task-433-character-inscription-persistent-notes]], [[task-363-command-parser-multiwindow-targets]]
+<!-- deps:end -->
 
 ## What
 

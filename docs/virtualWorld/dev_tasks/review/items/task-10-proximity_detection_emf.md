@@ -4,6 +4,7 @@ wiki: "[[Environment/Light System]]"
 type: task
 status: review
 priority: medium
+related: [task-320]
 ---
 
 # Proximity-Based Detection (EMF Reader, Future Tools)
@@ -11,6 +12,10 @@ priority: medium
 **Filed**: 2026-07-18
 **Priority**: Medium
 **Status**: Not Started
+
+<!-- deps:start -->
+**Related:** [[task-320-scry-sight-effect]]
+<!-- deps:end -->
 
 ## What
 

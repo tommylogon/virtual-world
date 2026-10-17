@@ -2,7 +2,7 @@
 type: task
 status: todo
 area: gameplay
-priority: medium
+priority: high
 wiki: "[[Character Pursuits]]"
 blocked_by: [task-822]
 ---

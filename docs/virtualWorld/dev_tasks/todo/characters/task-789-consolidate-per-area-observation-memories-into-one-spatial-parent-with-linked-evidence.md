@@ -3,12 +3,17 @@ type: task
 status: todo
 area: characters
 priority: medium
+related: ['"\'task-725\'"', '"\'task-786\'"', "'task-725'", "'task-786'", 'task-725', 'task-786']
 ---
 
 # task-789: Consolidate per-area observation memories into one spatial parent with linked evidence
 
 **Filed:** 2026-10-12
 **Related:** task-688, task-690, task-725, task-734, task-736
+
+<!-- deps:start -->
+**Related:** [[task-725-memories-carry-nothing-about-death-vitals-travel-perception-or-resurrection]], [[task-786-recall-transparency-show-why-a-memory-was-recalled-automatic-and-action-driven]]
+<!-- deps:end -->
 
 ## What
 

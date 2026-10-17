@@ -3,27 +3,62 @@
   "name": "Refill Lantern Oil",
   "description": "Render fat down into lantern oil over low heat.",
   "ingredients": [
-    {"item": "animal_fat", "count": 1, "consumed": true},
-    {"item": "lantern", "count": 1, "consumed": false}
+    {
+      "item": "animal_fat",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "lantern",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [
-    {"type": "state_equals", "target": "campfire", "value": "on"}
+    {
+      "type": "state_equals",
+      "target": "campfire",
+      "value": "on"
+    }
   ],
   "duration_min": 10,
-  "skill_check": {"skill": "Survival", "dc": 8},
-  "outputs": [{"item": "lantern_oil", "count": 1}],
+  "skill_check": {
+    "skill": "Survival",
+    "dc": 8
+  },
+  "outputs": [
+    {
+      "item": "lantern_oil",
+      "count": 1
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "lantern_oil", "count": 2}],
+      "outputs": [
+        {
+          "item": "lantern_oil",
+          "count": 2
+        }
+      ],
       "message": "Clean render — double fill."
     },
     "success": {
-      "outputs": [{"item": "lantern_oil", "count": 1}],
+      "outputs": [
+        {
+          "item": "lantern_oil",
+          "count": 1
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "lantern_oil", "count": 1}],
+      "outputs": [
+        {
+          "item": "lantern_oil",
+          "count": 1
+        }
+      ],
       "message": "Half the fat smoked off, but the flask fills."
     },
     "crit_fail": {
@@ -32,6 +67,8 @@
       "message": "Spilled across the fire — all lost in a stinking flare."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

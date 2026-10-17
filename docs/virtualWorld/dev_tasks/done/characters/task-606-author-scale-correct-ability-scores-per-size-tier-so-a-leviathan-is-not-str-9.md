@@ -3,12 +3,17 @@ type: task
 status: done
 area: characters
 priority: high
+related: ['task-605', 'task-653']
 ---
 
 # task-606: Author scale-correct ability scores per size tier so a leviathan is not STR 9
 
 **Filed:** 2026-09-30
 **Related:** 
+
+<!-- deps:start -->
+**Related:** [[task-605-make-size-a-real-character-property-tied-to-the-graph-editor-character-form]], [[task-653-per-area-max-occupancy-computed-from-occupant-size-with-entities-that-take-no-space]]
+<!-- deps:end -->
 
 ## What
 

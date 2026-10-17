@@ -3,12 +3,17 @@ type: task
 status: review
 area: library
 priority: high
+related: ['task-573', 'task-569', 'task-570', 'task-588']
 ---
 
 # task-571: Item biome affinity field
 
 **Filed:** 2026-09-27
 **Related:** 
+
+<!-- deps:start -->
+**Related:** [[task-573-lint-biome-coverage-from-biomes-json]], [[task-569-biome-resource-distribution-consumer]], [[task-570-hostile-distribution-consumer]], [[task-588-investigate-where-worldpainter-vocabularies-live]]
+<!-- deps:end -->
 
 ## What
 

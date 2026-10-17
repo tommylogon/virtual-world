@@ -3,6 +3,7 @@ type: task
 status: review
 area: characters
 priority: high
+related: ['"\'task-828\'"', '"\'task-849\'"', "'task-828'", "'task-843'", 'task-828', 'task-843']
 wiki: "[[Feature Map]]"
 ---
 
@@ -12,7 +13,7 @@ wiki: "[[Feature Map]]"
 **Related:** task-733
 
 <!-- deps:start -->
-**Related:** [[task-733-character-sheet-a-full-page-worldgraph-style-person-form-that-compiles-into-viwo-primitives]]
+**Related:** [[task-828-expanded-persona-appearance-schema-on-character-node-with-compile-into-prose]], [[task-849-narrative-authoring-should-feed-memories-and-goals-not-duplicate-them]], [[task-843-character-file-import-llm-converts-any-card-or-prose-to-the-persona-schema]]
 <!-- deps:end -->
 
 ## What

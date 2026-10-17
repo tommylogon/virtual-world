@@ -3,12 +3,17 @@ type: task
 status: review
 area: world
 priority: low
+related: ['task-496', 'task-498', 'task-747', 'task-529', 'task-557']
 ---
 
 # task-525: Storey delta gates traversal (climb required past N storeys)
 
 **Filed:** 2026-09-26
 **Related:** task-496 task-498 task-747
+
+<!-- deps:start -->
+**Related:** [[task-496-worldpainter-grid-to-graph-compiler-cells-to-areas-and-ways]], [[task-498-elevation-gated-chained-sightlines-across-ways]], [[task-747-worldpainter-compiler-emits-terrain-hazards-river-cliff-thorn-fall-from-the-painted-layers]], [[task-529-feature-entry-direction-phrases-narrative-move-verbs-on-entry-edges]], [[task-557-worldpainter-climate-layer-paint-a-coarse-climate-compile-it-to-base-temperature]]
+<!-- deps:end -->
 
 ## What
 

@@ -1,4 +1,5 @@
 ---
+related: [task-248, task-321]
 type: task
 status: review
 area: gameplay
@@ -13,6 +14,10 @@ priority: medium
 
 **Status:** In backlog — filed 2026-08-16 from developer ideas backlog.
 **Source:** `dev_tasks/developer ideas.md` (singing)
+
+<!-- deps:start -->
+**Related:** [[task-248-whisper-to-target]], [[task-321-conversation-response-instinct]]
+<!-- deps:end -->
 
 ## What
 

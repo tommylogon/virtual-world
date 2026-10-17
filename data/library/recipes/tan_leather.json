@@ -3,35 +3,81 @@
   "name": "Tan Leather",
   "description": "Tan a cured hide with oak bark and water.",
   "ingredients": [
-    {"item": "cured_hide", "count": 1, "consumed": true},
-    {"item": "oak_bark", "count": 2, "consumed": true},
-    {"item": "boiled_water", "count": 1, "consumed": true},
-    {"item": "tanning_pit", "count": 1, "consumed": false}
+    {
+      "item": "cured_hide",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "oak_bark",
+      "count": 2,
+      "consumed": true
+    },
+    {
+      "item": "boiled_water",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "tanning_pit",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [],
   "duration_min": 4320,
-  "skill_check": {"skill": "Leatherwork", "dc": 13},
-  "outputs": [{"item": "leather_hide", "count": 1}],
+  "skill_check": {
+    "skill": "Leatherwork",
+    "dc": 13
+  },
+  "outputs": [
+    {
+      "item": "leather_hide",
+      "count": 1
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "leather_hide", "count": 2}],
+      "outputs": [
+        {
+          "item": "leather_hide",
+          "count": 2
+        }
+      ],
       "message": "Buttery tan — stretched to two."
     },
     "success": {
-      "outputs": [{"item": "leather_hide", "count": 1}],
+      "outputs": [
+        {
+          "item": "leather_hide",
+          "count": 1
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "thin_leather", "count": 1}],
+      "outputs": [
+        {
+          "item": "thin_leather",
+          "count": 1
+        }
+      ],
       "message": "Over-thinned — straps, not armor."
     },
     "crit_fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "leather_scraps", "count": 1}],
+      "outputs": [
+        {
+          "item": "leather_scraps",
+          "count": 1
+        }
+      ],
       "message": "Ruined hide — kept as scraps."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

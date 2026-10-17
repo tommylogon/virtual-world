@@ -1,5 +1,6 @@
 ---
 group: Items
+related: [task-case-consistency-sweep]
 ---
 
 # Fix: Duplicating an Item Loses Its Triggers (case-mismatched edge ids)

@@ -3,21 +3,47 @@
   "name": "Bank Coals Overnight",
   "description": "Bury the fire's coals under wood ash to hold them till morning.",
   "ingredients": [
-    {"item": "wood_ash", "count": 1, "consumed": true}
+    {
+      "item": "wood_ash",
+      "count": 1,
+      "consumed": true
+    }
   ],
   "conditions": [
-    {"type": "state_equals", "target": "campfire", "value": "on"}
+    {
+      "type": "state_equals",
+      "target": "campfire",
+      "value": "on"
+    }
   ],
   "duration_min": 5,
-  "skill_check": {"skill": "Survival", "dc": 10},
-  "outputs": [{"item": "banked_coals", "count": 1}],
+  "skill_check": {
+    "skill": "Survival",
+    "dc": 10
+  },
+  "outputs": [
+    {
+      "item": "banked_coals",
+      "count": 1
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "banked_coals", "count": 2}],
+      "outputs": [
+        {
+          "item": "banked_coals",
+          "count": 2
+        }
+      ],
       "message": "Two nests of coals, breathing slow under the ash."
     },
     "success": {
-      "outputs": [{"item": "banked_coals", "count": 1}],
+      "outputs": [
+        {
+          "item": "banked_coals",
+          "count": 1
+        }
+      ],
       "message": ""
     },
     "fail": {
@@ -31,6 +57,8 @@
       "message": "Ash everywhere, fire dead, morning cold."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

@@ -3,13 +3,13 @@ type: task
 status: review
 area: crafting
 priority: medium
-related: [task-831, task-840, task-734, task-691]
+related: ['task-691', 'task-734', 'task-831', 'task-840', 'task-842']
 ---
 
 # task-841: Known recipes live in the Mind panel
 
 <!-- deps:start -->
-**Related:** [[task-831-crafting-recipe-schema-v2-ingredients-duration-tiered-outcomes]], [[task-840-crafting-runtime-who-crafts-activities-backsim-abort]], [[task-734-knowledge-is-memory-fold-known-recipes-known-places-into-one-prose-data-record-with-episodic-vs-semantic-kinds]], [[task-691-memory-mind-interface-dynamics-badges-connections-per-person-profiles-dashboard]]
+**Related:** [[task-691-memory-mind-interface-dynamics-badges-connections-per-person-profiles-dashboard]], [[task-734-knowledge-is-memory-fold-known-recipes-known-places-into-one-prose-data-record-with-episodic-vs-semantic-kinds]], [[task-831-crafting-recipe-schema-v2-ingredients-duration-tiered-outcomes]], [[task-840-crafting-runtime-who-crafts-activities-backsim-abort]], [[task-842-crafting-ui-library-recipes-tab-turn-modal-activity-banner]]
 <!-- deps:end -->
 
 ## What

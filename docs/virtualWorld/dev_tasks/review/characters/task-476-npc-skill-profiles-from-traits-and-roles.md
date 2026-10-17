@@ -3,12 +3,17 @@ type: task
 status: review
 area: characters
 priority: medium
+related: ["'task-480'", "'task-519'", 'task-480', 'task-519']
 ---
 
 # task-476: NPC skill profiles from traits and roles
 
 **Filed:** 2026-09-23
 **Related:** task-472, task-474, task-475, task-213
+
+<!-- deps:start -->
+**Related:** [[task-480-skill-growth-abilities-as-mutable-stats-and-proficiency]], [[task-519-character-starting-loadouts-from-the-item-library]]
+<!-- deps:end -->
 
 ## What
 

@@ -3,7 +3,7 @@ type: task
 status: inprogress
 area: characters
 priority: high
-related: [task-316, task-446, bug-549]
+related: ["'bug-549'", "'task-316'", "'task-446'", "'task-447'", "'task-727'", 'task-447', 'task-727']
 wiki: "[[Characters Overview]]"
 ---
 
@@ -14,7 +14,7 @@ wiki: "[[Characters Overview]]"
 **Reframed:** 2026-10-15
 
 <!-- deps:start -->
-**Related:** [[task-316-id-backed-character-identity]], [[task-446-id-first-node-identity]], [[bug-549-character-definition-is-blank-on-the-live-player-after-a-scenario-load]]
+**Related:** [[bug-549-character-definition-is-blank-on-the-live-player-after-a-scenario-load]], [[task-316-id-backed-character-identity]], [[task-446-id-first-node-identity]], [[task-447-character-nicknames-and-aliases]], [[task-727-lived-log-to-memory-bridge-phrase-lived-entries-into-first-person-memories]]
 <!-- deps:end -->
 
 ## What

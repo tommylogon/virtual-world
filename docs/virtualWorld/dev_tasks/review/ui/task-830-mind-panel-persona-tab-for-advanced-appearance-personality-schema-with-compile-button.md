@@ -3,6 +3,7 @@ type: task
 status: review
 area: ui
 priority: high
+related: ["'task-828'", "'task-844'", "'task-847'", "'task-848'", "'task-852'", 'task-820', 'task-821', 'task-844', 'task-847', 'task-848', 'task-852']
 wiki: "[[Feature Map]]"
 ---
 
@@ -12,7 +13,7 @@ wiki: "[[Feature Map]]"
 **Related:** task-733
 
 <!-- deps:start -->
-**Related:** [[task-733-character-sheet-a-full-page-worldgraph-style-person-form-that-compiles-into-viwo-primitives]]
+**Related:** [[task-828-expanded-persona-appearance-schema-on-character-node-with-compile-into-prose]], [[task-844-persona-tab-character-sheet-pass-grid-chips-codex-preview]], [[task-847-persona-tab-embedded-body-paperdoll-navigator-for-appearance-schema]], [[task-848-persona-tab-visual-paperdoll-with-inline-body-baseline-editing]], [[task-852-persona-ui-improvement-plan-workspace-doll-navigation-markings-state-integration]], [[task-820-mind-panel-one-tabbed-mind-surface-and-one-entry-point]], [[task-821-mind-panel-relocate-the-gimp-goal-editor-out-of-the-bio-tab]]
 <!-- deps:end -->
 
 ## What

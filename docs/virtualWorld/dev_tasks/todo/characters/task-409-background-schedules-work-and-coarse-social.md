@@ -3,7 +3,7 @@ type: task
 status: todo
 area: characters
 priority: high
-related: [task-403, task-417, task-423, task-699, task-702, task-704, task-814]
+related: ["'task-403'", "'task-417'", "'task-423'", "'task-468'", "'task-699'", "'task-702'", "'task-704'", "'task-814'", 'task-423', 'task-468']
 wiki: "[[Characters/Background Simulation]]"
 blocked_by: [task-701]
 ---
@@ -16,7 +16,7 @@ blocked_by: [task-701]
 
 <!-- deps:start -->
 **Blocked by:** [[task-701-plan-template-library-generic-plan-schedule-templates-as-versioned-library-entries]]
-**Related:** [[task-403-unified-agent-memory-and-knowledge]], [[task-417-co-presence-gate-for-coarse-meetings]], [[task-423-background-social-interactions]], [[task-699-mosiac-design-doc-schedules-plan-templates-and-recipe-activities-as-one-decision-layer]], [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]], [[task-704-mosiac-selector-needs-memory-and-personality-choose-and-bind-plans]], [[task-814-mosiac-schedules-a-character-can-edit-themselves]]
+**Related:** [[task-403-unified-agent-memory-and-knowledge]], [[task-417-co-presence-gate-for-coarse-meetings]], [[task-423-background-social-interactions]], [[task-468-interrupt-capable-background-agendas-theft-and-social-approach]], [[task-699-mosiac-design-doc-schedules-plan-templates-and-recipe-activities-as-one-decision-layer]], [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]], [[task-704-mosiac-selector-needs-memory-and-personality-choose-and-bind-plans]], [[task-814-mosiac-schedules-a-character-can-edit-themselves]]
 <!-- deps:end -->
 
 ## Progress (slice 1)

@@ -840,6 +840,27 @@ class ConditionTreeMixin:
                 known = getattr(player, "known", None) or []
                 return any(str(k).strip().lower() == needle for k in known)
 
+            elif condition_type == "met_character":
+                # task-701: co-location with a named character - the checkable
+                # form of "reported to X". A report is a spatial fact: the
+                # reporter and the recipient in the same area. The actor side
+                # resolves like every character condition here (``actor``, or
+                # ``target``/self); the other side accepts the players key, the
+                # name, or the node id (``player_Zikka``) authored assignments
+                # carry. An unresolvable reference fails closed.
+                if gs is None:
+                    return False
+                actor = self._resolve_condition_player(
+                    conditions.get("actor", conditions.get("target", "self")), gs)
+                if actor is None:
+                    return False
+                other = self._resolve_named_character(
+                    conditions.get("character") or conditions.get("value") or "", gs)
+                if other is None:
+                    return False
+                return str(getattr(actor, "current_area", "") or "") == \
+                    str(getattr(other, "current_area", "") or "")
+
             elif condition_type == "sound_above":
                 try:
                     threshold = float(conditions.get("threshold", conditions.get("value", 0.5)))

@@ -3,27 +3,62 @@
   "name": "Pour Beeswax Candle",
   "description": "Pour melted beeswax around wicks for clean-burning candles.",
   "ingredients": [
-    {"item": "beeswax", "count": 1, "consumed": true},
-    {"item": "wick", "count": 1, "consumed": true}
+    {
+      "item": "beeswax",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "wick",
+      "count": 1,
+      "consumed": true
+    }
   ],
   "conditions": [
-    {"type": "state_equals", "target": "campfire", "value": "on"}
+    {
+      "type": "state_equals",
+      "target": "campfire",
+      "value": "on"
+    }
   ],
   "duration_min": 20,
-  "skill_check": {"skill": "Survival", "dc": 10},
-  "outputs": [{"item": "beeswax_candle", "count": 2}],
+  "skill_check": {
+    "skill": "Survival",
+    "dc": 10
+  },
+  "outputs": [
+    {
+      "item": "beeswax_candle",
+      "count": 2
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "beeswax_candle", "count": 3}],
+      "outputs": [
+        {
+          "item": "beeswax_candle",
+          "count": 3
+        }
+      ],
       "message": "Glass-smooth pours, honey-smelling."
     },
     "success": {
-      "outputs": [{"item": "beeswax_candle", "count": 2}],
+      "outputs": [
+        {
+          "item": "beeswax_candle",
+          "count": 2
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "beeswax_candle", "count": 1}],
+      "outputs": [
+        {
+          "item": "beeswax_candle",
+          "count": 1
+        }
+      ],
       "message": "One good candle from the mess."
     },
     "crit_fail": {
@@ -32,6 +67,8 @@
       "message": "Wax fire! Everything lost — beat it out and start over."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

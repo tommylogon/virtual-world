@@ -3,6 +3,7 @@ type: task
 status: review
 area: world
 priority: high
+related: ['task-401', 'task-582', 'task-584', 'task-581', 'task-439']
 wiki: "[[World Building/World Scopes|World Scopes]]"
 ---
 
@@ -10,6 +11,10 @@ wiki: "[[World Building/World Scopes|World Scopes]]"
 
 **Filed:** 2026-09-28
 **Related:** task-401, task-582
+
+<!-- deps:start -->
+**Related:** [[task-401-chunk-persistence-and-gateway-ways]], [[task-582-chunk-load-unload-and-merge-apis-on-worldgraph]], [[task-584-cross-chunk-ownership-rules-for-carried-items-triggers-and-delayed-events]], [[task-581-stable-area-ids-and-one-authoritative-location-for-characters-and-items]], [[task-439-canonical-area-identity-in-save-and-lookups]]
+<!-- deps:end -->
 
 ## What
 

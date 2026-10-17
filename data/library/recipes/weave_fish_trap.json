@@ -3,34 +3,80 @@
   "name": "Weave Fish Trap",
   "description": "Weave withies and cord into a creel trap.",
   "ingredients": [
-    {"item": "withy", "count": 4, "consumed": true},
-    {"item": "rope", "count": 1, "consumed": true},
-    {"item": "knife", "count": 1, "consumed": false}
+    {
+      "item": "withy",
+      "count": 4,
+      "consumed": true
+    },
+    {
+      "item": "rope",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "knife",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [],
   "duration_min": 60,
-  "skill_check": {"skill": "Survival", "dc": 12},
-  "outputs": [{"item": "fish_trap", "count": 1, "place_in_area": true}],
+  "skill_check": {
+    "skill": "Survival",
+    "dc": 12
+  },
+  "outputs": [
+    {
+      "item": "fish_trap",
+      "count": 1,
+      "place_in_area": true
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "fish_trap", "count": 1, "place_in_area": true}],
+      "outputs": [
+        {
+          "item": "fish_trap",
+          "count": 1,
+          "place_in_area": true
+        }
+      ],
       "message": "Tight funnel weave — fishes itself. (Placement is the task-703 executor's job; the trap spawns carried until then.)"
     },
     "success": {
-      "outputs": [{"item": "fish_trap", "count": 1, "place_in_area": true}],
+      "outputs": [
+        {
+          "item": "fish_trap",
+          "count": 1,
+          "place_in_area": true
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "leaky_trap", "count": 1, "place_in_area": true}],
+      "outputs": [
+        {
+          "item": "leaky_trap",
+          "count": 1,
+          "place_in_area": true
+        }
+      ],
       "message": "Gappy weave — half the catch escapes."
     },
     "crit_fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "broken_withies", "count": 1}],
+      "outputs": [
+        {
+          "item": "broken_withies",
+          "count": 1
+        }
+      ],
       "message": "Snapped withies, nothing but firewood."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

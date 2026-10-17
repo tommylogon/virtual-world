@@ -3,34 +3,76 @@
   "name": "Salt Fish",
   "description": "Layer fish in salt in the barrel.",
   "ingredients": [
-    {"item": "raw_fish", "count": 2, "consumed": true},
-    {"item": "salt", "count": 2, "consumed": true},
-    {"item": "salt_barrel", "count": 1, "consumed": false}
+    {
+      "item": "raw_fish",
+      "count": 2,
+      "consumed": true
+    },
+    {
+      "item": "salt",
+      "count": 2,
+      "consumed": true
+    },
+    {
+      "item": "salt_barrel",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [],
   "duration_min": 1440,
-  "skill_check": {"skill": "Survival", "dc": 10},
-  "outputs": [{"item": "salt_fish", "count": 1}],
+  "skill_check": {
+    "skill": "Survival",
+    "dc": 10
+  },
+  "outputs": [
+    {
+      "item": "salt_fish",
+      "count": 1
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "salt_fish", "count": 2}],
+      "outputs": [
+        {
+          "item": "salt_fish",
+          "count": 2
+        }
+      ],
       "message": "Firm, dry cure — double."
     },
     "success": {
-      "outputs": [{"item": "salt_fish", "count": 1}],
+      "outputs": [
+        {
+          "item": "salt_fish",
+          "count": 1
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "salt_fish", "count": 1}],
+      "outputs": [
+        {
+          "item": "salt_fish",
+          "count": 1
+        }
+      ],
       "message": "Wet cure, but keeping."
     },
     "crit_fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "spoiled_fish", "count": 1}],
+      "outputs": [
+        {
+          "item": "spoiled_fish",
+          "count": 1
+        }
+      ],
       "message": "Brine went wrong — spoiled."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

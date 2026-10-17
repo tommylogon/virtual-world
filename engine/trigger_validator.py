@@ -73,6 +73,9 @@ CONDITION_TYPES = {
     # task-705: ownership-as-property and the authored knowledge registry.
     "owns",
     "known",
+    # task-701: the checkable form of "reported to X" - the reporter standing
+    # in the same area as the named recipient. A report is a spatial fact.
+    "met_character",
     "sound_above",
     "smell_detected",
 }

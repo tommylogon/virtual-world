@@ -1,4 +1,5 @@
 ---
+related: [task-783]
 type: task
 status: review
 area: gameplay
@@ -9,6 +10,10 @@ priority: medium
 
 **Filed:** 2026-10-12
 **Related:** task-352 (action economy), task-104 (dash->go chain), task-333/task-334 (human turn panel)
+
+<!-- deps:start -->
+**Related:** [[task-783-approach-on-examine-and-take]]
+<!-- deps:end -->
 
 ## What
 

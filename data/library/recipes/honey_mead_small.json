@@ -3,34 +3,76 @@
   "name": "Honey Mead (Small)",
   "description": "Ferment honey and water into a small mead over a week.",
   "ingredients": [
-    {"item": "honey", "count": 2, "consumed": true},
-    {"item": "boiled_water", "count": 2, "consumed": true},
-    {"item": "brew_barrel", "count": 1, "consumed": false}
+    {
+      "item": "honey",
+      "count": 2,
+      "consumed": true
+    },
+    {
+      "item": "boiled_water",
+      "count": 2,
+      "consumed": true
+    },
+    {
+      "item": "brew_barrel",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [],
   "duration_min": 10080,
-  "skill_check": {"skill": "Cooking", "dc": 14},
-  "outputs": [{"item": "mead", "count": 1}],
+  "skill_check": {
+    "skill": "Cooking",
+    "dc": 14
+  },
+  "outputs": [
+    {
+      "item": "mead",
+      "count": 1
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "mead", "count": 2}],
+      "outputs": [
+        {
+          "item": "mead",
+          "count": 2
+        }
+      ],
       "message": "Golden and singing — the bees would approve."
     },
     "success": {
-      "outputs": [{"item": "mead", "count": 1}],
+      "outputs": [
+        {
+          "item": "mead",
+          "count": 1
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "weak_mead", "count": 1}],
+      "outputs": [
+        {
+          "item": "weak_mead",
+          "count": 1
+        }
+      ],
       "message": "Sweetish and weak — the bees are disappointed."
     },
     "crit_fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "vinegar_barrel", "count": 1}],
+      "outputs": [
+        {
+          "item": "vinegar_barrel",
+          "count": 1
+        }
+      ],
       "message": "Vinegar. A week, wasted."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

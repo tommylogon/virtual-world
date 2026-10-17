@@ -1,5 +1,6 @@
 ---
 group: Items
+related: [task-duplicate-item-loses-triggers-case-mismatch]
 ---
 
 # Case-Consistency Sweep: toLowerCase Where It's Missing

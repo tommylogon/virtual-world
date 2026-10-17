@@ -3,7 +3,7 @@ type: task
 status: review
 area: ui
 priority: medium
-related: [task-42, task-691, task-714, task-820, task-821]
+related: ['task-42', 'task-691', 'task-714', 'task-787', 'task-820', 'task-821']
 ---
 
 # task-729: Move relationship, emotional-state, and memory add/edit/generate controls into the Mind panel
@@ -12,7 +12,7 @@ related: [task-42, task-691, task-714, task-820, task-821]
 **Related:** task-42, task-691, task-714, task-820, task-821
 
 <!-- deps:start -->
-**Related:** [[task-42-proper_memory_editor]], [[task-691-memory-mind-interface-dynamics-badges-connections-per-person-profiles-dashboard]], [[task-714-character-mind-panel-connect-memories-motives-and-current-pursuits]], [[task-820-mind-panel-one-tabbed-mind-surface-and-one-entry-point]], [[task-821-mind-panel-relocate-the-gimp-goal-editor-out-of-the-bio-tab]]
+**Related:** [[task-42-proper_memory_editor]], [[task-691-memory-mind-interface-dynamics-badges-connections-per-person-profiles-dashboard]], [[task-714-character-mind-panel-connect-memories-motives-and-current-pursuits]], [[task-787-mind-panel-migrate-the-remaining-mind-surfaces-out-of-the-bio-and-advanced-tabs]], [[task-820-mind-panel-one-tabbed-mind-surface-and-one-entry-point]], [[task-821-mind-panel-relocate-the-gimp-goal-editor-out-of-the-bio-tab]]
 <!-- deps:end -->
 
 ## What

@@ -3,12 +3,17 @@ type: task
 status: review
 area: world
 priority: medium
+related: ['task-497', 'task-557', 'task-758', 'task-569']
 ---
 
 # task-640: Area environment editor is an enum form over free-text and numeric data
 
 **Filed:** 2026-09-30
 **Related:** 
+
+<!-- deps:start -->
+**Related:** [[task-497-worldpainter-biome-feature-taxonomy-and-distribution-layers]], [[task-557-worldpainter-climate-layer-paint-a-coarse-climate-compile-it-to-base-temperature]], [[task-758-biome-records-add-climate-and-neighbour-fields-for-the-palette]], [[task-569-biome-resource-distribution-consumer]]
+<!-- deps:end -->
 
 ## What
 

@@ -3,34 +3,76 @@
   "name": "Herbal Tisane",
   "description": "Steep mixed herbs in boiled water.",
   "ingredients": [
-    {"item": "boiled_water", "count": 1, "consumed": true},
-    {"item": "herb_bunch", "count": 1, "consumed": true},
-    {"item": "cup", "count": 1, "consumed": false}
+    {
+      "item": "boiled_water",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "herb_bunch",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "cup",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [],
   "duration_min": 5,
-  "skill_check": {"skill": "Medicine", "dc": 8},
-  "outputs": [{"item": "herbal_tisane", "count": 1}],
+  "skill_check": {
+    "skill": "Medicine",
+    "dc": 8
+  },
+  "outputs": [
+    {
+      "item": "herbal_tisane",
+      "count": 1
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "herbal_tisane", "count": 2}],
+      "outputs": [
+        {
+          "item": "herbal_tisane",
+          "count": 2
+        }
+      ],
       "message": "Perfect steep — two fragrant cups."
     },
     "success": {
-      "outputs": [{"item": "herbal_tisane", "count": 1}],
+      "outputs": [
+        {
+          "item": "herbal_tisane",
+          "count": 1
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "weak_tea", "count": 1}],
+      "outputs": [
+        {
+          "item": "weak_tea",
+          "count": 1
+        }
+      ],
       "message": "Weak and pale — half comfort."
     },
     "crit_fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "bitter_sludge", "count": 1}],
+      "outputs": [
+        {
+          "item": "bitter_sludge",
+          "count": 1
+        }
+      ],
       "message": "Steeped to bitterness. Undrinkable."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

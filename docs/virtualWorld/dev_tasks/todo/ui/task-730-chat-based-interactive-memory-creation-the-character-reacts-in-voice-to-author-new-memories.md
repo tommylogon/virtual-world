@@ -3,6 +3,7 @@ type: task
 status: todo
 area: ui
 priority: medium
+related: ["'task-691'", "'task-785'", 'task-691', 'task-714', 'task-785']
 wiki: "[[AI & Narration/Memory System]]"
 ---
 
@@ -10,6 +11,10 @@ wiki: "[[AI & Narration/Memory System]]"
 
 **Filed:** 2026-10-07
 **Related:** task-42, task-691, task-714, task-729, task-404
+
+<!-- deps:start -->
+**Related:** [[task-691-memory-mind-interface-dynamics-badges-connections-per-person-profiles-dashboard]], [[task-785-mind-panel-click-a-memory-to-inspect-its-underlying-record-and-evidence]], [[task-714-character-mind-panel-connect-memories-motives-and-current-pursuits]]
+<!-- deps:end -->
 
 ## What
 

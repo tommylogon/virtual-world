@@ -2,7 +2,7 @@
 type: task
 status: todo
 area: items
-priority: medium
+priority: high
 related: [task-2, task-18, task-197, task-504, task-472, task-699, task-701, task-702, task-807]
 blocked_by: [task-701, task-702]
 ---

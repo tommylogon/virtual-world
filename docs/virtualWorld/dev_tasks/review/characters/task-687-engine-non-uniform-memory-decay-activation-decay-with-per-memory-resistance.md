@@ -3,6 +3,7 @@ type: task
 status: review
 area: characters
 priority: high
+related: ["'task-685'", "'task-686'", "'task-688'", "'task-689'", "'task-690'", "'task-707'", 'task-685', 'task-686', 'task-688', 'task-689', 'task-690', 'task-707']
 parent: task-685
 ---
 
@@ -13,6 +14,7 @@ parent: task-685
 
 <!-- deps:start -->
 **Parent:** [[task-685-memory-dynamics-memories-that-reinforce-fade-contradict-and-change-the-character]]
+**Related:** [[task-685-memory-dynamics-memories-that-reinforce-fade-contradict-and-change-the-character]], [[task-686-engine-memory-dynamics-fields-reinforcement-on-recall-and-re-encounter]], [[task-688-engine-reflection-2-0-structured-insights-depth-guard-consolidation]], [[task-689-engine-contradiction-detection-linking-fallible-memory]], [[task-690-retrieval-2-0-one-multi-signal-scorer-structured-character-model-recall-b]], [[task-707-memory-decay-reduces-activation-only-never-deletes-actor-trigger-or-consolidation-only]]
 <!-- deps:end -->
 
 ## What

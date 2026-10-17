@@ -1,4 +1,5 @@
 ---
+related: [task-439, task-583]
 type: task
 status: review
 area: refactor
@@ -9,6 +10,10 @@ priority: high
 
 **Filed:** 2026-09-28
 **Related:** task-401, task-446
+
+<!-- deps:start -->
+**Related:** [[task-439-canonical-area-identity-in-save-and-lookups]], [[task-583-global-scope-index-gateway-ways-and-load-before-you-move]]
+<!-- deps:end -->
 
 ## What
 

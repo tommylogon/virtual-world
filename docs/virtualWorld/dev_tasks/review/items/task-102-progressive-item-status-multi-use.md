@@ -4,6 +4,7 @@ wiki: "[[Items & Inventory/Item States & Toggleables]]"
 type: task
 status: review
 priority: medium
+related: [task-155, task-103]
 ---
 
 # Task 102: Progressive Item Status — Multi-Use Activation
@@ -11,6 +12,10 @@ priority: medium
 **Status**: todo
 **Priority**: Medium
 **Filed**: 2026-07-24
+
+<!-- deps:start -->
+**Related:** [[task-155-item-uses-affect-weight]], [[task-103-weight-volume-container-limits]]
+<!-- deps:end -->
 
 ## What
 

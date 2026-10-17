@@ -3,6 +3,7 @@ area: triggers
 type: task
 status: review
 priority: medium
+related: ['task-203', 'task-297', 'task-308']
 ---
 
 # More Descriptive Template Parameters
@@ -12,6 +13,10 @@ priority: medium
 **Status**: Todo
 
 ---
+
+<!-- deps:start -->
+**Related:** [[task-203-set-adjust-parameters]], [[task-297-vitals-readout-trigger-condition-message]], [[task-308-item-relationship-condition]]
+<!-- deps:end -->
 
 ## Why
 

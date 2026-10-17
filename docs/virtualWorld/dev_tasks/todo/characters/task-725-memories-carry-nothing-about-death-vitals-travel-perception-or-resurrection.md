@@ -2,13 +2,18 @@
 type: task
 status: todo
 area: characters
-priority: medium
+priority: high
+related: ['"\'task-404\'"', '"\'task-734\'"', '"\'task-736\'"', '"\'task-786\'"', '"\'task-789\'"', "'task-404'", "'task-734'", "'task-736'", "'task-786'", "'task-789'", 'task-404', 'task-734', 'task-786', 'task-789']
 ---
 
 # task-725: Memories carry nothing about death, vitals, travel, perception, or resurrection
 
 **Filed:** 2026-10-06
 **Related:** task-714, task-707
+
+<!-- deps:start -->
+**Related:** [[task-404-character-life-experience-generator]], [[task-734-knowledge-is-memory-fold-known-recipes-known-places-into-one-prose-data-record-with-episodic-vs-semantic-kinds]], [[task-736-per-character-cognitive-map-a-belief-based-memory-of-places-and-routes-in-the-mind-panel]], [[task-786-recall-transparency-show-why-a-memory-was-recalled-automatic-and-action-driven]], [[task-789-consolidate-per-area-observation-memories-into-one-spatial-parent-with-linked-evidence]]
+<!-- deps:end -->
 
 ## What
 

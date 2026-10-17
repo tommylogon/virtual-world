@@ -691,8 +691,12 @@ def write_library_entry(app, registry_type, entry_id, entry_data):
         if _tools not in _sys.path:
             _sys.path.insert(0, _tools)
         import recipe_check as _recipe_check
-        _items = _recipe_check.library_items(app.config.get('DATA_DIR'))
-        _tags = _recipe_check.library_tags(app.config.get('DATA_DIR'))
+        # Checked against the checker's own module-relative ROOT: passing
+        # DATA_DIR here made the function look under <data>/data/library and
+        # find zero items, so every ingredient of every recipe was reported
+        # "no library item" (task-831 gate was saving-proof).
+        _items = _recipe_check.library_items()
+        _tags = _recipe_check.library_tags()
         _errors = _recipe_check.check_entry(registry[str(entry_id)], str(entry_id), _items, _tags)
         if _errors:
             raise ValueError("; ".join(_errors))

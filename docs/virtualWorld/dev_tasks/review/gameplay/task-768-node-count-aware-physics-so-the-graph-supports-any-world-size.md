@@ -1,4 +1,5 @@
 ---
+related: [task-437]
 type: task
 status: review
 area: gameplay
@@ -9,6 +10,10 @@ priority: medium
 
 **Filed:** 2026-10-10
 **Related:** 
+
+<!-- deps:start -->
+**Related:** [[task-437-turn-order-source-of-truth-and-modes]]
+<!-- deps:end -->
 
 ## What
 

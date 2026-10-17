@@ -3,12 +3,17 @@ type: task
 status: review
 area: world
 priority: high
+related: ['task-495', 'task-496', 'task-400', 'task-528']
 ---
 
 # task-520: WorldPainter scale: canvas grid surface, route tool, batch paint
 
 **Filed:** 2026-09-24
 **Related:** task-495, task-496
+
+<!-- deps:start -->
+**Related:** [[task-495-worldpainter-recursive-scope-grids-and-3-mode-editor]], [[task-496-worldpainter-grid-to-graph-compiler-cells-to-areas-and-ways]], [[task-400-pines-world-scale-vertical-slice]], [[task-528-assign-selected-areas-to-a-scope-promote-a-selection-to-a-placed-feature]]
+<!-- deps:end -->
 
 ## What
 

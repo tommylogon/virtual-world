@@ -3,33 +3,71 @@
   "name": "Carve Spoon",
   "description": "Carve a spoon from greenwood with a carving knife.",
   "ingredients": [
-    {"item": "green_wood", "count": 1, "consumed": true},
-    {"item": "carving_knife", "count": 1, "consumed": false}
+    {
+      "item": "green_wood",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "carving_knife",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [],
   "duration_min": 20,
-  "skill_check": {"skill": "Woodcraft", "dc": 8},
-  "outputs": [{"item": "wooden_spoon", "count": 1}],
+  "skill_check": {
+    "skill": "Woodcraft",
+    "dc": 8
+  },
+  "outputs": [
+    {
+      "item": "wooden_spoon",
+      "count": 1
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "wooden_spoon", "count": 2}],
+      "outputs": [
+        {
+          "item": "wooden_spoon",
+          "count": 2
+        }
+      ],
       "message": "Two spoons from one blank — thin shavings, sharp knife."
     },
     "success": {
-      "outputs": [{"item": "wooden_spoon", "count": 1}],
+      "outputs": [
+        {
+          "item": "wooden_spoon",
+          "count": 1
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "wooden_spoon", "count": 1}],
+      "outputs": [
+        {
+          "item": "wooden_spoon",
+          "count": 1
+        }
+      ],
       "message": "Rough and thick, but kept — a spoon is a spoon."
     },
     "crit_fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "split_blank", "count": 1}],
+      "outputs": [
+        {
+          "item": "split_blank",
+          "count": 1
+        }
+      ],
       "message": "Split along the grain — firewood now."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

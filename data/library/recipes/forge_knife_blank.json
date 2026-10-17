@@ -3,38 +3,92 @@
   "name": "Forge Knife Blank",
   "description": "Forge an ingot into a knife blank.",
   "ingredients": [
-    {"item": "iron_ingot", "count": 1, "consumed": true},
-    {"item": "charcoal", "count": 2, "consumed": true},
-    {"item": "forge", "count": 1, "consumed": false},
-    {"item": "anvil", "count": 1, "consumed": false},
-    {"item": "hammer", "count": 1, "consumed": false}
+    {
+      "item": "iron_ingot",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "charcoal",
+      "count": 2,
+      "consumed": true
+    },
+    {
+      "item": "forge",
+      "count": 1,
+      "consumed": false
+    },
+    {
+      "item": "anvil",
+      "count": 1,
+      "consumed": false
+    },
+    {
+      "item": "hammer",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [
-    {"type": "state_equals", "target": "forge", "value": "on"}
+    {
+      "type": "state_equals",
+      "target": "forge",
+      "value": "on"
+    }
   ],
   "duration_min": 60,
-  "skill_check": {"skill": "Smithing", "dc": 12},
-  "outputs": [{"item": "knife_blank", "count": 1}],
+  "skill_check": {
+    "skill": "Smithing",
+    "dc": 12
+  },
+  "outputs": [
+    {
+      "item": "knife_blank",
+      "count": 1
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "knife_blank", "count": 1}],
+      "outputs": [
+        {
+          "item": "knife_blank",
+          "count": 1
+        }
+      ],
       "message": "True profile, clean bevels — grinds itself almost."
     },
     "success": {
-      "outputs": [{"item": "knife_blank", "count": 1}],
+      "outputs": [
+        {
+          "item": "knife_blank",
+          "count": 1
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "flawed_blank", "count": 1}],
+      "outputs": [
+        {
+          "item": "flawed_blank",
+          "count": 1
+        }
+      ],
       "message": "A flaw in the steel — worse edge, still a blank."
     },
     "crit_fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "slag", "count": 1}],
+      "outputs": [
+        {
+          "item": "slag",
+          "count": 1
+        }
+      ],
       "message": "Burned through — slag."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

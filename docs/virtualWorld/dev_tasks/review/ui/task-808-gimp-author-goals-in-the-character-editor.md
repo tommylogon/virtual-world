@@ -4,7 +4,7 @@ status: review
 area: ui
 priority: medium
 wiki: "[[Character Pursuits]]"
-related: [task-691, task-714]
+related: ["'task-691'", "'task-714'", "'task-820'", "'task-821'", 'task-807', 'task-820', 'task-821']
 blocked_by: [task-807]
 ---
 
@@ -15,7 +15,7 @@ blocked_by: [task-807]
 
 <!-- deps:start -->
 **Blocked by:** [[task-807-gimp-the-goal-model-and-its-serialization]]
-**Related:** [[task-691-memory-mind-interface-dynamics-badges-connections-per-person-profiles-dashboard]], [[task-714-character-mind-panel-connect-memories-motives-and-current-pursuits]]
+**Related:** [[task-691-memory-mind-interface-dynamics-badges-connections-per-person-profiles-dashboard]], [[task-714-character-mind-panel-connect-memories-motives-and-current-pursuits]], [[task-820-mind-panel-one-tabbed-mind-surface-and-one-entry-point]], [[task-821-mind-panel-relocate-the-gimp-goal-editor-out-of-the-bio-tab]], [[task-807-gimp-the-goal-model-and-its-serialization]]
 <!-- deps:end -->
 
 ## What

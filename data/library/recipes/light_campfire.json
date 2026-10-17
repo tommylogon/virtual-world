@@ -3,13 +3,28 @@
   "name": "Light Campfire",
   "description": "Coax kindling and firewood alight with a tinderbox.",
   "ingredients": [
-    {"item": "kindling", "count": 1, "consumed": true},
-    {"item": "firewood", "count": 1, "consumed": true},
-    {"item": "tinderbox", "count": 1, "consumed": false}
+    {
+      "item": "kindling",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "firewood",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "tinderbox",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [],
   "duration_min": 10,
-  "skill_check": {"skill": "Survival", "dc": 8},
+  "skill_check": {
+    "skill": "Survival",
+    "dc": 8
+  },
   "outputs": [],
   "outcomes": {
     "crit_success": {
@@ -31,6 +46,8 @@
       "message": "A flare-up kisses your fingers — singed and smarting (minor burn), fire unlit. (Condition application belongs to the task-703 executor.)"
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

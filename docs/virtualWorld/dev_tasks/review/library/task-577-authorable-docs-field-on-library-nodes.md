@@ -3,6 +3,7 @@ type: task
 status: review
 area: library
 priority: medium
+related: ['task-446', 'task-578', 'task-291', 'task-492']
 blocked_by: [task-446]
 blocks: [task-578]
 ---
@@ -17,6 +18,7 @@ blocks: [task-578]
 <!-- deps:start -->
 **Blocked by:** [[task-446-id-first-node-identity]]
 **Blocks:** [[task-578-doc-resolver-route-that-answers-which-docs-cover-this-feature]]
+**Related:** [[task-446-id-first-node-identity]], [[task-578-doc-resolver-route-that-answers-which-docs-cover-this-feature]], [[task-291-unified-library-api-and-data-driven-catalogs]], [[task-492-item-action-model-reference-reach-take-gate-depletion-components]]
 <!-- deps:end -->
 
 ## What

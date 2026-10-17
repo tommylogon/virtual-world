@@ -1,4 +1,5 @@
 ---
+related: [task-321, task-328]
 id: 327
 title: Context-Aware Vitals Threshold Messages
 status: review
@@ -18,6 +19,10 @@ Scene facts: alone/company count, in-conversation (someone present in `recent_he
 addressed-to-you (reuses `classifySpeechType`), area noise, area tags, visible food/drink in the
 area item list. CRITICAL NEEDS untouched. Note: design's `timeOfDay` field dropped — the
 `/api/state` payload has no clock field (it exists only as a trigger-condition config).
+
+<!-- deps:start -->
+**Related:** [[task-321-conversation-response-instinct]], [[task-328-neutralize-sanity-flavor-text]]
+<!-- deps:end -->
 
 ## What
 

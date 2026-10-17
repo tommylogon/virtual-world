@@ -3,38 +3,92 @@
   "name": "Make Chain Links",
   "description": "Draw out an ingot into chain links.",
   "ingredients": [
-    {"item": "iron_ingot", "count": 1, "consumed": true},
-    {"item": "charcoal", "count": 1, "consumed": true},
-    {"item": "forge", "count": 1, "consumed": false},
-    {"item": "anvil", "count": 1, "consumed": false},
-    {"item": "hammer", "count": 1, "consumed": false}
+    {
+      "item": "iron_ingot",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "charcoal",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "forge",
+      "count": 1,
+      "consumed": false
+    },
+    {
+      "item": "anvil",
+      "count": 1,
+      "consumed": false
+    },
+    {
+      "item": "hammer",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [
-    {"type": "state_equals", "target": "forge", "value": "on"}
+    {
+      "type": "state_equals",
+      "target": "forge",
+      "value": "on"
+    }
   ],
   "duration_min": 40,
-  "skill_check": {"skill": "Smithing", "dc": 11},
-  "outputs": [{"item": "chain", "count": 1}],
+  "skill_check": {
+    "skill": "Smithing",
+    "dc": 11
+  },
+  "outputs": [
+    {
+      "item": "chain",
+      "count": 1
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "chain", "count": 2}],
+      "outputs": [
+        {
+          "item": "chain",
+          "count": 2
+        }
+      ],
       "message": "Two lengths from one ingot — drawn thin and true."
     },
     "success": {
-      "outputs": [{"item": "chain", "count": 1}],
+      "outputs": [
+        {
+          "item": "chain",
+          "count": 1
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "chain", "count": 1}],
+      "outputs": [
+        {
+          "item": "chain",
+          "count": 1
+        }
+      ],
       "message": "Short links — half the length."
     },
     "crit_fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "slag", "count": 1}],
+      "outputs": [
+        {
+          "item": "slag",
+          "count": 1
+        }
+      ],
       "message": "Welds failed one by one — slag."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

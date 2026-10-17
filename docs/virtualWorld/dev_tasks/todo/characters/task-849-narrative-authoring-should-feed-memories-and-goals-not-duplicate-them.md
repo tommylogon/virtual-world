@@ -3,6 +3,7 @@ type: task
 status: todo
 area: characters
 priority: medium
+related: ['"\'task-704\'"', '"\'task-822\'"', '\'"\\'task-733\\'"\'', '\'"\\'task-829\\'"\'', "'task-704'", "'task-822'", 'task-404', 'task-725', 'task-734', 'task-822']
 wiki: "[[Characters/Persona]]"
 ---
 
@@ -10,6 +11,10 @@ wiki: "[[Characters/Persona]]"
 
 **Filed:** 2026-10-16
 **Related:** 
+
+<!-- deps:start -->
+**Related:** [[task-704-mosiac-selector-needs-memory-and-personality-choose-and-bind-plans]], [[task-822-gimp-goal-data-reason-carrying-refs-achievement-predicates-and-auto-reached]], [[task-733-character-sheet-a-full-page-worldgraph-style-person-form-that-compiles-into-viwo-primitives]], [[task-829-growth-wiring-for-persona-fields-via-items-triggers-and-consumers]], [[task-404-character-life-experience-generator]], [[task-725-memories-carry-nothing-about-death-vitals-travel-perception-or-resurrection]], [[task-734-knowledge-is-memory-fold-known-recipes-known-places-into-one-prose-data-record-with-episodic-vs-semantic-kinds]]
+<!-- deps:end -->
 
 ## What
 

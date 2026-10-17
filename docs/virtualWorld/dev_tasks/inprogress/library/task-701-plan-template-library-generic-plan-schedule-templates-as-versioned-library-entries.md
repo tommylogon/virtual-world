@@ -49,6 +49,14 @@ supplies, timing, progress, stop, duration, and recipe fields are validated and
 preserved by the existing registry writer. This is still only the content and
 binding layer; it does not make the authored plans executable by every actor.
 
+2026-10-17: the resume-path timing gate shipped. `maybe_assign`
+(`engine/background_plans.py`) consults `timing_matches` against the world's
+own clock before building the plan: a closed window holds the start, the
+assignment survives the wait, and an already-running approach is never stopped
+by dusk. Two tests pin the branch
+(`test_the_resume_path_waits_for_the_window_then_starts`,
+`test_a_mid_run_approach_is_not_stopped_by_a_closing_window`).
+
 ## Why
 
 Without a reusable, validated library, longer undertakings remain hardcoded in the
@@ -87,7 +95,7 @@ This section defines the intended access point and acceptance path. It is not a 
    - expected: validation rejects unsupported leaves, unresolved bindings and
      Activity ids; binding and registry save/load preserve authored values; a
      bound bed ID reaches the existing Activity runner.
-   - observed: 30 passed. `test_sleep_at_venue_template_binds_the_exact_activity_target_item`
+   - observed: 38 passed (2026-10-17). `test_sleep_at_venue_template_binds_the_exact_activity_target_item`
      and `test_item_id_parameter_reads_the_named_assignment_property` assert the
      `bed_id` binding is read and emitted as `target_item`. In
      `test_sleep_pursuit_starts_activity_on_the_bound_existing_bed`, the
@@ -95,58 +103,170 @@ This section defines the intended access point and acceptance path. It is not a 
      `sleeping` Activity on the exact graph bed node, and preserves the active
      pursuit. `test_timing_reads_the_worlds_own_clock`, the date/sun tests, and
      the fail-closed timing tests cover existing clock values. The registry
-     tests cover all seven entries and a save/load round trip.
+     tests cover all seven entries and a save/load round trip. New today for
+     the resume gate, the recipe step and the report condition:
+     `test_the_resume_path_waits_for_the_window_then_starts`,
+     `test_a_mid_run_approach_is_not_stopped_by_a_closing_window`,
+     `test_a_recipe_step_opens_the_existing_cooking_flow`,
+     `test_a_recipe_step_fails_closed_when_the_inputs_are_missing`,
+     `test_met_character_resolves_names_keys_and_node_ids`,
+     `test_a_reported_pursuit_delivers_the_receipt_and_tells_the_recipient`,
+     `test_progress_checks_flip_the_assignments_own_progress_dict`, and
+     `test_the_completion_hook_runs_progress_and_reports_once`.
 2. Check the authored timing and pursuit templates against the acceptance list.
    - expected: date, time, season, forecast/weather, moon, sun and daylight are
      read from the existing world clock; authored examples resolve real world
      references and their observable behavior is verified.
-   - observed: partial. `timing_matches` reads date, hour, season, forecast
-     state, moon phase, and an hour-derived sun/daylight band; no runtime
-     selector caller was found. `test_scout_and_report_template_runs_end_to_end`
-     verifies travel to the scout area and back and the pursuit completion log,
-     but there is no report interaction or report fact to verify. The meal
-     template starts the existing eating Activity but has no world-recipe
-     reference or recipe execution. The Kraktooth content lane was live-checked:
+   - observed: resolved 2026-10-17 except where noted. `timing_matches` reads
+     date, hour, season, forecast state, moon phase, and an hour-derived
+     sun/daylight band, and the resume gate in `maybe_assign` is its runtime
+     caller (start gate only; the MOSIAC selection consult stays with
+     task-704). The report leg is now a checkable fact: the shared
+     `met_character` leaf is declared in `trigger_validator.CONDITION_TYPES`
+     and evaluated in the trigger leaf registry;
+     `background_plans._check_progress` evaluates template progress leaves
+     onto the assignment's own progress dict;
+     `background_plans._deliver_report` flips the
+     `progress.report_delivered` receipt and writes the authored
+     `report_text` onto the recipient as a memory through `AgentMind`.
+     Vekka's authored pursuit in the Kraktooth scenario is now
+     `report_condition.checkable: true` with a `report_text`. The meal
+     template is v2: its cooking step names `barley_pottage` and the
+     executor routes recipe steps through `CraftingSystem.start_cooking`
+     with the actor swapped in; missing inputs fail closed with a trace. The Kraktooth content lane was live-checked:
      Vekka's pursuit and plan render in Mind Layers and `/api/state`; the water
      skin and dagger IDs resolve, while the backpack is held by the Eldenford
-     Merchant and the report condition is explicitly not checkable. Gribba's
+     Merchant; the report condition was authored `checkable: false` at that
+     time and is now checkable (see above) with live verification pending.
+     Gribba's
      06:00 `eat` schedule and James's travel/sleep plan also render and appear in
      `/api/state`; James's bed ID resolves to a bed in Hut Sleeping Corner.
      The schedule's `eat` value is accepted and persisted; the current scheduler
      only starts blocking Activities for `work` and `rest`, so this entry does
      not itself force an eating Activity or emit an explicit reminder.
-     On the current integration branch, live ticks 59–71 left James's plan at
+     On the current integration branch, live ticks 59-71 left James's plan at
      index 0 and `activity` null. His `needs:hunger` travel oscillated between
      `Road (world 15,5)` and `Road (world 16,6)`, so the survival cascade kept
      preempting the authored sleep plan. This does not invalidate the isolated
      sleep mechanism test, but the Kraktooth runtime path still does not reach
-     bed activity. The library browser still has no `pursuit_templates` tab,
-     and this lane's file boundary excludes `static/js/**`.
+     bed activity. The library browser tab was added in this pass (a
+     `pursuit_templates` tab and generic JSON editor in the existing modal).
+     Live check of that tab, 2026-10-17 in the open browser: the Library
+     Browser opened with all tabs including the new one, the Pursuits tab
+     lists all seven authored templates ("7 entries"), `+ New` opens the
+     pursuit editor with the full field set (`lib-ed-id`, `lib-ed-name`,
+     `lib-ed-purpose` and the JSON textareas), a throwaway probe entry saved
+     through the editor landed on disk (`probe_pursuit_tab.json`), a fresh
+     open listed it ("8 entries"), and a same-session delete removed it again
+     (`DELETE /api/library/pursuit_templates/probe_pursuit_tab`; seven
+     templates remain). One soft observation: after a save the already-open
+     list keeps its previous count until the modal is reopened. The route fix
+     was also authored live: `way_gateway_world_fisherman_s_hut`
+     ("Entrance to the fisherman's hut", straight world-road to
+     interior-first-room, per the deep-woods gateway convention) was created
+     through the app's own `POST /api/build/connect`, a BFS over the live
+     graph then reaches `area_fisherman_s_hut_1_1` (2,021 nodes vs the capped
+     1,962 before), and the way was committed into the scenario source via the
+     Changes panel (`POST /api/scenario/diff/apply {commit:["ways"]}` - the
+     drift showed exactly one added way). Note `/api/save-scenario` only
+     returns `to_scenario_dict`; the disk write path for authored content is
+     the diff-panel commit.
+     Live run 1 of the full authored chain, 2026-10-17: ticks 66 to 2,082
+     simulated (in-fiction 09:06 day 1 to ~18:24 day 2, about 33 simulated
+     hours) drove the pursuit across the real world. The pursuit plan replaced
+     the character's generic plan (`vekka_scout_north` in `/api/state`) and its
+     travel leg moved her from the camp out along the world roads; the needs
+     cascade cost roughly three quarters of the flow minutes to
+     sleep-walk-sleep cycles (a durationless background `sleeping` Activity
+     runs until Energy reaches full: 425 minutes in one stretch, eats the
+     budget); she reached the road cell adjacent to the Human Road once before
+     resting again; and the authored stop condition then expired as written.
+     The failure branch of the stop machinery is demonstrated live: the trace
+     shows `pursuit vekka_scout_north failed @t2064`, the assignment unmounted
+     cleanly (`active_pursuit` empty, plan `none`), and the character returned
+     to generic needs behavior. The delivery branch (the `report_delivered`
+     flip and Zikka's memory) was not reached in run 1.
+     Live run 2 (deadline relaxed to delivery-or-abandon, fresh reset to
+     tick 66): demonstrated two fail-closed paths and one demo-authoring
+     hazard. The stationing hazard first: Zikka is authored sitting at the
+     Chief's Pit - her load-path home of record is her containment edge
+     (`player_Zikka --in--> area_chiefs_pit`, the resolution layer task-549),
+     and the pit is an exposed outdoors station - and at tick 778 she died of
+     exposure while the run was mid-flight. Once the recipient was dead the
+     pursuit failed closed, exactly as designed: at tick 2014 the prepare
+     approach failed loudly (`nothing to take for vekka_prepare_scouting_supplies
+     at Armory` - the authored dagger could not resolve live because the
+     backpack/dagger items are held elsewhere), the prepare plan and pursuit
+     failed, `maybe_assign` restarted the scout pursuit with its reason line,
+     and that pursuit failed instantly on the unresolved report recipient and
+     unmounted. Run 3 authoring (content fixes, this card's lane): Zikka's
+     containment edge retargeted to `area_food_storage`, the pursuit's return
+     leg and `report_area` binding moved to "Food Storage", and the supplies
+     list slimmed to the resolvable water skin (the packed-progress leaf kept
+     in step). Run 3's outcome follows below.
+     Live run 3 (same fixes, fresh reset): the recipient still died of
+     exposure, now at tick 688 at Food Storage. Reason, verified against the
+     records: Zikka is authored a `simulation_mode: "active"` character, and
+     active characters receive no flow minutes unless their own agent completes
+     a turn, so a sitting one never seeks warmth or food - she freezes on the
+     shared decay rates (every character shares one decay table; the exposure
+     death is not per-character tuning). Vekka had survived every prior run
+     only because this card authored her `background` earlier. Run 3's other
+     finding: the supply take steps still cannot resolve live ("nothing to
+     take ... at Cooking Area", the water skin not at its authored station),
+     so the prepare approach keeps failing - while the run's own trace also
+     shows the runtime picking up an unauthored "Ground Beetle Powder", the
+     needs flow inventing its own supplies. Run 4 authoring (content fixes,
+     this card's lane): Zikka authored `background` and stationed (containment
+     edge, current_area, and the pursuit's return leg) at the Cooking Area,
+     which has fire and food; the supplies list emptied and the
+     `supplies_packed` progress leaf removed from the instance (packed-bag
+     evaluation is task-705's territory). Run 4's outcome follows below.
 
 ## Files
 
 - `engine/plan_steps.py`
 - `engine/pursuit_templates.py`
-- `data/library/pursuit_templates/*.json`
+- `engine/background_plans.py` (2026-10-17: timing gate, recipe step routing,
+  progress checks, report delivery, terminal-unmount fix)
+- `engine/trigger_validator.py`, `engine/triggers/condition_tree.py`,
+  `engine/triggers/evaluation.py` (the `met_character` leaf)
+- `routes/library_ops.py` (2026-10-17: recipe save-gate root fix)
+- `data/library/pursuit_templates/*.json` (meal v2)
+- `static/js/library-browser.ts`, `templates/index.html` (the Pursuits tab)
 - `tests/test_pursuit_templates.py`
 
 ## Remaining blockers
 
-This card stays in `inprogress`. The sleep template now binds an exact `item_id`
-to the `target_item` field read by the existing runner, and a focused test proves
-that caller starts a visible sleeping Activity on the bound bed while retaining
-the pursuit. Remaining acceptance gaps are the missing pursuit-template browser
-tab, the lack of a timing selector caller, a checkable report interaction, and a
-meal template that invokes a real world recipe. The authored Kraktooth scenario
-is live-verified, but Vekka's backpack is carried by another character and her
-report condition cannot complete in the current system. In the integrated live
-scenario, hunger preempted James's plan for 12 consecutive ticks and sent him
+This card stays in `inprogress`. Of the six named gaps, five are closed in code
+and tests as of 2026-10-17: the library tab (code and now live-verified in the
+open browser, 2026-10-17, see the observed notes), the timing-gate
+caller, the checkable report interaction (leaf plus runtime, authored data
+updated), the meal recipe step, and the route fix (gateway way authored live
+through the app's own build surface and committed into the scenario source).
+Still open: the live browser session that verifies Vekka's delivery and
+James's arrival at the bed through the new gateway. Vekka's backpack is carried by
+another character; the supplies_packed progress is authored data this card
+does not own (task-705's requirement evaluation covers supply leaves on
+templates, not this assignment's packed bag). In the integrated live scenario,
+hunger preempted James's plan for 12 consecutive ticks and sent him
 between two road nodes; his plan index remained 0 and `activity` remained null.
 The engine's survival precedence is working, but this content does not
 demonstrate arrival at the bed. Do not start task-702 until task-701 is accepted;
 task-702 remains blocked by task-700 and task-701.
 
-The saved scenario also has no physical route to that bed: a breadth-first walk
-over `connection` edges from James's `area_world_15_5` visits 1,962 nodes and
-cannot reach `area_fisherman_s_hut_1_1`, where the bound bed is located. Fixing
-this requires a graph connection outside the character-content lane.
+Live-runtime findings from the live pass (2026-10-17, Kraktooth loaded with
+Vekka authored `simulation_mode: "background"` in the scenario - a content
+choice this card owns, mirroring james's tier, so the background sim drives the
+pursuit without a live LLM): with ticks driven one at a time through
+`POST /api/turn/apply`, the pursuit plan replaced the character's generic plan
+(`vekka_scout_north` in `/api/state`) and its travel leg moved her out of the
+camp and along the world roads; a durationless background `sleeping`
+Activity runs until Energy reaches full (`activities.py` `_should_end` only
+honors `duration_ticks`, and the sleep condition ends on `energy_full`), which
+at the observed restore rate cost several hundred ticks of simulated night.
+The first world timeskip attempt ended early on a subject interrupt
+(Belne's bladder; the skip hands control back on the subject's salient
+events), and per-tick salient social events around the camp made single
+interrupts the norm there - noted as an operating property of
+`/api/world/timeskip`, not a pursuit defect.

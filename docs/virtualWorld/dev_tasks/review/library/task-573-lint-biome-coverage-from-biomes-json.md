@@ -3,12 +3,17 @@ type: task
 status: review
 area: library
 priority: medium
+related: ['task-571', 'task-569', 'task-570', 'task-588']
 ---
 
 # task-573: Lint biome coverage from biomes.json
 
 **Filed:** 2026-09-27
 **Related:** 
+
+<!-- deps:start -->
+**Related:** [[task-571-item-biome-affinity-field]], [[task-569-biome-resource-distribution-consumer]], [[task-570-hostile-distribution-consumer]], [[task-588-investigate-where-worldpainter-vocabularies-live]]
+<!-- deps:end -->
 
 ## What
 

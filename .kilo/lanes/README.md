@@ -14,6 +14,22 @@ Four worktrees, branched from `master`. One is a **serial spine**, three are
 > the hub table: `engine/awareness.py`, `engine/character_spatial.py` and
 > `engine/generation_recipes.py` are now the seam a second lane will collide on.
 > See `docs/design/worktree-parallelisation-plan.md` for the full outcome.
+>
+> **Status 2026-10-17 - main-checkout git collision.** The lane working
+> task-440 (world_compile regions refactor) ran `git stash` + `git reset --hard`
+> in the **main checkout** at 14:53, stashing 261 dirty files (~7,000 lines) that
+> belonged to another in-flight lane (task-701, pursuit template library: engine
+> edits, tests, the Kraktooth scenario and card updates), and a later checkout
+> reverted the tree again. That is exactly what README rule 1 ("never git
+> stash") exists to prevent; this is the recorded instance. Recovered via
+> `git stash apply` once the user confirmed other lanes were paused; the stash
+> was left in place and a bundle backup exists at
+> `%TEMP%\vw-stash-backup-20261017.bundle`. In flight on the main checkout:
+> task-701 touches `engine/background_plans.py`, `engine/pursuit_templates.py`,
+> `engine/triggers/*`, `engine/trigger_validator.py`, `routes/library_ops.py`,
+> `static/js/library-browser.ts`, `templates/index.html`,
+> `data/library/pursuit_templates/*` and `data/scenarios/kraktooth_goblin_camp.json`.
+> If you are about to run git history surgery on those files here, post first.
 
 | Lane | Worktree | Owns | Tasks | Merges |
 |---|---|---|---|---|

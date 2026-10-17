@@ -2,7 +2,7 @@
 type: task
 status: todo
 area: characters
-priority: high
+priority: low
 wiki: "[[Library System/Library System Overview]]"
 ---
 

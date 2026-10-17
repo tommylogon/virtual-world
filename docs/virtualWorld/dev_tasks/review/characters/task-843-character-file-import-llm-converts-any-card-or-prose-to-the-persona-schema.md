@@ -3,13 +3,13 @@ type: task
 status: review
 area: characters
 priority: medium
-related: [task-828, task-830, task-2]
+related: ['"\'task-828\'"', '"\'task-830\'"', "'task-828'", "'task-829'", 'task-828', 'task-829']
 ---
 
 # task-843: Character file import — LLM converts any card or prose to the Persona schema
 
 <!-- deps:start -->
-**Related:** [[task-828-expanded-persona-appearance-schema-on-character-node-with-compile-into-prose]], [[task-830-mind-panel-persona-tab-for-advanced-appearance-personality-schema-with-compile-button]], [[task-2-crafting_and_recipes]]
+**Related:** [[task-828-expanded-persona-appearance-schema-on-character-node-with-compile-into-prose]], [[task-830-mind-panel-persona-tab-for-advanced-appearance-personality-schema-with-compile-button]], [[task-829-growth-wiring-for-persona-fields-via-items-triggers-and-consumers]]
 <!-- deps:end -->
 
 ## What

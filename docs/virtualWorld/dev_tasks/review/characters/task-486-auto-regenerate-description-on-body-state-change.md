@@ -3,12 +3,17 @@ type: task
 status: review
 area: characters
 priority: medium
+related: ['"\'task-210\'"', "'task-253'", "'task-534'", 'task-253', 'task-534']
 ---
 
 # task-486: Auto-regenerate description on body-state change
 
 **Filed:** 2026-09-23
 **Related:** task-210
+
+<!-- deps:start -->
+**Related:** [[task-210-description-enrichment]], [[task-253-body-part-targeted-injuries]], [[task-534-missing-body-reaction-sneeze]]
+<!-- deps:end -->
 
 ## What
 

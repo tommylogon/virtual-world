@@ -3,26 +3,61 @@
   "name": "Sew Bedroll",
   "description": "Sew fleece and cloth into a bedroll.",
   "ingredients": [
-    {"item": "wool_fleece", "count": 2, "consumed": true},
-    {"item": "cloth_bolt", "count": 1, "consumed": true},
-    {"item": "needle", "count": 1, "consumed": false}
+    {
+      "item": "wool_fleece",
+      "count": 2,
+      "consumed": true
+    },
+    {
+      "item": "cloth_bolt",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "needle",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [],
   "duration_min": 60,
-  "skill_check": {"skill": "Survival", "dc": 10},
-  "outputs": [{"item": "bedroll", "count": 1}],
+  "skill_check": {
+    "skill": "Survival",
+    "dc": 10
+  },
+  "outputs": [
+    {
+      "item": "bedroll",
+      "count": 1
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "bedroll", "count": 1}],
+      "outputs": [
+        {
+          "item": "bedroll",
+          "count": 1
+        }
+      ],
       "message": "Even stitching, lofted fill — the best sleep outside a bed."
     },
     "success": {
-      "outputs": [{"item": "bedroll", "count": 1}],
+      "outputs": [
+        {
+          "item": "bedroll",
+          "count": 1
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "lumpy_bedroll", "count": 1}],
+      "outputs": [
+        {
+          "item": "lumpy_bedroll",
+          "count": 1
+        }
+      ],
       "message": "All the stuffing in one corner — half rest."
     },
     "crit_fail": {
@@ -31,6 +66,8 @@
       "message": "Wasted stitching — picked apart and lost. (The card's fleece-kept/cloth-lost split needs per-input outcome flags, which the engine has no grammar for.)"
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

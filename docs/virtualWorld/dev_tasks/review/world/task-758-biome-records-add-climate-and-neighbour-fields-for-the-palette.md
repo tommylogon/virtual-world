@@ -3,7 +3,7 @@ type: task
 status: review
 area: world
 priority: medium
-related: [task-497, task-557, task-569, task-718, task-745, task-759]
+related: ['bug-529', 'task-496', 'task-497', 'task-557', 'task-569', 'task-640', 'task-718', 'task-745', 'task-759']
 ---
 
 # task-758: Biome records: add the climate and neighbour fields the palette needs
@@ -17,7 +17,7 @@ schema per entry)". The record converges on *some* of that schema — not all of
 it, because the rest belongs in separate registries (see "Deliberately not here").
 
 <!-- deps:start -->
-**Related:** [[task-497-worldpainter-biome-feature-taxonomy-and-distribution-layers]], [[task-557-worldpainter-climate-layer-paint-a-coarse-climate-compile-it-to-base-temperature]], [[task-569-biome-resource-distribution-consumer]], [[task-718-biome-resource-loot-tables-as-separate-library-json]], [[task-745-worldpainter-hazards-a-current-strength-paint-layer-plus-a-hazards-json-category-table]], [[task-759-worldpainter-biome-palette-illustrated-tile-grid-category-rail-and-a-rich-detail-panel]]
+**Related:** [[bug-529-worldpainter-compiled-ways-carry-no-tags-so-every-generated-way-reads-tags-none]], [[task-496-worldpainter-grid-to-graph-compiler-cells-to-areas-and-ways]], [[task-497-worldpainter-biome-feature-taxonomy-and-distribution-layers]], [[task-557-worldpainter-climate-layer-paint-a-coarse-climate-compile-it-to-base-temperature]], [[task-569-biome-resource-distribution-consumer]], [[task-640-area-environment-editor-is-an-enum-form-over-free-text-and-numeric-data]], [[task-718-biome-resource-loot-tables-as-separate-library-json]], [[task-745-worldpainter-hazards-a-current-strength-paint-layer-plus-a-hazards-json-category-table]], [[task-759-worldpainter-biome-palette-illustrated-tile-grid-category-rail-and-a-rich-detail-panel]]
 <!-- deps:end -->
 
 ## What

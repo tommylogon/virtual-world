@@ -3,6 +3,7 @@ area: characters
 status: done
 type: task
 priority: medium
+related: ['task-207', 'task-208', 'task-209', 'task-210', 'task-211', 'task-212', 'task-213']
 ---
 
 # Environmental & Clothing Effects (Wet/Transparency/Friction)
@@ -12,6 +13,10 @@ priority: medium
 **Status**: Re-scoped (2026-09-22) — description-driven, not prop-driven
 
 ---
+
+<!-- deps:start -->
+**Related:** [[task-207-body-state-and-vitals]], [[task-208-release-edging-friction]], [[task-209-physiological-state-conditions]], [[task-210-description-enrichment]], [[task-211-intimacy-verbs-actions]], [[task-212-verb-multipliers]], [[task-213-mature-traits]]
+<!-- deps:end -->
 
 ## Status — re-scoped (2026-09-22)
 

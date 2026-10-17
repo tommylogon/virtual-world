@@ -3,6 +3,7 @@ type: task
 status: review
 area: items
 priority: medium
+related: [task-537, task-534, task-320]
 ---
 
 # task-391: Lyrie's Spellbook — Life-Bonded Spell Items
@@ -10,6 +11,10 @@ priority: medium
 **Filed**: 2026-09-02 
 **Implemented**: 2026-09-27 
 **Source**: Character backstory from `data/library/characters/Lyrie.json` — memories, personality, and current Frozen Thicket situation.
+
+<!-- deps:start -->
+**Related:** [[task-537-spell-effect-and-condition-catalogue-review-list]], [[task-534-missing-body-reaction-sneeze]], [[task-320-scry-sight-effect]]
+<!-- deps:end -->
 
 ## Status — implemented (2026-09-27)
 

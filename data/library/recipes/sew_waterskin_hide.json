@@ -3,35 +3,81 @@
   "name": "Sew Waterskin",
   "description": "Cut and stitch a hide into a waterskin with waxed thread.",
   "ingredients": [
-    {"item": "leather_hide", "count": 1, "consumed": true},
-    {"item": "waxed_thread", "count": 1, "consumed": true},
-    {"item": "awl", "count": 1, "consumed": false},
-    {"item": "needle", "count": 1, "consumed": false}
+    {
+      "item": "leather_hide",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "waxed_thread",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "awl",
+      "count": 1,
+      "consumed": false
+    },
+    {
+      "item": "needle",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [],
   "duration_min": 60,
-  "skill_check": {"skill": "Leatherwork", "dc": 11},
-  "outputs": [{"item": "waterskin", "count": 1}],
+  "skill_check": {
+    "skill": "Leatherwork",
+    "dc": 11
+  },
+  "outputs": [
+    {
+      "item": "waterskin",
+      "count": 1
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "waterskin", "count": 1}],
+      "outputs": [
+        {
+          "item": "waterskin",
+          "count": 1
+        }
+      ],
       "message": "Watertight first fill — a skin to trust for years."
     },
     "success": {
-      "outputs": [{"item": "waterskin", "count": 1}],
+      "outputs": [
+        {
+          "item": "waterskin",
+          "count": 1
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "leaky_skin", "count": 1}],
+      "outputs": [
+        {
+          "item": "leaky_skin",
+          "count": 1
+        }
+      ],
       "message": "Weeps at the seams — half capacity."
     },
     "crit_fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "leather_scraps", "count": 1}],
+      "outputs": [
+        {
+          "item": "leather_scraps",
+          "count": 1
+        }
+      ],
       "message": "Ruined hide — kept as scraps."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

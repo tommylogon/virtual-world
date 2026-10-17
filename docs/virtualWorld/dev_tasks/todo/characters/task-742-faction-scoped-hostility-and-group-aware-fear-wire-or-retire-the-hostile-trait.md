@@ -3,12 +3,17 @@ type: task
 status: todo
 area: characters
 priority: medium
+related: ["'task-552'", 'task-552']
 ---
 
 # task-742: Faction-scoped hostility and group-aware fear; wire or retire the hostile trait
 
 **Filed:** 2026-10-08
 **Related:** task-390, task-550, task-619
+
+<!-- deps:start -->
+**Related:** [[task-552-fear-response-humans-should-fear-goblins]]
+<!-- deps:end -->
 
 ## What
 

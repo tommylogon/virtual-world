@@ -3,38 +3,92 @@
   "name": "Forge Fire Poker",
   "description": "Draw scrap into a fire poker.",
   "ingredients": [
-    {"item": "scrap_iron", "count": 2, "consumed": true},
-    {"item": "charcoal", "count": 1, "consumed": true},
-    {"item": "forge", "count": 1, "consumed": false},
-    {"item": "anvil", "count": 1, "consumed": false},
-    {"item": "hammer", "count": 1, "consumed": false}
+    {
+      "item": "scrap_iron",
+      "count": 2,
+      "consumed": true
+    },
+    {
+      "item": "charcoal",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "forge",
+      "count": 1,
+      "consumed": false
+    },
+    {
+      "item": "anvil",
+      "count": 1,
+      "consumed": false
+    },
+    {
+      "item": "hammer",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [
-    {"type": "state_equals", "target": "forge", "value": "on"}
+    {
+      "type": "state_equals",
+      "target": "forge",
+      "value": "on"
+    }
   ],
   "duration_min": 25,
-  "skill_check": {"skill": "Smithing", "dc": 9},
-  "outputs": [{"item": "fire_poker", "count": 1}],
+  "skill_check": {
+    "skill": "Smithing",
+    "dc": 9
+  },
+  "outputs": [
+    {
+      "item": "fire_poker",
+      "count": 1
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "fire_poker", "count": 1}],
+      "outputs": [
+        {
+          "item": "fire_poker",
+          "count": 1
+        }
+      ],
       "message": "Turned handle, perfect balance."
     },
     "success": {
-      "outputs": [{"item": "fire_poker", "count": 1}],
+      "outputs": [
+        {
+          "item": "fire_poker",
+          "count": 1
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "bent_poker", "count": 1}],
+      "outputs": [
+        {
+          "item": "bent_poker",
+          "count": 1
+        }
+      ],
       "message": "Bent in the forging — pokes around corners."
     },
     "crit_fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "slag_sliver", "count": 1}],
+      "outputs": [
+        {
+          "item": "slag_sliver",
+          "count": 1
+        }
+      ],
       "message": "Burned thin to almost nothing."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

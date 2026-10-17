@@ -8,6 +8,7 @@ created: 2026-08-08  # back-filled from implementation in 42ca0b14
 tags: [items, weight, traits, ui, vitals, movement]
 type: task
 status: review
+related: [task-155, task-202, task-103]
 ---
 
 # Player Carry Capacity System
@@ -17,6 +18,10 @@ status: review
 **Updated**: 2026-08-11  
 
 ---
+
+<!-- deps:start -->
+**Related:** [[task-155-item-uses-affect-weight]], [[task-202-over-encumbrance-size]], [[task-103-weight-volume-container-limits]]
+<!-- deps:end -->
 
 ## Implementation Summary
 

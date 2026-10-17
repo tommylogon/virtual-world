@@ -3,33 +3,71 @@
   "name": "Shape Staff",
   "description": "Shape a straight branch into a quarterstaff.",
   "ingredients": [
-    {"item": "straight_branch", "count": 1, "consumed": true},
-    {"item": "knife", "count": 1, "consumed": false}
+    {
+      "item": "straight_branch",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "knife",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [],
   "duration_min": 30,
-  "skill_check": {"skill": "Woodcraft", "dc": 9},
-  "outputs": [{"item": "quarterstaff", "count": 1}],
+  "skill_check": {
+    "skill": "Woodcraft",
+    "dc": 9
+  },
+  "outputs": [
+    {
+      "item": "quarterstaff",
+      "count": 1
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "quarterstaff", "count": 1}],
+      "outputs": [
+        {
+          "item": "quarterstaff",
+          "count": 1
+        }
+      ],
       "message": "Perfectly balanced — hums when spun."
     },
     "success": {
-      "outputs": [{"item": "quarterstaff", "count": 1}],
+      "outputs": [
+        {
+          "item": "quarterstaff",
+          "count": 1
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "crooked_staff", "count": 1}],
+      "outputs": [
+        {
+          "item": "crooked_staff",
+          "count": 1
+        }
+      ],
       "message": "A bend in it — half damage, still a staff."
     },
     "crit_fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "snapped_stick", "count": 1}],
+      "outputs": [
+        {
+          "item": "snapped_stick",
+          "count": 1
+        }
+      ],
       "message": "Snapped in shaping."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

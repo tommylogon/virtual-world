@@ -3,12 +3,17 @@ type: task
 status: review
 area: items
 priority: medium
+related: [task-513, task-408, task-403]
 ---
 
 # task-514: Item provenance and acquisition history
 
 **Filed:** 2026-09-24
 **Related:** task-408, task-403
+
+<!-- deps:start -->
+**Related:** [[task-513-kraktooth-goblin-gear-spec-driven-library-batch]], [[task-408-goblin-scenario-node-dedup-and-data-integrity]], [[task-403-unified-agent-memory-and-knowledge]]
+<!-- deps:end -->
 
 ## What
 

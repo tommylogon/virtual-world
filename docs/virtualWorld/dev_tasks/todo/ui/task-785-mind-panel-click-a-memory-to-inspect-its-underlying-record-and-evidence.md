@@ -3,12 +3,17 @@ type: task
 status: todo
 area: ui
 priority: medium
+related: ["'task-691'", "'task-730'", "'task-787'", 'task-691', 'task-714', 'task-730', 'task-787', 'task-788']
 ---
 
 # task-785: Mind panel: click a memory to inspect its underlying record and evidence
 
 **Filed:** 2026-10-12
 **Related:** task-691, task-727, task-734
+
+<!-- deps:start -->
+**Related:** [[task-691-memory-mind-interface-dynamics-badges-connections-per-person-profiles-dashboard]], [[task-730-chat-based-interactive-memory-creation-the-character-reacts-in-voice-to-author-new-memories]], [[task-787-mind-panel-migrate-the-remaining-mind-surfaces-out-of-the-bio-and-advanced-tabs]], [[task-714-character-mind-panel-connect-memories-motives-and-current-pursuits]], [[task-788-mind-panel-fullscreen-mode]]
+<!-- deps:end -->
 
 ## What
 

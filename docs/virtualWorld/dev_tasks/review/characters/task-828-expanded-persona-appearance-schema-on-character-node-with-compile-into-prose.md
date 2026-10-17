@@ -3,6 +3,7 @@ type: task
 status: review
 area: characters
 priority: high
+related: ['"\'task-507\'"', '"\'task-733\'"', '"\'task-830\'"', '"\'task-843\'"', '"\'task-844\'"', "'task-829'", "'task-843'", 'task-829', 'task-843']
 wiki: "[[Feature Map]]"
 ---
 
@@ -12,7 +13,7 @@ wiki: "[[Feature Map]]"
 **Related:** task-733
 
 <!-- deps:start -->
-**Related:** [[task-733-character-sheet-a-full-page-worldgraph-style-person-form-that-compiles-into-viwo-primitives]]
+**Related:** [[task-507-structured-appearance-personality-fields-for-characters-optional-llm-fillable]], [[task-733-character-sheet-a-full-page-worldgraph-style-person-form-that-compiles-into-viwo-primitives]], [[task-830-mind-panel-persona-tab-for-advanced-appearance-personality-schema-with-compile-button]], [[task-843-character-file-import-llm-converts-any-card-or-prose-to-the-persona-schema]], [[task-844-persona-tab-character-sheet-pass-grid-chips-codex-preview]], [[task-829-growth-wiring-for-persona-fields-via-items-triggers-and-consumers]]
 <!-- deps:end -->
 
 ## What

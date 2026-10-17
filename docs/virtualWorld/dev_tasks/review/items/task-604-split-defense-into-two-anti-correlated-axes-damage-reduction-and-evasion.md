@@ -3,12 +3,17 @@ type: task
 status: review
 area: items
 priority: high
+related: [task-607, task-606]
 ---
 
 # task-604: Split defense into two anti-correlated axes: damage reduction and evasion
 
 **Filed:** 2026-09-30
 **Related:** 
+
+<!-- deps:start -->
+**Related:** [[task-607-damage-reduction-must-be-percentage-not-flat-subtraction]], [[task-606-author-scale-correct-ability-scores-per-size-tier-so-a-leviathan-is-not-str-9]]
+<!-- deps:end -->
 
 ## What
 

@@ -3,12 +3,17 @@ type: task
 status: done
 area: characters
 priority: high
+related: ['task-606', 'task-653']
 ---
 
 # task-605: Make size a real character property tied to the graph editor character form
 
 **Filed:** 2026-09-30
 **Related:** 
+
+<!-- deps:start -->
+**Related:** [[task-606-author-scale-correct-ability-scores-per-size-tier-so-a-leviathan-is-not-str-9]], [[task-653-per-area-max-occupancy-computed-from-occupant-size-with-entities-that-take-no-space]]
+<!-- deps:end -->
 
 ## What
 

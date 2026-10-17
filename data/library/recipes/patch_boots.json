@@ -3,14 +3,33 @@
   "name": "Patch Boots",
   "description": "Patch worn boots with scraps and waxed thread.",
   "ingredients": [
-    {"item": "worn_boots", "count": 1, "consumed": false},
-    {"item": "leather_scraps", "count": 2, "consumed": true},
-    {"item": "waxed_thread", "count": 1, "consumed": true},
-    {"item": "awl", "count": 1, "consumed": false}
+    {
+      "item": "worn_boots",
+      "count": 1,
+      "consumed": false
+    },
+    {
+      "item": "leather_scraps",
+      "count": 2,
+      "consumed": true
+    },
+    {
+      "item": "waxed_thread",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "awl",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [],
   "duration_min": 20,
-  "skill_check": {"skill": "Leatherwork", "dc": 9},
+  "skill_check": {
+    "skill": "Leatherwork",
+    "dc": 9
+  },
   "outputs": [],
   "outcomes": {
     "crit_success": {
@@ -28,10 +47,17 @@
     },
     "crit_fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "leather_scraps", "count": 1}],
+      "outputs": [
+        {
+          "item": "leather_scraps",
+          "count": 1
+        }
+      ],
       "message": "Cut the worst parts out as scraps — the boots survive, barely. (Boots-destroyed needs per-input outcome flags; kept inputs are never eaten.)"
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

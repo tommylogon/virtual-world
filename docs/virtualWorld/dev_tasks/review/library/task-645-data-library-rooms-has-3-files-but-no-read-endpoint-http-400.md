@@ -3,12 +3,17 @@ type: task
 status: review
 area: library
 priority: low
+related: ['task-291', 'task-588', 'task-590', 'task-357']
 ---
 
 # task-645: data/library/rooms has 3 files but no read endpoint (HTTP 400)
 
 **Filed:** 2026-09-30
 **Related:** 
+
+<!-- deps:start -->
+**Related:** [[task-291-unified-library-api-and-data-driven-catalogs]], [[task-588-investigate-where-worldpainter-vocabularies-live]], [[task-590-make-the-behaviours-tab-real-load-data-library-behaviours-json-into-the-engine-the-traits-treatment]], [[task-357-structure-save-load-connected-areas]]
+<!-- deps:end -->
 
 ## What
 

@@ -1,4 +1,5 @@
 ---
+related: [task-245, task-363]
 type: task
 status: review
 area: gameplay
@@ -9,6 +10,10 @@ priority: medium
 
 **Status:** In Review — implemented 2026-08-16.
 **Source:** `dev_tasks/developer ideas.md` (improved human player in turn with parameters like agents get) + clarifying discussion 2026-08-16.
+
+<!-- deps:start -->
+**Related:** [[task-245-multiplayer-humans]], [[task-363-command-parser-multiwindow-targets]]
+<!-- deps:end -->
 
 ## Implementation (2026-08-16)
 

@@ -1,4 +1,5 @@
 ---
+related: [task-104, task-244]
 type: task
 status: review
 area: gameplay
@@ -8,6 +9,10 @@ priority: medium
 # Task: Command Parser — Multi-Word `use X on Y` Targets
 
 **Status**: In Review — implemented (verified 2026-08-08 code audit; moved from todo). `routes/action.py:290` joins the full remainder after `on` as the target (`target_name = ' '.join(tokens[on_idx + 1:])`), and quoted tokens become an explicit target+params pair for the inscribe path — multi-word targets like `dried flower crown` no longer truncate. Pending: dedicated backend test from the task's §3.
+
+<!-- deps:start -->
+**Related:** [[task-104-multi-action-command-sequences]], [[task-244-human-player-turn-parameters]]
+<!-- deps:end -->
 
 ## What
 

@@ -3,33 +3,71 @@
   "name": "Grind Meal",
   "description": "Grind barley to coarse meal on the grindstone.",
   "ingredients": [
-    {"item": "barley", "count": 2, "consumed": true},
-    {"item": "grindstone", "count": 1, "consumed": false}
+    {
+      "item": "barley",
+      "count": 2,
+      "consumed": true
+    },
+    {
+      "item": "grindstone",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [],
   "duration_min": 30,
-  "skill_check": {"skill": "Survival", "dc": 9},
-  "outputs": [{"item": "coarse_meal", "count": 3}],
+  "skill_check": {
+    "skill": "Survival",
+    "dc": 9
+  },
+  "outputs": [
+    {
+      "item": "coarse_meal",
+      "count": 3
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "coarse_meal", "count": 4}],
+      "outputs": [
+        {
+          "item": "coarse_meal",
+          "count": 4
+        }
+      ],
       "message": "Even grind, no waste."
     },
     "success": {
-      "outputs": [{"item": "coarse_meal", "count": 3}],
+      "outputs": [
+        {
+          "item": "coarse_meal",
+          "count": 3
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "coarse_meal", "count": 2}],
+      "outputs": [
+        {
+          "item": "coarse_meal",
+          "count": 2
+        }
+      ],
       "message": "Gritty and uneven, but meal."
     },
     "crit_fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "coarse_meal", "count": 1}],
+      "outputs": [
+        {
+          "item": "coarse_meal",
+          "count": 1
+        }
+      ],
       "message": "Most of it on the floor — a scoop saved."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

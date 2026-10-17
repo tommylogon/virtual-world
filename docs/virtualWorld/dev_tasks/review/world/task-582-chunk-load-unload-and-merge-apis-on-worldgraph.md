@@ -3,12 +3,17 @@ type: task
 status: review
 area: world
 priority: high
+related: ['task-401', 'task-397', 'task-583', 'task-584', 'task-535', 'task-539']
 ---
 
 # task-582: Chunk load, unload and merge APIs on WorldGraph
 
 **Filed:** 2026-09-28
 **Related:** task-401, task-397
+
+<!-- deps:start -->
+**Related:** [[task-401-chunk-persistence-and-gateway-ways]], [[task-397-world-scope-hierarchy-and-projection]], [[task-583-global-scope-index-gateway-ways-and-load-before-you-move]], [[task-584-cross-chunk-ownership-rules-for-carried-items-triggers-and-delayed-events]], [[task-535-promote-a-graph-selection-into-a-new-child-scope-with-a-gateway]], [[task-539-reassign-an-area-to-a-scope-membership-only-plus-a-scope-picker-on-the-node]]
+<!-- deps:end -->
 
 ## What
 

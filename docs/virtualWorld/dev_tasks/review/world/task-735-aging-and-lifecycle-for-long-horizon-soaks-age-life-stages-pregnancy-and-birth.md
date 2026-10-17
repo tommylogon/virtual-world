@@ -3,12 +3,17 @@ type: task
 status: review
 area: world
 priority: medium
+related: ['task-670', 'task-733', 'task-685', 'task-846', 'task-295', 'task-537']
 ---
 
 # task-735: Aging and lifecycle for long-horizon soaks: age, life stages, pregnancy and birth
 
 **Filed:** 2026-10-08
 **Related:** task-670, task-733, task-685
+
+<!-- deps:start -->
+**Related:** [[task-670-one-human-timeskip-soaks-the-whole-cast-not-just-the-ordering-character]], [[task-733-character-sheet-a-full-page-worldgraph-style-person-form-that-compiles-into-viwo-primitives]], [[task-685-memory-dynamics-memories-that-reinforce-fade-contradict-and-change-the-character]], [[task-846-pregnancy-gestation-and-birth]], [[task-295-spawn-character-trigger-effect]], [[task-537-spell-effect-and-condition-catalogue-review-list]]
+<!-- deps:end -->
 
 ## What
 

@@ -3,12 +3,17 @@ type: task
 status: review
 area: world
 priority: high
+related: ['task-496', 'task-397', 'task-378', 'task-523', 'task-495', 'task-535', 'task-539']
 ---
 
 # task-528: Place authored areas onto a painted cell (scope membership + map placement)
 
 **Filed:** 2026-09-26
 **Related:** task-496 task-397 task-378 task-523 task-495
+
+<!-- deps:start -->
+**Related:** [[task-496-worldpainter-grid-to-graph-compiler-cells-to-areas-and-ways]], [[task-397-world-scope-hierarchy-and-projection]], [[task-378-bulk-selection-mode]], [[task-523-map-layout-move-a-whole-zone-in-the-graph-canvas-per-scope-offset]], [[task-495-worldpainter-recursive-scope-grids-and-3-mode-editor]], [[task-535-promote-a-graph-selection-into-a-new-child-scope-with-a-gateway]], [[task-539-reassign-an-area-to-a-scope-membership-only-plus-a-scope-picker-on-the-node]]
+<!-- deps:end -->
 
 ## What
 

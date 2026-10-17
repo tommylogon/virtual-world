@@ -1,4 +1,5 @@
 ---
+related: [task-104, task-197, task-551]
 area: gameplay
 type: task
 status: review
@@ -12,6 +13,10 @@ priority: medium
 **Status**: In Review — implemented 2026-08-07, verified live against the running server (rest → tick → stand, sleep → blocked movement → wake) and 612-test suite. Pending browser E2E (agent turns skip busy characters, activity line in prompt).
 
 ---
+
+<!-- deps:start -->
+**Related:** [[task-104-multi-action-command-sequences]], [[task-197-teach-skill-recipe]], [[task-551-relieve-yourself-anywhere-but-indoors-a-latrine-is-decency-not-permission]]
+<!-- deps:end -->
 
 ## What was built (verified implementation)
 

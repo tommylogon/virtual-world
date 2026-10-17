@@ -3,6 +3,7 @@ area: triggers
 type: task
 status: review
 priority: medium
+related: ['task-200', 'task-203', 'task-308', 'task-47']
 ---
 
 # Vitals Readout as Trigger Condition and Message
@@ -12,6 +13,10 @@ priority: medium
 **Status**: Idea
 
 ---
+
+<!-- deps:start -->
+**Related:** [[task-200-more-descriptive-parameters]], [[task-203-set-adjust-parameters]], [[task-308-item-relationship-condition]], [[task-47-stateful_continuous_triggers]]
+<!-- deps:end -->
 
 ## Idea
 

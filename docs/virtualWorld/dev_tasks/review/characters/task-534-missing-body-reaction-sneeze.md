@@ -3,12 +3,17 @@ type: task
 status: review
 area: characters
 priority: low
+related: ['"\'task-207\'"', '"\'task-213\'"', "'task-253'", "'task-486'", 'task-253', 'task-486']
 ---
 
 # task-534: Missing body reaction — sneeze
 
 **Filed:** 2026-09-27
 **Related:** task-213 (done), task-166 (done)
+
+<!-- deps:start -->
+**Related:** [[task-207-body-state-and-vitals]], [[task-213-mature-traits]], [[task-253-body-part-targeted-injuries]], [[task-486-auto-regenerate-description-on-body-state-change]]
+<!-- deps:end -->
 
 ## Correction (2026-09-27) — the task was two-thirds wrong
 

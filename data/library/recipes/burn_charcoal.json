@@ -3,25 +3,60 @@
   "name": "Burn Charcoal",
   "description": "Slow-burn firewood under cover in a charcoal pit.",
   "ingredients": [
-    {"item": "firewood", "count": 1, "consumed": true},
-    {"item": "charcoal_pit", "count": 1, "consumed": false}
+    {
+      "item": "firewood",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "charcoal_pit",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [],
   "duration_min": 240,
-  "skill_check": {"skill": "Survival", "dc": 12},
-  "outputs": [{"item": "charcoal", "count": 1}],
+  "skill_check": {
+    "skill": "Survival",
+    "dc": 12
+  },
+  "outputs": [
+    {
+      "item": "charcoal",
+      "count": 1
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "charcoal", "count": 2}],
+      "outputs": [
+        {
+          "item": "charcoal",
+          "count": 2
+        }
+      ],
       "message": "A full, even burn — double yield."
     },
     "success": {
-      "outputs": [{"item": "charcoal", "count": 1}],
+      "outputs": [
+        {
+          "item": "charcoal",
+          "count": 1
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "charcoal", "count": 1}, {"item": "wood_ash", "count": 2}],
+      "outputs": [
+        {
+          "item": "charcoal",
+          "count": 1
+        },
+        {
+          "item": "wood_ash",
+          "count": 2
+        }
+      ],
       "message": "Half-burned — charcoal plus a heap of ash."
     },
     "crit_fail": {
@@ -30,6 +65,8 @@
       "message": "The pit burned through — everything lost to ash and air."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

@@ -3,9 +3,14 @@ type: task
 status: done
 area: characters
 priority: high
+related: ["'task-350'", "'task-420'", "'task-619'", 'task-350', 'task-420', 'task-619']
 ---
 
 # task-349: Relationship system hardening
+
+<!-- deps:start -->
+**Related:** [[task-350-experience-driven-relationships]], [[task-420-unified-relationship-delta-path]], [[task-619-relationships-stored-in-two-shapes-in-one-field-keyed-by-display-name]]
+<!-- deps:end -->
 
 ## Outcome (verified 2026-09-21)
 

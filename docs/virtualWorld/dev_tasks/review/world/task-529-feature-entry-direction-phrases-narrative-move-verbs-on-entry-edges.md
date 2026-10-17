@@ -3,12 +3,17 @@ type: task
 status: review
 area: world
 priority: medium
+related: ['task-496', 'task-525', 'bug-529', 'bug-530']
 ---
 
 # task-529: Feature-entry direction phrases (narrative move verbs on entry edges)
 
 **Filed:** 2026-09-26
 **Related:** task-496 task-525
+
+<!-- deps:start -->
+**Related:** [[task-496-worldpainter-grid-to-graph-compiler-cells-to-areas-and-ways]], [[task-525-elevation-floor-delta-gates-traversal-climb-required-past-n-floors]], [[bug-529-worldpainter-compiled-ways-carry-no-tags-so-every-generated-way-reads-tags-none]], [[bug-530-compiled-open-outdoor-ways-miss-prevent-close-so-a-road-into-the-forest-can-be-hand-closed]]
+<!-- deps:end -->
 
 ## What
 

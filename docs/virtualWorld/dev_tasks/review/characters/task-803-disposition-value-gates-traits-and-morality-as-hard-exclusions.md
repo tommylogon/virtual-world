@@ -4,7 +4,7 @@ status: review
 area: characters
 priority: medium
 wiki: "[[Character Pursuits]]"
-related: [task-704, task-800, task-801, task-802, task-804]
+related: ["'task-704'", "'task-799'", "'task-800'", "'task-801'", "'task-802'", "'task-804'", "'task-805'", "'task-806'", 'task-799', 'task-800', 'task-802', 'task-804', 'task-805', 'task-806']
 blocked_by: [task-800]
 ---
 
@@ -15,7 +15,7 @@ blocked_by: [task-800]
 
 <!-- deps:start -->
 **Blocked by:** [[task-800-disposition-score-registry-declare-the-decision-score-vocabulary]]
-**Related:** [[task-704-mosiac-selector-needs-memory-and-personality-choose-and-bind-plans]], [[task-800-disposition-score-registry-declare-the-decision-score-vocabulary]], [[task-801-disposition-action-features-verb-score-contributions]], [[task-802-disposition-character-weights-from-traits-plus-live-modifiers]], [[task-804-disposition-pick-argmax-with-a-stable-tie-break]]
+**Related:** [[task-704-mosiac-selector-needs-memory-and-personality-choose-and-bind-plans]], [[task-799-disposition-spike-do-three-unrelated-soak-decisions-fit-one-score-registry]], [[task-800-disposition-score-registry-declare-the-decision-score-vocabulary]], [[task-801-disposition-action-features-verb-score-contributions]], [[task-802-disposition-character-weights-from-traits-plus-live-modifiers]], [[task-804-disposition-pick-argmax-with-a-stable-tie-break]], [[task-805-disposition-whispers-render-the-score-registry-as-words-for-the-llm]], [[task-806-split-traits-capabilities-from-personality-decision-dials]]
 <!-- deps:end -->
 
 ## What

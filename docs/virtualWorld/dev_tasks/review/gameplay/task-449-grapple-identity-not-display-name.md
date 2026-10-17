@@ -1,4 +1,5 @@
 ---
+related: [task-446]
 type: task
 status: review
 area: gameplay
@@ -10,6 +11,10 @@ priority: medium
 **Filed:** 2026-09-22
 **Related:** task-446 (id-first node identity), `engine/grapple.py`,
 `routes/player_ops.py`
+
+<!-- deps:start -->
+**Related:** [[task-446-id-first-node-identity]]
+<!-- deps:end -->
 
 ## Problem (functional)
 

@@ -3,6 +3,7 @@ area: library
 type: task
 status: review
 priority: medium
+related: ['task-296', 'task-291', 'task-357']
 ---
 
 # Select Library Item as Template When Syncing
@@ -12,6 +13,10 @@ priority: medium
 **Status**: In Review — implemented 2026-08-19
 
 ---
+
+<!-- deps:start -->
+**Related:** [[task-296-library-instance-mismatch-warning]], [[task-291-unified-library-api-and-data-driven-catalogs]], [[task-357-structure-save-load-connected-areas]]
+<!-- deps:end -->
 
 ## Idea
 

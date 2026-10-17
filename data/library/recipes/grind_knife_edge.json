@@ -3,33 +3,71 @@
   "name": "Grind Knife Edge",
   "description": "Grind a blank to a working edge on the grindstone.",
   "ingredients": [
-    {"item": "knife_blank", "count": 1, "consumed": true},
-    {"item": "grindstone", "count": 1, "consumed": false}
+    {
+      "item": "knife_blank",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "grindstone",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [],
   "duration_min": 20,
-  "skill_check": {"skill": "Smithing", "dc": 10},
-  "outputs": [{"item": "iron_knife", "count": 1}],
+  "skill_check": {
+    "skill": "Smithing",
+    "dc": 10
+  },
+  "outputs": [
+    {
+      "item": "iron_knife",
+      "count": 1
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "iron_knife", "count": 1}],
+      "outputs": [
+        {
+          "item": "iron_knife",
+          "count": 1
+        }
+      ],
       "message": "Razor edge — shaves hair."
     },
     "success": {
-      "outputs": [{"item": "iron_knife", "count": 1}],
+      "outputs": [
+        {
+          "item": "iron_knife",
+          "count": 1
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "dull_knife", "count": 1}],
+      "outputs": [
+        {
+          "item": "dull_knife",
+          "count": 1
+        }
+      ],
       "message": "Dull edge — half damage."
     },
     "crit_fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "scrap_iron", "count": 1}],
+      "outputs": [
+        {
+          "item": "scrap_iron",
+          "count": 1
+        }
+      ],
       "message": "Ground through — ruined blank, scrap it."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

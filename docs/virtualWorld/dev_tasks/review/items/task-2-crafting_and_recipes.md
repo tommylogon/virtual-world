@@ -4,6 +4,7 @@ wiki: "[[Items & Inventory/Items Overview]]"
 type: task
 status: review
 priority: medium
+related: [task-197, task-831, task-155]
 ---
 
 # Crafting and Recipe System
@@ -13,6 +14,10 @@ priority: medium
 **Status**: Draft / Not Started
 
 ---
+
+<!-- deps:start -->
+**Related:** [[task-197-teach-skill-recipe]], [[task-831-crafting-recipe-schema-v2-ingredients-duration-tiered-outcomes]], [[task-155-item-uses-affect-weight]]
+<!-- deps:end -->
 
 ## What
 

@@ -2,7 +2,7 @@
 type: task
 status: todo
 area: gameplay
-priority: medium
+priority: low
 wiki: "[[Gameplay/Turn Queue & Human Turns]]"
 ---
 

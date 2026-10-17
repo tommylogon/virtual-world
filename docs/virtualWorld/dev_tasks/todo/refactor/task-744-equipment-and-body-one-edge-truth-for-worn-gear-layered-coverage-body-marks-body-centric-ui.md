@@ -3,12 +3,17 @@ type: task
 status: todo
 area: refactor
 priority: medium
+related: ['task-675', 'task-847', 'task-848']
 ---
 
 # task-744: Equipment and body: one edge truth for worn gear, layered coverage, body marks, body-centric UI
 
 **Filed:** 2026-10-08
 **Related:** task-654, task-450, task-161, task-660, task-724, task-457, task-619
+
+<!-- deps:start -->
+**Related:** [[task-675-character-editor-three-column-body-with-section-nav-rail]], [[task-847-persona-tab-embedded-body-paperdoll-navigator-for-appearance-schema]], [[task-848-persona-tab-visual-paperdoll-with-inline-body-baseline-editing]]
+<!-- deps:end -->
 
 ## What
 

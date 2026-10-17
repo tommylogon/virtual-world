@@ -1,4 +1,5 @@
 ---
+related: [task-494, task-131]
 type: task
 status: review
 area: gameplay
@@ -10,6 +11,10 @@ wiki: "[[Character Spatial Position]]"
 
 **Filed:** 2026-10-12
 **Related:** 
+
+<!-- deps:start -->
+**Related:** [[task-494-container-examine-reveals-contents-and-chains-a-follow-up-action]], [[task-131-stateful-actions-over-time]]
+<!-- deps:end -->
 
 ## What
 

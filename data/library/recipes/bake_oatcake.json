@@ -3,37 +3,87 @@
   "name": "Oatcake",
   "description": "Bake oats, fat, and salt into oatcakes on the stone.",
   "ingredients": [
-    {"item": "oats", "count": 2, "consumed": true},
-    {"item": "animal_fat", "count": 1, "consumed": true},
-    {"item": "salt", "count": 1, "consumed": true},
-    {"item": "hearth_stone", "count": 1, "consumed": false}
+    {
+      "item": "oats",
+      "count": 2,
+      "consumed": true
+    },
+    {
+      "item": "animal_fat",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "salt",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "hearth_stone",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [
-    {"type": "state_equals", "target": "campfire", "value": "on"}
+    {
+      "type": "state_equals",
+      "target": "campfire",
+      "value": "on"
+    }
   ],
   "duration_min": 10,
-  "skill_check": {"skill": "Cooking", "dc": 9},
-  "outputs": [{"item": "oatcake", "count": 3}],
+  "skill_check": {
+    "skill": "Cooking",
+    "dc": 9
+  },
+  "outputs": [
+    {
+      "item": "oatcake",
+      "count": 3
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "oatcake", "count": 4}],
+      "outputs": [
+        {
+          "item": "oatcake",
+          "count": 4
+        }
+      ],
       "message": "Crisp, buttery rounds — extra."
     },
     "success": {
-      "outputs": [{"item": "oatcake", "count": 3}],
+      "outputs": [
+        {
+          "item": "oatcake",
+          "count": 3
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "oatcake", "count": 1}],
+      "outputs": [
+        {
+          "item": "oatcake",
+          "count": 1
+        }
+      ],
       "message": "One good cake from the batch."
     },
     "crit_fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "burned_oatcake", "count": 1}],
+      "outputs": [
+        {
+          "item": "burned_oatcake",
+          "count": 1
+        }
+      ],
       "message": "Bitter black disks."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

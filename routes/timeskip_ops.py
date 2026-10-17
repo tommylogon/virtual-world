@@ -3,8 +3,13 @@
 A timeskip in a shared world is a **soak order on one character**: it is declared
 on that player's turn, then run by the normal turn loop (like an agent or a
 distant NPC) until the span is spent or the character is promoted back. When
-nothing attended remains — solo play, or everyone already soaking — the blocking
+nothing attended remains - solo play, or everyone already soaking - the blocking
 `advance` fast path jumps the world in one request instead.
+
+A request may also carry `world: true` to force the no-subject world advance
+(`timeskip.advance_world`) while an active character exists: every character
+soaks, nobody acts, and the clock runs. The Ctrl+K "Advance World" command uses
+this, because world mode is otherwise reachable only with no active character.
 """
 
 import logging
@@ -98,11 +103,16 @@ def handle_timeskip(app):
         if isinstance(watch_tags, str):
             watch_tags = [watch_tags]
         total = int(round(requested))
-        if player is None:
-            # No human/active character: a timeskip is a WORLD advance — intent,
-            # target and watch tags have no subject, so everyone simply soaks.
-            # Long spans run in day-sized chunks (task-482) so a synchronous
-            # request never holds one blocking advance for a whole game week.
+        # `world: true` forces the no-subject world advance even when an active
+        # character exists (the Ctrl+K "Advance World" command). Without it the
+        # world path is reachable only with no active character at all.
+        force_world = bool(data.get("world"))
+        if player is None or force_world:
+            # No human/active character (or a forced world advance): a timeskip is
+            # a WORLD advance - intent, target and watch tags have no subject, so
+            # everyone simply soaks. Long spans run in day-sized chunks (task-482)
+            # so a synchronous request never holds one blocking advance for a whole
+            # game week.
             results, remaining = [], total
             while remaining > 0:
                 chunk = min(MAX_REQUEST_MINUTES, remaining)

@@ -3,6 +3,7 @@ type: task
 status: review
 area: world
 priority: medium
+related: ['task-397', 'task-398', 'task-400', 'task-496', 'task-520', 'task-528', 'task-535', 'task-539', 'task-523']
 ---
 
 # task-495: WorldPainter: recursive scope grids and 3-mode editor
@@ -11,6 +12,10 @@ priority: medium
 **Related:** task-397, task-398, task-400
 **Design:** `docs/design/worldpainter-knowledge-and-fog.md`,
 `docs/design/world-environment-taxonomy.md`
+
+<!-- deps:start -->
+**Related:** [[task-397-world-scope-hierarchy-and-projection]], [[task-398-deterministic-structure-generation]], [[task-400-pines-world-scale-vertical-slice]], [[task-496-worldpainter-grid-to-graph-compiler-cells-to-areas-and-ways]], [[task-520-worldpainter-scale-canvas-grid-surface-route-tool-batch-paint]], [[task-528-assign-selected-areas-to-a-scope-promote-a-selection-to-a-placed-feature]], [[task-535-promote-a-graph-selection-into-a-new-child-scope-with-a-gateway]], [[task-539-reassign-an-area-to-a-scope-membership-only-plus-a-scope-picker-on-the-node]], [[task-523-map-layout-move-a-whole-zone-in-the-graph-canvas-per-scope-offset]]
+<!-- deps:end -->
 
 ## What
 

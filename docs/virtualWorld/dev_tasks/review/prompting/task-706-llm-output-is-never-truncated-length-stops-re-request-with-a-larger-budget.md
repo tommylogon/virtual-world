@@ -1,4 +1,5 @@
 ---
+related: [task-700]
 type: task
 status: review
 area: prompting
@@ -9,6 +10,10 @@ priority: high
 
 **Filed:** 2026-10-05
 **Related:** task-700
+
+<!-- deps:start -->
+**Related:** [[task-700-grounded-plan-contract-the-llm-plan-phase-emits-typed-steps-validated-against-world-facts]]
+<!-- deps:end -->
 
 ## What
 

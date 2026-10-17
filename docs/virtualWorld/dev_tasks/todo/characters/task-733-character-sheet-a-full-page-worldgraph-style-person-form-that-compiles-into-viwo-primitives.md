@@ -3,6 +3,7 @@ type: task
 status: todo
 area: characters
 priority: medium
+related: ['"\'task-507\'"', '"\'task-828\'"', '"\'task-830\'"', '"\'task-844\'"', '\'"\\'task-507\\'"\'', '\'"\\'task-828\\'"\'', '\'"\\'task-829\\'"\'', '\'"\\'task-830\\'"\'', '\'"\\'task-844\\'"\'', '\'"\\'task-849\\'"\'', "'task-507'", "'task-828'", "'task-830'", "'task-844'", 'task-850']
 blocked_by: [task-457]
 ---
 
@@ -13,6 +14,7 @@ blocked_by: [task-457]
 
 <!-- deps:start -->
 **Blocked by:** [[task-457-character-nodes-are-the-canonical-character-record-human-agent-simple-npc]]
+**Related:** [[task-507-structured-appearance-personality-fields-for-characters-optional-llm-fillable]], [[task-828-expanded-persona-appearance-schema-on-character-node-with-compile-into-prose]], [[task-830-mind-panel-persona-tab-for-advanced-appearance-personality-schema-with-compile-button]], [[task-844-persona-tab-character-sheet-pass-grid-chips-codex-preview]], [[task-829-growth-wiring-for-persona-fields-via-items-triggers-and-consumers]], [[task-849-narrative-authoring-should-feed-memories-and-goals-not-duplicate-them]], [[task-850-identity-additions-mbti-alignment-birthday-each-with-a-named-reader]]
 <!-- deps:end -->
 
 ## What

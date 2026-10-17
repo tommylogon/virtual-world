@@ -3,37 +3,87 @@
   "name": "Smelt Ingot",
   "description": "Smelt iron ore to an ingot in the forge with charcoal and bellows.",
   "ingredients": [
-    {"item": "iron_ore", "count": 2, "consumed": true},
-    {"item": "charcoal", "count": 3, "consumed": true},
-    {"item": "forge", "count": 1, "consumed": false},
-    {"item": "bellows", "count": 1, "consumed": false}
+    {
+      "item": "iron_ore",
+      "count": 2,
+      "consumed": true
+    },
+    {
+      "item": "charcoal",
+      "count": 3,
+      "consumed": true
+    },
+    {
+      "item": "forge",
+      "count": 1,
+      "consumed": false
+    },
+    {
+      "item": "bellows",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [
-    {"type": "state_equals", "target": "forge", "value": "on"}
+    {
+      "type": "state_equals",
+      "target": "forge",
+      "value": "on"
+    }
   ],
   "duration_min": 90,
-  "skill_check": {"skill": "Smithing", "dc": 12},
-  "outputs": [{"item": "iron_ingot", "count": 1}],
+  "skill_check": {
+    "skill": "Smithing",
+    "dc": 12
+  },
+  "outputs": [
+    {
+      "item": "iron_ingot",
+      "count": 1
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "iron_ingot", "count": 2}],
+      "outputs": [
+        {
+          "item": "iron_ingot",
+          "count": 2
+        }
+      ],
       "message": "Clean pour — double ingots."
     },
     "success": {
-      "outputs": [{"item": "iron_ingot", "count": 1}],
+      "outputs": [
+        {
+          "item": "iron_ingot",
+          "count": 1
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "half_smelt", "count": 1}],
+      "outputs": [
+        {
+          "item": "half_smelt",
+          "count": 1
+        }
+      ],
       "message": "Half-smelted lump — re-smeltable, ore kept as lump. (Re-smelting the lump needs an OR-input the grammar lacks; recorded.)"
     },
     "crit_fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "slag", "count": 1}],
+      "outputs": [
+        {
+          "item": "slag",
+          "count": 1
+        }
+      ],
       "message": "Slag. The ore is lost and honest about it."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

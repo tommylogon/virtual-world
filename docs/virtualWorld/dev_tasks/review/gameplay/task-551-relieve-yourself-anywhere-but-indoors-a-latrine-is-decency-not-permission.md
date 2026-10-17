@@ -1,4 +1,5 @@
 ---
+related: [task-131]
 type: task
 status: review
 area: gameplay
@@ -9,6 +10,10 @@ priority: high
 
 **Filed:** 2026-09-27
 **Related:** task-549
+
+<!-- deps:start -->
+**Related:** [[task-131-stateful-actions-over-time]]
+<!-- deps:end -->
 
 ## What
 

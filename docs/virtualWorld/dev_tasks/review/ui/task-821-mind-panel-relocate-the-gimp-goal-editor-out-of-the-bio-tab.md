@@ -4,7 +4,7 @@ status: review
 area: ui
 priority: medium
 wiki: "[[Inspector Panels]]"
-related: [task-714, task-787, task-808]
+related: ['task-691', 'task-714', 'task-729', 'task-787', 'task-808', 'task-820']
 ---
 
 # task-821: Mind panel: relocate the GIMP goal editor out of the Bio tab
@@ -13,7 +13,7 @@ related: [task-714, task-787, task-808]
 **Related:** task-714, task-787, task-808
 
 <!-- deps:start -->
-**Related:** [[task-714-character-mind-panel-connect-memories-motives-and-current-pursuits]], [[task-787-mind-panel-migrate-the-remaining-mind-surfaces-out-of-the-bio-and-advanced-tabs]], [[task-808-gimp-author-goals-in-the-character-editor]]
+**Related:** [[task-691-memory-mind-interface-dynamics-badges-connections-per-person-profiles-dashboard]], [[task-714-character-mind-panel-connect-memories-motives-and-current-pursuits]], [[task-729-move-relationship-emotional-state-and-memory-add-edit-generate-controls-into-the-mind-panel]], [[task-787-mind-panel-migrate-the-remaining-mind-surfaces-out-of-the-bio-and-advanced-tabs]], [[task-808-gimp-author-goals-in-the-character-editor]], [[task-820-mind-panel-one-tabbed-mind-surface-and-one-entry-point]]
 <!-- deps:end -->
 
 ## What

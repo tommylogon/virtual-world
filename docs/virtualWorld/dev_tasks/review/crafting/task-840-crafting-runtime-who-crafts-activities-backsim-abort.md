@@ -3,13 +3,13 @@ type: task
 status: review
 area: crafting
 priority: high
-related: [task-831, task-703, task-131, task-399, task-466]
+related: ['task-131', 'task-399', 'task-466', 'task-703', 'task-831', 'task-832', 'task-833', 'task-834', 'task-835', 'task-836', 'task-837', 'task-838', 'task-839', 'task-841', 'task-842']
 ---
 
 # task-840: Crafting runtime — who crafts, activities, backsim, abort
 
 <!-- deps:start -->
-**Related:** [[task-831-crafting-recipe-schema-v2-ingredients-duration-tiered-outcomes]], [[task-703-recipe-as-activity-recipes-become-plan-templates-with-duration-success-and-fail-outcomes]], [[task-131-stateful-actions-over-time]], [[task-399-background-character-simulation-and-reactivation]], [[task-466-interrupt-relevance-evaluator-shared-by-timeskip-fidelity-soak]]
+**Related:** [[task-131-stateful-actions-over-time]], [[task-399-background-character-simulation-and-reactivation]], [[task-466-interrupt-relevance-evaluator-shared-by-timeskip-fidelity-soak]], [[task-703-recipe-as-activity-recipes-become-plan-templates-with-duration-success-and-fail-outcomes]], [[task-831-crafting-recipe-schema-v2-ingredients-duration-tiered-outcomes]], [[task-832-crafting-recipes-fire-and-light]], [[task-833-crafting-recipes-water-and-drink-safety]], [[task-834-crafting-recipes-camp-cookery-soups-stews]], [[task-835-crafting-recipes-bread-and-grain]], [[task-836-crafting-recipes-preserved-and-trail-food]], [[task-837-crafting-recipes-survival-gear-and-camp-craft]], [[task-838-crafting-recipes-wood-and-leather-working]], [[task-839-crafting-recipes-forge-and-iron]], [[task-841-known-recipes-live-in-the-mind-panel]], [[task-842-crafting-ui-library-recipes-tab-turn-modal-activity-banner]]
 <!-- deps:end -->
 
 ## What

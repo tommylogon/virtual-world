@@ -3,12 +3,17 @@ type: task
 status: review
 area: items
 priority: high
+related: [task-9, task-519, task-514]
 ---
 
 # task-513: Kraktooth goblin gear spec-driven library batch
 
 **Filed:** 2026-09-24
 **Related:** task-9, task-3, task-408
+
+<!-- deps:start -->
+**Related:** [[task-9-procedural_item_placement]], [[task-519-character-starting-loadouts-from-the-item-library]], [[task-514-item-provenance-and-acquisition-history]]
+<!-- deps:end -->
 
 ## What
 

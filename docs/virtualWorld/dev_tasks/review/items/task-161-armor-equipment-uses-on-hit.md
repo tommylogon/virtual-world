@@ -7,9 +7,14 @@ created: 2026-08-02
 tags: [items, equipment, combat, durability]
 type: task
 area: items
+related: [task-155]
 ---
 
 # Armor and Equipment Uses Reduced on Hit
+
+<!-- deps:start -->
+**Related:** [[task-155-item-uses-affect-weight]]
+<!-- deps:end -->
 
 ## What
 

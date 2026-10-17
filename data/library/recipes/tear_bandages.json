@@ -3,33 +3,71 @@
   "name": "Tear Bandages",
   "description": "Tear linen into clean bandage strips.",
   "ingredients": [
-    {"item": "linen_cloth", "count": 1, "consumed": true},
-    {"item": "knife", "count": 1, "consumed": false}
+    {
+      "item": "linen_cloth",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "knife",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [],
   "duration_min": 5,
-  "skill_check": {"skill": "Medicine", "dc": 6},
-  "outputs": [{"item": "bandages", "count": 1}],
+  "skill_check": {
+    "skill": "Medicine",
+    "dc": 6
+  },
+  "outputs": [
+    {
+      "item": "bandages",
+      "count": 1
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "bandages", "count": 2}],
+      "outputs": [
+        {
+          "item": "bandages",
+          "count": 2
+        }
+      ],
       "message": "Clean even strips — double."
     },
     "success": {
-      "outputs": [{"item": "bandages", "count": 1}],
+      "outputs": [
+        {
+          "item": "bandages",
+          "count": 1
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "bandages", "count": 1}],
+      "outputs": [
+        {
+          "item": "bandages",
+          "count": 1
+        }
+      ],
       "message": "Ragged strips, still usable."
     },
     "crit_fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "shredded_rags", "count": 1}],
+      "outputs": [
+        {
+          "item": "shredded_rags",
+          "count": 1
+        }
+      ],
       "message": "Shredded past bandaging."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

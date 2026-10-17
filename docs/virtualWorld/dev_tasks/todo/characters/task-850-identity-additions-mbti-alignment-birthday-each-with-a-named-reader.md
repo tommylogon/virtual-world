@@ -3,6 +3,7 @@ type: task
 status: todo
 area: characters
 priority: medium
+related: ['"\'task-316\'"', '"\'task-507\'"', "'task-316'", "'task-507'", 'task-733']
 wiki: "[[Characters/Persona]]"
 ---
 
@@ -10,6 +11,10 @@ wiki: "[[Characters/Persona]]"
 
 **Filed:** 2026-10-16
 **Related:** 
+
+<!-- deps:start -->
+**Related:** [[task-316-id-backed-character-identity]], [[task-507-structured-appearance-personality-fields-for-characters-optional-llm-fillable]], [[task-733-character-sheet-a-full-page-worldgraph-style-person-form-that-compiles-into-viwo-primitives]]
+<!-- deps:end -->
 
 ## What
 

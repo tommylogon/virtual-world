@@ -1,4 +1,5 @@
 ---
+related: [task-99, task-313]
 type: task
 status: review
 area: gameplay
@@ -15,6 +16,10 @@ priority: medium
 **Priority**: Medium
 **Filed**: 2026-08-20
 **Group**: Gameplay / Triggers
+
+<!-- deps:start -->
+**Related:** [[task-99-room-grids-and-movement]], [[task-313-relative-facing-map]]
+<!-- deps:end -->
 
 ## What
 

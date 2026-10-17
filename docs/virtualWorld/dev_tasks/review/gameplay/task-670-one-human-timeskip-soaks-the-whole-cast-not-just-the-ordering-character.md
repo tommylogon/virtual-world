@@ -1,4 +1,5 @@
 ---
+related: [task-671]
 type: task
 status: review
 area: gameplay
@@ -9,6 +10,10 @@ priority: medium
 
 **Filed:** 2026-10-02
 **Related:** task-481, task-464, task-482
+
+<!-- deps:start -->
+**Related:** [[task-671-a-timeskip-intent-that-cannot-be-carried-out-is-an-outcome-not-a-silence]]
+<!-- deps:end -->
 
 ## What
 

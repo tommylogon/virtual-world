@@ -3,12 +3,17 @@ type: task
 status: done
 area: characters
 priority: high
+related: ['task-469', 'task-484']
 ---
 
 # task-552: Fear response: humans should fear goblins
 
 **Filed:** 2026-09-27
 **Related:** task-484,task-550
+
+<!-- deps:start -->
+**Related:** [[task-469-fear-tags-per-character-fears-drive-frightened-interrupts]], [[task-484-tune-the-frightened-condition-once-real-fears-exist]]
+<!-- deps:end -->
 
 ## What
 

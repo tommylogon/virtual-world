@@ -3,13 +3,13 @@ type: task
 status: review
 area: crafting
 priority: medium
-related: [task-831, task-2, task-703]
+related: ['task-2', 'task-703', 'task-831', 'task-840']
 ---
 
 # task-839: Crafting recipes — forge and iron
 
 <!-- deps:start -->
-**Related:** [[task-831-crafting-recipe-schema-v2-ingredients-duration-tiered-outcomes]], [[task-2-crafting_and_recipes]], [[task-703-recipe-as-activity-recipes-become-plan-templates-with-duration-success-and-fail-outcomes]]
+**Related:** [[task-2-crafting_and_recipes]], [[task-703-recipe-as-activity-recipes-become-plan-templates-with-duration-success-and-fail-outcomes]], [[task-831-crafting-recipe-schema-v2-ingredients-duration-tiered-outcomes]], [[task-840-crafting-runtime-who-crafts-activities-backsim-abort]]
 <!-- deps:end -->
 
 ## What

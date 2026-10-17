@@ -3,12 +3,17 @@ type: task
 status: review
 area: world
 priority: high
+related: ['task-398', 'task-400', 'task-580']
 ---
 
 # task-585: allow_regenerate overwrites a hand edit on a generated node
 
 **Filed:** 2026-09-28
 **Related:** task-398, task-400
+
+<!-- deps:start -->
+**Related:** [[task-398-deterministic-structure-generation]], [[task-400-pines-world-scale-vertical-slice]], [[task-580-unmade-scope-generate-affordance-and-generation-preview]]
+<!-- deps:end -->
 
 ## What
 

@@ -3,12 +3,17 @@ type: task
 status: review
 area: world
 priority: medium
+related: ['task-528', 'task-495', 'task-397', 'task-539', 'task-582']
 ---
 
 # task-535: Promote a graph selection into a new child scope with a gateway
 
 **Filed:** 2026-09-27
 **Related:** task-528 task-495 task-397
+
+<!-- deps:start -->
+**Related:** [[task-528-assign-selected-areas-to-a-scope-promote-a-selection-to-a-placed-feature]], [[task-495-worldpainter-recursive-scope-grids-and-3-mode-editor]], [[task-397-world-scope-hierarchy-and-projection]], [[task-539-reassign-an-area-to-a-scope-membership-only-plus-a-scope-picker-on-the-node]], [[task-582-chunk-load-unload-and-merge-apis-on-worldgraph]]
+<!-- deps:end -->
 
 ## What
 

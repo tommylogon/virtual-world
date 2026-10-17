@@ -4,6 +4,7 @@ status: done
 type: task
 area: characters
 priority: low
+related: ['"\'task-211\'"', '"\'task-212\'"', '"\'task-253\'"', "'task-207'", "'task-208'", "'task-209'", "'task-210'", "'task-211'", "'task-212'", "'task-215'", 'task-207', 'task-208', 'task-209', 'task-210', 'task-211', 'task-212', 'task-215']
 ---
 
 # Mature Traits & Body Reactions (folded from design v3.1)
@@ -16,6 +17,10 @@ inert traits and the three undelivered body reactions were split out to task-487
 task-488 and task-534.
 
 ---
+
+<!-- deps:start -->
+**Related:** [[task-211-intimacy-verbs-actions]], [[task-212-verb-multipliers]], [[task-253-body-part-targeted-injuries]], [[task-207-body-state-and-vitals]], [[task-208-release-edging-friction]], [[task-209-physiological-state-conditions]], [[task-210-description-enrichment]], [[task-215-environmental-clothing-effects]]
+<!-- deps:end -->
 
 ## Why
 

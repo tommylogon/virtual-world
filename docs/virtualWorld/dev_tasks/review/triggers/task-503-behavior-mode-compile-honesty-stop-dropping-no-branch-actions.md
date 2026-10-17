@@ -3,12 +3,17 @@ type: task
 status: review
 area: triggers
 priority: medium
+related: ['task-501', 'task-388', 'task-306']
 ---
 
 # task-503: Behavior-mode compile honesty: stop dropping NO-branch actions
 
 **Filed:** 2026-09-24
 **Related:** task-501, task-388
+
+<!-- deps:start -->
+**Related:** [[task-501-trigger-graph-compile-honesty-preserve-no-branch-effects-and-or-not-conditions]], [[task-388-trigger-graph-editor-overhaul]], [[task-306-warn-empty-triggers]]
+<!-- deps:end -->
 
 ## What
 

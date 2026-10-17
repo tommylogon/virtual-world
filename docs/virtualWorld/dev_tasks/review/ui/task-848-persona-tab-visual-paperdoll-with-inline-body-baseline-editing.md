@@ -3,6 +3,7 @@ type: task
 status: review
 area: ui
 priority: medium
+related: ["'task-844'", "'task-847'", "'task-852'", 'task-830', 'task-844', 'task-847', 'task-852']
 wiki: "[[Characters/Persona]]"
 ---
 
@@ -10,6 +11,10 @@ wiki: "[[Characters/Persona]]"
 
 **Filed:** 2026-10-16
 **Related:** 
+
+<!-- deps:start -->
+**Related:** [[task-844-persona-tab-character-sheet-pass-grid-chips-codex-preview]], [[task-847-persona-tab-embedded-body-paperdoll-navigator-for-appearance-schema]], [[task-852-persona-ui-improvement-plan-workspace-doll-navigation-markings-state-integration]], [[task-830-mind-panel-persona-tab-for-advanced-appearance-personality-schema-with-compile-button]]
+<!-- deps:end -->
 
 ## What
 

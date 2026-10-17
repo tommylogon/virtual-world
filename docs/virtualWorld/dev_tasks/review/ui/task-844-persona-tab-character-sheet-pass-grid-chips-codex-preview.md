@@ -3,13 +3,13 @@ type: task
 status: review
 area: ui
 priority: medium
-related: [task-830, task-828]
+related: ["'task-828'", "'task-830'", "'task-847'", "'task-848'", 'task-830', 'task-847', 'task-848']
 ---
 
 # task-844: Persona tab character-sheet pass — grid, chips, codex preview
 
 <!-- deps:start -->
-**Related:** [[task-830-mind-panel-persona-tab-for-advanced-appearance-personality-schema-with-compile-button]], [[task-828-expanded-persona-appearance-schema-on-character-node-with-compile-into-prose]]
+**Related:** [[task-828-expanded-persona-appearance-schema-on-character-node-with-compile-into-prose]], [[task-830-mind-panel-persona-tab-for-advanced-appearance-personality-schema-with-compile-button]], [[task-847-persona-tab-embedded-body-paperdoll-navigator-for-appearance-schema]], [[task-848-persona-tab-visual-paperdoll-with-inline-body-baseline-editing]]
 <!-- deps:end -->
 
 ## What

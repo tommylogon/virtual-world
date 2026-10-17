@@ -3,36 +3,82 @@
   "name": "Boiled Egg",
   "description": "Boil an egg in a pot of water.",
   "ingredients": [
-    {"item": "raw_egg", "count": 1, "consumed": true},
-    {"item": "boiled_water", "count": 1, "consumed": true},
-    {"item": "cooking_pot", "count": 1, "consumed": false}
+    {
+      "item": "raw_egg",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "boiled_water",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "cooking_pot",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [
-    {"type": "state_equals", "target": "campfire", "value": "on"}
+    {
+      "type": "state_equals",
+      "target": "campfire",
+      "value": "on"
+    }
   ],
   "duration_min": 8,
-  "skill_check": {"skill": "Cooking", "dc": 8},
-  "outputs": [{"item": "boiled_egg", "count": 1}],
+  "skill_check": {
+    "skill": "Cooking",
+    "dc": 8
+  },
+  "outputs": [
+    {
+      "item": "boiled_egg",
+      "count": 1
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "boiled_egg", "count": 2}],
+      "outputs": [
+        {
+          "item": "boiled_egg",
+          "count": 2
+        }
+      ],
       "message": "Perfect jammy yolks, twice over."
     },
     "success": {
-      "outputs": [{"item": "boiled_egg", "count": 1}],
+      "outputs": [
+        {
+          "item": "boiled_egg",
+          "count": 1
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "cracked_egg", "count": 1}],
+      "outputs": [
+        {
+          "item": "cracked_egg",
+          "count": 1
+        }
+      ],
       "message": "Cracked in the boil — half leaked out."
     },
     "crit_fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "rubber_ball_egg", "count": 1}],
+      "outputs": [
+        {
+          "item": "rubber_ball_egg",
+          "count": 1
+        }
+      ],
       "message": "Forgotten till it bounced."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

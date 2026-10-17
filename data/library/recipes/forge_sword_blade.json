@@ -3,38 +3,92 @@
   "name": "Forge Sword Blade",
   "description": "The aspirational craft: three ingots into one blade.",
   "ingredients": [
-    {"item": "iron_ingot", "count": 3, "consumed": true},
-    {"item": "charcoal", "count": 4, "consumed": true},
-    {"item": "forge", "count": 1, "consumed": false},
-    {"item": "anvil", "count": 1, "consumed": false},
-    {"item": "hammer", "count": 1, "consumed": false}
+    {
+      "item": "iron_ingot",
+      "count": 3,
+      "consumed": true
+    },
+    {
+      "item": "charcoal",
+      "count": 4,
+      "consumed": true
+    },
+    {
+      "item": "forge",
+      "count": 1,
+      "consumed": false
+    },
+    {
+      "item": "anvil",
+      "count": 1,
+      "consumed": false
+    },
+    {
+      "item": "hammer",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [
-    {"type": "state_equals", "target": "forge", "value": "on"}
+    {
+      "type": "state_equals",
+      "target": "forge",
+      "value": "on"
+    }
   ],
   "duration_min": 240,
-  "skill_check": {"skill": "Smithing", "dc": 16},
-  "outputs": [{"item": "sword_blade", "count": 1}],
+  "skill_check": {
+    "skill": "Smithing",
+    "dc": 16
+  },
+  "outputs": [
+    {
+      "item": "sword_blade",
+      "count": 1
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "sword_blade", "count": 1}],
+      "outputs": [
+        {
+          "item": "sword_blade",
+          "count": 1
+        }
+      ],
       "message": "A blade worth naming. DC16 beaten with room."
     },
     "success": {
-      "outputs": [{"item": "sword_blade", "count": 1}],
+      "outputs": [
+        {
+          "item": "sword_blade",
+          "count": 1
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "flawed_blade", "count": 1}],
+      "outputs": [
+        {
+          "item": "flawed_blade",
+          "count": 1
+        }
+      ],
       "message": "Pretty and fragile — a wall-hanger, not a weapon."
     },
     "crit_fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "slag", "count": 1}],
+      "outputs": [
+        {
+          "item": "slag",
+          "count": 1
+        }
+      ],
       "message": "All three ingots lost to slag. The hardest lesson."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

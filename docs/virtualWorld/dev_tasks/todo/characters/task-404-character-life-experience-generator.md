@@ -2,8 +2,8 @@
 type: task
 status: todo
 area: characters
-priority: high
-related: [task-403, task-457, bug-519]
+priority: medium
+related: ['"\'bug-519\'"', '"\'task-403\'"', '"\'task-457\'"', '"\'task-725\'"', '"\'task-734\'"', '"\'task-736\'"', "'task-725'", "'task-734'", "'task-736'", 'task-725', 'task-734', 'task-736', 'task-849']
 wiki: "[[Memory System]]"
 ---
 
@@ -13,7 +13,7 @@ wiki: "[[Memory System]]"
 **Reframed:** 2026-10-15
 
 <!-- deps:start -->
-**Related:** [[task-403-unified-agent-memory-and-knowledge]], [[task-457-character-nodes-are-the-canonical-character-record-human-agent-simple-npc]], [[bug-519-editorial-rewrite-notes-are-stored-inside-character-memories-so-a-character-recalls-its-own-drafting-notes]]
+**Related:** [[bug-519-editorial-rewrite-notes-are-stored-inside-character-memories-so-a-character-recalls-its-own-drafting-notes]], [[task-403-unified-agent-memory-and-knowledge]], [[task-457-character-nodes-are-the-canonical-character-record-human-agent-simple-npc]], [[task-725-memories-carry-nothing-about-death-vitals-travel-perception-or-resurrection]], [[task-734-knowledge-is-memory-fold-known-recipes-known-places-into-one-prose-data-record-with-episodic-vs-semantic-kinds]], [[task-736-per-character-cognitive-map-a-belief-based-memory-of-places-and-routes-in-the-mind-panel]], [[task-849-narrative-authoring-should-feed-memories-and-goals-not-duplicate-them]]
 <!-- deps:end -->
 
 ## What

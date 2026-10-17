@@ -3,36 +3,82 @@
   "name": "Jerky",
   "description": "Salt and dry thin meat over low heat into jerky.",
   "ingredients": [
-    {"item": "raw_meat", "count": 1, "consumed": true},
-    {"item": "salt", "count": 1, "consumed": true},
-    {"item": "drying_rack", "count": 1, "consumed": false}
+    {
+      "item": "raw_meat",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "salt",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "drying_rack",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [
-    {"type": "state_equals", "target": "campfire", "value": "on"}
+    {
+      "type": "state_equals",
+      "target": "campfire",
+      "value": "on"
+    }
   ],
   "duration_min": 360,
-  "skill_check": {"skill": "Survival", "dc": 12},
-  "outputs": [{"item": "jerky", "count": 1}],
+  "skill_check": {
+    "skill": "Survival",
+    "dc": 12
+  },
+  "outputs": [
+    {
+      "item": "jerky",
+      "count": 1
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "jerky", "count": 2}],
+      "outputs": [
+        {
+          "item": "jerky",
+          "count": 2
+        }
+      ],
       "message": "Perfect chew — double."
     },
     "success": {
-      "outputs": [{"item": "jerky", "count": 1}],
+      "outputs": [
+        {
+          "item": "jerky",
+          "count": 1
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "jerky", "count": 1}],
+      "outputs": [
+        {
+          "item": "jerky",
+          "count": 1
+        }
+      ],
       "message": "Tough as boot leather, but jerky."
     },
     "crit_fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "charred_meat", "count": 1}],
+      "outputs": [
+        {
+          "item": "charred_meat",
+          "count": 1
+        }
+      ],
       "message": "Dried past jerky into charcoal."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

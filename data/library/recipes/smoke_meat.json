@@ -3,36 +3,82 @@
   "name": "Smoke Meat",
   "description": "Slow-smoke meat over a low fire for hours.",
   "ingredients": [
-    {"item": "raw_meat", "count": 2, "consumed": true},
-    {"item": "firewood", "count": 1, "consumed": true},
-    {"item": "smokehouse", "count": 1, "consumed": false}
+    {
+      "item": "raw_meat",
+      "count": 2,
+      "consumed": true
+    },
+    {
+      "item": "firewood",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "smokehouse",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [
-    {"type": "state_equals", "target": "campfire", "value": "on"}
+    {
+      "type": "state_equals",
+      "target": "campfire",
+      "value": "on"
+    }
   ],
   "duration_min": 180,
-  "skill_check": {"skill": "Survival", "dc": 13},
-  "outputs": [{"item": "smoked_meat", "count": 1}],
+  "skill_check": {
+    "skill": "Survival",
+    "dc": 13
+  },
+  "outputs": [
+    {
+      "item": "smoked_meat",
+      "count": 1
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "smoked_meat", "count": 2}],
+      "outputs": [
+        {
+          "item": "smoked_meat",
+          "count": 2
+        }
+      ],
       "message": "Deep smoke ring — double yield."
     },
     "success": {
-      "outputs": [{"item": "smoked_meat", "count": 1}],
+      "outputs": [
+        {
+          "item": "smoked_meat",
+          "count": 1
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "half_smoked", "count": 1}],
+      "outputs": [
+        {
+          "item": "half_smoked",
+          "count": 1
+        }
+      ],
       "message": "Half-smoked: eat it now, it will not keep."
     },
     "crit_fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "charred_meat", "count": 1}],
+      "outputs": [
+        {
+          "item": "charred_meat",
+          "count": 1
+        }
+      ],
       "message": "Left too close to the heat — charred."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

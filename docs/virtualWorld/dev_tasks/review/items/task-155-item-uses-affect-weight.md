@@ -8,6 +8,7 @@ tags: [items, weight, containers, realism, inventory, merging]
 area: items
 wiki: "[[Items & Inventory/Inventory]]"
 type: task
+related: [task-205, task-103, task-102, task-196, task-508]
 ---
 
 # Task 155: Item Uses Affect Weight & Stackable Instances
@@ -17,6 +18,10 @@ type: task
 **Updated**: 2026-08-11  
 
 ---
+
+<!-- deps:start -->
+**Related:** [[task-205-player-carry-capacity-system]], [[task-103-weight-volume-container-limits]], [[task-102-progressive-item-status-multi-use]], [[task-196-use-n-items-on-target]], [[task-508-consume-depletion-contract-engine-auto-decrement-vs-item-authored-fix-the-trigger-suggester-ai-assumption]]
+<!-- deps:end -->
 
 ## What
 

@@ -3,12 +3,17 @@ type: bug
 status: review
 area: triggers
 priority: medium
+related: ['task-306', 'task-200', 'task-739', 'task-512']
 ---
 
 # bug-532: A message effect exposes both a Message field and Success/Fail Message with contradictory precedence
 
 **Filed:** 2026-10-09
 **Related:** task-739 (NL trigger authoring), task-512 (expression pack images tab)
+
+<!-- deps:start -->
+**Related:** [[task-306-warn-empty-triggers]], [[task-200-more-descriptive-parameters]], [[task-739-nl-editor-full-trigger-behaviour-authoring-conditions-effects-compiled-and-validated]], [[task-512-move-the-character-expression-pack-into-its-own-images-tab-in-the-inspector]]
+<!-- deps:end -->
 
 ## What
 

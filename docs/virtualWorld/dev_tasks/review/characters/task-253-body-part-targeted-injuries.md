@@ -3,6 +3,7 @@ area: characters
 type: task
 status: review
 priority: medium
+related: ['"\'task-211\'"', '"\'task-213\'"', "'task-486'", "'task-534'", "'task-851'", 'task-486', 'task-534', 'task-851']
 ---
 
 # Body Part Targeted Injuries & Combat Routing
@@ -12,6 +13,10 @@ priority: medium
 **Status**: In Review — implemented 2026-08-19, pending browser E2E
 
 ---
+
+<!-- deps:start -->
+**Related:** [[task-211-intimacy-verbs-actions]], [[task-213-mature-traits]], [[task-486-auto-regenerate-description-on-body-state-change]], [[task-534-missing-body-reaction-sneeze]], [[task-851-authorable-starting-injuries-missing-parts-and-prosthetics]]
+<!-- deps:end -->
 
 ## Why
 

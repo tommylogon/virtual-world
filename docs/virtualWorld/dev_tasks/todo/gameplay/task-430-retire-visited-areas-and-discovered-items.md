@@ -2,7 +2,7 @@
 type: task
 status: todo
 area: gameplay
-priority: low
+priority: high
 ---
 
 # task-430: Retire `visited_areas` and `discovered_items`

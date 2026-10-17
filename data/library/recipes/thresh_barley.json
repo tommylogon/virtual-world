@@ -3,33 +3,75 @@
   "name": "Thresh Barley",
   "description": "Beat grain from sheaf with a flail.",
   "ingredients": [
-    {"item": "barley_sheaf", "count": 1, "consumed": true},
-    {"item": "flail", "count": 1, "consumed": false}
+    {
+      "item": "barley_sheaf",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "flail",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [],
   "duration_min": 20,
-  "skill_check": {"skill": "Survival", "dc": 8},
-  "outputs": [{"item": "barley", "count": 4}],
+  "skill_check": {
+    "skill": "Survival",
+    "dc": 8
+  },
+  "outputs": [
+    {
+      "item": "barley",
+      "count": 4
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "barley", "count": 4}, {"item": "straw", "count": 2}],
+      "outputs": [
+        {
+          "item": "barley",
+          "count": 4
+        },
+        {
+          "item": "straw",
+          "count": 2
+        }
+      ],
       "message": "Clean threshing — grain and straight straw."
     },
     "success": {
-      "outputs": [{"item": "barley", "count": 4}],
+      "outputs": [
+        {
+          "item": "barley",
+          "count": 4
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "barley", "count": 2}],
+      "outputs": [
+        {
+          "item": "barley",
+          "count": 2
+        }
+      ],
       "message": "Half the grain still in the straw."
     },
     "crit_fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "barley", "count": 1}],
+      "outputs": [
+        {
+          "item": "barley",
+          "count": 1
+        }
+      ],
       "message": "Scattered across the yard — a handful saved."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

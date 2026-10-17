@@ -3,26 +3,65 @@
   "name": "Lean-To Shelter",
   "description": "Raise a branch lean-to with cord lashings.",
   "ingredients": [
-    {"item": "branch", "count": 4, "consumed": true},
-    {"item": "rope", "count": 2, "consumed": true},
-    {"item": "hatchet", "count": 1, "consumed": false}
+    {
+      "item": "branch",
+      "count": 4,
+      "consumed": true
+    },
+    {
+      "item": "rope",
+      "count": 2,
+      "consumed": true
+    },
+    {
+      "item": "hatchet",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [],
   "duration_min": 120,
-  "skill_check": {"skill": "Survival", "dc": 12},
-  "outputs": [{"item": "lean_to", "count": 1, "place_in_area": true}],
+  "skill_check": {
+    "skill": "Survival",
+    "dc": 12
+  },
+  "outputs": [
+    {
+      "item": "lean_to",
+      "count": 1,
+      "place_in_area": true
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "lean_to", "count": 1, "place_in_area": true}],
+      "outputs": [
+        {
+          "item": "lean_to",
+          "count": 1,
+          "place_in_area": true
+        }
+      ],
       "message": "Stormproof angles — sleeps two dry. (Placement is the task-703 executor's job.)"
     },
     "success": {
-      "outputs": [{"item": "lean_to", "count": 1, "place_in_area": true}],
+      "outputs": [
+        {
+          "item": "lean_to",
+          "count": 1,
+          "place_in_area": true
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "drafty_shelter", "count": 1, "place_in_area": true}],
+      "outputs": [
+        {
+          "item": "drafty_shelter",
+          "count": 1,
+          "place_in_area": true
+        }
+      ],
       "message": "More gaps than roof — half cover."
     },
     "crit_fail": {
@@ -31,6 +70,8 @@
       "message": "Collapsed in a heap — materials kept, pride lost."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

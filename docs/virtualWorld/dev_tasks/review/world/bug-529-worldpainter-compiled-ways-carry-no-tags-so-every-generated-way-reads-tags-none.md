@@ -3,12 +3,17 @@ type: bug
 status: review
 area: world
 priority: medium
+related: ['task-496', 'task-522', 'task-659', 'task-758', 'task-529']
 ---
 
 # bug-529: WorldPainter-compiled ways carry no tags so every generated way reads Tags: none
 
 **Filed:** 2026-10-08
 **Related:** task-496 task-522 task-659
+
+<!-- deps:start -->
+**Related:** [[task-496-worldpainter-grid-to-graph-compiler-cells-to-areas-and-ways]], [[task-522-way-blocking-pass-outdoor-ways-can-t-be-hand-closed-seed-picked-blocked-subset-with-blocker-prose]], [[task-659-way-properties-drift-insulation-and-sound-barrier-unreachable-on-the-library-spawn-and-refresh-paths]], [[task-758-biome-records-add-climate-and-neighbour-fields-for-the-palette]], [[task-529-feature-entry-direction-phrases-narrative-move-verbs-on-entry-edges]]
+<!-- deps:end -->
 
 ## What
 

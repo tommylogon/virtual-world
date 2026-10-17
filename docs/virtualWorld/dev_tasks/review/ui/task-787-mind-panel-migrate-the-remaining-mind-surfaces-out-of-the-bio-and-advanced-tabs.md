@@ -3,7 +3,7 @@ type: task
 status: review
 area: ui
 priority: medium
-related: [task-714, task-729, task-736, task-756, task-820, task-821]
+related: ['task-691', 'task-714', 'task-729', 'task-736', 'task-756', 'task-785', 'task-820', 'task-821']
 ---
 
 # task-787: Mind panel: migrate the remaining mind surfaces out of the Bio and Advanced tabs
@@ -12,7 +12,7 @@ related: [task-714, task-729, task-736, task-756, task-820, task-821]
 **Related:** task-714, task-729, task-736, task-756, task-820, task-821
 
 <!-- deps:start -->
-**Related:** [[task-714-character-mind-panel-connect-memories-motives-and-current-pursuits]], [[task-729-move-relationship-emotional-state-and-memory-add-edit-generate-controls-into-the-mind-panel]], [[task-736-per-character-cognitive-map-a-belief-based-memory-of-places-and-routes-in-the-mind-panel]], [[task-756-move-emotion-editing-into-the-mind-view-the-memory-edit-modal-is-not-its-home]], [[task-820-mind-panel-one-tabbed-mind-surface-and-one-entry-point]], [[task-821-mind-panel-relocate-the-gimp-goal-editor-out-of-the-bio-tab]]
+**Related:** [[task-691-memory-mind-interface-dynamics-badges-connections-per-person-profiles-dashboard]], [[task-714-character-mind-panel-connect-memories-motives-and-current-pursuits]], [[task-729-move-relationship-emotional-state-and-memory-add-edit-generate-controls-into-the-mind-panel]], [[task-736-per-character-cognitive-map-a-belief-based-memory-of-places-and-routes-in-the-mind-panel]], [[task-756-move-emotion-editing-into-the-mind-view-the-memory-edit-modal-is-not-its-home]], [[task-785-mind-panel-click-a-memory-to-inspect-its-underlying-record-and-evidence]], [[task-820-mind-panel-one-tabbed-mind-surface-and-one-entry-point]], [[task-821-mind-panel-relocate-the-gimp-goal-editor-out-of-the-bio-tab]]
 <!-- deps:end -->
 
 ## What

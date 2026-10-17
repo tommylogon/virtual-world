@@ -3,6 +3,7 @@ type: task
 status: review
 area: world
 priority: high
+related: ['task-528', 'task-535', 'task-540', 'task-541', 'task-582']
 ---
 
 # task-539: Reassign an area to a scope (membership only) + a scope picker on the node
@@ -14,6 +15,10 @@ priority: high
 where membership is visible — click the area node, pick its scope from a dropdown,
 done. No separate bulk-move flow; the WorldPainter then only has to list the areas
 of the scope you are painting (task-541).
+
+<!-- deps:start -->
+**Related:** [[task-528-assign-selected-areas-to-a-scope-promote-a-selection-to-a-placed-feature]], [[task-535-promote-a-graph-selection-into-a-new-child-scope-with-a-gateway]], [[task-540-worldpainter-cell-inspector-hover-or-click-a-cell-to-read-what-is-on-it]], [[task-541-worldpainter-area-picker-show-what-is-placed-here-and-what-belongs-to-this-scope-only]], [[task-582-chunk-load-unload-and-merge-apis-on-worldgraph]]
+<!-- deps:end -->
 
 ## Why
 

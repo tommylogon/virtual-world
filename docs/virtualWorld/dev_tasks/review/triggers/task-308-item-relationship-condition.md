@@ -3,6 +3,7 @@ area: triggers
 type: task
 status: review
 priority: medium
+related: ['task-297', 'task-200', 'task-203']
 ---
 
 # Item Relationship Condition (Bulging Pocket Check)
@@ -12,6 +13,10 @@ priority: medium
 **Status**: Idea
 
 ---
+
+<!-- deps:start -->
+**Related:** [[task-297-vitals-readout-trigger-condition-message]], [[task-200-more-descriptive-parameters]], [[task-203-set-adjust-parameters]]
+<!-- deps:end -->
 
 ## Idea
 

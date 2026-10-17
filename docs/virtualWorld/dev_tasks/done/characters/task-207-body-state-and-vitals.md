@@ -3,6 +3,7 @@ area: characters
 status: done
 type: task
 priority: medium
+related: ['"\'task-213\'"', '"\'task-534\'"', "'task-208'", "'task-209'", "'task-210'", "'task-211'", "'task-212'", "'task-213'", "'task-215'", 'task-208', 'task-209', 'task-210', 'task-211', 'task-212', 'task-213', 'task-215']
 ---
 
 # Body State & New Vitals (Arousal/Stimulation/Pleasure)
@@ -12,6 +13,10 @@ priority: medium
 **Status**: Review — implemented and verified against the code; shipped in v1.4.0
 
 ---
+
+<!-- deps:start -->
+**Related:** [[task-213-mature-traits]], [[task-534-missing-body-reaction-sneeze]], [[task-208-release-edging-friction]], [[task-209-physiological-state-conditions]], [[task-210-description-enrichment]], [[task-211-intimacy-verbs-actions]], [[task-212-verb-multipliers]], [[task-215-environmental-clothing-effects]]
+<!-- deps:end -->
 
 ## Why
 

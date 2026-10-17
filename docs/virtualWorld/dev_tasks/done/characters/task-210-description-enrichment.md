@@ -3,6 +3,7 @@ area: characters
 status: done
 type: task
 priority: medium
+related: ['"\'task-486\'"', "'task-207'", "'task-208'", "'task-209'", "'task-211'", "'task-212'", "'task-213'", "'task-215'", "'task-486'", 'task-207', 'task-208', 'task-209', 'task-211', 'task-212', 'task-213', 'task-215', 'task-486']
 ---
 
 # Description Enrichment (Body State + Item Details)
@@ -12,6 +13,10 @@ priority: medium
 **Status**: In review — all acceptance items met (auto-regen completed under task-486)
 
 ---
+
+<!-- deps:start -->
+**Related:** [[task-486-auto-regenerate-description-on-body-state-change]], [[task-207-body-state-and-vitals]], [[task-208-release-edging-friction]], [[task-209-physiological-state-conditions]], [[task-211-intimacy-verbs-actions]], [[task-212-verb-multipliers]], [[task-213-mature-traits]], [[task-215-environmental-clothing-effects]]
+<!-- deps:end -->
 
 ## Why
 

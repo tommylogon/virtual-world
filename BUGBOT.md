@@ -12,8 +12,11 @@ review. If a change *touches* one of them, the finding is valid.
 - `tests/test_mcp_*.py` failing with `'function' object has no attribute 'fn'`
   (FastMCP tool-wrapper mismatch in the environment).
 - Failures in `tests/test_social_company.py` and `tests/test_tick_time_scaling.py`.
-- Roughly **60 failed / 3239 passed** is the suite baseline. Compare against
-  it rather than expecting green.
+- The suite baseline. It is **not** a fixed number here - it moves. Read the
+  current measurement in `AGENTS.md` ("Test baseline") rather than trusting the
+  figure below, which is the one this file carried before the 2026-09-30
+  re-measure and is kept only as history. Compare failure **names**, not counts,
+  against a clean `master` worktree.
 - 13 pre-existing JS unit failures in `test_plan_tracker.js` (stale
   expectations). Fix or delete them, but they are not a regression.
 - `python tools/tasks.py validate` reports one `duplicate id bug-54` error and

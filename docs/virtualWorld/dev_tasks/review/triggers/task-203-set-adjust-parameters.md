@@ -3,6 +3,7 @@ area: triggers
 type: task
 status: review
 priority: medium
+related: ['task-200', 'task-153', 'task-242']
 ---
 
 # Set/Adjust Parameters via Trigger (All Node Types)
@@ -12,6 +13,10 @@ priority: medium
 **Status**: In Review — implemented 2026-08-10. `set_parameter`/`adjust_parameter` effects target any node (item/way/area/character) via `_resolve_effect_target`. `{param:<key>}` now resolves in item/way/area descriptions at examine + room prompt (guarded so MagicMock fixtures fall back to raw). Frontend effect list + editor inputs added. 844 tests pass.
 
 ---
+
+<!-- deps:start -->
+**Related:** [[task-200-more-descriptive-parameters]], [[task-153-rename-item-trigger-effect]], [[task-242-agents-create-item-triggers]]
+<!-- deps:end -->
 
 ## Why
 

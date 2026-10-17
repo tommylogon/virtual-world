@@ -3,12 +3,17 @@ type: task
 status: todo
 area: ui
 priority: medium
+related: ["'task-691'", "'task-787'", "'task-820'", 'task-785', 'task-787', 'task-820']
 ---
 
 # task-788: Mind panel: fullscreen mode
 
 **Filed:** 2026-10-12
 **Related:** 
+
+<!-- deps:start -->
+**Related:** [[task-691-memory-mind-interface-dynamics-badges-connections-per-person-profiles-dashboard]], [[task-787-mind-panel-migrate-the-remaining-mind-surfaces-out-of-the-bio-and-advanced-tabs]], [[task-820-mind-panel-one-tabbed-mind-surface-and-one-entry-point]], [[task-785-mind-panel-click-a-memory-to-inspect-its-underlying-record-and-evidence]]
+<!-- deps:end -->
 
 ## What
 

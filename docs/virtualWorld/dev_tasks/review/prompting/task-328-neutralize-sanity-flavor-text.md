@@ -1,4 +1,5 @@
 ---
+related: [task-327, task-345]
 id: 328
 title: Neutralize Sanity Flavor Text (De-Horror, De-Madness)
 status: review
@@ -12,6 +13,10 @@ area: prompting
 # Neutralize Sanity Flavor Text (De-Horror, De-Madness)
 
 **Status**: In Review — implemented 2026-08-31, code-verified + live browser check. Neutral stress wording applied to BOTH sanity surfaces (the design noted "four tier strings + stray line": the strings now live in `buildInsanityContext` tiers AND `describeVital('Sanity')` tiers — both fire in the same prompt, so both were neutralized per Tommy's confirmation). `rg "shadow|dark corner|madness|reality bends"` over the prompt-builder now hits only doc comments, no runtime prompt strings.
+
+<!-- deps:start -->
+**Related:** [[task-327-vitals-threshold-context-awareness]], [[task-345-appearance-generation-grammar-guardrail]]
+<!-- deps:end -->
 
 ## What
 

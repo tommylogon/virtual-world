@@ -3,6 +3,7 @@ type: task
 status: review
 area: library
 priority: medium
+related: ['task-291', 'task-355', 'task-237', 'task-397', 'task-399', 'task-411', 'task-412', 'task-418', 'task-427', 'task-398', 'task-400', 'task-401', 'task-590', 'task-591']
 ---
 
 # Task 357 — Structure templates: capture + materialize connected areas (with population)
@@ -29,6 +30,10 @@ layer**. The manual save/import UI is consumer #1, not the contract.
   `todo/world/task-400-pines-world-scale-vertical-slice.md`,
   `todo/world/task-401-chunk-persistence-and-gateway-ways.md` — determinism,
   scale target, and boundary ways as future gateway ways.
+
+<!-- deps:start -->
+**Related:** [[task-291-unified-library-api-and-data-driven-catalogs]], [[task-355-select-library-template-on-sync]], [[task-237-save-area-to-library]], [[task-397-world-scope-hierarchy-and-projection]], [[task-399-background-character-simulation-and-reactivation]], [[task-411-attention-budget-and-fidelity-tiers]], [[task-412-promotion-demotion-and-trace-consolidation]], [[task-418-awareness-channels-audibility-over-radius]], [[task-427-creature-spawners-and-population-caps]], [[task-398-deterministic-structure-generation]], [[task-400-pines-world-scale-vertical-slice]], [[task-401-chunk-persistence-and-gateway-ways]], [[task-590-make-the-behaviours-tab-real-load-data-library-behaviours-json-into-the-engine-the-traits-treatment]], [[task-591-structures-an-authoring-affordance-in-the-ui-capture-a-subgraph-from-the-graph-editor]]
+<!-- deps:end -->
 
 ## Why (the real use case)
 

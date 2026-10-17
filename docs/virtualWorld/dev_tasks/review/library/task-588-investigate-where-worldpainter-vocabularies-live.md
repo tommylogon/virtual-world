@@ -3,7 +3,7 @@ type: task
 status: review
 area: library
 priority: medium
-related: [task-569, task-570, task-573, task-568, task-497]
+related: ['task-497', 'task-568', 'task-569', 'task-570', 'task-571', 'task-573', 'task-589', 'task-645']
 ---
 
 # task-588: Investigate — where WorldPainter vocabularies live, and whether they belong in `data/library/`
@@ -14,7 +14,7 @@ related: [task-569, task-570, task-573, task-568, task-497]
 **Blocks:** task-589 (a WorldPainter tab in the library) — the tab's shape depends on where the data ends up
 
 <!-- deps:start -->
-**Related:** [[task-569-biome-resource-distribution-consumer]], [[task-570-hostile-distribution-consumer]], [[task-573-lint-biome-coverage-from-biomes-json]], [[task-568-an-indoor-vocabulary-so-a-floor-plan-can-be-written-without-warnings]], [[task-497-worldpainter-biome-feature-taxonomy-and-distribution-layers]]
+**Related:** [[task-497-worldpainter-biome-feature-taxonomy-and-distribution-layers]], [[task-568-an-indoor-vocabulary-so-a-floor-plan-can-be-written-without-warnings]], [[task-569-biome-resource-distribution-consumer]], [[task-570-hostile-distribution-consumer]], [[task-571-item-biome-affinity-field]], [[task-573-lint-biome-coverage-from-biomes-json]], [[task-589-library-a-worldpainter-category-tab-for-compiler-vocabularies-biomes-floor-plans]], [[task-645-data-library-rooms-has-3-files-but-no-read-endpoint-http-400]]
 <!-- deps:end -->
 
 ## What

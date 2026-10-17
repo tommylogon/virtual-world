@@ -3,6 +3,7 @@ type: task
 status: review
 area: items
 priority: medium
+related: [task-53, task-363, task-160, task-299]
 ---
 
 # task-433: Agent-reachable inscription (task-53 follow-up)
@@ -15,6 +16,10 @@ In Review**).
 **Relates:** task-160 / task-363 (structured actions; stopping *accidental*
 inscription), task-299 (long-distance communication — letters), task-423
 (background social interactions), task-403 (unified memory/knowledge).
+
+<!-- deps:start -->
+**Related:** [[task-53-use_item_with_parameters]], [[task-363-command-parser-multiwindow-targets]], [[task-160-parameterized-actions-in-prompts]], [[task-299-long-distance-communication]]
+<!-- deps:end -->
 
 ## Why this exists
 

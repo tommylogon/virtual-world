@@ -3,13 +3,28 @@
   "name": "Shoe Horse",
   "description": "Nail a set of shoes onto a standing horse.",
   "ingredients": [
-    {"item": "horseshoes", "count": 1, "consumed": true},
-    {"item": "nails", "count": 4, "consumed": true},
-    {"item": "hammer", "count": 1, "consumed": false}
+    {
+      "item": "horseshoes",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "nails",
+      "count": 4,
+      "consumed": true
+    },
+    {
+      "item": "hammer",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [],
   "duration_min": 30,
-  "skill_check": {"skill": "Smithing", "dc": 9},
+  "skill_check": {
+    "skill": "Smithing",
+    "dc": 9
+  },
   "outputs": [],
   "outcomes": {
     "crit_success": {
@@ -31,6 +46,8 @@
       "message": "Thrown shoe — kept, retry. Nothing else lost."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

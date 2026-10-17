@@ -3,12 +3,17 @@ type: bug
 status: review
 area: library
 priority: high
+related: ['task-750', 'task-291', 'task-206']
 ---
 
 # bug-512: /api/tags/validate returns nonsense fuzzy suggestions for unknown tags
 
 **Filed:** 2026-09-30
 **Related:** 
+
+<!-- deps:start -->
+**Related:** [[task-750-migrate-the-mature-boolean-to-a-mature-content-tag-registered-and-scanned-across-node-types]], [[task-291-unified-library-api-and-data-driven-catalogs]], [[task-206-mature-content-toggle]]
+<!-- deps:end -->
 
 ## What
 

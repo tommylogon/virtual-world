@@ -3,12 +3,17 @@ type: task
 status: review
 area: characters
 priority: high
+related: ["'task-685'", "'task-686'", "'task-687'", "'task-688'", "'task-689'", "'task-690'", 'task-685', 'task-686', 'task-687', 'task-688', 'task-689', 'task-690']
 ---
 
 # task-707: Memory: decay reduces activation only, never deletes (actor, trigger, or consolidation only)
 
 **Filed:** 2026-10-05
 **Related:** task-685,task-687,task-688
+
+<!-- deps:start -->
+**Related:** [[task-685-memory-dynamics-memories-that-reinforce-fade-contradict-and-change-the-character]], [[task-686-engine-memory-dynamics-fields-reinforcement-on-recall-and-re-encounter]], [[task-687-engine-non-uniform-memory-decay-activation-decay-with-per-memory-resistance]], [[task-688-engine-reflection-2-0-structured-insights-depth-guard-consolidation]], [[task-689-engine-contradiction-detection-linking-fallible-memory]], [[task-690-retrieval-2-0-one-multi-signal-scorer-structured-character-model-recall-b]]
+<!-- deps:end -->
 
 ## What
 

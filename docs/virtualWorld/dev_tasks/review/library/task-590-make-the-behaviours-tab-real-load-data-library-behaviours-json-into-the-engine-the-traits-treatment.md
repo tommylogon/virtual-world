@@ -3,7 +3,7 @@ type: task
 status: review
 area: library
 priority: high
-related: [task-291, task-586]
+related: ['task-291', 'task-357', 'task-586', 'task-645']
 supersedes: "Library 2.0 - Unified Library Design.md §1.3 'Behaviours tab — Remove the tab/type'"
 ---
 
@@ -14,7 +14,7 @@ supersedes: "Library 2.0 - Unified Library Design.md §1.3 'Behaviours tab — R
 **Supersedes:** `docs/virtualWorld/Library System/Library 2.0 - Unified Library Design.md` §1.3, the "Behaviours tab" row, which says "Remove the tab/type"
 
 <!-- deps:start -->
-**Related:** [[task-291-unified-library-api-and-data-driven-catalogs]], [[task-586-dedicated-regression-fixture-world-for-pytest-and-playwright]]
+**Related:** [[task-291-unified-library-api-and-data-driven-catalogs]], [[task-357-structure-save-load-connected-areas]], [[task-586-dedicated-regression-fixture-world-for-pytest-and-playwright]], [[task-645-data-library-rooms-has-3-files-but-no-read-endpoint-http-400]]
 <!-- deps:end -->
 
 ## What

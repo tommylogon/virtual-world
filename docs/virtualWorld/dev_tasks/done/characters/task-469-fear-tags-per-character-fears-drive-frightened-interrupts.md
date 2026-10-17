@@ -3,12 +3,17 @@ type: task
 status: done
 area: characters
 priority: high
+related: ['task-484', 'task-552']
 ---
 
 # task-469: Fear tags: per-character fears drive frightened/interrupts
 
 **Filed:** 2026-09-23
 **Related:** task-464, task-466, task-214, task-213, task-326
+
+<!-- deps:start -->
+**Related:** [[task-484-tune-the-frightened-condition-once-real-fears-exist]], [[task-552-fear-response-humans-should-fear-goblins]]
+<!-- deps:end -->
 
 ## What
 

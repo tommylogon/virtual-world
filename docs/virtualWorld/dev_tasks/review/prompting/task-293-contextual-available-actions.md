@@ -1,4 +1,5 @@
 ---
+related: [task-321, task-361]
 type: task
 status: review
 area: prompting
@@ -8,6 +9,10 @@ priority: medium
 # task-293: Contextual "Available Actions" prompts
 
 **Status** — In Review — implemented (contextual-actions.js wired into room-context.js); verified live render 2026-08-21. Moved from todo/ 2026-08-21.
+
+<!-- deps:start -->
+**Related:** [[task-321-conversation-response-instinct]], [[task-361-invalid-action-auto-retry]]
+<!-- deps:end -->
 
 ## What
 

@@ -1,4 +1,5 @@
 ---
+related: [task-327, task-328]
 id: 322
 title: System Hygiene Refactor (speech extraction, JS unit harness, threshold dedup, green suite)
 status: review
@@ -12,6 +13,10 @@ area: refactor
 # task-322: System Hygiene Refactor
 
 **Status** — In Review — all items implemented + verified 2026-08-21
+
+<!-- deps:start -->
+**Related:** [[task-327-vitals-threshold-context-awareness]], [[task-328-neutralize-sanity-flavor-text]]
+<!-- deps:end -->
 
 ## What
 

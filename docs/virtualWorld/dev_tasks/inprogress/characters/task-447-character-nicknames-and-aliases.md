@@ -3,6 +3,7 @@ type: task
 status: inprogress
 area: characters
 priority: medium
+related: ["'task-457'", "'task-727'", 'task-457', 'task-727']
 blocked_by: [bug-523]
 ---
 
@@ -14,6 +15,7 @@ blocked_by: [bug-523]
 
 <!-- deps:start -->
 **Blocked by:** [[bug-523-plan-grounding-facts-use-unmasked-real-names-leaking-strangers-and-rejecting-targets-the-room-showed]]
+**Related:** [[task-457-character-nodes-are-the-canonical-character-record-human-agent-simple-npc]], [[task-727-lived-log-to-memory-bridge-phrase-lived-entries-into-first-person-memories]]
 <!-- deps:end -->
 
 ## Why

@@ -3,7 +3,7 @@ type: task
 status: review
 area: items
 priority: medium
-related: [task-604, task-606]
+related: [task-604, task-606, task-654]
 ---
 
 # task-607: Damage reduction needs a selectable mode: flat, dice reduction, or percentage
@@ -12,7 +12,7 @@ related: [task-604, task-606]
 **Related:** task-604 (two-axis defense/evasion), task-606 (scale-correct stats)
 
 <!-- deps:start -->
-**Related:** [[task-604-split-defense-into-two-anti-correlated-axes-damage-reduction-and-evasion]], [[task-606-author-scale-correct-ability-scores-per-size-tier-so-a-leviathan-is-not-str-9]]
+**Related:** [[task-604-split-defense-into-two-anti-correlated-axes-damage-reduction-and-evasion]], [[task-606-author-scale-correct-ability-scores-per-size-tier-so-a-leviathan-is-not-str-9]], [[task-654-player-equipped-and-the-equipment-graph-edges-are-two-sources-of-truth-the-api-writes-only-the-first]]
 <!-- deps:end -->
 
 ## What

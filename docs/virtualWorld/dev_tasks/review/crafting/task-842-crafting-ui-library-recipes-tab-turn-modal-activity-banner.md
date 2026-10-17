@@ -3,7 +3,7 @@ type: task
 status: review
 area: crafting
 priority: medium
-related: [task-831, task-840, task-841]
+related: ['task-831', 'task-840', 'task-841']
 ---
 
 # task-842: Crafting UI — library recipes tab, turn modal, activity banner

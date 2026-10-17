@@ -3,6 +3,7 @@ type: task
 status: done
 area: characters
 priority: medium
+related: ["'task-349'", "'task-350'", 'task-349', 'task-350']
 ---
 
 # task-420: One relationship mutation path
@@ -11,6 +12,10 @@ priority: medium
 **Depends on:** task-417 (co-presence meetings).  
 **Prerequisite for:** task-412 (promotion/demotion handoff).  
 **Relates:** task-350 (`engine/derive.py`), task-409.
+
+<!-- deps:start -->
+**Related:** [[task-349-relationship-system-fixes]], [[task-350-experience-driven-relationships]]
+<!-- deps:end -->
 
 ## Outcome (2026-09-21)
 

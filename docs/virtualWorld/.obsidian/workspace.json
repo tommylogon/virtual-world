@@ -4,17 +4,17 @@
     "type": "split",
     "children": [
       {
-        "id": "072b126b81905193",
+        "id": "4338f9a845b11bc6",
         "type": "tabs",
         "children": [
           {
-            "id": "2060a4dbfa7c3a30",
+            "id": "343fc113bb9ed229",
             "type": "leaf",
             "state": {
-              "type": "empty",
+              "type": "graph",
               "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
+              "icon": "lucide-git-fork",
+              "title": "Graph view"
             }
           }
         ]
@@ -181,8 +181,16 @@
       "bases:Create new base": false
     }
   },
-  "active": "2060a4dbfa7c3a30",
+  "active": "343fc113bb9ed229",
   "lastOpenFiles": [
+    "dev_tasks/todo/gameplay/bug-555-ghost-mode-does-not-unblock-a-timeskip-or-a-soak-order-for-a-dead-character.md",
+    "dev_tasks/todo/gameplay/task-859-a-soak-order-promoted-before-it-runs-reports-success-and-never-says-why-it-stopped.md",
+    "dev_tasks/todo/ui/task-858-timeskip-world-mode-summary-prints-elapsed-undefined.md",
+    "dev_tasks/todo/gameplay/task-857-a-dead-controlled-character-is-offered-a-timeskip-and-a-soak-instead-of-a-clear-dead-denial.md",
+    "dev_tasks/todo/ui/bug-554-a-refused-timeskip-drops-the-engine-reason-behind-a-generic-400-message.md",
+    "dev_tasks/todo/ui/bug-553-minimap-opens-on-the-alphabetically-first-scope-hiding-freshly-explored-cells.md",
+    "dev_tasks/todo/prompting/task-856-attended-llm-agents-see-and-follow-their-assigned-pursuit.md",
+    "Features/where-you-ve-been.md",
     "Features/Features Overview.md",
     "dev_tasks/review/docs/task-699-mosiac-design-doc-schedules-plan-templates-and-recipe-activities-as-one-decision-layer.md",
     "dev_tasks/done/graph/bug-550-a-property-only-sync-re-seeds-node-x-y-and-snaps-a-dragged-node-back-to-its-stored-position.md",
@@ -201,14 +209,6 @@
     "dev_tasks/todo/characters/task-813-mosiac-obligations-the-missing-letter-s-data.md",
     "dev_tasks/todo/gameplay/task-812-mosiac-per-character-context-assembly-m-o-s-i-a-c.md",
     "dev_tasks/todo/gameplay/task-811-gimp-achievement-log-and-goal-replay.md",
-    "dev_tasks/todo/gameplay/task-810-gimp-the-goal-graph-links-blocks-and-chaining.md",
-    "dev_tasks/todo/gameplay/task-809-gimp-create-goals-at-runtime-from-verbs-and-free-actions.md",
-    "dev_tasks/todo/ui/task-808-gimp-author-goals-in-the-character-editor.md",
-    "dev_tasks/todo/gameplay/task-807-gimp-the-goal-model-and-its-serialization.md",
-    "dev_tasks/todo/characters/task-806-split-traits-capabilities-from-personality-decision-dials.md",
-    "dev_tasks/todo/characters/task-805-disposition-whispers-render-the-score-registry-as-words-for-the-llm.md",
-    "dev_tasks/todo/characters/task-804-disposition-pick-argmax-with-a-stable-tie-break.md",
-    "dev_tasks/todo/characters/task-803-disposition-value-gates-traits-and-morality-as-hard-exclusions.md",
     "dev_tasks/done/dev",
     "Untitled.canvas",
     "dev_tasks/todo/gameplay/task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override.md.tmp.11928.1b3cb7021f85",

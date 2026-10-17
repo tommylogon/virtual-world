@@ -4,7 +4,7 @@ status: review
 area: characters
 priority: high
 wiki: "[[Character Pursuits]]"
-related: [task-704, task-691, task-714, task-801, task-802, task-803, task-804, task-805, task-806]
+related: ["'task-691'", "'task-704'", "'task-714'", "'task-799'", "'task-801'", "'task-802'", "'task-803'", "'task-804'", "'task-805'", "'task-806'", 'task-799', 'task-802', 'task-803', 'task-804', 'task-805', 'task-806']
 blocked_by: [task-799]
 ---
 
@@ -15,7 +15,7 @@ blocked_by: [task-799]
 
 <!-- deps:start -->
 **Blocked by:** [[task-799-disposition-spike-do-three-unrelated-soak-decisions-fit-one-score-registry]]
-**Related:** [[task-704-mosiac-selector-needs-memory-and-personality-choose-and-bind-plans]], [[task-691-memory-mind-interface-dynamics-badges-connections-per-person-profiles-dashboard]], [[task-714-character-mind-panel-connect-memories-motives-and-current-pursuits]], [[task-801-disposition-action-features-verb-score-contributions]], [[task-802-disposition-character-weights-from-traits-plus-live-modifiers]], [[task-803-disposition-value-gates-traits-and-morality-as-hard-exclusions]], [[task-804-disposition-pick-argmax-with-a-stable-tie-break]], [[task-805-disposition-whispers-render-the-score-registry-as-words-for-the-llm]], [[task-806-split-traits-capabilities-from-personality-decision-dials]]
+**Related:** [[task-691-memory-mind-interface-dynamics-badges-connections-per-person-profiles-dashboard]], [[task-704-mosiac-selector-needs-memory-and-personality-choose-and-bind-plans]], [[task-714-character-mind-panel-connect-memories-motives-and-current-pursuits]], [[task-799-disposition-spike-do-three-unrelated-soak-decisions-fit-one-score-registry]], [[task-801-disposition-action-features-verb-score-contributions]], [[task-802-disposition-character-weights-from-traits-plus-live-modifiers]], [[task-803-disposition-value-gates-traits-and-morality-as-hard-exclusions]], [[task-804-disposition-pick-argmax-with-a-stable-tie-break]], [[task-805-disposition-whispers-render-the-score-registry-as-words-for-the-llm]], [[task-806-split-traits-capabilities-from-personality-decision-dials]]
 <!-- deps:end -->
 
 ## What

@@ -3,35 +3,81 @@
   "name": "Make Shortbow",
   "description": "Tiller a yew stave into a shortbow with rope and wax.",
   "ingredients": [
-    {"item": "yew_stave", "count": 1, "consumed": true},
-    {"item": "rope", "count": 1, "consumed": true},
-    {"item": "wax", "count": 1, "consumed": true},
-    {"item": "tiller", "count": 1, "consumed": false}
+    {
+      "item": "yew_stave",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "rope",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "wax",
+      "count": 1,
+      "consumed": true
+    },
+    {
+      "item": "tiller",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [],
   "duration_min": 180,
-  "skill_check": {"skill": "Woodcraft", "dc": 13},
-  "outputs": [{"item": "shortbow", "count": 1}],
+  "skill_check": {
+    "skill": "Woodcraft",
+    "dc": 13
+  },
+  "outputs": [
+    {
+      "item": "shortbow",
+      "count": 1
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "shortbow", "count": 1}],
+      "outputs": [
+        {
+          "item": "shortbow",
+          "count": 1
+        }
+      ],
       "message": "Sweet-drawing bow — casts true past its length."
     },
     "success": {
-      "outputs": [{"item": "shortbow", "count": 1}],
+      "outputs": [
+        {
+          "item": "shortbow",
+          "count": 1
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "weak_bow", "count": 1}],
+      "outputs": [
+        {
+          "item": "weak_bow",
+          "count": 1
+        }
+      ],
       "message": "Weak limbs — half range."
     },
     "crit_fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "snapped_stick", "count": 1}],
+      "outputs": [
+        {
+          "item": "snapped_stick",
+          "count": 1
+        }
+      ],
       "message": "Snapped stave — firewood."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }

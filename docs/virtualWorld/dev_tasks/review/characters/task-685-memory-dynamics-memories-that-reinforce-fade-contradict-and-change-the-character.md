@@ -3,6 +3,7 @@ type: task
 status: review
 area: characters
 priority: high
+related: ["'task-686'", "'task-687'", "'task-688'", "'task-689'", "'task-690'", "'task-707'", 'task-686', 'task-687', 'task-688', 'task-689', 'task-690', 'task-707']
 children: [task-686, task-687, task-688, task-689, task-690, task-691]
 ---
 
@@ -15,6 +16,7 @@ children: [task-686, task-687, task-688, task-689, task-690, task-691]
 
 <!-- deps:start -->
 **Children:** [[task-686-engine-memory-dynamics-fields-reinforcement-on-recall-and-re-encounter]], [[task-687-engine-non-uniform-memory-decay-activation-decay-with-per-memory-resistance]], [[task-688-engine-reflection-2-0-structured-insights-depth-guard-consolidation]], [[task-689-engine-contradiction-detection-linking-fallible-memory]], [[task-690-retrieval-2-0-one-multi-signal-scorer-structured-character-model-recall-b]], [[task-691-memory-mind-interface-dynamics-badges-connections-per-person-profiles-dashboard]]
+**Related:** [[task-686-engine-memory-dynamics-fields-reinforcement-on-recall-and-re-encounter]], [[task-687-engine-non-uniform-memory-decay-activation-decay-with-per-memory-resistance]], [[task-688-engine-reflection-2-0-structured-insights-depth-guard-consolidation]], [[task-689-engine-contradiction-detection-linking-fallible-memory]], [[task-690-retrieval-2-0-one-multi-signal-scorer-structured-character-model-recall-b]], [[task-707-memory-decay-reduces-activation-only-never-deletes-actor-trigger-or-consolidation-only]]
 <!-- deps:end -->
 
 ## What

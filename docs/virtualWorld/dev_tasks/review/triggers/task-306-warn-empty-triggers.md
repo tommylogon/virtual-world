@@ -3,6 +3,7 @@ area: triggers
 type: task
 status: review
 priority: medium
+related: ['task-305', 'task-307', 'bug-532', 'task-503']
 ---
 
 # Warn on Empty Triggers
@@ -12,6 +13,10 @@ priority: medium
 **Status**: In Review — implemented 2026-08-19 (backend validator, left-panel World Issues)
 
 ---
+
+<!-- deps:start -->
+**Related:** [[task-305-warn-way-missing-authoring-fields]], [[task-307-warn-mechanic-tags-missing-values]], [[bug-532-a-message-effect-exposes-both-a-message-field-and-success-fail-message-with-contradictory-precedence]], [[task-503-behavior-mode-compile-honesty-stop-dropping-no-branch-actions]]
+<!-- deps:end -->
 
 ## Idea
 

@@ -3,12 +3,17 @@ type: task
 status: review
 area: triggers
 priority: medium
+related: ['task-203', 'task-380', 'task-388']
 ---
 
 # Task-242: Allow Agents to Create Triggers on Items
 
 **Status**: Todo — not started. Scope lock 2026-08-30: new agent action via normalizeStructuredAction + /api/action, schema {item, when, effect}, reuse TriggerEditor internals (edge props + logic_trigger nodes) so human editors see them; limit to supported effects/conditions; ensure graph serialization round-trips.
 **Source:** `dev_tasks/developer ideas.md` (allow agents to create their own triggers on items)
+
+<!-- deps:start -->
+**Related:** [[task-203-set-adjust-parameters]], [[task-380-trigger-snippet-palette]], [[task-388-trigger-graph-editor-overhaul]]
+<!-- deps:end -->
 
 ## What
 

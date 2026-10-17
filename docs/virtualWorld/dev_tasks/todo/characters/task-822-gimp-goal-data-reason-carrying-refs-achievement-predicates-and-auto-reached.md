@@ -2,7 +2,8 @@
 type: task
 status: todo
 area: characters
-priority: medium
+priority: high
+related: ['"\'task-704\'"', '"\'task-849\'"', "'task-704'", "'task-849'", 'task-704', 'task-849']
 wiki: "[[Character Pursuits]]"
 ---
 
@@ -10,6 +11,10 @@ wiki: "[[Character Pursuits]]"
 
 **Filed:** 2026-10-13
 **Related:** task-807, task-810, task-811, task-705, task-704, task-714
+
+<!-- deps:start -->
+**Related:** [[task-704-mosiac-selector-needs-memory-and-personality-choose-and-bind-plans]], [[task-849-narrative-authoring-should-feed-memories-and-goals-not-duplicate-them]]
+<!-- deps:end -->
 
 ## What
 

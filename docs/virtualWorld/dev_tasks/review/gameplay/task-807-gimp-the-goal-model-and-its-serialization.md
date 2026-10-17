@@ -4,7 +4,7 @@ status: review
 area: gameplay
 priority: high
 wiki: "[[Character Pursuits]]"
-related: [task-700, task-702, task-691, task-714]
+related: [task-700, task-702, task-691, task-714, task-809, task-810, task-811, task-812]
 ---
 
 # task-807: GIMP: the Goal model and its serialization
@@ -13,7 +13,7 @@ related: [task-700, task-702, task-691, task-714]
 **Related:** task-700, task-702
 
 <!-- deps:start -->
-**Related:** [[task-700-grounded-plan-contract-the-llm-plan-phase-emits-typed-steps-validated-against-world-facts]], [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]], [[task-691-memory-mind-interface-dynamics-badges-connections-per-person-profiles-dashboard]], [[task-714-character-mind-panel-connect-memories-motives-and-current-pursuits]]
+**Related:** [[task-700-grounded-plan-contract-the-llm-plan-phase-emits-typed-steps-validated-against-world-facts]], [[task-702-plan-executor-runtime-the-engine-runs-typed-plans-for-any-character-with-invalidation-and-needs-override]], [[task-691-memory-mind-interface-dynamics-badges-connections-per-person-profiles-dashboard]], [[task-714-character-mind-panel-connect-memories-motives-and-current-pursuits]], [[task-809-gimp-create-goals-at-runtime-from-verbs-and-free-actions]], [[task-810-gimp-the-goal-graph-links-blocks-and-chaining]], [[task-811-gimp-achievement-log-and-goal-replay]], [[task-812-mosiac-per-character-context-assembly-m-o-s-i-a-c]]
 <!-- deps:end -->
 
 ## What

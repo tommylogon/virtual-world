@@ -3,12 +3,17 @@ type: task
 status: todo
 area: ui
 priority: medium
+related: ['task-744', 'task-847', 'task-848']
 ---
 
 # task-675: Character editor: three-column body with section nav rail
 
 **Filed:** 2026-10-02
 **Related:** task-251, task-512, task-89
+
+<!-- deps:start -->
+**Related:** [[task-744-equipment-and-body-one-edge-truth-for-worn-gear-layered-coverage-body-marks-body-centric-ui]], [[task-847-persona-tab-embedded-body-paperdoll-navigator-for-appearance-schema]], [[task-848-persona-tab-visual-paperdoll-with-inline-body-baseline-editing]]
+<!-- deps:end -->
 
 ## What
 

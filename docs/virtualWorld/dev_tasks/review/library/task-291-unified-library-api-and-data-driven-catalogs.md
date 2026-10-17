@@ -3,6 +3,7 @@ id: 291
 title: Unified Library API + data-driven Conditions & Traits catalogs
 status: review
 priority: high
+related: ['task-590', 'task-645', 'task-355', 'task-296', 'task-577', 'task-504']
 created: 2026-08-17
 tags: [library, refactor, conditions, traits, api, data-driven]
 type: task
@@ -13,6 +14,10 @@ area: library
 
 Part of **Library 2.0** (design: `docs/virtualWorld/Library System/Library 2.0 - Unified Library Design.md`).
 Implements the Phase 1 backend consolidation and the conditions/traits data-driven migration.
+
+<!-- deps:start -->
+**Related:** [[task-590-make-the-behaviours-tab-real-load-data-library-behaviours-json-into-the-engine-the-traits-treatment]], [[task-645-data-library-rooms-has-3-files-but-no-read-endpoint-http-400]], [[task-355-select-library-template-on-sync]], [[task-296-library-instance-mismatch-warning]], [[task-577-authorable-docs-field-on-library-nodes]], [[task-504-item-quantity-property-and-pooled-resource-nodes]]
+<!-- deps:end -->
 
 ## What
 

@@ -3,6 +3,7 @@ area: library
 type: task
 status: review
 priority: medium
+related: ['task-355', 'task-291', 'task-306']
 ---
 
 # Warn on Library/Instance Mismatch
@@ -12,6 +13,10 @@ priority: medium
 **Status**: In Review — implemented 2026-08-19 (backend validator, left-panel World Issues)
 
 ---
+
+<!-- deps:start -->
+**Related:** [[task-355-select-library-template-on-sync]], [[task-291-unified-library-api-and-data-driven-catalogs]], [[task-306-warn-empty-triggers]]
+<!-- deps:end -->
 
 ## Idea
 

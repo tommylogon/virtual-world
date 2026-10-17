@@ -3,33 +3,71 @@
   "name": "Grind Flour Fine",
   "description": "Mill wheat to fine flour on the millstone.",
   "ingredients": [
-    {"item": "wheat", "count": 2, "consumed": true},
-    {"item": "millstone", "count": 1, "consumed": false}
+    {
+      "item": "wheat",
+      "count": 2,
+      "consumed": true
+    },
+    {
+      "item": "millstone",
+      "count": 1,
+      "consumed": false
+    }
   ],
   "conditions": [],
   "duration_min": 30,
-  "skill_check": {"skill": "Crafting", "dc": 10},
-  "outputs": [{"item": "flour", "count": 3}],
+  "skill_check": {
+    "skill": "Crafting",
+    "dc": 10
+  },
+  "outputs": [
+    {
+      "item": "flour",
+      "count": 3
+    }
+  ],
   "outcomes": {
     "crit_success": {
-      "outputs": [{"item": "flour", "count": 4}],
+      "outputs": [
+        {
+          "item": "flour",
+          "count": 4
+        }
+      ],
       "message": "Silk-fine flour, full yield."
     },
     "success": {
-      "outputs": [{"item": "flour", "count": 3}],
+      "outputs": [
+        {
+          "item": "flour",
+          "count": 3
+        }
+      ],
       "message": ""
     },
     "fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "coarse_meal", "count": 2}],
+      "outputs": [
+        {
+          "item": "coarse_meal",
+          "count": 2
+        }
+      ],
       "message": "Too coarse for bread — meal instead."
     },
     "crit_fail": {
       "consume_inputs": true,
-      "outputs": [{"item": "coarse_meal", "count": 1}],
+      "outputs": [
+        {
+          "item": "coarse_meal",
+          "count": 1
+        }
+      ],
       "message": "Stones set wrong — mostly grit."
     }
   },
-  "learned_by": ["global"],
+  "learned_by": [
+    "global"
+  ],
   "discoverable": true
 }
