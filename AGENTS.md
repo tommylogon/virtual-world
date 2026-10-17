@@ -475,10 +475,9 @@ another layer could also produce.
 - Never call a new failure "pre-existing" until reproduced independently.
 - When a failure is genuinely unrelated, record why.
 
-**The A/B that satisfies this.** `git stash push -- <files you touched>`, re-run
-the same selection, `git stash pop`. Identical failure names both ways is the
-proof. (Not in a managed worktree; see Gotchas. There, use a clean baseline
-worktree instead.)
+**The A/B that satisfies this.** Re-run the same selection against a clean
+`master` checkout. Identical failure names both ways is the proof. (Use a clean
+baseline worktree instead.)
 
 ### Filing discipline
 
@@ -807,9 +806,7 @@ default encoding that can mangle non-ASCII on write, and `Get-Content` /
 `Set-Content` double-encode em-dashes unrecoverably. Use the `edit` / `write`
 tools for all file content; the shell is for running tools only.
 
-**`git stash` is forbidden in a managed worktree** - stashes are shared across
-worktrees, so one here is visible to every other lane. Rebase or merge `master`
-in instead. And `npm install` rewrites `package-lock.json`'s `"name"` to the
+**`npm install` rewrites `package-lock.json`'s `"name"` to the
 worktree directory name; always `git checkout -- package-lock.json` afterwards.
 
 ### `GET /api/state` costs 2.48 MB and ~750 ms
@@ -884,11 +881,9 @@ Compare-Object (Get-Content baseline.txt | ? { $_ -like 'FAILED*' } | Sort-Objec
 
 ### Gotchas in a managed worktree
 
-- **Never `git stash`.** Stashes are shared across worktrees, so one here is
-  visible to every other lane. Rebase or merge `master` in instead.
 - **Never `npm install` or run the JS gates without checking `git status`
-  afterwards.** npm rewrites `package-lock.json`'s `"name"` to the worktree
-  directory name. Revert: `git checkout -- package-lock.json`.
+  afterwards.** npm rewrites `package-lock.json`'s `"name"` to the
+  worktree directory name. Revert: `git checkout -- package-lock.json`.
 
 ---
 
